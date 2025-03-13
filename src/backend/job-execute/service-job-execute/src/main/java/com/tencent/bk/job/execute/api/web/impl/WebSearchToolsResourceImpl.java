@@ -69,12 +69,13 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
                                             String gseTaskId) {
         GseTaskSimpleDTO gseTaskSimpleInfo = gseTaskService.getGseTaskSimpleInfo(gseTaskId);
         if (gseTaskSimpleInfo == null) {
-            String errorMsg = "not found gseTask by "+gseTaskId;
+            String errorMsg = "not found gseTask by " + gseTaskId;
             log.warn(errorMsg);
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new String[]{String.valueOf(gseTaskId), errorMsg});
         }
-        StepInstanceBaseDTO stepInstanceBase = stepInstanceService.getStepInstanceBase(gseTaskSimpleInfo.getStepInstanceId());
+        StepInstanceBaseDTO stepInstanceBase = stepInstanceService.getBaseStepInstance(
+            gseTaskSimpleInfo.getTaskInstanceId(), gseTaskSimpleInfo.getStepInstanceId());
         Long appId = stepInstanceBase.getAppId();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         AppResourceScope appResourceScope = new AppResourceScope(appId, resourceScope);
@@ -91,9 +92,9 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
     @Override
     public Response<List<TaskLinkVO>> getTaskLinkByStepId(String username,
                                                           Long stepInstanceId) {
-        StepInstanceBaseDTO stepInstanceBase = stepInstanceService.getStepInstanceBase(stepInstanceId);
+        StepInstanceBaseDTO stepInstanceBase = stepInstanceService.getBaseStepInstanceById(stepInstanceId);
         if (stepInstanceBase == null) {
-            String errorMsg = "not found StepInstance by "+stepInstanceId;
+            String errorMsg = "not found StepInstance by " + stepInstanceId;
             log.warn(errorMsg);
             return Response.buildCommonFailResp(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new String[]{String.valueOf(stepInstanceId), errorMsg});
@@ -105,12 +106,12 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
         auth(username, appResourceScope);
 
         List<StepInstanceRollingTaskDTO> stepInstanceRollingTaskDTOS =
-            stepInstanceRollingTaskService.listRollingTasksByStep(stepInstanceId);
+            stepInstanceRollingTaskService.listRollingTasksByStep(stepInstanceBase.getTaskInstanceId(), stepInstanceId);
         List<GseTaskSimpleDTO> gseTaskDTOList = new ArrayList<>();
         // 是否滚动执行
         if (CollectionUtils.isNotEmpty(stepInstanceRollingTaskDTOS)) {
             for (StepInstanceRollingTaskDTO stepInstanceRollingTaskDTO : stepInstanceRollingTaskDTOS) {
-                List<GseTaskSimpleDTO> gseTaskSimpleDTOList = gseTaskService.ListGseTaskSimpleInfo(stepInstanceId,
+                List<GseTaskSimpleDTO> gseTaskSimpleDTOList = gseTaskService.listGseTaskSimpleInfo(stepInstanceId,
                     stepInstanceRollingTaskDTO.getExecuteCount(),
                     stepInstanceRollingTaskDTO.getBatch());
                 if (CollectionUtils.isNotEmpty(gseTaskSimpleDTOList)) {
@@ -118,7 +119,7 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
                 }
             }
         } else {
-            List<GseTaskSimpleDTO> gseTaskSimpleDTOList = gseTaskService.ListGseTaskSimpleInfo(stepInstanceId,
+            List<GseTaskSimpleDTO> gseTaskSimpleDTOList = gseTaskService.listGseTaskSimpleInfo(stepInstanceId,
                 null,
                 null);
             if (CollectionUtils.isNotEmpty(gseTaskSimpleDTOList)) {
@@ -177,7 +178,7 @@ public class WebSearchToolsResourceImpl implements WebSearchToolsResource {
     private List<String> buildLink(TaskLinkVO taskLinkVO, StepInstanceBaseDTO stepInstanceBase) {
         List<String> links = new ArrayList();
         String linkTemplate = FAST_LINK;
-        if(stepInstanceBase.getStepId() != -1L){
+        if (stepInstanceBase.getStepId() != -1L) {
             linkTemplate = TASK_LINK;
         }
         if (jobWebUrl.indexOf(",") != -1) {

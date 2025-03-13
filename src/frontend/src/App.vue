@@ -91,6 +91,11 @@
             @click="handleLocationFeedback">
             {{ $t('问题反馈') }}
           </div>
+          <div
+            class="item"
+            @click="handleLocationOpenSource">
+            {{ $t('开源社区') }}
+          </div>
         </div>
       </bk-popover>
       <bk-popover
@@ -112,11 +117,13 @@
     </template>
     <router-view />
     <system-log v-model="showSystemLog" />
+    <jb-ai v-if="isAiEnable" />
   </layout>
 </template>
 <script>
   import Cookie from 'js-cookie';
 
+  import AiService from '@service/ai';
   import EnvService from '@service/env';
   import LogoutService from '@service/logout';
   import QueryGlobalSettingService from '@service/query-global-setting';
@@ -153,6 +160,7 @@
           'esb.url': '',
           bkDomain: '',
         },
+        isAiEnable: false,
       };
     },
     computed: {
@@ -175,6 +183,7 @@
       this.fetchUserInfo();
       this.fetchRelatedSystemUrls();
       this.fetchEnv();
+      this.fetchAiConfig();
     },
     /**
      * @desc 页面渲染完成
@@ -229,6 +238,12 @@
             this.envConfig = data;
           });
       },
+      fetchAiConfig() {
+        AiService.fetchConfig()
+          .then((data) => {
+            this.isAiEnable = data.enabled;
+          });
+      },
       /**
        * @desc 更新网站title
        */
@@ -241,7 +256,7 @@
         });
 
         setDocumentTitle(this.$store.state.platformConfig.i18n, routeMatchStack);
-        setShortcutIcon(this.$store.state.platformConfig.favIcon);
+        setShortcutIcon(this.$store.state.platformConfig.favicon);
       },
       /**
        * @desc 切换语言
@@ -267,11 +282,11 @@
        * @desc 打开产品文档
        */
       handleLocationDocument() {
-        if (!this.relatedSystemUrls.BK_DOC_CENTER_ROOT_URL) {
+        if (!this.relatedSystemUrls.BK_DOC_JOB_ROOT_URL) {
           this.messageError(I18n.t('网络错误，请刷新页面重试'));
           return;
         }
-        window.open(`${this.relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/JOB/UserGuide/Introduction/What-is-Job.md`);
+        window.open(`${this.relatedSystemUrls.BK_DOC_JOB_ROOT_URL}/UserGuide/Introduction/What-is-Job.md`);
       },
       /**
        * @desc 打开问题反馈
@@ -282,6 +297,9 @@
           return;
         }
         window.open(this.relatedSystemUrls.BK_FEED_BACK_ROOT_URL);
+      },
+      handleLocationOpenSource() {
+        window.open('https://github.com/TencentBlueKing/bk-job');
       },
       /**
        * @desc 退出登录

@@ -24,43 +24,39 @@
 
 package com.tencent.bk.job.backup.config;
 
-import com.tencent.bk.job.backup.archive.ArchiveTaskLock;
-import com.tencent.bk.job.backup.archive.JobExecuteArchiveManage;
-import com.tencent.bk.job.backup.dao.ExecuteArchiveDAO;
-import com.tencent.bk.job.backup.dao.impl.ExecuteArchiveDAOImpl;
-import com.tencent.bk.job.backup.dao.impl.FileSourceTaskLogRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.GseFileAgentTaskRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.GseFileExecuteObjTaskRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.GseScriptAgentTaskRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.GseScriptExecuteObjTaskRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.GseTaskRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.OperationLogRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.RollingConfigRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.StepInstanceConfirmRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.StepInstanceFileRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.StepInstanceRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.StepInstanceRollingTaskRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.StepInstanceScriptRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.StepInstanceVariableRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.TaskInstanceHostRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.TaskInstanceRecordDAO;
-import com.tencent.bk.job.backup.dao.impl.TaskInstanceVariableRecordDAO;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.tencent.bk.job.backup.archive.AbnormalArchiveTaskReScheduler;
+import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
+import com.tencent.bk.job.backup.archive.JobInstanceArchiveCronJobs;
+import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskGenerator;
+import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduler;
+import com.tencent.bk.job.backup.archive.JobInstanceSubTableArchivers;
+import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
+import com.tencent.bk.job.backup.archive.metrics.ArchiveTasksGauge;
+import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
+import com.tencent.bk.job.backup.archive.util.lock.ArchiveTaskExecuteLock;
+import com.tencent.bk.job.backup.archive.util.lock.FailedArchiveTaskRescheduleLock;
+import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskGenerateLock;
+import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskScheduleLock;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
-import com.tencent.bk.job.backup.service.ArchiveProgressService;
+import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.DSLContext;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * job-execute 模块数据归档配置
@@ -68,208 +64,127 @@ import java.util.concurrent.ExecutorService;
 @Configuration
 @EnableScheduling
 @Slf4j
-@EnableConfigurationProperties(ArchiveDBProperties.class)
-@Import({ExecuteDbConfiguration.class, ExecuteBackupDbConfiguration.class})
+@EnableConfigurationProperties(ArchiveProperties.class)
+@Import({ExecuteHotDbConfiguration.class, ExecuteColdDbConfiguration.class})
+@ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
 public class ArchiveConfiguration {
 
-    /**
-     * job-execute DB 配置
-     */
-    @Configuration
-    @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
-    public static class ExecuteDaoAutoConfig {
-
-        @Bean(name = "taskInstanceRecordDAO")
-        public TaskInstanceRecordDAO taskInstanceRecordDAO(@Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init TaskInstanceRecordDAO");
-            return new TaskInstanceRecordDAO(context);
-        }
-
-        @Bean(name = "stepInstanceRecordDAO")
-        public StepInstanceRecordDAO stepInstanceRecordDAO(@Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init StepInstanceRecordDAO");
-            return new StepInstanceRecordDAO(context);
-        }
-
-        @Bean(name = "stepInstanceScriptRecordDAO")
-        public StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init StepInstanceScriptRecordDAO");
-            return new StepInstanceScriptRecordDAO(context);
-        }
-
-        @Bean(name = "stepInstanceFileRecordDAO")
-        public StepInstanceFileRecordDAO stepInstanceFileRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init StepInstanceFileRecordDAO");
-            return new StepInstanceFileRecordDAO(context);
-        }
-
-        @Bean(name = "stepInstanceConfirmRecordDAO")
-        public StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init StepInstanceConfirmRecordDAO");
-            return new StepInstanceConfirmRecordDAO(context);
-        }
-
-        @Bean(name = "stepInstanceVariableRecordDAO")
-        public StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init StepInstanceVariableRecordDAO");
-            return new StepInstanceVariableRecordDAO(context);
-        }
-
-        @Bean(name = "taskInstanceVariableRecordDAO")
-        public TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init TaskInstanceVariableRecordDAO");
-            return new TaskInstanceVariableRecordDAO(context);
-        }
-
-        @Bean(name = "operationLogRecordDAO")
-        public OperationLogRecordDAO operationLogRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init OperationLogRecordDAO");
-            return new OperationLogRecordDAO(context);
-        }
-
-        @Bean(name = "fileSourceTaskLogRecordDAO")
-        public FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init FileSourceTaskRecordDAO");
-            return new FileSourceTaskLogRecordDAO(context);
-        }
-
-        @Bean(name = "gseTaskRecordDAO")
-        public GseTaskRecordDAO gseTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init GseTaskRecordDAO");
-            return new GseTaskRecordDAO(context);
-        }
-
-        @Bean(name = "gseScriptAgentTaskRecordDAO")
-        public GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init GseScriptAgentTaskRecordDAO");
-            return new GseScriptAgentTaskRecordDAO(context);
-        }
-
-        @Bean(name = "gseFileAgentTaskRecordDAO")
-        public GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init GseFileAgentTaskRecordDAO");
-            return new GseFileAgentTaskRecordDAO(context);
-        }
-
-        @Bean(name = "gseScriptExecuteObjTaskRecordDAO")
-        public GseScriptExecuteObjTaskRecordDAO gseScriptExecuteObjTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init GseScriptExecuteObjTaskRecordDAO");
-            return new GseScriptExecuteObjTaskRecordDAO(context);
-        }
-
-        @Bean(name = "gseFileExecuteObjTaskRecordDAO")
-        public GseFileExecuteObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init GseFileExecuteObjTaskRecordDAO");
-            return new GseFileExecuteObjTaskRecordDAO(context);
-        }
-
-        @Bean(name = "stepInstanceRollingTaskRecordDAO")
-        public StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init StepInstanceRollingTaskRecordDAO");
-            return new StepInstanceRollingTaskRecordDAO(context);
-        }
-
-        @Bean(name = "rollingConfigRecordDAO")
-        public RollingConfigRecordDAO rollingConfigRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init RollingConfigRecordDAO");
-            return new RollingConfigRecordDAO(context);
-        }
-
-        @Bean(name = "taskInstanceHostRecordDAO")
-        public TaskInstanceHostRecordDAO taskInstanceHostRecordDAO(
-            @Qualifier("job-execute-dsl-context") DSLContext context) {
-            log.info("Init TaskInstanceHostRecordDAO");
-            return new TaskInstanceHostRecordDAO(context);
-        }
-
-    }
-
-    /**
-     * job-execute 归档数据备份 DB 配置
-     */
-    @Configuration
-    @Conditional(ExecuteBackupDbConfiguration.JobExecuteBackupDbInitCondition.class)
-    public static class ExecuteBackupDAOConfig {
-        @Bean(name = "execute-archive-dao")
-        public ExecuteArchiveDAO executeArchiveDAO(@Qualifier("job-execute-archive-dsl-context") DSLContext context) {
-            log.info("Init ExecuteArchiveDAO");
-            return new ExecuteArchiveDAOImpl(context);
-        }
+    @Bean
+    public ArchiveTaskExecuteLock archiveTaskLock(StringRedisTemplate redisTemplate) {
+        log.info("Init ArchiveTaskExecuteLock");
+        return new ArchiveTaskExecuteLock(redisTemplate);
     }
 
     @Bean
-    @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
-    public ArchiveTaskLock archiveTaskLock(StringRedisTemplate redisTemplate) {
-        log.info("Init ArchiveTaskLock");
-        return new ArchiveTaskLock(redisTemplate);
+    public JobInstanceArchiveTaskGenerateLock jobInstanceArchiveTaskGenerateLock(StringRedisTemplate redisTemplate) {
+        log.info("Init JobInstanceArchiveTaskGenerateLock");
+        return new JobInstanceArchiveTaskGenerateLock(redisTemplate);
     }
 
+    @Bean
+    public FailedArchiveTaskRescheduleLock failedArchiveTaskRescheduleLock(StringRedisTemplate redisTemplate) {
+        log.info("Init FailedArchiveTaskRescheduleLock");
+        return new FailedArchiveTaskRescheduleLock(redisTemplate);
+    }
 
     @Bean
-    @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
-    public JobExecuteArchiveManage jobExecuteArchiveManage(
-        ObjectProvider<TaskInstanceRecordDAO> taskInstanceRecordDAOObjectProvider,
-        ObjectProvider<StepInstanceRecordDAO> stepInstanceRecordDAOObjectProvider,
-        ObjectProvider<StepInstanceScriptRecordDAO> stepInstanceScriptRecordDAOObjectProvider,
-        ObjectProvider<StepInstanceFileRecordDAO> stepInstanceFileRecordDAOObjectProvider,
-        ObjectProvider<StepInstanceConfirmRecordDAO> stepInstanceConfirmRecordDAOObjectProvider,
-        ObjectProvider<StepInstanceVariableRecordDAO> stepInstanceVariableRecordDAOObjectProvider,
-        ObjectProvider<TaskInstanceVariableRecordDAO> taskInstanceVariableRecordDAOObjectProvider,
-        ObjectProvider<OperationLogRecordDAO> operationLogRecordDAOObjectProvider,
-        ObjectProvider<FileSourceTaskLogRecordDAO> fileSourceTaskLogRecordDAOObjectProvider,
-        ObjectProvider<GseTaskRecordDAO> gseTaskRecordDAOObjectProvider,
-        ObjectProvider<GseScriptAgentTaskRecordDAO> gseScriptAgentTaskRecordDAOObjectProvider,
-        ObjectProvider<GseFileAgentTaskRecordDAO> gseFileAgentTaskRecordDAOObjectProvider,
-        ObjectProvider<GseScriptExecuteObjTaskRecordDAO> gseScriptExecuteObjTaskRecordDAOObjectProvider,
-        ObjectProvider<GseFileExecuteObjTaskRecordDAO> gseFileExecuteObjTaskRecordDAOObjectProvider,
-        ObjectProvider<StepInstanceRollingTaskRecordDAO> stepInstanceRollingTaskRecordDAOObjectProvider,
-        ObjectProvider<RollingConfigRecordDAO> rollingConfigRecordDAOObjectProvider,
-        ObjectProvider<TaskInstanceHostRecordDAO> taskInstanceHostRecordDAOObjectProvider,
-        ObjectProvider<ExecuteArchiveDAO> executeArchiveDAOObjectProvider,
-        ArchiveProgressService archiveProgressService,
-        @Qualifier("archiveExecutor") ExecutorService archiveExecutor,
-        ArchiveDBProperties archiveDBProperties,
-        ArchiveTaskLock archiveTaskLock,
-        ArchiveErrorTaskCounter archiveErrorTaskCounter) {
+    public JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator(
+        ArchiveTaskService archiveTaskService,
+        JobInstanceHotRecordDAO taskInstanceRecordDAO,
+        ArchiveProperties archiveProperties,
+        JobInstanceArchiveTaskGenerateLock jobInstanceArchiveTaskGenerateLock) {
 
-        log.info("Init JobExecuteArchiveManage");
-        return new JobExecuteArchiveManage(
-            taskInstanceRecordDAOObjectProvider.getIfAvailable(),
-            stepInstanceRecordDAOObjectProvider.getIfAvailable(),
-            stepInstanceScriptRecordDAOObjectProvider.getIfAvailable(),
-            stepInstanceFileRecordDAOObjectProvider.getIfAvailable(),
-            stepInstanceConfirmRecordDAOObjectProvider.getIfAvailable(),
-            stepInstanceVariableRecordDAOObjectProvider.getIfAvailable(),
-            taskInstanceVariableRecordDAOObjectProvider.getIfAvailable(),
-            operationLogRecordDAOObjectProvider.getIfAvailable(),
-            fileSourceTaskLogRecordDAOObjectProvider.getIfAvailable(),
-            gseTaskRecordDAOObjectProvider.getIfAvailable(),
-            gseScriptAgentTaskRecordDAOObjectProvider.getIfAvailable(),
-            gseFileAgentTaskRecordDAOObjectProvider.getIfAvailable(),
-            gseScriptExecuteObjTaskRecordDAOObjectProvider.getIfAvailable(),
-            gseFileExecuteObjTaskRecordDAOObjectProvider.getIfAvailable(),
-            stepInstanceRollingTaskRecordDAOObjectProvider.getIfAvailable(),
-            rollingConfigRecordDAOObjectProvider.getIfAvailable(),
-            taskInstanceHostRecordDAOObjectProvider.getIfAvailable(),
-            executeArchiveDAOObjectProvider.getIfAvailable(),
-            archiveProgressService,
-            archiveDBProperties,
-            archiveExecutor,
-            archiveTaskLock,
-            archiveErrorTaskCounter);
+        log.info("Init JobInstanceArchiveTaskGenerator");
+        return new JobInstanceArchiveTaskGenerator(
+            archiveTaskService,
+            taskInstanceRecordDAO,
+            archiveProperties,
+            jobInstanceArchiveTaskGenerateLock
+        );
+    }
+
+    @Bean("archiveTaskStopExecutor")
+    public ThreadPoolExecutor archiveTaskStopExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "archiveTaskStopExecutor",
+            5,
+            20,
+            120L,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(),
+            new ThreadFactoryBuilder().setNameFormat("archive-task-stop-thread-pool-%d").build()
+        );
+    }
+
+    @Bean
+    public JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler(
+        ArchiveTaskService archiveTaskService,
+        JobInstanceHotRecordDAO taskInstanceRecordDAO,
+        ArchiveProperties archiveProperties,
+        JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock,
+        JobInstanceSubTableArchivers jobInstanceSubTableArchivers,
+        ObjectProvider<JobInstanceColdDAO> jobInstanceColdDAOObjectProvider,
+        ArchiveTaskExecuteLock archiveTaskExecuteLock,
+        ArchiveErrorTaskCounter archiveErrorTaskCounter,
+        ArchiveTablePropsStorage archiveTablePropsStorage,
+        Tracer tracer,
+        @Qualifier("archiveTaskStopExecutor") ThreadPoolExecutor archiveTaskStopExecutor) {
+
+        log.info("Init JobInstanceArchiveTaskScheduler");
+        return new JobInstanceArchiveTaskScheduler(
+            archiveTaskService,
+            taskInstanceRecordDAO,
+            archiveProperties,
+            jobInstanceArchiveTaskScheduleLock,
+            jobInstanceSubTableArchivers,
+            jobInstanceColdDAOObjectProvider.getIfAvailable(),
+            archiveTaskExecuteLock,
+            archiveErrorTaskCounter,
+            archiveTablePropsStorage,
+            tracer,
+            archiveTaskStopExecutor
+        );
+    }
+
+    @Bean
+    public JobInstanceArchiveCronJobs jobInstanceArchiveCronJobs(
+        JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
+        JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
+        ArchiveProperties archiveProperties,
+        AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler) {
+        log.info("Init JobInstanceArchiveCronJobs");
+        return new JobInstanceArchiveCronJobs(
+            jobInstanceArchiveTaskGenerator,
+            jobInstanceArchiveTaskScheduler,
+            archiveProperties,
+            abnormalArchiveTaskReScheduler
+        );
+    }
+
+    @Bean
+    public JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock() {
+        log.info("Init JobInstanceArchiveTaskScheduleLock");
+        return new JobInstanceArchiveTaskScheduleLock();
+    }
+
+    @Bean
+    public AbnormalArchiveTaskReScheduler failArchiveTaskReScheduler(
+        ArchiveTaskService archiveTaskService,
+        FailedArchiveTaskRescheduleLock failedArchiveTaskRescheduleLock) {
+        log.info("Init FailArchiveTaskReScheduler");
+        return new AbnormalArchiveTaskReScheduler(archiveTaskService, failedArchiveTaskRescheduleLock);
+    }
+
+    @Bean
+    public ArchiveTasksGauge archiveTasksGauge(MeterRegistry meterRegistry,
+                                               ArchiveTaskService archiveTaskService) {
+        return new ArchiveTasksGauge(meterRegistry, archiveTaskService);
+    }
+
+    @Bean
+    public ArchiveTablePropsStorage archiveTablePropsStorage(ArchiveProperties archiveProperties) {
+        log.info("Init ArchiveTablePropsStorage");
+        return new ArchiveTablePropsStorage(archiveProperties);
     }
 }

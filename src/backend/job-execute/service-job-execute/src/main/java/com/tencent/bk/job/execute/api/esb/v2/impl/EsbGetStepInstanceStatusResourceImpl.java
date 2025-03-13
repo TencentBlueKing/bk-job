@@ -93,14 +93,17 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
         EsbStepInstanceStatusDTO resultData = new EsbStepInstanceStatusDTO();
 
         StepExecutionResultQuery query = StepExecutionResultQuery.builder()
-            .stepInstanceId(request.getStepInstanceId()).build();
+            .taskInstanceId(request.getTaskInstanceId())
+            .stepInstanceId(request.getStepInstanceId())
+            .build();
         StepExecutionDetailDTO stepExecutionDetail = taskResultService.getStepExecutionResult(username,
             request.getAppId(), query);
 
         resultData.setIsFinished(stepExecutionDetail.isFinished());
         resultData.setAyalyseResult(convertToStandardAnalyseResult(stepExecutionDetail));
 
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(request.getStepInstanceId());
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(request.getTaskInstanceId(),
+            request.getStepInstanceId());
         if (stepInstance == null) {
             log.warn("Get step instance status by taskInstanceId:{}, stepInstanceId:{}, stepInstance is null!",
                 request.getTaskInstanceId(), request.getStepInstanceId());

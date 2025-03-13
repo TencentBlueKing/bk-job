@@ -298,4 +298,5 @@ entryTask.add('', (context) => {
     render: h => h(EntryApp),
   });
 });
+
 entryTask.start();

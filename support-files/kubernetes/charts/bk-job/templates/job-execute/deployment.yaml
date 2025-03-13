@@ -34,7 +34,6 @@ spec:
       annotations:
         {{ include "annotations.sha256sum.configmap" ( dict "service" "job-execute" "context" . ) | nindent 8 }}
     spec:
-      {{- include "job.podTerminationGracePeriodSeconds" . | nindent 6 }}
       {{- include "job.imagePullSecrets" . | nindent 6 }}
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
       {{- if .Values.executeConfig.affinity }}
@@ -70,6 +69,9 @@ spec:
           imagePullPolicy: {{ .Values.executeConfig.image.pullPolicy }}
           env:
             {{- include "job.common.env" . | nindent 12 }}
+            {{- if .Values.executeConfig.extraEnv }}
+            {{- include "job.service.extra.env" .Values.executeConfig.extraEnv | nindent 12 }}
+            {{- end }}
             - name: BK_JOB_APP_NAME
               value: "job-execute"
             - name: BK_JOB_JVM_OPTION

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.dao.filesource.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.mysql.dao.BaseDAOImpl;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTypeDAO;

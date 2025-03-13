@@ -28,15 +28,18 @@ dependencies {
     api project(":job-analysis:api-job-analysis")
     api project(":job-analysis:model-job-analysis")
     api project(":job-crontab:api-job-crontab")
+    api project(":job-logsvr:api-job-logsvr")
     api project(":commons:common")
     api project(":commons:common-web")
     api project(":commons:common-iam")
     api project(":commons:common-security")
     api project(":commons:common-redis")
+    api project(":commons:common-mysql")
     api project(":commons:cmdb-sdk")
     api project(":commons:paas-sdk")
     api project(":commons:esb-sdk")
     api project(":commons:gse-sdk")
+    api project(":commons:ai-dev-sdk")
     implementation "org.springframework.boot:spring-boot-starter-web"
     implementation "org.springframework.boot:spring-boot-starter-jdbc"
     implementation "org.springframework.boot:spring-boot-starter-jooq"

@@ -114,7 +114,8 @@
       // 对比版本号，每次版本更新自动显示版本日志
       this.isDefaultShow = false;
       const currentVersion = process.env.JOB_VERSION;
-      this.isDefaultShow = !Cookie.get('job_supermen') || Cookie.get('job_supermen') !== currentVersion;
+      this.isDefaultShow = !localStorage.getItem('job_supermen') || localStorage.getItem('job_supermen') !== currentVersion;
+
       if (this.isDefaultShow) {
         this.$emit('input', true);
         this.$emit('change', true);
@@ -159,11 +160,11 @@
           });
         }
         this.popperInstance.setContent(`
-                    <div style="width: 220px; font-size: 12px; line-height: 20px; color: #63656E;">
-                        <div style="color: #979BA5">${I18n.t('Job 小贴士：')}</div>
-                        <div>${I18n.t('想要再次查阅「版本日志」也可以从此处进入喔～')}</div>
-                    </div>
-                `);
+          <div style="width: 220px; font-size: 12px; line-height: 20px; color: #63656E;">
+            <div style="color: #979BA5">${I18n.t('Job 小贴士：')}</div>
+            <div>${I18n.t('想要再次查阅「版本日志」也可以从此处进入喔～')}</div>
+          </div>
+        `);
         this.popperInstance.show();
       },
       /**
@@ -188,7 +189,7 @@
       handleClose() {
         this.$emit('input', false);
         this.$emit('change', false);
-        Cookie.set('job_supermen', process.env.JOB_VERSION, { expires: 3600 });
+        localStorage.setItem('job_supermen', process.env.JOB_VERSION);
 
         const animateTimes = 400;
 

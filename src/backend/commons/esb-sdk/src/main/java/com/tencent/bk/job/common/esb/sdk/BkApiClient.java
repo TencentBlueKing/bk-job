@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
+import com.tencent.bk.job.common.esb.interceptor.LogBkApiRequestIdInterceptor;
 import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbResp;
@@ -46,6 +47,7 @@ import io.micrometer.core.instrument.Tags;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
+import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.message.BasicHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -167,6 +169,59 @@ public class BkApiClient {
                     apiContext.getDeserializeCostTime(),
                     apiContext.getOriginResp() != null ? apiContext.getOriginResp().length() : 0L
                 );
+            }
+        }
+    }
+
+    public <T, R> R requestApiAndWrapResponse(OpenApiRequestInfo<T> requestInfo,
+                                              TypeReference<R> typeReference,
+                                              HttpHelper httpHelper) {
+        if (log.isInfoEnabled()) {
+            log.info("[AbstractBkApiClient] Request|method={}|uri={}|reqStr={}",
+                requestInfo.getMethod().name(), requestInfo.getUri(),
+                requestInfo.getBody() != null ? JsonUtils.toJsonWithoutSkippedFields(requestInfo.getBody()) : null);
+        }
+        String uri = requestInfo.getUri();
+        String respStr = null;
+        String status = EsbMetricTags.VALUE_STATUS_OK;
+        HttpMethodEnum httpMethod = requestInfo.getMethod();
+        long start = System.currentTimeMillis();
+        String bkApiRequestId = null;
+        boolean success = true;
+        try {
+            HttpResponse response = requestApi(httpHelper, requestInfo);
+            bkApiRequestId = extractBkApiRequestId(response);
+            respStr = response.getEntity();
+            if (StringUtils.isBlank(respStr)) {
+                String errorMsg = "[AbstractBkApiClient] " + httpMethod.name() + " "
+                    + uri + ", error: " + "Response is blank";
+                log.warn(
+                    "[AbstractBkApiClient] fail: Response is blank| requestId={}|method={}|uri={}",
+                    bkApiRequestId,
+                    httpMethod.name(),
+                    uri
+                );
+                status = EsbMetricTags.VALUE_STATUS_ERROR;
+                throw new InternalException(errorMsg, ErrorCode.API_ERROR);
+            }
+            return jsonMapper.fromJson(respStr, typeReference);
+        } catch (Throwable e) {
+            success = false;
+            String errorMsg = "Fail to request api|method=" + httpMethod.name()
+                + "|uri=" + uri;
+            log.error(errorMsg, e);
+            status = EsbMetricTags.VALUE_STATUS_ERROR;
+            throw new InternalException("Fail to request bk api", e, ErrorCode.API_ERROR);
+        } finally {
+            long cost = System.currentTimeMillis() - start;
+            if (meterRegistry != null) {
+                meterRegistry.timer(metricName, buildMetricTags(uri, status))
+                    .record(cost, TimeUnit.MILLISECONDS);
+            }
+            if (log.isInfoEnabled()) {
+                log.info("[AbstractBkApiClient] Response|requestId={}|method={}|uri={}|success={}"
+                        + "|costTime={}|resp={}",
+                    bkApiRequestId, httpMethod.name(), requestInfo.getUri(), success, cost, respStr);
             }
         }
     }
@@ -336,6 +391,15 @@ public class BkApiClient {
      */
     protected Collection<Tag> getExtraMetricsTags() {
         return null;
+    }
+
+    /**
+     * 获取打印APIGW RequestId的响应拦截器
+     *
+     * @return 响应拦截器
+     */
+    protected static HttpResponseInterceptor getLogBkApiRequestIdInterceptor() {
+        return new LogBkApiRequestIdInterceptor();
     }
 
 }

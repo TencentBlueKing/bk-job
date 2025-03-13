@@ -30,7 +30,9 @@ import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 
 /**
@@ -40,40 +42,63 @@ import lombok.ToString;
 @NoArgsConstructor
 public class ExecuteObjectTask {
     /**
+     * 执行对象任务 ID
+     */
+    @Getter
+    @Setter
+    private Long id;
+    /**
      * 作业实例ID
      */
+    @Setter
+    @Getter
     private long taskInstanceId;
     /**
      * 步骤实例ID
      */
+    @Setter
+    @Getter
     private long stepInstanceId;
     /**
      * 步骤执行次数
      */
+    @Setter
+    @Getter
     private int executeCount;
     /**
      * 任务对应的实际的步骤执行次数（重试场景，可能任务并没有实际被执行)
      */
+    @Setter
+    @Getter
     private Integer actualExecuteCount;
     /**
      * 滚动执行批次
      */
+    @Setter
+    @Getter
     private int batch;
     /**
      * GSE 任务ID
      */
+    @Setter
+    @Getter
     private Long gseTaskId;
     /**
      * 执行对象 ID
      */
+    @Setter
+    @Getter
     private String executeObjectId;
     /**
      * 执行对象类型
      */
+    @Setter
+    @Getter
     private ExecuteObjectTypeEnum executeObjectType;
     /**
      * 执行对象
      */
+    @Getter
     private ExecuteObject executeObject;
     /**
      * 主机 ID
@@ -92,46 +117,61 @@ public class ExecuteObjectTask {
     /**
      * 任务状态
      */
+    @Getter
     private ExecuteObjectTaskStatusEnum status;
     /**
      * 任务开始时间
      */
+    @Getter
     private Long startTime;
     /**
      * 任务结束时间
      */
+    @Getter
     private Long endTime;
     /**
      * 耗时，毫秒
      */
+    @Getter
     private Long totalTime;
     /**
      * GSE返回错误码
      */
+    @Getter
     private int errorCode;
     /**
      * 脚本任务-执行程序退出码， 0 脚本执行成功，非 0 脚本执行失败
      */
+    @Getter
     private Integer exitCode;
     /**
      * 脚本任务-用户自定义执行结果分组
      */
+    @Setter
+    @Getter
     private String tag = "";
     /**
      * 脚本任务-日志偏移量。Job 从 GSE 根据 scriptLogOffset 增量拉取执行日志
      */
+    @Getter
     private int scriptLogOffset;
     /**
      * 脚本任务-执行日志
      */
+    @Setter
+    @Getter
     private String scriptLogContent;
     /**
      * 文件任务类型
      */
+    @Setter
+    @Getter
     private FileTaskModeEnum fileTaskMode;
     /**
      * 结果是否发生变化
      */
+    @Setter
+    @Getter
     private volatile boolean changed;
 
     public ExecuteObjectTask(long taskInstanceId,
@@ -274,74 +314,6 @@ public class ExecuteObjectTask {
         return ExecuteObjectTaskStatusEnum.isSuccess(status);
     }
 
-    public long getTaskInstanceId() {
-        return taskInstanceId;
-    }
-
-    public void setTaskInstanceId(long taskInstanceId) {
-        this.taskInstanceId = taskInstanceId;
-    }
-
-    public long getStepInstanceId() {
-        return stepInstanceId;
-    }
-
-    public void setStepInstanceId(long stepInstanceId) {
-        this.stepInstanceId = stepInstanceId;
-    }
-
-    public int getExecuteCount() {
-        return executeCount;
-    }
-
-    public void setExecuteCount(int executeCount) {
-        this.executeCount = executeCount;
-    }
-
-    public Integer getActualExecuteCount() {
-        return actualExecuteCount;
-    }
-
-    public void setActualExecuteCount(Integer actualExecuteCount) {
-        this.actualExecuteCount = actualExecuteCount;
-    }
-
-    public int getBatch() {
-        return batch;
-    }
-
-    public void setBatch(int batch) {
-        this.batch = batch;
-    }
-
-    public Long getGseTaskId() {
-        return gseTaskId;
-    }
-
-    public void setGseTaskId(Long gseTaskId) {
-        this.gseTaskId = gseTaskId;
-    }
-
-    public String getExecuteObjectId() {
-        return executeObjectId;
-    }
-
-    public void setExecuteObjectId(String executeObjectId) {
-        this.executeObjectId = executeObjectId;
-    }
-
-    public ExecuteObjectTypeEnum getExecuteObjectType() {
-        return executeObjectType;
-    }
-
-    public void setExecuteObjectType(ExecuteObjectTypeEnum executeObjectType) {
-        this.executeObjectType = executeObjectType;
-    }
-
-    public ExecuteObject getExecuteObject() {
-        return executeObject;
-    }
-
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
         explain = "兼容老数据，数据失效后可删除")
@@ -368,66 +340,6 @@ public class ExecuteObjectTask {
         explain = "兼容老数据，数据失效后可删除")
     public void setAgentId(String agentId) {
         this.agentId = agentId;
-    }
-
-    public ExecuteObjectTaskStatusEnum getStatus() {
-        return status;
-    }
-
-    public Long getStartTime() {
-        return startTime;
-    }
-
-    public Long getEndTime() {
-        return endTime;
-    }
-
-    public Long getTotalTime() {
-        return totalTime;
-    }
-
-    public int getErrorCode() {
-        return errorCode;
-    }
-
-    public Integer getExitCode() {
-        return exitCode;
-    }
-
-    public String getTag() {
-        return tag;
-    }
-
-    public void setTag(String tag) {
-        this.tag = tag;
-    }
-
-    public int getScriptLogOffset() {
-        return scriptLogOffset;
-    }
-
-    public String getScriptLogContent() {
-        return scriptLogContent;
-    }
-
-    public void setScriptLogContent(String scriptLogContent) {
-        this.scriptLogContent = scriptLogContent;
-    }
-
-    public FileTaskModeEnum getFileTaskMode() {
-        return fileTaskMode;
-    }
-
-    public void setFileTaskMode(FileTaskModeEnum fileTaskMode) {
-        this.fileTaskMode = fileTaskMode;
-    }
-
-    public boolean isChanged() {
-        return changed;
-    }
-
-    public void setChanged(boolean changed) {
-        this.changed = changed;
     }
 
     public void setExecuteObject(ExecuteObject executeObject) {

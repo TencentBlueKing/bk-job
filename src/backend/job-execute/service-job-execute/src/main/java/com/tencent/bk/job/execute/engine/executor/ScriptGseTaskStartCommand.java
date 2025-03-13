@@ -202,6 +202,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         // 只有存在变量解析之后才需要update
         if (!resolvedScriptParam.equals(originParam)) {
             stepInstanceService.updateResolvedScriptParam(
+                stepInstance.getTaskInstanceId(),
                 stepInstance.getId(),
                 stepInstance.isSecureParam(),
                 resolvedScriptParam
@@ -226,6 +227,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         List<Agent> agents = buildTargetAgents();
 
         builder.addScriptTask(agents, scriptFilePath, scriptFileName, resolvedScriptParam, timeout);
+        builder.setWindowsInterpreter(stepInstance.getWindowsInterpreter());
         return builder.build();
     }
 
@@ -268,6 +270,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         List<Agent> agents = buildTargetAgents();
 
         builder.addScriptTask(agents, scriptFilePath, wrapperScriptFileName, resolvedScriptParam, timeout);
+        builder.setWindowsInterpreter(stepInstance.getWindowsInterpreter());
         return builder.build();
     }
 
@@ -419,6 +422,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         builder.addScriptTask(agents, scriptFilePath, wrapperScriptFileName, resolvedScriptParam, timeout);
         builder.addScriptTask(agents, scriptFilePath, getJobParamScriptFileName, null, timeout);
+        builder.setWindowsInterpreter(stepInstance.getWindowsInterpreter());
         return builder.build();
     }
 
@@ -610,7 +614,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 targetExecuteObjectTaskMap,
                 gseTask,
                 requestId,
-                executeObjectTasks);
+                targetExecuteObjectTasks);
         resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
     }
 
@@ -642,7 +646,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             executeObjectTask.setTotalTime(TaskCostCalculator.calculate(gseTask.getStartTime(), now, null));
             executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.SUBMIT_FAILED);
         }
-        logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, executeCount, batch, scriptLogs);
+        logService.batchWriteScriptLog(taskInstance, stepInstanceId, executeCount, batch, scriptLogs);
         scriptExecuteObjectTaskService.batchUpdateTasks(targetExecuteObjectTaskMap.values());
     }
 

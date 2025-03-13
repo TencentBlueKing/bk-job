@@ -29,10 +29,12 @@ import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.common.util.http.HttpConPoolUtil;
 import com.tencent.bk.job.common.util.http.HttpResponse;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
@@ -43,7 +45,7 @@ import java.net.URL;
  */
 @Component
 @Slf4j
-public class CallbackListener {
+public class CallbackListener extends BaseJobMqListener {
     private final MeterRegistry meterRegistry;
 
     public CallbackListener(MeterRegistry meterRegistry) {
@@ -53,7 +55,9 @@ public class CallbackListener {
     /**
      * 处理回调请求
      */
-    public void handleMessage(JobCallbackDTO callbackDTO) {
+    @Override
+    public void handleEvent(Message<? extends JobMessage> message) {
+        JobCallbackDTO callbackDTO = (JobCallbackDTO) message.getPayload();
         long taskInstanceId = callbackDTO.getId();
         String callbackUrl = callbackDTO.getCallbackUrl();
 

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.consts;
 
 /**
- * 执行对象任务状态
+ * 单个执行对象的任务状态，体现在任务详情页左侧状态栏
  */
 public enum ExecuteObjectTaskStatusEnum {
     /**
@@ -37,9 +37,9 @@ public enum ExecuteObjectTaskStatusEnum {
      */
     AGENT_ERROR(1),
     /**
-     * 无效主机
+     * 无效执行对象
      */
-    HOST_NOT_EXIST(2),
+    INVALID_EXECUTE_OBJECT(2),
     /**
      * 上次已成功
      */

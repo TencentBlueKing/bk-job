@@ -233,7 +233,7 @@ public interface WebGlobalSettingsResource {
             String username
     );
 
-    @CompatibleImplementation(name = "platform_info", deprecatedVersion = "3.10.x", type = CompatibleType.DEPLOY,
+    @CompatibleImplementation(name = "platform_info", deprecatedVersion = "3.11.x", type = CompatibleType.DEPLOY,
         explain = "发布完成后可以删除")
     @ApiOperation(value = "获取平台信息-包含默认配置", produces = "application/json")
     @GetMapping("/platformInfoWithDefault")

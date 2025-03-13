@@ -14,6 +14,9 @@ data:
   application.yaml: |-
     spring:
       cloud:
+        loadbalancer:
+          cache:
+            ttl: 20s
         stream:
           defaultBinder: jobCommon
           binders:
@@ -160,6 +163,7 @@ data:
         function:
           definition: handleJobEvent;handleStepEvent;handleGseTaskEvent;handleResultHandleResumeEvent;handleNotifyMsg;handleCallbackMsg;busConsumer
       datasource:
+        {{- if .Values.executeConfig.mysql.standalone.enabled }}
         job-execute:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
@@ -173,8 +177,42 @@ data:
           maximum-pool-size: 100
           minimum-idle: 20
           idle-timeout: 600000
-          poolName: "job-execute"
+          poolName: "job-execute-standalone"
           validationTimeout: 5000
+        {{- end }}
+        {{- if .Values.executeConfig.mysql.verticalSharding.enabled }}
+        {{- if .Values.executeConfig.mysql.verticalSharding.datasource }}
+        {{- range $dsName, $ds := .Values.executeConfig.mysql.verticalSharding.datasource }}
+        {{ $dsName }}:
+            driverClassName: {{ include "job.jdbcMysqlDriverClass" . }}
+            jdbcUrl: {{ $ds.jdbcUrl | quote }}
+            username: {{ $ds.username | quote }}
+            password: {{ $ds.password | quote }}
+            maximumPoolSize: {{ $ds.maximumPoolSize | default 100 }}
+            minimumIdle: {{ $ds.minimumIdle | default 20 }}
+            idleTimeout: {{ $ds.idleTimeout | default 600000 }}
+            poolName: {{ $ds.poolName | default "job-execute" }}
+            validationTimeout: {{ $ds.validationTimeout | default 5000 }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+        {{ if .Values.executeConfig.leaf.enabled }}
+        leaf:
+          driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
+          type: com.zaxxer.hikari.HikariDataSource
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_leaf{{ include "job.mariadb.connection.properties" . }}
+          username: {{ include "job.mariadb.username" . }}
+          {{ if .Values.externalMariaDB.existingPasswordSecret }}
+          password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+          {{- else -}}
+          password: ${mariadb-password}
+          {{- end }}
+          maximum-pool-size: 50
+          minimum-idle: 10
+          idle-timeout: 600000
+          poolName: "job-leaf"
+          validationTimeout: 5000
+        {{- end }}
       redis:
         {{- include "job.redis.config" . | indent 8 }}
         database: 0
@@ -182,8 +220,8 @@ data:
           pool:
             min-idle: 5
             max-idle: 10
-            max-active: 8
-            max-wait: 1ms
+            max-active: 20
+            max-wait: 10ms
           shutdown-timeout: 100ms
     server:
       port: {{ .Values.executeConfig.containerPort }}
@@ -201,4 +239,36 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
+        iam:
+          {{- toYaml .Values.executeConfig.iam | nindent 10 }}
+    mysql:
+      dataSourceMode: {{ .Values.executeConfig.mysql.dataSourceMode }}
+      standalone:
+        enabled: {{ .Values.executeConfig.mysql.standalone.enabled }}
+      verticalSharding:
+        enabled: {{ .Values.executeConfig.mysql.verticalSharding.enabled }}
+      migration:
+        enabled: {{ .Values.executeConfig.mysql.migration.enabled }}
+    idGen:
+      type: {{ .Values.executeConfig.idGen.type }}
+      migration:
+        enabled: {{ .Values.executeConfig.idGen.migration.enabled }}
+    {{ if .Values.executeConfig.leaf.enabled }}
+    # 分布式 ID （leaf 组件配置)
+    leaf:
+      enabled: true
+      segment:
+        allocStrategyDaoBeanName: jooqLeafIdAllocator
+        enable: true
+        url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_leaf{{ include "job.mariadb.connection.properties" . }}
+        username: {{ include "job.mariadb.username" . }}
+        {{ if .Values.externalMariaDB.existingPasswordSecret }}
+        password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+        {{- else -}}
+        password: ${mariadb-password}
+        {{- end }}
+      snowflake:
+        enable: false
+      name: job-leaf
+    {{- end }}
 {{- end }}

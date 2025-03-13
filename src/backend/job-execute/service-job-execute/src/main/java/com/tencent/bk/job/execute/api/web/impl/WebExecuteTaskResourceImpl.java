@@ -26,6 +26,8 @@ package com.tencent.bk.job.execute.api.web.impl;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -55,6 +57,7 @@ import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
 import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
@@ -71,6 +74,7 @@ import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
 import com.tencent.bk.job.execute.model.web.vo.StepExecuteVO;
 import com.tencent.bk.job.execute.model.web.vo.StepOperationVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskExecuteVO;
+import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
@@ -96,10 +100,13 @@ import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.STRING;
 @Slf4j
 public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     private final TaskExecuteService taskExecuteService;
+    private final StepInstanceService stepInstanceService;
 
     @Autowired
-    public WebExecuteTaskResourceImpl(TaskExecuteService taskExecuteService) {
+    public WebExecuteTaskResourceImpl(TaskExecuteService taskExecuteService,
+                                      StepInstanceService stepInstanceService) {
         this.taskExecuteService = taskExecuteService;
+        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -333,6 +340,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         stepInstance.setScriptId(request.getScriptId());
         stepInstance.setScriptVersionId(request.getScriptVersionId());
         stepInstance.setTimeout(request.getTimeout());
+        stepInstance.setWindowsInterpreter(request.getTrimmedWindowsInterpreter());
         stepInstance.setScriptParam(request.getScriptParam());
         stepInstance.setSecureParam(request.getSecureParam() != null && request.getSecureParam() == 1);
         return stepInstance;
@@ -418,7 +426,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             return false;
         }
         for (ExecuteFileSourceInfoVO fileSource : request.getFileSourceList()) {
-            if (CollectionUtils.isEmpty(fileSource.getFileLocation())) {
+            if (CollectionUtils.isEmpty(fileSource.getTrimmedFileLocation())) {
                 log.warn("Fast send file ,files are empty");
                 return false;
             }
@@ -427,7 +435,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                     log.warn("Fast send file, account is empty!");
                     return false;
                 }
-                for (String file : fileSource.getFileLocation()) {
+                for (String file : fileSource.getTrimmedFileLocation()) {
                     if (!FilePathValidateUtil.validateFileSystemAbsolutePath(file)) {
                         log.warn("Fast send file, fileLocation is null or illegal!");
                         return false;
@@ -435,7 +443,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                 }
             }
         }
-        if (!FilePathValidateUtil.validateFileSystemAbsolutePath(fileDestination.getPath())) {
+        if (!FilePathValidateUtil.validateFileSystemAbsolutePath(fileDestination.getTrimmedPath())) {
             log.warn("Fast send file, fileDestinationPath is null or illegal!");
             return false;
         }
@@ -468,7 +476,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         ExecuteFileDestinationInfoVO fileDestination = request.getFileDestination();
         stepInstance.setAccountId(fileDestination.getAccountId());
         stepInstance.setTargetExecuteObjects(ExecuteTargetDTO.fromTaskTargetVO(fileDestination.getServer()));
-        stepInstance.setFileTargetPath(fileDestination.getPath());
+        stepInstance.setFileTargetPath(fileDestination.getTrimmedPath());
         stepInstance.setStepId(-1L);
         stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
         stepInstance.setFileSourceList(convertFileSource(request.getFileSourceList()));
@@ -491,7 +499,6 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
 
-
     private List<FileSourceDTO> convertFileSource(List<ExecuteFileSourceInfoVO> fileSources) {
         if (fileSources == null) {
             return null;
@@ -505,8 +512,8 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             fileSourceDTO.setFileType(fileType.getType());
             fileSourceDTO.setFileSourceId(fileSource.getFileSourceId());
             List<FileDetailDTO> files = new ArrayList<>();
-            if (fileSource.getFileLocation() != null) {
-                for (String file : fileSource.getFileLocation()) {
+            if (fileSource.getTrimmedFileLocation() != null) {
+                for (String file : fileSource.getTrimmedFileLocation()) {
                     if (TaskFileTypeEnum.LOCAL == fileType) {
                         files.add(new FileDetailDTO(true, file, fileSource.getFileHash(),
                             Long.valueOf(fileSource.getFileSize())));
@@ -527,17 +534,34 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
     }
 
     @Override
+    @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.11.x",
+        type = CompatibleType.DEPLOY, explain = "发布完成后可以删除")
     public Response<StepOperationVO> doStepOperation(String username,
                                                      AppResourceScope appResourceScope,
                                                      String scopeType,
                                                      String scopeId,
                                                      Long stepInstanceId,
                                                      WebStepOperation operation) {
+        // 兼容代码，部署完成后删除
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstanceById(stepInstanceId);
+        return doStepOperationV2(username, appResourceScope, scopeType, scopeId,
+            stepInstance.getTaskInstanceId(), stepInstanceId, operation);
+    }
+
+    @Override
+    public Response<StepOperationVO> doStepOperationV2(String username,
+                                                       AppResourceScope appResourceScope,
+                                                       String scopeType,
+                                                       String scopeId,
+                                                       Long taskInstanceId,
+                                                       Long stepInstanceId,
+                                                       WebStepOperation operation) {
         StepOperationEnum stepOperationEnum = StepOperationEnum.getStepOperation(operation.getOperationCode());
         if (stepOperationEnum == null) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         StepOperationDTO stepOperation = new StepOperationDTO();
+        stepOperation.setTaskInstanceId(taskInstanceId);
         stepOperation.setStepInstanceId(stepInstanceId);
         stepOperation.setOperation(stepOperationEnum);
         stepOperation.setConfirmReason(operation.getConfirmReason());

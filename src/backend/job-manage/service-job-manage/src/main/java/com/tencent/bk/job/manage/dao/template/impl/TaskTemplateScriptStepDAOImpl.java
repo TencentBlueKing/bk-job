@@ -25,9 +25,9 @@
 package com.tencent.bk.job.manage.dao.template.impl;
 
 import com.tencent.bk.job.common.crypto.scenario.SensitiveParamCryptoService;
+import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
-import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateScriptStepDAO;
 import com.tencent.bk.job.manage.model.dto.TemplateStepScriptStatusInfo;
 import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
@@ -42,6 +42,7 @@ import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Record15;
+import org.jooq.Record16;
 import org.jooq.Record3;
 import org.jooq.Result;
 import org.jooq.Select;
@@ -80,8 +81,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
         this.sensitiveParamCryptoService = sensitiveParamCryptoService;
     }
 
-    private TaskScriptStepDTO convertRecordToTaskScriptStep(Record15<ULong, ULong, ULong, UByte,
-        String, ULong, String, UByte, String, ULong, ULong, String, UByte, UByte, UByte> record) {
+    private TaskScriptStepDTO convertRecordToTaskScriptStep(Record16<ULong, ULong, ULong, UByte,
+        String, ULong, String, UByte, String, ULong, ULong, String, UByte, UByte, UByte, String> record) {
         if (record == null) {
             return null;
         }
@@ -109,6 +110,7 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
 
         taskScriptStep.setStatus((record.get(TABLE.STATUS)).intValue());
         taskScriptStep.setIgnoreError((record.get(TABLE.IGNORE_ERROR)).intValue() == 1);
+        taskScriptStep.setWindowsInterpreter(record.get(TABLE.WINDOWS_INTERPRETER));
         return taskScriptStep;
     }
 
@@ -117,8 +119,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.TEMPLATE_ID.eq(ULong.valueOf(parentId)));
         Result<
-            Record15<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte,
-                UByte, UByte>> result =
+            Record16<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte,
+                UByte, UByte, String>> result =
             context
                 .select(
                     TABLE.ID,
@@ -135,7 +137,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
                     TABLE.DESTINATION_HOST_LIST,
                     TABLE.IS_SECURE_PARAM,
                     TABLE.STATUS,
-                    TABLE.IGNORE_ERROR
+                    TABLE.IGNORE_ERROR,
+                    TABLE.WINDOWS_INTERPRETER
                 ).from(TABLE).where(conditions).fetch();
 
         List<TaskScriptStepDTO> taskScriptStepList = new ArrayList<>();
@@ -153,8 +156,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.in(stepIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
         Result<
-            Record15<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte,
-                UByte, UByte>> result =
+            Record16<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte,
+                UByte, UByte, String>> result =
             context
                 .select(
                     TABLE.ID,
@@ -171,7 +174,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
                     TABLE.DESTINATION_HOST_LIST,
                     TABLE.IS_SECURE_PARAM,
                     TABLE.STATUS,
-                    TABLE.IGNORE_ERROR
+                    TABLE.IGNORE_ERROR,
+                    TABLE.WINDOWS_INTERPRETER
                 ).from(TABLE).where(conditions).fetch();
 
         Map<Long, TaskScriptStepDTO> taskScriptStepMap = new HashMap<>(stepIdList.size());
@@ -189,8 +193,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
     public TaskScriptStepDTO getScriptStepById(long stepId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.eq(ULong.valueOf(stepId)));
-        Record15<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte, UByte,
-            UByte> record = context.select(
+        Record16<ULong, ULong, ULong, UByte, String, ULong, String, UByte, String, ULong, ULong, String, UByte, UByte,
+                    UByte, String> record = context.select(
             TABLE.ID,
             TABLE.TEMPLATE_ID,
             TABLE.STEP_ID,
@@ -205,7 +209,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
             TABLE.DESTINATION_HOST_LIST,
             TABLE.IS_SECURE_PARAM,
             TABLE.STATUS,
-            TABLE.IGNORE_ERROR
+            TABLE.IGNORE_ERROR,
+            TABLE.WINDOWS_INTERPRETER
         ).from(TABLE).where(conditions).fetchOne();
         if (record != null) {
             return convertRecordToTaskScriptStep(record);
@@ -239,7 +244,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
                 TABLE.DESTINATION_HOST_LIST,
                 TABLE.IS_SECURE_PARAM,
                 TABLE.STATUS,
-                TABLE.IGNORE_ERROR
+                TABLE.IGNORE_ERROR,
+                TABLE.WINDOWS_INTERPRETER
             ).values(
                 ULong.valueOf(scriptStep.getTemplateId()),
                 ULong.valueOf(scriptStep.getStepId()),
@@ -255,7 +261,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
                 scriptStep.getExecuteTarget() == null ? null : scriptStep.getExecuteTarget().toJsonString(),
                 isSecureParam,
                 UByte.valueOf(scriptStep.getStatus()),
-                ignoreError
+                ignoreError,
+                scriptStep.getWindowsInterpreter()
             ).returning(TABLE.ID).fetchOne();
         assert record != null;
         return record.getId().longValue();
@@ -273,7 +280,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
         if (scriptStep.getIgnoreError() != null && scriptStep.getIgnoreError()) {
             ignoreError = UByte.valueOf(1);
         }
-        return 1 == context.update(TABLE).set(TABLE.SCRIPT_TYPE, UByte.valueOf(scriptStep.getScriptSource().getType()))
+        return 1 == context.update(TABLE)
+            .set(TABLE.SCRIPT_TYPE, UByte.valueOf(scriptStep.getScriptSource().getType()))
             .set(TABLE.SCRIPT_ID, scriptStep.getScriptId())
             .set(TABLE.SCRIPT_VERSION_ID,
                 scriptStep.getScriptVersionId() == null ? null : ULong.valueOf(scriptStep.getScriptVersionId()))
@@ -285,8 +293,11 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
             .set(TABLE.EXECUTE_ACCOUNT, ULong.valueOf(scriptStep.getAccount()))
             .set(TABLE.DESTINATION_HOST_LIST,
                 scriptStep.getExecuteTarget() == null ? null : scriptStep.getExecuteTarget().toJsonString())
-            .set(TABLE.IS_SECURE_PARAM, isSecureParam).set(TABLE.STATUS, UByte.valueOf(scriptStep.getStatus()))
-            .set(TABLE.IGNORE_ERROR, ignoreError).where(conditions).limit(1).execute();
+            .set(TABLE.IS_SECURE_PARAM, isSecureParam)
+            .set(TABLE.STATUS, UByte.valueOf(scriptStep.getStatus()))
+            .set(TABLE.IGNORE_ERROR, ignoreError)
+            .set(TABLE.WINDOWS_INTERPRETER, scriptStep.getWindowsInterpreter())
+            .where(conditions).limit(1).execute();
     }
 
     @Override

@@ -26,18 +26,25 @@ package com.tencent.bk.job.crontab.timer.handler;
 
 import com.tencent.bk.job.crontab.timer.AbstractQuartzTaskHandler;
 import com.tencent.bk.job.crontab.timer.QuartzJob;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.quartz.*;
+import org.quartz.JobDetail;
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * QuartzTaskHandler 的默认实现
  **/
+@Slf4j
 @Component
 public class DefaultQuartzTaskHandler extends AbstractQuartzTaskHandler {
 
@@ -59,6 +66,11 @@ public class DefaultQuartzTaskHandler extends AbstractQuartzTaskHandler {
         JobDetail jobDetail = createJobDetail(quartzJob);
 
         Set<? extends Trigger> triggers = createTriggers(quartzJob);
+
+        if (!scheduler.isStarted()) {
+            log.info("scheduler is not started, ignore add job {}!", quartzJob.getKey().getName());
+            return;
+        }
 
         if (CollectionUtils.isEmpty(triggers)) {
             this.scheduler.addJob(jobDetail, false);
@@ -84,12 +96,26 @@ public class DefaultQuartzTaskHandler extends AbstractQuartzTaskHandler {
         Assert.notNull(jobKey, "jobKey cannot be empty!");
         Assert.notNull(jobKey.getName(), "jobKey name cannot be empty!");
 
+        if (!scheduler.isStarted()) {
+            log.info("scheduler is not started, ignore delete job {}!", jobKey.getName());
+            return;
+        }
+
         this.scheduler.deleteJob(jobKey);
     }
 
     @Override
     public void deleteJob(List<JobKey> jobKeys) throws SchedulerException {
         Assert.notNull(jobKeys, "jobKeys cannot be empty!");
+
+        if (!scheduler.isStarted()) {
+            log.info(
+                "scheduler is not started, ignore delete {} job keys: {}",
+                jobKeys.size(),
+                jobKeys.stream().map(JobKey::getName).collect(Collectors.toList())
+            );
+            return;
+        }
 
         this.scheduler.deleteJobs(jobKeys);
     }
@@ -99,6 +125,10 @@ public class DefaultQuartzTaskHandler extends AbstractQuartzTaskHandler {
      */
     @Override
     public void pauseAll() throws SchedulerException {
+        if (!scheduler.isStarted()) {
+            log.info("scheduler is not started, ignore pauseAll!");
+            return;
+        }
         this.scheduler.pauseAll();
     }
 }

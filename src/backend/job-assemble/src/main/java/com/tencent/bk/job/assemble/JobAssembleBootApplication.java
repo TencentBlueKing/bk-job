@@ -45,7 +45,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
             "com.tencent.bk.job.backup",
             "com.tencent.bk.job.common.config"
         },
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class}
+    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class},
+    excludeName = {"org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration"}
 )
 @EnableCaching
 @EnableScheduling

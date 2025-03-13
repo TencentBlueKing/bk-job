@@ -25,7 +25,10 @@
 package com.tencent.bk.job.crontab.service.impl;
 
 import com.tencent.bk.job.common.mysql.JobTransactional;
+import com.tencent.bk.job.crontab.model.dto.AddJobToQuartzResult;
+import com.tencent.bk.job.crontab.model.dto.BatchAddResult;
 import com.tencent.bk.job.crontab.model.dto.CronJobBasicInfoDTO;
+import com.tencent.bk.job.crontab.service.BatchCronJobService;
 import com.tencent.bk.job.crontab.service.CronJobBatchLoadService;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import lombok.extern.slf4j.Slf4j;
@@ -41,56 +44,77 @@ import java.util.List;
 public class CronJobBatchLoadServiceImpl implements CronJobBatchLoadService {
 
     private final CronJobService cronJobService;
+    private final BatchCronJobService batchCronJobService;
 
     @Autowired
-    public CronJobBatchLoadServiceImpl(CronJobService cronJobService) {
+    public CronJobBatchLoadServiceImpl(CronJobService cronJobService, BatchCronJobService batchCronJobService) {
         this.cronJobService = cronJobService;
+        this.batchCronJobService = batchCronJobService;
     }
 
     @Override
     @JobTransactional(transactionManager = "jobCrontabTransactionManager", timeout = 30)
-    public CronLoadResult batchLoadCronToQuartz(int start, int limit) {
-        int successNum = 0;
-        int failedNum = 0;
-        List<CronJobBasicInfoDTO> failedCronList = new ArrayList<>();
+    public CronLoadResult batchLoadCronToQuartz(int start, int limit) throws InterruptedException {
+        checkInterrupt();
         List<CronJobBasicInfoDTO> cronJobBasicInfoList = cronJobService.listEnabledCronBasicInfoForUpdate(start, limit);
-        for (CronJobBasicInfoDTO cronJobBasicInfoDTO : cronJobBasicInfoList) {
-            boolean result = false;
-            try {
-                result = cronJobService.addJobToQuartz(
-                    cronJobBasicInfoDTO.getAppId(),
-                    cronJobBasicInfoDTO.getId()
-                );
-                if (result) {
-                    successNum += 1;
-                } else {
-                    failedNum += 1;
-                    failedCronList.add(cronJobBasicInfoDTO);
-                }
-            } catch (Exception e) {
-                failedNum += 1;
-                failedCronList.add(cronJobBasicInfoDTO);
-                String message = MessageFormatter.format(
-                    "Fail to addJobToQuartz, cronJob={}",
-                    cronJobBasicInfoDTO
-                ).getMessage();
-                log.warn(message, e);
-            }
-            if (log.isDebugEnabled()) {
-                log.debug(
-                    "load cronJob({},{},{}), result={}",
-                    cronJobBasicInfoDTO.getAppId(),
-                    cronJobBasicInfoDTO.getId(),
-                    cronJobBasicInfoDTO.getName(),
-                    result
-                );
-            }
-        }
+        BatchAddResult batchAddResult = batchCronJobService.batchAddJobToQuartz(cronJobBasicInfoList);
+        List<CronJobBasicInfoDTO> failedCronList = extractFailedCronList(batchAddResult);
         CronLoadResult cronLoadResult = new CronLoadResult();
         cronLoadResult.setFetchNum(cronJobBasicInfoList.size());
-        cronLoadResult.setSuccessNum(successNum);
-        cronLoadResult.setFailedNum(failedNum);
+        cronLoadResult.setSuccessNum(batchAddResult.getSuccessNum());
+        cronLoadResult.setFailedNum(batchAddResult.getFailNum());
         cronLoadResult.setFailedCronList(failedCronList);
         return cronLoadResult;
+    }
+
+    /**
+     * 从批量添加定时任务结果数据中提取失败的定时任务信息
+     *
+     * @param batchAddResult 批量添加定时任务结果
+     * @return 失败的定时任务信息
+     */
+    private List<CronJobBasicInfoDTO> extractFailedCronList(BatchAddResult batchAddResult) {
+        if (batchAddResult == null || batchAddResult.getTotalNum() == 0) {
+            return new ArrayList<>();
+        }
+        List<CronJobBasicInfoDTO> failedCronList = new ArrayList<>();
+        int successNum = batchAddResult.getSuccessNum();
+        int failedNum = batchAddResult.getFailNum();
+        if (failedNum > 0) {
+            String message = MessageFormatter.format(
+                "batchAddJobToQuartz result: {} failed, {} success",
+                failedNum,
+                successNum
+            ).getMessage();
+            if (batchAddResult.getFailRate() > 0.5) {
+                log.error(message);
+            } else {
+                log.warn(message);
+            }
+            List<AddJobToQuartzResult> failedResultList = batchAddResult.getFailedResultList();
+            for (AddJobToQuartzResult addJobToQuartzResult : failedResultList) {
+                CronJobBasicInfoDTO cronJobBasicInfo = addJobToQuartzResult.getCronJobBasicInfo();
+                failedCronList.add(cronJobBasicInfo);
+                message = MessageFormatter.arrayFormat(
+                    "Fail to load cronJob({},{},{}), reason={}",
+                    new Object[]{
+                        cronJobBasicInfo.getAppId(),
+                        cronJobBasicInfo.getId(),
+                        cronJobBasicInfo.getName(),
+                        addJobToQuartzResult.getMessage()
+                    }
+                ).getMessage();
+                log.warn(message, addJobToQuartzResult.getException());
+            }
+        } else {
+            log.info("batchAddJobToQuartz result: All success, num={}", successNum);
+        }
+        return failedCronList;
+    }
+
+    private void checkInterrupt() throws InterruptedException {
+        if (Thread.currentThread().isInterrupted()) {
+            throw new InterruptedException("batchLoadCronToQuartz thread is interrupted, exit");
+        }
     }
 }

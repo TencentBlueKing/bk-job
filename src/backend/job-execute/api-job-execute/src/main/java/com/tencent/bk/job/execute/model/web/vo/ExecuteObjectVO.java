@@ -70,4 +70,8 @@ public class ExecuteObjectVO {
     public static ExecuteObjectTypeEnum fromExecuteObjectTypeValue(int type) {
         return ExecuteObjectTypeEnum.valOf(type);
     }
+
+    public static String buildExecuteObjectId(Integer executeObjectType, Long executeObjectResoruceId) {
+        return executeObjectType + ":" + executeObjectResoruceId;
+    }
 }

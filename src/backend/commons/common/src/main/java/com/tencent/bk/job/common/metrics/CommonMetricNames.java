@@ -58,16 +58,6 @@ public class CommonMetricNames {
     public static final String ESB_CMDB_API_HTTP = "job.client.cmdb.api.http";
 
     /**
-     * 仅统计调用制品库 API的HTTP请求过程
-     */
-    public static final String BKREPO_API_HTTP = "job.client.bkrepo.api.http";
-    /**
-     * 统计调用制品库 API整个过程，含反序列化
-     */
-    public static final String BKREPO_API = "job.client.bkrepo.api";
-
-
-    /**
      * 仅统计调用权限中心后台 API的HTTP请求过程
      */
     public static final String IAM_API_HTTP = "job.client.iam.api.http";
@@ -84,6 +74,15 @@ public class CommonMetricNames {
      * 统计调用消息通知中心后台 API整个过程，含反序列化
      */
     public static final String BK_NOTICE_API = "job.client.bknotice.api";
+
+    /**
+     * 仅统计调用AIDev后台 API的HTTP请求过程
+     */
+    public static final String BK_AI_DEV_API_HTTP = "job.client.bkAIDev.api.http";
+    /**
+     * 统计调用AIDev后台 API整个过程，含反序列化
+     */
+    public static final String BK_AI_DEV_API = "job.client.bkAIDev.api";
 
 
     /**

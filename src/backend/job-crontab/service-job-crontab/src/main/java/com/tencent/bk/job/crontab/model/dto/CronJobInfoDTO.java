@@ -202,11 +202,9 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
             cronJobVO.setCronExpression(null);
         }
         cronJobVO.setExecuteTime(cronJobInfo.getExecuteTime());
-        if (CollectionUtils.isNotEmpty(cronJobInfo.getVariableValue())) {
+        if (cronJobInfo.getVariableValue() != null) {
             cronJobVO.setVariableValue(cronJobInfo.getVariableValue().stream().map(CronJobVariableDTO::toVO)
                 .collect(Collectors.toList()));
-        } else {
-            cronJobVO.setVariableValue(Collections.emptyList());
         }
         cronJobVO.setLastExecuteStatus(cronJobInfo.getLastExecuteStatus());
         cronJobVO.setLastExecuteErrorCode(cronJobInfo.getLastExecuteErrorCode());
@@ -585,16 +583,18 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
         cronJob.setScriptVersionId(scriptVersionId);
         cronJob.setCronExpression(cronExpression);
         cronJob.setExecuteTime(executeTime);
-        if (CollectionUtils.isNotEmpty(variableValue)) {
-            cronJob.setVariableValue(variableValue.stream().map(CronJobVariableDTO::toServiceCronJobVariableDTO)
-                .collect(Collectors.toList()));
-        } else {
-            cronJob.setVariableValue(Collections.emptyList());
-        }
         cronJob.setLastExecuteStatus(lastExecuteStatus);
         cronJob.setEnable(enable);
         cronJob.setLastModifyUser(lastModifyUser);
         cronJob.setLastModifyTime(lastModifyTime);
+        return cronJob;
+    }
+
+    public CronJobBasicInfoDTO toBasicInfoDTO() {
+        CronJobBasicInfoDTO cronJob = new CronJobBasicInfoDTO();
+        cronJob.setId(id);
+        cronJob.setAppId(appId);
+        cronJob.setName(name);
         return cronJob;
     }
 }

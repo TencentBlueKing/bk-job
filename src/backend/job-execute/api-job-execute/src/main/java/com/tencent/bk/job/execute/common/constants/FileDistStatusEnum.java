@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.common.constants;
 
 /**
- * 文件分发状态
+ * 单个文件分发对（源执行对象，源文件路径，目标执行对象，目标文件路径）的文件分发状态，体现在详情页文件分发日志中
  */
 public enum FileDistStatusEnum {
     PULLING(0, "Pulling from third file source"),

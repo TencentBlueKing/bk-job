@@ -48,6 +48,7 @@ export default class TaskInstanceDetailStepScript {
     this.account = payload.account;
     this.status = payload.status;
     this.rollingEnabled = Boolean(payload.rollingEnabled);
+    this.windowsInterpreter = payload.windowsInterpreter;
 
     this.executeTarget = new ExecuteTargetModel(payload.executeTarget || {});
     this.rollingConfig = this.initRollingConfig(payload.rollingConfig);

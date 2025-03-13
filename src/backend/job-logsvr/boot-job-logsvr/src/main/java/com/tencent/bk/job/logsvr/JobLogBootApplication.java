@@ -32,7 +32,8 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @JobBootApplication(
     scanBasePackages = "com.tencent.bk.job.logsvr",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
+    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class},
+    excludeName = {"org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration"})
 @EnableFeignClients
 public class JobLogBootApplication {
     public static void main(String[] args) {

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.execute.dao.GseTaskDAO;
+import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.GseTaskSimpleDTO;
 import com.tencent.bk.job.execute.service.GseTaskService;
@@ -39,14 +40,17 @@ import java.util.List;
 public class GseTaskServiceImpl implements GseTaskService {
 
     private final GseTaskDAO gseTaskDAO;
+    private final IdGen idGen;
 
     @Autowired
-    public GseTaskServiceImpl(GseTaskDAO gseTaskDAO) {
+    public GseTaskServiceImpl(GseTaskDAO gseTaskDAO, IdGen idGen) {
         this.gseTaskDAO = gseTaskDAO;
+        this.idGen = idGen;
     }
 
     @Override
     public Long saveGseTask(GseTaskDTO gseTask) {
+        gseTask.setId(idGen.genGseTaskId());
         return gseTaskDAO.saveGseTask(gseTask);
     }
 
@@ -56,13 +60,13 @@ public class GseTaskServiceImpl implements GseTaskService {
     }
 
     @Override
-    public GseTaskDTO getGseTask(long stepInstanceId, int executeCount, Integer batch) {
-        return gseTaskDAO.getGseTask(stepInstanceId, executeCount, batch);
+    public GseTaskDTO getGseTask(Long taskInstanceId, long stepInstanceId, int executeCount, Integer batch) {
+        return gseTaskDAO.getGseTask(taskInstanceId, stepInstanceId, executeCount, batch);
     }
 
     @Override
-    public GseTaskDTO getGseTask(long gseTaskId) {
-        return gseTaskDAO.getGseTask(gseTaskId);
+    public GseTaskDTO getGseTask(Long taskInstanceId, long gseTaskId) {
+        return gseTaskDAO.getGseTask(taskInstanceId, gseTaskId);
     }
 
     @Override
@@ -71,7 +75,7 @@ public class GseTaskServiceImpl implements GseTaskService {
     }
 
     @Override
-    public List<GseTaskSimpleDTO> ListGseTaskSimpleInfo(Long stepInstanceId,
+    public List<GseTaskSimpleDTO> listGseTaskSimpleInfo(Long stepInstanceId,
                                                         Integer executeCount,
                                                         Integer batch) {
         return gseTaskDAO.ListGseTaskSimpleInfo(stepInstanceId, executeCount, batch);

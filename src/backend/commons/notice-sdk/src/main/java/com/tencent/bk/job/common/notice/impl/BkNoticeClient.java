@@ -66,7 +66,9 @@ public class BkNoticeClient extends BkApiClient implements IBkNoticeClient {
             meterRegistry,
             CommonMetricNames.BK_NOTICE_API,
             getBkNoticeUrlSafely(bkApiGatewayProperties),
-            HttpHelperFactory.getDefaultHttpHelper()
+            HttpHelperFactory.createHttpHelper(
+                httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
+            )
         );
         this.appProperties = appProperties;
         authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(), appProperties.getSecret());

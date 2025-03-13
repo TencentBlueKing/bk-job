@@ -37,32 +37,36 @@ public interface StepInstanceRollingTaskService {
     /**
      * 查询步骤滚动任务
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   步骤执行次数
      * @param batch          滚动批次
      * @return 步骤滚动任务
      */
-    StepInstanceRollingTaskDTO queryRollingTask(long stepInstanceId,
+    StepInstanceRollingTaskDTO queryRollingTask(Long taskInstanceId,
+                                                long stepInstanceId,
                                                 int executeCount,
                                                 int batch);
 
     /**
      * 查询最新的步骤滚动任务
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   步骤执行次数
      * @return 步骤滚动任务
      */
-    List<StepInstanceRollingTaskDTO> listLatestRollingTasks(long stepInstanceId, int executeCount);
+    List<StepInstanceRollingTaskDTO> listLatestRollingTasks(Long taskInstanceId, long stepInstanceId, int executeCount);
 
     /**
      * 根据批次查询滚动任务
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param batch          滚动批次
      * @return 步骤滚动任务
      */
-    List<StepInstanceRollingTaskDTO> listRollingTasksByBatch(long stepInstanceId, Integer batch);
+    List<StepInstanceRollingTaskDTO> listRollingTasksByBatch(Long taskInstanceId, long stepInstanceId, Integer batch);
 
     /**
      * 保存步骤滚动任务
@@ -75,6 +79,7 @@ public interface StepInstanceRollingTaskService {
     /**
      * 更新滚动任务
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   步骤执行次数
      * @param batch          滚动执行批次
@@ -83,7 +88,8 @@ public interface StepInstanceRollingTaskService {
      * @param endTime        任务结束时间；如果不更新传入null
      * @param totalTime      任务执行总时间；如果不更新传入null
      */
-    void updateRollingTask(long stepInstanceId,
+    void updateRollingTask(Long taskInstanceId,
+                           long stepInstanceId,
                            int executeCount,
                            int batch,
                            RunStatusEnum status,
@@ -95,8 +101,9 @@ public interface StepInstanceRollingTaskService {
     /**
      * 根据步骤实例ID查询滚动任务
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @return 步骤滚动任务
      */
-    List<StepInstanceRollingTaskDTO> listRollingTasksByStep(long stepInstanceId);
+    List<StepInstanceRollingTaskDTO> listRollingTasksByStep(Long taskInstanceId, long stepInstanceId);
 }

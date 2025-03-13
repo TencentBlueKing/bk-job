@@ -64,6 +64,9 @@
           class="jb-ace-action"
           :style="{ height: `${tabHeight}px` }">
           <slot name="action" />
+          <ai-tool
+            v-if="isAiEnable"
+            @checkScript="handleCheckScript" />
           <template v-if="!readonly && !isFullScreen">
             <icon
               v-bk-tooltips="$t('上传脚本')"
@@ -150,6 +153,7 @@
   import { Base64 } from 'js-base64';
   import _ from 'lodash';
 
+  import AiService from '@service/ai';
   import PublicScriptService from '@service/public-script-manage';
   import ScriptService from '@service/script-manage';
   import ScriptTemplateService from '@service/script-template';
@@ -165,7 +169,9 @@
   import ScrollFaker from '@components/scroll-faker';
 
   import I18n from '@/i18n';
+  import eventBus from '@/utils/event-bus';
 
+  import AiTool from './components/ai-tool.vue';
   import DefaultScript from './default-script';
 
   import 'ace/mode-sh';
@@ -215,6 +221,7 @@
     components: {
       ScrollFaker,
       Empty,
+      AiTool,
     },
     inheritAttrs: false,
     props: {
@@ -277,6 +284,7 @@
         tabHeight: TAB_HEIGHT,
         historyList: [],
         currentUser: {},
+        isAiEnable: false,
       };
     },
     computed: {
@@ -389,6 +397,7 @@
       this.historyTimer = '';
       this.fetchUserInfo();
       this.fetchTemplate();
+      this.fetchAiConfig();
       this.syntaxCheck = _.debounce((content) => {
         ScriptService.getScriptValidation({
           content,
@@ -478,6 +487,12 @@
         })
           .finally(() => {
             this.isLoading = false;
+          });
+      },
+      fetchAiConfig() {
+        AiService.fetchConfig()
+          .then((data) => {
+            this.isAiEnable = data.enabled;
           });
       },
       /**
@@ -791,20 +806,28 @@
         }
         this.handleExitFullScreen();
       },
+
+      handleCheckScript() {
+        eventBus.$emit('ai:checkScript', {
+          type: formatScriptTypeValue(this.currentLang),
+          content: this.editor.getValue(),
+        });
+      },
     },
   };
 </script>
 <style lang='postcss'>
+  /* stylelint-disable */
   .jd-ace-editor {
     position: relative;
     display: flex;
     flex-direction: column;
     width: 100%;
-    /* stylelint-disable-next-line selector-class-pattern */
     .ace_editor {
       padding-right: 14px;
       overflow: unset;
       font-family: Menlo, Monaco, Consolas, Courier, monospace;
+
 
       .ace_scrollbar-v,
       .ace_scrollbar-h {

@@ -28,7 +28,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 作业执行状态
+ * 任务与步骤的执行状态
  */
 public enum RunStatusEnum {
     /**

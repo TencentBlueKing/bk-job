@@ -24,10 +24,15 @@
 
 package com.tencent.bk.job.manage.model.web.vo.task;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.constant.MySQLTextDataType;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.validation.EndWith;
+import com.tencent.bk.job.common.validation.MaxLength;
+import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -50,13 +55,30 @@ public class TaskScriptStepVO {
     private Long scriptVersionId;
 
     @ApiModelProperty("脚本内容")
+    @NotExceedMySQLTextFieldLength(
+        fieldName = "content",
+        fieldType = MySQLTextDataType.MEDIUMTEXT,
+        base64 = true
+    )
     private String content;
 
     @ApiModelProperty("脚本语言")
     private Integer scriptLanguage;
 
     @ApiModelProperty("脚本参数")
+    @NotExceedMySQLTextFieldLength(
+        fieldName = "scriptParam",
+        fieldType = MySQLTextDataType.TEXT,
+        base64 = false
+    )
     private String scriptParam;
+
+    @ApiModelProperty("自定义Windows解释器路径")
+    @EndWith(fieldName = "windowsInterpreter", value = ".exe",
+        message = "{validation.constraints.WinInterpreterInvalidSuffix.message}")
+    @MaxLength(value = 260,
+        message = "{validation.constraints.WindowsInterpreterExceedMaxLength.message}")
+    private String windowsInterpreter;
 
     @ApiModelProperty("脚本超时时间")
     @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max = JobConstants.MAX_JOB_TIMEOUT_SECONDS,
@@ -121,5 +143,15 @@ public class TaskScriptStepVO {
             ignoreError = 0;
         }
         executeTarget.validate();
+    }
+
+    /**
+     * 获取去除首尾空格后的windowsInterpreter
+     *
+     * @return Trim后的windowsInterpreter
+     */
+    @JsonIgnore
+    public String getTrimmedWindowsInterpreter() {
+        return windowsInterpreter != null ? windowsInterpreter.trim() : null;
     }
 }

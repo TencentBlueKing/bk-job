@@ -31,13 +31,20 @@ import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
  */
 public class SimpleMomYoyCalculator extends AbstractMomYoyCalculator {
 
-    public SimpleMomYoyCalculator(StatisticsDTO statisticsDTO, StatisticsDTO momStatisticsDTO,
+    public SimpleMomYoyCalculator(StatisticsDTO statisticsDTO,
+                                  StatisticsDTO momStatisticsDTO,
                                   StatisticsDTO yoyStatisticsDTO) {
         super(statisticsDTO, momStatisticsDTO, yoyStatisticsDTO);
     }
 
-    Long getCountFromStatisticValue(String value) {
+    /**
+     * 从序列化的存储数据中解析出统计值数字
+     *
+     * @param serializedData 序列化的存储数据
+     * @return 统计值数字
+     */
+    protected Long getCountFromSerializedData(String serializedData) {
         // 解析统计量
-        return Long.parseLong(value);
+        return Long.parseLong(serializedData);
     }
 }

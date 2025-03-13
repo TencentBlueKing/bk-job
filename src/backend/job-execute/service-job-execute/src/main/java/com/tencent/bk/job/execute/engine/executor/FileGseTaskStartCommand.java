@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.gse.v2.model.SourceFile;
 import com.tencent.bk.job.common.gse.v2.model.TargetFile;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
+import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -99,6 +100,10 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
      * 源文件与目标文件路径映射关系, 包含非法主机
      */
     private Map<JobFile, FileDest> allSrcDestFileMap;
+    /**
+     * 源执行对象任务列表(全量，包含非法的任务)
+     */
+    protected List<ExecuteObjectTask> sourceExecuteObjectTasks;
 
 
     public FileGseTaskStartCommand(EngineDependentServiceHolder engineDependentServiceHolder,
@@ -144,7 +149,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         allSrcDestFileMap = JobSrcFileUtils.buildSourceDestPathMapping(allSrcFiles, targetDir,
             stepInstance.getFileTargetName());
         allSrcDestFileMap.forEach((sreFile, destFile) -> {
-            if (isAgentInstalled(sreFile.getExecuteObject())) {
+            if (sreFile.getExecuteObject().isExecutable()) {
                 srcDestFileMap.put(sreFile, destFile);
             }
         });
@@ -159,8 +164,8 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             // 解析源文件路径中的全局变量
             resolveVariableForSourceFilePath(fileSourceList, buildStringGlobalVarKV(stepInputVariables));
 
-            stepInstanceService.updateResolvedSourceFile(stepInstance.getId(),
-                stepInstance.getFileSourceList());
+            stepInstanceService.updateResolvedSourceFile(stepInstance.getTaskInstanceId(),
+                stepInstance.getId(), stepInstance.getFileSourceList());
         }
     }
 
@@ -170,7 +175,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private void parseSrcFiles() {
         allSrcFiles = JobSrcFileUtils.parseSrcFiles(stepInstance, fileStorageRootPath);
         srcFiles = allSrcFiles.stream()
-            .filter(file -> isAgentInstalled(file.getExecuteObject()))
+            .filter(file -> file.getExecuteObject().isExecutable())
             .collect(Collectors.toSet());
         // 设置源文件所在主机账号信息
         setAccountInfoForSourceFiles(srcFiles);
@@ -220,7 +225,8 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         resolvedTargetPath = MacroUtil.resolveDateWithStrfTime(resolvedTargetPath);
         stepInstance.setResolvedFileTargetPath(resolvedTargetPath);
         if (!resolvedTargetPath.equals(stepInstance.getFileTargetPath())) {
-            stepInstanceService.updateResolvedTargetPath(stepInstance.getId(), resolvedTargetPath);
+            stepInstanceService.updateResolvedTargetPath(stepInstance.getTaskInstanceId(),
+                stepInstance.getId(), resolvedTargetPath);
         }
     }
 
@@ -236,7 +242,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 }
             }
         }
-        List<ExecuteObjectTask> executeObjectTasks = new ArrayList<>();
+        sourceExecuteObjectTasks = new ArrayList<>();
         for (ExecuteObject sourceExecuteObject : sourceExecuteObjects) {
             ExecuteObjectTask executeObjectTask = new ExecuteObjectTask(
                 taskInstanceId,
@@ -250,15 +256,17 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             executeObjectTask.setGseTaskId(gseTask.getId());
 
             if (sourceExecuteObject.isAgentIdEmpty()) {
-                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.FAILED);
+                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.AGENT_NOT_INSTALLED);
+            } else if (sourceExecuteObject.isInvalid()) {
+                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
             } else {
                 executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.WAITING);
                 sourceExecuteObjectTaskMap.put(sourceExecuteObject.toExecuteObjectGseKey(), executeObjectTask);
             }
 
-            executeObjectTasks.add(executeObjectTask);
+            sourceExecuteObjectTasks.add(executeObjectTask);
         }
-        fileExecuteObjectTaskService.batchSaveTasks(executeObjectTasks);
+        fileExecuteObjectTaskService.batchSaveTasks(sourceExecuteObjectTasks);
     }
 
     @Override
@@ -347,33 +355,50 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private void addInitialFileUploadTaskLogs(Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> logs) {
         // 每个要分发的源文件一条上传日志
         for (JobFile file : allSrcFiles) {
-            boolean isAgentInstalled = isAgentInstalled(file.getExecuteObject());
-            FileDistStatusEnum status = isAgentInstalled ?
+            boolean isSourceValid = !file.getExecuteObject().isInvalid();
+            boolean isSourceAgentInstalled = !file.getExecuteObject().isAgentIdEmpty();
+            FileDistStatusEnum status = isSourceValid && isSourceAgentInstalled ?
                 FileDistStatusEnum.WAITING : FileDistStatusEnum.FAILED;
             logService.addFileTaskLog(
                 stepInstance,
                 logs,
                 file.getExecuteObject(),
                 logService.buildUploadServiceFileTaskLogDTO(
-                    stepInstance, file, status, "--", "--", "--",
-                    isAgentInstalled ? null : "Agent is not installed"));
+                    stepInstance,
+                    file,
+                    status,
+                    "--",
+                    "--",
+                    "--",
+                    buildInitialFileTaskUploadLogContent(isSourceValid, isSourceAgentInstalled)
+                )
+            );
         }
     }
 
-    private boolean isAgentInstalled(ExecuteObject executeObject) {
-        return !executeObject.isAgentIdEmpty();
+    private String buildInitialFileTaskUploadLogContent(boolean isSourceValid,
+                                                        boolean isSourceAgentInstalled) {
+        if (!isSourceValid) {
+            return "Source execute object is invalid, please check whether the host belongs to the current business";
+        } else if (!isSourceAgentInstalled) {
+            return "Agent is not installed";
+        } else {
+            // 源、目标正常，无需写入错误日志
+            return null;
+        }
     }
 
     private void addInitialFileDownloadTaskLogs(Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> logs) {
         // 每个目标IP从每个要分发的源文件下载的一条下载日志
-        executeObjectTasks.stream()
-            .filter(ExecuteObjectTask::isTarget)
+        targetExecuteObjectTasks
             .forEach(targetExecuteObjectTask -> {
-                boolean isTargetAgentInstalled = isAgentInstalled(targetExecuteObjectTask.getExecuteObject());
+                boolean isTargetValid = !targetExecuteObjectTask.getExecuteObject().isInvalid();
+                boolean isTargetAgentInstalled = !targetExecuteObjectTask.getExecuteObject().isAgentIdEmpty();
                 for (JobFile file : allSrcFiles) {
-                    boolean isSourceAgentInstalled = isAgentInstalled(file.getExecuteObject());
-                    FileDistStatusEnum status = isTargetAgentInstalled && isSourceAgentInstalled ?
-                        FileDistStatusEnum.WAITING : FileDistStatusEnum.FAILED;
+                    boolean isSourceValid = !file.getExecuteObject().isInvalid();
+                    boolean isSourceAgentInstalled = !file.getExecuteObject().isAgentIdEmpty();
+                    FileDistStatusEnum status = isTargetValid && isTargetAgentInstalled && isSourceValid
+                        && isSourceAgentInstalled ? FileDistStatusEnum.WAITING : FileDistStatusEnum.FAILED;
                     logService.addFileTaskLog(
                         stepInstance,
                         logs,
@@ -387,19 +412,41 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                             "--",
                             "--",
                             "--",
-                            isTargetAgentInstalled ? (isSourceAgentInstalled ? null : "Source agent is not installed")
-                                : "Agent is not installed"
+                            buildInitialFileTaskDownloadLogContent(
+                                isTargetValid,
+                                isTargetAgentInstalled,
+                                isSourceValid,
+                                isSourceAgentInstalled
+                            )
                         )
                     );
                 }
             });
     }
 
+    private String buildInitialFileTaskDownloadLogContent(boolean isTargetValid,
+                                                          boolean isTargetAgentInstalled,
+                                                          boolean isSourceValid,
+                                                          boolean isSourceAgentInstalled) {
+        if (!isTargetValid) {
+            return "Target execute object is invalid, please check whether the host belongs to the current business";
+        } else if (!isTargetAgentInstalled) {
+            return "Agent is not installed";
+        } else if (!isSourceValid) {
+            return "Source execute object is invalid, please check whether the host belongs to the current business";
+        } else if (!isSourceAgentInstalled) {
+            return "Source agent is not installed";
+        } else {
+            // 源、目标正常，无需错误日志
+            return null;
+        }
+    }
+
     private void writeLogs(Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executionLogs) {
         if (log.isDebugEnabled()) {
             log.debug("Write file task initial logs, executionLogs: {}", executionLogs);
         }
-        logService.writeFileLogs(taskInstance.getCreateTime(), new ArrayList<>(executionLogs.values()));
+        logService.writeFileLogs(taskInstance, new ArrayList<>(executionLogs.values()));
     }
 
 
@@ -418,7 +465,6 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             new FileResultHandleTask(
                 engineDependentServiceHolder,
                 fileExecuteObjectTaskService,
-                jobExecuteConfig,
                 taskInstance,
                 stepInstance,
                 taskVariablesAnalyzeResult,
@@ -427,9 +473,10 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 gseTask,
                 srcDestFileMap,
                 requestId,
-                executeObjectTasks);
+                CollectionUtil.mergeToArrayList(targetExecuteObjectTasks, sourceExecuteObjectTasks));
         resultHandleManager.handleDeliveredTask(fileResultHandleTask);
     }
+
 
     @Override
     protected boolean checkGseTaskExecutable() {

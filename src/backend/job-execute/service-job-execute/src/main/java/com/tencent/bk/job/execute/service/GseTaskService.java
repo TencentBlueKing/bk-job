@@ -52,20 +52,22 @@ public interface GseTaskService {
     /**
      * 获取 GSE 任务
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   步骤执行次数
      * @param batch          滚动执行批次
      * @return GSE 任务
      */
-    GseTaskDTO getGseTask(long stepInstanceId, int executeCount, Integer batch);
+    GseTaskDTO getGseTask(Long taskInstanceId, long stepInstanceId, int executeCount, Integer batch);
 
     /**
      * 获取 GSE 任务
      *
-     * @param gseTaskId GSE任务ID
+     * @param taskInstanceId 作业实例 ID
+     * @param gseTaskId      GSE任务ID
      * @return GSE 任务
      */
-    GseTaskDTO getGseTask(long gseTaskId);
+    GseTaskDTO getGseTask(Long taskInstanceId, long gseTaskId);
 
     /**
      * 获取 GSE 任务
@@ -79,11 +81,11 @@ public interface GseTaskService {
      * 获取 GSE 任务列表
      *
      * @param stepInstanceId 步骤实例ID
-     * @param executeCount 执行次数
-     * @param batch 批次
+     * @param executeCount   执行次数
+     * @param batch          批次
      * @return GSE 任务列表
      */
-    List<GseTaskSimpleDTO> ListGseTaskSimpleInfo(Long stepInstanceId,
+    List<GseTaskSimpleDTO> listGseTaskSimpleInfo(Long stepInstanceId,
                                                  Integer executeCount,
                                                  Integer batch);
 }

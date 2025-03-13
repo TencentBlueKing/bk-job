@@ -29,6 +29,7 @@ import com.tencent.bk.job.crontab.service.CronJobBatchLoadService;
 import com.tencent.bk.job.crontab.service.CronJobLoadingService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.quartz.Scheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,11 +41,13 @@ import java.util.List;
 public class CronJobLoadingServiceImpl implements CronJobLoadingService {
 
     private final CronJobBatchLoadService cronJobBatchLoadService;
+    private final Scheduler scheduler;
     private volatile boolean loadingCronToQuartz = false;
 
     @Autowired
-    public CronJobLoadingServiceImpl(CronJobBatchLoadService cronJobBatchLoadService) {
+    public CronJobLoadingServiceImpl(CronJobBatchLoadService cronJobBatchLoadService, Scheduler scheduler) {
         this.cronJobBatchLoadService = cronJobBatchLoadService;
+        this.scheduler = scheduler;
     }
 
     @Override
@@ -56,7 +59,10 @@ public class CronJobLoadingServiceImpl implements CronJobLoadingService {
                 return;
             }
             loadingCronToQuartz = true;
+            waitUtilQuartzStarted();
             loadAllCronJobToQuartz();
+        } catch (InterruptedException e) {
+            log.info("loadAllCronJob interrupted, application may be closing");
         } catch (Exception e) {
             log.warn("Fail to loadAllCronJob", e);
         } finally {
@@ -65,7 +71,15 @@ public class CronJobLoadingServiceImpl implements CronJobLoadingService {
         }
     }
 
-    private void loadAllCronJobToQuartz() {
+    private void waitUtilQuartzStarted() throws Exception {
+        while (!scheduler.isStarted()) {
+            log.info("Quartz Scheduler is not started, sleep 1s and retry");
+            Thread.sleep(1000);
+        }
+        log.info("Quartz Scheduler is started now");
+    }
+
+    private void loadAllCronJobToQuartz() throws InterruptedException {
         int start = 0;
         int limit = 100;
         int currentFetchNum;

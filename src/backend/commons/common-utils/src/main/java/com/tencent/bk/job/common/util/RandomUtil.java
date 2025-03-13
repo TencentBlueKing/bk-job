@@ -24,19 +24,35 @@
 
 package com.tencent.bk.job.common.util;
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * 随机工具类
+ */
 public class RandomUtil {
 
-    private static final Random random = new Random();
-
+    /**
+     * 生成随机的正整数，可用于多线程环境
+     *
+     * @return 随机数
+     */
     public static long getRandomPositiveLong() {
-        long value = random.nextLong();
+        long value = ThreadLocalRandom.current().nextLong();
         if (value == Long.MIN_VALUE || value == 1L) {
             return 1;
         } else if (value < 0) {
             return -value;
         }
         return value;
+    }
+
+    /**
+     * 生成[0,bound)范围内的随机正整数，可用于多线程环境
+     *
+     * @param bound 边界值，不包含
+     * @return 随机数
+     */
+    public static int nextInt(int bound) {
+        return ThreadLocalRandom.current().nextInt(bound);
     }
 }
