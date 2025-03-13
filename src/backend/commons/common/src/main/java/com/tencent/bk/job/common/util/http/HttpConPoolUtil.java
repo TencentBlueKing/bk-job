@@ -191,8 +191,10 @@ public class HttpConPoolUtil {
             int statusCode = response.getStatusLine().getStatusCode();
             log.info("Post url: {}, statusCode: {}", url, statusCode);
             if (statusCode != HttpStatus.SC_OK) {
-                String errorMsg = buildErrorMessage("Post", url, statusCode,
-                        response.getStatusLine().getReasonPhrase());
+                String errorMsg = buildErrorMessage("Post",
+                    url,
+                    statusCode,
+                    response.getStatusLine().getReasonPhrase());
                 log.warn(errorMsg);
             }
             String entity = response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : null;

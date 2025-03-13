@@ -31,7 +31,11 @@ import com.tencent.bk.job.common.util.http.HttpResponse;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
+import com.tencent.bk.job.execute.service.TaskInstanceService;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.springframework.messaging.Message;
@@ -47,9 +51,13 @@ import java.net.URL;
 @Slf4j
 public class CallbackListener extends BaseJobMqListener {
     private final MeterRegistry meterRegistry;
+    private final TaskInstanceService taskInstanceService;
+    private final String UNKNOWN_HTTP_CODE = "unknown";
 
-    public CallbackListener(MeterRegistry meterRegistry) {
+    public CallbackListener(MeterRegistry meterRegistry,
+                            TaskInstanceService taskInstanceService) {
         this.meterRegistry = meterRegistry;
+        this.taskInstanceService = taskInstanceService;
     }
 
     /**
@@ -70,7 +78,8 @@ public class CallbackListener extends BaseJobMqListener {
             // 回调状态码不是200，重试一次
             if (response.getStatusCode() != HttpStatus.SC_OK) {
                 log.warn("Callback failed, retrying. taskInstanceId: {}, statusCode: {}",
-                        taskInstanceId, response.getStatusCode());
+                    taskInstanceId,
+                    response.getStatusCode());
                 response = callbackRequest(callbackUrl, callbackDTO);
             }
             log.info("Final callback {}, taskInstanceId: {}, statusCode: {}, result: {}",
@@ -80,7 +89,7 @@ public class CallbackListener extends BaseJobMqListener {
                     response.getEntity());
         } catch (MalformedURLException e) {
             log.warn("Invalid callback URL: "+callbackUrl, e);
-            recordCallbackMetrics("unknown");
+            recordCallbackMetrics(UNKNOWN_HTTP_CODE, callbackDTO);
         }
     }
 
@@ -98,30 +107,28 @@ public class CallbackListener extends BaseJobMqListener {
         try {
             callbackDTO.setCallbackUrl(null);
             HttpResponse response = HttpConPoolUtil.post(callbackUrl, JsonUtils.toJson(callbackDTO));
-            recordCallbackMetrics(response.getStatusCode());
+            recordCallbackMetrics(String.valueOf(response.getStatusCode()), callbackDTO);
             return response;
         } catch (Throwable e) {
             String errorMsg = String.format("Callback request failed, taskInstanceId: %s, url: %s",
                     callbackDTO.getId(),
                     callbackUrl);
             log.warn(errorMsg, e);
-            recordCallbackMetrics("unknown");
-            return new HttpResponse(500, null, null);
+            recordCallbackMetrics(UNKNOWN_HTTP_CODE, callbackDTO);
+            return new HttpResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, null, null);
         }
     }
 
     /**
      * 记录回调请求的监控指标
      */
-    private void recordCallbackMetrics(int statusCode) {
-        recordCallbackMetrics(String.valueOf(statusCode));
-    }
-
-    private void recordCallbackMetrics(String statusCode) {
-        meterRegistry.counter(
-                CommonMetricNames.TASK_CALLBACK_HTTP_STATUS,
-                CommonMetricTags.KEY_HTTP_STATUS,
-                statusCode
-        ).increment();
+    private void recordCallbackMetrics(String statusCode, JobCallbackDTO callbackDTO) {
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(callbackDTO.getId());
+        Iterable<Tag> tags = Tags.of(
+            Tag.of(CommonMetricTags.KEY_APP_ID, String.valueOf(taskInstance.getAppId())),
+            Tag.of(CommonMetricTags.KEY_APP_CODE, taskInstance.getAppCode()),
+            Tag.of(CommonMetricTags.KEY_HTTP_STATUS, statusCode)
+        );
+        meterRegistry.counter(CommonMetricNames.TASK_CALLBACK_HTTP_STATUS, tags).increment();
     }
 }
