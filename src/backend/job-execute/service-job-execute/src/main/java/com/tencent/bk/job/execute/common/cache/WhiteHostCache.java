@@ -25,12 +25,12 @@
 package com.tencent.bk.job.execute.common.cache;
 
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.tenant.TenantDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
 import com.tencent.bk.job.manage.api.inner.ServiceWhiteIPResource;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
-import com.tencent.bk.job.manage.model.inner.resp.TenantDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.tools.StringUtils;
 import org.slf4j.helpers.MessageFormatter;

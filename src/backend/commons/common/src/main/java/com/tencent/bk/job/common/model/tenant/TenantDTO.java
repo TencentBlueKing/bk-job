@@ -22,26 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.common.model.tenant;
 
-import com.tencent.bk.job.manage.model.inner.resp.TenantDTO;
-
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
- * 租户服务
+ * 租户信息
  */
-public interface TenantService {
+@Data
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class TenantDTO {
+    /**
+     * 租户 ID
+     */
+    private String id;
 
     /**
-     * 查询所有启用的租户
-     *
-     * @return 租户列表
+     * 租户名
      */
-    List<TenantDTO> listEnabledTenant();
-
-    /**
-     * 通过appId获取tenantId
-     */
-    String getTenantIdByAppId(long appId);
+    private String name;
 }

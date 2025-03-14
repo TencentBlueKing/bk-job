@@ -26,10 +26,10 @@ package com.tencent.bk.job.manage.service.cloudarea;
 
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.model.tenant.TenantDTO;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
-import com.tencent.bk.job.manage.model.inner.resp.TenantDTO;
-import com.tencent.bk.job.manage.service.TenantService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;

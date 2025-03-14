@@ -28,6 +28,8 @@ import com.tencent.bk.job.analysis.api.iam.IamDashBoardViewCallbackResource;
 import com.tencent.bk.job.analysis.consts.AnalysisConsts;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.IamSearchCondition;
@@ -49,7 +51,9 @@ import java.util.List;
 public class IamDashBoardViewCallbackResourceImpl extends BaseIamCallbackService
     implements IamDashBoardViewCallbackResource {
 
-    public IamDashBoardViewCallbackResourceImpl() {
+    public IamDashBoardViewCallbackResourceImpl(AppScopeMappingService appScopeMappingService,
+                                                TenantService tenantService) {
+        super(appScopeMappingService, tenantService);
     }
 
     @Override

@@ -25,9 +25,9 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.tenant.TenantDTO;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
-import com.tencent.bk.job.manage.model.inner.resp.TenantDTO;
-import com.tencent.bk.job.manage.service.TenantService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 

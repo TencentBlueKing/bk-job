@@ -25,14 +25,23 @@
 package com.tencent.bk.job.backup.config;
 
 import com.tencent.bk.job.common.service.AppCacheService;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.web.interceptor.BasicAppInterceptor;
 import com.tencent.bk.job.manage.AppCacheServiceImpl;
+import com.tencent.bk.job.manage.CachedTenantServiceImpl;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
+import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class JobBackupConfiguration {
+
+    @Bean
+    TenantService cachedTenantService(ServiceTenantResource serviceTenantResource) {
+        return new CachedTenantServiceImpl(serviceTenantResource);
+    }
+
     @Bean
     AppCacheService appScopeMappingService(ServiceApplicationResource applicationResource) {
         return new AppCacheServiceImpl(applicationResource);
