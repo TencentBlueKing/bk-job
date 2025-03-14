@@ -89,8 +89,8 @@ public class PublicScriptCallbackHelper extends AbstractScriptCallbackHelper {
         return true;
     }
 
-    public CallbackBaseResponseDTO doCallback(CallbackRequestDTO callbackRequest) {
-        return baseCallback(callbackRequest);
+    public CallbackBaseResponseDTO doCallback(String tenantId, CallbackRequestDTO callbackRequest) {
+        return baseCallback(tenantId, callbackRequest);
     }
 
     @Override

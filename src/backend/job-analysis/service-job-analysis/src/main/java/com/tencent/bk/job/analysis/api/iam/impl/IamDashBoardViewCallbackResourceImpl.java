@@ -39,7 +39,6 @@ import com.tencent.bk.sdk.iam.dto.callback.response.InstanceInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.ListInstanceResponseDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.SearchInstanceResponseDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -50,7 +49,6 @@ import java.util.List;
 public class IamDashBoardViewCallbackResourceImpl extends BaseIamCallbackService
     implements IamDashBoardViewCallbackResource {
 
-    @Autowired
     public IamDashBoardViewCallbackResourceImpl() {
     }
 
@@ -139,8 +137,8 @@ public class IamDashBoardViewCallbackResourceImpl extends BaseIamCallbackService
     }
 
     @Override
-    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        return baseCallback(callbackRequest);
+    public CallbackBaseResponseDTO callback(String tenantId, CallbackRequestDTO callbackRequest) {
+        return baseCallback(tenantId, callbackRequest);
     }
 
     @Override

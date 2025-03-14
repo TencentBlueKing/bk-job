@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.sdk.iam.constants.CommonResponseCode;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
@@ -109,7 +110,11 @@ public abstract class BaseIamCallbackService {
     protected abstract FetchResourceTypeSchemaResponseDTO fetchResourceTypeSchemaResp(
         CallbackRequestDTO callbackRequest);
 
-    public CallbackBaseResponseDTO baseCallback(CallbackRequestDTO callbackRequest) {
+    public CallbackBaseResponseDTO baseCallback(String tenantId, CallbackRequestDTO callbackRequest) {
+        if (log.isDebugEnabled()) {
+            // tenantId通过IamCallbackAspect切面提取，并放入JobContext中，此处打印用于对比是否有逻辑遗漏
+            log.debug("tenantId={}, tenantIdInJobContext={}", tenantId, JobContextUtil.getTenantId());
+        }
         CallbackBaseResponseDTO response;
         switch (callbackRequest.getMethod()) {
             case LIST_INSTANCE:
@@ -154,6 +159,8 @@ public abstract class BaseIamCallbackService {
             ResourceTypeEnum iamResourceType =
                 ResourceTypeEnum.getByResourceTypeId(searchCondition.getParentResourceTypeId());
             return IamUtil.getResourceScopeFromIamResource(iamResourceType, searchCondition.getParentResourceId());
+            // TODO: 提取出appId，校验appId是否在当前租户下，避免跨租户查询
+            // TODO: 运营视图与公共脚本资源也需要限定在当前租户下查询
         } else {
             return null;
         }

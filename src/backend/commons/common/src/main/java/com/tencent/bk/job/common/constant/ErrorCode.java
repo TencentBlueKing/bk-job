@@ -51,6 +51,8 @@ public class ErrorCode {
     public static final int INIT_TENANT_ERROR = 1210003;
     // 已有另一个初始化租户任务正在执行：{0}
     public static final int INIT_TENANT_TASK_ALREADY_RUNNING = 1210004;
+    // 传入的租户ID为空，缺少的Header：{0}
+    public static final int TENANT_ID_CANNOT_BE_BLANK = 1210005;
 
     // CMDB错误
     // CMDB服务状态不可达 - 地址配置错误或者地址无法正确解析
