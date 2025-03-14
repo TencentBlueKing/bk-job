@@ -25,8 +25,8 @@
 package com.tencent.bk.job.manage.service.impl.sync;
 
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
-import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
+import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,16 +43,16 @@ import java.util.List;
 @Service
 public class AgentStatusSyncService {
 
-    private final ApplicationHostDAO applicationHostDAO;
-    private final HostService hostService;
+    private final NoTenantHostDAO noTenantHostDAO;
+    private final NoTenantHostService noTenantHostService;
     private final AgentStatusService agentStatusService;
 
     @Autowired
-    public AgentStatusSyncService(ApplicationHostDAO applicationHostDAO,
-                                  HostService hostService,
+    public AgentStatusSyncService(NoTenantHostDAO noTenantHostDAO,
+                                  NoTenantHostService noTenantHostService,
                                   AgentStatusService agentStatusService) {
-        this.applicationHostDAO = applicationHostDAO;
-        this.hostService = hostService;
+        this.noTenantHostDAO = noTenantHostDAO;
+        this.noTenantHostService = noTenantHostService;
         this.agentStatusService = agentStatusService;
     }
 
@@ -61,7 +61,7 @@ public class AgentStatusSyncService {
         long writeToDBTimeConsuming = 0L;
         StopWatch hostAgentStatusWatch = new StopWatch();
         hostAgentStatusWatch.start("listAllHostInfo");
-        List<HostSimpleDTO> localHosts = applicationHostDAO.listAllHostSimpleInfo();
+        List<HostSimpleDTO> localHosts = noTenantHostDAO.listAllHostSimpleInfo();
         hostAgentStatusWatch.stop();
         hostAgentStatusWatch.start("getAgentStatus from GSE");
         long startTime = System.currentTimeMillis();
@@ -70,7 +70,7 @@ public class AgentStatusSyncService {
         hostAgentStatusWatch.stop();
         hostAgentStatusWatch.start("updateHosts to local DB");
         startTime = System.currentTimeMillis();
-        int updatedHostNum = hostService.updateHostsStatus(statusChangedHosts);
+        int updatedHostNum = noTenantHostService.updateHostsStatus(statusChangedHosts);
         writeToDBTimeConsuming += (System.currentTimeMillis() - startTime);
         hostAgentStatusWatch.stop();
         if (hostAgentStatusWatch.getTotalTimeMillis() > 180000) {

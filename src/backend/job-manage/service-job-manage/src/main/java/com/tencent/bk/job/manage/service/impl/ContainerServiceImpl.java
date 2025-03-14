@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.service.impl;
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.query.ContainerQuery;
 import com.tencent.bk.job.manage.service.ContainerService;
@@ -41,10 +41,10 @@ import java.util.List;
 @Slf4j
 public class ContainerServiceImpl implements ContainerService {
 
-    private final BizCmdbClient bizCmdbClient;
+    private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
-    public ContainerServiceImpl(BizCmdbClient bizCmdbClient) {
+    public ContainerServiceImpl(IBizCmdbClient bizCmdbClient) {
         this.bizCmdbClient = bizCmdbClient;
     }
 

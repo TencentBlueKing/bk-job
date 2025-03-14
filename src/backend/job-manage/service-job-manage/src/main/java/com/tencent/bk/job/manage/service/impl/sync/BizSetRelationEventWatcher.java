@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.cc.sdk.BizSetCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
@@ -54,7 +54,7 @@ import java.util.List;
 public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetRelationEventDetail> {
     private final ApplicationService applicationService;
     private final BizSetService bizSetService;
-    private final BizSetCmdbClient bizSetCmdbClient;
+    private final IBizSetCmdbClient bizSetCmdbClient;
 
     @Autowired
     public BizSetRelationEventWatcher(RedisTemplate<String, String> redisTemplate,
@@ -62,7 +62,7 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
                                       CmdbEventSampler cmdbEventSampler,
                                       ApplicationService applicationService,
                                       BizSetService bizSetService,
-                                      BizSetCmdbClient bizSetCmdbClient) {
+                                      IBizSetCmdbClient bizSetCmdbClient) {
         super("bizSetRelation", redisTemplate, tracer, cmdbEventSampler);
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
@@ -113,7 +113,8 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
 
     @Override
     protected Tags getEventMetricTags() {
-        return Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE, MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_BIZ_SET_RELATION);
+        return Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE,
+            MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_BIZ_SET_RELATION);
     }
 
     @Override

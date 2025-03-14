@@ -194,6 +194,22 @@ BEGIN
     ALTER TABLE user ADD INDEX idx_tenant_id_display_name(`tenant_id`, `display_name`);
   END IF;
 
+  IF NOT EXISTS(SELECT 1
+                    FROM information_schema.columns
+                    WHERE TABLE_SCHEMA = db
+                      AND TABLE_NAME = 'host'
+                      AND COLUMN_NAME = 'tenant_id') THEN
+    ALTER TABLE host ADD COLUMN tenant_id VARCHAR(32) NOT NULL DEFAULT 'default' AFTER `app_id`;
+  END IF;
+
+  IF NOT EXISTS(SELECT 1
+                  FROM information_schema.statistics
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'host'
+                    AND INDEX_NAME = 'idx_tenant_id') THEN
+    ALTER TABLE host ADD INDEX idx_tenant_id(`tenant_id`);
+  END IF;
+
 COMMIT;
 END <JOB_UBF>
 DELIMITER ;

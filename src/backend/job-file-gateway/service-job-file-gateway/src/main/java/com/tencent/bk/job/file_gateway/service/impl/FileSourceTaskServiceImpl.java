@@ -325,10 +325,13 @@ public class FileSourceTaskServiceImpl implements FileSourceTaskService {
         if (logLength < 0) {
             logEnd = logSize;
         }
-        log.debug("logStart={},logEnd={}", logStart, logEnd);
+        log.info("taskId={},logStart={},logEnd={},logSize={}", taskId, logStart, logEnd, logSize);
         List<ThirdFileSourceTaskLogDTO> logDTOList = null;
-        List<Object> logObjList = redisTemplate.opsForList().range(PREFIX_REDIS_TASK_LOG + taskId, logStart,
-            logEnd);
+        List<Object> logObjList = redisTemplate.opsForList().range(
+            PREFIX_REDIS_TASK_LOG + taskId,
+            logStart,
+            logEnd
+        );
         if (logObjList != null) {
             logDTOList = logObjList.stream().map(obj -> (ThirdFileSourceTaskLogDTO) obj).collect(Collectors.toList());
         }

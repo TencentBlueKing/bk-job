@@ -47,6 +47,14 @@ public class ErrorCode {
     public static final int GSE_ERROR = 1210001;
     // GSE数据异常：{0}
     public static final int GSE_API_DATA_ERROR = 1210002;
+    // 初始化租户失败：{0}
+    public static final int INIT_TENANT_ERROR = 1210003;
+    // 已有另一个初始化租户任务正在执行：{0}
+    public static final int INIT_TENANT_TASK_ALREADY_RUNNING = 1210004;
+    // 传入的租户ID为空，缺少的Header：{0}
+    public static final int TENANT_ID_CANNOT_BE_BLANK = 1210005;
+    // 禁止跨租户访问数据，当前租户ID：{0}，尝试访问的资源：{1}，资源所属租户ID：{2}
+    public static final int ACCESS_CROSS_TENANT_FORBIDDEN = 1210006;
 
     // CMDB错误
     // CMDB服务状态不可达 - 地址配置错误或者地址无法正确解析
@@ -157,24 +165,24 @@ public class ErrorCode {
     public static final int ILLEGAL_PARAM = 1241002;
     // 不支持的操作
     public static final int UNSUPPORTED_OPERATION = 1241003;
-    // 请求参数[]缺失
+    // 请求参数[{0}]缺失
     public static final int MISSING_PARAM_WITH_PARAM_NAME = 1241004;
-    // 请求参数[]不合法
+    // 请求参数[{0}]不合法
     public static final int ILLEGAL_PARAM_WITH_PARAM_NAME = 1241005;
     // 请求参数缺失或不合法
     public static final int MISSING_OR_ILLEGAL_PARAM = 1241006;
-    // 请求参数[]缺失或不合法
+    // 请求参数[{0}]缺失或不合法
     public static final int MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME = 1241007;
     // 错误的业务 ID
     public static final int WRONG_APP_ID = 1241008;
-    // 请求参数[0]不合法，原因：[1]
+    // 请求参数[{0}]不合法，原因：{1}
     public static final int ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON = 1241010;
     // 尚未支持的功能
     public static final int NOT_SUPPORT_FEATURE = 1241011;
 
     public static final int ILLEGAL_PARAM_WITH_REASON = 1241012;
-    // 该功能暂不支持业务集
-    public static final int NOT_SUPPORT_FEATURE_FOR_BIZ_SET = 1241013;
+    // 该功能暂不支持，支持的资源范围：{0}，当前资源范围：{1}
+    public static final int NOT_SUPPORT_FEATURE_FOR_RESOURCE_SCOPE = 1241013;
     // IPv6地址不合法：{0}
     public static final int INVALID_IPV6_ADDRESS = 1241014;
     // 业务通用 end

@@ -110,6 +110,14 @@ public class ApplicationDTO {
     }
 
     /**
+     * 是否是租户集
+     */
+    @JsonIgnore
+    public boolean isTenantSet() {
+        return scope != null && scope.getType() == ResourceScopeTypeEnum.TENANT_SET;
+    }
+
+    /**
      * 是否是全业务
      */
     @JsonIgnore
@@ -118,6 +126,17 @@ public class ApplicationDTO {
             && attrs != null
             && attrs.getMatchAllBiz() != null
             && attrs.getMatchAllBiz();
+    }
+
+    /**
+     * 是否是全租户
+     */
+    @JsonIgnore
+    public boolean isAllTenantSet() {
+        return isTenantSet()
+            && attrs != null
+            && attrs.getMatchAllTenant() != null
+            && attrs.getMatchAllTenant();
     }
 
     /**

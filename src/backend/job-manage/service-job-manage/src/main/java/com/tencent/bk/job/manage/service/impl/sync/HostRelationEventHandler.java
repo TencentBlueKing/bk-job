@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
@@ -48,7 +48,7 @@ import java.util.concurrent.BlockingQueue;
 public class HostRelationEventHandler extends EventsHandler<HostRelationEventDetail> {
 
     private final ApplicationService applicationService;
-    private final ApplicationHostDAO applicationHostDAO;
+    private final NoTenantHostDAO noTenantHostDAO;
     private final HostTopoDAO hostTopoDAO;
     private final HostCache hostCache;
 
@@ -56,12 +56,12 @@ public class HostRelationEventHandler extends EventsHandler<HostRelationEventDet
                                     CmdbEventSampler cmdbEventSampler,
                                     BlockingQueue<ResourceEvent<HostRelationEventDetail>> queue,
                                     ApplicationService applicationService,
-                                    ApplicationHostDAO applicationHostDAO,
+                                    NoTenantHostDAO noTenantHostDAO,
                                     HostTopoDAO hostTopoDAO,
                                     HostCache hostCache) {
         super(queue, tracer, cmdbEventSampler);
         this.applicationService = applicationService;
-        this.applicationHostDAO = applicationHostDAO;
+        this.noTenantHostDAO = noTenantHostDAO;
         this.hostTopoDAO = hostTopoDAO;
         this.hostCache = hostCache;
     }
@@ -161,7 +161,7 @@ public class HostRelationEventHandler extends EventsHandler<HostRelationEventDet
      */
     private int updateTopoToHost(HostTopoDTO hostTopoDTO) {
         // 若主机存在需将拓扑信息同步至主机信息冗余字段
-        int affectedHostNum = applicationHostDAO.syncHostTopo(hostTopoDTO.getHostId());
+        int affectedHostNum = noTenantHostDAO.syncHostTopo(hostTopoDTO.getHostId());
         if (affectedHostNum > 0) {
             log.info("host topo synced: affectedHostNum={}", affectedHostNum);
         } else if (affectedHostNum == 0) {
@@ -179,7 +179,7 @@ public class HostRelationEventHandler extends EventsHandler<HostRelationEventDet
      * @return 是否执行了更新/删除缓存动作
      */
     private boolean updateOrDeleteHostCache(HostTopoDTO hostTopoDTO) {
-        ApplicationHostDTO host = applicationHostDAO.getHostById(hostTopoDTO.getHostId());
+        ApplicationHostDTO host = noTenantHostDAO.getHostById(hostTopoDTO.getHostId());
         if (host == null) {
             log.info("host already deleted by others: hostId={}, ignore", hostTopoDTO.getHostId());
             return false;

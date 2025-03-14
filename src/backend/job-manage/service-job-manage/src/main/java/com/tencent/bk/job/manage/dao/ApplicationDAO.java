@@ -50,11 +50,13 @@ public interface ApplicationDAO {
 
     List<ApplicationDTO> listAllAppsForTenant(String tenantId);
 
-    List<ApplicationDTO> listAllBizApps();
+    List<ApplicationDTO> listAllBizApps(String tenantId);
 
-    List<ApplicationDTO> listAllBizAppsWithDeleted();
+    List<ApplicationDTO> listAllBizAppsWithDeleted(String tenantId);
 
-    List<ApplicationDTO> listAllBizSetAppsWithDeleted();
+    List<ApplicationDTO> listAllBizSetAppsWithDeleted(String tenantId);
+
+    List<ApplicationDTO> listAllTenantSetAppsWithDeleted();
 
     List<ApplicationDTO> listAppsByScopeType(ResourceScopeTypeEnum scopeType);
 

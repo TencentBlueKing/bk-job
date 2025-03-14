@@ -65,5 +65,5 @@ public class BusinessInfoDTO {
      * 资源类型
      */
     @JsonProperty("default")
-    private Integer deFault;
+    private Integer deFault = 0;
 }

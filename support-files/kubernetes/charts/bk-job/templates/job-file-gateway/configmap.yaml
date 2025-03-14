@@ -45,8 +45,8 @@ data:
           {{- else -}}
           password: ${mariadb-password}
           {{- end }}
-          maximum-pool-size: 20
-          minimum-idle: 5
+          maximum-pool-size: {{ .Values.fileGatewayConfig.database.maxPoolSize }}
+          minimum-idle: 20
           idle-timeout: 600000
           poolName: "job-file-gateway"
           validationTimeout: 5000

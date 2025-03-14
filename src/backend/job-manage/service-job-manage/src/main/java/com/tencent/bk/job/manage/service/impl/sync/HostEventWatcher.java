@@ -27,13 +27,13 @@ package com.tencent.bk.job.manage.service.impl.sync;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.manage.config.GseConfig;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
-import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
@@ -58,10 +58,9 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
      */
     private final Tracer tracer;
     private final CmdbEventSampler cmdbEventSampler;
-    private final BizCmdbClient bizCmdbClient;
-    private final HostService hostService;
+    private final IBizCmdbClient bizCmdbClient;
+    private final NoTenantHostService noTenantHostService;
     private final AgentStateClient agentStateClient;
-
     private final AtomicBoolean hostWatchFlag = new AtomicBoolean(true);
     private final int eventsHandlerNum;
     private final List<HostEventHandler> eventsHandlers = new ArrayList<>();
@@ -71,16 +70,16 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
     public HostEventWatcher(RedisTemplate<String, String> redisTemplate,
                             Tracer tracer,
                             CmdbEventSampler cmdbEventSampler,
-                            BizCmdbClient bizCmdbClient,
-                            HostService hostService,
+                            IBizCmdbClient bizCmdbClient,
+                            NoTenantHostService noTenantHostService,
                             @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
-                                AgentStateClient agentStateClient,
+                            AgentStateClient agentStateClient,
                             JobManageConfig jobManageConfig) {
         super("host", redisTemplate, tracer, cmdbEventSampler);
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.bizCmdbClient = bizCmdbClient;
-        this.hostService = hostService;
+        this.noTenantHostService = noTenantHostService;
         this.agentStateClient = agentStateClient;
         this.eventsHandlerNum = jobManageConfig.getHostEventHandlerNum();
     }
@@ -157,8 +156,9 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
             tracer,
             cmdbEventSampler,
             hostEventQueue,
-            hostService,
-            agentStateClient
+            noTenantHostService,
+            agentStateClient,
+            bizCmdbClient
         );
     }
 

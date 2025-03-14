@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.service.impl.sync;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,10 +48,10 @@ public class BizSyncService extends BasicAppSyncService {
 
     @Autowired
     public BizSyncService(ApplicationDAO applicationDAO,
-                          ApplicationHostDAO applicationHostDAO,
+                          NoTenantHostDAO noTenantHostDAO,
                           ApplicationService applicationService,
                           IBizCmdbClient bizCmdbClient) {
-        super(applicationDAO, applicationHostDAO, applicationService, bizCmdbClient);
+        super(applicationDAO, noTenantHostDAO, applicationService, bizCmdbClient);
         this.applicationDAO = applicationDAO;
     }
 
@@ -64,7 +64,7 @@ public class BizSyncService extends BasicAppSyncService {
         List<ApplicationDTO> updateList;
         List<ApplicationDTO> deleteList;
         // 对比库中数据与接口数据
-        List<ApplicationDTO> localBizApps = applicationDAO.listAllBizAppsWithDeleted();
+        List<ApplicationDTO> localBizApps = applicationDAO.listAllBizAppsWithDeleted(tenantId);
         // CMDB业务ScopeId
         Set<String> ccBizAppScopeIds = ccBizApps.stream()
             .map(ccBizApp -> ccBizApp.getScope().getId())

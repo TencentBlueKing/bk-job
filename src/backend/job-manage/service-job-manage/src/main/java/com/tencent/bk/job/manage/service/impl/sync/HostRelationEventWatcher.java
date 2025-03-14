@@ -27,8 +27,8 @@ package com.tencent.bk.job.manage.service.impl.sync;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
@@ -58,9 +58,9 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
      */
     private final Tracer tracer;
     private final CmdbEventSampler cmdbEventSampler;
-    private final BizCmdbClient bizCmdbClient;
+    private final IBizCmdbClient bizCmdbClient;
     private final ApplicationService applicationService;
-    private final ApplicationHostDAO applicationHostDAO;
+    private final NoTenantHostDAO noTenantHostDAO;
     private final HostTopoDAO hostTopoDAO;
     private final HostCache hostCache;
 
@@ -74,9 +74,9 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
     public HostRelationEventWatcher(RedisTemplate<String, String> redisTemplate,
                                     Tracer tracer,
                                     CmdbEventSampler cmdbEventSampler,
-                                    BizCmdbClient bizCmdbClient,
+                                    IBizCmdbClient bizCmdbClient,
                                     ApplicationService applicationService,
-                                    ApplicationHostDAO applicationHostDAO,
+                                    NoTenantHostDAO noTenantHostDAO,
                                     HostTopoDAO hostTopoDAO,
                                     HostCache hostCache) {
         super("hostRelation", redisTemplate, tracer, cmdbEventSampler);
@@ -84,7 +84,7 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
         this.cmdbEventSampler = cmdbEventSampler;
         this.bizCmdbClient = bizCmdbClient;
         this.applicationService = applicationService;
-        this.applicationHostDAO = applicationHostDAO;
+        this.noTenantHostDAO = noTenantHostDAO;
         this.hostTopoDAO = hostTopoDAO;
         this.hostCache = hostCache;
         this.setName("[" + getId() + "]-HostRelationWatchThread-" + instanceNum.getAndIncrement());
@@ -98,7 +98,7 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
             cmdbEventSampler,
             eventQueue,
             applicationService,
-            applicationHostDAO,
+            noTenantHostDAO,
             hostTopoDAO,
             hostCache
         );

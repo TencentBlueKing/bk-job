@@ -38,7 +38,6 @@ import com.tencent.bk.job.manage.model.dto.script.ScriptCitedTaskPlanDTO;
 import com.tencent.bk.job.manage.model.dto.script.ScriptCitedTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;
 import java.util.List;
@@ -103,14 +102,6 @@ public interface ScriptManager {
     List<ScriptBasicDTO> listScriptBasicInfoByScriptIds(Collection<String> scriptIds);
 
     /**
-     * 根据scriptId查询脚本基本信息,不包含标签信息
-     *
-     * @param scriptId 脚本ID
-     * @return 脚本
-     */
-    ScriptDTO getScriptWithoutTagByScriptId(String scriptId);
-
-    /**
      * 根据脚本ID查询所有版本的脚本
      *
      * @param appId    业务ID
@@ -155,17 +146,6 @@ public interface ScriptManager {
      * @param scriptVersion 脚本版本
      */
     ScriptDTO updateScriptVersion(ScriptDTO scriptVersion);
-
-    /**
-     * 指定版本Id创建脚本版本
-     *
-     * @param appId  业务ID
-     * @param script 脚本信息
-     */
-    Pair<String, Long> createScriptWithVersionId(Long appId,
-                                                 ScriptDTO script,
-                                                 Long createTime,
-                                                 Long lastModifyTime);
 
     /**
      * 删除脚本

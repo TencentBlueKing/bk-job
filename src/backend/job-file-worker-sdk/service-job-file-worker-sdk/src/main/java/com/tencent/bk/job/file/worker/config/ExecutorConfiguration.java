@@ -43,8 +43,8 @@ public class ExecutorConfiguration {
         return new WatchableThreadPoolExecutor(
             meterRegistry,
             "fileTaskExecutor",
-            40,
-            40,
+            100,
+            100,
             1,
             TimeUnit.MINUTES,
             new LinkedBlockingQueue<>(10000), (r, executor) -> {
@@ -58,8 +58,8 @@ public class ExecutorConfiguration {
         return new WatchableThreadPoolExecutor(
             meterRegistry,
             "watchingTaskExecutor",
-            40,
-            40,
+            100,
+            100,
             1,
             TimeUnit.MINUTES
             , new LinkedBlockingQueue<>(10000), (r, executor) ->

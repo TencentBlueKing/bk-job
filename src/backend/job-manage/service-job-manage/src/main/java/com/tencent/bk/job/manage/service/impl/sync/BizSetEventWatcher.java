@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
-import com.tencent.bk.job.common.cc.sdk.BizSetCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
@@ -50,7 +50,7 @@ import org.springframework.stereotype.Component;
 public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetEventDetail> {
     private final ApplicationService applicationService;
     private final BizSetService bizSetService;
-    private final BizSetCmdbClient bizSetCmdbClient;
+    private final IBizSetCmdbClient bizSetCmdbClient;
 
     @Autowired
     public BizSetEventWatcher(RedisTemplate<String, String> redisTemplate,
@@ -58,7 +58,7 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
                               CmdbEventSampler cmdbEventSampler,
                               ApplicationService applicationService,
                               BizSetService bizSetService,
-                              BizSetCmdbClient bizSetCmdbClient) {
+                              IBizSetCmdbClient bizSetCmdbClient) {
         super("bizSet", redisTemplate, tracer, cmdbEventSampler);
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
