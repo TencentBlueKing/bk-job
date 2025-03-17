@@ -102,6 +102,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         TABLE.SET_IDS,
         TABLE.MODULE_IDS,
         TABLE.CLOUD_AREA_ID,
+        TABLE.CLOUD_ID,
         TABLE.DISPLAY_IP,
         TABLE.OS,
         TABLE.OS_TYPE,
@@ -117,6 +118,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         TABLE.IS_AGENT_ALIVE,
         TABLE.IP,
         TABLE.CLOUD_AREA_ID,
+        TABLE.CLOUD_ID,
         TABLE.AGENT_ID,
         TABLE.APP_ID,
         TABLE.IP_V6,
@@ -749,6 +751,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             TABLE.SET_IDS,
             TABLE.MODULE_IDS,
             TABLE.CLOUD_AREA_ID,
+            TABLE.CLOUD_ID,
             TABLE.DISPLAY_IP,
             TABLE.OS,
             TABLE.OS_TYPE,
@@ -768,6 +771,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             finalSetIdsStr,
             finalModuleIdsStr,
             cloudAreaId,
+            applicationHostDTO.getCloudAreaId(),
             displayIp,
             os,
             osType,
@@ -788,6 +792,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .set(TABLE.SET_IDS, finalSetIdsStr)
                 .set(TABLE.MODULE_IDS, finalModuleIdsStr)
                 .set(TABLE.CLOUD_AREA_ID, cloudAreaId)
+                .set(TABLE.CLOUD_ID, applicationHostDTO.getCloudAreaId())
                 .set(TABLE.DISPLAY_IP, displayIp)
                 .set(TABLE.OS, os)
                 .set(TABLE.OS_TYPE, osType)
@@ -825,6 +830,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 TABLE.SET_IDS,
                 TABLE.MODULE_IDS,
                 TABLE.CLOUD_AREA_ID,
+                TABLE.CLOUD_ID,
                 TABLE.DISPLAY_IP,
                 TABLE.OS,
                 TABLE.OS_TYPE,
@@ -836,6 +842,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 TABLE.LAST_TIME
             ).values(
                 (ULong) null,
+                null,
                 null,
                 null,
                 null,
@@ -866,6 +873,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                     applicationHostDTO.getSetIdsStr(),
                     applicationHostDTO.getModuleIdsStr(),
                     JooqDataTypeUtil.buildULong(applicationHostDTO.getCloudAreaId()),
+                    applicationHostDTO.getCloudAreaId(),
                     applicationHostDTO.getDisplayIp(),
                     applicationHostDTO.getOsName(),
                     applicationHostDTO.getOsType(),
@@ -931,6 +939,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     public int updateHostAttrsByConditions(ApplicationHostDTO applicationHostDTO, Collection<Condition> conditions) {
         val query = context.update(TABLE)
             .set(TABLE.CLOUD_AREA_ID, ULong.valueOf(applicationHostDTO.getCloudAreaId()))
+            .set(TABLE.CLOUD_ID, applicationHostDTO.getCloudAreaId())
             .set(TABLE.IP, applicationHostDTO.getIp())
             .set(TABLE.IP_V6, applicationHostDTO.preferFullIpv6())
             .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
@@ -963,6 +972,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .set(TABLE.SET_IDS, applicationHostDTO.getSetIdsStr())
             .set(TABLE.MODULE_IDS, applicationHostDTO.getModuleIdsStr())
             .set(TABLE.CLOUD_AREA_ID, JooqDataTypeUtil.buildULong(applicationHostDTO.getCloudAreaId()))
+            .set(TABLE.CLOUD_ID, applicationHostDTO.getCloudAreaId())
             .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
             .set(TABLE.OS, applicationHostDTO.getOsName())
             .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
