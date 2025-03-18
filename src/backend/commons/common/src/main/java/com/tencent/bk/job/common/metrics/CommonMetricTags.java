@@ -54,4 +54,9 @@ public class CommonMetricTags {
      * 蓝鲸应用 ID
      */
     public static final String KEY_APP_CODE = "app_code";
+
+    /**
+     * HTTP请求状态
+     */
+    public static final String KEY_HTTP_STATUS = "http_status";
 }
