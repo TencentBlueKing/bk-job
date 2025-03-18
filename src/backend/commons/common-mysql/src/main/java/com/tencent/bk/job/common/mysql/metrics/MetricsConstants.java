@@ -22,13 +22,13 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common-utils')
-    api project(':commons:common')
-    api 'org.springframework.boot:spring-boot-starter-jdbc'
-    api 'org.springframework.boot:spring-boot-configuration-processor'
-    api 'org.jooq:jooq'
-    api "org.jooq:jooq-codegen"
-    api "org.jooq:jooq-meta"
-    api 'io.micrometer:micrometer-registry-prometheus'
+package com.tencent.bk.job.common.mysql.metrics;
+
+public class MetricsConstants {
+
+    // metric name
+    public static final String NAME_SQL_EXECUTE_TIME = "sql.execute.time";
+
+    // tag
+    public static final String TAG_KEY_TYPE = "type";
 }

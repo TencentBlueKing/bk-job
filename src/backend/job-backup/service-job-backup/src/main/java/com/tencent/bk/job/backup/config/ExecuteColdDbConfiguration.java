@@ -26,6 +26,7 @@ package com.tencent.bk.job.backup.config;
 
 import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceColdDAOImpl;
 import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
+import com.tencent.bk.job.common.mysql.util.JooqConfigurationUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
@@ -33,6 +34,7 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
+import org.jooq.impl.DefaultExecuteListenerProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
@@ -71,8 +73,10 @@ public class ExecuteColdDbConfiguration {
     @Qualifier("job-execute-archive-jooq-conf")
     @Bean(name = "job-execute-archive-jooq-conf")
     public org.jooq.Configuration
-    executeArchiveJooqConf(@Qualifier("job-execute-archive-conn-provider") ConnectionProvider connectionProvider) {
-        return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
+    executeArchiveJooqConf(@Qualifier("job-execute-archive-conn-provider") ConnectionProvider connectionProvider,
+                           DefaultExecuteListenerProvider jooqExecuteListenerProvider
+    ) {
+        return JooqConfigurationUtil.getConfiguration(connectionProvider, jooqExecuteListenerProvider);
     }
 
     @Qualifier("job-execute-archive-conn-provider")

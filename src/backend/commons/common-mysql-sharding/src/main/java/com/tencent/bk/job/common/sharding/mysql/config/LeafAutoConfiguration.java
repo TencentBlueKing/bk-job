@@ -24,13 +24,13 @@
 
 package com.tencent.bk.job.common.sharding.mysql.config;
 
+import com.tencent.bk.job.common.mysql.util.JooqConfigurationUtil;
 import com.tencent.bk.job.common.sharding.mysql.JooqLeafIdAllocator;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
 import org.jooq.impl.DataSourceConnectionProvider;
-import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
+import org.jooq.impl.DefaultExecuteListenerProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -83,8 +83,10 @@ public class LeafAutoConfiguration {
     @Qualifier("leaf-jooq-conf")
     @Bean(name = "leaf-jooq-conf")
     public org.jooq.Configuration
-    jooqConf(@Qualifier("leaf-conn-provider") ConnectionProvider connectionProvider) {
-        return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
+    jooqConf(@Qualifier("leaf-conn-provider") ConnectionProvider connectionProvider,
+             DefaultExecuteListenerProvider jooqExecuteListenerProvider
+    ) {
+        return JooqConfigurationUtil.getConfiguration(connectionProvider, jooqExecuteListenerProvider);
     }
 
     @Qualifier("leaf-conn-provider")

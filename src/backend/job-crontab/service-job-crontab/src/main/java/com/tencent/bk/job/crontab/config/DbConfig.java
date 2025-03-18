@@ -24,12 +24,14 @@
 
 package com.tencent.bk.job.crontab.config;
 
+import com.tencent.bk.job.common.mysql.util.JooqConfigurationUtil;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
+import org.jooq.impl.DefaultExecuteListenerProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -76,8 +78,10 @@ public class DbConfig {
     @Qualifier("job-crontab-jooq-conf")
     @Bean(name = "job-crontab-jooq-conf")
     public org.jooq.Configuration
-    jooqConf(@Qualifier("job-crontab-conn-provider") ConnectionProvider connectionProvider) {
-        return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
+    jooqConf(@Qualifier("job-crontab-conn-provider") ConnectionProvider connectionProvider,
+             DefaultExecuteListenerProvider jooqExecuteListenerProvider
+    ) {
+        return JooqConfigurationUtil.getConfiguration(connectionProvider, jooqExecuteListenerProvider);
     }
 
     @Qualifier("job-crontab-conn-provider")
