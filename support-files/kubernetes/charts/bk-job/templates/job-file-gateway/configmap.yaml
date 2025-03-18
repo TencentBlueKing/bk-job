@@ -77,6 +77,8 @@ data:
         worker-tags:
           white: {{ .Values.fileGatewayConfig.workerTags.white }}
           black: {{ .Values.fileGatewayConfig.workerTags.black }}
+    mysql:
+      {{- toYaml .Values.fileGatewayConfig.mysql | nindent 6 }}
     server:
       port: {{ .Values.fileGatewayConfig.containerPort }}
 {{- end }}

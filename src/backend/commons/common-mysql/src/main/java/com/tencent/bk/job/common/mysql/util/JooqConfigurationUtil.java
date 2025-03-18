@@ -22,13 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common-utils')
-    api project(':commons:common')
-    api 'org.springframework.boot:spring-boot-starter-jdbc'
-    api 'org.springframework.boot:spring-boot-configuration-processor'
-    api 'org.jooq:jooq'
-    api "org.jooq:jooq-codegen"
-    api "org.jooq:jooq-meta"
-    api 'io.micrometer:micrometer-registry-prometheus'
+package com.tencent.bk.job.common.mysql.util;
+
+import org.jooq.ConnectionProvider;
+import org.jooq.SQLDialect;
+import org.jooq.impl.DefaultConfiguration;
+import org.jooq.impl.DefaultExecuteListenerProvider;
+
+/**
+ * jOOQ 配置工具类
+ */
+public class JooqConfigurationUtil {
+
+    /**
+     * 获取jOOQ配置
+     *
+     * @param connectionProvider      连接提供者
+     * @param executeListenerProvider 执行监听器提供者
+     * @return jOOQ配置
+     */
+    public static org.jooq.Configuration getConfiguration(ConnectionProvider connectionProvider,
+                                                          DefaultExecuteListenerProvider executeListenerProvider) {
+        org.jooq.Configuration configuration = new DefaultConfiguration()
+            .derive(connectionProvider)
+            .derive(SQLDialect.MYSQL);
+        configuration.set(executeListenerProvider);
+        return configuration;
+    }
 }
