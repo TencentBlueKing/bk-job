@@ -107,7 +107,9 @@ public class CallbackListener extends BaseJobMqListener {
         try {
             callbackDTO.setCallbackUrl(null);
             HttpResponse response = HttpConPoolUtil.post(callbackUrl, JsonUtils.toJson(callbackDTO));
-            recordCallbackMetrics(String.valueOf(response.getStatusCode()), callbackDTO);
+            if (response.getStatusCode() != HttpStatus.SC_OK) {
+                recordCallbackMetrics(String.valueOf(response.getStatusCode()), callbackDTO);
+            }
             return response;
         } catch (Throwable e) {
             String errorMsg = String.format("Callback request failed, taskInstanceId: %s, url: %s",
