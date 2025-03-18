@@ -911,6 +911,12 @@ manageConfig:
       # 开启CMDB事件监听时用于处理主机事件的线程数量，一般情况下无须修改
       # 当环境中主机事件平均产生速率较高（>10/s）或主机信息相比于CMDB数据经常性明显滞后（分钟级）时，可增大该数值
       handlerNum: 3
+  mysql:
+    slowSql:
+      # 是否打印慢查询SQL语句到日志中
+      logEnabled: true
+      # 慢查询阈值（ms)
+      thresholdMillis: 5000
 
 
 ## job-execute执行引擎配置
@@ -1026,6 +1032,11 @@ executeConfig:
     #       jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
     #       username: "job"
     #       password: "job"
+    slowSql:
+      # 是否打印慢查询SQL语句到日志中
+      logEnabled: true
+      # 慢查询阈值（ms)
+      thresholdMillis: 5000
   # 分布式ID组件 leaf 配置
   leaf:
     enabled: false
@@ -1132,6 +1143,12 @@ crontabConfig:
           connectTimeout: 5000
           # 读取超时，单位：毫秒
           readTimeout: 20000
+  mysql:
+    slowSql:
+      # 是否打印慢查询SQL语句到日志中
+      logEnabled: true
+      # 慢查询阈值（ms)
+      thresholdMillis: 5000
 
 ## job-logsvr日志服务配置
 logsvrConfig:
@@ -1293,6 +1310,12 @@ backupConfig:
     type: ClusterIP
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  mysql:
+    slowSql:
+      # 是否打印慢查询SQL语句到日志中
+      logEnabled: true
+      # 慢查询阈值（ms)
+      thresholdMillis: 5000
 
 ## job-analysis统计分析服务配置
 analysisConfig:
@@ -1372,6 +1395,12 @@ analysisConfig:
       maxKeepDays: 31
       # 单个用户最大保留的对话记录数量，默认1000条
       maxHistoryPerUser: 1000
+  mysql:
+    slowSql:
+      # 是否打印慢查询SQL语句到日志中
+      logEnabled: true
+      # 慢查询阈值（ms)
+      thresholdMillis: 5000
 
 ## job-file-gateway文件网关服务配置
 fileGatewayConfig:
@@ -1441,6 +1470,12 @@ fileGatewayConfig:
   database:
     # DB连接池最大连接数量
     maxPoolSize: 100
+  mysql:
+    slowSql:
+      # 是否打印慢查询SQL语句到日志中
+      logEnabled: true
+      # 慢查询阈值（ms)
+      thresholdMillis: 5000
 
  ## job-file-worker文件源接入点配置
 fileWorkerConfig:
@@ -1809,6 +1844,12 @@ assembleConfig:
           connectTimeout: 5000
           # 读取超时，单位：毫秒
           readTimeout: 300000
+  mysql:
+    slowSql:
+      # 是否打印慢查询SQL语句到日志中
+      logEnabled: true
+      # 慢查询阈值（ms)
+      thresholdMillis: 5000
 
 # pod删除时等待优雅关闭的最大时间，单位为秒（超出后强制删除）
 podTerminationGracePeriodSeconds: 60

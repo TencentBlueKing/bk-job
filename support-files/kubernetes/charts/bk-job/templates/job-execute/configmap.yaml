@@ -242,13 +242,7 @@ data:
         iam:
           {{- toYaml .Values.executeConfig.iam | nindent 10 }}
     mysql:
-      dataSourceMode: {{ .Values.executeConfig.mysql.dataSourceMode }}
-      standalone:
-        enabled: {{ .Values.executeConfig.mysql.standalone.enabled }}
-      verticalSharding:
-        enabled: {{ .Values.executeConfig.mysql.verticalSharding.enabled }}
-      migration:
-        enabled: {{ .Values.executeConfig.mysql.migration.enabled }}
+      {{- toYaml .Values.executeConfig.mysql | nindent 6 }}
     idGen:
       type: {{ .Values.executeConfig.idGen.type }}
       migration:
