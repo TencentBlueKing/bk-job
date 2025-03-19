@@ -63,7 +63,7 @@
     <detail-item
       :label="$t('template.执行目标：')"
       layout="vertical">
-      <ip-selector
+      <jb-ip-selector
         :complete-container-list="containerDetail(stepInfo.fileDestination.server.executeObjectsInfo.containerList)"
         :complete-host-list="hostsDetails(stepInfo.fileDestination.server.executeObjectsInfo.hostList)"
         readonly
