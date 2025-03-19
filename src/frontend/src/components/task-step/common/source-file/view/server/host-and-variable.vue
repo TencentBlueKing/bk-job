@@ -126,7 +126,7 @@
         </bk-button>
       </td>
     </tr>
-    <ip-selector
+    <jb-ip-selector
       ref="ipSelector"
       :show-dialog="isShowChooseIp"
       @change="handleExecuteObjectsInfoChange"

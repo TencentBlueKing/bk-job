@@ -156,7 +156,7 @@
           :value="searchText"
           @change="handleHostSearch" />
       </div>
-      <ip-selector
+      <jb-ip-selector
         ref="ipSelector"
         :config="ipSelectorConfig"
         :show-dialog="isShowChooseIp"
