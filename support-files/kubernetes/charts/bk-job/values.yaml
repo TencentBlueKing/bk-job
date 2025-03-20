@@ -437,6 +437,8 @@ bkAIDevApiGatewayUrl: "http://bkapi.example.com/api/aidev"
 bkLoginApiGatewayUrl: "http://bkapi.example.com/api/bk-login"
 # 蓝鲸用户管理 API Gateway url
 bkUserApiGatewayUrl: "http://bkapi.example.com/api/bk-user"
+# 蓝鲸用户管理前端服务 API Gateway url
+bkUserWebApiGatewayUrl: "http://bkapi.example.com/api/bk-user-web"
 # 蓝鲸权限中心 API Gateway url
 bkIamApiGatewayUrl: "http://bkapi.example.com/api/bk-iam"
 # 调用蓝鲸AIDev API使用的appCode，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appCode的值

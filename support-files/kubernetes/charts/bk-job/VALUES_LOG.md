@@ -6,6 +6,8 @@
 bkLoginApiGatewayUrl: "http://bkapi.example.com/api/bk-login"
 # 蓝鲸用户管理 API Gateway url
 bkUserApiGatewayUrl: "http://bkapi.example.com/api/bk-user"
+# 蓝鲸用户管理前端服务 API Gateway url
+bkUserWebApiGatewayUrl: "http://bkapi.example.com/api/bk-user-web"
 # 蓝鲸权限中心 API Gateway url
 bkIamApiGatewayUrl: "http://bkapi.example.com/api/bk-iam"
 
