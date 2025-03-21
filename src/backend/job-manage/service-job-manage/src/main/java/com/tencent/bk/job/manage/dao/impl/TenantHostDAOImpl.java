@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.dao.impl;
 
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
@@ -84,7 +83,7 @@ public class TenantHostDAOImpl extends AbstractBaseHostDAO implements TenantHost
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.TENANT_ID.eq(tenantId));
         if (cloudAreaId != null) {
-            conditions.add(TABLE.CLOUD_AREA_ID.eq(JooqDataTypeUtil.buildULong(cloudAreaId)));
+            conditions.add(TABLE.CLOUD_ID.eq(cloudAreaId));
         }
         conditions.add(TABLE.IP_V6.like("%" + ipv6 + "%"));
         return listHostInfoByConditions(conditions);

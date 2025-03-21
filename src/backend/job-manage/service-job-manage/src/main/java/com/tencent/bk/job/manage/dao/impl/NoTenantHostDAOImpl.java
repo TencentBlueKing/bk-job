@@ -285,7 +285,6 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
         String ipv6 = applicationHostDTO.preferFullIpv6();
         String agentId = applicationHostDTO.getAgentId();
         String ipDesc = applicationHostDTO.getHostName();
-        ULong cloudAreaId = ULong.valueOf(applicationHostDTO.getCloudAreaId());
         String displayIp = applicationHostDTO.getDisplayIp();
         String os = applicationHostDTO.getOsName();
         String osType = applicationHostDTO.getOsType();
@@ -303,7 +302,7 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
             TABLE.IP_DESC,
             TABLE.SET_IDS,
             TABLE.MODULE_IDS,
-            TABLE.CLOUD_AREA_ID,
+            TABLE.CLOUD_ID,
             TABLE.DISPLAY_IP,
             TABLE.OS,
             TABLE.OS_TYPE,
@@ -323,7 +322,7 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
             ipDesc,
             finalSetIdsStr,
             finalModuleIdsStr,
-            cloudAreaId,
+            applicationHostDTO.getCloudAreaId(),
             displayIp,
             os,
             osType,
@@ -344,7 +343,7 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
                 .set(TABLE.IP_DESC, ipDesc)
                 .set(TABLE.SET_IDS, finalSetIdsStr)
                 .set(TABLE.MODULE_IDS, finalModuleIdsStr)
-                .set(TABLE.CLOUD_AREA_ID, cloudAreaId)
+                .set(TABLE.CLOUD_ID, applicationHostDTO.getCloudAreaId())
                 .set(TABLE.DISPLAY_IP, displayIp)
                 .set(TABLE.OS, os)
                 .set(TABLE.OS_TYPE, osType)
@@ -382,7 +381,7 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
                 TABLE.IP_DESC,
                 TABLE.SET_IDS,
                 TABLE.MODULE_IDS,
-                TABLE.CLOUD_AREA_ID,
+                TABLE.CLOUD_ID,
                 TABLE.DISPLAY_IP,
                 TABLE.OS,
                 TABLE.OS_TYPE,
@@ -425,7 +424,7 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
                     applicationHostDTO.getHostName(),
                     applicationHostDTO.getSetIdsStr(),
                     applicationHostDTO.getModuleIdsStr(),
-                    JooqDataTypeUtil.buildULong(applicationHostDTO.getCloudAreaId()),
+                    applicationHostDTO.getCloudAreaId(),
                     applicationHostDTO.getDisplayIp(),
                     applicationHostDTO.getOsName(),
                     applicationHostDTO.getOsType(),
@@ -491,7 +490,7 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
 
     public int updateHostAttrsByConditions(ApplicationHostDTO applicationHostDTO, Collection<Condition> conditions) {
         val query = context.update(TABLE)
-            .set(TABLE.CLOUD_AREA_ID, ULong.valueOf(applicationHostDTO.getCloudAreaId()))
+            .set(TABLE.CLOUD_ID, applicationHostDTO.getCloudAreaId())
             .set(TABLE.IP, applicationHostDTO.getIp())
             .set(TABLE.IP_V6, applicationHostDTO.preferFullIpv6())
             .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
@@ -524,7 +523,7 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
             .set(TABLE.IP_DESC, applicationHostDTO.getHostName())
             .set(TABLE.SET_IDS, applicationHostDTO.getSetIdsStr())
             .set(TABLE.MODULE_IDS, applicationHostDTO.getModuleIdsStr())
-            .set(TABLE.CLOUD_AREA_ID, JooqDataTypeUtil.buildULong(applicationHostDTO.getCloudAreaId()))
+            .set(TABLE.CLOUD_ID, applicationHostDTO.getCloudAreaId())
             .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
             .set(TABLE.OS, applicationHostDTO.getOsName())
             .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())

@@ -77,7 +77,7 @@ abstract public class AbstractBaseHostDAO {
         TABLE.IP_DESC,
         TABLE.SET_IDS,
         TABLE.MODULE_IDS,
-        TABLE.CLOUD_AREA_ID,
+        TABLE.CLOUD_ID,
         TABLE.DISPLAY_IP,
         TABLE.OS,
         TABLE.OS_TYPE,
@@ -93,7 +93,7 @@ abstract public class AbstractBaseHostDAO {
         TABLE.APP_ID,
         TABLE.IS_AGENT_ALIVE,
         TABLE.IP,
-        TABLE.CLOUD_AREA_ID,
+        TABLE.CLOUD_ID,
         TABLE.AGENT_ID,
         TABLE.APP_ID,
         TABLE.IP_V6,
@@ -566,7 +566,7 @@ abstract public class AbstractBaseHostDAO {
         }
         applicationHostDTO.setSetId(setIdList);
         applicationHostDTO.setModuleId(StringUtil.strToList(record.get(TABLE.MODULE_IDS), Long.class, ","));
-        applicationHostDTO.setCloudAreaId(record.get(TABLE.CLOUD_AREA_ID).longValue());
+        applicationHostDTO.setCloudAreaId(record.get(TABLE.CLOUD_ID));
         applicationHostDTO.setDisplayIp(record.get(TABLE.DISPLAY_IP));
         applicationHostDTO.setOsName(record.get(TABLE.OS));
         applicationHostDTO.setOsType(record.get(TABLE.OS_TYPE));
@@ -592,7 +592,7 @@ abstract public class AbstractBaseHostDAO {
         hostSimpleDTO.setOsName(record.get(TABLE.OS));
         hostSimpleDTO.setOsType(record.get(TABLE.OS_TYPE));
         hostSimpleDTO.setIp(record.get(TABLE.IP));
-        hostSimpleDTO.setCloudAreaId(record.get(TABLE.CLOUD_AREA_ID).longValue());
+        hostSimpleDTO.setCloudAreaId(record.get(TABLE.CLOUD_ID));
         hostSimpleDTO.setCloudIp(hostSimpleDTO.getCloudAreaId() + ":" + hostSimpleDTO.getIp());
 
         return hostSimpleDTO;

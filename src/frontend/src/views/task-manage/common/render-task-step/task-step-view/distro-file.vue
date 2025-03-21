@@ -72,7 +72,7 @@
       v-else
       :label="$t('template.执行目标：')"
       layout="vertical">
-      <ip-selector
+      <jb-ip-selector
         readonly
         show-view
         :value="stepInfo.fileDestination.server.executeObjectsInfo" />

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.sharding.mysql.config;
 
+import com.tencent.bk.job.common.mysql.util.JooqConfigurationUtil;
 import com.tencent.bk.job.common.sharding.mysql.ShardingConfigParseException;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +48,7 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
+import org.jooq.impl.DefaultExecuteListenerProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -290,8 +292,10 @@ public class ShardingDatasourceAutoConfiguration {
     @Qualifier("job-sharding-jooq-conf")
     @Bean(name = "job-sharding-jooq-conf")
     public org.jooq.Configuration jooqConf(
-        @Qualifier("job-sharding-conn-provider") ConnectionProvider connectionProvider) {
-        return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
+        @Qualifier("job-sharding-conn-provider") ConnectionProvider connectionProvider,
+        DefaultExecuteListenerProvider jooqExecuteListenerProvider
+    ) {
+        return JooqConfigurationUtil.getConfiguration(connectionProvider, jooqExecuteListenerProvider);
     }
 
     @Qualifier("job-sharding-conn-provider")

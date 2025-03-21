@@ -77,7 +77,7 @@
     <detail-item
       :label="$t('template.执行目标：')"
       layout="vertical">
-      <ip-selector
+      <jb-ip-selector
         :complete-container-list="containerDetail(stepInfo.executeTarget.executeObjectsInfo.containerList)"
         :complete-host-list="hostsDetails(stepInfo.executeTarget.executeObjectsInfo.hostList)"
         readonly

@@ -141,7 +141,7 @@ public class BaseCmdbClient extends BkApiV1Client {
             meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             bkApiGatewayProperties.getCmdb().getUrl(),
-            HttpHelperFactory.getRetryableHttpHelper(),
+            HttpHelperFactory.getLongRetryableHttpHelper(),
             lang,
             tenantEnvService
         );

@@ -46,7 +46,7 @@
       </template>
       <div class="content-wraper">
         <scroll-faker>
-          <ip-selector
+          <jb-ip-selector
             :complete-container-list="containerDetail(executeObjectsInfo.containerList)"
             :complete-host-list="hostsDetails(executeObjectsInfo.hostList)"
             readonly
