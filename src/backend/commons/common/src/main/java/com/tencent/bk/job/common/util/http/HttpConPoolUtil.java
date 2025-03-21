@@ -38,6 +38,7 @@ import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
@@ -115,14 +116,25 @@ public class HttpConPoolUtil {
     }
 
     /**
-     * 提交POST请求，并返回数据（默认采用encoding常量指定的字符集解析）
+     * 提交POST请求，数据格式为表单数据，并返回响应数据
      *
      * @param url     提交的地址
      * @param content 提交的内容字符串
      * @return 响应
      */
-    public static HttpResponse post(String url, String content) {
+    public static HttpResponse postFormData(String url, String content) {
         return post(url, CHARSET, content, "application/x-www-form-urlencoded");
+    }
+
+    /**
+     * 提交POST请求，数据格式为JSON数据，并返回响应数据
+     *
+     * @param url     提交的地址
+     * @param content 提交的内容字符串
+     * @return 响应
+     */
+    public static HttpResponse postJson(String url, String content) {
+        return post(url, CHARSET, content, ContentType.APPLICATION_JSON.getMimeType());
     }
 
     /**

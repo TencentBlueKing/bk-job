@@ -59,4 +59,9 @@ public class CommonMetricTags {
      * HTTP请求状态
      */
     public static final String KEY_HTTP_STATUS = "http_status";
+
+    /**
+     * HTTP请求状态：未知
+     */
+    public static final String VALUE_HTTP_STATUS_UNKNOWN = "unknown";
 }
