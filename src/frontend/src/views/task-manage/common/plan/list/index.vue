@@ -217,7 +217,11 @@
           align="left"
           :label="$t('template.更新人_colHead')"
           prop="lastModifyUser"
-          width="160" />
+          width="160">
+          <template slot-scope="{ row }">
+            <bk-user-display-name :user-id="row.lastModifyUser" />
+          </template>
+        </bk-table-column>
         <bk-table-column
           v-if="allRenderColumnMap.lastModifyTime"
           key="lastModifyTime"
@@ -231,7 +235,11 @@
           align="left"
           :label="$t('template.创建人')"
           prop="creator"
-          width="120" />
+          width="120">
+          <template slot-scope="{ row }">
+            <bk-user-display-name :user-id="row.creator" />
+          </template>
+        </bk-table-column>
         <bk-table-column
           v-if="allRenderColumnMap.createTime"
           key="createTime"

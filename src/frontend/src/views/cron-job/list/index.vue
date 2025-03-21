@@ -163,7 +163,11 @@
         align="left"
         :label="$t('cron.创建人')"
         prop="creator"
-        width="120" />
+        width="120">
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.creator" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.createTime"
         key="createTime"
@@ -178,7 +182,11 @@
         :label="$t('cron.更新人_colHead')"
         prop="lastModifyUser"
         sortable="custom"
-        width="140" />
+        width="140">
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.lastModifyUser" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyTime"
         key="lastModifyTime"

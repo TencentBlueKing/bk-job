@@ -87,7 +87,11 @@
         align="left"
         :label="$t('whiteIP.创建人')"
         prop="creator"
-        show-overflow-tooltip />
+        show-overflow-tooltip>
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.creator" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.createTime"
         key="createTime"
@@ -101,7 +105,11 @@
         align="left"
         :label="$t('whiteIP.更新人')"
         prop="lastModifier"
-        show-overflow-tooltip />
+        show-overflow-tooltip>
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.lastModifier" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyTime"
         key="lastModifyTime"
