@@ -19,7 +19,7 @@ BEGIN
             WHERE TABLE_SCHEMA = db
             AND TABLE_NAME = 'host'
             AND COLUMN_NAME = 'cloud_area_id') THEN
-  ALTER TABLE host MODIFY COLUMN `cloud_area_id` BIGINT(20) UNSIGNED NULL DEFAULT NULL;
+    ALTER TABLE host MODIFY COLUMN `cloud_area_id` BIGINT(20) UNSIGNED NULL DEFAULT NULL;
   END IF;
 
   IF NOT EXISTS(SELECT 1
@@ -27,7 +27,42 @@ BEGIN
                 WHERE TABLE_SCHEMA = db
                 AND TABLE_NAME = 'host'
                 AND COLUMN_NAME = 'cloud_id') THEN
-  ALTER TABLE host ADD COLUMN `cloud_id` BIGINT(20) NULL DEFAULT NULL AFTER `cloud_area_id`;
+    ALTER TABLE host ADD COLUMN `cloud_id` BIGINT(20) NULL DEFAULT NULL AFTER `cloud_area_id`;
+  END IF;
+
+  IF NOT EXISTS(SELECT 1
+                  FROM information_schema.statistics
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'host'
+                    AND INDEX_NAME = 'idx_app_ip_cloud_id') THEN
+    ALTER TABLE host ADD INDEX idx_app_ip_cloud_id(`app_id`,`ip`,`cloud_id`);
+  END IF;
+
+
+  IF NOT EXISTS(SELECT 1
+                  FROM information_schema.statistics
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'host'
+                    AND INDEX_NAME = 'idx_ip_cloud_id') THEN
+    ALTER TABLE host ADD INDEX idx_ip_cloud_id(`ip`,`cloud_id`);
+  END IF;
+
+
+  IF EXISTS(SELECT 1
+                  FROM information_schema.statistics
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'host'
+                    AND INDEX_NAME = 'idx_app_ip_cloud_area_ip') THEN
+    ALTER TABLE host DROP INDEX `idx_app_ip_cloud_area_ip`;
+  END IF;
+
+
+  IF EXISTS(SELECT 1
+                  FROM information_schema.statistics
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'host'
+                    AND INDEX_NAME = 'idx_ip_cloud_area_id') THEN
+    ALTER TABLE host DROP INDEX `idx_ip_cloud_area_id`;
   END IF;
 
 COMMIT;
