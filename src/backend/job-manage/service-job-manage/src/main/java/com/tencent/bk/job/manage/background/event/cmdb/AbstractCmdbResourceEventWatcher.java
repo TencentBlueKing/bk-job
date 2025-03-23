@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.impl.sync;
+package com.tencent.bk.job.manage.background.event.cmdb;
 
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
@@ -53,6 +53,7 @@ import java.util.List;
 @SuppressWarnings("InfiniteLoopStatement")
 @Slf4j
 public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
+    protected final String tenantId;
     /**
      * 节点IP
      */
@@ -75,23 +76,25 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
      */
     private boolean initedBeforeWatch = false;
 
-    public AbstractCmdbResourceEventWatcher(String watcherResourceName,
+    public AbstractCmdbResourceEventWatcher(String tenantId,
+                                            String watcherResourceName,
                                             RedisTemplate<String, String> redisTemplate,
                                             Tracer tracer,
                                             CmdbEventSampler cmdbEventSampler) {
+        this.tenantId = tenantId;
         this.machineIp = IpUtils.getFirstMachineIP();
         this.redisTemplate = redisTemplate;
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.watcherResourceName = watcherResourceName;
         this.setName(watcherResourceName);
-        this.redisLockKey = "watch-cmdb-" + this.watcherResourceName + "-lock";
+        this.redisLockKey = "watch-cmdb-" + this.watcherResourceName + "-lock-" + tenantId;
     }
 
     @NewSpan
     @Override
     public final void run() {
-        log.info("Watching {} event start", this.watcherResourceName);
+        log.info("[tenantId={}] Watching {} event start", tenantId, watcherResourceName);
         LockResult lockResult = null;
         while (true) {
             Span span = SpanUtil.buildNewSpan(this.tracer, this.watcherResourceName + "WatchOuterLoop");

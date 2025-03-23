@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.impl.sync;
+package com.tencent.bk.job.manage.background.sync;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
@@ -89,7 +89,6 @@ public class SyncServiceImpl implements SyncService {
     private final ApplicationDAO applicationDAO;
     private final ThreadPoolExecutor syncAppExecutor;
     private final ThreadPoolExecutor syncHostExecutor;
-    private final JobManageConfig jobManageConfig;
     private final RedisTemplate<String, String> redisTemplate;
     private final String REDIS_KEY_SYNC_APP_JOB_RUNNING_MACHINE = "sync-app-job-running-machine";
     private final String REDIS_KEY_SYNC_HOST_JOB_RUNNING_MACHINE = "sync-host-job-running-machine";
@@ -97,17 +96,12 @@ public class SyncServiceImpl implements SyncService {
     private volatile boolean enableSyncApp;
     private volatile boolean enableSyncHost;
     private volatile boolean enableSyncAgentStatus;
-    private final BizEventWatcher bizEventWatcher;
-    private final HostEventWatcher hostEventWatcher;
-    private final HostRelationEventWatcher hostRelationEventWatcher;
     private final ApplicationCache applicationCache;
     private final BizSyncService bizSyncService;
     private final BizSetSyncService bizSetSyncService;
     private final TenantSetSyncService tenantSetSyncService;
     private final HostSyncService hostSyncService;
     private final AgentStatusSyncService agentStatusSyncService;
-    private final BizSetEventWatcher bizSetEventWatcher;
-    private final BizSetRelationEventWatcher bizSetRelationEventWatcher;
     private final IUserApiClient userMgrApiClient;
 
     @Autowired
@@ -120,16 +114,10 @@ public class SyncServiceImpl implements SyncService {
                            JobManageConfig jobManageConfig,
                            RedisTemplate<String, String> redisTemplate,
                            ApplicationCache applicationCache,
-                           BizEventWatcher bizEventWatcher,
-                           BizSetEventWatcher bizSetEventWatcher,
-                           BizSetRelationEventWatcher bizSetRelationEventWatcher,
-                           HostEventWatcher hostEventWatcher,
-                           HostRelationEventWatcher hostRelationEventWatcher,
                            @Qualifier("syncAppExecutor") ThreadPoolExecutor syncAppExecutor,
                            @Qualifier("syncHostExecutor") ThreadPoolExecutor syncHostExecutor,
                            IUserApiClient userMgrApiClient) {
         this.applicationDAO = applicationDAO;
-        this.jobManageConfig = jobManageConfig;
         this.redisTemplate = redisTemplate;
         this.enableSyncApp = jobManageConfig.isEnableSyncApp();
         this.enableSyncHost = jobManageConfig.isEnableSyncHost();
@@ -140,54 +128,11 @@ public class SyncServiceImpl implements SyncService {
         this.tenantSetSyncService = tenantSetSyncService;
         this.hostSyncService = hostSyncService;
         this.agentStatusSyncService = agentStatusSyncService;
-        this.bizEventWatcher = bizEventWatcher;
-        this.bizSetEventWatcher = bizSetEventWatcher;
-        this.bizSetRelationEventWatcher = bizSetRelationEventWatcher;
-        this.hostEventWatcher = hostEventWatcher;
-        this.hostRelationEventWatcher = hostRelationEventWatcher;
         // 同步业务的线程池配置
         this.syncAppExecutor = syncAppExecutor;
         // 同步主机的线程池配置
         this.syncHostExecutor = syncHostExecutor;
         this.userMgrApiClient = userMgrApiClient;
-    }
-
-    @Override
-    public void init() {
-        if (jobManageConfig.isEnableResourceWatch()) {
-            watchBizEvent();
-            watchHostEvent();
-            watchBizSetEvent();
-        } else {
-            log.info("resourceWatch not enabled, you can enable it in config file");
-        }
-    }
-
-    /**
-     * 监听业务相关的事件
-     */
-    private void watchBizEvent() {
-        // 开一个常驻线程监听业务资源变动事件
-        bizEventWatcher.start();
-    }
-
-    /**
-     * 监听主机相关的事件
-     */
-    private void watchHostEvent() {
-        // 开一个常驻线程监听主机资源变动事件
-        hostEventWatcher.start();
-        // 开一个常驻线程监听主机关系资源变动事件
-        hostRelationEventWatcher.start();
-    }
-
-    /**
-     * 监听业务集相关的事件
-     */
-    private void watchBizSetEvent() {
-        // 开一个常驻线程监听业务集变动事件
-        bizSetEventWatcher.start();
-        bizSetRelationEventWatcher.start();
     }
 
     @Override
@@ -392,36 +337,6 @@ public class SyncServiceImpl implements SyncService {
             //释放锁
             LockUtils.releaseDistributedLock(REDIS_KEY_SYNC_HOST_JOB_LOCK, machineIp);
         }
-    }
-
-    @Override
-    public Boolean enableBizWatch() {
-        log.info("appWatch enabled by op");
-        bizEventWatcher.setWatchFlag(true);
-        return true;
-    }
-
-    @Override
-    public Boolean disableBizWatch() {
-        log.info("appWatch disabled by op");
-        bizEventWatcher.setWatchFlag(false);
-        return true;
-    }
-
-    @Override
-    public Boolean enableHostWatch() {
-        log.info("hostWatch enabled by op");
-        hostEventWatcher.setWatchFlag(true);
-        hostRelationEventWatcher.setWatchFlag(true);
-        return true;
-    }
-
-    @Override
-    public Boolean disableHostWatch() {
-        log.info("hostWatch disabled by op");
-        hostEventWatcher.setWatchFlag(false);
-        hostRelationEventWatcher.setWatchFlag(false);
-        return true;
     }
 
     @Override

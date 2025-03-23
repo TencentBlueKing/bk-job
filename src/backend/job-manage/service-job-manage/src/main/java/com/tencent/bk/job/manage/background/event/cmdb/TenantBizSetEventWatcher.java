@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.impl.sync;
+package com.tencent.bk.job.manage.background.event.cmdb;
 
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
@@ -37,29 +37,26 @@ import com.tencent.bk.job.manage.service.impl.BizSetService;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.exception.DataAccessException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
 
 /**
  * 业务集事件监听
  */
 @Slf4j
-@Component
-public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetEventDetail> {
+public class TenantBizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetEventDetail> {
     private final ApplicationService applicationService;
     private final BizSetService bizSetService;
     private final IBizSetCmdbClient bizSetCmdbClient;
 
-    @Autowired
-    public BizSetEventWatcher(RedisTemplate<String, String> redisTemplate,
-                              Tracer tracer,
-                              CmdbEventSampler cmdbEventSampler,
-                              ApplicationService applicationService,
-                              BizSetService bizSetService,
-                              IBizSetCmdbClient bizSetCmdbClient) {
-        super("bizSet", redisTemplate, tracer, cmdbEventSampler);
+    public TenantBizSetEventWatcher(RedisTemplate<String, String> redisTemplate,
+                                    Tracer tracer,
+                                    CmdbEventSampler cmdbEventSampler,
+                                    ApplicationService applicationService,
+                                    BizSetService bizSetService,
+                                    IBizSetCmdbClient bizSetCmdbClient,
+                                    String tenantId) {
+        super(tenantId, "bizSet", redisTemplate, tracer, cmdbEventSampler);
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
         this.bizSetCmdbClient = bizSetCmdbClient;
@@ -67,12 +64,12 @@ public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetE
 
     @Override
     protected ResourceWatchResult<BizSetEventDetail> fetchEventsByCursor(String startCursor) {
-        return bizSetCmdbClient.getBizSetEvents(null, startCursor);
+        return bizSetCmdbClient.getBizSetEvents(tenantId, null, startCursor);
     }
 
     @Override
     protected ResourceWatchResult<BizSetEventDetail> fetchEventsByStartTime(Long startTime) {
-        return bizSetCmdbClient.getBizSetEvents(startTime, null);
+        return bizSetCmdbClient.getBizSetEvents(tenantId, startTime, null);
     }
 
     @Override

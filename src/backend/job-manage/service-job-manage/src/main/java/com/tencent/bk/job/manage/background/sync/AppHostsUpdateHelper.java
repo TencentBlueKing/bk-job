@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.impl.sync;
+package com.tencent.bk.job.manage.background.sync;
 
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.ip.IpUtils;
@@ -44,7 +44,6 @@ import java.util.Map;
 public class AppHostsUpdateHelper {
 
     private static final String machineIp = IpUtils.getFirstMachineIP();
-    private static final String REDIS_KEY_UPDATE_APP_HOSTS_LOCK_PREFIX = "update-app-hosts-lock:";
     // 当前正在同步业务主机的机器IP
     private static final String REDIS_KEY_UPDATE_APP_HOSTS_RUNNING_MACHINE_PREFIX = "update-app-hosts-running-machine:";
     private static final Map<String, RedisKeyHeartBeatThread> heartBeatThreadMap =

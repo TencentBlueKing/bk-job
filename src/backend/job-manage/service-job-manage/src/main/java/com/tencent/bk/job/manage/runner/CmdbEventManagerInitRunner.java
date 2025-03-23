@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.runner;
 
-import com.tencent.bk.job.manage.service.SyncService;
+import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -32,18 +32,18 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class SyncServiceInitRunner implements CommandLineRunner {
+public class CmdbEventManagerInitRunner implements CommandLineRunner {
 
-    private final SyncService syncService;
+    private final CmdbEventManager cmdbEventManager;
 
     @Autowired
-    public SyncServiceInitRunner(SyncService syncService) {
-        this.syncService = syncService;
+    public CmdbEventManagerInitRunner(CmdbEventManager cmdbEventManager) {
+        this.cmdbEventManager = cmdbEventManager;
     }
 
     @Override
     public void run(String... args) {
-        log.info("syncService init");
-        syncService.init();
+        log.info("cmdbEventManager init");
+        cmdbEventManager.init();
     }
 }

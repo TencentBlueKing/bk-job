@@ -29,10 +29,11 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.api.op.SyncOpResource;
+import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventManager;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import com.tencent.bk.job.manage.service.SyncService;
 import com.tencent.bk.job.manage.service.host.NoTenantHostService;
-import com.tencent.bk.job.manage.service.impl.sync.TenantHostSyncService;
+import com.tencent.bk.job.manage.background.sync.TenantHostSyncService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -46,13 +47,17 @@ import java.util.stream.Collectors;
 public class SyncOpResourceImpl implements SyncOpResource {
     private final NoTenantHostService noTenantHostService;
     private final SyncService syncService;
+    private final CmdbEventManager cmdbEventManager;
     private final TenantHostSyncService tenantHostSyncService;
 
     @Autowired
     public SyncOpResourceImpl(NoTenantHostService noTenantHostService,
-                              SyncService syncService, TenantHostSyncService tenantHostSyncService) {
+                              SyncService syncService,
+                              CmdbEventManager cmdbEventManager,
+                              TenantHostSyncService tenantHostSyncService) {
         this.noTenantHostService = noTenantHostService;
         this.syncService = syncService;
+        this.cmdbEventManager = cmdbEventManager;
         this.tenantHostSyncService = tenantHostSyncService;
     }
 
@@ -90,22 +95,22 @@ public class SyncOpResourceImpl implements SyncOpResource {
 
     @Override
     public InternalResponse<Boolean> enableBizWatch() {
-        return InternalResponse.buildSuccessResp(syncService.enableBizWatch());
+        return InternalResponse.buildSuccessResp(cmdbEventManager.enableBizWatch());
     }
 
     @Override
     public InternalResponse<Boolean> disableBizWatch() {
-        return InternalResponse.buildSuccessResp(syncService.disableBizWatch());
+        return InternalResponse.buildSuccessResp(cmdbEventManager.disableBizWatch());
     }
 
     @Override
     public InternalResponse<Boolean> enableHostWatch() {
-        return InternalResponse.buildSuccessResp(syncService.enableHostWatch());
+        return InternalResponse.buildSuccessResp(cmdbEventManager.enableHostWatch());
     }
 
     @Override
     public InternalResponse<Boolean> disableHostWatch() {
-        return InternalResponse.buildSuccessResp(syncService.disableHostWatch());
+        return InternalResponse.buildSuccessResp(cmdbEventManager.disableHostWatch());
     }
 
     @Override

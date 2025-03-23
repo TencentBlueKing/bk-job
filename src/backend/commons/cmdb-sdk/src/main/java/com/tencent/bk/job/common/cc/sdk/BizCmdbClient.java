@@ -1352,7 +1352,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public ResourceWatchResult<HostEventDetail> getHostEvents(Long startTime, String cursor) {
+    public ResourceWatchResult<HostEventDetail> getHostEvents(String tenantId, Long startTime, String cursor) {
         ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_agent_id",
             "bk_host_name", "bk_os_name", "bk_os_type", "bk_cloud_id", "bk_cloud_vendor", "last_time"));
@@ -1360,7 +1360,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         req.setCursor(cursor);
         req.setStartTime(startTime);
         String uri = RESOURCE_WATCH.replace("{bk_resource}", req.getResource());
-        EsbResp<ResourceWatchResult<HostEventDetail>> esbResp = requestCmdbApiUseContextTenantId(
+        EsbResp<ResourceWatchResult<HostEventDetail>> esbResp = requestCmdbApi(
+            tenantId,
             HttpMethodEnum.POST,
             uri,
             null,
@@ -1372,14 +1373,17 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public ResourceWatchResult<HostRelationEventDetail> getHostRelationEvents(Long startTime, String cursor) {
+    public ResourceWatchResult<HostRelationEventDetail> getHostRelationEvents(String tenantId,
+                                                                              Long startTime,
+                                                                              String cursor) {
         ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_host_id", "bk_biz_id", "bk_set_id", "bk_module_id", "last_time"));
         req.setResource("host_relation");
         req.setCursor(cursor);
         req.setStartTime(startTime);
         String uri = RESOURCE_WATCH.replace("{bk_resource}", req.getResource());
-        EsbResp<ResourceWatchResult<HostRelationEventDetail>> esbResp = requestCmdbApiUseContextTenantId(
+        EsbResp<ResourceWatchResult<HostRelationEventDetail>> esbResp = requestCmdbApi(
+            tenantId,
             HttpMethodEnum.POST,
             uri,
             null,
@@ -1391,7 +1395,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public ResourceWatchResult<BizEventDetail> getAppEvents(Long startTime, String cursor) {
+    public ResourceWatchResult<BizEventDetail> getAppEvents(String tenantId, Long startTime, String cursor) {
         ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_biz_id", "bk_biz_name", "bk_supplier_account",
             "time_zone", "language", "default"));
@@ -1399,7 +1403,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         req.setCursor(cursor);
         req.setStartTime(startTime);
         String uri = RESOURCE_WATCH.replace("{bk_resource}", req.getResource());
-        EsbResp<ResourceWatchResult<BizEventDetail>> esbResp = requestCmdbApiUseContextTenantId(
+        EsbResp<ResourceWatchResult<BizEventDetail>> esbResp = requestCmdbApi(
+            tenantId,
             HttpMethodEnum.POST,
             uri,
             null,

@@ -22,14 +22,13 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.impl.sync;
+package com.tencent.bk.job.manage.background.event.cmdb;
 
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
-import com.tencent.bk.job.manage.config.GseConfig;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
@@ -37,11 +36,8 @@ import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,8 +46,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
-@Component
-public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEventDetail> {
+public class TenantHostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEventDetail> {
 
     /**
      * 日志调用链tracer
@@ -66,16 +61,15 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
     private final List<HostEventHandler> eventsHandlers = new ArrayList<>();
     private final List<BlockingQueue<ResourceEvent<HostEventDetail>>> hostEventQueues = new ArrayList<>();
 
-    @Autowired
-    public HostEventWatcher(RedisTemplate<String, String> redisTemplate,
-                            Tracer tracer,
-                            CmdbEventSampler cmdbEventSampler,
-                            IBizCmdbClient bizCmdbClient,
-                            NoTenantHostService noTenantHostService,
-                            @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
-                            AgentStateClient agentStateClient,
-                            JobManageConfig jobManageConfig) {
-        super("host", redisTemplate, tracer, cmdbEventSampler);
+    public TenantHostEventWatcher(RedisTemplate<String, String> redisTemplate,
+                                  Tracer tracer,
+                                  CmdbEventSampler cmdbEventSampler,
+                                  IBizCmdbClient bizCmdbClient,
+                                  NoTenantHostService noTenantHostService,
+                                  AgentStateClient agentStateClient,
+                                  JobManageConfig jobManageConfig,
+                                  String tenantId) {
+        super(tenantId, "host", redisTemplate, tracer, cmdbEventSampler);
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.bizCmdbClient = bizCmdbClient;
@@ -102,12 +96,12 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
 
     @Override
     protected ResourceWatchResult<HostEventDetail> fetchEventsByCursor(String startCursor) {
-        return bizCmdbClient.getHostEvents(null, startCursor);
+        return bizCmdbClient.getHostEvents(tenantId, null, startCursor);
     }
 
     @Override
     protected ResourceWatchResult<HostEventDetail> fetchEventsByStartTime(Long startTime) {
-        return bizCmdbClient.getHostEvents(startTime, null);
+        return bizCmdbClient.getHostEvents(tenantId, startTime, null);
     }
 
     @Override

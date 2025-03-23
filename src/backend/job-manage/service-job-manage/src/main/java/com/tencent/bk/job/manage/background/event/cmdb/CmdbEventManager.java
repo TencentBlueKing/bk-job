@@ -22,32 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.op.impl;
+package com.tencent.bk.job.manage.background.event.cmdb;
 
-import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
-import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
-import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.manage.api.op.EventReplayOpResource;
-import com.tencent.bk.job.manage.background.event.cmdb.TenantHostEventWatcher;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
+public interface CmdbEventManager {
 
-@Slf4j
-@RestController
-public class EventReplayOpResourceImpl implements EventReplayOpResource {
+    /**
+     * 初始化
+     */
+    void init();
 
-    private final TenantHostEventWatcher tenantHostEventWatcher;
+    /**
+     * 开启业务事件监听
+     *
+     * @return 操作是否成功
+     */
+    Boolean enableBizWatch();
 
-    @Autowired
-    public EventReplayOpResourceImpl(TenantHostEventWatcher tenantHostEventWatcher) {
-        this.tenantHostEventWatcher = tenantHostEventWatcher;
-    }
+    /**
+     * 禁用业务事件监听
+     *
+     * @return 操作是否成功
+     */
+    Boolean disableBizWatch();
 
-    @Override
-    public Response<Void> replayHostEvent(String username, ResourceEvent<HostEventDetail> event) {
-        tenantHostEventWatcher.handleEvent(event);
-        return Response.buildSuccessResp(null);
-    }
+    /**
+     * 开启主机事件监听
+     *
+     * @return 操作是否成功
+     */
+    Boolean enableHostWatch();
+
+    /**
+     * 禁用主机事件监听
+     *
+     * @return 操作是否成功
+     */
+    Boolean disableHostWatch();
 
 }

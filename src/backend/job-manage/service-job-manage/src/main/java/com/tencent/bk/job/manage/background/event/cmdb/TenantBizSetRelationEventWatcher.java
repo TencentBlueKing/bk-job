@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.impl.sync;
+package com.tencent.bk.job.manage.background.event.cmdb;
 
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
@@ -39,10 +39,8 @@ import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -50,20 +48,19 @@ import java.util.List;
  * 业务集事件监听
  */
 @Slf4j
-@Component
-public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetRelationEventDetail> {
+public class TenantBizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetRelationEventDetail> {
     private final ApplicationService applicationService;
     private final BizSetService bizSetService;
     private final IBizSetCmdbClient bizSetCmdbClient;
 
-    @Autowired
-    public BizSetRelationEventWatcher(RedisTemplate<String, String> redisTemplate,
-                                      Tracer tracer,
-                                      CmdbEventSampler cmdbEventSampler,
-                                      ApplicationService applicationService,
-                                      BizSetService bizSetService,
-                                      IBizSetCmdbClient bizSetCmdbClient) {
-        super("bizSetRelation", redisTemplate, tracer, cmdbEventSampler);
+    public TenantBizSetRelationEventWatcher(RedisTemplate<String, String> redisTemplate,
+                                            Tracer tracer,
+                                            CmdbEventSampler cmdbEventSampler,
+                                            ApplicationService applicationService,
+                                            BizSetService bizSetService,
+                                            IBizSetCmdbClient bizSetCmdbClient,
+                                            String tenantId) {
+        super(tenantId, "bizSetRelation", redisTemplate, tracer, cmdbEventSampler);
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
         this.bizSetCmdbClient = bizSetCmdbClient;
@@ -71,12 +68,12 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
 
     @Override
     protected ResourceWatchResult<BizSetRelationEventDetail> fetchEventsByCursor(String startCursor) {
-        return bizSetCmdbClient.getBizSetRelationEvents(null, startCursor);
+        return bizSetCmdbClient.getBizSetRelationEvents(tenantId, null, startCursor);
     }
 
     @Override
     protected ResourceWatchResult<BizSetRelationEventDetail> fetchEventsByStartTime(Long startTime) {
-        return bizSetCmdbClient.getBizSetRelationEvents(startTime, null);
+        return bizSetCmdbClient.getBizSetRelationEvents(tenantId, startTime, null);
     }
 
     @Override

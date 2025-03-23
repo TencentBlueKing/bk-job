@@ -22,14 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service.impl.sync;
+package com.tencent.bk.job.manage.background.event.cmdb;
 
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
-import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
@@ -37,10 +37,8 @@ import com.tencent.bk.job.manage.service.ApplicationService;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -48,8 +46,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
-@Component
-public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<HostRelationEventDetail> {
+public class TenantHostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<HostRelationEventDetail> {
 
     private static final AtomicInteger instanceNum = new AtomicInteger(1);
 
@@ -70,16 +67,16 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
 
     private final AtomicBoolean hostRelationWatchFlag = new AtomicBoolean(true);
 
-    @Autowired
-    public HostRelationEventWatcher(RedisTemplate<String, String> redisTemplate,
-                                    Tracer tracer,
-                                    CmdbEventSampler cmdbEventSampler,
-                                    IBizCmdbClient bizCmdbClient,
-                                    ApplicationService applicationService,
-                                    NoTenantHostDAO noTenantHostDAO,
-                                    HostTopoDAO hostTopoDAO,
-                                    HostCache hostCache) {
-        super("hostRelation", redisTemplate, tracer, cmdbEventSampler);
+    public TenantHostRelationEventWatcher(RedisTemplate<String, String> redisTemplate,
+                                          Tracer tracer,
+                                          CmdbEventSampler cmdbEventSampler,
+                                          IBizCmdbClient bizCmdbClient,
+                                          ApplicationService applicationService,
+                                          NoTenantHostDAO noTenantHostDAO,
+                                          HostTopoDAO hostTopoDAO,
+                                          HostCache hostCache,
+                                          String tenantId) {
+        super(tenantId, "hostRelation", redisTemplate, tracer, cmdbEventSampler);
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.bizCmdbClient = bizCmdbClient;
@@ -113,12 +110,12 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
 
     @Override
     protected ResourceWatchResult<HostRelationEventDetail> fetchEventsByCursor(String startCursor) {
-        return bizCmdbClient.getHostRelationEvents(null, startCursor);
+        return bizCmdbClient.getHostRelationEvents(tenantId, null, startCursor);
     }
 
     @Override
     protected ResourceWatchResult<HostRelationEventDetail> fetchEventsByStartTime(Long startTime) {
-        return bizCmdbClient.getHostRelationEvents(startTime, null);
+        return bizCmdbClient.getHostRelationEvents(tenantId, startTime, null);
     }
 
     @Override

@@ -244,17 +244,17 @@ public interface IBizCmdbClient {
     /**
      * 监听CMDB主机事件
      */
-    ResourceWatchResult<HostEventDetail> getHostEvents(Long startTime, String cursor);
+    ResourceWatchResult<HostEventDetail> getHostEvents(String tenantId, Long startTime, String cursor);
 
     /**
      * 监听CMDB主机拓扑关系事件
      */
-    ResourceWatchResult<HostRelationEventDetail> getHostRelationEvents(Long startTime, String cursor);
+    ResourceWatchResult<HostRelationEventDetail> getHostRelationEvents(String tenantId, Long startTime, String cursor);
 
     /**
      * 监听CMDB业务事件
      */
-    ResourceWatchResult<BizEventDetail> getAppEvents(Long startTime, String cursor);
+    ResourceWatchResult<BizEventDetail> getAppEvents(String tenantId, Long startTime, String cursor);
 
     List<ContainerDetailDTO> listKubeContainerByIds(long bizId, Collection<Long> containerIds);
 
