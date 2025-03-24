@@ -22,46 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service;
+package com.tencent.bk.job.analysis.dao.impl;
 
-import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
-import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.analysis.config.StatisticConfig;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
-import com.tencent.bk.job.analysis.model.web.CommonDistributionVO;
-import lombok.extern.slf4j.Slf4j;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-@Slf4j
 @Service
-public class HostStatisticService {
-
-    private final StatisticsDAO statisticsDAO;
-    private final StatisticConfig statisticConfig;
+public class NoTenantStatisticsDAOImpl extends BaseStatisticsDAO implements NoTenantStatisticsDAO {
 
     @Autowired
-    public HostStatisticService(StatisticsDAO statisticsDAO, StatisticConfig statisticConfig) {
-        this.statisticsDAO = statisticsDAO;
-        this.statisticConfig = statisticConfig;
+    public NoTenantStatisticsDAOImpl(@Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
+        super(dslContext);
     }
 
-    public CommonDistributionVO hostSystemDistributionStatistics(List<Long> appIdList, String date) {
-        List<StatisticsDTO> statisticsDTOList = statisticsDAO.getStatisticsList(StatisticsConstants.DEFAULT_APP_ID,
-            StatisticsConstants.RESOURCE_HOST_OF_ALL_APP, StatisticsConstants.DIMENSION_HOST_SYSTEM_TYPE, date);
-        if (statisticsDTOList == null || statisticsDTOList.isEmpty()) {
-            return null;
-        }
-        CommonDistributionVO commonDistributionVO = new CommonDistributionVO();
-        Map<String, Long> map = new HashMap<>();
-        for (StatisticsDTO statisticsDTO : statisticsDTOList) {
-            map.put(statisticsDTO.getDimensionValue(), Long.parseLong(statisticsDTO.getValue()));
-        }
-        commonDistributionVO.setLabelAmountMap(map);
-        return commonDistributionVO;
+    @Override
+    public int deleteStatisticsByDate(String date) {
+        int totalAffectedRows = 0;
+        int affectedRows;
+        do {
+            affectedRows = defaultDSLContext.deleteFrom(defaultTable).where(
+                defaultTable.DATE.lessThan(date)
+            ).limit(10000).execute();
+            totalAffectedRows += affectedRows;
+        } while (affectedRows == 10000);
+        return totalAffectedRows;
+    }
+
+    @Override
+    protected List<Condition> getBasicConditions() {
+        return new ArrayList<>();
     }
 }

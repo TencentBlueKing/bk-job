@@ -22,35 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.task.statistics.task;
+package com.tencent.bk.job.analysis.dao;
 
-import java.time.LocalDateTime;
-import java.util.concurrent.Callable;
+public interface NoTenantStatisticsDAO {
 
-/**
- * 统计任务接口
- */
-public interface IStatisticsTask extends Callable<Boolean> {
-    /**
-     * 获取统计任务名称
-     *
-     * @return 任务名称
-     */
-    String getName();
-
-    /**
-     * 生成某一天的统计数据
-     *
-     * @param dateTime 日期
-     */
-    void genStatisticsByDay(LocalDateTime dateTime);
-
-    /**
-     * 检查某一天的统计数据是否完整
-     *
-     * @param targetDateStr 目标日期
-     * @return 是否完整
-     */
-    boolean isDataComplete(String targetDateStr);
-
+    int deleteStatisticsByDate(String date);
 }

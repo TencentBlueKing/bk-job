@@ -26,12 +26,13 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.host;
 
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BaseStatisticsTask;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.api.inner.ServiceMetricsResource;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -58,17 +59,18 @@ public class HostStatisticsTask extends BaseStatisticsTask {
 
     @Autowired
     protected HostStatisticsTask(BasicServiceManager basicServiceManager,
-                                 StatisticsDAO statisticsDAO,
+                                 CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
                                  @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
                                  ServiceMetricsResource manageMetricsResource,
-                                 IBizCmdbClient bizCmdbClient) {
-        super(basicServiceManager, statisticsDAO, dslContext);
+                                 IBizCmdbClient bizCmdbClient,
+                                 TenantService tenantService) {
+        super(basicServiceManager, currentTenantStatisticsDAO, dslContext, tenantService);
         this.manageMetricsResource = manageMetricsResource;
         this.bizCmdbClient = bizCmdbClient;
     }
 
     private StatisticsDTO genStatisticsDTO(String dateStr, String value, String dimensionValue) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(-1L);
         statisticsDTO.setDate(dateStr);
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_HOST_OF_ALL_APP);
@@ -113,7 +115,7 @@ public class HostStatisticsTask extends BaseStatisticsTask {
                 hostCount = osTypeCountMap.get(id);
             }
             knownOsTypeHostCount += hostCount;
-            statisticsDAO.upsertStatistics(
+            currentTenantStatisticsDAO.upsertStatistics(
                 dslContext,
                 genHostOsTypeStatisticsDTO(name, dateStr, hostCount.toString())
             );
@@ -122,7 +124,7 @@ public class HostStatisticsTask extends BaseStatisticsTask {
         // CMDB中没有的类型统计值默认置为0
         allOsTypeNameSet.forEach(osTypeName -> {
             log.debug("calcAndSaveHostStatistics: {} count=0", osTypeName);
-            statisticsDAO.upsertStatistics(
+            currentTenantStatisticsDAO.upsertStatistics(
                 dslContext,
                 genStatisticsDTO(dateStr, "0", osTypeName.toUpperCase())
             );
@@ -130,7 +132,7 @@ public class HostStatisticsTask extends BaseStatisticsTask {
         // Others
         int othersCount = totalHostCount - knownOsTypeHostCount;
         log.debug("calcAndSaveHostStatistics: othersCount={}", othersCount);
-        statisticsDAO.upsertStatistics(dslContext, genOthersStatisticsDTO(dateStr, Long.toString(othersCount)));
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, genOthersStatisticsDTO(dateStr, Long.toString(othersCount)));
     }
 
     @NotNull

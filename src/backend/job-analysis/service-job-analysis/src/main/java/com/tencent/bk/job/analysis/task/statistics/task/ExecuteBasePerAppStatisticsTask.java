@@ -25,8 +25,9 @@
 package com.tencent.bk.job.analysis.task.statistics.task;
 
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.execute.api.inner.ServiceMetricsResource;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
@@ -41,9 +42,10 @@ public abstract class ExecuteBasePerAppStatisticsTask extends BasePerAppStatisti
 
     protected ExecuteBasePerAppStatisticsTask(ServiceMetricsResource executeMetricsResource,
                                               BasicServiceManager basicServiceManager,
-                                              StatisticsDAO statisticsDAO,
-                                              @Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
-        super(basicServiceManager, statisticsDAO, dslContext);
+                                              CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                              @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
+                                              TenantService tenantService) {
+        super(basicServiceManager, currentTenantStatisticsDAO, dslContext, tenantService);
         this.executeMetricsResource = executeMetricsResource;
     }
 

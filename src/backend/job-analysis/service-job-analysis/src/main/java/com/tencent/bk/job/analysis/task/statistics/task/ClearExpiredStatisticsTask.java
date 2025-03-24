@@ -26,7 +26,7 @@ package com.tencent.bk.job.analysis.task.statistics.task;
 
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.common.util.TimeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,13 +37,13 @@ import java.time.LocalDateTime;
 @Slf4j
 @Service
 public class ClearExpiredStatisticsTask extends Thread {
-    private final StatisticsDAO statisticsDAO;
+    private final NoTenantStatisticsDAO noTenantStatisticsDAO;
     private final StatisticConfig statisticConfig;
 
     @Autowired
-    public ClearExpiredStatisticsTask(StatisticsDAO statisticsDAO,
+    public ClearExpiredStatisticsTask(NoTenantStatisticsDAO noTenantStatisticsDAO,
                                       StatisticConfig statisticConfig) {
-        this.statisticsDAO = statisticsDAO;
+        this.noTenantStatisticsDAO = noTenantStatisticsDAO;
         this.statisticConfig = statisticConfig;
     }
 
@@ -57,7 +57,7 @@ public class ClearExpiredStatisticsTask extends Thread {
         log.info("ClearExpiredStatisticsTask start");
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime targetDate = now.minusDays(statisticConfig.getExpireDays());
-        statisticsDAO.deleteStatisticsByDate(TimeUtil.getTimeStr(targetDate, StatisticsConstants.DATE_PATTERN));
+        noTenantStatisticsDAO.deleteStatisticsByDate(TimeUtil.getTimeStr(targetDate, StatisticsConstants.DATE_PATTERN));
         log.info("ClearExpiredStatisticsTask end");
     }
 }

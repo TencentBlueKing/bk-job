@@ -26,10 +26,11 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.ExecuteBasePerAppStatisticsTask;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.execute.api.inner.ServiceMetricsResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import org.jooq.DSLContext;
@@ -49,13 +50,14 @@ public class FastPushFilePerAppStatisticsTask extends ExecuteBasePerAppStatistic
     @Autowired
     public FastPushFilePerAppStatisticsTask(ServiceMetricsResource executeMetricsResource,
                                             BasicServiceManager basicServiceManager,
-                                            StatisticsDAO statisticsDAO,
-                                            @Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
-        super(executeMetricsResource, basicServiceManager, statisticsDAO, dslContext);
+                                            CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                            @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
+                                            TenantService tenantService) {
+        super(executeMetricsResource, basicServiceManager, currentTenantStatisticsDAO, dslContext, tenantService);
     }
 
     private StatisticsDTO getRunStatusBaseDTO(ServiceApplicationDTO app, String timeTag) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(app.getId());
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(timeTag);
@@ -65,7 +67,7 @@ public class FastPushFilePerAppStatisticsTask extends ExecuteBasePerAppStatistic
     }
 
     private StatisticsDTO getFileTransferModeBaseDTO(ServiceApplicationDTO app, String timeTag) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(app.getId());
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(timeTag);
@@ -75,7 +77,7 @@ public class FastPushFilePerAppStatisticsTask extends ExecuteBasePerAppStatistic
     }
 
     private StatisticsDTO getFileSourceTypeBaseDTO(ServiceApplicationDTO app, String timeTag) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(app.getId());
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(timeTag);
@@ -121,11 +123,11 @@ public class FastPushFilePerAppStatisticsTask extends ExecuteBasePerAppStatistic
     }
 
     public void aggAllAppStepRunStatus(String dayTimeStr, String stepRunStatusDimensionValue) {
-        Long totalValue = statisticsDAO.getTotalValueOfStatisticsList(null,
+        Long totalValue = currentTenantStatisticsDAO.getTotalValueOfStatisticsList(null,
             Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
             StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
             stepRunStatusDimensionValue, dayTimeStr);
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(StatisticsConstants.DEFAULT_APP_ID);
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(dayTimeStr);
@@ -133,7 +135,7 @@ public class FastPushFilePerAppStatisticsTask extends ExecuteBasePerAppStatistic
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_FAST_FILE_OF_ALL_APP);
         statisticsDTO.setDimension(StatisticsConstants.DIMENSION_STEP_RUN_STATUS);
         statisticsDTO.setDimensionValue(stepRunStatusDimensionValue);
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
     }
 
     public void aggAllAppFileTransferMode(String dayTimeStr) {
@@ -144,11 +146,11 @@ public class FastPushFilePerAppStatisticsTask extends ExecuteBasePerAppStatistic
     }
 
     public void aggAllAppFileTransferMode(String dayTimeStr, String fileTransferModeDimensionValue) {
-        Long totalValue = statisticsDAO.getTotalValueOfStatisticsList(null,
+        Long totalValue = currentTenantStatisticsDAO.getTotalValueOfStatisticsList(null,
             Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
             StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_FILE_TRANSFER_MODE,
             fileTransferModeDimensionValue, dayTimeStr);
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(StatisticsConstants.DEFAULT_APP_ID);
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(dayTimeStr);
@@ -156,7 +158,7 @@ public class FastPushFilePerAppStatisticsTask extends ExecuteBasePerAppStatistic
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_FAST_FILE_OF_ALL_APP);
         statisticsDTO.setDimension(StatisticsConstants.DIMENSION_FILE_TRANSFER_MODE);
         statisticsDTO.setDimensionValue(fileTransferModeDimensionValue);
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
     }
 
     public void aggAllAppFileSourceType(String dayTimeStr) {
@@ -166,11 +168,11 @@ public class FastPushFilePerAppStatisticsTask extends ExecuteBasePerAppStatistic
     }
 
     public void aggAllAppFileSourceType(String dayTimeStr, String fileSourceTypeDimensionValue) {
-        Long totalValue = statisticsDAO.getTotalValueOfStatisticsList(null,
+        Long totalValue = currentTenantStatisticsDAO.getTotalValueOfStatisticsList(null,
             Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
             StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_FILE_SOURCE_TYPE,
             fileSourceTypeDimensionValue, dayTimeStr);
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(StatisticsConstants.DEFAULT_APP_ID);
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(dayTimeStr);
@@ -178,7 +180,7 @@ public class FastPushFilePerAppStatisticsTask extends ExecuteBasePerAppStatistic
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_FAST_FILE_OF_ALL_APP);
         statisticsDTO.setDimension(StatisticsConstants.DIMENSION_FILE_SOURCE_TYPE);
         statisticsDTO.setDimensionValue(fileSourceTypeDimensionValue);
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
     }
 
     public void aggregateAllAppStatistics(String dayTimeStr) {
@@ -197,22 +199,22 @@ public class FastPushFilePerAppStatisticsTask extends ExecuteBasePerAppStatistic
 
     @Override
     public boolean isDataComplete(String targetDateStr) {
-        boolean executedFastFileByStepRunStatusDataExists = statisticsDAO.existsStatistics(null, null,
+        boolean executedFastFileByStepRunStatusDataExists = currentTenantStatisticsDAO.existsStatistics(null, null,
             StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_STEP_RUN_STATUS, null,
             targetDateStr);
-        boolean executedFastFileByFileTransferModeDataExists = statisticsDAO.existsStatistics(null, null,
+        boolean executedFastFileByFileTransferModeDataExists = currentTenantStatisticsDAO.existsStatistics(null, null,
             StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_FILE_TRANSFER_MODE, null,
             targetDateStr);
-        boolean executedFastFileByFileSourceTypeDataExists = statisticsDAO.existsStatistics(null, null,
+        boolean executedFastFileByFileSourceTypeDataExists = currentTenantStatisticsDAO.existsStatistics(null, null,
             StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_FILE_SOURCE_TYPE, null,
             targetDateStr);
-        boolean allAppExecutedFastFileByStepRunStatusDataExists = statisticsDAO.existsStatistics(null, null,
+        boolean allAppExecutedFastFileByStepRunStatusDataExists = currentTenantStatisticsDAO.existsStatistics(null, null,
             StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_FAST_FILE_OF_ALL_APP,
             StatisticsConstants.DIMENSION_STEP_RUN_STATUS, null, targetDateStr);
-        boolean allAppExecutedFastFileByFileTransferModeDataExists = statisticsDAO.existsStatistics(null, null,
+        boolean allAppExecutedFastFileByFileTransferModeDataExists = currentTenantStatisticsDAO.existsStatistics(null, null,
             StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_FAST_FILE_OF_ALL_APP,
             StatisticsConstants.DIMENSION_FILE_TRANSFER_MODE, null, targetDateStr);
-        boolean allAppExecutedFastFileByFileSourceTypeDataExists = statisticsDAO.existsStatistics(null, null,
+        boolean allAppExecutedFastFileByFileSourceTypeDataExists = currentTenantStatisticsDAO.existsStatistics(null, null,
             StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_FAST_FILE_OF_ALL_APP,
             StatisticsConstants.DIMENSION_FILE_SOURCE_TYPE, null, targetDateStr);
         return executedFastFileByStepRunStatusDataExists

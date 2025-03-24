@@ -26,10 +26,11 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.ExecuteBasePerAppStatisticsTask;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.execute.api.inner.ServiceMetricsResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -51,13 +52,14 @@ public class ExecuteTaskStartupModePerAppStatisticsTask extends ExecuteBasePerAp
     @Autowired
     public ExecuteTaskStartupModePerAppStatisticsTask(ServiceMetricsResource executeMetricsResource,
                                                       BasicServiceManager basicServiceManager,
-                                                      StatisticsDAO statisticsDAO,
-                                                      @Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
-        super(executeMetricsResource, basicServiceManager, statisticsDAO, dslContext);
+                                                      CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                                      @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
+                                                      TenantService tenantService) {
+        super(executeMetricsResource, basicServiceManager, currentTenantStatisticsDAO, dslContext, tenantService);
     }
 
     private StatisticsDTO getStartupModeBaseDTO(ServiceApplicationDTO app, String timeTag) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(app.getId());
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(timeTag);
@@ -99,10 +101,10 @@ public class ExecuteTaskStartupModePerAppStatisticsTask extends ExecuteBasePerAp
     }
 
     public void aggAllAppStartupMode(String dayTimeStr, String startupModeDimensionValue) {
-        Long totalValue = statisticsDAO.getTotalValueOfStatisticsList(null,
+        Long totalValue = currentTenantStatisticsDAO.getTotalValueOfStatisticsList(null,
             Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID), StatisticsConstants.RESOURCE_EXECUTED_TASK
             , StatisticsConstants.DIMENSION_TASK_STARTUP_MODE, startupModeDimensionValue, dayTimeStr);
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(StatisticsConstants.DEFAULT_APP_ID);
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(dayTimeStr);
@@ -110,7 +112,7 @@ public class ExecuteTaskStartupModePerAppStatisticsTask extends ExecuteBasePerAp
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_TASK_OF_ALL_APP);
         statisticsDTO.setDimension(StatisticsConstants.DIMENSION_TASK_STARTUP_MODE);
         statisticsDTO.setDimensionValue(startupModeDimensionValue);
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
     }
 
     @Override
@@ -123,10 +125,10 @@ public class ExecuteTaskStartupModePerAppStatisticsTask extends ExecuteBasePerAp
 
     @Override
     public boolean isDataComplete(String targetDateStr) {
-        boolean executedTaskByStartupModeDataExists = statisticsDAO.existsStatistics(null, null,
+        boolean executedTaskByStartupModeDataExists = currentTenantStatisticsDAO.existsStatistics(null, null,
             StatisticsConstants.RESOURCE_EXECUTED_TASK, StatisticsConstants.DIMENSION_TASK_STARTUP_MODE, null,
             targetDateStr);
-        boolean allAppExecutedTaskByStartupModeDataExists = statisticsDAO.existsStatistics(null, null,
+        boolean allAppExecutedTaskByStartupModeDataExists = currentTenantStatisticsDAO.existsStatistics(null, null,
             StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_TASK_OF_ALL_APP,
             StatisticsConstants.DIMENSION_TASK_STARTUP_MODE, null, targetDateStr);
         return executedTaskByStartupModeDataExists && allAppExecutedTaskByStartupModeDataExists;
