@@ -30,19 +30,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 @Slf4j
 @Component
 public class CmdbEventManagerInitRunner implements CommandLineRunner {
-
+    private final ThreadPoolExecutor initRunnerExecutor;
     private final CmdbEventManager cmdbEventManager;
 
     @Autowired
-    public CmdbEventManagerInitRunner(CmdbEventManager cmdbEventManager) {
+    public CmdbEventManagerInitRunner(ThreadPoolExecutor initRunnerExecutor, CmdbEventManager cmdbEventManager) {
+        this.initRunnerExecutor = initRunnerExecutor;
         this.cmdbEventManager = cmdbEventManager;
     }
 
     @Override
     public void run(String... args) {
+        initRunnerExecutor.submit(this::initCmdbEventManager);
+    }
+
+    private void initCmdbEventManager() {
         log.info("cmdbEventManager init");
         cmdbEventManager.init();
     }

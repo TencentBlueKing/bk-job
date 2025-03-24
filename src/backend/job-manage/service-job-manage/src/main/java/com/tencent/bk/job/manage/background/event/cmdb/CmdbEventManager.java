@@ -32,6 +32,13 @@ public interface CmdbEventManager {
     void init();
 
     /**
+     * 获取某个租户下的主机事件监听器
+     *
+     * @return 租户主机事件监听器
+     */
+    TenantHostEventWatcher getTenantHostEventWatcher(String tenantId);
+
+    /**
      * 开启业务事件监听
      *
      * @return 操作是否成功

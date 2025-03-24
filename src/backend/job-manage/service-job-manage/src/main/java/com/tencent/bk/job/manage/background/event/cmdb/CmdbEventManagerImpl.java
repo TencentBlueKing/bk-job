@@ -238,6 +238,11 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
     }
 
     @Override
+    public TenantHostEventWatcher getTenantHostEventWatcher(String tenantId) {
+        return tenantHostEventWatcherMap.get(tenantId);
+    }
+
+    @Override
     public Boolean enableBizWatch() {
         log.info("appWatch enabled by op");
         for (TenantBizEventWatcher tenantBizEventWatcher : tenantBizEventWatcherMap.values()) {

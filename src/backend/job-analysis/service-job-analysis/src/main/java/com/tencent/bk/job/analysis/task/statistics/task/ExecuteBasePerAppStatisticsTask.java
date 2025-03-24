@@ -50,10 +50,15 @@ public abstract class ExecuteBasePerAppStatisticsTask extends BasePerAppStatisti
     }
 
     public void addExecuteStatisticsDTO(StatisticsDTO searchStatisticsDTO, List<StatisticsDTO> statisticsDTOList) {
-        StatisticsDTO remoteStatisticsDTO = executeMetricsResource.getStatistics(searchStatisticsDTO.getAppId(),
-            searchStatisticsDTO.getResource(), searchStatisticsDTO.getDimension(),
-            searchStatisticsDTO.getDimensionValue(), searchStatisticsDTO.getDate()).getData();
+        StatisticsDTO remoteStatisticsDTO = executeMetricsResource.getStatistics(
+            searchStatisticsDTO.getAppId(),
+            searchStatisticsDTO.getResource(),
+            searchStatisticsDTO.getDimension(),
+            searchStatisticsDTO.getDimensionValue(),
+            searchStatisticsDTO.getDate()
+        ).getData();
         if (remoteStatisticsDTO != null) {
+            remoteStatisticsDTO.setTenantId(getCurrentTenantId());
             statisticsDTOList.add(remoteStatisticsDTO);
         } else {
             remoteStatisticsDTO = searchStatisticsDTO.clone();
