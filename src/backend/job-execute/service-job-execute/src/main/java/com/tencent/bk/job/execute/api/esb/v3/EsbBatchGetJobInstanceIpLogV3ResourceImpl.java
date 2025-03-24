@@ -186,6 +186,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
             List<AtomicFileTaskLog> ipFileLogs = ipLog.getFileTaskLogs();
             EsbFileIpLogV3DTO esbFileIpLog = new EsbFileIpLogV3DTO();
             if (CollectionUtils.isNotEmpty(ipFileLogs)) {
+                esbFileIpLog.setHostId(ipLog.getExecuteObject().getHost().getHostId());
                 esbFileIpLog.setCloudAreaId(ipLog.getExecuteObject().getHost().getBkCloudId());
                 esbFileIpLog.setIp(ipLog.getExecuteObject().getHost().getIp());
                 List<EsbFileLogV3DTO> esbFileLogs = ipFileLogs.stream()
@@ -202,7 +203,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
         EsbFileLogV3DTO fileLog = new EsbFileLogV3DTO();
         fileLog.setMode(fileTaskLog.getMode());
         if (fileTaskLog.getSrcExecuteObject() != null) {
-            EsbIpDTO srcIp = EsbIpDTO.fromCloudIp(fileTaskLog.getSrcExecuteObject().getHost().toCloudIp());
+            EsbIpDTO srcIp = EsbIpDTO.fromHost(fileTaskLog.getSrcExecuteObject().getHost());
             if (srcIp != null) {
                 fileLog.setSrcIp(srcIp);
             }
@@ -210,7 +211,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
         fileLog.setSrcPath(fileTaskLog.getDisplaySrcFile());
         if (FileDistModeEnum.DOWNLOAD.getValue().equals(fileTaskLog.getMode())) {
             if (fileTaskLog.getDestExecuteObject() != null) {
-                EsbIpDTO destIp = EsbIpDTO.fromCloudIp(fileTaskLog.getDestExecuteObject().getHost().toCloudIp());
+                EsbIpDTO destIp = EsbIpDTO.fromHost(fileTaskLog.getDestExecuteObject().getHost());
                 if (destIp != null) {
                     fileLog.setDestIp(destIp);
                 }
