@@ -36,6 +36,12 @@ import java.util.List;
 public class EsbFileIpLogV3DTO {
 
     /**
+     * 主机ID
+     */
+    @JsonProperty("bk_host_id")
+    private Long hostId;
+
+    /**
      * 云区域ID
      */
     @JsonProperty("bk_cloud_id")

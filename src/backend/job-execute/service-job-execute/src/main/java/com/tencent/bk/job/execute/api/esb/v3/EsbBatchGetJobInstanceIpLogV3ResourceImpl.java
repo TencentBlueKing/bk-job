@@ -185,6 +185,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
             List<AtomicFileTaskLog> ipFileLogs = ipLog.getFileTaskLogs();
             EsbFileIpLogV3DTO esbFileIpLog = new EsbFileIpLogV3DTO();
             if (CollectionUtils.isNotEmpty(ipFileLogs)) {
+                esbFileIpLog.setHostId(ipLog.getExecuteObject().getHost().getHostId());
                 esbFileIpLog.setCloudAreaId(ipLog.getExecuteObject().getHost().getBkCloudId());
                 esbFileIpLog.setIp(ipLog.getExecuteObject().getHost().getIp());
                 List<EsbFileLogV3DTO> esbFileLogs = ipFileLogs.stream()
