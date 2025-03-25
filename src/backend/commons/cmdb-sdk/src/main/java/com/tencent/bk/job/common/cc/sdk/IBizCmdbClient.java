@@ -205,9 +205,11 @@ public interface IBizCmdbClient {
     /**
      * 获取CMDB对象属性信息列表
      *
-     * @param objId cmdb对象ID
+     * @param tenantId 租户ID
+     * @param objId    cmdb对象ID
+     * @return 对象属性列表
      */
-    List<CcObjAttributeDTO> getObjAttributeList(String objId);
+    List<CcObjAttributeDTO> getObjAttributeList(String tenantId, String objId);
 
     /**
      * 根据cmdb业务角色获取人员
@@ -219,18 +221,25 @@ public interface IBizCmdbClient {
 
     /**
      * 获取CMDB业务角色列表
+     *
+     * @param tenantId 租户ID
+     * @return 业务角色列表
      */
-    List<AppRoleDTO> listRoles();
+    List<AppRoleDTO> listRoles(String tenantId);
 
     /**
      * 获取主机所属云厂商枚举值，key:id，value:名称
+     *
+     * @param tenantId 租户ID
      */
-    Map<String, String> getCloudVendorIdNameMap();
+    Map<String, String> getCloudVendorIdNameMap(String tenantId);
 
     /**
      * 获取主机类型枚举值，key:id，value:名称
+     *
+     * @param tenantId 租户ID
      */
-    Map<String, String> getOsTypeIdNameMap();
+    Map<String, String> getOsTypeIdNameMap(String tenantId);
 
     /**
      * 批量获取topo节点层级

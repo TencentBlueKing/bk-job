@@ -323,7 +323,7 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     public List<RoleVO> listRole(String username) {
         //Job系统角色+CMDB业务角色
-        List<AppRoleDTO> appRoles = esbAppRoleDAO.listEsbAppRole();
+        List<AppRoleDTO> appRoles = esbAppRoleDAO.listEsbAppRole(JobContextUtil.getTenantId());
         if (CollectionUtils.isEmpty(appRoles)) {
             return Collections.emptyList();
         }
@@ -335,10 +335,10 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
-    public List<AppRoleDTO> listRoles() {
+    public List<AppRoleDTO> listRoles(String tenantId) {
         //Job系统角色+CMDB业务角色
         List<AppRoleDTO> resultList = new ArrayList<>();
-        List<AppRoleDTO> appRoleDTOList = esbAppRoleDAO.listEsbAppRole();
+        List<AppRoleDTO> appRoleDTOList = esbAppRoleDAO.listEsbAppRole(tenantId);
         if (appRoleDTOList != null) {
             resultList.addAll(appRoleDTOList);
         }

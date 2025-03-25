@@ -86,11 +86,21 @@ public class HostDetailServiceImpl implements HostDetailService {
         fillHostsDetail(hostList, host -> {
             host.setCloudAreaName(bkNetService.getCloudAreaNameFromCache(tenantId, host.getCloudAreaId()));
             String cloudVendorId = host.getCloudVendorId();
-            host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
-                cloudVendorId, cloudVendorId == null ? null : JobConstants.UNKNOWN_NAME));
+            host.setCloudVendorName(
+                cloudVendorService.getCloudVendorNameOrDefault(
+                    tenantId,
+                    cloudVendorId,
+                    cloudVendorId == null ? null : JobConstants.UNKNOWN_NAME
+                )
+            );
             String osTypeId = host.getOsType();
-            host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(osTypeId,
-                osTypeId == null ? null : JobConstants.UNKNOWN_NAME));
+            host.setOsTypeName(
+                osTypeService.getOsTypeNameOrDefault(
+                    tenantId,
+                    osTypeId,
+                    osTypeId == null ? null : JobConstants.UNKNOWN_NAME
+                )
+            );
         });
     }
 
@@ -106,11 +116,21 @@ public class HostDetailServiceImpl implements HostDetailService {
         fillHostsDetail(hostList, host -> {
             host.setBkCloudName(bkNetService.getCloudAreaNameFromCache(tenantId, host.getBkCloudId()));
             String cloudVendorId = host.getCloudVendorId();
-            host.setCloudVendorName(cloudVendorService.getCloudVendorNameOrDefault(
-                cloudVendorId, cloudVendorId == null ? null : JobConstants.UNKNOWN_NAME));
+            host.setCloudVendorName(
+                cloudVendorService.getCloudVendorNameOrDefault(
+                    tenantId,
+                    cloudVendorId,
+                    cloudVendorId == null ? null : JobConstants.UNKNOWN_NAME
+                )
+            );
             String osTypeId = host.getOsType();
-            host.setOsTypeName(osTypeService.getOsTypeNameOrDefault(osTypeId,
-                osTypeId == null ? null : JobConstants.UNKNOWN_NAME));
+            host.setOsTypeName(
+                osTypeService.getOsTypeNameOrDefault(
+                    tenantId,
+                    osTypeId,
+                    osTypeId == null ? null : JobConstants.UNKNOWN_NAME
+                )
+            );
         });
     }
 

@@ -99,7 +99,7 @@ public class HostStatisticsTask extends BaseStatisticsTask {
             Integer count = e.getValue();
             totalHostCount += count;
         }
-        Map<String, String> osTypeIdNameMap = bizCmdbClient.getOsTypeIdNameMap();
+        Map<String, String> osTypeIdNameMap = bizCmdbClient.getOsTypeIdNameMap(getCurrentTenantId());
         int knownOsTypeHostCount = 0;
         for (Map.Entry<String, String> entry : osTypeIdNameMap.entrySet()) {
             String id = entry.getKey();

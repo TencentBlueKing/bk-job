@@ -24,9 +24,7 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.constant.CompatibleType;
-import com.tencent.bk.job.common.constant.TenantIdConstants;
+import com.tencent.bk.job.common.compat.util.TenantCompatUtil;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
@@ -43,7 +41,6 @@ import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -122,7 +119,7 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
     public InternalResponse<Integer> countAccounts(String tenantId, AccountTypeEnum accountType) {
         return InternalResponse.buildSuccessResp(
             accountDAO.countAccounts(
-                getTenantIdWithDefault(tenantId),
+                TenantCompatUtil.getTenantIdWithDefault(tenantId),
                 accountType
             )
         );
@@ -132,25 +129,11 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
     public InternalResponse<Map<String, Integer>> groupHostByOsType(String tenantId) {
         return InternalResponse.buildSuccessResp(
             tenantHostDAO.groupHostByOsType(
-                getTenantIdWithDefault(tenantId)
+                TenantCompatUtil.getTenantIdWithDefault(tenantId)
             )
         );
     }
 
-    @Deprecated
-    @CompatibleImplementation(
-        name = "tenant",
-        explain = "兼容发布过程中老的调用，发布完成后删除",
-        deprecatedVersion = "3.12.x",
-        type = CompatibleType.DEPLOY
-    )
-    private String getTenantIdWithDefault(String tenantId) {
-        if (StringUtils.isNotBlank(tenantId)) {
-            return tenantId;
-        }
-        log.warn("Deprecated: getTenantIdWithDefault is still work with default, please check");
-        return TenantIdConstants.DEFAULT_TENANT_ID;
-    }
 
     @Override
     public InternalResponse<Long> tagCitedCount(Long appId, Long tagId) {

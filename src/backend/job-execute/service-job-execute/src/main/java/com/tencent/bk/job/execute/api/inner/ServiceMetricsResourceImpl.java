@@ -25,16 +25,13 @@
 package com.tencent.bk.job.execute.api.inner;
 
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
-import com.tencent.bk.job.common.constant.CompatibleType;
-import com.tencent.bk.job.common.constant.TenantIdConstants;
+import com.tencent.bk.job.common.compat.util.TenantCompatUtil;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.execute.model.inner.request.ServiceTriggerStatisticsRequest;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.statistics.StatisticsService;
 import io.micrometer.core.annotation.Timed;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -58,24 +55,9 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
     public InternalResponse<List<Long>> getJoinedAppIdList(String tenantId) {
         return InternalResponse.buildSuccessResp(
             taskInstanceService.getJoinedAppIdList(
-                getTenantIdWithDefault(tenantId)
+                TenantCompatUtil.getTenantIdWithDefault(tenantId)
             )
         );
-    }
-
-    @Deprecated
-    @CompatibleImplementation(
-        name = "tenant",
-        explain = "兼容发布过程中老的调用，发布完成后删除",
-        deprecatedVersion = "3.12.x",
-        type = CompatibleType.DEPLOY
-    )
-    private String getTenantIdWithDefault(String tenantId) {
-        if (StringUtils.isNotBlank(tenantId)) {
-            return tenantId;
-        }
-        log.warn("Deprecated: getTenantIdWithDefault is still work with default, please check");
-        return TenantIdConstants.DEFAULT_TENANT_ID;
     }
 
     @Override

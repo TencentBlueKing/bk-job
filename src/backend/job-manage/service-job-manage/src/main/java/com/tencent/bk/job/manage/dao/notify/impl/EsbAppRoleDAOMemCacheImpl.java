@@ -33,6 +33,7 @@ import com.tencent.bk.job.manage.dao.notify.EsbAppRoleDAO;
 import com.tencent.bk.job.manage.service.AppRoleService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,18 +50,21 @@ public class EsbAppRoleDAOMemCacheImpl implements EsbAppRoleDAO {
     private static final Logger logger = LoggerFactory.getLogger(EsbAppRoleDAOMemCacheImpl.class);
     private final AppRoleService roleService;
 
-    private final LoadingCache<String, List<AppRoleDTO>> esbAppRoleCache = CacheBuilder.newBuilder()
-        .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
-            build(new CacheLoader<String, List<AppRoleDTO>>() {
-                      @Override
-                      public List<AppRoleDTO> load(@NonNull String lang) {
-                          logger.info("esbAppRoleCache lang=" + lang);
-                          val result = roleService.listAppRoles(lang);
-                          logger.info(String.format("result.size=%d", result.size()));
-                          return result;
-                      }
+    private final LoadingCache<Pair<String, String>, List<AppRoleDTO>> esbAppRoleCache = CacheBuilder.newBuilder()
+        .maximumSize(10)
+        .expireAfterWrite(10, TimeUnit.MINUTES).
+        build(new CacheLoader<Pair<String, String>, List<AppRoleDTO>>() {
+                  @Override
+                  public List<AppRoleDTO> load(@NonNull Pair<String, String> langTenantIdPair) {
+                      String lang = langTenantIdPair.getLeft();
+                      String tenantId = langTenantIdPair.getRight();
+                      logger.info("esbAppRoleCache lang=" + lang);
+                      val result = roleService.listAppRoles(lang, tenantId);
+                      logger.info(String.format("result.size=%d", result.size()));
+                      return result;
                   }
-            );
+              }
+        );
 
     @Autowired
     public EsbAppRoleDAOMemCacheImpl(AppRoleService roleService) {
@@ -68,11 +72,13 @@ public class EsbAppRoleDAOMemCacheImpl implements EsbAppRoleDAO {
     }
 
     @Override
-    public List<AppRoleDTO> listEsbAppRole() {
+    public List<AppRoleDTO> listEsbAppRole(String tenantId) {
         try {
             String lang = JobContextUtil.getUserLang();
             logger.info(String.format("Current Lang:%s", lang));
-            return esbAppRoleCache.get(lang);
+            return esbAppRoleCache.get(
+                Pair.of(lang, tenantId)
+            );
         } catch (Exception e) {
             logger.error("Fail to get appRole from cache", e);
             return null;

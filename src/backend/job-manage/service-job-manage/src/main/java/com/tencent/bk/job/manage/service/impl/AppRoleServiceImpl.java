@@ -58,9 +58,9 @@ public class AppRoleServiceImpl implements AppRoleService {
     }
 
     @Override
-    public List<AppRoleDTO> listAppRoles(String lang) {
+    public List<AppRoleDTO> listAppRoles(String lang,String tenantId) {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(lang);
-        return bizCmdbClient.listRoles();
+        return bizCmdbClient.listRoles(tenantId);
     }
 
     @Override

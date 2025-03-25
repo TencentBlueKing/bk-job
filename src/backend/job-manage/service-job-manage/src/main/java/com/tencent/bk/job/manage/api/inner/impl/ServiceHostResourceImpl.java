@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.common.util.StackTraceUtil;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
@@ -213,10 +214,16 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             return req.getTenantId();
         }
         if (CollectionUtils.isNotEmpty(hosts)) {
-            log.warn("Deprecated: getTenantIdWithDefault is still work with hosts, please check");
+            log.warn(
+                "Deprecated: getTenantIdWithDefault is still work with hosts, please check stack:{}",
+                StackTraceUtil.getCurrentStackTrace()
+            );
             return hosts.get(0).getTenantId();
         }
-        log.warn("Deprecated: getTenantIdWithDefault is still work with default, please check");
+        log.warn(
+            "Deprecated: getTenantIdWithDefault is still work with default, please check stack:{}",
+            StackTraceUtil.getCurrentStackTrace()
+        );
         return TenantIdConstants.DEFAULT_TENANT_ID;
     }
 

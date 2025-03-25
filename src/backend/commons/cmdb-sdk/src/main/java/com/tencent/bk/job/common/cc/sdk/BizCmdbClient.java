@@ -1176,10 +1176,11 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public List<CcObjAttributeDTO> getObjAttributeList(String objId) {
+    public List<CcObjAttributeDTO> getObjAttributeList(String tenantId, String objId) {
         GetObjAttributeReq req = makeCmdbBaseReq(GetObjAttributeReq.class);
         req.setObjId(objId);
-        EsbResp<List<CcObjAttributeDTO>> esbResp = requestCmdbApiUseContextTenantId(
+        EsbResp<List<CcObjAttributeDTO>> esbResp = requestCmdbApi(
+            tenantId,
             HttpMethodEnum.POST,
             GET_OBJ_ATTRIBUTES,
             null,
@@ -1239,8 +1240,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public List<AppRoleDTO> listRoles() {
-        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList("biz");
+    public List<AppRoleDTO> listRoles(String tenantId) {
+        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList(tenantId, "biz");
         return esbObjAttributeDTO.stream().filter(it ->
             it.getBkPropertyGroup().equals("role")
         ).map(it -> new AppRoleDTO(
@@ -1251,8 +1252,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public Map<String, String> getCloudVendorIdNameMap() {
-        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList("host");
+    public Map<String, String> getCloudVendorIdNameMap(String tenantId) {
+        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList(tenantId, "host");
         List<CcObjAttributeDTO> cloudVendorAttrList = esbObjAttributeDTO.stream().filter(it ->
             it.getBkPropertyId().equals("bk_cloud_vendor")
         ).collect(Collectors.toList());
@@ -1273,8 +1274,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public Map<String, String> getOsTypeIdNameMap() {
-        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList("host");
+    public Map<String, String> getOsTypeIdNameMap(String tenantId) {
+        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList(tenantId, "host");
         List<CcObjAttributeDTO> osTypeAttrList = esbObjAttributeDTO.stream().filter(it ->
             it.getBkPropertyId().equals("bk_os_type")
         ).collect(Collectors.toList());
