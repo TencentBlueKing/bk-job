@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 指定租户ID的主机数据DAO
@@ -39,4 +40,7 @@ public interface TenantHostDAO {
     List<ApplicationHostDTO> listHostsByCloudIps(String tenantId, Collection<String> cloudIps);
 
     List<ApplicationHostDTO> listHostInfoByCloudIpv6(String tenantId, Long cloudAreaId, String ipv6);
+
+    Map<String, Integer> groupHostByOsType(String tenantId);
+
 }

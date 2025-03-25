@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.StopWatch;
 
@@ -95,7 +96,12 @@ public abstract class BasePerAppStatisticsTask extends BaseStatisticsTask {
                     Thread.sleep(3000);
                 }
             } catch (Throwable t) {
-                log.warn("Fail to genStatisticsByDay, dateTime={}, app={}", dateTime, app, t);
+                String message = MessageFormatter.format(
+                    "Fail to genStatisticsByDay, dateTime={}, app={}",
+                    dateTime,
+                    app
+                ).getMessage();
+                log.warn(message, t);
             }
         });
         afterDailyStatisticsUpdated(dayTimeStr);

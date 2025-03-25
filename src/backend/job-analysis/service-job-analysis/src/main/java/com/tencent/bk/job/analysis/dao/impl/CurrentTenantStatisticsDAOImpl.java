@@ -122,7 +122,7 @@ public class CurrentTenantStatisticsDAOImpl extends BaseStatisticsDAO implements
             assert record != null;
             return record.getId();
         } catch (Exception e) {
-            log.error(sql);
+            log.error("errorSQL={}", sql);
             throw e;
         }
     }

@@ -187,7 +187,5 @@ public interface AccountService {
 
     AccountDTO buildCreateAccountDTO(String username, long appId, AccountCreateUpdateReq accountCreateUpdateReq);
 
-    Integer countAccounts(AccountTypeEnum accountType);
-
     void createDefaultAccounts(long appId);
 }

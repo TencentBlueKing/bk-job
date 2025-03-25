@@ -30,6 +30,7 @@ import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.dao.TenantHostDAO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.types.ULong;
@@ -39,8 +40,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import static org.jooq.impl.DSL.count;
 
 /**
  * 指定租户的主机DAO
@@ -87,5 +92,28 @@ public class TenantHostDAOImpl extends AbstractBaseHostDAO implements TenantHost
         }
         conditions.add(TABLE.IP_V6.like("%" + ipv6 + "%"));
         return listHostInfoByConditions(conditions);
+    }
+
+    @Override
+    public Map<String, Integer> groupHostByOsType(String tenantId) {
+        Map<String, Integer> groupMap = new HashMap<>();
+        context.select(
+                TABLE.OS_TYPE,
+                count()
+            )
+            .from(TABLE)
+            .where(TABLE.TENANT_ID.eq(tenantId))
+            .groupBy(TABLE.OS_TYPE)
+            .fetch()
+            .map(record -> {
+                String osType = record.get(0, String.class);
+                if (StringUtils.isNotBlank(osType)) {
+                    groupMap.put(osType, record.get(1, Integer.class));
+                } else {
+                    groupMap.put("null", record.get(1, Integer.class));
+                }
+                return record;
+            });
+        return groupMap;
     }
 }

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
@@ -46,14 +47,6 @@ import java.util.Map;
 @SmartFeignClient(value = "job-manage", contextId = "manageMetricsResource")
 @InternalAPI
 public interface ServiceMetricsResource {
-
-    @ApiOperation(value = "接入业务总量", produces = "application/json")
-    @GetMapping("/service/metrics/apps/count")
-    InternalResponse<Integer> countApps(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username
-    );
 
     @ApiOperation(value = "作业模板量", produces = "application/json")
     @GetMapping("/service/metrics/templates/count")
@@ -135,22 +128,19 @@ public interface ServiceMetricsResource {
     @ApiOperation(value = "账号总量", produces = "application/json")
     @GetMapping("/service/metrics/accounts/count")
     InternalResponse<Integer> countAccounts(
+        @RequestHeader(value = JobCommonHeaders.BK_TENANT_ID, required = false)
+        String tenantId,
         @ApiParam("账号类型")
         @RequestParam(value = "accountType", required = false)
             AccountTypeEnum accountType
     );
 
-    @ApiOperation(value = "主机总量", produces = "application/json")
-    @GetMapping("/service/metrics/hosts/count")
-    InternalResponse<Long> countHostsByOsType(
-        @ApiParam("系统类型")
-        @RequestParam(value = "osType", required = false)
-            String osType
-    );
-
     @ApiOperation(value = "主机的操作系统类型分布数据", produces = "application/json")
     @GetMapping("/service/metrics/hosts/groupByOsType")
-    InternalResponse<Map<String, Integer>> groupHostByOsType();
+    InternalResponse<Map<String, Integer>> groupHostByOsType(
+        @RequestHeader(value = JobCommonHeaders.BK_TENANT_ID, required = false)
+        String tenantId
+    );
 
     @ApiOperation(value = "某个标签在某业务下的被引数量", produces = "application/json")
     @GetMapping("/service/metrics/tags/citedCount")

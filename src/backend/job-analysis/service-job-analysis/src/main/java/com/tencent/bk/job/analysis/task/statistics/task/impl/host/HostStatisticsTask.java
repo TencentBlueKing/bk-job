@@ -90,8 +90,8 @@ public class HostStatisticsTask extends BaseStatisticsTask {
 
     public void calcAndSaveHostStatistics(String dateStr) {
         Set<String> allOsTypeNameSet = getAllOsTypeNameSet();
-
-        InternalResponse<Map<String, Integer>> resp = manageMetricsResource.groupHostByOsType();
+        String tenantId = getCurrentTenantId();
+        InternalResponse<Map<String, Integer>> resp = manageMetricsResource.groupHostByOsType(tenantId);
         Map<String, Integer> osTypeCountMap = resp.getData();
         // 统计所有类型的主机总量
         int totalHostCount = 0;
@@ -124,15 +124,22 @@ public class HostStatisticsTask extends BaseStatisticsTask {
         // CMDB中没有的类型统计值默认置为0
         allOsTypeNameSet.forEach(osTypeName -> {
             log.debug("calcAndSaveHostStatistics: {} count=0", osTypeName);
+            String defaultValue = "0";
             currentTenantStatisticsDAO.upsertStatistics(
                 dslContext,
-                genStatisticsDTO(dateStr, "0", osTypeName.toUpperCase())
+                genStatisticsDTO(dateStr, defaultValue, osTypeName.toUpperCase())
             );
         });
         // Others
         int othersCount = totalHostCount - knownOsTypeHostCount;
         log.debug("calcAndSaveHostStatistics: othersCount={}", othersCount);
-        currentTenantStatisticsDAO.upsertStatistics(dslContext, genOthersStatisticsDTO(dateStr, Long.toString(othersCount)));
+        currentTenantStatisticsDAO.upsertStatistics(
+            dslContext,
+            genOthersStatisticsDTO(
+                dateStr,
+                Long.toString(othersCount)
+            )
+        );
     }
 
     @NotNull

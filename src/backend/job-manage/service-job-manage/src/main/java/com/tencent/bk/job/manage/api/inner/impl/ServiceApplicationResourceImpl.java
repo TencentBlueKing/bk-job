@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationAttrsDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -53,14 +54,17 @@ import java.util.stream.Collectors;
 @RestController
 public class ServiceApplicationResourceImpl implements ServiceApplicationResource {
     private final ApplicationService applicationService;
+    private final ApplicationDAO applicationDAO;
     private final IBizCmdbClient bizCmdbClient;
     private final IBizSetCmdbClient bizSetCmdbClient;
 
     @Autowired
     public ServiceApplicationResourceImpl(ApplicationService applicationService,
+                                          ApplicationDAO applicationDAO,
                                           IBizCmdbClient bizCmdbClient,
                                           IBizSetCmdbClient bizSetCmdbClient) {
         this.applicationService = applicationService;
+        this.applicationDAO = applicationDAO;
         this.bizCmdbClient = bizCmdbClient;
         this.bizSetCmdbClient = bizSetCmdbClient;
     }
@@ -197,5 +201,9 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
             log.info("biz/bizSet not exist, appId={}", appId);
             return InternalResponse.buildSuccessResp(false);
         }
+    }
+
+    public InternalResponse<List<Long>> listAppIdByTenant(String tenantId) {
+        return InternalResponse.buildSuccessResp(applicationDAO.listAppIdByTenant(tenantId));
     }
 }

@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
@@ -32,15 +35,15 @@ import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.api.inner.ServiceMetricsResource;
+import com.tencent.bk.job.manage.dao.AccountDAO;
+import com.tencent.bk.job.manage.dao.TenantHostDAO;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
-import com.tencent.bk.job.manage.service.AccountService;
-import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.ScriptManager;
 import com.tencent.bk.job.manage.service.TagService;
-import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -51,34 +54,26 @@ import java.util.Map;
 @Slf4j
 public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
 
-    private final ApplicationService applicationService;
-    private final AccountService accountService;
+    private final AccountDAO accountDAO;
     private final ScriptManager scriptManager;
     private final TaskTemplateService taskTemplateService;
     private final TaskPlanService taskPlanService;
-    private final NoTenantHostService noTenantHostService;
+    private final TenantHostDAO tenantHostDAO;
     private final TagService tagService;
 
     @Autowired
-    public ServiceMetricsResourceImpl(ApplicationService applicationService,
-                                      AccountService accountService,
+    public ServiceMetricsResourceImpl(AccountDAO accountDAO,
                                       ScriptManager scriptManager,
                                       TaskTemplateService taskTemplateService,
                                       TaskPlanService taskPlanService,
-                                      NoTenantHostService noTenantHostService,
+                                      TenantHostDAO tenantHostDAO,
                                       TagService tagService) {
-        this.applicationService = applicationService;
-        this.accountService = accountService;
+        this.accountDAO = accountDAO;
         this.scriptManager = scriptManager;
         this.taskTemplateService = taskTemplateService;
         this.taskPlanService = taskPlanService;
-        this.noTenantHostService = noTenantHostService;
+        this.tenantHostDAO = tenantHostDAO;
         this.tagService = tagService;
-    }
-
-    @Override
-    public InternalResponse<Integer> countApps(String username) {
-        return InternalResponse.buildSuccessResp(applicationService.countApps());
     }
 
     @Override
@@ -124,18 +119,37 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
     }
 
     @Override
-    public InternalResponse<Integer> countAccounts(AccountTypeEnum accountType) {
-        return InternalResponse.buildSuccessResp(accountService.countAccounts(accountType));
+    public InternalResponse<Integer> countAccounts(String tenantId, AccountTypeEnum accountType) {
+        return InternalResponse.buildSuccessResp(
+            accountDAO.countAccounts(
+                getTenantIdWithDefault(tenantId),
+                accountType
+            )
+        );
     }
 
     @Override
-    public InternalResponse<Long> countHostsByOsType(String osType) {
-        return InternalResponse.buildSuccessResp(noTenantHostService.countHostsByOsType(osType));
+    public InternalResponse<Map<String, Integer>> groupHostByOsType(String tenantId) {
+        return InternalResponse.buildSuccessResp(
+            tenantHostDAO.groupHostByOsType(
+                getTenantIdWithDefault(tenantId)
+            )
+        );
     }
 
-    @Override
-    public InternalResponse<Map<String, Integer>> groupHostByOsType() {
-        return InternalResponse.buildSuccessResp(noTenantHostService.groupHostByOsType());
+    @Deprecated
+    @CompatibleImplementation(
+        name = "tenant",
+        explain = "兼容发布过程中老的调用，发布完成后删除",
+        deprecatedVersion = "3.12.x",
+        type = CompatibleType.DEPLOY
+    )
+    private String getTenantIdWithDefault(String tenantId) {
+        if (StringUtils.isNotBlank(tenantId)) {
+            return tenantId;
+        }
+        log.warn("Deprecated: getTenantIdWithDefault is still work with default, please check");
+        return TenantIdConstants.DEFAULT_TENANT_ID;
     }
 
     @Override

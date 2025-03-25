@@ -203,9 +203,13 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
-    public List<Long> getJoinedAppIdList() {
+    public List<Long> getJoinedAppIdList(String tenantId) {
         // 加全量appId作为in条件查询以便走索引
-        return taskInstanceDAO.listTaskInstanceAppId(applicationService.listAllAppIds(), null, null);
+        return taskInstanceDAO.listTaskInstanceAppId(
+            applicationService.listAllAppIds(tenantId),
+            null,
+            null
+        );
     }
 
     @Override

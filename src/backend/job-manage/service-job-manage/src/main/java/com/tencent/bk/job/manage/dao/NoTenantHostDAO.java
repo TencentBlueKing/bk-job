@@ -125,10 +125,6 @@ public interface NoTenantHostDAO {
 
     long countAllHosts();
 
-    long countHostsByOsType(String osType);
-
-    Map<String, Integer> groupHostByOsType();
-
     /**
      * 查询全部主机，主机对象只有主要属性
      *

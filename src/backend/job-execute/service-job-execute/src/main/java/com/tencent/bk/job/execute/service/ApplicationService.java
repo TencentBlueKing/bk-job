@@ -49,4 +49,6 @@ public interface ApplicationService {
     String getTenantIdByAppId(long appId);
 
     List<Long> listAllAppIds();
+
+    List<Long> listAllAppIds(String tenantId);
 }

@@ -373,6 +373,18 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         return null;
     }
 
+    @Override
+    public List<Long> listAppIdByTenant(String tenantId) {
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.TENANT_ID.equal(tenantId));
+        Result<Record1<ULong>> records = dslContext
+            .select(T_APP.APP_ID)
+            .from(T_APP)
+            .where(conditions)
+            .fetch();
+        return records.map(record -> record.get(T_APP.APP_ID).longValue());
+    }
+
     private List<Condition> getBasicDeletedConditions() {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(T_APP.IS_DELETED.eq(UByte.valueOf(1)));

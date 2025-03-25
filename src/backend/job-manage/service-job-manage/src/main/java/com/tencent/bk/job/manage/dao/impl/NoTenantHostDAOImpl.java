@@ -720,37 +720,6 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
     }
 
     @Override
-    public long countHostsByOsType(String osType) {
-        List<Condition> conditions = new ArrayList<>();
-        if (osType != null) {
-            conditions.add(TABLE.OS_TYPE.eq(osType));
-        }
-        return countHostByConditions(conditions);
-    }
-
-    @Override
-    public Map<String, Integer> groupHostByOsType() {
-        Map<String, Integer> groupMap = new HashMap<>();
-        context.select(
-                TABLE.OS_TYPE,
-                count()
-            )
-            .from(TABLE)
-            .groupBy(TABLE.OS_TYPE)
-            .fetch()
-            .map(record -> {
-                String osType = record.get(0, String.class);
-                if (StringUtils.isNotBlank(osType)) {
-                    groupMap.put(osType, record.get(1, Integer.class));
-                } else {
-                    groupMap.put("null", record.get(1, Integer.class));
-                }
-                return record;
-            });
-        return groupMap;
-    }
-
-    @Override
     public int syncHostTopo(Long hostId) {
         ApplicationHostDTO hostInfoDTO = getHostById(hostId);
         if (hostInfoDTO != null) {

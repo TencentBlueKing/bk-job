@@ -97,21 +97,6 @@ public interface NoTenantHostService {
     void updateDbHostToCache(Long hostId);
 
     /**
-     * 获取指定系统类型的主机数量
-     *
-     * @param osType 系统类型
-     * @return 主机数量
-     */
-    long countHostsByOsType(String osType);
-
-    /**
-     * 获取各种系统类型的主机数量分布
-     *
-     * @return 系统类型及数量映射Map
-     */
-    Map<String, Integer> groupHostByOsType();
-
-    /**
      * 更新主机状态
      *
      * @param simpleHostList 主机列表

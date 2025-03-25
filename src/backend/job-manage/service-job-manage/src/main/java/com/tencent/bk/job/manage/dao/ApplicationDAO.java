@@ -105,4 +105,11 @@ public interface ApplicationDAO {
      * 根据appId获取租户ID
      */
     String getTenantIdByAppId(long appId);
+
+    /**
+     * 获取租户下的所有未删除的Job业务ID
+     *
+     * @param tenantId 租户ID
+     */
+    List<Long> listAppIdByTenant(String tenantId);
 }

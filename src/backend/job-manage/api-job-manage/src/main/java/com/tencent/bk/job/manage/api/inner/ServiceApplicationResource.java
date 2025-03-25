@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceAppBaseInfoDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
@@ -34,6 +35,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -94,4 +96,11 @@ public interface ServiceApplicationResource {
     @RequestMapping("/service/app/exists/{appId}")
     InternalResponse<Boolean> existsAppById(@ApiParam(value = "Job业务ID", required = true)
                                        @PathVariable("appId") Long appId);
+
+    @ApiOperation(value = "获取租户下所有未删除的Job业务ID", produces = "application/json")
+    @GetMapping("/service/app/listAppIdByTenant")
+    InternalResponse<List<Long>> listAppIdByTenant(
+        @RequestHeader(value = JobCommonHeaders.BK_TENANT_ID, required = false)
+        String tenantId
+    );
 }

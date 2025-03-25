@@ -84,8 +84,9 @@ public class AccountStatisticsTask extends BaseStatisticsTask {
     }
 
     public void calcAndSaveAccountStatistics(String dateStr) {
+        String tenantId = getCurrentTenantId();
         // Linux
-        InternalResponse<Integer> resp = manageMetricResource.countAccounts(AccountTypeEnum.LINUX);
+        InternalResponse<Integer> resp = manageMetricResource.countAccounts(tenantId,AccountTypeEnum.LINUX);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countAccounts, resp:{}", resp);
             return;
@@ -93,34 +94,38 @@ public class AccountStatisticsTask extends BaseStatisticsTask {
         Integer linuxCount = resp.getData();
         currentTenantStatisticsDAO.upsertStatistics(dslContext, genLinuxStatisticsDTO(dateStr, linuxCount.toString()));
         // Windows
-        resp = manageMetricResource.countAccounts(AccountTypeEnum.WINDOW);
+        resp = manageMetricResource.countAccounts(tenantId,AccountTypeEnum.WINDOW);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countAccounts, resp:{}", resp);
             return;
         }
         Integer windowsCount = resp.getData();
-        currentTenantStatisticsDAO.upsertStatistics(dslContext, genWindowsStatisticsDTO(dateStr, windowsCount.toString()));
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, genWindowsStatisticsDTO(dateStr,
+            windowsCount.toString()));
         // DB
-        resp = manageMetricResource.countAccounts(AccountTypeEnum.MYSQL);
+        resp = manageMetricResource.countAccounts(tenantId,AccountTypeEnum.MYSQL);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countAccounts, resp:{}", resp);
             return;
         }
         Integer mysqlCount = resp.getData();
-        resp = manageMetricResource.countAccounts(AccountTypeEnum.ORACLE);
+        resp = manageMetricResource.countAccounts(tenantId,AccountTypeEnum.ORACLE);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countAccounts, resp:{}", resp);
             return;
         }
         Integer oracleCount = resp.getData();
-        resp = manageMetricResource.countAccounts(AccountTypeEnum.DB2);
+        resp = manageMetricResource.countAccounts(tenantId,AccountTypeEnum.DB2);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countAccounts, resp:{}", resp);
             return;
         }
         Integer db2Count = resp.getData();
-        Integer dbCount = mysqlCount + oracleCount + db2Count;
-        currentTenantStatisticsDAO.upsertStatistics(dslContext, genDBStatisticsDTO(dateStr, dbCount.toString()));
+        int dbCount = mysqlCount + oracleCount + db2Count;
+        currentTenantStatisticsDAO.upsertStatistics(
+            dslContext,
+            genDBStatisticsDTO(dateStr, Integer.toString(dbCount))
+        );
     }
 
     @Override

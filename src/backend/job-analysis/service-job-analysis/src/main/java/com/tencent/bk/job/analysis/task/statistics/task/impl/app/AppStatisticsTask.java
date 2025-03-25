@@ -73,7 +73,8 @@ public class AppStatisticsTask extends BaseStatisticsTask {
     }
 
     public void calcJoinedApps(LocalDateTime dateTime) {
-        val resp = executeMetricsResource.getJoinedAppIdList();
+        String tenantId = getCurrentTenantId();
+        val resp = executeMetricsResource.getJoinedAppIdList(tenantId);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote getJoinedAppIdList, resp:{}", resp);
             return;
@@ -82,15 +83,19 @@ public class AppStatisticsTask extends BaseStatisticsTask {
         // 合并前一天的接入业务
         LocalDateTime lastDayTime = dateTime.minusDays(1);
         String lastDayTimeStr = getDayTimeStr(lastDayTime);
-        StatisticsDTO lastDayStatisticsDTO = currentTenantStatisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
-            StatisticsConstants.RESOURCE_APP, StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
-            StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_APP_LIST, lastDayTimeStr);
+        StatisticsDTO lastDayStatisticsDTO = currentTenantStatisticsDAO.getStatistics(
+            StatisticsConstants.DEFAULT_APP_ID,
+            StatisticsConstants.RESOURCE_APP,
+            StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
+            StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_APP_LIST,
+            lastDayTimeStr
+        );
         if (lastDayStatisticsDTO != null) {
             String value = lastDayStatisticsDTO.getValue();
             try {
                 List<SimpleAppInfoDTO> simpleAppInfoDTOList = JsonUtils.fromJson(value,
                     new TypeReference<List<SimpleAppInfoDTO>>() {
-                });
+                    });
                 for (SimpleAppInfoDTO appInfoDTO : simpleAppInfoDTOList) {
                     joinedAppIdSet.add(appInfoDTO.getId());
                 }
@@ -123,8 +128,13 @@ public class AppStatisticsTask extends BaseStatisticsTask {
         List<Long> activeAppIdList = new ArrayList<>();
         for (ServiceApplicationDTO serviceApplicationDTO : appDTOList) {
             Long appId = serviceApplicationDTO.getId();
-            val resp = executeMetricsResource.hasExecuteHistory(appId, -1L, TimeUtil.localDateTime2Long(fromTime),
-                TimeUtil.localDateTime2Long(dateTime));
+            long notCronTaskId = -1L;
+            val resp = executeMetricsResource.hasExecuteHistory(
+                appId,
+                notCronTaskId,
+                TimeUtil.localDateTime2Long(fromTime),
+                TimeUtil.localDateTime2Long(dateTime)
+            );
             if (resp == null || !resp.isSuccess()) {
                 log.warn("Fail to call remote hasExecuteHistory, resp:{}", resp);
             } else {

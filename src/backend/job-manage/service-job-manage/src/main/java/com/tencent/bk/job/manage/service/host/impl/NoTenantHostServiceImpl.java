@@ -363,14 +363,4 @@ public class NoTenantHostServiceImpl extends BaseHostService implements NoTenant
         return existHosts;
     }
 
-    @Override
-    public long countHostsByOsType(String osType) {
-        return noTenantHostDAO.countHostsByOsType(osType);
-    }
-
-    @Override
-    public Map<String, Integer> groupHostByOsType() {
-        return noTenantHostDAO.groupHostByOsType();
-    }
-
 }

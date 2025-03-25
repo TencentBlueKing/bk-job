@@ -73,4 +73,9 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
         return apps.stream().map(ServiceApplicationDTO::getId).collect(Collectors.toList());
     }
+
+    @Override
+    public List<Long> listAllAppIds(String tenantId) {
+        return applicationResource.listAppIdByTenant(tenantId).getData();
+    }
 }
