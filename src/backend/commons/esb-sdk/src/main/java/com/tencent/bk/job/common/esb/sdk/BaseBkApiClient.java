@@ -146,9 +146,14 @@ public class BaseBkApiClient {
             logStrategy.logReq(log, apiContext);
         } else {
             if (log.isInfoEnabled()) {
-                log.info("[AbstractBkApiClient] Request|method={}|uri={}|reqStr={}",
-                    httpMethod.name(), requestInfo.getUri(),
-                    requestInfo.getBody() != null ? JsonUtils.toJsonWithoutSkippedFields(requestInfo.getBody()) : null);
+                log.info(
+                    "[AbstractBkApiClient] Request|tenantId={}|method={}|uri={}|reqStr={}",
+                    extractBkTenantId(requestInfo),
+                    httpMethod.name(),
+                    requestInfo.getUri(),
+                    requestInfo.getBody() != null ?
+                        JsonUtils.toJsonWithoutSkippedFields(requestInfo.getBody()) : null
+                );
             }
         }
 
@@ -232,6 +237,18 @@ public class BaseBkApiClient {
                     .record(cost, TimeUnit.MILLISECONDS);
             }
         }
+    }
+
+    private String extractBkTenantId(OpenApiRequestInfo<?> requestInfo) {
+        if (requestInfo.getHeaders() == null) {
+            return "";
+        }
+        for (Header header : requestInfo.getHeaders()) {
+            if (JobCommonHeaders.BK_TENANT_ID.equalsIgnoreCase(header.getName())) {
+                return header.getValue();
+            }
+        }
+        return "";
     }
 
     private String extractBkApiRequestId(HttpResponse response) {
