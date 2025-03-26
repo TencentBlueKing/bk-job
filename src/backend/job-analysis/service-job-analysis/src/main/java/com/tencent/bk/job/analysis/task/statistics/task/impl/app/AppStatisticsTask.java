@@ -29,7 +29,7 @@ import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
-import com.tencent.bk.job.analysis.model.dto.SimpleAppInfoDTO;
+import com.tencent.bk.job.manage.model.remote.SimpleAppInfoDTO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BaseStatisticsTask;
@@ -106,7 +106,7 @@ public class AppStatisticsTask extends BaseStatisticsTask {
             log.warn("lastDayStatisticsDTO of {} is null", lastDayTime);
         }
         List<SimpleAppInfoDTO> appInfoDTOList =
-            basicServiceManager.getAppService().getSimpleAppInfoByIds(new ArrayList<>(joinedAppIdSet));
+            basicServiceManager.getRemoteAppService().getSimpleAppInfoByIds(new ArrayList<>(joinedAppIdSet));
         StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(StatisticsConstants.DEFAULT_APP_ID);
         statisticsDTO.setDate(getDayTimeStr(dateTime));
@@ -144,7 +144,7 @@ public class AppStatisticsTask extends BaseStatisticsTask {
             }
         }
         List<SimpleAppInfoDTO> appInfoDTOList =
-            basicServiceManager.getAppService().getSimpleAppInfoByIds(activeAppIdList);
+            basicServiceManager.getRemoteAppService().getSimpleAppInfoByIds(activeAppIdList);
         StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(-1L);
         statisticsDTO.setDate(dayTimeStr);

@@ -35,6 +35,8 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -60,13 +62,13 @@ public interface ServiceApplicationResource {
     /**
      * 根据Job业务id批量查询业务
      *
-     * @param appIds 业务ID列表，英文逗号分隔
+     * @param appIdList 业务ID列表
      * @return 业务列表
      */
     @ApiOperation("根据Job业务id批量查询业务")
-    @RequestMapping("/service/apps")
-    List<ServiceApplicationDTO> listAppsByAppIds(@ApiParam(value = "业务ID列表，英文逗号分隔", required = true)
-                                                  @RequestParam("appIds") String appIds);
+    @PostMapping("/service/apps")
+    List<ServiceApplicationDTO> listAppsByAppIds(@ApiParam(value = "业务ID列表", required = true)
+                                                 @RequestBody List<Long> appIdList);
 
     /**
      * 根据资源范围查询业务
@@ -100,6 +102,13 @@ public interface ServiceApplicationResource {
     @ApiOperation(value = "获取租户下所有未删除的Job业务ID", produces = "application/json")
     @GetMapping("/service/app/listAppIdByTenant")
     InternalResponse<List<Long>> listAppIdByTenant(
+        @RequestHeader(value = JobCommonHeaders.BK_TENANT_ID, required = false)
+        String tenantId
+    );
+
+    @ApiOperation(value = "获取租户下所有未删除的Job业务", produces = "application/json")
+    @GetMapping("/service/app/listAppByTenant")
+    InternalResponse<List<ServiceApplicationDTO>> listAppByTenant(
         @RequestHeader(value = JobCommonHeaders.BK_TENANT_ID, required = false)
         String tenantId
     );

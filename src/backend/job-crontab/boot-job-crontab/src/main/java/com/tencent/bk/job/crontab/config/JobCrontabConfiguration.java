@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.crontab.config;
 
-import com.tencent.bk.job.common.service.AppCacheService;
+import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.web.interceptor.BasicAppInterceptor;
-import com.tencent.bk.job.manage.AppCacheServiceImpl;
+import com.tencent.bk.job.manage.CommonAppServiceImpl;
 import com.tencent.bk.job.manage.CachedTenantServiceImpl;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
@@ -42,12 +42,12 @@ public class JobCrontabConfiguration {
     }
 
     @Bean
-    AppCacheService appScopeMappingService(ServiceApplicationResource applicationResource) {
-        return new AppCacheServiceImpl(applicationResource);
+    CommonAppService appService(ServiceApplicationResource applicationResource) {
+        return new CommonAppServiceImpl(applicationResource);
     }
 
     @Bean
-    public BasicAppInterceptor basicAppInterceptor(AppCacheService appCacheService) {
-        return new BasicAppInterceptor(appCacheService);
+    public BasicAppInterceptor basicAppInterceptor(CommonAppService appService) {
+        return new BasicAppInterceptor(appService);
     }
 }

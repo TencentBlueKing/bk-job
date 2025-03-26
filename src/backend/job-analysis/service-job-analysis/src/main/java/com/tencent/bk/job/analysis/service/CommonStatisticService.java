@@ -31,7 +31,7 @@ import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.consts.DistributionMetricEnum;
 import com.tencent.bk.job.analysis.consts.TotalMetricEnum;
 import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
-import com.tencent.bk.job.analysis.model.dto.SimpleAppInfoDTO;
+import com.tencent.bk.job.manage.model.remote.SimpleAppInfoDTO;
 import com.tencent.bk.job.analysis.model.inner.PerAppStatisticDTO;
 import com.tencent.bk.job.analysis.model.web.CommonDistributionVO;
 import com.tencent.bk.job.analysis.model.web.CommonStatisticWithRateVO;
@@ -40,6 +40,7 @@ import com.tencent.bk.job.analysis.util.calc.SimpleMomYoyCalculator;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -58,17 +59,17 @@ public class CommonStatisticService {
     protected final CurrentTenantStatisticsDAO currentTenantStatisticsDAO;
     protected final StatisticConfig statisticConfig;
     protected final MetricResourceReslover metricResourceReslover;
-    protected final AppService appService;
+    protected final RemoteAppService remoteAppService;
 
     @Autowired
     public CommonStatisticService(CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
                                   StatisticConfig statisticConfig,
                                   MetricResourceReslover metricResourceReslover,
-                                  AppService appService) {
+                                  RemoteAppService remoteAppService) {
         this.currentTenantStatisticsDAO = currentTenantStatisticsDAO;
         this.statisticConfig = statisticConfig;
         this.metricResourceReslover = metricResourceReslover;
-        this.appService = appService;
+        this.remoteAppService = remoteAppService;
     }
 
     public List<Long> getJoinedAppIdList(String date) {
@@ -229,7 +230,7 @@ public class CommonStatisticService {
             perAppStatisticDTOList.add(perAppStatisticDTO);
         }
         for (PerAppStatisticDTO perAppStatisticDTO : perAppStatisticDTOList) {
-            perAppStatisticDTO.setScopeName(appService.getAppNameFromCache(perAppStatisticDTO.getAppId()));
+            perAppStatisticDTO.setScopeName(remoteAppService.getAppNameFromCache(perAppStatisticDTO.getAppId()));
             perAppStatisticDTO.setRatio(perAppStatisticDTO.getValue().floatValue() / totalValue);
         }
         perAppStatisticDTOList.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()));

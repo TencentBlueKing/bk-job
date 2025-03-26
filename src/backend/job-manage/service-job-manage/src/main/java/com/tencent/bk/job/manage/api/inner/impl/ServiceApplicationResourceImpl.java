@@ -87,7 +87,6 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
         app.setScopeType(appInfo.getScope().getType().getValue());
         app.setScopeId(appInfo.getScope().getId());
         app.setName(appInfo.getName());
-        app.setOwner(appInfo.getBkSupplierAccount());
         app.setTimeZone(appInfo.getTimeZone());
         app.setLanguage(appInfo.getLanguage());
         if (appInfo.getAttrs() != null) {
@@ -110,13 +109,8 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
     }
 
     @Override
-    public List<ServiceApplicationDTO> listAppsByAppIds(String appIds) {
-        Set<Long> appIdList = Arrays.stream(appIds.split(","))
-            .map(Long::parseLong).collect(Collectors.toSet());
+    public List<ServiceApplicationDTO> listAppsByAppIds(List<Long> appIdList) {
         List<ApplicationDTO> applications = applicationService.listAppsByAppIds(appIdList);
-        if (CollectionUtils.isEmpty(applications)) {
-            throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
-        }
         return applications.stream().map(this::convertToServiceApp).collect(Collectors.toList());
     }
 
@@ -205,5 +199,14 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
 
     public InternalResponse<List<Long>> listAppIdByTenant(String tenantId) {
         return InternalResponse.buildSuccessResp(applicationDAO.listAppIdByTenant(tenantId));
+    }
+
+    public InternalResponse<List<ServiceApplicationDTO>> listAppByTenant(String tenantId) {
+        return InternalResponse.buildSuccessResp(
+            applicationDAO.listAllAppsForTenant(tenantId)
+                .stream()
+                .map(ServiceApplicationDTO::fromApplicationDTO)
+                .collect(Collectors.toList())
+        );
     }
 }

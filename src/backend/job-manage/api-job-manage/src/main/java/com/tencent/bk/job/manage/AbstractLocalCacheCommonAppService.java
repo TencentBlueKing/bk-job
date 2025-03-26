@@ -35,10 +35,11 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.BasicApp;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.service.AppCacheService;
+import com.tencent.bk.job.common.service.CommonAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,13 +50,14 @@ import java.util.concurrent.TimeUnit;
  * 业务信息缓存
  */
 @Slf4j
-public abstract class AbstractLocalCacheAppService implements AppCacheService {
+public abstract class AbstractLocalCacheCommonAppService implements CommonAppService {
 
     private final LoadingCache<Long, BasicApp> appIdAndAppCache =
         CacheBuilder.newBuilder().maximumSize(100_000).expireAfterWrite(1, TimeUnit.HOURS)
             .build(new CacheLoader<Long, BasicApp>() {
+                       @Nonnull
                        @Override
-                       public BasicApp load(Long appId) {
+                       public BasicApp load(@Nonnull Long appId) {
                            return queryAppByAppId(appId);
                        }
                    }
@@ -64,15 +66,16 @@ public abstract class AbstractLocalCacheAppService implements AppCacheService {
     private final LoadingCache<ResourceScope, BasicApp> scopeAndAppCache =
         CacheBuilder.newBuilder().maximumSize(100_000).expireAfterWrite(1, TimeUnit.HOURS)
             .build(new CacheLoader<ResourceScope, BasicApp>() {
+                       @Nonnull
                        @Override
-                       public BasicApp load(ResourceScope resourceScope) {
+                       public BasicApp load(@Nonnull ResourceScope resourceScope) {
                            return queryAppByScope(resourceScope);
                        }
                    }
             );
 
 
-    public AbstractLocalCacheAppService() {
+    public AbstractLocalCacheCommonAppService() {
     }
 
     public Long getAppIdByScope(ResourceScope resourceScope) {

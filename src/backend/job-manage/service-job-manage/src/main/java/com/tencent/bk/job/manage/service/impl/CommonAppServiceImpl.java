@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.BasicApp;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.manage.AbstractLocalCacheAppService;
+import com.tencent.bk.job.manage.AbstractLocalCacheCommonAppService;
 import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
@@ -38,12 +38,12 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class AppCacheServiceImpl extends AbstractLocalCacheAppService {
+public class CommonAppServiceImpl extends AbstractLocalCacheCommonAppService {
 
     private final ApplicationService applicationService;
 
     @Autowired
-    public AppCacheServiceImpl(ApplicationService applicationService) {
+    public CommonAppServiceImpl(ApplicationService applicationService) {
         this.applicationService = applicationService;
         GlobalAppScopeMappingService.register(this);
     }
@@ -58,15 +58,6 @@ public class AppCacheServiceImpl extends AbstractLocalCacheAppService {
         return convertToBasicApp(app);
     }
 
-    private BasicApp convertToBasicApp(ApplicationDTO app) {
-        BasicApp basicApp = new BasicApp();
-        basicApp.setId(app.getId());
-        basicApp.setName(app.getName());
-        basicApp.setScope(app.getScope());
-        basicApp.setTenantId(app.getTenantId());
-        return basicApp;
-    }
-
     @Override
     protected BasicApp queryAppByAppId(Long appId) throws NotFoundException {
         ApplicationDTO app = applicationService.getAppByAppId(appId);
@@ -75,5 +66,14 @@ public class AppCacheServiceImpl extends AbstractLocalCacheAppService {
             throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
         }
         return convertToBasicApp(app);
+    }
+
+    private BasicApp convertToBasicApp(ApplicationDTO app) {
+        BasicApp basicApp = new BasicApp();
+        basicApp.setId(app.getId());
+        basicApp.setName(app.getName());
+        basicApp.setScope(app.getScope());
+        basicApp.setTenantId(app.getTenantId());
+        return basicApp;
     }
 }

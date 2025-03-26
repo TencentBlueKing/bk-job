@@ -22,27 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.dto;
+package com.tencent.bk.job.manage.remote;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.model.remote.SimpleAppInfoDTO;
+
+import java.util.List;
 
 /**
- * 只含ID与Name的业务信息
+ * 业务服务
  */
-@Data
-@EqualsAndHashCode
-@NoArgsConstructor
-@AllArgsConstructor
-public class SimpleAppInfoDTO {
+public interface RemoteAppService {
     /**
-     * id
+     * 根据Job业务ID获取业务信息
+     *
+     * @param appId Job业务ID
+     * @return Job业务对象
      */
-    private Long id;
+    ServiceApplicationDTO getAppById(long appId);
+
     /**
-     * 统计值
+     * 根据Job业务ID获取所属租户ID
+     *
+     * @param appId Job业务ID
+     * @return 所属租户ID
      */
-    private String name;
+    String getTenantIdByAppId(long appId);
+
+    List<Long> listAllAppIds();
+
+    List<Long> listAllAppIds(String tenantId);
+
+    List<ServiceApplicationDTO> listLocalDBApps();
+
+    List<ServiceApplicationDTO> listAppsByTenantId(String tenantId);
+
+    String getAppNameFromCache(Long appId);
+
+    List<SimpleAppInfoDTO> getSimpleAppInfoByIds(List<Long> appIdList);
 }

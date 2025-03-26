@@ -29,13 +29,14 @@ import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
-import com.tencent.bk.job.analysis.model.dto.SimpleAppInfoDTO;
+import com.tencent.bk.job.manage.model.remote.SimpleAppInfoDTO;
 import com.tencent.bk.job.analysis.model.inner.PerAppStatisticDTO;
 import com.tencent.bk.job.analysis.model.web.CommonStatisticWithRateVO;
 import com.tencent.bk.job.analysis.model.web.CommonTrendElementVO;
 import com.tencent.bk.job.analysis.util.calc.AppMomYoyCalculator;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -51,9 +52,11 @@ import java.util.stream.Collectors;
 public class AppStatisticService extends CommonStatisticService {
 
     @Autowired
-    public AppStatisticService(CurrentTenantStatisticsDAO currentTenantStatisticsDAO, StatisticConfig statisticConfig,
-                               MetricResourceReslover metricResourceReslover, AppService appService) {
-        super(currentTenantStatisticsDAO, statisticConfig, metricResourceReslover, appService);
+    public AppStatisticService(CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                               StatisticConfig statisticConfig,
+                               MetricResourceReslover metricResourceReslover,
+                               RemoteAppService remoteAppService) {
+        super(currentTenantStatisticsDAO, statisticConfig, metricResourceReslover, remoteAppService);
     }
 
     /**

@@ -43,7 +43,7 @@ import com.tencent.bk.job.execute.common.context.JobInstanceContext;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -58,7 +58,7 @@ import java.util.List;
 @Service
 public class TaskInstanceServiceImpl implements TaskInstanceService {
 
-    private final ApplicationService applicationService;
+    private final RemoteAppService remoteAppService;
     private final TaskInstanceDAO taskInstanceDAO;
     private final TaskInstanceVariableService taskInstanceVariableService;
     private final ExecuteAuthService executeAuthService;
@@ -67,13 +67,13 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     private final IdGen idGen;
 
     @Autowired
-    public TaskInstanceServiceImpl(ApplicationService applicationService,
+    public TaskInstanceServiceImpl(RemoteAppService remoteAppService,
                                    TaskInstanceDAO taskInstanceDAO,
                                    TaskInstanceVariableService taskInstanceVariableService,
                                    ExecuteAuthService executeAuthService,
                                    StepInstanceService stepInstanceService,
                                    IdGen idGen) {
-        this.applicationService = applicationService;
+        this.remoteAppService = remoteAppService;
         this.stepInstanceService = stepInstanceService;
         this.taskInstanceDAO = taskInstanceDAO;
         this.taskInstanceVariableService = taskInstanceVariableService;
@@ -206,7 +206,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     public List<Long> getJoinedAppIdList(String tenantId) {
         // 加全量appId作为in条件查询以便走索引
         return taskInstanceDAO.listTaskInstanceAppId(
-            applicationService.listAllAppIds(tenantId),
+            remoteAppService.listAllAppIds(tenantId),
             null,
             null
         );

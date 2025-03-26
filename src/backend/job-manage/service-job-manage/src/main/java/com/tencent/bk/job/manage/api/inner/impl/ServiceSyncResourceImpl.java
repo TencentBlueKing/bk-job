@@ -59,7 +59,6 @@ public class ServiceSyncResourceImpl implements ServiceSyncResource {
         ServiceApplicationDTO app = new ServiceApplicationDTO();
         app.setName(appInfo.getName());
         app.setId(appInfo.getId());
-        app.setOwner(appInfo.getBkSupplierAccount());
         app.setTimeZone(appInfo.getTimeZone());
         return app;
     }

@@ -58,7 +58,7 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceExecuteObjects;
-import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.ContainerService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
@@ -95,7 +95,7 @@ import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.SE
 public class TaskInstanceExecuteObjectProcessor {
 
     private final HostService hostService;
-    private final ApplicationService applicationService;
+    private final RemoteAppService remoteAppService;
     private final ContainerService containerService;
     private final AppScopeMappingService appScopeMappingService;
     private final WhiteHostCache whiteHostCache;
@@ -106,7 +106,7 @@ public class TaskInstanceExecuteObjectProcessor {
     private final IBizCmdbClient bizCmdbClient;
 
     public TaskInstanceExecuteObjectProcessor(HostService hostService,
-                                              ApplicationService applicationService,
+                                              RemoteAppService remoteAppService,
                                               ContainerService containerService,
                                               AppScopeMappingService appScopeMappingService,
                                               WhiteHostCache whiteHostCache,
@@ -114,7 +114,7 @@ public class TaskInstanceExecuteObjectProcessor {
                                               MeterRegistry meterRegistry,
                                               IBizCmdbClient bizCmdbClient) {
         this.hostService = hostService;
-        this.applicationService = applicationService;
+        this.remoteAppService = remoteAppService;
         this.containerService = containerService;
         this.appScopeMappingService = appScopeMappingService;
         this.whiteHostCache = whiteHostCache;
@@ -845,7 +845,7 @@ public class TaskInstanceExecuteObjectProcessor {
     }
 
     private void throwHostInvalidException(Long appId, Collection<HostDTO> invalidHosts) {
-        ServiceApplicationDTO application = applicationService.getAppById(appId);
+        ServiceApplicationDTO application = remoteAppService.getAppById(appId);
         String appName = application.getName();
         String hostListStr = StringUtils.join(invalidHosts.stream()
             .map(this::printHostIdOrIp).collect(Collectors.toList()), ",");

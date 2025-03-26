@@ -38,11 +38,11 @@ import org.apache.commons.lang3.StringUtils;
  * 业务基础信息缓存
  */
 @Slf4j
-public class AppCacheServiceImpl extends AbstractLocalCacheAppService {
+public class CommonAppServiceImpl extends AbstractLocalCacheCommonAppService {
 
     private final ServiceApplicationResource applicationResource;
 
-    public AppCacheServiceImpl(ServiceApplicationResource applicationResource) {
+    public CommonAppServiceImpl(ServiceApplicationResource applicationResource) {
         this.applicationResource = applicationResource;
         GlobalAppScopeMappingService.register(this);
     }

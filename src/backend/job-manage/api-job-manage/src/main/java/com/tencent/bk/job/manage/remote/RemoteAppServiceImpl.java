@@ -22,29 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service.impl;
+package com.tencent.bk.job.manage.remote;
 
-import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import com.tencent.bk.job.manage.api.inner.ServiceSyncResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.model.remote.SimpleAppInfoDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service("jobExecuteApplicationService")
 @Slf4j
-public class ApplicationServiceImpl implements ApplicationService {
+public class RemoteAppServiceImpl implements RemoteAppService {
     private final ServiceApplicationResource applicationResource;
     private final ServiceSyncResource syncResource;
 
-    @Autowired
-    public ApplicationServiceImpl(ServiceApplicationResource applicationResource,
-                                  ServiceSyncResource syncResource) {
+    public RemoteAppServiceImpl(ServiceApplicationResource applicationResource,
+                                ServiceSyncResource syncResource) {
         this.applicationResource = applicationResource;
         this.syncResource = syncResource;
     }
@@ -77,5 +73,34 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public List<Long> listAllAppIds(String tenantId) {
         return applicationResource.listAppIdByTenant(tenantId).getData();
+    }
+
+    @Override
+    public List<ServiceApplicationDTO> listLocalDBApps() {
+        return applicationResource.listApps(null).getData();
+    }
+
+    @Override
+    public List<ServiceApplicationDTO> listAppsByTenantId(String tenantId) {
+        return applicationResource.listAppByTenant(tenantId).getData();
+    }
+
+    @Override
+    public String getAppNameFromCache(Long appId) {
+        ServiceApplicationDTO app = applicationResource.queryAppById(appId);
+        if (app != null) {
+            return app.getName();
+        } else {
+            log.warn("Cannot find app by appId={}", appId);
+            return null;
+        }
+    }
+
+    @Override
+    public List<SimpleAppInfoDTO> getSimpleAppInfoByIds(List<Long> appIdList) {
+        List<ServiceApplicationDTO> serviceAppList = applicationResource.listAppsByAppIds(appIdList);
+        return serviceAppList.stream().map(
+            serviceApp -> new SimpleAppInfoDTO(serviceApp.getId(), serviceApp.getName())
+        ).collect(Collectors.toList());
     }
 }

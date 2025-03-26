@@ -59,7 +59,7 @@ public abstract class BaseStatisticsTask implements IStatisticsTask {
     }
 
     public List<ServiceApplicationDTO> getTargetApps() {
-        return basicServiceManager.getAppService().listLocalDBAppsFromCache();
+        return basicServiceManager.getRemoteAppService().listAppsByTenantId(getCurrentTenantId());
     }
 
     public String getDayTimeStr(LocalDateTime dateTime) {

@@ -36,7 +36,7 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
-import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
@@ -70,17 +70,17 @@ public class HostServiceImpl implements HostService {
     private final ServiceHostResource hostResource;
     private final AppScopeMappingService appScopeMappingService;
     private final ExecutorService getHostsByTopoExecutor;
-    private final ApplicationService applicationService;
+    private final RemoteAppService remoteAppService;
 
     @Autowired
     public HostServiceImpl(ServiceHostResource hostResource,
                            AppScopeMappingService appScopeMappingService,
                            @Qualifier("getHostsByTopoExecutor") ExecutorService getHostsByTopoExecutor,
-                           ApplicationService applicationService) {
+                           RemoteAppService remoteAppService) {
         this.hostResource = hostResource;
         this.appScopeMappingService = appScopeMappingService;
         this.getHostsByTopoExecutor = getHostsByTopoExecutor;
-        this.applicationService = applicationService;
+        this.remoteAppService = remoteAppService;
     }
 
     @Override
@@ -187,7 +187,7 @@ public class HostServiceImpl implements HostService {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         long bizId = Long.parseLong(resourceScope.getId());
-        String tenantId = applicationService.getTenantIdByAppId(appId);
+        String tenantId = remoteAppService.getTenantIdByAppId(appId);
         List<ApplicationHostDTO> appHosts = bizCmdbClient.getHosts(tenantId, bizId, ccInstances);
         List<HostDTO> ips = new ArrayList<>();
         if (appHosts == null || appHosts.isEmpty()) {

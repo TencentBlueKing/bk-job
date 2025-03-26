@@ -29,6 +29,7 @@ import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.model.web.ScriptCiteStatisticVO;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -40,9 +41,11 @@ import java.util.List;
 public class ScriptStatisticService extends CommonStatisticService {
 
     @Autowired
-    public ScriptStatisticService(CurrentTenantStatisticsDAO currentTenantStatisticsDAO, StatisticConfig statisticConfig,
-                                  MetricResourceReslover metricResourceReslover, AppService appService) {
-        super(currentTenantStatisticsDAO, statisticConfig, metricResourceReslover, appService);
+    public ScriptStatisticService(CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                  StatisticConfig statisticConfig,
+                                  MetricResourceReslover metricResourceReslover,
+                                  RemoteAppService remoteAppService) {
+        super(currentTenantStatisticsDAO, statisticConfig, metricResourceReslover, remoteAppService);
     }
 
     private ScriptCiteStatisticVO getGlobalScriptCiteInfo(String date) {

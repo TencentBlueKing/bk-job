@@ -26,10 +26,10 @@ package com.tencent.bk.job.analysis.task.analysis.task.impl;
 
 import com.tencent.bk.job.analysis.dao.AnalysisTaskDAO;
 import com.tencent.bk.job.analysis.dao.AnalysisTaskInstanceDAO;
-import com.tencent.bk.job.analysis.service.ApplicationService;
 import com.tencent.bk.job.analysis.task.analysis.BaseAnalysisTask;
 import com.tencent.bk.job.analysis.task.analysis.anotation.AnalysisTask;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultVO;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -49,8 +49,8 @@ public class DefaultTipsProvider extends BaseAnalysisTask {
     @Autowired
     public DefaultTipsProvider(AnalysisTaskDAO analysisTaskDAO,
                                AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
-                               ApplicationService applicationService) {
-        super(analysisTaskDAO, analysisTaskInstanceDAO, applicationService);
+                               RemoteAppService remoteAppService) {
+        super(analysisTaskDAO, analysisTaskInstanceDAO, remoteAppService);
     }
 
     @Override
