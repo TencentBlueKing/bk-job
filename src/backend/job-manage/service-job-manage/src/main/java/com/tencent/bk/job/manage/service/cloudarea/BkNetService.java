@@ -62,6 +62,10 @@ public class BkNetService {
     public BkNetService(IBizCmdbClient bizCmdbClient, TenantService tenantService) {
         this.tenantService = tenantService;
         this.bizCmdbClient = bizCmdbClient;
+        init();
+    }
+
+    private void init() {
         new CloudAreaNameCacheThread().start();
     }
 
@@ -131,27 +135,39 @@ public class BkNetService {
         @SuppressWarnings("InfiniteLoopStatement")
         @Override
         public void run() {
-            this.setName("Cloud-Area-Info-Sync-Thread");
+            this.setName("CloudAreaInfoSyncThread");
+            log.info("CloudAreaInfo sync start...");
             while (true) {
+                tryToCacheCloudAreaForAllTenant();
+                ThreadUtils.sleep(60_000L);
+            }
+        }
+
+        private void tryToCacheCloudAreaForAllTenant() {
+            try {
                 List<TenantDTO> tenantDTOList = tenantService.listEnabledTenant();
                 for (TenantDTO tenantDTO : tenantDTOList) {
-                    try {
-                        cacheCloudAreaInfo(tenantDTO.getId());
-                    } catch (Exception e) {
-                        String msg = MessageFormatter.format(
-                            "cacheCloudAreaInfo error, tenantId={}",
-                            tenantDTO.getId()
-                        ).toString();
-                        log.error(msg, e);
-                    }
+                    tryToCacheCloudAreaForTenant(tenantDTO.getId());
                 }
-                ThreadUtils.sleep(60_000L);
+            } catch (Exception e) {
+                log.error("tryToCacheCloudAreaForAllTenant error", e);
+            }
+        }
+
+        private void tryToCacheCloudAreaForTenant(String tenantId) {
+            try {
+                cacheCloudAreaInfo(tenantId);
+            } catch (Exception e) {
+                String msg = MessageFormatter.format(
+                    "cacheCloudAreaInfo error, tenantId={}",
+                    tenantId
+                ).toString();
+                log.error(msg, e);
             }
         }
 
         private void cacheCloudAreaInfo(String tenantId) {
             long start = System.currentTimeMillis();
-            log.debug("CloudAreaInfo sync start...");
             List<CcCloudAreaInfoDTO> cloudAreaInfoList = getCloudAreaListFromCc(tenantId);
             Map<Long, String> cloudAreaIdMap = getCloudAreaIdNameMap(tenantId);
             if (CollectionUtils.isNotEmpty(cloudAreaInfoList)) {
@@ -167,7 +183,7 @@ public class BkNetService {
                 }
                 tenantFullCloudAreaInfoListMap.put(tenantId, cloudAreaInfoList);
             }
-            log.debug(
+            log.info(
                 "CloudAreaInfo(tenantId={}) sync finished in {}ms",
                 tenantId,
                 System.currentTimeMillis() - start
