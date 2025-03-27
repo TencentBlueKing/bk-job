@@ -28,6 +28,7 @@ import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.consts.StepTypeEnum;
 import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
@@ -58,10 +59,11 @@ public class TaskTemplateStepPerAppStatisticsTask extends BasePerAppStatisticsTa
 
     protected TaskTemplateStepPerAppStatisticsTask(BasicServiceManager basicServiceManager,
                                                    CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                                   NoTenantStatisticsDAO noTenantStatisticsDAO,
                                                    @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
                                                    ServiceMetricsResource manageMetricsResource,
                                                    TenantService tenantService) {
-        super(basicServiceManager, currentTenantStatisticsDAO, dslContext, tenantService);
+        super(basicServiceManager, currentTenantStatisticsDAO, noTenantStatisticsDAO, dslContext, tenantService);
         this.manageMetricsResource = manageMetricsResource;
     }
 

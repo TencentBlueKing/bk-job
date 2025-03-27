@@ -27,6 +27,7 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.ExecuteBasePerAppStatisticsTask;
@@ -51,9 +52,17 @@ public class ExecuteTimeConsumingPerAppStatisticsTask extends ExecuteBasePerAppS
     public ExecuteTimeConsumingPerAppStatisticsTask(ServiceMetricsResource executeMetricsResource,
                                                     BasicServiceManager basicServiceManager,
                                                     CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                                    NoTenantStatisticsDAO noTenantStatisticsDAO,
                                                     @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
                                                     TenantService tenantService) {
-        super(executeMetricsResource, basicServiceManager, currentTenantStatisticsDAO, dslContext, tenantService);
+        super(
+            executeMetricsResource,
+            basicServiceManager,
+            currentTenantStatisticsDAO,
+            noTenantStatisticsDAO,
+            dslContext,
+            tenantService
+        );
     }
 
     private StatisticsDTO getTimeConsumingBaseDTO(ServiceApplicationDTO app, String timeTag) {
@@ -126,12 +135,22 @@ public class ExecuteTimeConsumingPerAppStatisticsTask extends ExecuteBasePerAppS
 
     @Override
     public boolean isDataComplete(String targetDateStr) {
-        boolean executedTaskByTaskTimeConsumingDataExists = currentTenantStatisticsDAO.existsStatistics(null, null,
-            StatisticsConstants.RESOURCE_EXECUTED_TASK, StatisticsConstants.DIMENSION_TASK_TIME_CONSUMING, null,
-            targetDateStr);
-        boolean allAppExecutedTaskByTaskTimeConsumingDataExists = currentTenantStatisticsDAO.existsStatistics(null, null,
+        boolean executedTaskByTaskTimeConsumingDataExists = noTenantStatisticsDAO.existsStatistics(
+            null,
+            null,
+            StatisticsConstants.RESOURCE_EXECUTED_TASK,
+            StatisticsConstants.DIMENSION_TASK_TIME_CONSUMING,
+            null,
+            targetDateStr
+        );
+        boolean allAppExecutedTaskByTaskTimeConsumingDataExists = noTenantStatisticsDAO.existsStatistics(
+            null,
+            null,
             StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_TASK_OF_ALL_APP,
-            StatisticsConstants.DIMENSION_TASK_TIME_CONSUMING, null, targetDateStr);
+            StatisticsConstants.DIMENSION_TASK_TIME_CONSUMING,
+            null,
+            targetDateStr
+        );
         return executedTaskByTaskTimeConsumingDataExists && allAppExecutedTaskByTaskTimeConsumingDataExists;
     }
 }

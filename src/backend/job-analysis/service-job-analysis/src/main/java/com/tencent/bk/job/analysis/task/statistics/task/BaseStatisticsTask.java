@@ -27,6 +27,7 @@ package com.tencent.bk.job.analysis.task.statistics.task;
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.tenant.TenantDTO;
@@ -45,15 +46,18 @@ import java.util.List;
 public abstract class BaseStatisticsTask implements IStatisticsTask {
     protected final BasicServiceManager basicServiceManager;
     protected final CurrentTenantStatisticsDAO currentTenantStatisticsDAO;
+    protected final NoTenantStatisticsDAO noTenantStatisticsDAO;
     protected final DSLContext dslContext;
     protected final TenantService tenantService;
 
     protected BaseStatisticsTask(BasicServiceManager basicServiceManager,
                                  CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                 NoTenantStatisticsDAO noTenantStatisticsDAO,
                                  DSLContext dslContext,
                                  TenantService tenantService) {
         this.basicServiceManager = basicServiceManager;
         this.currentTenantStatisticsDAO = currentTenantStatisticsDAO;
+        this.noTenantStatisticsDAO = noTenantStatisticsDAO;
         this.dslContext = dslContext;
         this.tenantService = tenantService;
     }
@@ -116,7 +120,7 @@ public abstract class BaseStatisticsTask implements IStatisticsTask {
 
     @Override
     public boolean isDataComplete(String targetDateStr) {
-        return currentTenantStatisticsDAO.existsStatisticsByDate(targetDateStr);
+        return noTenantStatisticsDAO.existsStatisticsByDate(targetDateStr);
     }
 
     @Override

@@ -29,6 +29,7 @@ import com.tencent.bk.job.analysis.model.tables.Statistics;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import lombok.var;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -37,9 +38,6 @@ import org.jooq.Result;
 import org.jooq.TableField;
 import org.jooq.conf.ParamType;
 import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -70,12 +68,57 @@ public abstract class BaseStatisticsDAO {
 
     abstract protected List<Condition> getBasicConditions();
 
+    protected List<Condition> genConditions(List<Long> inAppIdList,
+                                            List<Long> notInAppIdList,
+                                            String resource,
+                                            String dimension) {
+        List<Condition> conditions = getBasicConditions();
+        if (inAppIdList != null) {
+            conditions.add(defaultTable.APP_ID.in(inAppIdList));
+        }
+        if (notInAppIdList != null) {
+            conditions.add(defaultTable.APP_ID.notIn(notInAppIdList));
+        }
+        if (StringUtils.isNotBlank(resource)) {
+            conditions.add(defaultTable.RESOURCE.eq(resource));
+        }
+        if (StringUtils.isNotBlank(dimension)) {
+            conditions.add(defaultTable.DIMENSION.eq(dimension));
+        }
+        return conditions;
+    }
+
+    protected List<Condition> genConditions(List<Long> inAppIdList,
+                                            List<Long> notInAppIdList,
+                                            String resource,
+                                            String dimension,
+                                            String dimensionValue) {
+        List<Condition> conditions = genConditions(inAppIdList, notInAppIdList, resource, dimension);
+        if (StringUtils.isNotBlank(dimensionValue)) {
+            conditions.add(defaultTable.DIMENSION_VALUE.eq(dimensionValue));
+        }
+        return conditions;
+    }
+
+    protected List<Condition> genConditions(List<Long> inAppIdList,
+                                            List<Long> notInAppIdList,
+                                            String resource,
+                                            String dimension,
+                                            String dimensionValue,
+                                            String date) {
+        List<Condition> conditions = genConditions(inAppIdList, notInAppIdList, resource, dimension, dimensionValue);
+        if (StringUtils.isNotBlank(date)) {
+            conditions.add(defaultTable.DATE.eq(date));
+        }
+        return conditions;
+    }
 
     protected boolean existsStatisticsByConditions(Collection<Condition> conditions) {
         return defaultDSLContext.fetchExists(defaultTable, conditions);
     }
 
-    protected List<StatisticsDTO> listStatisticsWithConditions(DSLContext dslContext, Collection<Condition> conditions) {
+    protected List<StatisticsDTO> listStatisticsWithConditions(DSLContext dslContext,
+                                                               Collection<Condition> conditions) {
         var query = dslContext
             .select(ALL_FIELDS)
             .from(defaultTable)

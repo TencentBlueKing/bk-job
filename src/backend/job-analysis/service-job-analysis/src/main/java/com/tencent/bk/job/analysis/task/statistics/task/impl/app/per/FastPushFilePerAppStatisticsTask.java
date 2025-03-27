@@ -27,6 +27,7 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.ExecuteBasePerAppStatisticsTask;
@@ -51,9 +52,17 @@ public class FastPushFilePerAppStatisticsTask extends ExecuteBasePerAppStatistic
     public FastPushFilePerAppStatisticsTask(ServiceMetricsResource executeMetricsResource,
                                             BasicServiceManager basicServiceManager,
                                             CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                            NoTenantStatisticsDAO noTenantStatisticsDAO,
                                             @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
                                             TenantService tenantService) {
-        super(executeMetricsResource, basicServiceManager, currentTenantStatisticsDAO, dslContext, tenantService);
+        super(
+            executeMetricsResource,
+            basicServiceManager,
+            currentTenantStatisticsDAO,
+            noTenantStatisticsDAO,
+            dslContext,
+            tenantService
+        );
     }
 
     private StatisticsDTO getRunStatusBaseDTO(ServiceApplicationDTO app, String timeTag) {
@@ -199,24 +208,54 @@ public class FastPushFilePerAppStatisticsTask extends ExecuteBasePerAppStatistic
 
     @Override
     public boolean isDataComplete(String targetDateStr) {
-        boolean executedFastFileByStepRunStatusDataExists = currentTenantStatisticsDAO.existsStatistics(null, null,
-            StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_STEP_RUN_STATUS, null,
-            targetDateStr);
-        boolean executedFastFileByFileTransferModeDataExists = currentTenantStatisticsDAO.existsStatistics(null, null,
-            StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_FILE_TRANSFER_MODE, null,
-            targetDateStr);
-        boolean executedFastFileByFileSourceTypeDataExists = currentTenantStatisticsDAO.existsStatistics(null, null,
-            StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_FILE_SOURCE_TYPE, null,
-            targetDateStr);
-        boolean allAppExecutedFastFileByStepRunStatusDataExists = currentTenantStatisticsDAO.existsStatistics(null, null,
+        boolean executedFastFileByStepRunStatusDataExists = noTenantStatisticsDAO.existsStatistics(
+            null,
+            null,
+            StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE,
+            StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
+            null,
+            targetDateStr
+        );
+        boolean executedFastFileByFileTransferModeDataExists = noTenantStatisticsDAO.existsStatistics(
+            null,
+            null,
+            StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE,
+            StatisticsConstants.DIMENSION_FILE_TRANSFER_MODE,
+            null,
+            targetDateStr
+        );
+        boolean executedFastFileByFileSourceTypeDataExists = noTenantStatisticsDAO.existsStatistics(
+            null,
+            null,
+            StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE,
+            StatisticsConstants.DIMENSION_FILE_SOURCE_TYPE,
+            null,
+            targetDateStr
+        );
+        boolean allAppExecutedFastFileByStepRunStatusDataExists = noTenantStatisticsDAO.existsStatistics(
+            null,
+            null,
             StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_FAST_FILE_OF_ALL_APP,
-            StatisticsConstants.DIMENSION_STEP_RUN_STATUS, null, targetDateStr);
-        boolean allAppExecutedFastFileByFileTransferModeDataExists = currentTenantStatisticsDAO.existsStatistics(null, null,
+            StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
+            null,
+            targetDateStr
+        );
+        boolean allAppExecutedFastFileByFileTransferModeDataExists = noTenantStatisticsDAO.existsStatistics(
+            null,
+            null,
             StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_FAST_FILE_OF_ALL_APP,
-            StatisticsConstants.DIMENSION_FILE_TRANSFER_MODE, null, targetDateStr);
-        boolean allAppExecutedFastFileByFileSourceTypeDataExists = currentTenantStatisticsDAO.existsStatistics(null, null,
+            StatisticsConstants.DIMENSION_FILE_TRANSFER_MODE,
+            null,
+            targetDateStr
+        );
+        boolean allAppExecutedFastFileByFileSourceTypeDataExists = noTenantStatisticsDAO.existsStatistics(
+            null,
+            null,
             StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_FAST_FILE_OF_ALL_APP,
-            StatisticsConstants.DIMENSION_FILE_SOURCE_TYPE, null, targetDateStr);
+            StatisticsConstants.DIMENSION_FILE_SOURCE_TYPE,
+            null,
+            targetDateStr
+        );
         return executedFastFileByStepRunStatusDataExists
             && executedFastFileByFileTransferModeDataExists
             && executedFastFileByFileSourceTypeDataExists

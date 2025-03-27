@@ -276,70 +276,6 @@ public class CurrentTenantStatisticsDAOImpl extends BaseStatisticsDAO implements
     }
 
     @Override
-    public boolean existsStatistics(List<Long> inAppIdList,
-                                    List<Long> notInAppIdList,
-                                    String resource,
-                                    String dimension,
-                                    String dimensionValue,
-                                    String date) {
-        return existsStatisticsByConditions(
-            genConditions(
-                inAppIdList,
-                notInAppIdList,
-                resource,
-                dimension,
-                dimensionValue,
-                date
-            )
-        );
-    }
-
-    public List<Condition> genConditions(List<Long> inAppIdList,
-                                         List<Long> notInAppIdList,
-                                         String resource,
-                                         String dimension) {
-        List<Condition> conditions = getBasicConditions();
-        if (inAppIdList != null) {
-            conditions.add(defaultTable.APP_ID.in(inAppIdList));
-        }
-        if (notInAppIdList != null) {
-            conditions.add(defaultTable.APP_ID.notIn(notInAppIdList));
-        }
-        if (StringUtils.isNotBlank(resource)) {
-            conditions.add(defaultTable.RESOURCE.eq(resource));
-        }
-        if (StringUtils.isNotBlank(dimension)) {
-            conditions.add(defaultTable.DIMENSION.eq(dimension));
-        }
-        return conditions;
-    }
-
-    public List<Condition> genConditions(List<Long> inAppIdList,
-                                         List<Long> notInAppIdList,
-                                         String resource,
-                                         String dimension,
-                                         String dimensionValue) {
-        List<Condition> conditions = genConditions(inAppIdList, notInAppIdList, resource, dimension);
-        if (StringUtils.isNotBlank(dimensionValue)) {
-            conditions.add(defaultTable.DIMENSION_VALUE.eq(dimensionValue));
-        }
-        return conditions;
-    }
-
-    public List<Condition> genConditions(List<Long> inAppIdList,
-                                         List<Long> notInAppIdList,
-                                         String resource,
-                                         String dimension,
-                                         String dimensionValue,
-                                         String date) {
-        List<Condition> conditions = genConditions(inAppIdList, notInAppIdList, resource, dimension, dimensionValue);
-        if (StringUtils.isNotBlank(date)) {
-            conditions.add(defaultTable.DATE.eq(date));
-        }
-        return conditions;
-    }
-
-    @Override
     public List<StatisticsDTO> getStatisticsListBetweenDate(List<Long> inAppIdList,
                                                             List<Long> notInAppIdList,
                                                             String resource,
@@ -416,13 +352,5 @@ public class CurrentTenantStatisticsDAOImpl extends BaseStatisticsDAO implements
         }
     }
 
-    @Override
-    public boolean existsStatisticsByDate(String date) {
-        List<Condition> conditions = getBasicConditions();
-        if (StringUtils.isNotBlank(date)) {
-            conditions.add(defaultTable.DATE.eq(date));
-        }
-        return existsStatisticsByConditions(conditions);
-    }
 
 }

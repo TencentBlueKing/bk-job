@@ -27,6 +27,7 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.ExecuteBasePerAppStatisticsTask;
@@ -52,9 +53,17 @@ public class FastExecuteScriptPerAppStatisticsTask extends ExecuteBasePerAppStat
     public FastExecuteScriptPerAppStatisticsTask(ServiceMetricsResource executeMetricsResource,
                                                  BasicServiceManager basicServiceManager,
                                                  CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                                 NoTenantStatisticsDAO noTenantStatisticsDAO,
                                                  @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
                                                  TenantService tenantService) {
-        super(executeMetricsResource, basicServiceManager, currentTenantStatisticsDAO, dslContext, tenantService);
+        super(
+            executeMetricsResource,
+            basicServiceManager,
+            currentTenantStatisticsDAO,
+            noTenantStatisticsDAO,
+            dslContext,
+            tenantService
+        );
     }
 
     private StatisticsDTO getRunStatusBaseStatisticsDTO(ServiceApplicationDTO app, String timeTag) {
@@ -155,7 +164,7 @@ public class FastExecuteScriptPerAppStatisticsTask extends ExecuteBasePerAppStat
 
     @Override
     public boolean isDataComplete(String targetDateStr) {
-        boolean executedFastScriptByScriptTypeDataExists = currentTenantStatisticsDAO.existsStatistics(
+        boolean executedFastScriptByScriptTypeDataExists = noTenantStatisticsDAO.existsStatistics(
             null,
             null,
             StatisticsConstants.RESOURCE_EXECUTED_FAST_SCRIPT,
@@ -163,7 +172,7 @@ public class FastExecuteScriptPerAppStatisticsTask extends ExecuteBasePerAppStat
             null,
             targetDateStr
         );
-        boolean executedFastScriptByStepRunStatusDataExists = currentTenantStatisticsDAO.existsStatistics(
+        boolean executedFastScriptByStepRunStatusDataExists = noTenantStatisticsDAO.existsStatistics(
             null,
             null,
             StatisticsConstants.RESOURCE_EXECUTED_FAST_SCRIPT,
@@ -171,7 +180,7 @@ public class FastExecuteScriptPerAppStatisticsTask extends ExecuteBasePerAppStat
             null,
             targetDateStr
         );
-        boolean allAppExecutedFastScriptByScriptTypeDataExists = currentTenantStatisticsDAO.existsStatistics(
+        boolean allAppExecutedFastScriptByScriptTypeDataExists = noTenantStatisticsDAO.existsStatistics(
             null,
             null,
             StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_FAST_SCRIPT_OF_ALL_APP,
@@ -179,7 +188,7 @@ public class FastExecuteScriptPerAppStatisticsTask extends ExecuteBasePerAppStat
             null,
             targetDateStr
         );
-        boolean allAppExecutedFastScriptByStepRunStatusDataExists = currentTenantStatisticsDAO.existsStatistics(
+        boolean allAppExecutedFastScriptByStepRunStatusDataExists = noTenantStatisticsDAO.existsStatistics(
             null,
             null,
             StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_FAST_SCRIPT_OF_ALL_APP,

@@ -27,6 +27,7 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.ExecuteBasePerAppStatisticsTask;
@@ -54,9 +55,17 @@ public class RollingTaskDailyPerAppStatisticsTask extends ExecuteBasePerAppStati
     public RollingTaskDailyPerAppStatisticsTask(ServiceMetricsResource executeMetricsResource,
                                                 BasicServiceManager basicServiceManager,
                                                 CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                                NoTenantStatisticsDAO noTenantStatisticsDAO,
                                                 @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
                                                 TenantService tenantService) {
-        super(executeMetricsResource, basicServiceManager, currentTenantStatisticsDAO, dslContext, tenantService);
+        super(
+            executeMetricsResource,
+            basicServiceManager,
+            currentTenantStatisticsDAO,
+            noTenantStatisticsDAO,
+            dslContext,
+            tenantService
+        );
     }
 
     private StatisticsDTO getFailedTaskBaseStatisticsDTO(ServiceApplicationDTO app, String timeTag) {

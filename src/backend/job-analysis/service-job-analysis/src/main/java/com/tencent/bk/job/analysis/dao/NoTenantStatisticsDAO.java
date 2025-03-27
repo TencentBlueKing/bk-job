@@ -24,7 +24,18 @@
 
 package com.tencent.bk.job.analysis.dao;
 
+import java.util.List;
+
 public interface NoTenantStatisticsDAO {
 
     int deleteStatisticsByDate(String date);
+
+    boolean existsStatisticsByDate(String date);
+
+    boolean existsStatistics(List<Long> inAppIdList,
+                             List<Long> notInAppIdList,
+                             String resource,
+                             String dimension,
+                             String dimensionValue,
+                             String date);
 }

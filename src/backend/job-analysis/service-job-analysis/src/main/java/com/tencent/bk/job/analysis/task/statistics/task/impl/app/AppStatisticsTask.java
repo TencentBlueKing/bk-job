@@ -29,6 +29,7 @@ import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
 import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.manage.model.remote.SimpleAppInfoDTO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
@@ -63,11 +64,12 @@ public class AppStatisticsTask extends BaseStatisticsTask {
 
     protected AppStatisticsTask(BasicServiceManager basicServiceManager,
                                 CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                NoTenantStatisticsDAO noTenantStatisticsDAO,
                                 @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
                                 ServiceMetricsResource executeMetricsResource,
                                 StatisticConfig statisticConfig,
                                 TenantService tenantService) {
-        super(basicServiceManager, currentTenantStatisticsDAO, dslContext, tenantService);
+        super(basicServiceManager, currentTenantStatisticsDAO, noTenantStatisticsDAO, dslContext, tenantService);
         this.executeMetricsResource = executeMetricsResource;
         this.statisticConfig = statisticConfig;
     }

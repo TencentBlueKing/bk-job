@@ -72,13 +72,4 @@ public interface CurrentTenantStatisticsDAO {
                                                      String dimensionValue,
                                                      String startDate,
                                                      String endDate);
-
-    boolean existsStatisticsByDate(String date);
-
-    boolean existsStatistics(List<Long> inAppIdList,
-                             List<Long> notInAppIdList,
-                             String resource,
-                             String dimension,
-                             String dimensionValue,
-                             String date);
 }

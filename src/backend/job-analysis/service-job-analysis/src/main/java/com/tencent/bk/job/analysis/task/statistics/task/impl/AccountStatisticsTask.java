@@ -27,6 +27,7 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl;
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BaseStatisticsTask;
@@ -53,10 +54,11 @@ public class AccountStatisticsTask extends BaseStatisticsTask {
 
     protected AccountStatisticsTask(BasicServiceManager basicServiceManager,
                                     CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                    NoTenantStatisticsDAO noTenantStatisticsDAO,
                                     @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
                                     ServiceMetricsResource manageMetricResource,
                                     TenantService tenantService) {
-        super(basicServiceManager, currentTenantStatisticsDAO, dslContext, tenantService);
+        super(basicServiceManager, currentTenantStatisticsDAO, noTenantStatisticsDAO, dslContext, tenantService);
         this.manageMetricResource = manageMetricResource;
     }
 
@@ -86,7 +88,7 @@ public class AccountStatisticsTask extends BaseStatisticsTask {
     public void calcAndSaveAccountStatistics(String dateStr) {
         String tenantId = getCurrentTenantId();
         // Linux
-        InternalResponse<Integer> resp = manageMetricResource.countAccounts(tenantId,AccountTypeEnum.LINUX);
+        InternalResponse<Integer> resp = manageMetricResource.countAccounts(tenantId, AccountTypeEnum.LINUX);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countAccounts, resp:{}", resp);
             return;
@@ -94,7 +96,7 @@ public class AccountStatisticsTask extends BaseStatisticsTask {
         Integer linuxCount = resp.getData();
         currentTenantStatisticsDAO.upsertStatistics(dslContext, genLinuxStatisticsDTO(dateStr, linuxCount.toString()));
         // Windows
-        resp = manageMetricResource.countAccounts(tenantId,AccountTypeEnum.WINDOW);
+        resp = manageMetricResource.countAccounts(tenantId, AccountTypeEnum.WINDOW);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countAccounts, resp:{}", resp);
             return;
@@ -103,19 +105,19 @@ public class AccountStatisticsTask extends BaseStatisticsTask {
         currentTenantStatisticsDAO.upsertStatistics(dslContext, genWindowsStatisticsDTO(dateStr,
             windowsCount.toString()));
         // DB
-        resp = manageMetricResource.countAccounts(tenantId,AccountTypeEnum.MYSQL);
+        resp = manageMetricResource.countAccounts(tenantId, AccountTypeEnum.MYSQL);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countAccounts, resp:{}", resp);
             return;
         }
         Integer mysqlCount = resp.getData();
-        resp = manageMetricResource.countAccounts(tenantId,AccountTypeEnum.ORACLE);
+        resp = manageMetricResource.countAccounts(tenantId, AccountTypeEnum.ORACLE);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countAccounts, resp:{}", resp);
             return;
         }
         Integer oracleCount = resp.getData();
-        resp = manageMetricResource.countAccounts(tenantId,AccountTypeEnum.DB2);
+        resp = manageMetricResource.countAccounts(tenantId, AccountTypeEnum.DB2);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countAccounts, resp:{}", resp);
             return;

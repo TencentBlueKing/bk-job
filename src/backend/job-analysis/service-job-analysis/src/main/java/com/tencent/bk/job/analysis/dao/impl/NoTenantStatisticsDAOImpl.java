@@ -25,6 +25,7 @@
 package com.tencent.bk.job.analysis.dao.impl;
 
 import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
+import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,34 @@ public class NoTenantStatisticsDAOImpl extends BaseStatisticsDAO implements NoTe
             totalAffectedRows += affectedRows;
         } while (affectedRows == 10000);
         return totalAffectedRows;
+    }
+
+    @Override
+    public boolean existsStatisticsByDate(String date) {
+        List<Condition> conditions = getBasicConditions();
+        if (StringUtils.isNotBlank(date)) {
+            conditions.add(defaultTable.DATE.eq(date));
+        }
+        return existsStatisticsByConditions(conditions);
+    }
+
+    @Override
+    public boolean existsStatistics(List<Long> inAppIdList,
+                                    List<Long> notInAppIdList,
+                                    String resource,
+                                    String dimension,
+                                    String dimensionValue,
+                                    String date) {
+        return existsStatisticsByConditions(
+            genConditions(
+                inAppIdList,
+                notInAppIdList,
+                resource,
+                dimension,
+                dimensionValue,
+                date
+            )
+        );
     }
 
     @Override

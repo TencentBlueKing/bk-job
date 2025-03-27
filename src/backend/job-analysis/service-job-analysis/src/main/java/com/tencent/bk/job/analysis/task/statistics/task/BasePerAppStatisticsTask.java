@@ -26,6 +26,7 @@ package com.tencent.bk.job.analysis.task.statistics.task;
 
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.TimeUtil;
@@ -45,9 +46,10 @@ public abstract class BasePerAppStatisticsTask extends BaseStatisticsTask {
 
     protected BasePerAppStatisticsTask(BasicServiceManager basicServiceManager,
                                        CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                       NoTenantStatisticsDAO noTenantStatisticsDAO,
                                        @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
                                        TenantService tenantService) {
-        super(basicServiceManager, currentTenantStatisticsDAO, dslContext, tenantService);
+        super(basicServiceManager, currentTenantStatisticsDAO, noTenantStatisticsDAO, dslContext, tenantService);
     }
 
     public abstract List<StatisticsDTO> getStatisticsFrom(ServiceApplicationDTO app,
