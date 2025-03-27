@@ -69,6 +69,12 @@ public class ApiClientUtils {
             // 不开启多租户时，使用默认租户
             return TenantIdConstants.DEFAULT_TENANT_ID;
         }
+
+        @Override
+        public String getTenantIdForArtifactoryBkJobProject() {
+            // 不开启多租户时，使用默认租户
+            return TenantIdConstants.DEFAULT_TENANT_ID;
+        }
     }
 
 }

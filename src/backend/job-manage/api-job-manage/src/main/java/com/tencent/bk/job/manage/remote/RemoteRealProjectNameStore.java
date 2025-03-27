@@ -22,26 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.config;
+package com.tencent.bk.job.manage.remote;
 
-import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
-import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.tencent.bk.job.manage.api.inner.ServiceRealProjectNameResource;
+import com.tencent.bk.job.manage.model.inner.request.ServiceSaveRealProjectNameReq;
+import com.tentent.bk.job.common.api.artifactory.IRealProjectNameStore;
 
-@Configuration
-public class JobBackupAutoConfiguration {
+/**
+ * 通过远程调用实现真实项目名称存储接口
+ */
+public class RemoteRealProjectNameStore implements IRealProjectNameStore {
 
-    @Bean
-    public ArtifactoryClient artifactoryClient(@Autowired ArtifactoryConfig artifactoryConfig,
-                                               @Autowired MeterRegistry meterRegistry) {
-        return new ArtifactoryClient(
-            artifactoryConfig.getArtifactoryBaseUrl(),
-            artifactoryConfig.getArtifactoryJobUsername(),
-            artifactoryConfig.getArtifactoryJobPassword(),
-            meterRegistry
+    private final ServiceRealProjectNameResource realProjectNameResource;
+
+    public RemoteRealProjectNameStore(ServiceRealProjectNameResource realProjectNameResource) {
+        this.realProjectNameResource = realProjectNameResource;
+    }
+
+    @Override
+    public void saveRealProjectName(String saveKey, String realProjectName) {
+        realProjectNameResource.saveRealProjectName(
+            new ServiceSaveRealProjectNameReq(
+                saveKey,
+                realProjectName
+            )
         );
+    }
+
+    @Override
+    public String queryRealProjectName(String saveKey) {
+        return realProjectNameResource.queryRealProjectName(saveKey).getData();
     }
 }

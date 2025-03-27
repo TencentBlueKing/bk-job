@@ -24,24 +24,25 @@
 
 package com.tencent.bk.job.backup.config;
 
-import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
-import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
+import com.tencent.bk.job.manage.api.inner.ServiceRealProjectNameResource;
+import com.tencent.bk.job.manage.remote.RemoteRealProjectNameStore;
+import com.tentent.bk.job.common.api.artifactory.IRealProjectNameStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class JobBackupAutoConfiguration {
+public class ArtifactoryConfig {
 
     @Bean
-    public ArtifactoryClient artifactoryClient(@Autowired ArtifactoryConfig artifactoryConfig,
-                                               @Autowired MeterRegistry meterRegistry) {
-        return new ArtifactoryClient(
-            artifactoryConfig.getArtifactoryBaseUrl(),
-            artifactoryConfig.getArtifactoryJobUsername(),
-            artifactoryConfig.getArtifactoryJobPassword(),
-            meterRegistry
-        );
+    public IRealProjectNameStore realProjectNameStore(ServiceRealProjectNameResource realProjectNameResource) {
+        return new RemoteRealProjectNameStore(realProjectNameResource);
+    }
+
+    @Bean
+    public ArtifactoryHelper artifactoryHelper(TenantEnvService tenantEnvService,
+                                               IRealProjectNameStore realProjectNameStore) {
+        return new ArtifactoryHelper(tenantEnvService, realProjectNameStore);
     }
 }

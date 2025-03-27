@@ -22,26 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.config;
+package com.tencent.bk.job.manage.model.inner.request;
 
-import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
-import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-@Configuration
-public class JobBackupAutoConfiguration {
+/**
+ * 保存真实项目名称请求
+ */
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+public class ServiceSaveRealProjectNameReq {
+    /**
+     * 用于保存真实项目名称的Key
+     */
+    private String saveKey;
+    /**
+     * 真实项目名称
+     */
+    private String realProjectName;
 
-    @Bean
-    public ArtifactoryClient artifactoryClient(@Autowired ArtifactoryConfig artifactoryConfig,
-                                               @Autowired MeterRegistry meterRegistry) {
-        return new ArtifactoryClient(
-            artifactoryConfig.getArtifactoryBaseUrl(),
-            artifactoryConfig.getArtifactoryJobUsername(),
-            artifactoryConfig.getArtifactoryJobPassword(),
-            meterRegistry
-        );
-    }
 }

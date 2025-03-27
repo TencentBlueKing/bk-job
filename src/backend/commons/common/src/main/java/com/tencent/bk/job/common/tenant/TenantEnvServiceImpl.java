@@ -28,4 +28,10 @@ public class TenantEnvServiceImpl implements TenantEnvService {
         // 开启多租户时，使用系统租户
         return TenantIdConstants.SYSTEM_TENANT_ID;
     }
+
+    @Override
+    public String getTenantIdForArtifactoryBkJobProject() {
+        // 开启多租户时，使用系统租户
+        return TenantIdConstants.SYSTEM_TENANT_ID;
+    }
 }

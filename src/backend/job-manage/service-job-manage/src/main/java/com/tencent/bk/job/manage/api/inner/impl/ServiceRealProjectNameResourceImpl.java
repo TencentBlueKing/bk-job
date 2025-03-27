@@ -22,26 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.config;
+package com.tencent.bk.job.manage.api.inner.impl;
 
-import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
-import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
-import io.micrometer.core.instrument.MeterRegistry;
+import com.tentent.bk.job.common.api.artifactory.IRealProjectNameStore;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.manage.api.inner.ServiceRealProjectNameResource;
+import com.tencent.bk.job.manage.model.inner.request.ServiceSaveRealProjectNameReq;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 
-@Configuration
-public class JobBackupAutoConfiguration {
+@Service
+public class ServiceRealProjectNameResourceImpl implements ServiceRealProjectNameResource {
 
-    @Bean
-    public ArtifactoryClient artifactoryClient(@Autowired ArtifactoryConfig artifactoryConfig,
-                                               @Autowired MeterRegistry meterRegistry) {
-        return new ArtifactoryClient(
-            artifactoryConfig.getArtifactoryBaseUrl(),
-            artifactoryConfig.getArtifactoryJobUsername(),
-            artifactoryConfig.getArtifactoryJobPassword(),
-            meterRegistry
+    private final IRealProjectNameStore realProjectNameStore;
+
+    @Autowired
+    public ServiceRealProjectNameResourceImpl(IRealProjectNameStore realProjectNameStore) {
+        this.realProjectNameStore = realProjectNameStore;
+    }
+
+    @Override
+    public InternalResponse<String> queryRealProjectName(String saveKey) {
+        return InternalResponse.buildSuccessResp(
+            realProjectNameStore.queryRealProjectName(saveKey)
         );
+    }
+
+    @Override
+    public InternalResponse<Void> saveRealProjectName(ServiceSaveRealProjectNameReq req) {
+        realProjectNameStore.saveRealProjectName(req.getSaveKey(), req.getRealProjectName());
+        return InternalResponse.buildSuccessResp(null);
     }
 }

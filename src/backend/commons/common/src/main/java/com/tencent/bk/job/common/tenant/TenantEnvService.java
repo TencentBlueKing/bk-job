@@ -22,4 +22,11 @@ public interface TenantEnvService {
      * @return 租户ID
      */
     String getTenantIdForGSE();
+
+    /**
+     * 获取在制品库创建Job项目时使用的租户ID
+     *
+     * @return 租户ID
+     */
+    String getTenantIdForArtifactoryBkJobProject();
 }

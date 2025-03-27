@@ -22,32 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.config;
+package com.tentent.bk.job.common.api.artifactory;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+/**
+ * 保存创建好的真实项目名称接口
+ */
+public interface IRealProjectNameStore {
 
-@Data
-@Configuration
-public class ArtifactoryConfig {
+    /**
+     * 保存真实项目名称
+     *
+     * @param saveKey         用于存储真实项目名称的Key
+     * @param realProjectName 真实项目名称
+     */
+    void saveRealProjectName(String saveKey, String realProjectName);
 
-    @Value("${artifactory.base-url:}")
-    private String artifactoryBaseUrl;
-
-    @Value("${artifactory.admin.username:admin}")
-    private String artifactoryAdminUsername;
-
-    @Value("${artifactory.admin.password:blueking}")
-    private String artifactoryAdminPassword;
-
-    @Value("${artifactory.job.username:bkjob}")
-    private String artifactoryJobUsername;
-
-    @Value("${artifactory.job.password:bkjob}")
-    private String artifactoryJobPassword;
-
-    @Value("${artifactory.job.project:bkjob}")
-    private String artifactoryJobProject;
-
+    /**
+     * 查询真实项目名称
+     *
+     * @param saveKey 用于存储真实项目名称的Key
+     */
+    String queryRealProjectName(String saveKey);
 }
