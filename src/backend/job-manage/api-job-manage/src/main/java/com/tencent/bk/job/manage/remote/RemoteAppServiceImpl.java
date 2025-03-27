@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.remote;
 
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import com.tencent.bk.job.manage.api.inner.ServiceSyncResource;
+import com.tencent.bk.job.manage.model.inner.request.ServiceListAppByAppIdListReq;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.remote.SimpleAppInfoDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -98,7 +99,9 @@ public class RemoteAppServiceImpl implements RemoteAppService {
 
     @Override
     public List<SimpleAppInfoDTO> getSimpleAppInfoByIds(List<Long> appIdList) {
-        List<ServiceApplicationDTO> serviceAppList = applicationResource.listAppsByAppIds(appIdList);
+        List<ServiceApplicationDTO> serviceAppList = applicationResource.listAppsByAppIdList(
+            new ServiceListAppByAppIdListReq(appIdList)
+        );
         return serviceAppList.stream().map(
             serviceApp -> new SimpleAppInfoDTO(serviceApp.getId(), serviceApp.getName())
         ).collect(Collectors.toList());

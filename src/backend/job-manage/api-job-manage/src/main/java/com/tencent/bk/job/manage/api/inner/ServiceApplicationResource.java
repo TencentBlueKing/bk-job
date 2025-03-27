@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.api.inner;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.manage.model.inner.ServiceAppBaseInfoDTO;
+import com.tencent.bk.job.manage.model.inner.request.ServiceListAppByAppIdListReq;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
@@ -62,13 +62,13 @@ public interface ServiceApplicationResource {
     /**
      * 根据Job业务id批量查询业务
      *
-     * @param appIdList 业务ID列表
+     * @param req 请求体
      * @return 业务列表
      */
     @ApiOperation("根据Job业务id批量查询业务")
     @PostMapping("/service/apps")
-    List<ServiceApplicationDTO> listAppsByAppIds(@ApiParam(value = "业务ID列表", required = true)
-                                                 @RequestBody List<Long> appIdList);
+    List<ServiceApplicationDTO> listAppsByAppIdList(@ApiParam(value = "业务ID列表", required = true)
+                                                 @RequestBody ServiceListAppByAppIdListReq req);
 
     /**
      * 根据资源范围查询业务

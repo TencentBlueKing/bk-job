@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationAttrsDTO;
+import com.tencent.bk.job.manage.model.inner.request.ServiceListAppByAppIdListReq;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
@@ -109,7 +110,8 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
     }
 
     @Override
-    public List<ServiceApplicationDTO> listAppsByAppIds(List<Long> appIdList) {
+    public List<ServiceApplicationDTO> listAppsByAppIdList(ServiceListAppByAppIdListReq req) {
+        List<Long> appIdList = req.getAppIdList();
         List<ApplicationDTO> applications = applicationService.listAppsByAppIds(appIdList);
         return applications.stream().map(this::convertToServiceApp).collect(Collectors.toList());
     }
