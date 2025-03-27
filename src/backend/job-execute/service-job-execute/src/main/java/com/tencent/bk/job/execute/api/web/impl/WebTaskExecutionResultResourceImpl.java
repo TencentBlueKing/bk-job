@@ -103,7 +103,6 @@ import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskResultService;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
@@ -115,6 +114,8 @@ import com.tencent.bk.job.manage.model.inner.ServiceNotifyChannelDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -140,7 +141,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     private final MessageI18nService i18nService;
     private final LogService logService;
     private final StepInstanceVariableValueService stepInstanceVariableValueService;
-    private final TaskInstanceService taskInstanceService;
     private final TaskInstanceVariableService taskInstanceVariableService;
     private final ServiceNotificationResource notifyResource;
     private final ExecuteAuthService executeAuthService;
@@ -151,31 +151,34 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     private static final int CHANNEL_CACHE_INDEX_LANG = 1;
     private static final String CHANNEL_CACHE_DELIMITER = ":";
 
-    private final LoadingCache<String, Map<String, String>> roleCache = CacheBuilder.newBuilder()
-        .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
-        build(new CacheLoader<String, Map<String, String>>() {
-                  @Override
-                  public Map<String, String> load(String lang) {
-                      InternalResponse<List<ServiceAppRoleDTO>> resp = notifyResource.getNotifyRoles(lang);
-                      log.info("Get notify roles, resp={}", resp);
-                      if (!resp.isSuccess() || resp.getData() == null) {
-                          return new HashMap<>();
-                      } else {
-                          List<ServiceAppRoleDTO> appRoles = resp.getData();
-                          Map<String, String> codeNameMap = new HashMap<>();
-                          if (appRoles != null) {
-                              appRoles.forEach(role -> codeNameMap.put(role.getCode(), role.getName()));
-                          }
-                          return codeNameMap;
-                      }
-                  }
-              }
+    private final LoadingCache<Pair<String, String>, Map<String, String>> roleCache = CacheBuilder.newBuilder()
+        .maximumSize(10)
+        .expireAfterWrite(10, TimeUnit.MINUTES)
+        .build(new CacheLoader<Pair<String, String>, Map<String, String>>() {
+                   @NotNull
+                   @Override
+                   public Map<String, String> load(@NotNull Pair<String, String> langTenantIdPair) {
+                       String lang = langTenantIdPair.getLeft();
+                       String tenantId = langTenantIdPair.getRight();
+                       InternalResponse<List<ServiceAppRoleDTO>> resp = notifyResource.getNotifyRoles(tenantId, lang);
+                       log.info("Get notify roles, resp={}", resp);
+                       if (!resp.isSuccess() || resp.getData() == null) {
+                           return new HashMap<>();
+                       } else {
+                           List<ServiceAppRoleDTO> appRoles = resp.getData();
+                           Map<String, String> codeNameMap = new HashMap<>();
+                           appRoles.forEach(role -> codeNameMap.put(role.getCode(), role.getName()));
+                           return codeNameMap;
+                       }
+                   }
+               }
         );
     private final LoadingCache<String, Map<String, String>> channelCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
         build(new CacheLoader<String, Map<String, String>>() {
+                  @NotNull
                   @Override
-                  public Map<String, String> load(String key) {
+                  public Map<String, String> load(@NotNull String key) {
                       List<String> l = Arrays.asList(key.split(CHANNEL_CACHE_DELIMITER));
                       String tenantId = l.get(CHANNEL_CACHE_INDEX_TENANT_ID);
                       String lang = l.get(CHANNEL_CACHE_INDEX_LANG);
@@ -187,9 +190,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                       } else {
                           List<ServiceNotifyChannelDTO> channels = resp.getData();
                           Map<String, String> typeNameMap = new HashMap<>();
-                          if (channels != null) {
-                              channels.forEach(channel -> typeNameMap.put(channel.getType(), channel.getName()));
-                          }
+                          channels.forEach(channel -> typeNameMap.put(channel.getType(), channel.getName()));
                           return typeNameMap;
                       }
                   }
@@ -201,7 +202,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                               MessageI18nService i18nService,
                                               LogService logService,
                                               StepInstanceVariableValueService stepInstanceVariableValueService,
-                                              TaskInstanceService taskInstanceService,
                                               TaskInstanceVariableService taskInstanceVariableService,
                                               ServiceNotificationResource notifyResource,
                                               ExecuteAuthService executeAuthService,
@@ -211,7 +211,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         this.i18nService = i18nService;
         this.logService = logService;
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
-        this.taskInstanceService = taskInstanceService;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.notifyResource = notifyResource;
         this.executeAuthService = executeAuthService;
@@ -242,8 +241,11 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         User user = JobContextUtil.getUser();
         TaskInstanceQuery taskQuery = buildListTaskInstanceQuery(appResourceScope, taskName, taskInstanceId,
             status, operator, taskType, startTime, endTime, timeRange, totalTimeType, cronTaskId, startupModes, ip);
-        BaseSearchCondition baseSearchCondition = BaseSearchCondition.pageCondition(start, pageSize,
-            countPageTotal == null ? true : countPageTotal);
+        BaseSearchCondition baseSearchCondition = BaseSearchCondition.pageCondition(
+            start,
+            pageSize,
+            countPageTotal == null || countPageTotal
+        );
 
         PageData<TaskInstanceDTO> pageData = taskResultService.listPageTaskInstance(taskQuery, baseSearchCondition);
         if (pageData == null) {
@@ -472,7 +474,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 List<String> roleNames = new ArrayList<>();
                 Map<String, String> roleCodeAndName;
                 try {
-                    roleCodeAndName = roleCache.get(JobContextUtil.getUserLang());
+                    roleCodeAndName = roleCache.get(
+                        Pair.of(JobContextUtil.getUserLang(), JobContextUtil.getTenantId())
+                    );
                 } catch (Exception e) {
                     log.warn("Get role from cache fail", e);
                     roleCodeAndName = new HashMap<>();

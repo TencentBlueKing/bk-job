@@ -50,11 +50,13 @@ public interface ApplicationDAO {
 
     List<ApplicationDTO> listAllAppsForTenant(String tenantId);
 
-    List<ApplicationDTO> listAllBizApps();
+    List<ApplicationDTO> listAllBizApps(String tenantId);
 
-    List<ApplicationDTO> listAllBizAppsWithDeleted();
+    List<ApplicationDTO> listAllBizAppsWithDeleted(String tenantId);
 
-    List<ApplicationDTO> listAllBizSetAppsWithDeleted();
+    List<ApplicationDTO> listAllBizSetAppsWithDeleted(String tenantId);
+
+    List<ApplicationDTO> listAllTenantSetAppsWithDeleted();
 
     List<ApplicationDTO> listAppsByScopeType(ResourceScopeTypeEnum scopeType);
 
@@ -103,4 +105,11 @@ public interface ApplicationDAO {
      * 根据appId获取租户ID
      */
     String getTenantIdByAppId(long appId);
+
+    /**
+     * 获取租户下的所有未删除的Job业务ID
+     *
+     * @param tenantId 租户ID
+     */
+    List<Long> listAppIdByTenant(String tenantId);
 }

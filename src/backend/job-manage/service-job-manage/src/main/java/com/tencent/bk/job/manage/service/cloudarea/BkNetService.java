@@ -26,11 +26,10 @@ package com.tencent.bk.job.manage.service.cloudarea;
 
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
-import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.model.tenant.TenantDTO;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
-import com.tencent.bk.job.manage.model.inner.resp.TenantDTO;
-import com.tencent.bk.job.manage.service.TenantService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -63,17 +62,21 @@ public class BkNetService {
     public BkNetService(IBizCmdbClient bizCmdbClient, TenantService tenantService) {
         this.tenantService = tenantService;
         this.bizCmdbClient = bizCmdbClient;
+        init();
+    }
+
+    private void init() {
         new CloudAreaNameCacheThread().start();
     }
 
     /**
      * 根据ID获取云区域名称
      *
+     * @param tenantId    租户ID
      * @param cloudAreaId 云区域ID
      * @return 云区域名称
      */
-    public String getCloudAreaNameFromCache(Long cloudAreaId) {
-        String tenantId = JobContextUtil.getTenantId();
+    public String getCloudAreaNameFromCache(String tenantId, Long cloudAreaId) {
         Map<Long, String> cloudAreaIdNameMap = getCloudAreaIdNameMap(tenantId);
         if (MapUtils.isNotEmpty(cloudAreaIdNameMap)) {
             if (StringUtils.isNotBlank(cloudAreaIdNameMap.get(cloudAreaId))) {
@@ -86,11 +89,11 @@ public class BkNetService {
     /**
      * 查找名称符合搜索关键字（与任意一个关键字匹配即可）的云区域，并返回其ID
      *
+     * @param tenantId       租户ID
      * @param searchContents 搜索关键字集合
      * @return 符合条件的云区域ID列表
      */
-    public List<Long> getAnyNameMatchedCloudAreaIds(Collection<String> searchContents) {
-        String tenantId = JobContextUtil.getTenantId();
+    public List<Long> getAnyNameMatchedCloudAreaIds(String tenantId, Collection<String> searchContents) {
         if (searchContents == null) {
             return getAllCloudAreaIds(tenantId);
         }
@@ -132,27 +135,39 @@ public class BkNetService {
         @SuppressWarnings("InfiniteLoopStatement")
         @Override
         public void run() {
-            this.setName("Cloud-Area-Info-Sync-Thread");
+            this.setName("CloudAreaInfoSyncThread");
+            log.info("CloudAreaInfo sync start...");
             while (true) {
+                tryToCacheCloudAreaForAllTenant();
+                ThreadUtils.sleep(60_000L);
+            }
+        }
+
+        private void tryToCacheCloudAreaForAllTenant() {
+            try {
                 List<TenantDTO> tenantDTOList = tenantService.listEnabledTenant();
                 for (TenantDTO tenantDTO : tenantDTOList) {
-                    try {
-                        cacheCloudAreaInfo(tenantDTO.getId());
-                    } catch (Exception e) {
-                        String msg = MessageFormatter.format(
-                            "cacheCloudAreaInfo error, tenantId={}",
-                            tenantDTO.getId()
-                        ).toString();
-                        log.error(msg, e);
-                    }
+                    tryToCacheCloudAreaForTenant(tenantDTO.getId());
                 }
-                ThreadUtils.sleep(60_000L);
+            } catch (Exception e) {
+                log.error("tryToCacheCloudAreaForAllTenant error", e);
+            }
+        }
+
+        private void tryToCacheCloudAreaForTenant(String tenantId) {
+            try {
+                cacheCloudAreaInfo(tenantId);
+            } catch (Exception e) {
+                String msg = MessageFormatter.format(
+                    "cacheCloudAreaInfo error, tenantId={}",
+                    tenantId
+                ).toString();
+                log.error(msg, e);
             }
         }
 
         private void cacheCloudAreaInfo(String tenantId) {
             long start = System.currentTimeMillis();
-            log.debug("CloudAreaInfo sync start...");
             List<CcCloudAreaInfoDTO> cloudAreaInfoList = getCloudAreaListFromCc(tenantId);
             Map<Long, String> cloudAreaIdMap = getCloudAreaIdNameMap(tenantId);
             if (CollectionUtils.isNotEmpty(cloudAreaInfoList)) {
@@ -168,7 +183,7 @@ public class BkNetService {
                 }
                 tenantFullCloudAreaInfoListMap.put(tenantId, cloudAreaInfoList);
             }
-            log.debug(
+            log.info(
                 "CloudAreaInfo(tenantId={}) sync finished in {}ms",
                 tenantId,
                 System.currentTimeMillis() - start

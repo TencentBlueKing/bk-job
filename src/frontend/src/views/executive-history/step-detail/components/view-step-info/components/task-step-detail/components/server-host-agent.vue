@@ -59,7 +59,7 @@
         </template>
         <div class="content-wraper">
           <scroll-faker>
-            <ip-selector
+            <jb-ip-selector
               :complete-host-list="hostsDetails(hostList)"
               readonly
               show-view />

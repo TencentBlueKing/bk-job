@@ -52,7 +52,7 @@
           style="height: 100%;"
           :title="$t('template.变量值为空')" />
         <scroll-faker v-else>
-          <ip-selector
+          <jb-ip-selector
             readonly
             show-view
             :value="executeObjectsInfo" />

@@ -25,13 +25,11 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -40,8 +38,6 @@ import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.JobUUID;
-import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
@@ -70,8 +66,6 @@ import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import com.tencent.bk.job.manage.service.template.impl.TemplateScriptStatusUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
@@ -177,11 +171,6 @@ public class ScriptManagerImpl implements ScriptManager {
     @Override
     public List<ScriptBasicDTO> listScriptBasicInfoByScriptIds(Collection<String> scriptIds) {
         return scriptDAO.listScriptBasicInfoByScriptIds(scriptIds);
-    }
-
-    @Override
-    public ScriptDTO getScriptWithoutTagByScriptId(String scriptId) {
-        return scriptDAO.getScriptByScriptId(scriptId);
     }
 
     @Override
@@ -326,13 +315,6 @@ public class ScriptManagerImpl implements ScriptManager {
             Collections.emptyList() : newTags.stream().map(TagDTO::getId).collect(Collectors.toList()));
     }
 
-    private Long getTimeOrDefault(Long time) {
-        if (time == null) {
-            return DateUtils.currentTimeMillis();
-        }
-        return time;
-    }
-
     @Override
     public ScriptDTO createScriptVersion(ScriptDTO scriptVersion) {
         log.info("Begin to save scriptVersion: {}", scriptVersion);
@@ -370,83 +352,6 @@ public class ScriptManagerImpl implements ScriptManager {
             scriptVersion);
 
         return scriptDAO.getScriptVersionById(scriptVersion.getScriptVersionId());
-    }
-
-    @Override
-    @JobTransactional(transactionManager = "jobManageTransactionManager")
-    public Pair<String, Long> createScriptWithVersionId(
-        Long appId,
-        ScriptDTO script,
-        Long createTime,
-        Long lastModifyTime
-    ) throws ServiceException {
-        log.info("Begin to createScriptWithVersionId, appId={}, script={}, createTime={}, " +
-            "lastModifyTime={}", appId, JsonUtils.toJson(script), createTime, lastModifyTime);
-        script.setCreateTime(getTimeOrDefault(createTime));
-        script.setLastModifyTime(getTimeOrDefault(lastModifyTime));
-        final long targetAppId = script.isPublicScript() ? PUBLIC_APP_ID : appId;
-        script.setAppId(targetAppId);
-
-        // 默认为未上线状态
-        Integer status = script.getStatus();
-        if (status == null || status < 0) {
-            script.setStatus(JobResourceStatusEnum.DRAFT.getValue());
-        }
-
-        if (script.getScriptVersionId() != null && script.getScriptVersionId() > 0) {
-            if (scriptDAO.isExistDuplicateScriptId(script.getScriptVersionId())) {
-                log.warn("scriptVersionId:{} is exist, scriptId:{}", script.getScriptVersionId(), script.getId());
-                throw new AlreadyExistsException(ErrorCode.SCRIPT_VERSION_ID_EXIST);
-            }
-        }
-
-        if (StringUtils.isNotBlank(script.getId())) {
-            if (scriptDAO.isExistDuplicateVersion(script.getId(), script.getVersion())) {
-                log.warn("Script version:{} is exist, scriptId:{}", script.getVersion(), script.getId());
-                throw new AlreadyExistsException(ErrorCode.SCRIPT_VERSION_NAME_EXIST);
-            }
-            if (!scriptDAO.isExistDuplicateScriptId(appId, script.getId())) {
-                //脚本不存在，新增脚本和脚本版本
-                boolean isNameDuplicate = scriptDAO.isExistDuplicateName(targetAppId, script.getName());
-                if (isNameDuplicate) {
-                    log.warn("The script name:{} is exist for app:{}", script.getName(), targetAppId);
-                    throw new AlreadyExistsException(ErrorCode.SCRIPT_NAME_DUPLICATE);
-                }
-                saveScriptAndScriptVersionToDB(script);
-                log.info("script created with specified id:{}", script.getId());
-            } else {
-                // 脚本存在，新增脚本版本
-                saveScriptVersionToDB(script);
-            }
-        } else {
-            //脚本不存在，新增脚本
-            boolean isNameDuplicate = scriptDAO.isExistDuplicateName(targetAppId, script.getName());
-            if (isNameDuplicate) {
-                log.warn("The script name:{} is exist for app:{}", script.getName(), targetAppId);
-                throw new AlreadyExistsException(ErrorCode.SCRIPT_NAME_DUPLICATE);
-            }
-
-            script.setId(JobUUID.getUUID());
-            saveScriptAndScriptVersionToDB(script);
-        }
-        saveScriptTags(appId, script);
-        return Pair.of(script.getId(), script.getScriptVersionId());
-    }
-
-    public void saveScriptAndScriptVersionToDB(ScriptDTO script) {
-        // 插入script
-        String scriptId = scriptDAO.saveScript(script);
-        script.setId(scriptId);
-        // 插入script_version
-        Long scriptVersionId = scriptDAO.saveScriptVersion(script);
-        script.setScriptVersionId(scriptVersionId);
-    }
-
-    public void saveScriptVersionToDB(ScriptDTO script) {
-        // 插入script_version
-        Long scriptVersionId = scriptDAO.saveScriptVersion(script);
-        scriptDAO.updateScriptLastModify(script.getId(), script.getLastModifyUser(), script.getLastModifyTime());
-        script.setScriptVersionId(scriptVersionId);
     }
 
     @Override

@@ -38,7 +38,7 @@ import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTemplateDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
-import com.tencent.bk.job.manage.service.TenantService;
+import com.tencent.bk.job.common.tenant.TenantService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;

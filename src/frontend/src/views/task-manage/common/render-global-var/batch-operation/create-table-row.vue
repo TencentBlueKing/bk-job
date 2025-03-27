@@ -112,7 +112,7 @@
         type="reduce-fill"
         @click="handleDelete" />
     </td>
-    <ip-selector
+    <jb-ip-selector
       :original-value="originalValue"
       :show-dialog="isShowChooseIp"
       :value="formData.defaultTargetValue.executeObjectsInfo"

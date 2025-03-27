@@ -372,6 +372,8 @@ data:
         worker-tags:
           white: {{ .Values.fileGatewayConfig.workerTags.white }}
           black: {{ .Values.fileGatewayConfig.workerTags.black }}
+    mysql:
+      {{- toYaml .Values.assembleConfig.mysql | nindent 6 }}
     bk:
       doc:
         root: {{ .Values.bkDocsCenterUrl }}

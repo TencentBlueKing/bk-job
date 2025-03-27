@@ -87,7 +87,7 @@ public class ContainerQuery {
     public static ContainerQuery fromListContainerByTopologyNodesReq(Long bizId,
                                                                      ListContainerByTopologyNodesReq req) {
         PageCondition pageCondition = null;
-        if (req.getStart() != null && req.getPageSize() != null) {
+        if (req.hasValidPageParams()) {
             pageCondition = PageCondition.build(req.getStart(), req.getPageSize());
         }
 

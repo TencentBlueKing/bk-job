@@ -4,6 +4,12 @@
 
 对作业执行类的请求传入的回调 callback_url 地址进行回调时所传递的报文结构描述。
 
+### 请求头
+Content-Type: application/json
+
+兼容说明：
+由于老版本Job使用了Content-Type: application/x-www-form-urlencoded执行回调请求，并且部分调用方按该方式进行解析接入，当前版本Job将优先使用Content-Type: application/json执行回调，如果执行失败，将再使用Content-Type: application/x-www-form-urlencoded重试一次，来兼容已接入的调用方。新接入的调用方请按照Content-Type: application/json进行解析。
+
 ### 请求参数
 
 | 字段   |  类型      | 必选   |  描述      |
@@ -40,4 +46,5 @@
 
 ### 回调响应
 
-回调成功以HTTP状态为准，如果成功，则状态码200，其他表示失败，Job会对失败的做一次重试，如还失败，则忽略失败，不再回调。
+回调成功以HTTP状态为准，如果成功，则状态码200，其他表示失败。
+当前版本Job将优先使用Content-Type: application/json执行回调，如果执行成功，则回调结束，如果执行失败，将再使用Content-Type: application/x-www-form-urlencoded重试一次，来兼容按照老协议进行解析的调用方。

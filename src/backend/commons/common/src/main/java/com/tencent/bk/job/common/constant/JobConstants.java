@@ -100,4 +100,8 @@ public class JobConstants {
      * 未知的资源名称
      */
     public static final String UNKNOWN_NAME = "Unknown";
+    /**
+     * 存储制品库创建的Job真实项目名称时使用的Key
+     */
+    public static final String SAVE_KEY_ARTIFACTORY_JOB_REAL_PROJECT = "ARTIFACTORY_JOB_REAL_PROJECT";
 }

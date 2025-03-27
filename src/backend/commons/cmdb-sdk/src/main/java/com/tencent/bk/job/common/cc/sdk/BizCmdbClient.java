@@ -44,7 +44,6 @@ import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.TopoNodePathDTO;
 import com.tencent.bk.job.common.cc.model.bizset.BizFilter;
-import com.tencent.bk.job.common.cc.model.bizset.Rule;
 import com.tencent.bk.job.common.cc.model.container.ContainerDTO;
 import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
@@ -57,6 +56,7 @@ import com.tencent.bk.job.common.cc.model.filter.BaseRuleDTO;
 import com.tencent.bk.job.common.cc.model.filter.ComposeRuleDTO;
 import com.tencent.bk.job.common.cc.model.filter.IRule;
 import com.tencent.bk.job.common.cc.model.filter.PropertyFilterDTO;
+import com.tencent.bk.job.common.cc.model.filter.Rule;
 import com.tencent.bk.job.common.cc.model.filter.RuleConditionEnum;
 import com.tencent.bk.job.common.cc.model.filter.RuleOperatorEnum;
 import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
@@ -84,7 +84,7 @@ import com.tencent.bk.job.common.cc.model.req.Page;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.req.SearchHostDynamicGroupReq;
 import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
-import com.tencent.bk.job.common.cc.model.response.CcCountInfo;
+import com.tencent.bk.job.common.cc.model.response.CountInfo;
 import com.tencent.bk.job.common.cc.model.result.BaseCcSearchResult;
 import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ExecuteDynamicGroupHostResult;
@@ -383,8 +383,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public List<ApplicationHostDTO> getHosts(long bizId, List<CcInstanceDTO> ccInstList) {
-        String tenantId = JobContextUtil.getTenantId();
+    public List<ApplicationHostDTO> getHosts(String tenantId, long bizId, List<CcInstanceDTO> ccInstList) {
         List<HostWithModules> hostWithModuleList = getHostRelationsByTopology(tenantId, bizId, ccInstList);
         return convertToHostInfoDTOList(bizId, hostWithModuleList);
     }
@@ -435,7 +434,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
                 valid = false;
             }
             return valid;
-        }).collect(Collectors.toList());
+        }).peek(hostWithModules -> hostWithModules.getHost().setTenantId(tenantId)
+        ).collect(Collectors.toList());
         return hostWithModulesList;
     }
 
@@ -450,7 +450,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         end = Math.min(end, moduleIdSize);
         do {
             List<Long> moduleIdSubList = moduleIdList.subList(start, end);
-            if (moduleIdSubList.size() > 0) {
+            if (!moduleIdSubList.isEmpty()) {
                 resultList.addAll(findModuleHostRelationConcurrently(tenantId, bizId, moduleIdSubList));
             }
             start += batchSize;
@@ -509,7 +509,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         // 如果该页未达到limit，说明是最后一页
         if (pageData.getCount() <= limit) {
             log.info("bizId {}:{} hosts in total, {} hosts indeed", bizId, pageData.getCount(), resultQueue.size());
-        } else if (pageData.getCount() > limit && hostWithModulesList.size() <= limit) {
+        } else if (hostWithModulesList.size() <= limit) {
             int totalCount = pageData.getCount() - limit;
             List<Future<?>> futures = new ArrayList<>();
             Long startTime = System.currentTimeMillis();
@@ -555,7 +555,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         multiIp = multiIp.trim();
         applicationHostDTO.setCloudAreaId(host.getCloudAreaId());
         List<String> ipList = Utils.getNotBlankSplitList(multiIp, ",");
-        if (ipList.size() > 0) {
+        if (!ipList.isEmpty()) {
             applicationHostDTO.setIp(ipList.get(0));
         } else {
             log.warn("no available ip, raw multiIp={}", multiIp);
@@ -976,10 +976,11 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
      * @return 主机业务关系列表
      */
     @Override
-    public List<HostBizRelationDTO> findHostBizRelations(List<Long> hostIdList) {
+    public List<HostBizRelationDTO> findHostBizRelations(String tenantId, List<Long> hostIdList) {
         FindHostBizRelationsReq req = makeCmdbBaseReq(FindHostBizRelationsReq.class);
         req.setHostIdList(hostIdList);
-        EsbResp<List<HostBizRelationDTO>> esbResp = requestCmdbApiUseContextTenantId(
+        EsbResp<List<HostBizRelationDTO>> esbResp = requestCmdbApi(
+            tenantId,
             HttpMethodEnum.POST,
             FIND_HOST_BIZ_RELATIONS,
             null,
@@ -1038,20 +1039,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public ApplicationHostDTO getHostByIp(Long cloudAreaId, String ip) {
-        ListHostsWithoutBizReq req = makeCmdbBaseReq(ListHostsWithoutBizReq.class);
-        PropertyFilterDTO condition = new PropertyFilterDTO();
-        condition.setCondition(RuleConditionEnum.AND.getCondition());
-        condition.addRule(BaseRuleDTO.equals("bk_host_innerip", ip));
-        condition.addRule(BaseRuleDTO.equals("bk_cloud_id", cloudAreaId));
-        req.setCondition(condition);
-
-        List<ApplicationHostDTO> hosts = listHostsWithoutBiz(req);
-        return hosts.size() > 0 ? hosts.get(0) : null;
-    }
-
-    @Override
-    public List<ApplicationHostDTO> listHostsByCloudIps(List<String> cloudIps) {
+    public List<ApplicationHostDTO> listHostsByCloudIps(String tenantId, List<String> cloudIps) {
         if (CollectionUtils.isEmpty(cloudIps)) {
             return Collections.emptyList();
         }
@@ -1068,11 +1056,11 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         });
         req.setCondition(condition);
 
-        return listHostsWithoutBiz(req);
+        return listHostsWithoutBiz(tenantId, req);
     }
 
     @Override
-    public List<ApplicationHostDTO> listHostsByCloudIpv6s(List<String> cloudIpv6s) {
+    public List<ApplicationHostDTO> listHostsByCloudIpv6s(String tenantId, List<String> cloudIpv6s) {
         if (CollectionUtils.isEmpty(cloudIpv6s)) {
             return Collections.emptyList();
         }
@@ -1090,7 +1078,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
                 condition.addRule(hostRule);
             }));
         req.setCondition(condition);
-        return listHostsWithoutBiz(req);
+        return listHostsWithoutBiz(tenantId, req);
     }
 
     private BaseRuleDTO buildIpv6Rule(String ipv6) {
@@ -1102,7 +1090,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         return BaseRuleDTO.equals("bk_cloud_id", bkCloudId);
     }
 
-    private List<ApplicationHostDTO> listHostsWithoutBiz(ListHostsWithoutBizReq req) {
+    private List<ApplicationHostDTO> listHostsWithoutBiz(String tenantId, ListHostsWithoutBizReq req) {
         int limit = 500;
         int start = 0;
         int total;
@@ -1110,7 +1098,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         do {
             Page page = new Page(start, limit, "");
             req.setPage(page);
-            EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApiUseContextTenantId(
+            EsbResp<ListHostsWithoutBizResult> esbResp = requestCmdbApi(
+                tenantId,
                 HttpMethodEnum.POST,
                 LIST_HOSTS_WITHOUT_BIZ,
                 null,
@@ -1120,7 +1109,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             ListHostsWithoutBizResult pageData = esbResp.getData();
             total = pageData.getCount();
             start += limit;
-            if (esbResp.getData() == null || CollectionUtils.isEmpty(esbResp.getData().getInfo())) {
+            if (CollectionUtils.isEmpty(esbResp.getData().getInfo())) {
                 break;
             }
 
@@ -1130,15 +1119,15 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
                 .collect(Collectors.toList()));
 
             // 设置主机业务信息
-            setBizRelationInfo(hosts);
+            setBizRelationInfo(tenantId, hosts);
         } while (start < total);
 
         return hosts;
     }
 
-    private void setBizRelationInfo(List<ApplicationHostDTO> hosts) {
+    private void setBizRelationInfo(String tenantId, List<ApplicationHostDTO> hosts) {
         List<Long> hostIds = hosts.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toList());
-        List<HostBizRelationDTO> hostBizRelations = findHostBizRelations(hostIds);
+        List<HostBizRelationDTO> hostBizRelations = findHostBizRelations(tenantId, hostIds);
         Map<Long, List<HostBizRelationDTO>> hostBizRelationMap =
             hostBizRelations.stream().collect(
                 Collectors.groupingBy(HostBizRelationDTO::getHostId));
@@ -1173,7 +1162,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public List<ApplicationHostDTO> listHostsByHostIds(List<Long> hostIds) {
+    public List<ApplicationHostDTO> listHostsByHostIds(String tenantId, List<Long> hostIds) {
         if (CollectionUtils.isEmpty(hostIds)) {
             return Collections.emptyList();
         }
@@ -1183,14 +1172,15 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         condition.setCondition(RuleConditionEnum.AND.getCondition());
         condition.addRule(BaseRuleDTO.in("bk_host_id", hostIds));
         req.setCondition(condition);
-        return listHostsWithoutBiz(req);
+        return listHostsWithoutBiz(tenantId, req);
     }
 
     @Override
-    public List<CcObjAttributeDTO> getObjAttributeList(String objId) {
+    public List<CcObjAttributeDTO> getObjAttributeList(String tenantId, String objId) {
         GetObjAttributeReq req = makeCmdbBaseReq(GetObjAttributeReq.class);
         req.setObjId(objId);
-        EsbResp<List<CcObjAttributeDTO>> esbResp = requestCmdbApiUseContextTenantId(
+        EsbResp<List<CcObjAttributeDTO>> esbResp = requestCmdbApi(
+            tenantId,
             HttpMethodEnum.POST,
             GET_OBJ_ATTRIBUTES,
             null,
@@ -1202,19 +1192,19 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
 
     @Override
     public Set<String> listUsersByRole(Long bizId, String role) {
-        CcCountInfo searchResult;
+        CountInfo<Map<String, Object>> searchResult;
         GetAppReq req = makeCmdbBaseReq(GetAppReq.class);
         Map<String, Object> condition = new HashMap<>();
         condition.put("bk_biz_id", bizId);
         req.setCondition(condition);
         req.setFields(Collections.singletonList(role));
         String uri = SEARCH_BUSINESS.replace("{bk_supplier_account}", req.getBkSupplierAccount());
-        EsbResp<CcCountInfo> esbResp = requestCmdbApiUseContextTenantId(
+        EsbResp<CountInfo<Map<String, Object>>> esbResp = requestCmdbApiUseContextTenantId(
             HttpMethodEnum.POST,
             uri,
             null,
             req,
-            new TypeReference<EsbResp<CcCountInfo>>() {
+            new TypeReference<EsbResp<CountInfo<Map<String, Object>>>>() {
             });
         searchResult = esbResp.getData();
 
@@ -1250,8 +1240,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public List<AppRoleDTO> listRoles() {
-        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList("biz");
+    public List<AppRoleDTO> listRoles(String tenantId) {
+        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList(tenantId, "biz");
         return esbObjAttributeDTO.stream().filter(it ->
             it.getBkPropertyGroup().equals("role")
         ).map(it -> new AppRoleDTO(
@@ -1262,8 +1252,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public Map<String, String> getCloudVendorIdNameMap() {
-        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList("host");
+    public Map<String, String> getCloudVendorIdNameMap(String tenantId) {
+        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList(tenantId, "host");
         List<CcObjAttributeDTO> cloudVendorAttrList = esbObjAttributeDTO.stream().filter(it ->
             it.getBkPropertyId().equals("bk_cloud_vendor")
         ).collect(Collectors.toList());
@@ -1284,8 +1274,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public Map<String, String> getOsTypeIdNameMap() {
-        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList("host");
+    public Map<String, String> getOsTypeIdNameMap(String tenantId) {
+        List<CcObjAttributeDTO> esbObjAttributeDTO = getObjAttributeList(tenantId, "host");
         List<CcObjAttributeDTO> osTypeAttrList = esbObjAttributeDTO.stream().filter(it ->
             it.getBkPropertyId().equals("bk_os_type")
         ).collect(Collectors.toList());
@@ -1363,7 +1353,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public ResourceWatchResult<HostEventDetail> getHostEvents(Long startTime, String cursor) {
+    public ResourceWatchResult<HostEventDetail> getHostEvents(String tenantId, Long startTime, String cursor) {
         ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_host_id", "bk_host_innerip", "bk_host_innerip_v6", "bk_agent_id",
             "bk_host_name", "bk_os_name", "bk_os_type", "bk_cloud_id", "bk_cloud_vendor", "last_time"));
@@ -1371,7 +1361,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         req.setCursor(cursor);
         req.setStartTime(startTime);
         String uri = RESOURCE_WATCH.replace("{bk_resource}", req.getResource());
-        EsbResp<ResourceWatchResult<HostEventDetail>> esbResp = requestCmdbApiUseContextTenantId(
+        EsbResp<ResourceWatchResult<HostEventDetail>> esbResp = requestCmdbApi(
+            tenantId,
             HttpMethodEnum.POST,
             uri,
             null,
@@ -1383,14 +1374,17 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public ResourceWatchResult<HostRelationEventDetail> getHostRelationEvents(Long startTime, String cursor) {
+    public ResourceWatchResult<HostRelationEventDetail> getHostRelationEvents(String tenantId,
+                                                                              Long startTime,
+                                                                              String cursor) {
         ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_host_id", "bk_biz_id", "bk_set_id", "bk_module_id", "last_time"));
         req.setResource("host_relation");
         req.setCursor(cursor);
         req.setStartTime(startTime);
         String uri = RESOURCE_WATCH.replace("{bk_resource}", req.getResource());
-        EsbResp<ResourceWatchResult<HostRelationEventDetail>> esbResp = requestCmdbApiUseContextTenantId(
+        EsbResp<ResourceWatchResult<HostRelationEventDetail>> esbResp = requestCmdbApi(
+            tenantId,
             HttpMethodEnum.POST,
             uri,
             null,
@@ -1402,7 +1396,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public ResourceWatchResult<BizEventDetail> getAppEvents(Long startTime, String cursor) {
+    public ResourceWatchResult<BizEventDetail> getAppEvents(String tenantId, Long startTime, String cursor) {
         ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_biz_id", "bk_biz_name", "bk_supplier_account",
             "time_zone", "language", "default"));
@@ -1410,7 +1404,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         req.setCursor(cursor);
         req.setStartTime(startTime);
         String uri = RESOURCE_WATCH.replace("{bk_resource}", req.getResource());
-        EsbResp<ResourceWatchResult<BizEventDetail>> esbResp = requestCmdbApiUseContextTenantId(
+        EsbResp<ResourceWatchResult<BizEventDetail>> esbResp = requestCmdbApi(
+            tenantId,
             HttpMethodEnum.POST,
             uri,
             null,
@@ -1456,6 +1451,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
      * @param bizId 业务 ID
      * @return 容器拓扑
      */
+    @Override
     public KubeTopologyDTO getBizKubeCacheTopo(long bizId) {
         GetBizKubeCacheTopoReq req = makeCmdbBaseReq(GetBizKubeCacheTopoReq.class);
         req.setBizId(bizId);
@@ -1476,6 +1472,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
      * @param req 请求
      * @return 容器列表（分页）
      */
+    @Override
     public PageData<ContainerDetailDTO> listPageKubeContainerByTopo(ListKubeContainerByTopoReq req) {
         return listPageKubeContainerByTopo(req, true);
     }
@@ -1505,6 +1502,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
      * @param req 请求
      * @return 容器列表
      */
+    @Override
     public List<ContainerDetailDTO> listKubeContainerByTopo(ListKubeContainerByTopoReq req) {
         setSupplierAccount(req);
         req.setContainerFields(ContainerDTO.Fields.ALL);
@@ -1597,6 +1595,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
      * @param containerIds 容器 ID 集合
      * @return 容器列表
      */
+    @Override
     public List<ContainerDetailDTO> listKubeContainerByIds(long bizId, Collection<Long> containerIds) {
         return listBizKubeContainerByContainerFieldWithInCondition(
             bizId, ContainerDTO.Fields.ID, containerIds);
@@ -1609,6 +1608,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
      * @param containerUIds 容器 UID 集合
      * @return 容器列表
      */
+    @Override
     public List<ContainerDetailDTO> listKubeContainerByUIds(long bizId, Collection<String> containerUIds) {
         return listBizKubeContainerByContainerFieldWithInCondition(
             bizId, ContainerDTO.Fields.CONTAINER_UID, containerUIds);
@@ -1651,6 +1651,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         return containers;
     }
 
+    @Override
     public List<KubeClusterDTO> listKubeClusters(KubeClusterQuery query) {
         ListKubeClusterReq req = makeCmdbBaseReq(ListKubeClusterReq.class);
 
@@ -1736,6 +1737,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         return new PageData<>(originPage.getStart(), originPage.getLimit(), count, response.getData().getInfo());
     }
 
+    @Override
     public List<KubeNamespaceDTO> listKubeNamespaces(NamespaceQuery query) {
         ListKubeNamespaceReq req = makeCmdbBaseReq(ListKubeNamespaceReq.class);
 
@@ -1802,6 +1804,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         return nextPageReq;
     }
 
+    @Override
     public List<KubeWorkloadDTO> listKubeWorkloads(WorkloadQuery query) {
         ListKubeWorkloadReq req = makeCmdbBaseReq(ListKubeWorkloadReq.class);
 

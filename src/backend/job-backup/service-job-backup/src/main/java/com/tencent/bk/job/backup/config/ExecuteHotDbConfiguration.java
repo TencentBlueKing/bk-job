@@ -65,6 +65,7 @@ import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
 import com.tencent.bk.job.common.mysql.dynamic.ds.StandaloneDSLContextProvider;
 import com.tencent.bk.job.common.mysql.dynamic.ds.VerticalShardingDSLContextProvider;
+import com.tencent.bk.job.common.mysql.util.JooqConfigurationUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
@@ -72,6 +73,7 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
+import org.jooq.impl.DefaultExecuteListenerProvider;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -129,8 +131,10 @@ public class ExecuteHotDbConfiguration {
         @Qualifier("job-execute-jooq-conf")
         @Bean(name = "job-execute-jooq-conf")
         public org.jooq.Configuration jooqConf(
-            @Qualifier("job-execute-conn-provider") ConnectionProvider connectionProvider) {
-            return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
+            @Qualifier("job-execute-conn-provider") ConnectionProvider connectionProvider,
+            DefaultExecuteListenerProvider jooqExecuteListenerProvider
+        ) {
+            return JooqConfigurationUtil.getConfiguration(connectionProvider, jooqExecuteListenerProvider);
         }
 
         @Qualifier("job-execute-conn-provider")

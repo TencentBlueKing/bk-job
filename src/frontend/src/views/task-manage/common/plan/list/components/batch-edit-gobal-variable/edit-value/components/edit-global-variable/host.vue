@@ -59,7 +59,7 @@
           type="edit-2" />
       </div>
     </div>
-    <ip-selector
+    <jb-ip-selector
       :original-value="originalValue"
       :show-dialog="isShowChooseIp"
       :value="executeObjectsInfo"

@@ -61,4 +61,16 @@ public class ListContainerByTopologyNodesReq {
 
     @ApiModelProperty(value = "拉取数量")
     private Integer pageSize;
+
+    /**
+     * 检查分页参数是否有效
+     *
+     * @return 分页参数是否有效
+     */
+    public boolean hasValidPageParams() {
+        return start != null
+            && start >= 0
+            && pageSize != null
+            && pageSize > 0;
+    }
 }

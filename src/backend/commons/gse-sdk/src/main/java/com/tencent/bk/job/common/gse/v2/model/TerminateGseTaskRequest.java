@@ -1,6 +1,5 @@
 package com.tencent.bk.job.common.gse.v2.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -28,17 +27,10 @@ public class TerminateGseTaskRequest extends GseReq {
     @JsonProperty("agents")
     private List<Agent> agents = new ArrayList<>();
 
-    /**
-     * 是否是GSE V2 Task; 根据gseV2Task判断请求GSE V1/v2
-     */
-    @JsonIgnore
-    private boolean gseV2Task;
 
     public TerminateGseTaskRequest(String taskId,
-                                   List<Agent> agents,
-                                   boolean gseV2Task) {
+                                   List<Agent> agents) {
         this.taskId = taskId;
         this.agents = agents;
-        this.gseV2Task = gseV2Task;
     }
 }

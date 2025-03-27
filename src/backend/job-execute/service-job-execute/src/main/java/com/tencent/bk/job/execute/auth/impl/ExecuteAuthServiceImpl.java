@@ -431,6 +431,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                     hostInstanceList.addAll(buildBizStaticHostInstances(appResourceScope, executeObjects));
                     break;
                 case BIZ_SET:
+                case TENANT_SET:
                     InstanceDTO hostInstance = new InstanceDTO();
                     hostInstance.setType(ResourceTypeEnum.HOST.getId());
                     hostInstance.setSystem(SystemId.CMDB);
@@ -510,6 +511,19 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         resource.setResourceName(getResourceName(appResourceScope));
         resource.setSystemId(SystemId.CMDB);
         resource.setType(ResourceTypeId.BUSINESS_SET);
+        hostResources.add(resource);
+        return hostResources;
+    }
+
+    private List<PermissionResource> convertTenantSetStaticIpToPermissionResourceList(AppResourceScope appResourceScope) {
+        List<PermissionResource> hostResources = new ArrayList<>();
+        PermissionResource resource = new PermissionResource();
+        resource.setResourceId(appResourceScope.getId());
+        resource.setResourceType(ResourceTypeEnum.HOST);
+        resource.setSubResourceType("tenant_set");
+        resource.setResourceName(getResourceName(appResourceScope));
+        resource.setSystemId(SystemId.CMDB);
+        resource.setType(ResourceTypeId.TENANT_SET);
         hostResources.add(resource);
         return hostResources;
     }
@@ -597,6 +611,10 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                 case BIZ_SET:
                     hostResources.addAll(
                         convertBizSetStaticIpToPermissionResourceList(appResourceScope));
+                    break;
+                case TENANT_SET:
+                    hostResources.addAll(
+                        convertTenantSetStaticIpToPermissionResourceList(appResourceScope));
                     break;
                 default:
                     throw new NotImplementedException(

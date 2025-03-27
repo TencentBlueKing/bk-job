@@ -174,6 +174,8 @@ public interface AccountDAO {
 
     Integer countAccounts(AccountTypeEnum accountType);
 
+    Integer countAccounts(String tenantId, AccountTypeEnum accountType);
+
     List<AccountDTO> listAccountByAccountCategory(AccountCategoryEnum accountCategoryEnum);
 
     void batchUpdateDbAccountPassword(List<AccountDTO> updatedAccounts);

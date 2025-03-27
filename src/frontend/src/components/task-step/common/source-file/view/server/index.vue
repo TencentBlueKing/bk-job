@@ -121,7 +121,7 @@
         @on-cancel="handleAddCancel"
         @on-change="handleAddSave" />
     </table>
-    <ip-selector
+    <jb-ip-selector
       :config="ipSelectorConfig"
       :show-dialog="isShowChooseIp"
       :value="currentExecuteObjectsInfo"

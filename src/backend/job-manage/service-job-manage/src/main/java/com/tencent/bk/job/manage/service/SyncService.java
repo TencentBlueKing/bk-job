@@ -30,11 +30,10 @@ import java.util.concurrent.ThreadPoolExecutor;
  * 同步服务
  */
 public interface SyncService {
-    void init();
 
-    Long syncApp();
+    Boolean syncApp();
 
-    Long syncHost();
+    void syncHost();
 
     Long syncAgentStatus();
 
@@ -47,14 +46,6 @@ public interface SyncService {
     ThreadPoolExecutor getSyncHostExecutor();
 
     Boolean syncBizHosts(Long bizId);
-
-    Boolean enableBizWatch();
-
-    Boolean disableBizWatch();
-
-    Boolean enableHostWatch();
-
-    Boolean disableHostWatch();
 
     Boolean enableSyncApp();
 

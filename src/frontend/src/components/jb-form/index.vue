@@ -154,6 +154,7 @@
        */
       validate() {
         return this.$refs.bkForm.validate().catch((error) => {
+          console.dir(error);
           this.$refs.jobForm.querySelector('.jb-form-item.is-error').scrollIntoView();
           return Promise.reject(error);
         });

@@ -46,7 +46,7 @@ import com.tencent.bk.job.execute.model.inner.ServiceTargetServers;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
 import com.tencent.bk.job.execute.model.inner.request.ServiceTaskExecuteRequest;
-import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -66,15 +66,15 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
 
     private final WebAuthService webAuthService;
 
-    private final ApplicationService applicationService;
+    private final RemoteAppService remoteAppService;
 
     @Autowired
     public ServiceExecuteTaskResourceImpl(TaskExecuteService taskExecuteService,
                                           WebAuthService webAuthService,
-                                          ApplicationService applicationService) {
+                                          RemoteAppService remoteAppService) {
         this.taskExecuteService = taskExecuteService;
         this.webAuthService = webAuthService;
-        this.applicationService = applicationService;
+        this.remoteAppService = remoteAppService;
     }
 
     @Override
@@ -100,7 +100,7 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
 
     private TaskExecuteParam buildExecuteParam(ServiceTaskExecuteRequest request) {
         List<TaskVariableDTO> executeVariableValues = new ArrayList<>();
-        String tenantId = applicationService.getTenantIdByAppId(request.getAppId());
+        String tenantId = remoteAppService.getTenantIdByAppId(request.getAppId());
         TaskExecuteParam taskExecuteParam = TaskExecuteParam
             .builder()
             .appId(request.getAppId())

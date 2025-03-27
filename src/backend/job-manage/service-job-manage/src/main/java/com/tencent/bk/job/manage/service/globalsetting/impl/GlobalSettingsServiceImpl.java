@@ -29,6 +29,7 @@ import com.tencent.bk.audit.annotations.ActionAuditRecord;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
@@ -126,6 +127,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private final JobManageConfig jobManageConfig;
     private final LocalFileConfigForManage localFileConfigForManage;
     private final BkNoticeProperties bkNoticeProperties;
+    private final BkApiGatewayProperties bkApiGatewayProperties;
     private final NotifyTemplateConverter notifyTemplateConverter;
     private final BuildProperties buildProperties;
     @Value("${job.manage.upload.filesize.max:5GB}")
@@ -143,6 +145,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                                      JobManageConfig jobManageConfig,
                                      LocalFileConfigForManage localFileConfigForManage,
                                      BkNoticeProperties bkNoticeProperties,
+                                     BkApiGatewayProperties bkApiGatewayProperties,
                                      NotifyTemplateConverter notifyTemplateConverter,
                                      BuildProperties buildProperties) {
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
@@ -156,6 +159,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         this.jobManageConfig = jobManageConfig;
         this.localFileConfigForManage = localFileConfigForManage;
         this.bkNoticeProperties = bkNoticeProperties;
+        this.bkApiGatewayProperties = bkApiGatewayProperties;
         this.notifyTemplateConverter = notifyTemplateConverter;
         this.buildProperties = buildProperties;
     }
@@ -190,7 +194,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                 "true",
                 "whether available notify channels are configed",
                 tenantId
-                );
+            );
             return 1 == globalSettingDAO.insertGlobalSetting(globalSettingDTO);
         } else if (!globalSettingDTO.getValue().toLowerCase().equals("true")) {
             globalSettingDTO.setValue("true");
@@ -263,7 +267,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                 "60",
                 "执行记录默认保存天数" + "(default history expire days)",
                 JobContextUtil.getTenantId()
-                );
+            );
             globalSettingDAO.insertGlobalSetting(globalSettingDTO);
         }
         return Long.parseLong(globalSettingDTO.getValue());
@@ -283,7 +287,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         GlobalSettingDTO globalSettingDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_HISTORY_EXPIRE_DAYS,
             days.toString(),
             String.format("执行记录保存天数(history expire days):%s,%s", username,
-            DateUtils.defaultLocalDateTime(LocalDateTime.now())),
+                DateUtils.defaultLocalDateTime(LocalDateTime.now())),
             JobContextUtil.getTenantId()
         );
         return globalSettingDAO.updateGlobalSetting(globalSettingDTO);
@@ -723,6 +727,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         return null;
     }
 
+    private String getBkUserWebApiRootUrl() {
+        return bkApiGatewayProperties.getBkUserWeb().getUrl();
+    }
+
     private String getNodemanRootUrl() {
         String url = jobManageConfig.getNodemanServerUrl();
         if (StringUtils.isBlank(url)) {
@@ -742,6 +750,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         urlMap.put(RelatedUrlKeys.KEY_BK_DOC_JOB_ROOT_URL, getDocJobRootUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_FEED_BACK_ROOT_URL, getFeedBackRootUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_SHARED_RES_BASE_JS_URL, getBkSharedResBaseJsUrl());
+        urlMap.put(RelatedUrlKeys.KEY_BK_USER_WEB_API_ROOT_URL, getBkUserWebApiRootUrl());
         return urlMap;
     }
 

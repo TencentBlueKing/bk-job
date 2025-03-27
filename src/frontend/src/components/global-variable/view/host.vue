@@ -30,7 +30,7 @@
     <div v-if="data.isEmpty">
       --
     </div>
-    <ip-selector
+    <jb-ip-selector
       readonly
       show-view
       :value="data.defaultTargetValue.executeObjectsInfo" />

@@ -52,35 +52,13 @@ data:
         url: {{ .Values.bkApiGatewayConfig.url }}
       bkUser:
         url: {{ .Values.bkUserApiGatewayUrl }}
+      bkUserWeb:
+        url: {{ .Values.bkUserWebApiGatewayUrl }}
       bkLogin:
         url: {{ .Values.bkLoginApiGatewayUrl }}
       bkIam:
         url: {{ .Values.bkIamApiGatewayUrl }}
     gse:
-      enabled: {{ .Values.gse.enabled }}
-      cache:
-        apiserver:
-          host: {{ .Values.gse.cacheApiServer.host }}
-          port: {{ .Values.gse.cacheApiServer.port }}
-      ssl:
-        enabled: {{ .Values.gse.ssl.enabled }}
-        keystore:
-          password: ${gse.keystore.password}
-          path: "/data/job/cert/gse_job_api_client.keystore"
-        truststore:
-          manager-type: SunX509
-          password: ${gse.truststore.password}
-          store-type: JKS
-          path: "/data/job/cert/gse_job_api_client.truststore"
-      taskserver:
-        host: {{ .Values.gse.taskserver.host }}
-        port: {{ .Values.gse.taskserver.port }}
-      server:
-        discovery:
-          type: {{ .Values.gse.server.discovery.type }}
-        zookeeper:
-          connect:
-            string: {{ .Values.gse.server.zookeeper.connect.string }}
       query:
         {{- toYaml .Values.gse.query | nindent 8 }}
       script:

@@ -46,7 +46,7 @@
           {{ $t('清空') }}
         </bk-button>
       </div>
-      <ip-selector
+      <jb-ip-selector
         ref="ipSelector"
         :original-value="originalExecuteObjectsInfo"
         :show-dialog="isShowChooseIp"

@@ -25,7 +25,6 @@
 package com.tencent.bk.job.backup.executor;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.backup.config.ArtifactoryConfig;
 import com.tencent.bk.job.backup.config.BackupStorageConfig;
 import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
 import com.tencent.bk.job.backup.constant.Constant;
@@ -43,6 +42,7 @@ import com.tencent.bk.job.backup.service.ScriptService;
 import com.tencent.bk.job.backup.service.StorageService;
 import com.tencent.bk.job.backup.service.TaskPlanService;
 import com.tencent.bk.job.backup.service.TaskTemplateService;
+import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;

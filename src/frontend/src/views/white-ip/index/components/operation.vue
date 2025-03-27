@@ -64,7 +64,7 @@
         <bk-button @click="handleShowIpSelector">
           {{ $t('whiteIP.添加服务器') }}
         </bk-button>
-        <ip-selector
+        <jb-ip-selector
           v-bind="ipSelectorConfig"
           model="dialog"
           :show-dialog="isShowIpSelector"

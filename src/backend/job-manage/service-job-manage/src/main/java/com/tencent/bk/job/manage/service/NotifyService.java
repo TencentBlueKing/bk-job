@@ -72,7 +72,7 @@ public interface NotifyService {
      *
      * @return 通知角色列表
      */
-    List<AppRoleDTO> listRoles();
+    List<AppRoleDTO> listRoles(String tenantId);
 
 
     List<ExecuteStatusVO> listExecuteStatus(String username);

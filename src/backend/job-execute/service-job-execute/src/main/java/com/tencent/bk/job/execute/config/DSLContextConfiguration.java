@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.mysql.dynamic.ds.HorizontalShardingDSLContextPr
 import com.tencent.bk.job.common.mysql.dynamic.ds.MigrateDynamicDSLContextProvider;
 import com.tencent.bk.job.common.mysql.dynamic.ds.StandaloneDSLContextProvider;
 import com.tencent.bk.job.common.mysql.dynamic.ds.VerticalShardingDSLContextProvider;
+import com.tencent.bk.job.common.mysql.util.JooqConfigurationUtil;
 import com.tencent.bk.job.common.util.toggle.prop.PropToggleStore;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.dao.common.JobExecuteVerticalShardingDSLContextProvider;
@@ -41,6 +42,7 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
+import org.jooq.impl.DefaultExecuteListenerProvider;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -49,6 +51,7 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -93,8 +96,10 @@ public class DSLContextConfiguration {
         @Qualifier("job-execute-jooq-conf")
         @Bean(name = "job-execute-jooq-conf")
         public org.jooq.Configuration jooqConf(
-            @Qualifier("job-execute-conn-provider") ConnectionProvider connectionProvider) {
-            return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
+            @Qualifier("job-execute-conn-provider") ConnectionProvider connectionProvider,
+            DefaultExecuteListenerProvider jooqExecuteListenerProvider
+        ) {
+            return JooqConfigurationUtil.getConfiguration(connectionProvider, jooqExecuteListenerProvider);
         }
 
         @Qualifier("job-execute-conn-provider")
@@ -156,8 +161,10 @@ public class DSLContextConfiguration {
         @Qualifier("job-execute-jooq-conf-a")
         @Bean(name = "job-execute-jooq-conf-a")
         public org.jooq.Configuration jooqConfA(
-            @Qualifier("job-execute-conn-provider-a") ConnectionProvider connectionProvider) {
-            return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
+            @Qualifier("job-execute-conn-provider-a") ConnectionProvider connectionProvider,
+            DefaultExecuteListenerProvider jooqExecuteListenerProvider
+        ) {
+            return JooqConfigurationUtil.getConfiguration(connectionProvider, jooqExecuteListenerProvider);
         }
 
         @Qualifier("job-execute-conn-provider-a")
@@ -206,8 +213,10 @@ public class DSLContextConfiguration {
         @Qualifier("job-execute-jooq-conf-b")
         @Bean(name = "job-execute-jooq-conf-b")
         public org.jooq.Configuration jooqConfB(
-            @Qualifier("job-execute-conn-provider-b") ConnectionProvider connectionProvider) {
-            return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
+            @Qualifier("job-execute-conn-provider-b") ConnectionProvider connectionProvider,
+            DefaultExecuteListenerProvider jooqExecuteListenerProvider
+        ) {
+            return JooqConfigurationUtil.getConfiguration(connectionProvider, jooqExecuteListenerProvider);
         }
 
         @Qualifier("job-execute-conn-provider-b")
@@ -256,8 +265,10 @@ public class DSLContextConfiguration {
         @Qualifier("job-execute-jooq-conf-c")
         @Bean(name = "job-execute-jooq-conf-c")
         public org.jooq.Configuration jooqConfC(
-            @Qualifier("job-execute-conn-provider-c") ConnectionProvider connectionProvider) {
-            return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
+            @Qualifier("job-execute-conn-provider-c") ConnectionProvider connectionProvider,
+            DefaultExecuteListenerProvider jooqExecuteListenerProvider
+        ) {
+            return JooqConfigurationUtil.getConfiguration(connectionProvider, jooqExecuteListenerProvider);
         }
 
         @Qualifier("job-execute-conn-provider-c")

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import io.swagger.annotations.ApiModelProperty;
@@ -43,4 +44,9 @@ public class ExecuteFileDestinationInfoVO {
 
     @ApiModelProperty("目标机器列表")
     private TaskTargetVO server;
+
+    @JsonIgnore
+    public String getTrimmedPath() {
+        return path == null ? null : path.trim();
+    }
 }

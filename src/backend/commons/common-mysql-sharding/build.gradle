@@ -24,6 +24,7 @@
 
 dependencies {
     api project(":commons:common")
+    api project(":commons:common-mysql")
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation("org.springframework.boot:spring-boot-autoconfigure")
     implementation 'org.springframework:spring-web'

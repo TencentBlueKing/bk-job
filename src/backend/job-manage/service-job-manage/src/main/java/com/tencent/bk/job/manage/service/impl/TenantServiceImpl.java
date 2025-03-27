@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
+import com.tencent.bk.job.common.model.tenant.TenantDTO;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
 import com.tencent.bk.job.common.paas.user.IUserApiClient;
-import com.tencent.bk.job.manage.model.inner.resp.TenantDTO;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.service.TenantService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;

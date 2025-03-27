@@ -28,7 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.model.web.CommonDistributionVO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -45,12 +45,12 @@ import java.util.Map;
 @Service
 public class TagStatisticService {
 
-    private final StatisticsDAO statisticsDAO;
+    private final CurrentTenantStatisticsDAO currentTenantStatisticsDAO;
     private final StatisticConfig statisticConfig;
 
     @Autowired
-    public TagStatisticService(StatisticsDAO statisticsDAO, StatisticConfig statisticConfig) {
-        this.statisticsDAO = statisticsDAO;
+    public TagStatisticService(CurrentTenantStatisticsDAO currentTenantStatisticsDAO, StatisticConfig statisticConfig) {
+        this.currentTenantStatisticsDAO = currentTenantStatisticsDAO;
         this.statisticConfig = statisticConfig;
     }
 
@@ -68,7 +68,7 @@ public class TagStatisticService {
     }
 
     public CommonDistributionVO tagDistributionStatistics(List<Long> appIdList, String date) {
-        List<StatisticsDTO> statisticsDTOList = statisticsDAO.getStatisticsList(appIdList, null,
+        List<StatisticsDTO> statisticsDTOList = currentTenantStatisticsDAO.getStatisticsList(appIdList, null,
             StatisticsConstants.RESOURCE_TAG, StatisticsConstants.DIMENSION_TAG_STATISTIC_TYPE,
             StatisticsConstants.DIMENSION_VALUE_TAG_STATISTIC_TYPE_DISTRIBUTION_MAP, date);
         if (statisticsDTOList == null || statisticsDTOList.isEmpty()) {

@@ -51,7 +51,7 @@
           type="loading-circle" />
       </div>
     </div>
-    <ip-selector
+    <jb-ip-selector
       :original-value="originalExecuteObjectsInfo"
       :show-dialog="isShowChooseIp"
       :value="localValue.executeObjectsInfo"

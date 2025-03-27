@@ -31,7 +31,16 @@ import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.CcObjAttributeDTO;
 import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
+import com.tencent.bk.job.common.cc.model.container.ContainerDetailDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeNamespaceDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeTopologyDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeWorkloadDTO;
+import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
+import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
+import com.tencent.bk.job.common.cc.model.query.WorkloadQuery;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
+import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
 import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
 import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostBizRelationDTO;
@@ -39,6 +48,7 @@ import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostWithModules;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -79,11 +89,11 @@ public interface IBizCmdbClient {
     /**
      * 根据topo实例获取hosts
      *
-     * @param bizId      cmdb业务ID
+     * @param tenantId   租户ID
      * @param ccInstList topo节点列表
      * @return 主机
      */
-    List<ApplicationHostDTO> getHosts(long bizId, List<CcInstanceDTO> ccInstList);
+    List<ApplicationHostDTO> getHosts(String tenantId, long bizId, List<CcInstanceDTO> ccInstList);
 
     /**
      * 根据topo实例获取主机及主机关系
@@ -155,37 +165,31 @@ public interface IBizCmdbClient {
     List<ApplicationHostDTO> getHostByIp(GetHostByIpInput input);
 
     /**
-     * 根据云区域ID+IP获取主机信息
-     *
-     * @param cloudAreaId 云区域ID
-     * @param ip          IP
-     * @return 主机信息
-     */
-    ApplicationHostDTO getHostByIp(Long cloudAreaId, String ip);
-
-    /**
      * 根据IP批量获取主机
      *
+     * @param tenantId 租户ID
      * @param cloudIps 云区域+IP列表
      * @return 主机列表
      */
-    List<ApplicationHostDTO> listHostsByCloudIps(List<String> cloudIps);
+    List<ApplicationHostDTO> listHostsByCloudIps(String tenantId, List<String> cloudIps);
 
     /**
      * 根据IPv6批量获取主机
      *
+     * @param tenantId   租户ID
      * @param cloudIpv6s 云区域+IPv6列表
      * @return 主机列表
      */
-    List<ApplicationHostDTO> listHostsByCloudIpv6s(List<String> cloudIpv6s);
+    List<ApplicationHostDTO> listHostsByCloudIpv6s(String tenantId, List<String> cloudIpv6s);
 
     /**
      * 根据HostId批量获取主机
      *
-     * @param hostIds 主机ID列表
+     * @param tenantId 租户ID
+     * @param hostIds  主机ID列表
      * @return 主机列表
      */
-    List<ApplicationHostDTO> listHostsByHostIds(List<Long> hostIds);
+    List<ApplicationHostDTO> listHostsByHostIds(String tenantId, List<Long> hostIds);
 
     /**
      * 批量获取业务下的主机列表
@@ -196,14 +200,16 @@ public interface IBizCmdbClient {
      */
     List<ApplicationHostDTO> listBizHosts(long bizId, Collection<HostDTO> ipList);
 
-    List<HostBizRelationDTO> findHostBizRelations(List<Long> hostIdList);
+    List<HostBizRelationDTO> findHostBizRelations(String tenantId, List<Long> hostIdList);
 
     /**
      * 获取CMDB对象属性信息列表
      *
-     * @param objId cmdb对象ID
+     * @param tenantId 租户ID
+     * @param objId    cmdb对象ID
+     * @return 对象属性列表
      */
-    List<CcObjAttributeDTO> getObjAttributeList(String objId);
+    List<CcObjAttributeDTO> getObjAttributeList(String tenantId, String objId);
 
     /**
      * 根据cmdb业务角色获取人员
@@ -215,18 +221,25 @@ public interface IBizCmdbClient {
 
     /**
      * 获取CMDB业务角色列表
+     *
+     * @param tenantId 租户ID
+     * @return 业务角色列表
      */
-    List<AppRoleDTO> listRoles();
+    List<AppRoleDTO> listRoles(String tenantId);
 
     /**
      * 获取主机所属云厂商枚举值，key:id，value:名称
+     *
+     * @param tenantId 租户ID
      */
-    Map<String, String> getCloudVendorIdNameMap();
+    Map<String, String> getCloudVendorIdNameMap(String tenantId);
 
     /**
      * 获取主机类型枚举值，key:id，value:名称
+     *
+     * @param tenantId 租户ID
      */
-    Map<String, String> getOsTypeIdNameMap();
+    Map<String, String> getOsTypeIdNameMap(String tenantId);
 
     /**
      * 批量获取topo节点层级
@@ -240,15 +253,31 @@ public interface IBizCmdbClient {
     /**
      * 监听CMDB主机事件
      */
-    ResourceWatchResult<HostEventDetail> getHostEvents(Long startTime, String cursor);
+    ResourceWatchResult<HostEventDetail> getHostEvents(String tenantId, Long startTime, String cursor);
 
     /**
      * 监听CMDB主机拓扑关系事件
      */
-    ResourceWatchResult<HostRelationEventDetail> getHostRelationEvents(Long startTime, String cursor);
+    ResourceWatchResult<HostRelationEventDetail> getHostRelationEvents(String tenantId, Long startTime, String cursor);
 
     /**
      * 监听CMDB业务事件
      */
-    ResourceWatchResult<BizEventDetail> getAppEvents(Long startTime, String cursor);
+    ResourceWatchResult<BizEventDetail> getAppEvents(String tenantId, Long startTime, String cursor);
+
+    List<ContainerDetailDTO> listKubeContainerByIds(long bizId, Collection<Long> containerIds);
+
+    List<ContainerDetailDTO> listKubeContainerByTopo(ListKubeContainerByTopoReq req);
+
+    List<KubeClusterDTO> listKubeClusters(KubeClusterQuery query);
+
+    List<KubeNamespaceDTO> listKubeNamespaces(NamespaceQuery query);
+
+    List<KubeWorkloadDTO> listKubeWorkloads(WorkloadQuery query);
+
+    KubeTopologyDTO getBizKubeCacheTopo(long bizId);
+
+    PageData<ContainerDetailDTO> listPageKubeContainerByTopo(ListKubeContainerByTopoReq req);
+
+    List<ContainerDetailDTO> listKubeContainerByUIds(long bizId, Collection<String> containerUIds);
 }

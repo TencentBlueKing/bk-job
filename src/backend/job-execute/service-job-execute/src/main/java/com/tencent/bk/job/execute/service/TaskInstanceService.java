@@ -97,7 +97,7 @@ public interface TaskInstanceService {
                                  Long endTime,
                                  Long totalTime);
 
-    List<Long> getJoinedAppIdList();
+    List<Long> getJoinedAppIdList(String tenantId);
 
     boolean hasExecuteHistory(Long appId, Long cronTaskId, Long fromTime, Long toTime);
 

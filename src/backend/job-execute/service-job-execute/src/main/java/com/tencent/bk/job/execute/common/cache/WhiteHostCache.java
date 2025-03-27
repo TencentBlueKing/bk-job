@@ -25,12 +25,12 @@
 package com.tencent.bk.job.execute.common.cache;
 
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.tenant.TenantDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
 import com.tencent.bk.job.manage.api.inner.ServiceWhiteIPResource;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
-import com.tencent.bk.job.manage.model.inner.resp.TenantDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.tools.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
@@ -53,7 +53,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class WhiteHostCache {
     private final ServiceTenantResource tenantResource;
     private final ServiceWhiteIPResource whiteIpResource;
-    private final ApplicationService applicationService;
+    private final RemoteAppService remoteAppService;
 
     private volatile boolean isWhiteIpConfigLoaded = false;
     /**
@@ -68,10 +68,10 @@ public class WhiteHostCache {
     @Autowired
     public WhiteHostCache(ServiceTenantResource tenantResource,
                           ServiceWhiteIPResource whiteIpResource,
-                          ApplicationService applicationService) {
+                          RemoteAppService remoteAppService) {
         this.tenantResource = tenantResource;
         this.whiteIpResource = whiteIpResource;
-        this.applicationService = applicationService;
+        this.remoteAppService = remoteAppService;
     }
 
     @Scheduled(cron = "0 * * * * ?")
@@ -141,7 +141,7 @@ public class WhiteHostCache {
             if (!isWhiteIpConfigLoaded) {
                 syncWhiteIpConfigForAllTenants();
             }
-            String tenantId = applicationService.getTenantIdByAppId(appId);
+            String tenantId = remoteAppService.getTenantIdByAppId(appId);
             if (StringUtils.isBlank(tenantId)) {
                 log.warn("Cannot get tenantId by appId={}", appId);
                 return null;

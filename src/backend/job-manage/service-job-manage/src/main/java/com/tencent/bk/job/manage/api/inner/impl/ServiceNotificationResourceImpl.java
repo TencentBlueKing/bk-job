@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
+import com.tencent.bk.job.common.compat.util.TenantCompatUtil;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.util.PrefConsts;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -81,8 +82,10 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
     }
 
     @Override
-    public InternalResponse<List<ServiceAppRoleDTO>> getNotifyRoles(String lang) {
-        List<AppRoleDTO> roles = notifyService.listRoles();
+    public InternalResponse<List<ServiceAppRoleDTO>> getNotifyRoles(String tenantId, String lang) {
+        List<AppRoleDTO> roles = notifyService.listRoles(
+            TenantCompatUtil.getTenantIdWithDefault(tenantId)
+        );
         List<ServiceAppRoleDTO> result = roles.stream().map(role -> new ServiceAppRoleDTO(role.getId(),
             role.getName())).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(result);

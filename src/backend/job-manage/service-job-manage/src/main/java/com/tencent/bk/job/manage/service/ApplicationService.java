@@ -160,13 +160,6 @@ public interface ApplicationService {
     Long createApp(ApplicationDTO application);
 
     /**
-     * 获取Job业务数量
-     *
-     * @return 业务数量
-     */
-    Integer countApps();
-
-    /**
      * 更新业务
      *
      * @param application 业务
