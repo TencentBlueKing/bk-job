@@ -24,14 +24,14 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
-import com.tentent.bk.job.common.api.artifactory.IRealProjectNameStore;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.inner.ServiceRealProjectNameResource;
 import com.tencent.bk.job.manage.model.inner.request.ServiceSaveRealProjectNameReq;
+import com.tentent.bk.job.common.api.artifactory.IRealProjectNameStore;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RestController;
 
-@Service
+@RestController
 public class ServiceRealProjectNameResourceImpl implements ServiceRealProjectNameResource {
 
     private final IRealProjectNameStore realProjectNameStore;
