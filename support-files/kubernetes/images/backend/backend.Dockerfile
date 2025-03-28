@@ -12,7 +12,7 @@ RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     chmod +x /data/job/exec/tini
 
 # 设置快捷命令
-RUN echo "alias log='cd /data/logs;cd $(ls|grep job-)'" >> ~/.bashrc && \
+RUN echo "alias log='cd /data/logs;cd \$(ls|grep job-)'" >> ~/.bashrc && \
     echo "alias bin='cd /data/job/exec'" >> ~/.bashrc
 
 ENV LANG en_US.utf8
