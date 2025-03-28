@@ -1627,6 +1627,9 @@ migration:
     limits:
       cpu: 500m
       memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
 
 ## migration的init任务配置
 migrationInit:
@@ -1643,6 +1646,9 @@ migrationInit:
     limits:
       cpu: 500m
       memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
 
 ## 蓝鲸网关配置，接入方式：chart + 自定义镜像
 bkApiGatewayConfig:
@@ -1680,6 +1686,9 @@ bkApiGatewayConfig:
     limits:
       cpu: 500m
       memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
 
 ## 其他服务Pod等待migration完成的init任务配置
 waitForMigration:
@@ -1696,6 +1705,9 @@ waitForMigration:
     limits:
       cpu: 500m
       memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
 
 ## 服务下Pod等待依赖的其他服务Pod完成启动的init任务配置
 waitForDependServices:

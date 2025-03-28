@@ -349,9 +349,9 @@ abstract public class AbstractBaseHostDAO {
         }
         if (cloudAreaIds != null) {
             if (condition != null) {
-                condition = condition.or(tHost.CLOUD_AREA_ID.in(cloudAreaIds));
+                condition = condition.or(tHost.CLOUD_ID.in(cloudAreaIds));
             } else {
-                condition = tHost.CLOUD_AREA_ID.in(cloudAreaIds);
+                condition = tHost.CLOUD_ID.in(cloudAreaIds);
             }
         }
         if (condition != null) {
@@ -383,7 +383,7 @@ abstract public class AbstractBaseHostDAO {
         Host tHost = Host.HOST;
         List<Condition> conditions = buildConditions(bizIds, moduleIds, agentAlive);
         if (cloudAreaIds != null) {
-            conditions.add(tHost.CLOUD_AREA_ID.in(cloudAreaIds));
+            conditions.add(tHost.CLOUD_ID.in(cloudAreaIds));
         }
         addFieldMultiLikeCondition(conditions, tHost.IP, ipKeys);
         addFieldMultiLikeCondition(conditions, tHost.IP_V6, ipv6Keys);
