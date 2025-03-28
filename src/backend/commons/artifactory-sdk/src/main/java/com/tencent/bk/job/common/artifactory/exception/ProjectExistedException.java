@@ -22,18 +22,13 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.artifactory.constants;
+package com.tencent.bk.job.common.artifactory.exception;
 
 /**
- * 制品库接口相关常量
+ * 项目已存在异常
  */
-public class ArtifactoryInterfaceConsts {
-    public static final int RESULT_CODE_OK = 0;
-    // 创建项目接口：项目已经存在
-    public static final int RESULT_CODE_PROJECT_EXISTED = 251005;
-    // 仓库详情接口：仓库不存在
-    public static final int RESULT_CODE_REPO_NOT_FOUND = 251006;
-    // 节点详情接口：节点不存在
-    public static final int RESULT_CODE_NODE_NOT_FOUND = 251010;
-    public static final String AUTH_HEADER_KEY = "Authorization";
+public class ProjectExistedException extends ArtifactoryException {
+    public ProjectExistedException(Throwable cause) {
+        super(cause);
+    }
 }

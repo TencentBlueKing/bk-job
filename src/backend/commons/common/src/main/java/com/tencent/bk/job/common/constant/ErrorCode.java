@@ -76,8 +76,10 @@ public class ErrorCode {
     // 制品库异常
     // Artifactory接口返回数据结构异常
     public static final int ARTIFACTORY_API_DATA_ERROR = 1214001;
-    // 制品库中找不到节点:{0}，请到制品库核实
+    // 制品库中找不到节点，请到制品库核实，详情：{0}
     public static final int CAN_NOT_FIND_NODE_IN_ARTIFACTORY = 1214002;
+    // 仓库不存在，请到制品库核实，详情：{0}
+    public static final int CAN_NOT_FIND_REPO_IN_ARTIFACTORY = 1214003;
 
     // IAM接口数据异常- 一般是被网关防火墙重定向返回统一登录页面
     public static final int IAM_API_DATA_ERROR = 1215001;

@@ -1,7 +1,7 @@
 package com.tencent.bk.job.common.artifactory.sdk;
 
-import com.tencent.bk.job.common.artifactory.constants.ArtifactoryInterfaceConsts;
-import com.tencent.bk.job.common.artifactory.model.dto.ArtifactoryResp;
+import com.tencent.bk.job.common.artifactory.exception.ProjectExistedException;
+import com.tencent.bk.job.common.artifactory.exception.RepoNotFoundException;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.model.req.CheckRepoExistReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateProjectReq;
@@ -10,6 +10,7 @@ import com.tencent.bk.job.common.artifactory.model.req.CreateUserToProjectReq;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tentent.bk.job.common.api.artifactory.IRealProjectNameStore;
+import io.micrometer.core.instrument.util.StringUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -105,6 +106,8 @@ public class ArtifactoryHelper {
                 "/"
             );
             return localUploadRepoRootNode != null;
+        } catch (RepoNotFoundException t) {
+            return false;
         } catch (Throwable t) {
             log.info("Fail to queryNodeDetail", t);
         }
@@ -171,25 +174,16 @@ public class ArtifactoryHelper {
         do {
             try {
                 String tenantId = tenantEnvService.getTenantIdForArtifactoryBkJobProject();
-                ArtifactoryResp<String> resp = adminClient.createProject(tenantId, req);
-                int code = resp.getCode();
-                if (code == ArtifactoryInterfaceConsts.RESULT_CODE_PROJECT_EXISTED) {
-                    log.info("Project {} already existed, ignore to create", req.getName());
-                    projectCreated = true;
-                } else if (code == ArtifactoryInterfaceConsts.RESULT_CODE_OK) {
-                    String realProjectName = resp.getData();
+                String realProjectName = adminClient.createProject(tenantId, req);
+                if (StringUtils.isNotBlank(realProjectName)) {
                     projectCreated = true;
                     realProjectNameStore.saveRealProjectName(jobRealProjectSaveKey, realProjectName);
                 } else {
-                    log.error(
-                        "Fail to create project {}, code={}, message={}, retry {} after 5 seconds",
-                        req.getName(),
-                        code,
-                        resp.getMessage(),
-                        ++retryCount
-                    );
-                    ThreadUtils.sleep(5000);
+                    log.warn("returned realProjectName is blank, unexpected, retry {}", ++retryCount);
                 }
+            } catch (ProjectExistedException e) {
+                log.info("Project {} already existed, ignore to create", req.getName());
+                projectCreated = true;
             } catch (Throwable t) {
                 log.warn("Fail to create project {}, retry {} after 5 seconds", req.getName(), ++retryCount, t);
                 ThreadUtils.sleep(5000);

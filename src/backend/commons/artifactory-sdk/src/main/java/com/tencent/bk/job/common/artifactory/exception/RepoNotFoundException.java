@@ -22,18 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.artifactory.constants;
+package com.tencent.bk.job.common.artifactory.exception;
+
+import com.tencent.bk.job.common.constant.ErrorCode;
 
 /**
- * 制品库接口相关常量
+ * 仓库不存在异常
  */
-public class ArtifactoryInterfaceConsts {
-    public static final int RESULT_CODE_OK = 0;
-    // 创建项目接口：项目已经存在
-    public static final int RESULT_CODE_PROJECT_EXISTED = 251005;
-    // 仓库详情接口：仓库不存在
-    public static final int RESULT_CODE_REPO_NOT_FOUND = 251006;
-    // 节点详情接口：节点不存在
-    public static final int RESULT_CODE_NODE_NOT_FOUND = 251010;
-    public static final String AUTH_HEADER_KEY = "Authorization";
+public class RepoNotFoundException extends ArtifactoryException {
+    public RepoNotFoundException(Throwable cause) {
+        super(cause, ErrorCode.CAN_NOT_FIND_REPO_IN_ARTIFACTORY);
+    }
+
+    public RepoNotFoundException(Throwable cause, Integer errorCode) {
+        super(cause, errorCode);
+    }
+
+    public RepoNotFoundException(Throwable cause, Integer errorCode, Object[] errorParams) {
+        super(cause, errorCode, errorParams);
+    }
 }

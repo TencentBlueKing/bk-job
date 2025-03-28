@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.artifactory.sdk;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.artifactory.constants.ArtifactoryInterfaceConsts;
 import com.tencent.bk.job.common.artifactory.constants.MetricsConstants;
+import com.tencent.bk.job.common.artifactory.exception.ArtifactoryExceptionConverter;
 import com.tencent.bk.job.common.artifactory.model.dto.ArtifactoryResp;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.PageData;
@@ -345,10 +346,7 @@ public class ArtifactoryClient {
             ).getMessage();
             log.error(msg, e);
             statusRef.set(MetricsConstants.TAG_VALUE_ERROR);
-
-            // 特殊处理文件 NotFound 导致的 HttpStatusException
-            return convertException(statusRef, e);
-
+            return ArtifactoryExceptionConverter.convertException(e);
         } finally {
             HttpMetricUtil.clearHttpMetric();
             long end = System.nanoTime();
@@ -678,17 +676,19 @@ public class ArtifactoryClient {
         return resp.getData();
     }
 
-    public ArtifactoryResp<String> createProject(String tenantId, CreateProjectReq req) {
+    public String createProject(String tenantId, CreateProjectReq req) {
         // 该接口正常创建情况下resp.data字段返回创建好的项目ID
-        return getArtifactoryRespByReq(
-            tenantId,
-            HttpPost.METHOD_NAME,
-            URL_CREATE_PROJECT,
-            req,
-            new TypeReference<ArtifactoryResp<String>>() {
-            },
-            httpHelper
-        );
+        ArtifactoryResp<String> resp =
+            getArtifactoryRespByReq(
+                tenantId,
+                HttpPost.METHOD_NAME,
+                URL_CREATE_PROJECT,
+                req,
+                new TypeReference<ArtifactoryResp<String>>() {
+                },
+                httpHelper
+            );
+        return resp.getData();
     }
 
     public boolean checkRepoExist(CheckRepoExistReq req) {
@@ -704,15 +704,15 @@ public class ArtifactoryClient {
     }
 
     public boolean createRepo(CreateRepoReq req) {
-        ArtifactoryResp<Boolean> resp = getArtifactoryRespByReq(
+        ArtifactoryResp<Object> resp = getArtifactoryRespByReq(
             HttpPost.METHOD_NAME,
             URL_CREATE_REPO,
             req,
-            new TypeReference<ArtifactoryResp<Boolean>>() {
+            new TypeReference<ArtifactoryResp<Object>>() {
             },
             httpHelper
         );
-        // 该接口正常创建情况下data字段返回也为null，用code判断
+        // 该接口正常创建情况下data字段返回仓库详情，用code判断
         return resp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_OK;
     }
 
