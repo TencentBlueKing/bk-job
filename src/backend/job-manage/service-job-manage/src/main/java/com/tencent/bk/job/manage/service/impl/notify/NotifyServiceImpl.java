@@ -323,14 +323,12 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     public List<RoleVO> listRole(String username) {
         //Job系统角色+CMDB业务角色
+        List<RoleVO> resultList = new ArrayList<>(JobRoleEnum.getVOList());
         List<AppRoleDTO> appRoles = esbAppRoleDAO.listEsbAppRole(JobContextUtil.getTenantId());
         if (CollectionUtils.isEmpty(appRoles)) {
-            return Collections.emptyList();
+            resultList.addAll(appRoles.stream().map(it ->
+                new RoleVO(it.getId(), it.getName())).collect(Collectors.toList()));
         }
-        List<RoleVO> resultList = new ArrayList<>();
-        resultList.addAll(JobRoleEnum.getVOList());
-        resultList.addAll(appRoles.stream().map(it ->
-            new RoleVO(it.getId(), it.getName())).collect(Collectors.toList()));
         return resultList;
     }
 
