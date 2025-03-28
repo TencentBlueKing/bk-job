@@ -1663,6 +1663,8 @@ bkApiGatewayConfig:
     failPolicy: "retry"
   # 接入的网关名称，蓝鲸官方网关都是bk-开头
   gatewayName: "bk-job"
+  # 标记网关为官方网关，网关名需以 `bk-` 开头，可选；取值：1表示官方网关（网关列表项带官方标识），10表示普通网关
+  apiType: 1
   # 蓝鲸网关url
   url: "http://bkapi.example.com/api/bk-apigateway"
   # 接入环境

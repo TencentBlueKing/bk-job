@@ -31,6 +31,8 @@ spec:
         env:
         - name: BK_APIGW_NAME
           value: {{ .Values.bkApiGatewayConfig.gatewayName }}
+        - name: BK_APIGW_API_TYPE
+          value: {{ .Values.bkApiGatewayConfig.apiType | quote }}
         - name: BK_APP_CODE
           value: {{ .Values.appCode }}
         - name: BK_APP_SECRET
