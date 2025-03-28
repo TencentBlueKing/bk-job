@@ -103,7 +103,9 @@
         theme="light site-header-dropdown"
         :tippy-options="{ hideOnClick: false }">
         <div class="user-flag">
-          <span style="margin-right: 5px;">{{ currentUser.username }}</span>
+          <span style="margin-right: 5px;">
+            <bk-user-display-name :user-id="currentUser.username" />
+          </span>
           <i class="bk-icon icon-down-shape" />
         </div>
         <template slot="content">
@@ -115,7 +117,6 @@
         </template>
       </bk-popover>
     </template>
-
     <router-view />
     <system-log v-model="showSystemLog" />
     <jb-ai v-if="isAiEnable" />
@@ -136,7 +137,6 @@
   import RouterBack from '@components/router-back';
   import SystemLog from '@components/system-log';
 
-  import BkUserDisplayName from '@blueking/bk-user-display-name';
   import { getPlatformConfig, setDocumentTitle, setShortcutIcon } from '@blueking/platform-config';
 
   import I18n, { setLocale } from '@/i18n';
@@ -206,7 +206,6 @@
         UserService.fetchUserInfo()
           .then((data) => {
             this.currentUser = Object.freeze(data);
-            this.initBkUserDisplayNameComponents();
           });
       },
       /**
@@ -216,7 +215,6 @@
         QueryGlobalSettingService.fetchRelatedSystemUrls()
           .then((data) => {
             this.relatedSystemUrls = Object.freeze(data);
-            this.initBkUserDisplayNameComponents();
 
             return getPlatformConfig(data.BK_SHARED_RES_BASE_JS_URL, {
               name: '作业平台',
@@ -262,20 +260,6 @@
 
         setDocumentTitle(this.$store.state.platformConfig.i18n, routeMatchStack);
         setShortcutIcon(this.$store.state.platformConfig.favicon);
-      },
-      initBkUserDisplayNameComponents() {
-        if (this.currentUser.tenantId && this.relatedSystemUrls.BK_USER_WEB_API_ROOT_URL) {
-          BkUserDisplayName.configure({
-            // 必填，租户 ID
-            tenantId: 'system',
-            // 必填，网关地址
-            apiBaseUrl: this.relatedSystemUrls.BK_USER_WEB_API_ROOT_URL,
-            // 可选，缓存时间，单位为毫秒, 默认 5 分钟
-            cacheDuration: 1000 * 60 * 5,
-            // 可选，当输入为空时，显示的文本，默认为 '--'
-            emptyText: '--',
-          });
-        }
       },
       /**
        * @desc 切换语言

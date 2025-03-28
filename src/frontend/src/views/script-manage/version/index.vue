@@ -580,8 +580,12 @@
         {
           name: I18n.t('script.更新人_colHead'),
           id: 'lastModifyUser',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
       ];
       this.tableColumn = [

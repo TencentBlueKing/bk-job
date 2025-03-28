@@ -32,6 +32,7 @@ export default class User {
     this.language = payload.language || '';
     this.logo = payload.logo || '';
     this.phone = payload.phone || '';
+    this.systemTenant = Boolean(payload.systemTenant);
     this.tenantId = payload.tenantId || '';
     this.timeZone = payload.timeZone || '';
     this.username = payload.username;

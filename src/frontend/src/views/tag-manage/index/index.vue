@@ -299,14 +299,22 @@
         {
           name: I18n.t('tag.创建人'),
           id: 'creator',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
         {
           name: I18n.t('tag.更新人_colHead'),
           id: 'lastModifyUser',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
       ];
       this.tableColumn = [
