@@ -5,6 +5,8 @@
     :api-base-url="apiBaseUrl"
     multiple
     :placeholder="placeholder"
+    :render-list-item="renderTag"
+    :render-tag="renderTag"
     :tenant-id="tenantId"
     :user-group="roleList"
     :user-group-name="t('角色')"
@@ -76,7 +78,7 @@
     NotifyService.fetchRoleList()
       .then((data) => {
         const excludeRoleMap = makeMap(props.excludeRoleList);
-        roleList.value = data.reduce(item => ({
+        roleList.value = data.map(item => ({
           id: item.code,
           name: item.name,
           hidden: excludeRoleMap[item.code],
@@ -102,6 +104,26 @@
     .finally(() => {
       isLoading.value = false;
     });
+
+
+  const renderTag = (h, userInfo) => {
+    if (userInfo.type === 'userGroup') {
+      return h('span', [
+        h('i', {
+          class: 'job-icon job-icon-user-group-gray',
+          style: 'margin-right: 2px; font-size: 14px; color: #979ba5;',
+        }),
+        userInfo.name,
+      ]);
+    }
+    return h('span', [
+      h('i', {
+        class: 'job-icon job-icon-user',
+        style: 'margin-right: 2px; font-size: 14px; color: #979ba5;',
+      }),
+      userInfo.name,
+    ]);
+  };
 
 
   const handleChange = (valueList) => {

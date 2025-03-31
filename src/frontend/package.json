@@ -16,7 +16,7 @@
   "dependencies": {
     "@blueking/ai-blueking": "0.2.11",
     "@blueking/bk-user-display-name": "1.0.1",
-    "@blueking/bk-user-selector": "0.0.19",
+    "@blueking/bk-user-selector": "0.0.20",
     "@blueking/ip-selector": "0.3.0-beta.41",
     "@blueking/login-modal": "1.0.5",
     "@blueking/notice-component-vue2": "2.0.0-beta.2",
