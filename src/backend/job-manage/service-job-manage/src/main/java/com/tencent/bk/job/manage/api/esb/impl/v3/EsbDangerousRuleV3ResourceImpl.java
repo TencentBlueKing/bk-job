@@ -120,7 +120,6 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
             .description(request.getDescription())
             .scriptTypeList(request.getScriptTypeList())
             .action(request.getAction() != null ? Collections.singletonList(request.getAction().byteValue()) : null)
-            .tenantId(JobContextUtil.getTenantId())
             .build();
         List<DangerousRuleVO> dangerousRuleVOS = currentTenantDangerousRuleService.listDangerousRules(query);
         List<EsbDangerousRuleV3DTO> esbDangerousRuleV3DTOList = dangerousRuleVOS.stream()

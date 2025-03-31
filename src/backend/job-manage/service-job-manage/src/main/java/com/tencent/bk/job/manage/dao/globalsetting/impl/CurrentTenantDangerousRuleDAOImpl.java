@@ -60,6 +60,12 @@ public class CurrentTenantDangerousRuleDAOImpl extends BaseDangerousRuleDAOImpl
         super(dslContext);
     }
 
+    protected List<Condition> getBasicConditions() {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(T.TENANT_ID.eq(JobContextUtil.getTenantId()));
+        return conditions;
+    }
+
     private void setDefaultValue(DangerousRuleDTO dangerousRuleDTO) {
         if (dangerousRuleDTO.getScriptType() == null) {
             dangerousRuleDTO.setScriptType(ScriptTypeEnum.SHELL.getValue());
@@ -126,14 +132,8 @@ public class CurrentTenantDangerousRuleDAOImpl extends BaseDangerousRuleDAOImpl
     }
 
     private List<Condition> buildIdConditions(Long id) {
-        List<Condition> conditions = buildTenantIdConditions();
+        List<Condition> conditions = getBasicConditions();
         conditions.add(T.ID.eq(id));
-        return conditions;
-    }
-
-    private List<Condition> buildTenantIdConditions() {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(T.TENANT_ID.eq(JobContextUtil.getTenantId()));
         return conditions;
     }
 
@@ -158,11 +158,12 @@ public class CurrentTenantDangerousRuleDAOImpl extends BaseDangerousRuleDAOImpl
     }
 
     @Override
-    public DangerousRuleDTO getDangerousRuleByPriority(String tenantId, int priority) {
+    public DangerousRuleDTO getDangerousRuleByPriority(int priority) {
+        List<Condition> conditions = getBasicConditions();
+        conditions.add(T.PRIORITY.eq(priority));
         val record = dslContext.select(ALL_FIELDS)
             .from(T)
-            .where(T.PRIORITY.eq(priority))
-            .and(T.TENANT_ID.eq(tenantId))
+            .where(conditions)
             .fetchOne();
         if (record == null) {
             return null;
@@ -172,10 +173,10 @@ public class CurrentTenantDangerousRuleDAOImpl extends BaseDangerousRuleDAOImpl
     }
 
     @Override
-    public List<DangerousRuleDTO> listDangerousRules(String tenantId) {
+    public List<DangerousRuleDTO> listDangerousRules() {
         val records = dslContext.select(ALL_FIELDS)
             .from(T)
-            .where(T.TENANT_ID.eq(tenantId))
+            .where(getBasicConditions())
             .orderBy(T.PRIORITY)
             .fetch();
         if (records.isEmpty()) {
@@ -188,7 +189,7 @@ public class CurrentTenantDangerousRuleDAOImpl extends BaseDangerousRuleDAOImpl
     @Override
     public List<DangerousRuleDTO> listDangerousRules(DangerousRuleDTO dangerousRuleQuery) {
         Integer scriptType = dangerousRuleQuery.getScriptType();
-        List<Condition> conditions = buildTenantIdConditions();
+        List<Condition> conditions = getBasicConditions();
         if (dangerousRuleQuery.getStatus() != null) {
             conditions.add(T.STATUS.eq(JooqDataTypeUtil.getByteFromInteger(dangerousRuleQuery.getStatus())));
         }
@@ -207,8 +208,7 @@ public class CurrentTenantDangerousRuleDAOImpl extends BaseDangerousRuleDAOImpl
     }
 
     private List<Condition> buildConditionList(DangerousRuleQuery query) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(T.TENANT_ID.eq(query.getTenantId()));
+        List<Condition> conditions = getBasicConditions();
         if (StringUtils.isNotBlank(query.getExpression())) {
             conditions.add(T.EXPRESSION.like("%" + query.getExpression() + "%"));
         }
@@ -232,10 +232,10 @@ public class CurrentTenantDangerousRuleDAOImpl extends BaseDangerousRuleDAOImpl
     }
 
     @Override
-    public int getMaxPriority(String tenantId) {
+    public int getMaxPriority() {
         val record = dslContext.select(DSL.max(T.PRIORITY))
             .from(T)
-            .where(T.TENANT_ID.eq(tenantId))
+            .where(getBasicConditions())
             .fetchOne();
         if (record == null || record.value1() == null) {
             return 0;
@@ -245,10 +245,10 @@ public class CurrentTenantDangerousRuleDAOImpl extends BaseDangerousRuleDAOImpl
     }
 
     @Override
-    public int getMinPriority(String tenantId) {
+    public int getMinPriority() {
         val record = dslContext.select(DSL.min(T.PRIORITY))
             .from(T)
-            .where(T.TENANT_ID.eq(tenantId))
+            .where(getBasicConditions())
             .fetchOne();
         if (record == null || record.value1() == null) {
             return 0;
@@ -259,11 +259,13 @@ public class CurrentTenantDangerousRuleDAOImpl extends BaseDangerousRuleDAOImpl
 
     @Override
     public int updateDangerousRuleStatus(String userName, Long id, EnableStatusEnum status) {
+        List<Condition> conditions = getBasicConditions();
+        conditions.add(T.ID.eq(id));
         val query = dslContext.update(T)
             .set(T.LAST_MODIFY_USER, userName)
             .set(T.LAST_MODIFY_TIME, ULong.valueOf(System.currentTimeMillis()))
             .set(T.STATUS, (byte) status.getValue())
-            .where(T.ID.eq(id));
+            .where(conditions);
         try {
             return query.execute();
         } catch (Exception e) {

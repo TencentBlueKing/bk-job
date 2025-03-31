@@ -55,9 +55,4 @@ public class DangerousRuleQuery implements Cloneable {
      * 处理动作
      */
     private List<Byte> action;
-
-    /**
-     * 租户 ID
-     */
-    private String tenantId;
 }

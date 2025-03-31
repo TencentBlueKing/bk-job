@@ -90,7 +90,6 @@ class CurrentTenantDangerousRuleDAOImplIntegrationTest {
         DangerousRuleQuery query = DangerousRuleQuery
             .builder()
             .expression("sql")
-            .tenantId("tencent")
             .build();
         List<DangerousRuleDTO> dangerousRuleDTOS = currentTenantDangerousRuleDAO.listDangerousRules(query);
         assertThat(dangerousRuleDTOS).hasSize(3);

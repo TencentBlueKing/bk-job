@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  * 高危语句规则操作基础DAO实现，封装部分公共逻辑
  */
 @Slf4j
-public class BaseDangerousRuleDAOImpl {
+abstract class BaseDangerousRuleDAOImpl {
 
     protected static final DangerousRule T = DangerousRule.DANGEROUS_RULE;
     protected final DSLContext dslContext;
@@ -64,6 +64,9 @@ public class BaseDangerousRuleDAOImpl {
     public BaseDangerousRuleDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
         this.dslContext = dslContext;
     }
+
+
+    abstract protected List<Condition> getBasicConditions();
 
     protected List<DangerousRuleDTO> listDangerousRulesByConditions(Integer scriptType, List<Condition> conditions) {
         val records =

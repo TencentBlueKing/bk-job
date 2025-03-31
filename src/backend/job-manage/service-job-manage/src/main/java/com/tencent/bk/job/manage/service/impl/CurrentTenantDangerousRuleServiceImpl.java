@@ -77,7 +77,7 @@ public class CurrentTenantDangerousRuleServiceImpl implements CurrentTenantDange
     )
     public DangerousRuleDTO createDangerousRule(User user, AddOrUpdateDangerousRuleReq req) {
         int scriptType = DangerousRuleDTO.encodeScriptType(req.getScriptTypeList());
-        int maxPriority = currentTenantDangerousRuleDAO.getMaxPriority(user.getTenantId());
+        int maxPriority = currentTenantDangerousRuleDAO.getMaxPriority();
         log.info(String.format("current maxPriority:%d", maxPriority));
         long id = currentTenantDangerousRuleDAO.insertDangerousRule(
             new DangerousRuleDTO(
@@ -147,14 +147,14 @@ public class CurrentTenantDangerousRuleServiceImpl implements CurrentTenantDange
         }
         if (dir == -1) {
             //往上移动
-            int minPriority = currentTenantDangerousRuleDAO.getMinPriority(user.getTenantId());
+            int minPriority = currentTenantDangerousRuleDAO.getMinPriority();
             if (currentRuleDTO.getPriority() <= minPriority) {
                 log.info("Fail to move, id=%d dangerousRule already has min priority");
                 return 0;
             }
             //需要移动的情况
-            DangerousRuleDTO upperRuleDTO = currentTenantDangerousRuleDAO.getDangerousRuleByPriority(user.getTenantId(),
-                currentRuleDTO.getPriority() - 1);
+            DangerousRuleDTO upperRuleDTO = currentTenantDangerousRuleDAO
+                .getDangerousRuleByPriority(currentRuleDTO.getPriority() - 1);
             upperRuleDTO.setPriority(upperRuleDTO.getPriority() + 1);
             currentRuleDTO.setPriority(currentRuleDTO.getPriority() - 1);
             currentTenantDangerousRuleDAO.updateDangerousRule(upperRuleDTO);
@@ -166,15 +166,14 @@ public class CurrentTenantDangerousRuleServiceImpl implements CurrentTenantDange
             return 2;
         } else if (dir == 1) {
             //往下移动
-            int maxPriority = currentTenantDangerousRuleDAO.getMaxPriority(user.getTenantId());
+            int maxPriority = currentTenantDangerousRuleDAO.getMaxPriority();
             if (currentRuleDTO.getPriority() >= maxPriority) {
                 log.info("Fail to move, id=%d dangerousRule already has max priority");
                 return 0;
             }
             //需要移动的情况
             DangerousRuleDTO downerRuleDTO =
-                currentTenantDangerousRuleDAO.getDangerousRuleByPriority(user.getTenantId(),
-                    currentRuleDTO.getPriority() + 1);
+                currentTenantDangerousRuleDAO.getDangerousRuleByPriority(currentRuleDTO.getPriority() + 1);
             if (downerRuleDTO == null) {
                 return 0;
             }
@@ -205,7 +204,7 @@ public class CurrentTenantDangerousRuleServiceImpl implements CurrentTenantDange
             return -1;
         }
         List<DangerousRuleDTO> dangerousRuleDTOList =
-            currentTenantDangerousRuleDAO.listDangerousRules(user.getTenantId());
+            currentTenantDangerousRuleDAO.listDangerousRules();
         for (int i = 0; i < dangerousRuleDTOList.size(); i++) {
             if (dangerousRuleDTOList.get(i).getId().equals(id)) {
                 dangerousRuleDTOList.remove(i);

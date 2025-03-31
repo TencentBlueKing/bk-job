@@ -49,6 +49,11 @@ public class TenantDangerousRuleDAOImpl extends BaseDangerousRuleDAOImpl impleme
         super(dslContext);
     }
 
+
+    protected List<Condition> getBasicConditions() {
+        return new ArrayList<>();
+    }
+
     private List<Condition> buildTenantIdConditions(String tenantId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(T.TENANT_ID.eq(tenantId));
