@@ -208,10 +208,11 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
     /**
      * 查询业务集中的业务数量
      *
+     * @param tenantId 租户ID
      * @param bizSetId 业务集ID
      * @return 业务数量
      */
-    private int searchBizCountInBusinessSet(long bizSetId) {
+    private int searchBizCountInBusinessSet(String tenantId, long bizSetId) {
         SearchBizInBusinessReq req = makeCmdbBaseReq(SearchBizInBusinessReq.class);
         req.setBizSetId(bizSetId);
         Page page = new Page();
@@ -220,7 +221,8 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
         page.setLimit(0);
         req.setPage(page);
         try {
-            EsbResp<SearchBizInBusinessSetResp> resp = requestCmdbApiUseContextTenantId(
+            EsbResp<SearchBizInBusinessSetResp> resp = requestCmdbApi(
+                tenantId,
                 HttpMethodEnum.POST,
                 SEARCH_BIZ_IN_BUSINESS_SET,
                 null,
@@ -244,7 +246,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
      * @return 业务ID列表
      */
     public List<BizInfo> searchBizInBizSet(String tenantId, long bizSetId) {
-        int bizCount = searchBizCountInBusinessSet(bizSetId);
+        int bizCount = searchBizCountInBusinessSet(tenantId, bizSetId);
         log.info("{} biz found in bizSet {} from cmdb", bizCount, bizSetId);
         // 分批查询
         int limit = 500;
