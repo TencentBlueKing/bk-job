@@ -30,10 +30,12 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.api.op.SyncOpResource;
 import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventManager;
-import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
-import com.tencent.bk.job.manage.service.SyncService;
-import com.tencent.bk.job.manage.service.host.NoTenantHostService;
+import com.tencent.bk.job.manage.background.sync.AppSyncService;
+import com.tencent.bk.job.manage.background.sync.BizHostSyncService;
 import com.tencent.bk.job.manage.background.sync.TenantHostSyncService;
+import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
+import com.tencent.bk.job.manage.service.SyncOpService;
+import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -46,17 +48,23 @@ import java.util.stream.Collectors;
 @RestController
 public class SyncOpResourceImpl implements SyncOpResource {
     private final NoTenantHostService noTenantHostService;
-    private final SyncService syncService;
+    private final SyncOpService syncOpService;
+    private final AppSyncService appSyncService;
+    private final BizHostSyncService bizHostSyncService;
     private final CmdbEventManager cmdbEventManager;
     private final TenantHostSyncService tenantHostSyncService;
 
     @Autowired
     public SyncOpResourceImpl(NoTenantHostService noTenantHostService,
-                              SyncService syncService,
+                              SyncOpService syncOpService,
+                              AppSyncService appSyncService,
+                              BizHostSyncService bizHostSyncService,
                               CmdbEventManager cmdbEventManager,
                               TenantHostSyncService tenantHostSyncService) {
         this.noTenantHostService = noTenantHostService;
-        this.syncService = syncService;
+        this.syncOpService = syncOpService;
+        this.appSyncService = appSyncService;
+        this.bizHostSyncService = bizHostSyncService;
         this.cmdbEventManager = cmdbEventManager;
         this.tenantHostSyncService = tenantHostSyncService;
     }
@@ -79,18 +87,20 @@ public class SyncOpResourceImpl implements SyncOpResource {
 
     @Override
     public InternalResponse<Boolean> syncApp() {
-        return InternalResponse.buildSuccessResp(syncService.syncApp());
+        return InternalResponse.buildSuccessResp(appSyncService.syncApp());
     }
 
     @Override
     public InternalResponse<Void> syncHost(String tenantId) {
-        tenantHostSyncService.syncAllBizHosts(tenantId);
+        tenantHostSyncService.syncAllBizHostsAtOnce(tenantId);
         return InternalResponse.buildSuccessResp(null);
     }
 
     @Override
     public InternalResponse<Boolean> syncHostByBizId(Long bizId) {
-        return InternalResponse.buildSuccessResp(syncService.syncBizHosts(bizId));
+        return InternalResponse.buildSuccessResp(
+            bizHostSyncService.syncBizHosts(bizId)
+        );
     }
 
     @Override
@@ -115,32 +125,32 @@ public class SyncOpResourceImpl implements SyncOpResource {
 
     @Override
     public InternalResponse<Boolean> enableSyncApp() {
-        return InternalResponse.buildSuccessResp(syncService.enableSyncApp());
+        return InternalResponse.buildSuccessResp(syncOpService.enableSyncApp());
     }
 
     @Override
     public InternalResponse<Boolean> disableSyncApp() {
-        return InternalResponse.buildSuccessResp(syncService.disableSyncApp());
+        return InternalResponse.buildSuccessResp(syncOpService.disableSyncApp());
     }
 
     @Override
     public InternalResponse<Boolean> enableSyncHost() {
-        return InternalResponse.buildSuccessResp(syncService.enableSyncHost());
+        return InternalResponse.buildSuccessResp(syncOpService.enableSyncHost());
     }
 
     @Override
     public InternalResponse<Boolean> disableSyncHost() {
-        return InternalResponse.buildSuccessResp(syncService.disableSyncHost());
+        return InternalResponse.buildSuccessResp(syncOpService.disableSyncHost());
     }
 
     @Override
     public InternalResponse<Boolean> enableSyncAgentStatus() {
-        return InternalResponse.buildSuccessResp(syncService.enableSyncAgentStatus());
+        return InternalResponse.buildSuccessResp(syncOpService.enableSyncAgentStatus());
     }
 
     @Override
     public InternalResponse<Boolean> disableSyncAgentStatus() {
-        return InternalResponse.buildSuccessResp(syncService.disableSyncAgentStatus());
+        return InternalResponse.buildSuccessResp(syncOpService.disableSyncAgentStatus());
     }
 
     private ServiceHostInfoDTO convertToServiceHostInfo(long appId, ApplicationHostDTO hostInfo) {

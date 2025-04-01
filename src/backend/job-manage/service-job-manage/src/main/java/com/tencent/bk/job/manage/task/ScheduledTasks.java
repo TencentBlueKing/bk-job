@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.manage.task;
 
+import com.tencent.bk.job.manage.background.sync.AgentStatusSyncService;
+import com.tencent.bk.job.manage.background.sync.AllTenantHostSyncService;
+import com.tencent.bk.job.manage.background.sync.AppSyncService;
 import com.tencent.bk.job.manage.manager.app.ApplicationCache;
-import com.tencent.bk.job.manage.service.SyncService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -38,7 +40,9 @@ import org.springframework.stereotype.Component;
 public class ScheduledTasks {
 
     private final UserSyncService userSyncService;
-    private final SyncService syncService;
+    private final AppSyncService appSyncService;
+    private final AllTenantHostSyncService allTenantHostSyncService;
+    private final AgentStatusSyncService agentStatusSyncService;
     private final UserUploadFileCleanTask userUploadFileCleanTask;
     private final ClearDeletedHostsTask clearDeletedHostsTask;
     private final ApplicationCache applicationCache;
@@ -46,12 +50,16 @@ public class ScheduledTasks {
     @Autowired
     public ScheduledTasks(
         UserSyncService userSyncService,
-        SyncService syncService,
+        AppSyncService appSyncService,
+        AllTenantHostSyncService allTenantHostSyncService,
+        AgentStatusSyncService agentStatusSyncService,
         UserUploadFileCleanTask userUploadFileCleanTask,
         ClearDeletedHostsTask clearDeletedHostsTask,
         ApplicationCache applicationCache) {
         this.userSyncService = userSyncService;
-        this.syncService = syncService;
+        this.appSyncService = appSyncService;
+        this.allTenantHostSyncService = allTenantHostSyncService;
+        this.agentStatusSyncService = agentStatusSyncService;
         this.userUploadFileCleanTask = userUploadFileCleanTask;
         this.clearDeletedHostsTask = clearDeletedHostsTask;
         this.applicationCache = applicationCache;
@@ -77,7 +85,7 @@ public class ScheduledTasks {
     public void appSyncTask() {
         log.info(Thread.currentThread().getId() + ":appSyncTask start");
         try {
-            syncService.syncApp();
+            appSyncService.syncApp();
         } catch (Exception e) {
             log.error("testAppSyncTask fail", e);
         }
@@ -103,7 +111,7 @@ public class ScheduledTasks {
     public void hostSyncTask() {
         log.info(Thread.currentThread().getId() + ":hostSyncTask start");
         try {
-            syncService.syncHost();
+            allTenantHostSyncService.syncHost();
         } catch (Exception e) {
             log.error("hostSyncTask fail", e);
         }
@@ -116,7 +124,7 @@ public class ScheduledTasks {
     public void agentStatusSyncTask() {
         log.info(Thread.currentThread().getId() + ":agentStatusSyncTask start");
         try {
-            syncService.syncAgentStatus();
+            agentStatusSyncService.syncAgentStatus();
         } catch (Exception e) {
             log.error("agentStatusSyncTask fail", e);
         }

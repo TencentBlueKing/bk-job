@@ -25,11 +25,17 @@
 package com.tencent.bk.job.manage.background.sync;
 
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLock;
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
+import com.tencent.bk.job.common.redis.util.LockResult;
+import com.tencent.bk.job.common.util.ip.IpUtils;
+import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -43,17 +49,71 @@ import java.util.List;
 @Service
 public class AgentStatusSyncService {
 
+    private static final String machineIp = IpUtils.getFirstMachineIP();
+    private volatile boolean enableSyncAgentStatus;
+
+    @SuppressWarnings("FieldCanBeLocal")
+    private final String REDIS_KEY_SYNC_AGENT_STATUS_MACHINE = "sync-agent-status-machine";
     private final NoTenantHostDAO noTenantHostDAO;
     private final NoTenantHostService noTenantHostService;
     private final AgentStatusService agentStatusService;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Autowired
-    public AgentStatusSyncService(NoTenantHostDAO noTenantHostDAO,
+    public AgentStatusSyncService(JobManageConfig jobManageConfig,
+                                  NoTenantHostDAO noTenantHostDAO,
                                   NoTenantHostService noTenantHostService,
-                                  AgentStatusService agentStatusService) {
+                                  AgentStatusService agentStatusService,
+                                  RedisTemplate<String, String> redisTemplate) {
         this.noTenantHostDAO = noTenantHostDAO;
         this.noTenantHostService = noTenantHostService;
         this.agentStatusService = agentStatusService;
+        this.redisTemplate = redisTemplate;
+        this.enableSyncAgentStatus = jobManageConfig.isEnableSyncAgentStatus();
+    }
+
+    public void syncAgentStatus() {
+        if (!enableSyncAgentStatus) {
+            log.info("syncAgentStatus not enabled, skip, you can enable it in config file");
+            return;
+        }
+        log.info("syncAgentStatus arranged");
+        HeartBeatRedisLockConfig config = HeartBeatRedisLockConfig.getDefault();
+        config.setHeartBeatThreadName("SyncAppRedisKeyHeartBeatThread");
+        config.setExpireTimeMillis(5000L);
+        config.setPeriodMillis(4000L);
+        HeartBeatRedisLock lock = new HeartBeatRedisLock(
+            redisTemplate,
+            REDIS_KEY_SYNC_AGENT_STATUS_MACHINE,
+            machineIp,
+            config
+        );
+        LockResult lockResult = lock.lock();
+        if (!lockResult.isLockGotten()) {
+            //已有同步线程在跑，不再同步
+            log.info("syncAgentStatus thread already running on {}", lockResult.getLockValue());
+            return;
+        }
+        tryToSyncAgentStatus(lockResult);
+    }
+
+    private void tryToSyncAgentStatus(LockResult lockResult) {
+        StopWatch watch = new StopWatch("syncAgentStatus");
+        watch.start("total");
+        try {
+            // 从GSE同步Agent状态
+            syncAgentStatusFromGSE();
+        } catch (Throwable t) {
+            log.error("Fail to syncAgentStatus", t);
+        } finally {
+            if (watch.isRunning()) {
+                watch.stop();
+            }
+            if (lockResult != null) {
+                lockResult.tryToRelease();
+            }
+            log.info("syncAgentStatusFinish: timeConsuming={}", watch.prettyPrint());
+        }
     }
 
     private Pair<Long, Long> syncHostAgentStatus() {
@@ -105,21 +165,27 @@ public class AgentStatusSyncService {
         return Pair.of(gseInterfaceTimeConsuming, writeToDBTimeConsuming);
     }
 
-    public void syncAgentStatusFromGSE() {
+    private void syncAgentStatusFromGSE() {
         log.info(Thread.currentThread().getName() + ":begin to sync agentStatus from GSE");
         long gseInterfaceTimeConsuming = 0L;
         long writeToDBTimeConsuming = 0L;
-        try {
-            Pair<Long, Long> timeConsumingPair = syncHostAgentStatus();
-            gseInterfaceTimeConsuming += timeConsumingPair.getFirst();
-            writeToDBTimeConsuming += timeConsumingPair.getSecond();
-            log.info(Thread.currentThread().getName() + ":Finished:sync agentStatus from GSE," +
-                    "gseInterfaceTimeConsuming={}ms,writeToDBTimeConsuming={}ms,rate={}",
-                gseInterfaceTimeConsuming, writeToDBTimeConsuming,
-                gseInterfaceTimeConsuming / (0. + writeToDBTimeConsuming));
-        } catch (Throwable t) {
-            log.error("syncAgentStatus from GSE fail：", t);
-        }
+        Pair<Long, Long> timeConsumingPair = syncHostAgentStatus();
+        gseInterfaceTimeConsuming += timeConsumingPair.getFirst();
+        writeToDBTimeConsuming += timeConsumingPair.getSecond();
+        log.info(
+            "syncAgentStatusFinish: gseInterfaceTimeConsuming={}ms, writeToDBTimeConsuming={}ms",
+            gseInterfaceTimeConsuming,
+            writeToDBTimeConsuming
+        );
     }
 
+    public Boolean enableSyncAgentStatus() {
+        enableSyncAgentStatus = true;
+        return true;
+    }
+
+    public Boolean disableSyncAgentStatus() {
+        enableSyncAgentStatus = false;
+        return true;
+    }
 }

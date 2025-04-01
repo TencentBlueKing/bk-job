@@ -30,11 +30,14 @@ import com.tencent.bk.job.common.cc.model.result.HostWithModules;
 import com.tencent.bk.job.common.cc.model.result.ModuleProp;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.BasicHostDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
@@ -60,12 +63,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * 主机同步逻辑
+ * 单个业务的主机同步逻辑
  */
 @Slf4j
 @Service
-public class HostSyncService {
+public class BizHostSyncService {
 
+    private final ApplicationDAO applicationDAO;
     private final AppHostsUpdateHelper appHostsUpdateHelper;
     private final NoTenantHostDAO noTenantHostDAO;
     private final HostTopoDAO hostTopoDAO;
@@ -73,11 +77,13 @@ public class HostSyncService {
     private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
-    public HostSyncService(AppHostsUpdateHelper appHostsUpdateHelper,
-                           NoTenantHostDAO noTenantHostDAO,
-                           HostTopoDAO hostTopoDAO,
-                           NoTenantHostService noTenantHostService,
-                           IBizCmdbClient bizCmdbClient) {
+    public BizHostSyncService(ApplicationDAO applicationDAO,
+                              AppHostsUpdateHelper appHostsUpdateHelper,
+                              NoTenantHostDAO noTenantHostDAO,
+                              HostTopoDAO hostTopoDAO,
+                              NoTenantHostService noTenantHostService,
+                              IBizCmdbClient bizCmdbClient) {
+        this.applicationDAO = applicationDAO;
         this.appHostsUpdateHelper = appHostsUpdateHelper;
         this.noTenantHostDAO = noTenantHostDAO;
         this.hostTopoDAO = hostTopoDAO;
@@ -935,6 +941,25 @@ public class HostSyncService {
             deleteHostList.add(localBasicHost);
         }
         return deleteHostList;
+    }
+
+    public Boolean syncBizHosts(Long bizId) {
+        log.info("syncBizHosts:bizId={}", bizId);
+        ApplicationDTO applicationDTO = applicationDAO.getAppByScope(
+            new ResourceScope(ResourceScopeTypeEnum.BIZ, bizId.toString())
+        );
+        Triple<Set<BasicHostDTO>, Long, Long> triple = syncBizHostsAtOnce(applicationDTO);
+        Set<BasicHostDTO> cmdbBasicHosts = triple.getLeft();
+        Long cmdbInterfaceTimeConsuming = triple.getMiddle();
+        Long writeToDBTimeConsuming = triple.getRight();
+        log.info(
+            "syncBizHosts:cmdbInterfaceTimeConsuming={},writeToDBTimeConsuming={}, {} hosts, cmdbHostIds={}",
+            cmdbInterfaceTimeConsuming,
+            writeToDBTimeConsuming,
+            cmdbBasicHosts.size(),
+            cmdbBasicHosts.stream().map(BasicHostDTO::getHostId).collect(Collectors.toList())
+        );
+        return true;
     }
 
 }

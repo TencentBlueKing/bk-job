@@ -24,28 +24,10 @@
 
 package com.tencent.bk.job.manage.service;
 
-import java.util.concurrent.ThreadPoolExecutor;
-
 /**
- * 同步服务
+ * 同步OP服务
  */
-public interface SyncService {
-
-    Boolean syncApp();
-
-    void syncHost();
-
-    Long syncAgentStatus();
-
-    Long getLastFinishTimeSyncApp();
-
-    Long getLastFinishTimeSyncHost();
-
-    Long getLastFinishTimeSyncAgentStatus();
-
-    ThreadPoolExecutor getSyncHostExecutor();
-
-    Boolean syncBizHosts(Long bizId);
+public interface SyncOpService {
 
     Boolean enableSyncApp();
 

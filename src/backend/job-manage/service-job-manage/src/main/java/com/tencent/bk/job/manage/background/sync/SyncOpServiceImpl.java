@@ -22,27 +22,59 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.runner;
+package com.tencent.bk.job.manage.background.sync;
 
-import com.tencent.bk.job.manage.service.MeasureService;
+import com.tencent.bk.job.manage.service.SyncOpService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
+import org.springframework.stereotype.Service;
 
+@SuppressWarnings("FieldCanBeLocal")
 @Slf4j
-//@Component
-public class MeasureServiceInitRunner implements CommandLineRunner {
+@Service
+public class SyncOpServiceImpl implements SyncOpService {
 
-    private final MeasureService measureService;
+    private final AllTenantHostSyncService allTenantHostSyncService;
+    private final AgentStatusSyncService agentStatusSyncService;
+    private final AppSyncService appSyncService;
 
     @Autowired
-    public MeasureServiceInitRunner(MeasureService measureService) {
-        this.measureService = measureService;
+    public SyncOpServiceImpl(AgentStatusSyncService agentStatusSyncService,
+                             AllTenantHostSyncService allTenantHostSyncService,
+                             AppSyncService appSyncService) {
+        this.agentStatusSyncService = agentStatusSyncService;
+        this.allTenantHostSyncService = allTenantHostSyncService;
+        this.appSyncService = appSyncService;
     }
 
     @Override
-    public void run(String... args) {
-        log.info("measureService init");
-        measureService.init();
+    public Boolean enableSyncApp() {
+        return appSyncService.enableSyncApp();
     }
+
+    @Override
+    public Boolean disableSyncApp() {
+        return appSyncService.disableSyncApp();
+    }
+
+    @Override
+    public Boolean enableSyncHost() {
+        return allTenantHostSyncService.enableSyncHost();
+    }
+
+    @Override
+    public Boolean disableSyncHost() {
+        return allTenantHostSyncService.disableSyncHost();
+    }
+
+    @Override
+    public Boolean enableSyncAgentStatus() {
+        return agentStatusSyncService.enableSyncAgentStatus();
+    }
+
+    @Override
+    public Boolean disableSyncAgentStatus() {
+        return agentStatusSyncService.disableSyncAgentStatus();
+    }
+
 }

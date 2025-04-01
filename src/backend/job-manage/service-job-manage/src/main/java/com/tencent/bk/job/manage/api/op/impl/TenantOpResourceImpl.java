@@ -29,11 +29,11 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.redis.util.DistributedUniqueTask;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.api.op.TenantOpResource;
-import com.tencent.bk.job.manage.model.op.req.InitTenantReq;
 import com.tencent.bk.job.manage.background.sync.BizSetSyncService;
 import com.tencent.bk.job.manage.background.sync.BizSyncService;
 import com.tencent.bk.job.manage.background.sync.TenantHostSyncService;
 import com.tencent.bk.job.manage.background.sync.TenantSetSyncService;
+import com.tencent.bk.job.manage.model.op.req.InitTenantReq;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -109,7 +109,7 @@ public class TenantOpResourceImpl implements TenantOpResource {
         // 3.同步租户集
         tenantSetSyncService.syncTenantSetFromCMDB();
         // 4.同步租户下所有业务的主机
-        tenantHostSyncService.syncAllBizHosts(tenantId);
+        tenantHostSyncService.syncAllBizHostsAtOnce(tenantId);
         return true;
     }
 }
