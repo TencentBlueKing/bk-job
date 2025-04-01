@@ -468,6 +468,14 @@ mockApi:
   gseV2:
     # 是否启用GSE V2 Mock API
     enabled: false
+  # 用户管理API
+  bkUser:
+    # 是否启用用户管理Mock API
+    enabled: false
+  # CMSI API
+  cmsi:
+    # 是否启用CMSI Mock API
+    enabled: false
 
 ## 蓝鲸GSE参数配置
 gse:

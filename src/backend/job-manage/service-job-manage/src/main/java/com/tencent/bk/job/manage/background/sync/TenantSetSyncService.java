@@ -100,11 +100,12 @@ public class TenantSetSyncService extends BasicAppSyncService {
         log.info("Local cached tenantSetIds: {}", localTenantSetIds);
 
         // 对比租户集信息，分出要新增的/要改的/要删的分别处理
-        List<ApplicationDTO> insertApps = computeInsertApps(ccTenantSets, localTenantSetIds);
-        List<ApplicationDTO> updateApps = computeUpdateApps(ccTenantSets, localTenantSetApps, localTenantSetIds);
-        List<ApplicationDTO> deleteApps = computeDeleteApps(cmdbTenantSetIds, localTenantSetApps);
+        List<ApplicationDTO> insertTenantSets = computeInsertTenantSets(ccTenantSets, localTenantSetIds);
+        List<ApplicationDTO> updateTenantSets = computeUpdateTenantSets(ccTenantSets, localTenantSetApps,
+            localTenantSetIds);
+        List<ApplicationDTO> deleteTenantSets = computeDeleteTenantSets(cmdbTenantSetIds, localTenantSetApps);
 
-        applyAppsChangeByScope(insertApps, deleteApps, updateApps);
+        applyAppsChangeByScope(insertTenantSets, deleteTenantSets, updateTenantSets);
     }
 
     /**
@@ -114,7 +115,8 @@ public class TenantSetSyncService extends BasicAppSyncService {
      * @param localTenantSetIds 本地缓存的租户集ID列表
      * @return 新增的租户
      */
-    private List<ApplicationDTO> computeInsertApps(List<TenantSetInfo> cmdbTenantSets, Set<Long> localTenantSetIds) {
+    private List<ApplicationDTO> computeInsertTenantSets(List<TenantSetInfo> cmdbTenantSets,
+                                                         Set<Long> localTenantSetIds) {
         // CMDB-本地：计算新增租户集
         List<ApplicationDTO> insertList =
             cmdbTenantSets.stream()
@@ -135,9 +137,9 @@ public class TenantSetSyncService extends BasicAppSyncService {
      * @param localTenantSetIds  本地缓存的租户集ID列表
      * @return 新增的租户
      */
-    private List<ApplicationDTO> computeUpdateApps(List<TenantSetInfo> cmdbTenantSets,
-                                                   List<ApplicationDTO> localTenantSetApps,
-                                                   Set<Long> localTenantSetIds) {
+    private List<ApplicationDTO> computeUpdateTenantSets(List<TenantSetInfo> cmdbTenantSets,
+                                                         List<ApplicationDTO> localTenantSetApps,
+                                                         Set<Long> localTenantSetIds) {
         // 本地&CMDB交集：计算需要更新的租户集
         List<ApplicationDTO> updateList =
             cmdbTenantSets.stream().filter(ccTenantSetAppInfoDTO ->
@@ -159,8 +161,8 @@ public class TenantSetSyncService extends BasicAppSyncService {
      * @param localTenantSetApps 本地缓存的租户集
      * @return 需要删除的租户
      */
-    private List<ApplicationDTO> computeDeleteApps(Set<Long> cmdbTenantSetIds,
-                                                   List<ApplicationDTO> localTenantSetApps) {
+    private List<ApplicationDTO> computeDeleteTenantSets(Set<Long> cmdbTenantSetIds,
+                                                         List<ApplicationDTO> localTenantSetApps) {
         // 本地-CMDB：计算需要删除的租户集
         List<ApplicationDTO> deleteList = localTenantSetApps.stream().filter(localApp ->
                 !cmdbTenantSetIds.contains(Long.valueOf(localApp.getScope().getId())))
