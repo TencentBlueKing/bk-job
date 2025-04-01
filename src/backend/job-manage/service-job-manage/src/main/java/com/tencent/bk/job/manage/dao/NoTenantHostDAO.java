@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 租户无关的主机操作，可操作所有租户的主机，仅供系统内部逻辑使用
@@ -164,14 +163,6 @@ public interface NoTenantHostDAO {
 
     // 删除类操作
     int deleteHostBeforeOrEqualLastTime(Long bizId, Long hostId, Long lastTime);
-
-    /**
-     * 根据传入的主机ID批量删除主机
-     *
-     * @param hostIdList 要删除的主机ID列表
-     * @return 删除的主机数量
-     */
-    int batchDeleteHostById(List<Long> hostIdList);
 
     /**
      * 删除某个业务下的全部主机，用于业务被删除后清理主机

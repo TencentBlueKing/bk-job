@@ -46,11 +46,11 @@ import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Record2;
 import org.jooq.Result;
-import org.jooq.SelectSeekStep2;
+import org.jooq.SelectLimitStep;
+import org.jooq.SelectSeekStep1;
 import org.jooq.TableField;
 import org.jooq.conf.ParamType;
 import org.jooq.impl.DSL;
-import org.jooq.types.UByte;
 import org.jooq.types.ULong;
 
 import java.util.ArrayList;
@@ -420,7 +420,7 @@ abstract public class AbstractBaseHostDAO {
                 .where(conditions)
                 .orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc());
         log.debug("SQL={}", query.getSQL(ParamType.INLINED));
-        Result<Record> records = fetchRecordsWithLimit(query, start, limit);
+        Result<? extends Record> records = fetchRecordsWithLimit(query, start, limit);
         List<Long> hostIdList = new ArrayList<>();
         if (!records.isEmpty()) {
             hostIdList = records.stream()
@@ -436,6 +436,22 @@ abstract public class AbstractBaseHostDAO {
             }
         });
         return uniqueHostIdList;
+    }
+
+    protected List<Long> getHostIdListFromHostByConditions(Collection<Condition> conditions,
+                                                           Long start,
+                                                           Long limit) {
+        Host tHost = Host.HOST;
+        final SelectSeekStep1<Record1<ULong>, ULong> query = context
+            .selectDistinct(tHost.HOST_ID)
+            .from(tHost)
+            .where(conditions)
+            .orderBy(TABLE.HOST_ID.asc());
+        log.debug("SQL={}", query.getSQL(ParamType.INLINED));
+        Result<? extends Record> records = fetchRecordsWithLimit(query, start, limit);
+        return records.stream()
+            .map(record -> record.get(0, Long.class))
+            .collect(Collectors.toList());
     }
 
     protected List<ApplicationHostDTO> queryHostsByCondition(List<Condition> conditions) {
@@ -505,7 +521,7 @@ abstract public class AbstractBaseHostDAO {
             .from(TABLE)
             .where(conditions)
             .orderBy(TABLE.IS_AGENT_ALIVE.desc(), TABLE.HOST_ID.asc());
-        Result<Record> records = fetchRecordsWithLimit(query, start, limit);
+        Result<? extends Record> records = fetchRecordsWithLimit(query, start, limit);
         List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
 
         if (CollectionUtils.isNotEmpty(records)) {
@@ -525,10 +541,10 @@ abstract public class AbstractBaseHostDAO {
         return context.selectCount().from(TABLE).where(conditions).fetchOne(0, Long.class);
     }
 
-    protected Result<Record> fetchRecordsWithLimit(SelectSeekStep2<Record, UByte, ULong> query,
-                                                   Long start,
-                                                   Long limit) {
-        Result<Record> records;
+    protected Result<? extends Record> fetchRecordsWithLimit(SelectLimitStep<?> query,
+                                                             Long start,
+                                                             Long limit) {
+        Result<? extends Record> records;
         if (start == null || start < 0) {
             start = 0L;
         }

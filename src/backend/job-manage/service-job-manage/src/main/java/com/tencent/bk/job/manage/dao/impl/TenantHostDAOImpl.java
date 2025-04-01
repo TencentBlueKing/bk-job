@@ -25,11 +25,13 @@
 package com.tencent.bk.job.manage.dao.impl;
 
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.dao.TenantHostDAO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -115,5 +117,28 @@ public class TenantHostDAOImpl extends AbstractBaseHostDAO implements TenantHost
                 return record;
             });
         return groupMap;
+    }
+
+    @Override
+    public List<Long> listHostIds(String tenantId, Long start, Long limit) {
+        List<Condition> conditions = getBasicConditions();
+        conditions.add(TABLE.TENANT_ID.eq(tenantId));
+        return getHostIdListFromHostByConditions(conditions, start, limit);
+    }
+
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
+    @Override
+    public int batchDeleteHostById(String tenantId, List<Long> hostIdList) {
+        if (CollectionUtils.isEmpty(hostIdList)) {
+            return 0;
+        }
+        List<Condition> conditions = getBasicConditions();
+        conditions.add(TABLE.TENANT_ID.eq(tenantId));
+        conditions.add(TABLE.HOST_ID.in(hostIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
+        int deletedRelationNum = hostTopoDAO.batchDeleteHostTopo(hostIdList);
+        log.info("{} host relation deleted", deletedRelationNum);
+        return context.deleteFrom(TABLE)
+            .where(conditions)
+            .execute();
     }
 }

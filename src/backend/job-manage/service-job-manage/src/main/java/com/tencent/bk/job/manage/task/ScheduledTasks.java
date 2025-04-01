@@ -44,7 +44,7 @@ public class ScheduledTasks {
     private final AllTenantHostSyncService allTenantHostSyncService;
     private final AgentStatusSyncService agentStatusSyncService;
     private final UserUploadFileCleanTask userUploadFileCleanTask;
-    private final ClearDeletedHostsTask clearDeletedHostsTask;
+    private final ClearNotInCmdbHostsService clearNotInCmdbHostsService;
     private final ApplicationCache applicationCache;
 
     @Autowired
@@ -54,14 +54,14 @@ public class ScheduledTasks {
         AllTenantHostSyncService allTenantHostSyncService,
         AgentStatusSyncService agentStatusSyncService,
         UserUploadFileCleanTask userUploadFileCleanTask,
-        ClearDeletedHostsTask clearDeletedHostsTask,
+        ClearNotInCmdbHostsService clearNotInCmdbHostsService,
         ApplicationCache applicationCache) {
         this.userSyncService = userSyncService;
         this.appSyncService = appSyncService;
         this.allTenantHostSyncService = allTenantHostSyncService;
         this.agentStatusSyncService = agentStatusSyncService;
         this.userUploadFileCleanTask = userUploadFileCleanTask;
-        this.clearDeletedHostsTask = clearDeletedHostsTask;
+        this.clearNotInCmdbHostsService = clearNotInCmdbHostsService;
         this.applicationCache = applicationCache;
     }
 
@@ -141,14 +141,4 @@ public class ScheduledTasks {
         log.info("Clean user upload file task finished");
     }
 
-
-    @Scheduled(cron = "0 10 * * * ?")
-    public void clearDeletedHosts() {
-        log.info("Clear deleted hosts task begin");
-        try {
-            log.info("Clear deleted hosts task finished:{}", clearDeletedHostsTask.execute());
-        } catch (Exception e) {
-            log.error("Clear deleted hosts failed!", e);
-        }
-    }
 }

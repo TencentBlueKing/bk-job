@@ -42,7 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import lombok.var;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -60,12 +59,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-
-import static org.jooq.impl.DSL.count;
 
 /**
  * 租户无关的主机DAO
@@ -583,23 +578,6 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
             .execute();
         hostTopoDAO.deleteHostTopoByHostId(bizId, hostId);
         return affectedNum;
-    }
-
-    @JobTransactional(transactionManager = "jobManageTransactionManager")
-    @Override
-    public int batchDeleteHostById(List<Long> hostIdList) {
-        if (CollectionUtils.isEmpty(hostIdList)) {
-            return 0;
-        }
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(
-            TABLE.HOST_ID.in(hostIdList.stream().map(ULong::valueOf).collect(Collectors.toList()))
-        );
-        int deletedRelationNum = hostTopoDAO.batchDeleteHostTopo(hostIdList);
-        log.info("{} host relation deleted", deletedRelationNum);
-        return context.deleteFrom(TABLE)
-            .where(conditions)
-            .execute();
     }
 
     private int batchDeleteBizHostInfoById(Long bizId, List<Long> hostIdList) {

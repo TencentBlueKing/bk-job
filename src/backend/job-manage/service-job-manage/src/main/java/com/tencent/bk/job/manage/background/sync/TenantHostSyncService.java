@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
+import com.tencent.bk.job.manage.task.ClearNotInCmdbHostsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Triple;
@@ -43,11 +44,9 @@ import org.springframework.cloud.sleuth.annotation.NewSpan;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -68,17 +67,20 @@ public class TenantHostSyncService {
     private static final String machineIp = IpUtils.getFirstMachineIP();
 
     private final ApplicationDAO applicationDAO;
+    private final ClearNotInCmdbHostsService clearNotInCmdbHostsService;
     private final BizHostSyncService bizHostSyncService;
     private final RedisTemplate<String, String> redisTemplate;
     private final ThreadPoolExecutor syncHostExecutor;
 
     @Autowired
     public TenantHostSyncService(ApplicationDAO applicationDAO,
+                                 ClearNotInCmdbHostsService clearNotInCmdbHostsService,
                                  BizHostSyncService bizHostSyncService,
                                  RedisTemplate<String, String> redisTemplate,
                                  @Qualifier("syncHostExecutor")
                                  ThreadPoolExecutor syncHostExecutor) {
         this.applicationDAO = applicationDAO;
+        this.clearNotInCmdbHostsService = clearNotInCmdbHostsService;
         this.bizHostSyncService = bizHostSyncService;
         this.redisTemplate = redisTemplate;
         this.syncHostExecutor = syncHostExecutor;
@@ -130,9 +132,7 @@ public class TenantHostSyncService {
             log.info("syncHost(tenantId={}) thread already running on {}", tenantId, lockKeyValue);
             return;
         }
-        syncHostExecutor.execute(() -> {
-            tryToSyncTenantHostWithLock(tenantId, lock);
-        });
+        syncHostExecutor.execute(() -> tryToSyncTenantHostWithLock(tenantId, lock));
     }
 
     private Future<Triple<Set<BasicHostDTO>, Long, Long>> arrangeSyncBizHostsTask(ApplicationDTO bizApp) {
@@ -175,9 +175,7 @@ public class TenantHostSyncService {
         long writeToDBTime = 0L;
         List<Pair<ApplicationDTO, Future<Triple<Set<BasicHostDTO>, Long, Long>>>> bizAppFutureList =
             new ArrayList<>();
-        Set<BasicHostDTO> allBizCmdbBasicHosts = new HashSet<>();
         int failedBizNum = 0;
-        long cmdbHostsFetchTimeMills = System.currentTimeMillis();
         for (ApplicationDTO bizApp : localBizApps) {
             Future<Triple<Set<BasicHostDTO>, Long, Long>> future = arrangeSyncBizHostsTask(bizApp);
             bizAppFutureList.add(Pair.of(bizApp, future));
@@ -188,10 +186,6 @@ public class TenantHostSyncService {
             Future<Triple<Set<BasicHostDTO>, Long, Long>> future = bizAppFuture.getSecond();
             try {
                 Triple<Set<BasicHostDTO>, Long, Long> timeConsumingPair = future.get(30, TimeUnit.MINUTES);
-                Set<BasicHostDTO> cmdbBasicHosts = timeConsumingPair.getLeft();
-                if (!CollectionUtils.isEmpty(cmdbBasicHosts)) {
-                    allBizCmdbBasicHosts.addAll(cmdbBasicHosts);
-                }
                 cmdbInterfaceTime += timeConsumingPair.getMiddle();
                 writeToDBTime += timeConsumingPair.getRight();
             } catch (Throwable t) {
@@ -199,11 +193,12 @@ public class TenantHostSyncService {
                 failedBizNum += 1;
             }
         }
+        // 删除CMDB中不存在的主机
+        clearNotInCmdbHostsService.clearHostNotInCmdb(tenantId);
         if (failedBizNum == 0) {
-            // 删除CMDB中不存在的主机
-            bizHostSyncService.clearHostNotInCmdb(allBizCmdbBasicHosts, cmdbHostsFetchTimeMills);
             log.info(
-                "syncHostFinish: bizNum={}, failedBizNum={}, cmdbInterfaceTime={}ms, writeToDBTime={}ms",
+                "syncHostFinish: bizNum={}, failedBizNum={}, " +
+                    "cmdbInterfaceTime={}ms, writeToDBTime={}ms",
                 localBizApps.size(),
                 failedBizNum,
                 cmdbInterfaceTime,
@@ -211,7 +206,8 @@ public class TenantHostSyncService {
             );
         } else {
             log.warn(
-                "syncHostFinish: bizNum={}, failedBizNum={}, cmdbInterfaceTime={}ms, writeToDBTime={}ms",
+                "syncHostFinish: bizNum={}, failedBizNum={}, " +
+                    "cmdbInterfaceTime={}ms, writeToDBTime={}ms",
                 localBizApps.size(),
                 failedBizNum,
                 cmdbInterfaceTime,
