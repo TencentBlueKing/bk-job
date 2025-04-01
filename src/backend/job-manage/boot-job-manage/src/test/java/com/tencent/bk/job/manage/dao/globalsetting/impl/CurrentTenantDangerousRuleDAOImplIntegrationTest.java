@@ -91,6 +91,7 @@ class CurrentTenantDangerousRuleDAOImplIntegrationTest {
             .builder()
             .expression("sql")
             .build();
+        JobContextUtil.setUser(new User("tencent", null));
         List<DangerousRuleDTO> dangerousRuleDTOS = currentTenantDangerousRuleDAO.listDangerousRules(query);
         assertThat(dangerousRuleDTOS).hasSize(3);
         query.setExpression("shell");
@@ -153,5 +154,6 @@ class CurrentTenantDangerousRuleDAOImplIntegrationTest {
         query.setDescription("SQL");
         dangerousRuleDTOS = currentTenantDangerousRuleDAO.listDangerousRules(query);
         assertThat(dangerousRuleDTOS).hasSize(3);
+        JobContextUtil.setUser(null);
     }
 }
