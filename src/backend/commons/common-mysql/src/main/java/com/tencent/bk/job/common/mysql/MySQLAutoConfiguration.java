@@ -24,10 +24,19 @@
 
 package com.tencent.bk.job.common.mysql;
 
+import com.tencent.bk.job.common.mysql.listener.JooqExecuteListener;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.jooq.impl.DefaultExecuteListenerProvider;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableConfigurationProperties(MySQLProperties.class)
 public class MySQLAutoConfiguration {
+    @Bean
+    public DefaultExecuteListenerProvider jooqExecuteListenerProvider(MySQLProperties mySQLProperties,
+                                                                      MeterRegistry registry) {
+        return new DefaultExecuteListenerProvider(new JooqExecuteListener(mySQLProperties, registry));
+    }
 }

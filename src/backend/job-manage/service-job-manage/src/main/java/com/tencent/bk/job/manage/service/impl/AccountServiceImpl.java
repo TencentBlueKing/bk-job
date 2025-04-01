@@ -501,8 +501,4 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
-    @Override
-    public Integer countAccounts(AccountTypeEnum accountType) {
-        return accountDAO.countAccounts(accountType);
-    }
 }

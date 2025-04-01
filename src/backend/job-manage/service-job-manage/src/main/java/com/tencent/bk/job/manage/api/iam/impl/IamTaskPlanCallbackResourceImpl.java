@@ -31,6 +31,8 @@ import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.api.iam.IamTaskPlanCallbackResource;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanBasicInfoDTO;
@@ -70,7 +72,10 @@ public class IamTaskPlanCallbackResourceImpl extends BaseIamCallbackService
 
     @Autowired
     public IamTaskPlanCallbackResourceImpl(TaskPlanService planService,
-                                           ApplicationService applicationService) {
+                                           ApplicationService applicationService,
+                                           AppScopeMappingService appScopeMappingService,
+                                           TenantService tenantService) {
+        super(appScopeMappingService, tenantService);
         this.planService = planService;
         this.applicationService = applicationService;
     }
@@ -194,8 +199,8 @@ public class IamTaskPlanCallbackResourceImpl extends BaseIamCallbackService
     }
 
     @Override
-    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        return baseCallback(callbackRequest);
+    public CallbackBaseResponseDTO callback(String tenantId, CallbackRequestDTO callbackRequest) {
+        return baseCallback(tenantId, callbackRequest);
     }
 
     @Override

@@ -1,89 +1,45 @@
 package com.tencent.bk.job.common.artifactory.sdk;
 
+import com.tencent.bk.job.common.artifactory.exception.ProjectExistedException;
+import com.tencent.bk.job.common.artifactory.exception.RepoNotFoundException;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
-import com.tencent.bk.job.common.artifactory.model.dto.ProjectDTO;
 import com.tencent.bk.job.common.artifactory.model.req.CheckRepoExistReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateProjectReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateRepoReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateUserToProjectReq;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.ThreadUtils;
+import com.tentent.bk.job.common.api.artifactory.IRealProjectNameStore;
+import io.micrometer.core.instrument.util.StringUtils;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-
+/**
+ * 用于制品库相关操作：创建项目、仓库等
+ */
 @Slf4j
 public class ArtifactoryHelper {
 
-    private static boolean checkProjectExist(ArtifactoryClient adminClient, String projectName) {
-        List<ProjectDTO> projectDTOList = adminClient.listProject();
-        for (ProjectDTO projectDTO : projectDTOList) {
-            if (projectDTO.getName().equals(projectName)) {
-                log.debug(
-                    "project {} already exists, do not create again",
-                    projectName
-                );
-                return true;
-            }
-        }
-        return false;
-    }
+    private final TenantEnvService tenantEnvService;
+    @Getter
+    private final IRealProjectNameStore realProjectNameStore;
 
-    private static boolean createProjectIfNotExist(ArtifactoryClient adminClient, CreateProjectReq req) {
-        boolean projectCreated = false;
-        int retryCount = 0;
-        do {
-            try {
-                if (checkProjectExist(adminClient, req.getName())) return true;
-                projectCreated = adminClient.createProject(req);
-            } catch (Throwable t) {
-                log.warn("Fail to create project {}, retry {} after 5 seconds", req.getName(), ++retryCount, t);
-                ThreadUtils.sleep(5000);
-            }
-        } while (!projectCreated && retryCount < 3);
-        if (!projectCreated) {
-            log.error("Fail to create project {} after retry {}", req.getName(), retryCount);
-        }
-        return projectCreated;
-    }
-
-
-    private static boolean createUserToProjectIfNotExist(ArtifactoryClient adminClient, CreateUserToProjectReq req) {
-        boolean projectUserCreated = false;
-        int retryCount = 0;
-        do {
-            try {
-                projectUserCreated = adminClient.createUserToProject(req);
-            } catch (Throwable t) {
-                log.warn(
-                    "Fail to create user {} to project {}, retry {} after 5 seconds",
-                    req.getName(),
-                    req.getProjectId(),
-                    ++retryCount,
-                    t
-                );
-                ThreadUtils.sleep(5000);
-            }
-        } while (!projectUserCreated && retryCount < 3);
-        if (!projectUserCreated) {
-            log.error("Fail to create user {} to project {} after retry {}",
-                req.getName(),
-                req.getProjectId(),
-                retryCount
-            );
-        }
-        return projectUserCreated;
+    public ArtifactoryHelper(TenantEnvService tenantEnvService, IRealProjectNameStore realProjectNameStore) {
+        this.tenantEnvService = tenantEnvService;
+        this.realProjectNameStore = realProjectNameStore;
     }
 
     /**
      * 向制品库注册Job用户、项目
      */
-    public static boolean createJobUserAndProjectIfNotExists(
+    public boolean createJobUserAndProjectIfNotExists(
         String baseUrl,
         String adminUsername,
         String adminPassword,
         String jobUsername,
         String jobPassword,
-        String jobProject
+        String jobProject,
+        String jobRealProjectSaveKey
     ) {
         ArtifactoryClient adminClient = new ArtifactoryClient(
             baseUrl,
@@ -99,7 +55,7 @@ public class ArtifactoryHelper {
             "which is used to save job data produced by users. " +
             "Do not delete me unless you know what you are doing";
         req.setDescription(PROJECT_DESCRIPTION);
-        if (!createProjectIfNotExist(adminClient, req)) {
+        if (!createProjectIfNotExist(adminClient, jobRealProjectSaveKey, req)) {
             return false;
         } else {
             log.info(
@@ -113,7 +69,8 @@ public class ArtifactoryHelper {
         createUserToProjectReq.setName(jobUsername);
         createUserToProjectReq.setPwd(jobPassword);
         createUserToProjectReq.setAdmin(true);
-        createUserToProjectReq.setProjectId(jobProject);
+        String jobRealProject = realProjectNameStore.queryRealProjectName(jobRealProjectSaveKey);
+        createUserToProjectReq.setProjectId(jobRealProject);
         if (!createUserToProjectIfNotExist(adminClient, createUserToProjectReq)) {
             return false;
         } else {
@@ -128,7 +85,7 @@ public class ArtifactoryHelper {
     /**
      * 检查仓库是否已存在
      */
-    public static boolean checkRepoExists(
+    public boolean checkRepoExists(
         String baseUrl,
         String username,
         String password,
@@ -149,6 +106,8 @@ public class ArtifactoryHelper {
                 "/"
             );
             return localUploadRepoRootNode != null;
+        } catch (RepoNotFoundException t) {
+            return false;
         } catch (Throwable t) {
             log.info("Fail to queryNodeDetail", t);
         }
@@ -159,7 +118,7 @@ public class ArtifactoryHelper {
     /**
      * 在Job项目下创建指定仓库（若不存在）
      */
-    public static boolean createRepoIfNotExist(
+    public boolean createRepoIfNotExist(
         String baseUrl,
         String username,
         String password,
@@ -206,4 +165,62 @@ public class ArtifactoryHelper {
         }
         return repoCreated;
     }
+
+    private boolean createProjectIfNotExist(ArtifactoryClient adminClient,
+                                            String jobRealProjectSaveKey,
+                                            CreateProjectReq req) {
+        boolean projectCreated = false;
+        int retryCount = 0;
+        do {
+            try {
+                String tenantId = tenantEnvService.getTenantIdForArtifactoryBkJobProject();
+                String realProjectName = adminClient.createProject(tenantId, req);
+                if (StringUtils.isNotBlank(realProjectName)) {
+                    projectCreated = true;
+                    realProjectNameStore.saveRealProjectName(jobRealProjectSaveKey, realProjectName);
+                } else {
+                    log.warn("returned realProjectName is blank, unexpected, retry {}", ++retryCount);
+                }
+            } catch (ProjectExistedException e) {
+                log.info("Project {} already existed, ignore to create", req.getName());
+                projectCreated = true;
+            } catch (Throwable t) {
+                log.warn("Fail to create project {}, retry {} after 5 seconds", req.getName(), ++retryCount, t);
+                ThreadUtils.sleep(5000);
+            }
+        } while (!projectCreated && retryCount < 3);
+        if (!projectCreated) {
+            log.error("Fail to create project {} after retry {}", req.getName(), retryCount);
+        }
+        return projectCreated;
+    }
+
+
+    private boolean createUserToProjectIfNotExist(ArtifactoryClient adminClient, CreateUserToProjectReq req) {
+        boolean projectUserCreated = false;
+        int retryCount = 0;
+        do {
+            try {
+                projectUserCreated = adminClient.createUserToProject(req);
+            } catch (Throwable t) {
+                log.warn(
+                    "Fail to create user {} to project {}, retry {} after 5 seconds",
+                    req.getName(),
+                    req.getProjectId(),
+                    ++retryCount,
+                    t
+                );
+                ThreadUtils.sleep(5000);
+            }
+        } while (!projectUserCreated && retryCount < 3);
+        if (!projectUserCreated) {
+            log.error("Fail to create user {} to project {} after retry {}",
+                req.getName(),
+                req.getProjectId(),
+                retryCount
+            );
+        }
+        return projectUserCreated;
+    }
+
 }

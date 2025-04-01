@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.model.dto;
 
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -85,10 +86,20 @@ public class BkUserDTO {
     private String language;
 
     /**
+     * 是否为系统租户
+     */
+    private Boolean systemTenant;
+
+    /**
      * 获取用户的完整账号名称
      */
     public String getFullName() {
         return displayName + ":" + username + "@" + tenantId;
+    }
+
+    public void setTenantId(String tenantId){
+        this.tenantId = tenantId;
+        this.systemTenant = TenantIdConstants.SYSTEM_TENANT_ID.equals(tenantId);
     }
 
     @Override

@@ -34,7 +34,10 @@ public class ExecuteMetricsConstants {
      * 日志大小（字节）
      */
     public static final String NAME_JOB_LOG_BYTES = "job.log.bytes";
-
+    /**
+     * 任务执行结束后的回调指标
+     */
+    public static final String NAME_JOB_TASK_CALLBACK = "job.task.callback";
 
     // tag
     /**
@@ -69,6 +72,10 @@ public class ExecuteMetricsConstants {
      * AppCode
      */
     public static final String TAG_KEY_APP_CODE = "app_code";
+    /**
+     * Result
+     */
+    public static final String TAG_KEY_RESULT = "result";
 
 
     /**
@@ -103,4 +110,16 @@ public class ExecuteMetricsConstants {
      * 任务启动状态：启动失败
      */
     public static final String TAG_VALUE_START_STATUS_FAILED = "failed";
+    /**
+     * 任务回调结果：使用postJson回调成功
+     */
+    public static final String TAG_VALUE_RESULT_POST_JSON_SUCCESS = "post_json_success";
+    /**
+     * 任务回调结果：使用postFormData回调成功
+     */
+    public static final String TAG_VALUE_RESULT_POST_FORM_DATA_SUCCESS = "post_form_data_success";
+    /**
+     * 任务回调结果：回调失败
+     */
+    public static final String TAG_VALUE_RESULT_FAILED = "failed";
 }

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.api.inner;
 
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
+import com.tencent.bk.job.common.compat.util.TenantCompatUtil;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.execute.model.inner.request.ServiceTriggerStatisticsRequest;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -51,8 +52,12 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
 
     @Override
     @Timed(extraTags = {IGNORE_TAG, BOOLEAN_TRUE_TAG_VALUE})
-    public InternalResponse<List<Long>> getJoinedAppIdList() {
-        return InternalResponse.buildSuccessResp(taskInstanceService.getJoinedAppIdList());
+    public InternalResponse<List<Long>> getJoinedAppIdList(String tenantId) {
+        return InternalResponse.buildSuccessResp(
+            taskInstanceService.getJoinedAppIdList(
+                TenantCompatUtil.getTenantIdWithDefault(tenantId)
+            )
+        );
     }
 
     @Override

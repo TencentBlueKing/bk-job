@@ -26,10 +26,12 @@ package com.tencent.bk.job.common.constant;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
 
 /**
  * 资源范围类型
  */
+@Getter
 public enum ResourceScopeTypeEnum {
     /**
      * CMDB业务
@@ -38,7 +40,11 @@ public enum ResourceScopeTypeEnum {
     /**
      * CMDB业务集
      */
-    BIZ_SET("biz_set");
+    BIZ_SET("biz_set"),
+    /**
+     * CMDB租户集
+     */
+    TENANT_SET("tenant_set");
 
     /**
      * 资源范围类型
@@ -58,10 +64,6 @@ public enum ResourceScopeTypeEnum {
             }
         }
         throw new IllegalArgumentException("No ResourceScopeTypeEnum constant: " + type);
-    }
-
-    public String getValue() {
-        return value;
     }
 
     public static boolean isValid(String type) {

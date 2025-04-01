@@ -203,6 +203,7 @@ allprojects {
     }
 
     repositories {
+        mavenCentral()
         mavenLocal()
 
         // 用户通过命令行方式指定的 maven repo
@@ -222,7 +223,6 @@ allprojects {
                 maven { url repoUrl }
             }
         }
-        mavenCentral()
         maven {
             url "https://repo.spring.io/snapshot"
         }

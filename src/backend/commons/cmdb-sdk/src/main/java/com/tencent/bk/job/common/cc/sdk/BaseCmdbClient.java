@@ -91,6 +91,9 @@ public class BaseCmdbClient extends BkApiV1Client {
     protected static final String SEARCH_BUSINESS_SET = "/api/v3/findmany/biz_set";
     protected static final String SEARCH_BIZ_IN_BUSINESS_SET = "/api/v3/find/biz_set/biz_list";
 
+    // 租户集相关 API
+    protected static final String LIST_TENANT_SET = "/api/v3/findmany/tenant_set";
+
     private static final Map<String, String> interfaceNameMap = new HashMap<>();
 
     protected final String cmdbSupplierAccount;
@@ -138,7 +141,7 @@ public class BaseCmdbClient extends BkApiV1Client {
             meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             bkApiGatewayProperties.getCmdb().getUrl(),
-            HttpHelperFactory.getRetryableHttpHelper(),
+            HttpHelperFactory.getLongRetryableHttpHelper(),
             lang,
             tenantEnvService
         );

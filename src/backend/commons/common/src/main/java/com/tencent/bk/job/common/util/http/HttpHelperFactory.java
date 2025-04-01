@@ -41,7 +41,7 @@ public class HttpHelperFactory {
         LONG_RETRYABLE_HTTP_CLIENT = JobHttpClientFactory.createHttpClient(
             15000,
             15000,
-            30000,
+            35000,
             500,
             1000,
             60,

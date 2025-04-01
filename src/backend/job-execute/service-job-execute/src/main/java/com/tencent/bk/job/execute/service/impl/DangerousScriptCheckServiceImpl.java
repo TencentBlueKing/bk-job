@@ -32,7 +32,7 @@ import com.tencent.bk.job.execute.model.ScriptCheckItemDTO;
 import com.tencent.bk.job.execute.model.ScriptCheckResultDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.DangerousRecordService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
 import com.tencent.bk.job.manage.api.common.constants.RuleMatchHandleActionEnum;
@@ -59,17 +59,17 @@ public class DangerousScriptCheckServiceImpl implements DangerousScriptCheckServ
     private final ServiceCheckScriptResource scriptCheckResource;
     private final MessageI18nService messageI18nService;
     private final DangerousRecordService dangerousRecordService;
-    private final ApplicationService applicationService;
+    private final RemoteAppService remoteAppService;
 
     @Autowired
     public DangerousScriptCheckServiceImpl(ServiceCheckScriptResource scriptCheckResource,
                                            MessageI18nService messageI18nService,
                                            DangerousRecordService dangerousRecordService,
-                                           ApplicationService applicationService) {
+                                           RemoteAppService remoteAppService) {
         this.scriptCheckResource = scriptCheckResource;
         this.messageI18nService = messageI18nService;
         this.dangerousRecordService = dangerousRecordService;
-        this.applicationService = applicationService;
+        this.remoteAppService = remoteAppService;
     }
 
     @Override
@@ -129,7 +129,7 @@ public class DangerousScriptCheckServiceImpl implements DangerousScriptCheckServ
         record.setRuleExpression(checkResultItem.getRuleExpression());
         record.setAction(checkResultItem.getAction());
         record.setAppId(taskInstance.getAppId());
-        ServiceApplicationDTO app = applicationService.getAppById(taskInstance.getAppId());
+        ServiceApplicationDTO app = remoteAppService.getAppById(taskInstance.getAppId());
         record.setAppName(app.getName());
         record.setCreateTime(System.currentTimeMillis());
         record.setStartupMode(taskInstance.getStartupMode());

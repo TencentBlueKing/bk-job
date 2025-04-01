@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.api.inner;
 
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.common.annotation.InternalAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.execute.model.inner.request.ServiceTriggerStatisticsRequest;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
@@ -35,6 +36,7 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -46,7 +48,10 @@ public interface ServiceMetricsResource {
 
     @ApiOperation(value = "接入（执行过一次任务）的业务Id列表", produces = "application/json")
     @GetMapping("/app/joined")
-    InternalResponse<List<Long>> getJoinedAppIdList();
+    InternalResponse<List<Long>> getJoinedAppIdList(
+        @RequestHeader(value = JobCommonHeaders.BK_TENANT_ID, required = false)
+        String tenantId
+    );
 
     @ApiOperation(value = "是否有执行记录", produces = "application/json")
     @GetMapping("/service/metrics/app/hasExecuteHistory")

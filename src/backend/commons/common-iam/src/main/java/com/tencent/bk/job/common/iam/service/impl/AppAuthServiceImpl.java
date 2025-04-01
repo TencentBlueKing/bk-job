@@ -118,6 +118,14 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
             relatedResourceType.setSystemId(ResourceTypeEnum.BUSINESS.getSystemId());
             relatedResourceType.setType(ResourceTypeEnum.BUSINESS.getId());
             relatedResourceType.setInstance(Collections.singletonList(Collections.singletonList(instance)));
+        } else if (appResourceScope.getType() == ResourceScopeTypeEnum.TENANT_SET) {
+            instance.setType(ResourceTypeEnum.TENANT_SET.getId());
+            instance.setId(appResourceScope.getId());
+            instance.setPath(buildResourceScopePath(appResourceScope));
+
+            relatedResourceType.setSystemId(ResourceTypeEnum.BUSINESS.getSystemId());
+            relatedResourceType.setType(ResourceTypeEnum.BUSINESS.getId());
+            relatedResourceType.setInstance(Collections.singletonList(Collections.singletonList(instance)));
         } else {
             FormattingTuple msg = MessageFormatter.format(
                 "not supported resourceType:{}",
@@ -143,6 +151,9 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
             // 层级节点资源类型
             permissionResource.setType(ResourceTypeId.BUSINESS_SET);
             permissionResource.setSubResourceType(resourceType.getId());
+        } else if (appResourceScope.getType() == ResourceScopeTypeEnum.TENANT_SET) {
+            permissionResource.setType(ResourceTypeId.TENANT_SET);
+            permissionResource.setSubResourceType(resourceType.getId());
         }
         permissionResource.setPathInfo(buildResourceScopePath(appResourceScope));
         authResult.addRequiredPermission(actionId, permissionResource);
@@ -163,6 +174,10 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
         } else if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
             instance.setType(ResourceTypeEnum.BUSINESS.getId());
             instance.setSystem(ResourceTypeEnum.BUSINESS.getSystemId());
+            instance.setPath(buildResourceScopePath(appResourceScope));
+        } else if (appResourceScope.getType() == ResourceScopeTypeEnum.TENANT_SET) {
+            instance.setType(ResourceTypeEnum.TENANT_SET.getId());
+            instance.setSystem(ResourceTypeEnum.TENANT_SET.getSystemId());
             instance.setPath(buildResourceScopePath(appResourceScope));
         } else {
             FormattingTuple msg = MessageFormatter.format(

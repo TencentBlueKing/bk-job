@@ -24,22 +24,40 @@
 
 package com.tencent.bk.job.analysis.config;
 
-import com.tencent.bk.job.common.service.AppCacheService;
+import com.tencent.bk.job.common.service.CommonAppService;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.web.interceptor.BasicAppInterceptor;
-import com.tencent.bk.job.manage.AppCacheServiceImpl;
+import com.tencent.bk.job.manage.CommonAppServiceImpl;
+import com.tencent.bk.job.manage.CachedTenantServiceImpl;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
+import com.tencent.bk.job.manage.api.inner.ServiceSyncResource;
+import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
+import com.tencent.bk.job.manage.remote.RemoteAppServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class JobAnalysisConfiguration {
+
     @Bean
-    AppCacheService appScopeMappingService(ServiceApplicationResource applicationResource) {
-        return new AppCacheServiceImpl(applicationResource);
+    TenantService cachedTenantService(ServiceTenantResource serviceTenantResource) {
+        return new CachedTenantServiceImpl(serviceTenantResource);
     }
 
     @Bean
-    public BasicAppInterceptor basicAppInterceptor(AppCacheService appCacheService) {
-        return new BasicAppInterceptor(appCacheService);
+    CommonAppService commonAppService(ServiceApplicationResource applicationResource) {
+        return new CommonAppServiceImpl(applicationResource);
+    }
+
+    @Bean
+    RemoteAppService remoteAppService(ServiceApplicationResource applicationResource,
+                                      ServiceSyncResource syncResource) {
+        return new RemoteAppServiceImpl(applicationResource, syncResource);
+    }
+
+    @Bean
+    public BasicAppInterceptor basicAppInterceptor(CommonAppService appService) {
+        return new BasicAppInterceptor(appService);
     }
 }

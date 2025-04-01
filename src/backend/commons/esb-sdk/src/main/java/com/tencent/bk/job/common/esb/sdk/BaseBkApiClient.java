@@ -76,7 +76,7 @@ public class BaseBkApiClient {
     private final String baseAccessUrl;
     private final HttpHelper defaultHttpHelper;
     private final MeterRegistry meterRegistry;
-    private final TenantEnvService tenantEnvService;
+    protected final TenantEnvService tenantEnvService;
     private static final String BK_API_AUTH_HEADER = "X-Bkapi-Authorization";
     /**
      * API调用度量指标名称
@@ -146,9 +146,14 @@ public class BaseBkApiClient {
             logStrategy.logReq(log, apiContext);
         } else {
             if (log.isInfoEnabled()) {
-                log.info("[AbstractBkApiClient] Request|method={}|uri={}|reqStr={}",
-                    httpMethod.name(), requestInfo.getUri(),
-                    requestInfo.getBody() != null ? JsonUtils.toJsonWithoutSkippedFields(requestInfo.getBody()) : null);
+                log.info(
+                    "[AbstractBkApiClient] Request|tenantId={}|method={}|uri={}|reqStr={}",
+                    extractBkTenantId(requestInfo),
+                    httpMethod.name(),
+                    requestInfo.getUri(),
+                    requestInfo.getBody() != null ?
+                        JsonUtils.toJsonWithoutSkippedFields(requestInfo.getBody()) : null
+                );
             }
         }
 
@@ -234,8 +239,20 @@ public class BaseBkApiClient {
         }
     }
 
+    private String extractBkTenantId(OpenApiRequestInfo<?> requestInfo) {
+        if (requestInfo.getHeaders() == null) {
+            return "";
+        }
+        for (Header header : requestInfo.getHeaders()) {
+            if (JobCommonHeaders.BK_TENANT_ID.equalsIgnoreCase(header.getName())) {
+                return header.getValue();
+            }
+        }
+        return "";
+    }
+
     private String extractBkApiRequestId(HttpResponse response) {
-        if (response.getHeaders() == null || response.getHeaders().length == 0) {
+        if (response.getHeaders() == null) {
             return "";
         }
         for (Header header : response.getHeaders()) {
@@ -314,13 +331,12 @@ public class BaseBkApiClient {
             .anyMatch(header -> header.getName().equalsIgnoreCase(JobCommonHeaders.BK_TENANT_ID));
         if (!containsTenantHeader) {
             if (tenantEnvService.isTenantEnabled()) {
-                // 临时方案，为了尽快联调；后续这里需要抛出异常
-                log.warn("Add default tenant header : {}", TenantIdConstants.DEFAULT_TENANT_ID);
-                headers.add(new BasicHeader(TenantIdConstants.DEFAULT_TENANT_ID, TenantIdConstants.DEFAULT_TENANT_ID));
-//                throw new InternalException("Header: " + JobCommonHeaders.BK_TENANT_ID + " is required",
-//                        ErrorCode.API_ERROR);
+                throw new InternalException(
+                    "Header: " + JobCommonHeaders.BK_TENANT_ID + " is required",
+                    ErrorCode.API_ERROR
+                );
             } else {
-                headers.add(new BasicHeader(TenantIdConstants.DEFAULT_TENANT_ID, TenantIdConstants.DEFAULT_TENANT_ID));
+                headers.add(buildTenantHeader(TenantIdConstants.DEFAULT_TENANT_ID));
             }
         }
     }

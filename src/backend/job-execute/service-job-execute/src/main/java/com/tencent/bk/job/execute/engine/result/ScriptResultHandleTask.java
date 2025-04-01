@@ -184,7 +184,6 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
 
     private ScriptTaskResult pullGseTaskResult(List<ExecuteObjectGseKey> executeObjectGseKeys) {
         GetExecuteScriptResultRequest request = new GetExecuteScriptResultRequest();
-        request.setGseV2Task(gseV2Task);
         request.setTaskId(gseTask.getGseTaskId());
 
         int executeObjectSize = executeObjectGseKeys.size();

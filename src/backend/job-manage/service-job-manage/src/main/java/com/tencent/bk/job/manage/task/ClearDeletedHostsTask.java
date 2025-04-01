@@ -26,11 +26,12 @@ package com.tencent.bk.job.manage.task;
 
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
 import com.tencent.bk.job.common.util.ip.IpUtils;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -53,15 +54,15 @@ public class ClearDeletedHostsTask {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final IBizCmdbClient bizCmdbClient;
-    private final ApplicationHostDAO applicationHostDAO;
+    private final NoTenantHostDAO noTenantHostDAO;
 
     @Autowired
     public ClearDeletedHostsTask(RedisTemplate<String, String> redisTemplate,
                                  IBizCmdbClient bizCmdbClient,
-                                 ApplicationHostDAO applicationHostDAO) {
+                                 NoTenantHostDAO noTenantHostDAO) {
         this.redisTemplate = redisTemplate;
         this.bizCmdbClient = bizCmdbClient;
-        this.applicationHostDAO = applicationHostDAO;
+        this.noTenantHostDAO = noTenantHostDAO;
     }
 
     public boolean execute() {
@@ -106,7 +107,7 @@ public class ClearDeletedHostsTask {
         // 1.查出不属于任何业务且近期未更新的主机ID进行check
         // 单个业务可能的最大主机同步时间：30min
         long bizHostsMaxSyncTimeMills = 30 * 60 * 1000L;
-        List<Long> hostIdList = applicationHostDAO.listHostId(
+        List<Long> hostIdList = noTenantHostDAO.listHostId(
             JobConstants.PUBLIC_APP_ID,
             0,
             System.currentTimeMillis() - bizHostsMaxSyncTimeMills
@@ -126,12 +127,14 @@ public class ClearDeletedHostsTask {
         int deletedHostTotalNum = 0;
         do {
             List<Long> subList = hostIdList.subList(start, end);
-            List<ApplicationHostDTO> hosts = bizCmdbClient.listHostsByHostIds(subList);
+            // TODO：逐个租户检查并清理
+            String tenantId = TenantIdConstants.SYSTEM_TENANT_ID;
+            List<ApplicationHostDTO> hosts = bizCmdbClient.listHostsByHostIds(tenantId, subList);
             Set<Long> validHostIds = hosts.stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
             List<Long> hostIdsToBeDelete = subList.stream()
                 .filter(hostId -> !validHostIds.contains(hostId))
                 .collect(Collectors.toList());
-            int deletedHostNum = applicationHostDAO.batchDeleteHostById(hostIdsToBeDelete);
+            int deletedHostNum = noTenantHostDAO.batchDeleteHostById(hostIdsToBeDelete);
             deletedHostTotalNum += deletedHostNum;
             log.info("{} host deleted:{}", deletedHostNum, hostIdsToBeDelete);
             start += batchSize;

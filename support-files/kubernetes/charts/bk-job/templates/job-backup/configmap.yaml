@@ -124,4 +124,6 @@ data:
         archive:  
           execute:
             {{- toYaml .Values.backupConfig.archive.execute | nindent 12 }}
+    mysql:
+      {{- toYaml .Values.backupConfig.mysql | nindent 6 }}
 {{- end }}

@@ -30,6 +30,6 @@ import java.util.List;
 
 public interface EsbAppRoleDAO {
 
-    List<AppRoleDTO> listEsbAppRole();
+    List<AppRoleDTO> listEsbAppRole(String tenantId);
 
 }

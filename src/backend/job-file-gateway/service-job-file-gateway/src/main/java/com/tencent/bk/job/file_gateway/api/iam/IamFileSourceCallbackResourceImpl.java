@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceV3DTO;
@@ -65,13 +66,13 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
     implements IamFileSourceCallbackResource {
 
     private final FileSourceService fileSourceService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public IamFileSourceCallbackResourceImpl(FileSourceService fileSourceService,
-                                             AppScopeMappingService appScopeMappingService) {
+                                             AppScopeMappingService appScopeMappingService,
+                                             TenantService tenantService) {
+        super(appScopeMappingService, tenantService);
         this.fileSourceService = fileSourceService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     @Data
@@ -103,7 +104,7 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
     private FileSourceSearchCondition getSearchCondition(CallbackRequestDTO callbackRequest) {
         IamSearchCondition searchCondition = IamSearchCondition.fromReq(callbackRequest);
         // 文件源列表实现
-        Long appId = appScopeMappingService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+        Long appId = getAppIdBySearchCondition(searchCondition);
         List<String> idStrList = searchCondition.getIdList();
         List<Integer> fileSourceIdList = null;
         if (idStrList != null) {
@@ -243,8 +244,8 @@ public class IamFileSourceCallbackResourceImpl extends BaseIamCallbackService
     }
 
     @Override
-    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        return baseCallback(callbackRequest);
+    public CallbackBaseResponseDTO callback(String tenantId, CallbackRequestDTO callbackRequest) {
+        return baseCallback(tenantId, callbackRequest);
     }
 
     @Override

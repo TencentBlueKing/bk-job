@@ -25,13 +25,12 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceAppRoleDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
 import com.tencent.bk.job.manage.model.inner.ServiceNotifyChannelDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceUserNotificationDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -64,8 +63,12 @@ public interface ServiceNotificationResource {
     @ApiOperation(value = "获取通知角色列表", produces = "application/json")
     @GetMapping("/service/notification/getNotifyRoles")
     InternalResponse<List<ServiceAppRoleDTO>> getNotifyRoles(
+        @ApiParam("租户ID")
+        @RequestHeader(value = JobCommonHeaders.BK_TENANT_ID, required = false)
+        String tenantId,
         @ApiParam("语言")
-        @RequestHeader("lang") String lang
+        @RequestHeader("lang")
+        String lang
     );
 
     @ApiOperation(value = "获取通知渠道", produces = "application/json")

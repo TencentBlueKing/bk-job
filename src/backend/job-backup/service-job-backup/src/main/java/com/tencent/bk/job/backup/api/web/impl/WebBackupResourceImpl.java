@@ -25,7 +25,6 @@
 package com.tencent.bk.job.backup.api.web.impl;
 
 import com.tencent.bk.job.backup.api.web.WebBackupResource;
-import com.tencent.bk.job.backup.config.ArtifactoryConfig;
 import com.tencent.bk.job.backup.config.BackupStorageConfig;
 import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
 import com.tencent.bk.job.backup.constant.Constant;
@@ -46,6 +45,7 @@ import com.tencent.bk.job.backup.service.ExportJobService;
 import com.tencent.bk.job.backup.service.ImportJobService;
 import com.tencent.bk.job.backup.service.LogService;
 import com.tencent.bk.job.backup.service.StorageService;
+import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.constant.ErrorCode;

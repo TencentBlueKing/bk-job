@@ -32,7 +32,7 @@ import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.BasicApp;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.service.AppCacheService;
+import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -68,7 +68,7 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
 
     private static final Pattern APP_PATTERN = Pattern.compile("/app/(\\d+)");
 
-    private final AppCacheService appCacheService;
+    private final CommonAppService appService;
 
     private final AppParser webAppParser;
 
@@ -76,8 +76,8 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
 
     private final AppParser internalAppParser;
 
-    public BasicAppInterceptor(AppCacheService appCacheService) {
-        this.appCacheService = appCacheService;
+    public BasicAppInterceptor(CommonAppService appService) {
+        this.appService = appService;
         this.webAppParser = new WebAppParser();
         this.esbAppParser = new EsbAppParser();
         this.internalAppParser = new InternalAppParser();
@@ -155,7 +155,7 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
                     && resourceScope.getId().equals("9991001")) {
                     resourceScope.setId("1");
                 }
-                return appCacheService.getApp(resourceScope);
+                return appService.getApp(resourceScope);
             }
 
             return null;
@@ -189,7 +189,7 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
 
             if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
                 // 优先使用 bk_scope_type & bk_scope_id
-                return appCacheService.getApp(new ResourceScope(scopeType, scopeId));
+                return appService.getApp(new ResourceScope(scopeType, scopeId));
             }
 
             // 如果兼容bk_biz_id参数
@@ -206,7 +206,7 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
                     } else {
                         resourceScope = new ResourceScope(ResourceScopeTypeEnum.BIZ, scopeId);
                     }
-                    return appCacheService.getApp(resourceScope);
+                    return appService.getApp(resourceScope);
                 }
             }
             // 其他情况返回null，后续拦截器会处理null
@@ -285,7 +285,7 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
             if (appId == null) {
                 return null;
             }
-            return appCacheService.getApp(appId);
+            return appService.getApp(appId);
         }
 
         private Long parseAppIdFromPath(String requestURI) {

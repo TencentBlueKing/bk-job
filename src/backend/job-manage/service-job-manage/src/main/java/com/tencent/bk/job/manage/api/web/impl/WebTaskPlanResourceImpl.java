@@ -63,7 +63,6 @@ import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanSyncInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import com.tencent.bk.job.manage.service.CronJobService;
 import com.tencent.bk.job.manage.service.TaskFavoriteService;
-import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
@@ -97,7 +96,6 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
     private final CronJobService cronJobService;
     private final TemplateAuthService templateAuthService;
     private final PlanAuthService planAuthService;
-    private final HostService hostService;
 
     @Autowired
     public WebTaskPlanResourceImpl(TaskPlanService planService,
@@ -105,15 +103,13 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
                                    @Qualifier("TaskPlanFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
                                    CronJobService cronJobService,
                                    TemplateAuthService templateAuthService,
-                                   PlanAuthService planAuthService,
-                                   HostService hostService) {
+                                   PlanAuthService planAuthService) {
         this.planService = planService;
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;
         this.cronJobService = cronJobService;
         this.templateAuthService = templateAuthService;
         this.planAuthService = planAuthService;
-        this.hostService = hostService;
     }
 
     @Override
@@ -334,10 +330,10 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         TaskPlanVO taskPlanVO = TaskPlanInfoDTO.toVO(taskPlan);
         taskPlanVO.setCanView(true);
         taskPlanVO.setCanEdit(planAuthService.authEditJobPlan(user, appResourceScope, templateId,
-            planId, taskPlan.getName())
+                planId, taskPlan.getName())
             .isPass());
         taskPlanVO.setCanDelete(planAuthService.authDeleteJobPlan(user, appResourceScope, templateId,
-            planId, taskPlan.getName())
+                planId, taskPlan.getName())
             .isPass());
 
         return Response.buildSuccessResp(taskPlanVO);
@@ -472,7 +468,8 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         if (StringUtils.isNotEmpty(planIds)) {
             List<Long> planIdList = Arrays.stream(planIds.split(",")).filter(Objects::nonNull).map(Long::valueOf)
                 .filter(id -> id > 0).collect(Collectors.toList());
-            List<TaskPlanInfoDTO> taskPlanInfoList = planService.listPlanBasicInfoWithVariablesByIds(appResourceScope.getAppId(),
+            List<TaskPlanInfoDTO> taskPlanInfoList =
+                planService.listPlanBasicInfoWithVariablesByIds(appResourceScope.getAppId(),
                 planIdList);
             fillCronInfo(appResourceScope.getAppId(), taskPlanInfoList);
             List<TaskPlanVO> taskPlanList =

@@ -27,14 +27,15 @@ package com.tencent.bk.job.analysis.dao.impl;
 import com.tencent.bk.job.analysis.dao.AnalysisTaskDAO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskDTO;
 import com.tencent.bk.job.analysis.model.tables.AnalysisTask;
-import com.tencent.bk.job.analysis.model.tables.records.AnalysisTaskRecord;
 import com.tencent.bk.job.common.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import lombok.var;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.Result;
+import org.jooq.TableField;
 import org.jooq.conf.ParamType;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,22 @@ public class AnalysisTaskDAOImpl implements AnalysisTaskDAO {
     private static final AnalysisTask defaultTable = AnalysisTask.ANALYSIS_TASK;
 
     private final DSLContext dslContext;
+    private static final TableField<?, ?>[] ALL_FIELDS = {
+        defaultTable.ID,
+        defaultTable.CODE,
+        defaultTable.APP_IDS,
+        defaultTable.RESULT_DESCRIPTION_TEMPLATE,
+        defaultTable.RESULT_DESCRIPTION_TEMPLATE_EN,
+        defaultTable.RESULT_ITEM_TEMPLATE,
+        defaultTable.RESULT_ITEM_TEMPLATE_EN,
+        defaultTable.PRIORITY,
+        defaultTable.ACTIVE,
+        defaultTable.PERIOD_SECONDS,
+        defaultTable.CREATOR,
+        defaultTable.CREATE_TIME,
+        defaultTable.LAST_MODIFY_USER,
+        defaultTable.LAST_MODIFY_TIME
+    };
 
     @Autowired
     public AnalysisTaskDAOImpl(@Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
@@ -95,7 +112,9 @@ public class AnalysisTaskDAOImpl implements AnalysisTaskDAO {
         ).returning(defaultTable.ID);
         val sql = query.getSQL(ParamType.INLINED);
         try {
-            return query.fetchOne().getId();
+            val record = query.fetchOne();
+            assert record != null;
+            return record.getId();
         } catch (Exception e) {
             log.error(sql);
             throw e;
@@ -135,9 +154,11 @@ public class AnalysisTaskDAOImpl implements AnalysisTaskDAO {
 
     @Override
     public AnalysisTaskDTO getAnalysisTaskById(Long id) {
-        val record = dslContext.selectFrom(defaultTable).where(
-            defaultTable.ID.eq(id)
-        ).fetchOne();
+        val record = dslContext
+            .select(ALL_FIELDS)
+            .from(defaultTable).where(
+                defaultTable.ID.eq(id)
+            ).fetchOne();
         if (record == null) {
             return null;
         } else {
@@ -147,9 +168,11 @@ public class AnalysisTaskDAOImpl implements AnalysisTaskDAO {
 
     @Override
     public AnalysisTaskDTO getAnalysisTaskByCode(String code) {
-        val record = dslContext.selectFrom(defaultTable).where(
-            defaultTable.CODE.eq(code)
-        ).fetchOne();
+        val record = dslContext
+            .select(ALL_FIELDS)
+            .from(defaultTable).where(
+                defaultTable.CODE.eq(code)
+            ).fetchOne();
         if (record == null) {
             return null;
         } else {
@@ -170,11 +193,13 @@ public class AnalysisTaskDAOImpl implements AnalysisTaskDAO {
     }
 
     private List<AnalysisTaskDTO> listAnalysisTaskWithConditions(Collection<Condition> conditions) {
-        var query = dslContext.selectFrom(defaultTable).where(
-            conditions
+        var query = dslContext
+            .select(ALL_FIELDS)
+            .from(defaultTable)
+            .where(conditions)
             //默认按照优先级排序
-        ).orderBy(defaultTable.PRIORITY);
-        Result<AnalysisTaskRecord> records;
+            .orderBy(defaultTable.PRIORITY);
+        Result<Record> records;
         val sql = query.getSQL(ParamType.INLINED);
         try {
             records = query.fetch();
@@ -189,22 +214,22 @@ public class AnalysisTaskDAOImpl implements AnalysisTaskDAO {
         }
     }
 
-    private AnalysisTaskDTO convert(AnalysisTaskRecord record) {
+    private AnalysisTaskDTO convert(Record record) {
         return new AnalysisTaskDTO(
-            record.getId(),
-            record.getCode(),
-            StringUtil.strToList(record.getAppIds(), Long.class, ","),
-            record.getResultDescriptionTemplate(),
-            record.getResultDescriptionTemplateEn(),
-            record.getResultItemTemplate(),
-            record.getResultItemTemplateEn(),
-            record.getPriority(),
-            record.getActive(),
-            record.getPeriodSeconds(),
-            record.getCreator(),
-            record.getCreateTime().longValue(),
-            record.getLastModifyUser(),
-            record.getLastModifyTime().longValue()
+            record.get(defaultTable.ID),
+            record.get(defaultTable.CODE),
+            StringUtil.strToList(record.get(defaultTable.APP_IDS), Long.class, ","),
+            record.get(defaultTable.RESULT_DESCRIPTION_TEMPLATE),
+            record.get(defaultTable.RESULT_DESCRIPTION_TEMPLATE_EN),
+            record.get(defaultTable.RESULT_ITEM_TEMPLATE),
+            record.get(defaultTable.RESULT_ITEM_TEMPLATE_EN),
+            record.get(defaultTable.PRIORITY),
+            record.get(defaultTable.ACTIVE),
+            record.get(defaultTable.PERIOD_SECONDS),
+            record.get(defaultTable.CREATOR),
+            record.get(defaultTable.CREATE_TIME).longValue(),
+            record.get(defaultTable.LAST_MODIFY_USER),
+            record.get(defaultTable.LAST_MODIFY_TIME).longValue()
         );
     }
 

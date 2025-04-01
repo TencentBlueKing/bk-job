@@ -33,9 +33,10 @@ public interface HostService {
     /**
      * 通过hostId/IP查询主机信息并填充
      *
+     * @param tenantId 租户ID
      * @param hostList 主机列表
      * @return 实际填充的主机数量
      */
-    int fillHosts(List<HostDTO> hostList);
+    int fillHosts(String tenantId, List<HostDTO> hostList);
 
 }

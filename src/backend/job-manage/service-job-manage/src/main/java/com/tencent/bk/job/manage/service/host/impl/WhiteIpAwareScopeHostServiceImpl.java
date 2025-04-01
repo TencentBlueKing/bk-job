@@ -27,19 +27,24 @@ package com.tencent.bk.job.manage.service.host.impl;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
+import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
 import com.tencent.bk.job.manage.service.WhiteIPService;
-import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.CurrentTenantHostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
 import com.tencent.bk.job.manage.service.host.WhiteIpAwareScopeHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,15 +58,15 @@ import java.util.stream.Collectors;
 public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostService {
 
     private final WhiteIPService whiteIPService;
-    private final HostService hostService;
+    private final CurrentTenantHostService currentTenantHostService;
     private final ScopeHostService scopeHostService;
 
     @Autowired
     public WhiteIpAwareScopeHostServiceImpl(WhiteIPService whiteIPService,
-                                            HostService hostService,
+                                            CurrentTenantHostService currentTenantHostService,
                                             ScopeHostService scopeHostService) {
         this.whiteIPService = whiteIPService;
-        this.hostService = hostService;
+        this.currentTenantHostService = currentTenantHostService;
         this.scopeHostService = scopeHostService;
     }
 
@@ -112,7 +117,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
             actionScope,
             hostIdSet
         );
-        List<ApplicationHostDTO> whiteIpHostList = hostService.listHosts(whiteIpHostDTOList);
+        List<ApplicationHostDTO> whiteIpHostList = currentTenantHostService.listHosts(whiteIpHostDTOList);
         log.info("{} white ips added", whiteIpHostList.size());
         if (CollectionUtils.isNotEmpty(whiteIpHostList)) {
             finalHostList.addAll(whiteIpHostList);
@@ -132,7 +137,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
             actionScope,
             ips
         );
-        List<ApplicationHostDTO> whiteIpHostList = hostService.listHosts(whiteIpHostDTOList);
+        List<ApplicationHostDTO> whiteIpHostList = currentTenantHostService.listHosts(whiteIpHostDTOList);
         log.info("{} white ips added", whiteIpHostList.size());
         if (CollectionUtils.isNotEmpty(whiteIpHostList)) {
             finalHostList.addAll(whiteIpHostList);
@@ -146,7 +151,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
                                                                            Collection<String> cloudIps) {
         List<ApplicationHostDTO> scopeHostList = scopeHostService.getScopeHostsByCloudIps(appResourceScope, cloudIps);
         List<ApplicationHostDTO> finalHostList = new ArrayList<>(scopeHostList);
-        Map<String, ApplicationHostDTO> map = hostService.listHostsByIps(cloudIps);
+        Map<String, ApplicationHostDTO> map = currentTenantHostService.listHostsByIps(cloudIps);
         Set<Long> hostIds = map.values().stream().map(ApplicationHostDTO::getHostId).collect(Collectors.toSet());
         List<ApplicationHostDTO> whiteIpHostList = listWhiteIpHostsByIds(appResourceScope, actionScope, hostIds);
         log.info("{} white ips added", whiteIpHostList.size());
@@ -164,7 +169,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
             actionScope,
             hostIds
         );
-        return hostService.listHosts(whiteIpHostDTOList);
+        return currentTenantHostService.listHosts(whiteIpHostDTOList);
     }
 
     @Override
@@ -178,7 +183,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
             actionScope,
             ipv6s
         );
-        List<ApplicationHostDTO> whiteIpHostList = hostService.listHosts(whiteIpHostDTOList);
+        List<ApplicationHostDTO> whiteIpHostList = currentTenantHostService.listHosts(whiteIpHostDTOList);
         log.info("{} white ips added", whiteIpHostList.size());
         if (CollectionUtils.isNotEmpty(whiteIpHostList)) {
             finalHostList.addAll(whiteIpHostList);
@@ -192,5 +197,120 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
                                                                        Collection<String> keys) {
         // 当前关键字仅支持主机名称匹配
         return scopeHostService.getScopeHostsByHostNames(appResourceScope, keys);
+    }
+
+    @Override
+    public List<ApplicationHostDTO> findHosts(AppResourceScope appResourceScope, HostCheckReq req) {
+        List<ApplicationHostDTO> hostDTOList = new ArrayList<>();
+        // 根据主机ID解析主机
+        findHostsByHostIds(appResourceScope, req.getActionScope(), req.getHostIdList(), hostDTOList);
+        // 根据Ipv4解析主机
+        findHostsByIpv4s(appResourceScope, req.getActionScope(), req.getIpList(), hostDTOList);
+        // 根据Ipv6解析主机
+        findHostsByIpv6s(appResourceScope, req.getActionScope(), req.getIpv6List(), hostDTOList);
+        // 根据关键字（主机名称）解析主机
+        findHostsByKeys(appResourceScope, req.getActionScope(), req.getKeyList(), hostDTOList);
+        // 去重
+        Set<Long> hostIdSet = new HashSet<>();
+        Iterator<ApplicationHostDTO> iterator = hostDTOList.iterator();
+        while (iterator.hasNext()) {
+            ApplicationHostDTO hostDTO = iterator.next();
+            if (hostIdSet.contains(hostDTO.getHostId())) {
+                iterator.remove();
+            } else {
+                hostIdSet.add(hostDTO.getHostId());
+            }
+        }
+        return hostDTOList;
+    }
+
+    private void findHostsByHostIds(AppResourceScope appResourceScope,
+                                    ActionScopeEnum actionScope,
+                                    List<Long> hostIdList,
+                                    List<ApplicationHostDTO> hostDTOList) {
+        if (CollectionUtils.isNotEmpty(hostIdList)) {
+            // 根据hostId查资源范围及白名单内的主机详情
+            hostDTOList.addAll(getScopeHostsIncludingWhiteIPByHostId(
+                appResourceScope,
+                actionScope,
+                hostIdList
+            ));
+        }
+    }
+
+    private void findHostsByIpv4s(AppResourceScope appResourceScope,
+                                  ActionScopeEnum actionScope,
+                                  List<String> ipOrCloudIpList,
+                                  List<ApplicationHostDTO> hostDTOList) {
+        if (CollectionUtils.isEmpty(ipOrCloudIpList)) {
+            return;
+        }
+        Pair<Set<String>, Set<String>> pair = IpUtils.parseCleanIpv4AndCloudIpv4s(ipOrCloudIpList);
+        Set<String> ipSet = pair.getLeft();
+        Set<String> cloudIpSet = pair.getRight();
+        // 根据ip地址查资源范围及白名单内的主机详情
+        if (CollectionUtils.isNotEmpty(ipSet)) {
+            hostDTOList.addAll(getScopeHostsIncludingWhiteIPByIp(
+                appResourceScope,
+                actionScope,
+                ipSet
+            ));
+        }
+        if (CollectionUtils.isNotEmpty(cloudIpSet)) {
+            hostDTOList.addAll(getScopeHostsIncludingWhiteIPByCloudIp(
+                appResourceScope,
+                actionScope,
+                cloudIpSet
+            ));
+        }
+    }
+
+    private void findHostsByIpv6s(AppResourceScope appResourceScope,
+                                  ActionScopeEnum actionScope,
+                                  List<String> ipv6OrCloudIpv6List,
+                                  List<ApplicationHostDTO> hostDTOList) {
+        if (CollectionUtils.isEmpty(ipv6OrCloudIpv6List)) {
+            return;
+        }
+        Pair<Set<String>, Set<Pair<Long, String>>> pair = IpUtils.parseFullIpv6AndCloudIpv6s(ipv6OrCloudIpv6List);
+        Set<String> ipv6Set = pair.getLeft();
+        Set<Pair<Long, String>> cloudIpv6Set = pair.getRight();
+        Set<String> allIpv6Set = new HashSet<>(ipv6Set);
+        Map<String, Long> ipv6CloudIdMap = new HashMap<>();
+        for (Pair<Long, String> cloudIpv6 : cloudIpv6Set) {
+            allIpv6Set.add(cloudIpv6.getRight());
+            ipv6CloudIdMap.put(cloudIpv6.getRight(), cloudIpv6.getLeft());
+        }
+        List<ApplicationHostDTO> hostList = getScopeHostsIncludingWhiteIPByIpv6(
+            appResourceScope,
+            actionScope,
+            allIpv6Set
+        );
+        for (ApplicationHostDTO host : hostList) {
+            String ipv6 = host.getIpv6();
+            Long cloudId = host.getCloudAreaId();
+            // 未指定云区域ID的数据匹配所有ipv6符合的数据
+            if (ipv6Set.contains(ipv6) ||
+                // 指定了云区域ID的数据需要精确匹配
+                (ipv6CloudIdMap.containsKey(ipv6) && cloudId.equals(ipv6CloudIdMap.get(ipv6)))) {
+                // 根据ipv6地址查资源范围及白名单内的主机详情
+                hostDTOList.add(host);
+            }
+        }
+    }
+
+    private void findHostsByKeys(AppResourceScope appResourceScope,
+                                 ActionScopeEnum actionScope,
+                                 List<String> keyList,
+                                 List<ApplicationHostDTO> hostDTOList) {
+        if (CollectionUtils.isEmpty(keyList)) {
+            return;
+        }
+        // 根据关键字（主机名称）查资源范围及白名单内的主机详情
+        hostDTOList.addAll(getScopeHostsIncludingWhiteIPByKey(
+            appResourceScope,
+            actionScope,
+            keyList
+        ));
     }
 }

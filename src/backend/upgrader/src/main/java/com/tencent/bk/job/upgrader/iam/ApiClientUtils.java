@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.upgrader.iam;
 
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
@@ -55,6 +56,24 @@ public class ApiClientUtils {
         @Override
         public boolean isTenantEnabled() {
             return false;
+        }
+
+        @Override
+        public String getJobMachineTenantId() {
+            // 不开启多租户时，Job的机器属于默认租户
+            return TenantIdConstants.DEFAULT_TENANT_ID;
+        }
+
+        @Override
+        public String getTenantIdForGSE() {
+            // 不开启多租户时，使用默认租户
+            return TenantIdConstants.DEFAULT_TENANT_ID;
+        }
+
+        @Override
+        public String getTenantIdForArtifactoryBkJobProject() {
+            // 不开启多租户时，使用默认租户
+            return TenantIdConstants.DEFAULT_TENANT_ID;
         }
     }
 

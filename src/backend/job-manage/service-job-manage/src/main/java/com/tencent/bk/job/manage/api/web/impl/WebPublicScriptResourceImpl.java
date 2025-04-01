@@ -168,7 +168,7 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
         User user = JobContextUtil.getUser();
         ScriptQuery scriptQuery = buildListPageScriptQuery(null, name, type, tags, panelTag,
             panelType, creator, lastModifyUser, scriptId, content, start, pageSize, orderField, order);
-
+        scriptQuery.setTenantId(user.getTenantId());
         PageData<ScriptDTO> pageData = publicScriptService.listPageScript(scriptQuery);
         PageData<ScriptVO> resultPageData = pageVOs(pageData, start, pageSize);
 

@@ -86,14 +86,14 @@ public interface ServiceHostResource {
     );
 
     /**
-     * 批量获取主机信息
+     * 从缓存或DB批量获取主机信息（不适用于对主机实时性强依赖的场景）
      *
      * @param req 请求
      * @return 主机信息
      */
-    @ApiOperation(value = "检查主机是否在业务下", produces = "application/json")
+    @ApiOperation(value = "从缓存或DB批量获取主机信息", produces = "application/json")
     @PostMapping("/service/hosts/batchGet")
-    InternalResponse<List<ServiceHostDTO>> batchGetHosts(
+    InternalResponse<List<ServiceHostDTO>> batchGetHostsFromCacheOrDB(
         @RequestBody
         ServiceBatchGetHostsReq req);
 
