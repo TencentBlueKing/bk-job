@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.paas.config;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
 import com.tencent.bk.job.common.paas.cmsi.ICmsiClient;
@@ -45,12 +46,12 @@ public class CmsiAutoConfiguration {
     @Bean
     @ConditionalOnMockCmsiApiDisable
     public ICmsiClient cmsiApiClient(AppProperties appProperties,
-                                       EsbProperties esbProperties,
+                                       BkApiGatewayProperties apiGatewayProperties,
                                        ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
                                        TenantEnvService tenantEnvService) {
         log.info("Init CmsiApiClient");
         return new CmsiApiClient(
-            esbProperties,
+            apiGatewayProperties,
             appProperties,
             meterRegistryObjectProvider.getIfAvailable(),
             tenantEnvService
@@ -60,12 +61,12 @@ public class CmsiAutoConfiguration {
     @Bean
     @ConditionalOnMockCmsiApiEnable
     public ICmsiClient mockCmsiClient(AppProperties appProperties,
-                                      EsbProperties esbProperties,
+                                      BkApiGatewayProperties apiGatewayProperties,
                                       ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
                                       TenantEnvService tenantEnvService) {
         log.info("Init mockCmsiClient");
         return new MockCmsiClient(
-            esbProperties,
+            apiGatewayProperties,
             appProperties,
             meterRegistryObjectProvider.getIfAvailable(),
             tenantEnvService

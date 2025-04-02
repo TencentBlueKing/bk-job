@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.paas.cmsi;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.sdk.BkApiV1Client;
@@ -44,14 +45,14 @@ public class MockCmsiClient extends BkApiV1Client implements ICmsiClient {
 
     private final BkApiAuthorization authorization;
 
-    public MockCmsiClient(EsbProperties esbProperties,
+    public MockCmsiClient(BkApiGatewayProperties apiGatewayProperties,
                           AppProperties appProperties,
                           MeterRegistry meterRegistry,
                           TenantEnvService tenantEnvService) {
         super(
             meterRegistry,
             ESB_CMSI_API,
-            esbProperties.getService().getUrl(),
+            apiGatewayProperties.getCmsi().getUrl(),
             HttpHelperFactory.createHttpHelper(
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
             ),

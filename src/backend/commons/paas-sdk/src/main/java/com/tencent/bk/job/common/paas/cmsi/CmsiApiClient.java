@@ -28,6 +28,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
@@ -73,14 +74,14 @@ public class CmsiApiClient extends BkApiV1Client implements ICmsiClient {
 
     private final BkApiAuthorization authorization;
 
-    public CmsiApiClient(EsbProperties esbProperties,
+    public CmsiApiClient(BkApiGatewayProperties bkApiGatewayProperties,
                          AppProperties appProperties,
                          MeterRegistry meterRegistry,
                          TenantEnvService tenantEnvService) {
         super(
             meterRegistry,
             ESB_CMSI_API,
-            esbProperties.getService().getUrl(),
+            bkApiGatewayProperties.getCmsi().getUrl(),
             HttpHelperFactory.createHttpHelper(
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
             ),
