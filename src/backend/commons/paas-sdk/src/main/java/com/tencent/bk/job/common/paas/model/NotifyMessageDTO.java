@@ -24,34 +24,25 @@
 
 package com.tencent.bk.job.common.paas.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import lombok.Data;
 
-/**
- * ESB通知渠道DTO
- */
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-@ToString
-public class EsbNotifyChannelDTO {
-    /**
-     * 渠道类型
-     */
-    private String type;
+import java.util.List;
+
+@Data
+public class NotifyMessageDTO {
 
     /**
-     * 渠道名称
+     * 发送人，msgType为mail时需要
      */
-    private String name;
+    private String sender;
+
     /**
-     * 该租户内是否支持
+     * 接收人员列表，对应Cmsi接口的receiver__username
      */
-    @JsonProperty("enabled")
-    private boolean isActive;
-    /**
-     * 渠道图标Base64编码
-     */
-    private String icon;
+    private List<String> receiverUsername;
+
+    private String title;
+
+    private String content;
+
 }

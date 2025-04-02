@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.notify;
 
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.UserCacheService;
 import com.tencent.bk.job.manage.service.impl.WatchableSendMsgService;
@@ -121,6 +122,7 @@ public class NotifySendService {
         }
         watchableSendMsgService.sendMsg(
             appId,
+            JobContextUtil.getTenantId(),
             System.currentTimeMillis(),
             channel,
             null,

@@ -104,6 +104,7 @@ public class SendNotifyTask implements Runnable {
             try {
                 watchableSendMsgService.sendMsg(
                     appId,
+                    null,
                     createTimeMillis,
                     msgType,
                     sender,

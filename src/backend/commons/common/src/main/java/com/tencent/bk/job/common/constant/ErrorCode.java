@@ -72,6 +72,8 @@ public class ErrorCode {
     public static final int CMSI_MSG_CHANNEL_DATA_ERROR = 1213003;
     // 调用CMSI接口发送通知失败，错误码：{0}，错误信息：{1}
     public static final int CMSI_FAIL_TO_SEND_MSG = 1213004;
+    // 未知的CMSI渠道: {0}
+    public static final int CMSI_UNKNOWN_CHANNEL = 1213005;
 
     // 制品库异常
     // Artifactory接口返回数据结构异常

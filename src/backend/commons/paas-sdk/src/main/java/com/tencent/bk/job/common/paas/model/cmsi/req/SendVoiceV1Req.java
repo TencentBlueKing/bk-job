@@ -22,36 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.model;
+package com.tencent.bk.job.common.paas.model.cmsi.req;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
 
 /**
- * ESB通知渠道DTO
+ * Cmsi接口发送语音消息的请求
  */
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
-@ToString
-public class EsbNotifyChannelDTO {
-    /**
-     * 渠道类型
-     */
-    private String type;
+public class SendVoiceV1Req extends CmsiSendMsgV1BasicReq {
 
     /**
-     * 渠道名称
+     * 自动语音读字信息
      */
-    private String name;
+    @JsonProperty("auto_read_message")
+    private String autoReadMessage;
+
     /**
-     * 该租户内是否支持
+     * 待通知的电话列表
      */
-    @JsonProperty("enabled")
-    private boolean isActive;
+    @JsonProperty("receiver")
+    private List<String> receiver;
+
     /**
-     * 渠道图标Base64编码
+     * 待通知的用户列表，包含用户名，用户需在蓝鲸平台注册，多个以逗号分隔，若 receiver、receiver__username 同时存在，以 receiver 为准
      */
-    private String icon;
+    @JsonProperty("receiver__username")
+    private List<String> receiverUsername;
+
+    public static SendVoiceV1Req fromNotifyMessageDTO(NotifyMessageDTO notifyMessageDTO) {
+        SendVoiceV1Req sendVoiceV1Req = new SendVoiceV1Req();
+        sendVoiceV1Req.setReceiverUsername(notifyMessageDTO.getReceiverUsername());
+        sendVoiceV1Req.setAutoReadMessage(notifyMessageDTO.getContent());
+        return sendVoiceV1Req;
+    }
+
 }

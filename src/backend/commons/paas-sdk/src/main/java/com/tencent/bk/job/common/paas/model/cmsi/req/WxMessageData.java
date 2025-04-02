@@ -22,36 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.model;
+package com.tencent.bk.job.common.paas.model.cmsi.req;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import lombok.Setter;
 
-/**
- * ESB通知渠道DTO
- */
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
 @Setter
-@ToString
-public class EsbNotifyChannelDTO {
-    /**
-     * 渠道类型
-     */
-    private String type;
+public class WxMessageData {
 
     /**
-     * 渠道名称
+     * 通知头部文字
      */
-    private String name;
+    @JsonProperty("heading")
+    private String heading;
+
     /**
-     * 该租户内是否支持
+     * 通知文字
      */
-    @JsonProperty("enabled")
-    private boolean isActive;
-    /**
-     * 渠道图标Base64编码
-     */
-    private String icon;
+    @JsonProperty("message")
+    private String message;
+
 }

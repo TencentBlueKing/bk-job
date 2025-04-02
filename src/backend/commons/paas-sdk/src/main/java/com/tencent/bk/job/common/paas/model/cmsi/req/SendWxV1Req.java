@@ -22,36 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.model;
+package com.tencent.bk.job.common.paas.model.cmsi.req;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
 
 /**
- * ESB通知渠道DTO
+ * Cmsi接口发送微信消息的请求
  */
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
-@ToString
-public class EsbNotifyChannelDTO {
-    /**
-     * 渠道类型
-     */
-    private String type;
+public class SendWxV1Req extends CmsiSendMsgV1BasicReq {
 
     /**
-     * 渠道名称
+     * 微信接收者，包含用户名，用户需在蓝鲸平台注册
      */
-    private String name;
+    @JsonProperty("receiver__username")
+    private List<String> receiverUsername;
+
     /**
-     * 该租户内是否支持
+     * 消息内容
      */
-    @JsonProperty("enabled")
-    private boolean isActive;
-    /**
-     * 渠道图标Base64编码
-     */
-    private String icon;
+    @JsonProperty("message_data")
+    private WxMessageData messageData;
+
+    public static SendWxV1Req fromNotifyMessageDTO(NotifyMessageDTO notifyMessageDTO) {
+        SendWxV1Req sendWxV1Req = new SendWxV1Req();
+        sendWxV1Req.setReceiverUsername(notifyMessageDTO.getReceiverUsername());
+        WxMessageData wxMessageData = new WxMessageData();
+        wxMessageData.setHeading(notifyMessageDTO.getTitle());
+        wxMessageData.setMessage(notifyMessageDTO.getContent());
+        sendWxV1Req.setMessageData(wxMessageData);
+        return sendWxV1Req;
+    }
 }

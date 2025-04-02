@@ -22,36 +22,52 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.model;
+package com.tencent.bk.job.common.paas.model.cmsi.req;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
+import lombok.Getter;
+import lombok.Setter;
 
-/**
- * ESB通知渠道DTO
- */
-@NoArgsConstructor
-@AllArgsConstructor
+import java.util.List;
+
 @Getter
 @Setter
-@ToString
-public class EsbNotifyChannelDTO {
-    /**
-     * 渠道类型
-     */
-    private String type;
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class SendMailV1Req extends CmsiSendMsgV1BasicReq {
 
     /**
-     * 渠道名称
+     * 邮件接收者用户名列表，包含用户名，用户需在蓝鲸平台注册
      */
-    private String name;
+    @JsonProperty("receiver__username")
+    private List<String> receiverUsername;
+
     /**
-     * 该租户内是否支持
+     * 发件人
      */
-    @JsonProperty("enabled")
-    private boolean isActive;
+    @JsonProperty("sender")
+    private String sender;
+
     /**
-     * 渠道图标Base64编码
+     * 邮件主题
      */
-    private String icon;
+    @JsonProperty("title")
+    private String title;
+
+    /**
+     * 邮件内容
+     */
+    @JsonProperty("content")
+    private String content;
+
+    public static SendMailV1Req fromNotifyMessageDTO(NotifyMessageDTO notifyMessageDTO) {
+        SendMailV1Req sendMailV1Req = new SendMailV1Req();
+        sendMailV1Req.setReceiverUsername(notifyMessageDTO.getReceiverUsername());
+        sendMailV1Req.setSender(notifyMessageDTO.getSender());
+        sendMailV1Req.setTitle(notifyMessageDTO.getTitle());
+        sendMailV1Req.setContent(notifyMessageDTO.getContent());
+        return sendMailV1Req;
+    }
+
 }

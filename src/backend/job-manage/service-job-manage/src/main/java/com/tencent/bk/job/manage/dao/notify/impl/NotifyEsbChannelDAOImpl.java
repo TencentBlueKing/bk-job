@@ -67,7 +67,7 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
                           channelDtoList =
                               cmsiApiClient.getNotifyChannelList(tenantId).stream().map(it -> new NotifyEsbChannelDTO(
                                   it.getType(),
-                                  it.getLabel(),
+                                  it.getName(),
                                   it.isActive(),
                                   true,
                                   it.getIcon(),

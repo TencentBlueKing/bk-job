@@ -22,36 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.model;
+package com.tencent.bk.job.common.paas.model.cmsi.req;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import com.tencent.bk.job.common.util.http.BasicHttpReq;
 
-/**
- * ESB通知渠道DTO
- */
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-@ToString
-public class EsbNotifyChannelDTO {
-    /**
-     * 渠道类型
-     */
-    private String type;
-
-    /**
-     * 渠道名称
-     */
-    private String name;
-    /**
-     * 该租户内是否支持
-     */
-    @JsonProperty("enabled")
-    private boolean isActive;
-    /**
-     * 渠道图标Base64编码
-     */
-    private String icon;
+public class CmsiSendMsgV1BasicReq  extends BasicHttpReq {
 }

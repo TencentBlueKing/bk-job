@@ -24,34 +24,19 @@
 
 package com.tencent.bk.job.common.paas.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+public enum NotifyChannelEnum {
+    Mail("mail"),
+    Sms("sms"),
+    Voice("voice"),
+    Weixin("weixin");
 
-/**
- * ESB通知渠道DTO
- */
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-@ToString
-public class EsbNotifyChannelDTO {
-    /**
-     * 渠道类型
-     */
-    private String type;
+    private final String type;
 
-    /**
-     * 渠道名称
-     */
-    private String name;
-    /**
-     * 该租户内是否支持
-     */
-    @JsonProperty("enabled")
-    private boolean isActive;
-    /**
-     * 渠道图标Base64编码
-     */
-    private String icon;
+    NotifyChannelEnum(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
 }
