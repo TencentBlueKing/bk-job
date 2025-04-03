@@ -22,37 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.constant;
+package com.tencent.bk.job.backup.archive.impl;
 
-import lombok.Getter;
+import com.tencent.bk.job.backup.archive.AbstractJobExecuteLogArchiver;
+import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
+import com.tencent.bk.job.backup.config.ArchiveProperties;
+import com.tencent.bk.job.backup.constant.JobLogTypeEnum;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
-@Getter
-public enum ArchiveTaskTypeEnum {
-    /**
-     * 作业实例数据归档
-     */
-    JOB_INSTANCE(1),
-    /**
-     * 作业实例按业务冗余数据归档
-     */
-    JOB_INSTANCE_APP(2),
-    /**
-     * 作业执行日志归档
-     */
-    JOB_EXECUTE_LOG(3);
+/**
+ * mongodb 文件日志归档
+ */
+@Slf4j
+public class JobFileLogArchiver extends AbstractJobExecuteLogArchiver {
 
-    private final int type;
-
-    ArchiveTaskTypeEnum(int type) {
-        this.type = type;
-    }
-
-    public static ArchiveTaskTypeEnum valOf(int type) {
-        for (ArchiveTaskTypeEnum taskType : values()) {
-            if (taskType.getType() == type) {
-                return taskType;
-            }
-        }
-        throw new IllegalArgumentException("No ArchiveTaskTypeEnum constant: " + type);
+    public JobFileLogArchiver(MongoTemplate mongoTemplate,
+                              ArchiveTaskService archiveTaskService,
+                              ArchiveProperties archiveProperties) {
+        super(mongoTemplate,
+            archiveTaskService,
+            archiveProperties,
+            JobLogTypeEnum.FILE);
     }
 }

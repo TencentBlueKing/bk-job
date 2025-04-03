@@ -22,37 +22,47 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.constant;
+package com.tencent.bk.job.backup.archive;
 
-import lombok.Getter;
+/**
+ * 作业执行历史归档任务
+ */
+public interface JobHistoricalDataArchiveTask {
 
-@Getter
-public enum ArchiveTaskTypeEnum {
     /**
-     * 作业实例数据归档
+     * 执行任务
      */
-    JOB_INSTANCE(1),
+    void execute();
+
     /**
-     * 作业实例按业务冗余数据归档
+     * 优雅终止任务
+     *
+     * @param stopCallback 回调
      */
-    JOB_INSTANCE_APP(2),
+    void stop(ArchiveTaskStopCallback stopCallback);
+
     /**
-     * 作业执行日志归档
+     * 强制终止
      */
-    JOB_EXECUTE_LOG(3);
+    void forceStopAtOnce();
 
-    private final int type;
+    /**
+     * 注册任务完成回调函数
+     *
+     * @param archiveTaskDoneCallback 回调函数
+     */
+    void registerDoneCallback(ArchiveTaskDoneCallback archiveTaskDoneCallback);
 
-    ArchiveTaskTypeEnum(int type) {
-        this.type = type;
-    }
+    /**
+     * 获取任务 ID
+     */
+    String getTaskId();
 
-    public static ArchiveTaskTypeEnum valOf(int type) {
-        for (ArchiveTaskTypeEnum taskType : values()) {
-            if (taskType.getType() == type) {
-                return taskType;
-            }
-        }
-        throw new IllegalArgumentException("No ArchiveTaskTypeEnum constant: " + type);
-    }
+    /**
+     * 设置归档任务的 worker 信息
+     *
+     * @param archiveTaskWorker 归档任务执行线程
+     */
+    void initArchiveTaskWorker(ArchiveTaskWorker archiveTaskWorker);
+
 }
