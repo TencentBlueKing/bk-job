@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.redis.util.LockUtils;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.Counter;
 import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -42,7 +43,6 @@ import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
 import com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
-import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.EsbAppRoleDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyConfigStatusDAO;
@@ -62,7 +62,6 @@ import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationTriggerDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceUserNotificationDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ResourceStatusChannel;
 import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChannelReq;
@@ -74,7 +73,6 @@ import com.tencent.bk.job.manage.model.web.vo.notify.RoleVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerTypeVO;
 import com.tencent.bk.job.manage.service.AppRoleService;
-import com.tencent.bk.job.manage.service.LocalPermissionService;
 import com.tencent.bk.job.manage.service.NotifyService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -111,14 +109,13 @@ public class NotifyServiceImpl implements NotifyService {
     private final EsbAppRoleDAO esbAppRoleDAO;
     private final AvailableEsbChannelDAO availableEsbChannelDAO;
     private final NotifyEsbChannelDAO notifyEsbChannelDAO;
-    private final LocalPermissionService localPermissionService;
     private final NotifyConfigStatusDAO notifyConfigStatusDAO;
     private final NotifyTemplateService notifyTemplateService;
-    private final ScriptDAO scriptDAO;
     private final TaskPlanDAO taskPlanDAO;
     private final NotifyUserService notifyUserService;
     private final NotifySendService notifySendService;
     private final AppRoleService roleService;
+    private final TenantService tenantService;
 
     @Autowired
     public NotifyServiceImpl(
@@ -128,28 +125,26 @@ public class NotifyServiceImpl implements NotifyService {
         EsbAppRoleDAO esbAppRoleDAO,
         AvailableEsbChannelDAO availableEsbChannelDAO,
         NotifyEsbChannelDAO notifyEsbChannelDAO,
-        LocalPermissionService localPermissionService,
         NotifySendService notifySendService,
         AppRoleService roleService,
         NotifyConfigStatusDAO notifyConfigStatusDAO,
         NotifyTemplateService notifyTemplateService,
-        ScriptDAO scriptDAO,
         TaskPlanDAO taskPlanDAO,
-        NotifyUserService notifyUserService) {
+        NotifyUserService notifyUserService,
+        TenantService tenantService) {
         this.notifyTriggerPolicyDAO = notifyTriggerPolicyDAO;
         this.notifyPolicyRoleTargetDAO = notifyPolicyRoleTargetDAO;
         this.notifyRoleTargetChannelDAO = notifyRoleTargetChannelDAO;
         this.esbAppRoleDAO = esbAppRoleDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
-        this.localPermissionService = localPermissionService;
         this.notifyUserService = notifyUserService;
         this.notifySendService = notifySendService;
         this.roleService = roleService;
         this.notifyConfigStatusDAO = notifyConfigStatusDAO;
         this.notifyTemplateService = notifyTemplateService;
-        this.scriptDAO = scriptDAO;
         this.taskPlanDAO = taskPlanDAO;
+        this.tenantService = tenantService;
     }
 
     @Override
@@ -328,22 +323,20 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     public List<RoleVO> listRole(String username) {
         //Job系统角色+CMDB业务角色
-        List<AppRoleDTO> appRoles = esbAppRoleDAO.listEsbAppRole();
-        if (CollectionUtils.isEmpty(appRoles)) {
-            return Collections.emptyList();
+        List<RoleVO> resultList = new ArrayList<>(JobRoleEnum.getVOList());
+        List<AppRoleDTO> appRoles = esbAppRoleDAO.listEsbAppRole(JobContextUtil.getTenantId());
+        if (CollectionUtils.isNotEmpty(appRoles)) {
+            resultList.addAll(appRoles.stream().map(it ->
+                new RoleVO(it.getId(), it.getName())).collect(Collectors.toList()));
         }
-        List<RoleVO> resultList = new ArrayList<>();
-        resultList.addAll(JobRoleEnum.getVOList());
-        resultList.addAll(appRoles.stream().map(it ->
-            new RoleVO(it.getId(), it.getName())).collect(Collectors.toList()));
         return resultList;
     }
 
     @Override
-    public List<AppRoleDTO> listRoles() {
+    public List<AppRoleDTO> listRoles(String tenantId) {
         //Job系统角色+CMDB业务角色
         List<AppRoleDTO> resultList = new ArrayList<>();
-        List<AppRoleDTO> appRoleDTOList = esbAppRoleDAO.listEsbAppRole();
+        List<AppRoleDTO> appRoleDTOList = esbAppRoleDAO.listEsbAppRole(tenantId);
         if (appRoleDTOList != null) {
             resultList.addAll(appRoleDTOList);
         }
@@ -364,8 +357,8 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
-    public List<NotifyEsbChannelDTO> listAllNotifyChannel() {
-        return notifyEsbChannelDAO.listNotifyEsbChannel().stream()
+    public List<NotifyEsbChannelDTO> listAllNotifyChannel(String tenantId) {
+        return notifyEsbChannelDAO.listNotifyEsbChannel(tenantId).stream()
             .filter(NotifyEsbChannelDTO::isActive).map(it -> {
                     NotifyEsbChannelDTO channel = new NotifyEsbChannelDTO();
                     channel.setType(it.getType());
@@ -375,16 +368,17 @@ public class NotifyServiceImpl implements NotifyService {
             ).collect(Collectors.toList());
     }
 
-    private List<String> getAvailableChannelTypeList() {
+    private List<String> getAvailableChannelTypeList(String tenantId) {
         List<AvailableEsbChannelDTO> availableEsbChannelDTOList =
-            availableEsbChannelDAO.listAvailableEsbChannel();
+            availableEsbChannelDAO.listAvailableEsbChannel(tenantId);
         return availableEsbChannelDTOList.stream().map(AvailableEsbChannelDTO::getType).collect(Collectors.toList());
     }
 
     @Override
     public List<NotifyChannelVO> listAvailableNotifyChannel(String username) {
-        List<String> availableChannelTypeList = getAvailableChannelTypeList();
-        return notifyEsbChannelDAO.listNotifyEsbChannel().stream().map(it -> new NotifyChannelVO(
+        List<String> availableChannelTypeList = getAvailableChannelTypeList(JobContextUtil.getTenantId());
+        String tenantId = JobContextUtil.getTenantId();
+        return notifyEsbChannelDAO.listNotifyEsbChannel(tenantId).stream().map(it -> new NotifyChannelVO(
             it.getType(),
             it.getLabel()
         )).filter(it -> availableChannelTypeList.contains(it.getCode())).collect(Collectors.toList());
@@ -393,11 +387,17 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     @JobTransactional(transactionManager = "jobManageTransactionManager")
     public Integer setAvailableNotifyChannel(String username, SetAvailableNotifyChannelReq req) {
+        String tenantId = JobContextUtil.getTenantId();
         List<String> channelCodeList =
             Arrays.asList(req.getChannelCodeStr().trim().split(NotifyConsts.SEPERATOR_COMMA));
-        availableEsbChannelDAO.deleteAll();
+        availableEsbChannelDAO.deleteAllChannelsByTenantId(tenantId);
         channelCodeList.forEach(it -> availableEsbChannelDAO.insertAvailableEsbChannel(
-            new AvailableEsbChannelDTO(it, true, username, LocalDateTime.now())));
+            new AvailableEsbChannelDTO(
+                it,
+                true,
+                username,
+                LocalDateTime.now(),
+                tenantId)));
         return channelCodeList.size();
     }
 
@@ -412,7 +412,7 @@ public class NotifyServiceImpl implements NotifyService {
         // 2.调ESB接口发送通知
         val notifyMessageMap = notification.getNotificationMessageMap();
         Set<String> channelSet = notifyMessageMap.keySet();
-        if (channelSet.size() == 0) {
+        if (channelSet.isEmpty()) {
             return 0;
         }
         ServiceNotificationMessage notificationMessage =
@@ -576,6 +576,7 @@ public class NotifyServiceImpl implements NotifyService {
 
     private Map<String, Set<String>> getChannelUsersMap(ServiceNotificationTriggerDTO triggerDTO) {
         Long appId = triggerDTO.getAppId() == null ? NotifyConsts.DEFAULT_APP_ID : triggerDTO.getAppId();
+        String tenantId = tenantService.getTenantIdByAppId(appId);
         String triggerUser = triggerDTO.getTriggerUser();
         Integer triggerType = triggerDTO.getTriggerType();
         Integer resourceType = triggerDTO.getResourceType();
@@ -615,7 +616,7 @@ public class NotifyServiceImpl implements NotifyService {
         }
         // 过滤通知黑名单
         channelUsersMap.keySet().forEach(key ->
-            channelUsersMap.put(key, notifyUserService.filterBlackUser(channelUsersMap.get(key)))
+            channelUsersMap.put(key, notifyUserService.filterBlackUser(channelUsersMap.get(key), tenantId))
         );
         return channelUsersMap;
     }
@@ -629,38 +630,6 @@ public class NotifyServiceImpl implements NotifyService {
             listExecuteStatus(username),
             listAvailableNotifyChannel(username)
         );
-    }
-
-    @Override
-    public Integer asyncSendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO) {
-        // 获取所有可用渠道
-        List<String> availableChannelTypeList = getAvailableChannelTypeList();
-        return asyncSendNotificationsByChannel(serviceUserNotificationDTO, availableChannelTypeList);
-    }
-
-    @Override
-    public Integer asyncSendNotificationsByChannel(ServiceUserNotificationDTO serviceUserNotificationDTO,
-                                                   List<String> channelTypeList) {
-        // 组装通知map
-        Map<String, Set<String>> channelUsersMap = new HashMap<>();
-        for (String channelType : channelTypeList) {
-            channelUsersMap.put(channelType, serviceUserNotificationDTO.getReceivers());
-        }
-        ServiceNotificationMessage notificationMessage = serviceUserNotificationDTO.getNotificationMessage();
-        notifySendService.asyncSendNotifyMessages(
-            null,
-            channelUsersMap,
-            notificationMessage.getTitle(),
-            notificationMessage.getContent()
-        );
-        return serviceUserNotificationDTO.getReceivers().size();
-    }
-
-    @Override
-    public Integer asyncSendNotificationsToAdministrators(ServiceNotificationMessage serviceNotificationMessage) {
-        List<String> administrators = localPermissionService.getAdministrators();
-        return asyncSendNotificationsToUsers(new ServiceUserNotificationDTO(new HashSet<>(administrators),
-            serviceNotificationMessage));
     }
 
     private Set<String> findUserByRole(Long appId,
@@ -680,8 +649,11 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Override
     public Integer sendTemplateNotification(ServiceTemplateNotificationDTO templateNotificationDTO) {
+        Long appId = templateNotificationDTO.getAppId();
+        String tenantId = tenantService.getTenantIdByAppId(appId);
         Map<String, NotifyTemplateDTO> channelTemplateMap = notifyTemplateService.getChannelTemplateMap(
-            templateNotificationDTO.getTemplateCode()
+            templateNotificationDTO.getTemplateCode(),
+            tenantId
         );
         //获取通知用户
         Set<String> userSet = new HashSet<>();
@@ -691,13 +663,12 @@ public class NotifyServiceImpl implements NotifyService {
             templateNotificationDTO.getResourceType(), templateNotificationDTO.getResourceId(),
             receiverInfo.getRoleList()));
         //过滤黑名单用户
-        userSet = notifyUserService.filterBlackUser(userSet);
+        userSet = notifyUserService.filterBlackUser(userSet, tenantId);
         //获取可用通知渠道
-        Set<String> availableChannelSet = new HashSet<>(getAvailableChannelTypeList());
+        Set<String> availableChannelSet = new HashSet<>(getAvailableChannelTypeList(tenantId));
         //与激活通知渠道取交集
         Set<String> validChannelSet = Sets.intersection(new HashSet<>(templateNotificationDTO.getActiveChannels()),
             availableChannelSet);
-        Long appId = templateNotificationDTO.getAppId();
         for (String channel : validChannelSet) {
             //取得Title与Content模板
             if (channelTemplateMap.containsKey(channel)) {
@@ -735,10 +706,11 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     public Integer triggerTemplateNotification(ServiceTriggerTemplateNotificationDTO triggerTemplateNotification) {
         Long appId = triggerTemplateNotification.getTriggerDTO().getAppId();
+        String tenantId = tenantService.getTenantIdByAppId(appId);
         // 1.获取所有可用渠道
         StopWatch watch = new StopWatch();
         watch.start("getAvailableChannelTypeList");
-        List<String> availableChannelTypeList = getAvailableChannelTypeList();
+        List<String> availableChannelTypeList = getAvailableChannelTypeList(tenantId);
         watch.stop();
         if (watch.getLastTaskTimeMillis() > 500) {
             log.warn(PrefConsts.TAG_PREF_SLOW + watch.prettyPrint());

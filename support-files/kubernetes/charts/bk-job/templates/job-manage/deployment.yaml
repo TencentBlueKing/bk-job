@@ -101,12 +101,6 @@ spec:
             - name: redis
               mountPath: /etc/secrets/redis
               readOnly: true
-            - name: job-gse-tls-certs
-              mountPath: /data/job/cert
-              readOnly: true
-            - name: job-gse-tls-password
-              mountPath: /etc/secrets
-              readOnly: true
       volumes:
         - name: job-storage
           persistentVolumeClaim:
@@ -120,20 +114,4 @@ spec:
         - name: redis
           secret:
             secretName: {{ include "job.redis.secretName" . }}
-        - name: job-gse-tls-certs
-          secret:
-            secretName: {{ include "gse.secretName" . | quote }}
-            items:
-              - key: gse.keystore
-                path: gse_job_api_client.keystore
-              - key: gse.truststore
-                path: gse_job_api_client.truststore
-        - name: job-gse-tls-password
-          secret:
-            secretName: {{ include "gse.secretName" . | quote }}
-            items:
-              - key: gse.keystore.password
-                path: gse.keystore.password
-              - key: gse.truststore.password
-                path: gse.truststore.password
 {{- end }}

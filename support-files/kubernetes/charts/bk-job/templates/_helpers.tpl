@@ -567,16 +567,6 @@ Return the Job InitContainer WaitForDependServices Content
 {{- end -}}
 {{- end -}}
 
-{{/*
-Return the gse secret
-*/}}
-{{- define "gse.secretName" -}}
-{{- if .Values.gse.existingTlsSecret -}}
-    {{- printf "%s" .Values.gse.existingTlsSecret -}}
-{{- else -}}
-    {{ printf "%s-gse-%s" (include "common.names.fullname" .) "tls-cert" }}
-{{- end -}}
-{{- end -}}
 
 {{/*
 Return the Job Web Scheme

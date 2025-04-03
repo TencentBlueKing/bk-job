@@ -47,9 +47,9 @@ import java.util.List;
 import java.util.Map;
 
 public interface GlobalSettingsService {
-    Boolean isNotifyChannelConfiged();
+    Boolean isNotifyChannelConfiged(String tenantId);
 
-    Boolean setNotifyChannelConfiged();
+    Boolean setNotifyChannelConfiged(String tenantId);
 
     List<NotifyChannelWithIconVO> listNotifyChannel(String username);
 

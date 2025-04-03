@@ -24,14 +24,15 @@
 
 package com.tencent.bk.job.manage.service.impl.notify;
 
+import com.tencent.bk.job.common.model.dto.BkUserDTO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
-import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyBlackUserInfoDAO;
-import com.tencent.bk.job.manage.model.dto.notify.EsbUserInfoDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyBlackUserInfoDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
+import com.tencent.bk.job.manage.service.UserCacheService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +41,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,51 +51,56 @@ import java.util.stream.Collectors;
 public class NotifyUserService {
 
     private final NotifyBlackUserInfoDAO notifyBlackUserInfoDAO;
-    private final EsbUserInfoDAO esbUserInfoDAO;
+    private final UserCacheService userCacheService;
 
     @Autowired
     public NotifyUserService(NotifyBlackUserInfoDAO notifyBlackUserInfoDAO,
-                             EsbUserInfoDAO esbUserInfoDAO) {
+                             UserCacheService userCacheService) {
         this.notifyBlackUserInfoDAO = notifyBlackUserInfoDAO;
-        this.esbUserInfoDAO = esbUserInfoDAO;
+        this.userCacheService = userCacheService;
     }
 
     public List<NotifyBlackUserInfoVO> listNotifyBlackUsers(Integer start, Integer pageSize) {
-        return notifyBlackUserInfoDAO.listNotifyBlackUserInfo(start, pageSize);
+        String tenantId = JobContextUtil.getTenantId();
+        return notifyBlackUserInfoDAO.listNotifyBlackUserInfo(tenantId, start, pageSize);
     }
 
-    private void saveBlackUsersToDB(String[] users, String creator, List<String> resultList) {
-        for (String user : users) {
-            if (StringUtils.isBlank(user)) {
-                continue;
-            }
+    private void saveBlackUsersToDB(Collection<BkUserDTO> users,
+                                    String creator,
+                                    List<String> resultList,
+                                    String tenantId) {
+        for (BkUserDTO user : users) {
             notifyBlackUserInfoDAO.insertNotifyBlackUserInfo(
                 new NotifyBlackUserInfoDTO(
                     null,
-                    user,
+                    tenantId,
+                    user.getUsername(),
+                    user.getDisplayName(),
                     creator,
                     System.currentTimeMillis()
                 ));
-            resultList.add(user);
+            resultList.add(user.getDisplayName());
         }
     }
 
-    public List<String> saveNotifyBlackUsers(String username, NotifyBlackUsersReq req) {
-        String[] users = req.getUsersStr().split(NotifyConsts.SEPERATOR_COMMA);
-        return saveNotifyBlackUsers(username, users);
+    public List<String> saveNotifyBlackUsers(String operator, NotifyBlackUsersReq req) {
+        Collection<String> users = Arrays.asList(req.getUsersStr().split(NotifyConsts.SEPERATOR_COMMA));
+        return saveNotifyBlackUsers(operator, users);
     }
 
-    public List<String> saveNotifyBlackUsers(String username, String[] users) {
+    public List<String> saveNotifyBlackUsers(String operator, Collection<String> usernames) {
+        String tenantId = JobContextUtil.getTenantId();
+        List<BkUserDTO> users = userCacheService.listUsersByUsernames(usernames);
         val resultList = new ArrayList<String>();
-        notifyBlackUserInfoDAO.deleteAllNotifyBlackUser();
-        saveBlackUsersToDB(users, username, resultList);
+        notifyBlackUserInfoDAO.deleteAllNotifyBlackUser(tenantId);
+        saveBlackUsersToDB(users, operator, resultList, tenantId);
         return resultList;
     }
 
-    public Set<String> filterBlackUser(Set<String> userSet) {
-        // 过滤黑名单内用户
+    public Set<String> filterBlackUser(Set<String> userSet, String tenantId) {
+        // 过滤租户内黑名单用户
         Set<String> blackUserSet =
-            notifyBlackUserInfoDAO.listNotifyBlackUserInfo().stream()
+            notifyBlackUserInfoDAO.listNotifyBlackUserInfo(tenantId).stream()
                 .map(NotifyBlackUserInfoDTO::getUsername).collect(Collectors.toSet());
         log.debug(String.format("sendUserChannelNotify:blackUserSet:%s", String.join(",", blackUserSet)));
         val removedBlackUserSet = userSet.stream().filter(blackUserSet::contains).collect(Collectors.toSet());
@@ -104,9 +111,10 @@ public class NotifyUserService {
     }
 
     private void filterBlackUsers(List<UserVO> userVOList) {
-        //过滤黑名单内用户
+        String tenantId = JobContextUtil.getTenantId();
+        // 通过uuid过滤黑名单内用户
         Set<String> blackUserSet =
-            notifyBlackUserInfoDAO.listNotifyBlackUserInfo().stream()
+            notifyBlackUserInfoDAO.listNotifyBlackUserInfo(tenantId).stream()
                 .map(NotifyBlackUserInfoDTO::getUsername).collect(Collectors.toSet());
         log.debug(String.format("listUsers:blackUserSet:%s", String.join(",", blackUserSet)));
         userVOList.forEach(it -> {
@@ -131,8 +139,8 @@ public class NotifyUserService {
         if (null == limit || limit <= 0) {
             limit = -1L;
         }
-        List<EsbUserInfoDTO> esbUserInfoDTOList = searchUserByPrefix(prefixStr);
-        List<UserVO> userVOList = esbUserInfoDTOList.stream().map(it ->
+        List<BkUserDTO> userList = searchUserByPrefix(prefixStr);
+        List<UserVO> userVOList = userList.stream().map(it ->
             new UserVO(it.getUsername(), it.getDisplayName(), it.getLogo(), true)
         ).collect(Collectors.toList());
         if (excludeBlackUsers) {
@@ -141,17 +149,18 @@ public class NotifyUserService {
         return calcFinalListByOffsetAndLimit(userVOList, offset, limit);
     }
 
-    private List<EsbUserInfoDTO> searchUserByPrefix(String prefixStr) {
+    private List<BkUserDTO> searchUserByPrefix(String prefixStr) {
+        String tenantId = JobContextUtil.getTenantId();
         // 从数据库查
         if (prefixStr.contains(NotifyConsts.SEPERATOR_COMMA)) {
             // 前端回显，传全量
-            List<String> userNames = Arrays.asList(prefixStr.split(NotifyConsts.SEPERATOR_COMMA));
-            while (userNames.contains("")) {
-                userNames.remove("");
+            List<String> displayNames = Arrays.asList(prefixStr.split(NotifyConsts.SEPERATOR_COMMA));
+            while (displayNames.contains("")) {
+                displayNames.remove("");
             }
-            return esbUserInfoDAO.listEsbUserInfo(userNames);
+            return userCacheService.listUsersByDisplayNames(tenantId, displayNames);
         } else {
-            return esbUserInfoDAO.listEsbUserInfo(prefixStr, -1L);
+            return userCacheService.listUsersByDisplayNamePrefix(tenantId, prefixStr, -1L);
         }
     }
 

@@ -45,7 +45,7 @@ import com.tencent.bk.job.manage.model.tables.TaskTemplateStepFile;
 import com.tencent.bk.job.manage.model.tables.TaskTemplateStepFileList;
 import com.tencent.bk.job.manage.model.tables.TaskTemplateStepScript;
 import com.tencent.bk.job.manage.model.tables.TaskTemplateVariable;
-import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.TenantHostService;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -77,7 +77,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AddHostIdForTemplateAndPlanMigrationTask {
     private final DSLContext CTX;
-    private final HostService hostService;
+    private final TenantHostService tenantHostService;
 
     private static final TaskTemplate TASK_TEMPLATE = TaskTemplate.TASK_TEMPLATE;
     private static final TaskPlan TASK_PLAN = TaskPlan.TASK_PLAN;
@@ -110,9 +110,9 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
 
     @Autowired
     public AddHostIdForTemplateAndPlanMigrationTask(@Qualifier("job-manage-dsl-context") DSLContext ctx,
-                                                    HostService hostService) {
+                                                    TenantHostService tenantHostService) {
         CTX = ctx;
-        this.hostService = hostService;
+        this.tenantHostService = tenantHostService;
     }
 
     public List<AddHostIdResult> execute(List<Long> appIdList, boolean isDryRun) {
@@ -155,7 +155,8 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
 
         if (CollectionUtils.isNotEmpty(notCachedCloudIps)) {
             try {
-                Map<String, ApplicationHostDTO> hosts = hostService.listHostsByIps(notCachedCloudIps);
+                // 多租户版本下该迁移任务默认不支持，需要支持时再开发这里
+                Map<String, ApplicationHostDTO> hosts = tenantHostService.listHostsByIps(null,notCachedCloudIps);
                 notCachedCloudIps.forEach(notCacheCloudIp -> {
                     ApplicationHostDTO host = hosts.get(notCacheCloudIp);
                     if (host == null) {

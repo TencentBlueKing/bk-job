@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.manage.task;
 
+import com.tencent.bk.job.manage.background.sync.AgentStatusSyncService;
+import com.tencent.bk.job.manage.background.sync.AllTenantHostSyncService;
+import com.tencent.bk.job.manage.background.sync.AppSyncService;
 import com.tencent.bk.job.manage.manager.app.ApplicationCache;
-import com.tencent.bk.job.manage.service.SyncService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -37,20 +39,27 @@ import org.springframework.stereotype.Component;
 @EnableScheduling
 public class ScheduledTasks {
 
-    private final EsbUserInfoUpdateTask esbUserInfoUpdateTask;
-    private final SyncService syncService;
+    private final UserSyncService userSyncService;
+    private final AppSyncService appSyncService;
+    private final AllTenantHostSyncService allTenantHostSyncService;
+    private final AgentStatusSyncService agentStatusSyncService;
     private final UserUploadFileCleanTask userUploadFileCleanTask;
     private final ClearDeletedHostsTask clearDeletedHostsTask;
     private final ApplicationCache applicationCache;
 
     @Autowired
     public ScheduledTasks(
-        EsbUserInfoUpdateTask esbUserInfoUpdateTask,
-        SyncService syncService,
+        UserSyncService userSyncService,
+        AppSyncService appSyncService,
+        AllTenantHostSyncService allTenantHostSyncService,
+        AgentStatusSyncService agentStatusSyncService,
         UserUploadFileCleanTask userUploadFileCleanTask,
-        ClearDeletedHostsTask clearDeletedHostsTask, ApplicationCache applicationCache) {
-        this.esbUserInfoUpdateTask = esbUserInfoUpdateTask;
-        this.syncService = syncService;
+        ClearDeletedHostsTask clearDeletedHostsTask,
+        ApplicationCache applicationCache) {
+        this.userSyncService = userSyncService;
+        this.appSyncService = appSyncService;
+        this.allTenantHostSyncService = allTenantHostSyncService;
+        this.agentStatusSyncService = agentStatusSyncService;
         this.userUploadFileCleanTask = userUploadFileCleanTask;
         this.clearDeletedHostsTask = clearDeletedHostsTask;
         this.applicationCache = applicationCache;
@@ -60,12 +69,12 @@ public class ScheduledTasks {
      * 每间隔1h更新一次人员数据
      */
     @Scheduled(initialDelay = 2 * 1000, fixedDelay = 60 * 60 * 1000)
-    public void updateEsbUserInfo() {
-        log.info("updateEsbUserInfo");
+    public void syncUser() {
+        log.info("syncUser");
         try {
-            esbUserInfoUpdateTask.execute();
+            userSyncService.execute();
         } catch (Exception e) {
-            log.error("updateEsbUserInfo fail", e);
+            log.error("syncUser fail", e);
         }
     }
 
@@ -76,7 +85,7 @@ public class ScheduledTasks {
     public void appSyncTask() {
         log.info(Thread.currentThread().getId() + ":appSyncTask start");
         try {
-            syncService.syncApp();
+            appSyncService.syncApp();
         } catch (Exception e) {
             log.error("testAppSyncTask fail", e);
         }
@@ -102,7 +111,7 @@ public class ScheduledTasks {
     public void hostSyncTask() {
         log.info(Thread.currentThread().getId() + ":hostSyncTask start");
         try {
-            syncService.syncHost();
+            allTenantHostSyncService.syncHost();
         } catch (Exception e) {
             log.error("hostSyncTask fail", e);
         }
@@ -115,7 +124,7 @@ public class ScheduledTasks {
     public void agentStatusSyncTask() {
         log.info(Thread.currentThread().getId() + ":agentStatusSyncTask start");
         try {
-            syncService.syncAgentStatus();
+            agentStatusSyncService.syncAgentStatus();
         } catch (Exception e) {
             log.error("agentStatusSyncTask fail", e);
         }

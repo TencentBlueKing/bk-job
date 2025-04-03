@@ -37,6 +37,10 @@ public class ResourceTypeId {
      */
     public static final String BUSINESS_SET = "business_set";
     /**
+     * 租户集
+     */
+    public static final String TENANT_SET = "tenant_set";
+    /**
      * 脚本
      */
     public static final String SCRIPT = "script";

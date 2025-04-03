@@ -27,7 +27,7 @@ package com.tencent.bk.job.analysis.service;
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.model.web.DayDistributionElementVO;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -41,13 +41,13 @@ import java.util.List;
 @Service
 public class FastFileStatisticService extends BaseStatisticService {
 
-    private final StatisticsDAO statisticsDAO;
+    private final CurrentTenantStatisticsDAO currentTenantStatisticsDAO;
     private final StatisticConfig statisticConfig;
 
     @Autowired
-    public FastFileStatisticService(StatisticsDAO statisticsDAO, StatisticConfig statisticConfig) {
+    public FastFileStatisticService(CurrentTenantStatisticsDAO currentTenantStatisticsDAO, StatisticConfig statisticConfig) {
         super();
-        this.statisticsDAO = statisticsDAO;
+        this.currentTenantStatisticsDAO = currentTenantStatisticsDAO;
         this.statisticConfig = statisticConfig;
     }
 
@@ -55,25 +55,25 @@ public class FastFileStatisticService extends BaseStatisticService {
                                                                              String endDate) {
         List<StatisticsDTO> statisticsDTOList;
         if (appIdList == null) {
-            statisticsDTOList = statisticsDAO.getStatisticsListBetweenDate(appIdList, null,
+            statisticsDTOList = currentTenantStatisticsDAO.getStatisticsListBetweenDate(appIdList, null,
                 StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_FAST_FILE_OF_ALL_APP,
                 StatisticsConstants.DIMENSION_FILE_TRANSFER_MODE, startDate, endDate);
             if (statisticsDTOList == null
                 || statisticsDTOList.size() < DateUtils.calcDaysBetween(startDate, endDate) + 1) {
                 log.info("offline data not ready, calc in mem, startDate={}, endDate={}", startDate, endDate);
-                statisticsDTOList = statisticsDAO.getStatisticsListBetweenDate(appIdList,
+                statisticsDTOList = currentTenantStatisticsDAO.getStatisticsListBetweenDate(appIdList,
                     Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
                     StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_FILE_TRANSFER_MODE
                     , startDate, endDate);
             }
         } else {
-            statisticsDTOList = statisticsDAO.getStatisticsListBetweenDate(appIdList,
+            statisticsDTOList = currentTenantStatisticsDAO.getStatisticsListBetweenDate(appIdList,
                 Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
                 StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE, StatisticsConstants.DIMENSION_FILE_TRANSFER_MODE,
                 startDate, endDate);
         }
         log.debug("statisticsDTOList={}", statisticsDTOList);
-        List<StatisticsDTO> failedStatisticsDTOList = statisticsDAO.getStatisticsListBetweenDate(
+        List<StatisticsDTO> failedStatisticsDTOList = currentTenantStatisticsDAO.getStatisticsListBetweenDate(
             appIdList,
             null,
             StatisticsConstants.RESOURCE_EXECUTED_FAST_FILE,

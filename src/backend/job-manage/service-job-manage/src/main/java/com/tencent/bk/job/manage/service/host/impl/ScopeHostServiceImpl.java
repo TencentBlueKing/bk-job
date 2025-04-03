@@ -24,19 +24,22 @@
 
 package com.tencent.bk.job.manage.service.host.impl;
 
-import com.tencent.bk.job.common.cc.sdk.BkNetClient;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.model.query.HostQuery;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.service.host.BizHostService;
+import com.tencent.bk.job.manage.service.cloudarea.BkNetService;
+import com.tencent.bk.job.manage.service.host.CurrentTenantBizHostService;
+import com.tencent.bk.job.manage.service.host.NoTenantBizHostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
-import com.tencent.bk.job.manage.service.impl.topo.BizTopoService;
+import com.tencent.bk.job.manage.service.topo.BizTopoService;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -60,18 +63,24 @@ import java.util.stream.Collectors;
 public class ScopeHostServiceImpl implements ScopeHostService {
 
     private final ApplicationService applicationService;
-    private final BizHostService bizHostService;
-    private final BkNetClient bkNetClient;
+    private final CurrentTenantBizHostService currentTenantBizHostService;
+    private final NoTenantBizHostService noTenantBizHostService;
+    private final NoTenantHostDAO noTenantHostDAO;
+    private final BkNetService bkNetService;
     private final BizTopoService bizTopoService;
 
     @Autowired
     public ScopeHostServiceImpl(ApplicationService applicationService,
-                                BizHostService bizHostService,
-                                BkNetClient bkNetClient,
+                                CurrentTenantBizHostService currentTenantBizHostService,
+                                NoTenantBizHostService noTenantBizHostService,
+                                NoTenantHostDAO noTenantHostDAO,
+                                BkNetService bkNetService,
                                 BizTopoService bizTopoService) {
         this.applicationService = applicationService;
-        this.bizHostService = bizHostService;
-        this.bkNetClient = bkNetClient;
+        this.currentTenantBizHostService = currentTenantBizHostService;
+        this.noTenantBizHostService = noTenantBizHostService;
+        this.noTenantHostDAO = noTenantHostDAO;
+        this.bkNetService = bkNetService;
         this.bizTopoService = bizTopoService;
     }
 
@@ -79,17 +88,20 @@ public class ScopeHostServiceImpl implements ScopeHostService {
     public List<Long> filterScopeHostIds(AppResourceScope appResourceScope,
                                          Collection<Long> hostIds) {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
-        if (applicationDTO.isAllBizSet()) {
-            // 全业务
+        if (applicationDTO.isAllTenantSet()) {
+            // 全租户
             return new ArrayList<>(hostIds);
+        } else if (applicationDTO.isAllBizSet()) {
+            // 全业务
+            return currentTenantBizHostService.filterHostIds(hostIds);
         } else if (applicationDTO.isBizSet()) {
             // 业务集
             List<Long> bizIds = applicationDTO.getSubBizIds();
-            return bizHostService.filterHostIdsByBiz(bizIds, hostIds);
+            return currentTenantBizHostService.filterHostIdsByBiz(bizIds, hostIds);
         } else {
             // 普通业务
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
-            return bizHostService.filterHostIdsByBiz(Collections.singletonList(bizId), hostIds);
+            return currentTenantBizHostService.filterHostIdsByBiz(Collections.singletonList(bizId), hostIds);
         }
     }
 
@@ -97,34 +109,40 @@ public class ScopeHostServiceImpl implements ScopeHostService {
     public List<ApplicationHostDTO> getScopeHostsByIds(AppResourceScope appResourceScope,
                                                        Collection<Long> hostIds) {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
-        if (applicationDTO.isAllBizSet()) {
+        if (applicationDTO.isAllTenantSet()) {
+            // 全租户
+            return noTenantHostDAO.listHostInfoByHostIds(hostIds);
+        } else if (applicationDTO.isAllBizSet()) {
             // 全业务
-            return bizHostService.getHostsByHostIds(hostIds);
+            return currentTenantBizHostService.getHostsByHostIds(hostIds);
         } else if (applicationDTO.isBizSet()) {
             // 业务集
             List<Long> bizIds = applicationDTO.getSubBizIds();
-            return bizHostService.getHostsByBizAndHostIds(bizIds, hostIds);
+            return currentTenantBizHostService.getHostsByBizAndHostIds(bizIds, hostIds);
         } else {
             // 普通业务
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
-            return bizHostService.getHostsByBizAndHostIds(Collections.singletonList(bizId), hostIds);
+            return currentTenantBizHostService.getHostsByBizAndHostIds(Collections.singletonList(bizId), hostIds);
         }
     }
 
     @Override
     public List<ApplicationHostDTO> getScopeHostsByIps(AppResourceScope appResourceScope, Collection<String> ips) {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
-        if (applicationDTO.isAllBizSet()) {
+        if (applicationDTO.isAllTenantSet()) {
+            // 全租户
+            return noTenantHostDAO.listHostInfoByIps(ips);
+        } else if (applicationDTO.isAllBizSet()) {
             // 全业务
-            return bizHostService.getHostsByIps(ips);
+            return currentTenantBizHostService.getHostsByIps(ips);
         } else if (applicationDTO.isBizSet()) {
             // 业务集
             List<Long> bizIds = applicationDTO.getSubBizIds();
-            return bizHostService.getHostsByBizAndIps(bizIds, ips);
+            return currentTenantBizHostService.getHostsByBizAndIps(bizIds, ips);
         } else {
             // 普通业务
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
-            return bizHostService.getHostsByBizAndIps(Collections.singletonList(bizId), ips);
+            return currentTenantBizHostService.getHostsByBizAndIps(Collections.singletonList(bizId), ips);
         }
     }
 
@@ -132,34 +150,40 @@ public class ScopeHostServiceImpl implements ScopeHostService {
     public List<ApplicationHostDTO> getScopeHostsByCloudIps(AppResourceScope appResourceScope,
                                                             Collection<String> cloudIps) {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
-        if (applicationDTO.isAllBizSet()) {
+        if (applicationDTO.isAllTenantSet()) {
+            // 全租户
+            return noTenantHostDAO.listHostInfoByCloudIps(cloudIps);
+        } else if (applicationDTO.isAllBizSet()) {
             // 全业务
-            return bizHostService.getHostsByCloudIps(cloudIps);
+            return currentTenantBizHostService.getHostsByCloudIps(cloudIps);
         } else if (applicationDTO.isBizSet()) {
             // 业务集
             List<Long> bizIds = applicationDTO.getSubBizIds();
-            return bizHostService.getHostsByBizAndCloudIps(bizIds, cloudIps);
+            return currentTenantBizHostService.getHostsByBizAndCloudIps(bizIds, cloudIps);
         } else {
             // 普通业务
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
-            return bizHostService.getHostsByBizAndCloudIps(Collections.singletonList(bizId), cloudIps);
+            return currentTenantBizHostService.getHostsByBizAndCloudIps(Collections.singletonList(bizId), cloudIps);
         }
     }
 
     @Override
     public List<ApplicationHostDTO> getScopeHostsByIpv6s(AppResourceScope appResourceScope, Collection<String> ipv6s) {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
-        if (applicationDTO.isAllBizSet()) {
+        if (applicationDTO.isAllTenantSet()) {
+            // 全租户
+            return noTenantHostDAO.listHostInfoByIpv6s(ipv6s);
+        } else if (applicationDTO.isAllBizSet()) {
             // 全业务
-            return bizHostService.getHostsByIpv6s(ipv6s);
+            return currentTenantBizHostService.getHostsByIpv6s(ipv6s);
         } else if (applicationDTO.isBizSet()) {
             // 业务集
             List<Long> bizIds = applicationDTO.getSubBizIds();
-            return bizHostService.getHostsByBizAndIpv6s(bizIds, ipv6s);
+            return currentTenantBizHostService.getHostsByBizAndIpv6s(bizIds, ipv6s);
         } else {
             // 普通业务
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
-            return bizHostService.getHostsByBizAndIpv6s(Collections.singletonList(bizId), ipv6s);
+            return currentTenantBizHostService.getHostsByBizAndIpv6s(Collections.singletonList(bizId), ipv6s);
         }
     }
 
@@ -167,17 +191,20 @@ public class ScopeHostServiceImpl implements ScopeHostService {
     public List<ApplicationHostDTO> getScopeHostsByHostNames(AppResourceScope appResourceScope,
                                                              Collection<String> hostNames) {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
-        if (applicationDTO.isAllBizSet()) {
+        if (applicationDTO.isAllTenantSet()) {
+            // 全租户
+            return noTenantHostDAO.listHostInfoByHostNames(hostNames);
+        } else if (applicationDTO.isAllBizSet()) {
             // 全业务
-            return bizHostService.getHostsByHostNames(hostNames);
+            return currentTenantBizHostService.getHostsByHostNames(hostNames);
         } else if (applicationDTO.isBizSet()) {
             // 业务集
             List<Long> bizIds = applicationDTO.getSubBizIds();
-            return bizHostService.getHostsByBizAndHostNames(bizIds, hostNames);
+            return currentTenantBizHostService.getHostsByBizAndHostNames(bizIds, hostNames);
         } else {
             // 普通业务
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
-            return bizHostService.getHostsByBizAndHostNames(Collections.singletonList(bizId), hostNames);
+            return currentTenantBizHostService.getHostsByBizAndHostNames(Collections.singletonList(bizId), hostNames);
         }
     }
 
@@ -214,7 +241,12 @@ public class ScopeHostServiceImpl implements ScopeHostService {
             .start(start)
             .limit(pageSize)
             .build();
-        PageData<Long> result = bizHostService.pageListHostId(hostQuery);
+        PageData<Long> result;
+        if (basicConditions.isAllTenant()) {
+            result = noTenantBizHostService.pageListHostId(hostQuery);
+        } else {
+            result = currentTenantBizHostService.pageListHostId(hostQuery);
+        }
         watch.stop();
         if (watch.getTotalTimeMillis() > 5000) {
             log.warn("listHostIdByBizTopologyNodes slow:" + watch.prettyPrint());
@@ -260,7 +292,11 @@ public class ScopeHostServiceImpl implements ScopeHostService {
             .start(start)
             .limit(pageSize)
             .build();
-        return bizHostService.pageListHost(hostQuery);
+        if (basicConditions.isAllTenant()) {
+            return noTenantBizHostService.pageListHost(hostQuery);
+        } else {
+            return currentTenantBizHostService.pageListHost(hostQuery);
+        }
     }
 
     private BasicParsedSearchConditions buildSearchConditions(AppResourceScope appResourceScope,
@@ -269,7 +305,12 @@ public class ScopeHostServiceImpl implements ScopeHostService {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
         List<Long> moduleIds = null;
         List<Long> bizIds = null;
-        if (applicationDTO.isAllBizSet()) {
+        boolean allTenant = false;
+        if (applicationDTO.isAllTenantSet()) {
+            // 全租户
+            allTenant = true;
+            log.debug("listHostIdByBizTopologyNodes of allTenant:{}", appResourceScope);
+        } else if (applicationDTO.isAllBizSet()) {
             // 全业务
             log.debug("listHostIdByBizTopologyNodes of allBizSet:{}", appResourceScope);
         } else if (applicationDTO.isBizSet()) {
@@ -289,13 +330,15 @@ public class ScopeHostServiceImpl implements ScopeHostService {
         }
 
         //获取所有云区域，找出名称符合条件的所有CloudAreaId
-        List<Long> cloudAreaIds = bkNetClient.getAnyNameMatchedCloudAreaIds(searchContents);
-        return new BasicParsedSearchConditions(bizIds, moduleIds, cloudAreaIds, searchContents);
+        String tenantId = JobContextUtil.getTenantId();
+        List<Long> cloudAreaIds = bkNetService.getAnyNameMatchedCloudAreaIds(tenantId, searchContents);
+        return new BasicParsedSearchConditions(allTenant, bizIds, moduleIds, cloudAreaIds, searchContents);
     }
 
     @Getter
     @AllArgsConstructor
     static class BasicParsedSearchConditions {
+        boolean allTenant;
         List<Long> bizIds;
         List<Long> moduleIds;
         List<Long> cloudAreaIds;
