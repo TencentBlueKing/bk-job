@@ -217,7 +217,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         return allNotifyChannelList.stream().map(it -> {
             String icon = it.getIcon();
             String prefix = "data:image/png;base64,";
-            if (!icon.startsWith("data:image")) {
+            if (icon != null && !icon.startsWith("data:image")) {
                 icon = prefix + icon;
             }
             return new NotifyChannelWithIconVO(
