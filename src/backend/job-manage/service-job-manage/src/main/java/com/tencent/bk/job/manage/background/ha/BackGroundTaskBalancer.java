@@ -73,7 +73,7 @@ public class BackGroundTaskBalancer {
         // TODO
         // 3.计算每个实例应该承担的平均值
         // TODO
-        int averageResourceCost = 30;
+        int averageResourceCost = 5;
         // 4.计算当前实例资源占用值
         int currentResourceCost = calcCurrentResourceCost();
         // 5.如果当前实例的资源占用高于平均值，则将任务均衡到其他实例

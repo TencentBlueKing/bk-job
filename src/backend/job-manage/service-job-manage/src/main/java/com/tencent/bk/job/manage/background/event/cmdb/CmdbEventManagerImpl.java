@@ -176,6 +176,8 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
                     tenantId
                 )
         );
+        // 注册后台任务用于动态调度
+        backGroundTaskRegistry.registerTask(bizSetEventWatcher.getUniqueCode(), bizSetEventWatcher);
         // 开一个常驻线程监听业务集变动事件
         bizSetEventWatcher.start();
     }
@@ -196,6 +198,8 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
                     tenantId
                 )
         );
+        // 注册后台任务用于动态调度
+        backGroundTaskRegistry.registerTask(bizSetRelationEventWatcher.getUniqueCode(), bizSetRelationEventWatcher);
         // 开一个常驻线程监听业务集关系变动事件
         bizSetRelationEventWatcher.start();
     }
@@ -217,6 +221,8 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
                     tenantId
                 )
         );
+        // 注册后台任务用于动态调度
+        backGroundTaskRegistry.registerTask(tenantHostEventWatcher.getUniqueCode(), tenantHostEventWatcher);
         // 开一个常驻线程监听主机资源变动事件
         tenantHostEventWatcher.start();
     }
@@ -239,6 +245,8 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
                     tenantId
                 )
         );
+        // 注册后台任务用于动态调度
+        backGroundTaskRegistry.registerTask(hostRelationEventWatcher.getUniqueCode(), hostRelationEventWatcher);
         // 开一个常驻线程监听主机关系资源变动事件
         hostRelationEventWatcher.start();
     }

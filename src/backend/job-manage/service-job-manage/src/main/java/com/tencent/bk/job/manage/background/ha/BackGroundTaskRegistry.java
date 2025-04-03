@@ -38,6 +38,7 @@ public class BackGroundTaskRegistry implements IBackGroundTaskRegistry {
 
     @Override
     public void registerTask(String uniqueCode, IBackGroundTask task) {
+        task.setRegistry(this);
         taskMap.put(uniqueCode, task);
     }
 
