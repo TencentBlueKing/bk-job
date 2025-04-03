@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.task;
 
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskBalancer;
 import com.tencent.bk.job.manage.background.sync.AgentStatusSyncService;
 import com.tencent.bk.job.manage.background.sync.AllTenantHostSyncService;
 import com.tencent.bk.job.manage.background.sync.AppSyncService;
@@ -44,8 +45,8 @@ public class ScheduledTasks {
     private final AllTenantHostSyncService allTenantHostSyncService;
     private final AgentStatusSyncService agentStatusSyncService;
     private final UserUploadFileCleanTask userUploadFileCleanTask;
-    private final ClearNotInCmdbHostsService clearNotInCmdbHostsService;
     private final ApplicationCache applicationCache;
+    private final BackGroundTaskBalancer backGroundTaskBalancer;
 
     @Autowired
     public ScheduledTasks(
@@ -54,15 +55,15 @@ public class ScheduledTasks {
         AllTenantHostSyncService allTenantHostSyncService,
         AgentStatusSyncService agentStatusSyncService,
         UserUploadFileCleanTask userUploadFileCleanTask,
-        ClearNotInCmdbHostsService clearNotInCmdbHostsService,
-        ApplicationCache applicationCache) {
+        ApplicationCache applicationCache,
+        BackGroundTaskBalancer backGroundTaskBalancer) {
         this.userSyncService = userSyncService;
         this.appSyncService = appSyncService;
         this.allTenantHostSyncService = allTenantHostSyncService;
         this.agentStatusSyncService = agentStatusSyncService;
         this.userUploadFileCleanTask = userUploadFileCleanTask;
-        this.clearNotInCmdbHostsService = clearNotInCmdbHostsService;
         this.applicationCache = applicationCache;
+        this.backGroundTaskBalancer = backGroundTaskBalancer;
     }
 
     /**
@@ -141,4 +142,16 @@ public class ScheduledTasks {
         log.info("Clean user upload file task finished");
     }
 
+    /**
+     * 每分钟均衡一次分布在多个实例上的后台任务
+     */
+    @Scheduled(cron = "0 * * * * ?")
+    public void balanceBackGroundTask() {
+        log.info("balanceBackGroundTask begin");
+        try {
+            log.info("balanceBackGroundTask finished:{}", backGroundTaskBalancer.balance());
+        } catch (Exception e) {
+            log.error("balanceBackGroundTask failed!", e);
+        }
+    }
 }

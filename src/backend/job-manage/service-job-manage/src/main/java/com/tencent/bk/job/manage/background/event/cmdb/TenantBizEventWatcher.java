@@ -32,6 +32,9 @@ import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
+import com.tencent.bk.job.manage.background.ha.IBackGroundTask;
+import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -150,5 +153,30 @@ public class TenantBizEventWatcher extends AbstractCmdbResourceEventWatcher<BizE
         originApp.setBkSupplierAccount(updateApp.getBkSupplierAccount());
         originApp.setLanguage(updateApp.getLanguage());
         originApp.setTimeZone(updateApp.getTimeZone());
+    }
+
+    @Override
+    public String getUniqueCode() {
+        return getTaskEntity().getUniqueCode();
+    }
+
+    @Override
+    public TaskEntity getTaskEntity() {
+        return new TaskEntity(BackGroundTaskCode.WATCH_BIZ, getTenantId());
+    }
+
+    @Override
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    @Override
+    public int getResourceCost() {
+        return 1;
+    }
+
+    @Override
+    public void shutdownGracefully() {
+        super.shutdownGracefully();
     }
 }

@@ -909,6 +909,12 @@ manageConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 后台任务（CMDB资源同步、事件监听等）相关配置
+  backGroundTask:
+    # 后台任务负载均衡器
+    balancer:
+      # 是否开启
+      enabled: true
 
 
 ## job-execute执行引擎配置

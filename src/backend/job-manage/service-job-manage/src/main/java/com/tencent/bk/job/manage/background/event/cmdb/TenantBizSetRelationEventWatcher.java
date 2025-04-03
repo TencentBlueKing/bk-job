@@ -33,6 +33,8 @@ import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
+import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -122,5 +124,30 @@ public class TenantBizSetRelationEventWatcher extends AbstractCmdbResourceEventW
                 isBizSetMigratedToCMDB);
         }
         return isBizSetMigratedToCMDB;
+    }
+
+    @Override
+    public String getUniqueCode() {
+        return getTaskEntity().getUniqueCode();
+    }
+
+    @Override
+    public TaskEntity getTaskEntity() {
+        return new TaskEntity(BackGroundTaskCode.WATCH_BIZ_SET_RELATION, getTenantId());
+    }
+
+    @Override
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    @Override
+    public int getResourceCost() {
+        return 1;
+    }
+
+    @Override
+    public void shutdownGracefully() {
+        super.shutdownGracefully();
     }
 }

@@ -28,6 +28,8 @@ import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
+import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
@@ -152,5 +154,30 @@ public class TenantHostRelationEventWatcher extends AbstractCmdbResourceEventWat
 
     private void dispatchEventToHandler(ResourceEvent<HostRelationEventDetail> event) {
         eventsHandler.commitEvent(event);
+    }
+
+    @Override
+    public String getUniqueCode() {
+        return getTaskEntity().getUniqueCode();
+    }
+
+    @Override
+    public TaskEntity getTaskEntity() {
+        return new TaskEntity(BackGroundTaskCode.WATCH_HOST_RELATION, getTenantId());
+    }
+
+    @Override
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    @Override
+    public int getResourceCost() {
+        return 1;
+    }
+
+    @Override
+    public void shutdownGracefully() {
+        super.shutdownGracefully();
     }
 }

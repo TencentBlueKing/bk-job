@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
 import com.tencent.bk.job.common.paas.user.IUserApiClient;
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskRegistry;
 import com.tencent.bk.job.manage.config.GseConfig;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
@@ -80,6 +81,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
      */
     private final Tracer tracer;
     private final CmdbEventSampler cmdbEventSampler;
+    private final BackGroundTaskRegistry backGroundTaskRegistry;
 
     @Autowired
     public CmdbEventManagerImpl(IBizCmdbClient bizCmdbClient,
@@ -96,7 +98,8 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
                                 @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
                                 AgentStateClient agentStateClient,
                                 Tracer tracer,
-                                CmdbEventSampler cmdbEventSampler) {
+                                CmdbEventSampler cmdbEventSampler,
+                                BackGroundTaskRegistry backGroundTaskRegistry) {
         this.bizCmdbClient = bizCmdbClient;
         this.bizSetCmdbClient = bizSetCmdbClient;
         this.userApiClient = userApiClient;
@@ -111,6 +114,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
         this.agentStateClient = agentStateClient;
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
+        this.backGroundTaskRegistry = backGroundTaskRegistry;
     }
 
     @Override
@@ -150,6 +154,8 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
                     tenantId
                 )
         );
+        // 注册后台任务用于动态调度
+        backGroundTaskRegistry.registerTask(tenantBizEventWatcher.getUniqueCode(), tenantBizEventWatcher);
         // 开一个常驻线程监听业务资源变动事件
         tenantBizEventWatcher.start();
     }

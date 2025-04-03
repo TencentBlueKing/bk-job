@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.background.ha.AbstractBackGroundTask;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,7 @@ import java.util.List;
  */
 @SuppressWarnings("InfiniteLoopStatement")
 @Slf4j
-public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
+public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGroundTask {
     protected final String tenantId;
     /**
      * 节点IP
@@ -75,6 +76,8 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
      * 监听事件前是否已执行初始化操作
      */
     private boolean initedBeforeWatch = false;
+    protected volatile boolean active = true;
+    protected volatile boolean finished = false;
 
     public AbstractCmdbResourceEventWatcher(String tenantId,
                                             String watcherResourceName,
@@ -96,7 +99,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
     public final void run() {
         log.info("[tenantId={}] Watching {} event start", tenantId, watcherResourceName);
         LockResult lockResult = null;
-        while (true) {
+        while (active) {
             Span span = SpanUtil.buildNewSpan(this.tracer, this.watcherResourceName + "WatchOuterLoop");
             try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
                 HeartBeatRedisLock redisLock = new HeartBeatRedisLock(redisTemplate, redisLockKey, machineIp);
@@ -125,13 +128,14 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                 ThreadUtils.sleep(5000);
             }
         }
+        this.finished = true;
     }
 
     private void watchAndHandleEvent() {
         log.info("Start watch {} resource at {},{}", watcherResourceName, TimeUtil.getCurrentTimeStr("HH:mm:ss"),
             System.currentTimeMillis());
         String cursor = null;
-        while (isWatchingEnabled()) {
+        while (active && isWatchingEnabled()) {
             Span span = SpanUtil.buildNewSpan(this.tracer, "watchAndHandle-" + this.watcherResourceName + "Events");
             try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
                 ResourceWatchResult<E> watchResult;
@@ -219,6 +223,27 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
      */
     protected boolean isWatchingEnabled() {
         return true;
+    }
+
+    /**
+     * 优雅关闭
+     */
+    public void shutdownGracefully() {
+        this.active = false;
+        waitUntilFinish();
+        deregister();
+    }
+
+    private void waitUntilFinish() {
+        int waitMills = 0;
+        while (!finished) {
+            ThreadUtils.sleep(10);
+            waitMills += 10;
+            if (waitMills % 5000 == 0) {
+                log.info("waited {}s to shutdown, still running", waitMills / 1000);
+            }
+        }
+        log.info("waited {}s to shutdown finished", waitMills / 1000.0);
     }
 
     /**
