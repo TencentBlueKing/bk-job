@@ -192,5 +192,12 @@ public class TenantHostEventWatcher extends AbstractCmdbResourceEventWatcher<Hos
     @Override
     public void shutdownGracefully() {
         super.shutdownGracefully();
+        closeAllHandlers();
+    }
+
+    private void closeAllHandlers() {
+        for (HostEventHandler handler : eventsHandlers) {
+            handler.close();
+        }
     }
 }

@@ -179,5 +179,6 @@ public class TenantHostRelationEventWatcher extends AbstractCmdbResourceEventWat
     @Override
     public void shutdownGracefully() {
         super.shutdownGracefully();
+        eventsHandler.close();
     }
 }

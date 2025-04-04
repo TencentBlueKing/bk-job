@@ -90,13 +90,23 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.watcherResourceName = watcherResourceName;
-        this.setName(watcherResourceName);
+        this.setName(getUniqueCode());
         this.redisLockKey = "watch-cmdb-" + this.watcherResourceName + "-lock-" + tenantId;
     }
 
     @NewSpan
     @Override
     public final void run() {
+        try {
+            doRun();
+        } catch (Throwable t) {
+            log.error("Exception occurred when running", t);
+        } finally {
+            onFinish();
+        }
+    }
+
+    private void doRun() {
         HeartBeatRedisLock redisLock = new HeartBeatRedisLock(redisTemplate, redisLockKey, machineIp);
         String lockKeyValue = redisLock.peekLockKeyValue();
         if (StringUtils.isNotBlank(lockKeyValue)) {
@@ -133,7 +143,6 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
                 ThreadUtils.sleep(5000);
             }
         }
-        this.finished = true;
     }
 
     private void watchAndHandleEvent() {
@@ -230,13 +239,17 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
         return true;
     }
 
+    private void onFinish() {
+        deregister();
+        this.finished = true;
+    }
+
     /**
      * 优雅关闭
      */
     public void shutdownGracefully() {
         this.active = false;
         waitUntilFinish();
-        deregister();
     }
 
     private void waitUntilFinish() {

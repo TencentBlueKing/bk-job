@@ -43,7 +43,7 @@ public abstract class EventsHandler<T> extends Thread {
      */
     private final Tracer tracer;
     private final CmdbEventSampler cmdbEventSampler;
-    protected boolean enabled = true;
+    protected boolean active = true;
     BlockingQueue<ResourceEvent<T>> queue;
 
     public EventsHandler(BlockingQueue<ResourceEvent<T>> queue,
@@ -102,7 +102,7 @@ public abstract class EventsHandler<T> extends Thread {
 
     @Override
     public void run() {
-        while (enabled) {
+        while (active) {
             ResourceEvent<T> event;
             try {
                 event = queue.take();
@@ -113,5 +113,10 @@ public abstract class EventsHandler<T> extends Thread {
                 log.error("Fail to handleEventWithTrace", t);
             }
         }
+    }
+
+    public void close() {
+        active = false;
+        this.interrupt();
     }
 }
