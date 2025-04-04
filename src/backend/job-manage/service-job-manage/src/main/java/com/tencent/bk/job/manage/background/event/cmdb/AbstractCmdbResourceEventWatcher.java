@@ -39,6 +39,7 @@ import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.cloud.sleuth.annotation.NewSpan;
@@ -51,7 +52,6 @@ import java.util.List;
  *
  * @param <E> cmdb事件
  */
-@SuppressWarnings("InfiniteLoopStatement")
 @Slf4j
 public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGroundTask {
     protected final String tenantId;
@@ -97,12 +97,17 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
     @NewSpan
     @Override
     public final void run() {
+        HeartBeatRedisLock redisLock = new HeartBeatRedisLock(redisTemplate, redisLockKey, machineIp);
+        String lockKeyValue = redisLock.peekLockKeyValue();
+        if (StringUtils.isNotBlank(lockKeyValue)) {
+            log.info("[tenantId={}] Watching {} event already running, ignore", tenantId, watcherResourceName);
+            return;
+        }
         log.info("[tenantId={}] Watching {} event start", tenantId, watcherResourceName);
         LockResult lockResult = null;
         while (active) {
             Span span = SpanUtil.buildNewSpan(this.tracer, this.watcherResourceName + "WatchOuterLoop");
             try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
-                HeartBeatRedisLock redisLock = new HeartBeatRedisLock(redisTemplate, redisLockKey, machineIp);
                 lockResult = redisLock.lock();
                 if (!lockResult.isLockGotten()) {
                     // 5s之后重试
