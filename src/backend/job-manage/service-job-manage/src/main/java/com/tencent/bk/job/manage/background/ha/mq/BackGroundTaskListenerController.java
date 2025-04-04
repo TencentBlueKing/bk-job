@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class BackGroundTaskListenerController {
-    private final String BINDING_NAME_BACKGROUND_TASK_IN = "backGroundTask-in-0";
+    private final String BINDING_NAME_HANDLE_BACKGROUND_TASK = "handleBackGroundTask-in-0";
     private final BindingsLifecycleController bindingsLifecycleController;
 
     @Autowired
@@ -48,12 +48,12 @@ public class BackGroundTaskListenerController {
      */
     public void start() {
         bindingsLifecycleController.changeState(
-            BINDING_NAME_BACKGROUND_TASK_IN,
+            BINDING_NAME_HANDLE_BACKGROUND_TASK,
             BindingsLifecycleController.State.STARTED
         );
         log.info(
             "SetStateOfBinding: bindingName={}, state={}",
-            BINDING_NAME_BACKGROUND_TASK_IN,
+            BINDING_NAME_HANDLE_BACKGROUND_TASK,
             BindingsLifecycleController.State.STARTED
         );
     }
@@ -63,12 +63,12 @@ public class BackGroundTaskListenerController {
      */
     public void stop() {
         bindingsLifecycleController.changeState(
-            BINDING_NAME_BACKGROUND_TASK_IN,
+            BINDING_NAME_HANDLE_BACKGROUND_TASK,
             BindingsLifecycleController.State.STOPPED
         );
         log.info(
             "SetStateOfBinding: bindingName={}, state={}",
-            BINDING_NAME_BACKGROUND_TASK_IN,
+            BINDING_NAME_HANDLE_BACKGROUND_TASK,
             BindingsLifecycleController.State.STOPPED
         );
     }
