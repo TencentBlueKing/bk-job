@@ -51,6 +51,8 @@ public class BackGroundTaskBalancer {
     private final BackGroundTaskDispatcher backGroundTaskDispatcher;
     private final BackGroundTaskProperties backGroundTaskProperties;
 
+    private volatile boolean isBalancerRunning = false;
+
     @Autowired
     public BackGroundTaskBalancer(IBackGroundTaskRegistry backGroundTaskRegistry,
                                   BackGroundTaskListenerController backGroundTaskListenerController,
@@ -67,6 +69,22 @@ public class BackGroundTaskBalancer {
             log.info("background-task balancer not enabled, you can enable it using config");
             return false;
         }
+        if (isBalancerRunning) {
+            log.info("last balance is running, ignore");
+            return false;
+        }
+        try {
+            isBalancerRunning = true;
+            return doBalance();
+        } catch (Throwable t) {
+            log.error("Fail to balance background-task", t);
+            return false;
+        } finally {
+            isBalancerRunning = false;
+        }
+    }
+
+    private boolean doBalance() {
         // 1.统计所有任务的占用资源（线程等）总数
         // TODO
         // 2.统计所有实例数量
@@ -82,7 +100,7 @@ public class BackGroundTaskBalancer {
 
             // 关闭任务监听器
             watch.start("closeTaskListener");
-            closeTaskListener();
+            stopTaskListener();
             watch.stop();
 
             // 选取一批任务优雅终止
@@ -108,6 +126,8 @@ public class BackGroundTaskBalancer {
                 watch.stop();
             }
             logBalanceResult(successList, failedList, watch);
+        } else {
+            startTaskListener();
         }
         return true;
     }
@@ -217,9 +237,16 @@ public class BackGroundTaskBalancer {
     }
 
     /**
+     * 开启任务监听器
+     */
+    private void startTaskListener() {
+        backGroundTaskListenerController.start();
+    }
+
+    /**
      * 关闭任务监听器
      */
-    private void closeTaskListener() {
+    private void stopTaskListener() {
         backGroundTaskListenerController.stop();
     }
 
