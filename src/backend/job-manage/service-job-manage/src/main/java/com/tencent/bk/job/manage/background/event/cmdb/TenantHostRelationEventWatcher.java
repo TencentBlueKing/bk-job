@@ -45,12 +45,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 public class TenantHostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<HostRelationEventDetail> {
-
-    private static final AtomicInteger instanceNum = new AtomicInteger(1);
 
     /**
      * 日志调用链tracer
@@ -86,9 +83,8 @@ public class TenantHostRelationEventWatcher extends AbstractCmdbResourceEventWat
         this.noTenantHostDAO = noTenantHostDAO;
         this.hostTopoDAO = hostTopoDAO;
         this.hostCache = hostCache;
-        this.setName("[" + getId() + "]-HostRelationWatchThread-" + instanceNum.getAndIncrement());
         this.eventsHandler = buildHostRelationEventHandler();
-        this.eventsHandler.setName("[" + eventsHandler.getId() + "]-HostRelationEventHandler");
+        this.eventsHandler.setName(getName() + ":Handler");
     }
 
     private HostRelationEventHandler buildHostRelationEventHandler() {
