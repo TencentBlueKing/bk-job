@@ -915,7 +915,10 @@ manageConfig:
     balancer:
       # 是否开启
       enabled: true
-
+    # 后台任务守护机制
+    daemon:
+      # 是否开启
+      enabled: true
 
 ## job-execute执行引擎配置
 executeConfig:

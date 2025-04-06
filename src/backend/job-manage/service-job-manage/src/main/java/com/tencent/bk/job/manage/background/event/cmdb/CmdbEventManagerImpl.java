@@ -127,7 +127,6 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
 
     @Override
     public void init() {
-        // TODO：增加调度机制保证各实例之间负载均衡
         List<OpenApiTenant> tenantList = userApiClient.listAllTenant();
         // 遍历所有租户监听事件
         for (OpenApiTenant openApiTenant : tenantList) {
@@ -135,7 +134,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
         }
     }
 
-    public void initTenant(String tenantId) {
+    private void initTenant(String tenantId) {
         if (jobManageConfig.isEnableResourceWatch()) {
             watchBizEvent(tenantId);
             watchBizSetEvent(tenantId);
@@ -148,10 +147,13 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
     }
 
     /**
-     * 监听业务相关的事件
+     * 判断业务事件监听是否在运行
+     *
+     * @param tenantId 租户ID
+     * @return 是否在运行
      */
     @Override
-    public void watchBizEvent(String tenantId) {
+    public boolean isWatchBizEventRunning(String tenantId) {
         TenantBizEventWatcher tenantBizEventWatcher = new TenantBizEventWatcher(
             redisTemplate,
             tracer,
@@ -160,24 +162,17 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
             applicationService,
             tenantId
         );
-        String uniqueCode = tenantBizEventWatcher.getUniqueCode();
-        if (backGroundTaskRegistry.existsTask(uniqueCode)) {
-            log.warn("task {} already exists in registry, ignore", uniqueCode);
-            return;
-        }
-        // 注册后台任务用于动态调度
-        boolean registerSuccess = backGroundTaskRegistry.registerTask(uniqueCode, tenantBizEventWatcher);
-        if (registerSuccess) {
-            // 开一个常驻线程监听业务资源变动事件
-            tenantBizEventWatcher.start();
-        }
+        return tenantBizEventWatcher.hasRunningInstance();
     }
 
     /**
-     * 监听业务集相关的事件
+     * 判断业务集事件监听是否在运行
+     *
+     * @param tenantId 租户ID
+     * @return 是否在运行
      */
     @Override
-    public void watchBizSetEvent(String tenantId) {
+    public boolean isWatchBizSetEventRunning(String tenantId) {
         TenantBizSetEventWatcher bizSetEventWatcher = new TenantBizSetEventWatcher(
             redisTemplate,
             tracer,
@@ -187,27 +182,17 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
             bizSetCmdbClient,
             tenantId
         );
-        String uniqueCode = bizSetEventWatcher.getUniqueCode();
-        if (backGroundTaskRegistry.existsTask(uniqueCode)) {
-            log.warn("task {} already exists in registry, ignore", uniqueCode);
-            return;
-        }
-        // 注册后台任务用于动态调度
-        boolean registerSuccess = backGroundTaskRegistry.registerTask(
-            uniqueCode,
-            bizSetEventWatcher
-        );
-        if (registerSuccess) {
-            // 开一个常驻线程监听业务集资源变动事件
-            bizSetEventWatcher.start();
-        }
+        return bizSetEventWatcher.hasRunningInstance();
     }
 
     /**
-     * 监听业务集相关的事件
+     * 判断业务集事件监听是否在运行
+     *
+     * @param tenantId 租户ID
+     * @return 是否在运行
      */
     @Override
-    public void watchBizSetRelationEvent(String tenantId) {
+    public boolean isWatchBizSetRelationEventRunning(String tenantId) {
         TenantBizSetRelationEventWatcher bizSetRelationEventWatcher = new TenantBizSetRelationEventWatcher(
             redisTemplate,
             tracer,
@@ -217,24 +202,17 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
             bizSetCmdbClient,
             tenantId
         );
-        String uniqueCode = bizSetRelationEventWatcher.getUniqueCode();
-        if (backGroundTaskRegistry.existsTask(uniqueCode)) {
-            log.warn("task {} already exists in registry, ignore", uniqueCode);
-            return;
-        }
-        // 注册后台任务用于动态调度
-        boolean registerSuccess = backGroundTaskRegistry.registerTask(uniqueCode, bizSetRelationEventWatcher);
-        if (registerSuccess) {
-            // 开一个常驻线程监听业务集关系变动事件
-            bizSetRelationEventWatcher.start();
-        }
+        return bizSetRelationEventWatcher.hasRunningInstance();
     }
 
     /**
-     * 监听主机相关的事件
+     * 判断主机事件监听是否在运行
+     *
+     * @param tenantId 租户ID
+     * @return 是否在运行
      */
     @Override
-    public void watchHostEvent(String tenantId) {
+    public boolean isWatchHostEventRunning(String tenantId) {
         TenantHostEventWatcher tenantHostEventWatcher = new TenantHostEventWatcher(
             redisTemplate,
             tracer,
@@ -245,24 +223,17 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
             jobManageConfig,
             tenantId
         );
-        String uniqueCode = tenantHostEventWatcher.getUniqueCode();
-        if (backGroundTaskRegistry.existsTask(uniqueCode)) {
-            log.warn("task {} already exists in registry, ignore", uniqueCode);
-            return;
-        }
-        // 注册后台任务用于动态调度
-        boolean registerSuccess = backGroundTaskRegistry.registerTask(uniqueCode, tenantHostEventWatcher);
-        if (registerSuccess) {
-            // 开一个常驻线程监听主机资源变动事件
-            tenantHostEventWatcher.start();
-        }
+        return tenantHostEventWatcher.hasRunningInstance();
     }
 
     /**
-     * 监听主机关系相关的事件
+     * 判断主机关系事件监听是否在运行
+     *
+     * @param tenantId 租户ID
+     * @return 是否在运行
      */
     @Override
-    public void watchHostRelationEvent(String tenantId) {
+    public boolean isWatchHostRelationEventRunning(String tenantId) {
         TenantHostRelationEventWatcher hostRelationEventWatcher = new TenantHostRelationEventWatcher(
             redisTemplate,
             tracer,
@@ -274,16 +245,135 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
             hostCache,
             tenantId
         );
-        String uniqueCode = hostRelationEventWatcher.getUniqueCode();
+        return hostRelationEventWatcher.hasRunningInstance();
+    }
+
+    /**
+     * 监听业务相关的事件
+     */
+    @Override
+    public boolean watchBizEvent(String tenantId) {
+        TenantBizEventWatcher tenantBizEventWatcher = new TenantBizEventWatcher(
+            redisTemplate,
+            tracer,
+            cmdbEventSampler,
+            bizCmdbClient,
+            applicationService,
+            tenantId
+        );
+        if (tenantBizEventWatcher.hasRunningInstance()) {
+            // 已经有在运行的实例就不再启动新的实例
+            return false;
+        }
+        return registerAndStartTask(tenantBizEventWatcher);
+    }
+
+    /**
+     * 监听业务集相关的事件
+     */
+    @Override
+    public boolean watchBizSetEvent(String tenantId) {
+        TenantBizSetEventWatcher bizSetEventWatcher = new TenantBizSetEventWatcher(
+            redisTemplate,
+            tracer,
+            cmdbEventSampler,
+            applicationService,
+            bizSetService,
+            bizSetCmdbClient,
+            tenantId
+        );
+        if (bizSetEventWatcher.hasRunningInstance()) {
+            // 已经有在运行的实例就不再启动新的实例
+            return false;
+        }
+        return registerAndStartTask(bizSetEventWatcher);
+    }
+
+    /**
+     * 监听业务集相关的事件
+     */
+    @Override
+    public boolean watchBizSetRelationEvent(String tenantId) {
+        TenantBizSetRelationEventWatcher bizSetRelationEventWatcher = new TenantBizSetRelationEventWatcher(
+            redisTemplate,
+            tracer,
+            cmdbEventSampler,
+            applicationService,
+            bizSetService,
+            bizSetCmdbClient,
+            tenantId
+        );
+        if (bizSetRelationEventWatcher.hasRunningInstance()) {
+            // 已经有在运行的实例就不再启动新的实例
+            return false;
+        }
+        return registerAndStartTask(bizSetRelationEventWatcher);
+    }
+
+    /**
+     * 监听主机相关的事件
+     */
+    @Override
+    public boolean watchHostEvent(String tenantId) {
+        TenantHostEventWatcher tenantHostEventWatcher = new TenantHostEventWatcher(
+            redisTemplate,
+            tracer,
+            cmdbEventSampler,
+            bizCmdbClient,
+            noTenantHostService,
+            agentStateClient,
+            jobManageConfig,
+            tenantId
+        );
+        if (tenantHostEventWatcher.hasRunningInstance()) {
+            // 已经有在运行的实例就不再启动新的实例
+            return false;
+        }
+        return registerAndStartTask(tenantHostEventWatcher);
+    }
+
+    /**
+     * 监听主机关系相关的事件
+     */
+    @Override
+    public boolean watchHostRelationEvent(String tenantId) {
+        TenantHostRelationEventWatcher hostRelationEventWatcher = new TenantHostRelationEventWatcher(
+            redisTemplate,
+            tracer,
+            cmdbEventSampler,
+            bizCmdbClient,
+            applicationService,
+            noTenantHostDAO,
+            hostTopoDAO,
+            hostCache,
+            tenantId
+        );
+        if (hostRelationEventWatcher.hasRunningInstance()) {
+            // 已经有在运行的实例就不再启动新的实例
+            return false;
+        }
+        return registerAndStartTask(hostRelationEventWatcher);
+    }
+
+    /**
+     * 注册并启动一个后台任务
+     *
+     * @param task 后台任务
+     * @return 是否启动成功
+     */
+    private boolean registerAndStartTask(IBackGroundTask task) {
+        String uniqueCode = task.getUniqueCode();
         if (backGroundTaskRegistry.existsTask(uniqueCode)) {
             log.warn("task {} already exists in registry, ignore", uniqueCode);
-            return;
+            return false;
         }
-        // 注册后台任务用于动态调度
-        boolean registerSuccess = backGroundTaskRegistry.registerTask(uniqueCode, hostRelationEventWatcher);
+        boolean registerSuccess = backGroundTaskRegistry.registerTask(uniqueCode, task);
         if (registerSuccess) {
-            // 开一个常驻线程监听主机关系资源变动事件
-            hostRelationEventWatcher.start();
+            task.startTask();
+            return true;
+        } else {
+            log.warn("Fail to register task {}, ignore", uniqueCode);
+            return false;
         }
     }
 

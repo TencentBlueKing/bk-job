@@ -53,23 +53,16 @@ import java.util.List;
  */
 @Slf4j
 public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGroundTask {
+
     protected final String tenantId;
-    /**
-     * 节点IP
-     */
-    private final String machineIp;
-    private final RedisTemplate<String, String> redisTemplate;
     private final Tracer tracer;
     private final CmdbEventSampler cmdbEventSampler;
-    /**
-     * 事件监听任务分布式锁KEY
-     */
-    private final String redisLockKey;
 
     /**
      * 监听的资源名称
      */
     protected final String watcherResourceName;
+    private final HeartBeatRedisLock redisLock;
 
     /**
      * 监听事件前是否已执行初始化操作
@@ -84,13 +77,11 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
                                             Tracer tracer,
                                             CmdbEventSampler cmdbEventSampler) {
         this.tenantId = tenantId;
-        this.machineIp = IpUtils.getFirstMachineIP();
-        this.redisTemplate = redisTemplate;
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.watcherResourceName = watcherResourceName;
         this.setName(getUniqueCode());
-        this.redisLockKey = "watch-cmdb-" + this.watcherResourceName + "-lock-" + tenantId;
+        this.redisLock = new HeartBeatRedisLock(redisTemplate, getUniqueCode(), IpUtils.getFirstMachineIP());
     }
 
     @NewSpan
@@ -105,14 +96,22 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
         }
     }
 
-    private void doRun() {
-        HeartBeatRedisLock redisLock = new HeartBeatRedisLock(redisTemplate, redisLockKey, machineIp);
+    /**
+     * 判断是否有其他实例在运行
+     *
+     * @return 是否有其他实例在运行
+     */
+    public boolean hasRunningInstance() {
         String lockKeyValue = redisLock.peekLockKeyValue();
-        if (StringUtils.isNotBlank(lockKeyValue)) {
+        return StringUtils.isNotBlank(lockKeyValue);
+    }
+
+    private void doRun() {
+        if (hasRunningInstance()) {
             log.info(
                 "{} already running on {}, ignore",
                 getUniqueCode(),
-                lockKeyValue
+                redisLock.peekLockKeyValue()
             );
             return;
         }
@@ -149,6 +148,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
         }
     }
 
+    @SuppressWarnings("BusyWait")
     private void watchAndHandleEvent() {
         log.info("Start watch {} resource at {},{}", watcherResourceName, TimeUtil.getCurrentTimeStr("HH:mm:ss"),
             System.currentTimeMillis());

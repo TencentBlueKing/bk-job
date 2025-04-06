@@ -31,7 +31,6 @@ import lombok.Data;
 /**
  * 任务实体
  */
-@AllArgsConstructor
 @Data
 public class TaskEntity {
     /**
@@ -46,5 +45,10 @@ public class TaskEntity {
     @JsonIgnore
     public String getUniqueCode() {
         return taskCode + ":" + tenantId;
+    }
+
+    public TaskEntity(String taskCode, String tenantId) {
+        this.taskCode = taskCode;
+        this.tenantId = tenantId;
     }
 }

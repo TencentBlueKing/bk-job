@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.task;
 
 import com.tencent.bk.job.manage.background.ha.BackGroundTaskBalancer;
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskDaemon;
 import com.tencent.bk.job.manage.background.sync.AgentStatusSyncService;
 import com.tencent.bk.job.manage.background.sync.AllTenantHostSyncService;
 import com.tencent.bk.job.manage.background.sync.AppSyncService;
@@ -47,6 +48,7 @@ public class ScheduledTasks {
     private final UserUploadFileCleanTask userUploadFileCleanTask;
     private final ApplicationCache applicationCache;
     private final BackGroundTaskBalancer backGroundTaskBalancer;
+    private final BackGroundTaskDaemon backGroundTaskDaemon;
 
     @Autowired
     public ScheduledTasks(
@@ -56,7 +58,8 @@ public class ScheduledTasks {
         AgentStatusSyncService agentStatusSyncService,
         UserUploadFileCleanTask userUploadFileCleanTask,
         ApplicationCache applicationCache,
-        BackGroundTaskBalancer backGroundTaskBalancer) {
+        BackGroundTaskBalancer backGroundTaskBalancer,
+        BackGroundTaskDaemon backGroundTaskDaemon) {
         this.userSyncService = userSyncService;
         this.appSyncService = appSyncService;
         this.allTenantHostSyncService = allTenantHostSyncService;
@@ -64,6 +67,7 @@ public class ScheduledTasks {
         this.userUploadFileCleanTask = userUploadFileCleanTask;
         this.applicationCache = applicationCache;
         this.backGroundTaskBalancer = backGroundTaskBalancer;
+        this.backGroundTaskDaemon = backGroundTaskDaemon;
     }
 
     /**
@@ -150,6 +154,19 @@ public class ScheduledTasks {
         log.info("balanceBackGroundTask begin");
         try {
             log.info("balanceBackGroundTask finished:{}", backGroundTaskBalancer.balance());
+        } catch (Exception e) {
+            log.error("balanceBackGroundTask failed!", e);
+        }
+    }
+
+    /**
+     * 每分钟检查并恢复一次异常终止的后台任务
+     */
+    @Scheduled(cron = "0 * * * * ?")
+    public void runBackGroundTaskDaemon() {
+        log.info("balanceBackGroundTask begin");
+        try {
+            backGroundTaskDaemon.checkAndResumeTask();
         } catch (Exception e) {
             log.error("balanceBackGroundTask failed!", e);
         }

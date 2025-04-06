@@ -38,6 +38,8 @@ public class BackGroundTaskProperties {
 
     private BalancerProperties balancer;
 
+    private DaemonProperties daemon;
+
     /**
      * 后台任务负载均衡相关配置
      */
@@ -45,6 +47,16 @@ public class BackGroundTaskProperties {
     @Setter
     @ToString
     public static class BalancerProperties {
+        private Boolean enabled = true;
+    }
+
+    /**
+     * 后台任务守护机制相关配置
+     */
+    @Getter
+    @Setter
+    @ToString
+    public static class DaemonProperties {
         private Boolean enabled = true;
     }
 }
