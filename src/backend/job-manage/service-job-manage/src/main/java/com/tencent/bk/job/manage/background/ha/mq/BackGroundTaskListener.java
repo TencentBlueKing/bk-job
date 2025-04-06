@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.background.ha.mq;
 
 import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventManager;
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskBalancer;
 import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import lombok.extern.slf4j.Slf4j;
@@ -39,10 +40,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class BackGroundTaskListener {
     private final CmdbEventManager cmdbEventManager;
+    private final BackGroundTaskBalancer backGroundTaskBalancer;
 
     @Autowired
-    public BackGroundTaskListener(CmdbEventManager cmdbEventManager) {
+    public BackGroundTaskListener(CmdbEventManager cmdbEventManager,
+                                  BackGroundTaskBalancer backGroundTaskBalancer) {
         this.cmdbEventManager = cmdbEventManager;
+        this.backGroundTaskBalancer = backGroundTaskBalancer;
     }
 
     public void handleTask(Message<TaskEntity> taskEntityMessage) {
@@ -64,7 +68,11 @@ public class BackGroundTaskListener {
             case BackGroundTaskCode.WATCH_HOST_RELATION:
                 cmdbEventManager.watchHostRelationEvent(taskEntity.getTenantId());
                 break;
+            default:
+                log.warn("task not supported: {}", taskEntity);
+                break;
         }
-        log.warn("task not supported: {}", taskEntity);
+        // 处理完任务后，立即执行一次负载均衡，及时关闭任务监听，避免接收到过多的任务
+        backGroundTaskBalancer.balance();
     }
 }

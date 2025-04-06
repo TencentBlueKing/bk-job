@@ -166,7 +166,7 @@ public class ScheduledTasks {
     public void runBackGroundTaskDaemon() {
         log.info("balanceBackGroundTask begin");
         try {
-            backGroundTaskDaemon.checkAndResumeTask();
+            backGroundTaskDaemon.checkAndResumeTaskForAllTenant(false);
         } catch (Exception e) {
             log.error("balanceBackGroundTask failed!", e);
         }

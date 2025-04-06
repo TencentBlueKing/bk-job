@@ -65,8 +65,10 @@ public class BackGroundTaskDaemon {
 
     /**
      * 检查并恢复异常终止的后台任务
+     *
+     * @param onStartup 是否在启动时执行
      */
-    public void checkAndResumeTask() {
+    public void checkAndResumeTaskForAllTenant(boolean onStartup) {
         if (!jobManageConfig.isEnableResourceWatch()) {
             log.info("resourceWatch not enabled, you can enable it in config file");
             return;
@@ -83,7 +85,11 @@ public class BackGroundTaskDaemon {
             resumedTaskCount += checkAndResumeTaskForTenant(tenantId);
         }
         if (resumedTaskCount > 0) {
-            log.warn("checkAndResumeTask finished, resumedTaskCount={}", resumedTaskCount);
+            if (!onStartup) {
+                log.warn("checkAndResumeTask finished, resumedTaskCount={}", resumedTaskCount);
+            } else {
+                log.info("{} backGroundTasks started", resumedTaskCount);
+            }
         }
     }
 

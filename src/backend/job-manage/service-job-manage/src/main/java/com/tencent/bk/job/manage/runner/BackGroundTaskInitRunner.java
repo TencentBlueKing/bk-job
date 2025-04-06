@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.runner;
 
-import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventManager;
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskDaemon;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -34,23 +34,23 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
 @Component
-public class CmdbEventManagerInitRunner implements CommandLineRunner {
+public class BackGroundTaskInitRunner implements CommandLineRunner {
     private final ThreadPoolExecutor initRunnerExecutor;
-    private final CmdbEventManager cmdbEventManager;
+    private final BackGroundTaskDaemon backGroundTaskDaemon;
 
     @Autowired
-    public CmdbEventManagerInitRunner(ThreadPoolExecutor initRunnerExecutor, CmdbEventManager cmdbEventManager) {
+    public BackGroundTaskInitRunner(ThreadPoolExecutor initRunnerExecutor, BackGroundTaskDaemon backGroundTaskDaemon) {
         this.initRunnerExecutor = initRunnerExecutor;
-        this.cmdbEventManager = cmdbEventManager;
+        this.backGroundTaskDaemon = backGroundTaskDaemon;
     }
 
     @Override
     public void run(String... args) {
-        initRunnerExecutor.submit(this::initCmdbEventManager);
+        initRunnerExecutor.submit(this::initBackGroundTask);
     }
 
-    private void initCmdbEventManager() {
-        log.info("cmdbEventManager init");
-        cmdbEventManager.init();
+    private void initBackGroundTask() {
+        log.info("initBackGroundTask");
+        backGroundTaskDaemon.checkAndResumeTaskForAllTenant(true);
     }
 }
