@@ -30,6 +30,10 @@ import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
 import com.tencent.bk.job.common.paas.user.IUserApiClient;
 import com.tencent.bk.job.manage.background.ha.BackGroundTaskRegistry;
+import com.tencent.bk.job.manage.background.ha.IBackGroundTask;
+import com.tencent.bk.job.manage.background.ha.TaskEntity;
+import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskDispatcher;
+import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskListenerController;
 import com.tencent.bk.job.manage.config.GseConfig;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
@@ -40,15 +44,15 @@ import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * CMDB事件管理器，负责处理CMDB事件监听相关逻辑
@@ -56,7 +60,7 @@ import java.util.Map;
 @SuppressWarnings("FieldCanBeLocal")
 @Slf4j
 @Service
-public class CmdbEventManagerImpl implements CmdbEventManager {
+public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
 
     private final IBizCmdbClient bizCmdbClient;
     private final IBizSetCmdbClient bizSetCmdbClient;
@@ -69,11 +73,6 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
     private final HostCache hostCache;
     private final JobManageConfig jobManageConfig;
     private final RedisTemplate<String, String> redisTemplate;
-    private final Map<String, TenantBizEventWatcher> tenantBizEventWatcherMap = new HashMap<>();
-    private final Map<String, TenantHostEventWatcher> tenantHostEventWatcherMap = new HashMap<>();
-    private final Map<String, TenantHostRelationEventWatcher> tenantHostRelationEventWatcherMap = new HashMap<>();
-    private final Map<String, TenantBizSetEventWatcher> bizSetEventWatcherMap = new HashMap<>();
-    private final Map<String, TenantBizSetRelationEventWatcher> bizSetRelationEventWatcherMap = new HashMap<>();
     private final AgentStateClient agentStateClient;
 
     /**
@@ -81,6 +80,9 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
      */
     private final Tracer tracer;
     private final CmdbEventSampler cmdbEventSampler;
+    private final ThreadPoolExecutor shutdownEventWatchExecutor;
+    private final BackGroundTaskDispatcher backGroundTaskDispatcher;
+    private final BackGroundTaskListenerController backGroundTaskListenerController;
     private final BackGroundTaskRegistry backGroundTaskRegistry;
 
     @Autowired
@@ -99,6 +101,9 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
                                 AgentStateClient agentStateClient,
                                 Tracer tracer,
                                 CmdbEventSampler cmdbEventSampler,
+                                ThreadPoolExecutor shutdownEventWatchExecutor,
+                                BackGroundTaskDispatcher backGroundTaskDispatcher,
+                                BackGroundTaskListenerController backGroundTaskListenerController,
                                 BackGroundTaskRegistry backGroundTaskRegistry) {
         this.bizCmdbClient = bizCmdbClient;
         this.bizSetCmdbClient = bizSetCmdbClient;
@@ -114,6 +119,9 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
         this.agentStateClient = agentStateClient;
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
+        this.shutdownEventWatchExecutor = shutdownEventWatchExecutor;
+        this.backGroundTaskDispatcher = backGroundTaskDispatcher;
+        this.backGroundTaskListenerController = backGroundTaskListenerController;
         this.backGroundTaskRegistry = backGroundTaskRegistry;
     }
 
@@ -142,125 +150,161 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
     /**
      * 监听业务相关的事件
      */
-    private void watchBizEvent(String tenantId) {
-        TenantBizEventWatcher tenantBizEventWatcher = tenantBizEventWatcherMap.computeIfAbsent(
-            tenantId, key ->
-                new TenantBizEventWatcher(
-                    redisTemplate,
-                    tracer,
-                    cmdbEventSampler,
-                    bizCmdbClient,
-                    applicationService,
-                    tenantId
-                )
+    @Override
+    public void watchBizEvent(String tenantId) {
+        TenantBizEventWatcher tenantBizEventWatcher = new TenantBizEventWatcher(
+            redisTemplate,
+            tracer,
+            cmdbEventSampler,
+            bizCmdbClient,
+            applicationService,
+            tenantId
         );
+        String uniqueCode = tenantBizEventWatcher.getUniqueCode();
+        if (backGroundTaskRegistry.existsTask(uniqueCode)) {
+            log.warn("task {} already exists in registry, ignore", uniqueCode);
+            return;
+        }
         // 注册后台任务用于动态调度
-        backGroundTaskRegistry.registerTask(tenantBizEventWatcher.getUniqueCode(), tenantBizEventWatcher);
-        // 开一个常驻线程监听业务资源变动事件
-        tenantBizEventWatcher.start();
+        boolean registerSuccess = backGroundTaskRegistry.registerTask(uniqueCode, tenantBizEventWatcher);
+        if (registerSuccess) {
+            // 开一个常驻线程监听业务资源变动事件
+            tenantBizEventWatcher.start();
+        }
     }
 
     /**
      * 监听业务集相关的事件
      */
-    private void watchBizSetEvent(String tenantId) {
-        TenantBizSetEventWatcher bizSetEventWatcher = bizSetEventWatcherMap.computeIfAbsent(
-            tenantId, key ->
-                new TenantBizSetEventWatcher(
-                    redisTemplate,
-                    tracer,
-                    cmdbEventSampler,
-                    applicationService,
-                    bizSetService,
-                    bizSetCmdbClient,
-                    tenantId
-                )
+    @Override
+    public void watchBizSetEvent(String tenantId) {
+        TenantBizSetEventWatcher bizSetEventWatcher = new TenantBizSetEventWatcher(
+            redisTemplate,
+            tracer,
+            cmdbEventSampler,
+            applicationService,
+            bizSetService,
+            bizSetCmdbClient,
+            tenantId
         );
+        String uniqueCode = bizSetEventWatcher.getUniqueCode();
+        if (backGroundTaskRegistry.existsTask(uniqueCode)) {
+            log.warn("task {} already exists in registry, ignore", uniqueCode);
+            return;
+        }
         // 注册后台任务用于动态调度
-        backGroundTaskRegistry.registerTask(bizSetEventWatcher.getUniqueCode(), bizSetEventWatcher);
-        // 开一个常驻线程监听业务集变动事件
-        bizSetEventWatcher.start();
+        boolean registerSuccess = backGroundTaskRegistry.registerTask(
+            uniqueCode,
+            bizSetEventWatcher
+        );
+        if (registerSuccess) {
+            // 开一个常驻线程监听业务集资源变动事件
+            bizSetEventWatcher.start();
+        }
     }
 
     /**
      * 监听业务集相关的事件
      */
-    private void watchBizSetRelationEvent(String tenantId) {
-        TenantBizSetRelationEventWatcher bizSetRelationEventWatcher = bizSetRelationEventWatcherMap.computeIfAbsent(
-            tenantId, key ->
-                new TenantBizSetRelationEventWatcher(
-                    redisTemplate,
-                    tracer,
-                    cmdbEventSampler,
-                    applicationService,
-                    bizSetService,
-                    bizSetCmdbClient,
-                    tenantId
-                )
+    @Override
+    public void watchBizSetRelationEvent(String tenantId) {
+        TenantBizSetRelationEventWatcher bizSetRelationEventWatcher = new TenantBizSetRelationEventWatcher(
+            redisTemplate,
+            tracer,
+            cmdbEventSampler,
+            applicationService,
+            bizSetService,
+            bizSetCmdbClient,
+            tenantId
         );
+        String uniqueCode = bizSetRelationEventWatcher.getUniqueCode();
+        if (backGroundTaskRegistry.existsTask(uniqueCode)) {
+            log.warn("task {} already exists in registry, ignore", uniqueCode);
+            return;
+        }
         // 注册后台任务用于动态调度
-        backGroundTaskRegistry.registerTask(bizSetRelationEventWatcher.getUniqueCode(), bizSetRelationEventWatcher);
-        // 开一个常驻线程监听业务集关系变动事件
-        bizSetRelationEventWatcher.start();
+        boolean registerSuccess = backGroundTaskRegistry.registerTask(uniqueCode, bizSetRelationEventWatcher);
+        if (registerSuccess) {
+            // 开一个常驻线程监听业务集关系变动事件
+            bizSetRelationEventWatcher.start();
+        }
     }
 
     /**
      * 监听主机相关的事件
      */
-    private void watchHostEvent(String tenantId) {
-        TenantHostEventWatcher tenantHostEventWatcher = tenantHostEventWatcherMap.computeIfAbsent(
-            tenantId, key ->
-                new TenantHostEventWatcher(
-                    redisTemplate,
-                    tracer,
-                    cmdbEventSampler,
-                    bizCmdbClient,
-                    noTenantHostService,
-                    agentStateClient,
-                    jobManageConfig,
-                    tenantId
-                )
+    @Override
+    public void watchHostEvent(String tenantId) {
+        TenantHostEventWatcher tenantHostEventWatcher = new TenantHostEventWatcher(
+            redisTemplate,
+            tracer,
+            cmdbEventSampler,
+            bizCmdbClient,
+            noTenantHostService,
+            agentStateClient,
+            jobManageConfig,
+            tenantId
         );
+        String uniqueCode = tenantHostEventWatcher.getUniqueCode();
+        if (backGroundTaskRegistry.existsTask(uniqueCode)) {
+            log.warn("task {} already exists in registry, ignore", uniqueCode);
+            return;
+        }
         // 注册后台任务用于动态调度
-        backGroundTaskRegistry.registerTask(tenantHostEventWatcher.getUniqueCode(), tenantHostEventWatcher);
-        // 开一个常驻线程监听主机资源变动事件
-        tenantHostEventWatcher.start();
+        boolean registerSuccess = backGroundTaskRegistry.registerTask(uniqueCode, tenantHostEventWatcher);
+        if (registerSuccess) {
+            // 开一个常驻线程监听主机资源变动事件
+            tenantHostEventWatcher.start();
+        }
     }
 
     /**
      * 监听主机关系相关的事件
      */
-    private void watchHostRelationEvent(String tenantId) {
-        TenantHostRelationEventWatcher hostRelationEventWatcher = tenantHostRelationEventWatcherMap.computeIfAbsent(
-            tenantId, key ->
-                new TenantHostRelationEventWatcher(
-                    redisTemplate,
-                    tracer,
-                    cmdbEventSampler,
-                    bizCmdbClient,
-                    applicationService,
-                    noTenantHostDAO,
-                    hostTopoDAO,
-                    hostCache,
-                    tenantId
-                )
+    @Override
+    public void watchHostRelationEvent(String tenantId) {
+        TenantHostRelationEventWatcher hostRelationEventWatcher = new TenantHostRelationEventWatcher(
+            redisTemplate,
+            tracer,
+            cmdbEventSampler,
+            bizCmdbClient,
+            applicationService,
+            noTenantHostDAO,
+            hostTopoDAO,
+            hostCache,
+            tenantId
         );
+        String uniqueCode = hostRelationEventWatcher.getUniqueCode();
+        if (backGroundTaskRegistry.existsTask(uniqueCode)) {
+            log.warn("task {} already exists in registry, ignore", uniqueCode);
+            return;
+        }
         // 注册后台任务用于动态调度
-        backGroundTaskRegistry.registerTask(hostRelationEventWatcher.getUniqueCode(), hostRelationEventWatcher);
-        // 开一个常驻线程监听主机关系资源变动事件
-        hostRelationEventWatcher.start();
+        boolean registerSuccess = backGroundTaskRegistry.registerTask(uniqueCode, hostRelationEventWatcher);
+        if (registerSuccess) {
+            // 开一个常驻线程监听主机关系资源变动事件
+            hostRelationEventWatcher.start();
+        }
     }
 
     @Override
     public TenantHostEventWatcher getTenantHostEventWatcher(String tenantId) {
-        return tenantHostEventWatcherMap.get(tenantId);
+        for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
+            if (task instanceof TenantHostEventWatcher && task.getTenantId().equals(tenantId)) {
+                return (TenantHostEventWatcher) task;
+            }
+        }
+        return null;
     }
 
     @Override
     public Boolean enableBizWatch() {
         log.info("appWatch enabled by op");
-        for (TenantBizEventWatcher tenantBizEventWatcher : tenantBizEventWatcherMap.values()) {
-            tenantBizEventWatcher.setWatchFlag(true);
+        for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
+            if (task instanceof TenantBizEventWatcher) {
+                TenantBizEventWatcher tenantBizEventWatcher = (TenantBizEventWatcher) task;
+                tenantBizEventWatcher.setWatchFlag(true);
+            }
         }
         return true;
     }
@@ -268,8 +312,11 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
     @Override
     public Boolean disableBizWatch() {
         log.info("appWatch disabled by op");
-        for (TenantBizEventWatcher tenantBizEventWatcher : tenantBizEventWatcherMap.values()) {
-            tenantBizEventWatcher.setWatchFlag(false);
+        for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
+            if (task instanceof TenantBizEventWatcher) {
+                TenantBizEventWatcher tenantBizEventWatcher = (TenantBizEventWatcher) task;
+                tenantBizEventWatcher.setWatchFlag(false);
+            }
         }
         return true;
     }
@@ -277,11 +324,17 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
     @Override
     public Boolean enableHostWatch() {
         log.info("hostWatch enabled by op");
-        for (TenantHostEventWatcher tenantHostEventWatcher : tenantHostEventWatcherMap.values()) {
-            tenantHostEventWatcher.setWatchFlag(true);
+        for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
+            if (task instanceof TenantHostEventWatcher) {
+                TenantHostEventWatcher tenantHostEventWatcher = (TenantHostEventWatcher) task;
+                tenantHostEventWatcher.setWatchFlag(true);
+            }
         }
-        for (TenantHostRelationEventWatcher watcher : tenantHostRelationEventWatcherMap.values()) {
-            watcher.setWatchFlag(true);
+        for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
+            if (task instanceof TenantHostRelationEventWatcher) {
+                TenantHostRelationEventWatcher tenantHostRelationEventWatcher = (TenantHostRelationEventWatcher) task;
+                tenantHostRelationEventWatcher.setWatchFlag(true);
+            }
         }
         return true;
     }
@@ -289,13 +342,34 @@ public class CmdbEventManagerImpl implements CmdbEventManager {
     @Override
     public Boolean disableHostWatch() {
         log.info("hostWatch disabled by op");
-        for (TenantHostEventWatcher watcher : tenantHostEventWatcherMap.values()) {
-            watcher.setWatchFlag(false);
+        for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
+            if (task instanceof TenantHostEventWatcher) {
+                TenantHostEventWatcher tenantHostEventWatcher = (TenantHostEventWatcher) task;
+                tenantHostEventWatcher.setWatchFlag(false);
+            }
         }
-        for (TenantHostRelationEventWatcher watcher : tenantHostRelationEventWatcherMap.values()) {
-            watcher.setWatchFlag(false);
+        for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
+            if (task instanceof TenantHostRelationEventWatcher) {
+                TenantHostRelationEventWatcher tenantHostRelationEventWatcher = (TenantHostRelationEventWatcher) task;
+                tenantHostRelationEventWatcher.setWatchFlag(false);
+            }
         }
         return true;
     }
 
+    @Override
+    public void destroy() {
+        log.info("On destroy, shutdown all tasks and re-schedule them");
+        // 1.关闭任务接收通道
+        backGroundTaskListenerController.stop();
+        // 2.停止所有任务，并将其重新调度至其他实例
+        for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
+            shutdownEventWatchExecutor.submit(() -> {
+                TaskEntity taskEntity = task.getTaskEntity();
+                task.shutdownGracefully();
+                backGroundTaskDispatcher.dispatch(taskEntity);
+                log.info("task {} rescheduled", taskEntity.getUniqueCode());
+            });
+        }
+    }
 }

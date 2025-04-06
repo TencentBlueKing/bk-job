@@ -34,7 +34,9 @@ import java.util.Map;
 @Service
 public interface IBackGroundTaskRegistry {
 
-    void registerTask(String uniqueCode, IBackGroundTask task);
+    boolean existsTask(String uniqueCode);
+
+    boolean registerTask(String uniqueCode, IBackGroundTask task);
 
     IBackGroundTask removeTask(String uniqueCode);
 

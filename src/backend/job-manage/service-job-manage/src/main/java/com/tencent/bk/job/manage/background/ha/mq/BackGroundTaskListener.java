@@ -24,9 +24,8 @@
 
 package com.tencent.bk.job.manage.background.ha.mq;
 
-import com.tencent.bk.job.manage.background.ha.BackGroundTaskParser;
-import com.tencent.bk.job.manage.background.ha.IBackGroundTask;
-import com.tencent.bk.job.manage.background.ha.IBackGroundTaskExecutor;
+import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventManager;
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,22 +38,33 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class BackGroundTaskListener {
-    private final BackGroundTaskParser backGroundTaskParser;
-    private final IBackGroundTaskExecutor backGroundTaskExecutor;
+    private final CmdbEventManager cmdbEventManager;
 
     @Autowired
-    public BackGroundTaskListener(BackGroundTaskParser backGroundTaskParser,
-                                  IBackGroundTaskExecutor backGroundTaskExecutor) {
-        this.backGroundTaskParser = backGroundTaskParser;
-        this.backGroundTaskExecutor = backGroundTaskExecutor;
+    public BackGroundTaskListener(CmdbEventManager cmdbEventManager) {
+        this.cmdbEventManager = cmdbEventManager;
     }
 
     public void handleTask(Message<TaskEntity> taskEntityMessage) {
         TaskEntity taskEntity = taskEntityMessage.getPayload();
         log.info("Received task from queue:{}", taskEntity);
-        IBackGroundTask task = backGroundTaskParser.parse(taskEntity);
-        if (task != null) {
-            backGroundTaskExecutor.execute(task);
+        switch (taskEntity.getTaskCode()) {
+            case BackGroundTaskCode.WATCH_BIZ:
+                cmdbEventManager.watchBizEvent(taskEntity.getTenantId());
+                break;
+            case BackGroundTaskCode.WATCH_BIZ_SET:
+                cmdbEventManager.watchBizSetEvent(taskEntity.getTenantId());
+                break;
+            case BackGroundTaskCode.WATCH_BIZ_SET_RELATION:
+                cmdbEventManager.watchBizSetRelationEvent(taskEntity.getTenantId());
+                break;
+            case BackGroundTaskCode.WATCH_HOST:
+                cmdbEventManager.watchHostEvent(taskEntity.getTenantId());
+                break;
+            case BackGroundTaskCode.WATCH_HOST_RELATION:
+                cmdbEventManager.watchHostRelationEvent(taskEntity.getTenantId());
+                break;
         }
+        log.warn("task not supported: {}", taskEntity);
     }
 }

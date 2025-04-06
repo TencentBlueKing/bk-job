@@ -66,4 +66,38 @@ public interface CmdbEventManager {
      */
     Boolean disableHostWatch();
 
+    /**
+     * 监听业务事件
+     *
+     * @param tenantId 租户ID
+     */
+    void watchBizEvent(String tenantId);
+
+    /**
+     * 监听业务集事件
+     *
+     * @param tenantId 租户ID
+     */
+    void watchBizSetEvent(String tenantId);
+
+    /**
+     * 监听业务集关系事件
+     *
+     * @param tenantId 租户ID
+     */
+    void watchBizSetRelationEvent(String tenantId);
+
+    /**
+     * 监听主机事件
+     *
+     * @param tenantId 租户ID
+     */
+    void watchHostEvent(String tenantId);
+
+    /**
+     * 监听主机关系事件
+     *
+     * @param tenantId 租户ID
+     */
+    void watchHostRelationEvent(String tenantId);
 }
