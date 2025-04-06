@@ -186,7 +186,11 @@ public class TenantHostEventWatcher extends AbstractCmdbResourceEventWatcher<Hos
 
     @Override
     public int getResourceCost() {
-        return 1 + eventsHandlerNum;
+        return resourceCostForWatcher() + eventsHandlerNum;
+    }
+
+    public static int resourceCostForWatcher() {
+        return 1;
     }
 
     @Override

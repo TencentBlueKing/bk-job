@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 @Service
 public class BackGroundTaskBalancer {
 
+    private final ResourceCostCalculator resourceCostCalculator;
     private final IBackGroundTaskRegistry backGroundTaskRegistry;
     private final BackGroundTaskListenerController backGroundTaskListenerController;
     private final BackGroundTaskDispatcher backGroundTaskDispatcher;
@@ -54,16 +55,23 @@ public class BackGroundTaskBalancer {
     private volatile boolean isBalancerRunning = false;
 
     @Autowired
-    public BackGroundTaskBalancer(IBackGroundTaskRegistry backGroundTaskRegistry,
+    public BackGroundTaskBalancer(ResourceCostCalculator resourceCostCalculator,
+                                  IBackGroundTaskRegistry backGroundTaskRegistry,
                                   BackGroundTaskListenerController backGroundTaskListenerController,
                                   BackGroundTaskDispatcher backGroundTaskDispatcher,
                                   BackGroundTaskProperties backGroundTaskProperties) {
+        this.resourceCostCalculator = resourceCostCalculator;
         this.backGroundTaskRegistry = backGroundTaskRegistry;
         this.backGroundTaskListenerController = backGroundTaskListenerController;
         this.backGroundTaskDispatcher = backGroundTaskDispatcher;
         this.backGroundTaskProperties = backGroundTaskProperties;
     }
 
+    /**
+     * 对当前实例正在运行的后台任务做一次负载均衡
+     *
+     * @return 是否执行成功
+     */
     public boolean balance() {
         if (!backGroundTaskProperties.getBalancer().getEnabled()) {
             log.info("background-task balancer not enabled, you can enable it using config");
@@ -84,18 +92,23 @@ public class BackGroundTaskBalancer {
         }
     }
 
+    /**
+     * 执行负载均衡
+     *
+     * @return 是否执行成功
+     */
     private boolean doBalance() {
-        // 1.统计所有任务的占用资源（线程等）总数
-        // TODO
-        // 2.统计所有实例数量
-        // TODO
-        // 3.计算每个实例应该承担的平均值
-        // TODO
-        int averageResourceCost = 25;
-        // 4.计算当前实例资源占用值
+        // 1.计算每个实例应该承担的平均值
+        int averageResourceCost = resourceCostCalculator.calcAverageResourceCostForOneInstance();
+        // 2.计算当前实例资源占用值
         int currentResourceCost = calcCurrentResourceCost();
-        // 5.如果当前实例的资源占用高于平均值，则将任务均衡到其他实例
+        // 3.如果当前实例的资源占用高于平均值，则将任务均衡到其他实例
         if (currentResourceCost > averageResourceCost) {
+            log.info(
+                "averageResourceCost={}, currentResourceCost={}, start to balance",
+                averageResourceCost,
+                currentResourceCost
+            );
             StopWatch watch = new StopWatch();
 
             // 关闭任务监听器
@@ -127,6 +140,11 @@ public class BackGroundTaskBalancer {
             }
             logBalanceResult(successList, failedList, watch);
         } else {
+            log.info(
+                "averageResourceCost={}, currentResourceCost={}, start task listener",
+                averageResourceCost,
+                currentResourceCost
+            );
             startTaskListener();
         }
         return true;

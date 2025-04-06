@@ -33,7 +33,6 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
-import com.tencent.bk.job.manage.background.ha.IBackGroundTask;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
@@ -172,6 +171,10 @@ public class TenantBizEventWatcher extends AbstractCmdbResourceEventWatcher<BizE
 
     @Override
     public int getResourceCost() {
+        return resourceCostForWatcher();
+    }
+
+    public static int resourceCostForWatcher() {
         return 1;
     }
 

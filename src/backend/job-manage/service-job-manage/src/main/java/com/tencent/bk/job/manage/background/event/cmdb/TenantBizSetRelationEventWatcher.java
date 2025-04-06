@@ -143,6 +143,10 @@ public class TenantBizSetRelationEventWatcher extends AbstractCmdbResourceEventW
 
     @Override
     public int getResourceCost() {
+        return resourceCostForWatcher();
+    }
+
+    public static int resourceCostForWatcher() {
         return 1;
     }
 
