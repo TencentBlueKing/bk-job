@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.background.ha;
 import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskDispatcher;
 import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskListenerController;
 import com.tencent.bk.job.manage.config.BackGroundTaskProperties;
+import io.jsonwebtoken.lang.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,8 +103,9 @@ public class BackGroundTaskBalancer {
         int averageResourceCost = resourceCostCalculator.calcAverageResourceCostForOneInstance();
         // 2.计算当前实例资源占用值
         int currentResourceCost = calcCurrentResourceCost();
+        List<IBackGroundTask> sortedTaskList = getSortedByTenantTaskList();
         // 3.如果当前实例的资源占用高于平均值，则将任务均衡到其他实例
-        if (currentResourceCost > averageResourceCost) {
+        if (needToBalance(averageResourceCost, currentResourceCost, sortedTaskList)) {
             log.info(
                 "averageResourceCost={}, currentResourceCost={}, start to balance",
                 averageResourceCost,
@@ -119,7 +121,6 @@ public class BackGroundTaskBalancer {
             // 选取一批任务优雅终止
             watch.start("chooseTask");
             int deltaResourceCost = currentResourceCost - averageResourceCost;
-            List<IBackGroundTask> sortedTaskList = getSortedByTenantTaskList();
             List<IBackGroundTask> choosedTaskList = chooseTaskForResourceCostFromTail(
                 sortedTaskList,
                 deltaResourceCost
@@ -139,15 +140,45 @@ public class BackGroundTaskBalancer {
                 watch.stop();
             }
             logBalanceResult(successList, failedList, watch);
-        } else {
+        } else if (currentResourceCost <= averageResourceCost) {
             log.info(
                 "averageResourceCost={}, currentResourceCost={}, start task listener",
                 averageResourceCost,
                 currentResourceCost
             );
             startTaskListener();
+        } else {
+            // 临界状态，刚好满负载
+            log.debug(
+                "averageResourceCost={}, currentResourceCost={}, balanced, stop task listener",
+                averageResourceCost,
+                currentResourceCost
+            );
+            stopTaskListener();
         }
         return true;
+    }
+
+    /**
+     * 根据当前实例的任务情况判断是否需要执行负载均衡
+     *
+     * @param averageResourceCost 每个实例平均应承担的资源消耗
+     * @param currentResourceCost 当前实例的资源消耗值
+     * @param sortedTaskList      已排序的当前任务列表
+     * @return 是否需要执行负载均衡
+     */
+    private boolean needToBalance(int averageResourceCost,
+                                  int currentResourceCost,
+                                  List<IBackGroundTask> sortedTaskList) {
+        if (currentResourceCost <= averageResourceCost) {
+            return false;
+        }
+        if (Collections.isEmpty(sortedTaskList)) {
+            return false;
+        }
+        IBackGroundTask lastTask = sortedTaskList.get(sortedTaskList.size() - 1);
+        // 如果当前资源消耗减去最后一个任务的资源消耗值后，依然高于平均值，则需要执行负载均衡
+        return currentResourceCost - lastTask.getResourceCost() >= averageResourceCost;
     }
 
     /**
@@ -190,7 +221,11 @@ public class BackGroundTaskBalancer {
             IBackGroundTask task = sortedTaskList.get(i);
             choosedTaskList.add(task);
             accumulatedCost += task.getResourceCost();
-            if (accumulatedCost >= targetResourceCost) {
+            if (accumulatedCost == targetResourceCost) {
+                break;
+            } else if (accumulatedCost > targetResourceCost) {
+                // 超过目标值，移除最后一个任务，临界点任务不做均衡
+                choosedTaskList.remove(choosedTaskList.size() - 1);
                 break;
             }
         }
