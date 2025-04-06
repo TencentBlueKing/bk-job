@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.redis.util.HeartBeatRedisLock;
 import com.tencent.bk.job.common.redis.util.LockResult;
-import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.tracing.util.SpanUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
@@ -110,10 +109,14 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
         HeartBeatRedisLock redisLock = new HeartBeatRedisLock(redisTemplate, redisLockKey, machineIp);
         String lockKeyValue = redisLock.peekLockKeyValue();
         if (StringUtils.isNotBlank(lockKeyValue)) {
-            log.info("[tenantId={}] Watching {} event already running, ignore", tenantId, watcherResourceName);
+            log.info(
+                "{} already running on {}, ignore",
+                getUniqueCode(),
+                lockKeyValue
+            );
             return;
         }
-        log.info("[tenantId={}] Watching {} event start", tenantId, watcherResourceName);
+        log.info("{} start", getUniqueCode());
         LockResult lockResult = null;
         while (active) {
             Span span = SpanUtil.buildNewSpan(this.tracer, this.watcherResourceName + "WatchOuterLoop");
@@ -138,9 +141,10 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
                 if (lockResult != null) {
                     lockResult.tryToRelease();
                 }
-                LockUtils.releaseDistributedLock(redisLockKey, machineIp);
-                // 过5s后重新尝试监听事件
-                ThreadUtils.sleep(5000);
+                if (active) {
+                    // 过5s后重新尝试监听事件
+                    ThreadUtils.sleep(5000);
+                }
             }
         }
     }
@@ -165,7 +169,9 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
                 log.info("WatchResult[{}]: {}", this.watcherResourceName, JsonUtils.toJson(watchResult));
                 cursor = handleWatchResult(watchResult, cursor);
                 // 1s/watch一次
-                ThreadUtils.sleep(1_000);
+                Thread.sleep(1_000);
+            } catch (InterruptedException e) {
+                log.info("EventWatch thread interrupted");
             } catch (Throwable t) {
                 span.error(t);
                 log.error("EventWatch thread fail", t);
