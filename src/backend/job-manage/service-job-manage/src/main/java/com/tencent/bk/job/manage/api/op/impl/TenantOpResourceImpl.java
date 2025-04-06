@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.redis.util.DistributedUniqueTask;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.api.op.TenantOpResource;
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskDaemon;
 import com.tencent.bk.job.manage.background.sync.BizSetSyncService;
 import com.tencent.bk.job.manage.background.sync.BizSyncService;
 import com.tencent.bk.job.manage.background.sync.TenantHostSyncService;
@@ -53,19 +54,21 @@ public class TenantOpResourceImpl implements TenantOpResource {
     private final BizSetSyncService bizSetSyncService;
     private final TenantSetSyncService tenantSetSyncService;
     private final TenantHostSyncService tenantHostSyncService;
+    private final BackGroundTaskDaemon backGroundTaskDaemon;
 
-    // TODO:用户数据、消息通知渠道数据同步
     @Autowired
     public TenantOpResourceImpl(RedisTemplate<String, String> redisTemplate,
                                 BizSyncService bizSyncService,
                                 BizSetSyncService bizSetSyncService,
                                 TenantSetSyncService tenantSetSyncService,
-                                TenantHostSyncService tenantHostSyncService) {
+                                TenantHostSyncService tenantHostSyncService,
+                                BackGroundTaskDaemon backGroundTaskDaemon) {
         this.redisTemplate = redisTemplate;
         this.bizSyncService = bizSyncService;
         this.bizSetSyncService = bizSetSyncService;
         this.tenantSetSyncService = tenantSetSyncService;
         this.tenantHostSyncService = tenantHostSyncService;
+        this.backGroundTaskDaemon = backGroundTaskDaemon;
     }
 
     @Override
@@ -110,6 +113,8 @@ public class TenantOpResourceImpl implements TenantOpResource {
         tenantSetSyncService.syncTenantSetFromCMDB();
         // 4.同步租户下所有业务的主机
         tenantHostSyncService.syncAllBizHostsAtOnce(tenantId);
+        // 5.启动该租户下的CMDB事件监听后台任务
+        backGroundTaskDaemon.checkAndResumeTaskForTenant(tenantId);
         return true;
     }
 }

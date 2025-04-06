@@ -80,34 +80,46 @@ public class BackGroundTaskDaemon {
         // 遍历所有租户监听事件
         for (OpenApiTenant openApiTenant : tenantList) {
             String tenantId = openApiTenant.getId();
-            if (cmdbEventManager.isWatchBizEventRunning(tenantId)) {
-                backGroundTaskDispatcher.dispatch(new TaskEntity(BackGroundTaskCode.WATCH_BIZ, tenantId));
-                log.info("Resumed watchBiz:{}", tenantId);
-                resumedTaskCount++;
-            }
-            if (cmdbEventManager.isWatchBizSetEventRunning(tenantId)) {
-                backGroundTaskDispatcher.dispatch(new TaskEntity(BackGroundTaskCode.WATCH_BIZ_SET, tenantId));
-                log.info("Resumed watchBizSet:{}", tenantId);
-                resumedTaskCount++;
-            }
-            if (cmdbEventManager.isWatchBizSetRelationEventRunning(tenantId)) {
-                backGroundTaskDispatcher.dispatch(new TaskEntity(BackGroundTaskCode.WATCH_BIZ_SET_RELATION, tenantId));
-                log.info("Resumed watchBizSetRelation:{}", tenantId);
-                resumedTaskCount++;
-            }
-            if (cmdbEventManager.isWatchHostEventRunning(tenantId)) {
-                backGroundTaskDispatcher.dispatch(new TaskEntity(BackGroundTaskCode.WATCH_HOST, tenantId));
-                log.info("Resumed watchHost:{}", tenantId);
-                resumedTaskCount++;
-            }
-            if (cmdbEventManager.isWatchHostRelationEventRunning(tenantId)) {
-                backGroundTaskDispatcher.dispatch(new TaskEntity(BackGroundTaskCode.WATCH_HOST_RELATION, tenantId));
-                log.info("Resumed watchHostRelation:{}", tenantId);
-                resumedTaskCount++;
-            }
+            resumedTaskCount += checkAndResumeTaskForTenant(tenantId);
         }
         if (resumedTaskCount > 0) {
             log.warn("checkAndResumeTask finished, resumedTaskCount={}", resumedTaskCount);
         }
+    }
+
+    /**
+     * 检查并恢复租户下异常终止的后台任务
+     *
+     * @param tenantId 租户ID
+     * @return 恢复的后台任务数量
+     */
+    public int checkAndResumeTaskForTenant(String tenantId) {
+        int resumedTaskCount = 0;
+        if (cmdbEventManager.isWatchBizEventRunning(tenantId)) {
+            backGroundTaskDispatcher.dispatch(new TaskEntity(BackGroundTaskCode.WATCH_BIZ, tenantId));
+            log.info("Resumed watchBiz:{}", tenantId);
+            resumedTaskCount++;
+        }
+        if (cmdbEventManager.isWatchBizSetEventRunning(tenantId)) {
+            backGroundTaskDispatcher.dispatch(new TaskEntity(BackGroundTaskCode.WATCH_BIZ_SET, tenantId));
+            log.info("Resumed watchBizSet:{}", tenantId);
+            resumedTaskCount++;
+        }
+        if (cmdbEventManager.isWatchBizSetRelationEventRunning(tenantId)) {
+            backGroundTaskDispatcher.dispatch(new TaskEntity(BackGroundTaskCode.WATCH_BIZ_SET_RELATION, tenantId));
+            log.info("Resumed watchBizSetRelation:{}", tenantId);
+            resumedTaskCount++;
+        }
+        if (cmdbEventManager.isWatchHostEventRunning(tenantId)) {
+            backGroundTaskDispatcher.dispatch(new TaskEntity(BackGroundTaskCode.WATCH_HOST, tenantId));
+            log.info("Resumed watchHost:{}", tenantId);
+            resumedTaskCount++;
+        }
+        if (cmdbEventManager.isWatchHostRelationEventRunning(tenantId)) {
+            backGroundTaskDispatcher.dispatch(new TaskEntity(BackGroundTaskCode.WATCH_HOST_RELATION, tenantId));
+            log.info("Resumed watchHostRelation:{}", tenantId);
+            resumedTaskCount++;
+        }
+        return resumedTaskCount;
     }
 }
