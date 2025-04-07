@@ -27,10 +27,12 @@ package com.tencent.bk.job.manage.service.host.strategy.impl;
 
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.host.strategy.TenantListHostStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,27 +41,37 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TenantListHostByHostIdsFromCmdbStrategy implements TenantListHostStrategy<Long> {
     private final IBizCmdbClient bizCmdbClient;
+    private final HostCache hostCache;
 
-    public TenantListHostByHostIdsFromCmdbStrategy(IBizCmdbClient bizCmdbClient) {
+    public TenantListHostByHostIdsFromCmdbStrategy(IBizCmdbClient bizCmdbClient, HostCache hostCache) {
         this.bizCmdbClient = bizCmdbClient;
+        this.hostCache = hostCache;
     }
 
     @Override
     public Pair<List<Long>, List<ApplicationHostDTO>> listHosts(String tenantId, List<Long> hostIds) {
-        long start = System.currentTimeMillis();
+        StopWatch watch = new StopWatch();
         List<Long> notExistHostIds = new ArrayList<>(hostIds);
+        watch.start("listHostsFromCmdb");
         List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByHostIds(tenantId, hostIds);
+        watch.stop();
         if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
+            watch.start("updateHostsToCache");
             List<Long> cmdbExistHostIds = cmdbExistHosts.stream()
                 .map(ApplicationHostDTO::getHostId)
                 .collect(Collectors.toList());
             notExistHostIds.removeAll(cmdbExistHostIds);
+            hostCache.batchAddOrUpdateHosts(cmdbExistHosts);
             log.info("sync new hosts from cmdb, hosts:{}", cmdbExistHosts);
+            watch.stop();
         }
 
-        long cost = System.currentTimeMillis() - start;
-        if (cost > 1000) {
-            log.warn("ListHostsFromCmdb slow, hostSize: {}, cost: {}", hostIds.size(), cost);
+        if (watch.getTotalTimeMillis() > 3000) {
+            log.warn(
+                "listHostsFromCmdb and update cache slow, hostSize: {}, cost: {}",
+                hostIds.size(),
+                watch.prettyPrint()
+            );
         }
         return Pair.of(notExistHostIds, cmdbExistHosts);
     }

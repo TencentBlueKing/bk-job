@@ -27,10 +27,12 @@ package com.tencent.bk.job.manage.service.host.strategy.impl;
 
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.host.strategy.TenantListHostStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,29 +45,38 @@ import java.util.stream.Collectors;
 public class TenantListHostByIpsFromCmdbStrategy implements TenantListHostStrategy<String> {
 
     private final IBizCmdbClient bizCmdbClient;
+    private final HostCache hostCache;
 
-    public TenantListHostByIpsFromCmdbStrategy(IBizCmdbClient bizCmdbClient) {
+    public TenantListHostByIpsFromCmdbStrategy(IBizCmdbClient bizCmdbClient, HostCache hostCache) {
         this.bizCmdbClient = bizCmdbClient;
+        this.hostCache = hostCache;
     }
 
     @Override
     public Pair<List<String>, List<ApplicationHostDTO>> listHosts(String tenantId, List<String> cloudIps) {
-        long start = System.currentTimeMillis();
-
+        StopWatch watch = new StopWatch();
         List<String> notExistCloudIps = new ArrayList<>(cloudIps);
 
+        watch.start("listHostsFromCmdb");
         List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByCloudIps(tenantId, cloudIps);
+        watch.stop();
         if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
+            watch.start("addHostsToCache");
             List<String> cmdbExistHostIds = cmdbExistHosts.stream()
                 .map(ApplicationHostDTO::getCloudIp)
                 .collect(Collectors.toList());
             notExistCloudIps.removeAll(cmdbExistHostIds);
+            hostCache.batchAddOrUpdateHosts(cmdbExistHosts);
             log.info("sync new hosts from cmdb, hosts:{}", cmdbExistHosts);
+            watch.stop();
         }
 
-        long cost = System.currentTimeMillis() - start;
-        if (cost > 1000) {
-            log.warn("ListHostsFromCmdb slow, ipSize: {}, cost: {}", cloudIps.size(), cost);
+        if (watch.getTotalTimeMillis() > 3000) {
+            log.warn(
+                "ListHostsFromCmdb and update cache slow, ipSize: {}, cost: {}",
+                cloudIps.size(),
+                watch.prettyPrint()
+            );
         }
         return Pair.of(notExistCloudIps, cmdbExistHosts);
     }

@@ -27,10 +27,12 @@ package com.tencent.bk.job.manage.service.host.strategy.impl;
 
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.dao.TenantHostDAO;
+import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.host.strategy.TenantListHostStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.util.StopWatch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,18 +40,24 @@ import java.util.List;
 @Slf4j
 public class TenantListHostByHostIdsFromDbStrategy implements TenantListHostStrategy<Long> {
     private final TenantHostDAO tenantHostDAO;
+    private final HostCache hostCache;
 
-    public TenantListHostByHostIdsFromDbStrategy(TenantHostDAO tenantHostDAO) {
+    public TenantListHostByHostIdsFromDbStrategy(TenantHostDAO tenantHostDAO, HostCache hostCache) {
         this.tenantHostDAO = tenantHostDAO;
+        this.hostCache = hostCache;
     }
 
     @Override
     public Pair<List<Long>, List<ApplicationHostDTO>> listHosts(String tenantId, List<Long> hostIds) {
-        long start = System.currentTimeMillis();
+        StopWatch watch = new StopWatch();
         List<ApplicationHostDTO> appHosts = new ArrayList<>();
         List<Long> notExistHostIds = new ArrayList<>(hostIds);
+
+        watch.start("listHostsFromDb");
         List<ApplicationHostDTO> hostsInDb = tenantHostDAO.listHostInfoByHostIds(tenantId, hostIds);
+        watch.stop();
         if (CollectionUtils.isNotEmpty(hostsInDb)) {
+            watch.start("addHostsToCache");
             for (ApplicationHostDTO appHost : hostsInDb) {
                 if (appHost.getBizId() == null || appHost.getBizId() <= 0) {
                     log.info("Host: {}|{} missing bizId, skip!", appHost.getHostId(), appHost.getCloudIp());
@@ -59,11 +67,16 @@ public class TenantListHostByHostIdsFromDbStrategy implements TenantListHostStra
                 notExistHostIds.remove(appHost.getHostId());
                 appHosts.add(appHost);
             }
+            hostCache.batchAddOrUpdateHosts(appHosts);
+            watch.stop();
         }
 
-        long cost = System.currentTimeMillis() - start;
-        if (cost > 1000) {
-            log.warn("ListHostsFromMySQL slow, hostSize: {}, cost: {}", hostIds.size(), cost);
+        if (watch.getTotalTimeMillis() > 3000) {
+            log.warn(
+                "ListHostsFromDb and update cache slow, hostSize: {}, cost: {}",
+                hostIds.size(),
+                watch.prettyPrint()
+            );
         }
         return Pair.of(notExistHostIds, appHosts);
     }
