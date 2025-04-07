@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.esb.sdk.BkApiV2Client;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
+import com.tencent.bk.job.common.paas.model.VirtualUser;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
@@ -62,6 +63,8 @@ import static com.tencent.bk.job.common.metrics.CommonMetricNames.USER_MANAGE_AP
  */
 @Slf4j
 public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
+
+    private static final String API_BATCH_LOOKUP_VIRTUAL_USER = "/api/v3/open/tenant/virtual-users/-/lookup/";
 
     private final BkApiAuthorization authorization;
 
@@ -106,6 +109,27 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
         return response.getData();
     }
 
+    /**
+     * 获取指定租户下的虚拟账号（admin）的bk_username
+     */
+    @Override
+    public List<VirtualUser> getLVirtualUserByLoginName(String tenantId, String loginName) {
+        OpenApiResponse<List<VirtualUser>> resp = requestBkUserApi(
+            "batch_lookup_virtual_user",
+            OpenApiRequestInfo
+                .builder()
+                .method(HttpMethodEnum.GET)
+                .uri(API_BATCH_LOOKUP_VIRTUAL_USER)
+                .addHeader(buildTenantHeader(tenantId))
+                .addQueryParam("lookups", loginName)
+                .addQueryParam("lookup_field", "login_name")
+                .authorization(authorization)
+                .build(),
+            req -> doRequest(req, new TypeReference<OpenApiResponse<List<VirtualUser>>>() {
+            })
+        );
+        return resp.getData();
+    }
 
     protected <T, R> OpenApiResponse<R> requestBkUserApi(
         String apiName,

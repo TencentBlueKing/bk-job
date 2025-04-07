@@ -29,12 +29,11 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
-import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
-import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.sdk.BkApiV1Client;
+import com.tencent.bk.job.common.esb.model.OpenApiResponse;
+import com.tencent.bk.job.common.esb.sdk.BkApiV2Client;
 import com.tencent.bk.job.common.exception.InternalCmsiException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
@@ -64,7 +63,7 @@ import static com.tencent.bk.job.common.metrics.CommonMetricNames.ESB_CMSI_API;
  * 消息通知 API 客户端
  */
 @Slf4j
-public class CmsiApiClient extends BkApiV1Client implements ICmsiClient {
+public class CmsiApiClient extends BkApiV2Client implements ICmsiClient {
 
     private static final String API_GET_NOTIFY_CHANNEL_LIST = "/v1/channels/";
     private static final String API_SEND_MAIL = "/v1/send_mail/";
@@ -91,23 +90,24 @@ public class CmsiApiClient extends BkApiV1Client implements ICmsiClient {
             appProperties.getSecret(), "admin");
     }
 
+    @Override
     public List<EsbNotifyChannelDTO> getNotifyChannelList(String tenantId) {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(
                 Tag.of(EsbMetricTags.KEY_API_NAME, API_GET_NOTIFY_CHANNEL_LIST)
             );
-            EsbResp<List<EsbNotifyChannelDTO>> esbResp = doRequest(
+            OpenApiResponse<List<EsbNotifyChannelDTO>> resp = doRequest(
                 OpenApiRequestInfo.builder()
                     .method(HttpMethodEnum.GET)
                     .uri(API_GET_NOTIFY_CHANNEL_LIST)
                     .addHeader(buildTenantHeader(tenantId))
                     .authorization(authorization)
                     .build(),
-                new TypeReference<EsbResp<List<EsbNotifyChannelDTO>>>() {
+                new TypeReference<OpenApiResponse<List<EsbNotifyChannelDTO>>>() {
                 }
             );
-            return esbResp.getData();
+            return resp.getData();
         } catch (Exception e) {
             String errorMsg = "Get " + API_GET_NOTIFY_CHANNEL_LIST + " error";
             log.error(errorMsg, e);
@@ -117,6 +117,7 @@ public class CmsiApiClient extends BkApiV1Client implements ICmsiClient {
         }
     }
 
+    @Override
     public void sendMsg(String msgType, NotifyMessageDTO notifyMessageDTO, String tenantId) {
         CmsiSendMsgV1BasicReq req;
         String uri;
@@ -141,7 +142,7 @@ public class CmsiApiClient extends BkApiV1Client implements ICmsiClient {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of(EsbMetricTags.KEY_API_NAME, uri));
-            EsbResp<Object> esbResp = doRequest(
+            OpenApiResponse<Object> resp = doRequest(
                 OpenApiRequestInfo.builder()
                     .method(HttpMethodEnum.POST)
                     .uri(uri)
@@ -149,17 +150,17 @@ public class CmsiApiClient extends BkApiV1Client implements ICmsiClient {
                     .addHeader(buildTenantHeader(tenantId))
                     .authorization(authorization)
                     .build(),
-                new TypeReference<EsbResp<Object>>() {
+                new TypeReference<OpenApiResponse<Object>>() {
                 }
             );
 
-            if (esbResp.getResult() == null || !esbResp.getResult() || esbResp.getCode() != 0) {
+            if (resp.getError() != null) {
                 throw new PaasException(
                     ErrorType.INTERNAL,
                     ErrorCode.CMSI_FAIL_TO_SEND_MSG,
                     new Object[]{
-                        esbResp.getCode().toString(),
-                        esbResp.getMessage()
+                        resp.getError().getCode(),
+                        resp.getError().getMessage()
                     });
             }
         } catch (PaasException e) {

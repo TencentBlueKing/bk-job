@@ -22,26 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.user;
+package com.tencent.bk.job.common.paas.model;
 
-import com.tencent.bk.job.common.model.dto.BkUserDTO;
-import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.paas.model.VirtualUser;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+@Getter
+public class VirtualUser {
 
-public interface IUserApiClient {
+    /**
+     * 蓝鲸用户唯一标识
+     */
+    @JsonProperty("bk_username")
+    private String bkUsername;
 
-    public List<BkUserDTO> getAllUserList(String tenantId);
+    /**
+     * 企业内用户唯一标识
+     */
+    @JsonProperty("login_name")
+    private String loginName;
 
-    public List<OpenApiTenant> listAllTenant();
-
-    public BkUserDTO getUserByUsername(String username);
-
-    public Map<String, BkUserDTO> listUsersByUsernames(Collection<String> usernames);
-
-    public List<VirtualUser> getLVirtualUserByLoginName(String tenantId, String loginName);
-
+    /**
+     * 用户展示名
+     */
+    @JsonProperty("display_name")
+    private String displayName;
 }

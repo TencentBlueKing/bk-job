@@ -22,26 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.user;
+package com.tencent.bk.job.common.paas.config.condition;
 
-import com.tencent.bk.job.common.model.dto.BkUserDTO;
-import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.paas.model.VirtualUser;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface IUserApiClient {
-
-    public List<BkUserDTO> getAllUserList(String tenantId);
-
-    public List<OpenApiTenant> listAllTenant();
-
-    public BkUserDTO getUserByUsername(String username);
-
-    public Map<String, BkUserDTO> listUsersByUsernames(Collection<String> usernames);
-
-    public List<VirtualUser> getLVirtualUserByLoginName(String tenantId, String loginName);
-
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@ConditionalOnProperty(
+    value = "virtualAccount.useAdminUsername",
+    havingValue = "true"
+)
+public @interface UseVirtualAdminAccountUsername {
 }
