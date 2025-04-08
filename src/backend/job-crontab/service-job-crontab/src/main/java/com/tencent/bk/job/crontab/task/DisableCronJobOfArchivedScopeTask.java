@@ -28,13 +28,14 @@ package com.tencent.bk.job.crontab.task;
 
 import com.tencent.bk.job.common.redis.util.DistributedUniqueTask;
 import com.tencent.bk.job.common.util.ip.IpUtils;
+import com.tencent.bk.job.crontab.config.JobCrontabProperties;
 import com.tencent.bk.job.crontab.dao.CronJobDAO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.service.QuartzService;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -52,22 +53,23 @@ public class DisableCronJobOfArchivedScopeTask {
     private final ServiceApplicationResource serviceApplicationResource;
     private final CronJobDAO cronJobDAO;
     private final QuartzService quartzService;
+    private final JobCrontabProperties jobCrontabProperties;
 
-    @Value("${job.crontab.autoDisableCronOfArchivedScope.enabled:true}")
-    private Boolean enabled;
-
+    @Autowired
     public DisableCronJobOfArchivedScopeTask(RedisTemplate<String, String> redisTemplate,
                                              ServiceApplicationResource serviceApplicationResource,
                                              CronJobDAO cronJobDAO,
-                                             QuartzService quartzService) {
+                                             QuartzService quartzService,
+                                             JobCrontabProperties jobCrontabProperties) {
         this.redisTemplate = redisTemplate;
         this.serviceApplicationResource = serviceApplicationResource;
         this.cronJobDAO = cronJobDAO;
         this.quartzService = quartzService;
+        this.jobCrontabProperties = jobCrontabProperties;
     }
 
     public boolean execute() {
-        if (!enabled) {
+        if (!jobCrontabProperties.getDisableCronJobOfArchivedScope().getEnabled()) {
             log.info("disableCronJobOfArchivedScopeTask not enabled, skip, you can enable it in config file");
             return false;
         }
@@ -128,7 +130,7 @@ public class DisableCronJobOfArchivedScopeTask {
         for (Long cronJobId : cronJobIdList) {
             quartzService.deleteJobFromQuartz(appId, cronJobId);
         }
-        log.info("appId={}, {} cronJob disabled", appId, affectedNum);
+        log.info("appId={}, {} cronJob disabled, cronJobIdList={}", appId, affectedNum, cronJobIdList);
         return affectedNum;
     }
 }
