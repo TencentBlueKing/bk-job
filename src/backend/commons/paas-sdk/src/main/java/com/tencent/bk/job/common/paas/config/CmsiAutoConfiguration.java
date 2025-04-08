@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.paas.cmsi.ICmsiClient;
 import com.tencent.bk.job.common.paas.cmsi.MockCmsiClient;
 import com.tencent.bk.job.common.paas.config.condition.ConditionalOnMockCmsiApiDisable;
 import com.tencent.bk.job.common.paas.config.condition.ConditionalOnMockCmsiApiEnable;
+import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -46,15 +47,17 @@ public class CmsiAutoConfiguration {
     @Bean
     @ConditionalOnMockCmsiApiDisable
     public ICmsiClient cmsiApiClient(AppProperties appProperties,
-                                       BkApiGatewayProperties apiGatewayProperties,
-                                       ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
-                                       TenantEnvService tenantEnvService) {
+                                     BkApiGatewayProperties apiGatewayProperties,
+                                     ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
+                                     TenantEnvService tenantEnvService,
+                                     IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         log.info("Init CmsiApiClient");
         return new CmsiApiClient(
             apiGatewayProperties,
             appProperties,
             meterRegistryObjectProvider.getIfAvailable(),
-            tenantEnvService
+            tenantEnvService,
+            virtualAdminAccountProvider
         );
     }
 

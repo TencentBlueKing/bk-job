@@ -34,6 +34,8 @@ import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -86,14 +88,21 @@ public class NotifyUserService {
         return saveNotifyBlackUsers(operator, users);
     }
 
-    public List<String> saveNotifyBlackUsers(String operator, Collection<String> usernames) {
+    public List<String> saveNotifyBlackUsers(String creatorUsername, Collection<String> usernames) {
         String tenantId = JobContextUtil.getTenantId();
+        String creator = creatorUsername;
+        List<SimpleUserInfo> operators = userApiClient.listUsersByUsernames(tenantId, Arrays.asList(creatorUsername));
+        if (CollectionUtils.isNotEmpty(operators)
+            && operators.get(0) != null
+            && StringUtils.isNotBlank(operators.get(0).getDisplayName())) {
+            creator = operators.get(0).getDisplayName();
+        }
         List<SimpleUserInfo> users = userApiClient.listUsersByUsernames(
             tenantId,
             usernames);
         val resultList = new ArrayList<String>();
         notifyBlackUserInfoDAO.deleteAllNotifyBlackUser(tenantId);
-        saveBlackUsersToDB(users, operator, resultList, tenantId);
+        saveBlackUsersToDB(users, creator, resultList, tenantId);
         return resultList;
     }
 

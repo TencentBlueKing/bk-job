@@ -47,6 +47,7 @@ import com.tencent.bk.job.common.paas.model.cmsi.req.SendMailV1Req;
 import com.tencent.bk.job.common.paas.model.cmsi.req.SendSmsV1Req;
 import com.tencent.bk.job.common.paas.model.cmsi.req.SendVoiceV1Req;
 import com.tencent.bk.job.common.paas.model.cmsi.req.SendWxV1Req;
+import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
@@ -71,12 +72,14 @@ public class CmsiApiClient extends BkApiV2Client implements ICmsiClient {
     private static final String API_SEND_VOICE = "/v1/send_voice/";
     private static final String API_SEND_WEIXIN = "/v1/send_weixin/";
 
-    private final BkApiAuthorization authorization;
+    private final AppProperties appProperties;
+    private final IVirtualAdminAccountProvider virtualAdminAccountProvider;
 
     public CmsiApiClient(BkApiGatewayProperties bkApiGatewayProperties,
                          AppProperties appProperties,
                          MeterRegistry meterRegistry,
-                         TenantEnvService tenantEnvService) {
+                         TenantEnvService tenantEnvService,
+                         IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         super(
             meterRegistry,
             ESB_CMSI_API,
@@ -86,8 +89,8 @@ public class CmsiApiClient extends BkApiV2Client implements ICmsiClient {
             ),
             tenantEnvService
         );
-        this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
-            appProperties.getSecret(), "admin");
+        this.appProperties = appProperties;
+        this.virtualAdminAccountProvider = virtualAdminAccountProvider;
     }
 
     @Override
@@ -102,7 +105,8 @@ public class CmsiApiClient extends BkApiV2Client implements ICmsiClient {
                     .method(HttpMethodEnum.GET)
                     .uri(API_GET_NOTIFY_CHANNEL_LIST)
                     .addHeader(buildTenantHeader(tenantId))
-                    .authorization(authorization)
+                    .authorization(buildAuthorization(
+                        appProperties, virtualAdminAccountProvider.getVirtualAdminUsername(tenantId)))
                     .build(),
                 new TypeReference<OpenApiResponse<List<EsbNotifyChannelDTO>>>() {
                 }
@@ -148,7 +152,8 @@ public class CmsiApiClient extends BkApiV2Client implements ICmsiClient {
                     .uri(uri)
                     .body(req)
                     .addHeader(buildTenantHeader(tenantId))
-                    .authorization(authorization)
+                    .authorization(buildAuthorization(
+                        appProperties, virtualAdminAccountProvider.getVirtualAdminUsername(tenantId)))
                     .build(),
                 new TypeReference<OpenApiResponse<Object>>() {
                 }

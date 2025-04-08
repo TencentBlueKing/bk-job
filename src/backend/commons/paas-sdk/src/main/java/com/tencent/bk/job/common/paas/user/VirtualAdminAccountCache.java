@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class VirtualAdminAccountCache implements IVirtualAdminAccountProvider {
     private final IUserApiClient userApiClient;
-    private static final String BK_VIRTUAL_LOGIN_NAME_ADMIN = "admin";
+    private static final String BK_VIRTUAL_LOGIN_NAME_ADMIN = "bk_admin";
 
     private final LoadingCache<String, String> adminUsernameCache = CacheBuilder.newBuilder()
         .maximumSize(2000).expireAfterWrite(1, TimeUnit.HOURS)

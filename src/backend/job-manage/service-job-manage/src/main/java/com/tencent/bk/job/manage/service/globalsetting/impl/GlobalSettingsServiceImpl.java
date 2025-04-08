@@ -35,6 +35,9 @@ import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.notice.config.BkNoticeProperties;
+import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
+import com.tencent.bk.job.common.paas.user.IUserApiClient;
+import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -129,6 +132,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private final BkApiGatewayProperties bkApiGatewayProperties;
     private final NotifyTemplateConverter notifyTemplateConverter;
     private final BuildProperties buildProperties;
+    private final IUserApiClient userApiClient;
     @Value("${job.manage.upload.filesize.max:5GB}")
     private String configedMaxFileSize;
 
@@ -146,7 +150,8 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                                      BkNoticeProperties bkNoticeProperties,
                                      BkApiGatewayProperties bkApiGatewayProperties,
                                      NotifyTemplateConverter notifyTemplateConverter,
-                                     BuildProperties buildProperties) {
+                                     BuildProperties buildProperties,
+                                     IUserApiClient userApiClient) {
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyService = notifyService;
@@ -161,6 +166,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         this.bkApiGatewayProperties = bkApiGatewayProperties;
         this.notifyTemplateConverter = notifyTemplateConverter;
         this.buildProperties = buildProperties;
+        this.userApiClient = userApiClient;
     }
 
     private static String removeSuffixBackSlash(String rawStr) {
@@ -511,6 +517,15 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         }
 
         String tenantId = JobContextUtil.getTenantId();
+        String creator = username;
+        List<SimpleUserInfo> operators = userApiClient.listUsersByUsernames(
+            tenantId,
+            Arrays.asList(username));
+        if (CollectionUtils.isNotEmpty(operators)
+            && operators.get(0) != null
+            && StringUtils.isNotBlank(operators.get(0).getDisplayName())) {
+            creator = operators.get(0).getDisplayName();
+        }
         NotifyTemplateDTO notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
             req.getChannelCode(),
             req.getMessageTypeCode(),
@@ -529,9 +544,9 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                 .titleEn(req.getTitle())
                 .contentEn(req.getContent())
                 .isDefault(false)
-                .creator(username)
+                .creator(creator)
                 .createTime(System.currentTimeMillis())
-                .lastModifyUser(username)
+                .lastModifyUser(creator)
                 .lastModifyTime(System.currentTimeMillis())
                 .tenantId(tenantId)
                 .build();
@@ -544,7 +559,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                 notifyTemplateDTO.setTitle(req.getTitle());
                 notifyTemplateDTO.setContent(req.getContent());
             }
-            notifyTemplateDTO.setLastModifyUser(username);
+            notifyTemplateDTO.setLastModifyUser(creator);
             notifyTemplateDTO.setLastModifyTime(System.currentTimeMillis());
             return notifyTemplateDAO.updateNotifyTemplateById(notifyTemplateDTO);
         }

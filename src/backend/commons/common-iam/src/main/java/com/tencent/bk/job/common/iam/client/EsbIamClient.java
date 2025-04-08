@@ -47,6 +47,7 @@ import com.tencent.bk.job.common.iam.dto.GetApplyUrlRequest;
 import com.tencent.bk.job.common.iam.dto.GetApplyUrlResponse;
 import com.tencent.bk.job.common.iam.dto.RegisterResourceRequest;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
@@ -75,12 +76,14 @@ public class EsbIamClient extends BkApiV1Client implements IIamClient {
     private static final String API_BATCH_AUTH_BY_PATH_URL =
         "/api/c/compapi/v2/iam/authorization/batch_path/";
 
-    private final BkApiAuthorization authorization;
+    private final AppProperties appProperties;
+    private final IVirtualAdminAccountProvider virtualAdminAccountProvider;
 
     public EsbIamClient(MeterRegistry meterRegistry,
                         AppProperties appProperties,
                         EsbProperties esbProperties,
-                        TenantEnvService tenantEnvService) {
+                        TenantEnvService tenantEnvService,
+                        IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         super(
             meterRegistry,
             IAM_API,
@@ -90,8 +93,8 @@ public class EsbIamClient extends BkApiV1Client implements IIamClient {
             ),
             tenantEnvService
         );
-        this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
-            appProperties.getSecret(), "admin");
+        this.appProperties = appProperties;
+        this.virtualAdminAccountProvider = virtualAdminAccountProvider;
     }
 
     @Override
@@ -197,7 +200,8 @@ public class EsbIamClient extends BkApiV1Client implements IIamClient {
                 .method(method)
                 .uri(uri)
                 .body(reqBody)
-                .authorization(authorization)
+                .authorization(buildAuthorization(
+                    appProperties, "admin"))
                 .build();
             return doRequest(requestInfo, typeReference);
         } catch (Exception e) {

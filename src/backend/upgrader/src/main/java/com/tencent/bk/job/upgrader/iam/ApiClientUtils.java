@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
+import com.tencent.bk.job.common.paas.user.OriginalAdminNameProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.upgrader.task.param.ParamNameConsts;
 
@@ -48,7 +49,9 @@ public class ApiClientUtils {
                 (String) properties.get(ParamNameConsts.CONFIG_PROPERTY_APP_SECRET)
             ),
             esbProperties,
-            new NonTenantEnvService()
+            new NonTenantEnvService(),
+            // TODO:待完善
+            new OriginalAdminNameProvider()
         );
     }
 
