@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model.esb.v3.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
@@ -139,6 +140,11 @@ public class EsbFastTransferFileV3Request extends EsbAppScopeReq {
                 host.setIp(host.getIp().trim());
             });
         }
+    }
+
+    @JsonIgnore
+    public String getTrimmedTargetPath(){
+        return targetPath == null ? null : targetPath.trim();
     }
 }
 

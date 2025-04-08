@@ -47,7 +47,7 @@
           {{ $t('template.清空') }}
         </bk-button>
       </section>
-      <ip-selector
+      <jb-ip-selector
         :original-value="originalExecuteObjectsInfoInfo"
         :show-dialog="isShowChooseIp"
         show-view
