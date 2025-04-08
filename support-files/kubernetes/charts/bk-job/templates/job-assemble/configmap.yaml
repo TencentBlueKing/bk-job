@@ -272,6 +272,11 @@ data:
           poolName: "job-execute-archive"
           validationTimeout: 5000
         {{- end }}
+        {{- if and .Values.backupConfig.archive.execute.enabled (or (eq .Values.backupConfig.archive.execute.mode "deleteOnly") (eq .Values.backupConfig.archive.execute.mode "backupThenDelete")) }}
+        job-execute-mongodb:
+          uri: {{ include "job.mongodb.connect.uri" . | quote }}
+          database: "joblog"
+        {{- end }}
       redis:
         {{- include "job.redis.config" . | indent 8 }}
         database: 0
