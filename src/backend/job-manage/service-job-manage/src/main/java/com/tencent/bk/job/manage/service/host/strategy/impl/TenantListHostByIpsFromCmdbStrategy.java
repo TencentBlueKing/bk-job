@@ -30,54 +30,30 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.host.strategy.TenantListHostStrategy;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.util.StopWatch;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 /**
  * 根据CloudIPs从CMDB查询主机
  */
 @Slf4j
-public class TenantListHostByIpsFromCmdbStrategy implements TenantListHostStrategy<String> {
+public class TenantListHostByIpsFromCmdbStrategy extends AbstractCacheableListHostStrategy<String>
+    implements TenantListHostStrategy<String> {
 
     private final IBizCmdbClient bizCmdbClient;
-    private final HostCache hostCache;
 
     public TenantListHostByIpsFromCmdbStrategy(IBizCmdbClient bizCmdbClient, HostCache hostCache) {
+        super(hostCache);
         this.bizCmdbClient = bizCmdbClient;
-        this.hostCache = hostCache;
     }
 
     @Override
     public Pair<List<String>, List<ApplicationHostDTO>> listHosts(String tenantId, List<String> cloudIps) {
-        StopWatch watch = new StopWatch();
-        List<String> notExistCloudIps = new ArrayList<>(cloudIps);
-
-        watch.start("listHostsFromCmdb");
-        List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByCloudIps(tenantId, cloudIps);
-        watch.stop();
-        if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
-            watch.start("addHostsToCache");
-            List<String> cmdbExistHostIds = cmdbExistHosts.stream()
-                .map(ApplicationHostDTO::getCloudIp)
-                .collect(Collectors.toList());
-            notExistCloudIps.removeAll(cmdbExistHostIds);
-            hostCache.batchAddOrUpdateHosts(cmdbExistHosts);
-            log.info("sync new hosts from cmdb, hosts:{}", cmdbExistHosts);
-            watch.stop();
-        }
-
-        if (watch.getTotalTimeMillis() > 3000) {
-            log.warn(
-                "ListHostsFromCmdb and update cache slow, ipSize: {}, cost: {}",
-                cloudIps.size(),
-                watch.prettyPrint()
-            );
-        }
-        return Pair.of(notExistCloudIps, cmdbExistHosts);
+        Function<Void, Pair<List<String>, List<ApplicationHostDTO>>> loadHostsFunc = voidObj ->
+            Pair.of(cloudIps, bizCmdbClient.listHostsByCloudIps(tenantId, cloudIps));
+        Function<ApplicationHostDTO, String> extractKeyFunc = ApplicationHostDTO::getCloudIp;
+        return listHostsAndRefreshCache("loadHostsFromCmdb", loadHostsFunc, extractKeyFunc);
     }
 }

@@ -30,57 +30,31 @@ import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.host.strategy.NoTenantListHostStrategy;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.util.StopWatch;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * 根据CloudIPs从DB查询主机
  */
 @Slf4j
-public class NoTenantListHostByIpsFromDbStrategy implements NoTenantListHostStrategy<String> {
+public class NoTenantListHostByIpsFromDbStrategy extends AbstractCacheableListHostStrategy<String>
+    implements NoTenantListHostStrategy<String> {
 
     private final NoTenantHostDAO noTenantHostDAO;
-    private final HostCache hostCache;
 
     public NoTenantListHostByIpsFromDbStrategy(NoTenantHostDAO noTenantHostDAO, HostCache hostCache) {
+        super(hostCache);
         this.noTenantHostDAO = noTenantHostDAO;
-        this.hostCache = hostCache;
     }
 
     @Override
     public Pair<List<String>, List<ApplicationHostDTO>> listHosts(List<String> cloudIps) {
-        StopWatch watch = new StopWatch();
-        List<ApplicationHostDTO> appHosts = new ArrayList<>();
-        List<String> notExistCloudIps = new ArrayList<>(cloudIps);
-        watch.start("listHostsFromDb");
-        List<ApplicationHostDTO> hostsInDb = noTenantHostDAO.listHostsByCloudIps(cloudIps);
-        watch.stop();
-        if (CollectionUtils.isNotEmpty(hostsInDb)) {
-            watch.start("addHostsToCache");
-            for (ApplicationHostDTO appHost : hostsInDb) {
-                if (appHost.getBizId() == null || appHost.getBizId() <= 0) {
-                    log.info("Host: {}|{} missing bizId, skip!", appHost.getHostId(), appHost.getCloudIp());
-                    // DB中缓存的主机可能没有业务信息(依赖的主机事件还没有处理),那么暂时跳过该主机
-                    continue;
-                }
-                notExistCloudIps.remove(appHost.getCloudIp());
-                appHosts.add(appHost);
-            }
-            hostCache.batchAddOrUpdateHosts(appHosts);
-            watch.stop();
-        }
-        if (watch.getTotalTimeMillis() > 3000) {
-            log.warn(
-                "ListHostsFromDb and update cache slow, ipSize: {}, cost: {}",
-                cloudIps.size(),
-                watch.prettyPrint()
-            );
-        }
-        return Pair.of(notExistCloudIps, appHosts);
+        Function<Void, Pair<List<String>, List<ApplicationHostDTO>>> loadHostsFunc = voidObj ->
+            Pair.of(cloudIps, noTenantHostDAO.listHostsByCloudIps(cloudIps));
+        Function<ApplicationHostDTO, String> extractKeyFunc = ApplicationHostDTO::getCloudIp;
+        return listHostsAndRefreshCache("loadHostsFromDb", loadHostsFunc, extractKeyFunc);
     }
 
 }

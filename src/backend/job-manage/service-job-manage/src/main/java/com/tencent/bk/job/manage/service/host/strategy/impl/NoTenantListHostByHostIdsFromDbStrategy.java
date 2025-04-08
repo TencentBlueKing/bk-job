@@ -30,55 +30,26 @@ import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.host.strategy.NoTenantListHostStrategy;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.util.StopWatch;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 @Slf4j
-public class NoTenantListHostByHostIdsFromDbStrategy implements NoTenantListHostStrategy<Long> {
+public class NoTenantListHostByHostIdsFromDbStrategy extends AbstractCacheableListHostStrategy<Long>
+    implements NoTenantListHostStrategy<Long> {
     private final NoTenantHostDAO noTenantHostDAO;
-    private final HostCache hostCache;
 
     public NoTenantListHostByHostIdsFromDbStrategy(NoTenantHostDAO noTenantHostDAO, HostCache hostCache) {
+        super(hostCache);
         this.noTenantHostDAO = noTenantHostDAO;
-        this.hostCache = hostCache;
     }
 
     @Override
     public Pair<List<Long>, List<ApplicationHostDTO>> listHosts(List<Long> hostIds) {
-        StopWatch watch = new StopWatch();
-        List<ApplicationHostDTO> appHosts = new ArrayList<>();
-        List<Long> notExistHostIds = new ArrayList<>(hostIds);
-
-        watch.start("listHostsFromDb");
-        List<ApplicationHostDTO> hostsInDb = noTenantHostDAO.listHostInfoByHostIds(hostIds);
-        watch.stop();
-
-        if (CollectionUtils.isNotEmpty(hostsInDb)) {
-            watch.start("addHostsToCache");
-            for (ApplicationHostDTO appHost : hostsInDb) {
-                if (appHost.getBizId() == null || appHost.getBizId() <= 0) {
-                    log.info("Host: {}|{} missing bizId, skip!", appHost.getHostId(), appHost.getCloudIp());
-                    // DB中缓存的主机可能没有业务信息(依赖的主机事件还没有处理),那么暂时跳过该主机
-                    continue;
-                }
-                notExistHostIds.remove(appHost.getHostId());
-                appHosts.add(appHost);
-            }
-            hostCache.batchAddOrUpdateHosts(appHosts);
-            watch.stop();
-        }
-
-        if (watch.getTotalTimeMillis() > 3000) {
-            log.warn(
-                "ListHostsFromDb and update cache slow, hostSize: {}, cost: {}",
-                hostIds.size(),
-                watch.prettyPrint()
-            );
-        }
-        return Pair.of(notExistHostIds, appHosts);
+        Function<Void, Pair<List<Long>, List<ApplicationHostDTO>>> loadHostsFunc = voidObj ->
+            Pair.of(hostIds, noTenantHostDAO.listHostInfoByHostIds(hostIds));
+        Function<ApplicationHostDTO, Long> extractKeyFunc = ApplicationHostDTO::getHostId;
+        return listHostsAndRefreshCache("loadHostsFromDb", loadHostsFunc, extractKeyFunc);
     }
 }
