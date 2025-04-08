@@ -83,7 +83,6 @@ import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDe
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TemplateBasicInfo;
-import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import com.tencent.bk.job.manage.service.NotifyService;
 import com.tencent.bk.job.manage.service.globalsetting.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.impl.notify.NotifySendService;
@@ -236,12 +235,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     )
     public Integer setAvailableNotifyChannel(String username, SetAvailableNotifyChannelReq req) {
         return notifyService.setAvailableNotifyChannel(username, req);
-    }
-
-    @Override
-    public List<UserVO> listUsers(String username, String prefixStr, Long offset, Long limit) {
-        //这里就是要选择人来添加黑名单，故不排除已在黑名单内的人
-        return notifyUserService.listUsers(prefixStr, offset, limit, false);
     }
 
     @Override

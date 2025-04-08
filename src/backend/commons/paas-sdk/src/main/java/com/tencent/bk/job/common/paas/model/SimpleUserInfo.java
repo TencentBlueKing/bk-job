@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 @Getter
-public class VirtualUser {
+public class SimpleUserInfo {
 
     /**
      * 蓝鲸用户唯一标识

@@ -30,7 +30,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.paas.model.VirtualUser;
+import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class VirtualAdminAccountCache implements IVirtualAdminAccountProvider {
     private final IUserApiClient userApiClient;
-    private final String BK_VIRTUAL_LOGIN_NAME_ADMIN = "admin";
+    private static final String BK_VIRTUAL_LOGIN_NAME_ADMIN = "admin";
 
     private final LoadingCache<String, String> adminUsernameCache = CacheBuilder.newBuilder()
         .maximumSize(2000).expireAfterWrite(1, TimeUnit.HOURS)
@@ -50,7 +50,7 @@ public class VirtualAdminAccountCache implements IVirtualAdminAccountProvider {
             @Override
             public String load(@NonNull String tenantId) {
                 log.info("Get admin username of tenantId={}", tenantId);
-                List<VirtualUser> virtualUserList = userApiClient.getLVirtualUserByLoginName(
+                List<SimpleUserInfo> virtualUserList = userApiClient.getLVirtualUserByLoginName(
                     tenantId,
                     BK_VIRTUAL_LOGIN_NAME_ADMIN);
                 if (virtualUserList == null

@@ -38,7 +38,7 @@ import com.tencent.bk.job.common.esb.sdk.BkApiV2Client;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.paas.model.VirtualUser;
+import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
@@ -46,8 +46,10 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.http.message.BasicHeader;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -65,6 +67,8 @@ import static com.tencent.bk.job.common.metrics.CommonMetricNames.USER_MANAGE_AP
 public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
 
     private static final String API_BATCH_LOOKUP_VIRTUAL_USER = "/api/v3/open/tenant/virtual-users/-/lookup/";
+    private static final String API_BATCH_QUERY_USER_DISPLAY_INFO = "/api/v3/open/tenant/users/-/display_info/";
+    private static final Integer MAX_QUERY_BATCH_SIZE = 100;
 
     private final BkApiAuthorization authorization;
 
@@ -113,8 +117,8 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
      * 获取指定租户下的虚拟账号（admin）的bk_username
      */
     @Override
-    public List<VirtualUser> getLVirtualUserByLoginName(String tenantId, String loginName) {
-        OpenApiResponse<List<VirtualUser>> resp = requestBkUserApi(
+    public List<SimpleUserInfo> getLVirtualUserByLoginName(String tenantId, String loginName) {
+        OpenApiResponse<List<SimpleUserInfo>> resp = requestBkUserApi(
             "batch_lookup_virtual_user",
             OpenApiRequestInfo
                 .builder()
@@ -125,7 +129,7 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
                 .addQueryParam("lookup_field", "login_name")
                 .authorization(authorization)
                 .build(),
-            req -> doRequest(req, new TypeReference<OpenApiResponse<List<VirtualUser>>>() {
+            req -> doRequest(req, new TypeReference<OpenApiResponse<List<SimpleUserInfo>>>() {
             })
         );
         return resp.getData();
@@ -162,5 +166,48 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
     public Map<String, BkUserDTO> listUsersByUsernames(Collection<String> usernames) {
         // TODO:tenant 网关暂未提供实现
         return new HashMap<>();
+    }
+
+    /**
+     * 通过指定的username查出对应的用户信息
+     */
+    @Override
+    public List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames) {
+        List<SimpleUserInfo> userResult = new ArrayList<>();
+        List<List<String>> userPages = splitUserList(usernames, MAX_QUERY_BATCH_SIZE);
+        for (List<String> userPage : userPages) {
+            List<SimpleUserInfo> userInfos = listUsersByPages(tenantId, userPage);
+            if (CollectionUtils.isNotEmpty(userInfos)) {
+                userResult.addAll(userInfos);
+            }
+        }
+        return userResult;
+    }
+
+    private List<SimpleUserInfo> listUsersByPages(String tenantId, List<String> usernames) {
+        OpenApiResponse<List<SimpleUserInfo>> resp = requestBkUserApi(
+            "batch_query_user",
+            OpenApiRequestInfo
+                .builder()
+                .method(HttpMethodEnum.GET)
+                .uri(API_BATCH_QUERY_USER_DISPLAY_INFO)
+                .addHeader(buildTenantHeader(tenantId))
+                .addQueryParam("bk_usernames", String.join(",", usernames))
+                .authorization(authorization)
+                .build(),
+            req -> doRequest(req, new TypeReference<OpenApiResponse<List<SimpleUserInfo>>>() {})
+        );
+        return resp.getData();
+    }
+
+    private List<List<String>> splitUserList(Collection<String> usernames, int chunkSize) {
+        List<String> list = new ArrayList<>(usernames);
+        List<List<String>> partitions = new ArrayList<>();
+
+        for (int i = 0; i < list.size(); i += chunkSize) {
+            partitions.add(new ArrayList<>(list.subList(i, Math.min(i + chunkSize, list.size()))));
+        }
+
+        return partitions;
     }
 }

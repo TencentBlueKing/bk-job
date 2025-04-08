@@ -123,16 +123,6 @@ public class WebGlobalSettingsResourceImpl implements WebGlobalSettingsResource 
         actionId = ActionId.GLOBAL_SETTINGS,
         content = EventContentConstants.VIEW_GLOBAL_SETTINGS
     )
-    public Response<List<UserVO>> listUsers(String username, String prefixStr, Long offset, Long limit) {
-        return Response.buildSuccessResp(globalSettingsService.listUsers(username, prefixStr, offset, limit));
-    }
-
-    @Override
-    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
-    @ActionAuditRecord(
-        actionId = ActionId.GLOBAL_SETTINGS,
-        content = EventContentConstants.VIEW_GLOBAL_SETTINGS
-    )
     public Response<List<NotifyBlackUserInfoVO>> listNotifyBlackUsers(String username, Integer start,
                                                                       Integer pageSize) {
         return Response.buildSuccessResp(globalSettingsService.listNotifyBlackUsers(username, start, pageSize));

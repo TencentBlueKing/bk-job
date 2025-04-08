@@ -26,7 +26,7 @@ package com.tencent.bk.job.common.paas.user;
 
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.paas.model.VirtualUser;
+import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 
 import java.util.Collection;
 import java.util.List;
@@ -42,6 +42,8 @@ public interface IUserApiClient {
 
     public Map<String, BkUserDTO> listUsersByUsernames(Collection<String> usernames);
 
-    public List<VirtualUser> getLVirtualUserByLoginName(String tenantId, String loginName);
+    public List<SimpleUserInfo> getLVirtualUserByLoginName(String tenantId, String loginName);
+
+    List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames);
 
 }

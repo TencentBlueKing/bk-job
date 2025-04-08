@@ -107,14 +107,6 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
     }
 
     @Override
-    public Response<List<UserVO>> listUsers(String username,
-                                            String prefixStr,
-                                            Long offset,
-                                            Long limit) {
-        return Response.buildSuccessResp(notifyUserService.listUsers(prefixStr, offset, limit, true));
-    }
-
-    @Override
     public Response<?> sendNotification(String username, ServiceNotificationDTO notification) {
         if (localPermissionService.isAdmin(username)) {
             return Response.buildSuccessResp(notifyService.sendSimpleNotification(notification));
