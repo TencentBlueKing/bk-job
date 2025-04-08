@@ -55,7 +55,7 @@ public class VirtualAdminAccountCache implements IVirtualAdminAccountProvider {
                     BK_VIRTUAL_LOGIN_NAME_ADMIN);
                 if (virtualUserList == null
                     || virtualUserList.isEmpty()
-                    || StringUtils.isNotEmpty(virtualUserList.get(0).getBkUsername())) {
+                    || StringUtils.isEmpty(virtualUserList.get(0).getBkUsername())) {
                     log.warn("Get admin username of tenantId={} is empty", tenantId);
                     return "";
                 }
