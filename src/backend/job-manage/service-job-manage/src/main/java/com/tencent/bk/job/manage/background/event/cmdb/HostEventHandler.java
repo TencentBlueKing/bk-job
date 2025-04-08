@@ -56,8 +56,10 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
     private final NoTenantHostService noTenantHostService;
     private final AgentStateClient agentStateClient;
     private final IBizCmdbClient bizCmdbClient;
+    private final String tenantId;
 
-    HostEventHandler(Tracer tracer,
+    HostEventHandler(String tenantId,
+                     Tracer tracer,
                      CmdbEventSampler cmdbEventSampler,
                      BlockingQueue<ResourceEvent<HostEventDetail>> queue,
                      NoTenantHostService noTenantHostService,
@@ -65,6 +67,7 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                      AgentStateClient agentStateClient,
                      IBizCmdbClient bizCmdbClient) {
         super(queue, tracer, cmdbEventSampler);
+        this.tenantId = tenantId;
         this.noTenantHostService = noTenantHostService;
         this.agentStateClient = agentStateClient;
         this.bizCmdbClient = bizCmdbClient;
@@ -125,7 +128,7 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                     );
                     // 从CMDB查询最新主机信息
                     List<ApplicationHostDTO> hostList = bizCmdbClient.listHostsByHostIds(
-                        hostInfoDTO.getTenantId(),
+                        tenantId,
                         Collections.singletonList(hostInfoDTO.getHostId())
                     );
                     if (CollectionUtils.isNotEmpty(hostList)) {

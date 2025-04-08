@@ -149,6 +149,7 @@ public class TenantHostEventWatcher extends AbstractCmdbResourceEventWatcher<Hos
 
     private HostEventHandler buildHostEventHandler(BlockingQueue<ResourceEvent<HostEventDetail>> hostEventQueue) {
         return new HostEventHandler(
+            tenantId,
             tracer,
             cmdbEventSampler,
             hostEventQueue,
