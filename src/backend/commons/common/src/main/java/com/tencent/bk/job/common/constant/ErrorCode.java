@@ -110,6 +110,8 @@ public class ErrorCode {
 
     // bk-user（用户管理） 接口调用异常
     public static final int BK_USER_MANAGE_API_ERROR = 1220001;
+    // 用户缓存加载失败，可能是用户管理接口异常
+    public static final int BK_USER_CACHE_LOADING_ERROR = 1220002;
 
 
     // ======== 系统错误-权限错误 ==================//

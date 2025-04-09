@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -97,9 +98,12 @@ public class NotifyUserService {
             && StringUtils.isNotBlank(operators.get(0).getDisplayName())) {
             creator = operators.get(0).getDisplayName();
         }
-        List<SimpleUserInfo> users = userApiClient.listUsersByUsernames(
-            tenantId,
-            usernames);
+        List<SimpleUserInfo> users = Collections.emptyList();
+        if (CollectionUtils.isNotEmpty(usernames)) {
+            users = userApiClient.listUsersByUsernames(
+                tenantId,
+                usernames);
+        }
         val resultList = new ArrayList<String>();
         notifyBlackUserInfoDAO.deleteAllNotifyBlackUser(tenantId);
         saveBlackUsersToDB(users, creator, resultList, tenantId);

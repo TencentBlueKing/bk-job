@@ -38,9 +38,9 @@ public interface IUserApiClient {
 
     public List<OpenApiTenant> listAllTenant();
 
-    public BkUserDTO getUserByUsername(String username);
+    public SimpleUserInfo getUserByUsername(String tenantId, String username);
 
-    public Map<String, BkUserDTO> listUsersByUsernames(Collection<String> usernames);
+    public Map<String, SimpleUserInfo> listUsersByUsernames(Collection<String> usernames);
 
     public List<SimpleUserInfo> getLVirtualUserByLoginName(String tenantId, String loginName);
 

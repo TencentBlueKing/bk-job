@@ -157,13 +157,16 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
     }
 
     @Override
-    public BkUserDTO getUserByUsername(String username) {
-        // TODO:tenant 网关暂未提供实现
-        return null;
+    public SimpleUserInfo getUserByUsername(String tenantId, String username) {
+        List<SimpleUserInfo> users = listUsersByUsernames(tenantId, Collections.singletonList(username));
+        if (CollectionUtils.isEmpty(users)) {
+            return null;
+        }
+        return users.get(0);
     }
 
     @Override
-    public Map<String, BkUserDTO> listUsersByUsernames(Collection<String> usernames) {
+    public Map<String, SimpleUserInfo> listUsersByUsernames(Collection<String> usernames) {
         // TODO:tenant 网关暂未提供实现
         return new HashMap<>();
     }

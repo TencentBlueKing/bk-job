@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.service.impl.notify;
 
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.UserCacheService;
@@ -48,16 +50,19 @@ public class NotifySendService {
     //发通知专用线程池
     private final ThreadPoolExecutor notifySendExecutor;
     private final WatchableSendMsgService watchableSendMsgService;
-    private final UserCacheService userCacheService;
+    private final UserLocalCache userLocalCache;
+    private final TenantService tenantService;
 
     @Autowired
     public NotifySendService(WatchableSendMsgService watchableSendMsgService,
-                             UserCacheService userCacheService,
+                             UserLocalCache userLocalCache,
                              @Qualifier("notifySendExecutor") ThreadPoolExecutor notifySendExecutor,
-                             MeterRegistry meterRegistry) {
+                             MeterRegistry meterRegistry,
+                             TenantService tenantService) {
         this.watchableSendMsgService = watchableSendMsgService;
-        this.userCacheService = userCacheService;
+        this.userLocalCache = userLocalCache;
         this.notifySendExecutor = notifySendExecutor;
+        this.tenantService = tenantService;
         measureNotifySendExecutor(meterRegistry);
     }
 
@@ -90,8 +95,9 @@ public class NotifySendService {
             .receivers(receivers)
             .title(title)
             .content(content)
+            .tenantId(tenantService.getTenantIdByAppId(appId))
             .build();
-        task.bindService(watchableSendMsgService, userCacheService);
+        task.bindService(watchableSendMsgService, userLocalCache);
         return task;
     }
 
