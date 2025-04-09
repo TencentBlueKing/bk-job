@@ -35,6 +35,7 @@ import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -140,13 +141,58 @@ public class AppSyncService {
     private void doSyncApp() {
         log.info("startSyncApp at {}", TimeUtil.getCurrentTimeStrWithMs());
         List<OpenApiTenant> tenantList = userMgrApiClient.listAllTenant();
-        tenantSetSyncService.syncTenantSetFromCMDB();
+        tryToSyncTenantSetFromCMDB();
         // 遍历所有租户
         for (OpenApiTenant openApiTenant : tenantList) {
             // 从CMDB同步业务信息
-            bizSyncService.syncBizFromCMDB(openApiTenant.getId());
+            tryToSyncBizFromCMDB(openApiTenant.getId());
             // 从CMDB同步业务集信息
-            bizSetSyncService.syncBizSetFromCMDB(openApiTenant.getId());
+            tryToSyncBizSetFromCMDB(openApiTenant.getId());
+        }
+    }
+
+    /**
+     * 尝试从CMDB同步租户集信息
+     */
+    private void tryToSyncTenantSetFromCMDB() {
+        try {
+            tenantSetSyncService.syncTenantSetFromCMDB();
+        } catch (Throwable t) {
+            log.error("Fail to syncTenantSetFromCMDB", t);
+        }
+    }
+
+    /**
+     * 尝试从CMDB同步业务信息
+     *
+     * @param tenantId 租户ID
+     */
+    private void tryToSyncBizFromCMDB(String tenantId) {
+        try {
+            bizSyncService.syncBizFromCMDB(tenantId);
+        } catch (Throwable t) {
+            String message = MessageFormatter.format(
+                "Fail to syncBizFromCMDB, tenantId={}",
+                tenantId
+            ).getMessage();
+            log.error(message, t);
+        }
+    }
+
+    /**
+     * 尝试从CMDB同步业务集信息
+     *
+     * @param tenantId 租户ID
+     */
+    private void tryToSyncBizSetFromCMDB(String tenantId) {
+        try {
+            bizSetSyncService.syncBizSetFromCMDB(tenantId);
+        } catch (Throwable t) {
+            String message = MessageFormatter.format(
+                "Fail to syncBizSetFromCMDB, tenantId={}",
+                tenantId
+            ).getMessage();
+            log.error(message, t);
         }
     }
 

@@ -56,7 +56,7 @@ public class BizSyncService extends BasicAppSyncService {
     }
 
     public void syncBizFromCMDB(String tenantId) {
-        log.info(Thread.currentThread().getName() + ":begin to sync biz from cc");
+        log.info("tenantId={}, begin to syncBizFromCMDB", tenantId);
         List<ApplicationDTO> ccBizApps = bizCmdbClient.getAllBizApps(tenantId);
 
         // 对比业务信息，分出要新增的/要改的/要删的分别处理
@@ -93,7 +93,7 @@ public class BizSyncService extends BasicAppSyncService {
         // 本地&CMDB交集：计算需要更新的业务
         updateList =
             ccBizApps.stream().filter(ccBizAppInfoDTO ->
-                localBizAppScopeIds.contains(ccBizAppInfoDTO.getScope().getId()))
+                    localBizAppScopeIds.contains(ccBizAppInfoDTO.getScope().getId()))
                 .collect(Collectors.toList());
         log.info(String.format("biz app updateList scopeIds:%s", String.join(",",
             updateList.stream().map(applicationInfoDTO ->
@@ -103,7 +103,7 @@ public class BizSyncService extends BasicAppSyncService {
         // 本地-CMDB：计算需要删除的业务
         deleteList =
             localBizApps.stream().filter(bizAppInfoDTO ->
-                !ccBizAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
+                    !ccBizAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
                 .collect(Collectors.toList());
         log.info(String.format("app deleteList scopeIds:%s", String.join(",",
             deleteList.stream().map(applicationInfoDTO ->

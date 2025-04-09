@@ -142,13 +142,14 @@ public class BaseBkApiClient {
         BkApiContext<T, R> apiContext = new BkApiContext<>(httpMethod.name(), requestInfo.getUri(),
             requestInfo.getBody(), null, null, 0, false);
 
+        String tenantId = extractBkTenantId(requestInfo);
         if (logStrategy != null) {
             logStrategy.logReq(log, apiContext);
         } else {
             if (log.isInfoEnabled()) {
                 log.info(
-                    "[AbstractBkApiClient] Request|tenantId={}|method={}|uri={}|reqStr={}",
-                    extractBkTenantId(requestInfo),
+                    "[BaseBkApiClient] Request|tenantId={}|method={}|uri={}|reqStr={}",
+                    tenantId,
                     httpMethod.name(),
                     requestInfo.getUri(),
                     requestInfo.getBody() != null ?
@@ -164,10 +165,17 @@ public class BaseBkApiClient {
                 logStrategy.logResp(log, apiContext);
             } else {
                 if (log.isInfoEnabled()) {
-                    log.info("[AbstractBkApiClient] Response|bkApiRequestId={}|method={}|uri={}|success={}"
+                    log.info(
+                        "[BaseBkApiClient] Response|tenantId={}|bkApiRequestId={}|method={}|uri={}|success={}"
                             + "|costTime={}|resp={}",
-                        apiContext.getRequestId(), httpMethod.name(), requestInfo.getUri(), apiContext.isSuccess(),
-                        apiContext.getCostTime(), apiContext.getOriginResp());
+                        tenantId,
+                        apiContext.getRequestId(),
+                        httpMethod.name(),
+                        requestInfo.getUri(),
+                        apiContext.isSuccess(),
+                        apiContext.getCostTime(),
+                        apiContext.getOriginResp()
+                    );
                 }
             }
             if (apiContext.getCostTime() > 5000L) {
@@ -203,8 +211,12 @@ public class BaseBkApiClient {
 
             if (StringUtils.isBlank(respStr)) {
                 String errorMsg = httpMethod.name() + " " + uri + ", error: " + "Response is blank";
-                log.warn("[AbstractBkApiClient] fail: Response is blank| bkApiRequestId={}|method={}|uri={}",
-                    apiContext.getRequestId(), httpMethod.name(), uri);
+                log.warn(
+                    "[BaseBkApiClient] fail: Response is blank| bkApiRequestId={}|method={}|uri={}",
+                    apiContext.getRequestId(),
+                    httpMethod.name(),
+                    uri
+                );
                 status = EsbMetricTags.VALUE_STATUS_ERROR;
                 throw new InternalException(errorMsg, ErrorCode.API_ERROR);
             }
