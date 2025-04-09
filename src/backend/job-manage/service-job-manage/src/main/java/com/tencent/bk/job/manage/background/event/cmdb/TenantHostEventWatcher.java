@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
+import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
@@ -147,6 +149,7 @@ public class TenantHostEventWatcher extends AbstractCmdbResourceEventWatcher<Hos
 
     private HostEventHandler buildHostEventHandler(BlockingQueue<ResourceEvent<HostEventDetail>> hostEventQueue) {
         return new HostEventHandler(
+            tenantId,
             tracer,
             cmdbEventSampler,
             hostEventQueue,
@@ -165,5 +168,41 @@ public class TenantHostEventWatcher extends AbstractCmdbResourceEventWatcher<Hos
     private void dispatchEventToHandler(ResourceEvent<HostEventDetail> event) {
         HostEventHandler eventsHandler = chooseHandler(event.getDetail().getHostId());
         eventsHandler.commitEvent(event);
+    }
+
+    @Override
+    public String getUniqueCode() {
+        return getTaskEntity().getUniqueCode();
+    }
+
+    @Override
+    public TaskEntity getTaskEntity() {
+        return new TaskEntity(BackGroundTaskCode.WATCH_HOST, getTenantId());
+    }
+
+    @Override
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    @Override
+    public int getResourceCost() {
+        return resourceCostForWatcher() + eventsHandlerNum;
+    }
+
+    public static int resourceCostForWatcher() {
+        return 1;
+    }
+
+    @Override
+    public void shutdownGracefully() {
+        super.shutdownGracefully();
+        closeAllHandlers();
+    }
+
+    private void closeAllHandlers() {
+        for (HostEventHandler handler : eventsHandlers) {
+            handler.close();
+        }
     }
 }

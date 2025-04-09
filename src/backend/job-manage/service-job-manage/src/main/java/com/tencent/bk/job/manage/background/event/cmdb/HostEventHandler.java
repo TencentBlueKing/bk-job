@@ -57,14 +57,15 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
     private final AgentStateClient agentStateClient;
     private final IBizCmdbClient bizCmdbClient;
 
-    HostEventHandler(Tracer tracer,
+    HostEventHandler(String tenantId,
+                     Tracer tracer,
                      CmdbEventSampler cmdbEventSampler,
                      BlockingQueue<ResourceEvent<HostEventDetail>> queue,
                      NoTenantHostService noTenantHostService,
                      @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
                      AgentStateClient agentStateClient,
                      IBizCmdbClient bizCmdbClient) {
-        super(queue, tracer, cmdbEventSampler);
+        super(queue, tracer, cmdbEventSampler, tenantId);
         this.noTenantHostService = noTenantHostService;
         this.agentStateClient = agentStateClient;
         this.bizCmdbClient = bizCmdbClient;
@@ -103,7 +104,7 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
 
     private void handleOneEventIndeed(ResourceEvent<HostEventDetail> event) {
         String eventType = event.getEventType();
-        ApplicationHostDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(event.getDetail());
+        ApplicationHostDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(tenantId, event.getDetail());
         setDefaultLastTimeForHostIfNeed(event, hostInfoDTO);
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_CREATE:
@@ -125,7 +126,7 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                     );
                     // 从CMDB查询最新主机信息
                     List<ApplicationHostDTO> hostList = bizCmdbClient.listHostsByHostIds(
-                        hostInfoDTO.getTenantId(),
+                        tenantId,
                         Collections.singletonList(hostInfoDTO.getHostId())
                     );
                     if (CollectionUtils.isNotEmpty(hostList)) {

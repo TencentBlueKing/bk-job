@@ -30,8 +30,8 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
@@ -58,8 +58,9 @@ public class HostRelationEventHandler extends EventsHandler<HostRelationEventDet
                                     ApplicationService applicationService,
                                     NoTenantHostDAO noTenantHostDAO,
                                     HostTopoDAO hostTopoDAO,
-                                    HostCache hostCache) {
-        super(queue, tracer, cmdbEventSampler);
+                                    HostCache hostCache,
+                                    String tenantId) {
+        super(queue, tracer, cmdbEventSampler, tenantId);
         this.applicationService = applicationService;
         this.noTenantHostDAO = noTenantHostDAO;
         this.hostTopoDAO = hostTopoDAO;

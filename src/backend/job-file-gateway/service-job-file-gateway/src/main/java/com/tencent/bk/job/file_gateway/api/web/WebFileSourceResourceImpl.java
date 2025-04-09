@@ -190,8 +190,15 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         pageSize = pair.getRight();
         PageData<FileSourceVO> pageData = new PageData<>();
         Integer count = fileSourceService.countAvailableFileSource(appId, credentialId, alias);
-        List<FileSourceVO> resultList = fileSourceService.listAvailableFileSource(appId, credentialId, alias, start,
-            pageSize).stream().map(FileSourceDTO::toVO).collect(Collectors.toList());
+        List<FileSourceVO> resultList = fileSourceService.listAvailableFileSource(
+            appId,
+            credentialId,
+            alias,
+            start,
+            pageSize
+        ).stream()
+            .map(FileSourceDTO::toVO)
+            .collect(Collectors.toList());
         pageData.setTotal((long) count);
         pageData.setData(resultList);
         pageData.setStart(start);

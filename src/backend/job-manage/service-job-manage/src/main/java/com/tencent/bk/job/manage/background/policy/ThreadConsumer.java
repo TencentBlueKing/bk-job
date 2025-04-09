@@ -22,36 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.runner;
-
-import com.tencent.bk.job.manage.task.ClearDeletedHostsTask;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
-
-import java.util.concurrent.ThreadPoolExecutor;
+package com.tencent.bk.job.manage.background.policy;
 
 /**
- * 进程启动时立即执行一次无效主机清理
+ * 线程资源消费者
  */
-@Slf4j
-@Component
-public class ClearDeletedHostsRunner implements CommandLineRunner {
-
-    private final ClearDeletedHostsTask clearDeletedHostsTask;
-    private final ThreadPoolExecutor initRunnerExecutor;
-
-    @Autowired
-    public ClearDeletedHostsRunner(ClearDeletedHostsTask clearDeletedHostsTask,
-                                   @Qualifier("initRunnerExecutor") ThreadPoolExecutor initRunnerExecutor) {
-        this.clearDeletedHostsTask = clearDeletedHostsTask;
-        this.initRunnerExecutor = initRunnerExecutor;
-    }
-
-    @Override
-    public void run(String... args) {
-        initRunnerExecutor.submit(clearDeletedHostsTask::execute);
+public interface ThreadConsumer {
+    /**
+     * 获取当前消费者使用的线程数
+     *
+     * @return 线程数
+     */
+    default int getUsedThreadCount() {
+        // 普通消费者默认使用单线程执行任务
+        return 1;
     }
 }

@@ -44,7 +44,7 @@ public interface EventReplayOpResource {
 
     @ApiOperation(value = "重放主机事件", produces = "application/json")
     @PostMapping("/host")
-    Response<Void> replayHostEvent(
+    Response<Boolean> replayHostEvent(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
         @ApiParam("租户ID")

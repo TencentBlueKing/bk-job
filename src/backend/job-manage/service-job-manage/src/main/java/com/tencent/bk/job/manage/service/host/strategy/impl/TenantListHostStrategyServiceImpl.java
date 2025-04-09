@@ -53,20 +53,20 @@ public class TenantListHostStrategyServiceImpl implements TenantListHostStrategy
 
     @Override
     public TenantListHostStrategy<Long> buildListHostByIdsFromCmdbStrategy() {
-        return new TenantListHostByHostIdsFromCmdbStrategy(bizCmdbClient);
+        return new TenantListHostByHostIdsFromCmdbStrategy(bizCmdbClient, hostCache);
     }
 
     @Override
     public TenantListHostStrategy<String> buildListHostByIpsFromCmdbStrategy() {
-        return new TenantListHostByIpsFromCmdbStrategy(bizCmdbClient);
+        return new TenantListHostByIpsFromCmdbStrategy(bizCmdbClient, hostCache);
     }
 
     @Override
     public TenantListHostStrategy<Long> buildByIdsFromCacheOrDbOrCmdbStrategy() {
         ComposedTenantListHostStrategy<Long> strategy = new ComposedTenantListHostStrategy<>();
         strategy.addChildStrategy(new TenantListHostByHostIdsFromCacheStrategy(hostCache));
-        strategy.addChildStrategy(new TenantListHostByHostIdsFromDbStrategy(tenantHostDAO));
-        strategy.addChildStrategy(new TenantListHostByHostIdsFromCmdbStrategy(bizCmdbClient));
+        strategy.addChildStrategy(new TenantListHostByHostIdsFromDbStrategy(tenantHostDAO, hostCache));
+        strategy.addChildStrategy(new TenantListHostByHostIdsFromCmdbStrategy(bizCmdbClient, hostCache));
         return strategy;
     }
 
@@ -74,8 +74,8 @@ public class TenantListHostStrategyServiceImpl implements TenantListHostStrategy
     public TenantListHostStrategy<String> buildByIpsFromCacheOrDbOrCmdbStrategy() {
         ComposedTenantListHostStrategy<String> strategy = new ComposedTenantListHostStrategy<>();
         strategy.addChildStrategy(new TenantListHostByIpsFromCacheStrategy(hostCache));
-        strategy.addChildStrategy(new TenantListHostByIpsFromDbStrategy(tenantHostDAO));
-        strategy.addChildStrategy(new TenantListHostByIpsFromCmdbStrategy(bizCmdbClient));
+        strategy.addChildStrategy(new TenantListHostByIpsFromDbStrategy(tenantHostDAO, hostCache));
+        strategy.addChildStrategy(new TenantListHostByIpsFromCmdbStrategy(bizCmdbClient, hostCache));
         return strategy;
     }
 }

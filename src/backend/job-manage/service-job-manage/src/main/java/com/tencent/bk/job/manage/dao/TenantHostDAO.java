@@ -43,4 +43,21 @@ public interface TenantHostDAO {
 
     Map<String, Integer> groupHostByOsType(String tenantId);
 
+    /**
+     * 从主机表中分页查询主机ID，数据按主机ID升序
+     *
+     * @param tenantId 租户ID
+     * @param start    起始位置
+     * @param limit    数据量
+     * @return 主机ID列表
+     */
+    List<Long> listHostIds(String tenantId, Long start, Long limit);
+
+    /**
+     * 根据传入的主机ID批量删除主机
+     *
+     * @param hostIdList 要删除的主机ID列表
+     * @return 删除的主机数量
+     */
+    int batchDeleteHostById(String tenantId, List<Long> hostIdList);
 }

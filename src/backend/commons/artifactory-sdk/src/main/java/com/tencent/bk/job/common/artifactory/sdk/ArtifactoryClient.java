@@ -55,7 +55,6 @@ import com.tencent.bk.job.common.artifactory.model.req.UploadGenericFileReq;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
-import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.exception.HttpStatusException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
@@ -389,8 +388,6 @@ public class ArtifactoryClient {
             req.setNames(projectNameList.stream().map(String::trim).collect(Collectors.joining(",")));
         }
         ArtifactoryResp<List<ProjectDTO>> resp = getArtifactoryRespByReq(
-            // TODO:临时传递系统租户ID用于上层应用调试，后续需要制品库根据username推断真实租户
-            TenantIdConstants.SYSTEM_TENANT_ID,
             HttpGet.METHOD_NAME,
             URL_LIST_PROJECT,
             req,

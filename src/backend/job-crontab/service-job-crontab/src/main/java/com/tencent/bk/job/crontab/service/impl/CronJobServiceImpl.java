@@ -743,36 +743,4 @@ public class CronJobServiceImpl implements CronJobService {
         return cronJobDAO.listEnabledCronBasicInfoForUpdate(start, limit);
     }
 
-    @Override
-    public boolean disableCronJobByAppId(Long appId) {
-        CronJobInfoDTO cronJobInfoDTO = new CronJobInfoDTO();
-        cronJobInfoDTO.setAppId(appId);
-        cronJobInfoDTO.setEnable(true);
-        List<Long> cronJobIdList = cronJobDAO.listCronJobIds(cronJobInfoDTO);
-        if (CollectionUtils.isEmpty(cronJobIdList)) {
-            return true;
-        }
-        List<Long> failedCronJobIds = new ArrayList<>();
-        log.info("cron job will be disabled, appId:{}, cronJobIds:{}", appId, cronJobIdList);
-        for (Long cronJobId : cronJobIdList) {
-            try {
-                // TODO:tenant 需要修改实现，不能只传入系统用户 ID
-//                Boolean disableResult = changeCronJobEnableStatus(JobConstants.DEFAULT_SYSTEM_USER_ADMIN, appId,
-//                    cronJobId, false);
-                Boolean disableResult = changeCronJobEnableStatus(null, appId,
-                    cronJobId, false);
-                log.debug("disable cron job, result:{}, appId:{}, cronId:{}", disableResult, appId, cronJobId);
-                if (!disableResult) {
-                    failedCronJobIds.add(cronJobId);
-                }
-            } catch (Exception e) {
-                log.error("Failed to disable cron job with appId:{} and cronId:{}", appId, cronJobId, e);
-                failedCronJobIds.add(cronJobId);
-            }
-        }
-        if (!failedCronJobIds.isEmpty()) {
-            log.warn("Failed to disable cron jobs for appId:{} with cronJobIds:{}", appId, failedCronJobIds);
-        }
-        return failedCronJobIds.isEmpty();
-    }
 }

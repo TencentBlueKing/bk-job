@@ -69,7 +69,7 @@ public interface HostService {
     ServiceHostDTO getHostByCloudIpv6(String tenantId, long cloudAreaId, String ipv6);
 
     /**
-     * 获取业务下的主机列表
+     * 获取业务下的主机列表，被高频调用，需要缓存
      *
      * @param appId          Job业务ID
      * @param hosts          主机列表
