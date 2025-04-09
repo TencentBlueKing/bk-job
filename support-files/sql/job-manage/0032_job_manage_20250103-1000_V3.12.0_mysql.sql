@@ -30,6 +30,16 @@ BEGIN
     ALTER TABLE application ADD INDEX idx_tenant_id(`tenant_id`);
   END IF;
 
+  IF NOT EXISTS(SELECT 1
+                FROM information_schema.columns
+                WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'application'
+                    AND COLUMN_NAME = 'default') THEN
+    ALTER TABLE application ADD COLUMN `default` int(10) NOT NULL DEFAULT 0;
+  END IF;
+
+  ALTER TABLE application MODIFY COLUMN bk_supplier_account varchar(128) NULL DEFAULT NULL COMMENT '供应商账号，CMDB在多租户版本已废弃该字段';
+
   CREATE TABLE IF NOT EXISTS `user` (
       `username` varchar(64) NOT NULL,
       `tenant_id` varchar(32) NOT NULL,
@@ -87,14 +97,6 @@ BEGIN
                     AND TABLE_NAME = 'white_ip_record'
                     AND INDEX_NAME = 'idx_tenant_id') THEN
     ALTER TABLE white_ip_record ADD INDEX idx_tenant_id(`tenant_id`);
-  END IF;
-
-  IF NOT EXISTS(SELECT 1
-                    FROM information_schema.columns
-                    WHERE TABLE_SCHEMA = db
-                      AND TABLE_NAME = 'application'
-                      AND COLUMN_NAME = 'default') THEN
-    ALTER TABLE application ADD COLUMN `default` int(10) NOT NULL DEFAULT 0;
   END IF;
 
   SELECT GROUP_CONCAT(COLUMN_NAME) INTO current_primary_key
@@ -210,8 +212,6 @@ BEGIN
     ALTER TABLE host ADD INDEX idx_tenant_id(`tenant_id`);
   END IF;
 
-  -- Update `host` schema
-  ALTER TABLE host MODIFY COLUMN bk_supplier_account varchar(128) NULL DEFAULT NULL COMMENT '供应商账号，CMDB在多租户版本已废弃该字段';
 
 COMMIT;
 END <JOB_UBF>
