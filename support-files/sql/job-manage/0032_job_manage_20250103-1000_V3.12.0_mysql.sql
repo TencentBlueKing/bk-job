@@ -210,6 +210,9 @@ BEGIN
     ALTER TABLE host ADD INDEX idx_tenant_id(`tenant_id`);
   END IF;
 
+  -- Update `host` schema
+  ALTER TABLE host MODIFY COLUMN bk_supplier_account varchar(128) NULL DEFAULT NULL COMMENT '供应商账号，CMDB在多租户版本已废弃该字段';
+
 COMMIT;
 END <JOB_UBF>
 DELIMITER ;

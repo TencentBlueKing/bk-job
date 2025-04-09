@@ -38,20 +38,23 @@ import java.util.concurrent.BlockingQueue;
 @Slf4j
 public abstract class EventsHandler<T> extends Thread {
 
+    BlockingQueue<ResourceEvent<T>> queue;
     /**
      * 日志调用链tracer
      */
     private final Tracer tracer;
     private final CmdbEventSampler cmdbEventSampler;
+    protected final String tenantId;
     protected boolean active = true;
-    BlockingQueue<ResourceEvent<T>> queue;
 
     public EventsHandler(BlockingQueue<ResourceEvent<T>> queue,
                          Tracer tracer,
-                         CmdbEventSampler cmdbEventSampler) {
+                         CmdbEventSampler cmdbEventSampler,
+                         String tenantId) {
         this.queue = queue;
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
+        this.tenantId = tenantId;
     }
 
     public void commitEvent(ResourceEvent<T> event) {

@@ -56,7 +56,6 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
     private final NoTenantHostService noTenantHostService;
     private final AgentStateClient agentStateClient;
     private final IBizCmdbClient bizCmdbClient;
-    private final String tenantId;
 
     HostEventHandler(String tenantId,
                      Tracer tracer,
@@ -66,8 +65,7 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
                      @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
                      AgentStateClient agentStateClient,
                      IBizCmdbClient bizCmdbClient) {
-        super(queue, tracer, cmdbEventSampler);
-        this.tenantId = tenantId;
+        super(queue, tracer, cmdbEventSampler, tenantId);
         this.noTenantHostService = noTenantHostService;
         this.agentStateClient = agentStateClient;
         this.bizCmdbClient = bizCmdbClient;
@@ -106,7 +104,7 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
 
     private void handleOneEventIndeed(ResourceEvent<HostEventDetail> event) {
         String eventType = event.getEventType();
-        ApplicationHostDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(event.getDetail());
+        ApplicationHostDTO hostInfoDTO = HostEventDetail.toHostInfoDTO(tenantId, event.getDetail());
         setDefaultLastTimeForHostIfNeed(event, hostInfoDTO);
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_CREATE:

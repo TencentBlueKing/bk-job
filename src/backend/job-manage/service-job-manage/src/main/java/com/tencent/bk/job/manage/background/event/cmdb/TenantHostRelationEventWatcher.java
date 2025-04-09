@@ -95,7 +95,8 @@ public class TenantHostRelationEventWatcher extends AbstractCmdbResourceEventWat
             applicationService,
             noTenantHostDAO,
             hostTopoDAO,
-            hostCache
+            hostCache,
+            tenantId
         );
     }
 

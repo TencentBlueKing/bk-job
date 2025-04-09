@@ -67,8 +67,9 @@ public class HostEventDetail {
     @JsonProperty("last_time")
     private String lastTime;
 
-    public static ApplicationHostDTO toHostInfoDTO(HostEventDetail eventDetail) {
+    public static ApplicationHostDTO toHostInfoDTO(String tenantId, HostEventDetail eventDetail) {
         ApplicationHostDTO hostInfoDTO = new ApplicationHostDTO();
+        hostInfoDTO.setTenantId(tenantId);
         hostInfoDTO.setHostId(eventDetail.hostId);
         List<String> ipList = StringUtil.strToList(eventDetail.hostInnerIp, String.class, ",");
         hostInfoDTO.setDisplayIp(eventDetail.hostInnerIp);
