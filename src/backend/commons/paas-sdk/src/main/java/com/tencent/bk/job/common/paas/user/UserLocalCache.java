@@ -11,6 +11,8 @@ import com.tencent.bk.job.common.paas.exception.PaasException;
 import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -27,8 +29,9 @@ import java.util.stream.Collectors;
  */
 public class UserLocalCache {
 
+    private static final Logger log = LoggerFactory.getLogger(UserLocalCache.class);
     private final IUserApiClient userMgrApiClient;
-    private final static String CACHE_DELIMITER = ":";
+    private static final String CACHE_DELIMITER = ":";
 
     public UserLocalCache(IUserApiClient userMgrApiClient) {
         this.userMgrApiClient = userMgrApiClient;
@@ -59,6 +62,7 @@ public class UserLocalCache {
                       Set<String> usernames = keySet.stream()
                           .map(key -> key.split(CACHE_DELIMITER)[1])
                           .collect(Collectors.toSet());
+                      log.info("[UserLocalCache] loadAll, tenantId={}, usernames={}", tenantId, usernames);
                       List<SimpleUserInfo> users = userMgrApiClient.listUsersByUsernames(tenantId, usernames);
                       Map<String, SimpleUserInfo> result = new HashMap<>();
                       for (SimpleUserInfo user : users) {

@@ -75,6 +75,7 @@ public class SendNotifyTask implements Runnable {
             logValidReceiversEmpty();
             return;
         }
+        log.info("SendNotifyTask start, real receivers: {}", validReceivers);
         try {
             boolean result = sendMsgWithRetry();
             if (result) {
