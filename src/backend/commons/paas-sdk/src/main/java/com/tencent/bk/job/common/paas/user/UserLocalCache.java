@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -63,10 +64,14 @@ public class UserLocalCache {
                           .map(key -> key.split(CACHE_DELIMITER)[1])
                           .collect(Collectors.toSet());
                       log.info("[UserLocalCache] loadAll, tenantId={}, usernames={}", tenantId, usernames);
-                      List<SimpleUserInfo> users = userMgrApiClient.listUsersByUsernames(tenantId, usernames);
+                      List<SimpleUserInfo> userList = userMgrApiClient.listUsersByUsernames(tenantId, usernames);
+                      Map<String, SimpleUserInfo> existUserMap = userList.stream()
+                          .collect(Collectors.toMap(SimpleUserInfo::getBkUsername, userInfo -> userInfo));
                       Map<String, SimpleUserInfo> result = new HashMap<>();
-                      for (SimpleUserInfo user : users) {
-                          result.put(user.getBkUsername(), user);
+                      for (String key : keys) {
+                          String[] l = key.split(CACHE_DELIMITER);
+                          String username = l[1];
+                          result.put(key, existUserMap.getOrDefault(username, null));
                       }
                       return result;
                   }
@@ -88,7 +93,7 @@ public class UserLocalCache {
             .map(username -> tenantId + CACHE_DELIMITER + username)
             .collect(Collectors.toSet());
         try {
-            return new HashSet<>(userCache.getAll(keys).values());
+            return userCache.getAll(keys).values().stream().filter(Objects::nonNull).collect(Collectors.toSet());
         } catch (ExecutionException e) {
             log.error("[UserLocalCache]batchGetUser failed, throws ExecutionException, when batch get {} of tenant:{}",
                 usernames, tenantId, e);
