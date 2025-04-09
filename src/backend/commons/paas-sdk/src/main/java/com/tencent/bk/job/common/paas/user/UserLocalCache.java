@@ -90,6 +90,7 @@ public class UserLocalCache {
         try {
             return new HashSet<>(userCache.getAll(keys).values());
         } catch (ExecutionException e) {
+            log.error("[UserLocalCache]batchGetUser failed, when batch get {} of tenant:{}", usernames, tenantId, e);
             throw new PaasException(
                 ErrorType.INTERNAL,
                 ErrorCode.BK_USER_CACHE_LOADING_ERROR,
