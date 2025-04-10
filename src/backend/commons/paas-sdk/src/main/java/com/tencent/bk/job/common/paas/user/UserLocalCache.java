@@ -88,6 +88,11 @@ public class UserLocalCache {
         return new User(tenantId, bkUser.getBkUsername());
     }
 
+    public SimpleUserInfo getSingleUser(String tenantId, String username) {
+        String key = tenantId + CACHE_DELIMITER + username;
+        return userCache.getUnchecked(key);
+    }
+
     public Set<SimpleUserInfo> batchGetUser(String tenantId, Collection<String> usernames) {
         Set<String> keys = usernames.stream()
             .map(username -> tenantId + CACHE_DELIMITER + username)
