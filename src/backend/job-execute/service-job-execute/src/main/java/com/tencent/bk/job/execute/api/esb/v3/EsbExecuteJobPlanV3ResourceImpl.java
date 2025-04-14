@@ -34,7 +34,9 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
@@ -78,6 +80,7 @@ public class EsbExecuteJobPlanV3ResourceImpl
     public EsbResp<EsbJobExecuteV3DTO> executeJobPlan(String username,
                                                       String appCode,
                                                       @AuditRequestBody EsbExecuteJobV3Request request) {
+        User user = JobContextUtil.getUser();
         ValidateResult checkResult = checkExecuteTaskRequest(request);
         log.info("Execute task, request={}", JsonUtils.toJson(request));
         if (!checkResult.isPass()) {
@@ -108,7 +111,7 @@ public class EsbExecuteJobPlanV3ResourceImpl
                 .builder()
                 .appId(request.getAppId())
                 .planId(request.getTaskId())
-                .operator(username)
+                .operator(user)
                 .executeVariableValues(executeVariableValues)
                 .startupMode(TaskStartupModeEnum.API)
                 .callbackUrl(request.getCallbackUrl())

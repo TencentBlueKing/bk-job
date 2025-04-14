@@ -20,38 +20,6 @@
         }
       }
     },
-    "gse": {
-      "type": "object",
-      "title": "GSE访问配置",
-      "description": "GSE访问keystore/truststore配置",
-      "properties": {
-        "ssl": {
-          "type": "object",
-          "properties": {
-            "keystore": {
-              "type": "object",
-              "properties": {
-                "password": {
-                  "type": "string",
-                  "title": "keystore密码",
-                  "form": true
-                }
-              }
-            },
-            "truststore": {
-              "type": "object",
-              "properties": {
-                "password": {
-                  "type": "string",
-                  "title": "truststore密码",
-                  "form": true
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "iam": {
       "type": "object",
       "title": "权限中心访问配置",

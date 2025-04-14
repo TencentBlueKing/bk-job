@@ -40,7 +40,7 @@ import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
 import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
 import com.tencent.bk.job.common.cc.model.query.WorkloadQuery;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.LabelSelectorOperatorEnum;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -72,11 +72,12 @@ import java.util.stream.Collectors;
 @Service
 public class ContainerServiceImpl implements ContainerService {
     private final HostService hostService;
-    private final BizCmdbClient cmdbClient;
+    private final IBizCmdbClient cmdbClient;
     private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public ContainerServiceImpl(HostService hostService, BizCmdbClient cmdbClient,
+    public ContainerServiceImpl(HostService hostService,
+                                IBizCmdbClient cmdbClient,
                                 AppScopeMappingService appScopeMappingService) {
         this.hostService = hostService;
         this.cmdbClient = cmdbClient;

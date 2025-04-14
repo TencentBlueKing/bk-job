@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.web.WebDangerousRecordResource;
 import com.tencent.bk.job.execute.model.DangerousRecordDTO;
@@ -89,6 +90,7 @@ public class WebDangerousRecordResourceImpl implements WebDangerousRecordResourc
         if (StringUtils.isNotEmpty(scopeType) && StringUtils.isNotEmpty(scopeId)) {
             query.setAppId(appScopeMappingService.getAppIdByScope(scopeType, scopeId));
         }
+        query.setTenantId(JobContextUtil.getTenantId());
 
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         if (StringUtils.isNotBlank(startTime)) {

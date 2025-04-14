@@ -33,10 +33,10 @@ import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceBatchTaskDAO;
-import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileSourceTaskDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileTaskDAO;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerDAO;
+import com.tencent.bk.job.file_gateway.dao.filesource.NoTenantFileSourceDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceBatchTaskDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceTaskDTO;
@@ -69,7 +69,7 @@ public class FileSourceTaskUpdateServiceImpl implements FileSourceTaskUpdateServ
     private final FileSourceTaskDAO fileSourceTaskDAO;
     private final FileTaskDAO fileTaskDAO;
     private final FileWorkerDAO fileworkerDAO;
-    private final FileSourceDAO fileSourceDAO;
+    private final NoTenantFileSourceDAO noTenantFileSourceDAO;
     private final RedisTemplate<String, Object> redisTemplate;
     private final List<FileTaskStatusChangeListener> fileTaskStatusChangeListenerList = new ArrayList<>();
 
@@ -78,14 +78,14 @@ public class FileSourceTaskUpdateServiceImpl implements FileSourceTaskUpdateServ
                                            FileSourceTaskDAO fileSourceTaskDAO,
                                            FileTaskDAO fileTaskDAO,
                                            FileWorkerDAO fileworkerDAO,
-                                           FileSourceDAO fileSourceDAO,
+                                           NoTenantFileSourceDAO noTenantFileSourceDAO,
                                            @Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate,
                                            FileTaskStatusChangeListener fileTaskStatusChangeListener) {
         this.fileSourceBatchTaskDAO = fileSourceBatchTaskDAO;
         this.fileSourceTaskDAO = fileSourceTaskDAO;
         this.fileTaskDAO = fileTaskDAO;
         this.fileworkerDAO = fileworkerDAO;
-        this.fileSourceDAO = fileSourceDAO;
+        this.noTenantFileSourceDAO = noTenantFileSourceDAO;
         this.redisTemplate = redisTemplate;
         addFileTaskStatusChangeListener(fileTaskStatusChangeListener);
     }
@@ -196,7 +196,7 @@ public class FileSourceTaskUpdateServiceImpl implements FileSourceTaskUpdateServ
         thirdFileSourceTaskLog.setIp(sourceCloudIp);
         // 追加文件源名称
         // 日志定位坐标：（文件源，文件路径），需要区分不同文件源下相同文件路径的日志
-        FileSourceDTO fileSourceDTO = fileSourceDAO.getFileSourceById(fileSourceTaskDTO.getFileSourceId());
+        FileSourceDTO fileSourceDTO = noTenantFileSourceDAO.getFileSourceById(fileSourceTaskDTO.getFileSourceId());
         if (fileSourceDTO == null) {
             throw new NotFoundException(ErrorCode.FILE_SOURCE_NOT_EXIST,
                 ArrayUtil.toArray("fileSourceId:" + fileSourceTaskDTO.getFileSourceId()));

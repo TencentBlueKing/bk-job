@@ -43,10 +43,13 @@ import lombok.ToString;
 public class NotifyBlackUserInfoVO {
     private Long id;
     /**
-     * 用户英文名
+     * 用户uuid（不可读）
      */
     private String username;
-
+    /**
+     * 用户名（可读）
+     */
+    private String displayName;
     /**
      * 创建者
      */

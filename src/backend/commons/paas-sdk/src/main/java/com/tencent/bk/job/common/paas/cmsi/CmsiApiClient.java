@@ -34,13 +34,13 @@ import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.sdk.BkApiClient;
-import com.tencent.bk.job.common.exception.InternalCmsiException;
+import com.tencent.bk.job.common.esb.sdk.BkApiV1Client;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.paas.exception.PaasException;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -48,6 +48,8 @@ import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -57,7 +59,7 @@ import static com.tencent.bk.job.common.metrics.CommonMetricNames.ESB_CMSI_API;
  * 消息通知 API 客户端
  */
 @Slf4j
-public class CmsiApiClient extends BkApiClient {
+public class CmsiApiClient extends BkApiV1Client implements ICmsiClient {
 
     private static final String API_GET_NOTIFY_CHANNEL_LIST = "/api/c/compapi/cmsi/get_msg_type/";
     private static final String API_POST_SEND_MSG = "/api/c/compapi/cmsi/send_msg/";
@@ -66,42 +68,46 @@ public class CmsiApiClient extends BkApiClient {
 
     public CmsiApiClient(EsbProperties esbProperties,
                          AppProperties appProperties,
-                         MeterRegistry meterRegistry) {
+                         MeterRegistry meterRegistry,
+                         TenantEnvService tenantEnvService) {
         super(
             meterRegistry,
             ESB_CMSI_API,
             esbProperties.getService().getUrl(),
             HttpHelperFactory.createHttpHelper(
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
-            )
+            ),
+            tenantEnvService
         );
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");
     }
 
-    public List<EsbNotifyChannelDTO> getNotifyChannelList() {
-        try {
-            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
-            HttpMetricUtil.addTagForCurrentMetric(
-                Tag.of(EsbMetricTags.KEY_API_NAME, API_GET_NOTIFY_CHANNEL_LIST)
-            );
-            EsbResp<List<EsbNotifyChannelDTO>> esbResp = doRequest(
-                OpenApiRequestInfo.builder()
-                    .method(HttpMethodEnum.GET)
-                    .uri(API_GET_NOTIFY_CHANNEL_LIST)
-                    .authorization(authorization)
-                    .build(),
-                new TypeReference<EsbResp<List<EsbNotifyChannelDTO>>>() {
-                }
-            );
-            return esbResp.getData();
-        } catch (Exception e) {
-            String errorMsg = "Get " + API_GET_NOTIFY_CHANNEL_LIST + " error";
-            log.error(errorMsg, e);
-            throw new InternalCmsiException(errorMsg, e, ErrorCode.CMSI_MSG_CHANNEL_DATA_ERROR);
-        } finally {
-            HttpMetricUtil.clearHttpMetric();
-        }
+    public List<EsbNotifyChannelDTO> getNotifyChannelList(String tenantId) {
+//        try {
+//            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
+//            HttpMetricUtil.addTagForCurrentMetric(
+//                Tag.of(EsbMetricTags.KEY_API_NAME, API_GET_NOTIFY_CHANNEL_LIST)
+//            );
+//            EsbResp<List<EsbNotifyChannelDTO>> esbResp = doRequest(
+//                OpenApiRequestInfo.builder()
+//                    .method(HttpMethodEnum.GET)
+//                    .uri(API_GET_NOTIFY_CHANNEL_LIST)
+//                    .authorization(authorization)
+//                    .build(),
+//                new TypeReference<EsbResp<List<EsbNotifyChannelDTO>>>() {
+//                }
+//            );
+//            return esbResp.getData();
+//        } catch (Exception e) {
+//            String errorMsg = "Get " + API_GET_NOTIFY_CHANNEL_LIST + " error";
+//            log.error(errorMsg, e);
+//            throw new InternalCmsiException(errorMsg, e, ErrorCode.CMSI_MSG_CHANNEL_DATA_ERROR);
+//        } finally {
+//            HttpMetricUtil.clearHttpMetric();
+//        }
+        // 临时注释，保证多租户联调正常
+        return Collections.emptyList();
     }
 
     public void sendMsg(String msgType,

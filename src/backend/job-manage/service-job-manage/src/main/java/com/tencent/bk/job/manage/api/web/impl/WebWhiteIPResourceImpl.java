@@ -34,7 +34,9 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.PageDataWithManagePermission;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.web.WebWhiteIPResource;
 import com.tencent.bk.job.manage.auth.NoResourceScopeAuthService;
 import com.tencent.bk.job.manage.dao.whiteip.ActionScopeDAO;
@@ -86,7 +88,8 @@ public class WebWhiteIPResourceImpl implements WebWhiteIPResource {
         String orderField,
         Integer order
     ) {
-        AuthResult authResult = noResourceScopeAuthService.authManageWhiteList(username);
+        User user = JobContextUtil.getUser();
+        AuthResult authResult = noResourceScopeAuthService.authManageWhiteList(user);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -95,9 +98,9 @@ public class WebWhiteIPResourceImpl implements WebWhiteIPResource {
         PageDataWithManagePermission<WhiteIPRecordVO> pageDataWithManagePermission =
             new PageDataWithManagePermission<>(pageData);
         pageDataWithManagePermission.setCanCreate(
-            noResourceScopeAuthService.authCreateWhiteList(username).isPass());
+            noResourceScopeAuthService.authCreateWhiteList(user).isPass());
         pageDataWithManagePermission.setCanManage(
-            noResourceScopeAuthService.authManageWhiteList(username).isPass());
+            noResourceScopeAuthService.authManageWhiteList(user).isPass());
         return Response.buildSuccessResp(pageDataWithManagePermission);
     }
 
@@ -105,7 +108,7 @@ public class WebWhiteIPResourceImpl implements WebWhiteIPResource {
     @AuditEntry(actionId = ActionId.CREATE_WHITELIST)
     public Response<WhiteIPRecordVO> createWhiteIP(String username,
                                                    @AuditRequestBody WhiteIPRecordCreateUpdateReq createUpdateReq) {
-        AuthResult authResult = noResourceScopeAuthService.authCreateWhiteList(username);
+        AuthResult authResult = noResourceScopeAuthService.authCreateWhiteList(JobContextUtil.getUser());
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -130,7 +133,7 @@ public class WebWhiteIPResourceImpl implements WebWhiteIPResource {
                                                    Long id,
                                                    @AuditRequestBody WhiteIPRecordCreateUpdateReq createUpdateReq) {
         createUpdateReq.setId(id);
-        AuthResult authResult = noResourceScopeAuthService.authManageWhiteList(username);
+        AuthResult authResult = noResourceScopeAuthService.authManageWhiteList(JobContextUtil.getUser());
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -141,7 +144,7 @@ public class WebWhiteIPResourceImpl implements WebWhiteIPResource {
 
     @Override
     public Response<WhiteIPRecordVO> getWhiteIPDetailById(String username, Long id) {
-        AuthResult authResult = noResourceScopeAuthService.authManageWhiteList(username);
+        AuthResult authResult = noResourceScopeAuthService.authManageWhiteList(JobContextUtil.getUser());
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -163,7 +166,7 @@ public class WebWhiteIPResourceImpl implements WebWhiteIPResource {
     @Override
     @AuditEntry(actionId = ActionId.MANAGE_WHITELIST)
     public Response<Long> deleteWhiteIPById(String username, Long id) {
-        AuthResult authResult = noResourceScopeAuthService.authManageWhiteList(username);
+        AuthResult authResult = noResourceScopeAuthService.authManageWhiteList(JobContextUtil.getUser());
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }

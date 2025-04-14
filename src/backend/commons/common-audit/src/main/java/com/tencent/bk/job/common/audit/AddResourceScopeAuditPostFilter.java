@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.audit;
 
 import com.tencent.bk.audit.filter.AuditPostFilter;
 import com.tencent.bk.audit.model.AuditEvent;
+import com.tencent.bk.job.common.model.BasicApp;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -41,13 +42,13 @@ public class AddResourceScopeAuditPostFilter implements AuditPostFilter {
         if (auditEvent == null) {
             return null;
         }
-        AppResourceScope appResourceScope = JobContextUtil.getAppResourceScope();
-        if (appResourceScope != null) {
+        BasicApp app = JobContextUtil.getApp();
+        if (app != null && app.getScope() != null) {
             if (log.isDebugEnabled()) {
-                log.debug("Add resource scope for audit event, resourceScope: {}", appResourceScope);
+                log.debug("Add resource scope for audit event, resourceScope: {}", app.getScope());
             }
-            auditEvent.setScopeType(appResourceScope.getType().getValue());
-            auditEvent.setScopeId(appResourceScope.getId());
+            auditEvent.setScopeType(app.getScope().getType().getValue());
+            auditEvent.setScopeId(app.getScope().getId());
         }
         return auditEvent;
     }

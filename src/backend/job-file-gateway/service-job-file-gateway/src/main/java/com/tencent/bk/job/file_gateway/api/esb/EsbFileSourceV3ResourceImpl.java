@@ -11,6 +11,7 @@ import com.tencent.bk.job.common.exception.MissingParameterException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectModeEnum;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectScopeEnum;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
@@ -51,7 +52,8 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         Long appId = req.getAppId();
         checkCreateParam(req);
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, null, req);
-        FileSourceDTO createdFileSource = fileSourceService.saveFileSource(username, appId, fileSourceDTO);
+        FileSourceDTO createdFileSource = fileSourceService.saveFileSource(
+            JobContextUtil.getUser(), appId, fileSourceDTO);
         return EsbResp.buildSuccessResp(new EsbFileSourceSimpleInfoV3DTO(createdFileSource.getId()));
     }
 
@@ -66,7 +68,7 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         Long appId = req.getAppId();
         FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, id, req);
         FileSourceDTO updateFileSource = fileSourceService.updateFileSourceById(
-            username, appId, fileSourceDTO);
+            JobContextUtil.getUser(), appId, fileSourceDTO);
         return EsbResp.buildSuccessResp(new EsbFileSourceSimpleInfoV3DTO(updateFileSource.getId()));
     }
 

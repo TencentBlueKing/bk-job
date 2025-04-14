@@ -44,7 +44,7 @@ public class IamPublicScriptCallbackResourceImpl implements IamPublicScriptCallb
     }
 
     @Override
-    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        return publicScriptCallbackHelper.doCallback(callbackRequest);
+    public CallbackBaseResponseDTO callback(String tenantId, CallbackRequestDTO callbackRequest) {
+        return publicScriptCallbackHelper.doCallback(tenantId, callbackRequest);
     }
 }

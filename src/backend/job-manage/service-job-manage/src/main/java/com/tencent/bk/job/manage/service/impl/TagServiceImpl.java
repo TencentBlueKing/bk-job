@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
@@ -127,11 +128,11 @@ public class TagServiceImpl implements TagService {
         ),
         content = EventContentConstants.CREATE_TAG
     )
-    public TagDTO createTag(String username, TagDTO tag) {
-        checkCreateTagPermission(username, tag.getAppId());
+    public TagDTO createTag(User user, TagDTO tag) {
+        checkCreateTagPermission(user, tag.getAppId());
 
-        tag.setCreator(username);
-        tag.setLastModifyUser(username);
+        tag.setCreator(user.getUsername());
+        tag.setLastModifyUser(user.getUsername());
         checkRequiredParam(tag);
 
         boolean isTagExist = tagDAO.isExistDuplicateName(tag.getAppId(), tag.getName());
@@ -140,7 +141,7 @@ public class TagServiceImpl implements TagService {
         }
         tag.setId(tagDAO.insertTag(tag));
 
-        tagAuthService.registerTag(tag.getId(), tag.getName(), username);
+        tagAuthService.registerTag(user, tag.getId(), tag.getName());
 
         return tag;
     }
@@ -155,10 +156,10 @@ public class TagServiceImpl implements TagService {
         ),
         content = EventContentConstants.EDIT_TAG
     )
-    public boolean updateTagById(String username, TagDTO tag) {
-        checkManageTagPermission(username, tag.getAppId(), tag.getId());
+    public boolean updateTagById(User user, TagDTO tag) {
+        checkManageTagPermission(user, tag.getAppId(), tag.getId());
 
-        tag.setLastModifyUser(username);
+        tag.setLastModifyUser(user.getUsername());
         checkRequiredParam(tag);
 
         TagDTO originTag = getTagInfoById(tag.getId());
@@ -179,12 +180,12 @@ public class TagServiceImpl implements TagService {
         return result;
     }
 
-    private void checkManageTagPermission(String username, long appId, Long tagId) {
-        tagAuthService.authManageTag(username, new AppResourceScope(appId), tagId, null).denyIfNoPermission();
+    private void checkManageTagPermission(User user, long appId, Long tagId) {
+        tagAuthService.authManageTag(user, new AppResourceScope(appId), tagId, null).denyIfNoPermission();
     }
 
-    private void checkCreateTagPermission(String username, long appId) {
-        tagAuthService.authCreateTag(username, new AppResourceScope(appId)).denyIfNoPermission();
+    private void checkCreateTagPermission(User user, long appId) {
+        tagAuthService.authCreateTag(user, new AppResourceScope(appId)).denyIfNoPermission();
     }
 
     private void checkRequiredParam(TagDTO tag) {
@@ -262,8 +263,8 @@ public class TagServiceImpl implements TagService {
         ),
         content = EventContentConstants.DELETE_TAG
     )
-    public void deleteTag(String username, long appId, Long tagId) {
-        checkManageTagPermission(username, appId, tagId);
+    public void deleteTag(User user, long appId, Long tagId) {
+        checkManageTagPermission(user, appId, tagId);
 
         TagDTO tag = getTagInfoById(tagId);
         ActionAuditContext.current().setInstanceName(tag.getName());

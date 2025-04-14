@@ -31,6 +31,8 @@ import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.api.iam.IamTagCallbackResource;
 import com.tencent.bk.job.manage.model.dto.TagDTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbTagV3DTO;
@@ -66,7 +68,10 @@ public class IamTagCallbackResourceImpl extends BaseIamCallbackService implement
 
     @Autowired
     public IamTagCallbackResourceImpl(TagService tagService,
-                                      ApplicationService applicationService) {
+                                      ApplicationService applicationService,
+                                      AppScopeMappingService appScopeMappingService,
+                                      TenantService tenantService) {
+        super(appScopeMappingService, tenantService);
         this.tagService = tagService;
         this.applicationService = applicationService;
     }
@@ -78,7 +83,7 @@ public class IamTagCallbackResourceImpl extends BaseIamCallbackService implement
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         TagDTO tagQuery = new TagDTO();
-        Long appId = applicationService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+        Long appId = getAppIdBySearchCondition(searchCondition);
         tagQuery.setAppId(appId);
         return Pair.of(tagQuery, baseSearchCondition);
     }
@@ -181,8 +186,8 @@ public class IamTagCallbackResourceImpl extends BaseIamCallbackService implement
     }
 
     @Override
-    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        return baseCallback(callbackRequest);
+    public CallbackBaseResponseDTO callback(String tenantId, CallbackRequestDTO callbackRequest) {
+        return baseCallback(tenantId, callbackRequest);
     }
 
     @Override
