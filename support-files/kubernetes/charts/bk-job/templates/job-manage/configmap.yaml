@@ -77,15 +77,7 @@ data:
     job:
       manage:
         sync:
-          app:
-            enabled: {{ .Values.manageConfig.sync.app.enabled }}
-          host:
-            enabled: {{ .Values.manageConfig.sync.host.enabled }}
-          resource:
-            watch:
-              enabled: {{ .Values.manageConfig.sync.resource.watch.enabled }}
-          hostEvent:
-            handlerNum: {{ .Values.manageConfig.sync.hostEvent.handlerNum }}
+          {{- toYaml .Values.manageConfig.sync | nindent 10 }}
         notify:
           default:
             channels:

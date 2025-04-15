@@ -900,6 +900,12 @@ manageConfig:
     app:
       # 是否开启业务同步
       enabled: true
+      # 业务同步时是否开启删除保护
+      deleteProtect:
+        # 默认不开启
+        enabled: false
+        # 单次同步最大删除的业务比例（待删除的业务数量/本地DB中未归档的有效业务数量）
+        maxRatio: 0.5
     host:
       # 是否开启主机同步
       enabled: true
