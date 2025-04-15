@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
+import com.tencent.bk.job.common.watch.SafeWatch;
 import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
@@ -227,7 +228,7 @@ public class HostSyncService {
     private Set<BasicHostDTO> refreshBizHostAndRelations(Long bizId,
                                                          List<HostWithModules> hostWithModulesList,
                                                          long cmdbHostsFetchTimeMills) {
-        StopWatch watch = new StopWatch();
+        SafeWatch watch = new SafeWatch();
         // CMDB数据拆分
         Set<Long> cmdbHostIds = new HashSet<>();
         Set<BasicHostDTO> cmdbBasicHosts = new HashSet<>();
@@ -801,7 +802,7 @@ public class HostSyncService {
         Long bizId = Long.valueOf(bizApp.getScope().getId());
         long cmdbInterfaceTimeConsuming = 0L;
         long writeToDBTimeConsuming = 0L;
-        StopWatch bizHostsWatch = new StopWatch();
+        SafeWatch bizHostsWatch = new SafeWatch();
         bizHostsWatch.start("getHostRelationsFromCmdb");
         long startTime = System.currentTimeMillis();
         log.info("begin to syncBizHosts:bizId={}", bizId);
