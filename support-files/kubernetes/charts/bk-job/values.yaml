@@ -125,6 +125,8 @@ mariadb:
   ## JDBC Connection properties
   connection:
     properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+    ssl:
+      properties: useSSL=true&requireSSL=true&verifyServerCertificate=true&sslMode=VERIFY_CA&sslCa=/data/certs/ca/mysql-ca.pem
 
 ## External MariaDB configuration
 ##
@@ -349,6 +351,10 @@ externalMongoDB:
   ## Reference documents https://docs.mongodb.com/manual/reference/connection-string/
   ##
   uri: ""
+
+tls:
+  mariadb:
+    enabled: false
 
 ## ServiceMonitor configuration
 ##

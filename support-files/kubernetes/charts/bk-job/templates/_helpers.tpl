@@ -255,14 +255,38 @@ Return the JDBC MySQL Driver Class
 {{- end -}}
 
 {{/*
-Return the MariaDB jdbc connection url properties
+Return the MariaDB jdbc connection url base properties (without ssl config)
 */}}
-{{- define "job.mariadb.connection.properties" -}}
+{{- define "job.mariadb.base.connection.properties" -}}
 {{- if .Values.mariadb.enabled }}
     {{- printf "%s" .Values.mariadb.connection.properties -}}
 {{- else -}}
     {{- printf "%s" .Values.externalMariaDB.connection.properties -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Return the MariaDB jdbc connection ssl properties
+*/}}
+{{- define "job.mariadb.ssl.properties" -}}
+{{- if .Values.tls.mariadb.enabled -}}
+    {{- if hasKey .Values "mariadb.connection.ssl.properties" -}}
+        {{- printf "&%s" .Values.mariadb.connection.ssl.properties -}}
+    {{- else -}}
+        {{- printf "&useSSL=true&requireSSL=true&verifyServerCertificate=true&sslMode=VERIFY_CA&sslCa=/data/certs/ca/mysql-ca.pem" -}}
+    {{- end -}}
+{{- else -}}
+    {{- printf "" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the MariaDB jdbc connection url properties
+*/}}
+{{- define "job.mariadb.connection.properties" -}}
+{{- $baseProps := include "job.mariadb.base.connection.properties" . -}}
+{{- $sslProps := include "job.mariadb.ssl.properties" . -}}
+{{- printf "%s%s" $baseProps $sslProps -}}
 {{- end -}}
 
 {{/*

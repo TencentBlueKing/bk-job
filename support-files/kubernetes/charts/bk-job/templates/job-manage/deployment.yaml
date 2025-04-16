@@ -107,6 +107,9 @@ spec:
             - name: job-gse-tls-password
               mountPath: /etc/secrets
               readOnly: true
+            - name: ca-volume
+              mountPath: /data/certs/ca
+              readOnly: true
       volumes:
         - name: job-storage
           persistentVolumeClaim:
@@ -136,4 +139,8 @@ spec:
                 path: gse.keystore.password
               - key: gse.truststore.password
                 path: gse.truststore.password
+        - name: ca-volume
+          secret:
+            secretName: ca-certificates
+
 {{- end }}

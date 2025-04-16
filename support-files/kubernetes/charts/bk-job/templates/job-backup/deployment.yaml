@@ -104,6 +104,9 @@ spec:
             - name: redis
               mountPath: /etc/secrets/redis
               readOnly: true
+            - name: ca-volume
+              mountPath: /data/certs/ca
+              readOnly: true
       volumes:
         - name: job-storage
           persistentVolumeClaim:
@@ -122,4 +125,7 @@ spec:
         - name: redis
           secret:
             secretName: {{ include "job.redis.secretName" . }}
+        - name: ca-volume
+          secret:
+            secretName: ca-certificates
 {{- end }}

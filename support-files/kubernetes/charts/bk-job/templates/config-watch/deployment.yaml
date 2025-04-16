@@ -85,9 +85,15 @@ spec:
             - name: rabbitmq
               mountPath: /etc/secrets/rabbitmq
               readOnly: true
+            - name: ca-volume
+              mountPath: /data/certs/ca
+              readOnly: true
       volumes:
         - name: rabbitmq
           secret:
             secretName: {{ include "job.rabbitmq.secretName" . }}
+        - name: ca-volume
+          secret:
+            secretName: ca-certificates
 {{- end }}
 
