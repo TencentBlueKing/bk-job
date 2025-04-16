@@ -90,7 +90,7 @@ label:BEGIN
       LEAVE label;
   END IF;
 
-  -- 如果 host 表中不存在cloud_id = 0，说明已经执行过该变更
+  -- 如果 host 表中不存在cloud_id = null，说明已经执行过该变更
   IF NOT EXISTS (SELECT 1 FROM host WHERE cloud_id IS NULL LIMIT 1) THEN
       LEAVE label;
   END IF;
@@ -104,7 +104,9 @@ label:BEGIN
 
     UPDATE host t1
       SET t1.cloud_id = t1.cloud_area_id
-      WHERE host_id BETWEEN fromHostId AND endHostId;
+      WHERE
+          t1.cloud_id IS NULL AND t1.cloud_area_id IS NOT NULL
+          AND host_id BETWEEN fromHostId AND endHostId;
 
     COMMIT;
 
