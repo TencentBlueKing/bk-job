@@ -89,5 +89,6 @@ spec:
         - name: rabbitmq
           secret:
             secretName: {{ include "job.rabbitmq.secretName" . }}
+
 {{- end }}
 

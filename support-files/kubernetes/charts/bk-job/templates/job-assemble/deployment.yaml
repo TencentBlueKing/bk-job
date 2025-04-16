@@ -133,6 +133,12 @@ spec:
             - name: job-gse-tls-password
               mountPath: /etc/secrets
               readOnly: true
+            - name: mysql-ts
+              mountPath: /etc/certs/mysql
+              readOnly: true
+            - name: mongodb-ca
+              mountPath: /etc/certs/mongodb
+              readOnly: true
       terminationGracePeriodSeconds: 120
       volumes:
         {{- if .Values.crontabConfig.database.host }}
@@ -172,4 +178,10 @@ spec:
                 path: gse.keystore.password
               - key: gse.truststore.password
                 path: gse.truststore.password
+        - name: mysql-ts
+          secret:
+            secretName: mysql-truststore
+        - name: mongodb-ca
+          secret:
+            secretName: mongodb-certificates
 {{- end }}
