@@ -112,6 +112,8 @@ public class ErrorCode {
     public static final int BK_USER_MANAGE_API_ERROR = 1220001;
     // 用户缓存加载失败，可能是用户管理接口异常
     public static final int BK_USER_CACHE_LOADING_ERROR = 1220002;
+    // 用户管理返回租户{0}的虚拟账号为空
+    public static final int BK_USER_VIRTUAL_ADMIN_EMPTY = 1220003;
 
 
     // ======== 系统错误-权限错误 ==================//

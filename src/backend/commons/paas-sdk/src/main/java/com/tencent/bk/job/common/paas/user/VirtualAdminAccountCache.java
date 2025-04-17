@@ -30,6 +30,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InternalUserManageException;
 import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -50,18 +51,7 @@ public class VirtualAdminAccountCache implements IVirtualAdminAccountProvider {
             @Override
             public String load(@NonNull String tenantId) {
                 log.info("Get admin username of tenantId={}", tenantId);
-                List<SimpleUserInfo> virtualUserList = userApiClient.getLVirtualUserByLoginName(
-                    tenantId,
-                    BK_VIRTUAL_LOGIN_NAME_ADMIN);
-                if (virtualUserList == null
-                    || virtualUserList.isEmpty()
-                    || StringUtils.isEmpty(virtualUserList.get(0).getBkUsername())) {
-                    log.warn("Get admin username of tenantId={} is empty", tenantId);
-                    return "";
-                }
-                String username = virtualUserList.get(0).getBkUsername();
-                log.info("Admin username of tenantId={} is {}", tenantId, username);
-                return username;
+                return getVirtualAdminFromApi(tenantId);
             }
         });
 
@@ -77,11 +67,38 @@ public class VirtualAdminAccountCache implements IVirtualAdminAccountProvider {
             String errorMsg = "Fail to load virtual user admin from cache";
             log.error(errorMsg, e);
             Throwable cause = e.getCause();
-            if (cause instanceof RuntimeException) {
-                throw (RuntimeException) cause;
-            } else {
+            if (cause instanceof InternalUserManageException) {
+                throw (InternalUserManageException) cause;
+            }
+
+            // 不是用户管理返回了空的username，则重试一次
+            try {
+                log.info("LoadingCache get virtual admin failed, try to fetch userMgrApi directly");
+                return getVirtualAdminFromApi(tenantId);
+            } catch (Exception ex) {
+                String msg = String.format("Fail to get virtual admin of tenant=%s from userMgrApi twice", tenantId);
+                log.error(msg, ex);
                 throw new InternalException(errorMsg, e, ErrorCode.INTERNAL_ERROR);
             }
         }
+    }
+
+    private String getVirtualAdminFromApi(String tenantId) {
+        List<SimpleUserInfo> virtualUserList = userApiClient.getLVirtualUserByLoginName(
+            tenantId,
+            BK_VIRTUAL_LOGIN_NAME_ADMIN);
+        if (virtualUserList == null
+            || virtualUserList.isEmpty()
+            || StringUtils.isEmpty(virtualUserList.get(0).getBkUsername())) {
+            String errMsg = String.format("Get admin username of tenantId=%s is empty", tenantId);
+            log.error(errMsg);
+            throw new InternalUserManageException(
+                errMsg,
+                ErrorCode.BK_USER_VIRTUAL_ADMIN_EMPTY,
+                new Object[]{tenantId});
+        }
+        String username = virtualUserList.get(0).getBkUsername();
+        log.info("Admin username of tenantId={} is {}", tenantId, username);
+        return username;
     }
 }
