@@ -99,8 +99,8 @@ spec:
             - name: redis
               mountPath: /etc/secrets/redis
               readOnly: true
-            - name: ca-volume
-              mountPath: /data/certs/ca
+            - name: mysql-ts
+              mountPath: /etc/certs/mysql
               readOnly: true
       volumes:
         - name: job-storage
@@ -115,7 +115,7 @@ spec:
         - name: redis
           secret:
             secretName: {{ include "job.redis.secretName" . }}
-        - name: ca-volume
+        - name: mysql-ts
           secret:
-            secretName: ca-certificates
+            secretName: mysql-truststore
 {{- end }}

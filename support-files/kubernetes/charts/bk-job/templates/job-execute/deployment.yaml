@@ -114,8 +114,8 @@ spec:
             - name: job-gse-tls-password
               mountPath: /etc/secrets
               readOnly: true
-            - name: ca-volume
-              mountPath: /data/certs/ca
+            - name: mysql-ts
+              mountPath: /etc/certs/mysql
               readOnly: true
       terminationGracePeriodSeconds: 120
       volumes:
@@ -151,7 +151,7 @@ spec:
                 path: gse.keystore.password
               - key: gse.truststore.password
                 path: gse.truststore.password
-        - name: ca-volume
+        - name: mysql-ts
           secret:
-            secretName: ca-certificates
+            secretName: mysql-truststore
 {{- end }}
