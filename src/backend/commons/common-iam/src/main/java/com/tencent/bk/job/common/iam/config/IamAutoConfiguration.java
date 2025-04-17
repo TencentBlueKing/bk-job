@@ -31,9 +31,10 @@ import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.client.ApiGwIamClient;
 import com.tencent.bk.job.common.iam.client.EsbIamClient;
 import com.tencent.bk.job.common.iam.client.IIamClient;
-import com.tencent.bk.job.common.iam.mock.MockIamClient;
 import com.tencent.bk.job.common.iam.http.IamHttpClientServiceImpl;
 import com.tencent.bk.job.common.iam.mock.MockBusinessAuthHelper;
+import com.tencent.bk.job.common.iam.mock.MockIamClient;
+import com.tencent.bk.job.common.iam.mock.MockPolicyServiceImpl;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
@@ -76,6 +77,7 @@ public class IamAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMockIamApiDisabled
     public PolicyService policyService(IamConfiguration iamConfiguration,
                                        HttpClientService httpClientService) {
         return new PolicyServiceImpl(iamConfiguration, httpClientService);
@@ -176,4 +178,9 @@ public class IamAutoConfiguration {
         return new MockBusinessAuthHelper(tokenService, policyService, topoPathService, iamConfiguration);
     }
 
+    @Bean
+    @ConditionalOnMockIamApiEnabled
+    public PolicyService policyService() {
+        return new MockPolicyServiceImpl();
+    }
 }
