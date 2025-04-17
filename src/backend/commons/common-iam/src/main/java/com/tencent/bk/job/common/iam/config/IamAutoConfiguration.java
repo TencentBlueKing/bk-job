@@ -84,12 +84,6 @@ public class IamAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMockIamApiEnabled
-    public PolicyService policyService() {
-        return new MockPolicyServiceImpl();
-    }
-
-    @Bean
     public TokenService tokenService(IamConfiguration iamConfiguration,
                                      HttpClientService httpClientService) {
         return new TokenServiceImpl(iamConfiguration, httpClientService);
@@ -182,5 +176,11 @@ public class IamAutoConfiguration {
                                                        PolicyService policyService,
                                                        @Autowired(required = false) TopoPathService topoPathService) {
         return new MockBusinessAuthHelper(tokenService, policyService, topoPathService, iamConfiguration);
+    }
+
+    @Bean
+    @ConditionalOnMockIamApiEnabled
+    public PolicyService mockedPolicyService() {
+        return new MockPolicyServiceImpl();
     }
 }
