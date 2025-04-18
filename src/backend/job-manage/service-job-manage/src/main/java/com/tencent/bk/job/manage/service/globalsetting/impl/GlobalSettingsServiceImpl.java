@@ -620,6 +620,9 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         }
         ChannelTemplateDetailVO currentChannelTemplateVO =
             notifyTemplateConverter.convertToChannelTemplateDetailVO(currentNotifyTemplateDTO);
+        if (defaultNotifyTemplateDTO != null) {
+            defaultNotifyTemplateDTO.setTenantId(tenantId);
+        }
         ChannelTemplateDetailVO defaultChannelTemplateVO =
             notifyTemplateConverter.convertToChannelTemplateDetailVO(defaultNotifyTemplateDTO);
         // 渠道下未配置模板则使用该渠道默认模板
