@@ -26,6 +26,8 @@ package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.paas.cmsi.ICmsiClient;
+import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -36,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -45,17 +48,21 @@ public class WatchableSendMsgService {
 
     private final ICmsiClient cmsiApiClient;
     private final MeterRegistry meterRegistry;
+    private final TenantService tenantService;
 
     @Autowired
     public WatchableSendMsgService(ICmsiClient cmsiApiClient,
-                                   MeterRegistry meterRegistry) {
+                                   MeterRegistry meterRegistry,
+                                   TenantService tenantService) {
         this.cmsiApiClient = cmsiApiClient;
         this.meterRegistry = meterRegistry;
+        this.tenantService = tenantService;
     }
 
     @EsbApiTimed
     public void sendMsg(
         Long appId,
+        String tenantId,
         long createTimeMillis,
         String msgType,
         String sender,
@@ -65,7 +72,16 @@ public class WatchableSendMsgService {
     ) {
         String sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_FAILED;
         try {
-            cmsiApiClient.sendMsg(msgType, sender, receivers, title, content);
+            NotifyMessageDTO notifyMessageDTO = new NotifyMessageDTO();
+            notifyMessageDTO.setTitle(title);
+            notifyMessageDTO.setContent(content);
+            notifyMessageDTO.setSender(sender);
+            notifyMessageDTO.setReceiverUsername(new ArrayList<>(receivers));
+            cmsiApiClient.sendMsg(
+                msgType,
+                notifyMessageDTO,
+                appId == null ? tenantId : tenantService.getTenantIdByAppId(appId)
+            );
             sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
         } finally {
             long delayMillis = System.currentTimeMillis() - createTimeMillis;

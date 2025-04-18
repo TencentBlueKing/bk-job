@@ -22,14 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api files("libs/iam-sdk-1.0.0.jar")
-    api project(":commons:common")
-    api project(":commons:esb-sdk")
-    api project(":commons:paas-sdk")
-    api 'org.springframework:spring-context'
-    compileOnly 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'org.aspectj:aspectjweaver'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
+package com.tencent.bk.job.common.paas.model;
+
+public enum NotifyChannelEnum {
+    Mail("mail"),
+    Sms("sms"),
+    Voice("voice"),
+    Weixin("weixin");
+
+    private final String type;
+
+    NotifyChannelEnum(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
 }

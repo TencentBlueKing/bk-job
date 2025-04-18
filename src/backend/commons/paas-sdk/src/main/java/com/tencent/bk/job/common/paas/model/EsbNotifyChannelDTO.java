@@ -44,11 +44,11 @@ public class EsbNotifyChannelDTO {
     /**
      * 渠道名称
      */
-    private String label;
+    private String name;
     /**
-     * 是否启用
+     * 该租户内是否支持
      */
-    @JsonProperty("is_active")
+    @JsonProperty("enabled")
     private boolean isActive;
     /**
      * 渠道图标Base64编码

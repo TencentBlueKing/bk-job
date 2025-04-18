@@ -39,7 +39,6 @@ import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUp
 import com.tencent.bk.job.manage.model.web.vo.notify.PageTemplateVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.RoleVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import com.tencent.bk.job.manage.service.LocalPermissionService;
 import com.tencent.bk.job.manage.service.NotifyService;
 import com.tencent.bk.job.manage.service.impl.notify.NotifyUserService;
@@ -104,14 +103,6 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
     @Override
     public Response<List<RoleVO>> listRoles(String username) {
         return Response.buildSuccessResp(notifyService.listRole(username));
-    }
-
-    @Override
-    public Response<List<UserVO>> listUsers(String username,
-                                            String prefixStr,
-                                            Long offset,
-                                            Long limit) {
-        return Response.buildSuccessResp(notifyUserService.listUsers(prefixStr, offset, limit, true));
     }
 
     @Override

@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceAccountResource;
@@ -59,6 +60,7 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
     private final AccountService accountService;
     private final AccountAuthService accountAuthService;
     private final AppScopeMappingService appScopeMappingService;
+    private final TenantService tenantService;
 
     private final UserLocalCache userLocalCache;
 
@@ -66,11 +68,13 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
     public ServiceAccountResourceImpl(AccountService accountService,
                                       AccountAuthService accountAuthService,
                                       AppScopeMappingService appScopeMappingService,
-                                      UserLocalCache userLocalCache) {
+                                      UserLocalCache userLocalCache,
+                                      TenantService tenantService) {
         this.accountService = accountService;
         this.accountAuthService = accountAuthService;
         this.appScopeMappingService = appScopeMappingService;
         this.userLocalCache = userLocalCache;
+        this.tenantService = tenantService;
     }
 
     @Override
@@ -181,7 +185,8 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
                                       Long appId,
                                       AccountCreateUpdateReq accountCreateUpdateReq) {
         AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, null, null);
-        User user = userLocalCache.getUser(username);
+        User user = userLocalCache.getUser(
+            tenantService.getTenantIdByAppId(appId), username);
         AuthResult authResult = accountAuthService.authCreateAccount(user, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);

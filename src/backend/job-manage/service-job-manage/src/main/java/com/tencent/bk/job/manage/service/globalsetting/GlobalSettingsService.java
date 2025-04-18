@@ -55,8 +55,6 @@ public interface GlobalSettingsService {
 
     Integer setAvailableNotifyChannel(String username, SetAvailableNotifyChannelReq req);
 
-    List<UserVO> listUsers(String username, String prefixStr, Long offset, Long limit);
-
     List<NotifyBlackUserInfoVO> listNotifyBlackUsers(String username, Integer start, Integer pageSize);
 
     List<String> saveNotifyBlackUsers(String username, NotifyBlackUsersReq req);

@@ -22,14 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api files("libs/iam-sdk-1.0.0.jar")
-    api project(":commons:common")
-    api project(":commons:esb-sdk")
-    api project(":commons:paas-sdk")
-    api 'org.springframework:spring-context'
-    compileOnly 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'org.aspectj:aspectjweaver'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
+package com.tencent.bk.job.common.paas.model.cmsi.req;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
+
+/**
+ * Cmsi接口发送语音消息的请求
+ */
+@Getter
+@Setter
+public class SendVoiceV1Req extends CmsiSendMsgV1BasicReq {
+
+    /**
+     * 自动语音读字信息
+     */
+    @JsonProperty("auto_read_message")
+    private String autoReadMessage;
+
+    /**
+     * 待通知的电话列表
+     */
+    @JsonProperty("receiver")
+    private List<String> receiver;
+
+    /**
+     * 待通知的用户列表，包含用户名，用户需在蓝鲸平台注册，多个以逗号分隔，若 receiver、receiver__username 同时存在，以 receiver 为准
+     */
+    @JsonProperty("receiver__username")
+    private List<String> receiverUsername;
+
+    public static SendVoiceV1Req fromNotifyMessageDTO(NotifyMessageDTO notifyMessageDTO) {
+        SendVoiceV1Req sendVoiceV1Req = new SendVoiceV1Req();
+        sendVoiceV1Req.setReceiverUsername(notifyMessageDTO.getReceiverUsername());
+        sendVoiceV1Req.setAutoReadMessage(notifyMessageDTO.getContent());
+        return sendVoiceV1Req;
+    }
+
 }

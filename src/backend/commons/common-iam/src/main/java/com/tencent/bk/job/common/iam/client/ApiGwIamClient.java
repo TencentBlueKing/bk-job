@@ -46,6 +46,7 @@ import com.tencent.bk.job.common.iam.dto.GetApplyUrlRequest;
 import com.tencent.bk.job.common.iam.dto.GetApplyUrlResponse;
 import com.tencent.bk.job.common.iam.dto.RegisterResourceRequest;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
@@ -73,11 +74,13 @@ public class ApiGwIamClient extends BkApiV1Client implements IIamClient {
     private static final String API_BATCH_AUTH_BY_PATH_URL = "/api/v1/open/authorization/batch_path/";
 
     private final AppProperties appProperties;
+    private final IVirtualAdminAccountProvider virtualAdminAccountProvider;
 
     public ApiGwIamClient(MeterRegistry meterRegistry,
                           AppProperties appProperties,
                           BkApiGatewayProperties bkApiGatewayProperties,
-                          TenantEnvService tenantEnvService) {
+                          TenantEnvService tenantEnvService,
+                          IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         super(
             meterRegistry,
             IAM_API,
@@ -88,6 +91,7 @@ public class ApiGwIamClient extends BkApiV1Client implements IIamClient {
             tenantEnvService
         );
         this.appProperties = appProperties;
+        this.virtualAdminAccountProvider = virtualAdminAccountProvider;
     }
 
     @Override
@@ -196,7 +200,8 @@ public class ApiGwIamClient extends BkApiV1Client implements IIamClient {
                 .uri(uri)
                 .addHeader(buildTenantHeader(tenantId))
                 .body(reqBody)
-                .authorization(buildAuthorization(appProperties, tenantId))
+                .authorization(buildAuthorization(
+                    appProperties, virtualAdminAccountProvider.getVirtualAdminUsername(tenantId)))
                 .build();
             return doRequest(requestInfo, typeReference);
         } catch (Exception e) {

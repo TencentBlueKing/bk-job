@@ -13,4 +13,8 @@ public class InternalUserManageException extends InternalException {
     public InternalUserManageException(String message, Throwable cause, Integer errorCode) {
         super(message, cause, errorCode);
     }
+
+    public InternalUserManageException(String message, Integer errorCode, Object[] param) {
+        super(message, errorCode, param);
+    }
 }

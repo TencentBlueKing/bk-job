@@ -22,14 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api files("libs/iam-sdk-1.0.0.jar")
-    api project(":commons:common")
-    api project(":commons:esb-sdk")
-    api project(":commons:paas-sdk")
-    api 'org.springframework:spring-context'
-    compileOnly 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'org.aspectj:aspectjweaver'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
+package com.tencent.bk.job.common.paas.model;
+
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+public class NotifyMessageDTO {
+
+    /**
+     * 发送人，msgType为mail时需要
+     */
+    private String sender;
+
+    /**
+     * 接收人员列表，对应Cmsi接口的receiver__username
+     */
+    private List<String> receiverUsername;
+
+    private String title;
+
+    private String content;
+
 }

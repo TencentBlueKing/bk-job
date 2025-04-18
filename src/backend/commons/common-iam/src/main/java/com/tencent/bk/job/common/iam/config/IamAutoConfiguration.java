@@ -43,6 +43,7 @@ import com.tencent.bk.job.common.iam.service.impl.AuthServiceImpl;
 import com.tencent.bk.job.common.iam.service.impl.BusinessAuthServiceImpl;
 import com.tencent.bk.job.common.iam.service.impl.WebAuthServiceImpl;
 import com.tencent.bk.job.common.iam.util.BusinessAuthHelper;
+import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
@@ -137,12 +138,14 @@ public class IamAutoConfiguration {
     public IIamClient esbIamClient(MeterRegistry meterRegistry,
                                    IamConfiguration iamConfiguration,
                                    EsbProperties esbProperties,
-                                   TenantEnvService tenantEnvService) {
+                                   TenantEnvService tenantEnvService,
+                                   IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         return new EsbIamClient(
             meterRegistry,
             new AppProperties(iamConfiguration.getAppCode(), iamConfiguration.getAppSecret()),
             esbProperties,
-            tenantEnvService
+            tenantEnvService,
+            virtualAdminAccountProvider
         );
     }
 
@@ -152,12 +155,14 @@ public class IamAutoConfiguration {
     public IIamClient apiGwIamClient(MeterRegistry meterRegistry,
                                      IamConfiguration iamConfiguration,
                                      BkApiGatewayProperties bkApiGatewayProperties,
-                                     TenantEnvService tenantEnvService) {
+                                     TenantEnvService tenantEnvService,
+                                     IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         return new ApiGwIamClient(
             meterRegistry,
             new AppProperties(iamConfiguration.getAppCode(), iamConfiguration.getAppSecret()),
             bkApiGatewayProperties,
-            tenantEnvService
+            tenantEnvService,
+            virtualAdminAccountProvider
         );
     }
 

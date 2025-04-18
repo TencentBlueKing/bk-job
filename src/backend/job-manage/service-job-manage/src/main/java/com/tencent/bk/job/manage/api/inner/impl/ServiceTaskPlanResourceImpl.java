@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.paas.user.UserLocalCache;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
@@ -91,6 +92,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
     private final PublicScriptService publicScriptService;
 
     private final AccountService accountService;
+    private final TenantService tenantService;
 
     private final UserLocalCache userLocalCache;
 
@@ -101,13 +103,15 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
             ScriptService scriptService,
             PublicScriptService publicScriptService,
             AccountService accountService,
-            UserLocalCache userLocalCache) {
+            UserLocalCache userLocalCache,
+            TenantService tenantService) {
         this.taskPlanService = taskPlanService;
         this.taskVariableService = taskVariableService;
         this.scriptService = scriptService;
         this.publicScriptService = publicScriptService;
         this.accountService = accountService;
         this.userLocalCache = userLocalCache;
+        this.tenantService = tenantService;
     }
 
     @Override
@@ -223,7 +227,8 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
         Long lastModifyTime,
         String lastModifyUser
     ) {
-        User user = userLocalCache.getUser(username);
+        User user = userLocalCache.getUser(
+            tenantService.getTenantIdByAppId(appId), username);
         return InternalResponse.buildSuccessResp(taskPlanService.saveTaskPlanForMigration(user, appId, templateId,
             planId, createTime, lastModifyTime, lastModifyUser));
     }

@@ -22,14 +22,8 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api files("libs/iam-sdk-1.0.0.jar")
-    api project(":commons:common")
-    api project(":commons:esb-sdk")
-    api project(":commons:paas-sdk")
-    api 'org.springframework:spring-context'
-    compileOnly 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'org.aspectj:aspectjweaver'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
+package com.tencent.bk.job.common.paas.user;
+
+public interface IVirtualAdminAccountProvider {
+    String getVirtualAdminUsername(String tenantId);
 }

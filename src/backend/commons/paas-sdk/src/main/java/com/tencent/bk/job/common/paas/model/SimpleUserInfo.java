@@ -22,14 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api files("libs/iam-sdk-1.0.0.jar")
-    api project(":commons:common")
-    api project(":commons:esb-sdk")
-    api project(":commons:paas-sdk")
-    api 'org.springframework:spring-context'
-    compileOnly 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'org.aspectj:aspectjweaver'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
+package com.tencent.bk.job.common.paas.model;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+
+@Getter
+public class SimpleUserInfo {
+
+    /**
+     * 蓝鲸用户唯一标识
+     */
+    @JsonProperty("bk_username")
+    private String bkUsername;
+
+    /**
+     * 企业内用户唯一标识
+     */
+    @JsonProperty("login_name")
+    private String loginName;
+
+    /**
+     * 用户展示名
+     */
+    @JsonProperty("display_name")
+    private String displayName;
 }

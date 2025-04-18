@@ -22,14 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api files("libs/iam-sdk-1.0.0.jar")
-    api project(":commons:common")
-    api project(":commons:esb-sdk")
-    api project(":commons:paas-sdk")
-    api 'org.springframework:spring-context'
-    compileOnly 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'org.aspectj:aspectjweaver'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
+package com.tencent.bk.job.common.paas.model.cmsi.req;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
+
+/**
+ * Cmsi接口发送短信的请求
+ */
+@Getter
+@Setter
+public class SendSmsV1Req extends CmsiSendMsgV1BasicReq {
+
+    /**
+     * 短信接收者，包含用户名，用户需在蓝鲸平台注册
+     */
+    @JsonProperty("receiver__username")
+    private List<String> receiverUsername;
+
+    /**
+     * 短信内容
+     */
+    @JsonProperty("content")
+    private String content;
+
+    public static SendSmsV1Req fromNotifyMessageDTO(NotifyMessageDTO notifyMessageDTO) {
+        SendSmsV1Req sendSmsV1Req = new SendSmsV1Req();
+        sendSmsV1Req.setReceiverUsername(notifyMessageDTO.getReceiverUsername());
+        sendSmsV1Req.setContent(notifyMessageDTO.getContent());
+        return sendSmsV1Req;
+    }
+
 }

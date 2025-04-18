@@ -22,14 +22,52 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api files("libs/iam-sdk-1.0.0.jar")
-    api project(":commons:common")
-    api project(":commons:esb-sdk")
-    api project(":commons:paas-sdk")
-    api 'org.springframework:spring-context'
-    compileOnly 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'org.aspectj:aspectjweaver'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
+package com.tencent.bk.job.common.paas.model.cmsi.req;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
+
+@Getter
+@Setter
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class SendMailV1Req extends CmsiSendMsgV1BasicReq {
+
+    /**
+     * 邮件接收者用户名列表，包含用户名，用户需在蓝鲸平台注册
+     */
+    @JsonProperty("receiver__username")
+    private List<String> receiverUsername;
+
+    /**
+     * 发件人
+     */
+    @JsonProperty("sender")
+    private String sender;
+
+    /**
+     * 邮件主题
+     */
+    @JsonProperty("title")
+    private String title;
+
+    /**
+     * 邮件内容
+     */
+    @JsonProperty("content")
+    private String content;
+
+    public static SendMailV1Req fromNotifyMessageDTO(NotifyMessageDTO notifyMessageDTO) {
+        SendMailV1Req sendMailV1Req = new SendMailV1Req();
+        sendMailV1Req.setReceiverUsername(notifyMessageDTO.getReceiverUsername());
+        sendMailV1Req.setSender(notifyMessageDTO.getSender());
+        sendMailV1Req.setTitle(notifyMessageDTO.getTitle());
+        sendMailV1Req.setContent(notifyMessageDTO.getContent());
+        return sendMailV1Req;
+    }
+
 }

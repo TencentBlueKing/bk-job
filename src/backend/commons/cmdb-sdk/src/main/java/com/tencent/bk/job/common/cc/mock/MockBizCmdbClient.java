@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.FlowController;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -59,7 +60,8 @@ public class MockBizCmdbClient implements IBizCmdbClient {
                              ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
                              MeterRegistry meterRegistry,
                              ObjectProvider<FlowController> flowControllerProvider,
-                             TenantEnvService tenantEnvService) {
+                             TenantEnvService tenantEnvService,
+                             IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         this.proxy = new BizCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -69,7 +71,8 @@ public class MockBizCmdbClient implements IBizCmdbClient {
             cmdbLongTermThreadPoolExecutor,
             flowControllerProvider.getIfAvailable(),
             meterRegistry,
-            tenantEnvService
+            tenantEnvService,
+            virtualAdminAccountProvider
         );
     }
 

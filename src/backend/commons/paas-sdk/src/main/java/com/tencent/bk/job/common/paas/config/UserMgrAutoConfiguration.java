@@ -28,10 +28,15 @@ import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.paas.config.condition.ConditionalOnMockUserApiDisable;
 import com.tencent.bk.job.common.paas.config.condition.ConditionalOnMockUserApiEnable;
+import com.tencent.bk.job.common.paas.config.condition.UseOriginalAdminAccount;
+import com.tencent.bk.job.common.paas.config.condition.UseVirtualAdminAccountUsername;
 import com.tencent.bk.job.common.paas.user.IUserApiClient;
+import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.paas.user.MockUserApiClient;
+import com.tencent.bk.job.common.paas.user.OriginalAdminNameProvider;
 import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
+import com.tencent.bk.job.common.paas.user.VirtualAdminAccountCache;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +82,20 @@ public class UserMgrAutoConfiguration {
     UserLocalCache userLocalCache(IUserApiClient userMgrApiClient) {
         log.info("Init UserLocalCache");
         return new UserLocalCache(userMgrApiClient);
+    }
+
+    @Bean
+    @UseVirtualAdminAccountUsername
+    public IVirtualAdminAccountProvider virtualAdminAccountCache(IUserApiClient userMgrApiClient) {
+        log.info("Init VirtualAdminAccountCache");
+        return new VirtualAdminAccountCache(userMgrApiClient);
+    }
+
+    @Bean
+    @UseOriginalAdminAccount
+    public IVirtualAdminAccountProvider originalAdminNameProvider() {
+        log.info("Init OriginalAdminNameProvider");
+        return new OriginalAdminNameProvider();
     }
 
 }

@@ -22,14 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api files("libs/iam-sdk-1.0.0.jar")
-    api project(":commons:common")
-    api project(":commons:esb-sdk")
-    api project(":commons:paas-sdk")
-    api 'org.springframework:spring-context'
-    compileOnly 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.apache.httpcomponents:httpclient'
-    implementation 'org.aspectj:aspectjweaver'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
+package com.tencent.bk.job.common.paas.model.cmsi.req;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Setter;
+
+@Setter
+public class WxMessageData {
+
+    /**
+     * 通知头部文字
+     */
+    @JsonProperty("heading")
+    private String heading;
+
+    /**
+     * 通知文字
+     */
+    @JsonProperty("message")
+    private String message;
+
 }

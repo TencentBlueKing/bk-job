@@ -25,17 +25,15 @@
 package com.tencent.bk.job.common.paas.cmsi;
 
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
+import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
 
 import java.util.List;
-import java.util.Set;
 
 public interface ICmsiClient {
 
     public List<EsbNotifyChannelDTO> getNotifyChannelList(String tenantId);
 
     public void sendMsg(String msgType,
-                        String sender,
-                        Set<String> receivers,
-                        String title,
-                        String content);
+                        NotifyMessageDTO notifyMessageDTO,
+                        String tenantId);
 }

@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiAutoConfiguration;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.constants.EsbLang;
+import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.FlowController;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -103,7 +104,8 @@ public class CmdbAutoConfiguration {
                                         ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
                                         MeterRegistry meterRegistry,
                                         ObjectProvider<FlowController> flowControllerProvider,
-                                        TenantEnvService tenantEnvService) {
+                                        TenantEnvService tenantEnvService,
+                                        IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         return new BizCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -113,7 +115,8 @@ public class CmdbAutoConfiguration {
             cmdbLongTermThreadPoolExecutor,
             flowControllerProvider.getIfAvailable(),
             meterRegistry,
-            tenantEnvService
+            tenantEnvService,
+            virtualAdminAccountProvider
         );
     }
 
@@ -126,7 +129,8 @@ public class CmdbAutoConfiguration {
                                           ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
                                           MeterRegistry meterRegistry,
                                           ObjectProvider<FlowController> flowControllerProvider,
-                                          TenantEnvService tenantEnvService) {
+                                          TenantEnvService tenantEnvService,
+                                          IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         return new BizCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -136,7 +140,8 @@ public class CmdbAutoConfiguration {
             cmdbLongTermThreadPoolExecutor,
             flowControllerProvider.getIfAvailable(),
             meterRegistry,
-            tenantEnvService
+            tenantEnvService,
+            virtualAdminAccountProvider
         );
     }
 
@@ -146,14 +151,16 @@ public class CmdbAutoConfiguration {
                                               CmdbConfig cmdbConfig,
                                               MeterRegistry meterRegistry,
                                               ObjectProvider<FlowController> flowControllerProvider,
-                                              TenantEnvService tenantEnvService) {
+                                              TenantEnvService tenantEnvService,
+                                              IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         return new BizSetCmdbClient(
             appProperties,
             bkApiGatewayProperties,
             cmdbConfig,
             flowControllerProvider.getIfAvailable(),
             meterRegistry,
-            tenantEnvService
+            tenantEnvService,
+            virtualAdminAccountProvider
         );
     }
 
@@ -164,14 +171,16 @@ public class CmdbAutoConfiguration {
                                                     CmdbConfig cmdbConfig,
                                                     MeterRegistry meterRegistry,
                                                     ObjectProvider<FlowController> flowControllerProvider,
-                                                    TenantEnvService tenantEnvService) {
+                                                    TenantEnvService tenantEnvService,
+                                                    IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         return new TenantSetCmdbClient(
             appProperties,
             bkApiGatewayProperties,
             cmdbConfig,
             flowControllerProvider.getIfAvailable(),
             meterRegistry,
-            tenantEnvService
+            tenantEnvService,
+            virtualAdminAccountProvider
         );
     }
 
@@ -185,7 +194,8 @@ public class CmdbAutoConfiguration {
                                               ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
                                               MeterRegistry meterRegistry,
                                               ObjectProvider<FlowController> flowControllerProvider,
-                                              TenantEnvService tenantEnvService) {
+                                              TenantEnvService tenantEnvService,
+                                              IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         return new MockBizCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -195,7 +205,8 @@ public class CmdbAutoConfiguration {
             cmdbLongTermThreadPoolExecutor,
             meterRegistry,
             flowControllerProvider,
-            tenantEnvService
+            tenantEnvService,
+            virtualAdminAccountProvider
         );
     }
 
@@ -208,7 +219,8 @@ public class CmdbAutoConfiguration {
                                                 ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
                                                 MeterRegistry meterRegistry,
                                                 ObjectProvider<FlowController> flowControllerProvider,
-                                                TenantEnvService tenantEnvService) {
+                                                TenantEnvService tenantEnvService,
+                                                IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         return new MockBizCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -218,7 +230,8 @@ public class CmdbAutoConfiguration {
             cmdbLongTermThreadPoolExecutor,
             meterRegistry,
             flowControllerProvider,
-            tenantEnvService
+            tenantEnvService,
+            virtualAdminAccountProvider
         );
     }
 
