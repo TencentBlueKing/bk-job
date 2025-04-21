@@ -270,11 +270,7 @@ Return the MariaDB jdbc connection ssl properties
 */}}
 {{- define "job.mariadb.ssl.properties" -}}
 {{- if .Values.tls.mariadb.enabled -}}
-    {{- if hasKey .Values "tls.mariadb.properties" -}}
-        {{- printf "&%s" .Values.tls.mariadb.properties -}}
-    {{- else -}}
-        {{- printf "&useSSL=true&requireSSL=true&verifyServerCertificate=true&sslMode=VERIFY_CA&sslCa=/data/certs/ca/mysql-ca.pem" -}}
-    {{- end -}}
+    {{- printf "&%s" .Values.tls.mariadb.properties -}}
 {{- else -}}
     {{- printf "" -}}
 {{- end -}}

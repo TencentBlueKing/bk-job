@@ -136,6 +136,9 @@ spec:
             - name: mysql-ts
               mountPath: /etc/certs/mysql
               readOnly: true
+            - name: mongodb-ca
+              mountPath: /etc/certs/mongodb
+              readOnly: true
       terminationGracePeriodSeconds: 120
       volumes:
         {{- if .Values.crontabConfig.database.host }}
@@ -178,4 +181,7 @@ spec:
         - name: mysql-ts
           secret:
             secretName: mysql-truststore
+        - name: mongodb-ca
+          secret:
+            secretName: mongodb-certificates
 {{- end }}

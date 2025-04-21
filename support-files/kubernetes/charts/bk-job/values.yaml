@@ -353,7 +353,20 @@ externalMongoDB:
 tls:
   mariadb:
     enabled: false
-    properties: useSSL=true&requireSSL=true&verifyServerCertificate=true&sslMode=VERIFY_CA&sslCa=/data/certs/ca/mysql-ca.pem
+    properties: useSSL=true&requireSSL=true&verifyServerCertificate=true&sslMode=VERIFY_CA&trustCertificateKeyStoreUrl=file:/etc/certs/mysql/ca.jks&trustCertificateKeyStorePassword=defaultPass
+  ## 使用ssl连接mongodb的配置项
+  mongodb:
+    enabled: false
+    ## 单向tls认证时需要
+    trustStore: /etc/certs/mongodb/ca.jks
+    trustStorePassword: password
+    trustStoreType: JKS
+    invalidHostnameAllowed: false
+    ## 双向tls认证时必须提供
+    keyStore: ""
+    keyStorePassword: ""
+    keyStoreType: ""
+    keyPassword: ""
 
 ## ServiceMonitor configuration
 ##
