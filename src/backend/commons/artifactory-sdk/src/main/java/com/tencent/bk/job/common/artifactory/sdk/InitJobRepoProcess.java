@@ -25,7 +25,6 @@
 package com.tencent.bk.job.common.artifactory.sdk;
 
 import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
-import com.tencent.bk.job.common.constant.JobConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 

@@ -41,8 +41,8 @@ import com.tencent.bk.job.backup.service.ScriptService;
 import com.tencent.bk.job.backup.service.StorageService;
 import com.tencent.bk.job.backup.service.TaskPlanService;
 import com.tencent.bk.job.backup.service.TaskTemplateService;
-import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
@@ -108,7 +108,7 @@ public class ExportJobExecutor {
     private final StorageService storageService;
     private final MessageI18nService i18nService;
     private final ArtifactoryClient artifactoryClient;
-    private final ArtifactoryConfig artifactoryConfig;
+    private final ArtifactoryHelper artifactoryHelper;
     private final BackupStorageConfig backupStorageConfig;
     private final LocalFileConfigForBackup localFileConfig;
     private final BackupFileCryptoService backupFileCryptoService;
@@ -123,7 +123,7 @@ public class ExportJobExecutor {
                              StorageService storageService,
                              MessageI18nService i18nService,
                              ArtifactoryClient artifactoryClient,
-                             ArtifactoryConfig artifactoryConfig,
+                             ArtifactoryHelper artifactoryHelper,
                              BackupStorageConfig backupStorageConfig,
                              LocalFileConfigForBackup localFileConfig,
                              BackupFileCryptoService backupFileCryptoService) {
@@ -136,7 +136,7 @@ public class ExportJobExecutor {
         this.storageService = storageService;
         this.i18nService = i18nService;
         this.artifactoryClient = artifactoryClient;
-        this.artifactoryConfig = artifactoryConfig;
+        this.artifactoryHelper = artifactoryHelper;
         this.backupStorageConfig = backupStorageConfig;
         this.localFileConfig = localFileConfig;
         this.backupFileCryptoService = backupFileCryptoService;
@@ -171,7 +171,7 @@ public class ExportJobExecutor {
 
     private void saveToArtifactory(String fileName) {
         String fullPath = storageService.getStoragePath().concat(fileName);
-        String project = artifactoryConfig.getArtifactoryJobProject();
+        String project = artifactoryHelper.getJobRealProject();
         String repo = backupStorageConfig.getBackupRepo();
         File file = new File(fullPath);
         artifactoryClient.uploadGenericFile(project, repo, fileName, file);
