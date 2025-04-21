@@ -181,4 +181,5 @@ data:
         # JVM诊断文件保留的小时数，默认168小时（7天）
         keep-hours: {{ .Values.jvmDiagnosticFile.clearByLastModifyTime.keepHours }}
     tls:
+      # 依赖组件使用ssl的配置
       {{- toYaml .Values.tls | nindent 8 }}

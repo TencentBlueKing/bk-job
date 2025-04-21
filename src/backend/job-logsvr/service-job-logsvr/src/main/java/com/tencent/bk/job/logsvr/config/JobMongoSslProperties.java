@@ -31,7 +31,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
 @ConfigurationProperties(prefix = "tls.mongodb")
-@Configuration
 @Getter
 @Setter
 public class JobMongoSslProperties {
