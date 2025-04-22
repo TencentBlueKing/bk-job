@@ -222,7 +222,7 @@
               appLogo: '/static/images/logo.png',
               brandName: '蓝鲸智云',
               brandNameEn: 'Tencent BlueKing',
-              favicon: '/static/images/favicon.icon',
+              favicon: '/static/images/favicon.ico',
               productName: '作业平台', // 产品名称，展示在logo区域 1.0.5版本新增
               productNameEn: 'JOB',
               version: process.env.JOB_VERSION,
