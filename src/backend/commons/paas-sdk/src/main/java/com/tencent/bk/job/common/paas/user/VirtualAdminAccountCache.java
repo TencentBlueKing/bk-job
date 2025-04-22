@@ -84,7 +84,7 @@ public class VirtualAdminAccountCache implements IVirtualAdminAccountProvider {
     }
 
     private String getVirtualAdminFromApi(String tenantId) {
-        List<SimpleUserInfo> virtualUserList = userApiClient.batchGetLVirtualUserByLoginName(
+        List<SimpleUserInfo> virtualUserList = userApiClient.batchGetVirtualUserByLoginName(
             tenantId,
             BK_VIRTUAL_LOGIN_NAME_ADMIN);
         if (virtualUserList == null

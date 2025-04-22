@@ -112,7 +112,7 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
      * 获取指定租户下的虚拟账号（admin）的bk_username
      */
     @Override
-    public List<SimpleUserInfo> batchGetLVirtualUserByLoginName(String tenantId, String loginName) {
+    public List<SimpleUserInfo> batchGetVirtualUserByLoginName(String tenantId, String loginName) {
         OpenApiResponse<List<SimpleUserInfo>> resp = requestBkUserApi(
             "batch_lookup_virtual_user",
             OpenApiRequestInfo

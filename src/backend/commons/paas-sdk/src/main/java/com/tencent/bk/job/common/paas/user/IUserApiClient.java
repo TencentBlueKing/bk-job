@@ -36,7 +36,7 @@ public interface IUserApiClient {
 
     public SimpleUserInfo getUserByUsername(String tenantId, String username);
 
-    public List<SimpleUserInfo> batchGetLVirtualUserByLoginName(String tenantId, String loginName);
+    public List<SimpleUserInfo> batchGetVirtualUserByLoginName(String tenantId, String loginName);
 
     List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames);
 
