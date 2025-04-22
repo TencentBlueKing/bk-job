@@ -37,7 +37,6 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.notice.config.BkNoticeProperties;
 import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 import com.tencent.bk.job.common.paas.user.IUserApiClient;
-import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -571,7 +570,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             NotifyConsts.SEPERATOR_COMMA);
         Set<String> receiverSet = new HashSet<>(receiverList);
         notifySendService.sendUserChannelNotify(
-            null,
             receiverSet,
             req.getChannelCode(),
             req.getTitle(),

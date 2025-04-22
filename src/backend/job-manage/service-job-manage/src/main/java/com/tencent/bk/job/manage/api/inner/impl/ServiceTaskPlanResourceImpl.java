@@ -227,8 +227,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
         Long lastModifyTime,
         String lastModifyUser
     ) {
-        User user = userLocalCache.getUser(
-            tenantService.getTenantIdByAppId(appId), username);
+        User user = userLocalCache.getUser(tenantService.getTenantIdByAppId(appId), username);
         return InternalResponse.buildSuccessResp(taskPlanService.saveTaskPlanForMigration(user, appId, templateId,
             planId, createTime, lastModifyTime, lastModifyUser));
     }

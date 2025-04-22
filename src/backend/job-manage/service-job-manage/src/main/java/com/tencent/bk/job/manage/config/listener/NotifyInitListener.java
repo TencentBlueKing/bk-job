@@ -152,7 +152,7 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
             globalSettingsService.setNotifyChannelConfiged(tenantId);
             availableEsbChannelDAO.deleteAllChannelsByTenantId(tenantId);
             for (EsbNotifyChannelDTO esbNotifyChannelDTO : esbNotifyChannelDTOList) {
-                if (!esbNotifyChannelDTO.isActive()) {
+                if (!esbNotifyChannelDTO.isEnabled()) {
                     continue;
                 }
                 availableEsbChannelDAO.insertAvailableEsbChannel(

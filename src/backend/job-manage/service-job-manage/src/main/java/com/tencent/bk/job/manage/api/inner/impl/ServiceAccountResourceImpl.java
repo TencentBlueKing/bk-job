@@ -185,8 +185,7 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
                                       Long appId,
                                       AccountCreateUpdateReq accountCreateUpdateReq) {
         AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, null, null);
-        User user = userLocalCache.getUser(
-            tenantService.getTenantIdByAppId(appId), username);
+        User user = userLocalCache.getUser(tenantService.getTenantIdByAppId(appId), username);
         AuthResult authResult = accountAuthService.authCreateAccount(user, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);

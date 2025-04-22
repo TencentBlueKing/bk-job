@@ -11,7 +11,7 @@ bkUserWebApiGatewayUrl: "http://bkapi.example.com/api/bk-user-web"
 # 蓝鲸权限中心 API Gateway url
 bkIamApiGatewayUrl: "http://bkapi.example.com/api/bk-iam"
 # 消息通知 API Gateway url
-bkCmsiApiGatewayUrl: "http://bkapi.example.com/api/cmsi
+bkCmsiApiGatewayUrl: "http://bkapi.example.com/api/cmsi"
 ```
 
 2. 新增租户配置

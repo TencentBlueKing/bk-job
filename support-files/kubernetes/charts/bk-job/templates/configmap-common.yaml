@@ -173,4 +173,4 @@ data:
       {{- toYaml .Values.mockApi | nindent 6 }}
     # # 调用蓝鲸系统时，使用虚拟账号 bk_admin 的 username
     virtualAccount:
-      useAdminUsername: {{ .Values.virtualAccount.useAdminUsername }}
+      useAdminUsername: {{ .Values.virtualAccount.queryAdminUsername }}

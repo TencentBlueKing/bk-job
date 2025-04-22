@@ -60,8 +60,30 @@ public class WatchableSendMsgService {
     }
 
     @EsbApiTimed
-    public void sendMsg(
+    public void sendMsgWithApp(
         Long appId,
+        long createTimeMillis,
+        String msgType,
+        String sender,
+        Set<String> receivers,
+        String title,
+        String content
+    ) {
+        String sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_FAILED;
+        try {
+            NotifyMessageDTO notifyMessageDTO = buildNotifyMessage(sender, receivers, title, content);
+            beginSendMessage(
+                msgType,
+                notifyMessageDTO,
+                tenantService.getTenantIdByAppId(appId)
+            );
+            sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
+        } finally {
+            recordMetrics(createTimeMillis, msgType, sendStatus, appId);
+        }
+    }
+
+    public void sendMsgWithCurrentTenant(
         String tenantId,
         long createTimeMillis,
         String msgType,
@@ -72,28 +94,49 @@ public class WatchableSendMsgService {
     ) {
         String sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_FAILED;
         try {
-            NotifyMessageDTO notifyMessageDTO = new NotifyMessageDTO();
-            notifyMessageDTO.setTitle(title);
-            notifyMessageDTO.setContent(content);
-            notifyMessageDTO.setSender(sender);
-            notifyMessageDTO.setReceiverUsername(new ArrayList<>(receivers));
-            cmsiApiClient.sendMsg(
+            NotifyMessageDTO notifyMessageDTO = buildNotifyMessage(sender, receivers, title, content);
+            beginSendMessage(
                 msgType,
                 notifyMessageDTO,
-                appId == null ? tenantId : tenantService.getTenantIdByAppId(appId)
+                tenantId
             );
             sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
         } finally {
-            long delayMillis = System.currentTimeMillis() - createTimeMillis;
-            Tags tags = Tags.of(MetricsConstants.TAG_KEY_MSG_TYPE, msgType);
-            tags = tags.and(MetricsConstants.TAG_KEY_SEND_STATUS, sendStatus);
-            tags = tags.and(MetricsConstants.TAG_KEY_APP_ID, buildAppIdStr(appId));
-            recordSendMsgDelay(delayMillis, tags);
+            recordMetrics(createTimeMillis, msgType, sendStatus, null);
         }
+
+    }
+
+    private void beginSendMessage(String msgType, NotifyMessageDTO notifyMessageDTO, String tenantId) {
+        cmsiApiClient.sendMsg(
+            msgType,
+            notifyMessageDTO,
+            tenantId
+        );
+    }
+
+    private NotifyMessageDTO buildNotifyMessage(String sender,
+                                    Set<String> receivers,
+                                    String title,
+                                    String content) {
+        NotifyMessageDTO notifyMessageDTO = new NotifyMessageDTO();
+        notifyMessageDTO.setTitle(title);
+        notifyMessageDTO.setContent(content);
+        notifyMessageDTO.setSender(sender);
+        notifyMessageDTO.setReceiverUsername(new ArrayList<>(receivers));
+        return notifyMessageDTO;
     }
 
     private String buildAppIdStr(Long appId) {
         return appId == null ? MetricsConstants.TAG_VALUE_APP_ID_NULL : appId.toString();
+    }
+
+    private void recordMetrics(Long createTimeMillis, String msgType, String sendStatus, Long appId) {
+        long delayMillis = System.currentTimeMillis() - createTimeMillis;
+        Tags tags = Tags.of(MetricsConstants.TAG_KEY_MSG_TYPE, msgType);
+        tags = tags.and(MetricsConstants.TAG_KEY_SEND_STATUS, sendStatus);
+        tags = tags.and(MetricsConstants.TAG_KEY_APP_ID, buildAppIdStr(appId));
+        recordSendMsgDelay(delayMillis, tags);
     }
 
     private void recordSendMsgDelay(long delayMillis, Iterable<Tag> tags) {

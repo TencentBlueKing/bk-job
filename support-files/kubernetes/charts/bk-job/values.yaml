@@ -1865,5 +1865,5 @@ podTerminationGracePeriodSeconds: 60
 tenant:
   enabled: false
 virtualAccount:
-  useAdminUsername: false
+  queryAdminUsername: false
 

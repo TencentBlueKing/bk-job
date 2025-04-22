@@ -49,7 +49,7 @@ public class EsbNotifyChannelDTO {
      * 该租户内是否支持
      */
     @JsonProperty("enabled")
-    private boolean isActive;
+    private boolean enabled;
     /**
      * 渠道图标Base64编码
      */

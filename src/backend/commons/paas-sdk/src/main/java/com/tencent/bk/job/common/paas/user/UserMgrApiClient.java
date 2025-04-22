@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.paas.user;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
@@ -86,12 +87,6 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
             appProperties.getSecret());
     }
 
-    @Override
-    public List<BkUserDTO> getAllUserList(String tenantId) {
-        // TODO:tenant 网关暂未提供实现
-        return Collections.emptyList();
-    }
-
     /**
      * 获取全量租户
      */
@@ -117,7 +112,7 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
      * 获取指定租户下的虚拟账号（admin）的bk_username
      */
     @Override
-    public List<SimpleUserInfo> getLVirtualUserByLoginName(String tenantId, String loginName) {
+    public List<SimpleUserInfo> batchGetLVirtualUserByLoginName(String tenantId, String loginName) {
         OpenApiResponse<List<SimpleUserInfo>> resp = requestBkUserApi(
             "batch_lookup_virtual_user",
             OpenApiRequestInfo
@@ -165,19 +160,14 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
         return users.get(0);
     }
 
-    @Override
-    public Map<String, SimpleUserInfo> listUsersByUsernames(Collection<String> usernames) {
-        // TODO:tenant 网关暂未提供实现
-        return new HashMap<>();
-    }
-
     /**
      * 通过指定的username查出对应的用户信息
      */
     @Override
     public List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames) {
         List<SimpleUserInfo> userResult = new ArrayList<>();
-        List<List<String>> userPages = splitUserList(usernames, MAX_QUERY_BATCH_SIZE);
+        List<String> usernameList = new ArrayList<>(usernames);
+        List<List<String>> userPages = Lists.partition(usernameList, MAX_QUERY_BATCH_SIZE);
         for (List<String> userPage : userPages) {
             List<SimpleUserInfo> userInfos = listUsersByPages(tenantId, userPage);
             if (CollectionUtils.isNotEmpty(userInfos)) {
@@ -203,14 +193,4 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
         return resp.getData();
     }
 
-    private List<List<String>> splitUserList(Collection<String> usernames, int chunkSize) {
-        List<String> list = new ArrayList<>(usernames);
-        List<List<String>> partitions = new ArrayList<>();
-
-        for (int i = 0; i < list.size(); i += chunkSize) {
-            partitions.add(new ArrayList<>(list.subList(i, Math.min(i + chunkSize, list.size()))));
-        }
-
-        return partitions;
-    }
 }

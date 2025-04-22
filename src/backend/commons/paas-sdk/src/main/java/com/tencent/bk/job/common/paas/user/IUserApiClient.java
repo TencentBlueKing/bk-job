@@ -24,25 +24,19 @@
 
 package com.tencent.bk.job.common.paas.user;
 
-import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
 import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 public interface IUserApiClient {
-
-    public List<BkUserDTO> getAllUserList(String tenantId);
 
     public List<OpenApiTenant> listAllTenant();
 
     public SimpleUserInfo getUserByUsername(String tenantId, String username);
 
-    public Map<String, SimpleUserInfo> listUsersByUsernames(Collection<String> usernames);
-
-    public List<SimpleUserInfo> getLVirtualUserByLoginName(String tenantId, String loginName);
+    public List<SimpleUserInfo> batchGetLVirtualUserByLoginName(String tenantId, String loginName);
 
     List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames);
 

@@ -26,10 +26,8 @@ package com.tencent.bk.job.common.iam.config;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
-import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.client.ApiGwIamClient;
-import com.tencent.bk.job.common.iam.client.EsbIamClient;
 import com.tencent.bk.job.common.iam.client.IIamClient;
 import com.tencent.bk.job.common.iam.mock.MockIamClient;
 import com.tencent.bk.job.common.iam.http.IamHttpClientServiceImpl;
@@ -58,7 +56,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 
 @Import({IamAspectConfiguration.class, IamInterceptorConfiguration.class})
 @EnableConfigurationProperties(JobIamProperties.class)
@@ -133,23 +130,7 @@ public class IamAutoConfiguration {
         );
     }
 
-    @Bean
-    @ConditionalOnMockIamApiDisabled
-    public IIamClient esbIamClient(MeterRegistry meterRegistry,
-                                   IamConfiguration iamConfiguration,
-                                   EsbProperties esbProperties,
-                                   TenantEnvService tenantEnvService,
-                                   IVirtualAdminAccountProvider virtualAdminAccountProvider) {
-        return new EsbIamClient(
-            meterRegistry,
-            new AppProperties(iamConfiguration.getAppCode(), iamConfiguration.getAppSecret()),
-            esbProperties,
-            tenantEnvService,
-            virtualAdminAccountProvider
-        );
-    }
 
-    @Primary
     @Bean
     @ConditionalOnMockIamApiDisabled
     public IIamClient apiGwIamClient(MeterRegistry meterRegistry,

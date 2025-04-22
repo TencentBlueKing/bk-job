@@ -38,7 +38,7 @@ import java.lang.annotation.Target;
 @Documented
 @Inherited
 @ConditionalOnProperty(
-    value = "virtualAccount.useAdminUsername",
+    value = "virtualAccount.queryAdminUsername",
     havingValue = "false",
     matchIfMissing = true
 )

@@ -103,9 +103,8 @@ public class SendNotifyTask implements Runnable {
         while (!result && count < NOTIFY_MAX_RETRY_COUNT) {
             count += 1;
             try {
-                watchableSendMsgService.sendMsg(
+                watchableSendMsgService.sendMsgWithApp(
                     appId,
-                    null,
                     createTimeMillis,
                     msgType,
                     sender,

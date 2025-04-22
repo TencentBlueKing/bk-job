@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
-import com.tencent.bk.job.manage.service.UserCacheService;
 import com.tencent.bk.job.manage.service.impl.WatchableSendMsgService;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -117,8 +116,7 @@ public class NotifySendService {
         notifySendExecutor.submit(buildSendTask(appId, receivers, channel, title, content));
     }
 
-    public void sendUserChannelNotify(Long appId,
-                                      Set<String> receivers,
+    public void sendUserChannelNotify(Set<String> receivers,
                                       String channel,
                                       String title,
                                       String content) {
@@ -126,8 +124,7 @@ public class NotifySendService {
             log.warn("receivers is empty of channel {}, do not send notification", channel);
             return;
         }
-        watchableSendMsgService.sendMsg(
-            appId,
+        watchableSendMsgService.sendMsgWithCurrentTenant(
             JobContextUtil.getTenantId(),
             System.currentTimeMillis(),
             channel,
