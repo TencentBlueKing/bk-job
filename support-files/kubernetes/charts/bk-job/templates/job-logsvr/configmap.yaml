@@ -42,4 +42,8 @@ data:
             enabled: {{ include "job.mongodb.useShardingCluster" . }}
     server:
       port: {{ .Values.logsvrConfig.containerPort }}
+    tls:
+      # 依赖组件使用ssl的配置
+      mongodb:
+        {{- toYaml .Values.tls.mongodb | nindent 8 }}
 {{- end }}
