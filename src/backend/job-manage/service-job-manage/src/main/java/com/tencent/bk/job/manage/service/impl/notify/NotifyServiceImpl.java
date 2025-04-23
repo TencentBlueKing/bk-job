@@ -724,7 +724,12 @@ public class NotifyServiceImpl implements NotifyService {
         Counter counter = new Counter();
         channelUsersMap.forEach((channel, userSet) -> {
             if (!availableChannelTypeList.contains(channel)) {
-                log.error(String.format("channel %s is not available, not notified, please contack admin", channel));
+                log.error(
+                    String.format("channel %s of tenant %s is not available, not notified, please contact admin",
+                        channel,
+                        tenantId
+                    )
+                );
             } else {
                 String templateCode = triggerTemplateNotification.getTemplateCode();
                 Map<String, String> variablesMap = triggerTemplateNotification.getVariablesMap();

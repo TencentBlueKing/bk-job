@@ -35,6 +35,8 @@ import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.notice.config.BkNoticeProperties;
+import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
+import com.tencent.bk.job.common.paas.user.IUserApiClient;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -83,7 +85,6 @@ import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDe
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TemplateBasicInfo;
-import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import com.tencent.bk.job.manage.service.NotifyService;
 import com.tencent.bk.job.manage.service.globalsetting.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.impl.notify.NotifySendService;
@@ -130,6 +131,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private final BkApiGatewayProperties bkApiGatewayProperties;
     private final NotifyTemplateConverter notifyTemplateConverter;
     private final BuildProperties buildProperties;
+    private final IUserApiClient userApiClient;
     @Value("${job.manage.upload.filesize.max:5GB}")
     private String configedMaxFileSize;
 
@@ -147,7 +149,8 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                                      BkNoticeProperties bkNoticeProperties,
                                      BkApiGatewayProperties bkApiGatewayProperties,
                                      NotifyTemplateConverter notifyTemplateConverter,
-                                     BuildProperties buildProperties) {
+                                     BuildProperties buildProperties,
+                                     IUserApiClient userApiClient) {
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyService = notifyService;
@@ -162,6 +165,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         this.bkApiGatewayProperties = bkApiGatewayProperties;
         this.notifyTemplateConverter = notifyTemplateConverter;
         this.buildProperties = buildProperties;
+        this.userApiClient = userApiClient;
     }
 
     private static String removeSuffixBackSlash(String rawStr) {
@@ -217,7 +221,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         return allNotifyChannelList.stream().map(it -> {
             String icon = it.getIcon();
             String prefix = "data:image/png;base64,";
-            if (!icon.startsWith("data:image")) {
+            if (icon != null && !icon.startsWith("data:image")) {
                 icon = prefix + icon;
             }
             return new NotifyChannelWithIconVO(
@@ -236,12 +240,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     )
     public Integer setAvailableNotifyChannel(String username, SetAvailableNotifyChannelReq req) {
         return notifyService.setAvailableNotifyChannel(username, req);
-    }
-
-    @Override
-    public List<UserVO> listUsers(String username, String prefixStr, Long offset, Long limit) {
-        //这里就是要选择人来添加黑名单，故不排除已在黑名单内的人
-        return notifyUserService.listUsers(prefixStr, offset, limit, false);
     }
 
     @Override
@@ -518,6 +516,15 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         }
 
         String tenantId = JobContextUtil.getTenantId();
+        String creator = username;
+        List<SimpleUserInfo> operators = userApiClient.listUsersByUsernames(
+            tenantId,
+            Arrays.asList(username));
+        if (CollectionUtils.isNotEmpty(operators)
+            && operators.get(0) != null
+            && StringUtils.isNotBlank(operators.get(0).getDisplayName())) {
+            creator = operators.get(0).getDisplayName();
+        }
         NotifyTemplateDTO notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
             req.getChannelCode(),
             req.getMessageTypeCode(),
@@ -536,9 +543,9 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                 .titleEn(req.getTitle())
                 .contentEn(req.getContent())
                 .isDefault(false)
-                .creator(username)
+                .creator(creator)
                 .createTime(System.currentTimeMillis())
-                .lastModifyUser(username)
+                .lastModifyUser(creator)
                 .lastModifyTime(System.currentTimeMillis())
                 .tenantId(tenantId)
                 .build();
@@ -551,7 +558,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                 notifyTemplateDTO.setTitle(req.getTitle());
                 notifyTemplateDTO.setContent(req.getContent());
             }
-            notifyTemplateDTO.setLastModifyUser(username);
+            notifyTemplateDTO.setLastModifyUser(creator);
             notifyTemplateDTO.setLastModifyTime(System.currentTimeMillis());
             return notifyTemplateDAO.updateNotifyTemplateById(notifyTemplateDTO);
         }
@@ -563,7 +570,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             NotifyConsts.SEPERATOR_COMMA);
         Set<String> receiverSet = new HashSet<>(receiverList);
         notifySendService.sendUserChannelNotify(
-            null,
             receiverSet,
             req.getChannelCode(),
             req.getTitle(),
@@ -612,6 +618,9 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         }
         ChannelTemplateDetailVO currentChannelTemplateVO =
             notifyTemplateConverter.convertToChannelTemplateDetailVO(currentNotifyTemplateDTO);
+        if (defaultNotifyTemplateDTO != null) {
+            defaultNotifyTemplateDTO.setTenantId(tenantId);
+        }
         ChannelTemplateDetailVO defaultChannelTemplateVO =
             notifyTemplateConverter.convertToChannelTemplateDetailVO(defaultNotifyTemplateDTO);
         // 渠道下未配置模板则使用该渠道默认模板

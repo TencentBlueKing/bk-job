@@ -39,7 +39,6 @@ import org.springframework.stereotype.Component;
 @EnableScheduling
 public class ScheduledTasks {
 
-    private final UserSyncService userSyncService;
     private final AppSyncService appSyncService;
     private final AllTenantHostSyncService allTenantHostSyncService;
     private final AgentStatusSyncService agentStatusSyncService;
@@ -49,33 +48,18 @@ public class ScheduledTasks {
 
     @Autowired
     public ScheduledTasks(
-        UserSyncService userSyncService,
         AppSyncService appSyncService,
         AllTenantHostSyncService allTenantHostSyncService,
         AgentStatusSyncService agentStatusSyncService,
         UserUploadFileCleanTask userUploadFileCleanTask,
         ClearDeletedHostsTask clearDeletedHostsTask,
         ApplicationCache applicationCache) {
-        this.userSyncService = userSyncService;
         this.appSyncService = appSyncService;
         this.allTenantHostSyncService = allTenantHostSyncService;
         this.agentStatusSyncService = agentStatusSyncService;
         this.userUploadFileCleanTask = userUploadFileCleanTask;
         this.clearDeletedHostsTask = clearDeletedHostsTask;
         this.applicationCache = applicationCache;
-    }
-
-    /**
-     * 每间隔1h更新一次人员数据
-     */
-    @Scheduled(initialDelay = 2 * 1000, fixedDelay = 60 * 60 * 1000)
-    public void syncUser() {
-        log.info("syncUser");
-        try {
-            userSyncService.execute();
-        } catch (Exception e) {
-            log.error("syncUser fail", e);
-        }
     }
 
     /**

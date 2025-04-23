@@ -65,6 +65,11 @@ public class BkApiGatewayProperties {
      */
     private ApiGwConfig bkIam;
 
+    /**
+     * 消息通知相关配置
+     */
+    private ApiGwConfig cmsi;
+
     @Getter
     @Setter
     @ToString
