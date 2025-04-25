@@ -114,9 +114,7 @@ spec:
             - name: job-gse-tls-password
               mountPath: /etc/secrets
               readOnly: true
-            - name: mysql-ts
-              mountPath: /etc/certs/mysql
-              readOnly: true
+            {{- include "job.mariadb.certsVolumeMount" . | nindent 12 }}
       terminationGracePeriodSeconds: 120
       volumes:
         - name: distribute-volume
@@ -151,7 +149,5 @@ spec:
                 path: gse.keystore.password
               - key: gse.truststore.password
                 path: gse.truststore.password
-        - name: mysql-ts
-          secret:
-            secretName: mysql-truststore
+        {{- include "job.mariadb.certsVolume" . | nindent 8 }}
 {{- end }}

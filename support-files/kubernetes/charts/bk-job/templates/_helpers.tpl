@@ -269,10 +269,10 @@ Return the MariaDB jdbc connection url base properties (without ssl config)
 Return the MariaDB jdbc connection ssl properties
 */}}
 {{- define "job.mariadb.ssl.properties" -}}
-{{- if .Values.tls.mariadb.enabled -}}
-    {{- printf "&%s" .Values.tls.mariadb.properties -}}
-{{- else -}}
+{{- if or (.Values.mariadb.enabled) (not .Values.externalMariaDB.tls.enabled) }}
     {{- printf "" -}}
+{{- else -}}
+    {{- printf "&useSSL=true&requireSSL=true&verifyServerCertificate=true&sslMode=VERIFY_CA&trustCertificateKeyStoreType=%s&trustCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&trustCertificateKeyStorePassword=%s" .Values.externalMariaDB.tls.trustStoreType .Values.externalMariaDB.tls.trustStoreFilename .Values.externalMariaDB.tls.trustStorePassword -}}
 {{- end -}}
 {{- end -}}
 
@@ -540,6 +540,28 @@ Return whether the mongodb is sharded
 {{- end -}}
 
 {{/*
+Return the mongodb tls config
+*/}}
+{{- define "job.mongodb.tls" -}}
+{{- if .Values.mongodb.enabled -}}
+enabled: false
+{{- else -}}
+enabled: {{ .Values.externalMongoDB.tls.enabled }}
+{{- end }}
+trustStoreType: {{ .Values.externalMongoDB.tls.trustStoreType }}
+trustStore: /etc/certs/mongodb/{{ .Values.externalMongoDB.tls.trustStoreFilename }}
+trustStorePassword: {{ .Values.externalMongoDB.tls.trustStorePassword }}
+keyStoreType: {{ .Values.externalMongoDB.tls.keyStoreType }}
+{{- if .Values.externalMongoDB.tls.keyStoreFilename }}
+keyStore: /etc/certs/mongodb/{{ .Values.externalMongoDB.tls.keyStoreFilename }}
+{{- end }}
+{{- if .Values.externalMongoDB.tls.keyStorePassword }}
+keyStorePassword: {{ .Values.externalMongoDB.tls.keyStorePassword }}
+{{- end }}
+invalidHostnameAllowed: {{ .Values.externalMongoDB.tls.invalidHostnameAllowed }}
+{{- end -}}
+
+{{/*
 Return the Job Profile
 */}}
 {{- define "job.profile" -}}
@@ -803,4 +825,48 @@ password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-pass
 password: ${mariadb-password}
     {{- end }}
 {{- end }}
+{{- end -}}
+
+{{/*
+Return the MariaDB certs volumeMount
+*/}}
+{{- define "job.mariadb.certsVolumeMount" -}}
+{{- if and (not .Values.mariadb.enabled) (.Values.externalMariaDB.tls.enabled) -}}
+- name: mariadb-certs
+  mountPath: /etc/certs/mariadb
+  readOnly: true
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the MariaDB certs volume
+*/}}
+{{- define "job.mariadb.certsVolume" -}}
+{{- if and (not .Values.mariadb.enabled) (.Values.externalMariaDB.tls.enabled) -}}
+- name: mariadb-certs
+  secret:
+    secretName: {{ .Values.externalMariaDB.tls.existingSecret }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the MongoDB certs volumeMount
+*/}}
+{{- define "job.mongodb.certsVolumeMount" -}}
+{{- if and (not .Values.mongodb.enabled) (.Values.externalMongoDB.tls.enabled) -}}
+- name: mongodb-certs
+  mountPath: /etc/certs/mongodb
+  readOnly: true
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the MongoDB certs volume
+*/}}
+{{- define "job.mongodb.certsVolume" -}}
+{{- if and (not .Values.mongodb.enabled) (.Values.externalMongoDB.tls.enabled) -}}
+- name: mongodb-certs
+  secret:
+    secretName: {{ .Values.externalMongoDB.tls.existingSecret }}
+{{- end -}}
 {{- end -}}

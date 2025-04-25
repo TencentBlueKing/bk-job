@@ -105,9 +105,7 @@ spec:
             - name: redis
               mountPath: /etc/secrets/redis
               readOnly: true
-            - name: mysql-ts
-              mountPath: /etc/certs/mysql
-              readOnly: true
+            {{- include "job.mariadb.certsVolumeMount" . | nindent 12 }}
       volumes:
         - name: job-storage
           persistentVolumeClaim:
@@ -127,7 +125,5 @@ spec:
         - name: redis
           secret:
             secretName: {{ include "job.redis.secretName" . }}
-        - name: mysql-ts
-          secret:
-            secretName: mysql-truststore
+        {{- include "job.mariadb.certsVolume" . | nindent 8 }}
 {{- end }}

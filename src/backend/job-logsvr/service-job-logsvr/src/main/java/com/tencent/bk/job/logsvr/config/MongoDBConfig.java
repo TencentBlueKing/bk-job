@@ -153,7 +153,7 @@ public class MongoDBConfig {
             keyStore.load(fis, sslProps.getKeyStorePassword().toCharArray());
         }
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        kmf.init(keyStore, sslProps.getKeyPassword().toCharArray());
+        kmf.init(keyStore, sslProps.getKeyStorePassword().toCharArray());
         return kmf.getKeyManagers();
     }
 }

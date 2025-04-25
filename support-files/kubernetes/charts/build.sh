@@ -95,8 +95,9 @@ sed -i "s/{{CHART_VERSION}}/${VERSION}/g" "${WORKING_DIR}/bk-job/Chart.yaml"
 sed -i "s/{{APP_VERSION}}/${APP_VERSION}/g" "${WORKING_DIR}/bk-job/Chart.yaml"
 sed -i "s/{{APP_VERSION}}/${APP_VERSION}/g" "${WORKING_DIR}/bk-job/values.yaml"
 
-helm package bkjob --version $VERSION --app-version $APP_VERSION
+helm dependency update bk-job
+helm package bk-job --version $VERSION --app-version $APP_VERSION
 if [[ $PUSH -eq 1 ]] ; then
-    helm push bkjob-$VERSION.tgz $REGISTRY -f --username $USERNAME --password $PASSWORD
+    helm push bk-job-$VERSION.tgz $REGISTRY -f --username $USERNAME --password $PASSWORD
 fi
 log "BUILD SUCCESSFUL!"

@@ -43,7 +43,7 @@ data:
     server:
       port: {{ .Values.logsvrConfig.containerPort }}
     tls:
-      # 依赖组件使用ssl的配置
+      # 连接MongoDB使用的TLS配置
       mongodb:
-        {{- toYaml .Values.tls.mongodb | nindent 8 }}
+        {{- include "job.mongodb.tls" . | nindent 8 }}
 {{- end }}

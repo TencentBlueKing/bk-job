@@ -153,7 +153,26 @@ externalMariaDB:
   ## JDBC Connection properties
   connection:
     properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
-
+  ## TLS相关配置
+  tls :
+    ## 是否开启tls认证
+    enabled : false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret : ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    trustStoreType : "PKCS12"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename : "truststore.p12"
+    ## 信任库密码
+    trustStorePassword : ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    keyStoreType : "PKCS12"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
 
 ## Redis chart configuration
 ## https://github.com/bitnami/charts/blob/master/bitnami/redis/values.yaml
@@ -349,24 +368,28 @@ externalMongoDB:
   ## Reference documents https://docs.mongodb.com/manual/reference/connection-string/
   ##
   uri: ""
-
-tls:
-  mariadb:
-    enabled: false
-    properties: useSSL=true&requireSSL=true&verifyServerCertificate=true&sslMode=VERIFY_CA&trustCertificateKeyStoreUrl=file:/etc/certs/mysql/ca.jks&trustCertificateKeyStorePassword=defaultPass
-  ## 使用ssl连接mongodb的配置项
-  mongodb:
-    enabled: false
-    ## 单向tls认证时需要
-    trustStore: /etc/certs/mongodb/ca.jks
-    trustStorePassword: password
-    trustStoreType: JKS
-    invalidHostnameAllowed: false
-    ## 双向tls认证时必须提供
-    keyStore: ""
+  ## TLS相关配置
+  tls :
+    ## 是否开启tls认证
+    enabled : false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret : ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    trustStoreType : "PKCS12"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename : "truststore.p12"
+    ## 信任库密码
+    trustStorePassword : ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    keyStoreType : "PKCS12"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
     keyStorePassword: ""
-    keyStoreType: ""
-    keyPassword: ""
+    ## 是否允许无效主机名
+    invalidHostnameAllowed: false
 
 ## ServiceMonitor configuration
 ##
