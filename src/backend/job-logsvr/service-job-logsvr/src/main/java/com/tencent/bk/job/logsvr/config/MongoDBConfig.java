@@ -72,7 +72,7 @@ public class MongoDBConfig {
             if (jobMongoSslProperties.isEnabled()) {
                 clientSettingsBuilder.applyToSslSettings(ssl -> {
                     ssl.enabled(true);
-                    ssl.invalidHostNameAllowed(jobMongoSslProperties.isInvalidHostnameAllowed());
+                    ssl.invalidHostNameAllowed(!jobMongoSslProperties.isVerifyHostname());
 
                     try {
                         // 根据配置判断使用单向还是双向TLS

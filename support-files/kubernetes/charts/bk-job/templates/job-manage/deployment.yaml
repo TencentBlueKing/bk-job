@@ -108,6 +108,7 @@ spec:
               mountPath: /etc/secrets
               readOnly: true
             {{- include "job.mariadb.certsVolumeMount" . | nindent 12 }}
+            {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
       volumes:
         - name: job-storage
           persistentVolumeClaim:
@@ -138,5 +139,6 @@ spec:
               - key: gse.truststore.password
                 path: gse.truststore.password
         {{- include "job.mariadb.certsVolume" . | nindent 8 }}
+        {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
 
 {{- end }}

@@ -70,9 +70,9 @@ public class JobMongoSslProperties {
     private String keyStorePassword;
 
     /**
-     * 是否允许无效主机名
+     * 是否校验主机名
      */
-    private boolean invalidHostnameAllowed = false;
+    private boolean verifyHostname = false;
 
     public boolean isMutualTlsConfigured() {
         return StringUtils.hasText(keyStore);

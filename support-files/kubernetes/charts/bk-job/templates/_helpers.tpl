@@ -447,6 +447,27 @@ Return the RabbitMQ vhost
 {{- end -}}
 {{- end -}}
 
+{{/*
+Return the RabbitMQ SSL Config
+*/}}
+{{- define "job.rabbitmq.sslConfig" -}}
+{{- if and (not .Values.rabbitmq.enabled) (.Values.externalRabbitMQ.tls.enabled) }}
+rabbitmq:
+  ssl:
+    enabled: {{ .Values.externalRabbitMQ.tls.enabled }}
+    trustStoreType: {{ .Values.externalRabbitMQ.tls.trustStoreType }}
+    trustStore: /etc/certs/rabbitmq/{{ .Values.externalRabbitMQ.tls.trustStoreFilename }}
+    trustStorePassword: {{ .Values.externalRabbitMQ.tls.trustStorePassword }}
+    keyStoreType: {{ .Values.externalRabbitMQ.tls.keyStoreType }}
+    {{- if .Values.externalRabbitMQ.tls.keyStoreFilename }}
+    keyStore: /etc/certs/mongodb/{{ .Values.externalRabbitMQ.tls.keyStoreFilename }}
+    {{- end }}
+    {{- if .Values.externalRabbitMQ.tls.keyStorePassword }}
+    keyStorePassword: {{ .Values.externalRabbitMQ.tls.keyStorePassword }}
+    {{- end }}
+    verifyHostname: {{ .Values.externalRabbitMQ.tls.verifyHostname }}
+{{- end -}}
+{{- end -}}
 
 {{/*
 Fully qualified app name for MongoDB
@@ -558,7 +579,7 @@ keyStore: /etc/certs/mongodb/{{ .Values.externalMongoDB.tls.keyStoreFilename }}
 {{- if .Values.externalMongoDB.tls.keyStorePassword }}
 keyStorePassword: {{ .Values.externalMongoDB.tls.keyStorePassword }}
 {{- end }}
-invalidHostnameAllowed: {{ .Values.externalMongoDB.tls.invalidHostnameAllowed }}
+verifyHostname: {{ .Values.externalMongoDB.tls.verifyHostname }}
 {{- end -}}
 
 {{/*
@@ -868,5 +889,27 @@ Return the MongoDB certs volume
 - name: mongodb-certs
   secret:
     secretName: {{ .Values.externalMongoDB.tls.existingSecret }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the RabbitMQ certs volumeMount
+*/}}
+{{- define "job.rabbitmq.certsVolumeMount" -}}
+{{- if and (not .Values.rabbitmq.enabled) (.Values.externalRabbitMQ.tls.enabled) -}}
+- name: rabbitmq-certs
+  mountPath: /etc/certs/rabbitmq
+  readOnly: true
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the RabbitMQ certs volume
+*/}}
+{{- define "job.rabbitmq.certsVolume" -}}
+{{- if and (not .Values.rabbitmq.enabled) (.Values.externalRabbitMQ.tls.enabled) -}}
+- name: rabbitmq-certs
+  secret:
+    secretName: {{ .Values.externalRabbitMQ.tls.existingSecret }}
 {{- end -}}
 {{- end -}}

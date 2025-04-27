@@ -135,6 +135,7 @@ spec:
               readOnly: true
             {{- include "job.mariadb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.mongodb.certsVolumeMount" . | nindent 12 }}
+            {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
       terminationGracePeriodSeconds: 120
       volumes:
         {{- if .Values.crontabConfig.database.host }}
@@ -176,4 +177,5 @@ spec:
                 path: gse.truststore.password
         {{- include "job.mariadb.certsVolume" . | nindent 8 }}
         {{- include "job.mongodb.certsVolume" . | nindent 8 }}
+        {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
 {{- end }}
