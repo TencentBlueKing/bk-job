@@ -22,21 +22,57 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.config;
+package com.tencent.bk.job.common.properties;
 
-import com.tencent.bk.job.common.properties.JobSslProperties;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
 
-@ConfigurationProperties(prefix = "tls")
 @Getter
 @Setter
-public class JobMongoSslProperties {
+public class JobSslProperties {
 
     /**
-     * mongodb的ssl配置
+     * 连接mongo是否启用ssl
      */
-    private JobSslProperties mongodb = new JobSslProperties();
+    private boolean enabled = false;
+
+    /**
+     * 信任库类型，默认PKCS12
+     */
+    private String trustStoreType = "PKCS12";
+
+    /**
+     * 信任库地址，暂时以文件形式（运维提供）
+     */
+    private String trustStore;
+
+    /**
+     * 信任库密码
+     */
+    private String trustStorePassword;
+
+    /**
+     * 客户端证书存储类型，默认PKCS12
+     */
+    private String keyStoreType = "PKCS12";
+
+    /**
+     * 客户端的证书地址，文件形式
+     */
+    private String keyStore;
+
+    /**
+     * 客户端证书存储密钥
+     */
+    private String keyStorePassword;
+
+    /**
+     * 是否校验主机名
+     */
+    private boolean verifyHostname = false;
+
+    public boolean isMutualTlsConfigured() {
+        return StringUtils.hasText(keyStore);
+    }
 }

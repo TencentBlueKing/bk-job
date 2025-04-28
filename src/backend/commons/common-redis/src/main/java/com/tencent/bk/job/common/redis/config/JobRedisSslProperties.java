@@ -22,21 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.config;
+package com.tencent.bk.job.common.redis.config;
 
 import com.tencent.bk.job.common.properties.JobSslProperties;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.util.StringUtils;
 
 @ConfigurationProperties(prefix = "tls")
 @Getter
 @Setter
-public class JobMongoSslProperties {
+public class JobRedisSslProperties {
 
     /**
-     * mongodb的ssl配置
+     * Redis的ssl配置
      */
-    private JobSslProperties mongodb = new JobSslProperties();
+    private JobSslProperties redis = new JobSslProperties();
 }

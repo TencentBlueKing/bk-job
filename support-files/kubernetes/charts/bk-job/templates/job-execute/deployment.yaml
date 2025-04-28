@@ -116,6 +116,7 @@ spec:
               readOnly: true
             {{- include "job.mariadb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
+            {{- include "job.redis.certsVolumeMount" . | nindent 12 }}
       terminationGracePeriodSeconds: 120
       volumes:
         - name: distribute-volume
@@ -152,4 +153,5 @@ spec:
                 path: gse.truststore.password
         {{- include "job.mariadb.certsVolume" . | nindent 8 }}
         {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
+        {{- include "job.redis.certsVolume" . | nindent 8 }}
 {{- end }}

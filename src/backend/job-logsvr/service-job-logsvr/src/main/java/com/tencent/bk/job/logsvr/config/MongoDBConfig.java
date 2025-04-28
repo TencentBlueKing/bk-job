@@ -30,6 +30,7 @@ import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
 import com.mongodb.connection.ConnectionPoolSettings;
 import com.mongodb.connection.SocketSettings;
+import com.tencent.bk.job.common.properties.JobSslProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.mongo.MongoClientSettingsBuilderCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -53,11 +54,15 @@ import java.util.concurrent.TimeUnit;
 @EnableConfigurationProperties({JobMongoSslProperties.class})
 public class MongoDBConfig {
     @Bean
-    public MongoClientSettingsBuilderCustomizer mongoClientCustomizer(JobMongoSslProperties jobMongoSslProperties) {
+    public MongoClientSettingsBuilderCustomizer mongoClientCustomizer(JobMongoSslProperties mongoSslProperties) {
         log.info("Init MongoClientSettingsBuilderCustomizer");
-        Block<SocketSettings.Builder> socketSettings = builder -> builder.connectTimeout(15, TimeUnit.SECONDS)
+        JobSslProperties jobMongoSslProperties = mongoSslProperties.getMongodb();
+        Block<SocketSettings.Builder> socketSettings = builder -> builder
+            .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS);
-        Block<ConnectionPoolSettings.Builder> connectionPoolSettings = builder -> builder.minSize(200).maxSize(500)
+        Block<ConnectionPoolSettings.Builder> connectionPoolSettings = builder -> builder
+            .minSize(200)
+            .maxSize(500)
             .maxConnectionLifeTime(0, TimeUnit.SECONDS)
             .maxConnectionIdleTime(0, TimeUnit.SECONDS);
         return clientSettingsBuilder -> {
@@ -103,11 +108,11 @@ public class MongoDBConfig {
     /**
      * 创建单向TLS的SSLContext
      */
-    private SSLContext createOnewayTlsSslContext(JobMongoSslProperties sslProps) throws Exception {
+    private SSLContext createOnewayTlsSslContext(JobSslProperties sslProps) throws Exception {
         TrustManager[] trustManagers = getTrustManagers(sslProps);
 
         SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, trustManagers , new SecureRandom());
+        sslContext.init(null, trustManagers, new SecureRandom());
 
         return sslContext;
     }
@@ -115,7 +120,7 @@ public class MongoDBConfig {
     /**
      * 创建双向TLS的SSLContext
      */
-    private SSLContext createMutualTlsSslContext(JobMongoSslProperties sslProps) throws Exception {
+    private SSLContext createMutualTlsSslContext(JobSslProperties sslProps) throws Exception {
         TrustManager[] trustManagers = getTrustManagers(sslProps);
         KeyManager[] keyManagers = getKeyManagers(sslProps);
 
@@ -125,7 +130,7 @@ public class MongoDBConfig {
         return sslContext;
     }
 
-    private TrustManager[] getTrustManagers(JobMongoSslProperties sslProps) throws Exception {
+    private TrustManager[] getTrustManagers(JobSslProperties sslProps) throws Exception {
         TrustManager[] trustManagers;
         if (StringUtils.hasText(sslProps.getTrustStore())) {
             log.info("Loading mongo client trust store: {}", sslProps.getTrustStore());
@@ -146,7 +151,7 @@ public class MongoDBConfig {
         return trustManagers;
     }
 
-    private KeyManager[] getKeyManagers(JobMongoSslProperties sslProps) throws Exception {
+    private KeyManager[] getKeyManagers(JobSslProperties sslProps) throws Exception {
         log.info("Loading mongo client key store: {}", sslProps.getKeyStore());
         KeyStore keyStore = KeyStore.getInstance(sslProps.getKeyStoreType());
         try (FileInputStream fis = new FileInputStream(sslProps.getKeyStore())) {

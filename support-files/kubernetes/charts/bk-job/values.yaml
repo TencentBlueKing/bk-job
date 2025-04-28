@@ -250,9 +250,26 @@ externalRedis:
     ## @param externalRedis.sentinel.existingPasswordKey Redis sentinel password key, defaults to "redis-sentinel-password"
     ##
     existingPasswordKey: "redis-sentinel-password"
-
-
-
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12，注意：连接Redis使用的trustStoreType与keyStoreType必须相同，若不同则以keyStoreType为准
+    trustStoreType: "PKCS12"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.p12"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    keyStoreType: "PKCS12"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
 
 ## RabbitMQ chart configuration
 ## https://github.com/bitnami/charts/blob/master/bitnami/rabbitmq/values.yaml

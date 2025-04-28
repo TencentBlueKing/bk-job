@@ -348,8 +348,10 @@ password: {{ .Values.redis.existingPasswordKey | default "redis-password" | prin
 {{- else }}
 fail "Not supported redis architecture"
 {{- end -}}
+ssl: false
 {{- else }}
 password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
+ssl: {{ .Values.externalRedis.tls.enabled }}
 {{- if eq .Values.externalRedis.architecture "standalone" }}
 host: {{ include "job.redis.host" . }}
 port: {{ include "job.redis.port" . }}
@@ -365,6 +367,28 @@ fail "Invalid external redis architecture"
 {{- end -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Return the redis tls config
+*/}}
+{{- define "job.redis.tls" -}}
+{{- if .Values.redis.enabled -}}
+enabled: false
+{{- else -}}
+enabled: {{ .Values.externalRedis.tls.enabled }}
+{{- end }}
+trustStoreType: {{ .Values.externalRedis.tls.trustStoreType }}
+trustStore: /etc/certs/redis/{{ .Values.externalRedis.tls.trustStoreFilename }}
+trustStorePassword: {{ .Values.externalRedis.tls.trustStorePassword }}
+keyStoreType: {{ .Values.externalRedis.tls.keyStoreType }}
+{{- if .Values.externalRedis.tls.keyStoreFilename }}
+keyStore: /etc/certs/redis/{{ .Values.externalRedis.tls.keyStoreFilename }}
+{{- end }}
+{{- if .Values.externalRedis.tls.keyStorePassword }}
+keyStorePassword: {{ .Values.externalRedis.tls.keyStorePassword }}
+{{- end }}
+{{- end -}}
+
 
 {{/*
 Create a default fully qualified app name for RabbitMQ subchart
@@ -911,5 +935,27 @@ Return the RabbitMQ certs volume
 - name: rabbitmq-certs
   secret:
     secretName: {{ .Values.externalRabbitMQ.tls.existingSecret }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Redis certs volumeMount
+*/}}
+{{- define "job.redis.certsVolumeMount" -}}
+{{- if and (not .Values.redis.enabled) (.Values.externalRedis.tls.enabled) -}}
+- name: redis-certs
+  mountPath: /etc/certs/redis
+  readOnly: true
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Redis certs volume
+*/}}
+{{- define "job.redis.certsVolume" -}}
+{{- if and (not .Values.redis.enabled) (.Values.externalRedis.tls.enabled) -}}
+- name: redis-certs
+  secret:
+    secretName: {{ .Values.externalRedis.tls.existingSecret }}
 {{- end -}}
 {{- end -}}

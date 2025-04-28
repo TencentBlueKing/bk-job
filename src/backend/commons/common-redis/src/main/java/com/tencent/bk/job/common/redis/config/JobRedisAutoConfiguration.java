@@ -28,8 +28,15 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.tencent.bk.job.common.properties.JobSslProperties;
+import io.lettuce.core.ClientOptions;
+import io.lettuce.core.SslOptions;
+import io.micrometer.core.instrument.util.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.data.redis.LettuceClientConfigurationBuilderCustomizer;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
@@ -38,6 +45,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
+import java.io.File;
+import java.util.Optional;
+
+@Slf4j
+@EnableConfigurationProperties(JobRedisSslProperties.class)
 @AutoConfigureAfter(RedisAutoConfiguration.class)
 @Import({RedisLockConfig.class, RedisAutoConfiguration.class})
 public class JobRedisAutoConfiguration {
@@ -67,5 +79,55 @@ public class JobRedisAutoConfiguration {
         redisTemplate.afterPropertiesSet();
 
         return redisTemplate;
+    }
+
+    @Bean
+    public LettuceClientConfigurationBuilderCustomizer lettuceClientConfigurationBuilderCustomizer(
+        JobRedisSslProperties jobRedisSslProperties
+    ) {
+        return clientConfigurationBuilder -> {
+            Optional<ClientOptions> optional = clientConfigurationBuilder.build().getClientOptions();
+            ClientOptions currentClientOptions;
+            if (optional.isPresent()) {
+                currentClientOptions = optional.get();
+            } else {
+                log.info("ClientOptions is null, init one");
+                currentClientOptions = ClientOptions.builder().build();
+            }
+            SslOptions sslOptions = createSslOptions(jobRedisSslProperties);
+            ClientOptions newClientOptions = currentClientOptions.mutate()
+                // 设置自定义的 SslOptions
+                .sslOptions(sslOptions)
+                .build();
+            clientConfigurationBuilder.clientOptions(newClientOptions);
+        };
+    }
+
+    private SslOptions createSslOptions(JobRedisSslProperties jobRedisSslProperties) {
+        JobSslProperties sslProperties = jobRedisSslProperties.getRedis();
+        if (!sslProperties.isEnabled()) {
+            log.info("SSL for redis is not enabled, use default options");
+            return ClientOptions.DEFAULT_SSL_OPTIONS;
+        }
+        String trustStoreType = sslProperties.getTrustStoreType();
+        String keyStoreType = sslProperties.getKeyStoreType();
+        if (!keyStoreType.equals(trustStoreType)) {
+            log.warn(
+                "trustStoreType must be same with keyStoreType for redis, " +
+                    "but keyStoreType({}) is not the same with trustStoreType({}) now, " +
+                    "both use keyStoreType({}) finally",
+                keyStoreType,
+                trustStoreType,
+                keyStoreType
+            );
+        }
+        SslOptions.Builder builder = SslOptions.builder().keyStoreType(keyStoreType);
+        if (StringUtils.isNotBlank(sslProperties.getTrustStore())) {
+            builder.truststore(new File(sslProperties.getTrustStore()), sslProperties.getTrustStorePassword());
+        }
+        if (StringUtils.isNotBlank(sslProperties.getKeyStore())) {
+            builder.keystore(new File(sslProperties.getKeyStore()), sslProperties.getKeyStorePassword().toCharArray());
+        }
+        return builder.build();
     }
 }
