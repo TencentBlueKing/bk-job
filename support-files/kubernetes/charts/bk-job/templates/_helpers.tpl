@@ -456,11 +456,11 @@ rabbitmq:
   ssl:
     enabled: {{ .Values.externalRabbitMQ.tls.enabled }}
     trustStoreType: {{ .Values.externalRabbitMQ.tls.trustStoreType }}
-    trustStore: /etc/certs/rabbitmq/{{ .Values.externalRabbitMQ.tls.trustStoreFilename }}
+    trustStore: file:/etc/certs/rabbitmq/{{ .Values.externalRabbitMQ.tls.trustStoreFilename }}
     trustStorePassword: {{ .Values.externalRabbitMQ.tls.trustStorePassword }}
     keyStoreType: {{ .Values.externalRabbitMQ.tls.keyStoreType }}
     {{- if .Values.externalRabbitMQ.tls.keyStoreFilename }}
-    keyStore: /etc/certs/mongodb/{{ .Values.externalRabbitMQ.tls.keyStoreFilename }}
+    keyStore: file:/etc/certs/mongodb/{{ .Values.externalRabbitMQ.tls.keyStoreFilename }}
     {{- end }}
     {{- if .Values.externalRabbitMQ.tls.keyStorePassword }}
     keyStorePassword: {{ .Values.externalRabbitMQ.tls.keyStorePassword }}
