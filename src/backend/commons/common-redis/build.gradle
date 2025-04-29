@@ -26,6 +26,7 @@ dependencies {
     implementation project(':commons:common-utils')
     implementation project(':commons:common')
     implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'org.aspectj:aspectjweaver'
     api 'org.springframework.boot:spring-boot-starter-data-redis'
     api 'org.springframework.data:spring-data-redis'
     api 'org.springframework.boot:spring-boot-configuration-processor'

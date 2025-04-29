@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.tencent.bk.job.common.properties.JobSslProperties;
+import com.tencent.bk.job.common.redis.aspect.SetSslVerifyModeToCAAspect;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.SslOptions;
 import io.micrometer.core.instrument.util.StringUtils;
@@ -38,6 +39,7 @@ import org.springframework.boot.autoconfigure.data.redis.LettuceClientConfigurat
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.EnableLoadTimeWeaving;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -49,6 +51,7 @@ import java.io.File;
 import java.util.Optional;
 
 @Slf4j
+@EnableLoadTimeWeaving
 @EnableConfigurationProperties(JobRedisSslProperties.class)
 @AutoConfigureAfter(RedisAutoConfiguration.class)
 @Import({RedisLockConfig.class, RedisAutoConfiguration.class})
@@ -79,6 +82,11 @@ public class JobRedisAutoConfiguration {
         redisTemplate.afterPropertiesSet();
 
         return redisTemplate;
+    }
+
+    @Bean
+    public SetSslVerifyModeToCAAspect setSslVerifyModeToCAAspect(JobRedisSslProperties jobRedisSslProperties) {
+        return new SetSslVerifyModeToCAAspect(jobRedisSslProperties);
     }
 
     @Bean

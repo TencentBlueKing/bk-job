@@ -387,6 +387,7 @@ keyStore: /etc/certs/redis/{{ .Values.externalRedis.tls.keyStoreFilename }}
 {{- if .Values.externalRedis.tls.keyStorePassword }}
 keyStorePassword: {{ .Values.externalRedis.tls.keyStorePassword }}
 {{- end }}
+verifyHostname: {{ .Values.externalRedis.tls.verifyHostname }}
 {{- end -}}
 
 

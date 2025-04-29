@@ -270,6 +270,8 @@ externalRedis:
     keyStoreFilename: ""
     ## 密钥库密码
     keyStorePassword: ""
+    ## 是否校验主机名
+    verifyHostname: false
 
 ## RabbitMQ chart configuration
 ## https://github.com/bitnami/charts/blob/master/bitnami/rabbitmq/values.yaml
