@@ -29,9 +29,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.tencent.bk.job.common.properties.JobSslProperties;
-import com.tencent.bk.job.common.redis.aspect.SetSslVerifyModeToCAAspect;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.SslOptions;
+import io.lettuce.core.SslVerifyMode;
 import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -39,7 +39,6 @@ import org.springframework.boot.autoconfigure.data.redis.LettuceClientConfigurat
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.EnableLoadTimeWeaving;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -51,7 +50,6 @@ import java.io.File;
 import java.util.Optional;
 
 @Slf4j
-@EnableLoadTimeWeaving
 @EnableConfigurationProperties(JobRedisSslProperties.class)
 @AutoConfigureAfter(RedisAutoConfiguration.class)
 @Import({RedisLockConfig.class, RedisAutoConfiguration.class})
@@ -85,11 +83,6 @@ public class JobRedisAutoConfiguration {
     }
 
     @Bean
-    public SetSslVerifyModeToCAAspect setSslVerifyModeToCAAspect(JobRedisSslProperties jobRedisSslProperties) {
-        return new SetSslVerifyModeToCAAspect(jobRedisSslProperties);
-    }
-
-    @Bean
     public LettuceClientConfigurationBuilderCustomizer lettuceClientConfigurationBuilderCustomizer(
         JobRedisSslProperties jobRedisSslProperties
     ) {
@@ -102,7 +95,17 @@ public class JobRedisAutoConfiguration {
                 log.info("ClientOptions is null, init one");
                 currentClientOptions = ClientOptions.builder().build();
             }
-            SslOptions sslOptions = createSslOptions(jobRedisSslProperties);
+            JobSslProperties sslProperties = jobRedisSslProperties.getRedis();
+            if (!sslProperties.isEnabled()) {
+                log.info("SSL for redis is not enabled, use default options");
+                return;
+            }
+            if (!sslProperties.isVerifyHostname()) {
+                SslVerifyMode verifyMode = SslVerifyMode.CA;
+                clientConfigurationBuilder.useSsl().verifyMode(verifyMode);
+                log.info("Redis sslVerifyMode set: {}", verifyMode);
+            }
+            SslOptions sslOptions = createSslOptions(sslProperties);
             ClientOptions newClientOptions = currentClientOptions.mutate()
                 // 设置自定义的 SslOptions
                 .sslOptions(sslOptions)
@@ -111,12 +114,7 @@ public class JobRedisAutoConfiguration {
         };
     }
 
-    private SslOptions createSslOptions(JobRedisSslProperties jobRedisSslProperties) {
-        JobSslProperties sslProperties = jobRedisSslProperties.getRedis();
-        if (!sslProperties.isEnabled()) {
-            log.info("SSL for redis is not enabled, use default options");
-            return ClientOptions.DEFAULT_SSL_OPTIONS;
-        }
+    private SslOptions createSslOptions(JobSslProperties sslProperties) {
         String trustStoreType = sslProperties.getTrustStoreType();
         String keyStoreType = sslProperties.getKeyStoreType();
         if (!keyStoreType.equals(trustStoreType)) {
