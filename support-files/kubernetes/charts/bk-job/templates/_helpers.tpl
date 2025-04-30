@@ -618,6 +618,7 @@ Return the Job Profile
 Return the Job InitContainer WaitForMigration Content
 */}}
 {{- define "job.initContainer.waitForMigration" -}}
+{{- if .Values.migration.enabled }}
 - name: "migration-init"
   image: {{ include "common.images.image" (dict "imageRoot" .Values.waitForMigration.image "global" .Values.global) }}
   imagePullPolicy: {{ .Values.waitForMigration.image.pullPolicy }}
@@ -626,6 +627,7 @@ Return the Job InitContainer WaitForMigration Content
   args:
   - "job-wr"
   - {{ printf "%s-migration-%s" (include "common.names.fullname" .) .Chart.Version | quote }}
+{{- end -}}
 {{- end -}}
 
 {{/*
