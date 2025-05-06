@@ -25,7 +25,7 @@
     "@vue/babel-preset-jsx": "1.4.0",
     "@vue/composition-api": "1.7.2",
     "ace-builds": "1.36.2",
-    "axios": "^1.8.3",
+    "axios": "1.7.7",
     "bk-magic-vue": "2.5.9-beta.35",
     "core-js": "3.38.1",
     "cron-parser-custom": "2.13.0",
