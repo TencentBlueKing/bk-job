@@ -272,7 +272,11 @@ Return the MariaDB jdbc connection ssl properties
 {{- if or (.Values.mariadb.enabled) (not .Values.externalMariaDB.tls.enabled) }}
     {{- printf "" -}}
 {{- else -}}
-    {{- printf "&useSSL=true&requireSSL=true&verifyServerCertificate=true&sslMode=VERIFY_CA&trustCertificateKeyStoreType=%s&trustCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&trustCertificateKeyStorePassword=%s" .Values.externalMariaDB.tls.trustStoreType .Values.externalMariaDB.tls.trustStoreFilename .Values.externalMariaDB.tls.trustStorePassword -}}
+    {{- if (not .Values.externalMariaDB.tls.keyStoreFilename) }}
+        {{- printf "&useSSL=true&requireSSL=true&verifyServerCertificate=true&sslMode=VERIFY_CA&trustCertificateKeyStoreType=%s&trustCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&trustCertificateKeyStorePassword=%s" .Values.externalMariaDB.tls.trustStoreType .Values.externalMariaDB.tls.trustStoreFilename .Values.externalMariaDB.tls.trustStorePassword -}}
+    {{- else -}}
+        {{- printf "&useSSL=true&requireSSL=true&verifyServerCertificate=true&sslMode=VERIFY_CA&trustCertificateKeyStoreType=%s&trustCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&trustCertificateKeyStorePassword=%s&clientCertificateKeyStoreType=%s&clientCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&clientCertificateKeyStorePassword=%s" .Values.externalMariaDB.tls.trustStoreType .Values.externalMariaDB.tls.trustStoreFilename .Values.externalMariaDB.tls.trustStorePassword .Values.externalMariaDB.tls.keyStoreType .Values.externalMariaDB.tls.keyStoreFilename .Values.externalMariaDB.tls.keyStorePassword -}}
+    {{- end -}}
 {{- end -}}
 {{- end -}}
 
@@ -485,7 +489,7 @@ rabbitmq:
     trustStorePassword: {{ .Values.externalRabbitMQ.tls.trustStorePassword }}
     keyStoreType: {{ .Values.externalRabbitMQ.tls.keyStoreType }}
     {{- if .Values.externalRabbitMQ.tls.keyStoreFilename }}
-    keyStore: file:/etc/certs/mongodb/{{ .Values.externalRabbitMQ.tls.keyStoreFilename }}
+    keyStore: file:/etc/certs/rabbitmq/{{ .Values.externalRabbitMQ.tls.keyStoreFilename }}
     {{- end }}
     {{- if .Values.externalRabbitMQ.tls.keyStorePassword }}
     keyStorePassword: {{ .Values.externalRabbitMQ.tls.keyStorePassword }}
