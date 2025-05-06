@@ -63,15 +63,22 @@ import org.springframework.context.annotation.Import;
 public class IamAutoConfiguration {
 
     @Bean
-    public IamConfiguration iamConfiguration(AppProperties appProperties, JobIamProperties jobIamProperties) {
-        return new IamConfiguration(jobIamProperties.getSystemId(), appProperties.getCode(),
-            appProperties.getSecret(), jobIamProperties.getBaseUrl());
+    public IamConfiguration iamConfiguration(AppProperties appProperties,
+                                             JobIamProperties jobIamProperties,
+                                             BkApiGatewayProperties bkApiGatewayProperties) {
+        return new IamConfiguration(
+            jobIamProperties.getSystemId(),
+            appProperties.getCode(),
+            appProperties.getSecret(),
+            bkApiGatewayProperties.getBkIam().getUrl()
+        );
     }
 
 
     @Bean
-    public HttpClientService httpClientService(IamConfiguration iamConfiguration) {
-        return new IamHttpClientServiceImpl(iamConfiguration);
+    public HttpClientService httpClientService(IamConfiguration iamConfiguration,
+                                               IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+        return new IamHttpClientServiceImpl(iamConfiguration, virtualAdminAccountProvider);
     }
 
     @Bean
