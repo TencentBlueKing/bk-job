@@ -49,6 +49,7 @@ import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
+import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
@@ -76,7 +77,8 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
                             CmdbConfig cmdbConfig,
                             FlowController flowController,
                             MeterRegistry meterRegistry,
-                            TenantEnvService tenantEnvService) {
+                            TenantEnvService tenantEnvService,
+                            IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         super(
             flowController,
             appProperties,
@@ -84,6 +86,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
             cmdbConfig,
             meterRegistry,
             tenantEnvService,
+            virtualAdminAccountProvider,
             null
         );
     }

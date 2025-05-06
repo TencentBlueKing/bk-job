@@ -72,6 +72,8 @@ public class ErrorCode {
     public static final int CMSI_MSG_CHANNEL_DATA_ERROR = 1213003;
     // 调用CMSI接口发送通知失败，错误码：{0}，错误信息：{1}
     public static final int CMSI_FAIL_TO_SEND_MSG = 1213004;
+    // 未知的CMSI渠道: {0}
+    public static final int CMSI_UNKNOWN_CHANNEL = 1213005;
 
     // 制品库异常
     // Artifactory接口返回数据结构异常
@@ -108,6 +110,10 @@ public class ErrorCode {
 
     // bk-user（用户管理） 接口调用异常
     public static final int BK_USER_MANAGE_API_ERROR = 1220001;
+    // 用户缓存加载失败
+    public static final int BK_USER_CACHE_LOADING_ERROR = 1220002;
+    // 用户管理返回租户{0}的虚拟Admin账号为空
+    public static final int BK_USER_VIRTUAL_ADMIN_EMPTY = 1220003;
 
 
     // ======== 系统错误-权限错误 ==================//

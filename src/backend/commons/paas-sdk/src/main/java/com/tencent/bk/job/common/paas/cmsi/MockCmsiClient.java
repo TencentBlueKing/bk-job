@@ -25,41 +25,37 @@
 package com.tencent.bk.job.common.paas.cmsi;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.sdk.BkApiV1Client;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
+import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
-import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import io.micrometer.core.instrument.MeterRegistry;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import static com.tencent.bk.job.common.metrics.CommonMetricNames.ESB_CMSI_API;
 
 public class MockCmsiClient extends BkApiV1Client implements ICmsiClient {
 
-    private final BkApiAuthorization authorization;
-
-    public MockCmsiClient(EsbProperties esbProperties,
+    public MockCmsiClient(BkApiGatewayProperties apiGatewayProperties,
                           AppProperties appProperties,
                           MeterRegistry meterRegistry,
                           TenantEnvService tenantEnvService) {
         super(
             meterRegistry,
             ESB_CMSI_API,
-            esbProperties.getService().getUrl(),
+            apiGatewayProperties.getCmsi().getUrl(),
             HttpHelperFactory.createHttpHelper(
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
             ),
             tenantEnvService
         );
-        this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
-            appProperties.getSecret(), "admin");
     }
 
     @Override
@@ -100,7 +96,7 @@ public class MockCmsiClient extends BkApiV1Client implements ICmsiClient {
     }
 
     @Override
-    public void sendMsg(String msgType, String sender, Set<String> receivers, String title, String content) {
+    public void sendMsg(String msgType, NotifyMessageDTO notifyMessageDTO, String tenantId) {
         return;
     }
 }

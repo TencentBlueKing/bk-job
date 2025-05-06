@@ -411,12 +411,11 @@ public class BaseBkApiClient {
         return new BasicHeader(JobCommonHeaders.BK_TENANT_ID, tenantId);
     }
 
-    protected BkApiAuthorization buildAuthorization(AppProperties appProperties, String tenantId) {
+    protected BkApiAuthorization buildAuthorization(AppProperties appProperties, String username) {
         return BkApiAuthorization.appAuthorization(
             appProperties.getCode(),
             appProperties.getSecret(),
-            // TODO：需要根据租户获取对应的虚拟账号，当前仅用admin联调，待IAM虚拟账号方案确定后修改这里
-            "admin"
+            username
         );
     }
 }

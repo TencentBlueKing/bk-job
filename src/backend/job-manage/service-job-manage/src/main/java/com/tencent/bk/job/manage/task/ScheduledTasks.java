@@ -41,7 +41,6 @@ import org.springframework.stereotype.Component;
 @EnableScheduling
 public class ScheduledTasks {
 
-    private final UserSyncService userSyncService;
     private final AppSyncService appSyncService;
     private final AllTenantHostSyncService allTenantHostSyncService;
     private final AgentStatusSyncService agentStatusSyncService;
@@ -52,7 +51,6 @@ public class ScheduledTasks {
 
     @Autowired
     public ScheduledTasks(
-        UserSyncService userSyncService,
         AppSyncService appSyncService,
         AllTenantHostSyncService allTenantHostSyncService,
         AgentStatusSyncService agentStatusSyncService,
@@ -60,7 +58,6 @@ public class ScheduledTasks {
         ApplicationCache applicationCache,
         BackGroundTaskBalancer backGroundTaskBalancer,
         BackGroundTaskDaemon backGroundTaskDaemon) {
-        this.userSyncService = userSyncService;
         this.appSyncService = appSyncService;
         this.allTenantHostSyncService = allTenantHostSyncService;
         this.agentStatusSyncService = agentStatusSyncService;
@@ -68,19 +65,6 @@ public class ScheduledTasks {
         this.applicationCache = applicationCache;
         this.backGroundTaskBalancer = backGroundTaskBalancer;
         this.backGroundTaskDaemon = backGroundTaskDaemon;
-    }
-
-    /**
-     * 每间隔1h更新一次人员数据
-     */
-    @Scheduled(initialDelay = 2 * 1000, fixedDelay = 60 * 60 * 1000)
-    public void syncUser() {
-        log.info("syncUser");
-        try {
-            userSyncService.execute();
-        } catch (Exception e) {
-            log.error("syncUser fail", e);
-        }
     }
 
     /**

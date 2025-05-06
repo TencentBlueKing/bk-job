@@ -30,6 +30,7 @@ dependencies {
     api project(':commons:common')
     api project(':commons:esb-sdk')
     api project(':commons:common-i18n')
+    api project(':commons:paas-sdk')
     optional(api(project(':commons:common-redis')))
     implementation 'com.fasterxml.jackson.core:jackson-core'
     implementation 'com.fasterxml.jackson.core:jackson-databind'

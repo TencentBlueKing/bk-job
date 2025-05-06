@@ -441,6 +441,8 @@ bkUserApiGatewayUrl: "http://bkapi.example.com/api/bk-user"
 bkUserWebApiGatewayUrl: "http://bkapi.example.com/api/bk-user-web"
 # 蓝鲸权限中心 API Gateway url
 bkIamApiGatewayUrl: "http://bkapi.example.com/api/bk-iam"
+# 消息通知 API Gateway url
+bkCmsiApiGatewayUrl: "http://bkapi.example.com/api/cmsi"
 # 调用蓝鲸AIDev API使用的appCode，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appCode的值
 bkAIDevAppCode: ""
 # 调用蓝鲸AIDev API使用的appSecret，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appSecret的值
@@ -1875,3 +1877,6 @@ podTerminationGracePeriodSeconds: 60
 # 多租户配置
 tenant:
   enabled: false
+virtualAccount:
+  queryAdminUsername: false
+

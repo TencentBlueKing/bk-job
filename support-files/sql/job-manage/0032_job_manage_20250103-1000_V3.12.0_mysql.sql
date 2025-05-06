@@ -127,6 +127,22 @@ BEGIN
   END IF;
 
   IF NOT EXISTS(SELECT 1
+                  FROM information_schema.statistics
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'notify_template'
+                    AND INDEX_NAME = 'uniq_tenantId_code_channel_isDefault') THEN
+    ALTER TABLE notify_template ADD UNIQUE INDEX uniq_tenantId_code_channel_isDefault(tenant_id,code,channel,is_default);
+  END IF;
+
+  IF EXISTS(SELECT 1
+                  FROM information_schema.statistics
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'notify_template'
+                    AND INDEX_NAME = 'uniq_code_channel_isDefault') THEN
+    ALTER TABLE notify_template DROP INDEX uniq_code_channel_isDefault;
+  END IF;
+
+  IF NOT EXISTS(SELECT 1
                     FROM information_schema.columns
                     WHERE TABLE_SCHEMA = db
                       AND TABLE_NAME = 'global_setting'
