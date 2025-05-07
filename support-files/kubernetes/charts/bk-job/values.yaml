@@ -1232,6 +1232,28 @@ backupConfig:
       password: "job"
       connection:
         properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+      ## TLS相关配置
+      tls :
+        ## 是否开启tls认证
+        enabled : false
+        ## 存储trustStore与keyStore的secret名称
+        existingSecret : ""
+        ## 单向tls认证配置
+        ## 密钥库类型：支持PKCS12、JKS，默认JKS
+        trustStoreType : "JKS"
+        ## 信任库文件名称（与Secret中的Key一致）
+        trustStoreFilename : "truststore.jks"
+        ## 信任库密码
+        trustStorePassword : ""
+        ## 双向tls认证配置
+        ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+        keyStoreType : "PKCS12"
+        ## 密钥库文件名称（与Secret中的Key一致）
+        keyStoreFilename : ""
+        ## 密钥库密码
+        keyStorePassword : ""
+        ## 是否校验主机名
+        verifyHostname : false
     # job-execute模块的归档配置
     execute:
       # 是否启用 DB 归档
