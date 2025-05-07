@@ -3,6 +3,7 @@
     v-if="!isLoading"
     v-model="selectedUsers"
     :api-base-url="apiBaseUrl"
+    :exclude-user-ids="excludeUserList"
     multiple
     :placeholder="placeholder"
     :render-list-item="renderTag"
@@ -13,6 +14,7 @@
     @change="handleChange" />
 </template>
 <script setup>
+  import _ from 'lodash';
   import { computed, ref, shallowRef, watch } from 'vue';
 
   import NotifyService from '@service/notify';
@@ -45,6 +47,10 @@
     },
     // 排除待选的角色
     excludeRoleList: {
+      type: Array,
+      default: () => [],
+    },
+    excludeUserList: {
       type: Array,
       default: () => [],
     },
@@ -89,7 +95,10 @@
   });
 
   watch(() => [props.user, props.role], () => {
-    selectedUsers.value = [...props.role, ...props.user];
+    const excludeRoleMap = makeMap(props.excludeRoleList);
+
+    const roleList = _.filter(props.role, item => !excludeRoleMap[item]);
+    selectedUsers.value = [...roleList, ...props.user];
   }, {
     immediate: true,
   });

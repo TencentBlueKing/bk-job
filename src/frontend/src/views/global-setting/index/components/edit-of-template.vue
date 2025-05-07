@@ -92,6 +92,7 @@
         left="20">
         <div class="send-message-content">
           <jb-user-selector
+            :exclude-user-list="blackUserList"
             :placeholder="$t('setting.请输入接收消息预览的用户名（请确保接受人对应的账号配置正常）')"
             :show-role="false"
             style="flex: 1"
@@ -156,6 +157,10 @@
       data: {
         type: Object,
         default: () => ({}),
+      },
+      blackUserList: {
+        type: Array,
+        default: () => [],
       },
     },
     data() {
