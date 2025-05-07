@@ -266,6 +266,17 @@ Return the MariaDB jdbc connection url base properties (without ssl config)
 {{- end -}}
 
 {{/*
+Return the MariaDB jdbc connection sslMode
+*/}}
+{{- define "job.mariadb.sslMode" -}}
+{{- if .Values.externalMariaDB.tls.verifyHostname }}
+    {{- printf "VERIFY_IDENTITY" -}}
+{{- else -}}
+    {{- printf "VERIFY_CA" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the MariaDB jdbc connection ssl properties
 */}}
 {{- define "job.mariadb.ssl.properties" -}}
@@ -273,9 +284,9 @@ Return the MariaDB jdbc connection ssl properties
     {{- printf "" -}}
 {{- else -}}
     {{- if (not .Values.externalMariaDB.tls.keyStoreFilename) }}
-        {{- printf "&useSSL=true&requireSSL=true&verifyServerCertificate=true&sslMode=VERIFY_CA&trustCertificateKeyStoreType=%s&trustCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&trustCertificateKeyStorePassword=%s" .Values.externalMariaDB.tls.trustStoreType .Values.externalMariaDB.tls.trustStoreFilename .Values.externalMariaDB.tls.trustStorePassword -}}
+        {{- printf "&sslMode=%s&trustCertificateKeyStoreType=%s&trustCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&trustCertificateKeyStorePassword=%s" (include "job.mariadb.sslMode" .) .Values.externalMariaDB.tls.trustStoreType .Values.externalMariaDB.tls.trustStoreFilename .Values.externalMariaDB.tls.trustStorePassword -}}
     {{- else -}}
-        {{- printf "&useSSL=true&requireSSL=true&verifyServerCertificate=true&sslMode=VERIFY_CA&trustCertificateKeyStoreType=%s&trustCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&trustCertificateKeyStorePassword=%s&clientCertificateKeyStoreType=%s&clientCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&clientCertificateKeyStorePassword=%s" .Values.externalMariaDB.tls.trustStoreType .Values.externalMariaDB.tls.trustStoreFilename .Values.externalMariaDB.tls.trustStorePassword .Values.externalMariaDB.tls.keyStoreType .Values.externalMariaDB.tls.keyStoreFilename .Values.externalMariaDB.tls.keyStorePassword -}}
+        {{- printf "&sslMode=%s&trustCertificateKeyStoreType=%s&trustCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&trustCertificateKeyStorePassword=%s&clientCertificateKeyStoreType=%s&clientCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&clientCertificateKeyStorePassword=%s" (include "job.mariadb.sslMode" .) .Values.externalMariaDB.tls.trustStoreType .Values.externalMariaDB.tls.trustStoreFilename .Values.externalMariaDB.tls.trustStorePassword .Values.externalMariaDB.tls.keyStoreType .Values.externalMariaDB.tls.keyStoreFilename .Values.externalMariaDB.tls.keyStorePassword -}}
     {{- end -}}
 {{- end -}}
 {{- end -}}
@@ -495,6 +506,34 @@ rabbitmq:
     keyStorePassword: {{ .Values.externalRabbitMQ.tls.keyStorePassword }}
     {{- end }}
     verifyHostname: {{ .Values.externalRabbitMQ.tls.verifyHostname }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the RabbitMQ of config-watcher SSL Env Vars
+*/}}
+{{- define "job.configWatcher.rabbitmq.sslEnv" -}}
+{{- if and (not .Values.rabbitmq.enabled) (.Values.externalRabbitMQ.tls.enabled) }}
+- name: spring.rabbitmq.ssl.enabled
+  value: {{ .Values.externalRabbitMQ.tls.enabled | quote }}
+- name: spring.rabbitmq.ssl.trustStoreType
+  value: {{ .Values.externalRabbitMQ.tls.trustStoreType }}
+- name: spring.rabbitmq.ssl.trustStore
+  value: file:/etc/certs/rabbitmq/{{ .Values.externalRabbitMQ.tls.trustStoreFilename }}
+- name: spring.rabbitmq.ssl.trustStorePassword
+  value: {{ .Values.externalRabbitMQ.tls.trustStorePassword }}
+- name: spring.rabbitmq.ssl.keyStoreType
+  value: {{ .Values.externalRabbitMQ.tls.keyStoreType }}
+{{- if .Values.externalRabbitMQ.tls.keyStoreFilename }}
+- name: spring.rabbitmq.ssl.keyStore
+  value: file:/etc/certs/rabbitmq/{{ .Values.externalRabbitMQ.tls.keyStoreFilename }}
+{{- end }}
+{{- if .Values.externalRabbitMQ.tls.keyStorePassword }}
+- name: spring.rabbitmq.ssl.keyStorePassword
+  value: {{ .Values.externalRabbitMQ.tls.keyStorePassword }}
+{{- end }}
+- name: spring.rabbitmq.ssl.verifyHostname
+  value: {{ .Values.externalRabbitMQ.tls.verifyHostname | quote }}
 {{- end -}}
 {{- end -}}
 
