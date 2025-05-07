@@ -54,6 +54,11 @@ import java.util.List;
 @Slf4j
 public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGroundTask {
 
+    /**
+     * 单个Watcher自身的线程资源成本（不含事件处理线程）
+     */
+    public static final int SINGLE_WATCHER_THREAD_RESOURCE_COST = 1;
+
     protected final String tenantId;
     private final Tracer tracer;
     private final CmdbEventSampler cmdbEventSampler;

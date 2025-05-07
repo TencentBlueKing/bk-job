@@ -169,13 +169,23 @@ public class TenantBizEventWatcher extends AbstractCmdbResourceEventWatcher<BizE
         return tenantId;
     }
 
+    /**
+     * 计算资源总消耗，监听线程自己处理事件，资源消耗就是Watcher自身的资源消耗值
+     *
+     * @return 资源消耗值
+     */
     @Override
     public int getResourceCost() {
         return resourceCostForWatcher();
     }
 
+    /**
+     * 计算Watcher自身的资源消耗
+     *
+     * @return 资源消耗值
+     */
     public static int resourceCostForWatcher() {
-        return 1;
+        return SINGLE_WATCHER_THREAD_RESOURCE_COST;
     }
 
     @Override

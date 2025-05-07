@@ -174,12 +174,22 @@ public class TenantHostRelationEventWatcher extends AbstractCmdbResourceEventWat
         return resourceCostForWatcherAndHandler();
     }
 
+    /**
+     * 计算Watcher与对应Handler的资源总消耗
+     *
+     * @return 资源消耗值
+     */
     public static int resourceCostForWatcherAndHandler() {
-        return resourceCostForWatcher() + 1;
+        return resourceCostForWatcher() + HostRelationEventHandler.SINGLE_HANDLER_THREAD_RESOURCE_COST;
     }
 
+    /**
+     * 计算Watcher自身的资源消耗
+     *
+     * @return 资源消耗值
+     */
     public static int resourceCostForWatcher() {
-        return 1;
+        return SINGLE_WATCHER_THREAD_RESOURCE_COST;
     }
 
     @Override

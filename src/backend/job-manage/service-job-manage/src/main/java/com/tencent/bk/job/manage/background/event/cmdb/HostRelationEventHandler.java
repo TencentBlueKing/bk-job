@@ -47,6 +47,10 @@ import java.util.concurrent.BlockingQueue;
 @Slf4j
 public class HostRelationEventHandler extends EventsHandler<HostRelationEventDetail> {
 
+    /**
+     * 单个Handler自身的线程资源成本
+     */
+    public static final int SINGLE_HANDLER_THREAD_RESOURCE_COST = 1;
     private final ApplicationService applicationService;
     private final NoTenantHostDAO noTenantHostDAO;
     private final HostTopoDAO hostTopoDAO;
