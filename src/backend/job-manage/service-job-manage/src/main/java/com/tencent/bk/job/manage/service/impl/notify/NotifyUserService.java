@@ -87,7 +87,7 @@ public class NotifyUserService {
     public List<String> saveNotifyBlackUsers(String operator, NotifyBlackUsersReq req) {
 
         Collection<String> users = Collections.emptyList();
-        if (StringUtils.isNotEmpty(req.getUsersStr())){
+        if (StringUtils.isNotEmpty(req.getUsersStr())) {
             users = Arrays.asList(req.getUsersStr().split(NotifyConsts.SEPERATOR_COMMA));
         }
         return saveNotifyBlackUsers(operator, users);
