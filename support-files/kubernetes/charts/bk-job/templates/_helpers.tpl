@@ -510,6 +510,20 @@ rabbitmq:
 {{- end -}}
 
 {{/*
+Return the RabbitMQ trustStore password key
+*/}}
+{{- define "job.configWatcher.rabbitmq.trustStorePasswordKey" -}}
+{{ printf "${rabbitmq-truststore-password}" }}
+{{- end -}}
+
+{{/*
+Return the RabbitMQ keyStore password key
+*/}}
+{{- define "job.configWatcher.rabbitmq.keyStorePasswordKey" -}}
+{{ printf "${rabbitmq-keystore-password}" }}
+{{- end -}}
+
+{{/*
 Return the RabbitMQ of config-watcher SSL Env Vars
 */}}
 {{- define "job.configWatcher.rabbitmq.sslEnv" -}}
@@ -521,7 +535,7 @@ Return the RabbitMQ of config-watcher SSL Env Vars
 - name: spring.rabbitmq.ssl.trustStore
   value: file:/etc/certs/rabbitmq/{{ .Values.externalRabbitMQ.tls.trustStoreFilename }}
 - name: spring.rabbitmq.ssl.trustStorePassword
-  value: {{ .Values.externalRabbitMQ.tls.trustStorePassword }}
+  value: {{ include "job.configWatcher.rabbitmq.trustStorePasswordKey" . }}
 - name: spring.rabbitmq.ssl.keyStoreType
   value: {{ .Values.externalRabbitMQ.tls.keyStoreType }}
 {{- if .Values.externalRabbitMQ.tls.keyStoreFilename }}
@@ -530,7 +544,7 @@ Return the RabbitMQ of config-watcher SSL Env Vars
 {{- end }}
 {{- if .Values.externalRabbitMQ.tls.keyStorePassword }}
 - name: spring.rabbitmq.ssl.keyStorePassword
-  value: {{ .Values.externalRabbitMQ.tls.keyStorePassword }}
+  value: {{ include "job.configWatcher.rabbitmq.keyStorePasswordKey" . }}
 {{- end }}
 - name: spring.rabbitmq.ssl.verifyHostname
   value: {{ .Values.externalRabbitMQ.tls.verifyHostname | quote }}
