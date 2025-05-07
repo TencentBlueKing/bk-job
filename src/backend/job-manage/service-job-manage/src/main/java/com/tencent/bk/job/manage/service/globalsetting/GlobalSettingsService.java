@@ -41,7 +41,6 @@ import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoWithDefa
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 
 import java.util.List;
 import java.util.Map;

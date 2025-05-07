@@ -35,6 +35,7 @@ import com.tencent.bk.job.manage.background.sync.BizSyncService;
 import com.tencent.bk.job.manage.background.sync.TenantHostSyncService;
 import com.tencent.bk.job.manage.background.sync.TenantSetSyncService;
 import com.tencent.bk.job.manage.model.op.req.InitTenantReq;
+import com.tencent.bk.job.manage.service.impl.notify.NotifyChannelInitService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -54,7 +55,9 @@ public class TenantOpResourceImpl implements TenantOpResource {
     private final BizSetSyncService bizSetSyncService;
     private final TenantSetSyncService tenantSetSyncService;
     private final TenantHostSyncService tenantHostSyncService;
+    private final NotifyChannelInitService notifyChannelInitService;
     private final BackGroundTaskDaemon backGroundTaskDaemon;
+
 
     @Autowired
     public TenantOpResourceImpl(RedisTemplate<String, String> redisTemplate,
@@ -62,12 +65,14 @@ public class TenantOpResourceImpl implements TenantOpResource {
                                 BizSetSyncService bizSetSyncService,
                                 TenantSetSyncService tenantSetSyncService,
                                 TenantHostSyncService tenantHostSyncService,
+                                NotifyChannelInitService notifyChannelInitService,
                                 BackGroundTaskDaemon backGroundTaskDaemon) {
         this.redisTemplate = redisTemplate;
         this.bizSyncService = bizSyncService;
         this.bizSetSyncService = bizSetSyncService;
         this.tenantSetSyncService = tenantSetSyncService;
         this.tenantHostSyncService = tenantHostSyncService;
+        this.notifyChannelInitService = notifyChannelInitService;
         this.backGroundTaskDaemon = backGroundTaskDaemon;
     }
 
@@ -129,6 +134,9 @@ public class TenantOpResourceImpl implements TenantOpResource {
         watch.start("checkAndResumeTaskForTenant");
         backGroundTaskDaemon.checkAndResumeTaskForTenant(tenantId);
         watch.stop();
+
+        // 6.启用默认消息渠道
+        notifyChannelInitService.initDefaultNotifyChannelsWithSingleTenant(tenantId);
         return true;
     }
 }
