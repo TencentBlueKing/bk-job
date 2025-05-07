@@ -46,10 +46,13 @@ public class EventReplayOpResourceImpl implements EventReplayOpResource {
     }
 
     @Override
-    public Response<Void> replayHostEvent(String username, String tenantId, ResourceEvent<HostEventDetail> event) {
+    public Response<Boolean> replayHostEvent(String username, String tenantId, ResourceEvent<HostEventDetail> event) {
         TenantHostEventWatcher tenantHostEventWatcher = cmdbEventManager.getTenantHostEventWatcher(tenantId);
+        if (tenantHostEventWatcher == null) {
+            return Response.buildSuccessResp(false);
+        }
         tenantHostEventWatcher.handleEvent(event);
-        return Response.buildSuccessResp(null);
+        return Response.buildSuccessResp(true);
     }
 
 }

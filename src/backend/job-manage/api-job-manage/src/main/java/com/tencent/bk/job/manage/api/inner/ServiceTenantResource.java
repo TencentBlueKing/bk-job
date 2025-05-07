@@ -31,6 +31,7 @@ import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -45,7 +46,7 @@ public interface ServiceTenantResource {
 
     @ApiOperation(value = "根据appId获取租户Id", produces = "application/json")
     @GetMapping("/service/tenant/getTenantIdByAppId")
-    InternalResponse<String> getTenantIdByAppId(long appId);
+    InternalResponse<String> getTenantIdByAppId(@RequestParam(value = "appId")
+                                                long appId);
 
-    ;
 }

@@ -29,9 +29,10 @@ import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.client.ApiGwIamClient;
 import com.tencent.bk.job.common.iam.client.IIamClient;
-import com.tencent.bk.job.common.iam.mock.MockIamClient;
 import com.tencent.bk.job.common.iam.http.IamHttpClientServiceImpl;
 import com.tencent.bk.job.common.iam.mock.MockBusinessAuthHelper;
+import com.tencent.bk.job.common.iam.mock.MockIamClient;
+import com.tencent.bk.job.common.iam.mock.MockPolicyServiceImpl;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
@@ -62,18 +63,26 @@ import org.springframework.context.annotation.Import;
 public class IamAutoConfiguration {
 
     @Bean
-    public IamConfiguration iamConfiguration(AppProperties appProperties, JobIamProperties jobIamProperties) {
-        return new IamConfiguration(jobIamProperties.getSystemId(), appProperties.getCode(),
-            appProperties.getSecret(), jobIamProperties.getBaseUrl());
+    public IamConfiguration iamConfiguration(AppProperties appProperties,
+                                             JobIamProperties jobIamProperties,
+                                             BkApiGatewayProperties bkApiGatewayProperties) {
+        return new IamConfiguration(
+            jobIamProperties.getSystemId(),
+            appProperties.getCode(),
+            appProperties.getSecret(),
+            bkApiGatewayProperties.getBkIam().getUrl()
+        );
     }
 
 
     @Bean
-    public HttpClientService httpClientService(IamConfiguration iamConfiguration) {
-        return new IamHttpClientServiceImpl(iamConfiguration);
+    public HttpClientService httpClientService(IamConfiguration iamConfiguration,
+                                               IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+        return new IamHttpClientServiceImpl(iamConfiguration, virtualAdminAccountProvider);
     }
 
     @Bean
+    @ConditionalOnMockIamApiDisabled
     public PolicyService policyService(IamConfiguration iamConfiguration,
                                        HttpClientService httpClientService) {
         return new PolicyServiceImpl(iamConfiguration, httpClientService);
@@ -162,4 +171,9 @@ public class IamAutoConfiguration {
         return new MockBusinessAuthHelper(tokenService, policyService, topoPathService, iamConfiguration);
     }
 
+    @Bean
+    @ConditionalOnMockIamApiEnabled
+    public PolicyService mockedPolicyService() {
+        return new MockPolicyServiceImpl();
+    }
 }

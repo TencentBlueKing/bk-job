@@ -30,6 +30,8 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
+import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -138,5 +140,44 @@ public class TenantBizSetEventWatcher extends AbstractCmdbResourceEventWatcher<B
             log.info("Watching biz set disabled, isBizSetMigratedToCMDB: {}", isBizSetMigratedToCMDB);
         }
         return isBizSetMigratedToCMDB;
+    }
+
+    @Override
+    public String getUniqueCode() {
+        return getTaskEntity().getUniqueCode();
+    }
+
+    @Override
+    public TaskEntity getTaskEntity() {
+        return new TaskEntity(BackGroundTaskCode.WATCH_BIZ_SET, getTenantId());
+    }
+
+    @Override
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    /**
+     * 计算资源总消耗，监听线程自己处理事件，资源消耗就是Watcher自身的资源消耗值
+     *
+     * @return 资源消耗值
+     */
+    @Override
+    public int getResourceCost() {
+        return resourceCostForWatcher();
+    }
+
+    /**
+     * 计算Watcher自身的资源消耗
+     *
+     * @return 资源消耗值
+     */
+    public static int resourceCostForWatcher() {
+        return SINGLE_WATCHER_THREAD_RESOURCE_COST;
+    }
+
+    @Override
+    public void shutdownGracefully() {
+        super.shutdownGracefully();
     }
 }

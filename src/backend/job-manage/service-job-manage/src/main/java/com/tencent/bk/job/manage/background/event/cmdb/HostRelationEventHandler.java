@@ -30,8 +30,8 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
@@ -47,6 +47,10 @@ import java.util.concurrent.BlockingQueue;
 @Slf4j
 public class HostRelationEventHandler extends EventsHandler<HostRelationEventDetail> {
 
+    /**
+     * 单个Handler自身的线程资源成本
+     */
+    public static final int SINGLE_HANDLER_THREAD_RESOURCE_COST = 1;
     private final ApplicationService applicationService;
     private final NoTenantHostDAO noTenantHostDAO;
     private final HostTopoDAO hostTopoDAO;
@@ -58,8 +62,9 @@ public class HostRelationEventHandler extends EventsHandler<HostRelationEventDet
                                     ApplicationService applicationService,
                                     NoTenantHostDAO noTenantHostDAO,
                                     HostTopoDAO hostTopoDAO,
-                                    HostCache hostCache) {
-        super(queue, tracer, cmdbEventSampler);
+                                    HostCache hostCache,
+                                    String tenantId) {
+        super(queue, tracer, cmdbEventSampler, tenantId);
         this.applicationService = applicationService;
         this.noTenantHostDAO = noTenantHostDAO;
         this.hostTopoDAO = hostTopoDAO;

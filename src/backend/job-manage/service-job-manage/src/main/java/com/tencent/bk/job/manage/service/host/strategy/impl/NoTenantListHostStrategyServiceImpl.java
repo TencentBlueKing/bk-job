@@ -51,7 +51,7 @@ public class NoTenantListHostStrategyServiceImpl implements NoTenantListHostStra
     public NoTenantListHostStrategy<Long> buildByIdsFromCacheOrDbStrategy() {
         ComposedNoTenantListHostStrategy<Long> strategy = new ComposedNoTenantListHostStrategy<>();
         strategy.addChildStrategy(new NoTenantListHostByHostIdsFromCacheStrategy(hostCache));
-        strategy.addChildStrategy(new NoTenantListHostByHostIdsFromDbStrategy(noTenantHostDAO));
+        strategy.addChildStrategy(new NoTenantListHostByHostIdsFromDbStrategy(noTenantHostDAO, hostCache));
         return strategy;
     }
 
@@ -59,7 +59,7 @@ public class NoTenantListHostStrategyServiceImpl implements NoTenantListHostStra
     public NoTenantListHostStrategy<String> buildByIpsFromCacheOrDbStrategy() {
         ComposedNoTenantListHostStrategy<String> strategy = new ComposedNoTenantListHostStrategy<>();
         strategy.addChildStrategy(new NoTenantListHostByIpsFromCacheStrategy(hostCache));
-        strategy.addChildStrategy(new NoTenantListHostByIpsFromDbStrategy(noTenantHostDAO));
+        strategy.addChildStrategy(new NoTenantListHostByIpsFromDbStrategy(noTenantHostDAO, hostCache));
         return strategy;
     }
 }

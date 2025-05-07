@@ -66,4 +66,83 @@ public interface CmdbEventManager {
      */
     Boolean disableHostWatch();
 
+    /**
+     * 判断业务事件监听是否在运行
+     *
+     * @param tenantId 租户ID
+     * @return 是否在运行
+     */
+    boolean isWatchBizEventRunning(String tenantId);
+
+    /**
+     * 判断业务集事件监听是否在运行
+     *
+     * @param tenantId 租户ID
+     * @return 是否在运行
+     */
+    boolean isWatchBizSetEventRunning(String tenantId);
+
+    /**
+     * 判断业务集关系事件监听是否在运行
+     *
+     * @param tenantId 租户ID
+     * @return 是否在运行
+     */
+    boolean isWatchBizSetRelationEventRunning(String tenantId);
+
+    /**
+     * 判断主机事件监听是否在运行
+     *
+     * @param tenantId 租户ID
+     * @return 是否在运行
+     */
+    boolean isWatchHostEventRunning(String tenantId);
+
+    /**
+     * 判断主机关系事件监听是否在运行
+     *
+     * @param tenantId 租户ID
+     * @return 是否在运行
+     */
+    boolean isWatchHostRelationEventRunning(String tenantId);
+
+    /**
+     * 监听业务事件
+     *
+     * @param tenantId 租户ID
+     * @return 是否监听成功
+     */
+    boolean watchBizEvent(String tenantId);
+
+    /**
+     * 监听业务集事件
+     *
+     * @param tenantId 租户ID
+     * @return 是否监听成功
+     */
+    boolean watchBizSetEvent(String tenantId);
+
+    /**
+     * 监听业务集关系事件
+     *
+     * @param tenantId 租户ID
+     * @return 是否监听成功
+     */
+    boolean watchBizSetRelationEvent(String tenantId);
+
+    /**
+     * 监听主机事件
+     *
+     * @param tenantId 租户ID
+     * @return 是否监听成功
+     */
+    boolean watchHostEvent(String tenantId);
+
+    /**
+     * 监听主机关系事件
+     *
+     * @param tenantId 租户ID
+     * @return 是否监听成功
+     */
+    boolean watchHostRelationEvent(String tenantId);
 }

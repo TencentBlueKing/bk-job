@@ -27,44 +27,29 @@ package com.tencent.bk.job.manage.service.host.strategy.impl;
 
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.dao.TenantHostDAO;
+import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.host.strategy.TenantListHostStrategy;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 @Slf4j
-public class TenantListHostByHostIdsFromDbStrategy implements TenantListHostStrategy<Long> {
+public class TenantListHostByHostIdsFromDbStrategy extends AbstractCacheableListHostStrategy<Long>
+    implements TenantListHostStrategy<Long> {
     private final TenantHostDAO tenantHostDAO;
 
-    public TenantListHostByHostIdsFromDbStrategy(TenantHostDAO tenantHostDAO) {
+    public TenantListHostByHostIdsFromDbStrategy(TenantHostDAO tenantHostDAO, HostCache hostCache) {
+        super(hostCache);
         this.tenantHostDAO = tenantHostDAO;
     }
 
     @Override
     public Pair<List<Long>, List<ApplicationHostDTO>> listHosts(String tenantId, List<Long> hostIds) {
-        long start = System.currentTimeMillis();
-        List<ApplicationHostDTO> appHosts = new ArrayList<>();
-        List<Long> notExistHostIds = new ArrayList<>(hostIds);
-        List<ApplicationHostDTO> hostsInDb = tenantHostDAO.listHostInfoByHostIds(tenantId, hostIds);
-        if (CollectionUtils.isNotEmpty(hostsInDb)) {
-            for (ApplicationHostDTO appHost : hostsInDb) {
-                if (appHost.getBizId() == null || appHost.getBizId() <= 0) {
-                    log.info("Host: {}|{} missing bizId, skip!", appHost.getHostId(), appHost.getCloudIp());
-                    // DB中缓存的主机可能没有业务信息(依赖的主机事件还没有处理),那么暂时跳过该主机
-                    continue;
-                }
-                notExistHostIds.remove(appHost.getHostId());
-                appHosts.add(appHost);
-            }
-        }
-
-        long cost = System.currentTimeMillis() - start;
-        if (cost > 1000) {
-            log.warn("ListHostsFromMySQL slow, hostSize: {}, cost: {}", hostIds.size(), cost);
-        }
-        return Pair.of(notExistHostIds, appHosts);
+        Function<Void, Pair<List<Long>, List<ApplicationHostDTO>>> loadHostsFunc = voidObj ->
+            Pair.of(hostIds, tenantHostDAO.listHostInfoByHostIds(tenantId, hostIds));
+        Function<ApplicationHostDTO, Long> extractKeyFunc = ApplicationHostDTO::getHostId;
+        return listHostsAndRefreshCache("loadHostsFromDb", loadHostsFunc, extractKeyFunc);
     }
 }

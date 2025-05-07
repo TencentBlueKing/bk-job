@@ -28,16 +28,17 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.redis.util.HeartBeatRedisLock;
 import com.tencent.bk.job.common.redis.util.LockResult;
-import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.tracing.util.SpanUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.background.ha.AbstractBackGroundTask;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.cloud.sleuth.annotation.NewSpan;
@@ -50,31 +51,30 @@ import java.util.List;
  *
  * @param <E> cmdb事件
  */
-@SuppressWarnings("InfiniteLoopStatement")
 @Slf4j
-public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
-    protected final String tenantId;
+public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGroundTask {
+
     /**
-     * 节点IP
+     * 单个Watcher自身的线程资源成本（不含事件处理线程）
      */
-    private final String machineIp;
-    private final RedisTemplate<String, String> redisTemplate;
+    public static final int SINGLE_WATCHER_THREAD_RESOURCE_COST = 1;
+
+    protected final String tenantId;
     private final Tracer tracer;
     private final CmdbEventSampler cmdbEventSampler;
-    /**
-     * 事件监听任务分布式锁KEY
-     */
-    private final String redisLockKey;
 
     /**
      * 监听的资源名称
      */
     protected final String watcherResourceName;
+    private final HeartBeatRedisLock redisLock;
 
     /**
      * 监听事件前是否已执行初始化操作
      */
     private boolean initedBeforeWatch = false;
+    protected volatile boolean active = true;
+    protected volatile boolean finished = false;
 
     public AbstractCmdbResourceEventWatcher(String tenantId,
                                             String watcherResourceName,
@@ -82,24 +82,49 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                                             Tracer tracer,
                                             CmdbEventSampler cmdbEventSampler) {
         this.tenantId = tenantId;
-        this.machineIp = IpUtils.getFirstMachineIP();
-        this.redisTemplate = redisTemplate;
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.watcherResourceName = watcherResourceName;
-        this.setName(watcherResourceName);
-        this.redisLockKey = "watch-cmdb-" + this.watcherResourceName + "-lock-" + tenantId;
+        this.setName(getUniqueCode());
+        this.redisLock = new HeartBeatRedisLock(redisTemplate, getUniqueCode(), IpUtils.getFirstMachineIP());
     }
 
     @NewSpan
     @Override
     public final void run() {
-        log.info("[tenantId={}] Watching {} event start", tenantId, watcherResourceName);
+        try {
+            doRun();
+        } catch (Throwable t) {
+            log.error("Exception occurred when running", t);
+        } finally {
+            onFinish();
+        }
+    }
+
+    /**
+     * 判断是否有其他实例在运行
+     *
+     * @return 是否有其他实例在运行
+     */
+    public boolean hasRunningInstance() {
+        String lockKeyValue = redisLock.peekLockKeyValue();
+        return StringUtils.isNotBlank(lockKeyValue);
+    }
+
+    private void doRun() {
+        if (hasRunningInstance()) {
+            log.info(
+                "{} already running on {}, ignore",
+                getUniqueCode(),
+                redisLock.peekLockKeyValue()
+            );
+            return;
+        }
+        log.info("{} start", getUniqueCode());
         LockResult lockResult = null;
-        while (true) {
+        while (active) {
             Span span = SpanUtil.buildNewSpan(this.tracer, this.watcherResourceName + "WatchOuterLoop");
             try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
-                HeartBeatRedisLock redisLock = new HeartBeatRedisLock(redisTemplate, redisLockKey, machineIp);
                 lockResult = redisLock.lock();
                 if (!lockResult.isLockGotten()) {
                     // 5s之后重试
@@ -120,18 +145,20 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                 if (lockResult != null) {
                     lockResult.tryToRelease();
                 }
-                LockUtils.releaseDistributedLock(redisLockKey, machineIp);
-                // 过5s后重新尝试监听事件
-                ThreadUtils.sleep(5000);
+                if (active) {
+                    // 过5s后重新尝试监听事件
+                    ThreadUtils.sleep(5000);
+                }
             }
         }
     }
 
+    @SuppressWarnings("BusyWait")
     private void watchAndHandleEvent() {
         log.info("Start watch {} resource at {},{}", watcherResourceName, TimeUtil.getCurrentTimeStr("HH:mm:ss"),
             System.currentTimeMillis());
         String cursor = null;
-        while (isWatchingEnabled()) {
+        while (active && isWatchingEnabled()) {
             Span span = SpanUtil.buildNewSpan(this.tracer, "watchAndHandle-" + this.watcherResourceName + "Events");
             try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
                 ResourceWatchResult<E> watchResult;
@@ -147,7 +174,9 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                 log.info("WatchResult[{}]: {}", this.watcherResourceName, JsonUtils.toJson(watchResult));
                 cursor = handleWatchResult(watchResult, cursor);
                 // 1s/watch一次
-                ThreadUtils.sleep(1_000);
+                Thread.sleep(1_000);
+            } catch (InterruptedException e) {
+                log.info("EventWatch thread interrupted");
             } catch (Throwable t) {
                 span.error(t);
                 log.error("EventWatch thread fail", t);
@@ -219,6 +248,31 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
      */
     protected boolean isWatchingEnabled() {
         return true;
+    }
+
+    private void onFinish() {
+        deregister();
+        this.finished = true;
+    }
+
+    /**
+     * 优雅关闭
+     */
+    public void shutdownGracefully() {
+        this.active = false;
+        waitUntilFinish();
+    }
+
+    private void waitUntilFinish() {
+        int waitMills = 0;
+        while (!finished) {
+            ThreadUtils.sleep(10);
+            waitMills += 10;
+            if (waitMills % 5000 == 0) {
+                log.info("waited {}s to shutdown, still running", waitMills / 1000);
+            }
+        }
+        log.info("waited {}s to shutdown finished", waitMills / 1000.0);
     }
 
     /**

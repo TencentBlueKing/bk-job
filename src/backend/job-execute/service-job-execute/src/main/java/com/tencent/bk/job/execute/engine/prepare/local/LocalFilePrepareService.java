@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.execute.engine.prepare.local;
 
-import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.config.FileDistributeConfig;
@@ -55,7 +55,7 @@ import java.util.concurrent.ExecutorService;
 public class LocalFilePrepareService {
 
     private final FileDistributeConfig fileDistributeConfig;
-    private final ArtifactoryConfig artifactoryConfig;
+    private final ArtifactoryHelper artifactoryHelper;
     private final LocalFileConfigForExecute localFileConfigForExecute;
     private final AgentService agentService;
     private final StepInstanceService stepInstanceService;
@@ -66,7 +66,7 @@ public class LocalFilePrepareService {
 
     @Autowired
     public LocalFilePrepareService(FileDistributeConfig fileDistributeConfig,
-                                   ArtifactoryConfig artifactoryConfig,
+                                   ArtifactoryHelper artifactoryHelper,
                                    LocalFileConfigForExecute localFileConfigForExecute,
                                    AgentService agentService,
                                    StepInstanceService stepInstanceService,
@@ -74,7 +74,7 @@ public class LocalFilePrepareService {
                                    @Qualifier("localFileDownloadExecutor") ExecutorService localFileDownloadExecutor,
                                    @Qualifier("localFileWatchExecutor") ExecutorService localFileWatchExecutor) {
         this.fileDistributeConfig = fileDistributeConfig;
-        this.artifactoryConfig = artifactoryConfig;
+        this.artifactoryHelper = artifactoryHelper;
         this.localFileConfigForExecute = localFileConfigForExecute;
         this.agentService = agentService;
         this.stepInstanceService = stepInstanceService;
@@ -112,7 +112,7 @@ public class LocalFilePrepareService {
             fileSourceList,
             new RecordableLocalFilePrepareTaskResultHandler(stepInstance, resultHandler),
             artifactoryClient,
-            artifactoryConfig.getArtifactoryJobProject(),
+            artifactoryHelper.getJobRealProject(),
             localFileConfigForExecute.getLocalUploadRepo(),
             fileDistributeConfig.getJobDistributeRootPath(),
             localFileDownloadExecutor,

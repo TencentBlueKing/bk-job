@@ -911,7 +911,16 @@ manageConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
-
+  # 后台任务（CMDB资源同步、事件监听等）相关配置
+  backGroundTask:
+    # 后台任务负载均衡器
+    balancer:
+      # 是否开启
+      enabled: true
+    # 后台任务守护机制
+    daemon:
+      # 是否开启
+      enabled: true
 
 ## job-execute执行引擎配置
 executeConfig:
@@ -1101,6 +1110,10 @@ crontabConfig:
         frequency: 5
         # 通知次数：默认 -1 - 不限制通知次数， 0 - 不通知， 1 - 只通知1次，
         total: -1
+  # 业务（集）归档后自动禁用其定时任务相关配置
+  disableCronJobOfArchivedScope:
+    # 是否开启
+    enabled: true
   # 定时任务服务独立数据库配置，若不配置该项则使用与其他服务共用的公共数据库
   database:
     host: ""

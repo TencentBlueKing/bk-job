@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.task;
 
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskBalancer;
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskDaemon;
 import com.tencent.bk.job.manage.background.sync.AgentStatusSyncService;
 import com.tencent.bk.job.manage.background.sync.AllTenantHostSyncService;
 import com.tencent.bk.job.manage.background.sync.AppSyncService;
@@ -43,8 +45,9 @@ public class ScheduledTasks {
     private final AllTenantHostSyncService allTenantHostSyncService;
     private final AgentStatusSyncService agentStatusSyncService;
     private final UserUploadFileCleanTask userUploadFileCleanTask;
-    private final ClearDeletedHostsTask clearDeletedHostsTask;
     private final ApplicationCache applicationCache;
+    private final BackGroundTaskBalancer backGroundTaskBalancer;
+    private final BackGroundTaskDaemon backGroundTaskDaemon;
 
     @Autowired
     public ScheduledTasks(
@@ -52,14 +55,16 @@ public class ScheduledTasks {
         AllTenantHostSyncService allTenantHostSyncService,
         AgentStatusSyncService agentStatusSyncService,
         UserUploadFileCleanTask userUploadFileCleanTask,
-        ClearDeletedHostsTask clearDeletedHostsTask,
-        ApplicationCache applicationCache) {
+        ApplicationCache applicationCache,
+        BackGroundTaskBalancer backGroundTaskBalancer,
+        BackGroundTaskDaemon backGroundTaskDaemon) {
         this.appSyncService = appSyncService;
         this.allTenantHostSyncService = allTenantHostSyncService;
         this.agentStatusSyncService = agentStatusSyncService;
         this.userUploadFileCleanTask = userUploadFileCleanTask;
-        this.clearDeletedHostsTask = clearDeletedHostsTask;
         this.applicationCache = applicationCache;
+        this.backGroundTaskBalancer = backGroundTaskBalancer;
+        this.backGroundTaskDaemon = backGroundTaskDaemon;
     }
 
     /**
@@ -125,14 +130,29 @@ public class ScheduledTasks {
         log.info("Clean user upload file task finished");
     }
 
-
-    @Scheduled(cron = "0 10 * * * ?")
-    public void clearDeletedHosts() {
-        log.info("Clear deleted hosts task begin");
+    /**
+     * 每分钟均衡一次分布在多个实例上的后台任务
+     */
+    @Scheduled(cron = "0 * * * * ?")
+    public void balanceBackGroundTask() {
+        log.info("balanceBackGroundTask begin");
         try {
-            log.info("Clear deleted hosts task finished:{}", clearDeletedHostsTask.execute());
+            log.info("balanceBackGroundTask finished:{}", backGroundTaskBalancer.balance());
         } catch (Exception e) {
-            log.error("Clear deleted hosts failed!", e);
+            log.error("balanceBackGroundTask failed!", e);
+        }
+    }
+
+    /**
+     * 每分钟检查并恢复一次异常终止的后台任务
+     */
+    @Scheduled(cron = "0 * * * * ?")
+    public void runBackGroundTaskDaemon() {
+        log.info("balanceBackGroundTask begin");
+        try {
+            backGroundTaskDaemon.checkAndResumeTaskForAllTenant(false);
+        } catch (Exception e) {
+            log.error("balanceBackGroundTask failed!", e);
         }
     }
 }

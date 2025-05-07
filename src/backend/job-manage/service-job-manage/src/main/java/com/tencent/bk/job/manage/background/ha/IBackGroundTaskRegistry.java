@@ -22,35 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.runner;
+package com.tencent.bk.job.manage.background.ha;
 
-import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventManager;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.Map;
 
-@Slf4j
-@Component
-public class CmdbEventManagerInitRunner implements CommandLineRunner {
-    private final ThreadPoolExecutor initRunnerExecutor;
-    private final CmdbEventManager cmdbEventManager;
+/**
+ * 后台任务注册仓库接口
+ */
+@Service
+public interface IBackGroundTaskRegistry {
 
-    @Autowired
-    public CmdbEventManagerInitRunner(ThreadPoolExecutor initRunnerExecutor, CmdbEventManager cmdbEventManager) {
-        this.initRunnerExecutor = initRunnerExecutor;
-        this.cmdbEventManager = cmdbEventManager;
-    }
+    boolean existsTask(String uniqueCode);
 
-    @Override
-    public void run(String... args) {
-        initRunnerExecutor.submit(this::initCmdbEventManager);
-    }
+    boolean registerTask(String uniqueCode, IBackGroundTask task);
 
-    private void initCmdbEventManager() {
-        log.info("cmdbEventManager init");
-        cmdbEventManager.init();
-    }
+    IBackGroundTask removeTask(String uniqueCode);
+
+    Map<String, IBackGroundTask> getTaskMap();
 }

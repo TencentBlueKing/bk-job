@@ -25,9 +25,9 @@
 package com.tencent.bk.job.execute.api.web.impl;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
-import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.JobConstants;
@@ -74,7 +74,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
     private final StepInstanceService stepInstanceService;
     private final LogExportService logExportService;
     private final ArtifactoryClient artifactoryClient;
-    private final ArtifactoryConfig artifactoryConfig;
+    private final ArtifactoryHelper artifactoryHelper;
     private final LogExportConfig logExportConfig;
 
     @Autowired
@@ -82,14 +82,14 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                                   StorageConfig storageConfig,
                                   LogExportService logExportService,
                                   @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
-                                  ArtifactoryConfig artifactoryConfig,
+                                  ArtifactoryHelper artifactoryHelper,
                                   LogExportConfig logExportConfig) {
         this.stepInstanceService = stepInstanceService;
         this.logExportService = logExportService;
         this.logFileDir = NFSUtils.getFileDir(storageConfig.getJobStorageRootPath(),
             FileDirTypeConf.JOB_INSTANCE_PATH);
         this.artifactoryClient = artifactoryClient;
-        this.artifactoryConfig = artifactoryConfig;
+        this.artifactoryHelper = artifactoryHelper;
         this.logExportConfig = logExportConfig;
     }
 
@@ -106,7 +106,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         NodeDTO nodeDTO = null;
         try {
             nodeDTO = artifactoryClient.queryNodeDetail(
-                artifactoryConfig.getArtifactoryJobProject(),
+                artifactoryHelper.getJobRealProject(),
                 logExportConfig.getLogExportRepo(),
                 zipFileName
             );
@@ -249,7 +249,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         InputStream ins;
         try {
             nodeDTO = artifactoryClient.queryNodeDetail(
-                artifactoryConfig.getArtifactoryJobProject(),
+                artifactoryHelper.getJobRealProject(),
                 logExportConfig.getLogExportRepo(),
                 exportInfo.getZipFileName()
             );
@@ -259,7 +259,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         try {
             log.debug("get {} fileInputStream from artifactory", exportInfo.getZipFileName());
             Pair<InputStream, HttpRequestBase> pair = artifactoryClient.getFileInputStream(
-                artifactoryConfig.getArtifactoryJobProject(),
+                artifactoryHelper.getJobRealProject(),
                 logExportConfig.getLogExportRepo(),
                 exportInfo.getZipFileName()
             );

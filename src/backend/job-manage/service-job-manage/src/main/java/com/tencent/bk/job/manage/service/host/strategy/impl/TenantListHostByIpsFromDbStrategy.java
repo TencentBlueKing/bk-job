@@ -27,48 +27,34 @@ package com.tencent.bk.job.manage.service.host.strategy.impl;
 
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.dao.TenantHostDAO;
+import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.host.strategy.TenantListHostStrategy;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * 根据CloudIPs从DB查询主机
  */
 @Slf4j
-public class TenantListHostByIpsFromDbStrategy implements TenantListHostStrategy<String> {
+public class TenantListHostByIpsFromDbStrategy extends AbstractCacheableListHostStrategy<String>
+    implements TenantListHostStrategy<String> {
 
     private final TenantHostDAO tenantHostDAO;
 
-    public TenantListHostByIpsFromDbStrategy(TenantHostDAO tenantHostDAO) {
+    public TenantListHostByIpsFromDbStrategy(TenantHostDAO tenantHostDAO, HostCache hostCache) {
+        super(hostCache);
         this.tenantHostDAO = tenantHostDAO;
     }
 
     @Override
     public Pair<List<String>, List<ApplicationHostDTO>> listHosts(String tenantId, List<String> cloudIps) {
-        long start = System.currentTimeMillis();
-        List<ApplicationHostDTO> appHosts = new ArrayList<>();
-        List<String> notExistCloudIps = new ArrayList<>(cloudIps);
-        List<ApplicationHostDTO> hostsInDb = tenantHostDAO.listHostsByCloudIps(tenantId, cloudIps);
-        if (CollectionUtils.isNotEmpty(hostsInDb)) {
-            for (ApplicationHostDTO appHost : hostsInDb) {
-                if (appHost.getBizId() == null || appHost.getBizId() <= 0) {
-                    log.info("Host: {}|{} missing bizId, skip!", appHost.getHostId(), appHost.getCloudIp());
-                    // DB中缓存的主机可能没有业务信息(依赖的主机事件还没有处理),那么暂时跳过该主机
-                    continue;
-                }
-                notExistCloudIps.remove(appHost.getCloudIp());
-                appHosts.add(appHost);
-            }
-        }
-        long cost = System.currentTimeMillis() - start;
-        if (cost > 1000) {
-            log.warn("ListHostsFromMySQL slow, ipSize: {}, cost: {}", cloudIps.size(), cost);
-        }
-        return Pair.of(notExistCloudIps, appHosts);
+        Function<Void, Pair<List<String>, List<ApplicationHostDTO>>> loadHostsFunc = voidObj ->
+            Pair.of(cloudIps, tenantHostDAO.listHostsByCloudIps(tenantId, cloudIps));
+        Function<ApplicationHostDTO, String> extractKeyFunc = ApplicationHostDTO::getCloudIp;
+        return listHostsAndRefreshCache("loadHostsFromDb", loadHostsFunc, extractKeyFunc);
     }
 
 }

@@ -27,40 +27,29 @@ package com.tencent.bk.job.manage.service.host.strategy.impl;
 
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.service.host.strategy.TenantListHostStrategy;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 @Slf4j
-public class TenantListHostByHostIdsFromCmdbStrategy implements TenantListHostStrategy<Long> {
+public class TenantListHostByHostIdsFromCmdbStrategy extends AbstractCacheableListHostStrategy<Long>
+    implements TenantListHostStrategy<Long> {
     private final IBizCmdbClient bizCmdbClient;
 
-    public TenantListHostByHostIdsFromCmdbStrategy(IBizCmdbClient bizCmdbClient) {
+    public TenantListHostByHostIdsFromCmdbStrategy(IBizCmdbClient bizCmdbClient, HostCache hostCache) {
+        super(hostCache);
         this.bizCmdbClient = bizCmdbClient;
     }
 
     @Override
     public Pair<List<Long>, List<ApplicationHostDTO>> listHosts(String tenantId, List<Long> hostIds) {
-        long start = System.currentTimeMillis();
-        List<Long> notExistHostIds = new ArrayList<>(hostIds);
-        List<ApplicationHostDTO> cmdbExistHosts = bizCmdbClient.listHostsByHostIds(tenantId, hostIds);
-        if (CollectionUtils.isNotEmpty(cmdbExistHosts)) {
-            List<Long> cmdbExistHostIds = cmdbExistHosts.stream()
-                .map(ApplicationHostDTO::getHostId)
-                .collect(Collectors.toList());
-            notExistHostIds.removeAll(cmdbExistHostIds);
-            log.info("sync new hosts from cmdb, hosts:{}", cmdbExistHosts);
-        }
-
-        long cost = System.currentTimeMillis() - start;
-        if (cost > 1000) {
-            log.warn("ListHostsFromCmdb slow, hostSize: {}, cost: {}", hostIds.size(), cost);
-        }
-        return Pair.of(notExistHostIds, cmdbExistHosts);
+        Function<Void, Pair<List<Long>, List<ApplicationHostDTO>>> loadHostsFunc = voidObj ->
+            Pair.of(hostIds, bizCmdbClient.listHostsByHostIds(tenantId, hostIds));
+        Function<ApplicationHostDTO, Long> extractKeyFunc = ApplicationHostDTO::getHostId;
+        return listHostsAndRefreshCache("loadHostsFromCmdb", loadHostsFunc, extractKeyFunc);
     }
 }

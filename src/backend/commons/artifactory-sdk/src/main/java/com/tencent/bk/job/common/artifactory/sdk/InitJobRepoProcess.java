@@ -25,7 +25,6 @@
 package com.tencent.bk.job.common.artifactory.sdk;
 
 import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
-import com.tencent.bk.job.common.constant.JobConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -64,8 +63,7 @@ public class InitJobRepoProcess {
         String jobUsername = artifactoryConfig.getArtifactoryJobUsername();
         String jobPassword = artifactoryConfig.getArtifactoryJobPassword();
         String jobProject = artifactoryConfig.getArtifactoryJobProject();
-        String jobRealProject = artifactoryHelper.getRealProjectNameStore()
-            .queryRealProjectName(JobConstants.SAVE_KEY_ARTIFACTORY_JOB_REAL_PROJECT);
+        String jobRealProject = artifactoryHelper.getJobRealProject();
         // 1.检查用户、仓库是否存在
         boolean userRepoExists = false;
         if (!StringUtils.isBlank(jobRealProject)) {
@@ -87,8 +85,7 @@ public class InitJobRepoProcess {
             adminPassword,
             jobUsername,
             jobPassword,
-            jobProject,
-            JobConstants.SAVE_KEY_ARTIFACTORY_JOB_REAL_PROJECT
+            jobProject
         );
         if (!projectUserCreated) {
             log.error(
@@ -97,8 +94,7 @@ public class InitJobRepoProcess {
                 jobUsername
             );
         }
-        jobRealProject = artifactoryHelper.getRealProjectNameStore()
-            .queryRealProjectName(JobConstants.SAVE_KEY_ARTIFACTORY_JOB_REAL_PROJECT);
+        jobRealProject = artifactoryHelper.getJobRealProject();
         if (StringUtils.isBlank(jobRealProject)) {
             log.warn("Cannot get real project name, use project name directly");
             jobRealProject = jobProject;

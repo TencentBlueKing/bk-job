@@ -28,6 +28,8 @@ import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
+import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
@@ -43,12 +45,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 public class TenantHostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<HostRelationEventDetail> {
-
-    private static final AtomicInteger instanceNum = new AtomicInteger(1);
 
     /**
      * 日志调用链tracer
@@ -84,9 +83,8 @@ public class TenantHostRelationEventWatcher extends AbstractCmdbResourceEventWat
         this.noTenantHostDAO = noTenantHostDAO;
         this.hostTopoDAO = hostTopoDAO;
         this.hostCache = hostCache;
-        this.setName("[" + getId() + "]-HostRelationWatchThread-" + instanceNum.getAndIncrement());
         this.eventsHandler = buildHostRelationEventHandler();
-        this.eventsHandler.setName("[" + eventsHandler.getId() + "]-HostRelationEventHandler");
+        this.eventsHandler.setName(getName() + ":Handler");
     }
 
     private HostRelationEventHandler buildHostRelationEventHandler() {
@@ -97,7 +95,8 @@ public class TenantHostRelationEventWatcher extends AbstractCmdbResourceEventWat
             applicationService,
             noTenantHostDAO,
             hostTopoDAO,
-            hostCache
+            hostCache,
+            tenantId
         );
     }
 
@@ -152,5 +151,50 @@ public class TenantHostRelationEventWatcher extends AbstractCmdbResourceEventWat
 
     private void dispatchEventToHandler(ResourceEvent<HostRelationEventDetail> event) {
         eventsHandler.commitEvent(event);
+    }
+
+    @Override
+    public String getUniqueCode() {
+        return getTaskEntity().getUniqueCode();
+    }
+
+    @Override
+    public TaskEntity getTaskEntity() {
+        return new TaskEntity(BackGroundTaskCode.WATCH_HOST_RELATION, getTenantId());
+    }
+
+    @Override
+    public String getTenantId() {
+        return tenantId;
+    }
+
+
+    @Override
+    public int getResourceCost() {
+        return resourceCostForWatcherAndHandler();
+    }
+
+    /**
+     * 计算Watcher与对应Handler的资源总消耗
+     *
+     * @return 资源消耗值
+     */
+    public static int resourceCostForWatcherAndHandler() {
+        return resourceCostForWatcher() + HostRelationEventHandler.SINGLE_HANDLER_THREAD_RESOURCE_COST;
+    }
+
+    /**
+     * 计算Watcher自身的资源消耗
+     *
+     * @return 资源消耗值
+     */
+    public static int resourceCostForWatcher() {
+        return SINGLE_WATCHER_THREAD_RESOURCE_COST;
+    }
+
+    @Override
+    public void shutdownGracefully() {
+        super.shutdownGracefully();
+        eventsHandler.close();
     }
 }

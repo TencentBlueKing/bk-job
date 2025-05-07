@@ -7,6 +7,7 @@ import com.tencent.bk.job.common.artifactory.model.req.CheckRepoExistReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateProjectReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateRepoReq;
 import com.tencent.bk.job.common.artifactory.model.req.CreateUserToProjectReq;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tentent.bk.job.common.api.artifactory.IRealProjectNameStore;
@@ -30,6 +31,15 @@ public class ArtifactoryHelper {
     }
 
     /**
+     * 获取Job实际使用的制品库项目名称
+     *
+     * @return 实际的项目名称
+     */
+    public String getJobRealProject() {
+        return realProjectNameStore.queryRealProjectName(JobConstants.SAVE_KEY_ARTIFACTORY_JOB_REAL_PROJECT);
+    }
+
+    /**
      * 向制品库注册Job用户、项目
      */
     public boolean createJobUserAndProjectIfNotExists(
@@ -38,8 +48,7 @@ public class ArtifactoryHelper {
         String adminPassword,
         String jobUsername,
         String jobPassword,
-        String jobProject,
-        String jobRealProjectSaveKey
+        String jobProject
     ) {
         ArtifactoryClient adminClient = new ArtifactoryClient(
             baseUrl,
@@ -55,7 +64,7 @@ public class ArtifactoryHelper {
             "which is used to save job data produced by users. " +
             "Do not delete me unless you know what you are doing";
         req.setDescription(PROJECT_DESCRIPTION);
-        if (!createProjectIfNotExist(adminClient, jobRealProjectSaveKey, req)) {
+        if (!createProjectIfNotExist(adminClient, JobConstants.SAVE_KEY_ARTIFACTORY_JOB_REAL_PROJECT, req)) {
             return false;
         } else {
             log.info(
@@ -69,7 +78,7 @@ public class ArtifactoryHelper {
         createUserToProjectReq.setName(jobUsername);
         createUserToProjectReq.setPwd(jobPassword);
         createUserToProjectReq.setAdmin(true);
-        String jobRealProject = realProjectNameStore.queryRealProjectName(jobRealProjectSaveKey);
+        String jobRealProject = getJobRealProject();
         createUserToProjectReq.setProjectId(jobRealProject);
         if (!createUserToProjectIfNotExist(adminClient, createUserToProjectReq)) {
             return false;
