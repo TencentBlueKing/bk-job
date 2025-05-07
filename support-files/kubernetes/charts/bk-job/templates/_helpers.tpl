@@ -277,6 +277,20 @@ Return the MariaDB jdbc connection sslMode
 {{- end -}}
 
 {{/*
+Return the MariaDB trustStore password key
+*/}}
+{{- define "job.mariadb.trustStorePasswordKey" -}}
+{{ printf "${mariadb-truststore-password}" }}
+{{- end -}}
+
+{{/*
+Return the MariaDB keyStore password key
+*/}}
+{{- define "job.mariadb.keyStorePasswordKey" -}}
+{{ printf "${mariadb-keystore-password}" }}
+{{- end -}}
+
+{{/*
 Return the MariaDB jdbc connection ssl properties
 */}}
 {{- define "job.mariadb.ssl.properties" -}}
@@ -284,9 +298,9 @@ Return the MariaDB jdbc connection ssl properties
     {{- printf "" -}}
 {{- else -}}
     {{- if (not .Values.externalMariaDB.tls.keyStoreFilename) }}
-        {{- printf "&sslMode=%s&trustCertificateKeyStoreType=%s&trustCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&trustCertificateKeyStorePassword=%s" (include "job.mariadb.sslMode" .) .Values.externalMariaDB.tls.trustStoreType .Values.externalMariaDB.tls.trustStoreFilename .Values.externalMariaDB.tls.trustStorePassword -}}
+        {{- printf "&sslMode=%s&trustCertificateKeyStoreType=%s&trustCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&trustCertificateKeyStorePassword=%s" (include "job.mariadb.sslMode" .) .Values.externalMariaDB.tls.trustStoreType .Values.externalMariaDB.tls.trustStoreFilename (include "job.mariadb.trustStorePasswordKey" .) -}}
     {{- else -}}
-        {{- printf "&sslMode=%s&trustCertificateKeyStoreType=%s&trustCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&trustCertificateKeyStorePassword=%s&clientCertificateKeyStoreType=%s&clientCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&clientCertificateKeyStorePassword=%s" (include "job.mariadb.sslMode" .) .Values.externalMariaDB.tls.trustStoreType .Values.externalMariaDB.tls.trustStoreFilename .Values.externalMariaDB.tls.trustStorePassword .Values.externalMariaDB.tls.keyStoreType .Values.externalMariaDB.tls.keyStoreFilename .Values.externalMariaDB.tls.keyStorePassword -}}
+        {{- printf "&sslMode=%s&trustCertificateKeyStoreType=%s&trustCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&trustCertificateKeyStorePassword=%s&clientCertificateKeyStoreType=%s&clientCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&clientCertificateKeyStorePassword=%s" (include "job.mariadb.sslMode" .) .Values.externalMariaDB.tls.trustStoreType .Values.externalMariaDB.tls.trustStoreFilename (include "job.mariadb.trustStorePasswordKey" .) .Values.externalMariaDB.tls.keyStoreType .Values.externalMariaDB.tls.keyStoreFilename (include "job.mariadb.keyStorePasswordKey" .) -}}
     {{- end -}}
 {{- end -}}
 {{- end -}}
