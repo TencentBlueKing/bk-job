@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.service.impl;
 import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.service.TopoService;
@@ -43,10 +43,10 @@ import java.util.List;
 @Slf4j
 public class TopoServiceImpl implements TopoService {
 
-    private final BizCmdbClient bizCmdbClient;
+    private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
-    public TopoServiceImpl(BizCmdbClient bizCmdbClient) {
+    public TopoServiceImpl(IBizCmdbClient bizCmdbClient) {
         this.bizCmdbClient = bizCmdbClient;
     }
 

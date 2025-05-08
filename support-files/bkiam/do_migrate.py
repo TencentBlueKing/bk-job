@@ -51,6 +51,7 @@ def load_data(filename):
 def _gen_header():
     headers = {
         "Content-Type": "application/json",
+        "X-Bk-Tenant-Id": "system",
     }
     return headers
 

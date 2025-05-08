@@ -148,4 +148,5 @@ public interface ScopeHostService {
                                             List<String> osNameKeyList,
                                             Long start,
                                             Long pageSize);
+
 }

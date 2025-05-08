@@ -102,6 +102,7 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
         switch (resourceType) {
             case BUSINESS:
             case BUSINESS_SET:
+            case TENANT_SET:
                 Long appId = appScopeMappingService.getAppIdByScope(
                     IamUtil.getResourceScopeFromIamResource(resourceType, resourceId));
                 if (appId != null && appId > 0) {
@@ -109,7 +110,7 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
                 }
                 break;
             case PUBLIC_SCRIPT:
-                ScriptDTO publicScript = publicScriptService.getScriptByScriptId(resourceId);
+                ScriptDTO publicScript = publicScriptService.getScript(resourceId);
                 if (publicScript != null) {
                     return publicScript.getName();
                 }

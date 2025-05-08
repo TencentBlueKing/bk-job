@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Agent状态查询服务
+ * 资源范围无关的Agent状态查询服务
  */
 @Slf4j
 @Service

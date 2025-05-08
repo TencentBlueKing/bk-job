@@ -28,11 +28,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
-import com.tencent.bk.job.analysis.model.dto.SimpleAppInfoDTO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
+import com.tencent.bk.job.manage.model.remote.SimpleAppInfoDTO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BaseStatisticsTask;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.api.inner.ServiceMetricsResource;
@@ -61,17 +63,20 @@ public class AppStatisticsTask extends BaseStatisticsTask {
     private final StatisticConfig statisticConfig;
 
     protected AppStatisticsTask(BasicServiceManager basicServiceManager,
-                                StatisticsDAO statisticsDAO,
+                                CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                NoTenantStatisticsDAO noTenantStatisticsDAO,
                                 @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
                                 ServiceMetricsResource executeMetricsResource,
-                                StatisticConfig statisticConfig) {
-        super(basicServiceManager, statisticsDAO, dslContext);
+                                StatisticConfig statisticConfig,
+                                TenantService tenantService) {
+        super(basicServiceManager, currentTenantStatisticsDAO, noTenantStatisticsDAO, dslContext, tenantService);
         this.executeMetricsResource = executeMetricsResource;
         this.statisticConfig = statisticConfig;
     }
 
     public void calcJoinedApps(LocalDateTime dateTime) {
-        val resp = executeMetricsResource.getJoinedAppIdList();
+        String tenantId = getCurrentTenantId();
+        val resp = executeMetricsResource.getJoinedAppIdList(tenantId);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote getJoinedAppIdList, resp:{}", resp);
             return;
@@ -80,15 +85,19 @@ public class AppStatisticsTask extends BaseStatisticsTask {
         // 合并前一天的接入业务
         LocalDateTime lastDayTime = dateTime.minusDays(1);
         String lastDayTimeStr = getDayTimeStr(lastDayTime);
-        StatisticsDTO lastDayStatisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
-            StatisticsConstants.RESOURCE_APP, StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
-            StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_APP_LIST, lastDayTimeStr);
+        StatisticsDTO lastDayStatisticsDTO = currentTenantStatisticsDAO.getStatistics(
+            StatisticsConstants.DEFAULT_APP_ID,
+            StatisticsConstants.RESOURCE_APP,
+            StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
+            StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_APP_LIST,
+            lastDayTimeStr
+        );
         if (lastDayStatisticsDTO != null) {
             String value = lastDayStatisticsDTO.getValue();
             try {
                 List<SimpleAppInfoDTO> simpleAppInfoDTOList = JsonUtils.fromJson(value,
                     new TypeReference<List<SimpleAppInfoDTO>>() {
-                });
+                    });
                 for (SimpleAppInfoDTO appInfoDTO : simpleAppInfoDTOList) {
                     joinedAppIdSet.add(appInfoDTO.getId());
                 }
@@ -99,15 +108,15 @@ public class AppStatisticsTask extends BaseStatisticsTask {
             log.warn("lastDayStatisticsDTO of {} is null", lastDayTime);
         }
         List<SimpleAppInfoDTO> appInfoDTOList =
-            basicServiceManager.getAppService().getSimpleAppInfoByIds(new ArrayList<>(joinedAppIdSet));
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+            basicServiceManager.getRemoteAppService().getSimpleAppInfoByIds(new ArrayList<>(joinedAppIdSet));
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(StatisticsConstants.DEFAULT_APP_ID);
         statisticsDTO.setDate(getDayTimeStr(dateTime));
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_APP);
         statisticsDTO.setDimension(StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE);
         statisticsDTO.setDimensionValue(StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_APP_LIST);
         statisticsDTO.setValue(JsonUtils.toJson(appInfoDTOList));
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
     }
 
     public void calcActiveApps(LocalDateTime dateTime) {
@@ -121,8 +130,13 @@ public class AppStatisticsTask extends BaseStatisticsTask {
         List<Long> activeAppIdList = new ArrayList<>();
         for (ServiceApplicationDTO serviceApplicationDTO : appDTOList) {
             Long appId = serviceApplicationDTO.getId();
-            val resp = executeMetricsResource.hasExecuteHistory(appId, -1L, TimeUtil.localDateTime2Long(fromTime),
-                TimeUtil.localDateTime2Long(dateTime));
+            long notCronTaskId = -1L;
+            val resp = executeMetricsResource.hasExecuteHistory(
+                appId,
+                notCronTaskId,
+                TimeUtil.localDateTime2Long(fromTime),
+                TimeUtil.localDateTime2Long(dateTime)
+            );
             if (resp == null || !resp.isSuccess()) {
                 log.warn("Fail to call remote hasExecuteHistory, resp:{}", resp);
             } else {
@@ -132,15 +146,15 @@ public class AppStatisticsTask extends BaseStatisticsTask {
             }
         }
         List<SimpleAppInfoDTO> appInfoDTOList =
-            basicServiceManager.getAppService().getSimpleAppInfoByIds(activeAppIdList);
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+            basicServiceManager.getRemoteAppService().getSimpleAppInfoByIds(activeAppIdList);
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(-1L);
         statisticsDTO.setDate(dayTimeStr);
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_APP);
         statisticsDTO.setDimension(StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE);
         statisticsDTO.setDimensionValue(StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_ACTIVE_APP_LIST);
         statisticsDTO.setValue(JsonUtils.toJson(appInfoDTOList));
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
     }
 
     @Override

@@ -28,24 +28,20 @@ import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
 import com.tencent.bk.job.common.cc.model.container.KubeNamespaceDTO;
 import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
 import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
-import com.tencent.bk.job.common.gse.constants.DefaultBeanNames;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
-import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.metrics.CommonMetricTags;
-import com.tencent.bk.job.common.model.HostCompositeKey;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.service.toggle.strategy.JobInstanceAttrToggleStrategy;
 import com.tencent.bk.job.common.util.ListUtil;
 import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
 import com.tencent.bk.job.common.util.toggle.ToggleStrategyContextParams;
@@ -62,7 +58,7 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceExecuteObjects;
-import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.ContainerService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
@@ -76,7 +72,6 @@ import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
@@ -100,30 +95,30 @@ import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.SE
 public class TaskInstanceExecuteObjectProcessor {
 
     private final HostService hostService;
-    private final ApplicationService applicationService;
+    private final RemoteAppService remoteAppService;
     private final ContainerService containerService;
     private final AppScopeMappingService appScopeMappingService;
     private final WhiteHostCache whiteHostCache;
-    private final AgentStateClient preferV2AgentStateClient;
+    private final AgentStateClient agentStateClient;
 
     private final MeterRegistry meterRegistry;
 
-    private final BizCmdbClient bizCmdbClient;
+    private final IBizCmdbClient bizCmdbClient;
 
     public TaskInstanceExecuteObjectProcessor(HostService hostService,
-                                              ApplicationService applicationService,
+                                              RemoteAppService remoteAppService,
                                               ContainerService containerService,
                                               AppScopeMappingService appScopeMappingService,
                                               WhiteHostCache whiteHostCache,
-                                              @Qualifier(DefaultBeanNames.PREFER_V2_AGENT_STATE_CLIENT)
-                                              AgentStateClient preferV2AgentStateClient,
-                                              MeterRegistry meterRegistry, BizCmdbClient bizCmdbClient) {
+                                              AgentStateClient agentStateClient,
+                                              MeterRegistry meterRegistry,
+                                              IBizCmdbClient bizCmdbClient) {
         this.hostService = hostService;
-        this.applicationService = applicationService;
+        this.remoteAppService = remoteAppService;
         this.containerService = containerService;
         this.appScopeMappingService = appScopeMappingService;
         this.whiteHostCache = whiteHostCache;
-        this.preferV2AgentStateClient = preferV2AgentStateClient;
+        this.agentStateClient = agentStateClient;
         this.meterRegistry = meterRegistry;
         this.bizCmdbClient = bizCmdbClient;
     }
@@ -488,41 +483,40 @@ public class TaskInstanceExecuteObjectProcessor {
     }
 
     private void fillHostAgent(TaskInstanceDTO taskInstance, TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
-        boolean isUsingGseV2 = isUsingGseV2(taskInstance,
-            ListUtil.union(taskInstanceExecuteObjects.getValidHosts(), taskInstanceExecuteObjects.getNotInAppHosts()));
         /*
-         * 后续下发任务给GSE会根据agentId路由请求到GSE1.0/2.0。如果要使用GSE2.0，那么直接使用原始bk_agent_id;如果要使用GSE1.0,
-         * 按照{云区域ID:ip}的方式构造agent_id
+         * 使用GSE 2.0，但GSE V2服务可兼容管控V1 Agent，如果bk_agent_id不为空，那么直接使用原始bk_agent_id，
+         * 如果bk_agent_id为空，说明是兼容管控1.0的Agent，按照{云区域ID:ip}的方式构造agent_id
          */
         Set<HostDTO> invalidAgentIdHosts = new HashSet<>();
 
         if (CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getValidHosts())) {
             taskInstanceExecuteObjects.getValidHosts()
-                .forEach(host -> setHostAgentId(isUsingGseV2, host, invalidAgentIdHosts));
+                .forEach(host -> setHostAgentId(host, invalidAgentIdHosts));
         }
 
         if (CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getNotInAppHosts())) {
             taskInstanceExecuteObjects.getNotInAppHosts()
-                .forEach(host -> setHostAgentId(isUsingGseV2, host, invalidAgentIdHosts));
+                .forEach(host -> setHostAgentId(host, invalidAgentIdHosts));
         }
 
         if (CollectionUtils.isNotEmpty(invalidAgentIdHosts)) {
             // 如果存在主机没有agentID，不影响影响整个任务的执行。所以这里仅输出日志，不拦截整个任务的执行。后续执行代码会处理`主机没有agentId`的情况
-            log.warn("Contains invalid agent id host, appId: {}, isUsingGseV2: {}, invalidHosts: {}",
-                taskInstance.getAppId(), isUsingGseV2, invalidAgentIdHosts);
+            log.warn("Contains invalid agent id host, appId: {}, invalidHosts: {}",
+                taskInstance.getAppId(), invalidAgentIdHosts);
         }
 
-        setAgentStatus(taskInstanceExecuteObjects.getValidHosts(), isUsingGseV2);
-        setAgentStatus(taskInstanceExecuteObjects.getNotInAppHosts(), isUsingGseV2);
+        setAgentStatus(taskInstanceExecuteObjects.getValidHosts());
+        setAgentStatus(taskInstanceExecuteObjects.getNotInAppHosts());
     }
 
-    private void setHostAgentId(boolean isUsingGseV2, HostDTO host, Set<HostDTO> invalidAgentIdHosts) {
-        // 如果对接GSE1.0,使用云区域+ipv4构造agentId
-        if (!isUsingGseV2) {
-            host.setAgentId(host.toCloudIp());
-        }
+    private void setHostAgentId(HostDTO host, Set<HostDTO> invalidAgentIdHosts) {
+        // 如果AgentId为空，是GSE V2服务兼容管控V1 Agent的场景，使用云区域+ipv4构造AgentId
         if (StringUtils.isBlank(host.getAgentId())) {
-            invalidAgentIdHosts.add(host);
+            if (StringUtils.isNotBlank(host.getIp())) {
+                host.setAgentId(host.toCloudIp());
+            } else {
+                invalidAgentIdHosts.add(host);
+            }
         }
     }
 
@@ -564,7 +558,7 @@ public class TaskInstanceExecuteObjectProcessor {
         }
     }
 
-    private void setAgentStatus(List<HostDTO> hosts, boolean isUsingGseV2) {
+    private void setAgentStatus(List<HostDTO> hosts) {
         if (CollectionUtils.isEmpty(hosts)) {
             return;
         }
@@ -573,7 +567,7 @@ public class TaskInstanceExecuteObjectProcessor {
         List<HostAgentStateQuery> hostAgentStateQueryList = new ArrayList<>(hosts.size());
         Map<HostDTO, HostAgentStateQuery> hostAgentStateQueryMap = new HashMap<>(hosts.size());
         hosts.stream()
-            .filter(host -> isAgentIdValid(host, isUsingGseV2))
+            .filter(this::isAgentIdValid)
             .forEach(host -> {
                 HostAgentStateQuery hostAgentStateQuery = HostAgentStateQuery.from(host);
                 hostAgentStateQueryList.add(hostAgentStateQuery);
@@ -581,7 +575,7 @@ public class TaskInstanceExecuteObjectProcessor {
             });
 
         // 此处用于记录下发任务时的Agent状态快照数据，因此使用最终真实下发任务的agentId获取状态
-        Map<String, AgentState> agentStateMap = preferV2AgentStateClient.batchGetAgentState(hostAgentStateQueryList);
+        Map<String, AgentState> agentStateMap = agentStateClient.batchGetAgentState(hostAgentStateQueryList);
 
         for (HostDTO host : hosts) {
             HostAgentStateQuery hostAgentStateQuery = hostAgentStateQueryMap.get(host);
@@ -590,7 +584,7 @@ public class TaskInstanceExecuteObjectProcessor {
                 continue;
             }
 
-            String effectiveAgentId = preferV2AgentStateClient.getEffectiveAgentId(hostAgentStateQuery);
+            String effectiveAgentId = agentStateClient.getEffectiveAgentId(hostAgentStateQuery);
             if (StringUtils.isEmpty(effectiveAgentId)) {
                 host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
                 continue;
@@ -609,9 +603,8 @@ public class TaskInstanceExecuteObjectProcessor {
         }
     }
 
-    private boolean isAgentIdValid(HostDTO host, boolean isUsingGseV2) {
-        return isUsingGseV2 ? AgentUtils.isGseV2AgentId(host.getAgentId()) :
-            AgentUtils.isGseV1AgentId(host.getAgentId());
+    private boolean isAgentIdValid(HostDTO host) {
+        return StringUtils.isNotBlank(host.getAgentId());
     }
 
     private void acquireAndSetContainers(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
@@ -852,7 +845,7 @@ public class TaskInstanceExecuteObjectProcessor {
     }
 
     private void throwHostInvalidException(Long appId, Collection<HostDTO> invalidHosts) {
-        ServiceApplicationDTO application = applicationService.getAppById(appId);
+        ServiceApplicationDTO application = remoteAppService.getAppById(appId);
         String appName = application.getName();
         String hostListStr = StringUtils.join(invalidHosts.stream()
             .map(this::printHostIdOrIp).collect(Collectors.toList()), ",");
@@ -1019,29 +1012,6 @@ public class TaskInstanceExecuteObjectProcessor {
             && StringUtils.isNotEmpty(taskInstance.getAppCode())
             && (StringUtils.equals(taskInstance.getAppCode(), "bkc-nodeman")
             || StringUtils.equals(taskInstance.getAppCode(), "bk_nodeman"));
-    }
-
-    private boolean isUsingGseV2(TaskInstanceDTO taskInstance, Collection<HostDTO> taskInstanceHosts) {
-        // 初始化Job任务灰度对接 GSE2.0 上下文
-        ToggleEvaluateContext featureExecutionContext =
-            ToggleEvaluateContext.builder()
-                .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
-                    appScopeMappingService.getScopeByAppId(taskInstance.getAppId()))
-                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE,
-                    () -> taskInstanceHosts.stream().anyMatch(host -> AgentUtils.isGseV2AgentId(host.getAgentId())))
-                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE,
-                    () -> taskInstanceHosts.stream().allMatch(
-                        host -> AgentUtils.isGseV2AgentId(host.getAgentId())))
-                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_STARTUP_MODE,
-                    () -> TaskStartupModeEnum.getStartupMode(taskInstance.getStartupMode()).getName())
-                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_OPERATOR, taskInstance::getOperator);
-
-        boolean isUsingGseV2 = FeatureToggle.checkFeature(
-            FeatureIdConstants.FEATURE_GSE_V2,
-            featureExecutionContext
-        );
-        log.info("Use gse version {}", isUsingGseV2 ? "v2" : "v1");
-        return isUsingGseV2;
     }
 
     /**

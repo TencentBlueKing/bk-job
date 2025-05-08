@@ -45,7 +45,6 @@ import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoWithDefa
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import com.tencent.bk.job.manage.service.globalsetting.GlobalSettingsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,16 +114,6 @@ public class WebGlobalSettingsResourceImpl implements WebGlobalSettingsResource 
     )
     public Response<List<ChannelTemplateStatusVO>> listChannelTemplateStatus(String username) {
         return Response.buildSuccessResp(globalSettingsService.listChannelTemplateStatus(username));
-    }
-
-    @Override
-    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
-    @ActionAuditRecord(
-        actionId = ActionId.GLOBAL_SETTINGS,
-        content = EventContentConstants.VIEW_GLOBAL_SETTINGS
-    )
-    public Response<List<UserVO>> listUsers(String username, String prefixStr, Long offset, Long limit) {
-        return Response.buildSuccessResp(globalSettingsService.listUsers(username, prefixStr, offset, limit));
     }
 
     @Override

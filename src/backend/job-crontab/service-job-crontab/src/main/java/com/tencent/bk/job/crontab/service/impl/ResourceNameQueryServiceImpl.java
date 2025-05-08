@@ -80,6 +80,7 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
                 break;
             case BUSINESS:
             case BUSINESS_SET:
+            case TENANT_SET:
                 Long appId = appScopeMappingService.getAppIdByScope(
                     IamUtil.getResourceScopeFromIamResource(resourceType, resourceId));
                 if (appId != null && appId > 0) {
