@@ -68,6 +68,12 @@ public class JobManageConfig {
     @Value("${job.manage.sync.app.enabled:true}")
     private boolean enableSyncApp;
 
+    @Value("${job.manage.sync.app.deleteProtect.enabled:false}")
+    private boolean enableAppDeleteProtect;
+
+    @Value("${job.manage.sync.app.deleteProtect.maxRatio:0.5}")
+    private float maxAppDeleteRatio;
+
     @Value("${job.manage.sync.host.enabled:true}")
     private boolean enableSyncHost;
 

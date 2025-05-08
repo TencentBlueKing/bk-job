@@ -583,6 +583,7 @@ public class ArtifactoryClient {
                 return Pair.of(resp.getEntity().getContent(), pair.getLeft());
             } else {
                 log.info("resp.statusLine={},resp.entity={}", resp.getStatusLine(), resp.getEntity());
+                resp.close();
                 throw new InternalException(ErrorCode.FAIL_TO_REQUEST_THIRD_FILE_SOURCE_DOWNLOAD_GENERIC_FILE);
             }
         } catch (IOException e) {

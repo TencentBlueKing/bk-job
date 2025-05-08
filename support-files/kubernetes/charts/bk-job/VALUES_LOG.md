@@ -101,6 +101,103 @@ executeConfig:
         # 过期时间（s）
         expireSeconds: 10
 ```
+## 0.7.3
+1. 增加连接外部MariaDB、Redis、RabbitMQ、MongoDB支持TLS相关配置
+```yaml
+externalMariaDB:
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS
+    trustStoreType: "JKS"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.jks"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    keyStoreType: "PKCS12"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
+    
+externalRedis:
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS，注意：连接Redis使用的trustStoreType与keyStoreType必须相同，若不同则以keyStoreType为准
+    trustStoreType: "JKS"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.jks"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS
+    keyStoreType: "JKS"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
+    ## 是否校验主机名
+    verifyHostname: false
+    
+externalRabbitMQ:
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS
+    trustStoreType: "JKS"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.jks"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    keyStoreType: "PKCS12"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
+    ## 是否校验主机名
+    verifyHostname: false
+    
+externalMongoDB:
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS
+    trustStoreType: "JKS"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.jks"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    keyStoreType: "PKCS12"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
+    ## 是否校验主机名
+    verifyHostname: false
+```
 
 ## 0.7.1
 1. 增加AI相关配置

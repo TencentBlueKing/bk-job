@@ -109,4 +109,8 @@ data:
       {{- toYaml .Values.analysisConfig.ai | nindent 6 }}
     mysql:
       {{- toYaml .Values.analysisConfig.mysql | nindent 6 }}
+    tls:
+      # 连接Redis使用的TLS配置
+      redis:
+        {{- include "job.redis.tls" . | nindent 8 }}
 {{- end }}

@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.background.sync;
 
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -45,14 +46,17 @@ import java.util.stream.Collectors;
 public class BizSyncService extends BasicAppSyncService {
 
     private final ApplicationDAO applicationDAO;
+    private final JobManageConfig jobManageConfig;
 
     @Autowired
     public BizSyncService(ApplicationDAO applicationDAO,
                           NoTenantHostDAO noTenantHostDAO,
                           ApplicationService applicationService,
-                          IBizCmdbClient bizCmdbClient) {
+                          IBizCmdbClient bizCmdbClient,
+                          JobManageConfig jobManageConfig) {
         super(applicationDAO, noTenantHostDAO, applicationService, bizCmdbClient);
         this.applicationDAO = applicationDAO;
+        this.jobManageConfig = jobManageConfig;
     }
 
     public void syncBizFromCMDB(String tenantId) {
@@ -108,6 +112,58 @@ public class BizSyncService extends BasicAppSyncService {
         log.info(String.format("app deleteList scopeIds:%s", String.join(",",
             deleteList.stream().map(applicationInfoDTO ->
                 applicationInfoDTO.getScope().getId()).collect(Collectors.toSet()))));
-        applyAppsChangeByScope(insertList, deleteList, updateList);
+        if (isSafeToApplyChange(localBizApps, deleteList)) {
+            applyAppsChangeByScope(insertList, deleteList, updateList);
+        }
+    }
+
+    /**
+     * 根据配置信息判断业务数据变更是否安全
+     *
+     * @param localBizApps 本地DB中的业务信息
+     * @param deleteList   需要设置为删除状态的业务列表
+     * @return 本次业务数据变更是否安全
+     */
+    private boolean isSafeToApplyChange(List<ApplicationDTO> localBizApps, List<ApplicationDTO> deleteList) {
+        if (!jobManageConfig.isEnableAppDeleteProtect()) {
+            return true;
+        }
+        // 在本地未被删除的业务
+        List<ApplicationDTO> notDeleteLocalBizApps = localBizApps.stream()
+            .filter(app -> !app.isDeleted())
+            .collect(Collectors.toList());
+        // 在本地已经被软删除的业务
+        List<ApplicationDTO> deletedLocalBizApps = localBizApps.stream()
+            .filter(ApplicationDTO::isDeleted)
+            .collect(Collectors.toList());
+        if (notDeleteLocalBizApps.isEmpty()) {
+            return true;
+        }
+        // 计算新删除的业务数量
+        int newDeleteNum = deleteList.size() - deletedLocalBizApps.size();
+        float deleteRatio = (float) newDeleteNum / notDeleteLocalBizApps.size();
+        if (log.isDebugEnabled()) {
+            log.debug(
+                "notDeleteLocalBizApps.size={}, deletedLocalBizApps.size={}, " +
+                    "deleteList.size={}, newDeleteNum={}, deleteRatio={}",
+                notDeleteLocalBizApps.size(),
+                deletedLocalBizApps.size(),
+                deleteList.size(),
+                newDeleteNum,
+                deleteRatio
+            );
+        }
+        // 根据最大删除比例阈值判断本次变更是否安全
+        if (deleteRatio > jobManageConfig.getMaxAppDeleteRatio()) {
+            log.error(
+                "FATAL|deleteRatio({}/{}={}) is beyond maxAppDeleteRatio({}), dangerous! Not apply app change",
+                newDeleteNum,
+                notDeleteLocalBizApps.size(),
+                deleteRatio,
+                jobManageConfig.getMaxAppDeleteRatio()
+            );
+            return false;
+        }
+        return true;
     }
 }
