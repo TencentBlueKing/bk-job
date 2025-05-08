@@ -22,42 +22,57 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.crypto;
+package com.tencent.bk.job.common.properties;
 
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.util.StringUtils;
 
-import javax.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * 加密配置
- */
-@ConfigurationProperties(prefix = "job.encrypt")
-@ToString
 @Getter
 @Setter
-@Slf4j
-public class EncryptConfig {
-
-    private CryptoTypeEnum type;
-
-    private String password;
+public class JobSslProperties {
 
     /**
-     * 各个场景下使用的加密算法，不配置则使用默认算法
+     * 连接mongo是否启用ssl
      */
-    private Map<String, String> scenarioAlgorithms = new HashMap<>();
+    private boolean enabled = false;
 
-    @PostConstruct
-    public void print() {
-        if (log.isDebugEnabled()) {
-            log.debug("EncryptConfig init: {}", JsonUtils.toJson(this));
-        }
+    /**
+     * 信任库类型，默认PKCS12
+     */
+    private String trustStoreType = "PKCS12";
+
+    /**
+     * 信任库地址，暂时以文件形式（运维提供）
+     */
+    private String trustStore;
+
+    /**
+     * 信任库密码
+     */
+    private String trustStorePassword;
+
+    /**
+     * 客户端证书存储类型，默认PKCS12
+     */
+    private String keyStoreType = "PKCS12";
+
+    /**
+     * 客户端的证书地址，文件形式
+     */
+    private String keyStore;
+
+    /**
+     * 客户端证书存储密钥
+     */
+    private String keyStorePassword;
+
+    /**
+     * 是否校验主机名
+     */
+    private boolean verifyHostname = false;
+
+    public boolean isMutualTlsConfigured() {
+        return StringUtils.hasText(keyStore);
     }
 }
