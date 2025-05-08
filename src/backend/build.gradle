@@ -399,6 +399,7 @@ subprojects {
         all*.exclude group: 'junit', module: 'junit'
         all*.exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
         all*.exclude group: 'org.springframework.cloud', module: 'spring-cloud-sleuth-brave'
+        all*.exclude group: 'org.springframework.data', module: 'spring-data-redis'
     }
 }
 apply plugin: TaskTreePlugin

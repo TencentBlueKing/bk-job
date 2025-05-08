@@ -80,7 +80,7 @@ data:
             poolName: {{ $ds.poolName | default "job-execute" }}
             validationTimeout: {{ $ds.validationTimeout | default 5000 }}
         {{- end }}
-        {{- end }}  
+        {{- end }}
         {{- end }}
         {{- if and .Values.backupConfig.archive.execute.enabled (or (eq .Values.backupConfig.archive.execute.mode "backupThenDelete") (eq .Values.backupConfig.archive.execute.mode "backupOnly")) }}
         job-execute-archive:
@@ -126,4 +126,8 @@ data:
             {{- toYaml .Values.backupConfig.archive.execute | nindent 12 }}
     mysql:
       {{- toYaml .Values.backupConfig.mysql | nindent 6 }}
+    tls:
+      # 连接Redis使用的TLS配置
+      redis:
+        {{- include "job.redis.tls" . | nindent 8 }}
 {{- end }}

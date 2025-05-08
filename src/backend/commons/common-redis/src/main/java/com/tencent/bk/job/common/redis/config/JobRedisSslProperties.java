@@ -22,42 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.crypto;
+package com.tencent.bk.job.common.redis.config;
 
-import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.common.properties.JobSslProperties;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import javax.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * 加密配置
- */
-@ConfigurationProperties(prefix = "job.encrypt")
-@ToString
+@ConfigurationProperties(prefix = "tls")
 @Getter
 @Setter
-@Slf4j
-public class EncryptConfig {
-
-    private CryptoTypeEnum type;
-
-    private String password;
+public class JobRedisSslProperties {
 
     /**
-     * 各个场景下使用的加密算法，不配置则使用默认算法
+     * Redis的ssl配置
      */
-    private Map<String, String> scenarioAlgorithms = new HashMap<>();
-
-    @PostConstruct
-    public void print() {
-        if (log.isDebugEnabled()) {
-            log.debug("EncryptConfig init: {}", JsonUtils.toJson(this));
-        }
-    }
+    private JobSslProperties redis = new JobSslProperties();
 }

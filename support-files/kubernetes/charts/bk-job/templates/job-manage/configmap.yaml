@@ -86,4 +86,8 @@ data:
       {{- toYaml .Values.manageConfig.mysql | nindent 6 }}
     server:
       port: {{ .Values.manageConfig.containerPort }}
+    tls:
+      # 连接Redis使用的TLS配置
+      redis:
+        {{- include "job.redis.tls" . | nindent 8 }}
 {{- end }}
