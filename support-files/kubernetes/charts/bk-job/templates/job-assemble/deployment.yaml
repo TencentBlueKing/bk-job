@@ -128,6 +128,7 @@ spec:
               mountPath: /etc/secrets/redis
               readOnly: true
             {{- include "job.mariadb.certsVolumeMount" . | nindent 12 }}
+            {{- include "job.backup.archive.mariadb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.mongodb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
             {{- include "job.redis.certsVolumeMount" . | nindent 12 }}
@@ -155,6 +156,7 @@ spec:
           secret:
             secretName: {{ include "job.redis.secretName" . }}
         {{- include "job.mariadb.certsVolume" . | nindent 8 }}
+        {{- include "job.backup.archive.mariadb.certsVolume" . | nindent 8 }}
         {{- include "job.mongodb.certsVolume" . | nindent 8 }}
         {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
         {{- include "job.redis.certsVolume" . | nindent 8 }}
