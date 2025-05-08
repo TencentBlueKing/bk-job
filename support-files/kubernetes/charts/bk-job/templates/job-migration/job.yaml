@@ -67,5 +67,21 @@ spec:
               value: {{ .Values.job.migration.mysqlSchema.enabled | quote }}
             - name: BK_JOB_MIGRATION_IAM_MODEL_ENABLED
               value: {{ .Values.job.migration.iamModel.enabled | quote }}
+            {{- if .Values.job.migration.mysqlSchema.extraOptions }}
+            - name: BK_JOB_MYSQL_EXTRA_OPTIONS
+              value: {{ .Values.job.migration.mysqlSchema.extraOptions | quote }}
+            {{- end }}
+      {{- if and (not .Values.mariadb.enabled) (.Values.job.migration.mysqlSchema.tls.enabled) }}
+            - name: BK_JOB_TLS_OPTIONS
+              value: {{ include "job.migration.mysqlSchema.tlsOptions" . | quote }}
+          volumeMounts:
+            - name : mariadb-certs
+              mountPath : {{ include "job.migration.mysqlSchema.certsDir" . }}
+              readOnly : true
+      volumes:
+        - name : mariadb-certs
+          secret :
+            secretName : {{ .Values.job.migration.mysqlSchema.tls.existingSecret }}
+      {{- end }}
       restartPolicy: Never
 {{- end }}

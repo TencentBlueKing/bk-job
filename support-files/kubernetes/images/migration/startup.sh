@@ -7,10 +7,12 @@ find .
 echo "===========ENV========="
 env
 echo "===========EXEC========"
-mysql --version
+MYSQL_CMD="mysql $BK_JOB_TLS_OPTIONS $BK_JOB_MYSQL_EXTRA_OPTIONS"
+echo "MYSQL_CMD=$MYSQL_CMD"
+$MYSQL_CMD --version
 
 function checkMysql(){
-  c=$(mysql -h $BK_JOB_MYSQL_HOST -P $BK_JOB_MYSQL_PORT -u$BK_JOB_MYSQL_ADMIN_USERNAME -p$BK_JOB_MYSQL_ADMIN_PASSWORD -e "select 1"|grep 1|wc -l)
+  c=$($MYSQL_CMD -h $BK_JOB_MYSQL_HOST -P $BK_JOB_MYSQL_PORT -u$BK_JOB_MYSQL_ADMIN_USERNAME -p$BK_JOB_MYSQL_ADMIN_PASSWORD -e "select 1"|grep 1|wc -l)
   echo "c=$c"
   if [[ "$c" == "2" ]];then
     return 0
@@ -31,7 +33,7 @@ function migrateMySQL(){
 
   for sql in "${ALL_SQL[@]}"; do
     echo "migrate $sql"
-    mysql -h $BK_JOB_MYSQL_HOST -P $BK_JOB_MYSQL_PORT -u$BK_JOB_MYSQL_ADMIN_USERNAME -p$BK_JOB_MYSQL_ADMIN_PASSWORD < $sql
+    $MYSQL_CMD -h $BK_JOB_MYSQL_HOST -P $BK_JOB_MYSQL_PORT -u$BK_JOB_MYSQL_ADMIN_USERNAME -p$BK_JOB_MYSQL_ADMIN_PASSWORD < $sql
     echo "migrate $sql done"
   done
 }

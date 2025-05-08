@@ -53,6 +53,27 @@ backupConfig:
         ## 是否校验主机名
         verifyHostname : false
 
+## 应用MySQL表结构Migration时使用的TLS配置
+job:
+  migration:
+    mysqlSchema:
+      ## TLS相关配置
+      tls:
+        ## 是否开启tls认证
+        enabled: false
+        ## 存储证书与私钥文件内容的secret名称
+        existingSecret: ""
+        ## 单向tls认证配置
+        ## 客户端需要信任的服务端CA证书文件（PEM格式）名称（与Secret中的Key一致）
+        certCAFilename: "ca.pem"
+        ## 双向tls认证配置
+        ## 服务端需要信任的客户端证书文件（PEM格式）名称（与Secret中的Key一致）
+        certFilename: ""
+        ## 客户端私钥文件名称（与Secret中的Key一致）
+        certKeyFilename: ""
+        ## 是否校验主机名
+        verifyHostname: false
+
 externalRedis:
   ## TLS相关配置
   tls:
