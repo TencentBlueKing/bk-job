@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
+import com.tencent.bk.job.common.watch.SafeWatch;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
@@ -107,25 +108,33 @@ public class BizHostSyncService {
         List<HostProp> hostPropList,
         long cmdbHostsFetchTimeMills
     ) {
-        List<Long> insertHostIdList = new ArrayList<>();
-        List<ApplicationHostDTO> insertHostList = hostPropList.stream()
-            .filter(hostProp -> !localHostIds.contains(hostProp.getHostId()))
-            .map(hostProp -> {
-                ApplicationHostDTO hostDTO = hostProp.toApplicationHostDTO();
-                Long lastTime = hostDTO.getLastTime();
-                if (lastTime == null || lastTime < 0) {
-                    hostDTO.setLastTime(cmdbHostsFetchTimeMills);
-                    log.warn(
-                        "cmdbHostLastTime({}) is invalid, use cmdbHostsFetchTimeMills({}) for insert, host={}",
-                        lastTime,
-                        cmdbHostsFetchTimeMills,
-                        hostDTO
-                    );
-                }
-                hostDTO.setBizId(bizId);
-                insertHostIdList.add(hostProp.getHostId());
-                return hostDTO;
-            }).collect(Collectors.toList());
+        Set<Long> insertHostIdSet = new HashSet<>();
+        List<ApplicationHostDTO> insertHostList = new ArrayList<>();
+        for (HostProp prop : hostPropList) {
+            Long hostId = prop.getHostId();
+            if (localHostIds.contains(hostId)) {
+                continue;
+            }
+            if (insertHostIdSet.contains(hostId)) {
+                continue;
+            }
+            ApplicationHostDTO hostDTO = prop.toApplicationHostDTO();
+            Long lastTime = hostDTO.getLastTime();
+            if (lastTime == null || lastTime < 0) {
+                hostDTO.setLastTime(cmdbHostsFetchTimeMills);
+                log.warn(
+                    "cmdbHostLastTime({}) is invalid, use cmdbHostsFetchTimeMills({}) for insert, host={}",
+                    lastTime,
+                    cmdbHostsFetchTimeMills,
+                    hostDTO
+                );
+            }
+            hostDTO.setBizId(bizId);
+            insertHostIdSet.add(hostId);
+            insertHostList.add(hostDTO);
+        }
+        List<Long> insertHostIdList = new ArrayList<>(insertHostIdSet);
+        insertHostIdList.sort(Long::compareTo);
         log.info(
             "bizId={}, insertHostIdList.size={}, insertHostIdList={}",
             bizId,
@@ -234,7 +243,7 @@ public class BizHostSyncService {
     private Set<BasicHostDTO> refreshBizHostAndRelations(Long bizId,
                                                          List<HostWithModules> hostWithModulesList,
                                                          long cmdbHostsFetchTimeMills) {
-        StopWatch watch = new StopWatch();
+        SafeWatch watch = new SafeWatch();
         // CMDB数据拆分
         Set<Long> cmdbHostIds = new HashSet<>();
         Set<BasicHostDTO> cmdbBasicHosts = new HashSet<>();
@@ -351,6 +360,7 @@ public class BizHostSyncService {
         for (HostTopoDTO hostTopoDTO : localHostTopoList) {
             localTopoKeys.add(buildTopoKey(hostTopoDTO));
         }
+        Set<String> insertTopoKeys = new HashSet<>();
         for (HostWithModules hostWithModules : hostWithModulesList) {
             HostProp host = hostWithModules.getHost();
             List<ModuleProp> modules = hostWithModules.getModules();
@@ -365,17 +375,13 @@ public class BizHostSyncService {
                 if (localTopoKeys.contains(topoKey)) {
                     continue;
                 }
-                HostTopoDTO hostTopo = buildHostTopo(bizId, host, module);
-                Long lastTime = hostTopo.getLastTime();
-                if (lastTime == null || lastTime < 0) {
-                    hostTopo.setLastTime(cmdbHostsFetchTimeMills);
-                    log.warn(
-                        "cmdbHostTopoLastTime({}) is invalid, use cmdbHostsFetchTimeMills({}) for insert, hostTopo={}",
-                        lastTime,
-                        cmdbHostsFetchTimeMills,
-                        hostTopo
-                    );
+                // 避免产生重复的拓扑数据导致后续批量插入失败
+                if (insertTopoKeys.contains(topoKey)) {
+                    continue;
                 }
+                HostTopoDTO hostTopo = buildHostTopo(bizId, host, module);
+                fillLastTimeIfNeed(hostTopo, cmdbHostsFetchTimeMills);
+                insertTopoKeys.add(topoKey);
                 insertHostTopoList.add(hostTopo);
             }
         }
@@ -386,6 +392,26 @@ public class BizHostSyncService {
             insertHostTopoList
         );
         return insertHostTopoList;
+    }
+
+    /**
+     * 在last_time字段缺失时为主机拓扑数据填充CMDB主机信息获取时间作为last_time
+     *
+     * @param hostTopo                主机拓扑
+     * @param cmdbHostsFetchTimeMills CMDB主机信息获取时间
+     */
+    private void fillLastTimeIfNeed(HostTopoDTO hostTopo, long cmdbHostsFetchTimeMills) {
+        Long lastTime = hostTopo.getLastTime();
+        if (lastTime != null && lastTime >= 0) {
+            return;
+        }
+        hostTopo.setLastTime(cmdbHostsFetchTimeMills);
+        log.warn(
+            "cmdbHostTopoLastTime({}) is invalid, use cmdbHostsFetchTimeMills({}) for insert, hostTopo={}",
+            lastTime,
+            cmdbHostsFetchTimeMills,
+            hostTopo
+        );
     }
 
     /**
@@ -808,7 +834,7 @@ public class BizHostSyncService {
         Long bizId = Long.valueOf(bizApp.getScope().getId());
         long cmdbInterfaceTimeConsuming = 0L;
         long writeToDBTimeConsuming = 0L;
-        StopWatch bizHostsWatch = new StopWatch();
+        SafeWatch bizHostsWatch = new SafeWatch();
         bizHostsWatch.start("getHostRelationsFromCmdb");
         long startTime = System.currentTimeMillis();
         log.info("begin to syncBizHosts:bizId={}", bizId);
