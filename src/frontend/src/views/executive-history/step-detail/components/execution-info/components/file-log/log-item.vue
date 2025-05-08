@@ -54,7 +54,7 @@
 
       let bkTooltips = null;
 
-      if (data.srcExecuteObject.container) {
+      if (data.srcExecuteObject && data.srcExecuteObject.container) {
         const {
           id,
           name,
@@ -103,10 +103,10 @@
       };
 
       const renderServer = () => {
-        if (data.srcExecuteObject.host) {
+        if (data.srcExecuteObject && data.srcExecuteObject.host) {
           return data.srcExecuteObject.host.ip || data.srcExecuteObject.host.ipv6;
         }
-        if (data.srcExecuteObject.container) {
+        if (data.srcExecuteObject && data.srcExecuteObject.container) {
           return data.srcExecuteObject.container.name || '--';
         }
         return '--';
