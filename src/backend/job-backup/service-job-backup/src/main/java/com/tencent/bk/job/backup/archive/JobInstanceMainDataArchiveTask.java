@@ -28,7 +28,7 @@ import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.model.BackupResult;
 import com.tencent.bk.job.backup.archive.model.DeleteResult;
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.TablesBackupResult;
 import com.tencent.bk.job.backup.archive.model.TablesDeleteResult;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
@@ -55,7 +55,7 @@ public class JobInstanceMainDataArchiveTask extends AbstractJobInstanceArchiveTa
                                           ArchiveProperties archiveProperties,
                                           ArchiveTaskExecuteLock archiveTaskExecuteLock,
                                           ArchiveErrorTaskCounter archiveErrorTaskCounter,
-                                          JobInstanceArchiveTaskInfo archiveTask,
+                                          ArchiveTaskInfo archiveTask,
                                           ArchiveTaskService archiveTaskService,
                                           ArchiveTablePropsStorage archiveTablePropsStorage) {
         super(

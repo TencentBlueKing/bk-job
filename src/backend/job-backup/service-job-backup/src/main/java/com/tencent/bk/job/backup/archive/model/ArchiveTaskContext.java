@@ -29,10 +29,10 @@ import lombok.Data;
 @Data
 public class ArchiveTaskContext {
 
-    private JobInstanceArchiveTaskInfo archiveTaskInfo;
+    private ArchiveTaskInfo archiveTaskInfo;
 
 
-    public ArchiveTaskContext(JobInstanceArchiveTaskInfo archiveTaskInfo) {
+    public ArchiveTaskContext(ArchiveTaskInfo archiveTaskInfo) {
         this.archiveTaskInfo = archiveTaskInfo;
     }
 
