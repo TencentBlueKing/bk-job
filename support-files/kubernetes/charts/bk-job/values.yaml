@@ -733,6 +733,8 @@ job:
   migration:
     # 执行Migration前等待的时间（单位：秒）
     sleepSecondsBeforeMigration: 0
+    # 执行Migration后等待的时间（单位：秒）
+    sleepSecondsAfterMigration: 0
     iamModel:
       # 是否开启权限模型migration
       enabled: true

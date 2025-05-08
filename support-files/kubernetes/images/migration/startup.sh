@@ -66,3 +66,7 @@ if [[ "${BK_JOB_MIGRATION_IAM_MODEL_ENABLED}" == "true" ]];then
 else
   echo "skip migrateIamModel"
 fi
+
+echo "sleep ${BK_JOB_SLEEP_SECONDS_AFTER_MIGRATION}s after migration"
+sleep ${BK_JOB_SLEEP_SECONDS_AFTER_MIGRATION}
+echo "sleep end"

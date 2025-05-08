@@ -43,6 +43,8 @@ spec:
           env:
             - name: BK_JOB_SLEEP_SECONDS_BEFORE_MIGRATION
               value: {{ .Values.job.migration.sleepSecondsBeforeMigration | quote }}
+            - name: BK_JOB_SLEEP_SECONDS_AFTER_MIGRATION
+              value: {{ .Values.job.migration.sleepSecondsAfterMigration | quote }}
             - name: BK_JOB_MYSQL_HOST
               value: {{ include "job.mariadb.host" . | quote }}
             - name: BK_JOB_MYSQL_PORT
