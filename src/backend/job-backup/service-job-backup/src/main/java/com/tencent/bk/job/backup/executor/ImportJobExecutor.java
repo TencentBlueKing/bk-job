@@ -378,14 +378,16 @@ public class ImportJobExecutor {
         if (CollectionUtils.isNotEmpty(jobBackupInfo.getAccountList())) {
             List<ServiceAccountDTO> appAccountList = accountService.listAccountByAppId(importJob.getCreator(),
                 importJob.getAppId());
-            Map<String, Long> appAccountIdMap = new ConcurrentHashMap<>();
-            appAccountList.forEach(account -> appAccountIdMap.put(account.getAlias(),
-                account.getId()));
+            Map<Integer, Map<String, Long>> categoryAliasToAccountIdMap = new ConcurrentHashMap<>();
+            appAccountList.forEach(account -> categoryAliasToAccountIdMap
+                .computeIfAbsent(account.getCategory(), k -> new ConcurrentHashMap<>())
+                .put(account.getAlias(), account.getId())
+            );
 
             for (ServiceAccountDTO account : jobBackupInfo.getAccountList()) {
                 if (AccountCategoryEnum.DB.getValue().equals(account.getCategory())) {
                     // DB account process related system account first
-                    doProcessAccount(importJob, finalAccountIdMap, appAccountIdMap, account.getDbSystemAccount());
+                    doProcessAccount(importJob, finalAccountIdMap, categoryAliasToAccountIdMap, account.getDbSystemAccount());
                     if (finalAccountIdMap.get(account.getDbSystemAccount().getId()) == null) {
                         log.error("Error while find or create db account!|{}|{}|{}|{}", importJob.getCreator(),
                             account.getAppId(), account.getAlias(), account.getDbSystemAccount().getAlias());
@@ -397,16 +399,19 @@ public class ImportJobExecutor {
                     }
                     account.getDbSystemAccount().setId(finalAccountIdMap.get(account.getDbSystemAccount().getId()));
                 }
-                doProcessAccount(importJob, finalAccountIdMap, appAccountIdMap, account);
+                doProcessAccount(importJob, finalAccountIdMap, categoryAliasToAccountIdMap, account);
             }
         }
         importJob.setAccountIdMap(finalAccountIdMap);
     }
 
-    private void doProcessAccount(ImportJobInfoDTO importJob, Map<Long, Long> finalAccountIdMap,
-                                  Map<String, Long> appAccountIdMap, ServiceAccountDTO account) {
-        if (appAccountIdMap.get(account.getAlias()) != null) {
-            finalAccountIdMap.put(account.getId(), appAccountIdMap.get(account.getAlias()));
+    private void doProcessAccount(ImportJobInfoDTO importJob,
+                                  Map<Long, Long> finalAccountIdMap,
+                                  Map<Integer, Map<String, Long>> categoryAliasToAccountIdMap,
+                                  ServiceAccountDTO account) {
+        Map<String, Long> accountAliasMap = categoryAliasToAccountIdMap.get(account.getCategory());
+        if (accountAliasMap != null && accountAliasMap.get(account.getAlias()) != null) {
+            finalAccountIdMap.put(account.getId(), accountAliasMap.get(account.getAlias()));
         } else if (finalAccountIdMap.get(account.getId()) == null) {
             Long newAccountId = accountService.saveAccount(importJob.getCreator(), importJob.getAppId(), account);
             if (newAccountId != null && newAccountId > 0) {
