@@ -9,6 +9,11 @@ env
 echo "===========EXEC========"
 MYSQL_CMD="mysql $BK_JOB_TLS_OPTIONS $BK_JOB_MYSQL_EXTRA_OPTIONS"
 echo "MYSQL_CMD=$MYSQL_CMD"
+
+echo "sleep ${BK_JOB_SLEEP_SECONDS_BEFORE_MIGRATION}s before migration"
+sleep ${BK_JOB_SLEEP_SECONDS_BEFORE_MIGRATION}
+echo "sleep end"
+
 $MYSQL_CMD --version
 
 function checkMysql(){
