@@ -24,25 +24,18 @@
 
 package com.tencent.bk.job.manage.config.listener;
 
-import com.tencent.bk.job.common.mysql.JobTransactional;
-import com.tencent.bk.job.common.paas.cmsi.ICmsiClient;
-import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
-import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.paas.user.IUserApiClient;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
 import com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
-import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyTriggerPolicyDAO;
-import com.tencent.bk.job.manage.model.dto.notify.AvailableEsbChannelDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ResourceStatusChannel;
 import com.tencent.bk.job.manage.model.web.request.notify.TriggerPolicy;
 import com.tencent.bk.job.manage.service.NotifyService;
-import com.tencent.bk.job.manage.service.globalsetting.GlobalSettingsService;
+import com.tencent.bk.job.manage.service.impl.notify.NotifyChannelInitService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,7 +45,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,40 +54,30 @@ import java.util.List;
 @Profile("!test")
 public class NotifyInitListener implements ApplicationListener<ApplicationReadyEvent> {
 
-    private final ICmsiClient cmsiApiClient;
-    private final GlobalSettingsService globalSettingsService;
     private final NotifyService notifyService;
-    private final AvailableEsbChannelDAO availableEsbChannelDAO;
     private final NotifyTriggerPolicyDAO notifyTriggerPolicyDAO;
-    private final IUserApiClient userMgrApiClient;
+    private final NotifyChannelInitService notifyChannelInitService;
 
     @Value("${job.manage.notify.default.channels.available:mail,weixin,rtx}")
     private final String defaultAvailableNotifyChannelsStr = "mail,weixin,rtx";
 
     @Autowired
-    public NotifyInitListener(ICmsiClient cmsiApiClient,
-                              GlobalSettingsService globalSettingsService,
-                              NotifyService notifyService,
-                              AvailableEsbChannelDAO availableEsbChannelDAO,
+    public NotifyInitListener(NotifyService notifyService,
                               NotifyTriggerPolicyDAO notifyTriggerPolicyDAO,
-                              IUserApiClient userMgrApiClient) {
-        this.cmsiApiClient = cmsiApiClient;
-        this.globalSettingsService = globalSettingsService;
+                              NotifyChannelInitService notifyChannelInitService) {
         this.notifyService = notifyService;
-        this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyTriggerPolicyDAO = notifyTriggerPolicyDAO;
-        this.userMgrApiClient = userMgrApiClient;
+        this.notifyChannelInitService = notifyChannelInitService;
     }
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
         // 应用启动完成后的一些初始化操作
         // 1.消息通知默认配置
-        initDefaultNotifyChannels();
+        notifyChannelInitService.initAllTenantDefaultNotifyChannels();
         // 2.用户侧默认配置
         try {
             if (notifyTriggerPolicyDAO.countDefaultPolicies() == 0) {
-                //
                 NotifyPoliciesCreateUpdateReq req = new NotifyPoliciesCreateUpdateReq();
                 List<TriggerPolicy> triggerPolicyList = new ArrayList<>();
                 //1.页面执行策略
@@ -126,45 +108,6 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
             }
         } catch (Exception e) {
             log.error("Fail to config default notify policies", e);
-        }
-    }
-
-    private void initDefaultNotifyChannels() {
-        log.info("init default notify channels");
-        List<OpenApiTenant> tenantList = userMgrApiClient.listAllTenant();
-        tenantList.forEach(tenant ->
-            initDefaultNotifyChannelsWithSingleTenant(tenant.getId())
-        );
-    }
-
-    private void initDefaultNotifyChannelsWithSingleTenant(String tenantId) {
-        List<EsbNotifyChannelDTO> esbNotifyChannelDTOList = cmsiApiClient.getNotifyChannelList(tenantId);
-        if (esbNotifyChannelDTOList == null) {
-            log.error("Fail to get tenant: {} notify channels from esb, null", tenantId);
-            return;
-        }
-        saveDefaultNotifyChannelsToDb(tenantId, esbNotifyChannelDTOList);
-    }
-
-    @JobTransactional(transactionManager = "jobManageTransactionManager")
-    public void saveDefaultNotifyChannelsToDb(String tenantId, List<EsbNotifyChannelDTO> esbNotifyChannelDTOList) {
-        if (!globalSettingsService.isNotifyChannelConfiged(tenantId)) {
-            globalSettingsService.setNotifyChannelConfiged(tenantId);
-            availableEsbChannelDAO.deleteAllChannelsByTenantId(tenantId);
-            for (EsbNotifyChannelDTO esbNotifyChannelDTO : esbNotifyChannelDTOList) {
-                if (!esbNotifyChannelDTO.isEnabled()) {
-                    continue;
-                }
-                availableEsbChannelDAO.insertAvailableEsbChannel(
-                    new AvailableEsbChannelDTO(
-                        esbNotifyChannelDTO.getType(),
-                        true,
-                        "admin",
-                        LocalDateTime.now(),
-                        tenantId
-                    )
-                );
-            }
         }
     }
 

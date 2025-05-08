@@ -118,7 +118,7 @@ data:
         notify:
           default:
             channels:
-              available: mail
+              available: mail,weixin,rtx
     mysql:
       {{- toYaml .Values.manageConfig.mysql | nindent 6 }}
     server:
