@@ -78,6 +78,7 @@ spec:
               value: /etc/secrets
             - name: spring.cloud.kubernetes.configuration.watcher.refreshDelay
               value: "1000"
+            {{- include "job.configWatcher.rabbitmq.sslEnv" . | nindent 12 }}
           {{- include "job.service.probes" ( dict "port" "http" "context" . ) | nindent 10 }}
           resources:
             {{- toYaml .Values.k8sConfigWatcherConfig.resources | nindent 12 }}
@@ -85,10 +86,12 @@ spec:
             - name: rabbitmq
               mountPath: /etc/secrets/rabbitmq
               readOnly: true
+            {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
       volumes:
         - name: rabbitmq
           secret:
             secretName: {{ include "job.rabbitmq.secretName" . }}
+        {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
 
 {{- end }}
 

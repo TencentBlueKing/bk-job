@@ -57,7 +57,57 @@ externalMariaDB:
     keyStoreFilename: ""
     ## 密钥库密码
     keyStorePassword: ""
-    
+
+## job-backup备份服务配置
+backupConfig:
+  ## 数据归档配置
+  archive:
+    # 归档使用的MariaDB实例，若开启归档且开启 DB 数据备份，必须配置该项内容
+    mariadb:
+      ## TLS相关配置
+      tls :
+        ## 是否开启tls认证
+        enabled : false
+        ## 存储trustStore与keyStore的secret名称
+        existingSecret : ""
+        ## 单向tls认证配置
+        ## 密钥库类型：支持PKCS12、JKS，默认JKS
+        trustStoreType : "JKS"
+        ## 信任库文件名称（与Secret中的Key一致）
+        trustStoreFilename : "truststore.jks"
+        ## 信任库密码
+        trustStorePassword : ""
+        ## 双向tls认证配置
+        ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+        keyStoreType : "PKCS12"
+        ## 密钥库文件名称（与Secret中的Key一致）
+        keyStoreFilename : ""
+        ## 密钥库密码
+        keyStorePassword : ""
+        ## 是否校验主机名
+        verifyHostname : false
+
+## 应用MySQL表结构Migration时使用的TLS配置
+job:
+  migration:
+    mysqlSchema:
+      ## TLS相关配置
+      tls:
+        ## 是否开启tls认证
+        enabled: false
+        ## 存储证书与私钥文件内容的secret名称
+        existingSecret: ""
+        ## 单向tls认证配置
+        ## 客户端需要信任的服务端CA证书文件（PEM格式）名称（与Secret中的Key一致）
+        certCAFilename: "ca.pem"
+        ## 双向tls认证配置
+        ## 服务端需要信任的客户端证书文件（PEM格式）名称（与Secret中的Key一致）
+        certFilename: ""
+        ## 客户端私钥文件名称（与Secret中的Key一致）
+        certKeyFilename: ""
+        ## 是否校验主机名
+        verifyHostname: false
+
 externalRedis:
   ## TLS相关配置
   tls:
