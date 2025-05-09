@@ -100,7 +100,7 @@ public abstract class BaseStatisticsTask implements IStatisticsTask {
         //每日统计
         try {
             // 设置当前租户ID
-            JobContextUtil.setUser(new User(tenantId, null));
+            JobContextUtil.setUser(new User(tenantId, null, null));
             // 需要统计跨天的任务
             // 统计昨天的数据
             genStatisticsByDay(LocalDateTime.now().minusDays(1));

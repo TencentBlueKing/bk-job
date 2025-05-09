@@ -281,4 +281,17 @@ public class JobContextUtil {
         }
         return jobContext.getUser();
     }
+
+    /**
+     * 获取用户展示名
+     *
+     * @return 用户展示名
+     */
+    public static String getUserDisplayName() {
+        User user = getUser();
+        if (user == null) {
+            return null;
+        }
+        return user.getDisplayName();
+    }
 }

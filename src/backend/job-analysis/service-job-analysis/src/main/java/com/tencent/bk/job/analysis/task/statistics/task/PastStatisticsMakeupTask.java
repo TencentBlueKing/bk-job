@@ -100,7 +100,7 @@ public class PastStatisticsMakeupTask {
                                              LocalDateTime targetDate) {
         try {
             // 设置当前租户ID
-            JobContextUtil.setUser(new User(tenantId, null));
+            JobContextUtil.setUser(new User(tenantId, null, null));
             statisticsTask.genStatisticsByDay(targetDate);
         } catch (Throwable t) {
             String message = MessageFormatter.format(

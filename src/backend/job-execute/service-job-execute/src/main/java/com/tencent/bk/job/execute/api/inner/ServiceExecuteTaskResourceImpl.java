@@ -105,7 +105,7 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
             .builder()
             .appId(request.getAppId())
             .planId(request.getPlanId())
-            .operator(new User(tenantId, request.getOperator()))
+            .operator(new User(tenantId, request.getOperator(), request.getOperator()))
             .executeVariableValues(executeVariableValues)
             .startupMode(TaskStartupModeEnum.getStartupMode(request.getStartupMode()))
             .cronTaskId(request.getCronTaskId())

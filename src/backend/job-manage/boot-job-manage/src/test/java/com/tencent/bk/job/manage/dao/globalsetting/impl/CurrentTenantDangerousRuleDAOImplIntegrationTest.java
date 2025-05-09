@@ -62,7 +62,7 @@ class CurrentTenantDangerousRuleDAOImplIntegrationTest {
     @Test
     void listDangerousRulesByScriptType() {
         DangerousRuleDTO dangerousRule = new DangerousRuleDTO();
-        JobContextUtil.setUser(new User("tencent", "anon"));
+        JobContextUtil.setUser(new User("tencent", "anon", "anon"));
         dangerousRule.setScriptType(1);
         assertThat(currentTenantDangerousRuleDAO.listDangerousRules(dangerousRule)).hasSize(8);
         dangerousRule.setScriptType(2);
@@ -91,7 +91,7 @@ class CurrentTenantDangerousRuleDAOImplIntegrationTest {
             .builder()
             .expression("sql")
             .build();
-        JobContextUtil.setUser(new User("tencent", null));
+        JobContextUtil.setUser(new User("tencent", null, null));
         List<DangerousRuleDTO> dangerousRuleDTOS = currentTenantDangerousRuleDAO.listDangerousRules(query);
         assertThat(dangerousRuleDTOS).hasSize(3);
         query.setExpression("shell");

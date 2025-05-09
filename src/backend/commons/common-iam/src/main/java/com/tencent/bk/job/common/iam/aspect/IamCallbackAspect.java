@@ -57,7 +57,7 @@ public class IamCallbackAspect {
         if (StringUtils.isNotBlank(tenantId)) {
             throw new InvalidParamException(ErrorCode.TENANT_ID_CANNOT_BE_BLANK, JobCommonHeaders.BK_TENANT_ID);
         }
-        JobContextUtil.setUser(new User(tenantId, null));
+        JobContextUtil.setUser(new User(tenantId, null, null));
     }
 
     private void logRequest(CallbackRequestDTO callbackRequest) {
