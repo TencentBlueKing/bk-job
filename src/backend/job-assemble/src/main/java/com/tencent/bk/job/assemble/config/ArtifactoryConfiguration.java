@@ -22,8 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.config;
+package com.tencent.bk.job.assemble.config;
 
+import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.manage.dao.globalsetting.GlobalSettingDAO;
@@ -32,8 +33,8 @@ import com.tentent.bk.job.common.api.artifactory.IRealProjectNameStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
-public class ArtifactoryConfig {
+@Configuration(value = "jobAssembleArtifactoryConfig")
+public class ArtifactoryConfiguration {
 
     @Bean
     public IRealProjectNameStore realProjectNameStore(GlobalSettingDAO globalSettingDAO) {
@@ -42,7 +43,8 @@ public class ArtifactoryConfig {
 
     @Bean
     public ArtifactoryHelper artifactoryHelper(TenantEnvService tenantEnvService,
-                                               IRealProjectNameStore realProjectNameStore) {
-        return new ArtifactoryHelper(tenantEnvService, realProjectNameStore);
+                                               IRealProjectNameStore realProjectNameStore,
+                                               ArtifactoryConfig artifactoryConfig) {
+        return new ArtifactoryHelper(tenantEnvService, realProjectNameStore, artifactoryConfig);
     }
 }
