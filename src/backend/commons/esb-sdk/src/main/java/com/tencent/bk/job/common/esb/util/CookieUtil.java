@@ -81,11 +81,46 @@ public class CookieUtil {
      * @param key          key
      * @param value        value
      */
-    public static void addToCookie(HttpServletResponse httpResponse, String key, String value) {
-        Cookie cookie = new Cookie(key, value);
-        cookie.setHttpOnly(false);
-        cookie.setPath("/");//用于生效即使相同的值
-        cookie.setMaxAge(7200);
-        httpResponse.addCookie(cookie);
+    public static void addToCookie(HttpServletResponse httpResponse, String key, String value, HttpServletRequest request) {
+    // Input validation
+    if (StringUtils.isBlank(key) || value == null || httpResponse == null || request == null) {
+        return;
     }
+    
+    Cookie cookie = new Cookie(key, value);
+    
+    // Security improvements:
+    cookie.setHttpOnly(true); // Prevent client-side script access to the cookie
+    cookie.setPath("/");
+    cookie.setMaxAge(7200);
+    
+    // Set secure flag based on HTTPS
+    cookie.setSecure(request.isSecure() || 
+                    (request.getHeader("X-Forwarded-Proto") != null && 
+                     request.getHeader("X-Forwarded-Proto").equalsIgnoreCase("https")));
+    
+    httpResponse.addCookie(cookie);
+}
+
+// Overloaded method for backward compatibility
+public static void addToCookie(HttpServletResponse httpResponse, String key, String value) {
+    // Input validation
+    if (StringUtils.isBlank(key) || value == null || httpResponse == null) {
+        return;
+    }
+    
+    Cookie cookie = new Cookie(key, value);
+    
+    // Security improvements:
+    cookie.setHttpOnly(true); // Prevent client-side script access to the cookie
+    cookie.setPath("/");
+    cookie.setMaxAge(7200);
+    
+    // Without the request object, assume secure environments only
+    // This is safer than leaving it unsecured
+    boolean isProductionEnv = !Boolean.getBoolean("app.dev.mode"); // Adjust based on your environment setup
+    cookie.setSecure(isProductionEnv); 
+    
+    httpResponse.addCookie(cookie);
+}
 }
