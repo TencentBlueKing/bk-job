@@ -109,8 +109,31 @@ public class JsonUtils {
      * @return bean
      */
     public static <T> T fromJson(String jsonString, Class<T> beanClass) throws JsonParseException {
-        return JSON_MAPPERS.computeIfAbsent("__all__", s -> JsonMapper.getAllOutPutMapper()).fromJson(jsonString,
-            beanClass);
+        if (StringUtils.isEmpty(jsonString)) {
+            return null;
+        }
+        
+        try {
+            // Get a secure mapper with polymorphic deserialization disabled
+            JsonMapper secureMapper = getSecureMapper();
+            return secureMapper.fromJson(jsonString, beanClass);
+        } catch (IOException e) {
+            log.warn("Parse json string error:" + jsonString, e);
+            throw new JsonParseException(e);
+        }
+    }
+    
+    /**
+     * Returns a secure JsonMapper with polymorphic type handling disabled
+     */
+    private static JsonMapper getSecureMapper() {
+        JsonMapper mapper = JSON_MAPPERS.computeIfAbsent("__secure__", s -> {
+            JsonMapper baseMapper = JsonMapper.getAllOutPutMapper();
+            // Ensure the underlying ObjectMapper has default typing disabled
+            baseMapper.getObjectMapper().deactivateDefaultTyping();
+            return baseMapper;
+        });
+        return mapper;
     }
 
     /**
