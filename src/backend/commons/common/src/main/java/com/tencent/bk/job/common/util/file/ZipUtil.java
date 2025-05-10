@@ -143,44 +143,90 @@ public final class ZipUtil {
         return unzip(new File(filePath));
     }
 
-    public static List<File> unzip(File source) {
-        List<File> unzipFiles = new ArrayList<>();
-        if (source.exists()) {
-            ZipInputStream zis = null;
-            FileInputStream in = null;
-            BufferedOutputStream bos = null;
-            try {
-                in = new FileInputStream(source);
-                zis = new ZipInputStream(in, StandardCharsets.UTF_8);
-                ZipEntry entry;
-                while ((entry = zis.getNextEntry()) != null && !entry.isDirectory()) {
-                    File target = new File(source.getParent(), entry.getName());
-                    unzipFiles.add(target);
-                    if (!target.getParentFile().exists()) {// 创建文件父目录
-                        boolean createDirSuccess = target.getParentFile().mkdirs();
-                        if (!createDirSuccess) {
-                            log.error("Fail to create parent dir");
-                            return Collections.emptyList();
-                        }
-                    }
-                    // 写入文件
-                    bos = new BufferedOutputStream(new FileOutputStream(target));
-                    int read;
-                    byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
-                    while ((read = zis.read(buffer, 0, buffer.length)) != -1) {
-                        bos.write(buffer, 0, read);
-                    }
-                    bos.flush();
+   public static List<File> unzip(File source) {
+    List<File> unzipFiles = new ArrayList<>();
+    if (source.exists()) {
+        // Create a target directory in the same parent directory as the source
+        File targetDir = new File(source.getParent());
+        
+        ZipInputStream zis = null;
+        try {
+            // Using try-with-resources would be better, but keeping close() pattern for compatibility
+            zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(source)), StandardCharsets.UTF_8);
+            
+            // Delegate to secure unzip implementation
+            unzipInternal(targetDir, zis, unzipFiles);
+        } catch (IOException e) {
+            log.error("Failed to unzip file: " + source.getAbsolutePath(), e);
+            throw new RuntimeException(e);
+        } finally {
+            if (zis != null) {
+                try {
+                    zis.close();
+                } catch (IOException e) {
+                    log.error("Failed to close zip stream", e);
                 }
-                zis.closeEntry();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            } finally {
-                close(in, zis, bos);
             }
         }
-        return unzipFiles;
     }
+    return unzipFiles;
+}
+
+private static void unzipInternal(File targetDir, ZipInputStream zis, List<File> unzippedFiles) throws IOException {
+    ZipEntry entry;
+    byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+    
+    while ((entry = zis.getNextEntry()) != null) {
+        if (entry.isDirectory()) {
+            continue;
+        }
+        
+        // Security check - Prevent path traversal attacks
+        String entryName = entry.getName();
+        File targetFile = new File(targetDir, entryName);
+        
+        // Validate file path is within target directory
+        String canonicalDestinationPath = targetFile.getCanonicalPath();
+        String canonicalTargetDirPath = targetDir.getCanonicalPath();
+        
+        if (!canonicalDestinationPath.startsWith(canonicalTargetDirPath + File.separator)) {
+            throw new SecurityException("Zip entry is outside of target directory: " + entryName);
+        }
+        
+        // Create parent directories if needed
+        File parentDir = targetFile.getParentFile();
+        if (!parentDir.exists() && !parentDir.mkdirs()) {
+            throw new IOException("Failed to create directory: " + parentDir);
+        }
+        
+        // Extract file
+        try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(targetFile))) {
+            int read;
+            while ((read = zis.read(buffer)) != -1) {
+                bos.write(buffer, 0, read);
+            }
+            bos.flush();
+        }
+        
+        unzippedFiles.add(targetFile);
+        zis.closeEntry();
+    }
+}
+
+// Existing close method
+private static void close(Closeable... closeables) {
+    if (closeables != null) {
+        for (Closeable closeable : closeables) {
+            if (closeable != null) {
+                try {
+                    closeable.close();
+                } catch (IOException e) {
+                    log.error("Failed to close resource", e);
+                }
+            }
+        }
+    }
+}
 
 
     /**
