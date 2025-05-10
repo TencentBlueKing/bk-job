@@ -73,30 +73,64 @@ public class RepeatableReadWriteHttpServletRequest extends HttpServletRequestWra
     }
 
     @Override
-    public ServletInputStream getInputStream() {
-        final ByteArrayInputStream byteArrayInputStream =
-            new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8));
-        return new ServletInputStream() {
-            @Override
-            public int read() {
-                return byteArrayInputStream.read();
-            }
-
-            @Override
-            public boolean isFinished() {
-                return false;
-            }
-
-            @Override
-            public boolean isReady() {
-                return false;
-            }
-
-            @Override
-            public void setReadListener(ReadListener listener) {
-
-            }
-        };
+    public ServletInputStream getInputStream() throws IOException {
+        // Check if this is a JSON request that needs XSS filtering
+        if (StrUtil.startWithIgnoreCase(getContentType(), MediaType.APPLICATION_JSON_VALUE)) {
+            // Apply XSS filtering to the body content
+            String filteredBody = filterXss(body);
+            final ByteArrayInputStream byteArrayInputStream =
+                new ByteArrayInputStream(filteredBody.getBytes(StandardCharsets.UTF_8));
+            
+            // Return a properly implemented ServletInputStream
+            return new ServletInputStream() {
+                @Override
+                public int read() {
+                    return byteArrayInputStream.read();
+                }
+    
+                @Override
+                public boolean isFinished() {
+                    return byteArrayInputStream.available() == 0;
+                }
+    
+                @Override
+                public boolean isReady() {
+                    return true;
+                }
+    
+                @Override
+                public void setReadListener(ReadListener listener) {
+                    // No implementation needed as we're using a ByteArrayInputStream
+                    // which is always immediately available
+                }
+            };
+        } else {
+            // For non-JSON content, use the original body without filtering
+            final ByteArrayInputStream byteArrayInputStream =
+                new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8));
+            
+            return new ServletInputStream() {
+                @Override
+                public int read() {
+                    return byteArrayInputStream.read();
+                }
+    
+                @Override
+                public boolean isFinished() {
+                    return byteArrayInputStream.available() == 0;
+                }
+    
+                @Override
+                public boolean isReady() {
+                    return true;
+                }
+    
+                @Override
+                public void setReadListener(ReadListener listener) {
+                    // No implementation needed
+                }
+            };
+        }
     }
 
     @Override
