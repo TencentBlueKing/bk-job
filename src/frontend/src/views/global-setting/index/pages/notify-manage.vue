@@ -70,6 +70,7 @@
       :width="680">
       <edit-of-template
         ref="editTemplate"
+        :black-user-list="formData.users"
         :data="templateDetail"
         @on-change="handleNotifyContent" />
       <template #footer>
