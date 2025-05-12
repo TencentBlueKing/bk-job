@@ -27,6 +27,7 @@ dependencies {
     api project(':commons:common-task')
     api project(':commons:common-security')
     api project(':commons:common-otel')
+    api project(':commons:common-rabbitmq')
     api 'org.hibernate.validator:hibernate-validator'
     api 'jakarta.validation:jakarta.validation-api'
     api 'org.springframework.boot:spring-boot-starter-actuator'

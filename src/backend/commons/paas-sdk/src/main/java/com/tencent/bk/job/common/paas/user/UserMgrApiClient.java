@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.paas.user;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
@@ -38,6 +39,7 @@ import com.tencent.bk.job.common.esb.sdk.BkApiV2Client;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
+import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
@@ -45,8 +47,10 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.http.message.BasicHeader;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -63,6 +67,10 @@ import static com.tencent.bk.job.common.metrics.CommonMetricNames.USER_MANAGE_AP
 @Slf4j
 public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
 
+    private static final String API_BATCH_LOOKUP_VIRTUAL_USER = "/api/v3/open/tenant/virtual-users/-/lookup/";
+    private static final String API_BATCH_QUERY_USER_DISPLAY_INFO = "/api/v3/open/tenant/users/-/display_info/";
+    private static final Integer MAX_QUERY_BATCH_SIZE = 100;
+
     private final BkApiAuthorization authorization;
 
     public UserMgrApiClient(BkApiGatewayProperties bkApiGatewayProperties,
@@ -77,12 +85,6 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
         );
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret());
-    }
-
-    @Override
-    public List<BkUserDTO> getAllUserList(String tenantId) {
-        // TODO:tenant 网关暂未提供实现
-        return Collections.emptyList();
     }
 
     /**
@@ -106,6 +108,27 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
         return response.getData();
     }
 
+    /**
+     * 获取指定租户下的虚拟账号（admin）的bk_username
+     */
+    @Override
+    public List<SimpleUserInfo> batchGetVirtualUserByLoginName(String tenantId, String loginName) {
+        OpenApiResponse<List<SimpleUserInfo>> resp = requestBkUserApi(
+            "batch_lookup_virtual_user",
+            OpenApiRequestInfo
+                .builder()
+                .method(HttpMethodEnum.GET)
+                .uri(API_BATCH_LOOKUP_VIRTUAL_USER)
+                .addHeader(buildTenantHeader(tenantId))
+                .addQueryParam("lookups", loginName)
+                .addQueryParam("lookup_field", "login_name")
+                .authorization(authorization)
+                .build(),
+            req -> doRequest(req, new TypeReference<OpenApiResponse<List<SimpleUserInfo>>>() {
+            })
+        );
+        return resp.getData();
+    }
 
     protected <T, R> OpenApiResponse<R> requestBkUserApi(
         String apiName,
@@ -129,14 +152,45 @@ public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
     }
 
     @Override
-    public BkUserDTO getUserByUsername(String username) {
-        // TODO:tenant 网关暂未提供实现
-        return null;
+    public SimpleUserInfo getUserByUsername(String tenantId, String username) {
+        List<SimpleUserInfo> users = listUsersByUsernames(tenantId, Collections.singletonList(username));
+        if (CollectionUtils.isEmpty(users)) {
+            return null;
+        }
+        return users.get(0);
     }
 
+    /**
+     * 通过指定的username查出对应的用户信息
+     */
     @Override
-    public Map<String, BkUserDTO> listUsersByUsernames(Collection<String> usernames) {
-        // TODO:tenant 网关暂未提供实现
-        return new HashMap<>();
+    public List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames) {
+        List<SimpleUserInfo> userResult = new ArrayList<>();
+        List<String> usernameList = new ArrayList<>(usernames);
+        List<List<String>> userPages = Lists.partition(usernameList, MAX_QUERY_BATCH_SIZE);
+        for (List<String> userPage : userPages) {
+            List<SimpleUserInfo> userInfos = listUsersByPages(tenantId, userPage);
+            if (CollectionUtils.isNotEmpty(userInfos)) {
+                userResult.addAll(userInfos);
+            }
+        }
+        return userResult;
     }
+
+    private List<SimpleUserInfo> listUsersByPages(String tenantId, List<String> usernames) {
+        OpenApiResponse<List<SimpleUserInfo>> resp = requestBkUserApi(
+            "batch_query_user",
+            OpenApiRequestInfo
+                .builder()
+                .method(HttpMethodEnum.GET)
+                .uri(API_BATCH_QUERY_USER_DISPLAY_INFO)
+                .addHeader(buildTenantHeader(tenantId))
+                .addQueryParam("bk_usernames", String.join(",", usernames))
+                .authorization(authorization)
+                .build(),
+            req -> doRequest(req, new TypeReference<OpenApiResponse<List<SimpleUserInfo>>>() {})
+        );
+        return resp.getData();
+    }
+
 }

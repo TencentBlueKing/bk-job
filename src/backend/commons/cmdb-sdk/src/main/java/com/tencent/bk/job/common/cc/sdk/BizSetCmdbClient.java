@@ -27,15 +27,15 @@ package com.tencent.bk.job.common.cc.sdk;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.bizset.BizInfo;
-import com.tencent.bk.job.common.cc.model.bizset.BizSetFilter;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetInfo;
 import com.tencent.bk.job.common.cc.model.bizset.BizSetScope;
 import com.tencent.bk.job.common.cc.model.bizset.Page;
-import com.tencent.bk.job.common.cc.model.bizset.Rule;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizInBusinessReq;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizInBusinessSetResp;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizSetReq;
 import com.tencent.bk.job.common.cc.model.bizset.SearchBizSetResp;
+import com.tencent.bk.job.common.cc.model.filter.CmdbFilter;
+import com.tencent.bk.job.common.cc.model.filter.Rule;
 import com.tencent.bk.job.common.cc.model.filter.RuleConditionEnum;
 import com.tencent.bk.job.common.cc.model.filter.RuleOperatorEnum;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
@@ -49,6 +49,7 @@ import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
+import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
@@ -76,7 +77,8 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
                             CmdbConfig cmdbConfig,
                             FlowController flowController,
                             MeterRegistry meterRegistry,
-                            TenantEnvService tenantEnvService) {
+                            TenantEnvService tenantEnvService,
+                            IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         super(
             flowController,
             appProperties,
@@ -84,6 +86,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
             cmdbConfig,
             meterRegistry,
             tenantEnvService,
+            virtualAdminAccountProvider,
             null
         );
     }
@@ -146,8 +149,8 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
      * @return 业务集信息列表
      */
     public List<BizSetInfo> listBizSetByIds(String tenantId, List<Long> bizSetIds) {
-        BizSetFilter filter = new BizSetFilter();
-        filter.setCondition(BizSetFilter.CONDITION_AND);
+        CmdbFilter filter = new CmdbFilter();
+        filter.setCondition(CmdbFilter.CONDITION_AND);
         Rule bizSetIdRule = new Rule();
         bizSetIdRule.setField("bk_biz_set_id");
         bizSetIdRule.setOperator(RuleOperatorEnum.IN.getOperator());
@@ -179,7 +182,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
      * @param limit    每页大小
      * @return 业务集信息列表
      */
-    private List<BizSetInfo> searchBizSet(String tenantId, BizSetFilter filter, int start, int limit) {
+    private List<BizSetInfo> searchBizSet(String tenantId, CmdbFilter filter, int start, int limit) {
         SearchBizSetReq req = makeCmdbBaseReq(SearchBizSetReq.class);
         Page page = new Page();
         page.setEnableCount(false);
@@ -208,10 +211,11 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
     /**
      * 查询业务集中的业务数量
      *
+     * @param tenantId 租户ID
      * @param bizSetId 业务集ID
      * @return 业务数量
      */
-    private int searchBizCountInBusinessSet(long bizSetId) {
+    private int searchBizCountInBusinessSet(String tenantId, long bizSetId) {
         SearchBizInBusinessReq req = makeCmdbBaseReq(SearchBizInBusinessReq.class);
         req.setBizSetId(bizSetId);
         Page page = new Page();
@@ -220,7 +224,8 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
         page.setLimit(0);
         req.setPage(page);
         try {
-            EsbResp<SearchBizInBusinessSetResp> resp = requestCmdbApiUseContextTenantId(
+            EsbResp<SearchBizInBusinessSetResp> resp = requestCmdbApi(
+                tenantId,
                 HttpMethodEnum.POST,
                 SEARCH_BIZ_IN_BUSINESS_SET,
                 null,
@@ -244,7 +249,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
      * @return 业务ID列表
      */
     public List<BizInfo> searchBizInBizSet(String tenantId, long bizSetId) {
-        int bizCount = searchBizCountInBusinessSet(bizSetId);
+        int bizCount = searchBizCountInBusinessSet(tenantId, bizSetId);
         log.info("{} biz found in bizSet {} from cmdb", bizCount, bizSetId);
         // 分批查询
         int limit = 500;
@@ -299,7 +304,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
     }
 
     @Override
-    public ResourceWatchResult<BizSetEventDetail> getBizSetEvents(Long startTime, String cursor) {
+    public ResourceWatchResult<BizSetEventDetail> getBizSetEvents(String tenantId, Long startTime, String cursor) {
         ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList(
             "bk_biz_set_id", "bk_biz_set_name", "bk_biz_maintainer",
@@ -309,7 +314,8 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
         req.setStartTime(startTime);
         String uri = RESOURCE_WATCH.replace("{bk_resource}", req.getResource());
         try {
-            EsbResp<ResourceWatchResult<BizSetEventDetail>> resp = requestCmdbApiUseContextTenantId(
+            EsbResp<ResourceWatchResult<BizSetEventDetail>> resp = requestCmdbApi(
+                tenantId,
                 HttpMethodEnum.POST,
                 uri,
                 null,
@@ -327,7 +333,9 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
     }
 
     @Override
-    public ResourceWatchResult<BizSetRelationEventDetail> getBizSetRelationEvents(Long startTime, String cursor) {
+    public ResourceWatchResult<BizSetRelationEventDetail> getBizSetRelationEvents(String tenantId,
+                                                                                  Long startTime,
+                                                                                  String cursor) {
         ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_biz_set_id", "bk_biz_ids"));
         req.setResource("biz_set_relation");
@@ -335,7 +343,8 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
         req.setStartTime(startTime);
         String uri = RESOURCE_WATCH.replace("{bk_resource}", req.getResource());
         try {
-            EsbResp<ResourceWatchResult<BizSetRelationEventDetail>> resp = requestCmdbApiUseContextTenantId(
+            EsbResp<ResourceWatchResult<BizSetRelationEventDetail>> resp = requestCmdbApi(
+                tenantId,
                 HttpMethodEnum.POST,
                 uri,
                 null,
@@ -380,7 +389,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
 
     @Override
     public BizSetInfo queryBizSet(String tenantId, Long bizSetId) {
-        BizSetFilter filter = new BizSetFilter();
+        CmdbFilter filter = new CmdbFilter();
         filter.setCondition(RuleConditionEnum.AND.getCondition());
         Rule bizSetIdRule = new Rule();
         bizSetIdRule.setField("bk_biz_set_id");

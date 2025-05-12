@@ -28,6 +28,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
@@ -50,10 +51,12 @@ import java.util.concurrent.TimeUnit;
 public class FileWorkerHostService {
 
     private final HostService hostService;
+    private final TenantEnvService tenantEnvService;
 
     @Autowired
-    public FileWorkerHostService(HostService hostService) {
+    public FileWorkerHostService(HostService hostService, TenantEnvService tenantEnvService) {
         this.hostService = hostService;
+        this.tenantEnvService = tenantEnvService;
     }
 
     // 查询file-worker对应主机信息使用60s缓存，避免短时间内多次重复查询
@@ -88,9 +91,20 @@ public class FileWorkerHostService {
         }
         HostDTO hostDTO;
         if (IpUtils.PROTOCOL_IP_V6.equalsIgnoreCase(ipProtocol)) {
-            hostDTO = ServiceHostDTO.toHostDTO(hostService.getHostByCloudIpv6(cloudAreaId, ip));
+            String fileWorkerTenantId = tenantEnvService.getJobMachineTenantId();
+            ServiceHostDTO fileWorkerHost = hostService.getHostByCloudIpv6(
+                fileWorkerTenantId,
+                cloudAreaId,
+                ip
+            );
+            hostDTO = ServiceHostDTO.toHostDTO(fileWorkerHost);
         } else {
-            hostDTO = ServiceHostDTO.toHostDTO(hostService.getHost(new HostDTO(cloudAreaId, ip)));
+            hostDTO = ServiceHostDTO.toHostDTO(
+                hostService.getHostFromCacheOrDB(
+                    tenantEnvService.getJobMachineTenantId(),
+                    new HostDTO(cloudAreaId, ip)
+                )
+            );
         }
         if (log.isDebugEnabled()) {
             log.debug("host get by ({},{},{}) is {}", ipProtocol, cloudAreaId, ip, hostDTO);

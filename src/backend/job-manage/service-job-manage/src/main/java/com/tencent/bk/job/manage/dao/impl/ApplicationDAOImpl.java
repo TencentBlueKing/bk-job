@@ -93,7 +93,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             .and(T_APP.BK_SCOPE_ID.eq("" + bizId))
             .limit(1)
             .fetch();
-        return records.size() > 0;
+        return !records.isEmpty();
     }
 
     @Override
@@ -195,23 +195,33 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    public List<ApplicationDTO> listAllBizApps() {
+    public List<ApplicationDTO> listAllBizApps(String tenantId) {
         List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.TENANT_ID.equal(tenantId));
         conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ.getValue()));
         return listAppsByConditions(conditions);
     }
 
     @Override
-    public List<ApplicationDTO> listAllBizAppsWithDeleted() {
+    public List<ApplicationDTO> listAllBizAppsWithDeleted(String tenantId) {
         List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_APP.TENANT_ID.equal(tenantId));
         conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ.getValue()));
         return listAppsByConditions(conditions);
     }
 
     @Override
-    public List<ApplicationDTO> listAllBizSetAppsWithDeleted() {
+    public List<ApplicationDTO> listAllBizSetAppsWithDeleted(String tenantId) {
         List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_APP.TENANT_ID.equal(tenantId));
         conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ_SET.getValue()));
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationDTO> listAllTenantSetAppsWithDeleted() {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.TENANT_SET.getValue()));
         return listAppsByConditions(conditions);
     }
 
@@ -361,6 +371,18 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             return record.get(T_APP.TENANT_ID);
         }
         return null;
+    }
+
+    @Override
+    public List<Long> listAppIdByTenant(String tenantId) {
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.TENANT_ID.equal(tenantId));
+        Result<Record1<ULong>> records = dslContext
+            .select(T_APP.APP_ID)
+            .from(T_APP)
+            .where(conditions)
+            .fetch();
+        return records.map(record -> record.get(T_APP.APP_ID).longValue());
     }
 
     private List<Condition> getBasicDeletedConditions() {

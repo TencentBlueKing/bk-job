@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.config;
 
-import com.tencent.bk.job.common.service.AppCacheService;
+import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.common.web.interceptor.BasicAppInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 public class JobManageConfiguration {
 
     @Bean
-    public BasicAppInterceptor basicAppInterceptor(AppCacheService appCacheService) {
-        return new BasicAppInterceptor(appCacheService);
+    public BasicAppInterceptor basicAppInterceptor(CommonAppService appService) {
+        return new BasicAppInterceptor(appService);
     }
 }

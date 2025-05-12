@@ -26,9 +26,9 @@ package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
-import com.tencent.bk.job.manage.service.host.BizHostService;
 import com.tencent.bk.job.manage.service.host.BizTopoHostService;
-import com.tencent.bk.job.manage.service.impl.topo.BizTopoService;
+import com.tencent.bk.job.manage.service.host.CurrentTenantBizHostService;
+import com.tencent.bk.job.manage.service.topo.BizTopoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,24 +41,24 @@ import java.util.List;
 public class BizTopoHostServiceImpl implements BizTopoHostService {
 
     private final BizTopoService bizTopoService;
-    private final BizHostService bizHostService;
+    private final CurrentTenantBizHostService currentTenantBizHostService;
 
     @Autowired
     public BizTopoHostServiceImpl(BizTopoService bizTopoService,
-                                  BizHostService bizHostService) {
+                                  CurrentTenantBizHostService currentTenantBizHostService) {
         this.bizTopoService = bizTopoService;
-        this.bizHostService = bizHostService;
+        this.currentTenantBizHostService = currentTenantBizHostService;
     }
 
     @Override
     public List<ApplicationHostDTO> listHostByNode(Long bizId, BizTopoNode node) {
         List<Long> moduleIds = bizTopoService.findAllModuleIdsOfNodes(bizId, Collections.singletonList(node));
-        return bizHostService.getHostsByModuleIds(moduleIds);
+        return currentTenantBizHostService.getHostsByModuleIds(moduleIds);
     }
 
     @Override
     public List<ApplicationHostDTO> listHostByNodes(Long bizId, List<BizTopoNode> nodes) {
         List<Long> moduleIds = bizTopoService.findAllModuleIdsOfNodes(bizId, nodes);
-        return bizHostService.getHostsByModuleIds(moduleIds);
+        return currentTenantBizHostService.getHostsByModuleIds(moduleIds);
     }
 }

@@ -56,9 +56,19 @@ public class BkApiGatewayProperties {
     private ApiGwConfig bkUser;
 
     /**
+     * 蓝鲸用户管理前端服务相关配置
+     */
+    private ApiGwConfig bkUserWeb;
+
+    /**
      * 蓝鲸权限中心相关配置
      */
     private ApiGwConfig bkIam;
+
+    /**
+     * 消息通知相关配置
+     */
+    private ApiGwConfig cmsi;
 
     @Getter
     @Setter

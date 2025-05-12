@@ -65,7 +65,7 @@
         </template>
         <div class="content-wraper">
           <scroll-faker>
-            <ip-selector
+            <jb-ip-selector
               readonly
               show-view
               :value="executeObjectsInfo" />

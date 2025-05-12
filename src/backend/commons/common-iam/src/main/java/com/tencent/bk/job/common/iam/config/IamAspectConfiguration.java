@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.iam.aspect.IamCallbackAspect;
 import com.tencent.bk.job.common.iam.aspect.IamExceptionHandleAspect;
 import com.tencent.bk.job.common.iam.aspect.IamMetricsAspect;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
@@ -41,8 +42,8 @@ import org.springframework.context.annotation.Configuration;
 public class IamAspectConfiguration {
 
     @Bean
-    public IamCallbackAspect iamCallbackAspect() {
-        return new IamCallbackAspect();
+    public IamCallbackAspect iamCallbackAspect(TenantEnvService tenantEnvService) {
+        return new IamCallbackAspect(tenantEnvService);
     }
 
     @Bean

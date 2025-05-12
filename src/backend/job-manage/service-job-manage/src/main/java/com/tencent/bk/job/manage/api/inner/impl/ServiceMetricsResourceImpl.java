@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
+import com.tencent.bk.job.common.compat.util.TenantCompatUtil;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
@@ -32,12 +33,11 @@ import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.api.inner.ServiceMetricsResource;
+import com.tencent.bk.job.manage.dao.AccountDAO;
+import com.tencent.bk.job.manage.dao.TenantHostDAO;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
-import com.tencent.bk.job.manage.service.AccountService;
-import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.ScriptManager;
 import com.tencent.bk.job.manage.service.TagService;
-import com.tencent.bk.job.manage.service.host.HostService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
@@ -51,34 +51,26 @@ import java.util.Map;
 @Slf4j
 public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
 
-    private final ApplicationService applicationService;
-    private final AccountService accountService;
+    private final AccountDAO accountDAO;
     private final ScriptManager scriptManager;
     private final TaskTemplateService taskTemplateService;
     private final TaskPlanService taskPlanService;
-    private final HostService hostService;
+    private final TenantHostDAO tenantHostDAO;
     private final TagService tagService;
 
     @Autowired
-    public ServiceMetricsResourceImpl(ApplicationService applicationService,
-                                      AccountService accountService,
+    public ServiceMetricsResourceImpl(AccountDAO accountDAO,
                                       ScriptManager scriptManager,
                                       TaskTemplateService taskTemplateService,
                                       TaskPlanService taskPlanService,
-                                      HostService hostService,
+                                      TenantHostDAO tenantHostDAO,
                                       TagService tagService) {
-        this.applicationService = applicationService;
-        this.accountService = accountService;
+        this.accountDAO = accountDAO;
         this.scriptManager = scriptManager;
         this.taskTemplateService = taskTemplateService;
         this.taskPlanService = taskPlanService;
-        this.hostService = hostService;
+        this.tenantHostDAO = tenantHostDAO;
         this.tagService = tagService;
-    }
-
-    @Override
-    public InternalResponse<Integer> countApps(String username) {
-        return InternalResponse.buildSuccessResp(applicationService.countApps());
     }
 
     @Override
@@ -124,19 +116,24 @@ public class ServiceMetricsResourceImpl implements ServiceMetricsResource {
     }
 
     @Override
-    public InternalResponse<Integer> countAccounts(AccountTypeEnum accountType) {
-        return InternalResponse.buildSuccessResp(accountService.countAccounts(accountType));
+    public InternalResponse<Integer> countAccounts(String tenantId, AccountTypeEnum accountType) {
+        return InternalResponse.buildSuccessResp(
+            accountDAO.countAccounts(
+                TenantCompatUtil.getTenantIdWithDefault(tenantId),
+                accountType
+            )
+        );
     }
 
     @Override
-    public InternalResponse<Long> countHostsByOsType(String osType) {
-        return InternalResponse.buildSuccessResp(hostService.countHostsByOsType(osType));
+    public InternalResponse<Map<String, Integer>> groupHostByOsType(String tenantId) {
+        return InternalResponse.buildSuccessResp(
+            tenantHostDAO.groupHostByOsType(
+                TenantCompatUtil.getTenantIdWithDefault(tenantId)
+            )
+        );
     }
 
-    @Override
-    public InternalResponse<Map<String, Integer>> groupHostByOsType() {
-        return InternalResponse.buildSuccessResp(hostService.groupHostByOsType());
-    }
 
     @Override
     public InternalResponse<Long> tagCitedCount(Long appId, Long tagId) {

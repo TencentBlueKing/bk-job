@@ -39,7 +39,7 @@
       header-position="left"
       :title="$t('whiteIP.IP 预览')"
       :width="940">
-      <ip-selector
+      <jb-ip-selector
         v-if="showHostList"
         readonly
         show-view

@@ -44,7 +44,7 @@
       </tr>
     </table>
     <template v-if="data.isHost">
-      <ip-selector
+      <jb-ip-selector
         readonly
         show-view
         :value="data.defaultTargetValue.executeObjectsInfo" />

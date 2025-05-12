@@ -76,7 +76,7 @@ public class BizSetEventDetail {
      * 资源类型
      */
     @JsonProperty("default")
-    private Integer deFault;
+    private Integer deFault = 0;
 
     public ApplicationDTO toApplicationDTO() {
         ApplicationDTO applicationDTO = new ApplicationDTO();

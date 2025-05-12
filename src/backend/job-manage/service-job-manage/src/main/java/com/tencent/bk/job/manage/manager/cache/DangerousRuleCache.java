@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.manager.cache;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.rule.HighRiskGrammarRuleStatusEnum;
-import com.tencent.bk.job.manage.dao.globalsetting.DangerousRuleDAO;
+import com.tencent.bk.job.manage.dao.globalsetting.TenantDangerousRuleDAO;
 import com.tencent.bk.job.manage.model.db.DangerousRuleDO;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -46,13 +46,13 @@ import java.util.List;
 @Slf4j
 public class DangerousRuleCache {
     public static final String DANGEROUS_RULE_HASH_KEY = "job:manage:dangerousRules";
-    private final DangerousRuleDAO dangerousRuleDAO;
+    private final TenantDangerousRuleDAO tenantDangerousRuleDAO;
     private final RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
-    public DangerousRuleCache(DangerousRuleDAO dangerousRuleDAO,
+    public DangerousRuleCache(TenantDangerousRuleDAO tenantDangerousRuleDAO,
                               @Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate) {
-        this.dangerousRuleDAO = dangerousRuleDAO;
+        this.tenantDangerousRuleDAO = tenantDangerousRuleDAO;
         this.redisTemplate = redisTemplate;
     }
 
@@ -71,7 +71,10 @@ public class DangerousRuleCache {
             DangerousRuleDTO dangerousRuleQuery = new DangerousRuleDTO();
             dangerousRuleQuery.setScriptType(scriptType);
             dangerousRuleQuery.setStatus(HighRiskGrammarRuleStatusEnum.ENABLED.getCode());
-            List<DangerousRuleDTO> dangerousRuleDTOList = dangerousRuleDAO.listDangerousRules(dangerousRuleQuery);
+            List<DangerousRuleDTO> dangerousRuleDTOList = tenantDangerousRuleDAO.listDangerousRules(
+                tenantId,
+                dangerousRuleQuery
+            );
             if (CollectionUtils.isEmpty(dangerousRuleDTOList)) {
                 redisTemplate.opsForHash().put(hashKey, String.valueOf(scriptType),
                     new ArrayList<DangerousRuleDO>());

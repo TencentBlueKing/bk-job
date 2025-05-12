@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.redis.util.LockUtils;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.Counter;
 import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -42,7 +43,6 @@ import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
 import com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
-import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.EsbAppRoleDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyConfigStatusDAO;
@@ -73,9 +73,7 @@ import com.tencent.bk.job.manage.model.web.vo.notify.RoleVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerTypeVO;
 import com.tencent.bk.job.manage.service.AppRoleService;
-import com.tencent.bk.job.manage.service.LocalPermissionService;
 import com.tencent.bk.job.manage.service.NotifyService;
-import com.tencent.bk.job.manage.service.TenantService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
@@ -111,10 +109,8 @@ public class NotifyServiceImpl implements NotifyService {
     private final EsbAppRoleDAO esbAppRoleDAO;
     private final AvailableEsbChannelDAO availableEsbChannelDAO;
     private final NotifyEsbChannelDAO notifyEsbChannelDAO;
-    private final LocalPermissionService localPermissionService;
     private final NotifyConfigStatusDAO notifyConfigStatusDAO;
     private final NotifyTemplateService notifyTemplateService;
-    private final ScriptDAO scriptDAO;
     private final TaskPlanDAO taskPlanDAO;
     private final NotifyUserService notifyUserService;
     private final NotifySendService notifySendService;
@@ -129,12 +125,10 @@ public class NotifyServiceImpl implements NotifyService {
         EsbAppRoleDAO esbAppRoleDAO,
         AvailableEsbChannelDAO availableEsbChannelDAO,
         NotifyEsbChannelDAO notifyEsbChannelDAO,
-        LocalPermissionService localPermissionService,
         NotifySendService notifySendService,
         AppRoleService roleService,
         NotifyConfigStatusDAO notifyConfigStatusDAO,
         NotifyTemplateService notifyTemplateService,
-        ScriptDAO scriptDAO,
         TaskPlanDAO taskPlanDAO,
         NotifyUserService notifyUserService,
         TenantService tenantService) {
@@ -144,13 +138,11 @@ public class NotifyServiceImpl implements NotifyService {
         this.esbAppRoleDAO = esbAppRoleDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
-        this.localPermissionService = localPermissionService;
         this.notifyUserService = notifyUserService;
         this.notifySendService = notifySendService;
         this.roleService = roleService;
         this.notifyConfigStatusDAO = notifyConfigStatusDAO;
         this.notifyTemplateService = notifyTemplateService;
-        this.scriptDAO = scriptDAO;
         this.taskPlanDAO = taskPlanDAO;
         this.tenantService = tenantService;
     }
@@ -331,22 +323,20 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     public List<RoleVO> listRole(String username) {
         //Job系统角色+CMDB业务角色
-        List<AppRoleDTO> appRoles = esbAppRoleDAO.listEsbAppRole();
-        if (CollectionUtils.isEmpty(appRoles)) {
-            return Collections.emptyList();
+        List<RoleVO> resultList = new ArrayList<>(JobRoleEnum.getVOList());
+        List<AppRoleDTO> appRoles = esbAppRoleDAO.listEsbAppRole(JobContextUtil.getTenantId());
+        if (CollectionUtils.isNotEmpty(appRoles)) {
+            resultList.addAll(appRoles.stream().map(it ->
+                new RoleVO(it.getId(), it.getName())).collect(Collectors.toList()));
         }
-        List<RoleVO> resultList = new ArrayList<>();
-        resultList.addAll(JobRoleEnum.getVOList());
-        resultList.addAll(appRoles.stream().map(it ->
-            new RoleVO(it.getId(), it.getName())).collect(Collectors.toList()));
         return resultList;
     }
 
     @Override
-    public List<AppRoleDTO> listRoles() {
+    public List<AppRoleDTO> listRoles(String tenantId) {
         //Job系统角色+CMDB业务角色
         List<AppRoleDTO> resultList = new ArrayList<>();
-        List<AppRoleDTO> appRoleDTOList = esbAppRoleDAO.listEsbAppRole();
+        List<AppRoleDTO> appRoleDTOList = esbAppRoleDAO.listEsbAppRole(tenantId);
         if (appRoleDTOList != null) {
             resultList.addAll(appRoleDTOList);
         }
@@ -422,7 +412,7 @@ public class NotifyServiceImpl implements NotifyService {
         // 2.调ESB接口发送通知
         val notifyMessageMap = notification.getNotificationMessageMap();
         Set<String> channelSet = notifyMessageMap.keySet();
-        if (channelSet.size() == 0) {
+        if (channelSet.isEmpty()) {
             return 0;
         }
         ServiceNotificationMessage notificationMessage =
@@ -734,7 +724,12 @@ public class NotifyServiceImpl implements NotifyService {
         Counter counter = new Counter();
         channelUsersMap.forEach((channel, userSet) -> {
             if (!availableChannelTypeList.contains(channel)) {
-                log.error(String.format("channel %s is not available, not notified, please contack admin", channel));
+                log.error(
+                    String.format("channel %s of tenant %s is not available, not notified, please contact admin",
+                        channel,
+                        tenantId
+                    )
+                );
             } else {
                 String templateCode = triggerTemplateNotification.getTemplateCode();
                 Map<String, String> variablesMap = triggerTemplateNotification.getVariablesMap();

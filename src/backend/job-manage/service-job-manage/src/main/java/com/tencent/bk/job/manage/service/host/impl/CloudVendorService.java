@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -40,30 +41,37 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class CloudVendorService {
 
-    private final LoadingCache<String, Map<String, String>> cloudVendorMapCache =
+    private final LoadingCache<Pair<String, String>, Map<String, String>> cloudVendorMapCache =
         Caffeine.newBuilder()
-            .maximumSize(2)
+            .maximumSize(10)
             .expireAfterWrite(30, TimeUnit.MINUTES)
             .recordStats()
-            .build(lang -> {
+            .build(langTenantIdPair -> {
+                String lang = langTenantIdPair.getLeft();
+                String tenantId = langTenantIdPair.getRight();
                 IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(lang);
-                return bizCmdbClient.getCloudVendorIdNameMap();
+                return bizCmdbClient.getCloudVendorIdNameMap(tenantId);
             });
 
-    private String getCloudVendorNameById(String cloudVendorId) {
-        Map<String, String> cloudVendorIdNameMap = cloudVendorMapCache.get(JobContextUtil.getUserLang());
+    private String getCloudVendorNameById(String tenantId, String cloudVendorId) {
+        Map<String, String> cloudVendorIdNameMap = cloudVendorMapCache.get(
+            Pair.of(
+                JobContextUtil.getUserLang(),
+                tenantId
+            )
+        );
         if (cloudVendorIdNameMap == null) {
             return JobConstants.UNKNOWN_NAME;
         }
         return cloudVendorIdNameMap.get(cloudVendorId);
     }
 
-    public String getCloudVendorNameOrDefault(String cloudVendorId, String defaultValue) {
+    public String getCloudVendorNameOrDefault(String tenantId, String cloudVendorId, String defaultValue) {
         if (cloudVendorId == null) {
             return defaultValue;
         }
         try {
-            return getCloudVendorNameById(cloudVendorId);
+            return getCloudVendorNameById(tenantId, cloudVendorId);
         } catch (Exception e) {
             log.warn("Fail to getCloudVendorNameById", e);
             return defaultValue;

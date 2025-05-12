@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.paas.user.UserLocalCache;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
@@ -85,6 +86,8 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
 
     private final TemplateScriptStatusUpdateService templateScriptStatusUpdateService;
 
+    private final TenantService tenantService;
+
     private final UserLocalCache userLocalCache;
 
     @Autowired
@@ -95,7 +98,8 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
             TagService tagService,
             AddHostIdForTemplateAndPlanMigrationTask addHostIdService,
             TemplateScriptStatusUpdateService templateScriptStatusUpdateService,
-            UserLocalCache userLocalCache) {
+            UserLocalCache userLocalCache,
+            TenantService tenantService) {
         this.templateService = templateService;
         this.taskVariableService = taskVariableService;
         this.templateAuthService = templateAuthService;
@@ -103,6 +107,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         this.addHostIdService = addHostIdService;
         this.templateScriptStatusUpdateService = templateScriptStatusUpdateService;
         this.userLocalCache = userLocalCache;
+        this.tenantService = tenantService;
     }
 
     @Override
@@ -153,7 +158,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         Integer requestSource,
         TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq
     ) {
-        User user = userLocalCache.getUser(username);
+        User user = userLocalCache.getUser(tenantService.getTenantIdByAppId(appId), username);
         JobContextUtil.setAllowMigration(true);
         if (templateId > 0) {
             taskTemplateCreateUpdateReq.setId(templateId);

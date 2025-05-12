@@ -234,11 +234,6 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public Integer countApps() {
-        return applicationDAO.countApps();
-    }
-
-    @Override
     public List<ApplicationDTO> listAllApps() {
         return applicationDAO.listAllApps();
     }

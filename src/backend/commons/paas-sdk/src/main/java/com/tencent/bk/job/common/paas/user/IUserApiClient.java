@@ -24,31 +24,20 @@
 
 package com.tencent.bk.job.common.paas.user;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.model.OpenApiResponse;
-import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.util.http.HttpMetricUtil;
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import io.micrometer.core.instrument.Tag;
+import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
-import static com.tencent.bk.job.common.metrics.CommonMetricNames.USER_MANAGE_API_HTTP;
 
 public interface IUserApiClient {
 
-    public List<BkUserDTO> getAllUserList(String tenantId);
-
     public List<OpenApiTenant> listAllTenant();
 
-    public BkUserDTO getUserByUsername(String username);
+    public SimpleUserInfo getUserByUsername(String tenantId, String username);
 
-    public Map<String, BkUserDTO> listUsersByUsernames(Collection<String> usernames);
+    public List<SimpleUserInfo> batchGetVirtualUserByLoginName(String tenantId, String loginName);
+
+    List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames);
 
 }

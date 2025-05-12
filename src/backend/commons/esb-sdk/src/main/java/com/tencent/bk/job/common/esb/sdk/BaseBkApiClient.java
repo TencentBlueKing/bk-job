@@ -76,7 +76,7 @@ public class BaseBkApiClient {
     private final String baseAccessUrl;
     private final HttpHelper defaultHttpHelper;
     private final MeterRegistry meterRegistry;
-    private final TenantEnvService tenantEnvService;
+    protected final TenantEnvService tenantEnvService;
     private static final String BK_API_AUTH_HEADER = "X-Bkapi-Authorization";
     /**
      * API调用度量指标名称
@@ -142,13 +142,19 @@ public class BaseBkApiClient {
         BkApiContext<T, R> apiContext = new BkApiContext<>(httpMethod.name(), requestInfo.getUri(),
             requestInfo.getBody(), null, null, 0, false);
 
+        String tenantId = extractBkTenantId(requestInfo);
         if (logStrategy != null) {
             logStrategy.logReq(log, apiContext);
         } else {
             if (log.isInfoEnabled()) {
-                log.info("[AbstractBkApiClient] Request|method={}|uri={}|reqStr={}",
-                    httpMethod.name(), requestInfo.getUri(),
-                    requestInfo.getBody() != null ? JsonUtils.toJsonWithoutSkippedFields(requestInfo.getBody()) : null);
+                log.info(
+                    "[BaseBkApiClient] Request|tenantId={}|method={}|uri={}|reqStr={}",
+                    tenantId,
+                    httpMethod.name(),
+                    requestInfo.getUri(),
+                    requestInfo.getBody() != null ?
+                        JsonUtils.toJsonWithoutSkippedFields(requestInfo.getBody()) : null
+                );
             }
         }
 
@@ -159,10 +165,17 @@ public class BaseBkApiClient {
                 logStrategy.logResp(log, apiContext);
             } else {
                 if (log.isInfoEnabled()) {
-                    log.info("[AbstractBkApiClient] Response|bkApiRequestId={}|method={}|uri={}|success={}"
+                    log.info(
+                        "[BaseBkApiClient] Response|tenantId={}|bkApiRequestId={}|method={}|uri={}|success={}"
                             + "|costTime={}|resp={}",
-                        apiContext.getRequestId(), httpMethod.name(), requestInfo.getUri(), apiContext.isSuccess(),
-                        apiContext.getCostTime(), apiContext.getOriginResp());
+                        tenantId,
+                        apiContext.getRequestId(),
+                        httpMethod.name(),
+                        requestInfo.getUri(),
+                        apiContext.isSuccess(),
+                        apiContext.getCostTime(),
+                        apiContext.getOriginResp()
+                    );
                 }
             }
             if (apiContext.getCostTime() > 5000L) {
@@ -198,8 +211,12 @@ public class BaseBkApiClient {
 
             if (StringUtils.isBlank(respStr)) {
                 String errorMsg = httpMethod.name() + " " + uri + ", error: " + "Response is blank";
-                log.warn("[AbstractBkApiClient] fail: Response is blank| bkApiRequestId={}|method={}|uri={}",
-                    apiContext.getRequestId(), httpMethod.name(), uri);
+                log.warn(
+                    "[BaseBkApiClient] fail: Response is blank| bkApiRequestId={}|method={}|uri={}",
+                    apiContext.getRequestId(),
+                    httpMethod.name(),
+                    uri
+                );
                 status = EsbMetricTags.VALUE_STATUS_ERROR;
                 throw new InternalException(errorMsg, ErrorCode.API_ERROR);
             }
@@ -234,8 +251,20 @@ public class BaseBkApiClient {
         }
     }
 
+    private String extractBkTenantId(OpenApiRequestInfo<?> requestInfo) {
+        if (requestInfo.getHeaders() == null) {
+            return "";
+        }
+        for (Header header : requestInfo.getHeaders()) {
+            if (JobCommonHeaders.BK_TENANT_ID.equalsIgnoreCase(header.getName())) {
+                return header.getValue();
+            }
+        }
+        return "";
+    }
+
     private String extractBkApiRequestId(HttpResponse response) {
-        if (response.getHeaders() == null || response.getHeaders().length == 0) {
+        if (response.getHeaders() == null) {
             return "";
         }
         for (Header header : response.getHeaders()) {
@@ -314,13 +343,12 @@ public class BaseBkApiClient {
             .anyMatch(header -> header.getName().equalsIgnoreCase(JobCommonHeaders.BK_TENANT_ID));
         if (!containsTenantHeader) {
             if (tenantEnvService.isTenantEnabled()) {
-                // 临时方案，为了尽快联调；后续这里需要抛出异常
-                log.warn("Add default tenant header : {}", TenantIdConstants.DEFAULT_TENANT_ID);
-                headers.add(new BasicHeader(TenantIdConstants.DEFAULT_TENANT_ID, TenantIdConstants.DEFAULT_TENANT_ID));
-//                throw new InternalException("Header: " + JobCommonHeaders.BK_TENANT_ID + " is required",
-//                        ErrorCode.API_ERROR);
+                throw new InternalException(
+                    "Header: " + JobCommonHeaders.BK_TENANT_ID + " is required",
+                    ErrorCode.API_ERROR
+                );
             } else {
-                headers.add(new BasicHeader(TenantIdConstants.DEFAULT_TENANT_ID, TenantIdConstants.DEFAULT_TENANT_ID));
+                headers.add(buildTenantHeader(TenantIdConstants.DEFAULT_TENANT_ID));
             }
         }
     }
@@ -383,12 +411,11 @@ public class BaseBkApiClient {
         return new BasicHeader(JobCommonHeaders.BK_TENANT_ID, tenantId);
     }
 
-    protected BkApiAuthorization buildAuthorization(AppProperties appProperties, String tenantId) {
+    protected BkApiAuthorization buildAuthorization(AppProperties appProperties, String username) {
         return BkApiAuthorization.appAuthorization(
             appProperties.getCode(),
             appProperties.getSecret(),
-            // TODO：需要根据租户获取对应的虚拟账号，当前仅用admin联调，待IAM虚拟账号方案确定后修改这里
-            "admin"
+            username
         );
     }
 }

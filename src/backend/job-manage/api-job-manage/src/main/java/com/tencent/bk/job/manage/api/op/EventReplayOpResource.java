@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.op;
 
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.model.Response;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -43,9 +44,11 @@ public interface EventReplayOpResource {
 
     @ApiOperation(value = "重放主机事件", produces = "application/json")
     @PostMapping("/host")
-    Response<Void> replayHostEvent(
+    Response<Boolean> replayHostEvent(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username") String username,
+        @ApiParam("租户ID")
+        @RequestHeader(JobCommonHeaders.BK_TENANT_ID) String tenantId,
         @ApiParam(value = "主机事件", required = true)
         @RequestBody ResourceEvent<HostEventDetail> event
     );

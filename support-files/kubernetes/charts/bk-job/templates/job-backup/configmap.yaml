@@ -55,7 +55,7 @@ data:
         job-execute:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
-          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute{{ .Values.backupConfig.archive.execute.mariadb.connection.properties }}
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute{{ include "job.backup.archive.execute.mariadb.connection.properties" . }}
           username: {{ include "job.mariadb.username" . }}
           {{ if .Values.externalMariaDB.existingPasswordSecret }}
           password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
@@ -80,13 +80,13 @@ data:
             poolName: {{ $ds.poolName | default "job-execute" }}
             validationTimeout: {{ $ds.validationTimeout | default 5000 }}
         {{- end }}
-        {{- end }}  
+        {{- end }}
         {{- end }}
         {{- if and .Values.backupConfig.archive.execute.enabled (or (eq .Values.backupConfig.archive.execute.mode "backupThenDelete") (eq .Values.backupConfig.archive.execute.mode "backupOnly")) }}
         job-execute-archive:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
-          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{ .Values.backupConfig.archive.mariadb.host }}:{{ .Values.backupConfig.archive.mariadb.port }}/job_execute{{ .Values.backupConfig.archive.mariadb.connection.properties }}
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{ .Values.backupConfig.archive.mariadb.host }}:{{ .Values.backupConfig.archive.mariadb.port }}/job_execute{{ include "job.backup.archive.mariadb.connection.properties" . }}
           username: {{ .Values.backupConfig.archive.mariadb.username }}
           password: ${archive-mariadb-password}
           maximum-pool-size: 10
@@ -124,4 +124,10 @@ data:
         archive:  
           execute:
             {{- toYaml .Values.backupConfig.archive.execute | nindent 12 }}
+    mysql:
+      {{- toYaml .Values.backupConfig.mysql | nindent 6 }}
+    tls:
+      # 连接Redis使用的TLS配置
+      redis:
+        {{- include "job.redis.tls" . | nindent 8 }}
 {{- end }}

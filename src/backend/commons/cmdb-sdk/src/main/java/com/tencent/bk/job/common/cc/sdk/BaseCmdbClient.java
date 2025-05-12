@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.esb.sdk.BkApiV1Client;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.ApiUtil;
 import com.tencent.bk.job.common.util.FlowController;
@@ -91,10 +92,14 @@ public class BaseCmdbClient extends BkApiV1Client {
     protected static final String SEARCH_BUSINESS_SET = "/api/v3/findmany/biz_set";
     protected static final String SEARCH_BIZ_IN_BUSINESS_SET = "/api/v3/find/biz_set/biz_list";
 
+    // 租户集相关 API
+    protected static final String LIST_TENANT_SET = "/api/v3/findmany/tenant_set";
+
     private static final Map<String, String> interfaceNameMap = new HashMap<>();
 
     protected final String cmdbSupplierAccount;
     protected final AppProperties appProperties;
+    protected final IVirtualAdminAccountProvider virtualAdminAccountProvider;
 
     /**
      * 对整个应用中所有的CMDB调用进行限流
@@ -133,12 +138,13 @@ public class BaseCmdbClient extends BkApiV1Client {
                              CmdbConfig cmdbConfig,
                              MeterRegistry meterRegistry,
                              TenantEnvService tenantEnvService,
+                             IVirtualAdminAccountProvider virtualAdminAccountProvider,
                              String lang) {
         super(
             meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             bkApiGatewayProperties.getCmdb().getUrl(),
-            HttpHelperFactory.getRetryableHttpHelper(),
+            HttpHelperFactory.getLongRetryableHttpHelper(),
             lang,
             tenantEnvService
         );
@@ -158,6 +164,7 @@ public class BaseCmdbClient extends BkApiV1Client {
             new JobHttpRequestRetryHandler(),
             httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
         );
+        this.virtualAdminAccountProvider = virtualAdminAccountProvider;
     }
 
 
@@ -229,7 +236,8 @@ public class BaseCmdbClient extends BkApiV1Client {
                 .addHeader(buildTenantHeader(tenantId))
                 .queryParams(queryParams)
                 .body(reqBody)
-                .authorization(buildAuthorization(appProperties, tenantId))
+                .authorization(buildAuthorization(
+                    appProperties, virtualAdminAccountProvider.getVirtualAdminUsername(tenantId)))
                 .build();
             return doRequest(requestInfo, typeReference, httpHelper);
         } catch (Throwable e) {

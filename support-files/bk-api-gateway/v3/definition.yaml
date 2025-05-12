@@ -18,8 +18,8 @@ apigateway:
   description_en: "BlueKing Job API"
   # 是否公开；公开，则用户可查看资源文档、申请资源权限；不公开，则网关对用户隐藏
   is_public: true
-  # 标记网关为官方网关，网关名需以 `bk-` 开头，可选；非官方网关，可去除此配置
-  api_type: 1
+  # 标记网关为官方网关，网关名需以 `bk-` 开头，可选；非官方网关，可去除此配置；取值：1表示官方网关（网关列表项带官方标识），10表示普通网关
+  api_type: {{ environ.BK_APIGW_API_TYPE }}
   # 应用请求网关时，是否允许从请求参数 (querystring, body) 中获取蓝鲸认证信息，默认值为 true；
   # 如果为 false，则只能从请求头 X-Bkapi-Authorization 获取蓝鲸认证信息；
   # 新接入的网关，可以设置为 false，已接入的网关，待推动所有调用者将认证信息放到请求头后，可设置为 false

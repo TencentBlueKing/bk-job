@@ -26,11 +26,12 @@ package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.manage.model.inner.resp.TenantDTO;
+import com.tencent.bk.job.common.model.tenant.TenantDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -42,4 +43,10 @@ public interface ServiceTenantResource {
     @ApiOperation(value = "获取启用的租户信息", produces = "application/json")
     @GetMapping("/service/tenant/listEnabledTenant")
     InternalResponse<List<TenantDTO>> listEnabledTenant();
+
+    @ApiOperation(value = "根据appId获取租户Id", produces = "application/json")
+    @GetMapping("/service/tenant/getTenantIdByAppId")
+    InternalResponse<String> getTenantIdByAppId(@RequestParam(value = "appId")
+                                                long appId);
+
 }

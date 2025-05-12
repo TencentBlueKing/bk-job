@@ -42,7 +42,6 @@ import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoWithDefa
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -125,24 +124,6 @@ public interface WebGlobalSettingsResource {
         @RequestHeader("username")
             String username
     );
-
-    @ApiOperation(value = "根据用户英文名前缀拉取用户列表", produces = "application/json")
-    @GetMapping("/users/list")
-    Response<List<UserVO>> listUsers(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiParam("英文名前缀（逗号分隔）")
-        @RequestParam(value = "prefixStr", required = false)
-            String prefixStr,
-        @ApiParam("拉取起始位置")
-        @RequestParam(value = "offset", required = false)
-            Long offset,
-        @ApiParam("拉取数量")
-        @RequestParam(value = "limit", required = false)
-            Long limit
-    );
-
 
     @ApiOperation(value = "获取现有通知黑名单用户列表", produces = "application/json")
     @GetMapping("/notify/users/blacklist")

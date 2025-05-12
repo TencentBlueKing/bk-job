@@ -31,9 +31,9 @@ import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.sdk.BkApiV1Client;
 import com.tencent.bk.job.common.esb.sdk.BkApiContext;
 import com.tencent.bk.job.common.esb.sdk.BkApiLogStrategy;
+import com.tencent.bk.job.common.esb.sdk.BkApiV1Client;
 import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
 import com.tencent.bk.job.common.gse.constants.GseMetricNames;
@@ -124,6 +124,7 @@ public class GseV2ApiClient extends BkApiV1Client implements IGseClient {
             .builder()
             .method(HttpMethodEnum.POST)
             .uri(uri)
+            .addHeader(buildTenantHeader(tenantEnvService.getTenantIdForGSE()))
             .body(reqBody)
             .authorization(gseBkApiAuthorization)
             .setIdempotent(isRequestIdempotent)
@@ -153,7 +154,7 @@ public class GseV2ApiClient extends BkApiV1Client implements IGseClient {
                     public <T, R> void logResp(Logger log, BkApiContext<T, R> context) {
                         if (log.isInfoEnabled()) {
                             // 自定义输出，防止脚本任务结果中的执行日志字段过大导致内存溢出
-                            log.info("[AbstractBkApiClient] Response|bkApiRequestId={}|method={}|uri={}|success={}" +
+                            log.info("[BaseBkApiClient] Response|bkApiRequestId={}|method={}|uri={}|success={}" +
                                     "|costTime={}|resp={}|",
                                 context.getRequestId(),
                                 context.getMethod(),

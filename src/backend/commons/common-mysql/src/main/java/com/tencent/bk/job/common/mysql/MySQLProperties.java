@@ -54,6 +54,24 @@ public class MySQLProperties {
      */
     private MigrationProperties migration;
 
+    /**
+     * 慢查询SQL配置
+     */
+    private SlowSqlProperties slowSql = new SlowSqlProperties();
+
+    @Getter
+    @Setter
+    public static class SlowSqlProperties {
+        /**
+         * 是否在日志中打印慢查询SQL
+         */
+        private boolean logEnabled = true;
+        /**
+         * 慢查询阈值（ms)
+         */
+        private Integer thresholdMillis = 5000;
+    }
+
     @Getter
     @Setter
     public static class VerticalShardingProperties {

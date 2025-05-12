@@ -263,7 +263,7 @@ data:
         job-execute-archive:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
-          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{ .Values.backupConfig.archive.mariadb.host }}:{{ .Values.backupConfig.archive.mariadb.port }}/job_execute{{ .Values.backupConfig.archive.mariadb.connection.properties }}
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{ .Values.backupConfig.archive.mariadb.host }}:{{ .Values.backupConfig.archive.mariadb.port }}/job_execute{{ include "job.backup.archive.mariadb.connection.properties" . }}
           username: {{ .Values.backupConfig.archive.mariadb.username }}
           password: ${archive-mariadb-password}
           maximum-pool-size: 10
@@ -344,7 +344,7 @@ data:
         notify:
           default:
             channels:
-              available: mail
+              available: mail,weixin,rtx
       execute:
         # 执行日志导出产生的临时文件相关配置        
         log-export:
@@ -372,6 +372,8 @@ data:
         worker-tags:
           white: {{ .Values.fileGatewayConfig.workerTags.white }}
           black: {{ .Values.fileGatewayConfig.workerTags.black }}
+    mysql:
+      {{- toYaml .Values.assembleConfig.mysql | nindent 6 }}
     bk:
       doc:
         root: {{ .Values.bkDocsCenterUrl }}
@@ -380,5 +382,9 @@ data:
       sharedResUrl: {{ .Values.bkSharedResUrl }}
       sharedBaseJsPath: {{ .Values.bkSharedBaseJsPath }}
     deploy:
-      mode: lite    
+      mode: lite
+    tls:
+      # 连接Redis使用的TLS配置
+      redis:
+        {{- include "job.redis.tls" . | nindent 8 }}
 {{- end }}

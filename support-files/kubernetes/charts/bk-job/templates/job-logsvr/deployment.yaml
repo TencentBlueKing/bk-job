@@ -95,6 +95,8 @@ spec:
             - name: rabbitmq
               mountPath: /etc/secrets/rabbitmq
               readOnly: true
+            {{- include "job.mongodb.certsVolumeMount" . | nindent 12 }}
+            {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
       volumes:
         - name: job-storage
           persistentVolumeClaim:
@@ -105,5 +107,6 @@ spec:
         - name: rabbitmq
           secret:
             secretName: {{ include "job.rabbitmq.secretName" . }}
-
+        {{- include "job.mongodb.certsVolume" . | nindent 8 }}
+        {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
 {{- end }}

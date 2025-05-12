@@ -26,10 +26,12 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.ExecuteBasePerAppStatisticsTask;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.execute.api.inner.ServiceMetricsResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import org.jooq.DSLContext;
@@ -49,13 +51,22 @@ public class RollingTaskPerAppStatisticsTask extends ExecuteBasePerAppStatistics
     @Autowired
     public RollingTaskPerAppStatisticsTask(ServiceMetricsResource executeMetricsResource,
                                            BasicServiceManager basicServiceManager,
-                                           StatisticsDAO statisticsDAO,
-                                           @Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
-        super(executeMetricsResource, basicServiceManager, statisticsDAO, dslContext);
+                                           CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                           NoTenantStatisticsDAO noTenantStatisticsDAO,
+                                           @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
+                                           TenantService tenantService) {
+        super(
+            executeMetricsResource,
+            basicServiceManager,
+            currentTenantStatisticsDAO,
+            noTenantStatisticsDAO,
+            dslContext,
+            tenantService
+        );
     }
 
     private StatisticsDTO getTaskTypeBaseStatisticsDTO(ServiceApplicationDTO app, String timeTag) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(app.getId());
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(timeTag);
@@ -96,10 +107,10 @@ public class RollingTaskPerAppStatisticsTask extends ExecuteBasePerAppStatistics
     }
 
     public void aggregateAllAppTaskTypeStatistics(String dayTimeStr, String timeConsumingDimensionValue) {
-        Long totalValue = statisticsDAO.getTotalValueOfStatisticsList(null,
+        Long totalValue = currentTenantStatisticsDAO.getTotalValueOfStatisticsList(null,
             Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID), StatisticsConstants.RESOURCE_ROLLING_TASK
             , StatisticsConstants.DIMENSION_TASK_TYPE, timeConsumingDimensionValue, dayTimeStr);
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(StatisticsConstants.DEFAULT_APP_ID);
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(dayTimeStr);
@@ -107,7 +118,7 @@ public class RollingTaskPerAppStatisticsTask extends ExecuteBasePerAppStatistics
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_ONE_DAY_ROLLING_TASK_OF_ALL_APP);
         statisticsDTO.setDimension(StatisticsConstants.DIMENSION_TASK_TYPE);
         statisticsDTO.setDimensionValue(timeConsumingDimensionValue);
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
     }
 
     @Override
@@ -120,11 +131,22 @@ public class RollingTaskPerAppStatisticsTask extends ExecuteBasePerAppStatistics
 
     @Override
     public boolean isDataComplete(String targetDateStr) {
-        boolean executedTaskByTaskTypeDataExists = statisticsDAO.existsStatistics(null, null,
-            StatisticsConstants.RESOURCE_ROLLING_TASK, StatisticsConstants.DIMENSION_TASK_TYPE, null, targetDateStr);
-        boolean allAppExecutedTaskByTaskTypeDataExists = statisticsDAO.existsStatistics(null, null,
-            StatisticsConstants.RESOURCE_ONE_DAY_ROLLING_TASK_OF_ALL_APP, StatisticsConstants.DIMENSION_TASK_TYPE,
-            null, targetDateStr);
+        boolean executedTaskByTaskTypeDataExists = noTenantStatisticsDAO.existsStatistics(
+            null,
+            null,
+            StatisticsConstants.RESOURCE_ROLLING_TASK,
+            StatisticsConstants.DIMENSION_TASK_TYPE,
+            null,
+            targetDateStr
+        );
+        boolean allAppExecutedTaskByTaskTypeDataExists = noTenantStatisticsDAO.existsStatistics(
+            null,
+            null,
+            StatisticsConstants.RESOURCE_ONE_DAY_ROLLING_TASK_OF_ALL_APP,
+            StatisticsConstants.DIMENSION_TASK_TYPE,
+            null,
+            targetDateStr
+        );
         return executedTaskByTaskTypeDataExists && allAppExecutedTaskByTaskTypeDataExists;
     }
 }

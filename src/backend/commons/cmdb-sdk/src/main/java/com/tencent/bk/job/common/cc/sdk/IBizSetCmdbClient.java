@@ -57,7 +57,7 @@ public interface IBizSetCmdbClient {
     /**
      * 从CC获取业务集信息
      *
-     * @param tenantId 租户ID
+     * @param tenantId  租户ID
      * @param bizSetIds 业务集ID
      * @return 业务集列表
      */
@@ -66,11 +66,12 @@ public interface IBizSetCmdbClient {
     /**
      * 根据游标获取业务集事件
      *
+     * @param tenantId  租户ID
      * @param startTime 监听事件的起始时间
      * @param cursor    监听事件的游标
      * @return 事件
      */
-    ResourceWatchResult<BizSetEventDetail> getBizSetEvents(Long startTime, String cursor);
+    ResourceWatchResult<BizSetEventDetail> getBizSetEvents(String tenantId, Long startTime, String cursor);
 
     /**
      * 根据游标获取业务集与业务关系事件
@@ -79,14 +80,16 @@ public interface IBizSetCmdbClient {
      * @param cursor    监听事件的游标
      * @return 事件
      */
-    ResourceWatchResult<BizSetRelationEventDetail> getBizSetRelationEvents(Long startTime, String cursor);
+    ResourceWatchResult<BizSetRelationEventDetail> getBizSetRelationEvents(String tenantId,
+                                                                           Long startTime,
+                                                                           String cursor);
 
     /**
      * 根据cmdb业务角色获取人员
      *
      * @param tenantId 租户ID
-     * @param bizId cmdb业务ID
-     * @param role  业务角色
+     * @param bizId    cmdb业务ID
+     * @param role     业务角色
      */
     Set<String> listUsersByRole(String tenantId, Long bizId, String role);
 }

@@ -96,7 +96,7 @@ public class ArtifactoryFileResourceImpl implements IFileResource {
 
     private void fillProjectFileNodesDTO(FileNodesDTO fileNodesDTO, ListFileNodeReq req) {
         ArtifactoryRemoteClient client = baseService.getArtifactoryClientFromBaseReq(req);
-        List<ProjectDTO> projectDTOList = client.listProject();
+        List<ProjectDTO> projectDTOList = client.listProject(null);
         // 按名称搜索
         projectDTOList = projectDTOList.stream().filter(projectDTO -> {
             String displayName = projectDTO.getDisplayName();

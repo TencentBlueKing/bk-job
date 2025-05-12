@@ -29,7 +29,6 @@ import com.tencent.bk.audit.annotations.AuditInstanceRecord;
 import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
@@ -76,6 +75,7 @@ import com.tencent.bk.job.crontab.timer.QuartzTrigger;
 import com.tencent.bk.job.crontab.timer.QuartzTriggerBuilder;
 import com.tencent.bk.job.crontab.timer.executor.InnerJobExecutor;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
+import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -117,6 +117,7 @@ public class CronJobServiceImpl implements CronJobService {
     private final HostService hostService;
     private final CrontabMQEventDispatcher crontabMQEventDispatcher;
     private final BatchCronJobService batchCronJobService;
+    private final ServiceTenantResource tenantResource;
 
     @Autowired
     public CronJobServiceImpl(CronJobDAO cronJobDAO,
@@ -127,7 +128,8 @@ public class CronJobServiceImpl implements CronJobService {
                               ExecuteTaskService executeTaskService,
                               HostService hostService,
                               CrontabMQEventDispatcher crontabMQEventDispatcher,
-                              BatchCronJobServiceImpl batchCronJobService) {
+                              BatchCronJobServiceImpl batchCronJobService,
+                              ServiceTenantResource tenantResource) {
         this.cronJobDAO = cronJobDAO;
         this.quartzTaskHandler = quartzTaskHandler;
         this.quartzService = quartzService;
@@ -137,6 +139,7 @@ public class CronJobServiceImpl implements CronJobService {
         this.hostService = hostService;
         this.crontabMQEventDispatcher = crontabMQEventDispatcher;
         this.batchCronJobService = batchCronJobService;
+        this.tenantResource = tenantResource;
     }
 
     @Override
@@ -307,7 +310,8 @@ public class CronJobServiceImpl implements CronJobService {
             }
             List<HostDTO> hostByIpList = serverDTO.getIps();
             if (CollectionUtils.isNotEmpty(hostByIpList)) {
-                hostService.fillHosts(hostByIpList);
+                String tenantId = tenantResource.getTenantIdByAppId(cronJobInfo.getAppId()).getData();
+                hostService.fillHosts(tenantId, hostByIpList);
             }
         }
     }
@@ -739,36 +743,4 @@ public class CronJobServiceImpl implements CronJobService {
         return cronJobDAO.listEnabledCronBasicInfoForUpdate(start, limit);
     }
 
-    @Override
-    public boolean disableCronJobByAppId(Long appId) {
-        CronJobInfoDTO cronJobInfoDTO = new CronJobInfoDTO();
-        cronJobInfoDTO.setAppId(appId);
-        cronJobInfoDTO.setEnable(true);
-        List<Long> cronJobIdList = cronJobDAO.listCronJobIds(cronJobInfoDTO);
-        if (CollectionUtils.isEmpty(cronJobIdList)) {
-            return true;
-        }
-        List<Long> failedCronJobIds = new ArrayList<>();
-        log.info("cron job will be disabled, appId:{}, cronJobIds:{}", appId, cronJobIdList);
-        for (Long cronJobId : cronJobIdList) {
-            try {
-                // TODO:tenant 需要修改实现，不能只传入系统用户 ID
-//                Boolean disableResult = changeCronJobEnableStatus(JobConstants.DEFAULT_SYSTEM_USER_ADMIN, appId,
-//                    cronJobId, false);
-                Boolean disableResult = changeCronJobEnableStatus(null, appId,
-                    cronJobId, false);
-                log.debug("disable cron job, result:{}, appId:{}, cronId:{}", disableResult, appId, cronJobId);
-                if (!disableResult) {
-                    failedCronJobIds.add(cronJobId);
-                }
-            } catch (Exception e) {
-                log.error("Failed to disable cron job with appId:{} and cronId:{}", appId, cronJobId, e);
-                failedCronJobIds.add(cronJobId);
-            }
-        }
-        if (!failedCronJobIds.isEmpty()) {
-            log.warn("Failed to disable cron jobs for appId:{} with cronJobIds:{}", appId, failedCronJobIds);
-        }
-        return failedCronJobIds.isEmpty();
-    }
 }

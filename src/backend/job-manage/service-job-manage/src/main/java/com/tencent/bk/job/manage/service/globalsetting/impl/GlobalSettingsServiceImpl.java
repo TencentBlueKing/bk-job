@@ -29,11 +29,14 @@ import com.tencent.bk.audit.annotations.ActionAuditRecord;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.notice.config.BkNoticeProperties;
+import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
+import com.tencent.bk.job.common.paas.user.IUserApiClient;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -82,7 +85,6 @@ import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDe
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TemplateBasicInfo;
-import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import com.tencent.bk.job.manage.service.NotifyService;
 import com.tencent.bk.job.manage.service.globalsetting.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.impl.notify.NotifySendService;
@@ -126,8 +128,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private final JobManageConfig jobManageConfig;
     private final LocalFileConfigForManage localFileConfigForManage;
     private final BkNoticeProperties bkNoticeProperties;
+    private final BkApiGatewayProperties bkApiGatewayProperties;
     private final NotifyTemplateConverter notifyTemplateConverter;
     private final BuildProperties buildProperties;
+    private final IUserApiClient userApiClient;
     @Value("${job.manage.upload.filesize.max:5GB}")
     private String configedMaxFileSize;
 
@@ -143,8 +147,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                                      JobManageConfig jobManageConfig,
                                      LocalFileConfigForManage localFileConfigForManage,
                                      BkNoticeProperties bkNoticeProperties,
+                                     BkApiGatewayProperties bkApiGatewayProperties,
                                      NotifyTemplateConverter notifyTemplateConverter,
-                                     BuildProperties buildProperties) {
+                                     BuildProperties buildProperties,
+                                     IUserApiClient userApiClient) {
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyService = notifyService;
@@ -156,8 +162,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         this.jobManageConfig = jobManageConfig;
         this.localFileConfigForManage = localFileConfigForManage;
         this.bkNoticeProperties = bkNoticeProperties;
+        this.bkApiGatewayProperties = bkApiGatewayProperties;
         this.notifyTemplateConverter = notifyTemplateConverter;
         this.buildProperties = buildProperties;
+        this.userApiClient = userApiClient;
     }
 
     private static String removeSuffixBackSlash(String rawStr) {
@@ -190,7 +198,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                 "true",
                 "whether available notify channels are configed",
                 tenantId
-                );
+            );
             return 1 == globalSettingDAO.insertGlobalSetting(globalSettingDTO);
         } else if (!globalSettingDTO.getValue().toLowerCase().equals("true")) {
             globalSettingDTO.setValue("true");
@@ -213,7 +221,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         return allNotifyChannelList.stream().map(it -> {
             String icon = it.getIcon();
             String prefix = "data:image/png;base64,";
-            if (!icon.startsWith("data:image")) {
+            if (icon != null && !icon.startsWith("data:image")) {
                 icon = prefix + icon;
             }
             return new NotifyChannelWithIconVO(
@@ -232,12 +240,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     )
     public Integer setAvailableNotifyChannel(String username, SetAvailableNotifyChannelReq req) {
         return notifyService.setAvailableNotifyChannel(username, req);
-    }
-
-    @Override
-    public List<UserVO> listUsers(String username, String prefixStr, Long offset, Long limit) {
-        //这里就是要选择人来添加黑名单，故不排除已在黑名单内的人
-        return notifyUserService.listUsers(prefixStr, offset, limit, false);
     }
 
     @Override
@@ -263,7 +265,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                 "60",
                 "执行记录默认保存天数" + "(default history expire days)",
                 JobContextUtil.getTenantId()
-                );
+            );
             globalSettingDAO.insertGlobalSetting(globalSettingDTO);
         }
         return Long.parseLong(globalSettingDTO.getValue());
@@ -283,7 +285,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         GlobalSettingDTO globalSettingDTO = new GlobalSettingDTO(GlobalSettingKeys.KEY_HISTORY_EXPIRE_DAYS,
             days.toString(),
             String.format("执行记录保存天数(history expire days):%s,%s", username,
-            DateUtils.defaultLocalDateTime(LocalDateTime.now())),
+                DateUtils.defaultLocalDateTime(LocalDateTime.now())),
             JobContextUtil.getTenantId()
         );
         return globalSettingDAO.updateGlobalSetting(globalSettingDTO);
@@ -514,6 +516,15 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         }
 
         String tenantId = JobContextUtil.getTenantId();
+        String creator = username;
+        List<SimpleUserInfo> operators = userApiClient.listUsersByUsernames(
+            tenantId,
+            Arrays.asList(username));
+        if (CollectionUtils.isNotEmpty(operators)
+            && operators.get(0) != null
+            && StringUtils.isNotBlank(operators.get(0).getDisplayName())) {
+            creator = operators.get(0).getDisplayName();
+        }
         NotifyTemplateDTO notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
             req.getChannelCode(),
             req.getMessageTypeCode(),
@@ -532,9 +543,9 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                 .titleEn(req.getTitle())
                 .contentEn(req.getContent())
                 .isDefault(false)
-                .creator(username)
+                .creator(creator)
                 .createTime(System.currentTimeMillis())
-                .lastModifyUser(username)
+                .lastModifyUser(creator)
                 .lastModifyTime(System.currentTimeMillis())
                 .tenantId(tenantId)
                 .build();
@@ -547,7 +558,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                 notifyTemplateDTO.setTitle(req.getTitle());
                 notifyTemplateDTO.setContent(req.getContent());
             }
-            notifyTemplateDTO.setLastModifyUser(username);
+            notifyTemplateDTO.setLastModifyUser(creator);
             notifyTemplateDTO.setLastModifyTime(System.currentTimeMillis());
             return notifyTemplateDAO.updateNotifyTemplateById(notifyTemplateDTO);
         }
@@ -559,7 +570,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             NotifyConsts.SEPERATOR_COMMA);
         Set<String> receiverSet = new HashSet<>(receiverList);
         notifySendService.sendUserChannelNotify(
-            null,
             receiverSet,
             req.getChannelCode(),
             req.getTitle(),
@@ -608,6 +618,9 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         }
         ChannelTemplateDetailVO currentChannelTemplateVO =
             notifyTemplateConverter.convertToChannelTemplateDetailVO(currentNotifyTemplateDTO);
+        if (defaultNotifyTemplateDTO != null) {
+            defaultNotifyTemplateDTO.setTenantId(tenantId);
+        }
         ChannelTemplateDetailVO defaultChannelTemplateVO =
             notifyTemplateConverter.convertToChannelTemplateDetailVO(defaultNotifyTemplateDTO);
         // 渠道下未配置模板则使用该渠道默认模板
@@ -723,6 +736,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         return null;
     }
 
+    private String getBkUserWebApiRootUrl() {
+        return bkApiGatewayProperties.getBkUserWeb().getUrl();
+    }
+
     private String getNodemanRootUrl() {
         String url = jobManageConfig.getNodemanServerUrl();
         if (StringUtils.isBlank(url)) {
@@ -742,6 +759,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         urlMap.put(RelatedUrlKeys.KEY_BK_DOC_JOB_ROOT_URL, getDocJobRootUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_FEED_BACK_ROOT_URL, getFeedBackRootUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_SHARED_RES_BASE_JS_URL, getBkSharedResBaseJsUrl());
+        urlMap.put(RelatedUrlKeys.KEY_BK_USER_WEB_API_ROOT_URL, getBkUserWebApiRootUrl());
         return urlMap;
     }
 
