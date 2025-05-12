@@ -376,7 +376,7 @@ port: {{ include "job.redis.port" . }}
 password: {{ .Values.redis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
 {{- else }}
 fail "Not supported redis architecture"
-{{- end -}}
+{{- end }}
 ssl: false
 {{- else }}
 password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
