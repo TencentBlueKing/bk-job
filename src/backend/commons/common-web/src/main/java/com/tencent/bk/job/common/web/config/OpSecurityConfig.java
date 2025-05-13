@@ -29,6 +29,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 
 /**
  * OP接口安全配置
@@ -40,9 +41,9 @@ public class OpSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable();
-        http.authorizeRequests()
-            .antMatchers("/op/**").authenticated()
-            .anyRequest().permitAll()
+        http.requestMatcher(new RegexRequestMatcher("/op/**", null))
+            .authorizeRequests()
+            .anyRequest().authenticated()
             .and()
             .httpBasic();
     }
