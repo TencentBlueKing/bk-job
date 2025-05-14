@@ -1256,7 +1256,7 @@ backupConfig:
         # 归档模式，仅支持删除
         mode: deleteOnly
         # 执行日志保留天数(要结合执行历史的保留时间合理配置执行日志保留天数)
-        keepDays：360
+        keepDays: 360
         # 归档任务并发数量
         concurrent: 6
   image:
