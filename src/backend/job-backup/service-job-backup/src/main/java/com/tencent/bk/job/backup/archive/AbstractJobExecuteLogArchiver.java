@@ -71,24 +71,32 @@ public abstract class AbstractJobExecuteLogArchiver implements JobExecuteLogArch
 
     @Override
     public DeleteResult deleteRecords(Integer archiveDay) {
-        // 作业执行日志按集合删除，暂不支持归档，只有当归档模式是仅删除且DB归档任务全部执行成功，才删除集合
+        // 作业执行日志按集合删除，当前仅支持删除
         if (!isDeleteEnable()) {
-            log.info("Delete job execute log is disabled, skip delete");
-            return new DeleteResult(-1, -1);
+            log.info("Delete job execute log is disabled, skip delete, mode={}",
+                archiveProperties.getExecuteLog().getMode());
+            return DeleteResult.NON_OP_DELETE_RESULT;
+        }
+        String collectionName = getCollectionName(archiveDay);
+        if (archiveProperties.getExecuteLog().isDryRun()) {
+            log.info("Dry-run mode is enabled, skipping the actual operation of drop the collection [{}]",
+                collectionName);
+            return DeleteResult.NON_OP_DELETE_RESULT;
         }
 
         List<ArchiveTaskInfo> archiveTaskInfoList = archiveTaskService.listTasks(ArchiveTaskTypeEnum.JOB_INSTANCE,
             archiveDay);
+        if (archiveTaskInfoList.isEmpty()) {
+            log.warn("Job instance has not been deleted yet, execution log will not be found in the details of the " +
+                "job execution history. date={}, dropCollection={}", archiveDay, collectionName);
+        }
         List<ArchiveTaskInfo> unfinishedTaskList = archiveTaskInfoList.stream()
             .filter(taskInfo -> taskInfo.getStatus().getStatus() != ArchiveTaskStatusEnum.SUCCESS.getStatus())
             .collect(Collectors.toList());
         if (!unfinishedTaskList.isEmpty()) {
-            log.info("Job instance archive task is not fully completed, skip log delete, date:{}, tasks:{}",
-                archiveDay, unfinishedTaskList);
-            return new DeleteResult(-1, -1);
+            log.warn("Job instance archive task is not fully completed,, execution log will not be found in the " +
+                "details of the job execution history. date={}, dropCollection={}", archiveDay, collectionName);
         }
-
-        String collectionName = getCollectionName(archiveDay);
         long deleteStartTime = System.currentTimeMillis();
         log.info("Drop [{}] collection", collectionName);
         mongoTemplate.dropCollection(collectionName);
@@ -128,14 +136,8 @@ public abstract class AbstractJobExecuteLogArchiver implements JobExecuteLogArch
         return prefix;
     }
 
-    private boolean isBackupEnable() {
-        return archiveProperties.isEnabled()
-            && (ArchiveModeEnum.BACKUP_THEN_DELETE == ArchiveModeEnum.valOf(archiveProperties.getMode())
-            || ArchiveModeEnum.BACKUP_ONLY == ArchiveModeEnum.valOf(archiveProperties.getMode()));
-    }
-
     private boolean isDeleteEnable() {
-        return archiveProperties.isEnabled()
-            && ArchiveModeEnum.DELETE_ONLY == ArchiveModeEnum.valOf(archiveProperties.getMode());
+        return archiveProperties.getExecuteLog().isEnabled()
+            && ArchiveModeEnum.DELETE_ONLY == ArchiveModeEnum.valOf(archiveProperties.getExecuteLog().getMode());
     }
 }

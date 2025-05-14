@@ -67,13 +67,17 @@ public class JobInstanceArchiveCronJobs {
      */
     @Scheduled(cron = "0 0 * * * *")
     public void generateArchiveTask() {
-        if (!archiveProperties.isEnabled()) {
-            return;
+        if (archiveProperties.isEnabled()) {
+            log.info("Generate historical data archive task start...");
+            jobInstanceArchiveTaskGenerator.generate();
+            log.info("Generate historical data archive task done");
         }
-        log.info("Generate archive task start...");
-        jobInstanceArchiveTaskGenerator.generate();
-        jobExecuteLogArchiveTaskGenerator.generate();
-        log.info("Generate archive task done");
+
+        if (archiveProperties.getExecuteLog().isEnabled()) {
+            log.info("Generate historical log archive task start...");
+            jobExecuteLogArchiveTaskGenerator.generate();
+            log.info("Generate historical log archive task done");
+        }
     }
 
     /**
@@ -81,13 +85,17 @@ public class JobInstanceArchiveCronJobs {
      */
     @Scheduled(cron = "${job.backup.archive.execute.cron: 0 1 * * * *}")
     public void scheduleAndExecuteArchiveTask() {
-        if (!archiveProperties.isEnabled()) {
-            return;
+        if (archiveProperties.isEnabled()) {
+            log.info("Schedule and execute historical data archive task start...");
+            jobInstanceArchiveTaskScheduler.schedule();
+            log.info("Schedule and execute historical data archive task done");
         }
-        log.info("Schedule and execute archive task start...");
-        jobInstanceArchiveTaskScheduler.schedule();
-        jobExecuteLogArchiveTaskScheduler.schedule();
-        log.info("Schedule and execute archive task done");
+
+        if (archiveProperties.getExecuteLog().isEnabled()) {
+            log.info("Schedule and execute historical log archive task start...");
+            jobExecuteLogArchiveTaskScheduler.schedule();
+            log.info("Schedule and execute historical log archive task done");
+        }
     }
 
     /**
@@ -95,7 +103,7 @@ public class JobInstanceArchiveCronJobs {
      */
     @Scheduled(cron = "0 59 * * * *")
     public void scheduleFailedTasks() {
-        if (!archiveProperties.isEnabled()) {
+        if (!archiveProperties.isEnabled() && !archiveProperties.getExecuteLog().isEnabled()) {
             return;
         }
         log.info("ReSchedule fail/timout archive task start...");

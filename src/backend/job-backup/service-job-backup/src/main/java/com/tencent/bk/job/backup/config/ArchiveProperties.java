@@ -88,6 +88,41 @@ public class ArchiveProperties {
      */
     private ArchiveTasksConfig tasks;
 
+    /**
+     * 执行日志归档配置
+     */
+    private ExecuteLogConfig executeLog;
+
+    @Data
+    public static class ExecuteLogConfig {
+        /**
+         * 是否启用执行日志归档
+         */
+        private boolean enabled = false;
+
+        /**
+         * 是否试运行
+         */
+        private boolean dryRun = true;
+
+        /**
+         * 执行日志归档模式
+         *
+         * @see ArchiveModeEnum
+         */
+        private String mode;
+
+        /**
+         * 执行日志保留天数
+         */
+        private int keepDays = 360;
+
+        /**
+         * 执行日志归档任务并行数量
+         */
+        private Integer concurrent = 6;
+    }
+
     @Data
     public static class TableConfig {
         /**

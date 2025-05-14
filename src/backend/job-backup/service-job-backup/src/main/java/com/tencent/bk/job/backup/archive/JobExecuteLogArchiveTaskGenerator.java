@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
@@ -37,13 +36,21 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.time.DateTimeException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 生成作业执行日志归档任务
@@ -53,29 +60,34 @@ public class JobExecuteLogArchiveTaskGenerator {
 
     private final ArchiveTaskService archiveTaskService;
 
-    private final JobInstanceHotRecordDAO taskInstanceRecordDAO;
-
     private final ArchiveProperties archiveProperties;
 
     private final JobExecuteLogArchiveTaskGenerateLock jobExecuteLogArchiveTaskGenerateLock;
+
+    private final MongoTemplate mongoTemplate;
 
     /**
      * 归档数据时间范围计算所依据的时区
      */
     private final ZoneId archiveZoneId;
 
+    // 匹配脚本日志、文件日志的集合名称
+    private static final Pattern LOG_COLLECTION_NAME_PATTERN = Pattern.compile(
+        "job_log_(?:script|file)_(\\d{4}_\\d{2}_\\d{2})"
+    );
+    private static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("yyyy_MM_dd");
+
 
     public JobExecuteLogArchiveTaskGenerator(ArchiveTaskService archiveTaskService,
-                                             JobInstanceHotRecordDAO taskInstanceRecordDAO,
                                              ArchiveProperties archiveProperties,
-                                             JobExecuteLogArchiveTaskGenerateLock jobExecuteLogArchiveTaskGenerateLock) {
+                                             JobExecuteLogArchiveTaskGenerateLock jobExecuteLogArchiveTaskGenerateLock,
+                                             MongoTemplate mongoTemplate) {
         this.archiveTaskService = archiveTaskService;
-        this.taskInstanceRecordDAO = taskInstanceRecordDAO;
         this.archiveProperties = archiveProperties;
         this.jobExecuteLogArchiveTaskGenerateLock = jobExecuteLogArchiveTaskGenerateLock;
+        this.mongoTemplate = mongoTemplate;
         archiveZoneId = getArchiveBasedTimeZone(archiveProperties);
     }
-
 
     public void generate() {
         boolean locked = false;
@@ -84,15 +96,18 @@ public class JobExecuteLogArchiveTaskGenerator {
             if (!locked) {
                 return;
             }
-            if (taskInstanceRecordDAO.isTableEmpty()) {
-                log.info("Job instance table is empty,do not require to set up archive log task.");
+
+            // 根据集合名称找出最早的一个
+            Set<String> allCollections = mongoTemplate.getCollectionNames();
+            Optional<String> earliestCollection = findEarliestCollection(allCollections);
+            if (!earliestCollection.isPresent()) {
+                log.info("No collection to be archived was found，allCollections={}", allCollections);
                 return;
             }
-            List<ArchiveTaskInfo> archiveTaskList = new ArrayList<>();
 
             log.info("Compute archive log task generate startDateTime and endDateTime");
-            LocalDateTime archiveStartDateTime = computeArchiveStartDateTime();
-            LocalDateTime archiveEndDateTime = computeArchiveEndTime(archiveProperties.getKeepDays());
+            LocalDateTime archiveStartDateTime = computeDateTimeByCollectionName(earliestCollection.get());
+            LocalDateTime archiveEndDateTime = computeArchiveEndTime(archiveProperties.getExecuteLog().getKeepDays());
             if (archiveEndDateTime.isBefore(archiveStartDateTime) || archiveEndDateTime.equals(archiveStartDateTime)) {
                 log.info("Archive endTime is before startTime, do not require to set up archive log task." +
                         " startTime: {}, endTime: {}",
@@ -100,7 +115,9 @@ public class JobExecuteLogArchiveTaskGenerator {
                 return;
             }
 
-            log.info("Generate job execute log archive tasks between {} and {}", archiveStartDateTime, archiveEndDateTime);
+            log.info("Generate job execute log archive tasks between {} and {}",
+                archiveStartDateTime, archiveEndDateTime);
+            List<ArchiveTaskInfo> archiveTaskList = new ArrayList<>();
             // 按天创建日志归档任务
             while (archiveStartDateTime.isBefore(archiveEndDateTime)) {
                 log.info("Generate archive log task for datetime : {}", archiveStartDateTime);
@@ -125,7 +142,27 @@ public class JobExecuteLogArchiveTaskGenerator {
                 jobExecuteLogArchiveTaskGenerateLock.unlock();
             }
         }
+    }
 
+    /**
+     * 解析集合名中的日期，匹配失败返回null。
+     */
+    private LocalDate collectionNameToDate(String collectionName) {
+        Matcher m = LOG_COLLECTION_NAME_PATTERN.matcher(collectionName);
+        if (!m.matches()) {
+            return null;
+        }
+        return LocalDate.parse(m.group(1), DTF);
+    }
+
+    /**
+     * 找到最早的集合名。
+     */
+    private Optional<String> findEarliestCollection(Set<String> allCollections) {
+        if (allCollections.isEmpty()) return Optional.empty();
+        return allCollections.stream()
+            .filter(name -> collectionNameToDate(name) != null)
+            .min(Comparator.comparing(this::collectionNameToDate));
     }
 
     private ArchiveTaskInfo buildArchiveTask(ArchiveTaskTypeEnum archiveTaskType,
@@ -146,26 +183,9 @@ public class JobExecuteLogArchiveTaskGenerator {
         return archiveTask;
     }
 
-
-    private LocalDateTime computeArchiveStartDateTime() {
-        LocalDateTime startDateTime;
-        ArchiveTaskInfo latestArchiveTask =
-            archiveTaskService.getLatestArchiveTask(ArchiveTaskTypeEnum.JOB_EXECUTE_LOG);
-        if (latestArchiveTask == null) {
-            // 从表数据中的 job_create_time 计算归档任务开始时间
-            log.info("Latest execute log archive task is empty, try compute from table min job create time");
-            Long minJobCreateTimeMills = taskInstanceRecordDAO.getMinJobInstanceCreateTime();
-            log.info("Min job create time in db is : {}", minJobCreateTimeMills);
-            startDateTime = ArchiveDateTimeUtil.toHourlyRoundDown(
-                ArchiveDateTimeUtil.unixTimestampMillToZoneDateTime(minJobCreateTimeMills, archiveZoneId));
-        } else {
-            // 根据最新的归档任务计算开始
-            log.info("Compute archive from latest generated archive task: {}", JsonUtils.toJson(latestArchiveTask));
-            startDateTime = ArchiveDateTimeUtil.unixTimestampMillToZoneDateTime(
-                latestArchiveTask.getToTimestamp(), archiveZoneId);
-            startDateTime = ArchiveDateTimeUtil.toHourlyRoundDown(startDateTime.plusDays(1));
-        }
-        return startDateTime;
+    private LocalDateTime computeDateTimeByCollectionName(String name) {
+        LocalDate date = collectionNameToDate(name);
+        return date.atStartOfDay();
     }
 
     /**

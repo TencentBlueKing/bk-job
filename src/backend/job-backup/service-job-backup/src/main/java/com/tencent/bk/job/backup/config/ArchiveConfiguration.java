@@ -57,7 +57,9 @@ import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.lang.Nullable;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.concurrent.LinkedBlockingQueue;
@@ -124,16 +126,16 @@ public class ArchiveConfiguration {
     @Bean
     public JobExecuteLogArchiveTaskGenerator jobExecuteLogArchiveTaskGenerator(
         ArchiveTaskService archiveTaskService,
-        JobInstanceHotRecordDAO taskInstanceRecordDAO,
         ArchiveProperties archiveProperties,
-        JobExecuteLogArchiveTaskGenerateLock jobExecuteLogArchiveTaskGenerateLock) {
+        JobExecuteLogArchiveTaskGenerateLock jobExecuteLogArchiveTaskGenerateLock,
+        @Nullable MongoTemplate mongoTemplate) {
 
         log.info("Init JobExecuteLogArchiveTaskGenerator");
         return new JobExecuteLogArchiveTaskGenerator(
             archiveTaskService,
-            taskInstanceRecordDAO,
             archiveProperties,
-            jobExecuteLogArchiveTaskGenerateLock
+            jobExecuteLogArchiveTaskGenerateLock,
+            mongoTemplate
         );
     }
 

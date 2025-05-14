@@ -37,7 +37,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 @Configuration("executeMongoDBConfiguration")
-@ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
+@ConditionalOnExpression("${job.backup.archive.execute.executeLog.enabled:false}")
 public class ExecuteMongoDBConfiguration {
 
     @Value("${spring.datasource.job-execute-mongodb.uri:}")
