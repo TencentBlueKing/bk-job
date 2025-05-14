@@ -110,11 +110,13 @@ public class JobInstanceArchiveTaskScheduler extends AbstractArchiveTaskSchedule
     }
 
     @Override
-    protected ArchiveTaskInfo getNextTask(Map<String, Integer> scheduleTasksGroupByDb, List<ArchiveTaskInfo> running) {
+    protected ArchiveTaskInfo getNextTask(Map<String, Integer> scheduleTasksGroupByDb,
+                                          List<ArchiveTaskInfo> running) {
         // 根据优先级评估
         ArchiveDbNodePriorityEvaluator.DbNodeTasksInfo info =
             ArchiveDbNodePriorityEvaluator.evaluateHighestPriorityDbNode(running, scheduleTasksGroupByDb);
-        return archiveTaskService.getFirstScheduleArchiveTaskByDb(ArchiveTaskTypeEnum.JOB_INSTANCE, info.getDbNodeId());
+        return archiveTaskService.getFirstScheduleArchiveTaskByDb(ArchiveTaskTypeEnum.JOB_INSTANCE,
+            info.getDbNodeId());
     }
 
     @Override

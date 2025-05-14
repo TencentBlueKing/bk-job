@@ -192,8 +192,11 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>>
         long readStartTime = System.currentTimeMillis();
 
         Long fromTaskInstanceId = progress != null ? progress.getId() : null;
-        jobInstanceRecords = jobInstanceMainRecordDAO.readSortedJobInstanceFromHotDB(archiveTaskInfo.getFromTimestamp(),
-            archiveTaskInfo.getToTimestamp(), fromTaskInstanceId, readLimit);
+        jobInstanceRecords = jobInstanceMainRecordDAO.readSortedJobInstanceFromHotDB(
+            archiveTaskInfo.getFromTimestamp(),
+            archiveTaskInfo.getToTimestamp(),
+            fromTaskInstanceId,
+            readLimit);
         long cost = System.currentTimeMillis() - readStartTime;
         log.info("[{}] Read sorted job instance from hot db, fromJobCreateTime: {}, toJobCreatTime: {}, " +
                 "fromJobInstanceId: {}, recordSize: {}, cost: {} ms",

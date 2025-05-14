@@ -87,15 +87,17 @@ public abstract class AbstractJobExecuteLogArchiver implements JobExecuteLogArch
         List<ArchiveTaskInfo> archiveTaskInfoList = archiveTaskService.listTasks(ArchiveTaskTypeEnum.JOB_INSTANCE,
             archiveDay);
         if (archiveTaskInfoList.isEmpty()) {
-            log.warn("Job instance has not been deleted yet, execution log will not be found in the details of the " +
-                "job execution history. date={}, dropCollection={}", archiveDay, collectionName);
+            log.warn("Job instance has not been deleted yet, " +
+                "execution log will not be found in the details of the job execution history. " +
+                "date={}, dropCollection={}", archiveDay, collectionName);
         }
         List<ArchiveTaskInfo> unfinishedTaskList = archiveTaskInfoList.stream()
             .filter(taskInfo -> taskInfo.getStatus().getStatus() != ArchiveTaskStatusEnum.SUCCESS.getStatus())
             .collect(Collectors.toList());
         if (!unfinishedTaskList.isEmpty()) {
-            log.warn("Job instance archive task is not fully completed,, execution log will not be found in the " +
-                "details of the job execution history. date={}, dropCollection={}", archiveDay, collectionName);
+            log.warn("Job instance archive task is not fully completed, " +
+                "execution log will not be found in the details of the job execution history. " +
+                "date={}, dropCollection={}", archiveDay, collectionName);
         }
         long deleteStartTime = System.currentTimeMillis();
         log.info("Drop [{}] collection", collectionName);

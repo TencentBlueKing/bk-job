@@ -108,7 +108,8 @@ public class JobExecuteLogArchiveTaskGenerator {
             log.info("Compute archive log task generate startDateTime and endDateTime");
             LocalDateTime archiveStartDateTime = computeDateTimeByCollectionName(earliestCollection.get());
             LocalDateTime archiveEndDateTime = computeArchiveEndTime(archiveProperties.getExecuteLog().getKeepDays());
-            if (archiveEndDateTime.isBefore(archiveStartDateTime) || archiveEndDateTime.equals(archiveStartDateTime)) {
+            if (archiveEndDateTime.isBefore(archiveStartDateTime)
+                || archiveEndDateTime.equals(archiveStartDateTime)) {
                 log.info("Archive endTime is before startTime, do not require to set up archive log task." +
                         " startTime: {}, endTime: {}",
                     archiveStartDateTime, archiveEndDateTime);

@@ -227,7 +227,8 @@ public abstract class AbstractHistoricalDataArchiveTask implements JobHistorical
     }
 
     private void resetIfIsReScheduleAbnormalTask() {
-        if (archiveTaskInfo.getDetail() != null && StringUtils.isNotEmpty(archiveTaskInfo.getDetail().getErrorMsg())) {
+        if (archiveTaskInfo.getDetail() != null
+            && StringUtils.isNotEmpty(archiveTaskInfo.getDetail().getErrorMsg())) {
             archiveTaskInfo.getDetail().setErrorMsg(null);
             archiveTaskService.updateExecutionDetail(
                 archiveTaskInfo.getTaskType(),

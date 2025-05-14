@@ -104,7 +104,8 @@ public class JobInstanceArchiveTaskGenerator {
                 return;
             }
 
-            log.info("Generate job instance archive tasks between {} and {}", archiveStartDateTime, archiveEndDateTime);
+            log.info("Generate job instance archive tasks between {} and {}",
+                archiveStartDateTime, archiveEndDateTime);
             // 创建归档任务。每个基础归档任务定义为：一个数据节点（db+表）+ 日期 + 小时
             while (archiveStartDateTime.isBefore(archiveEndDateTime)) {
                 log.info("Generate archive task for datetime : {}", archiveStartDateTime);
@@ -112,7 +113,8 @@ public class JobInstanceArchiveTaskGenerator {
                 if (isHorizontalShardingEnabled()) {
                     // 作业实例数据归档任务,现版本暂不支持
                     archiveTaskList.addAll(buildArchiveTasksForShardingDataNodes(ArchiveTaskTypeEnum.JOB_INSTANCE,
-                        archiveStartDateTime, archiveProperties.getTasks().getArchiveTaskConfig().getShardingDataNodes()));
+                        archiveStartDateTime,
+                        archiveProperties.getTasks().getArchiveTaskConfig().getShardingDataNodes()));
                 } else {
                     // 单db
                     DbDataNode dbDataNode = DbDataNode.standaloneDbDataNode();
