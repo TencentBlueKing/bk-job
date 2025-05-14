@@ -24,12 +24,13 @@
 
 package com.tencent.bk.job.common.web.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.web.util.matcher.RegexRequestMatcher;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * OP接口安全配置
@@ -37,14 +38,15 @@ import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 @Order(200)
 @Configuration
 @EnableWebSecurity
-public class OpSecurityConfig extends WebSecurityConfigurerAdapter {
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+public class OpSecurityConfig {
+    @Bean
+    SecurityFilterChain opChain(HttpSecurity http) throws Exception {
         http.csrf().disable();
-        http.requestMatcher(new RegexRequestMatcher("/op/**", null))
-            .authorizeRequests()
+        http.requestMatcher(new AntPathRequestMatcher("/op/**"))
+            .authorizeHttpRequests()
             .anyRequest().authenticated()
             .and()
             .httpBasic();
+        return http.build();
     }
 }
