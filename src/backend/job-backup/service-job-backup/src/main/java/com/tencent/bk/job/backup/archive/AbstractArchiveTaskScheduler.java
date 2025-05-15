@@ -173,7 +173,7 @@ public abstract class AbstractArchiveTaskScheduler<T extends JobHistoricalDataAr
                     }
                     watch.stop();
                     log.info("{} count archive task group by db, result: {}",
-                        scheduleTasksGroupByDb, getClass().getSimpleName());
+                        getClass().getSimpleName(), scheduleTasksGroupByDb);
 
                     // 3.获取正在执行中的任务列表
                     watch.start("queryRunningTasks");

@@ -61,8 +61,7 @@ public class JobExecuteLogArchiveTask extends AbstractHistoricalDataArchiveTask 
         });
         long archiveCost = System.currentTimeMillis() - startTime;
         if (archiveProperties.getExecuteLog().isDryRun()) {
-            // dry-run模式，状态设置成pending，下次重新调度
-            updateCompletedExecuteInfo(ArchiveTaskStatusEnum.PENDING, null);
+            updateCompletedExecuteInfo(ArchiveTaskStatusEnum.DRYRUN, null);
             return;
         }
         setArchiveTaskExecutionDetail(null, archiveCost, null);

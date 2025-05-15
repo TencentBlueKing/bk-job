@@ -72,6 +72,8 @@ public class AbnormalArchiveTaskReScheduler {
             reScheduleFailedTasks();
             // 处理超时未结束的任务
             reScheduleTimeoutTasks();
+            // 试运行的任务
+            reScheduleDryRunTasks();
         } finally {
             if (locked) {
                 failedArchiveTaskRescheduleLock.unlock();
@@ -127,5 +129,30 @@ public class AbnormalArchiveTaskReScheduler {
                 );
             }
         });
+    }
+
+    private void reScheduleDryRunTasks() {
+        int readLimit = 100;
+        List<ArchiveTaskInfo> dryRunTasks;
+        do {
+            dryRunTasks =
+                archiveTaskService.listTasks(ArchiveTaskStatusEnum.DRYRUN, readLimit);
+
+            if (CollectionUtils.isEmpty(dryRunTasks)) {
+                return;
+            }
+            // 设置为pending状态，会被重新调度
+            dryRunTasks.forEach(taskInfo -> {
+                log.info("Found dry run archive task, and set archive task status to pending, taskId : {}",
+                    taskInfo.buildTaskUniqueId());
+                archiveTaskService.updateArchiveTaskStatus(
+                    taskInfo.getTaskType(),
+                    taskInfo.getDbDataNode(),
+                    taskInfo.getDay(),
+                    taskInfo.getHour(),
+                    ArchiveTaskStatusEnum.PENDING
+                );
+            });
+        } while (dryRunTasks.size() == readLimit);
     }
 }
