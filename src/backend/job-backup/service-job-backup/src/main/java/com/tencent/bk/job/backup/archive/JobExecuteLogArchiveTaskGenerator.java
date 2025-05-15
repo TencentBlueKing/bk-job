@@ -78,7 +78,6 @@ public class JobExecuteLogArchiveTaskGenerator {
     );
 
     private static final DateTimeFormatter DATE_FORMAT_YYYY_MM_DD = DateTimeFormatter.ofPattern("yyyy_MM_dd");
-    private static final DateTimeFormatter DATE_FORMAT_YYYYMMDD = DateTimeFormatter.ofPattern("yyyyMMdd");
 
 
     public JobExecuteLogArchiveTaskGenerator(ArchiveTaskService archiveTaskService,
@@ -137,7 +136,7 @@ public class JobExecuteLogArchiveTaskGenerator {
                 // 获取已有的归档任务列表，如果任务已存在就不用重新创建了
                 List<ArchiveTaskInfo> existedArchiveTaskList =
                     archiveTaskService.listTasksSinceDay(ArchiveTaskTypeEnum.JOB_EXECUTE_LOG,
-                        Integer.valueOf(archiveStartDateTime.format(DATE_FORMAT_YYYYMMDD)));
+                        archiveTaskList.get(0).getDay());
                 if (CollectionUtils.isNotEmpty(existedArchiveTaskList)) {
                     Set<String> existedIds = existedArchiveTaskList.stream()
                         .map(ArchiveTaskInfo::buildTaskUniqueId)
