@@ -35,10 +35,8 @@ import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
-import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -88,7 +86,7 @@ public class JobExecuteLogArchiveTaskGenerator {
         this.archiveProperties = archiveProperties;
         this.jobExecuteLogArchiveTaskGenerateLock = jobExecuteLogArchiveTaskGenerateLock;
         this.mongoTemplate = mongoTemplate;
-        archiveZoneId = getArchiveBasedTimeZone(archiveProperties);
+        archiveZoneId = ArchiveDateTimeUtil.getArchiveBasedTimeZone(archiveProperties.getTimeZone());
     }
 
     public void generate() {
@@ -109,7 +107,9 @@ public class JobExecuteLogArchiveTaskGenerator {
 
             log.info("Compute archive log task generate startDateTime and endDateTime");
             LocalDateTime archiveStartDateTime = computeDateTimeByCollectionName(earliestCollection.get());
-            LocalDateTime archiveEndDateTime = computeArchiveEndTime(archiveProperties.getExecuteLog().getKeepDays());
+            LocalDateTime archiveEndDateTime =
+                ArchiveDateTimeUtil.computeArchiveEndTime(archiveProperties.getExecuteLog().getKeepDays(),
+                    archiveZoneId);
             if (archiveEndDateTime.isBefore(archiveStartDateTime)
                 || archiveEndDateTime.equals(archiveStartDateTime)) {
                 log.info("Archive endTime is before startTime, do not require to set up archive log task." +
@@ -199,29 +199,5 @@ public class JobExecuteLogArchiveTaskGenerator {
     private LocalDateTime computeDateTimeByCollectionName(String name) {
         LocalDate date = collectionNameToDate(name);
         return date.atStartOfDay();
-    }
-
-    /**
-     * 获取归档数据时间范围计算所依据的时区
-     *
-     * @param archiveProperties 归档配置
-     * @return 时区
-     */
-    private ZoneId getArchiveBasedTimeZone(ArchiveProperties archiveProperties) throws DateTimeException {
-        ZoneId zoneId;
-        if (StringUtils.isBlank(archiveProperties.getTimeZone())) {
-            zoneId = ZoneId.systemDefault();
-            log.info("Use system zone as archive base time zone, zoneId: {}", zoneId);
-            return zoneId;
-        }
-        zoneId = ZoneId.of(archiveProperties.getTimeZone());
-        log.info("Use configured zone as archive base time zone, zoneId: {}", zoneId);
-        return zoneId;
-    }
-
-    private LocalDateTime computeArchiveEndTime(int archiveDays) {
-        log.info("Compute archive task generate end time before {} days", archiveDays);
-        LocalDateTime now = LocalDateTime.now(archiveZoneId);
-        return ArchiveDateTimeUtil.computeStartOfDayBeforeDays(now, archiveDays);
     }
 }

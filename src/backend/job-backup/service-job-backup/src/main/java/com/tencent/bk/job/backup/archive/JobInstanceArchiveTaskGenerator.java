@@ -25,8 +25,8 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
-import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.ArchiveDateTimeUtil;
 import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskGenerateLock;
@@ -38,9 +38,7 @@ import com.tencent.bk.job.common.mysql.dynamic.ds.DataSourceMode;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
-import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -74,7 +72,7 @@ public class JobInstanceArchiveTaskGenerator {
         this.taskInstanceRecordDAO = taskInstanceRecordDAO;
         this.archiveProperties = archiveProperties;
         this.archiveTaskGenerateLock = archiveTaskGenerateLock;
-        archiveZoneId = getArchiveBasedTimeZone(archiveProperties);
+        archiveZoneId = ArchiveDateTimeUtil.getArchiveBasedTimeZone(archiveProperties.getTimeZone());
     }
 
 
@@ -96,7 +94,8 @@ public class JobInstanceArchiveTaskGenerator {
             // 归档任务创建范围-起始时间
             LocalDateTime archiveStartDateTime = computeArchiveStartDateTime();
             // 归档任务创建范围-结束时间
-            LocalDateTime archiveEndDateTime = computeArchiveEndTime(archiveProperties.getKeepDays());
+            LocalDateTime archiveEndDateTime =
+                ArchiveDateTimeUtil.computeArchiveEndTime(archiveProperties.getKeepDays(), archiveZoneId);
             if (archiveEndDateTime.isBefore(archiveStartDateTime) || archiveEndDateTime.equals(archiveStartDateTime)) {
                 log.info("Archive endTime is before startTime, does not require generating archive task." +
                         " startTime: {}, endTime: {}",
@@ -209,32 +208,8 @@ public class JobInstanceArchiveTaskGenerator {
         return startDateTime;
     }
 
-    /**
-     * 获取归档数据时间范围计算所依据的时区
-     *
-     * @param archiveProperties 归档配置
-     * @return 时区
-     */
-    private ZoneId getArchiveBasedTimeZone(ArchiveProperties archiveProperties) throws DateTimeException {
-        ZoneId zoneId;
-        if (StringUtils.isBlank(archiveProperties.getTimeZone())) {
-            zoneId = ZoneId.systemDefault();
-            log.info("Use system zone as archive base time zone, zoneId: {}", zoneId);
-            return zoneId;
-        }
-        zoneId = ZoneId.of(archiveProperties.getTimeZone());
-        log.info("Use configured zone as archive base time zone, zoneId: {}", zoneId);
-        return zoneId;
-    }
-
     private boolean isHorizontalShardingEnabled() {
         return archiveProperties.getTasks().getArchiveTaskConfig().getDataSourceMode()
             .equals(DataSourceMode.Constants.HORIZONTAL_SHARDING);
-    }
-
-    private LocalDateTime computeArchiveEndTime(int archiveDays) {
-        log.info("Compute archive task generate end time before {} days", archiveDays);
-        LocalDateTime now = LocalDateTime.now(archiveZoneId);
-        return ArchiveDateTimeUtil.computeStartOfDayBeforeDays(now, archiveDays);
     }
 }

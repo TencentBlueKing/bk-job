@@ -25,7 +25,10 @@
 package com.tencent.bk.job.backup.archive.util;
 
 import com.tencent.bk.job.common.util.date.DateUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
+import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -34,6 +37,7 @@ import java.time.ZoneId;
 /**
  * 归档日期计算工具类
  */
+@Slf4j
 public class ArchiveDateTimeUtil {
     /**
      * 计算天（日期），返回 yyyyMMdd 格式的数字
@@ -76,5 +80,29 @@ public class ArchiveDateTimeUtil {
         OffsetDateTime offsetDateTime =
             localDateTime.atOffset(zoneId.getRules().getOffset(localDateTime));
         return 1000 * offsetDateTime.toEpochSecond();
+    }
+
+    /**
+     * 根据配置的时区计算所依据时区
+     *
+     * @param timeZone 时区
+     * @return 时区
+     */
+    public static ZoneId getArchiveBasedTimeZone(String timeZone) throws DateTimeException {
+        ZoneId zoneId;
+        if (StringUtils.isBlank(timeZone)) {
+            zoneId = ZoneId.systemDefault();
+            log.info("Use system zone as archive base time zone, zoneId: {}", zoneId);
+            return zoneId;
+        }
+        zoneId = ZoneId.of(timeZone);
+        log.info("Use configured zone as archive base time zone, zoneId: {}", zoneId);
+        return zoneId;
+    }
+
+    public static LocalDateTime computeArchiveEndTime(int archiveDays, ZoneId zoneId) {
+        log.info("Compute archive task generate end time before {} days", archiveDays);
+        LocalDateTime now = LocalDateTime.now(zoneId);
+        return ArchiveDateTimeUtil.computeStartOfDayBeforeDays(now, archiveDays);
     }
 }

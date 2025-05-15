@@ -65,8 +65,7 @@ public class JobInstanceArchiveCronJobs {
     /**
      * 定时创建归档任务,每小时 0 分钟 触发一次（正常情况一天触发一次即可；为了保障异常情况下任务有一定频率的重试机会）
      */
-    //@Scheduled(cron = "0 0 * * * *")
-    @Scheduled(cron = "0 */2 * * * *")
+    @Scheduled(cron = "0 0 * * * *")
     public void generateArchiveTask() {
         if (archiveProperties.isEnabled()) {
             log.info("Generate historical data archive task start...");
@@ -102,8 +101,7 @@ public class JobInstanceArchiveCronJobs {
     /**
      * 失败归档任务重调度，每小时触发一次
      */
-    //@Scheduled(cron = "0 59 * * * *")
-    @Scheduled(cron = "0 */4 * * * *")
+    @Scheduled(cron = "0 59 * * * *")
     public void scheduleFailedTasks() {
         if (!archiveProperties.isEnabled() && !archiveProperties.getExecuteLog().isEnabled()) {
             return;
