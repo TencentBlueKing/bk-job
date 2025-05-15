@@ -27,6 +27,9 @@ package com.tencent.bk.job.backup.config;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.tencent.bk.job.backup.archive.AbnormalArchiveTaskReScheduler;
 import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
+import com.tencent.bk.job.backup.archive.JobExecuteLogArchiveTaskGenerator;
+import com.tencent.bk.job.backup.archive.JobExecuteLogArchiveTaskScheduler;
+import com.tencent.bk.job.backup.archive.JobExecuteLogArchivers;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveCronJobs;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskGenerator;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduler;
@@ -35,8 +38,11 @@ import com.tencent.bk.job.backup.archive.dao.JobInstanceColdDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
 import com.tencent.bk.job.backup.archive.metrics.ArchiveTasksGauge;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
+import com.tencent.bk.job.backup.archive.util.lock.ArchiveLogTaskExecuteLock;
 import com.tencent.bk.job.backup.archive.util.lock.ArchiveTaskExecuteLock;
 import com.tencent.bk.job.backup.archive.util.lock.FailedArchiveTaskRescheduleLock;
+import com.tencent.bk.job.backup.archive.util.lock.JobExecuteLogArchiveTaskGenerateLock;
+import com.tencent.bk.job.backup.archive.util.lock.JobExecuteLogArchiveTaskScheduleLock;
 import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskGenerateLock;
 import com.tencent.bk.job.backup.archive.util.lock.JobInstanceArchiveTaskScheduleLock;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
@@ -51,7 +57,9 @@ import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.lang.Nullable;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.concurrent.LinkedBlockingQueue;
@@ -65,7 +73,7 @@ import java.util.concurrent.TimeUnit;
 @EnableScheduling
 @Slf4j
 @EnableConfigurationProperties(ArchiveProperties.class)
-@Import({ExecuteHotDbConfiguration.class, ExecuteColdDbConfiguration.class})
+@Import({ExecuteHotDbConfiguration.class, ExecuteColdDbConfiguration.class, ExecuteMongoDBConfiguration.class})
 @ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
 public class ArchiveConfiguration {
 
@@ -73,6 +81,12 @@ public class ArchiveConfiguration {
     public ArchiveTaskExecuteLock archiveTaskLock(StringRedisTemplate redisTemplate) {
         log.info("Init ArchiveTaskExecuteLock");
         return new ArchiveTaskExecuteLock(redisTemplate);
+    }
+
+    @Bean
+    public ArchiveLogTaskExecuteLock archiveLogTaskLock(StringRedisTemplate redisTemplate) {
+        log.info("Init ArchiveLogTaskExecuteLock");
+        return new ArchiveLogTaskExecuteLock(redisTemplate);
     }
 
     @Bean
@@ -88,6 +102,13 @@ public class ArchiveConfiguration {
     }
 
     @Bean
+    public JobExecuteLogArchiveTaskGenerateLock jobExecuteLogArchiveTaskGenerateLock(
+        StringRedisTemplate redisTemplate) {
+        log.info("Init JobExecuteLogArchiveTaskGenerateLock");
+        return new JobExecuteLogArchiveTaskGenerateLock(redisTemplate);
+    }
+
+    @Bean
     public JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator(
         ArchiveTaskService archiveTaskService,
         JobInstanceHotRecordDAO taskInstanceRecordDAO,
@@ -100,6 +121,22 @@ public class ArchiveConfiguration {
             taskInstanceRecordDAO,
             archiveProperties,
             jobInstanceArchiveTaskGenerateLock
+        );
+    }
+
+    @Bean
+    public JobExecuteLogArchiveTaskGenerator jobExecuteLogArchiveTaskGenerator(
+        ArchiveTaskService archiveTaskService,
+        ArchiveProperties archiveProperties,
+        JobExecuteLogArchiveTaskGenerateLock jobExecuteLogArchiveTaskGenerateLock,
+        @Nullable MongoTemplate mongoTemplate) {
+
+        log.info("Init JobExecuteLogArchiveTaskGenerator");
+        return new JobExecuteLogArchiveTaskGenerator(
+            archiveTaskService,
+            archiveProperties,
+            jobExecuteLogArchiveTaskGenerateLock,
+            mongoTemplate
         );
     }
 
@@ -148,15 +185,42 @@ public class ArchiveConfiguration {
     }
 
     @Bean
+    public JobExecuteLogArchiveTaskScheduler jobExecuteLogArchiveTaskScheduler(
+        ArchiveTaskService archiveTaskService,
+        ArchiveProperties archiveProperties,
+        JobExecuteLogArchiveTaskScheduleLock jobExecuteLogArchiveTaskScheduleLock,
+        JobExecuteLogArchivers jobExecuteLogArchivers,
+        ArchiveLogTaskExecuteLock archiveLogTaskExecuteLock,
+        ArchiveErrorTaskCounter archiveErrorTaskCounter,
+        Tracer tracer,
+        @Qualifier("archiveTaskStopExecutor") ThreadPoolExecutor archiveTaskStopExecutor) {
+        log.info("Init JobExecuteLogArchiveTaskScheduler");
+        return new JobExecuteLogArchiveTaskScheduler(
+            archiveTaskService,
+            archiveProperties,
+            jobExecuteLogArchiveTaskScheduleLock,
+            jobExecuteLogArchivers,
+            archiveLogTaskExecuteLock,
+            archiveErrorTaskCounter,
+            tracer,
+            archiveTaskStopExecutor
+        );
+    }
+
+    @Bean
     public JobInstanceArchiveCronJobs jobInstanceArchiveCronJobs(
         JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
+        JobExecuteLogArchiveTaskGenerator jobExecuteLogArchiveTaskGenerator,
         JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
+        JobExecuteLogArchiveTaskScheduler jobExecuteLogArchiveTaskScheduler,
         ArchiveProperties archiveProperties,
         AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler) {
         log.info("Init JobInstanceArchiveCronJobs");
         return new JobInstanceArchiveCronJobs(
             jobInstanceArchiveTaskGenerator,
+            jobExecuteLogArchiveTaskGenerator,
             jobInstanceArchiveTaskScheduler,
+            jobExecuteLogArchiveTaskScheduler,
             archiveProperties,
             abnormalArchiveTaskReScheduler
         );
@@ -166,6 +230,12 @@ public class ArchiveConfiguration {
     public JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock() {
         log.info("Init JobInstanceArchiveTaskScheduleLock");
         return new JobInstanceArchiveTaskScheduleLock();
+    }
+
+    @Bean
+    public JobExecuteLogArchiveTaskScheduleLock jobExecuteLogArchiveTaskScheduleLock() {
+        log.info("Init JobExecuteLogArchiveTaskScheduleLock");
+        return new JobExecuteLogArchiveTaskScheduleLock();
     }
 
     @Bean

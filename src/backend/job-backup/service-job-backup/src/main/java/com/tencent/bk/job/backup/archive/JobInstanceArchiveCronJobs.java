@@ -38,18 +38,26 @@ public class JobInstanceArchiveCronJobs {
 
     private final JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator;
 
+    private final JobExecuteLogArchiveTaskGenerator jobExecuteLogArchiveTaskGenerator;
+
     private final JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler;
+
+    private final JobExecuteLogArchiveTaskScheduler jobExecuteLogArchiveTaskScheduler;
 
     private final ArchiveProperties archiveProperties;
 
     private final AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler;
 
     public JobInstanceArchiveCronJobs(JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
+                                      JobExecuteLogArchiveTaskGenerator jobExecuteLogArchiveTaskGenerator,
                                       JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
+                                      JobExecuteLogArchiveTaskScheduler jobExecuteLogArchiveTaskScheduler,
                                       ArchiveProperties archiveProperties,
                                       AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler) {
         this.jobInstanceArchiveTaskGenerator = jobInstanceArchiveTaskGenerator;
+        this.jobExecuteLogArchiveTaskGenerator = jobExecuteLogArchiveTaskGenerator;
         this.jobInstanceArchiveTaskScheduler = jobInstanceArchiveTaskScheduler;
+        this.jobExecuteLogArchiveTaskScheduler = jobExecuteLogArchiveTaskScheduler;
         this.archiveProperties = archiveProperties;
         this.abnormalArchiveTaskReScheduler = abnormalArchiveTaskReScheduler;
     }
@@ -59,12 +67,17 @@ public class JobInstanceArchiveCronJobs {
      */
     @Scheduled(cron = "0 0 * * * *")
     public void generateArchiveTask() {
-        if (!archiveProperties.isEnabled()) {
-            return;
+        if (archiveProperties.isEnabled()) {
+            log.info("Generate historical data archive task start...");
+            jobInstanceArchiveTaskGenerator.generate();
+            log.info("Generate historical data archive task done");
         }
-        log.info("Generate archive task start...");
-        jobInstanceArchiveTaskGenerator.generate();
-        log.info("Generate archive task done");
+
+        if (archiveProperties.getExecuteLog().isEnabled()) {
+            log.info("Generate historical log archive task start...");
+            jobExecuteLogArchiveTaskGenerator.generate();
+            log.info("Generate historical log archive task done");
+        }
     }
 
     /**
@@ -72,12 +85,17 @@ public class JobInstanceArchiveCronJobs {
      */
     @Scheduled(cron = "${job.backup.archive.execute.cron: 0 1 * * * *}")
     public void scheduleAndExecuteArchiveTask() {
-        if (!archiveProperties.isEnabled()) {
-            return;
+        if (archiveProperties.isEnabled()) {
+            log.info("Schedule and execute historical data archive task start...");
+            jobInstanceArchiveTaskScheduler.schedule();
+            log.info("Schedule and execute historical data archive task done");
         }
-        log.info("Schedule and execute archive task start...");
-        jobInstanceArchiveTaskScheduler.schedule();
-        log.info("Schedule and execute archive task done");
+
+        if (archiveProperties.getExecuteLog().isEnabled()) {
+            log.info("Schedule and execute historical log archive task start...");
+            jobExecuteLogArchiveTaskScheduler.schedule();
+            log.info("Schedule and execute historical log archive task done");
+        }
     }
 
     /**
@@ -85,11 +103,11 @@ public class JobInstanceArchiveCronJobs {
      */
     @Scheduled(cron = "0 59 * * * *")
     public void scheduleFailedTasks() {
-        if (!archiveProperties.isEnabled()) {
+        if (!archiveProperties.isEnabled() && !archiveProperties.getExecuteLog().isEnabled()) {
             return;
         }
-        log.info("ReSchedule fail/timout archive task start...");
+        log.info("ReSchedule fail/timout/dryrun archive task start...");
         abnormalArchiveTaskReScheduler.rescheduleFailedArchiveTasks();
-        log.info("ReSchedule fail/timeout archive task done");
+        log.info("ReSchedule fail/timeout/dryrun archive task done");
     }
 }

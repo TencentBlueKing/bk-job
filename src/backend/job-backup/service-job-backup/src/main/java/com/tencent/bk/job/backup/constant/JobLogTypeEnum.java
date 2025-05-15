@@ -24,35 +24,36 @@
 
 package com.tencent.bk.job.backup.constant;
 
-import lombok.Getter;
+public enum JobLogTypeEnum {
 
-@Getter
-public enum ArchiveTaskTypeEnum {
     /**
-     * 作业实例数据归档
+     * 脚本执行任务日志
      */
-    JOB_INSTANCE(1),
+    SCRIPT(1),
     /**
-     * 作业实例按业务冗余数据归档
+     * 文件分发任务日志
      */
-    JOB_INSTANCE_APP(2),
-    /**
-     * 作业执行日志归档
-     */
-    JOB_EXECUTE_LOG(3);
+    FILE(2);
 
-    private final int type;
+    private final Integer value;
 
-    ArchiveTaskTypeEnum(int type) {
-        this.type = type;
+    JobLogTypeEnum(Integer val) {
+        this.value = val;
     }
 
-    public static ArchiveTaskTypeEnum valOf(int type) {
-        for (ArchiveTaskTypeEnum taskType : values()) {
-            if (taskType.getType() == type) {
-                return taskType;
+    public static JobLogTypeEnum getLogType(Integer logType) {
+        if (logType == null) {
+            throw new IllegalArgumentException("Empty logType value!");
+        }
+        for (JobLogTypeEnum logTypeEnum : values()) {
+            if (logTypeEnum.getValue().equals(logType)) {
+                return logTypeEnum;
             }
         }
-        throw new IllegalArgumentException("No ArchiveTaskTypeEnum constant: " + type);
+        throw new IllegalArgumentException("Illegal logType: " + logType);
+    }
+
+    public Integer getValue() {
+        return value;
     }
 }

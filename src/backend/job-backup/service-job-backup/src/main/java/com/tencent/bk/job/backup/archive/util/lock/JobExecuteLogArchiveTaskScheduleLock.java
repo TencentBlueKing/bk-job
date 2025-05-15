@@ -22,37 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.constant;
+package com.tencent.bk.job.backup.archive.util.lock;
 
-import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
-@Getter
-public enum ArchiveTaskTypeEnum {
-    /**
-     * 作业实例数据归档
-     */
-    JOB_INSTANCE(1),
-    /**
-     * 作业实例按业务冗余数据归档
-     */
-    JOB_INSTANCE_APP(2),
-    /**
-     * 作业执行日志归档
-     */
-    JOB_EXECUTE_LOG(3);
+/**
+ * 作业执行日志归档任务调度分布式锁
+ */
+@Slf4j
+public class JobExecuteLogArchiveTaskScheduleLock extends FairDistributeLock {
 
-    private final int type;
-
-    ArchiveTaskTypeEnum(int type) {
-        this.type = type;
-    }
-
-    public static ArchiveTaskTypeEnum valOf(int type) {
-        for (ArchiveTaskTypeEnum taskType : values()) {
-            if (taskType.getType() == type) {
-                return taskType;
-            }
-        }
-        throw new IllegalArgumentException("No ArchiveTaskTypeEnum constant: " + type);
+    public JobExecuteLogArchiveTaskScheduleLock() {
+        super(
+            "job:execute:log:archive:task:schedule:lock",
+            "job:execute:log:archive:task:schedule",
+            60 * 1000L
+        );
     }
 }
