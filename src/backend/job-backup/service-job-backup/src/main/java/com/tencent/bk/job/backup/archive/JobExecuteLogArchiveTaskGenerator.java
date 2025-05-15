@@ -51,6 +51,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * 生成作业执行日志归档任务
@@ -75,7 +76,9 @@ public class JobExecuteLogArchiveTaskGenerator {
     private static final Pattern LOG_COLLECTION_NAME_PATTERN = Pattern.compile(
         "job_log_(?:script|file)_(\\d{4}_\\d{2}_\\d{2})"
     );
-    private static final DateTimeFormatter DTF = DateTimeFormatter.ofPattern("yyyy_MM_dd");
+
+    private static final DateTimeFormatter DATE_FORMAT_YYYY_MM_DD = DateTimeFormatter.ofPattern("yyyy_MM_dd");
+    private static final DateTimeFormatter DATE_FORMAT_YYYYMMDD = DateTimeFormatter.ofPattern("yyyyMMdd");
 
 
     public JobExecuteLogArchiveTaskGenerator(ArchiveTaskService archiveTaskService,
@@ -131,6 +134,16 @@ public class JobExecuteLogArchiveTaskGenerator {
             }
 
             if (CollectionUtils.isNotEmpty(archiveTaskList)) {
+                // 获取已有的归档任务列表，如果任务已存在就不用重新创建了
+                List<ArchiveTaskInfo> existedArchiveTaskList =
+                    archiveTaskService.listTasksSinceDay(ArchiveTaskTypeEnum.JOB_EXECUTE_LOG,
+                        Integer.valueOf(archiveStartDateTime.format(DATE_FORMAT_YYYYMMDD)));
+                if (CollectionUtils.isNotEmpty(existedArchiveTaskList)) {
+                    Set<String> existedIds = existedArchiveTaskList.stream()
+                        .map(ArchiveTaskInfo::buildTaskUniqueId)
+                        .collect(Collectors.toSet());
+                    archiveTaskList.removeIf(task -> existedIds.contains(task.buildTaskUniqueId()));
+                }
                 archiveTaskService.saveArchiveTasks(archiveTaskList);
                 log.info("Generate archive log tasks : {}", JsonUtils.toJson(archiveTaskList));
             } else {
@@ -153,7 +166,7 @@ public class JobExecuteLogArchiveTaskGenerator {
         if (!m.matches()) {
             return null;
         }
-        return LocalDate.parse(m.group(1), DTF);
+        return LocalDate.parse(m.group(1), DATE_FORMAT_YYYY_MM_DD);
     }
 
     /**

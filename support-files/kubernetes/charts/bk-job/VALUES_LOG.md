@@ -1,4 +1,23 @@
 # chart values 更新日志
+## 0.8.3
+1. 作业执行日志归档配置
+```yaml
+backupConfig:
+  archive:
+    execute:
+      executeLog:
+        # 是否开启执行日志归档
+        enabled: true
+        # 是否试运行，试运行下仅打印日志不会真删除mongodb数据
+        dryRun: true
+        # 归档模式，仅支持删除
+        mode: deleteOnly
+        # 执行日志保留天数(要结合执行历史的保留时间合理配置执行日志保留天数)
+        keepDays: 360
+        # 归档任务并发数量
+        concurrent: 6
+```
+
 ## 0.8.2
 1. AI小鲸支持配置使用的大模型
 ```yaml

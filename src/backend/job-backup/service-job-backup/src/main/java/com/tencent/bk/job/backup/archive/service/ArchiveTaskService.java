@@ -257,4 +257,15 @@ public class ArchiveTaskService {
                                            Integer day) {
         return archiveTaskDAO.listTasks(taskType, day);
     }
+
+    /**
+     * 获取从某天开始的归档任务
+     *
+     * @param taskType 查询条件 - 任务类型
+     * @param day   查询条件 - 归档数据所在天
+     * @return 归档任务列表
+     */
+    public List<ArchiveTaskInfo> listTasksSinceDay(ArchiveTaskTypeEnum taskType, Integer day) {
+        return archiveTaskDAO.listTasksSinceDay(taskType, day);
+    }
 }

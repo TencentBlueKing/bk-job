@@ -102,7 +102,8 @@ public class ArchiveConfiguration {
     }
 
     @Bean
-    public JobExecuteLogArchiveTaskGenerateLock jobExecuteLogArchiveTaskGenerateLock(StringRedisTemplate redisTemplate) {
+    public JobExecuteLogArchiveTaskGenerateLock jobExecuteLogArchiveTaskGenerateLock(
+        StringRedisTemplate redisTemplate) {
         log.info("Init JobExecuteLogArchiveTaskGenerateLock");
         return new JobExecuteLogArchiveTaskGenerateLock(redisTemplate);
     }

@@ -1250,7 +1250,7 @@ backupConfig:
       # 执行日志归档配置
       executeLog:
         # 是否开启执行日志归档
-        enabled: false
+        enabled: true
         # 是否试运行，试运行下仅打印日志不会真删除mongodb数据
         dryRun: true
         # 归档模式，仅支持删除

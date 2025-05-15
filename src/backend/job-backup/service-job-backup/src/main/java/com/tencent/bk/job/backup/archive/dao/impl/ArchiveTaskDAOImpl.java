@@ -370,4 +370,18 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
         result.forEach(record -> tasks.add(extract(record)));
         return tasks;
     }
+
+    @Override
+    public List<ArchiveTaskInfo> listTasksSinceDay(ArchiveTaskTypeEnum taskType,
+                                           int day) {
+        Result<Record> result = ctx.select(ALL_FIELDS)
+            .from(T)
+            .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
+            .and(T.DAY.greaterOrEqual(day))
+            .fetch();
+
+        List<ArchiveTaskInfo> tasks = new ArrayList<>(result.size());
+        result.forEach(record -> tasks.add(extract(record)));
+        return tasks;
+    }
 }
