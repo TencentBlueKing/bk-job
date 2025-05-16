@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.notice.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.exception.BkOpenApiException;
@@ -86,6 +87,7 @@ public class BkNoticeClient extends BkApiV1Client implements IBkNoticeClient {
     @Override
     public BkNoticeApp registerApplication() {
         EsbResp<BkNoticeApp> resp = requestBkNoticeApi(
+            TenantIdConstants.SYSTEM_TENANT_ID,
             HttpMethodEnum.POST,
             URI_REGISTER_APPLICATION,
             null,
@@ -97,8 +99,12 @@ public class BkNoticeClient extends BkApiV1Client implements IBkNoticeClient {
     }
 
     @Override
-    public List<AnnouncementDTO> getCurrentAnnouncements(String bkLanguage, Integer offset, Integer limit) {
+    public List<AnnouncementDTO> getCurrentAnnouncements(String tenantId,
+                                                         String bkLanguage,
+                                                         Integer offset,
+                                                         Integer limit) {
         EsbResp<List<AnnouncementDTO>> resp = requestBkNoticeApi(
+            tenantId,
             HttpMethodEnum.GET,
             buildUriWithParams(bkLanguage, offset, limit),
             null,
@@ -139,7 +145,8 @@ public class BkNoticeClient extends BkApiV1Client implements IBkNoticeClient {
      * @param <R>           泛型：返回值类型
      * @return 返回值类型实例
      */
-    private <R> EsbResp<R> requestBkNoticeApi(HttpMethodEnum method,
+    private <R> EsbResp<R> requestBkNoticeApi(String tenantId,
+                                              HttpMethodEnum method,
                                               String uri,
                                               EsbReq reqBody,
                                               TypeReference<EsbResp<R>> typeReference,
@@ -151,6 +158,7 @@ public class BkNoticeClient extends BkApiV1Client implements IBkNoticeClient {
                 .builder()
                 .method(method)
                 .uri(uri)
+                .addHeader(buildTenantHeader(tenantId))
                 .body(reqBody)
                 .authorization(authorization)
                 .setIdempotent(idempotent)
