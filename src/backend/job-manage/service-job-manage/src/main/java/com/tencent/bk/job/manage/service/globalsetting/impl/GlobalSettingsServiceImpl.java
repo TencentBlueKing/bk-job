@@ -29,6 +29,7 @@ import com.tencent.bk.audit.annotations.ActionAuditRecord;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
@@ -791,9 +792,11 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     private boolean bkNoticeRegisteredSuccess() {
-        GlobalSettingDTO globalSettingDTO =
-            globalSettingDAO.getGlobalSetting(GlobalSettingKeys.KEY_BK_NOTICE_REGISTERED_SUCCESS);
-        return globalSettingDTO != null && "true".equals(globalSettingDTO.getValue().toLowerCase());
+        GlobalSettingDTO globalSettingDTO = globalSettingDAO.getGlobalSetting(
+            GlobalSettingKeys.KEY_BK_NOTICE_REGISTERED_SUCCESS,
+            TenantIdConstants.DEFAULT_TENANT_ID
+        );
+        return globalSettingDTO != null && "true".equalsIgnoreCase(globalSettingDTO.getValue());
     }
 
     @Override
