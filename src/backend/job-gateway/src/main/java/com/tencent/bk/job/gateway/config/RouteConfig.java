@@ -25,7 +25,6 @@
 package com.tencent.bk.job.gateway.config;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.util.RequestUtil;
@@ -58,23 +57,20 @@ public class RouteConfig {
     }
 
     @Bean
-    public UserHandler userHandler(@Autowired LoginService loginService, @Autowired MessageI18nService i18nService,
+    public UserHandler userHandler(@Autowired LoginService loginService,
                                    @Autowired LoginExemptionConfig loginExemptionConfig) {
-        return new UserHandler(loginService, i18nService, loginExemptionConfig);
+        return new UserHandler(loginService, loginExemptionConfig);
     }
 
     static class UserHandler {
-        private LoginService loginService;
-        private MessageI18nService i18nService;
-        private LoginExemptionConfig loginExemptionConfig;
+        private final LoginService loginService;
+        private final LoginExemptionConfig loginExemptionConfig;
 
         UserHandler(
             LoginService loginService,
-            MessageI18nService i18nService,
             LoginExemptionConfig loginExemptionConfig
         ) {
             this.loginService = loginService;
-            this.i18nService = i18nService;
             this.loginExemptionConfig = loginExemptionConfig;
         }
 
@@ -83,7 +79,6 @@ public class RouteConfig {
             bkUserDTO.setId(1L);
             bkUserDTO.setUsername(loginExemptionConfig.getDefaultUser());
             bkUserDTO.setDisplayName(loginExemptionConfig.getDefaultUser());
-            bkUserDTO.setUid(loginExemptionConfig.getDefaultUser());
             return bkUserDTO;
         }
 

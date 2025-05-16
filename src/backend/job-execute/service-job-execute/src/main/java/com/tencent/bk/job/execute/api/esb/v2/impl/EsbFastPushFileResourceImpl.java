@@ -39,10 +39,12 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.FilePathValidateUtil;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.api.esb.v2.EsbFastPushFileResource;
@@ -101,6 +103,7 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
     public EsbResp<EsbJobExecuteDTO> fastPushFile(String username,
                                                   String appCode,
                                                   @AuditRequestBody EsbFastPushFileRequest request) {
+        User user = JobContextUtil.getUser();
         ValidateResult checkResult = checkFastPushFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");
@@ -114,7 +117,7 @@ public class EsbFastPushFileResourceImpl extends JobExecuteCommonProcessor imple
         TaskInstanceDTO taskInstance = buildFastFileTaskInstance(username, appCode, request);
         StepInstanceDTO stepInstance = buildFastFileStepInstance(username, request);
         TaskInstanceDTO executeTaskInstance = taskExecuteService.executeFastTask(
-            FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
+            FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).operator(user).build()
         );
 
         EsbJobExecuteDTO jobExecuteInfo = new EsbJobExecuteDTO();

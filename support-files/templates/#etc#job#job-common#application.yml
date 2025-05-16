@@ -42,24 +42,6 @@ bkApiGateway:
     # 蓝鲸 CMDB API Gateway url
     url: __BK_API_GATEWAY_CMDB_URL__
 gse:
-  # 是否初始化 GSE1.0 Client。如果需要对接GSE1.0(job.features.gseV2.enabled=false), 必须设置gse.enabled=true
-  enabled: true
-  cache:
-    apiserver:
-      host: __BK_GSE_CACHE_APISERVER_HOST__
-      port: __BK_GSE_CACHE_APISERVER_PORT__
-  ssl:
-    keystore:
-      password: __BK_GSE_SSL_KEYSTORE_PASSWORD__
-      path: __BK_CERT_PATH__/gse_job_api_client.keystore
-    truststore:
-      manager-type: SunX509
-      password: __BK_GSE_SSL_TRUSTSTORE_PASSWORD__
-      path: __BK_CERT_PATH__/gse_job_api_client.truststore
-      store-type: JKS
-  taskserver:
-    host: __BK_GSE_TASKSERVER_HOST__
-    port: __BK_GSE_TASKSERVER_PORT__
   query:
     threads:
       num: 5

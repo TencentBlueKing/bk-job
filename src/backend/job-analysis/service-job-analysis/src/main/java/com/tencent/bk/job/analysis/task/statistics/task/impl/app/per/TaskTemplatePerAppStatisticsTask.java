@@ -27,11 +27,13 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.consts.TotalMetricEnum;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.api.inner.ServiceMetricsResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -55,16 +57,18 @@ public class TaskTemplatePerAppStatisticsTask extends BasePerAppStatisticsTask {
 
     protected TaskTemplatePerAppStatisticsTask(
         BasicServiceManager basicServiceManager,
-        StatisticsDAO statisticsDAO,
+        CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+        NoTenantStatisticsDAO noTenantStatisticsDAO,
         @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
-        ServiceMetricsResource manageMetricsResource
+        ServiceMetricsResource manageMetricsResource,
+        TenantService tenantService
     ) {
-        super(basicServiceManager, statisticsDAO, dslContext);
+        super(basicServiceManager, currentTenantStatisticsDAO, noTenantStatisticsDAO, dslContext, tenantService);
         this.manageMetricsResource = manageMetricsResource;
     }
 
     private StatisticsDTO genTaskTemplateTotalStatisticsDTO(String dateStr, Long appId, String value) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(appId);
         statisticsDTO.setDate(dateStr);
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_GLOBAL);

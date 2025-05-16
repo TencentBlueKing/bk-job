@@ -64,7 +64,7 @@
       layout="inline">
       <jb-user-selector
         class="input"
-        :filter-list="['JOB_EXTRA_OBSERVER']"
+        :exclude-role-list="['JOB_EXTRA_OBSERVER']"
         :placeholder="$t('cron.输入通知对象')"
         :role="formData.notifyUser.roleList"
         :user="formData.notifyUser.userList"

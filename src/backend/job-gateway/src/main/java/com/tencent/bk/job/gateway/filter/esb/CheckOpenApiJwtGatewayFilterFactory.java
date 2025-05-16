@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.security.autoconfigure.ServiceSecurityPropertie
 import com.tencent.bk.job.common.service.SpringProfile;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.RequestUtil;
-import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
+import com.tencent.bk.job.gateway.model.esb.BkGwJwtInfo;
 import com.tencent.bk.job.gateway.service.OpenApiJwtService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +52,7 @@ public class CheckOpenApiJwtGatewayFilterFactory
     private final OpenApiJwtService openApiJwtService;
     private final SpringProfile springProfile;
     private final ServiceSecurityProperties securityProperties;
+
 
     @Autowired
     public CheckOpenApiJwtGatewayFilterFactory(OpenApiJwtService openApiJwtService,
@@ -82,7 +83,7 @@ public class CheckOpenApiJwtGatewayFilterFactory
                 return response.setComplete();
             }
 
-            EsbJwtInfo authInfo;
+            BkGwJwtInfo authInfo;
             if (isOpenApiTestActive(request)) {
                 // 如果是 OpenApi 测试请求，使用 Job 的 JWT 认证方式，不使用 ESB JWT（避免依赖 ESB)
                 authInfo = openApiJwtService.extractFromJwt(token,
@@ -91,18 +92,24 @@ public class CheckOpenApiJwtGatewayFilterFactory
                 authInfo = openApiJwtService.extractFromJwt(token);
             }
 
-            if (authInfo == null) {
-                log.warn("Untrusted esb request, request-id:{}", RequestUtil.getHeaderValue(request,
-                    JobCommonHeaders.BK_GATEWAY_REQUEST_ID));
+            if (!validateJwt(authInfo)) {
+                log.warn("Untrusted open api request, request-id:{}, authInfo: {}",
+                    RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_GATEWAY_REQUEST_ID), authInfo);
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 return response.setComplete();
             }
 
-            // set app code header
-            request.mutate().header(JobCommonHeaders.APP_CODE, new String[]{authInfo.getAppCode()}).build();
-            request.mutate().header(JobCommonHeaders.USERNAME, new String[]{authInfo.getUsername()}).build();
+            // set header
+            request = request.mutate()
+                .header(JobCommonHeaders.APP_CODE, authInfo.getAppCode())
+                .header(JobCommonHeaders.USERNAME, authInfo.getUsername())
+                .build();
             return chain.filter(exchange.mutate().request(request).build());
         };
+    }
+
+    public boolean validateJwt(BkGwJwtInfo jwtInfo) {
+        return StringUtils.isNotEmpty(jwtInfo.getUsername()) && StringUtils.isNotEmpty(jwtInfo.getAppCode());
     }
 
     private boolean isOpenApiTestActive(ServerHttpRequest request) {

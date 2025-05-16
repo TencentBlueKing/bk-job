@@ -32,7 +32,9 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum;
 import com.tencent.bk.job.manage.api.esb.v3.EsbCredentialV3Resource;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
@@ -72,7 +74,8 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         checkCreateParam(req);
 
         CredentialCreateUpdateReq createUpdateReq = convertToCreateUpdateReq(req);
-        CredentialDTO createCredential = credentialService.createCredential(username, req.getAppId(),
+        User user = JobContextUtil.getUser();
+        CredentialDTO createCredential = credentialService.createCredential(user, req.getAppId(),
             createUpdateReq);
 
         return EsbResp.buildSuccessResp(createCredential.toEsbCredentialSimpleInfoV3DTO());
@@ -99,10 +102,11 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         String username,
         String appCode,
         @AuditRequestBody EsbCreateOrUpdateCredentialV3Req req) {
+        User user = JobContextUtil.getUser();
         checkUpdateParam(req);
 
         CredentialCreateUpdateReq createUpdateReq = convertToCreateUpdateReq(req);
-        CredentialDTO updateCredential = credentialService.updateCredential(username, req.getAppId(),
+        CredentialDTO updateCredential = credentialService.updateCredential(user, req.getAppId(),
             createUpdateReq);
 
         return EsbResp.buildSuccessResp(updateCredential.toEsbCredentialSimpleInfoV3DTO());

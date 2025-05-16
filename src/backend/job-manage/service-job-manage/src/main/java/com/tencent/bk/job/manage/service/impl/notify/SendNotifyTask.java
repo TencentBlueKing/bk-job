@@ -24,8 +24,9 @@
 
 package com.tencent.bk.job.manage.service.impl.notify;
 
+import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.util.ThreadUtils;
-import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
 import com.tencent.bk.job.manage.service.impl.WatchableSendMsgService;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -33,9 +34,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Builder
 @Slf4j
@@ -45,7 +45,7 @@ public class SendNotifyTask implements Runnable {
     private final int NOTIFY_MAX_RETRY_COUNT = 1;
 
     private WatchableSendMsgService watchableSendMsgService;
-    private EsbUserInfoDAO esbUserInfoDAO;
+    private UserLocalCache userLocalCache;
 
     private final Long appId;
     private final long createTimeMillis;
@@ -54,13 +54,14 @@ public class SendNotifyTask implements Runnable {
     private final Set<String> receivers;
     private final String title;
     private final String content;
+    private final String tenantId;
 
     private Set<String> validReceivers;
 
     public void bindService(WatchableSendMsgService watchableSendMsgService,
-                            EsbUserInfoDAO esbUserInfoDAO) {
+                            UserLocalCache userLocalCache) {
         this.watchableSendMsgService = watchableSendMsgService;
-        this.esbUserInfoDAO = esbUserInfoDAO;
+        this.userLocalCache = userLocalCache;
     }
 
     @Override
@@ -74,6 +75,7 @@ public class SendNotifyTask implements Runnable {
             logValidReceiversEmpty();
             return;
         }
+        log.info("SendNotifyTask start, real receivers: {}", validReceivers);
         try {
             boolean result = sendMsgWithRetry();
             if (result) {
@@ -87,8 +89,8 @@ public class SendNotifyTask implements Runnable {
     }
 
     private void pickValidReceivers() {
-        List<String> existUserNameList = esbUserInfoDAO.listExistUserName(receivers);
-        validReceivers = new HashSet<>(existUserNameList);
+        Set<SimpleUserInfo> existUserNameSet = userLocalCache.batchGetUser(tenantId, receivers);
+        validReceivers = existUserNameSet.stream().map(SimpleUserInfo::getBkUsername).collect(Collectors.toSet());
     }
 
     private void logValidReceiversEmpty() {
@@ -101,7 +103,7 @@ public class SendNotifyTask implements Runnable {
         while (!result && count < NOTIFY_MAX_RETRY_COUNT) {
             count += 1;
             try {
-                watchableSendMsgService.sendMsg(
+                watchableSendMsgService.sendMsgWithApp(
                     appId,
                     createTimeMillis,
                     msgType,
