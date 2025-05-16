@@ -67,7 +67,9 @@ public class CheckTenantGatewayFilterFactory
             }
 
             // set header
-            request.mutate().header(JobCommonHeaders.BK_TENANT_ID, new String[]{tenantId}).build();
+            request = request.mutate()
+                .header(JobCommonHeaders.BK_TENANT_ID, tenantId)
+                .build();
             return chain.filter(exchange.mutate().request(request).build());
         };
     }

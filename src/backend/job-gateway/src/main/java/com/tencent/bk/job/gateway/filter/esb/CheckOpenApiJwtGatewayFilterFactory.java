@@ -100,8 +100,10 @@ public class CheckOpenApiJwtGatewayFilterFactory
             }
 
             // set header
-            request.mutate().header(JobCommonHeaders.APP_CODE, new String[]{authInfo.getAppCode()}).build();
-            request.mutate().header(JobCommonHeaders.USERNAME, new String[]{authInfo.getUsername()}).build();
+            request = request.mutate()
+                .header(JobCommonHeaders.APP_CODE, authInfo.getAppCode())
+                .header(JobCommonHeaders.USERNAME, authInfo.getUsername())
+                .build();
             return chain.filter(exchange.mutate().request(request).build());
         };
     }
