@@ -22,63 +22,75 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.gateway.filter.esb;
+package com.tencent.bk.job.gateway.filter.common;
 
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.RequestUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
 
 /**
- * ESB 请求与响应日志
+ * 检查请求中的租户信息
  */
 @Slf4j
 @Component
-public class RecordIamAccessLogGatewayFilterFactory
-    extends AbstractGatewayFilterFactory<RecordIamAccessLogGatewayFilterFactory.Config> {
+public class CheckTenantGatewayFilterFactory
+    extends AbstractGatewayFilterFactory<CheckTenantGatewayFilterFactory.Config> {
+
+    private final TenantEnvService tenantEnvService;
 
     @Autowired
-    public RecordIamAccessLogGatewayFilterFactory() {
-        super(RecordIamAccessLogGatewayFilterFactory.Config.class);
+    public CheckTenantGatewayFilterFactory(TenantEnvService tenantEnvService) {
+        super(Config.class);
+        this.tenantEnvService = tenantEnvService;
     }
 
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
+            ServerHttpResponse response = exchange.getResponse();
             ServerHttpRequest request = exchange.getRequest();
-            String requestId = RequestUtil.getHeaderValue(request, "X-Request-Id");
 
-            String uri = exchange.getRequest().getURI().getPath();
-            String apiName = getResourceFromUri(uri);
-            exchange.getAttributes().put("start_time", System.currentTimeMillis());
+            String tenantId = extractTenantId(request);
+            if (tenantId == null) {
+                response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                return response.setComplete();
+            }
 
-            return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-                Long startTime = exchange.getAttribute("start_time");
-
-                long costTime = 0L;
-                if (startTime != null) {
-                    costTime = (System.currentTimeMillis() - startTime);
-                }
-                HttpStatus status = exchange.getResponse().getStatusCode();
-                int statusValue = -1;
-                if (status != null) {
-                    statusValue = status.value();
-                }
-                log.info("API:{}|requestId:{}|respStatus:{}|cost:{}", apiName, requestId, statusValue, costTime);
-            }));
+            // set header
+            request = request.mutate()
+                .header(JobCommonHeaders.BK_TENANT_ID, tenantId)
+                .build();
+            return chain.filter(exchange.mutate().request(request).build());
         };
     }
 
-    private String getResourceFromUri(String uri) {
-        return uri.replace("/iam/api/v1/resources/", "");
+    private String extractTenantId(ServerHttpRequest request) {
+        if (tenantEnvService.isTenantEnabled()) {
+            String tenantId = RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_TENANT_ID);
+            if (StringUtils.isEmpty(tenantId)) {
+                log.error("Missing tenant header");
+                return null;
+            } else {
+                return tenantId;
+            }
+        } else {
+            // 如果未开启多租户特性，设置默认租户 default（蓝鲸约定）
+            return TenantIdConstants.DEFAULT_TENANT_ID;
+        }
     }
 
     static class Config {
 
     }
+
 }

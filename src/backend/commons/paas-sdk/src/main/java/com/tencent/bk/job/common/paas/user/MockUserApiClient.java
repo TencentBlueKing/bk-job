@@ -24,12 +24,18 @@
 
 package com.tencent.bk.job.common.paas.user;
 
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
+import com.tencent.bk.job.common.paas.model.OpenApiTenant;
+import com.tencent.bk.job.common.paas.model.TenantStatusEnum;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 public class MockUserApiClient implements IUserApiClient {
@@ -49,4 +55,12 @@ public class MockUserApiClient implements IUserApiClient {
         );
     }
 
+    @Override
+    public List<OpenApiTenant> listAllTenant() {
+        OpenApiTenant openApiTenant = new OpenApiTenant();
+        openApiTenant.setId(TenantIdConstants.DEFAULT_TENANT_ID);
+        openApiTenant.setName(TenantIdConstants.DEFAULT_TENANT_ID);
+        openApiTenant.setStatus(TenantStatusEnum.ENABLED.getStatus());
+        return Collections.singletonList(openApiTenant);
+    }
 }

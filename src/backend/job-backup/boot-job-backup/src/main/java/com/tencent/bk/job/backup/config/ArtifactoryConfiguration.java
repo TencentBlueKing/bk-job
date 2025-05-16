@@ -22,8 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.config;
+package com.tencent.bk.job.backup.config;
 
+import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.manage.api.inner.ServiceRealProjectNameResource;
@@ -33,7 +34,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ArtifactoryConfig {
+public class ArtifactoryConfiguration {
 
     @Bean
     public IRealProjectNameStore realProjectNameStore(ServiceRealProjectNameResource realProjectNameResource) {
@@ -42,7 +43,8 @@ public class ArtifactoryConfig {
 
     @Bean
     public ArtifactoryHelper artifactoryHelper(TenantEnvService tenantEnvService,
-                                               IRealProjectNameStore realProjectNameStore) {
-        return new ArtifactoryHelper(tenantEnvService, realProjectNameStore);
+                                               IRealProjectNameStore realProjectNameStore,
+                                               ArtifactoryConfig artifactoryConfig) {
+        return new ArtifactoryHelper(tenantEnvService, realProjectNameStore, artifactoryConfig);
     }
 }

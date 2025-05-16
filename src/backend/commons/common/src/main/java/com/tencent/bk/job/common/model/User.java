@@ -20,13 +20,19 @@ public class User {
      */
     private String username;
 
-    public User(String tenantId, String username) {
+    /**
+     * 展示名
+     */
+    private String displayName;
+
+    public User(String tenantId, String username, String displayName) {
         this.tenantId = tenantId;
         this.username = username;
+        this.displayName = displayName;
     }
 
     @Override
     public String toString() {
-        return username + "@" + tenantId;
+        return displayName + "[" + username + "@" + tenantId + "]";
     }
 }

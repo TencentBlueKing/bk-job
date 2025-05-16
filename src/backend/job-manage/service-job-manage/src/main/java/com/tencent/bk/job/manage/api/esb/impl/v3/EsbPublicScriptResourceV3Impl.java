@@ -141,6 +141,7 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
 
         ScriptQuery scriptQuery = new ScriptQuery();
         scriptQuery.setAppId(PUBLIC_APP_ID);
+        scriptQuery.setTenantId(JobContextUtil.getTenantId());
         scriptQuery.setPublicScript(true);
         scriptQuery.setName(request.getName());
         // 如果script_type=0,表示查询所有类型,不需要传查询条件

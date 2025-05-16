@@ -83,7 +83,9 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             ServerHttpRequest request = exchange.getRequest();
             String username = loginExemptionConfig.getDefaultUser();
             log.info("loginExemption enabled, use default user:{}", username);
-            request.mutate().header("username", new String[]{username}).build();
+            request = request.mutate()
+                .header("username", username)
+                .build();
             return chain.filter(exchange.mutate().request(request).build());
         };
     }
@@ -131,10 +133,12 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
                 return response.setComplete();
             }
 
-            request.mutate().header("username", new String[]{user.getUsername()}).build();
             String tenantId = tenantEnvService.isTenantEnabled() ? user.getTenantId() :
                 TenantIdConstants.DEFAULT_TENANT_ID;
-            request.mutate().header(JobCommonHeaders.BK_TENANT_ID, new String[]{tenantId}).build();
+            request = request.mutate()
+                .header("username", user.getUsername())
+                .header(JobCommonHeaders.BK_TENANT_ID, tenantId)
+                .build();
             log.debug("Add user info, username: {}, tenantId: {}", user.getUsername(), tenantId);
             return chain.filter(exchange.mutate().request(request).build());
         };

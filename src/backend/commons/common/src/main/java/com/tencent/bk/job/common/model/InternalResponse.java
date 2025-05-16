@@ -98,8 +98,14 @@ public class InternalResponse<T> {
     }
 
     public static <T> InternalResponse<T> buildAuthFailResp(AuthResultDTO authResult) {
-        InternalResponse<T> resp = new InternalResponse<>(ErrorType.PERMISSION_DENIED,
-            ErrorCode.PERMISSION_DENIED, null);
+        InternalResponse<T> resp = new InternalResponse<>(
+            ErrorType.PERMISSION_DENIED,
+            ErrorCode.PERMISSION_DENIED,
+            new String[]{
+                JobContextUtil.getUserDisplayName()
+            },
+            null
+        );
         resp.authResult = authResult;
         return resp;
     }

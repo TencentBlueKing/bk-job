@@ -22,59 +22,63 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.gateway.filter.web;
+package com.tencent.bk.job.gateway.filter.iam;
 
-import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.util.RequestUtil;
-import com.tencent.bk.job.gateway.common.consts.WebLangCookie;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
-
-import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.BLUEKING_LANG_HEADER;
-import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEADER;
+import reactor.core.publisher.Mono;
 
 /**
- * WEB请求国际化处理
+ * ESB 请求与响应日志
  */
 @Slf4j
 @Component
-public class AddWebLangHeaderGatewayFilterFactory
-    extends AbstractGatewayFilterFactory<AddWebLangHeaderGatewayFilterFactory.Config> {
+public class RecordIamAccessLogGatewayFilterFactory
+    extends AbstractGatewayFilterFactory<RecordIamAccessLogGatewayFilterFactory.Config> {
 
     @Autowired
-    public AddWebLangHeaderGatewayFilterFactory() {
-        super(Config.class);
+    public RecordIamAccessLogGatewayFilterFactory() {
+        super(RecordIamAccessLogGatewayFilterFactory.Config.class);
     }
 
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
-            String webLangCookieValue = RequestUtil.getCookieValue(request, BLUEKING_LANG_HEADER);
-            String commonLang = LocaleUtils.LANG_ZH_CN;
-            if (!StringUtils.isEmpty(webLangCookieValue)) {
-                if (webLangCookieValue.equalsIgnoreCase(WebLangCookie.EN)) {
-                    commonLang = LocaleUtils.LANG_EN;
-                } else if (webLangCookieValue.equalsIgnoreCase(WebLangCookie.ZH_CN)) {
-                    commonLang = LocaleUtils.LANG_ZH_CN;
-                } else {
-                    commonLang = LocaleUtils.LANG_ZH_CN;
+            String requestId = RequestUtil.getHeaderValue(request, "X-Request-Id");
+
+            String uri = exchange.getRequest().getURI().getPath();
+            String apiName = getResourceFromUri(uri);
+            exchange.getAttributes().put("start_time", System.currentTimeMillis());
+
+            return chain.filter(exchange).then(Mono.fromRunnable(() -> {
+                Long startTime = exchange.getAttribute("start_time");
+
+                long costTime = 0L;
+                if (startTime != null) {
+                    costTime = (System.currentTimeMillis() - startTime);
                 }
-            }
-            request = request.mutate()
-                .header(COMMON_LANG_HEADER, commonLang)
-                .build();
-            return chain.filter(exchange.mutate().request(request).build());
+                HttpStatus status = exchange.getResponse().getStatusCode();
+                int statusValue = -1;
+                if (status != null) {
+                    statusValue = status.value();
+                }
+                log.info("API:{}|requestId:{}|respStatus:{}|cost:{}", apiName, requestId, statusValue, costTime);
+            }));
         };
+    }
+
+    private String getResourceFromUri(String uri) {
+        return uri.replace("/iam/api/v1/resources/", "");
     }
 
     static class Config {
 
     }
-
 }

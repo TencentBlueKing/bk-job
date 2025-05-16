@@ -54,10 +54,10 @@ public class IamCallbackAspect {
             tenantId = TenantIdConstants.DEFAULT_TENANT_ID;
             log.debug("Add default tenantId({}) to JobContext", tenantId);
         }
-        if (StringUtils.isNotBlank(tenantId)) {
+        if (StringUtils.isBlank(tenantId)) {
             throw new InvalidParamException(ErrorCode.TENANT_ID_CANNOT_BE_BLANK, JobCommonHeaders.BK_TENANT_ID);
         }
-        JobContextUtil.setUser(new User(tenantId, null));
+        JobContextUtil.setUser(new User(tenantId, null, null));
     }
 
     private void logRequest(CallbackRequestDTO callbackRequest) {

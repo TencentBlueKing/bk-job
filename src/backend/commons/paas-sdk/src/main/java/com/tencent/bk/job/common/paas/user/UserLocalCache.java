@@ -82,7 +82,7 @@ public class UserLocalCache {
         if (bkUser == null) {
             return null;
         }
-        return new User(tenantId, bkUser.getBkUsername());
+        return new User(tenantId, bkUser.getBkUsername(), bkUser.getDisplayName());
     }
 
     public SimpleUserInfo getSingleUser(String tenantId, String username) {

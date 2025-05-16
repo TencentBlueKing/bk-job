@@ -1,5 +1,6 @@
 package com.tencent.bk.job.common.artifactory.sdk;
 
+import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.exception.ProjectExistedException;
 import com.tencent.bk.job.common.artifactory.exception.RepoNotFoundException;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
@@ -24,10 +25,14 @@ public class ArtifactoryHelper {
     private final TenantEnvService tenantEnvService;
     @Getter
     private final IRealProjectNameStore realProjectNameStore;
+    private final ArtifactoryConfig artifactoryConfig;
 
-    public ArtifactoryHelper(TenantEnvService tenantEnvService, IRealProjectNameStore realProjectNameStore) {
+    public ArtifactoryHelper(TenantEnvService tenantEnvService,
+                             IRealProjectNameStore realProjectNameStore,
+                             ArtifactoryConfig artifactoryConfig) {
         this.tenantEnvService = tenantEnvService;
         this.realProjectNameStore = realProjectNameStore;
+        this.artifactoryConfig = artifactoryConfig;
     }
 
     /**
@@ -36,6 +41,10 @@ public class ArtifactoryHelper {
      * @return 实际的项目名称
      */
     public String getJobRealProject() {
+        if (!tenantEnvService.isTenantEnabled()) {
+            // 非多租户环境，直接返回配置的项目名称
+            return artifactoryConfig.getArtifactoryJobProject();
+        }
         return realProjectNameStore.queryRealProjectName(JobConstants.SAVE_KEY_ARTIFACTORY_JOB_REAL_PROJECT);
     }
 
