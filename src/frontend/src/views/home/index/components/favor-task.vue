@@ -65,7 +65,11 @@
         <bk-table-column
           :label="$t('home.更新人')"
           prop="lastModifyUser"
-          width="180" />
+          width="180">
+          <template slot-scope="{ row }">
+            <bk-user-display-name :user-id="row.lastModifyUser" />
+          </template>
+        </bk-table-column>
         <bk-table-column
           :label="$t('home.更新时间')"
           prop="lastModifyTime"

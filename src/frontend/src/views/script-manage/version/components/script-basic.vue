@@ -61,10 +61,8 @@
             {{ $t('script.更新人_label') }}:
           </div>
           <div class="item-value">
-            <div
-              v-bk-overflow-tips
-              class="text-box">
-              {{ data.lastModifyUser }}
+            <div class="text-box">
+              <bk-user-display-name :user-id=" data.lastModifyUser" />
             </div>
           </div>
         </div>
@@ -73,10 +71,8 @@
             {{ $t('script.创建人_label') }}:
           </div>
           <div class="item-value">
-            <div
-              v-bk-overflow-tips
-              class="text-box">
-              {{ data.creator }}
+            <div class="text-box">
+              <bk-user-display-name :user-id="data.creator" />
             </div>
           </div>
         </div>

@@ -43,7 +43,7 @@
     <jb-form-item :label="$t('notify.通知对象')">
       <jb-user-selector
         class="input"
-        :filter-list="['JOB_EXTRA_OBSERVER']"
+        :exclude-role-list="['JOB_EXTRA_OBSERVER']"
         :placeholder="$t('notify.请输入')"
         :role="localValue.roleList"
         :user="localValue.extraObserverList"

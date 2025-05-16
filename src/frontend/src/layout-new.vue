@@ -247,7 +247,7 @@
                 {{ $t('检测记录') }}
               </jb-item>
             </jb-item-group>
-            <jb-item-group>
+            <jb-item-group v-if="isSystemTenant">
               <div slot="title">
                 {{ $t('视图') }}
               </div>
@@ -289,6 +289,7 @@
   } from 'vue';
 
   import QueryGlobalSettingService from '@service/query-global-setting';
+  import UserService from '@service/user';
 
   import AppSelect from '@components/app-select';
   import JbMenu from '@components/jb-menu';
@@ -313,6 +314,7 @@
   const isFrameSideFixed = ref(localStorage.getItem(TOGGLE_CACHE) !== null);
   const isSideExpand = ref(false);
   const isAdmin = ref(false);
+  const isSystemTenant = ref(false);
   const routerTitle = ref('');
   const isEnableFeatureFileManage = ref(false);
   const isEnableBKNotice = ref(false);
@@ -370,6 +372,14 @@
       localStorage.removeItem(TOGGLE_CACHE);
     }
   };
+
+  /**
+   * @desc 获取登录用户信息
+   */
+  UserService.fetchUserInfo()
+    .then((data) => {
+      isSystemTenant.value = data.systemTenant;
+    });
   const handleSideExpandChange = (sideExpand) => {
     isSideExpand.value = sideExpand;
   };

@@ -92,7 +92,11 @@
       <bk-table-column
         :label="$t('ticket.更新人')"
         prop="lastModifyUser"
-        width="120" />
+        width="120">
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.lastModifyUser" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         :label="$t('ticket.更新时间')"
         prop="lastModifyTime"
