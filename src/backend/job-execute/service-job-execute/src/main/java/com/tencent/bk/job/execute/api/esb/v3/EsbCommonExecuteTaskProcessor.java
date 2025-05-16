@@ -42,7 +42,7 @@ public class EsbCommonExecuteTaskProcessor {
     }
 
     protected ValidateResult validateExecuteObjects(OpenApiExecuteTargetDTO executeTarget) {
-        if (!executeTarget.isValidExecuteTarget()) {
+        if (executeTarget == null || !executeTarget.isValidExecuteTarget()) {
             log.warn("Fast transfer file, targetServer is illegal!");
             return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "target_server");
         }
