@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.esb.v3;
 
 import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.validation.Create;
@@ -47,6 +48,7 @@ import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -54,6 +56,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -68,9 +71,7 @@ public interface EsbScriptV3Resource {
     EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getScriptList(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_biz_id", required = false) Long bizId,
-        @RequestParam(value = "bk_scope_type", required = false) String scopeType,
-        @RequestParam(value = "bk_scope_id", required = false) String scopeId,
+        @Valid @ModelAttribute EsbAppScopeReq appScopeReq,
         @RequestParam(value = "name", required = false) String name,
         @RequestParam(value = "script_language", required = false) Integer scriptLanguage,
         @RequestParam(value = "start", required = false) Integer start,

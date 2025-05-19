@@ -31,6 +31,7 @@ import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -106,17 +107,15 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_get_script_list"})
     public EsbResp<EsbPageDataV3<EsbScriptV3DTO>> getScriptList(String username,
                                                                 String appCode,
-                                                                Long bizId,
-                                                                String scopeType,
-                                                                String scopeId,
+                                                                EsbAppScopeReq appScopeReq,
                                                                 String name,
                                                                 Integer scriptLanguage,
                                                                 Integer start,
                                                                 Integer length) {
         EsbGetScriptListV3Req request = new EsbGetScriptListV3Req();
-        request.setBizId(bizId);
-        request.setScopeType(scopeType);
-        request.setScopeId(scopeId);
+        request.setBizId(appScopeReq.getBizId());
+        request.setScopeType(appScopeReq.getScopeType());
+        request.setScopeId(appScopeReq.getScopeId());
         request.setName(name);
         request.setScriptLanguage(scriptLanguage);
         request.setStart(start);
