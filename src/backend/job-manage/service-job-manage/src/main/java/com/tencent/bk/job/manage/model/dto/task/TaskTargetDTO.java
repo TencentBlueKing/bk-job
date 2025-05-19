@@ -128,9 +128,9 @@ public class TaskTargetDTO {
             Map<String, ApplicationHostDTO> cloudIpHostMapping = hostService.listHostsByIps(hostCloudIps);
 
             hostList.forEach(hostNode -> {
-                ApplicationHostDTO hostDTO = hostIdHostMapping.get(hostNode.getHostId());
-                if (hostDTO == null || !StringUtils.equals(hostDTO.getCloudIp(), hostNode.getCloudIp())) {
-                    hostDTO = cloudIpHostMapping.get(hostNode.getCloudIp());
+                ApplicationHostDTO hostDTO = cloudIpHostMapping.get(hostNode.getCloudIp());
+                if (hostDTO == null && StringUtils.isBlank(hostNode.getIp())) {
+                    hostDTO = hostIdHostMapping.get(hostNode.getHostId());
                 }
 
                 if (hostDTO != null) {
