@@ -101,10 +101,21 @@ public class WebAIResourceImpl implements WebAIResource {
      * @return AI相关配置信息
      */
     @Override
-    public Response<Map<String, Object>> getAIConfig(String username,
-                                                     AppResourceScope appResourceScope,
-                                                     String scopeType,
-                                                     String scopeId) {
+    public Response<Map<String, Object>> getAIConfigOfScope(String username,
+                                                            AppResourceScope appResourceScope,
+                                                            String scopeType,
+                                                            String scopeId) {
+        return Response.buildSuccessResp(aiConfigService.getAIConfig());
+    }
+
+    /**
+     * 获取AI相关配置信息
+     *
+     * @param username 用户名
+     * @return AI相关配置信息
+     */
+    @Override
+    public Response<Map<String, Object>> getAIConfig(String username) {
         return Response.buildSuccessResp(aiConfigService.getAIConfig());
     }
 
