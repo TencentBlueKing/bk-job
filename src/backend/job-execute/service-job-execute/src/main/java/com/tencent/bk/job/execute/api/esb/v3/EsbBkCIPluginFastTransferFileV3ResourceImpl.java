@@ -51,7 +51,7 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
-import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.EsbBkCIPluginFastTransferFileToContainerRequest;
+import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.EsbBkCIPluginFastTransferFileV3Request;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceResource;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
@@ -67,9 +67,9 @@ import java.util.List;
 
 @RestController
 @Slf4j
-public class EsbBkCIPluginFastTransferFileToContainerV3ResourceImpl
+public class EsbBkCIPluginFastTransferFileV3ResourceImpl
     extends EsbFileTransferProcessor
-    implements EsbBkCIPluginFastTransferFileToContainerV3Resource {
+    implements EsbBkCIPluginFastTransferFileV3Resource {
 
     private final MessageI18nService i18nService;
     private final ServiceFileSourceResource fileSourceResource;
@@ -77,19 +77,19 @@ public class EsbBkCIPluginFastTransferFileToContainerV3ResourceImpl
 
 
     @Autowired
-    public EsbBkCIPluginFastTransferFileToContainerV3ResourceImpl(MessageI18nService i18nService,
-                                                                  ServiceFileSourceResource fileSourceResource,
-                                                                  TaskExecuteService taskExecuteService) {
+    public EsbBkCIPluginFastTransferFileV3ResourceImpl(MessageI18nService i18nService,
+                                                       ServiceFileSourceResource fileSourceResource,
+                                                       TaskExecuteService taskExecuteService) {
         this.i18nService = i18nService;
         this.fileSourceResource = fileSourceResource;
         this.taskExecuteService = taskExecuteService;
     }
 
     @Override
-    public EsbResp<EsbJobExecuteV3DTO> fastTransferFileToContainer(
+    public EsbResp<EsbJobExecuteV3DTO> bkciPluginFastTransferFile(
         String username,
         String appCode,
-        EsbBkCIPluginFastTransferFileToContainerRequest request
+        EsbBkCIPluginFastTransferFileV3Request request
     ) {
         if (StringUtils.isEmpty(request.getName())) {
             request.setName(generateDefaultFastTaskName());
@@ -97,7 +97,7 @@ public class EsbBkCIPluginFastTransferFileToContainerV3ResourceImpl
 
         ValidateResult validateResult = checkFastTransferFileRequest(request);
         if (!validateResult.isPass()) {
-            log.warn("[EsbBkCIPluginFastTransferFileToContainerV3] request is invalid");
+            log.warn("[EsbBkCIPluginFastTransferFileV3] request is invalid");
             throw new InvalidParamException(validateResult);
         }
 
@@ -123,7 +123,7 @@ public class EsbBkCIPluginFastTransferFileToContainerV3ResourceImpl
         return EsbResp.buildSuccessResp(jobExecuteInfo);
     }
 
-    private ValidateResult checkFastTransferFileRequest(EsbBkCIPluginFastTransferFileToContainerRequest request) {
+    private ValidateResult checkFastTransferFileRequest(EsbBkCIPluginFastTransferFileV3Request request) {
         ValidateResult validateResult;
 
         validateResult = validateFilePath(request.trimTargetPath().getTargetPath());
@@ -162,7 +162,7 @@ public class EsbBkCIPluginFastTransferFileToContainerV3ResourceImpl
 
     private TaskInstanceDTO buildFastFileTaskInstance(String username,
                                                       String appCode,
-                                                      EsbBkCIPluginFastTransferFileToContainerRequest request) {
+                                                      EsbBkCIPluginFastTransferFileV3Request request) {
         TaskInstanceDTO taskInstance = new TaskInstanceDTO();
         taskInstance.setName(request.getName());
         taskInstance.setType(TaskTypeEnum.FILE.getValue());
@@ -182,7 +182,7 @@ public class EsbBkCIPluginFastTransferFileToContainerV3ResourceImpl
     }
 
     private StepInstanceDTO buildFastFileStepInstance(String username,
-                                                      EsbBkCIPluginFastTransferFileToContainerRequest request) {
+                                                      EsbBkCIPluginFastTransferFileV3Request request) {
         StepInstanceDTO stepInstance = new StepInstanceDTO();
         stepInstance.setName(request.getName());
         stepInstance.setAccountId(request.getAccountId());

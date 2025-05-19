@@ -40,7 +40,7 @@ import java.util.List;
 
 @Setter
 @Getter
-public class EsbBkCIPluginFastTransferFileToContainerRequest extends EsbAppScopeReq {
+public class EsbBkCIPluginFastTransferFileV3Request extends EsbAppScopeReq {
 
     /**
      * 文件分发任务名称
@@ -119,7 +119,7 @@ public class EsbBkCIPluginFastTransferFileToContainerRequest extends EsbAppScope
     private EsbRollingConfigDTO rollingConfig;
 
     @JsonIgnore
-    public EsbBkCIPluginFastTransferFileToContainerRequest trimTargetPath() {
+    public EsbBkCIPluginFastTransferFileV3Request trimTargetPath() {
         targetPath = targetPath == null ? null : targetPath.trim();
         return this;
     }

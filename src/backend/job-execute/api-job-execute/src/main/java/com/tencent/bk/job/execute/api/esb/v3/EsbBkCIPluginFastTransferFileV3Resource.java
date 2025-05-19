@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
-import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.EsbBkCIPluginFastTransferFileToContainerRequest;
+import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.EsbBkCIPluginFastTransferFileV3Request;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,15 +39,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/esb/api/v3")
 @RestController
 @EsbAPI
-public interface EsbBkCIPluginFastTransferFileToContainerV3Resource {
+public interface EsbBkCIPluginFastTransferFileV3Resource {
 
-    @PostMapping("/bkci_plugin_fast_transfer_file_to_container")
-    EsbResp<EsbJobExecuteV3DTO> fastTransferFileToContainer(
+    @PostMapping("/bkci_plugin_fast_transfer_file")
+    EsbResp<EsbJobExecuteV3DTO> bkciPluginFastTransferFile(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
-        EsbBkCIPluginFastTransferFileToContainerRequest request
+        EsbBkCIPluginFastTransferFileV3Request request
     );
 
 }
