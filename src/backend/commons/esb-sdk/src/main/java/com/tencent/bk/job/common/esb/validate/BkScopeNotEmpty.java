@@ -75,7 +75,7 @@ public @interface BkScopeNotEmpty {
                     .addConstraintViolation();
                 return false;
             }
-            if (StringUtils.isBlank(appScopeReq.getScopeType())) {
+            if (StringUtils.isBlank(appScopeReq.getScopeId())) {
                 hibernateContext.disableDefaultConstraintViolation();
                 hibernateContext
                     .buildConstraintViolationWithTemplate("{validation.constraints.InvalidBkScopeId.message}")

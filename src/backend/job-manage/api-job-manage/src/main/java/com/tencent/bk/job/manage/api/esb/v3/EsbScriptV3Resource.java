@@ -65,6 +65,7 @@ import java.util.List;
 @RequestMapping("/esb/api/v3")
 @RestController
 @EsbAPI
+@Validated
 public interface EsbScriptV3Resource {
 
     @GetMapping("/get_script_list")
