@@ -42,7 +42,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.web.validation.ScopeValidator;
+import com.tencent.bk.job.common.esb.validate.ScopeValidator;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;

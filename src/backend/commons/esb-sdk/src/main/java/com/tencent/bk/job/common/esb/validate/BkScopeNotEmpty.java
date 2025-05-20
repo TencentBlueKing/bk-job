@@ -25,8 +25,6 @@
 package com.tencent.bk.job.common.esb.validate;
 
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.validator.constraintvalidation.HibernateConstraintValidatorContext;
 
 import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
@@ -62,26 +60,11 @@ public @interface BkScopeNotEmpty {
 
         @Override
         public boolean isValid(EsbAppScopeReq appScopeReq, ConstraintValidatorContext context) {
-            if (appScopeReq.getBizId() != null) {
-                return true;
-            }
-            HibernateConstraintValidatorContext hibernateContext = context.unwrap(
-                HibernateConstraintValidatorContext.class
+            ScopeValidator.validate(
+                appScopeReq.getBizId(),
+                appScopeReq.getScopeType(),
+                appScopeReq.getScopeId()
             );
-            if (StringUtils.isBlank(appScopeReq.getScopeType())) {
-                hibernateContext.disableDefaultConstraintViolation();
-                hibernateContext
-                    .buildConstraintViolationWithTemplate("{validation.constraints.InvalidBkScopeType.message}")
-                    .addConstraintViolation();
-                return false;
-            }
-            if (StringUtils.isBlank(appScopeReq.getScopeId())) {
-                hibernateContext.disableDefaultConstraintViolation();
-                hibernateContext
-                    .buildConstraintViolationWithTemplate("{validation.constraints.InvalidBkScopeId.message}")
-                    .addConstraintViolation();
-                return false;
-            }
             return true;
         }
     }
