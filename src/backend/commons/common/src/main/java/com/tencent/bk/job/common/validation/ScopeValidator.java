@@ -22,11 +22,10 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.validate;
+package com.tencent.bk.job.common.validation;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import org.apache.commons.lang3.StringUtils;
 
@@ -34,15 +33,6 @@ import org.apache.commons.lang3.StringUtils;
  * 资源范围校验工具类
  */
 public class ScopeValidator {
-
-    /**
-     * 校验资源范围
-     *
-     * @param appScopeReq 资源范围对象
-     */
-    public static void validate(EsbAppScopeReq appScopeReq) {
-        validate(appScopeReq.getBizId(), appScopeReq.getScopeType(), appScopeReq.getScopeId());
-    }
 
     /**
      * 校验资源范围

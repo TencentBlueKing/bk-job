@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.esb.validate;
 
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.validation.ScopeValidator;
 
 import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
