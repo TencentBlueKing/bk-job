@@ -6,8 +6,7 @@
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
  * License for BK-JOB蓝鲸智云作业平台:
- *
- * ---------------------------------------------------
+ * --------------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
@@ -21,65 +20,33 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
-*/
+ */
 
-import Request from '@utils/request';
+package com.tencent.bk.job.execute.api.esb.v3;
 
-import ModuleBase from './module-base';
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteTargetDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
-class Ai extends ModuleBase {
-  constructor() {
-    super();
-    this.module = '/job-analysis/web/ai/';
-  }
+@Slf4j
+public class EsbCommonExecuteTaskProcessor {
 
-  getAnalyzeError(params, payload = {}) {
-    return Request.post(`${this.path}/analyzeError`, {
-      params,
-      payload,
-    });
-  }
+    protected ValidateResult validateAccount(Long accountId, String accountAlias) {
+        if ((accountId == null || accountId <= 0L) && StringUtils.isBlank(accountAlias)) {
+            log.warn("Fast transfer file, account is empty!");
+            return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "account_id|account_alias");
+        }
+        return ValidateResult.pass();
+    }
 
-  getCheckScript(params) {
-    return Request.post(`${this.path}/checkScript`, {
-      params,
-    });
-  }
+    protected ValidateResult validateExecuteObjects(OpenApiExecuteTargetDTO executeTarget) {
+        if (executeTarget == null || !executeTarget.isValidExecuteTarget()) {
+            log.warn("Fast transfer file, targetServer is illegal!");
+            return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "target_server");
+        }
+        return ValidateResult.pass();
+    }
 
-  getConfig(params) {
-    return Request.get(`${this.module}/config`, {
-      params,
-      cache: true,
-    });
-  }
-
-  getGeneraChat(params, payload = {}) {
-    return Request.post(`${this.path}/general/chat`, {
-      params,
-      payload,
-    });
-  }
-
-  getLatestChatHistoryList(params) {
-    return Request.get(`${this.path}/latestChatHistoryList`, {
-      params,
-    });
-  }
-
-  deleteChatHistory() {
-    return Request.delete(`${this.path}/clearChatHistory`);
-  }
-
-  getChatStream(params) {
-    return Request.get(`${this.path}/chatStream`, {
-      params,
-    });
-  }
-  terminateChat(params) {
-    return Request.put(`${this.path}/terminateChat`, {
-      params,
-    });
-  }
 }
-
-export default new Ai();

@@ -3363,3 +3363,30 @@ paths:
           userVerifiedRequired: false
           resourcePermissionRequired: true
         descriptionEn: Query job instance by GSE task id
+  /api/v3/system/bkci_plugin_fast_transfer_file:
+    post:
+      operationId: system_bkci_plugin_fast_transfer_file
+      description: 快速分发文件，支持主机和容器(蓝盾作业执行插件专用，非正式公开 API)
+      tags: [ 'system' ]
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /api/job/v3/job-execute/bkci_plugin_fast_transfer_file
+          matchSubpath: false
+          timeout: 0
+          upstreams: {}
+          transformHeaders: {}
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: false
+          resourcePermissionRequired: true
+        descriptionEn: Quick transfer file for bk-ci plugin，support host and container
+
