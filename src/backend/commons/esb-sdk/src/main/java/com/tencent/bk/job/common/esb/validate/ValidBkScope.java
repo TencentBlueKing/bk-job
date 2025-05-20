@@ -24,8 +24,9 @@
 
 package com.tencent.bk.job.common.esb.validate;
 
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.common.validation.ScopeValidator;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
@@ -46,26 +47,40 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * 资源范围不可为空校验
  */
 @Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE})
-@Constraint(validatedBy = BkScopeNotEmpty.Validator.class)
+@Constraint(validatedBy = ValidBkScope.Validator.class)
 @Documented
 @Retention(RUNTIME)
-public @interface BkScopeNotEmpty {
+public @interface ValidBkScope {
 
-    String message() default "资源范围相关参数bk_scope_type与bk_scope_id不可为空";
+    String message() default "资源范围相关参数bk_scope_type或bk_scope_id不正确";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
 
-    class Validator implements ConstraintValidator<BkScopeNotEmpty, EsbAppScopeReq> {
+    class Validator implements ConstraintValidator<ValidBkScope, EsbAppScopeReq> {
 
         @Override
-        public boolean isValid(EsbAppScopeReq appScopeReq, ConstraintValidatorContext context) {
-            ScopeValidator.validate(
-                appScopeReq.getBizId(),
-                appScopeReq.getScopeType(),
-                appScopeReq.getScopeId()
-            );
+        public boolean isValid(EsbAppScopeReq appScopeReq, ConstraintValidatorContext hibernateContext) {
+            if (appScopeReq.getBizId() != null) {
+                return true;
+            }
+            if (!ResourceScopeTypeEnum.isValid(appScopeReq.getScopeType())) {
+                hibernateContext.disableDefaultConstraintViolation();
+                hibernateContext
+                    .buildConstraintViolationWithTemplate("{validation.constraints.InvalidBkScopeType.message}")
+                    .addPropertyNode("scopeType")
+                    .addConstraintViolation();
+                return false;
+            }
+            if (StringUtils.isBlank(appScopeReq.getScopeId())) {
+                hibernateContext.disableDefaultConstraintViolation();
+                hibernateContext
+                    .buildConstraintViolationWithTemplate("{validation.constraints.InvalidBkScopeId.message}")
+                    .addPropertyNode("scopeId")
+                    .addConstraintViolation();
+                return false;
+            }
             return true;
         }
     }
