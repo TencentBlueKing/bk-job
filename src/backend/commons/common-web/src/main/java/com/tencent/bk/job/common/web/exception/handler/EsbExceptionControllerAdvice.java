@@ -318,13 +318,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     protected ResponseEntity<Object> handleBindException(BindException ex, HttpHeaders headers, HttpStatus status,
                                                          WebRequest request) {
         log.warn("Handle BindException", ex);
-        StringBuilder errorMessage = new StringBuilder();
-        ex.getBindingResult().getAllErrors().forEach(error -> {
-            String message = error.getDefaultMessage();
-            errorMessage.append(message);
-            errorMessage.append(";");
-        });
-        EsbResp resp = EsbResp.buildSuccessResp(ErrorCode.BAD_REQUEST, errorMessage.toString());
+        EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 

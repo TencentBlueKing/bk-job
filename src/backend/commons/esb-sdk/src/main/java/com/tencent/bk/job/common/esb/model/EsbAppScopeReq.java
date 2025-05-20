@@ -29,7 +29,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.esb.validate.BkScopeNotEmpty;
 import com.tencent.bk.job.common.esb.validate.EsbAppScopeReqGroupSequenceProvider;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -47,7 +46,6 @@ import static com.tencent.bk.job.common.constant.JobConstants.JOB_BUILD_IN_BIZ_S
 
 @Setter
 @Getter
-@BkScopeNotEmpty
 @GroupSequenceProvider(EsbAppScopeReqGroupSequenceProvider.class)
 public class EsbAppScopeReq extends EsbJobReq {
     /**
