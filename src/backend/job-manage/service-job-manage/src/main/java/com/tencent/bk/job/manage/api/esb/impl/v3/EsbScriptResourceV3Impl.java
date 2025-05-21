@@ -44,6 +44,7 @@ import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.validation.ScopeValidator;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
@@ -115,6 +116,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
                                                                 Integer scriptLanguage,
                                                                 Integer start,
                                                                 Integer length) {
+        ScopeValidator.validate(bizId, scopeType, scopeId);
         EsbGetScriptListV3Req request = new EsbGetScriptListV3Req();
         request.setBizId(bizId);
         request.setScopeType(scopeType);
@@ -139,6 +141,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
                                                                                     boolean returnScriptContent,
                                                                                     Integer start,
                                                                                     Integer length) {
+        ScopeValidator.validate(bizId, scopeType, scopeId);
         EsbGetScriptVersionListV3Req request = new EsbGetScriptVersionListV3Req();
         request.setBizId(bizId);
         request.setScopeType(scopeType);
@@ -162,6 +165,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
                                                                        Long scriptVersionId,
                                                                        String scriptId,
                                                                        String version) {
+        ScopeValidator.validate(bizId, scopeType, scopeId);
         EsbGetScriptVersionDetailV3Req request = new EsbGetScriptVersionDetailV3Req();
         request.setBizId(bizId);
         request.setScopeType(scopeType);

@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
 import com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants;
 import com.tencent.bk.job.common.util.toggle.feature.FeatureToggle;
+import com.tencent.bk.job.common.validation.ScopeValidator;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -183,6 +184,7 @@ public class BasicAppInterceptor implements AsyncHandlerInterceptor {
             String bizIdStr = params.get("bk_biz_id");
 
             if (StringUtils.isNotBlank(scopeType) && StringUtils.isNotBlank(scopeId)) {
+                ScopeValidator.validate(null, scopeType, scopeId);
                 // 优先使用 bk_scope_type & bk_scope_id
                 return appService.getApp(new ResourceScope(scopeType, scopeId));
             }
