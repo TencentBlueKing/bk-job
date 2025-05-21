@@ -138,7 +138,7 @@ public class ErrorCode {
      * 作业执行-1244xxx
      * 定时作业-1245xxx
      * 日志服务-1246xxx
-     * 用户服务-1247xxx
+     * 网关服务-1247xxx
      * 业务网关-1248xxx
      * 备份服务-1249xxx
      * 文件网关-1260xxx
@@ -376,12 +376,16 @@ public class ErrorCode {
     // 删除作业执执行日志失败
     public static final int GET_JOB_EXECUTION_LOG_FAIL = 1246001;
 
-    // 用户服务 start
+    // 网关服务 start
     // 用户不存在或者未登录
     public static final int USER_NOT_EXIST_OR_NOT_LOGIN_IN = 1247001;
+    // 缺少有效的用户信息
+    public static final int MISSING_USER_INFO = 1247002;
     // 用户认证成功，但用户无应用访问权限
     public static final int USER_ACCESS_APP_FORBIDDEN = 1247403;
-    // 用户服务 end
+    // 缺少有效的AppCode
+    public static final int MISSING_APP_CODE = 1247004;
+    // 网关服务 end
 
     // 业务网关 start
     // 业务网关 end
