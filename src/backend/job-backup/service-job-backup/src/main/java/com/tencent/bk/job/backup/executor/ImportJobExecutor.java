@@ -387,7 +387,8 @@ public class ImportJobExecutor {
             for (ServiceAccountDTO account : jobBackupInfo.getAccountList()) {
                 if (AccountCategoryEnum.DB.getValue().equals(account.getCategory())) {
                     // DB account process related system account first
-                    doProcessAccount(importJob, finalAccountIdMap, categoryAliasToAccountIdMap, account.getDbSystemAccount());
+                    doProcessAccount(importJob, finalAccountIdMap, categoryAliasToAccountIdMap,
+                        account.getDbSystemAccount());
                     if (finalAccountIdMap.get(account.getDbSystemAccount().getId()) == null) {
                         log.error("Error while find or create db account!|{}|{}|{}|{}", importJob.getCreator(),
                             account.getAppId(), account.getAlias(), account.getDbSystemAccount().getAlias());
