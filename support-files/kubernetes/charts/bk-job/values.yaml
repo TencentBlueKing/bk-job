@@ -491,6 +491,18 @@ appCode: bk_job
 ## appSecret
 appSecret: ""
 
+## 其他平台调用Job接口使用的APP_CODE
+## 标准运维
+bkSopsAppCode: "bk_sops"
+## 节点管理
+bkNodemanAppCode: "bk_nodeman"
+## 数据库管理平台
+bkDbmAppCode: "bk_dbm"
+## 监控平台
+bkMonitorAppCode: "bk_monitorv3"
+## 容器管理平台
+bkBcsAppCode: "bk_bcs"
+
 ## 蓝鲸 HTTP(s) Scheme
 bkDomainScheme: "http"
 ## 蓝鲸 ESB url
