@@ -147,6 +147,15 @@ externalMongoDB:
     verifyHostname: false
 ```
 
+2. 修改备份服务热库的保留时间配置项
+```yaml
+backupConfig:
+  archive:
+    execute:
+      # 热库中的数据保留时间（天）
+      keepDays: 30
+```
+
 ## 0.7.1
 1. 增加AI相关配置
 
