@@ -50,9 +50,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -106,34 +106,45 @@ public class TaskTargetDTO {
     }
 
     private static void fillHostDetail(TaskTargetDTO target) {
-        HostService hostService =
-            ApplicationContextRegister.getBean(HostService.class);
+        HostService hostService = ApplicationContextRegister.getBean(HostService.class);
         if (target.getHostNodeList() != null && CollectionUtils.isNotEmpty(target.getHostNodeList().getHostList())) {
-            Set<Long> hostIds = target.getHostNodeList().getHostList().stream()
-                .map(ApplicationHostDTO::getHostId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-            if (CollectionUtils.isEmpty(hostIds)) {
-                return;
+            List<ApplicationHostDTO> hostList = target.getHostNodeList().getHostList();
+            Set<Long> hostIds = new HashSet<>();
+            Set<String> hostCloudIps = new HashSet<>();
+            for (ApplicationHostDTO host : hostList) {
+                if (host.getHostId() != null) {
+                    hostIds.add(host.getHostId());
+                }
+                if (StringUtils.isNotBlank(host.getCloudIp())) {
+                    hostCloudIps.add(host.getCloudIp());
+                }
             }
-            Map<Long, ApplicationHostDTO> hosts = hostService.listHostsByHostIds(hostIds);
-            if (hosts == null || hosts.isEmpty()) {
+
+            if (hostIds.isEmpty() && hostCloudIps.isEmpty()) {
                 return;
             }
 
-            target.getHostNodeList().getHostList().forEach(hostNode -> {
-                ApplicationHostDTO host = hosts.get(hostNode.getHostId());
-                if (host != null) {
-                    hostNode.setAgentId(host.getAgentId());
-                    hostNode.setCloudAreaId(host.getCloudAreaId());
-                    hostNode.setIp(host.getIp());
-                    hostNode.setIpv6(host.getIpv6());
-                    hostNode.setDisplayIp(host.getDisplayIp());
-                    hostNode.setOsName(host.getOsName());
-                    hostNode.setOsType(host.getOsType());
-                    hostNode.setGseAgentStatus(host.getGseAgentStatus());
+            Map<Long, ApplicationHostDTO> hostIdHostMapping = hostService.listHostsByHostIds(hostIds);
+            Map<String, ApplicationHostDTO> cloudIpHostMapping = hostService.listHostsByIps(hostCloudIps);
+
+            hostList.forEach(hostNode -> {
+                ApplicationHostDTO hostDTO = cloudIpHostMapping.get(hostNode.getCloudIp());
+                if (hostDTO == null && StringUtils.isBlank(hostNode.getIp())) {
+                    hostDTO = hostIdHostMapping.get(hostNode.getHostId());
+                }
+
+                if (hostDTO != null) {
+                    hostNode.setAgentId(hostDTO.getAgentId());
+                    hostNode.setCloudAreaId(hostDTO.getCloudAreaId());
+                    hostNode.setIp(hostDTO.getIp());
+                    hostNode.setIpv6(hostDTO.getIpv6());
+                    hostNode.setDisplayIp(hostDTO.getDisplayIp());
+                    hostNode.setOsName(hostDTO.getOsName());
+                    hostNode.setOsType(hostDTO.getOsType());
+                    hostNode.setGseAgentStatus(hostDTO.getGseAgentStatus());
                 } else {
-                    log.warn("Cannot find host by hostId={}", hostNode.getHostId());
+                    log.warn("Cannot find host by hostId={} or by cloudIp={}",
+                        hostNode.getHostId(), hostNode.getCloudIp());
                 }
             });
         }
