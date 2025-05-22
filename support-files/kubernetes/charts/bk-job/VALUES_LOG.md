@@ -3,15 +3,15 @@
 1. 新增 bk-login/bk-user蓝鲸网关配置
 ```yaml
 # 蓝鲸登录 API Gateway url
-bkLoginApiGatewayUrl: "http://bkapi.example.com/api/bk-login"
+bkLoginApiGatewayUrl: "http://bkapi.example.com/api/bk-login/prod"
 # 蓝鲸用户管理 API Gateway url
-bkUserApiGatewayUrl: "http://bkapi.example.com/api/bk-user"
+bkUserApiGatewayUrl: "http://bkapi.example.com/api/bk-user/prod"
 # 蓝鲸用户管理前端服务 API Gateway url
-bkUserWebApiGatewayUrl: "http://bkapi.example.com/api/bk-user-web"
+bkUserWebApiGatewayUrl: "http://bkapi.example.com/api/bk-user-web/prod"
 # 蓝鲸权限中心 API Gateway url
-bkIamApiGatewayUrl: "http://bkapi.example.com/api/bk-iam"
+bkIamApiGatewayUrl: "http://bkapi.example.com/api/bk-iam/prod"
 # 消息通知 API Gateway url
-bkCmsiApiGatewayUrl: "http://bkapi.example.com/api/cmsi"
+bkCmsiApiGatewayUrl: "http://bkapi.example.com/api/cmsi/prod"
 ```
 
 2. 新增租户配置
@@ -65,6 +65,12 @@ gse:
       connect:
         # zookeeper连接字符串，由host:port构成
         string: "gse-zk.example.com:2181"
+```
+
+4. 去除权限中心后台接口配置（调用权限中心的请求改为全部走APIGW）
+```yaml
+# 蓝鲸 IAM 后台 url
+bkIamApiUrl: "http://bkiam-api.example.com"
 ```
 
 ## 0.8.2
