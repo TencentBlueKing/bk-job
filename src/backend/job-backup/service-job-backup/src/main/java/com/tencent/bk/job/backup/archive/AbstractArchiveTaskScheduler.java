@@ -26,7 +26,6 @@ package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
-import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -47,7 +46,6 @@ import java.util.concurrent.ExecutorService;
 public abstract class AbstractArchiveTaskScheduler<T extends JobHistoricalDataArchiveTask> implements SmartLifecycle {
 
     protected final ArchiveTaskService archiveTaskService;
-    protected final ArchiveProperties archiveProperties;
     protected final ExecutorService archiveTaskStopExecutor;
     protected final ArchiveErrorTaskCounter archiveErrorTaskCounter;
     protected final Tracer tracer;
@@ -69,12 +67,10 @@ public abstract class AbstractArchiveTaskScheduler<T extends JobHistoricalDataAr
     private volatile boolean scheduling = false;
 
     public AbstractArchiveTaskScheduler(ArchiveTaskService archiveTaskService,
-                                        ArchiveProperties archiveProperties,
                                         ExecutorService archiveTaskStopExecutor,
                                         ArchiveErrorTaskCounter archiveErrorTaskCounter,
                                         Tracer tracer) {
         this.archiveTaskService = archiveTaskService;
-        this.archiveProperties = archiveProperties;
         this.archiveTaskStopExecutor = archiveTaskStopExecutor;
         this.archiveErrorTaskCounter = archiveErrorTaskCounter;
         this.tracer = tracer;
@@ -142,23 +138,23 @@ public abstract class AbstractArchiveTaskScheduler<T extends JobHistoricalDataAr
     public void schedule() {
         try {
             if (isScheduling()) {
-                log.info("{} is working", getClass().getSimpleName());
+                log.info("{} is working", getRuntimeClassName());
                 return;
             }
             this.scheduling = true;
 
             while (true) {
                 if (!isActive()) {
-                    log.info("{} is not active, skip", getClass().getSimpleName());
+                    log.info("{} is not active, skip", getRuntimeClassName());
                     return;
                 }
-                StopWatch watch = new StopWatch("archive-task-schedule-" + getClass().getSimpleName());
+                StopWatch watch = new StopWatch("archive-task-schedule-" + getRuntimeClassName());
                 boolean locked = false;
                 try {
                     // 1.获取归档任务调度锁
                     locked = acquireScheduleLock();
                     if (!locked) {
-                        log.info("{} get lock fail, wait 1s", getClass().getSimpleName());
+                        log.info("{} get lock fail, wait 1s", getRuntimeClassName());
                         ThreadUtils.sleep(1000L);
                         continue;
                     }
@@ -168,12 +164,12 @@ public abstract class AbstractArchiveTaskScheduler<T extends JobHistoricalDataAr
                     Map<String, Integer> scheduleTasksGroupByDb = countScheduleTasksGroupByDb();
                     if (scheduleTasksGroupByDb.isEmpty()) {
                         log.info("{} no archive task need scheduling! Exit",
-                            getClass().getSimpleName());
+                            getRuntimeClassName());
                         return;
                     }
                     watch.stop();
                     log.info("{} count archive task group by db, result: {}",
-                        getClass().getSimpleName(), scheduleTasksGroupByDb);
+                        getRuntimeClassName(), scheduleTasksGroupByDb);
 
                     // 3.获取正在执行中的任务列表
                     watch.start("queryRunningTasks");
@@ -181,14 +177,10 @@ public abstract class AbstractArchiveTaskScheduler<T extends JobHistoricalDataAr
                     watch.stop();
 
                     // 4. 是否需要等待
-                    int taskConcurrent = archiveProperties.getTasks().getArchiveTaskConfig().getConcurrent();
-                    if (isExecuteLogArchiveTask()) {
-                        taskConcurrent = archiveProperties.getExecuteLog().getConcurrent();
-                    }
                     if (shouldWait(watch, runningTasks, scheduleTasksGroupByDb)) {
                         // 休眠1分钟，等待并行任务减少
                         log.info("{} running archive task count exceed concurrent limit : {}, " +
-                            "wait 60s", taskConcurrent, getClass().getSimpleName());
+                            "wait 60s", getRuntimeClassName(), getTaskMaxConcurrent());
                         // 释放锁
                         releaseScheduleLock();
                         locked = false;
@@ -210,7 +202,7 @@ public abstract class AbstractArchiveTaskScheduler<T extends JobHistoricalDataAr
 
                     if (watch.getTotalTimeMillis() > 1000) {
                         log.info("{} scheduling slow for {}, times: {}",
-                            getClass().getSimpleName(), watch.prettyPrint(), getClass().getSimpleName());
+                            getRuntimeClassName(), watch.prettyPrint(), watch.getTotalTimeMillis());
                     }
                 } finally {
                     if (locked) {
@@ -221,19 +213,19 @@ public abstract class AbstractArchiveTaskScheduler<T extends JobHistoricalDataAr
                     }
                     if (watch.getTotalTimeMillis() > 1000) {
                         log.info("{} schedule archive task slow, cost statistics: {}",
-                            watch.prettyPrint(), getClass().getSimpleName());
+                            getRuntimeClassName(), watch.prettyPrint());
                     }
                 }
             }
         } catch (Throwable t) {
-            log.error("{} schedule caught exception", getClass().getSimpleName(), t);
+            log.error("{} schedule caught exception", getRuntimeClassName(), t);
         } finally {
             this.scheduling = false;
         }
     }
 
     private void startArchiveTask(ArchiveTaskInfo archiveTaskInfo) {
-        log.info("Start {}, taskId: {}, taskInfo: {}", getClass().getSimpleName(),
+        log.info("Start {}, taskId: {}, taskInfo: {}", getRuntimeClassName(),
             archiveTaskInfo.buildTaskUniqueId(), JsonUtils.toJson(archiveTaskInfo));
         T archiveTask = createArchiveTask(archiveTaskInfo);
 
@@ -245,7 +237,7 @@ public abstract class AbstractArchiveTaskScheduler<T extends JobHistoricalDataAr
         });
         synchronized (lifecycleMonitor) {
             if (!isActive()) {
-                log.info("{} is not active, skip", getClass().getSimpleName());
+                log.info("{} is not active, skip", getRuntimeClassName());
                 return;
             }
             scheduledTasks.put(archiveTask.getTaskId(), archiveTask);
@@ -253,7 +245,7 @@ public abstract class AbstractArchiveTaskScheduler<T extends JobHistoricalDataAr
         ArchiveTaskWorker worker = new ArchiveTaskWorker(archiveTask, tracer);
         worker.start();
         log.info("Started data archive task {} for {}",
-            archiveTaskInfo.buildTaskUniqueId(), getClass().getSimpleName());
+            archiveTaskInfo.buildTaskUniqueId(), getRuntimeClassName());
     }
 
     private void stopTasksGraceful() {
@@ -311,10 +303,20 @@ public abstract class AbstractArchiveTaskScheduler<T extends JobHistoricalDataAr
     }
 
     /**
-     * 是否执行日志归档
+     * 是否需要等待，比如达到了最大归档任务数
      */
-    protected boolean isExecuteLogArchiveTask() {
-        return false;
+    protected boolean shouldWait(StopWatch watch,
+                                 List<ArchiveTaskInfo> runningTasks,
+                                 Map<String, Integer> scheduleTasksGroupByDb) {
+        int taskConcurrent = getTaskMaxConcurrent();
+        return runningTasks.size() >= taskConcurrent;
+    }
+
+    /**
+     * 获取运行时的类名
+     */
+    protected String getRuntimeClassName() {
+        return this.getClass().getSimpleName();
     }
 
     /**
@@ -338,11 +340,9 @@ public abstract class AbstractArchiveTaskScheduler<T extends JobHistoricalDataAr
     protected abstract List<ArchiveTaskInfo> listRunningTasks();
 
     /**
-     * 是否需要等待，比如达到了最大归档任务数
+     * 获取任务的最大并发数
      */
-    protected abstract boolean shouldWait(StopWatch watch,
-                               List<ArchiveTaskInfo> runningTasks,
-                               Map<String, Integer> scheduleTasksGroupByDb);
+    protected abstract Integer getTaskMaxConcurrent();
 
     /**
      * 获取优先级最高的归档任务

@@ -4,18 +4,19 @@
 ```yaml
 backupConfig:
   archive:
-    execute:
-      executeLog:
-        # 是否开启执行日志归档
-        enabled: true
-        # 是否试运行，试运行下仅打印日志不会真删除mongodb数据
-        dryRun: true
-        # 归档模式，仅支持删除
-        mode: deleteOnly
-        # 执行日志保留天数(要结合执行历史的保留时间合理配置执行日志保留天数)
-        keepDays: 360
-        # 归档任务并发数量
-        concurrent: 6
+    execute-log:
+      # 是否开启执行日志归档
+      enabled: true
+      # 是否试运行，试运行下仅打印日志不会真删除mongodb数据
+      dryRun: true
+      # 归档模式，仅支持删除
+      mode: deleteOnly
+      # 归档任务运行的cron表达式，默认每天凌晨04:00
+      cron : 0 0 4 * * *
+      # 执行日志保留天数(要结合执行历史的保留时间合理配置执行日志保留天数)
+      keepDays: 360
+      # 归档任务并发数量
+      concurrent: 6
 ```
 
 ## 0.8.2

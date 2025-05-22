@@ -66,6 +66,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>>
 
     private final ArchiveTaskExecuteLock archiveTaskExecuteLock;
     protected final ArchiveTablePropsStorage archiveTablePropsStorage;
+    private final ArchiveProperties archiveProperties;
 
     public AbstractJobInstanceArchiveTask(AbstractJobInstanceMainHotRecordDAO<T> jobInstanceMainRecordDAO,
                                           JobInstanceColdDAO jobInstanceColdDAO,
@@ -75,11 +76,12 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>>
                                           ArchiveTaskInfo archiveTaskInfo,
                                           ArchiveTaskService archiveTaskService,
                                           ArchiveTablePropsStorage archiveTablePropsStorage) {
-        super(archiveProperties, archiveErrorTaskCounter, archiveTaskInfo, archiveTaskService);
+        super(archiveErrorTaskCounter, archiveTaskInfo, archiveTaskService);
         this.jobInstanceMainRecordDAO = jobInstanceMainRecordDAO;
         this.jobInstanceColdDAO = jobInstanceColdDAO;
         this.archiveTaskExecuteLock = archiveTaskExecuteLock;
         this.archiveTablePropsStorage = archiveTablePropsStorage;
+        this.archiveProperties = archiveProperties;
     }
 
     @Override
@@ -231,7 +233,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>>
     public boolean acquireLock() {
         this.isAcquireLock = archiveTaskExecuteLock.lock(taskId);
         if (!isAcquireLock) {
-            log.info("{} [{}] Acquire archive task lock fail", getClass().getSimpleName(), taskId);
+            log.info("{} [{}] Acquire archive task lock fail", getRuntimeClassName(), taskId);
         }
         return isAcquireLock;
     }

@@ -37,7 +37,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 @Configuration("executeMongoDBConfiguration")
-@ConditionalOnExpression("${job.backup.archive.execute.executeLog.enabled:false}")
+@ConditionalOnExpression("${job.backup.archive.execute-log.enabled:false}")
 public class ExecuteMongoDBConfiguration {
 
     @Value("${spring.datasource.job-execute-mongodb.uri:}")
@@ -59,7 +59,7 @@ public class ExecuteMongoDBConfiguration {
     @Bean
     public JobScriptLogArchiver jobScriptLogArchiver(MongoTemplate mongoTemplate,
                                                      ArchiveTaskService archiveTaskService,
-                                                     ArchiveProperties archiveProperties) {
+                                                     ExecuteLogArchiveProperties archiveProperties) {
         return new JobScriptLogArchiver(mongoTemplate,
             archiveTaskService,
             archiveProperties);
@@ -68,7 +68,7 @@ public class ExecuteMongoDBConfiguration {
     @Bean
     public JobFileLogArchiver jobFileLogArchiver(MongoTemplate mongoTemplate,
                                                    ArchiveTaskService archiveTaskService,
-                                                   ArchiveProperties archiveProperties) {
+                                                 ExecuteLogArchiveProperties archiveProperties) {
         return new JobFileLogArchiver(mongoTemplate,
             archiveTaskService,
             archiveProperties);

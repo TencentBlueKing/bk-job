@@ -29,7 +29,6 @@ import com.tencent.bk.job.backup.archive.model.ArchiveTaskExecutionDetail;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.IdBasedArchiveProcess;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
-import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import com.tencent.bk.job.common.util.StringUtil;
@@ -40,9 +39,12 @@ import org.slf4j.helpers.MessageFormatter;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * 作业执行历史归档任务的抽象基类，定义了归档任务的公共方法、生命周期
+ * 子类必须实现{@link #backupAndDelete()}, {@link #acquireLock()}和{@link #unlock()} 方法
+ */
 @Slf4j
 public abstract class AbstractHistoricalDataArchiveTask implements JobHistoricalDataArchiveTask{
-    protected final ArchiveProperties archiveProperties;
     protected final ArchiveErrorTaskCounter archiveErrorTaskCounter;
     protected final ArchiveTaskService archiveTaskService;
     protected final String taskId;
@@ -78,11 +80,9 @@ public abstract class AbstractHistoricalDataArchiveTask implements JobHistorical
     protected ArchiveTaskWorker archiveTaskWorker;
 
 
-    protected AbstractHistoricalDataArchiveTask(ArchiveProperties archiveProperties,
-                                                ArchiveErrorTaskCounter archiveErrorTaskCounter,
+    protected AbstractHistoricalDataArchiveTask(ArchiveErrorTaskCounter archiveErrorTaskCounter,
                                                 ArchiveTaskInfo archiveTaskInfo,
                                                 ArchiveTaskService archiveTaskService) {
-        this.archiveProperties = archiveProperties;
         this.archiveErrorTaskCounter = archiveErrorTaskCounter;
         this.archiveTaskInfo = archiveTaskInfo;
         this.archiveTaskService = archiveTaskService;
@@ -103,7 +103,7 @@ public abstract class AbstractHistoricalDataArchiveTask implements JobHistorical
             if (!acquireLock()) {
                 return;
             }
-            log.info("{} [{}] Start archive task", getClass().getSimpleName(), taskId);
+            log.info("{} [{}] Start archive task", getRuntimeClassName(), taskId);
             // 更新任务信息 - 启动完成
             updateStartedExecuteInfo();
             // 归档
@@ -111,7 +111,7 @@ public abstract class AbstractHistoricalDataArchiveTask implements JobHistorical
         } catch (Throwable e) {
             String msg = MessageFormatter.format(
                 "{} [{}] Error while execute archive task",
-                getClass().getSimpleName(),
+                getRuntimeClassName(),
                 taskId
             ).getMessage();
             log.error(msg, e);
@@ -126,7 +126,7 @@ public abstract class AbstractHistoricalDataArchiveTask implements JobHistorical
             }
             log.info(
                 "{} [{}] Archive finished, result: {}",
-                getClass().getSimpleName(),
+                getRuntimeClassName(),
                 taskId,
                 JsonUtils.toJson(archiveTaskInfo)
             );
@@ -143,7 +143,7 @@ public abstract class AbstractHistoricalDataArchiveTask implements JobHistorical
     @Override
     public void stop(ArchiveTaskStopCallback callback) {
         synchronized (this) {
-            log.info("{} [{}] Set stop flag to true", getClass().getSimpleName(), taskId);
+            log.info("{} [{}] Set stop flag to true", getRuntimeClassName(), taskId);
             this.stopFlag = true;
             this.stopCallback = callback;
         }
@@ -156,7 +156,7 @@ public abstract class AbstractHistoricalDataArchiveTask implements JobHistorical
     }
 
     protected void stopTask() {
-        log.info("{} [{}] Try to stop archive task", getClass().getSimpleName(), taskId);
+        log.info("{} [{}] Try to stop archive task", getRuntimeClassName(), taskId);
         synchronized (stopMonitor) {
             if (!isStopped) {
                 isStopped = true;
@@ -165,9 +165,9 @@ public abstract class AbstractHistoricalDataArchiveTask implements JobHistorical
                 if (stopCallback != null) {
                     stopCallback.callback();
                 }
-                log.info("{} [{}] Stop archive task successfully", getClass().getSimpleName(), taskId);
+                log.info("{} [{}] Stop archive task successfully", getRuntimeClassName(), taskId);
             } else {
-                log.info("{} [{}] Archive task is already stopped", getClass().getSimpleName(), taskId);
+                log.info("{} [{}] Archive task is already stopped", getRuntimeClassName(), taskId);
             }
         }
     }
@@ -181,12 +181,12 @@ public abstract class AbstractHistoricalDataArchiveTask implements JobHistorical
             archiveTaskInfo.getHour(),
             ArchiveTaskStatusEnum.SUSPENDED
         );
-        log.info("{} [{}] Set archive task status suspended", getClass().getSimpleName(), taskId);
+        log.info("{} [{}] Set archive task status suspended", getRuntimeClassName(), taskId);
     }
 
     @Override
     public void forceStopAtOnce() {
-        log.info("{} Force stop archive task at once. taskId: {}", getClass().getSimpleName(), taskId);
+        log.info("{} Force stop archive task at once. taskId: {}", getRuntimeClassName(), taskId);
         forceStoppedByScheduler.set(true);
         // 更新归档任务状态为“暂停”
         updateArchiveTaskSuspended();
@@ -254,7 +254,7 @@ public abstract class AbstractHistoricalDataArchiveTask implements JobHistorical
         }
 
         log.info("{} [{}] Update archive task completed execute info, status: {}, process: {}",
-            getClass().getSimpleName(), taskId, status, process);
+            getRuntimeClassName(), taskId, status, process);
         archiveTaskService.updateCompletedExecuteInfo(
             archiveTaskInfo.getTaskType(),
             archiveTaskInfo.getDbDataNode(),
@@ -287,11 +287,18 @@ public abstract class AbstractHistoricalDataArchiveTask implements JobHistorical
         if (forceStoppedByScheduler.get()) {
             // 如果已经被归档任务调度强制终止了，就不能再去更新 db，引起数据不一致
             log.info("{} [{}] Archive task is force stopped by scheduler, do not update archive task again",
-                getClass().getSimpleName(), taskId);
+                getRuntimeClassName(), taskId);
             return false;
         } else {
             return true;
         }
+    }
+
+    /**
+     * 获取运行时的类名
+     */
+    protected String getRuntimeClassName() {
+        return this.getClass().getSimpleName();
     }
 
     /**

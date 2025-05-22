@@ -28,11 +28,12 @@ import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.BackupResult;
 import com.tencent.bk.job.backup.archive.model.DeleteResult;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
-import com.tencent.bk.job.backup.config.ArchiveProperties;
+import com.tencent.bk.job.backup.config.ExecuteLogArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
-import com.tencent.bk.job.backup.constant.JobLogTypeEnum;
+import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
+import com.tencent.bk.job.logsvr.util.CollectionNameUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
@@ -46,13 +47,10 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public abstract class AbstractJobExecuteLogArchiver implements JobExecuteLogArchiver{
-    private final ArchiveProperties archiveProperties;
+    private final ExecuteLogArchiveProperties archiveProperties;
     private final ArchiveTaskService archiveTaskService;
-    private final JobLogTypeEnum jobLogTypeEnum;
+    private final LogTypeEnum logTypeEnum;
     private final MongoTemplate mongoTemplate;
-    private static final String SCRIPT_LOG_PREFIX = "job_log_script";
-    private static final String FILE_LOG_PREFIX = "job_log_file";
-    private static final String COLLECTION_NAME_SEPARATOR = "_";
     private static final String ARCHIVE_DAY_FORMATTER = "yyyyMMdd";
     private static final String COLLECTION_NAME_DATE_FORMATTER = "yyyy_MM_dd";
     private static final DateTimeFormatter INPUT_DATE_FORMATTER = DateTimeFormatter.ofPattern(ARCHIVE_DAY_FORMATTER);
@@ -61,12 +59,12 @@ public abstract class AbstractJobExecuteLogArchiver implements JobExecuteLogArch
 
     public AbstractJobExecuteLogArchiver(MongoTemplate mongoTemplate,
                                          ArchiveTaskService archiveTaskService,
-                                         ArchiveProperties archiveProperties,
-                                         JobLogTypeEnum jobLogTypeEnum) {
+                                         ExecuteLogArchiveProperties archiveProperties,
+                                         LogTypeEnum logTypeEnum) {
         this.mongoTemplate = mongoTemplate;
         this.archiveTaskService = archiveTaskService;
         this.archiveProperties = archiveProperties;
-        this.jobLogTypeEnum = jobLogTypeEnum;
+        this.logTypeEnum = logTypeEnum;
     }
 
     @Override
@@ -74,11 +72,11 @@ public abstract class AbstractJobExecuteLogArchiver implements JobExecuteLogArch
         // 作业执行日志按集合删除，当前仅支持删除
         if (!isDeleteEnable()) {
             log.info("Delete job execute log is disabled, skip delete, mode={}",
-                archiveProperties.getExecuteLog().getMode());
+                archiveProperties.getMode());
             return DeleteResult.NON_OP_DELETE_RESULT;
         }
         String collectionName = getCollectionName(archiveDay);
-        if (archiveProperties.getExecuteLog().isDryRun()) {
+        if (archiveProperties.isDryRun()) {
             log.info("Dry-run mode is enabled, skipping the actual operation of drop the collection [{}]",
                 collectionName);
             return DeleteResult.NON_OP_DELETE_RESULT;
@@ -119,7 +117,7 @@ public abstract class AbstractJobExecuteLogArchiver implements JobExecuteLogArch
     }
 
     private String getCollectionName(Integer day) {
-        String prefix = getCollectionNamePrefix();
+        String prefix = CollectionNameUtil.buildCollectionNamePrefix(logTypeEnum);
         String formattedDate = LocalDate.parse(
             String.valueOf(day),
             INPUT_DATE_FORMATTER
@@ -127,19 +125,8 @@ public abstract class AbstractJobExecuteLogArchiver implements JobExecuteLogArch
         return prefix + formattedDate;
     }
 
-    private String getCollectionNamePrefix() {
-        Integer type = jobLogTypeEnum.getValue();
-        String prefix = "";
-        if (JobLogTypeEnum.SCRIPT.getValue().equals(type)) {
-            prefix = SCRIPT_LOG_PREFIX + COLLECTION_NAME_SEPARATOR;
-        } else if (JobLogTypeEnum.FILE.getValue().equals(type)) {
-            prefix = FILE_LOG_PREFIX + COLLECTION_NAME_SEPARATOR;
-        }
-        return prefix;
-    }
-
     private boolean isDeleteEnable() {
-        return archiveProperties.getExecuteLog().isEnabled()
-            && ArchiveModeEnum.DELETE_ONLY == ArchiveModeEnum.valOf(archiveProperties.getExecuteLog().getMode());
+        return archiveProperties.isEnabled()
+            && ArchiveModeEnum.DELETE_ONLY == ArchiveModeEnum.valOf(archiveProperties.getMode());
     }
 }

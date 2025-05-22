@@ -30,7 +30,7 @@ import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
 import com.tencent.bk.job.backup.archive.JobExecuteLogArchiveTaskGenerator;
 import com.tencent.bk.job.backup.archive.JobExecuteLogArchiveTaskScheduler;
 import com.tencent.bk.job.backup.archive.JobExecuteLogArchivers;
-import com.tencent.bk.job.backup.archive.JobInstanceArchiveCronJobs;
+import com.tencent.bk.job.backup.archive.ArchiveCronJobs;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskGenerator;
 import com.tencent.bk.job.backup.archive.JobInstanceArchiveTaskScheduler;
 import com.tencent.bk.job.backup.archive.JobInstanceSubTableArchivers;
@@ -51,17 +51,26 @@ import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.lang.Nullable;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -72,36 +81,40 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @EnableScheduling
 @Slf4j
-@EnableConfigurationProperties(ArchiveProperties.class)
+@EnableConfigurationProperties({ArchiveProperties.class, ExecuteLogArchiveProperties.class})
 @Import({ExecuteHotDbConfiguration.class, ExecuteColdDbConfiguration.class, ExecuteMongoDBConfiguration.class})
-@ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
 public class ArchiveConfiguration {
 
     @Bean
+    @ConditionalOnHistoricDataArchiveEnabled
     public ArchiveTaskExecuteLock archiveTaskLock(StringRedisTemplate redisTemplate) {
         log.info("Init ArchiveTaskExecuteLock");
         return new ArchiveTaskExecuteLock(redisTemplate);
     }
 
     @Bean
+    @ConditionalOnExecuteLogArchiveEnabled
     public ArchiveLogTaskExecuteLock archiveLogTaskLock(StringRedisTemplate redisTemplate) {
         log.info("Init ArchiveLogTaskExecuteLock");
         return new ArchiveLogTaskExecuteLock(redisTemplate);
     }
 
     @Bean
+    @ConditionalOnHistoricDataArchiveEnabled
     public JobInstanceArchiveTaskGenerateLock jobInstanceArchiveTaskGenerateLock(StringRedisTemplate redisTemplate) {
         log.info("Init JobInstanceArchiveTaskGenerateLock");
         return new JobInstanceArchiveTaskGenerateLock(redisTemplate);
     }
 
     @Bean
+    @ConditionalOnAnyArchiveEnabled
     public FailedArchiveTaskRescheduleLock failedArchiveTaskRescheduleLock(StringRedisTemplate redisTemplate) {
         log.info("Init FailedArchiveTaskRescheduleLock");
         return new FailedArchiveTaskRescheduleLock(redisTemplate);
     }
 
     @Bean
+    @ConditionalOnExecuteLogArchiveEnabled
     public JobExecuteLogArchiveTaskGenerateLock jobExecuteLogArchiveTaskGenerateLock(
         StringRedisTemplate redisTemplate) {
         log.info("Init JobExecuteLogArchiveTaskGenerateLock");
@@ -109,6 +122,7 @@ public class ArchiveConfiguration {
     }
 
     @Bean
+    @ConditionalOnHistoricDataArchiveEnabled
     public JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator(
         ArchiveTaskService archiveTaskService,
         JobInstanceHotRecordDAO taskInstanceRecordDAO,
@@ -125,9 +139,10 @@ public class ArchiveConfiguration {
     }
 
     @Bean
+    @ConditionalOnExecuteLogArchiveEnabled
     public JobExecuteLogArchiveTaskGenerator jobExecuteLogArchiveTaskGenerator(
         ArchiveTaskService archiveTaskService,
-        ArchiveProperties archiveProperties,
+        ExecuteLogArchiveProperties archiveProperties,
         JobExecuteLogArchiveTaskGenerateLock jobExecuteLogArchiveTaskGenerateLock,
         @Nullable MongoTemplate mongoTemplate) {
 
@@ -141,6 +156,7 @@ public class ArchiveConfiguration {
     }
 
     @Bean("archiveTaskStopExecutor")
+    @ConditionalOnHistoricDataArchiveEnabled
     public ThreadPoolExecutor archiveTaskStopExecutor(MeterRegistry meterRegistry) {
         return new WatchableThreadPoolExecutor(
             meterRegistry,
@@ -154,7 +170,23 @@ public class ArchiveConfiguration {
         );
     }
 
+    @Bean("executeLogArchiveTaskStopExecutor")
+    @ConditionalOnExecuteLogArchiveEnabled
+    public ThreadPoolExecutor executeLogArchiveTaskStopExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "executeLogArchiveTaskStopExecutor",
+            5,
+            20,
+            120L,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(),
+            new ThreadFactoryBuilder().setNameFormat("execute-log-archive-task-stop-thread-pool-%d").build()
+        );
+    }
+
     @Bean
+    @ConditionalOnHistoricDataArchiveEnabled
     public JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler(
         ArchiveTaskService archiveTaskService,
         JobInstanceHotRecordDAO taskInstanceRecordDAO,
@@ -185,15 +217,16 @@ public class ArchiveConfiguration {
     }
 
     @Bean
+    @ConditionalOnExecuteLogArchiveEnabled
     public JobExecuteLogArchiveTaskScheduler jobExecuteLogArchiveTaskScheduler(
         ArchiveTaskService archiveTaskService,
-        ArchiveProperties archiveProperties,
+        ExecuteLogArchiveProperties archiveProperties,
         JobExecuteLogArchiveTaskScheduleLock jobExecuteLogArchiveTaskScheduleLock,
         JobExecuteLogArchivers jobExecuteLogArchivers,
         ArchiveLogTaskExecuteLock archiveLogTaskExecuteLock,
         ArchiveErrorTaskCounter archiveErrorTaskCounter,
         Tracer tracer,
-        @Qualifier("archiveTaskStopExecutor") ThreadPoolExecutor archiveTaskStopExecutor) {
+        @Qualifier("executeLogArchiveTaskStopExecutor") ThreadPoolExecutor archiveTaskStopExecutor) {
         log.info("Init JobExecuteLogArchiveTaskScheduler");
         return new JobExecuteLogArchiveTaskScheduler(
             archiveTaskService,
@@ -208,37 +241,43 @@ public class ArchiveConfiguration {
     }
 
     @Bean
-    public JobInstanceArchiveCronJobs jobInstanceArchiveCronJobs(
+    @ConditionalOnAnyArchiveEnabled
+    public ArchiveCronJobs archiveCronJobs(
         JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
         JobExecuteLogArchiveTaskGenerator jobExecuteLogArchiveTaskGenerator,
         JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
         JobExecuteLogArchiveTaskScheduler jobExecuteLogArchiveTaskScheduler,
         ArchiveProperties archiveProperties,
+        ExecuteLogArchiveProperties executeLogArchiveProperties,
         AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler) {
-        log.info("Init JobInstanceArchiveCronJobs");
-        return new JobInstanceArchiveCronJobs(
+        log.info("Init ArchiveCronJobs");
+        return new ArchiveCronJobs(
             jobInstanceArchiveTaskGenerator,
             jobExecuteLogArchiveTaskGenerator,
             jobInstanceArchiveTaskScheduler,
             jobExecuteLogArchiveTaskScheduler,
             archiveProperties,
+            executeLogArchiveProperties,
             abnormalArchiveTaskReScheduler
         );
     }
 
     @Bean
+    @ConditionalOnHistoricDataArchiveEnabled
     public JobInstanceArchiveTaskScheduleLock jobInstanceArchiveTaskScheduleLock() {
         log.info("Init JobInstanceArchiveTaskScheduleLock");
         return new JobInstanceArchiveTaskScheduleLock();
     }
 
     @Bean
+    @ConditionalOnExecuteLogArchiveEnabled
     public JobExecuteLogArchiveTaskScheduleLock jobExecuteLogArchiveTaskScheduleLock() {
         log.info("Init JobExecuteLogArchiveTaskScheduleLock");
         return new JobExecuteLogArchiveTaskScheduleLock();
     }
 
     @Bean
+    @ConditionalOnAnyArchiveEnabled
     public AbnormalArchiveTaskReScheduler failArchiveTaskReScheduler(
         ArchiveTaskService archiveTaskService,
         FailedArchiveTaskRescheduleLock failedArchiveTaskRescheduleLock) {
@@ -247,14 +286,55 @@ public class ArchiveConfiguration {
     }
 
     @Bean
+    @ConditionalOnHistoricDataArchiveEnabled
     public ArchiveTasksGauge archiveTasksGauge(MeterRegistry meterRegistry,
                                                ArchiveTaskService archiveTaskService) {
         return new ArchiveTasksGauge(meterRegistry, archiveTaskService);
     }
 
     @Bean
+    @ConditionalOnHistoricDataArchiveEnabled
     public ArchiveTablePropsStorage archiveTablePropsStorage(ArchiveProperties archiveProperties) {
         log.info("Init ArchiveTablePropsStorage");
         return new ArchiveTablePropsStorage(archiveProperties);
+    }
+
+    /**
+     * 条件注解：控制历史数据归档相关bean的注入
+     */
+    @Target({ElementType.TYPE, ElementType.METHOD})
+    @Retention(RetentionPolicy.RUNTIME)
+    @ConditionalOnProperty(
+        value = "job.backup.archive.execute.enabled",
+        havingValue = "true"
+    )
+    public @interface ConditionalOnHistoricDataArchiveEnabled {
+    }
+
+    /**
+     * 条件注解：控制执行日志归档相关bean的注入
+     */
+    @Target({ElementType.TYPE, ElementType.METHOD})
+    @Retention(RetentionPolicy.RUNTIME)
+    @ConditionalOnProperty(
+        value = "job.backup.archive.execute-log.enabled",
+        havingValue = "true"
+    )
+    public @interface ConditionalOnExecuteLogArchiveEnabled {}
+
+    /**
+     * 条件注解：控制归档任务公共bean的注入
+     */
+    @Target({ElementType.METHOD, ElementType.TYPE})
+    @Retention(RetentionPolicy.RUNTIME)
+    @Conditional(AnyArchiveEnabledCondition.class)
+    public @interface ConditionalOnAnyArchiveEnabled {}
+    static class AnyArchiveEnabledCondition implements Condition {
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+            Environment env = context.getEnvironment();
+            return env.getProperty("job.backup.archive.execute.enabled", Boolean.class, false)
+                || env.getProperty("job.backup.archive.execute-log.enabled", Boolean.class, false);
+        }
     }
 }

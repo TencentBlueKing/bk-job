@@ -27,7 +27,7 @@ package com.tencent.bk.job.backup.archive;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.lock.ArchiveLogTaskExecuteLock;
-import com.tencent.bk.job.backup.config.ArchiveProperties;
+import com.tencent.bk.job.backup.config.ExecuteLogArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import lombok.extern.slf4j.Slf4j;
@@ -39,28 +39,30 @@ import lombok.extern.slf4j.Slf4j;
 public class JobExecuteLogArchiveTask extends AbstractHistoricalDataArchiveTask {
     private final ArchiveLogTaskExecuteLock archiveLogTaskExecuteLock;
     private final JobExecuteLogArchivers jobExecuteLogArchivers;
+    private final ExecuteLogArchiveProperties archiveProperties;
 
-    public JobExecuteLogArchiveTask(ArchiveProperties archiveProperties,
+    public JobExecuteLogArchiveTask(ExecuteLogArchiveProperties archiveProperties,
                                     ArchiveLogTaskExecuteLock archiveLogTaskExecuteLock,
                                     ArchiveErrorTaskCounter archiveErrorTaskCounter,
                                     ArchiveTaskInfo archiveTaskInfo,
                                     ArchiveTaskService archiveTaskService,
                                     JobExecuteLogArchivers jobExecuteLogArchivers) {
-        super(archiveProperties, archiveErrorTaskCounter, archiveTaskInfo, archiveTaskService);
+        super(archiveErrorTaskCounter, archiveTaskInfo, archiveTaskService);
         this.archiveLogTaskExecuteLock = archiveLogTaskExecuteLock;
         this.jobExecuteLogArchivers = jobExecuteLogArchivers;
+        this.archiveProperties = archiveProperties;
     }
 
     @Override
     public void backupAndDelete() {
         long startTime = System.currentTimeMillis();
-        log.info("[{}] archive log task mode: {}", taskId, archiveProperties.getExecuteLog().getMode());
+        log.info("[{}] archive log task mode: {}", taskId, archiveProperties.getMode());
         jobExecuteLogArchivers.getAll().forEach(archiver -> {
             archiver.backupRecords(archiveTaskInfo.getDay());
             archiver.deleteRecords(archiveTaskInfo.getDay());
         });
         long archiveCost = System.currentTimeMillis() - startTime;
-        if (archiveProperties.getExecuteLog().isDryRun()) {
+        if (archiveProperties.isDryRun()) {
             updateCompletedExecuteInfo(ArchiveTaskStatusEnum.DRYRUN, null);
             return;
         }
@@ -72,7 +74,7 @@ public class JobExecuteLogArchiveTask extends AbstractHistoricalDataArchiveTask 
     public boolean acquireLock() {
         this.isAcquireLock = archiveLogTaskExecuteLock.lock(taskId);
         if (!isAcquireLock) {
-            log.info("{} [{}] Acquire archive log task lock fail", getClass().getSimpleName(), taskId);
+            log.info("{} [{}] Acquire archive log task lock fail", getRuntimeClassName(), taskId);
         }
         return isAcquireLock;
     }

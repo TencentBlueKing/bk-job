@@ -28,12 +28,11 @@ import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.lock.ArchiveLogTaskExecuteLock;
 import com.tencent.bk.job.backup.archive.util.lock.JobExecuteLogArchiveTaskScheduleLock;
-import com.tencent.bk.job.backup.config.ArchiveProperties;
+import com.tencent.bk.job.backup.config.ExecuteLogArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.Tracer;
-import org.springframework.util.StopWatch;
 
 import java.util.List;
 import java.util.Map;
@@ -48,24 +47,21 @@ public class JobExecuteLogArchiveTaskScheduler extends AbstractArchiveTaskSchedu
     private final JobExecuteLogArchiveTaskScheduleLock scheduleLock;
     private final JobExecuteLogArchivers jobExecuteLogArchivers;
     private final ArchiveLogTaskExecuteLock archiveLogTaskExecuteLock;
+    private final ExecuteLogArchiveProperties archiveProperties;
 
     public JobExecuteLogArchiveTaskScheduler(ArchiveTaskService archiveTaskService,
-                                             ArchiveProperties archiveProperties,
+                                             ExecuteLogArchiveProperties archiveProperties,
                                              JobExecuteLogArchiveTaskScheduleLock scheduleLock,
                                              JobExecuteLogArchivers jobExecuteLogArchivers,
                                              ArchiveLogTaskExecuteLock archiveLogTaskExecuteLock,
                                              ArchiveErrorTaskCounter archiveErrorTaskCounter,
                                              Tracer tracer,
                                              ExecutorService archiveTaskStopExecutor) {
-        super(archiveTaskService, archiveProperties, archiveTaskStopExecutor, archiveErrorTaskCounter, tracer);
+        super(archiveTaskService, archiveTaskStopExecutor, archiveErrorTaskCounter, tracer);
         this.scheduleLock = scheduleLock;
         this.jobExecuteLogArchivers = jobExecuteLogArchivers;
         this.archiveLogTaskExecuteLock = archiveLogTaskExecuteLock;
-    }
-
-    @Override
-    protected boolean isExecuteLogArchiveTask() {
-        return true;
+        this.archiveProperties = archiveProperties;
     }
 
     @Override
@@ -89,22 +85,19 @@ public class JobExecuteLogArchiveTaskScheduler extends AbstractArchiveTaskSchedu
     }
 
     @Override
-    protected boolean shouldWait(StopWatch watch,
-                                 List<ArchiveTaskInfo> runningTasks,
-                                 Map<String, Integer> scheduleTasksGroupByDb) {
-        int taskConcurrent = archiveProperties.getTasks().getArchiveTaskConfig().getConcurrent();
-        return runningTasks.size() >= taskConcurrent;
-    }
-
-    @Override
     protected ArchiveTaskInfo getNextTask(Map<String, Integer> group, List<ArchiveTaskInfo> running) {
         return archiveTaskService.getFirstScheduleArchiveTask(ArchiveTaskTypeEnum.JOB_EXECUTE_LOG);
     }
 
     @Override
+    protected Integer getTaskMaxConcurrent() {
+        return archiveProperties.getConcurrent();
+    }
+
+    @Override
     protected JobExecuteLogArchiveTask createArchiveTask(ArchiveTaskInfo archiveTaskInfo) {
         return new JobExecuteLogArchiveTask(
-            super.archiveProperties,
+            archiveProperties,
             archiveLogTaskExecuteLock,
             super.archiveErrorTaskCounter,
             archiveTaskInfo,

@@ -29,10 +29,11 @@ import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.ArchiveDateTimeUtil;
 import com.tencent.bk.job.backup.archive.util.lock.JobExecuteLogArchiveTaskGenerateLock;
-import com.tencent.bk.job.backup.config.ArchiveProperties;
+import com.tencent.bk.job.backup.config.ExecuteLogArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.logsvr.util.CollectionNameUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -45,10 +46,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -59,7 +59,7 @@ public class JobExecuteLogArchiveTaskGenerator {
 
     private final ArchiveTaskService archiveTaskService;
 
-    private final ArchiveProperties archiveProperties;
+    private final ExecuteLogArchiveProperties archiveProperties;
 
     private final JobExecuteLogArchiveTaskGenerateLock jobExecuteLogArchiveTaskGenerateLock;
 
@@ -70,16 +70,11 @@ public class JobExecuteLogArchiveTaskGenerator {
      */
     private final ZoneId archiveZoneId;
 
-    // 匹配脚本日志、文件日志的集合名称
-    private static final Pattern LOG_COLLECTION_NAME_PATTERN = Pattern.compile(
-        "job_log_(?:script|file)_(\\d{4}_\\d{2}_\\d{2})"
-    );
-
     private static final DateTimeFormatter DATE_FORMAT_YYYY_MM_DD = DateTimeFormatter.ofPattern("yyyy_MM_dd");
 
 
     public JobExecuteLogArchiveTaskGenerator(ArchiveTaskService archiveTaskService,
-                                             ArchiveProperties archiveProperties,
+                                             ExecuteLogArchiveProperties archiveProperties,
                                              JobExecuteLogArchiveTaskGenerateLock jobExecuteLogArchiveTaskGenerateLock,
                                              MongoTemplate mongoTemplate) {
         this.archiveTaskService = archiveTaskService;
@@ -108,7 +103,7 @@ public class JobExecuteLogArchiveTaskGenerator {
             log.info("Compute archive log task generate startDateTime and endDateTime");
             LocalDateTime archiveStartDateTime = computeDateTimeByCollectionName(earliestCollection.get());
             LocalDateTime archiveEndDateTime =
-                ArchiveDateTimeUtil.computeArchiveEndTime(archiveProperties.getExecuteLog().getKeepDays(),
+                ArchiveDateTimeUtil.computeArchiveEndTime(archiveProperties.getKeepDays(),
                     archiveZoneId);
             if (archiveEndDateTime.isBefore(archiveStartDateTime)
                 || archiveEndDateTime.equals(archiveStartDateTime)) {
@@ -158,24 +153,16 @@ public class JobExecuteLogArchiveTaskGenerator {
     }
 
     /**
-     * 解析集合名中的日期，匹配失败返回null。
-     */
-    private LocalDate collectionNameToDate(String collectionName) {
-        Matcher m = LOG_COLLECTION_NAME_PATTERN.matcher(collectionName);
-        if (!m.matches()) {
-            return null;
-        }
-        return LocalDate.parse(m.group(1), DATE_FORMAT_YYYY_MM_DD);
-    }
-
-    /**
      * 找到最早的集合名。
      */
     private Optional<String> findEarliestCollection(Set<String> allCollections) {
         if (allCollections.isEmpty()) return Optional.empty();
         return allCollections.stream()
-            .filter(name -> collectionNameToDate(name) != null)
-            .min(Comparator.comparing(this::collectionNameToDate));
+            .filter(name -> CollectionNameUtil.collectionNameToDateStr(name) != null)
+            .min(Comparator.comparing(name ->
+                LocalDate.parse(Objects.requireNonNull(CollectionNameUtil.collectionNameToDateStr(name)),
+                    DATE_FORMAT_YYYY_MM_DD)
+            ));
     }
 
     private ArchiveTaskInfo buildArchiveTask(ArchiveTaskTypeEnum archiveTaskType,
@@ -197,7 +184,8 @@ public class JobExecuteLogArchiveTaskGenerator {
     }
 
     private LocalDateTime computeDateTimeByCollectionName(String name) {
-        LocalDate date = collectionNameToDate(name);
+        LocalDate date = LocalDate.parse(Objects.requireNonNull(CollectionNameUtil.collectionNameToDateStr(name)),
+            DATE_FORMAT_YYYY_MM_DD);
         return date.atStartOfDay();
     }
 }

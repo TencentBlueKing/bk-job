@@ -22,38 +22,56 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.constant;
+package com.tencent.bk.job.backup.config;
 
-public enum JobLogTypeEnum {
+import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+/**
+ * 作业执行日志归档配置
+ */
+@Getter
+@Setter
+@ToString
+@ConfigurationProperties(prefix = "job.backup.archive.execute-log")
+public class ExecuteLogArchiveProperties {
+    /**
+     * 是否启用执行日志归档
+     */
+    private boolean enabled = false;
 
     /**
-     * 脚本执行任务日志
+     * 是否试运行
      */
-    SCRIPT(1),
+    private boolean dryRun = true;
+
     /**
-     * 文件分发任务日志
+     * 执行日志归档模式
+     *
+     * @see ArchiveModeEnum
      */
-    FILE(2);
+    private String mode;
 
-    private final Integer value;
+    /**
+     * 归档任务触发时间
+     */
+    private String cron;
 
-    JobLogTypeEnum(Integer val) {
-        this.value = val;
-    }
+    /**
+     * 归档数据时间范围计算所依据的时区，如果不指定默认为系统时区
+     */
+    private String timeZone;
 
-    public static JobLogTypeEnum getLogType(Integer logType) {
-        if (logType == null) {
-            throw new IllegalArgumentException("Empty logType value!");
-        }
-        for (JobLogTypeEnum logTypeEnum : values()) {
-            if (logTypeEnum.getValue().equals(logType)) {
-                return logTypeEnum;
-            }
-        }
-        throw new IllegalArgumentException("Illegal logType: " + logType);
-    }
+    /**
+     * 执行日志保留天数
+     */
+    private int keepDays = 360;
 
-    public Integer getValue() {
-        return value;
-    }
+    /**
+     * 执行日志归档任务并行数量
+     */
+    private Integer concurrent = 6;
 }

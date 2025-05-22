@@ -53,6 +53,7 @@ public class JobInstanceArchiveTaskScheduler extends AbstractArchiveTaskSchedule
     private final ArchiveTaskExecuteLock archiveTaskExecuteLock;
     private final JobInstanceArchiveTaskScheduleLock scheduleLock;
     private final ArchiveTablePropsStorage archiveTablePropsStorage;
+    private final ArchiveProperties archiveProperties;
 
     public JobInstanceArchiveTaskScheduler(ArchiveTaskService archiveTaskService,
                                            JobInstanceHotRecordDAO taskInstanceRecordDAO,
@@ -65,13 +66,14 @@ public class JobInstanceArchiveTaskScheduler extends AbstractArchiveTaskSchedule
                                            ArchiveTablePropsStorage archiveTablePropsStorage,
                                            Tracer tracer,
                                            ExecutorService archiveTaskStopExecutor) {
-        super(archiveTaskService, archiveProperties, archiveTaskStopExecutor, archiveErrorTaskCounter, tracer);
+        super(archiveTaskService, archiveTaskStopExecutor, archiveErrorTaskCounter, tracer);
         this.taskInstanceRecordDAO = taskInstanceRecordDAO;
         this.scheduleLock = scheduleLock;
         this.jobInstanceSubTableArchivers = jobInstanceSubTableArchivers;
         this.jobInstanceColdDAO = jobInstanceColdDAO;
         this.archiveTaskExecuteLock = archiveTaskExecuteLock;
         this.archiveTablePropsStorage = archiveTablePropsStorage;
+        this.archiveProperties = archiveProperties;
     }
 
     @Override
@@ -104,9 +106,7 @@ public class JobInstanceArchiveTaskScheduler extends AbstractArchiveTaskSchedule
             ArchiveDbNodePriorityEvaluator.evaluateHighestPriorityDbNode(runningTasks,
                 scheduleTasksGroupByDb);
         watch.stop();
-        int taskConcurrent = archiveProperties.getTasks().getArchiveTaskConfig().getConcurrent();
-
-        return highestPriorityDbNodeTasksInfo.getRunningTaskCount() >= taskConcurrent;
+        return highestPriorityDbNodeTasksInfo.getRunningTaskCount() >= getTaskMaxConcurrent();
     }
 
     @Override
@@ -120,12 +120,17 @@ public class JobInstanceArchiveTaskScheduler extends AbstractArchiveTaskSchedule
     }
 
     @Override
+    protected Integer getTaskMaxConcurrent() {
+        return archiveProperties.getTasks().getJobInstance().getConcurrent();
+    }
+
+    @Override
     protected JobInstanceMainDataArchiveTask createArchiveTask(ArchiveTaskInfo archiveTaskInfo) {
         return new JobInstanceMainDataArchiveTask(
             taskInstanceRecordDAO,
             jobInstanceSubTableArchivers,
             jobInstanceColdDAO,
-            super.archiveProperties,
+            archiveProperties,
             archiveTaskExecuteLock,
             super.archiveErrorTaskCounter,
             archiveTaskInfo,
