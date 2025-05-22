@@ -522,23 +522,23 @@ bkRepoUrl: "http://bkrepo.example.com"
 # 节点管理 url
 bkNodemanUrl: "http://nodeman.example.com"
 # 蓝鲸 GSE API Gateway url
-bkGseApiGatewayUrl: "http://bkapi.example.com"
+bkGseApiGatewayUrl: "http://bkapi.example.com/api/bk-gse/prod"
 # 蓝鲸消息通知中心 API Gateway url
-bkNoticeApiGatewayUrl: "http://bkapi.example.com/api/bk-notice"
+bkNoticeApiGatewayUrl: "http://bkapi.example.com/api/bk-notice/prod"
 # 蓝鲸 CMDB API Gateway url
-bkCmdbApiGatewayUrl: "http://bkapi.example.com/api/cmdb"
+bkCmdbApiGatewayUrl: "http://bkapi.example.com/api/cmdb/prod"
 # 蓝鲸 AIDev API Gateway url
-bkAIDevApiGatewayUrl: "http://bkapi.example.com/api/aidev"
+bkAIDevApiGatewayUrl: "http://bkapi.example.com/api/aidev/prod"
 # 蓝鲸登录 API Gateway url
-bkLoginApiGatewayUrl: "http://bkapi.example.com/api/bk-login"
+bkLoginApiGatewayUrl: "http://bkapi.example.com/api/bk-login/prod"
 # 蓝鲸用户管理 API Gateway url
-bkUserApiGatewayUrl: "http://bkapi.example.com/api/bk-user"
+bkUserApiGatewayUrl: "http://bkapi.example.com/api/bk-user/prod"
 # 蓝鲸用户管理前端服务 API Gateway url
-bkUserWebApiGatewayUrl: "http://bkapi.example.com/api/bk-user-web"
+bkUserWebApiGatewayUrl: "http://bkapi.example.com/api/bk-user-web/prod"
 # 蓝鲸权限中心 API Gateway url
-bkIamApiGatewayUrl: "http://bkapi.example.com/api/bk-iam"
+bkIamApiGatewayUrl: "http://bkapi.example.com/api/bk-iam/prod"
 # 消息通知 API Gateway url
-bkCmsiApiGatewayUrl: "http://bkapi.example.com/api/cmsi"
+bkCmsiApiGatewayUrl: "http://bkapi.example.com/api/cmsi/prod"
 # 调用蓝鲸AIDev API使用的appCode，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appCode的值
 bkAIDevAppCode: ""
 # 调用蓝鲸AIDev API使用的appSecret，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appSecret的值
