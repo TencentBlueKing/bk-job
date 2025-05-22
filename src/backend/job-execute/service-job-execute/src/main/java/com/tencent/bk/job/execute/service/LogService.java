@@ -34,6 +34,7 @@ import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.ScriptExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectScriptLogDTO;
@@ -83,13 +84,13 @@ public interface LogService {
     /**
      * 写脚本执行日志
      *
-     * @param jobCreateTime  任务创建时间
+     * @param taskInstance   任务实例
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次;非滚动步骤传入null
      * @param scriptLogs     脚本日志
      */
-    void batchWriteScriptLog(long jobCreateTime,
+    void batchWriteScriptLog(TaskInstanceDTO taskInstance,
                              long stepInstanceId,
                              int executeCount,
                              Integer batch,
@@ -242,11 +243,11 @@ public interface LogService {
     /**
      * 写文件日志日志 - 指定时间
      *
-     * @param jobCreateTime        任务创建时间
+     * @param taskInstance         任务实例
      * @param hostFileLogs         主机执行日志
      * @param logTimeInMillSeconds 日志时间
      */
-    void writeFileLogsWithTimestamp(long jobCreateTime,
+    void writeFileLogsWithTimestamp(TaskInstanceDTO taskInstance,
                                     List<ServiceExecuteObjectLogDTO> hostFileLogs,
                                     Long logTimeInMillSeconds);
 
@@ -254,10 +255,10 @@ public interface LogService {
     /**
      * 写文件日志日志
      *
-     * @param jobCreateTime     任务创建时间
+     * @param taskInstance      任务实例
      * @param executeObjectLogs 文件任务执行日志
      */
-    void writeFileLogs(long jobCreateTime, List<ServiceExecuteObjectLogDTO> executeObjectLogs);
+    void writeFileLogs(TaskInstanceDTO taskInstance, List<ServiceExecuteObjectLogDTO> executeObjectLogs);
 
     /**
      * 构造上传文件任务日志

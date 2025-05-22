@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.cloud.sleuth.annotation.NewSpan;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.List;
@@ -87,6 +88,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
         this.redisLockKey = "watch-cmdb-" + this.watcherResourceName + "-lock";
     }
 
+    @NewSpan
     @Override
     public final void run() {
         log.info("Watching {} event start", this.watcherResourceName);
@@ -97,8 +99,8 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                 HeartBeatRedisLock redisLock = new HeartBeatRedisLock(redisTemplate, redisLockKey, machineIp);
                 lockResult = redisLock.lock();
                 if (!lockResult.isLockGotten()) {
-                    // 30s之后重试
-                    ThreadUtils.sleep(30_000);
+                    // 5s之后重试
+                    ThreadUtils.sleep(5_000);
                     continue;
                 }
 

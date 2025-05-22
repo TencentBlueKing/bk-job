@@ -64,6 +64,7 @@ class FileProgressWatchingTask extends Thread {
     }
 
     public void stopWatching() {
+        log.info("stop watching: taskId={}, filePath={}", taskId, filePath);
         this.runFlag = false;
     }
 
@@ -90,7 +91,7 @@ class FileProgressWatchingTask extends Thread {
                 watchingTaskEventListener.onWatchingTaskFinally(fileTaskKey);
             }
         }
-        log.debug("end watching:{}", fileTaskKey);
+        log.info("end watching:{}", fileTaskKey);
     }
 
     public interface FileProgressWatchingTaskEventListener {

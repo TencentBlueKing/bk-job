@@ -27,6 +27,7 @@ data:
             bkDataToken: {{ .Values.job.trace.report.secureKey }}
           config:
             traceIdRatioBased: {{ .Values.job.trace.report.ratio }}
+      {{- include "job.rabbitmq.sslConfig" . | nindent 6 }}
     bk:
       bkDomain: {{ .Values.global.bkDomain }}
       bkHelperLink: {{ .Values.global.bkHelperLink }}

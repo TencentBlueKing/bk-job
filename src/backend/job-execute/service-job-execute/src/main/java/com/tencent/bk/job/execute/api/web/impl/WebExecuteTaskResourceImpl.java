@@ -426,7 +426,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             return false;
         }
         for (ExecuteFileSourceInfoVO fileSource : request.getFileSourceList()) {
-            if (CollectionUtils.isEmpty(fileSource.getFileLocation())) {
+            if (CollectionUtils.isEmpty(fileSource.getTrimmedFileLocation())) {
                 log.warn("Fast send file ,files are empty");
                 return false;
             }
@@ -435,7 +435,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                     log.warn("Fast send file, account is empty!");
                     return false;
                 }
-                for (String file : fileSource.getFileLocation()) {
+                for (String file : fileSource.getTrimmedFileLocation()) {
                     if (!FilePathValidateUtil.validateFileSystemAbsolutePath(file)) {
                         log.warn("Fast send file, fileLocation is null or illegal!");
                         return false;
@@ -443,7 +443,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                 }
             }
         }
-        if (!FilePathValidateUtil.validateFileSystemAbsolutePath(fileDestination.getPath())) {
+        if (!FilePathValidateUtil.validateFileSystemAbsolutePath(fileDestination.getTrimmedPath())) {
             log.warn("Fast send file, fileDestinationPath is null or illegal!");
             return false;
         }
@@ -476,7 +476,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
         ExecuteFileDestinationInfoVO fileDestination = request.getFileDestination();
         stepInstance.setAccountId(fileDestination.getAccountId());
         stepInstance.setTargetExecuteObjects(ExecuteTargetDTO.fromTaskTargetVO(fileDestination.getServer()));
-        stepInstance.setFileTargetPath(fileDestination.getPath());
+        stepInstance.setFileTargetPath(fileDestination.getTrimmedPath());
         stepInstance.setStepId(-1L);
         stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
         stepInstance.setFileSourceList(convertFileSource(request.getFileSourceList()));
@@ -512,8 +512,8 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             fileSourceDTO.setFileType(fileType.getType());
             fileSourceDTO.setFileSourceId(fileSource.getFileSourceId());
             List<FileDetailDTO> files = new ArrayList<>();
-            if (fileSource.getFileLocation() != null) {
-                for (String file : fileSource.getFileLocation()) {
+            if (fileSource.getTrimmedFileLocation() != null) {
+                for (String file : fileSource.getTrimmedFileLocation()) {
                     if (TaskFileTypeEnum.LOCAL == fileType) {
                         files.add(new FileDetailDTO(true, file, fileSource.getFileHash(),
                             Long.valueOf(fileSource.getFileSize())));

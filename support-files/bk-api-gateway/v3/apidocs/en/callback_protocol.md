@@ -2,6 +2,13 @@
 
 This component is only used to present the callback protocol when job finished.
 
+### Request Headers
+Content-Type: application/json
+
+Compatibility Note:
+
+To ensure backward compatibility, previous versions of Job used Content-Type: application/x-www-form-urlencoded for callback requests, and some existing clients have integrated based on that format. In the current version, Job will prioritize using Content-Type: application/json for callbacks. If the callback fails, it will retry once with Content-Type: application/x-www-form-urlencoded to accommodate legacy clients. New clients must parse callback requests using Content-Type: application/json.
+
 ### Request Parameters
 
 | Fields             | Type  | Required | Description                                                                                                                                                                                                                          |
@@ -38,5 +45,5 @@ This component is only used to present the callback protocol when job finished.
 
 ### Callback response
 
-The success of the callback is based on HTTP status, if it succeeds, the status code 200, the other indicates failure,
-Job will do a retry for the failed one, if it still fails, the failure will be ignored and no more callbacks.
+The successful callback is based on the HTTP status. If successful, the status code is 200, while others indicate failure.
+The current version of the job will prioritize using Content-Type: application/json executes callback. If successful, the callback ends. If failed, job will try again with Content-Type: application/x-www-form-urlencoded to be compatible with clients parsing according to the old protocol.

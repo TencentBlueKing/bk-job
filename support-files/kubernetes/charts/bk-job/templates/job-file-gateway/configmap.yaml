@@ -45,8 +45,8 @@ data:
           {{- else -}}
           password: ${mariadb-password}
           {{- end }}
-          maximum-pool-size: 20
-          minimum-idle: 5
+          maximum-pool-size: {{ .Values.fileGatewayConfig.database.maxPoolSize }}
+          minimum-idle: 20
           idle-timeout: 600000
           poolName: "job-file-gateway"
           validationTimeout: 5000
@@ -77,6 +77,12 @@ data:
         worker-tags:
           white: {{ .Values.fileGatewayConfig.workerTags.white }}
           black: {{ .Values.fileGatewayConfig.workerTags.black }}
+    mysql:
+      {{- toYaml .Values.fileGatewayConfig.mysql | nindent 6 }}
     server:
       port: {{ .Values.fileGatewayConfig.containerPort }}
+    tls:
+      # 连接Redis使用的TLS配置
+      redis:
+        {{- include "job.redis.tls" . | nindent 8 }}
 {{- end }}

@@ -153,7 +153,28 @@ externalMariaDB:
   ## JDBC Connection properties
   connection:
     properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
-
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS
+    trustStoreType: "JKS"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.jks"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    keyStoreType: "PKCS12"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
+    ## 是否校验主机名
+    verifyHostname: false
 
 ## Redis chart configuration
 ## https://github.com/bitnami/charts/blob/master/bitnami/redis/values.yaml
@@ -231,9 +252,28 @@ externalRedis:
     ## @param externalRedis.sentinel.existingPasswordKey Redis sentinel password key, defaults to "redis-sentinel-password"
     ##
     existingPasswordKey: "redis-sentinel-password"
-
-
-
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS，注意：连接Redis使用的trustStoreType与keyStoreType必须相同，若不同则以keyStoreType为准
+    trustStoreType: "JKS"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.jks"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS
+    keyStoreType: "JKS"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
+    ## 是否校验主机名
+    verifyHostname: false
 
 ## RabbitMQ chart configuration
 ## https://github.com/bitnami/charts/blob/master/bitnami/rabbitmq/values.yaml
@@ -287,6 +327,28 @@ externalRabbitMQ:
   ## @param externalRabbitMQ.vhost vhost
   ##
   vhost: "job"
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS
+    trustStoreType: "JKS"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.jks"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    keyStoreType: "PKCS12"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
+    ## 是否校验主机名
+    verifyHostname: false
 
 
 ## mongodb charts Config
@@ -349,6 +411,28 @@ externalMongoDB:
   ## Reference documents https://docs.mongodb.com/manual/reference/connection-string/
   ##
   uri: ""
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS
+    trustStoreType: "JKS"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.jks"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    keyStoreType: "PKCS12"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
+    ## 是否校验主机名
+    verifyHostname: false
 
 ## ServiceMonitor configuration
 ##
@@ -650,6 +734,10 @@ job:
       ratio: 0.1
 
   migration:
+    # 执行Migration前等待的时间（单位：秒）
+    sleepSecondsBeforeMigration: 0
+    # 执行Migration后等待的时间（单位：秒）
+    sleepSecondsAfterMigration: 0
     iamModel:
       # 是否开启权限模型migration
       enabled: true
@@ -660,6 +748,24 @@ job:
       adminUsername: ""
       # mysql数据库migrate时使用的管理员密码，不填使用mariadb/externalMariaDB的root密码
       adminPassword: ""
+      # 使用MySQL命令执行Migration时使用的额外参数
+      extraOptions: ""
+      ## TLS相关配置
+      tls:
+        ## 是否开启tls认证
+        enabled: false
+        ## 存储证书与私钥文件内容的secret名称
+        existingSecret: ""
+        ## 单向tls认证配置
+        ## 客户端需要信任的服务端CA证书文件（PEM格式）名称（与Secret中的Key一致）
+        certCAFilename: "ca.pem"
+        ## 双向tls认证配置
+        ## 服务端需要信任的客户端证书文件（PEM格式）名称（与Secret中的Key一致）
+        certFilename: ""
+        ## 客户端私钥文件名称（与Secret中的Key一致）
+        certKeyFilename: ""
+        ## 是否校验主机名
+        verifyHostname: false
   # 各微服务Actuator监控端口
   managePort: 19876
   web:
@@ -900,6 +1006,12 @@ manageConfig:
     app:
       # 是否开启业务同步
       enabled: true
+      # 业务同步时是否开启删除保护
+      deleteProtect:
+        # 默认不开启
+        enabled: false
+        # 单次同步最大删除的业务比例（待删除的业务数量/本地DB中未归档的有效业务数量）
+        maxRatio: 0.5
     host:
       # 是否开启主机同步
       enabled: true
@@ -911,6 +1023,12 @@ manageConfig:
       # 开启CMDB事件监听时用于处理主机事件的线程数量，一般情况下无须修改
       # 当环境中主机事件平均产生速率较高（>10/s）或主机信息相比于CMDB数据经常性明显滞后（分钟级）时，可增大该数值
       handlerNum: 3
+  mysql:
+    slowSql:
+      # 是否打印慢查询SQL语句到日志中
+      logEnabled: true
+      # 慢查询阈值（ms)
+      thresholdMillis: 5000
 
 
 ## job-execute执行引擎配置
@@ -1026,6 +1144,11 @@ executeConfig:
     #       jdbcUrl: jdbc:otel:mysql://db_host_c:3306/job_execute
     #       username: "job"
     #       password: "job"
+    slowSql:
+      # 是否打印慢查询SQL语句到日志中
+      logEnabled: true
+      # 慢查询阈值（ms)
+      thresholdMillis: 5000
   # 分布式ID组件 leaf 配置
   leaf:
     enabled: false
@@ -1132,6 +1255,12 @@ crontabConfig:
           connectTimeout: 5000
           # 读取超时，单位：毫秒
           readTimeout: 20000
+  mysql:
+    slowSql:
+      # 是否打印慢查询SQL语句到日志中
+      logEnabled: true
+      # 慢查询阈值（ms)
+      thresholdMillis: 5000
 
 ## job-logsvr日志服务配置
 logsvrConfig:
@@ -1203,7 +1332,29 @@ backupConfig:
       password: "job"
       connection:
         properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
-    # 作业执行历史记录归档配置
+      ## TLS相关配置
+      tls :
+        ## 是否开启tls认证
+        enabled : false
+        ## 存储trustStore与keyStore的secret名称
+        existingSecret : ""
+        ## 单向tls认证配置
+        ## 密钥库类型：支持PKCS12、JKS，默认JKS
+        trustStoreType : "JKS"
+        ## 信任库文件名称（与Secret中的Key一致）
+        trustStoreFilename : "truststore.jks"
+        ## 信任库密码
+        trustStorePassword : ""
+        ## 双向tls认证配置
+        ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+        keyStoreType : "PKCS12"
+        ## 密钥库文件名称（与Secret中的Key一致）
+        keyStoreFilename : ""
+        ## 密钥库密码
+        keyStorePassword : ""
+        ## 是否校验主机名
+        verifyHostname : false
+    # 作业执行历史记录归档配置    
     execute:
       # 是否启用 DB 归档
       enabled: true
@@ -1232,7 +1383,7 @@ backupConfig:
       # 归档任务运行的cron表达式，默认每天凌晨04:00
       cron: 0 0 4 * * *
       # 热库中的数据保留时间（天）
-      keeyDays: 30
+      keepDays: 30
       # 每批次从 db 表中读取的记录数量
       readRowLimit: 1000
       # 归档数据写入归档库时每次写入的数据量（单个表），服务内存受限时可适当降低该值
@@ -1307,6 +1458,12 @@ backupConfig:
     type: ClusterIP
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  mysql:
+    slowSql:
+      # 是否打印慢查询SQL语句到日志中
+      logEnabled: true
+      # 慢查询阈值（ms)
+      thresholdMillis: 5000
 
 ## job-analysis统计分析服务配置
 analysisConfig:
@@ -1386,6 +1543,12 @@ analysisConfig:
       maxKeepDays: 31
       # 单个用户最大保留的对话记录数量，默认1000条
       maxHistoryPerUser: 1000
+  mysql:
+    slowSql:
+      # 是否打印慢查询SQL语句到日志中
+      logEnabled: true
+      # 慢查询阈值（ms)
+      thresholdMillis: 5000
 
 ## job-file-gateway文件网关服务配置
 fileGatewayConfig:
@@ -1451,6 +1614,16 @@ fileGatewayConfig:
       enabled: true
       # 超时时间（秒）
       timeoutSeconds: 10
+  # 数据库相关配置
+  database:
+    # DB连接池最大连接数量
+    maxPoolSize: 100
+  mysql:
+    slowSql:
+      # 是否打印慢查询SQL语句到日志中
+      logEnabled: true
+      # 慢查询阈值（ms)
+      thresholdMillis: 5000
 
  ## job-file-worker文件源接入点配置
 fileWorkerConfig:
@@ -1618,6 +1791,9 @@ migration:
     limits:
       cpu: 500m
       memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
 
 ## migration的init任务配置
 migrationInit:
@@ -1634,6 +1810,9 @@ migrationInit:
     limits:
       cpu: 500m
       memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
 
 ## 蓝鲸网关配置，接入方式：chart + 自定义镜像
 bkApiGatewayConfig:
@@ -1648,6 +1827,8 @@ bkApiGatewayConfig:
     failPolicy: "retry"
   # 接入的网关名称，蓝鲸官方网关都是bk-开头
   gatewayName: "bk-job"
+  # 标记网关为官方网关，网关名需以 `bk-` 开头，可选；取值：1表示官方网关（网关列表项带官方标识），10表示普通网关
+  apiType: 1
   # 蓝鲸网关url
   url: "http://bkapi.example.com/api/bk-apigateway"
   # 接入环境
@@ -1671,6 +1852,9 @@ bkApiGatewayConfig:
     limits:
       cpu: 500m
       memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
 
 ## 其他服务Pod等待migration完成的init任务配置
 waitForMigration:
@@ -1687,6 +1871,9 @@ waitForMigration:
     limits:
       cpu: 500m
       memory: 1Gi
+    requests:
+      cpu: 125m
+      memory: 256Mi
 
 ## 服务下Pod等待依赖的其他服务Pod完成启动的init任务配置
 waitForDependServices:
@@ -1819,6 +2006,12 @@ assembleConfig:
           connectTimeout: 5000
           # 读取超时，单位：毫秒
           readTimeout: 300000
+  mysql:
+    slowSql:
+      # 是否打印慢查询SQL语句到日志中
+      logEnabled: true
+      # 慢查询阈值（ms)
+      thresholdMillis: 5000
 
 # pod删除时等待优雅关闭的最大时间，单位为秒（超出后强制删除）
 podTerminationGracePeriodSeconds: 60

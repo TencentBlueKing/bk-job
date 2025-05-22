@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ListUtil {
 
@@ -72,4 +73,24 @@ public class ListUtil {
         return result;
     }
 
+    /**
+     * 去除字符串列表中各元素首尾的空字符串，null元素不处理原样返回
+     *
+     * @param list 字符串列表
+     * @return 处理后的字符串列表
+     */
+    public static List<String> trimStringList(List<String> list) {
+        if (list == null) {
+            return null;
+        }
+        return list.stream().map(
+            str -> {
+                if (str == null) {
+                    return null;
+                } else {
+                    return str.trim();
+                }
+            }
+        ).collect(Collectors.toList());
+    }
 }

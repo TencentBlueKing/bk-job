@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.common.esb.model.job.v3;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.util.ListUtil;
 import lombok.Data;
 
 import java.util.List;
@@ -67,4 +69,9 @@ public class EsbFileSourceV3DTO {
      */
     @JsonProperty("file_source_code")
     private String fileSourceCode;
+
+    @JsonIgnore
+    public List<String> getTrimmedFiles() {
+        return ListUtil.trimStringList(files);
+    }
 }
