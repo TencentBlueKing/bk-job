@@ -243,10 +243,10 @@ public class ArchiveConfiguration {
     @Bean
     @ConditionalOnAnyArchiveEnabled
     public ArchiveCronJobs archiveCronJobs(
-        JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
-        JobExecuteLogArchiveTaskGenerator jobExecuteLogArchiveTaskGenerator,
-        JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
-        JobExecuteLogArchiveTaskScheduler jobExecuteLogArchiveTaskScheduler,
+        @Nullable JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
+        @Nullable JobExecuteLogArchiveTaskGenerator jobExecuteLogArchiveTaskGenerator,
+        @Nullable JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
+        @Nullable JobExecuteLogArchiveTaskScheduler jobExecuteLogArchiveTaskScheduler,
         ArchiveProperties archiveProperties,
         ExecuteLogArchiveProperties executeLogArchiveProperties,
         AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler) {

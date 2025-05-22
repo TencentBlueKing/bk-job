@@ -95,7 +95,7 @@ data:
           poolName: "job-execute-archive"
           validationTimeout: 5000
         {{- end }}
-        {{- if and .Values.backupConfig.archive.execute.enabled (or (eq .Values.backupConfig.archive.execute.mode "deleteOnly") (eq .Values.backupConfig.archive.execute.mode "backupThenDelete")) }}
+        {{- if and .Values.backupConfig.archive.executeLog.enabled (or (eq .Values.backupConfig.archive.executeLog.mode "deleteOnly") (eq .Values.backupConfig.archive.executeLog.mode "backupThenDelete")) }}
         job-execute-mongodb:
           uri: {{ include "job.mongodb.connect.uri" . | quote }}
           database: "joblog"
@@ -126,7 +126,6 @@ data:
         storage-backend: {{ .Values.backupConfig.storageBackend }}
         artifactory:
           repo: {{ .Values.backupConfig.artifactory.repo }}
-        archive:  
-          execute:
-            {{- toYaml .Values.backupConfig.archive.execute | nindent 12 }}
+        archive:
+          {{- toYaml .Values.backupConfig.archive | nindent 10 }}
 {{- end }}

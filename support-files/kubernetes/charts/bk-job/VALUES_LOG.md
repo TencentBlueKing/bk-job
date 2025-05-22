@@ -4,7 +4,7 @@
 ```yaml
 backupConfig:
   archive:
-    execute-log:
+    executeLog:
       # 是否开启执行日志归档
       enabled: true
       # 是否试运行，试运行下仅打印日志不会真删除mongodb数据
