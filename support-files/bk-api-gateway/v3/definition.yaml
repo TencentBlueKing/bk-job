@@ -81,7 +81,7 @@ stages:
 # 用于命令 `grant_apigw_permissions`
 grant_permissions:
   # 标准运维
-  - bk_app_code: "{{ settings.BK_SOPS_APP_CODE }}"
+  - bk_app_code: "{{ environ.BK_SOPS_APP_CODE }}"
     # 授权维度，可选值：
     # gateway: 按网关授权，包括网关下所有资源，以及未来新创建的资源
     # resource: 按资源维度授权
@@ -108,7 +108,7 @@ grant_permissions:
       - system_update_cron_status
       - system_generate_local_file_upload_url
   # 节点管理
-  - bk_app_code: "{{ settings.BK_NODEMAN_APP_CODE }}"
+  - bk_app_code: "{{ environ.BK_NODEMAN_APP_CODE }}"
     grant_dimension: "resource"
     resource_names:
       - system_fast_execute_script
@@ -120,7 +120,7 @@ grant_permissions:
       - system_create_file_source
       - system_batch_get_job_instance_ip_log
   # DBM
-  - bk_app_code: "{{ settings.BK_DBM_APP_CODE }}"
+  - bk_app_code: "{{ environ.BK_DBM_APP_CODE }}"
     grant_dimension: "resource"
     resource_names:
       - system_fast_execute_script
@@ -134,7 +134,7 @@ grant_permissions:
       - system_create_account
       - system_get_account_list
   # 监控平台
-  - bk_app_code: "{{ settings.BK_MONITOR_APP_CODE }}"
+  - bk_app_code: "{{ environ.BK_MONITOR_APP_CODE }}"
     grant_dimension: "resource"
     resource_names:
       - system_get_job_plan_detail
@@ -144,7 +144,7 @@ grant_permissions:
       - system_fast_execute_script
       - system_batch_get_job_instance_ip_log
   # 容器管理平台
-  - bk_app_code: "{{ settings.BK_BCS_APP_CODE }}"
+  - bk_app_code: "{{ environ.BK_BCS_APP_CODE }}"
     grant_dimension: "resource"
     resource_names:
       - system_fast_execute_script
