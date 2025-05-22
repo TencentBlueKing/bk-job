@@ -113,7 +113,7 @@ public class JobInstanceArchiveTaskGenerator {
                     // 作业实例数据归档任务,现版本暂不支持
                     archiveTaskList.addAll(buildArchiveTasksForShardingDataNodes(ArchiveTaskTypeEnum.JOB_INSTANCE,
                         archiveStartDateTime,
-                        archiveProperties.getTasks().getArchiveTaskConfig().getShardingDataNodes()));
+                        archiveProperties.getTasks().getJobInstance().getShardingDataNodes()));
                 } else {
                     // 单db
                     DbDataNode dbDataNode = DbDataNode.standaloneDbDataNode();
@@ -209,7 +209,7 @@ public class JobInstanceArchiveTaskGenerator {
     }
 
     private boolean isHorizontalShardingEnabled() {
-        return archiveProperties.getTasks().getArchiveTaskConfig().getDataSourceMode()
+        return archiveProperties.getTasks().getJobInstance().getDataSourceMode()
             .equals(DataSourceMode.Constants.HORIZONTAL_SHARDING);
     }
 }
