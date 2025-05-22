@@ -17,11 +17,14 @@ import argparse
 import json
 import os
 
+import urllib3
 import requests
 
 # NOTE: the usage doc https://bk.tencent.com/docs/document/6.0/160/8388
 
 __version__ = "1.0.0"
+# no more useless warning
+urllib3.disable_warnings()
 
 BK_APIGATEWAY_URL = os.getenv("BK_IAM_APIGATEWAY_URL", "https://bkapi.example.com/api/bk-iam/prod/")
 
