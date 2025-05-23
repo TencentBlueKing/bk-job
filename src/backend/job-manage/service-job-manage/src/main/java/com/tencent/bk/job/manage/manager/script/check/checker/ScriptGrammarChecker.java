@@ -102,7 +102,10 @@ public class ScriptGrammarChecker implements ScriptChecker {
         } catch (IOException e) {
             log.error("Check script grammar fail", e);
         } finally {
-            tmpFile.deleteOnExit();
+            if (!tmpFile.delete()) {
+                log.warn("Failed to delete temporary file,register jvm to exit delete:{}", tmpFile.getAbsolutePath());
+                tmpFile.deleteOnExit();
+            }
             if (watch.isRunning()) {
                 watch.stop();
             }
