@@ -66,7 +66,7 @@ public class CollectionNameUtilTest {
 
     @Test
     @DisplayName("集合名称工具类-测试从日志集合名中提取日期部分")
-    public void testCollectionNameToDateStr_validCases() {
+    public void testCollectionNameToDateStr() {
         assertThat(CollectionNameUtil.collectionNameToDateStr("job_log_script_2025_01_01"))
             .isEqualTo("2025_01_01");
         assertThat(CollectionNameUtil.collectionNameToDateStr("job_log_file_2024_12_31"))

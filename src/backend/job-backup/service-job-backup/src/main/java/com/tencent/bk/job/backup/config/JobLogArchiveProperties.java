@@ -37,7 +37,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Setter
 @ToString
 @ConfigurationProperties(prefix = "job.backup.archive.execute-log")
-public class ExecuteLogArchiveProperties {
+public class JobLogArchiveProperties {
     /**
      * 是否启用执行日志归档
      */

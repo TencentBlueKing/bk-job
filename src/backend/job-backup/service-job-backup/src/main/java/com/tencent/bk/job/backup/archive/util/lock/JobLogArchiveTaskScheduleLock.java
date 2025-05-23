@@ -22,27 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.backup.archive.util.lock;
 
-import com.tencent.bk.job.backup.archive.model.BackupResult;
-import com.tencent.bk.job.backup.archive.model.DeleteResult;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * 作业执行日志归档
+ * 作业执行日志归档任务调度分布式锁
  */
-public interface JobExecuteLogArchiver {
+@Slf4j
+public class JobLogArchiveTaskScheduleLock extends FairDistributeLock {
 
-    /**
-     * 备份作业执行日志
-     *
-     * @param archiveDay 归档数据所在天
-     */
-    BackupResult backupRecords(Integer archiveDay);
-
-    /**
-     * 删除作业执行日志
-     *
-     * @param archiveDay 归档数据所在天
-     */
-    DeleteResult deleteRecords(Integer archiveDay);
+    public JobLogArchiveTaskScheduleLock() {
+        super(
+            "job:execute:log:archive:task:schedule:lock",
+            "job:execute:log:archive:task:schedule",
+            60 * 1000L
+        );
+    }
 }

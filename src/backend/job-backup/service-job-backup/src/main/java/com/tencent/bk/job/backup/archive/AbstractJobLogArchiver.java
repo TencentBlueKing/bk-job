@@ -28,7 +28,7 @@ import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.BackupResult;
 import com.tencent.bk.job.backup.archive.model.DeleteResult;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
-import com.tencent.bk.job.backup.config.ExecuteLogArchiveProperties;
+import com.tencent.bk.job.backup.config.JobLogArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
@@ -46,8 +46,8 @@ import java.util.stream.Collectors;
  * 执行日志归档基础实现
  */
 @Slf4j
-public abstract class AbstractJobExecuteLogArchiver implements JobExecuteLogArchiver{
-    private final ExecuteLogArchiveProperties archiveProperties;
+public abstract class AbstractJobLogArchiver implements JobLogArchiver {
+    private final JobLogArchiveProperties archiveProperties;
     private final ArchiveTaskService archiveTaskService;
     private final LogTypeEnum logTypeEnum;
     private final MongoTemplate mongoTemplate;
@@ -57,10 +57,10 @@ public abstract class AbstractJobExecuteLogArchiver implements JobExecuteLogArch
     private static final DateTimeFormatter OUTPUT_DATE_FORMATTER =
         DateTimeFormatter.ofPattern(COLLECTION_NAME_DATE_FORMATTER);
 
-    public AbstractJobExecuteLogArchiver(MongoTemplate mongoTemplate,
-                                         ArchiveTaskService archiveTaskService,
-                                         ExecuteLogArchiveProperties archiveProperties,
-                                         LogTypeEnum logTypeEnum) {
+    public AbstractJobLogArchiver(MongoTemplate mongoTemplate,
+                                  ArchiveTaskService archiveTaskService,
+                                  JobLogArchiveProperties archiveProperties,
+                                  LogTypeEnum logTypeEnum) {
         this.mongoTemplate = mongoTemplate;
         this.archiveTaskService = archiveTaskService;
         this.archiveProperties = archiveProperties;

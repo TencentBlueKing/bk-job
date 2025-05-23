@@ -24,23 +24,25 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.impl.JobFileLogArchiver;
-import com.tencent.bk.job.backup.archive.impl.JobScriptLogArchiver;
+import com.tencent.bk.job.backup.archive.model.BackupResult;
+import com.tencent.bk.job.backup.archive.model.DeleteResult;
 
-import java.util.ArrayList;
-import java.util.List;
+/**
+ * 作业执行日志归档
+ */
+public interface JobLogArchiver {
 
-public class JobExecuteLogArchivers {
+    /**
+     * 备份作业执行日志
+     *
+     * @param archiveDay 归档数据所在天
+     */
+    BackupResult backupRecords(Integer archiveDay);
 
-    private final List<JobExecuteLogArchiver> archivers = new ArrayList<>();
-
-    public JobExecuteLogArchivers(JobFileLogArchiver jobFileLogArchiver,
-                                  JobScriptLogArchiver jobScriptLogArchiver) {
-        this.archivers.add(jobFileLogArchiver);
-        this.archivers.add(jobScriptLogArchiver);
-    }
-
-    public List<JobExecuteLogArchiver> getAll() {
-        return this.archivers;
-    }
+    /**
+     * 删除作业执行日志
+     *
+     * @param archiveDay 归档数据所在天
+     */
+    DeleteResult deleteRecords(Integer archiveDay);
 }

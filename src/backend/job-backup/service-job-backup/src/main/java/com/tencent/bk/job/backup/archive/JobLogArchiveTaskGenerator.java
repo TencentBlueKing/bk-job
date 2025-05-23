@@ -28,8 +28,8 @@ import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.ArchiveDateTimeUtil;
-import com.tencent.bk.job.backup.archive.util.lock.JobExecuteLogArchiveTaskGenerateLock;
-import com.tencent.bk.job.backup.config.ExecuteLogArchiveProperties;
+import com.tencent.bk.job.backup.archive.util.lock.JobLogArchiveTaskGenerateLock;
+import com.tencent.bk.job.backup.config.JobLogArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -55,13 +55,13 @@ import java.util.stream.Collectors;
  * 生成作业执行日志归档任务
  */
 @Slf4j
-public class JobExecuteLogArchiveTaskGenerator {
+public class JobLogArchiveTaskGenerator {
 
     private final ArchiveTaskService archiveTaskService;
 
-    private final ExecuteLogArchiveProperties archiveProperties;
+    private final JobLogArchiveProperties archiveProperties;
 
-    private final JobExecuteLogArchiveTaskGenerateLock jobExecuteLogArchiveTaskGenerateLock;
+    private final JobLogArchiveTaskGenerateLock jobLogArchiveTaskGenerateLock;
 
     private final MongoTemplate mongoTemplate;
 
@@ -73,13 +73,13 @@ public class JobExecuteLogArchiveTaskGenerator {
     private static final DateTimeFormatter DATE_FORMAT_YYYY_MM_DD = DateTimeFormatter.ofPattern("yyyy_MM_dd");
 
 
-    public JobExecuteLogArchiveTaskGenerator(ArchiveTaskService archiveTaskService,
-                                             ExecuteLogArchiveProperties archiveProperties,
-                                             JobExecuteLogArchiveTaskGenerateLock jobExecuteLogArchiveTaskGenerateLock,
-                                             MongoTemplate mongoTemplate) {
+    public JobLogArchiveTaskGenerator(ArchiveTaskService archiveTaskService,
+                                      JobLogArchiveProperties archiveProperties,
+                                      JobLogArchiveTaskGenerateLock jobLogArchiveTaskGenerateLock,
+                                      MongoTemplate mongoTemplate) {
         this.archiveTaskService = archiveTaskService;
         this.archiveProperties = archiveProperties;
-        this.jobExecuteLogArchiveTaskGenerateLock = jobExecuteLogArchiveTaskGenerateLock;
+        this.jobLogArchiveTaskGenerateLock = jobLogArchiveTaskGenerateLock;
         this.mongoTemplate = mongoTemplate;
         archiveZoneId = ArchiveDateTimeUtil.getArchiveBasedTimeZone(archiveProperties.getTimeZone());
     }
@@ -87,7 +87,7 @@ public class JobExecuteLogArchiveTaskGenerator {
     public void generate() {
         boolean locked = false;
         try {
-            locked = jobExecuteLogArchiveTaskGenerateLock.lock();
+            locked = jobLogArchiveTaskGenerateLock.lock();
             if (!locked) {
                 return;
             }
@@ -147,7 +147,7 @@ public class JobExecuteLogArchiveTaskGenerator {
             log.error("Generate archive log task caught exception", e);
         } finally {
             if (locked) {
-                jobExecuteLogArchiveTaskGenerateLock.unlock();
+                jobLogArchiveTaskGenerateLock.unlock();
             }
         }
     }

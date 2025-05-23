@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.backup.archive.impl;
 
-import com.tencent.bk.job.backup.archive.AbstractJobExecuteLogArchiver;
+import com.tencent.bk.job.backup.archive.AbstractJobLogArchiver;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
-import com.tencent.bk.job.backup.config.ExecuteLogArchiveProperties;
+import com.tencent.bk.job.backup.config.JobLogArchiveProperties;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -35,11 +35,11 @@ import org.springframework.data.mongodb.core.MongoTemplate;
  * mongodb 文件日志归档
  */
 @Slf4j
-public class JobFileLogArchiver extends AbstractJobExecuteLogArchiver {
+public class JobFileLogArchiver extends AbstractJobLogArchiver {
 
     public JobFileLogArchiver(MongoTemplate mongoTemplate,
                               ArchiveTaskService archiveTaskService,
-                              ExecuteLogArchiveProperties archiveProperties) {
+                              JobLogArchiveProperties archiveProperties) {
         super(mongoTemplate,
             archiveTaskService,
             archiveProperties,

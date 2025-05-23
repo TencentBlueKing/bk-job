@@ -25,7 +25,7 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.config.ArchiveProperties;
-import com.tencent.bk.job.backup.config.ExecuteLogArchiveProperties;
+import com.tencent.bk.job.backup.config.JobLogArchiveProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -39,31 +39,31 @@ public class ArchiveCronJobs {
 
     private final JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator;
 
-    private final JobExecuteLogArchiveTaskGenerator jobExecuteLogArchiveTaskGenerator;
+    private final JobLogArchiveTaskGenerator jobLogArchiveTaskGenerator;
 
     private final JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler;
 
-    private final JobExecuteLogArchiveTaskScheduler jobExecuteLogArchiveTaskScheduler;
+    private final JobLogArchiveTaskScheduler jobLogArchiveTaskScheduler;
 
     private final ArchiveProperties archiveProperties;
 
-    private final ExecuteLogArchiveProperties executeLogArchiveProperties;
+    private final JobLogArchiveProperties jobLogArchiveProperties;
 
     private final AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler;
 
     public ArchiveCronJobs(JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
-                           JobExecuteLogArchiveTaskGenerator jobExecuteLogArchiveTaskGenerator,
+                           JobLogArchiveTaskGenerator jobLogArchiveTaskGenerator,
                            JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
-                           JobExecuteLogArchiveTaskScheduler jobExecuteLogArchiveTaskScheduler,
+                           JobLogArchiveTaskScheduler jobLogArchiveTaskScheduler,
                            ArchiveProperties archiveProperties,
-                           ExecuteLogArchiveProperties executeLogArchiveProperties,
+                           JobLogArchiveProperties jobLogArchiveProperties,
                            AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler) {
         this.jobInstanceArchiveTaskGenerator = jobInstanceArchiveTaskGenerator;
-        this.jobExecuteLogArchiveTaskGenerator = jobExecuteLogArchiveTaskGenerator;
+        this.jobLogArchiveTaskGenerator = jobLogArchiveTaskGenerator;
         this.jobInstanceArchiveTaskScheduler = jobInstanceArchiveTaskScheduler;
-        this.jobExecuteLogArchiveTaskScheduler = jobExecuteLogArchiveTaskScheduler;
+        this.jobLogArchiveTaskScheduler = jobLogArchiveTaskScheduler;
         this.archiveProperties = archiveProperties;
-        this.executeLogArchiveProperties = executeLogArchiveProperties;
+        this.jobLogArchiveProperties = jobLogArchiveProperties;
         this.abnormalArchiveTaskReScheduler = abnormalArchiveTaskReScheduler;
     }
 
@@ -78,9 +78,9 @@ public class ArchiveCronJobs {
             log.info("Generate historical data archive task done");
         }
 
-        if (executeLogArchiveProperties.isEnabled()) {
+        if (jobLogArchiveProperties.isEnabled()) {
             log.info("Generate historical log archive task start...");
-            jobExecuteLogArchiveTaskGenerator.generate();
+            jobLogArchiveTaskGenerator.generate();
             log.info("Generate historical log archive task done");
         }
     }
@@ -89,7 +89,7 @@ public class ArchiveCronJobs {
      * 定时调度并执行历史数据归档任务，默认每小时第 1 分钟触发一次
      */
     @Scheduled(cron = "${job.backup.archive.execute.cron: 0 1 * * * *}")
-    public void scheduleAndExecuteHistoricalDataArchiveTask() {
+    public void runHistoricalDataArchive() {
         if (archiveProperties.isEnabled()) {
             log.info("Schedule and execute historical data archive task start...");
             jobInstanceArchiveTaskScheduler.schedule();
@@ -101,10 +101,10 @@ public class ArchiveCronJobs {
      * 定时调度并执行执行日志归档任务，默认每小时第 1 分钟触发一次
      */
     @Scheduled(cron = "${job.backup.archive.execute-log.cron: 0 1 * * * *}")
-    public void scheduleAndExecuteExecuteLogArchiveTask() {
-        if (executeLogArchiveProperties.isEnabled()) {
+    public void runJobLogArchive() {
+        if (jobLogArchiveProperties.isEnabled()) {
             log.info("Schedule and execute historical log archive task start...");
-            jobExecuteLogArchiveTaskScheduler.schedule();
+            jobLogArchiveTaskScheduler.schedule();
             log.info("Schedule and execute historical log archive task done");
         }
     }
@@ -114,7 +114,7 @@ public class ArchiveCronJobs {
      */
     @Scheduled(cron = "0 59 * * * *")
     public void scheduleFailedTasks() {
-        if (!archiveProperties.isEnabled() && !executeLogArchiveProperties.isEnabled()) {
+        if (!archiveProperties.isEnabled() && !jobLogArchiveProperties.isEnabled()) {
             return;
         }
         log.info("ReSchedule fail/timout/dryrun archive task start...");

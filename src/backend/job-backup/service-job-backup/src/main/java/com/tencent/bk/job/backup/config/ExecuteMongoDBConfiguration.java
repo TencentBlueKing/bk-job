@@ -26,7 +26,7 @@ package com.tencent.bk.job.backup.config;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import com.tencent.bk.job.backup.archive.JobExecuteLogArchivers;
+import com.tencent.bk.job.backup.archive.JobLogArchivers;
 import com.tencent.bk.job.backup.archive.impl.JobFileLogArchiver;
 import com.tencent.bk.job.backup.archive.impl.JobScriptLogArchiver;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
@@ -59,7 +59,7 @@ public class ExecuteMongoDBConfiguration {
     @Bean
     public JobScriptLogArchiver jobScriptLogArchiver(MongoTemplate mongoTemplate,
                                                      ArchiveTaskService archiveTaskService,
-                                                     ExecuteLogArchiveProperties archiveProperties) {
+                                                     JobLogArchiveProperties archiveProperties) {
         return new JobScriptLogArchiver(mongoTemplate,
             archiveTaskService,
             archiveProperties);
@@ -68,16 +68,16 @@ public class ExecuteMongoDBConfiguration {
     @Bean
     public JobFileLogArchiver jobFileLogArchiver(MongoTemplate mongoTemplate,
                                                    ArchiveTaskService archiveTaskService,
-                                                 ExecuteLogArchiveProperties archiveProperties) {
+                                                 JobLogArchiveProperties archiveProperties) {
         return new JobFileLogArchiver(mongoTemplate,
             archiveTaskService,
             archiveProperties);
     }
 
     @Bean
-    public JobExecuteLogArchivers jobExecuteLogArchivers(JobFileLogArchiver jobFileLogArchiver,
-                                                         JobScriptLogArchiver jobScriptLogArchiver) {
-        return new JobExecuteLogArchivers(jobFileLogArchiver,
+    public JobLogArchivers jobLogArchivers(JobFileLogArchiver jobFileLogArchiver,
+                                                  JobScriptLogArchiver jobScriptLogArchiver) {
+        return new JobLogArchivers(jobFileLogArchiver,
             jobScriptLogArchiver);
     }
 }

@@ -27,7 +27,7 @@ package com.tencent.bk.job.backup.archive;
 import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.lock.ArchiveLogTaskExecuteLock;
-import com.tencent.bk.job.backup.config.ExecuteLogArchiveProperties;
+import com.tencent.bk.job.backup.config.JobLogArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import lombok.extern.slf4j.Slf4j;
@@ -36,20 +36,20 @@ import lombok.extern.slf4j.Slf4j;
  * 作业执行日志归档任务实现
  */
 @Slf4j
-public class JobExecuteLogArchiveTask extends AbstractHistoricalDataArchiveTask {
+public class JobLogArchiveTask extends AbstractHistoricalDataArchiveTask {
     private final ArchiveLogTaskExecuteLock archiveLogTaskExecuteLock;
-    private final JobExecuteLogArchivers jobExecuteLogArchivers;
-    private final ExecuteLogArchiveProperties archiveProperties;
+    private final JobLogArchivers jobLogArchivers;
+    private final JobLogArchiveProperties archiveProperties;
 
-    public JobExecuteLogArchiveTask(ExecuteLogArchiveProperties archiveProperties,
-                                    ArchiveLogTaskExecuteLock archiveLogTaskExecuteLock,
-                                    ArchiveErrorTaskCounter archiveErrorTaskCounter,
-                                    ArchiveTaskInfo archiveTaskInfo,
-                                    ArchiveTaskService archiveTaskService,
-                                    JobExecuteLogArchivers jobExecuteLogArchivers) {
+    public JobLogArchiveTask(JobLogArchiveProperties archiveProperties,
+                             ArchiveLogTaskExecuteLock archiveLogTaskExecuteLock,
+                             ArchiveErrorTaskCounter archiveErrorTaskCounter,
+                             ArchiveTaskInfo archiveTaskInfo,
+                             ArchiveTaskService archiveTaskService,
+                             JobLogArchivers jobLogArchivers) {
         super(archiveErrorTaskCounter, archiveTaskInfo, archiveTaskService);
         this.archiveLogTaskExecuteLock = archiveLogTaskExecuteLock;
-        this.jobExecuteLogArchivers = jobExecuteLogArchivers;
+        this.jobLogArchivers = jobLogArchivers;
         this.archiveProperties = archiveProperties;
     }
 
@@ -57,7 +57,7 @@ public class JobExecuteLogArchiveTask extends AbstractHistoricalDataArchiveTask 
     public void backupAndDelete() {
         long startTime = System.currentTimeMillis();
         log.info("[{}] archive log task mode: {}", taskId, archiveProperties.getMode());
-        jobExecuteLogArchivers.getAll().forEach(archiver -> {
+        jobLogArchivers.getAll().forEach(archiver -> {
             archiver.backupRecords(archiveTaskInfo.getDay());
             archiver.deleteRecords(archiveTaskInfo.getDay());
         });

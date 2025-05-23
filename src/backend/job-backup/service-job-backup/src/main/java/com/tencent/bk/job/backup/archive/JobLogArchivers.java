@@ -22,26 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive.util.lock;
+package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import com.tencent.bk.job.backup.archive.impl.JobFileLogArchiver;
+import com.tencent.bk.job.backup.archive.impl.JobScriptLogArchiver;
 
-/**
- * 归档执行日志任务创建分布式锁
- */
-@Slf4j
-public class JobExecuteLogArchiveTaskGenerateLock extends PreemptiveDistributeLock {
+import java.util.ArrayList;
+import java.util.List;
 
+public class JobLogArchivers {
 
-    public JobExecuteLogArchiveTaskGenerateLock(StringRedisTemplate redisTemplate) {
-        super(redisTemplate,
-            "job:execute:log:archive:task:generate",
-            new HeartBeatRedisLockConfig(
-                "RedisKeyHeartBeatThread-job:execute:log:archive:task:generate",
-                60 * 1000L, // 60s 超时时间
-                10 * 1000L // 10s 续期一次
-            ));
+    private final List<JobLogArchiver> archivers = new ArrayList<>();
+
+    public JobLogArchivers(JobFileLogArchiver jobFileLogArchiver,
+                           JobScriptLogArchiver jobScriptLogArchiver) {
+        this.archivers.add(jobFileLogArchiver);
+        this.archivers.add(jobScriptLogArchiver);
+    }
+
+    public List<JobLogArchiver> getAll() {
+        return this.archivers;
     }
 }
