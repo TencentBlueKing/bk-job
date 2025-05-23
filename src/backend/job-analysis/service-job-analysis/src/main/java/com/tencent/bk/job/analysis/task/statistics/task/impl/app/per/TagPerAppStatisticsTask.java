@@ -26,11 +26,13 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceMetricsResource;
 import com.tencent.bk.job.manage.api.inner.ServiceTagResource;
@@ -59,17 +61,19 @@ public class TagPerAppStatisticsTask extends BasePerAppStatisticsTask {
     private final ServiceTagResource tagResource;
 
     protected TagPerAppStatisticsTask(BasicServiceManager basicServiceManager,
-                                      StatisticsDAO statisticsDAO,
+                                      CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                      NoTenantStatisticsDAO noTenantStatisticsDAO,
                                       @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
                                       ServiceMetricsResource manageMetricsResource,
-                                      ServiceTagResource tagResource) {
-        super(basicServiceManager, statisticsDAO, dslContext);
+                                      ServiceTagResource tagResource,
+                                      TenantService tenantService) {
+        super(basicServiceManager, currentTenantStatisticsDAO, noTenantStatisticsDAO, dslContext, tenantService);
         this.manageMetricsResource = manageMetricsResource;
         this.tagResource = tagResource;
     }
 
     private StatisticsDTO genTagDistributionStatisticsDTO(String dateStr, Long appId, String value) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(appId);
         statisticsDTO.setDate(dateStr);
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_TAG);

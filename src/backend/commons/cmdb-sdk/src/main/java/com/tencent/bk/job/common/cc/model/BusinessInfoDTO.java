@@ -52,16 +52,6 @@ public class BusinessInfoDTO {
     @JsonProperty("bk_biz_maintainer")
     private String maintainers;
     /**
-     * 开发商账号
-     */
-    @JsonProperty("bk_supplier_account")
-    private String supplierAccount;
-    /**
-     * 表示业务类型
-     */
-    @JsonProperty("default")
-    private Integer defaultApp;
-    /**
      * 业务所在时区
      */
     @JsonProperty("time_zone")
@@ -71,4 +61,9 @@ public class BusinessInfoDTO {
      */
     @JsonProperty("language")
     private String language;
+    /**
+     * 资源类型
+     */
+    @JsonProperty("default")
+    private Integer deFault = 0;
 }

@@ -65,7 +65,12 @@ public class WebNoticeResourceImpl implements WebNoticeResource {
         if (bkLang == null) {
             bkLang = BkConsts.HEADER_VALUE_LANG_EN;
         }
-        List<AnnouncementVO> resultList = bkNoticeClient.getCurrentAnnouncements(bkLang, offset, limit).stream()
+        List<AnnouncementVO> resultList = bkNoticeClient.getCurrentAnnouncements(
+                JobContextUtil.getTenantId(),
+                bkLang,
+                offset,
+                limit
+            ).stream()
             .map(AnnouncementVO::fromDTO)
             .collect(Collectors.toList());
         return Response.buildSuccessResp(resultList);

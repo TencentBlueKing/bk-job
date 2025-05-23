@@ -25,10 +25,10 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.google.common.collect.Lists;
-import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.TempUrlInfo;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -68,7 +68,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WebFileUploadResourceImpl implements WebFileUploadResource {
     private final StorageSystemConfig storageSystemConfig;
-    private final ArtifactoryConfig artifactoryConfig;
+    private final ArtifactoryHelper artifactoryHelper;
     private final LocalFileConfigForManage localFileConfigForManage;
     private final ArtifactoryClient artifactoryClient;
     private final GlobalSettingsService globalSettingsService;
@@ -76,12 +76,12 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
     @Autowired
     public WebFileUploadResourceImpl(
         StorageSystemConfig storageSystemConfig,
-        ArtifactoryConfig artifactoryConfig,
+        ArtifactoryHelper artifactoryHelper,
         LocalFileConfigForManage localFileConfigForManage,
         @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
         GlobalSettingsService globalSettingsService) {
         this.storageSystemConfig = storageSystemConfig;
-        this.artifactoryConfig = artifactoryConfig;
+        this.artifactoryHelper = artifactoryHelper;
         this.localFileConfigForManage = localFileConfigForManage;
         this.artifactoryClient = artifactoryClient;
         this.globalSettingsService = globalSettingsService;
@@ -179,7 +179,7 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
             UploadLocalFileResultVO fileResultVO = new UploadLocalFileResultVO();
             fileResultVO.setFileName(fileName);
             fileResultVO.setFilePath(filePath);
-            String project = artifactoryConfig.getArtifactoryJobProject();
+            String project = artifactoryHelper.getJobRealProject();
             String repo = localFileConfigForManage.getLocalUploadRepo();
             try {
                 NodeDTO nodeDTO = artifactoryClient.uploadGenericFileWithStream(
@@ -297,7 +297,7 @@ public class WebFileUploadResourceImpl implements WebFileUploadResource {
             filePathList.add(filePath);
         });
         List<TempUrlInfo> urlInfoList = artifactoryClient.createTempUrls(
-            artifactoryConfig.getArtifactoryJobProject(),
+            artifactoryHelper.getJobRealProject(),
             localFileConfigForManage.getLocalUploadRepo(),
             filePathList
         );

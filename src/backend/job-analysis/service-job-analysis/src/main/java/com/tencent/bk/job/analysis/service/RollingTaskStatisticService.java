@@ -26,7 +26,7 @@ package com.tencent.bk.job.analysis.service;
 
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.model.web.CommonDistributionVO;
 import com.tencent.bk.job.analysis.model.web.DayDistributionElementVO;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -44,14 +44,14 @@ import java.util.Map;
 @Service
 public class RollingTaskStatisticService extends BaseStatisticService {
 
-    private final StatisticsDAO statisticsDAO;
+    private final CurrentTenantStatisticsDAO currentTenantStatisticsDAO;
     private final ExecutedTaskStatisticService executedTaskStatisticService;
 
     @Autowired
-    public RollingTaskStatisticService(StatisticsDAO statisticsDAO,
+    public RollingTaskStatisticService(CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
                                        ExecutedTaskStatisticService executedTaskStatisticService) {
         super();
-        this.statisticsDAO = statisticsDAO;
+        this.currentTenantStatisticsDAO = currentTenantStatisticsDAO;
         this.executedTaskStatisticService = executedTaskStatisticService;
     }
 
@@ -60,7 +60,7 @@ public class RollingTaskStatisticService extends BaseStatisticService {
         if (appIdList == null) {
             // 全局指标
             failedStatisticsDTOList =
-                statisticsDAO.getStatisticsListBetweenDate(
+                currentTenantStatisticsDAO.getStatisticsListBetweenDate(
                     Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
                     null,
                     StatisticsConstants.RESOURCE_ROLLING_FAILED_TASK,
@@ -70,13 +70,13 @@ public class RollingTaskStatisticService extends BaseStatisticService {
                     endDate
                 );
             if (failedStatisticsDTOList == null || failedStatisticsDTOList.isEmpty()) {
-                failedStatisticsDTOList = statisticsDAO.getStatisticsListBetweenDate(appIdList, null,
+                failedStatisticsDTOList = currentTenantStatisticsDAO.getStatisticsListBetweenDate(appIdList, null,
                     StatisticsConstants.RESOURCE_ROLLING_FAILED_TASK, StatisticsConstants.DIMENSION_TIME_UNIT,
                     StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY, startDate, endDate);
             }
         } else {
             // 按业务聚合
-            failedStatisticsDTOList = statisticsDAO.getStatisticsListBetweenDate(appIdList,
+            failedStatisticsDTOList = currentTenantStatisticsDAO.getStatisticsListBetweenDate(appIdList,
                 StatisticsConstants.GLOBAL_APP_ID_LIST, StatisticsConstants.RESOURCE_ROLLING_FAILED_TASK,
                 StatisticsConstants.DIMENSION_TIME_UNIT, StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY, startDate
                 , endDate);
@@ -124,20 +124,20 @@ public class RollingTaskStatisticService extends BaseStatisticService {
         List<StatisticsDTO> statisticsDTOList;
         if (appIdList == null) {
             // 全部业务，直接拿离线聚合后的数据
-            statisticsDTOList = statisticsDAO.getStatisticsListBetweenDate(appIdList, null,
+            statisticsDTOList = currentTenantStatisticsDAO.getStatisticsListBetweenDate(appIdList, null,
                 StatisticsConstants.RESOURCE_ONE_DAY_ROLLING_TASK_OF_ALL_APP,
                 StatisticsConstants.DIMENSION_TASK_TYPE, startDate, endDate);
             if (statisticsDTOList == null
                 || statisticsDTOList.size() < DateUtils.calcDaysBetween(startDate, endDate) + 1) {
                 log.info("offline data not ready, calc in mem, startDate={}, endDate={}", startDate, endDate);
                 // 离线聚合数据暂未统计完成
-                statisticsDTOList = statisticsDAO.getStatisticsListBetweenDate(appIdList,
+                statisticsDTOList = currentTenantStatisticsDAO.getStatisticsListBetweenDate(appIdList,
                     Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
                     StatisticsConstants.RESOURCE_ROLLING_TASK, StatisticsConstants.DIMENSION_TASK_TYPE, startDate,
                     endDate);
             }
         } else {
-            statisticsDTOList = statisticsDAO.getStatisticsListBetweenDate(appIdList,
+            statisticsDTOList = currentTenantStatisticsDAO.getStatisticsListBetweenDate(appIdList,
                 Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
                 StatisticsConstants.RESOURCE_ROLLING_TASK, StatisticsConstants.DIMENSION_TASK_TYPE, startDate,
                 endDate);

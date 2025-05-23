@@ -24,25 +24,16 @@
 
 package com.tencent.bk.job.crontab.api.inner.impl;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.mysql.JobTransactional;
-import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.crontab.api.inner.ServiceCronJobResource;
-import com.tencent.bk.job.crontab.common.constants.CronStatusEnum;
-import com.tencent.bk.job.crontab.model.CronJobCreateUpdateReq;
 import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
-import com.tencent.bk.job.crontab.model.inner.request.InternalUpdateCronStatusRequest;
 import com.tencent.bk.job.crontab.service.CronJobService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -88,20 +79,6 @@ public class ServiceCronJobResourceImpl implements ServiceCronJobResource {
     }
 
     @Override
-    public InternalResponse<Long> saveCronJob(String username, Long appId, Long cronJobId,
-                                              CronJobCreateUpdateReq cronJobCreateUpdateReq) {
-        return null;
-    }
-
-    @Override
-    public InternalResponse<Boolean> updateCronJobStatus(Long appId, Long cronJobId,
-                                                         InternalUpdateCronStatusRequest request) {
-        log.info("Update cron job status, appId: {}, cronJobId: {}, request: {}", appId, cronJobId, request);
-        return InternalResponse.buildSuccessResp(cronJobService.changeCronJobEnableStatus(request.getOperator(),
-            appId, cronJobId, CronStatusEnum.RUNNING.getStatus().equals(request.getStatus())));
-    }
-
-    @Override
     public InternalResponse<Map<Long, List<CronJobVO>>> batchListCronJobByPlanIds(Long appId, List<Long> planIdList) {
         Map<Long, List<CronJobInfoDTO>> cronJobInfoMap = cronJobService.listCronJobByPlanIds(appId, planIdList);
         if (MapUtils.isNotEmpty(cronJobInfoMap)) {
@@ -113,37 +90,5 @@ public class ServiceCronJobResourceImpl implements ServiceCronJobResource {
             return InternalResponse.buildSuccessResp(cronJobMap);
         }
         return InternalResponse.buildSuccessResp(null);
-    }
-
-    @Override
-    @JobTransactional(transactionManager = "jobCrontabTransactionManager")
-    public InternalResponse<Long> saveCronJobWithId(String username, Long appId, Long cronJobId, Long createTime,
-                                                    Long lastModifyTime, String lastModifyUser,
-                                                    CronJobCreateUpdateReq cronJobCreateUpdateReq) {
-        JobContextUtil.setAllowMigration(true);
-        CronJobInfoDTO cronJobInfoDTO = CronJobInfoDTO.fromReq(username, appId, cronJobCreateUpdateReq);
-        cronJobInfoDTO.setId(cronJobId);
-        cronJobInfoDTO.setCreator(username);
-        if (createTime != null && createTime > 0) {
-            cronJobInfoDTO.setCreateTime(createTime);
-        } else {
-            cronJobInfoDTO.setCreateTime(DateUtils.currentTimeSeconds());
-        }
-        if (StringUtils.isNotBlank(lastModifyUser)) {
-            cronJobInfoDTO.setLastModifyUser(lastModifyUser);
-        } else {
-            cronJobInfoDTO.setLastModifyUser(username);
-        }
-        if (lastModifyTime != null && lastModifyTime > 0) {
-            cronJobInfoDTO.setLastModifyTime(lastModifyTime);
-        } else {
-            cronJobInfoDTO.setLastModifyTime(DateUtils.currentTimeSeconds());
-        }
-        if (cronJobInfoDTO.validate()) {
-            return InternalResponse.buildSuccessResp(cronJobService.insertCronJobInfoWithId(cronJobInfoDTO));
-        } else {
-            log.warn("Error while saving cron job!|{}", JobContextUtil.getDebugMessage());
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-        }
     }
 }

@@ -27,20 +27,21 @@ package com.tencent.bk.job.common.notice.impl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
+import com.tencent.bk.job.common.esb.exception.BkOpenApiException;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.sdk.BkApiClient;
-import com.tencent.bk.job.common.exception.HttpStatusException;
-import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.esb.sdk.BkApiV1Client;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.notice.IBkNoticeClient;
 import com.tencent.bk.job.common.notice.exception.BkNoticeException;
 import com.tencent.bk.job.common.notice.model.AnnouncementDTO;
 import com.tencent.bk.job.common.notice.model.BkNoticeApp;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -51,7 +52,7 @@ import org.apache.http.HttpStatus;
 import java.util.List;
 
 @SuppressWarnings("SameParameterValue")
-public class BkNoticeClient extends BkApiClient implements IBkNoticeClient {
+public class BkNoticeClient extends BkApiV1Client implements IBkNoticeClient {
 
     private static final String URI_REGISTER_APPLICATION = "/apigw/v1/register/";
     private static final String URI_GET_CURRENT_ANNOUNCEMENTS = "/apigw/v1/announcement/get_current_announcements/";
@@ -61,14 +62,16 @@ public class BkNoticeClient extends BkApiClient implements IBkNoticeClient {
 
     public BkNoticeClient(MeterRegistry meterRegistry,
                           AppProperties appProperties,
-                          BkApiGatewayProperties bkApiGatewayProperties) {
+                          BkApiGatewayProperties bkApiGatewayProperties,
+                          TenantEnvService tenantEnvService) {
         super(
             meterRegistry,
             CommonMetricNames.BK_NOTICE_API,
             getBkNoticeUrlSafely(bkApiGatewayProperties),
             HttpHelperFactory.createHttpHelper(
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
-            )
+            ),
+            tenantEnvService
         );
         this.appProperties = appProperties;
         authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(), appProperties.getSecret());
@@ -84,6 +87,7 @@ public class BkNoticeClient extends BkApiClient implements IBkNoticeClient {
     @Override
     public BkNoticeApp registerApplication() {
         EsbResp<BkNoticeApp> resp = requestBkNoticeApi(
+            TenantIdConstants.SYSTEM_TENANT_ID,
             HttpMethodEnum.POST,
             URI_REGISTER_APPLICATION,
             null,
@@ -95,8 +99,12 @@ public class BkNoticeClient extends BkApiClient implements IBkNoticeClient {
     }
 
     @Override
-    public List<AnnouncementDTO> getCurrentAnnouncements(String bkLanguage, Integer offset, Integer limit) {
+    public List<AnnouncementDTO> getCurrentAnnouncements(String tenantId,
+                                                         String bkLanguage,
+                                                         Integer offset,
+                                                         Integer limit) {
         EsbResp<List<AnnouncementDTO>> resp = requestBkNoticeApi(
+            tenantId,
             HttpMethodEnum.GET,
             buildUriWithParams(bkLanguage, offset, limit),
             null,
@@ -137,7 +145,8 @@ public class BkNoticeClient extends BkApiClient implements IBkNoticeClient {
      * @param <R>           泛型：返回值类型
      * @return 返回值类型实例
      */
-    private <R> EsbResp<R> requestBkNoticeApi(HttpMethodEnum method,
+    private <R> EsbResp<R> requestBkNoticeApi(String tenantId,
+                                              HttpMethodEnum method,
                                               String uri,
                                               EsbReq reqBody,
                                               TypeReference<EsbResp<R>> typeReference,
@@ -149,18 +158,16 @@ public class BkNoticeClient extends BkApiClient implements IBkNoticeClient {
                 .builder()
                 .method(method)
                 .uri(uri)
+                .addHeader(buildTenantHeader(tenantId))
                 .body(reqBody)
                 .authorization(authorization)
                 .setIdempotent(idempotent)
                 .build();
             return doRequest(requestInfo, typeReference);
-        } catch (InternalException e) {
+        } catch (BkOpenApiException e) {
             // 接口不存在的场景需要使用指定错误码以便前端兼容处理
-            if (e.getCause() instanceof HttpStatusException) {
-                HttpStatusException httpStatusException = (HttpStatusException) e.getCause();
-                if (httpStatusException.getHttpStatus() == HttpStatus.SC_NOT_FOUND) {
-                    throw new BkNoticeException(e, ErrorCode.BK_NOTICE_API_NOT_FOUND, new String[]{uri});
-                }
+            if (e.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                throw new BkNoticeException(e, ErrorCode.BK_NOTICE_API_NOT_FOUND, new String[]{uri});
             }
             throw new BkNoticeException(e, ErrorCode.BK_NOTICE_API_DATA_ERROR, null);
         } catch (Exception e) {

@@ -30,4 +30,8 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class ListProjectReq extends ArtifactoryReq {
+    /**
+     * 项目名称，多个以,隔开，非必填
+     */
+    private String names;
 }

@@ -50,7 +50,7 @@ public class AddJwtHeaderGlobalFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String jwt = jwtManager.getToken();
         ServerHttpRequest request = exchange.getRequest();
-        request.mutate().header("x-job-auth-token", jwt).build();
+        request = request.mutate().header("x-job-auth-token", jwt).build();
         return chain.filter(exchange.mutate().request(request).build());
     }
 

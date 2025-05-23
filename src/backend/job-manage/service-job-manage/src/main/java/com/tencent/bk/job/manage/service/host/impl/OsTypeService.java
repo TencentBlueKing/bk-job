@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -40,29 +41,36 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class OsTypeService {
 
-    private final LoadingCache<String, Map<String, String>> osTypeMapCache = Caffeine.newBuilder()
-        .maximumSize(2)
+    private final LoadingCache<Pair<String, String>, Map<String, String>> osTypeMapCache = Caffeine.newBuilder()
+        .maximumSize(10)
         .expireAfterWrite(30, TimeUnit.MINUTES)
         .recordStats()
-        .build(lang -> {
+        .build(langTenantIdPair -> {
+            String lang = langTenantIdPair.getLeft();
+            String tenantId = langTenantIdPair.getRight();
             IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(lang);
-            return bizCmdbClient.getOsTypeIdNameMap();
+            return bizCmdbClient.getOsTypeIdNameMap(tenantId);
         });
 
-    private String getOsTypeNameById(String osTypeId) {
-        Map<String, String> osTypeIdNameMap = osTypeMapCache.get(JobContextUtil.getUserLang());
+    private String getOsTypeNameById(String tenantId, String osTypeId) {
+        Map<String, String> osTypeIdNameMap = osTypeMapCache.get(
+            Pair.of(
+                JobContextUtil.getUserLang(),
+                tenantId
+            )
+        );
         if (osTypeIdNameMap == null) {
             return JobConstants.UNKNOWN_NAME;
         }
         return osTypeIdNameMap.get(osTypeId);
     }
 
-    public String getOsTypeNameOrDefault(String osTypeId, String defaultValue) {
+    public String getOsTypeNameOrDefault(String tenantId, String osTypeId, String defaultValue) {
         if (osTypeId == null) {
             return defaultValue;
         }
         try {
-            return getOsTypeNameById(osTypeId);
+            return getOsTypeNameById(tenantId, osTypeId);
         } catch (Exception e) {
             log.warn("Fail to getOsTypeNameById", e);
             return defaultValue;

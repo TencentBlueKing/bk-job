@@ -67,7 +67,9 @@ public class AddEsbLangHeaderGatewayFilterFactory
                     commonLang = LocaleUtils.LANG_ZH_CN;
                 }
             }
-            request.mutate().header(COMMON_LANG_HEADER, new String[]{commonLang}).build();
+            request = request.mutate()
+                .header(COMMON_LANG_HEADER, commonLang)
+                .build();
             return chain.filter(exchange.mutate().request(request).build());
         };
     }

@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -76,7 +76,7 @@ public class LogExportServiceImpl implements LogExportService {
     private final StringRedisTemplate redisTemplate;
     private final StepInstanceService stepInstanceService;
     private final ArtifactoryClient artifactoryClient;
-    private final ArtifactoryConfig artifactoryConfig;
+    private final ArtifactoryHelper artifactoryHelper;
     private final LogExportConfig logExportConfig;
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
 
@@ -85,7 +85,7 @@ public class LogExportServiceImpl implements LogExportService {
                                 StringRedisTemplate redisTemplate,
                                 StepInstanceService stepInstanceService,
                                 @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
-                                ArtifactoryConfig artifactoryConfig,
+                                ArtifactoryHelper artifactoryHelper,
                                 LogExportConfig logExportConfig,
                                 ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                 @Qualifier("logExportExecutor") ExecutorService logExportExecutor) {
@@ -93,7 +93,7 @@ public class LogExportServiceImpl implements LogExportService {
         this.redisTemplate = redisTemplate;
         this.stepInstanceService = stepInstanceService;
         this.artifactoryClient = artifactoryClient;
-        this.artifactoryConfig = artifactoryConfig;
+        this.artifactoryHelper = artifactoryHelper;
         this.logExportConfig = logExportConfig;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.logExportExecutor = logExportExecutor;
@@ -178,7 +178,7 @@ public class LogExportServiceImpl implements LogExportService {
                                              ExecuteObjectTypeEnum executeObjectType,
                                              Long executeObjectResourceId) {
         return JsonUtils.fromJson(redisTemplate.opsForValue().get(
-            getExportJobKey(appId, stepInstanceId, executeObjectType, executeObjectResourceId)),
+                getExportJobKey(appId, stepInstanceId, executeObjectType, executeObjectResourceId)),
             LogExportJobInfoDTO.class);
     }
 
@@ -355,7 +355,7 @@ public class LogExportServiceImpl implements LogExportService {
         // 将zip文件上传至制品库
         try {
             artifactoryClient.uploadGenericFile(
-                artifactoryConfig.getArtifactoryJobProject(),
+                artifactoryHelper.getJobRealProject(),
                 logExportConfig.getLogExportRepo(),
                 zipFile.getName(),
                 zipFile

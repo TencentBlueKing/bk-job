@@ -27,8 +27,9 @@ package com.tencent.bk.job.analysis.service;
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.model.web.ScriptCiteStatisticVO;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -40,15 +41,17 @@ import java.util.List;
 public class ScriptStatisticService extends CommonStatisticService {
 
     @Autowired
-    public ScriptStatisticService(StatisticsDAO statisticsDAO, StatisticConfig statisticConfig,
-                                  MetricResourceReslover metricResourceReslover, AppService appService) {
-        super(statisticsDAO, statisticConfig, metricResourceReslover, appService);
+    public ScriptStatisticService(CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                  StatisticConfig statisticConfig,
+                                  MetricResourceReslover metricResourceReslover,
+                                  RemoteAppService remoteAppService) {
+        super(currentTenantStatisticsDAO, statisticConfig, metricResourceReslover, remoteAppService);
     }
 
     private ScriptCiteStatisticVO getGlobalScriptCiteInfo(String date) {
         StatisticsDTO statisticsDTO;
         long scriptCount;
-        statisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID, StatisticsConstants.RESOURCE_GLOBAL,
+        statisticsDTO = currentTenantStatisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID, StatisticsConstants.RESOURCE_GLOBAL,
             StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE, StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_SCRIPT_COUNT,
             date);
         if (statisticsDTO != null) {
@@ -65,7 +68,7 @@ public class ScriptStatisticService extends CommonStatisticService {
             return null;
         }
         long citedScriptCount;
-        statisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID, StatisticsConstants.RESOURCE_GLOBAL,
+        statisticsDTO = currentTenantStatisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID, StatisticsConstants.RESOURCE_GLOBAL,
             StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE, StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_CITED_SCRIPT_COUNT,
             date);
         if (statisticsDTO != null) {
@@ -81,7 +84,7 @@ public class ScriptStatisticService extends CommonStatisticService {
             return null;
         }
         long citedScriptStepCount;
-        statisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID, StatisticsConstants.RESOURCE_GLOBAL,
+        statisticsDTO = currentTenantStatisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID, StatisticsConstants.RESOURCE_GLOBAL,
             StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE, StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_CITED_SCRIPT_STEP_COUNT,
             date);
         if (statisticsDTO != null) {
@@ -100,21 +103,21 @@ public class ScriptStatisticService extends CommonStatisticService {
     }
 
     private ScriptCiteStatisticVO getMultiAppScriptCiteInfo(List<Long> appIdList, String date) {
-        List<StatisticsDTO> statisticsDTOList = statisticsDAO.getStatisticsList(appIdList, null,
+        List<StatisticsDTO> statisticsDTOList = currentTenantStatisticsDAO.getStatisticsList(appIdList, null,
             StatisticsConstants.RESOURCE_SCRIPT_CITE_INFO, StatisticsConstants.DIMENSION_SCRIPT_CITE_INFO_METRIC,
             StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_SCRIPT_COUNT, date);
         long scriptCount = 0L;
         for (StatisticsDTO statisticsDTO : statisticsDTOList) {
             scriptCount += Integer.parseInt(statisticsDTO.getValue());
         }
-        statisticsDTOList = statisticsDAO.getStatisticsList(appIdList, null,
+        statisticsDTOList = currentTenantStatisticsDAO.getStatisticsList(appIdList, null,
             StatisticsConstants.RESOURCE_SCRIPT_CITE_INFO, StatisticsConstants.DIMENSION_SCRIPT_CITE_INFO_METRIC,
             StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_CITED_SCRIPT_COUNT, date);
         long citedScriptCount = 0L;
         for (StatisticsDTO statisticsDTO : statisticsDTOList) {
             citedScriptCount += Integer.parseInt(statisticsDTO.getValue());
         }
-        statisticsDTOList = statisticsDAO.getStatisticsList(appIdList, null,
+        statisticsDTOList = currentTenantStatisticsDAO.getStatisticsList(appIdList, null,
             StatisticsConstants.RESOURCE_SCRIPT_CITE_INFO, StatisticsConstants.DIMENSION_SCRIPT_CITE_INFO_METRIC,
             StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_CITED_SCRIPT_STEP_COUNT, date);
         long citedScriptStepCount = 0L;

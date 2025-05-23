@@ -38,6 +38,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
+@Builder
 public class NotifyTemplateDTO {
     private Integer id;
     /**
@@ -90,6 +91,10 @@ public class NotifyTemplateDTO {
      */
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long lastModifyTime;
+    /**
+     * 租户ID
+     */
+    private String tenantId;
 
     @Override
     public boolean equals(Object o) {

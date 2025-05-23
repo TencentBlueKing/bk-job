@@ -40,7 +40,11 @@
         <bk-table-column
           :label="$t('history.操作人')"
           prop="operator"
-          width="120" />
+          width="120">
+          <template slot-scope="{ row }">
+            <bk-user-display-name :user-id="row.operator" />
+          </template>
+        </bk-table-column>
         <bk-table-column
           :label="$t('history.操作')"
           prop="operationName"

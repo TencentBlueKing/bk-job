@@ -33,10 +33,10 @@ public interface NotifyBlackUserInfoDAO {
 
     Long insertNotifyBlackUserInfo(NotifyBlackUserInfoDTO notifyBlackUserInfoDTO);
 
-    int deleteAllNotifyBlackUser();
+    int deleteAllNotifyBlackUser(String tenantId);
 
-    List<NotifyBlackUserInfoDTO> listNotifyBlackUserInfo();
+    List<NotifyBlackUserInfoDTO> listNotifyBlackUserInfo(String tenantId);
 
-    List<NotifyBlackUserInfoVO> listNotifyBlackUserInfo(Integer start, Integer limit);
+    List<NotifyBlackUserInfoVO> listNotifyBlackUserInfo(String tenantId, Integer start, Integer limit);
 
 }

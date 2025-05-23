@@ -39,6 +39,7 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ServiceGetHostsByCloudIpv6Req {
+    String tenantId;
     Long cloudAreaId;
     String ipv6;
 }

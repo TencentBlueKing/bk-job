@@ -31,9 +31,9 @@ import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.sdk.BkApiClient;
 import com.tencent.bk.job.common.esb.sdk.BkApiContext;
 import com.tencent.bk.job.common.esb.sdk.BkApiLogStrategy;
+import com.tencent.bk.job.common.esb.sdk.BkApiV1Client;
 import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
 import com.tencent.bk.job.common.gse.constants.GseMetricNames;
@@ -48,6 +48,7 @@ import com.tencent.bk.job.common.gse.v2.model.TerminateGseTaskRequest;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.JobHttpRequestRetryHandler;
@@ -61,7 +62,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Slf4j
-public class GseV2ApiClient extends BkApiClient implements IGseClient {
+public class GseV2ApiClient extends BkApiV1Client implements IGseClient {
 
     private static final String URI_LIST_AGENT_STATE = "/api/v2/cluster/list_agent_state";
     private static final String URI_ASYNC_EXECUTE_SCRIPT = "/api/v2/task/extensions/async_execute_script";
@@ -76,7 +77,8 @@ public class GseV2ApiClient extends BkApiClient implements IGseClient {
 
     public GseV2ApiClient(MeterRegistry meterRegistry,
                           AppProperties appProperties,
-                          BkApiGatewayProperties bkApiGatewayProperties) {
+                          BkApiGatewayProperties bkApiGatewayProperties,
+                          TenantEnvService tenantEnvService) {
 
         super(meterRegistry,
             GseMetricNames.GSE_V2_API_METRICS_NAME_PREFIX,
@@ -91,7 +93,8 @@ public class GseV2ApiClient extends BkApiClient implements IGseClient {
                 true,
                 new JobHttpRequestRetryHandler(),
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
-            )
+            ),
+            tenantEnvService
         );
         gseBkApiAuthorization = BkApiAuthorization.appAuthorization(appProperties.getCode(), appProperties.getSecret());
         log.info("Init GseV2ApiClient, bkGseApiGatewayUrl: {}, appCode: {}",
@@ -121,6 +124,7 @@ public class GseV2ApiClient extends BkApiClient implements IGseClient {
             .builder()
             .method(HttpMethodEnum.POST)
             .uri(uri)
+            .addHeader(buildTenantHeader(tenantEnvService.getTenantIdForGSE()))
             .body(reqBody)
             .authorization(gseBkApiAuthorization)
             .setIdempotent(isRequestIdempotent)
@@ -150,7 +154,7 @@ public class GseV2ApiClient extends BkApiClient implements IGseClient {
                     public <T, R> void logResp(Logger log, BkApiContext<T, R> context) {
                         if (log.isInfoEnabled()) {
                             // 自定义输出，防止脚本任务结果中的执行日志字段过大导致内存溢出
-                            log.info("[AbstractBkApiClient] Response|bkApiRequestId={}|method={}|uri={}|success={}" +
+                            log.info("[BaseBkApiClient] Response|bkApiRequestId={}|method={}|uri={}|success={}" +
                                     "|costTime={}|resp={}|",
                                 context.getRequestId(),
                                 context.getMethod(),

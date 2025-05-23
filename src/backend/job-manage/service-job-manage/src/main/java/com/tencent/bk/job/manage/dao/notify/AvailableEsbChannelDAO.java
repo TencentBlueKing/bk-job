@@ -31,7 +31,7 @@ import java.util.List;
 public interface AvailableEsbChannelDAO {
     int insertAvailableEsbChannel(AvailableEsbChannelDTO availableEsbChannelDTO);
 
-    int deleteAll();
+    int deleteAllChannelsByTenantId(String tenantId);
 
-    List<AvailableEsbChannelDTO> listAvailableEsbChannel();
+    List<AvailableEsbChannelDTO> listAvailableEsbChannel(String tenantId);
 }
