@@ -125,61 +125,6 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     }
 
     @Override
-    public AuthResult auth(boolean isReturnApplyUrl,
-                           User user,
-                           List<PermissionActionResource> actionResources) {
-        AuthResult authResult = new AuthResult();
-        authResult.setPass(true);
-        List<PermissionActionResource> requiredActionResources = new ArrayList<>();
-
-        for (PermissionActionResource actionResource : actionResources) {
-            String actionId = actionResource.getActionId();
-            List<PermissionResourceGroup> relatedResourceGroups = actionResource.getResourceGroups();
-            if (relatedResourceGroups == null || relatedResourceGroups.isEmpty()) {
-                if (!authHelper.isAllowed(user.getTenantId(), user.getUsername(), actionId)) {
-                    authResult.setPass(false);
-                    PermissionActionResource requiredActionResource = new PermissionActionResource();
-                    requiredActionResource.setActionId(actionId);
-                    requiredActionResources.add(requiredActionResource);
-                    authResult.addRequiredPermission(actionId, null);
-                }
-            } else {
-                // Job当前的场景，暂时只需要支持操作依赖一个资源
-                ResourceTypeEnum resourceType = relatedResourceGroups.get(0).getResourceType();
-                List<PermissionResource> resources = relatedResourceGroups.get(0).getPermissionResources();
-                // All resources are under one application, so choose any one for authentication
-                List<String> allowedResourceIds =
-                    authHelper.isAllowed(user.getTenantId(), user.getUsername(),
-                        actionId, buildInstanceList(resources));
-                List<String> notAllowResourceIds =
-                    resources.stream().filter(resource -> !allowedResourceIds.contains(resource.getResourceId()))
-                        .map(PermissionResource::getResourceId).collect(Collectors.toList());
-                if (CollectionUtils.isNotEmpty(notAllowResourceIds)) {
-                    authResult.setPass(false);
-                    resources.forEach(resource -> {
-                        if (notAllowResourceIds.contains(resource.getResourceId())) {
-                            if (isReturnApplyUrl) {
-                                resource.setResourceName(resourceNameQueryService.getResourceName(resourceType,
-                                    resource.getResourceId()));
-                            }
-                            PermissionActionResource requiredActionResource = new PermissionActionResource();
-                            requiredActionResource.setActionId(actionId);
-                            requiredActionResource.addResource(resource);
-                            requiredActionResources.add(requiredActionResource);
-                            authResult.addRequiredPermission(actionId, resource);
-                        }
-                    });
-                }
-            }
-        }
-
-        if (!authResult.isPass() && isReturnApplyUrl) {
-            authResult.setApplyUrl(getApplyUrl(user.getTenantId(), requiredActionResources));
-        }
-        return authResult;
-    }
-
-    @Override
     public List<String> batchAuth(User user,
                                   String actionId,
                                   ResourceTypeEnum resourceType,
@@ -366,32 +311,6 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     @Override
     public <T> EsbResp<T> buildEsbAuthFailResp(PermissionDeniedException exception) {
         return buildEsbAuthFailResp(exception.getAuthResult().getRequiredActionResources());
-    }
-
-    @Override
-    public String getApplyUrl(String tenantId, String actionId, ResourceTypeEnum resourceType, String resourceId) {
-        InstanceDTO instance = new InstanceDTO();
-        instance.setId(resourceId);
-        instance.setType(resourceType.getId());
-
-        RelatedResourceTypeDTO relatedResourceType = new RelatedResourceTypeDTO();
-        relatedResourceType.setSystemId(resourceType.getSystemId());
-        relatedResourceType.setType(resourceType.getId());
-        relatedResourceType.setInstance(Collections.singletonList(Collections.singletonList(instance)));
-
-        ActionDTO action = new ActionDTO();
-        action.setId(actionId);
-        action.setRelatedResourceTypes(Collections.singletonList(relatedResourceType));
-
-        return iamClient.getApplyUrl(Collections.singletonList(action));
-    }
-
-    @Override
-    public String getApplyUrl(String tenantId, String actionId) {
-        ActionDTO action = new ActionDTO();
-        action.setId(actionId);
-        action.setRelatedResourceTypes(Collections.emptyList());
-        return iamClient.getApplyUrl(Collections.singletonList(action));
     }
 
     @Override

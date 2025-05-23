@@ -53,23 +53,4 @@ public class MockIamClient implements IIamClient {
     public boolean registerResource(String id, String name, String type, String creator, List<ResourceDTO> ancestor) {
         return true;
     }
-
-    @Override
-    public EsbIamAuthedPolicy authByPath(
-        EsbIamAction esbIamAction,
-        EsbIamSubject esbIamSubject,
-        List<EsbIamResource> esbIamResources
-    ) {
-        return null;
-    }
-
-    @Override
-    public List<EsbIamBatchAuthedPolicy> batchAuthByPath(
-        List<EsbIamAction> esbIamActions,
-        EsbIamSubject esbIamSubject,
-        List<EsbIamBatchPathResource> esbIamBatchPathResources,
-        Long expiredAt
-    ) {
-        return Collections.emptyList();
-    }
 }
