@@ -85,7 +85,7 @@ public interface GseTaskService {
      * @param batch          批次
      * @return GSE 任务列表
      */
-    List<GseTaskSimpleDTO> ListGseTaskSimpleInfo(Long stepInstanceId,
+    List<GseTaskSimpleDTO> listGseTaskSimpleInfo(Long stepInstanceId,
                                                  Integer executeCount,
                                                  Integer batch);
 }

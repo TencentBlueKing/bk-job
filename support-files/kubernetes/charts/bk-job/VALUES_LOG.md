@@ -53,6 +53,162 @@ executeConfig:
         # 过期时间（s）
         expireSeconds: 10
 ```
+## 0.7.3
+1. 增加连接外部MariaDB、Redis、RabbitMQ、MongoDB支持TLS相关配置
+```yaml
+externalMariaDB:
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS
+    trustStoreType: "JKS"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.jks"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    keyStoreType: "PKCS12"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
+
+## job-backup备份服务配置
+backupConfig:
+  ## 数据归档配置
+  archive:
+    # 归档使用的MariaDB实例，若开启归档且开启 DB 数据备份，必须配置该项内容
+    mariadb:
+      ## TLS相关配置
+      tls :
+        ## 是否开启tls认证
+        enabled : false
+        ## 存储trustStore与keyStore的secret名称
+        existingSecret : ""
+        ## 单向tls认证配置
+        ## 密钥库类型：支持PKCS12、JKS，默认JKS
+        trustStoreType : "JKS"
+        ## 信任库文件名称（与Secret中的Key一致）
+        trustStoreFilename : "truststore.jks"
+        ## 信任库密码
+        trustStorePassword : ""
+        ## 双向tls认证配置
+        ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+        keyStoreType : "PKCS12"
+        ## 密钥库文件名称（与Secret中的Key一致）
+        keyStoreFilename : ""
+        ## 密钥库密码
+        keyStorePassword : ""
+        ## 是否校验主机名
+        verifyHostname : false
+
+## 应用MySQL表结构Migration时使用的TLS配置
+job:
+  migration:
+    mysqlSchema:
+      ## TLS相关配置
+      tls:
+        ## 是否开启tls认证
+        enabled: false
+        ## 存储证书与私钥文件内容的secret名称
+        existingSecret: ""
+        ## 单向tls认证配置
+        ## 客户端需要信任的服务端CA证书文件（PEM格式）名称（与Secret中的Key一致）
+        certCAFilename: "ca.pem"
+        ## 双向tls认证配置
+        ## 服务端需要信任的客户端证书文件（PEM格式）名称（与Secret中的Key一致）
+        certFilename: ""
+        ## 客户端私钥文件名称（与Secret中的Key一致）
+        certKeyFilename: ""
+        ## 是否校验主机名
+        verifyHostname: false
+
+externalRedis:
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS，注意：连接Redis使用的trustStoreType与keyStoreType必须相同，若不同则以keyStoreType为准
+    trustStoreType: "JKS"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.jks"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS
+    keyStoreType: "JKS"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
+    ## 是否校验主机名
+    verifyHostname: false
+    
+externalRabbitMQ:
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS
+    trustStoreType: "JKS"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.jks"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    keyStoreType: "PKCS12"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
+    ## 是否校验主机名
+    verifyHostname: false
+    
+externalMongoDB:
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS
+    trustStoreType: "JKS"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.jks"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    keyStoreType: "PKCS12"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
+    ## 是否校验主机名
+    verifyHostname: false
+```
+
+2. 修改备份服务热库的保留时间配置项
+```yaml
+backupConfig:
+  archive:
+    execute:
+      # 热库中的数据保留时间（天）
+      keepDays: 30
+```
 
 ## 0.7.1
 1. 增加AI相关配置

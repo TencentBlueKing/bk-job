@@ -38,10 +38,12 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.FileSourceTaskLogDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.FileSourceTaskLogService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
+import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceTaskResource;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.ClearTaskFilesReq;
@@ -73,6 +75,7 @@ import java.util.stream.Collectors;
 public class ThirdFilePrepareService {
     private final ResultHandleManager resultHandleManager;
     private final ServiceFileSourceTaskResource fileSourceTaskResource;
+    private final TaskInstanceService taskInstanceService;
     private final StepInstanceService stepInstanceService;
     private final FileSourceTaskLogService fileSourceTaskLogService;
     private final AccountService accountService;
@@ -85,6 +88,7 @@ public class ThirdFilePrepareService {
     @Autowired
     public ThirdFilePrepareService(ResultHandleManager resultHandleManager,
                                    ServiceFileSourceTaskResource fileSourceTaskResource,
+                                   TaskInstanceService taskInstanceService,
                                    StepInstanceService stepInstanceService,
                                    FileSourceTaskLogService fileSourceTaskLogService,
                                    AccountService accountService,
@@ -93,6 +97,7 @@ public class ThirdFilePrepareService {
                                    TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher) {
         this.resultHandleManager = resultHandleManager;
         this.fileSourceTaskResource = fileSourceTaskResource;
+        this.taskInstanceService = taskInstanceService;
         this.stepInstanceService = stepInstanceService;
         this.fileSourceTaskLogService = fileSourceTaskLogService;
         this.accountService = accountService;
@@ -388,13 +393,15 @@ public class ThirdFilePrepareService {
         boolean isForRetry,
         ThirdFilePrepareTaskResultHandler resultHandler
     ) {
-        ThirdFilePrepareTask batchResultHandleTask =
-            new ThirdFilePrepareTask(
-                stepInstance,
-                fileSourceList,
-                batchTaskId,
-                isForRetry,
-                new RecordableThirdFilePrepareTaskResultHandler(stepInstance, resultHandler));
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
+        ThirdFilePrepareTask batchResultHandleTask = new ThirdFilePrepareTask(
+            taskInstance,
+            stepInstance,
+            fileSourceList,
+            batchTaskId,
+            isForRetry,
+            new RecordableThirdFilePrepareTaskResultHandler(stepInstance, resultHandler)
+        );
         batchResultHandleTask.initDependentService(
             fileSourceTaskResource, stepInstanceService, accountService,
             fileWorkerHostService, logService, taskExecuteMQEventDispatcher, fileSourceTaskLogService

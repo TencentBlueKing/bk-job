@@ -24,11 +24,15 @@ spec:
         args:
         - bin/sync-bkapigateway.sh
         image: {{ include "job-sync-bk-api-gateway.image" . }}
-        imagePullPolicy: {{ .Values.migration.image.pullPolicy }}
+        imagePullPolicy: {{ .Values.bkApiGatewayConfig.image.pullPolicy }}
+        resources:
+          {{- toYaml .Values.bkApiGatewayConfig.resources | nindent 10 }}
         name: job-sync-bk-api-gateway
         env:
         - name: BK_APIGW_NAME
           value: {{ .Values.bkApiGatewayConfig.gatewayName }}
+        - name: BK_APIGW_API_TYPE
+          value: {{ .Values.bkApiGatewayConfig.apiType | quote }}
         - name: BK_APP_CODE
           value: {{ .Values.appCode }}
         - name: BK_APP_SECRET

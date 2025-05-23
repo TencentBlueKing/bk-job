@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.util.ListUtil;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -60,4 +62,9 @@ public class ExecuteFileSourceInfoVO {
 
     @ApiModelProperty(value = "文件源ID")
     private Integer fileSourceId;
+
+    @JsonIgnore
+    public List<String> getTrimmedFileLocation() {
+        return ListUtil.trimStringList(fileLocation);
+    }
 }

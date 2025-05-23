@@ -101,7 +101,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         TABLE.IP_DESC,
         TABLE.SET_IDS,
         TABLE.MODULE_IDS,
-        TABLE.CLOUD_AREA_ID,
+        TABLE.CLOUD_ID,
         TABLE.DISPLAY_IP,
         TABLE.OS,
         TABLE.OS_TYPE,
@@ -116,7 +116,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         TABLE.APP_ID,
         TABLE.IS_AGENT_ALIVE,
         TABLE.IP,
-        TABLE.CLOUD_AREA_ID,
+        TABLE.CLOUD_ID,
         TABLE.AGENT_ID,
         TABLE.APP_ID,
         TABLE.IP_V6,
@@ -407,7 +407,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
     public List<ApplicationHostDTO> listHostInfoByCloudIpv6(Long cloudAreaId, String ipv6) {
         List<Condition> conditions = new ArrayList<>();
         if (cloudAreaId != null) {
-            conditions.add(TABLE.CLOUD_AREA_ID.eq(JooqDataTypeUtil.buildULong(cloudAreaId)));
+            conditions.add(TABLE.CLOUD_ID.eq(cloudAreaId));
         }
         conditions.add(TABLE.IP_V6.like("%" + ipv6 + "%"));
         return listHostInfoByConditions(conditions);
@@ -576,9 +576,9 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         }
         if (cloudAreaIds != null) {
             if (condition != null) {
-                condition = condition.or(tHost.CLOUD_AREA_ID.in(cloudAreaIds));
+                condition = condition.or(tHost.CLOUD_ID.in(cloudAreaIds));
             } else {
-                condition = tHost.CLOUD_AREA_ID.in(cloudAreaIds);
+                condition = tHost.CLOUD_ID.in(cloudAreaIds);
             }
         }
         if (condition != null) {
@@ -610,7 +610,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         Host tHost = Host.HOST;
         List<Condition> conditions = buildConditions(bizIds, moduleIds, agentAlive);
         if (cloudAreaIds != null) {
-            conditions.add(tHost.CLOUD_AREA_ID.in(cloudAreaIds));
+            conditions.add(tHost.CLOUD_ID.in(cloudAreaIds));
         }
         addFieldMultiLikeCondition(conditions, tHost.IP, ipKeys);
         addFieldMultiLikeCondition(conditions, tHost.IP_V6, ipv6Keys);
@@ -666,7 +666,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         log.debug("SQL={}", query.getSQL(ParamType.INLINED));
         Result<Record> records = fetchRecordsWithLimit(query, start, limit);
         List<Long> hostIdList = new ArrayList<>();
-        if (records.size() >= 1) {
+        if (!records.isEmpty()) {
             hostIdList = records.stream()
                 .map(record -> record.get(0, Long.class))
                 .collect(Collectors.toList());
@@ -731,7 +731,6 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         String ipv6 = applicationHostDTO.preferFullIpv6();
         String agentId = applicationHostDTO.getAgentId();
         String ipDesc = applicationHostDTO.getHostName();
-        ULong cloudAreaId = ULong.valueOf(applicationHostDTO.getCloudAreaId());
         String displayIp = applicationHostDTO.getDisplayIp();
         String os = applicationHostDTO.getOsName();
         String osType = applicationHostDTO.getOsType();
@@ -748,7 +747,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             TABLE.IP_DESC,
             TABLE.SET_IDS,
             TABLE.MODULE_IDS,
-            TABLE.CLOUD_AREA_ID,
+            TABLE.CLOUD_ID,
             TABLE.DISPLAY_IP,
             TABLE.OS,
             TABLE.OS_TYPE,
@@ -767,7 +766,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             ipDesc,
             finalSetIdsStr,
             finalModuleIdsStr,
-            cloudAreaId,
+            applicationHostDTO.getCloudAreaId(),
             displayIp,
             os,
             osType,
@@ -787,7 +786,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 .set(TABLE.IP_DESC, ipDesc)
                 .set(TABLE.SET_IDS, finalSetIdsStr)
                 .set(TABLE.MODULE_IDS, finalModuleIdsStr)
-                .set(TABLE.CLOUD_AREA_ID, cloudAreaId)
+                .set(TABLE.CLOUD_ID, applicationHostDTO.getCloudAreaId())
                 .set(TABLE.DISPLAY_IP, displayIp)
                 .set(TABLE.OS, os)
                 .set(TABLE.OS_TYPE, osType)
@@ -824,7 +823,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                 TABLE.IP_DESC,
                 TABLE.SET_IDS,
                 TABLE.MODULE_IDS,
-                TABLE.CLOUD_AREA_ID,
+                TABLE.CLOUD_ID,
                 TABLE.DISPLAY_IP,
                 TABLE.OS,
                 TABLE.OS_TYPE,
@@ -865,7 +864,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
                     applicationHostDTO.getHostName(),
                     applicationHostDTO.getSetIdsStr(),
                     applicationHostDTO.getModuleIdsStr(),
-                    JooqDataTypeUtil.buildULong(applicationHostDTO.getCloudAreaId()),
+                    applicationHostDTO.getCloudAreaId(),
                     applicationHostDTO.getDisplayIp(),
                     applicationHostDTO.getOsName(),
                     applicationHostDTO.getOsType(),
@@ -930,7 +929,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
 
     public int updateHostAttrsByConditions(ApplicationHostDTO applicationHostDTO, Collection<Condition> conditions) {
         val query = context.update(TABLE)
-            .set(TABLE.CLOUD_AREA_ID, ULong.valueOf(applicationHostDTO.getCloudAreaId()))
+            .set(TABLE.CLOUD_ID, applicationHostDTO.getCloudAreaId())
             .set(TABLE.IP, applicationHostDTO.getIp())
             .set(TABLE.IP_V6, applicationHostDTO.preferFullIpv6())
             .set(TABLE.AGENT_ID, applicationHostDTO.getAgentId())
@@ -962,7 +961,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .set(TABLE.IP_DESC, applicationHostDTO.getHostName())
             .set(TABLE.SET_IDS, applicationHostDTO.getSetIdsStr())
             .set(TABLE.MODULE_IDS, applicationHostDTO.getModuleIdsStr())
-            .set(TABLE.CLOUD_AREA_ID, JooqDataTypeUtil.buildULong(applicationHostDTO.getCloudAreaId()))
+            .set(TABLE.CLOUD_ID, applicationHostDTO.getCloudAreaId())
             .set(TABLE.DISPLAY_IP, applicationHostDTO.getDisplayIp())
             .set(TABLE.OS, applicationHostDTO.getOsName())
             .set(TABLE.OS_TYPE, applicationHostDTO.getOsType())
@@ -1323,7 +1322,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
             .groupBy(TABLE.IS_AGENT_ALIVE);
         val records = query.fetch();
         List<HostStatusNumStatisticsDTO> countList = new ArrayList<>();
-        if (records.size() > 0) {
+        if (!records.isEmpty()) {
             records.forEach(record -> {
                 HostStatusNumStatisticsDTO statisticsDTO = new HostStatusNumStatisticsDTO();
                 statisticsDTO.setHostNum(record.get(HostStatusNumStatisticsDTO.KEY_HOST_NUM, Integer.class));
@@ -1366,7 +1365,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         if (setIdsStr != null) {
             List<Long> list = new ArrayList<>();
             for (String id : setIdsStr.split(",")) {
-                if (!id.trim().equals("")) {
+                if (!id.trim().isEmpty()) {
                     Long parseLong = Long.parseLong(id);
                     list.add(parseLong);
                 }
@@ -1375,7 +1374,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         }
         applicationHostDTO.setSetId(setIdList);
         applicationHostDTO.setModuleId(StringUtil.strToList(record.get(TABLE.MODULE_IDS), Long.class, ","));
-        applicationHostDTO.setCloudAreaId(record.get(TABLE.CLOUD_AREA_ID).longValue());
+        applicationHostDTO.setCloudAreaId(record.get(TABLE.CLOUD_ID));
         applicationHostDTO.setDisplayIp(record.get(TABLE.DISPLAY_IP));
         applicationHostDTO.setOsName(record.get(TABLE.OS));
         applicationHostDTO.setOsType(record.get(TABLE.OS_TYPE));
@@ -1400,7 +1399,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         hostSimpleDTO.setOsName(record.get(TABLE.OS));
         hostSimpleDTO.setOsType(record.get(TABLE.OS_TYPE));
         hostSimpleDTO.setIp(record.get(TABLE.IP));
-        hostSimpleDTO.setCloudAreaId(record.get(TABLE.CLOUD_AREA_ID).longValue());
+        hostSimpleDTO.setCloudAreaId(record.get(TABLE.CLOUD_ID));
         hostSimpleDTO.setCloudIp(hostSimpleDTO.getCloudAreaId() + ":" + hostSimpleDTO.getIp());
 
         return hostSimpleDTO;

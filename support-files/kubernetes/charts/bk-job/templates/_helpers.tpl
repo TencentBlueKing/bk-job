@@ -255,14 +255,63 @@ Return the JDBC MySQL Driver Class
 {{- end -}}
 
 {{/*
-Return the MariaDB jdbc connection url properties
+Return the MariaDB jdbc connection url base properties (without ssl config)
 */}}
-{{- define "job.mariadb.connection.properties" -}}
+{{- define "job.mariadb.base.connection.properties" -}}
 {{- if .Values.mariadb.enabled }}
     {{- printf "%s" .Values.mariadb.connection.properties -}}
 {{- else -}}
     {{- printf "%s" .Values.externalMariaDB.connection.properties -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Return the MariaDB jdbc connection sslMode
+*/}}
+{{- define "job.mariadb.sslMode" -}}
+{{- if .Values.externalMariaDB.tls.verifyHostname }}
+    {{- printf "VERIFY_IDENTITY" -}}
+{{- else -}}
+    {{- printf "VERIFY_CA" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the MariaDB trustStore password key
+*/}}
+{{- define "job.mariadb.trustStorePasswordKey" -}}
+{{ printf "${mariadb-truststore-password}" }}
+{{- end -}}
+
+{{/*
+Return the MariaDB keyStore password key
+*/}}
+{{- define "job.mariadb.keyStorePasswordKey" -}}
+{{ printf "${mariadb-keystore-password}" }}
+{{- end -}}
+
+{{/*
+Return the MariaDB jdbc connection ssl properties
+*/}}
+{{- define "job.mariadb.ssl.properties" -}}
+{{- if or (.Values.mariadb.enabled) (not .Values.externalMariaDB.tls.enabled) }}
+    {{- printf "" -}}
+{{- else -}}
+    {{- if (not .Values.externalMariaDB.tls.keyStoreFilename) }}
+        {{- printf "&sslMode=%s&trustCertificateKeyStoreType=%s&trustCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&trustCertificateKeyStorePassword=%s" (include "job.mariadb.sslMode" .) .Values.externalMariaDB.tls.trustStoreType .Values.externalMariaDB.tls.trustStoreFilename (include "job.mariadb.trustStorePasswordKey" .) -}}
+    {{- else -}}
+        {{- printf "&sslMode=%s&trustCertificateKeyStoreType=%s&trustCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&trustCertificateKeyStorePassword=%s&clientCertificateKeyStoreType=%s&clientCertificateKeyStoreUrl=file:/etc/certs/mariadb/%s&clientCertificateKeyStorePassword=%s" (include "job.mariadb.sslMode" .) .Values.externalMariaDB.tls.trustStoreType .Values.externalMariaDB.tls.trustStoreFilename (include "job.mariadb.trustStorePasswordKey" .) .Values.externalMariaDB.tls.keyStoreType .Values.externalMariaDB.tls.keyStoreFilename (include "job.mariadb.keyStorePasswordKey" .) -}}
+    {{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the MariaDB jdbc connection url properties
+*/}}
+{{- define "job.mariadb.connection.properties" -}}
+{{- $baseProps := include "job.mariadb.base.connection.properties" . -}}
+{{- $sslProps := include "job.mariadb.ssl.properties" . -}}
+{{- printf "%s%s" $baseProps $sslProps -}}
 {{- end -}}
 
 {{/*
@@ -327,9 +376,11 @@ port: {{ include "job.redis.port" . }}
 password: {{ .Values.redis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
 {{- else }}
 fail "Not supported redis architecture"
-{{- end -}}
+{{- end }}
+ssl: false
 {{- else }}
 password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
+ssl: {{ .Values.externalRedis.tls.enabled }}
 {{- if eq .Values.externalRedis.architecture "standalone" }}
 host: {{ include "job.redis.host" . }}
 port: {{ include "job.redis.port" . }}
@@ -345,6 +396,29 @@ fail "Invalid external redis architecture"
 {{- end -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Return the redis tls config
+*/}}
+{{- define "job.redis.tls" -}}
+{{- if .Values.redis.enabled -}}
+enabled: false
+{{- else -}}
+enabled: {{ .Values.externalRedis.tls.enabled }}
+{{- end }}
+trustStoreType: {{ .Values.externalRedis.tls.trustStoreType }}
+trustStore: /etc/certs/redis/{{ .Values.externalRedis.tls.trustStoreFilename }}
+trustStorePassword: {{ .Values.externalRedis.tls.trustStorePassword }}
+keyStoreType: {{ .Values.externalRedis.tls.keyStoreType }}
+{{- if .Values.externalRedis.tls.keyStoreFilename }}
+keyStore: /etc/certs/redis/{{ .Values.externalRedis.tls.keyStoreFilename }}
+{{- end }}
+{{- if .Values.externalRedis.tls.keyStorePassword }}
+keyStorePassword: {{ .Values.externalRedis.tls.keyStorePassword }}
+{{- end }}
+verifyHostname: {{ .Values.externalRedis.tls.verifyHostname }}
+{{- end -}}
+
 
 {{/*
 Create a default fully qualified app name for RabbitMQ subchart
@@ -427,6 +501,69 @@ Return the RabbitMQ vhost
 {{- end -}}
 {{- end -}}
 
+{{/*
+Return the RabbitMQ SSL Config
+*/}}
+{{- define "job.rabbitmq.sslConfig" -}}
+{{- if and (not .Values.rabbitmq.enabled) (.Values.externalRabbitMQ.tls.enabled) }}
+rabbitmq:
+  ssl:
+    enabled: {{ .Values.externalRabbitMQ.tls.enabled }}
+    trustStoreType: {{ .Values.externalRabbitMQ.tls.trustStoreType }}
+    trustStore: file:/etc/certs/rabbitmq/{{ .Values.externalRabbitMQ.tls.trustStoreFilename }}
+    trustStorePassword: {{ .Values.externalRabbitMQ.tls.trustStorePassword }}
+    keyStoreType: {{ .Values.externalRabbitMQ.tls.keyStoreType }}
+    {{- if .Values.externalRabbitMQ.tls.keyStoreFilename }}
+    keyStore: file:/etc/certs/rabbitmq/{{ .Values.externalRabbitMQ.tls.keyStoreFilename }}
+    {{- end }}
+    {{- if .Values.externalRabbitMQ.tls.keyStorePassword }}
+    keyStorePassword: {{ .Values.externalRabbitMQ.tls.keyStorePassword }}
+    {{- end }}
+    verifyHostname: {{ .Values.externalRabbitMQ.tls.verifyHostname }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the RabbitMQ trustStore password key
+*/}}
+{{- define "job.configWatcher.rabbitmq.trustStorePasswordKey" -}}
+{{ printf "${rabbitmq-truststore-password}" }}
+{{- end -}}
+
+{{/*
+Return the RabbitMQ keyStore password key
+*/}}
+{{- define "job.configWatcher.rabbitmq.keyStorePasswordKey" -}}
+{{ printf "${rabbitmq-keystore-password}" }}
+{{- end -}}
+
+{{/*
+Return the RabbitMQ of config-watcher SSL Env Vars
+*/}}
+{{- define "job.configWatcher.rabbitmq.sslEnv" -}}
+{{- if and (not .Values.rabbitmq.enabled) (.Values.externalRabbitMQ.tls.enabled) }}
+- name: spring.rabbitmq.ssl.enabled
+  value: {{ .Values.externalRabbitMQ.tls.enabled | quote }}
+- name: spring.rabbitmq.ssl.trustStoreType
+  value: {{ .Values.externalRabbitMQ.tls.trustStoreType }}
+- name: spring.rabbitmq.ssl.trustStore
+  value: file:/etc/certs/rabbitmq/{{ .Values.externalRabbitMQ.tls.trustStoreFilename }}
+- name: spring.rabbitmq.ssl.trustStorePassword
+  value: {{ include "job.configWatcher.rabbitmq.trustStorePasswordKey" . }}
+- name: spring.rabbitmq.ssl.keyStoreType
+  value: {{ .Values.externalRabbitMQ.tls.keyStoreType }}
+{{- if .Values.externalRabbitMQ.tls.keyStoreFilename }}
+- name: spring.rabbitmq.ssl.keyStore
+  value: file:/etc/certs/rabbitmq/{{ .Values.externalRabbitMQ.tls.keyStoreFilename }}
+{{- end }}
+{{- if .Values.externalRabbitMQ.tls.keyStorePassword }}
+- name: spring.rabbitmq.ssl.keyStorePassword
+  value: {{ include "job.configWatcher.rabbitmq.keyStorePasswordKey" . }}
+{{- end }}
+- name: spring.rabbitmq.ssl.verifyHostname
+  value: {{ .Values.externalRabbitMQ.tls.verifyHostname | quote }}
+{{- end -}}
+{{- end -}}
 
 {{/*
 Fully qualified app name for MongoDB
@@ -520,6 +657,28 @@ Return whether the mongodb is sharded
 {{- end -}}
 
 {{/*
+Return the mongodb tls config
+*/}}
+{{- define "job.mongodb.tls" -}}
+{{- if .Values.mongodb.enabled -}}
+enabled: false
+{{- else -}}
+enabled: {{ .Values.externalMongoDB.tls.enabled }}
+{{- end }}
+trustStoreType: {{ .Values.externalMongoDB.tls.trustStoreType }}
+trustStore: /etc/certs/mongodb/{{ .Values.externalMongoDB.tls.trustStoreFilename }}
+trustStorePassword: {{ .Values.externalMongoDB.tls.trustStorePassword }}
+keyStoreType: {{ .Values.externalMongoDB.tls.keyStoreType }}
+{{- if .Values.externalMongoDB.tls.keyStoreFilename }}
+keyStore: /etc/certs/mongodb/{{ .Values.externalMongoDB.tls.keyStoreFilename }}
+{{- end }}
+{{- if .Values.externalMongoDB.tls.keyStorePassword }}
+keyStorePassword: {{ .Values.externalMongoDB.tls.keyStorePassword }}
+{{- end }}
+verifyHostname: {{ .Values.externalMongoDB.tls.verifyHostname }}
+{{- end -}}
+
+{{/*
 Return the Job Profile
 */}}
 {{- define "job.profile" -}}
@@ -530,6 +689,7 @@ Return the Job Profile
 Return the Job InitContainer WaitForMigration Content
 */}}
 {{- define "job.initContainer.waitForMigration" -}}
+{{- if .Values.migration.enabled }}
 - name: "migration-init"
   image: {{ include "common.images.image" (dict "imageRoot" .Values.waitForMigration.image "global" .Values.global) }}
   imagePullPolicy: {{ .Values.waitForMigration.image.pullPolicy }}
@@ -538,6 +698,7 @@ Return the Job InitContainer WaitForMigration Content
   args:
   - "job-wr"
   - {{ printf "%s-migration-%s" (include "common.names.fullname" .) .Chart.Version | quote }}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -783,4 +944,92 @@ password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-pass
 password: ${mariadb-password}
     {{- end }}
 {{- end }}
+{{- end -}}
+
+{{/*
+Return the MariaDB certs volumeMount
+*/}}
+{{- define "job.mariadb.certsVolumeMount" -}}
+{{- if and (not .Values.mariadb.enabled) (.Values.externalMariaDB.tls.enabled) -}}
+- name: mariadb-certs
+  mountPath: /etc/certs/mariadb
+  readOnly: true
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the MariaDB certs volume
+*/}}
+{{- define "job.mariadb.certsVolume" -}}
+{{- if and (not .Values.mariadb.enabled) (.Values.externalMariaDB.tls.enabled) -}}
+- name: mariadb-certs
+  secret:
+    secretName: {{ .Values.externalMariaDB.tls.existingSecret }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the MongoDB certs volumeMount
+*/}}
+{{- define "job.mongodb.certsVolumeMount" -}}
+{{- if and (not .Values.mongodb.enabled) (.Values.externalMongoDB.tls.enabled) -}}
+- name: mongodb-certs
+  mountPath: /etc/certs/mongodb
+  readOnly: true
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the MongoDB certs volume
+*/}}
+{{- define "job.mongodb.certsVolume" -}}
+{{- if and (not .Values.mongodb.enabled) (.Values.externalMongoDB.tls.enabled) -}}
+- name: mongodb-certs
+  secret:
+    secretName: {{ .Values.externalMongoDB.tls.existingSecret }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the RabbitMQ certs volumeMount
+*/}}
+{{- define "job.rabbitmq.certsVolumeMount" -}}
+{{- if and (not .Values.rabbitmq.enabled) (.Values.externalRabbitMQ.tls.enabled) -}}
+- name: rabbitmq-certs
+  mountPath: /etc/certs/rabbitmq
+  readOnly: true
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the RabbitMQ certs volume
+*/}}
+{{- define "job.rabbitmq.certsVolume" -}}
+{{- if and (not .Values.rabbitmq.enabled) (.Values.externalRabbitMQ.tls.enabled) -}}
+- name: rabbitmq-certs
+  secret:
+    secretName: {{ .Values.externalRabbitMQ.tls.existingSecret }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Redis certs volumeMount
+*/}}
+{{- define "job.redis.certsVolumeMount" -}}
+{{- if and (not .Values.redis.enabled) (.Values.externalRedis.tls.enabled) -}}
+- name: redis-certs
+  mountPath: /etc/certs/redis
+  readOnly: true
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Redis certs volume
+*/}}
+{{- define "job.redis.certsVolume" -}}
+{{- if and (not .Values.redis.enabled) (.Values.externalRedis.tls.enabled) -}}
+- name: redis-certs
+  secret:
+    secretName: {{ .Values.externalRedis.tls.existingSecret }}
+{{- end -}}
 {{- end -}}

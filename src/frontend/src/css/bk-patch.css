@@ -257,6 +257,10 @@
   }
 }
 
+.bk-form-item.is-checking .bk-form-content ::after{
+  z-index: 9;
+}
+
 /**
     覆盖 bk-radio-button 样式
  */

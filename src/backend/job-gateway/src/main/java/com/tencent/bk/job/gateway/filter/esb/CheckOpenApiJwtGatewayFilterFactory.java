@@ -24,12 +24,15 @@
 
 package com.tencent.bk.job.gateway.filter.esb;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.crypto.util.RSAUtils;
+import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.security.autoconfigure.ServiceSecurityProperties;
 import com.tencent.bk.job.common.service.SpringProfile;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.RequestUtil;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
 import com.tencent.bk.job.gateway.service.OpenApiJwtService;
 import lombok.extern.slf4j.Slf4j;
@@ -37,10 +40,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * OPEN API JWT 解析与校验
@@ -98,11 +105,39 @@ public class CheckOpenApiJwtGatewayFilterFactory
                 return response.setComplete();
             }
 
+            // 缺少用户信息
+            if (StringUtils.isEmpty(authInfo.getUsername())) {
+                logAuthInfo(request, authInfo);
+                return buildResponse(response, ErrorCode.MISSING_USER_INFO);
+            }
+
+            // 缺少AppCode
+            if (StringUtils.isEmpty(authInfo.getAppCode())) {
+                logAuthInfo(request, authInfo);
+                return buildResponse(response, ErrorCode.MISSING_APP_CODE);
+            }
+
             // set app code header
             request.mutate().header(JobCommonHeaders.APP_CODE, new String[]{authInfo.getAppCode()}).build();
             request.mutate().header(JobCommonHeaders.USERNAME, new String[]{authInfo.getUsername()}).build();
             return chain.filter(exchange.mutate().request(request).build());
         };
+    }
+
+    private void logAuthInfo(ServerHttpRequest request, EsbJwtInfo authInfo) {
+        log.warn(
+            "Untrusted open api request, request-id:{}, authInfo: {}",
+            RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_GATEWAY_REQUEST_ID),
+            authInfo
+        );
+    }
+
+    private Mono<Void> buildResponse(ServerHttpResponse response, int errorCode) {
+        response.setStatusCode(HttpStatus.UNAUTHORIZED);
+        EsbResp<Void> resp = EsbResp.buildCommonFailResp(errorCode);
+        String respStr = JsonUtils.toJson(resp);
+        DataBuffer buffer = response.bufferFactory().wrap(respStr.getBytes(StandardCharsets.UTF_8));
+        return response.writeWith(Mono.just(buffer));
     }
 
     private boolean isOpenApiTestActive(ServerHttpRequest request) {

@@ -1,7 +1,6 @@
 <template>
   <bk-form-item
     v-show="isShow"
-    class="form-item-content"
     error-display-type="normal"
     :label="t('解释器')"
     :property="field"
@@ -22,12 +21,14 @@
       <bk-input
         class="form-item-content"
         :placeholder="t('输入目标机器上的自定义解释器软件路径，如：D:\\Software\\python3\\python.exe。请勿指定命令行选项。')"
+        style="width: 100%"
         :value="formData[field]"
         @change="handleChange" />
     </div>
   </bk-form-item>
 </template>
 <script setup>
+  import _ from 'lodash';
   import { computed, ref, watch } from 'vue';
 
   import { useI18n } from '@/i18n';
@@ -73,7 +74,7 @@
   ];
 
   watch(() => props.formData, () => {
-    isCustom.value = props.formData[props.field] !== undefined;
+    isCustom.value = _.isString(props.formData[props.field]);
   }, {
     immediate: true,
     deep: true,

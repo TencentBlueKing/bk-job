@@ -134,6 +134,12 @@ data:
               begin: {{ .Values.crontabConfig.notificationPolicy.failed.start.begin | default 1 }}
               frequency: {{ .Values.crontabConfig.notificationPolicy.failed.start.frequency | default 5 }}
               total: {{ .Values.crontabConfig.notificationPolicy.failed.start.total | default -1 }}
+    mysql:
+      {{- toYaml .Values.crontabConfig.mysql | nindent 6 }}
     server:
       port: {{ .Values.crontabConfig.containerPort }}
+    tls:
+      # 连接Redis使用的TLS配置
+      redis:
+        {{- include "job.redis.tls" . | nindent 8 }}
 {{- end }}

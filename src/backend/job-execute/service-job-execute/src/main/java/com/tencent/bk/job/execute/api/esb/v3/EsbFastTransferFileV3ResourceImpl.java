@@ -146,7 +146,7 @@ public class EsbFastTransferFileV3ResourceImpl
         if (fileType != null && !TaskFileTypeEnum.isValid(fileType)) {
             return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "file_source.file_type");
         }
-        List<String> files = fileSource.getFiles();
+        List<String> files = fileSource.getTrimmedFiles();
         if (files == null || files.isEmpty()) {
             log.warn("File source contains empty file list");
             return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "file_source.file_list");
@@ -188,8 +188,8 @@ public class EsbFastTransferFileV3ResourceImpl
     }
 
     private ValidateResult checkFastTransferFileRequest(EsbFastTransferFileV3Request request) {
-        if (!FilePathValidateUtil.validateFileSystemAbsolutePath(request.getTargetPath())) {
-            log.warn("Fast transfer file, target path is invalid!path={}", request.getTargetPath());
+        if (!FilePathValidateUtil.validateFileSystemAbsolutePath(request.getTrimmedTargetPath())) {
+            log.warn("Fast transfer file, target path is invalid!path={}", request.getTrimmedTargetPath());
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "file_target_path");
         }
         if ((request.getAccountId() == null || request.getAccountId() <= 0L)
@@ -249,7 +249,7 @@ public class EsbFastTransferFileV3ResourceImpl
         stepInstance.setAccountAlias(request.getAccountAlias());
         stepInstance.setStepId(-1L);
         stepInstance.setExecuteType(StepExecuteTypeEnum.SEND_FILE);
-        stepInstance.setFileTargetPath(request.getTargetPath());
+        stepInstance.setFileTargetPath(request.getTrimmedTargetPath());
         stepInstance.setFileTargetName(request.getTargetName());
         stepInstance.setFileSourceList(convertFileSource(request.getAppId(), request.getFileSources()));
         stepInstance.setAppId(request.getAppId());
@@ -300,8 +300,8 @@ public class EsbFastTransferFileV3ResourceImpl
             }
             fileSourceDTO.setFileType(fileType);
             List<FileDetailDTO> files = new ArrayList<>();
-            if (fileSource.getFiles() != null) {
-                for (String file : fileSource.getFiles()) {
+            if (fileSource.getTrimmedFiles() != null) {
+                for (String file : fileSource.getTrimmedFiles()) {
                     FileDetailDTO fileDetailDTO;
                     if (fileType == TaskFileTypeEnum.LOCAL.getType()) {
                         // 从制品库获取本地文件信息

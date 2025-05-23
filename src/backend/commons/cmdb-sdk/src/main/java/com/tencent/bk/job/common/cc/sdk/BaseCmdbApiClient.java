@@ -135,7 +135,7 @@ public class BaseCmdbApiClient {
                                 CmdbConfig cmdbConfig,
                                 MeterRegistry meterRegistry,
                                 String lang) {
-        WatchableHttpHelper httpHelper = HttpHelperFactory.getRetryableHttpHelper();
+        WatchableHttpHelper httpHelper = HttpHelperFactory.getLongRetryableHttpHelper();
         this.esbCmdbApiClient = new BkApiClient(meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             esbProperties.getService().getUrl(),
