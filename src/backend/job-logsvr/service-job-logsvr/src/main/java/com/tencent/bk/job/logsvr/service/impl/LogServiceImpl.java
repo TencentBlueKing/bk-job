@@ -44,6 +44,7 @@ import com.tencent.bk.job.logsvr.model.ScriptTaskLogDocField;
 import com.tencent.bk.job.logsvr.model.TaskExecuteObjectLog;
 import com.tencent.bk.job.logsvr.mongo.LogCollectionFactory;
 import com.tencent.bk.job.logsvr.service.LogService;
+import com.tencent.bk.job.logsvr.util.CollectionNameUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -98,7 +99,7 @@ public class LogServiceImpl implements LogService {
 
     private void batchWriteScriptLogs(List<TaskExecuteObjectLog> taskExecuteObjectLogs) {
         String jobCreateDate = taskExecuteObjectLogs.get(0).getJobCreateDate();
-        String collectionName = buildLogCollectionName(jobCreateDate, LogTypeEnum.SCRIPT);
+        String collectionName = CollectionNameUtil.buildLogCollectionName(jobCreateDate, LogTypeEnum.SCRIPT);
         List<Document> scriptLogDocList = taskExecuteObjectLogs.stream()
             .map(taskHostLog -> buildScriptLogDoc(taskHostLog.getScriptTaskLog())).collect(Collectors.toList());
         List<List<Document>> batchDocList = CollectionUtil.partitionList(scriptLogDocList, BATCH_SIZE);
@@ -113,7 +114,7 @@ public class LogServiceImpl implements LogService {
 
     private void batchWriteFileLogs(List<TaskExecuteObjectLog> taskExecuteObjectLogs) {
         String jobCreateDate = taskExecuteObjectLogs.get(0).getJobCreateDate();
-        String collectionName = buildLogCollectionName(jobCreateDate, LogTypeEnum.FILE);
+        String collectionName = CollectionNameUtil.buildLogCollectionName(jobCreateDate, LogTypeEnum.FILE);
 
         List<WriteModel<Document>> updateOps = buildUpdateOpsFileTask(taskExecuteObjectLogs);
         List<List<WriteModel<Document>>> batchList = CollectionUtil.partitionList(updateOps, BATCH_SIZE);
@@ -157,7 +158,8 @@ public class LogServiceImpl implements LogService {
 
         long start = System.currentTimeMillis();
         long stepInstanceId = taskExecuteObjectLog.getStepInstanceId();
-        String collectionName = buildLogCollectionName(taskExecuteObjectLog.getJobCreateDate(), logType);
+        String collectionName = CollectionNameUtil.buildLogCollectionName(taskExecuteObjectLog.getJobCreateDate(),
+            logType);
 
         try {
             Document scriptLogDoc = buildScriptLogDoc(taskExecuteObjectLog.getScriptTaskLog());
@@ -218,7 +220,7 @@ public class LogServiceImpl implements LogService {
                               Long hostId,
                               FileTaskLogDoc fileTaskLog) {
         long start = System.currentTimeMillis();
-        String collectionName = buildLogCollectionName(jobCreateDate, LogTypeEnum.FILE);
+        String collectionName = CollectionNameUtil.buildLogCollectionName(jobCreateDate, LogTypeEnum.FILE);
         try {
             BasicDBObject filter = buildQueryDocForFileTaskLog(stepInstanceId, executeCount, batch, fileTaskLog);
             BasicDBObject update = buildUpdateDocForFileTaskLog(stepInstanceId, executeCount, batch, executeObjectId,
@@ -331,24 +333,11 @@ public class LogServiceImpl implements LogService {
         return update;
     }
 
-    private String buildLogCollectionName(String jobCreateDate, LogTypeEnum logType) {
-        return "job_log_" + getLogTypeName(logType) + "_" + jobCreateDate;
-    }
-
-    private String getLogTypeName(LogTypeEnum logType) {
-        if (logType == LogTypeEnum.SCRIPT) {
-            return "script";
-        } else if (logType == LogTypeEnum.FILE) {
-            return "file";
-        } else {
-            throw new IllegalArgumentException("Invalid logType");
-        }
-    }
-
     @Override
     public List<TaskExecuteObjectLog> listScriptLogs(ScriptLogQuery scriptLogQuery) throws ServiceException {
         long start = System.currentTimeMillis();
-        String collectionName = buildLogCollectionName(scriptLogQuery.getJobCreateDate(), LogTypeEnum.SCRIPT);
+        String collectionName = CollectionNameUtil.buildLogCollectionName(scriptLogQuery.getJobCreateDate(),
+            LogTypeEnum.SCRIPT);
 
         try {
             Query query = buildScriptLogMongoQuery(scriptLogQuery);
@@ -403,7 +392,8 @@ public class LogServiceImpl implements LogService {
 
     @Override
     public List<FileTaskLogDoc> listFileLogs(FileLogQuery getLogRequest) {
-        String collectionName = buildLogCollectionName(getLogRequest.getJobCreateDate(), LogTypeEnum.FILE);
+        String collectionName = CollectionNameUtil.buildLogCollectionName(getLogRequest.getJobCreateDate(),
+            LogTypeEnum.FILE);
 
         long start = System.currentTimeMillis();
         try {
@@ -511,7 +501,7 @@ public class LogServiceImpl implements LogService {
     public List<FileTaskLogDoc> getFileLogsByTaskIds(String jobCreateDate, long stepInstanceId, int executeCount,
                                                      Integer batch, List<String> taskIds) {
         long start = System.currentTimeMillis();
-        String collectionName = buildLogCollectionName(jobCreateDate, LogTypeEnum.FILE);
+        String collectionName = CollectionNameUtil.buildLogCollectionName(jobCreateDate, LogTypeEnum.FILE);
         try {
             Query query = new Query();
             query.addCriteria(Criteria.where(FileTaskLogDocField.STEP_ID).is(stepInstanceId));
@@ -538,7 +528,7 @@ public class LogServiceImpl implements LogService {
     @Override
     public List<HostDTO> getHostsByKeyword(String jobCreateDate, long stepInstanceId, int executeCount,
                                            Integer batch, String keyword) {
-        String collectionName = buildLogCollectionName(jobCreateDate, LogTypeEnum.SCRIPT);
+        String collectionName = CollectionNameUtil.buildLogCollectionName(jobCreateDate, LogTypeEnum.SCRIPT);
         Query query = buildQueryForKeywordSearch(stepInstanceId, executeCount, batch, keyword);
         query.fields().include(ScriptTaskLogDocField.IP, ScriptTaskLogDocField.HOST_ID);
         List<ScriptTaskLogDoc> logs = mongoTemplate.find(query, ScriptTaskLogDoc.class, collectionName);
@@ -585,7 +575,7 @@ public class LogServiceImpl implements LogService {
                                                      int executeCount,
                                                      Integer batch,
                                                      String keyword) {
-        String collectionName = buildLogCollectionName(jobCreateDate, LogTypeEnum.SCRIPT);
+        String collectionName = CollectionNameUtil.buildLogCollectionName(jobCreateDate, LogTypeEnum.SCRIPT);
         Query query = buildQueryForKeywordSearch(stepInstanceId, executeCount, batch, keyword);
         query.fields().include(ScriptTaskLogDocField.EXECUTE_OBJECT_ID);
         List<ScriptTaskLogDoc> logs = mongoTemplate.find(query, ScriptTaskLogDoc.class, collectionName);

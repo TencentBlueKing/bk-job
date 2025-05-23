@@ -27,7 +27,7 @@ package com.tencent.bk.job.backup.archive.util.lock;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 归档任务调度分布式锁
+ * 作业执行历史归档任务调度分布式锁
  */
 @Slf4j
 public class JobInstanceArchiveTaskScheduleLock extends FairDistributeLock {

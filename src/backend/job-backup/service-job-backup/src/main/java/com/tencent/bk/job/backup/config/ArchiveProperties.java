@@ -109,7 +109,7 @@ public class ArchiveProperties {
     @Data
     public static class ArchiveTasksConfig {
         /**
-         * 作业实例数据归档任务配置
+         * 归档任务配置
          */
         private ArchiveTaskConfig jobInstance;
     }

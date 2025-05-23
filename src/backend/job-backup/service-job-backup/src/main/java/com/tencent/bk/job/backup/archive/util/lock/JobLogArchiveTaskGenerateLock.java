@@ -22,37 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.constant;
+package com.tencent.bk.job.backup.archive.util.lock;
 
-import lombok.Getter;
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
-@Getter
-public enum ArchiveTaskTypeEnum {
-    /**
-     * 作业实例数据归档
-     */
-    JOB_INSTANCE(1),
-    /**
-     * 作业实例按业务冗余数据归档
-     */
-    JOB_INSTANCE_APP(2),
-    /**
-     * 作业执行日志归档
-     */
-    JOB_EXECUTE_LOG(3);
+/**
+ * 归档执行日志任务创建分布式锁
+ */
+@Slf4j
+public class JobLogArchiveTaskGenerateLock extends PreemptiveDistributeLock {
 
-    private final int type;
 
-    ArchiveTaskTypeEnum(int type) {
-        this.type = type;
-    }
-
-    public static ArchiveTaskTypeEnum valOf(int type) {
-        for (ArchiveTaskTypeEnum taskType : values()) {
-            if (taskType.getType() == type) {
-                return taskType;
-            }
-        }
-        throw new IllegalArgumentException("No ArchiveTaskTypeEnum constant: " + type);
+    public JobLogArchiveTaskGenerateLock(StringRedisTemplate redisTemplate) {
+        super(redisTemplate,
+            "job:execute:log:archive:task:generate",
+            new HeartBeatRedisLockConfig(
+                "RedisKeyHeartBeatThread-job:execute:log:archive:task:generate",
+                60 * 1000L, // 60s 超时时间
+                10 * 1000L // 10s 续期一次
+            ));
     }
 }

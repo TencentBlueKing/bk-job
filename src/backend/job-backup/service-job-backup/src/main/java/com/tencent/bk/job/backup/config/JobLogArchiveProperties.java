@@ -22,37 +22,56 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.constant;
+package com.tencent.bk.job.backup.config;
 
+import com.tencent.bk.job.backup.constant.ArchiveModeEnum;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/**
+ * 作业执行日志归档配置
+ */
 @Getter
-public enum ArchiveTaskTypeEnum {
+@Setter
+@ToString
+@ConfigurationProperties(prefix = "job.backup.archive.execute-log")
+public class JobLogArchiveProperties {
     /**
-     * 作业实例数据归档
+     * 是否启用执行日志归档
      */
-    JOB_INSTANCE(1),
+    private boolean enabled = false;
+
     /**
-     * 作业实例按业务冗余数据归档
+     * 是否试运行
      */
-    JOB_INSTANCE_APP(2),
+    private boolean dryRun = true;
+
     /**
-     * 作业执行日志归档
+     * 执行日志归档模式
+     *
+     * @see ArchiveModeEnum
      */
-    JOB_EXECUTE_LOG(3);
+    private String mode;
 
-    private final int type;
+    /**
+     * 归档任务触发时间
+     */
+    private String cron;
 
-    ArchiveTaskTypeEnum(int type) {
-        this.type = type;
-    }
+    /**
+     * 归档数据时间范围计算所依据的时区，如果不指定默认为系统时区
+     */
+    private String timeZone;
 
-    public static ArchiveTaskTypeEnum valOf(int type) {
-        for (ArchiveTaskTypeEnum taskType : values()) {
-            if (taskType.getType() == type) {
-                return taskType;
-            }
-        }
-        throw new IllegalArgumentException("No ArchiveTaskTypeEnum constant: " + type);
-    }
+    /**
+     * 执行日志保留天数
+     */
+    private int keepDays = 360;
+
+    /**
+     * 执行日志归档任务并行数量
+     */
+    private Integer concurrent = 6;
 }
