@@ -3,3 +3,4 @@
 权限中心SaaS bk_iam>=V1.10.18
 配置平台 cmdb>=3.14.3
 GSE gse>=2.1.6-beta.43（支持自定义Windows脚本解释器）
+蓝鲸AI开发助手 aidev>=2.0.0（如需开启AI功能则需保证该依赖满足）
