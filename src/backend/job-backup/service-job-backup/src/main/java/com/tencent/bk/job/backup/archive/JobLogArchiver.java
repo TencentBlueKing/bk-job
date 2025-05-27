@@ -24,45 +24,25 @@
 
 package com.tencent.bk.job.backup.archive;
 
+import com.tencent.bk.job.backup.archive.model.BackupResult;
+import com.tencent.bk.job.backup.archive.model.DeleteResult;
+
 /**
- * 作业执行实例归档任务
+ * 作业执行日志归档
  */
-public interface JobInstanceArchiveTask {
+public interface JobLogArchiver {
 
     /**
-     * 执行任务
-     */
-    void execute();
-
-    /**
-     * 优雅终止任务
+     * 备份作业执行日志
      *
-     * @param stopCallback 回调
+     * @param archiveDay 归档数据所在天
      */
-    void stop(ArchiveTaskStopCallback stopCallback);
+    BackupResult backupRecords(Integer archiveDay);
 
     /**
-     * 强制终止
-     */
-    void forceStopAtOnce();
-
-    /**
-     * 注册任务完成回调函数
+     * 删除作业执行日志
      *
-     * @param archiveTaskDoneCallback 回调函数
+     * @param archiveDay 归档数据所在天
      */
-    void registerDoneCallback(ArchiveTaskDoneCallback archiveTaskDoneCallback);
-
-    /**
-     * 获取任务 ID
-     */
-    String getTaskId();
-
-    /**
-     * 设置归档任务的 worker 信息
-     *
-     * @param archiveTaskWorker 归档任务执行线程
-     */
-    void initArchiveTaskWorker(ArchiveTaskWorker archiveTaskWorker);
-
+    DeleteResult deleteRecords(Integer archiveDay);
 }

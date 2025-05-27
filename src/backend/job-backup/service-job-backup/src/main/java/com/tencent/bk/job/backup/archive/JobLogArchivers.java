@@ -22,37 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.constant;
+package com.tencent.bk.job.backup.archive;
 
-import lombok.Getter;
+import com.tencent.bk.job.backup.archive.impl.JobFileLogArchiver;
+import com.tencent.bk.job.backup.archive.impl.JobScriptLogArchiver;
 
-@Getter
-public enum ArchiveTaskTypeEnum {
-    /**
-     * 作业实例数据归档
-     */
-    JOB_INSTANCE(1),
-    /**
-     * 作业实例按业务冗余数据归档
-     */
-    JOB_INSTANCE_APP(2),
-    /**
-     * 作业执行日志归档
-     */
-    JOB_EXECUTE_LOG(3);
+import java.util.ArrayList;
+import java.util.List;
 
-    private final int type;
+public class JobLogArchivers {
 
-    ArchiveTaskTypeEnum(int type) {
-        this.type = type;
+    private final List<JobLogArchiver> archivers = new ArrayList<>();
+
+    public JobLogArchivers(JobFileLogArchiver jobFileLogArchiver,
+                           JobScriptLogArchiver jobScriptLogArchiver) {
+        this.archivers.add(jobFileLogArchiver);
+        this.archivers.add(jobScriptLogArchiver);
     }
 
-    public static ArchiveTaskTypeEnum valOf(int type) {
-        for (ArchiveTaskTypeEnum taskType : values()) {
-            if (taskType.getType() == type) {
-                return taskType;
-            }
-        }
-        throw new IllegalArgumentException("No ArchiveTaskTypeEnum constant: " + type);
+    public List<JobLogArchiver> getAll() {
+        return this.archivers;
     }
 }

@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
- * 归档任务创建分布式锁
+ * 归档作业执行历史任务创建分布式锁
  */
 @Slf4j
 public class JobInstanceArchiveTaskGenerateLock extends PreemptiveDistributeLock {

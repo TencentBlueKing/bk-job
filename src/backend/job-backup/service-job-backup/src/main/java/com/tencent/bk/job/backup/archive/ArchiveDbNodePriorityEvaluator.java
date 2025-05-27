@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -45,7 +45,7 @@ public class ArchiveDbNodePriorityEvaluator {
      * @param scheduleTaskCountGroupByDb 待调度归档任务计数（根据 db)
      * @return DbNodeTasksInfo
      */
-    public static DbNodeTasksInfo evaluateHighestPriorityDbNode(List<JobInstanceArchiveTaskInfo> runningTasks,
+    public static DbNodeTasksInfo evaluateHighestPriorityDbNode(List<ArchiveTaskInfo> runningTasks,
                                                                 Map<String, Integer> scheduleTaskCountGroupByDb) {
         Map<String, Integer> runningTaskCountGroupByDb = groupRunningTaskCountByDb(runningTasks);
 
@@ -74,7 +74,7 @@ public class ArchiveDbNodePriorityEvaluator {
         }
     }
 
-    private static Map<String, Integer> groupRunningTaskCountByDb(List<JobInstanceArchiveTaskInfo> runningTasks) {
+    private static Map<String, Integer> groupRunningTaskCountByDb(List<ArchiveTaskInfo> runningTasks) {
         Map<String, Integer> dbTaskCountMap = new HashMap<>();
         if (CollectionUtils.isEmpty(runningTasks)) {
             return dbTaskCountMap;
