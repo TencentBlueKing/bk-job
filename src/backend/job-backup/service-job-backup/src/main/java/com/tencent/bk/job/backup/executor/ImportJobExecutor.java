@@ -845,7 +845,6 @@ public class ImportJobExecutor {
             }
 
             if (!withoutAccountStepSet.isEmpty()) {
-                logService.addImportLog(importJob.getAppId(), importJob.getId(), LOG_HR);
                 withoutAccountStepSet.forEach(stepName -> logService.addImportLog(
                     importJob.getAppId(),
                     importJob.getId(),
