@@ -97,6 +97,9 @@ public class LogMessage {
 
     public static final String IMPORT_FINISHED = "job.backup.importFinished";
 
-    // [%s]账号不存在，请手动添加，添加完成后修改作业对应的字段
+    // 账号[%s]不存在，请手动添加，添加完成后修改作业对应的字段
     public static final String IMPORT_ACCOUNT_NOT_EXIST = "job.backup.importAccountNotExist";
+
+    // 作业步骤[%s]账号无效
+    public static final String IMPORT_STEP_ACCOUNT_INVALID = "job.backup.importStepAccountInvalid";
 }
