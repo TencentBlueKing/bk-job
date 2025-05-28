@@ -54,6 +54,7 @@ import com.tencent.bk.job.common.util.file.PathUtil;
 import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
@@ -414,6 +415,17 @@ public class ImportJobExecutor {
         if (accountAliasMap != null && accountAliasMap.get(account.getAlias()) != null) {
             finalAccountIdMap.put(account.getId(), accountAliasMap.get(account.getAlias()));
         } else if (finalAccountIdMap.get(account.getId()) == null) {
+            saveAccount(importJob, account, finalAccountIdMap);
+        } else {
+            log.debug("Already create account|{}|{}", account.getAppId(), account.getAlias());
+        }
+    }
+
+    private void saveAccount(ImportJobInfoDTO importJob,
+                             ServiceAccountDTO account,
+                             Map<Long, Long> finalAccountIdMap) {
+        // 导入作业只支持自动创建不需要填写密码的账号
+        if (AccountTypeEnum.LINUX.getType().equals(account.getType())) {
             Long newAccountId = accountService.saveAccount(importJob.getCreator(), importJob.getAppId(), account);
             if (newAccountId != null && newAccountId > 0) {
                 finalAccountIdMap.put(account.getId(), newAccountId);
@@ -426,7 +438,16 @@ public class ImportJobExecutor {
                 throw new InternalException("Find or create account failed!", ErrorCode.INTERNAL_ERROR);
             }
         } else {
-            log.debug("Already create account|{}|{}", account.getAppId(), account.getAlias());
+            log.info("[appId={},alias={}] account does not exist, it needs to be added manually",
+                account.getAppId(), account.getAlias());
+            logService.addImportLog(
+                importJob.getAppId(),
+                importJob.getId(),
+                String.format(
+                    i18nService.getI18n(LogMessage.IMPORT_ACCOUNT_NOT_EXIST),
+                    account.getAlias()
+                )
+            );
         }
     }
 
@@ -739,6 +760,7 @@ public class ImportJobExecutor {
                             } else {
                                 log.warn("Error while fix old account {}|{}|{}|{}", scriptStepInfo.getAccount(),
                                     taskStep.getId(), taskStep.getName(), taskStep.getType());
+                                scriptStepInfo.setAccount(-1L);
                             }
                         } else {
                             log.warn("Empty script step info|{}|{}|{}", taskStep.getId(), taskStep.getName(),
@@ -756,6 +778,7 @@ public class ImportJobExecutor {
                                 } else {
                                     log.warn("Error while fix old account {}|{}|{}|{}", fileDestination.getAccount(),
                                         taskStep.getId(), taskStep.getName(), taskStep.getType());
+                                    fileDestination.setAccount(-1L);
                                 }
                             } else {
                                 log.warn("Empty file destination|{}|{}|{}", taskStep.getId(), taskStep.getName(),
@@ -776,6 +799,7 @@ public class ImportJobExecutor {
                                                     log.warn("Error while fix old account {}|{}|{}|{}",
                                                         fileSourceInfo.getAccount(), taskStep.getId(),
                                                         taskStep.getName(), taskStep.getType());
+                                                    fileDestination.setAccount(-1L);
                                                 }
                                             } else {
                                                 log.warn("Missing account in file source info|{}|{}|{}",
