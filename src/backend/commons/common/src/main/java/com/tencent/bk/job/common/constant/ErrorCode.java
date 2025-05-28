@@ -358,9 +358,13 @@ public class ErrorCode {
     // 作业执行 end
 
     // 定时作业 start
+    // 定时任务不存在
     public static final int CRON_JOB_NOT_EXIST = 1245001;
+    // 更新定时任务错误
     public static final int UPDATE_CRON_JOB_FAILED = 1245002;
+    // 插入定时任务错误
     public static final int INSERT_CRON_JOB_FAILED = 1245003;
+    // 定时任务已存在
     public static final int CRON_JOB_ALREADY_EXIST = 1245004;
     public static final int ACQUIRE_CRON_JOB_LOCK_FAILED = 1245005;
     public static final int CRON_JOB_TIME_PASSED = 1245006;
