@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import com.tencent.bk.job.common.util.http.HttpRequest;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.sdk.iam.config.IamConfiguration;
+import com.tencent.bk.sdk.iam.constants.HttpHeader;
 import com.tencent.bk.sdk.iam.service.HttpClientService;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -139,7 +140,7 @@ public class IamHttpClientServiceImpl implements HttpClientService {
     }
 
     private Header[] buildHeaders(String tenantId, List<Pair<String, String>> headerList) {
-        int headerSize = (CollectionUtils.isEmpty(headerList) ? 0 : headerList.size()) + 1;
+        int headerSize = (CollectionUtils.isEmpty(headerList) ? 0 : headerList.size()) + 2;
         String username = virtualAdminAccountProvider.getVirtualAdminUsername(tenantId);
         BkApiAuthorization authorization = BkApiAuthorization.appAuthorization(
             iamConfiguration.getAppCode(),
@@ -147,9 +148,10 @@ public class IamHttpClientServiceImpl implements HttpClientService {
             username
         );
         Header[] headers = new Header[headerSize];
-        headers[0] = new BasicHeader(ApiGwConsts.HEADER_BK_API_AUTH, JsonUtils.toJson(authorization));
+        headers[0] = buildTenantIdHeader(tenantId);
+        headers[1] = new BasicHeader(ApiGwConsts.HEADER_BK_API_AUTH, JsonUtils.toJson(authorization));
         if (CollectionUtils.isNotEmpty(headerList)) {
-            int index = 1;
+            int index = 2;
             for (Pair<String, String> header : headerList) {
                 headers[index++] = new BasicHeader(header.getKey(), header.getValue());
             }
@@ -157,4 +159,7 @@ public class IamHttpClientServiceImpl implements HttpClientService {
         return headers;
     }
 
+    private Header buildTenantIdHeader(String tenantId) {
+        return new BasicHeader(HttpHeader.KEY_BK_TENANT_ID, tenantId);
+    }
 }
