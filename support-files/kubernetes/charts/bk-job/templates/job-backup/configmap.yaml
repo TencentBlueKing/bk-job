@@ -134,4 +134,6 @@ data:
       # 连接Redis使用的TLS配置
       redis:
         {{- include "job.redis.tls" . | nindent 8 }}
+      mongodb:
+        {{- include "job.mongodb.tls" . | nindent 8 }}
 {{- end }}
