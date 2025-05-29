@@ -386,34 +386,32 @@ public class ImportJobExecutor {
                 .computeIfAbsent(account.getCategory(), k -> new ConcurrentHashMap<>())
                 .put(account.getAlias(), account.getId())
             );
-            Set<String> noExistAccountSet = new LinkedHashSet<>();
+            Set<ServiceAccountDTO> noExistAccountSet = new LinkedHashSet<>();
             for (ServiceAccountDTO account : jobBackupInfo.getAccountList()) {
                 if (AccountCategoryEnum.DB.getValue().equals(account.getCategory())) {
                     // DB account process related system account first
                     doProcessAccount(importJob, finalAccountIdMap, categoryAliasToAccountIdMap,
                         account.getDbSystemAccount(), noExistAccountSet);
                     if (finalAccountIdMap.get(account.getDbSystemAccount().getId()) == null) {
-                        log.error("Error while find or create db account!|{}|{}|{}|{}", importJob.getCreator(),
-                            account.getAppId(), account.getAlias(), account.getDbSystemAccount().getAlias());
-                        logService.addImportLog(importJob.getAppId(), importJob.getId(),
-                            "Find or create db account " + account.getAlias() +
-                                "|" + account.getDbSystemAccount().getAlias() + " " + "failed!",
-                            LogEntityTypeEnum.ERROR);
-                        throw new InternalException("Find or create account failed!", ErrorCode.INTERNAL_ERROR);
+                        log.warn("The system account associated with the database was not found!|{}|{}|{}|{}",
+                            importJob.getCreator(), account.getAppId(), account.getAlias(),
+                            account.getDbSystemAccount().getAlias());
+                    } else {
+                        account.getDbSystemAccount().setId(finalAccountIdMap.get(account.getDbSystemAccount().getId()));
                     }
-                    account.getDbSystemAccount().setId(finalAccountIdMap.get(account.getDbSystemAccount().getId()));
                 }
                 doProcessAccount(importJob, finalAccountIdMap, categoryAliasToAccountIdMap, account,
                     noExistAccountSet);
             }
-            if (!appAccountList.isEmpty()) {
+            if (!noExistAccountSet.isEmpty()) {
                 logService.addImportLog(importJob.getAppId(), importJob.getId(), LOG_HR);
-                noExistAccountSet.forEach(accountAlias -> logService.addImportLog(
+                noExistAccountSet.forEach(account -> logService.addImportLog(
                     importJob.getAppId(),
                     importJob.getId(),
                     String.format(
                         i18nService.getI18n(LogMessage.IMPORT_ACCOUNT_NOT_EXIST),
-                        accountAlias
+                        AccountTypeEnum.valueOf(account.getType()).getName(),
+                        account.getAlias()
                     )
                 ));
             }
@@ -425,7 +423,7 @@ public class ImportJobExecutor {
                                   Map<Long, Long> finalAccountIdMap,
                                   Map<Integer, Map<String, Long>> categoryAliasToAccountIdMap,
                                   ServiceAccountDTO account,
-                                  Set<String> noExistAccountSet) {
+                                  Set<ServiceAccountDTO> noExistAccountSet) {
         Map<String, Long> accountAliasMap = categoryAliasToAccountIdMap.get(account.getCategory());
         if (accountAliasMap != null && accountAliasMap.get(account.getAlias()) != null) {
             finalAccountIdMap.put(account.getId(), accountAliasMap.get(account.getAlias()));
@@ -439,7 +437,7 @@ public class ImportJobExecutor {
     private void saveAccount(ImportJobInfoDTO importJob,
                              ServiceAccountDTO account,
                              Map<Long, Long> finalAccountIdMap,
-                             Set<String> noExistAccountSet) {
+                             Set<ServiceAccountDTO> noExistAccountSet) {
         // 导入作业只支持自动创建不需要填写密码的账号
         if (AccountTypeEnum.LINUX.getType().equals(account.getType())) {
             Long newAccountId = accountService.saveAccount(importJob.getCreator(), importJob.getAppId(), account);
@@ -456,7 +454,7 @@ public class ImportJobExecutor {
         } else {
             log.warn("[appId={},alias={}] account does not exist, it needs to be added manually",
                 account.getAppId(), account.getAlias());
-            noExistAccountSet.add(account.getAlias());
+            noExistAccountSet.add(account);
         }
     }
 
@@ -616,7 +614,7 @@ public class ImportJobExecutor {
         if (MapUtils.isNotEmpty(linkScriptContentMap)) {
             fixScript(importJob, linkScriptContentMap, planInfo.getStepList());
         }
-        fixAccount(importJob, planInfo.getStepList());
+        fixAccount(importJob, planInfo.getStepList(), planInfo.getName());
 
         Long resultPlanId = taskPlanService.savePlan(
             importJob.getCreator(),
@@ -729,7 +727,7 @@ public class ImportJobExecutor {
         if (MapUtils.isNotEmpty(linkScriptContentMap)) {
             fixScript(importJob, linkScriptContentMap, templateInfo.getStepList());
         }
-        fixAccount(importJob, templateInfo.getStepList());
+        fixAccount(importJob, templateInfo.getStepList(), templateInfo.getName());
 
         Long resultTemplateId =
             taskTemplateService.saveTemplate(importJob.getCreator(), importJob.getAppId(), templateInfo);
@@ -755,7 +753,7 @@ public class ImportJobExecutor {
         );
     }
 
-    private void fixAccount(ImportJobInfoDTO importJob, List<TaskStepVO> stepList) {
+    private void fixAccount(ImportJobInfoDTO importJob, List<TaskStepVO> stepList, String jobName) {
         Map<Long, Long> accountIdMap = importJob.getAccountIdMap();
         if (CollectionUtils.isNotEmpty(stepList)) {
             Set<String> withoutAccountStepSet = new LinkedHashSet<>();
@@ -850,6 +848,7 @@ public class ImportJobExecutor {
                     importJob.getId(),
                     String.format(
                         i18nService.getI18n(LogMessage.IMPORT_STEP_ACCOUNT_INVALID),
+                        jobName,
                         stepName
                     )
                 ));
