@@ -444,12 +444,8 @@ public class ImportJobExecutor {
             if (newAccountId != null && newAccountId > 0) {
                 finalAccountIdMap.put(account.getId(), newAccountId);
             } else {
-                log.error("Error while find or create account!|{}|{}|{}", importJob.getCreator(),
-                    account.getAppId(), account.getAlias());
-                logService.addImportLog(importJob.getAppId(), importJob.getId(),
-                    "Find or create account " + account.getAlias() +
-                        " " + "failed!", LogEntityTypeEnum.ERROR);
-                throw new InternalException("Find or create account failed!", ErrorCode.INTERNAL_ERROR);
+                log.error("Failed to create account!|{}|{}|{}|{}", importJob.getCreator(), account.getAppId(),
+                    account.getAlias(), AccountTypeEnum.valueOf(account.getType()).getName());
             }
         } else {
             log.warn("[appId={},alias={}] account does not exist, it needs to be added manually",
