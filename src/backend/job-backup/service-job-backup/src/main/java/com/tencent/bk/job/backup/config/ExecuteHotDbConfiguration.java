@@ -123,7 +123,8 @@ public class ExecuteHotDbConfiguration {
 
         @Qualifier("job-execute-archive-hot-dsl-context")
         @Bean(name = "job-execute-archive-hot-dsl-context")
-        public DSLContext dslContext(@Qualifier("job-execute-archive-hot-jooq-conf") org.jooq.Configuration configuration) {
+        public DSLContext dslContext(
+            @Qualifier("job-execute-archive-hot-jooq-conf") org.jooq.Configuration configuration) {
             log.info("Init DSLContext job-execute-archive-hot-standalone");
             return new DefaultDSLContext(configuration);
         }
@@ -188,7 +189,8 @@ public class ExecuteHotDbConfiguration {
 
         @Qualifier("job-execute-archive-hot-dsl-context-a")
         @Bean(name = "job-execute-archive-hot-dsl-context-a")
-        public DSLContext dslContextA(@Qualifier("job-execute-archive-hot-jooq-conf-a") org.jooq.Configuration configuration) {
+        public DSLContext dslContextA(
+            @Qualifier("job-execute-archive-hot-jooq-conf-a") org.jooq.Configuration configuration) {
             log.info("Init DSLContext job-execute-archive-hot-vertical-a");
             return new DefaultDSLContext(configuration);
         }
@@ -238,7 +240,8 @@ public class ExecuteHotDbConfiguration {
 
         @Qualifier("job-execute-archive-hot-dsl-context-b")
         @Bean(name = "job-execute-archive-hot-dsl-context-b")
-        public DSLContext dslContextB(@Qualifier("job-execute-archive-hot-jooq-conf-b") org.jooq.Configuration configuration) {
+        public DSLContext dslContextB(
+            @Qualifier("job-execute-archive-hot-jooq-conf-b") org.jooq.Configuration configuration) {
             log.info("Init DSLContext job-execute-archive-hot-vertical-b");
             return new DefaultDSLContext(configuration);
         }
@@ -288,7 +291,8 @@ public class ExecuteHotDbConfiguration {
 
         @Qualifier("job-execute-archive-hot-dsl-context-c")
         @Bean(name = "job-execute-archive-hot-dsl-context-c")
-        public DSLContext dslContextC(@Qualifier("job-execute-archive-hot-jooq-conf-c") org.jooq.Configuration configuration) {
+        public DSLContext dslContextC(
+            @Qualifier("job-execute-archive-hot-jooq-conf-c") org.jooq.Configuration configuration) {
             log.info("Init DSLContext job-execute-archive-hot-vertical-c");
             return new DefaultDSLContext(configuration);
         }
