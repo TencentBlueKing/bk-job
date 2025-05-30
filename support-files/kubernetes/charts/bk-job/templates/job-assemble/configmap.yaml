@@ -376,8 +376,31 @@ data:
         worker-tags:
           white: {{ .Values.fileGatewayConfig.workerTags.white }}
           black: {{ .Values.fileGatewayConfig.workerTags.black }}
+    {{- $mysql := merge .Values.executeConfig.mysql .Values.assembleConfig.mysql }}
     mysql:
-      {{- toYaml .Values.assembleConfig.mysql | nindent 6 }}
+      {{- toYaml $mysql | nindent 6 }}
+    idGen:
+      type: {{ .Values.executeConfig.idGen.type }}
+      migration:
+        enabled: {{ .Values.executeConfig.idGen.migration.enabled }}
+    {{ if .Values.executeConfig.leaf.enabled }}
+    # 分布式 ID （leaf 组件配置)
+    leaf:
+      enabled: true
+      segment:
+        allocStrategyDaoBeanName: jooqLeafIdAllocator
+        enable: true
+        url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_leaf{{ include "job.mariadb.connection.properties" . }}
+        username: {{ include "job.mariadb.username" . }}
+    {{ if .Values.externalMariaDB.existingPasswordSecret }}
+        password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
+    {{- else -}}
+        password: ${mariadb-password}
+    {{- end }}
+      snowflake:
+        enable: false
+      name: job-leaf
+    {{- end }}
     bk:
       doc:
         root: {{ .Values.bkDocsCenterUrl }}

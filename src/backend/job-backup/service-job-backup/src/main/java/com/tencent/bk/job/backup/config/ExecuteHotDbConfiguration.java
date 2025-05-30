@@ -100,61 +100,61 @@ public class ExecuteHotDbConfiguration {
     @ConditionalOnProperty(value = "job.backup.archive.execute.mariadb.dataSourceMode",
         havingValue = DataSourceMode.Constants.STANDALONE, matchIfMissing = false)
     protected static class JobExecuteStandaloneDslContextConfiguration {
-        @Qualifier("job-execute-data-source")
-        @Bean(name = "job-execute-data-source")
+        @Qualifier("job-execute-archive-hot-data-source")
+        @Bean(name = "job-execute-archive-hot-data-source")
         @ConfigurationProperties(prefix = "spring.datasource.job-execute")
         public DataSource dataSource() {
             return DataSourceBuilder.create().build();
         }
 
-        @Qualifier("job-execute-transaction-manager")
-        @Bean(name = "job-execute-transaction-manager")
-        @DependsOn("job-execute-data-source")
+        @Qualifier("job-execute-archive-hot-transaction-manager")
+        @Bean(name = "job-execute-archive-hot-transaction-manager")
+        @DependsOn("job-execute-archive-hot-data-source")
         public DataSourceTransactionManager transactionManager(
-            @Qualifier("job-execute-data-source") DataSource dataSource) {
+            @Qualifier("job-execute-archive-hot-data-source") DataSource dataSource) {
             return new DataSourceTransactionManager(dataSource);
         }
 
-        @Qualifier("job-execute-jdbc-template")
-        @Bean(name = "job-execute-jdbc-template")
-        public JdbcTemplate jdbcTemplate(@Qualifier("job-execute-data-source") DataSource dataSource) {
+        @Qualifier("job-execute-archive-hot-jdbc-template")
+        @Bean(name = "job-execute-archive-hot-jdbc-template")
+        public JdbcTemplate jdbcTemplate(@Qualifier("job-execute-archive-hot-data-source") DataSource dataSource) {
             return new JdbcTemplate(dataSource);
         }
 
-        @Qualifier("job-execute-dsl-context")
-        @Bean(name = "job-execute-dsl-context")
-        public DSLContext dslContext(@Qualifier("job-execute-jooq-conf") org.jooq.Configuration configuration) {
-            log.info("Init DSLContext job-execute-standalone");
+        @Qualifier("job-execute-archive-hot-dsl-context")
+        @Bean(name = "job-execute-archive-hot-dsl-context")
+        public DSLContext dslContext(@Qualifier("job-execute-archive-hot-jooq-conf") org.jooq.Configuration configuration) {
+            log.info("Init DSLContext job-execute-archive-hot-standalone");
             return new DefaultDSLContext(configuration);
         }
 
-        @Qualifier("job-execute-jooq-conf")
-        @Bean(name = "job-execute-jooq-conf")
+        @Qualifier("job-execute-archive-hot-jooq-conf")
+        @Bean(name = "job-execute-archive-hot-jooq-conf")
         public org.jooq.Configuration jooqConf(
-            @Qualifier("job-execute-conn-provider") ConnectionProvider connectionProvider,
+            @Qualifier("job-execute-archive-hot-conn-provider") ConnectionProvider connectionProvider,
             DefaultExecuteListenerProvider jooqExecuteListenerProvider
         ) {
             return JooqConfigurationUtil.getConfiguration(connectionProvider, jooqExecuteListenerProvider);
         }
 
-        @Qualifier("job-execute-conn-provider")
-        @Bean(name = "job-execute-conn-provider")
+        @Qualifier("job-execute-archive-hot-conn-provider")
+        @Bean(name = "job-execute-archive-hot-conn-provider")
         public ConnectionProvider connectionProvider(
-            @Qualifier("job-execute-transaction-aware-data-source") DataSource dataSource) {
+            @Qualifier("job-execute-archive-hot-transaction-aware-data-source") DataSource dataSource) {
             return new DataSourceConnectionProvider(dataSource);
         }
 
-        @Qualifier("job-execute-transaction-aware-data-source")
-        @Bean(name = "job-execute-transaction-aware-data-source")
+        @Qualifier("job-execute-archive-hot-transaction-aware-data-source")
+        @Bean(name = "job-execute-archive-hot-transaction-aware-data-source")
         public TransactionAwareDataSourceProxy
-        transactionAwareDataSourceProxy(@Qualifier("job-execute-data-source") DataSource dataSource) {
+        transactionAwareDataSourceProxy(@Qualifier("job-execute-archive-hot-data-source") DataSource dataSource) {
             return new TransactionAwareDataSourceProxy(dataSource);
         }
 
-        @Qualifier("job-execute-dsl-context-provider")
-        @Bean(name = "job-execute-dsl-context-provider")
+        @Qualifier("job-execute-archive-hot-dsl-context-provider")
+        @Bean(name = "job-execute-archive-hot-dsl-context-provider")
         public StandaloneDSLContextProvider standaloneDSLContextProvider(
-            @Qualifier("job-execute-dsl-context") DSLContext dslContext
+            @Qualifier("job-execute-archive-hot-dsl-context") DSLContext dslContext
         ) {
             log.info("Init StandaloneDSLContextProvider");
             return new StandaloneDSLContextProvider(dslContext);
@@ -165,161 +165,161 @@ public class ExecuteHotDbConfiguration {
         havingValue = DataSourceMode.Constants.VERTICAL_SHARDING, matchIfMissing = false)
     protected static class VerticalDslContextConfiguration {
         // 配置垂直分片数据源-a
-        @Qualifier("job-execute-data-source-a")
-        @Bean(name = "job-execute-data-source-a")
-        @ConfigurationProperties(prefix = "spring.datasource.job-execute-vertical-a")
+        @Qualifier("job-execute-archive-hot-data-source-a")
+        @Bean(name = "job-execute-archive-hot-data-source-a")
+        @ConfigurationProperties(prefix = "spring.datasource.job-execute-archive-hot-vertical-a")
         public DataSource dataSourceA() {
             return DataSourceBuilder.create().build();
         }
 
-        @Qualifier("job-execute-transaction-manager-a")
-        @Bean(name = "job-execute-transaction-manager-a")
-        @DependsOn("job-execute-data-source-a")
+        @Qualifier("job-execute-archive-hot-transaction-manager-a")
+        @Bean(name = "job-execute-archive-hot-transaction-manager-a")
+        @DependsOn("job-execute-archive-hot-data-source-a")
         public DataSourceTransactionManager transactionManagerA(
-            @Qualifier("job-execute-data-source-a") DataSource dataSource) {
+            @Qualifier("job-execute-archive-hot-data-source-a") DataSource dataSource) {
             return new DataSourceTransactionManager(dataSource);
         }
 
-        @Qualifier("job-execute-jdbc-template-a")
-        @Bean(name = "job-execute-jdbc-template-a")
-        public JdbcTemplate jdbcTemplateA(@Qualifier("job-execute-data-source-a") DataSource dataSource) {
+        @Qualifier("job-execute-archive-hot-jdbc-template-a")
+        @Bean(name = "job-execute-archive-hot-jdbc-template-a")
+        public JdbcTemplate jdbcTemplateA(@Qualifier("job-execute-archive-hot-data-source-a") DataSource dataSource) {
             return new JdbcTemplate(dataSource);
         }
 
-        @Qualifier("job-execute-dsl-context-a")
-        @Bean(name = "job-execute-dsl-context-a")
-        public DSLContext dslContextA(@Qualifier("job-execute-jooq-conf-a") org.jooq.Configuration configuration) {
-            log.info("Init DSLContext job-execute-vertical-a");
+        @Qualifier("job-execute-archive-hot-dsl-context-a")
+        @Bean(name = "job-execute-archive-hot-dsl-context-a")
+        public DSLContext dslContextA(@Qualifier("job-execute-archive-hot-jooq-conf-a") org.jooq.Configuration configuration) {
+            log.info("Init DSLContext job-execute-archive-hot-vertical-a");
             return new DefaultDSLContext(configuration);
         }
 
-        @Qualifier("job-execute-jooq-conf-a")
-        @Bean(name = "job-execute-jooq-conf-a")
+        @Qualifier("job-execute-archive-hot-jooq-conf-a")
+        @Bean(name = "job-execute-archive-hot-jooq-conf-a")
         public org.jooq.Configuration jooqConfA(
-            @Qualifier("job-execute-conn-provider-a") ConnectionProvider connectionProvider) {
+            @Qualifier("job-execute-archive-hot-conn-provider-a") ConnectionProvider connectionProvider) {
             return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
         }
 
-        @Qualifier("job-execute-conn-provider-a")
-        @Bean(name = "job-execute-conn-provider-a")
+        @Qualifier("job-execute-archive-hot-conn-provider-a")
+        @Bean(name = "job-execute-archive-hot-conn-provider-a")
         public ConnectionProvider connectionProviderA(
-            @Qualifier("job-execute-transaction-aware-data-source-a") DataSource dataSource) {
+            @Qualifier("job-execute-archive-hot-transaction-aware-data-source-a") DataSource dataSource) {
             return new DataSourceConnectionProvider(dataSource);
         }
 
-        @Qualifier("job-execute-transaction-aware-data-source-a")
-        @Bean(name = "job-execute-transaction-aware-data-source-a")
+        @Qualifier("job-execute-archive-hot-transaction-aware-data-source-a")
+        @Bean(name = "job-execute-archive-hot-transaction-aware-data-source-a")
         public TransactionAwareDataSourceProxy
-        transactionAwareDataSourceProxyA(@Qualifier("job-execute-data-source-a") DataSource dataSource) {
+        transactionAwareDataSourceProxyA(@Qualifier("job-execute-archive-hot-data-source-a") DataSource dataSource) {
             return new TransactionAwareDataSourceProxy(dataSource);
         }
 
         // 配置垂直分片数据源-b
-        @Qualifier("job-execute-data-source-b")
-        @Bean(name = "job-execute-data-source-b")
-        @ConfigurationProperties(prefix = "spring.datasource.job-execute-vertical-b")
+        @Qualifier("job-execute-archive-hot-data-source-b")
+        @Bean(name = "job-execute-archive-hot-data-source-b")
+        @ConfigurationProperties(prefix = "spring.datasource.job-execute-archive-hot-vertical-b")
         public DataSource dataSourceB() {
             return DataSourceBuilder.create().build();
         }
 
-        @Qualifier("job-execute-transaction-manager-b")
-        @Bean(name = "job-execute-transaction-manager-b")
-        @DependsOn("job-execute-data-source-b")
+        @Qualifier("job-execute-archive-hot-transaction-manager-b")
+        @Bean(name = "job-execute-archive-hot-transaction-manager-b")
+        @DependsOn("job-execute-archive-hot-data-source-b")
         public DataSourceTransactionManager transactionManagerB(
-            @Qualifier("job-execute-data-source-b") DataSource dataSource) {
+            @Qualifier("job-execute-archive-hot-data-source-b") DataSource dataSource) {
             return new DataSourceTransactionManager(dataSource);
         }
 
-        @Qualifier("job-execute-jdbc-template-b")
-        @Bean(name = "job-execute-jdbc-template-b")
-        public JdbcTemplate jdbcTemplateB(@Qualifier("job-execute-data-source-b") DataSource dataSource) {
+        @Qualifier("job-execute-archive-hot-jdbc-template-b")
+        @Bean(name = "job-execute-archive-hot-jdbc-template-b")
+        public JdbcTemplate jdbcTemplateB(@Qualifier("job-execute-archive-hot-data-source-b") DataSource dataSource) {
             return new JdbcTemplate(dataSource);
         }
 
-        @Qualifier("job-execute-dsl-context-b")
-        @Bean(name = "job-execute-dsl-context-b")
-        public DSLContext dslContextB(@Qualifier("job-execute-jooq-conf-b") org.jooq.Configuration configuration) {
-            log.info("Init DSLContext job-execute-vertical-b");
+        @Qualifier("job-execute-archive-hot-dsl-context-b")
+        @Bean(name = "job-execute-archive-hot-dsl-context-b")
+        public DSLContext dslContextB(@Qualifier("job-execute-archive-hot-jooq-conf-b") org.jooq.Configuration configuration) {
+            log.info("Init DSLContext job-execute-archive-hot-vertical-b");
             return new DefaultDSLContext(configuration);
         }
 
-        @Qualifier("job-execute-jooq-conf-b")
-        @Bean(name = "job-execute-jooq-conf-b")
+        @Qualifier("job-execute-archive-hot-jooq-conf-b")
+        @Bean(name = "job-execute-archive-hot-jooq-conf-b")
         public org.jooq.Configuration jooqConfB(
-            @Qualifier("job-execute-conn-provider-b") ConnectionProvider connectionProvider) {
+            @Qualifier("job-execute-archive-hot-conn-provider-b") ConnectionProvider connectionProvider) {
             return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
         }
 
-        @Qualifier("job-execute-conn-provider-b")
-        @Bean(name = "job-execute-conn-provider-b")
+        @Qualifier("job-execute-archive-hot-conn-provider-b")
+        @Bean(name = "job-execute-archive-hot-conn-provider-b")
         public ConnectionProvider connectionProviderB(
-            @Qualifier("job-execute-transaction-aware-data-source-b") DataSource dataSource) {
+            @Qualifier("job-execute-archive-hot-transaction-aware-data-source-b") DataSource dataSource) {
             return new DataSourceConnectionProvider(dataSource);
         }
 
-        @Qualifier("job-execute-transaction-aware-data-source-b")
-        @Bean(name = "job-execute-transaction-aware-data-source-b")
+        @Qualifier("job-execute-archive-hot-transaction-aware-data-source-b")
+        @Bean(name = "job-execute-archive-hot-transaction-aware-data-source-b")
         public TransactionAwareDataSourceProxy
-        transactionAwareDataSourceProxyB(@Qualifier("job-execute-data-source-b") DataSource dataSource) {
+        transactionAwareDataSourceProxyB(@Qualifier("job-execute-archive-hot-data-source-b") DataSource dataSource) {
             return new TransactionAwareDataSourceProxy(dataSource);
         }
 
         // 配置垂直分片数据源-c
-        @Qualifier("job-execute-data-source-c")
-        @Bean(name = "job-execute-data-source-c")
-        @ConfigurationProperties(prefix = "spring.datasource.job-execute-vertical-c")
+        @Qualifier("job-execute-archive-hot-data-source-c")
+        @Bean(name = "job-execute-archive-hot-data-source-c")
+        @ConfigurationProperties(prefix = "spring.datasource.job-execute-archive-hot-vertical-c")
         public DataSource dataSourceC() {
             return DataSourceBuilder.create().build();
         }
 
-        @Qualifier("job-execute-transaction-manager-c")
-        @Bean(name = "job-execute-transaction-manager-c")
-        @DependsOn("job-execute-data-source-c")
+        @Qualifier("job-execute-archive-hot-transaction-manager-c")
+        @Bean(name = "job-execute-archive-hot-transaction-manager-c")
+        @DependsOn("job-execute-archive-hot-data-source-c")
         public DataSourceTransactionManager transactionManagerC(
-            @Qualifier("job-execute-data-source-c") DataSource dataSource) {
+            @Qualifier("job-execute-archive-hot-data-source-c") DataSource dataSource) {
             return new DataSourceTransactionManager(dataSource);
         }
 
-        @Qualifier("job-execute-jdbc-template-c")
-        @Bean(name = "job-execute-jdbc-template-c")
-        public JdbcTemplate jdbcTemplateC(@Qualifier("job-execute-data-source-c") DataSource dataSource) {
+        @Qualifier("job-execute-archive-hot-jdbc-template-c")
+        @Bean(name = "job-execute-archive-hot-jdbc-template-c")
+        public JdbcTemplate jdbcTemplateC(@Qualifier("job-execute-archive-hot-data-source-c") DataSource dataSource) {
             return new JdbcTemplate(dataSource);
         }
 
-        @Qualifier("job-execute-dsl-context-c")
-        @Bean(name = "job-execute-dsl-context-c")
-        public DSLContext dslContextC(@Qualifier("job-execute-jooq-conf-c") org.jooq.Configuration configuration) {
-            log.info("Init DSLContext job-execute-vertical-c");
+        @Qualifier("job-execute-archive-hot-dsl-context-c")
+        @Bean(name = "job-execute-archive-hot-dsl-context-c")
+        public DSLContext dslContextC(@Qualifier("job-execute-archive-hot-jooq-conf-c") org.jooq.Configuration configuration) {
+            log.info("Init DSLContext job-execute-archive-hot-vertical-c");
             return new DefaultDSLContext(configuration);
         }
 
-        @Qualifier("job-execute-jooq-conf-c")
-        @Bean(name = "job-execute-jooq-conf-c")
+        @Qualifier("job-execute-archive-hot-jooq-conf-c")
+        @Bean(name = "job-execute-archive-hot-jooq-conf-c")
         public org.jooq.Configuration jooqConfC(
-            @Qualifier("job-execute-conn-provider-c") ConnectionProvider connectionProvider) {
+            @Qualifier("job-execute-archive-hot-conn-provider-c") ConnectionProvider connectionProvider) {
             return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
         }
 
-        @Qualifier("job-execute-conn-provider-c")
-        @Bean(name = "job-execute-conn-provider-c")
+        @Qualifier("job-execute-archive-hot-conn-provider-c")
+        @Bean(name = "job-execute-archive-hot-conn-provider-c")
         public ConnectionProvider connectionProviderC(
-            @Qualifier("job-execute-transaction-aware-data-source-c") DataSource dataSource) {
+            @Qualifier("job-execute-archive-hot-transaction-aware-data-source-c") DataSource dataSource) {
             return new DataSourceConnectionProvider(dataSource);
         }
 
-        @Qualifier("job-execute-transaction-aware-data-source-c")
-        @Bean(name = "job-execute-transaction-aware-data-source-c")
+        @Qualifier("job-execute-archive-hot-transaction-aware-data-source-c")
+        @Bean(name = "job-execute-archive-hot-transaction-aware-data-source-c")
         public TransactionAwareDataSourceProxy
-        transactionAwareDataSourceProxyC(@Qualifier("job-execute-data-source-c") DataSource dataSource) {
+        transactionAwareDataSourceProxyC(@Qualifier("job-execute-archive-hot-data-source-c") DataSource dataSource) {
             return new TransactionAwareDataSourceProxy(dataSource);
         }
 
-        @Qualifier("job-execute-dsl-context-provider")
-        @Bean(name = "job-execute-dsl-context-provider")
+        @Qualifier("job-execute-archive-hot-dsl-context-provider")
+        @Bean(name = "job-execute-archive-hot-dsl-context-provider")
         public VerticalShardingDSLContextProvider verticalShardingDSLContextProvider(
-            @Qualifier("job-execute-dsl-context-a") DSLContext dslContextA,
-            @Qualifier("job-execute-dsl-context-b") DSLContext dslContextB,
-            @Qualifier("job-execute-dsl-context-c") DSLContext dslContextC
+            @Qualifier("job-execute-archive-hot-dsl-context-a") DSLContext dslContextA,
+            @Qualifier("job-execute-archive-hot-dsl-context-b") DSLContext dslContextB,
+            @Qualifier("job-execute-archive-hot-dsl-context-c") DSLContext dslContextC
         ) {
             log.info("Init VerticalShardingDSLContextProvider");
             return new JobExecuteVerticalShardingDSLContextProvider(
@@ -337,14 +337,14 @@ public class ExecuteHotDbConfiguration {
 
         @Bean(name = "taskInstanceRecordDAO")
         public JobInstanceHotRecordDAO taskInstanceRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init TaskInstanceRecordDAO");
             return new JobInstanceHotRecordDAO(dslContextProvider);
         }
 
         @Bean(name = "stepInstanceRecordDAO")
         public StepInstanceRecordDAO stepInstanceRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init StepInstanceRecordDAO");
             return new StepInstanceRecordDAO(dslContextProvider);
         }
@@ -363,7 +363,7 @@ public class ExecuteHotDbConfiguration {
 
         @Bean(name = "stepInstanceScriptRecordDAO")
         public StepInstanceScriptRecordDAO stepInstanceScriptRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init StepInstanceScriptRecordDAO");
             return new StepInstanceScriptRecordDAO(dslContextProvider);
         }
@@ -382,7 +382,7 @@ public class ExecuteHotDbConfiguration {
 
         @Bean(name = "stepInstanceFileRecordDAO")
         public StepInstanceFileRecordDAO stepInstanceFileRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init StepInstanceFileRecordDAO");
             return new StepInstanceFileRecordDAO(dslContextProvider);
         }
@@ -401,7 +401,7 @@ public class ExecuteHotDbConfiguration {
 
         @Bean(name = "stepInstanceConfirmRecordDAO")
         public StepInstanceConfirmRecordDAO stepInstanceConfirmRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init StepInstanceConfirmRecordDAO");
             return new StepInstanceConfirmRecordDAO(dslContextProvider);
         }
@@ -420,7 +420,7 @@ public class ExecuteHotDbConfiguration {
 
         @Bean(name = "stepInstanceVariableRecordDAO")
         public StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init StepInstanceVariableRecordDAO");
             return new StepInstanceVariableRecordDAO(dslContextProvider);
         }
@@ -439,7 +439,7 @@ public class ExecuteHotDbConfiguration {
 
         @Bean(name = "taskInstanceVariableRecordDAO")
         public TaskInstanceVariableRecordDAO taskInstanceVariableRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init TaskInstanceVariableRecordDAO");
             return new TaskInstanceVariableRecordDAO(dslContextProvider);
         }
@@ -458,7 +458,7 @@ public class ExecuteHotDbConfiguration {
 
         @Bean(name = "operationLogRecordDAO")
         public OperationLogRecordDAO operationLogRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init OperationLogRecordDAO");
             return new OperationLogRecordDAO(dslContextProvider);
         }
@@ -477,7 +477,7 @@ public class ExecuteHotDbConfiguration {
 
         @Bean(name = "fileSourceTaskLogRecordDAO")
         public FileSourceTaskLogRecordDAO fileSourceTaskLogRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init FileSourceTaskRecordDAO");
             return new FileSourceTaskLogRecordDAO(dslContextProvider);
         }
@@ -496,7 +496,7 @@ public class ExecuteHotDbConfiguration {
 
         @Bean(name = "gseTaskRecordDAO")
         public GseTaskRecordDAO gseTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init GseTaskRecordDAO");
             return new GseTaskRecordDAO(dslContextProvider);
         }
@@ -515,7 +515,7 @@ public class ExecuteHotDbConfiguration {
 
         @Bean(name = "gseScriptAgentTaskRecordDAO")
         public GseScriptAgentTaskRecordDAO gseScriptAgentTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init GseScriptAgentTaskRecordDAO");
             return new GseScriptAgentTaskRecordDAO(dslContextProvider);
         }
@@ -534,7 +534,7 @@ public class ExecuteHotDbConfiguration {
 
         @Bean(name = "gseFileAgentTaskRecordDAO")
         public GseFileAgentTaskRecordDAO gseFileAgentTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init GseFileAgentTaskRecordDAO");
             return new GseFileAgentTaskRecordDAO(dslContextProvider);
         }
@@ -553,7 +553,7 @@ public class ExecuteHotDbConfiguration {
 
         @Bean(name = "gseScriptExecuteObjTaskRecordDAO")
         public GseScriptExecuteObjTaskRecordDAO gseScriptExecuteObjTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init GseScriptExecuteObjTaskRecordDAO");
             return new GseScriptExecuteObjTaskRecordDAO(dslContextProvider);
         }
@@ -572,7 +572,7 @@ public class ExecuteHotDbConfiguration {
 
         @Bean(name = "gseFileExecuteObjTaskRecordDAO")
         public GseFileExecuteObjTaskRecordDAO gseFileExecuteObjTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init GseFileExecuteObjTaskRecordDAO");
             return new GseFileExecuteObjTaskRecordDAO(dslContextProvider);
         }
@@ -591,7 +591,7 @@ public class ExecuteHotDbConfiguration {
 
         @Bean(name = "stepInstanceRollingTaskRecordDAO")
         public StepInstanceRollingTaskRecordDAO stepInstanceRollingTaskRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init StepInstanceRollingTaskRecordDAO");
             return new StepInstanceRollingTaskRecordDAO(dslContextProvider);
         }
@@ -610,7 +610,7 @@ public class ExecuteHotDbConfiguration {
 
         @Bean(name = "rollingConfigRecordDAO")
         public RollingConfigRecordDAO rollingConfigRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init RollingConfigRecordDAO");
             return new RollingConfigRecordDAO(dslContextProvider);
         }
@@ -629,7 +629,7 @@ public class ExecuteHotDbConfiguration {
 
         @Bean(name = "taskInstanceHostRecordDAO")
         public TaskInstanceHostRecordDAO taskInstanceHostRecordDAO(
-            @Qualifier("job-execute-dsl-context-provider") DSLContextProvider dslContextProvider) {
+            @Qualifier("job-execute-archive-hot-dsl-context-provider") DSLContextProvider dslContextProvider) {
             log.info("Init TaskInstanceHostRecordDAO");
             return new TaskInstanceHostRecordDAO(dslContextProvider);
         }
