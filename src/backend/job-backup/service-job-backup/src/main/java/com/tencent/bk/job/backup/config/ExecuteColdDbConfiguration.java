@@ -55,40 +55,40 @@ import javax.sql.DataSource;
 @Slf4j
 public class ExecuteColdDbConfiguration {
 
-    @Qualifier("job-execute-archive-source")
-    @Bean(name = "job-execute-archive-source")
+    @Qualifier("job-execute-archive-cold-source")
+    @Bean(name = "job-execute-archive-cold-source")
     @ConfigurationProperties(prefix = "spring.datasource.job-execute-archive")
     public DataSource executeArchiveDataSource() {
         log.info("Init job-execute-archive cold datasource");
         return DataSourceBuilder.create().build();
     }
 
-    @Qualifier("job-execute-archive-dsl-context")
-    @Bean(name = "job-execute-archive-dsl-context")
+    @Qualifier("job-execute-archive-cold-dsl-context")
+    @Bean(name = "job-execute-archive-cold-dsl-context")
     public DSLContext executeArchiveDslContext(
-        @Qualifier("job-execute-archive-jooq-conf") org.jooq.Configuration configuration) {
+        @Qualifier("job-execute-archive-cold-jooq-conf") org.jooq.Configuration configuration) {
         return new DefaultDSLContext(configuration);
     }
 
-    @Qualifier("job-execute-archive-jooq-conf")
-    @Bean(name = "job-execute-archive-jooq-conf")
+    @Qualifier("job-execute-archive-cold-jooq-conf")
+    @Bean(name = "job-execute-archive-cold-jooq-conf")
     public org.jooq.Configuration
-    executeArchiveJooqConf(@Qualifier("job-execute-archive-conn-provider") ConnectionProvider connectionProvider,
+    executeArchiveJooqConf(@Qualifier("job-execute-archive-cold-conn-provider") ConnectionProvider connectionProvider,
                            DefaultExecuteListenerProvider jooqExecuteListenerProvider
     ) {
         return JooqConfigurationUtil.getConfiguration(connectionProvider, jooqExecuteListenerProvider);
     }
 
-    @Qualifier("job-execute-archive-conn-provider")
-    @Bean(name = "job-execute-archive-conn-provider")
+    @Qualifier("job-execute-archive-cold-conn-provider")
+    @Bean(name = "job-execute-archive-cold-conn-provider")
     public ConnectionProvider executeArchiveConnectionProvider(
-        @Qualifier("job-execute-archive-source") DataSource dataSource) {
+        @Qualifier("job-execute-archive-cold-source") DataSource dataSource) {
         return new DataSourceConnectionProvider(dataSource);
     }
 
     @Bean(name = "execute-archive-dao")
     public JobInstanceColdDAOImpl jobInstanceColdDAO(
-        @Qualifier("job-execute-archive-dsl-context") DSLContext context) {
+        @Qualifier("job-execute-archive-cold-dsl-context") DSLContext context) {
         log.info("Init JobInstanceColdDAO");
         return new JobInstanceColdDAOImpl(context);
     }

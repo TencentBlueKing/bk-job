@@ -38,9 +38,7 @@ import com.tencent.bk.job.execute.dao.common.ReadWriteLockDbMigrateAspect;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
 import org.jooq.impl.DataSourceConnectionProvider;
-import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
 import org.jooq.impl.DefaultExecuteListenerProvider;
 import org.springframework.beans.factory.ObjectProvider;
@@ -51,7 +49,7 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.core.annotation.Order;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -118,6 +116,7 @@ public class DSLContextConfiguration {
 
         @Qualifier("job-execute-standalone-dsl-context-provider")
         @Bean(name = "job-execute-standalone-dsl-context-provider")
+        @Primary
         public StandaloneDSLContextProvider standaloneDSLContextProvider(
             @Qualifier("job-execute-dsl-context") DSLContext dslContext
         ) {
@@ -287,6 +286,7 @@ public class DSLContextConfiguration {
 
         @Qualifier("job-execute-vertical-sharding-dsl-context-provider")
         @Bean(name = "job-execute-vertical-sharding-dsl-context-provider")
+        @Primary
         public VerticalShardingDSLContextProvider verticalShardingDSLContextProvider(
             @Qualifier("job-execute-dsl-context-a") DSLContext dslContextA,
             @Qualifier("job-execute-dsl-context-b") DSLContext dslContextB,

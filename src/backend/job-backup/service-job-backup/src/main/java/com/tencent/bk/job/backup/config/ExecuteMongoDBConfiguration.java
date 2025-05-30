@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.backup.config;
 
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.tencent.bk.job.backup.archive.JobLogArchivers;
@@ -32,9 +34,12 @@ import com.tencent.bk.job.backup.archive.impl.JobScriptLogArchiver;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.mongo.MongoClientSettingsBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
+
+import java.util.List;
 
 @Configuration("executeMongoDBConfiguration")
 @ConditionalOnExpression("${job.backup.archive.execute-log.enabled:false}")
@@ -47,8 +52,13 @@ public class ExecuteMongoDBConfiguration {
     private String database;
 
     @Bean
-    public MongoClient mongoClient() {
-        return MongoClients.create(mongoUri);
+    public MongoClient mongoClient(List<MongoClientSettingsBuilderCustomizer> clientSettingsCustomizers) {
+        MongoClientSettings.Builder builder = MongoClientSettings.builder();
+        clientSettingsCustomizers.forEach(c -> c.customize(builder));
+        MongoClientSettings settings = builder
+            .applyConnectionString(new ConnectionString(mongoUri))
+            .build();
+        return MongoClients.create(settings);
     }
 
     @Bean

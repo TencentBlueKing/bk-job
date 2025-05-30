@@ -22,18 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-apply plugin: 'io.spring.dependency-management'
-dependencies {
-    api project(":job-logsvr:api-job-logsvr")
-    api project(':commons:common-security')
-    api project(':commons:common-web')
-    api project(':commons:common-mongodb')
-    api("org.springframework.boot:spring-boot-starter-web")
-    api("org.springframework.boot:spring-boot-starter-data-mongodb")
-    api("org.springframework.cloud:spring-cloud-starter-sleuth")
-    implementation 'org.apache.commons:commons-collections4'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    implementation "ch.qos.logback:logback-core"
-    implementation "ch.qos.logback:logback-classic"
-    implementation "org.slf4j:slf4j-api"
+package com.tencent.bk.job.common.mongodb.config;
+
+import com.tencent.bk.job.common.properties.JobSslProperties;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@ConfigurationProperties(prefix = "tls")
+@Getter
+@Setter
+public class JobMongoSslProperties {
+
+    /**
+     * mongodb的ssl配置
+     */
+    private JobSslProperties mongodb = new JobSslProperties();
 }

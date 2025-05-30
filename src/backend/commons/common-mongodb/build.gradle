@@ -8,7 +8,7 @@
  * License for BK-JOB蓝鲸智云作业平台:
  * --------------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * documentation files (the "Software', to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
  * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
@@ -22,21 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.config;
-
-import com.tencent.bk.job.common.properties.JobSslProperties;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.util.StringUtils;
-
-@ConfigurationProperties(prefix = "tls")
-@Getter
-@Setter
-public class JobMongoSslProperties {
-
-    /**
-     * mongodb的ssl配置
-     */
-    private JobSslProperties mongodb = new JobSslProperties();
+dependencies {
+    implementation project(':commons:common')
+    api "org.springframework:spring-context"
+    api "org.springframework.boot:spring-boot-autoconfigure"
+    api "org.springframework.data:spring-data-mongodb"
 }
