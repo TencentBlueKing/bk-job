@@ -236,6 +236,47 @@ data:
               filters:
                 - RecordIamAccessLog
                 - AddEsbLangHeader
+
+            - id: job-execute-swagger
+              uri: lb://job-execute
+              predicates:
+                - Path=/job-execute/swagger-ui/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-manage-swagger
+              uri: lb://job-manage
+              predicates:
+                - Path=/job-manage/swagger-ui/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-analysis-swagger
+              uri: lb://job-analysis
+              predicates:
+                - Path=/job-analysis/swagger-ui/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-crontab-swagger
+              uri: lb://job-crontab
+              predicates:
+                - Path=/job-crontab/swagger-ui/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-backup-swagger
+              uri: lb://job-backup
+              predicates:
+                - Path=/job-backup/swagger-ui/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
             {{- else if eq .Values.deploy.mode "lite" }}
             - id: job-logout
               uri: lb://job-gateway
