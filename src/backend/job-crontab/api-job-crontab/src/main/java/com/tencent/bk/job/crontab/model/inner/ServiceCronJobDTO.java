@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.model.inner;
 
+import com.tencent.bk.job.crontab.model.CustomCronJobNotifyDTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -74,4 +75,17 @@ public class ServiceCronJobDTO {
 
     @ApiModelProperty("最后修改时间戳")
     private Long lastModifyTime;
+
+    /**
+     * 通知方式（1-继承业务, 2-自定义）
+     * @see com.tencent.bk.job.common.constant.CronJobNotifyType
+     */
+    @ApiModelProperty("通知方式（1-继承业务, 2-自定义）")
+    private Integer notifyType = 1;
+
+    /**
+     * 自定义通知配置
+     */
+    @ApiModelProperty("自定义通知配置")
+    private CustomCronJobNotifyDTO customCronJobNotifyDTO = new CustomCronJobNotifyDTO();
 }

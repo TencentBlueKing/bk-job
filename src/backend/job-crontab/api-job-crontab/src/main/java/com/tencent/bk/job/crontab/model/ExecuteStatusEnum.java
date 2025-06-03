@@ -22,24 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.notify;
+package com.tencent.bk.job.crontab.model;
 
-import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
-import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import java.util.List;
+@Getter
+@AllArgsConstructor
+public enum ExecuteStatusEnum {
+    /**
+     * 成功
+     */
+    SUCCESS(1, "SUCCESS"),
+    /**
+     * 失败
+     */
+    FAIL(2, "FAIL");
 
-public interface NotifyTriggerPolicyDAO {
-    Long insertNotifyTriggerPolicy(NotifyTriggerPolicyDTO notifyTriggerPolicyDTO);
+    private final int value;
 
-    int deleteAppNotifyPolicies(Long appId, String triggerUser);
+    private final String name;
 
-    int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId);
-
-    List<TriggerPolicyVO> list(String triggerUser, Long appId, String resourceId);
-
-    List<NotifyTriggerPolicyDTO> list(String triggerUser, Long appId, String resourceId,
-                                      Integer resourceType, Integer triggerType, Integer executeStatus);
-
-    int countDefaultPolicies();
 }

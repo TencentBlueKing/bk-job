@@ -22,24 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.notify;
+package com.tencent.bk.job.crontab.model;
 
-import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
-import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
-public interface NotifyTriggerPolicyDAO {
-    Long insertNotifyTriggerPolicy(NotifyTriggerPolicyDTO notifyTriggerPolicyDTO);
+@Data
+@ApiModel("定时任务级别的自定义通知配置")
+public class CronJobCustomNotifyVO {
 
-    int deleteAppNotifyPolicies(Long appId, String triggerUser);
+    /**
+     * 自定义通知角色
+     */
+    @ApiModelProperty(value = "任务角色（通知对象）列表", required = true)
+    private List<String> roleList;
 
-    int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId);
+    /**
+     * 自定义额外通知人
+     */
+    @ApiModelProperty(value = "额外通知人列表", required = true)
+    private List<String> extraObserverList;
 
-    List<TriggerPolicyVO> list(String triggerUser, Long appId, String resourceId);
-
-    List<NotifyTriggerPolicyDTO> list(String triggerUser, Long appId, String resourceId,
-                                      Integer resourceType, Integer triggerType, Integer executeStatus);
-
-    int countDefaultPolicies();
+    @ApiModelProperty(value = "状态通知渠道列表，key:执行状态(SUCCESS,FAIL),value:通知渠道列表", required = true)
+    private Map<String, List<String>> resourceStatusChannelMap;
 }

@@ -22,24 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.notify;
+package com.tencent.bk.job.manage.api.op;
 
-import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
-import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
+import com.tencent.bk.job.common.model.Response;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-public interface NotifyTriggerPolicyDAO {
-    Long insertNotifyTriggerPolicy(NotifyTriggerPolicyDTO notifyTriggerPolicyDTO);
+@Api(tags = {"job-manage:api:CronJobCustomNotifyPolicy-OP"})
+@RequestMapping("/op/CronJobCustomNotifyPolicy")
+@RestController
+public interface CronJobCustomNotifyPolicyOpResource {
 
-    int deleteAppNotifyPolicies(Long appId, String triggerUser);
+    @ApiOperation(value = "批量同步自定义定时任务级别的通知配置", produces = "application/json")
+    @PostMapping("/sync")
+    Response<List<Long>> batchSyncCronJobCustomNotifyPolicy(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+        String username,
+        @ApiParam("定时任务ID")
+        @RequestBody
+        List<Long> cronTaskIdList
+    );
 
-    int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId);
-
-    List<TriggerPolicyVO> list(String triggerUser, Long appId, String resourceId);
-
-    List<NotifyTriggerPolicyDTO> list(String triggerUser, Long appId, String resourceId,
-                                      Integer resourceType, Integer triggerType, Integer executeStatus);
-
-    int countDefaultPolicies();
 }

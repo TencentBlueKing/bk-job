@@ -143,6 +143,17 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
     }
 
     @Override
+    public int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId) {
+
+        val records = dslContext.selectFrom(defaultTable)
+            .where(defaultTable.APP_ID.eq(appId))
+            .and(defaultTable.RESOURCE_TYPE.eq(resourceType.byteValue()))
+            .and(defaultTable.RESOURCE_ID.eq(resourceId))
+            .fetch();
+        return cascadeDelete(records);
+    }
+
+    @Override
     public List<TriggerPolicyVO> list(String triggerUser, Long appId, String resourceId) {
         val resultList = new ArrayList<TriggerPolicyVO>();
         var records = dslContext.selectFrom(defaultTable)

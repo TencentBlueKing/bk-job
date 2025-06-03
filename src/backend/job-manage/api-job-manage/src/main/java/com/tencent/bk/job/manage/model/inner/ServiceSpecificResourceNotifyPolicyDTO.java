@@ -22,24 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.notify;
+package com.tencent.bk.job.manage.model.inner;
 
-import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
-import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
+import com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
+import com.tencent.bk.job.manage.model.web.request.notify.ResourceStatusChannel;
+import lombok.Data;
 
 import java.util.List;
 
-public interface NotifyTriggerPolicyDAO {
-    Long insertNotifyTriggerPolicy(NotifyTriggerPolicyDTO notifyTriggerPolicyDTO);
+@Data
+public class ServiceSpecificResourceNotifyPolicyDTO {
 
-    int deleteAppNotifyPolicies(Long appId, String triggerUser);
+    private Long appId;
 
-    int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId);
+    private TriggerTypeEnum triggerType;
 
-    List<TriggerPolicyVO> list(String triggerUser, Long appId, String resourceId);
+    /**
+     * 资源类型
+     * @see com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum
+     */
+    private Integer resourceType;
 
-    List<NotifyTriggerPolicyDTO> list(String triggerUser, Long appId, String resourceId,
-                                      Integer resourceType, Integer triggerType, Integer executeStatus);
+    private Long resourceId;
 
-    int countDefaultPolicies();
+    private List<String> roleList;
+
+    private List<String> extraObserverList;
+
+    private List<ResourceStatusChannel> resourceStatusChannelList;
 }

@@ -48,7 +48,12 @@ public enum ResourceTypeEnum {
     /**
      * 执行方案
      */
-    JOB(2, "job.manage.resource.type.job");
+    JOB(2, "job.manage.resource.type.job"),
+
+    /**
+     * 定时任务
+     */
+    CRON(4, "job.manage.resource.type.cron");
 
     private final int type;
     private final String defaultName;

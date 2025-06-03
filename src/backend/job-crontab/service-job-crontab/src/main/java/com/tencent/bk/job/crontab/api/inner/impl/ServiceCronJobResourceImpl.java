@@ -88,6 +88,12 @@ public class ServiceCronJobResourceImpl implements ServiceCronJobResource {
     }
 
     @Override
+    public InternalResponse<ServiceCronJobDTO> getCronJobById(Long cronJobId) {
+        CronJobInfoDTO cronJobInfoDTO = cronJobService.getCronJobInfoById(cronJobId);
+        return InternalResponse.buildSuccessResp(cronJobInfoDTO.toServiceCronJobDTO());
+    }
+
+    @Override
     public InternalResponse<Long> saveCronJob(String username, Long appId, Long cronJobId,
                                               CronJobCreateUpdateReq cronJobCreateUpdateReq) {
         return null;

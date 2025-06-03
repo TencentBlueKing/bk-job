@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.model;
 
+import com.tencent.bk.job.common.constant.CronJobNotifyType;
 import com.tencent.bk.job.common.model.vo.UserRoleInfoVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -135,6 +136,27 @@ public class CronJobCreateUpdateReq {
      */
     @ApiModelProperty("通知渠道，若 notifyOffset > 0，不可为空")
     private List<String> notifyChannel = Collections.emptyList();
+
+    /**
+     * 通知方式（1-继承业务, 2-自定义）
+     * @see com.tencent.bk.job.common.constant.CronJobNotifyType
+     */
+    @ApiModelProperty("通知方式（继承业务/自定义）")
+    private CronJobNotifyType notifyType = CronJobNotifyType.EXTENDS_APP;
+
+    /**
+     * 自定义通知，当notifyType为CUSTOM时生效
+     * 通知对象
+     */
+    @ApiModelProperty("自定义通知，当notifyType为CUSTOM时生效，通知对象")
+    private UserRoleInfoVO customNotifyUser;
+
+    /**
+     * 自定义通知，当notifyType为CUSTOM时生效
+     * 执行状态与对应通知渠道列表
+     */
+    @ApiModelProperty("自定义通知，当notifyType为CUSTOM时生效，执行状态与对应通知渠道列表")
+    private List<CronJobStatusNotifyChannel> customNotifyChannel = Collections.emptyList();
 
     /**
      * 周期执行的结束时间

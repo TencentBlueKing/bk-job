@@ -22,24 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.notify;
+package com.tencent.bk.job.crontab.model;
 
-import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
-import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 import java.util.List;
 
-public interface NotifyTriggerPolicyDAO {
-    Long insertNotifyTriggerPolicy(NotifyTriggerPolicyDTO notifyTriggerPolicyDTO);
 
-    int deleteAppNotifyPolicies(Long appId, String triggerUser);
+@Data
+@ApiModel("定时任务状态通知渠道")
+public class CronJobStatusNotifyChannel {
 
-    int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId);
+    @ApiModelProperty(value = "资源状态Code", required = true)
+    private ExecuteStatusEnum executeStatus;
 
-    List<TriggerPolicyVO> list(String triggerUser, Long appId, String resourceId);
-
-    List<NotifyTriggerPolicyDTO> list(String triggerUser, Long appId, String resourceId,
-                                      Integer resourceType, Integer triggerType, Integer executeStatus);
-
-    int countDefaultPolicies();
+    @ApiModelProperty(value = "通知渠道Code列表", required = true)
+    private List<String> channelList;
 }

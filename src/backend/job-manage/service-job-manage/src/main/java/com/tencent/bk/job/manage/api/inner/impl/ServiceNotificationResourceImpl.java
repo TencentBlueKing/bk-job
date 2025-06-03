@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.util.PrefConsts;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceNotificationResource;
+import com.tencent.bk.job.manage.model.inner.ServiceSpecificResourceNotifyPolicyDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceAppRoleDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
@@ -118,5 +119,18 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
             channels.stream().map(channel ->
                 new ServiceNotifyChannelDTO(channel.getType(), channel.getLabel())).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(result);
+    }
+
+    @Override
+    public InternalResponse<Integer> createOrUpdateSpecificResourceNotifyPolicy(
+        String username,
+        Long appId,
+        ServiceSpecificResourceNotifyPolicyDTO serviceNotifyPolicyDTO) {
+
+        return InternalResponse.buildSuccessResp(notifyService.saveSpecificResourceNotifyPolicies(
+            appId,
+            username,
+            serviceNotifyPolicyDTO
+        ));
     }
 }

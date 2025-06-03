@@ -28,6 +28,7 @@ import com.tencent.bk.audit.annotations.ActionAuditRecord;
 import com.tencent.bk.audit.annotations.AuditInstanceRecord;
 import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
+import com.tencent.bk.job.common.constant.CronJobNotifyType;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
@@ -64,6 +65,7 @@ import com.tencent.bk.job.crontab.model.inner.request.ServiceAddInnerCronJobRequ
 import com.tencent.bk.job.crontab.mq.CrontabMQEventDispatcher;
 import com.tencent.bk.job.crontab.service.BatchCronJobService;
 import com.tencent.bk.job.crontab.service.CronJobService;
+import com.tencent.bk.job.crontab.service.CustomNotifyPolicyService;
 import com.tencent.bk.job.crontab.service.ExecuteTaskService;
 import com.tencent.bk.job.crontab.service.HostService;
 import com.tencent.bk.job.crontab.service.QuartzService;
@@ -95,6 +97,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.common.audit.JobAuditAttributeNames.OPERATION;
@@ -116,6 +119,7 @@ public class CronJobServiceImpl implements CronJobService {
     private final HostService hostService;
     private final CrontabMQEventDispatcher crontabMQEventDispatcher;
     private final BatchCronJobService batchCronJobService;
+    private final CustomNotifyPolicyService customNotifyPolicyService;
 
     @Autowired
     public CronJobServiceImpl(CronJobDAO cronJobDAO,
@@ -126,7 +130,8 @@ public class CronJobServiceImpl implements CronJobService {
                               ExecuteTaskService executeTaskService,
                               HostService hostService,
                               CrontabMQEventDispatcher crontabMQEventDispatcher,
-                              BatchCronJobServiceImpl batchCronJobService) {
+                              BatchCronJobServiceImpl batchCronJobService,
+                              CustomNotifyPolicyService customNotifyPolicyService) {
         this.cronJobDAO = cronJobDAO;
         this.quartzTaskHandler = quartzTaskHandler;
         this.quartzService = quartzService;
@@ -136,6 +141,7 @@ public class CronJobServiceImpl implements CronJobService {
         this.hostService = hostService;
         this.crontabMQEventDispatcher = crontabMQEventDispatcher;
         this.batchCronJobService = batchCronJobService;
+        this.customNotifyPolicyService = customNotifyPolicyService;
     }
 
     @Override
@@ -218,9 +224,18 @@ public class CronJobServiceImpl implements CronJobService {
         cronJobInfo.setEnable(false);
 
         Long id = cronJobDAO.insertCronJob(cronJobInfo);
+        // 异步推送自定义通知策略
+        pushCustomNotifyPolicyIfNeeded(id, cronJobInfo);
+
         cronAuthService.registerCron(id, cronJobInfo.getName(), cronJobInfo.getCreator());
 
         return getCronJobInfoById(id);
+    }
+
+    private void pushCustomNotifyPolicyIfNeeded(Long id, CronJobInfoDTO cronJobInfo) {
+        if (Objects.equals(cronJobInfo.getNotifyType(), CronJobNotifyType.CUSTOM.getType())) {
+            customNotifyPolicyService.createOrUpdateCronJobCustomNotifyPolicy(id);
+        }
     }
 
     @Override
@@ -259,6 +274,9 @@ public class CronJobServiceImpl implements CronJobService {
                 throw new InternalException(ErrorCode.UPDATE_CRON_JOB_FAILED);
             }
         }
+
+        // 推送自定义定时任务级别通知策略
+        pushCustomNotifyPolicyIfNeeded(cronJobInfo.getId(), cronJobInfo);
 
         CronJobInfoDTO updateCron = getCronJobInfoById(cronJobInfo.getId());
 

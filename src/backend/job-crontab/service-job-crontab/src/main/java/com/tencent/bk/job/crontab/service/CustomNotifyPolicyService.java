@@ -22,24 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.notify;
+package com.tencent.bk.job.crontab.service;
 
-import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
-import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
 
-import java.util.List;
+import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 
-public interface NotifyTriggerPolicyDAO {
-    Long insertNotifyTriggerPolicy(NotifyTriggerPolicyDTO notifyTriggerPolicyDTO);
+public interface CustomNotifyPolicyService {
 
-    int deleteAppNotifyPolicies(Long appId, String triggerUser);
-
-    int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId);
-
-    List<TriggerPolicyVO> list(String triggerUser, Long appId, String resourceId);
-
-    List<NotifyTriggerPolicyDTO> list(String triggerUser, Long appId, String resourceId,
-                                      Integer resourceType, Integer triggerType, Integer executeStatus);
-
-    int countDefaultPolicies();
+    void createOrUpdateCronJobCustomNotifyPolicy(Long cronJobId);
 }

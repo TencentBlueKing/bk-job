@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.manage.model.inner.ServiceSpecificResourceNotifyPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceAppRoleDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
 import com.tencent.bk.job.manage.model.inner.ServiceNotifyChannelDTO;
@@ -88,4 +89,19 @@ public interface ServiceNotificationResource {
         @ApiParam("语言")
         @RequestHeader("lang") String lang
     );
+
+    @ApiOperation(value = "创建或更新消息通知策略", produces = "application/json")
+    @PostMapping("/service/notification/notifyPolicy")
+    InternalResponse<Integer> createOrUpdateSpecificResourceNotifyPolicy(
+        @ApiParam("操作人")
+        @RequestHeader("username")
+        String username,
+        @ApiParam("业务id")
+        @RequestHeader("appId")
+        Long appId,
+        @ApiParam("消息通知策略")
+        @RequestBody
+        ServiceSpecificResourceNotifyPolicyDTO serviceNotifyPolicyDTO
+    );
+
 }

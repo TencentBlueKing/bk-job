@@ -195,6 +195,16 @@ public class CronJobVO {
     private List<String> notifyChannel;
 
     /**
+     * 通知方式（1-继承业务, 2-自定义）
+     * @see com.tencent.bk.job.common.constant.CronJobNotifyType
+     */
+    @ApiModelProperty("通知方式（1-继承业务, 2-自定义）")
+    private Integer notifyType;
+
+    @ApiModelProperty("自定义通知配置")
+    private CronJobCustomNotifyVO cronJobCustomNotifyVO;
+
+    /**
      * 周期执行的结束时间
      */
     @ApiModelProperty("周期执行的结束时间")

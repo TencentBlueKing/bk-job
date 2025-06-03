@@ -22,24 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.notify;
+package com.tencent.bk.job.manage.model.web.request.notify;
 
-import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
-import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
+import com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum;
+import com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 import java.util.List;
 
-public interface NotifyTriggerPolicyDAO {
-    Long insertNotifyTriggerPolicy(NotifyTriggerPolicyDTO notifyTriggerPolicyDTO);
 
-    int deleteAppNotifyPolicies(Long appId, String triggerUser);
+@Data
+@ApiModel("资源级别的触发方式对应策略")
+public class ResourceTriggerPolicy {
 
-    int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId);
+    @ApiModelProperty(value = "操作类型", required = true)
+    private TriggerTypeEnum triggerType;
 
-    List<TriggerPolicyVO> list(String triggerUser, Long appId, String resourceId);
+    @ApiModelProperty(value = "资源类型", required = true)
+    private ResourceTypeEnum resourceTypeList;
 
-    List<NotifyTriggerPolicyDTO> list(String triggerUser, Long appId, String resourceId,
-                                      Integer resourceType, Integer triggerType, Integer executeStatus);
+    @ApiModelProperty(value = "资源ID", required = true)
+    private Long resourceId;
 
-    int countDefaultPolicies();
+    @ApiModelProperty(value = "业务角色（通知对象）Code列表", required = true)
+    private List<String> roleList;
+
+    @ApiModelProperty(value = "额外通知人列表", required = true)
+    private List<String> extraObserverList;
+
+    @ApiModelProperty(value = "任务状态对应的通知渠道列表", required = true)
+    private List<ResourceStatusChannel> resourceStatusChannelList;
 }

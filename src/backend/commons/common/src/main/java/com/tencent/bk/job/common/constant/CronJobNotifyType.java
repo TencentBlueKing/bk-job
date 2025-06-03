@@ -22,24 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.notify;
+package com.tencent.bk.job.common.constant;
 
-import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
-import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
+import lombok.Getter;
 
-import java.util.List;
+@Getter
+public enum CronJobNotifyType {
+    /**
+     * 继承业务
+     */
+    EXTENDS_APP(1),
 
-public interface NotifyTriggerPolicyDAO {
-    Long insertNotifyTriggerPolicy(NotifyTriggerPolicyDTO notifyTriggerPolicyDTO);
+    /**
+     * 自定义通知方式
+     */
+    CUSTOM(2);
 
-    int deleteAppNotifyPolicies(Long appId, String triggerUser);
+    private final Integer type;
 
-    int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId);
-
-    List<TriggerPolicyVO> list(String triggerUser, Long appId, String resourceId);
-
-    List<NotifyTriggerPolicyDTO> list(String triggerUser, Long appId, String resourceId,
-                                      Integer resourceType, Integer triggerType, Integer executeStatus);
-
-    int countDefaultPolicies();
+    CronJobNotifyType(Integer type) {
+        this.type = type;
+    }
 }
