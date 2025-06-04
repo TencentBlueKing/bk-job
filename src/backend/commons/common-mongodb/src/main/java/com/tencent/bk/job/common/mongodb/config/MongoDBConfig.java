@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.config;
+package com.tencent.bk.job.common.mongodb.config;
 
 import com.mongodb.Block;
 import com.mongodb.ReadConcern;
