@@ -277,6 +277,62 @@ data:
                 - Authorize
                 - CsrfCheck
                 - StripPrefix=1
+            - id: job-file-gateway-swagger
+              uri: lb://job-file-gateway
+              predicates:
+                - Path=/job-file-gateway/swagger-ui/**,/job-file-gateway/swagger-resources/**,/job-file-gateway/v3/api-docs
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-execute-swagger-service-op
+              uri: lb://job-execute
+              predicates:
+                - Path=/job-execute/service/**,/job-execute/op/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-manage-swagger-service-op
+              uri: lb://job-manage
+              predicates:
+                - Path=/job-manage/service/**,/job-manage/op/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-analysis-swagger-service-op
+              uri: lb://job-analysis
+              predicates:
+                - Path=/job-analysis/service/**,/job-analysis/op/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-crontab-swagger-service-op
+              uri: lb://job-crontab
+              predicates:
+                - Path=/job-crontab/service/**,/job-crontab/op/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-backup-swagger-service-op
+              uri: lb://job-backup
+              predicates:
+                - Path=/job-backup/service/**,/job-backup/op/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-file-gateway-swagger-service-op
+              uri: lb://job-file-gateway
+              predicates:
+                - Path=/job-file-gateway/service/**,/job-file-gateway/op/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
             {{- end }}
             {{- else if eq .Values.deploy.mode "lite" }}
             - id: job-logout
