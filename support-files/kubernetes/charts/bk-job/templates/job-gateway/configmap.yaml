@@ -285,50 +285,50 @@ data:
                 - Authorize
                 - CsrfCheck
                 - StripPrefix=1
-            - id: job-execute-swagger-service-op
+            - id: job-execute-swagger-service-op-esb
               uri: lb://job-execute
               predicates:
-                - Path=/job-execute/service/**,/job-execute/op/**
+                - Path=/job-execute/service/**,/job-execute/op/**,/job-execute/esb/**
               filters:
                 - Authorize
                 - CsrfCheck
                 - StripPrefix=1
-            - id: job-manage-swagger-service-op
+            - id: job-manage-swagger-service-op-esb
               uri: lb://job-manage
               predicates:
-                - Path=/job-manage/service/**,/job-manage/op/**
+                - Path=/job-manage/service/**,/job-manage/op/**,/job-manage/esb/**
               filters:
                 - Authorize
                 - CsrfCheck
                 - StripPrefix=1
-            - id: job-analysis-swagger-service-op
+            - id: job-analysis-swagger-service-op-esb
               uri: lb://job-analysis
               predicates:
-                - Path=/job-analysis/service/**,/job-analysis/op/**
+                - Path=/job-analysis/service/**,/job-analysis/op/**,/job-analysis/esb/**
               filters:
                 - Authorize
                 - CsrfCheck
                 - StripPrefix=1
-            - id: job-crontab-swagger-service-op
+            - id: job-crontab-swagger-service-op-esb
               uri: lb://job-crontab
               predicates:
-                - Path=/job-crontab/service/**,/job-crontab/op/**
+                - Path=/job-crontab/service/**,/job-crontab/op/**,/job-crontab/esb/**
               filters:
                 - Authorize
                 - CsrfCheck
                 - StripPrefix=1
-            - id: job-backup-swagger-service-op
+            - id: job-backup-swagger-service-op-esb
               uri: lb://job-backup
               predicates:
-                - Path=/job-backup/service/**,/job-backup/op/**
+                - Path=/job-backup/service/**,/job-backup/op/**,/job-backup/esb/**
               filters:
                 - Authorize
                 - CsrfCheck
                 - StripPrefix=1
-            - id: job-file-gateway-swagger-service-op
+            - id: job-file-gateway-swagger-service-op-esb
               uri: lb://job-file-gateway
               predicates:
-                - Path=/job-file-gateway/service/**,/job-file-gateway/op/**
+                - Path=/job-file-gateway/service/**,/job-file-gateway/op/**,/job-file-gateway/esb/**
               filters:
                 - Authorize
                 - CsrfCheck
