@@ -689,8 +689,7 @@ Return the Job Profile
 Return whether the environment is dev
 */}}
 {{- define "job.profileIsDev" -}}
-{{- $profiles := split "," .Values.job.profile -}}
-{{- if has "dev" $profiles -}}
+{{- if has "dev" (regexSplit "[ ]*,[ ]*" .Values.job.profile -1) -}}
 {{- printf "%t" true -}}
 {{- else -}}
 {{- printf "%t" false -}}
