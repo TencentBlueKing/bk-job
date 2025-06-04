@@ -240,7 +240,7 @@ data:
             - id: job-execute-swagger
               uri: lb://job-execute
               predicates:
-                - Path=/job-execute/swagger-ui/**
+                - Path=/job-execute/swagger-ui/**,/job-execute/swagger-resources/**
               filters:
                 - Authorize
                 - CsrfCheck
@@ -248,7 +248,7 @@ data:
             - id: job-manage-swagger
               uri: lb://job-manage
               predicates:
-                - Path=/job-manage/swagger-ui/**
+                - Path=/job-manage/swagger-ui/**,/job-manage/swagger-resources/**
               filters:
                 - Authorize
                 - CsrfCheck
@@ -256,7 +256,7 @@ data:
             - id: job-analysis-swagger
               uri: lb://job-analysis
               predicates:
-                - Path=/job-analysis/swagger-ui/**
+                - Path=/job-analysis/swagger-ui/**,/job-analysis/swagger-resources/**
               filters:
                 - Authorize
                 - CsrfCheck
@@ -264,19 +264,25 @@ data:
             - id: job-crontab-swagger
               uri: lb://job-crontab
               predicates:
-                - Path=/job-crontab/swagger-ui/**
+                - Path=/job-crontab/swagger-ui/**,/job-crontab/swagger-resources/**
               filters:
                 - Authorize
-                - CsrfCheck
                 - StripPrefix=1
             - id: job-backup-swagger
               uri: lb://job-backup
               predicates:
-                - Path=/job-backup/swagger-ui/**
+                - Path=/job-backup/swagger-ui/**,/job-backup/swagger-resources/**
               filters:
                 - Authorize
                 - CsrfCheck
                 - StripPrefix=1
+            # 调试用，要删
+            - id: job-analysis-v3docs
+              uri: lb://job-analysis
+              predicates:
+                - Path=/job-analysis/v3/api-docs
+              filters:
+                - SetPath=/v3/api-docs
             {{- else if eq .Values.deploy.mode "lite" }}
             - id: job-logout
               uri: lb://job-gateway
@@ -302,7 +308,7 @@ data:
               filters:
                 - AuthorizeRemote
                 - StripPrefix=1
-    
+
             - id: job-esb
               uri: lb://job-assemble
               predicates:
