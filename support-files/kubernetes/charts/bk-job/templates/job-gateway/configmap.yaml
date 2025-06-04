@@ -236,11 +236,11 @@ data:
               filters:
                 - RecordIamAccessLog
                 - AddEsbLangHeader
-
+            {{- if eq (include "job.profileIsDev" .) "true" }}
             - id: job-execute-swagger
               uri: lb://job-execute
               predicates:
-                - Path=/job-execute/swagger-ui/**,/job-execute/swagger-resources/**
+                - Path=/job-execute/swagger-ui/**,/job-execute/swagger-resources/**,/job-execute/v3/api-docs
               filters:
                 - Authorize
                 - CsrfCheck
@@ -248,7 +248,7 @@ data:
             - id: job-manage-swagger
               uri: lb://job-manage
               predicates:
-                - Path=/job-manage/swagger-ui/**,/job-manage/swagger-resources/**
+                - Path=/job-manage/swagger-ui/**,/job-manage/swagger-resources/**,/job-manage/v3/api-docs
               filters:
                 - Authorize
                 - CsrfCheck
@@ -256,7 +256,7 @@ data:
             - id: job-analysis-swagger
               uri: lb://job-analysis
               predicates:
-                - Path=/job-analysis/swagger-ui/**,/job-analysis/swagger-resources/**
+                - Path=/job-analysis/swagger-ui/**,/job-analysis/swagger-resources/**,/job-analysis/v3/api-docs
               filters:
                 - Authorize
                 - CsrfCheck
@@ -264,25 +264,20 @@ data:
             - id: job-crontab-swagger
               uri: lb://job-crontab
               predicates:
-                - Path=/job-crontab/swagger-ui/**,/job-crontab/swagger-resources/**
-              filters:
-                - Authorize
-                - StripPrefix=1
-            - id: job-backup-swagger
-              uri: lb://job-backup
-              predicates:
-                - Path=/job-backup/swagger-ui/**,/job-backup/swagger-resources/**
+                - Path=/job-crontab/swagger-ui/**,/job-crontab/swagger-resources/**,/job-crontab/v3/api-docs
               filters:
                 - Authorize
                 - CsrfCheck
                 - StripPrefix=1
-            # 调试用，要删
-            - id: job-analysis-v3docs
-              uri: lb://job-analysis
+            - id: job-backup-swagger
+              uri: lb://job-backup
               predicates:
-                - Path=/job-analysis/v3/api-docs
+                - Path=/job-backup/swagger-ui/**,/job-backup/swagger-resources/**,/job-backup/v3/api-docs
               filters:
-                - SetPath=/v3/api-docs
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            {{- end }}
             {{- else if eq .Values.deploy.mode "lite" }}
             - id: job-logout
               uri: lb://job-gateway
