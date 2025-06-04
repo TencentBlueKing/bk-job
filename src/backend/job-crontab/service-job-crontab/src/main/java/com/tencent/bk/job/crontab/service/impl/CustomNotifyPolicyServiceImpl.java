@@ -63,15 +63,21 @@ public class CustomNotifyPolicyServiceImpl implements CustomNotifyPolicyService 
 
     @Override
     public void createOrUpdateCronJobCustomNotifyPolicy(Long cronJobId) {
-        AsyncCustomNotifyPolicyTask task = new AsyncCustomNotifyPolicyTask(cronJobId);
+        SyncCustomNotifyPolicyTask task = new SyncCustomNotifyPolicyTask(cronJobId);
         asyncCustomNotifyPolicyExecutor.execute(task);
     }
 
-    class AsyncCustomNotifyPolicyTask implements Runnable {
+    @Override
+    public void deleteCronJobCustomNotifyPolicy(Long appId, Long cronJobId) {
+        DeleteCustomNotifyPolicyTask task = new DeleteCustomNotifyPolicyTask(appId, cronJobId);
+        asyncCustomNotifyPolicyExecutor.execute(task);
+    }
+
+    class SyncCustomNotifyPolicyTask implements Runnable {
 
         private final Long cronJobId;
 
-        AsyncCustomNotifyPolicyTask(Long cronJobId) {
+        SyncCustomNotifyPolicyTask(Long cronJobId) {
             this.cronJobId = cronJobId;
         }
 
@@ -108,6 +114,24 @@ public class CustomNotifyPolicyServiceImpl implements CustomNotifyPolicyService 
                 cronJobInfoDTO.getLastModifyUser(),
                 cronJobInfoDTO.getAppId(),
                 specificResourceNotifyPolicy);
+        }
+    }
+
+    class DeleteCustomNotifyPolicyTask implements Runnable {
+
+        private final Long appId;
+        private final Long cronJobId;
+
+        DeleteCustomNotifyPolicyTask(Long appId, Long cronJobId) {
+            this.appId = appId;
+            this.cronJobId = cronJobId;
+        }
+
+        @Override
+        public void run() {
+            log.info("try to delete custom notify policy by async with cron task id:{}", cronJobId);
+            notificationResource.deleteSpecificResourceNotifyPolicy(appId, ResourceTypeEnum.CRON.getType(),
+                String.valueOf(cronJobId));
         }
     }
 }

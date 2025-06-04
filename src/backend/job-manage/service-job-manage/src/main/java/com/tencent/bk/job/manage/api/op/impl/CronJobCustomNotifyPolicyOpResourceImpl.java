@@ -67,6 +67,19 @@ public class CronJobCustomNotifyPolicyOpResourceImpl implements CronJobCustomNot
         return Response.buildSuccessResp(successCronTaskIdList);
     }
 
+    @Override
+    public Response<List<Long>> batchDelete(String username, Long appId, List<Long> cronTaskIdList) {
+        Integer cronType = ResourceTypeEnum.CRON.getType();
+        List<Long> deletedCronTaskIdList = new ArrayList<>();
+        for (Long cronTaskId : cronTaskIdList) {
+            int cnt = notifyService.deleteAppResourceNotifyPolicies(appId, cronType, String.valueOf(cronTaskId));
+            if (cnt > 0) {
+                deletedCronTaskIdList.add(cronTaskId);
+            }
+        }
+        return Response.buildSuccessResp(deletedCronTaskIdList);
+    }
+
     private void syncSingleCronJobNotifyPolicy(List<Long> successCronTaskIdList, Long cronTaskId) {
         log.info("begin to syncSingleCronJobNotifyPolicy by op, cronTaskId={}", cronTaskId);
         ServiceCronJobDTO serviceCronJobDTO = cronJobResource.getCronJobById(cronTaskId).getData();

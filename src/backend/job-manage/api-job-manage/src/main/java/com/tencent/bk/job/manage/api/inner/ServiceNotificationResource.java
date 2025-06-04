@@ -37,7 +37,9 @@ import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -90,7 +92,7 @@ public interface ServiceNotificationResource {
         @RequestHeader("lang") String lang
     );
 
-    @ApiOperation(value = "创建或更新消息通知策略", produces = "application/json")
+    @ApiOperation(value = "创建或更新特定资源消息通知策略", produces = "application/json")
     @PostMapping("/service/notification/notifyPolicy")
     InternalResponse<Integer> createOrUpdateSpecificResourceNotifyPolicy(
         @ApiParam("操作人")
@@ -102,6 +104,20 @@ public interface ServiceNotificationResource {
         @ApiParam("消息通知策略")
         @RequestBody
         ServiceSpecificResourceNotifyPolicyDTO serviceNotifyPolicyDTO
+    );
+
+    @ApiOperation(value = "删除特定资源通知策略", produces = "application/json")
+    @DeleteMapping("/service/notification/resourceNotifyPolicy/resourceType/{resourceType}/resourceId/{resourceId}")
+    InternalResponse<Integer> deleteSpecificResourceNotifyPolicy(
+        @ApiParam("业务id")
+        @RequestHeader("appId")
+        Long appId,
+        @ApiParam("资源类型")
+        @PathVariable("resourceType")
+        Integer resourceType,
+        @ApiParam("资源id")
+        @PathVariable("resourceId")
+        String resourceId
     );
 
 }

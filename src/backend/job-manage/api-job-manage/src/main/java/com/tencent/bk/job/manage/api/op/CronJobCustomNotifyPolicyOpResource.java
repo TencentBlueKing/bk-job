@@ -28,6 +28,8 @@ import com.tencent.bk.job.common.model.Response;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -47,7 +49,21 @@ public interface CronJobCustomNotifyPolicyOpResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
         String username,
-        @ApiParam("定时任务ID")
+        @ApiParam("定时任务ID列表")
+        @RequestBody
+        List<Long> cronTaskIdList
+    );
+
+    @ApiOperation(value = "批量删除自定义定时任务级别的通知配置", produces = "application/json")
+    @DeleteMapping("/batchDelete/appId/{appId}")
+    Response<List<Long>> batchDelete(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+        String username,
+        @ApiParam(value = "业务ID", required = true)
+        @PathVariable(value = "appId")
+        Long scopeId,
+        @ApiParam("定时任务ID列表")
         @RequestBody
         List<Long> cronTaskIdList
     );

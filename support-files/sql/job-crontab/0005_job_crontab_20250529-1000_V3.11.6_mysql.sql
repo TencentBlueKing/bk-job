@@ -44,22 +44,6 @@ BEGIN
     ALTER TABLE cron_job ADD COLUMN `custom_notify_trigger` text CHARACTER SET utf8mb4 NULL DEFAULT NULL COMMENT '自定义通知时机';
   END IF;
 
-  IF NOT EXISTS(SELECT 1
-                  FROM information_schema.statistics
-                  WHERE TABLE_SCHEMA = db
-                    AND TABLE_NAME = 'notify_policy_role_target'
-                    AND INDEX_NAME = 'idx_policy_id') THEN
-    ALTER TABLE notify_policy_role_target ADD INDEX `idx_policy_id` (policy_id);
-  END IF;
-
-  IF NOT EXISTS(SELECT 1
-                  FROM information_schema.statistics
-                  WHERE TABLE_SCHEMA = db
-                    AND TABLE_NAME = 'notify_role_target_channel'
-                    AND INDEX_NAME = 'idx_role_target_id') THEN
-    ALTER TABLE notify_role_target_channel ADD INDEX `idx_role_target_id` (role_target_id);
-  END IF;
-
 COMMIT;
 END <JOB_UBF>
 DELIMITER ;

@@ -81,7 +81,7 @@ import java.util.stream.Collectors;
 @Repository
 public class CronJobDAOImpl implements CronJobDAO {
     private static final CronJob TABLE = CronJob.CRON_JOB;
-    private final String USER_DELIMITER = ";";
+    private static final String USER_DELIMITER = ";";
 
     private final DSLContext context;
 

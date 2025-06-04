@@ -306,6 +306,12 @@ public class NotifyServiceImpl implements NotifyService {
         ServiceSpecificResourceNotifyPolicyDTO specificResourceNotifyPolicyDTO
     ) {
 
+        if (specificResourceNotifyPolicyDTO.getResourceId() == -1) {
+            log.warn("[saveSpecificResourceNotifyPolicies] not allow to delete app default resource notify policies "
+                + "with resourceId=-1");
+            return 0;
+        }
+
         notifyTriggerPolicyDAO.deleteAppResourceNotifyPolicies(
             appId,
             specificResourceNotifyPolicyDTO.getResourceType(),
@@ -380,7 +386,12 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
-    public int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId){
+    public int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId) {
+        // 业务全局消息通知方式不允许删除
+        if (NotifyConsts.DEFAULT_RESOURCE_ID.equals(resourceId)) {
+            log.warn("not allow to delete app default resource notify policies with resourceId=-1");
+            return 0;
+        }
         return notifyTriggerPolicyDAO.deleteAppResourceNotifyPolicies(appId, resourceType, resourceId);
     }
 

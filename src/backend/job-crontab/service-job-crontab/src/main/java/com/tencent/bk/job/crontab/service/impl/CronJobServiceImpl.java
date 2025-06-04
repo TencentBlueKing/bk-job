@@ -405,9 +405,16 @@ public class CronJobServiceImpl implements CronJobService {
 
         if (cronJobDAO.deleteCronJobById(appId, cronJobId)) {
             informAllToDeleteJobFromQuartz(appId, cronJobId);
+            asyncDeleteCustomNotifyPolicy(appId, cron);
             return true;
         }
         return false;
+    }
+
+    private void asyncDeleteCustomNotifyPolicy(Long appId, CronJobInfoDTO cronJob) {
+        if (Objects.equals(cronJob.getNotifyType(), CronJobNotifyType.CUSTOM.getType())) {
+            customNotifyPolicyService.deleteCronJobCustomNotifyPolicy(appId, cronJob.getId());
+        }
     }
 
     @Override

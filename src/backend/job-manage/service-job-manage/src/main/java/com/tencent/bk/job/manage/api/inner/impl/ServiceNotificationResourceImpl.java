@@ -133,4 +133,14 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
             serviceNotifyPolicyDTO
         ));
     }
+
+    @Override
+    public InternalResponse<Integer> deleteSpecificResourceNotifyPolicy(Long appId,
+                                                                        Integer resourceType, String resourceId) {
+        return InternalResponse.buildSuccessResp(notifyService.deleteAppResourceNotifyPolicies(
+            appId,
+            resourceType,
+            resourceId
+        ));
+    }
 }
