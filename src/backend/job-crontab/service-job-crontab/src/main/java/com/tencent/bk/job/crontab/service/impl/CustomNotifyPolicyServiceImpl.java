@@ -62,8 +62,8 @@ public class CustomNotifyPolicyServiceImpl implements CustomNotifyPolicyService 
     }
 
     @Override
-    public void createOrUpdateCronJobCustomNotifyPolicy(Long cronJobId) {
-        SyncCustomNotifyPolicyTask task = new SyncCustomNotifyPolicyTask(cronJobId);
+    public void createOrUpdateCronJobCustomNotifyPolicy(Long cronJobId, CronJobInfoDTO cronJobInfoDTO) {
+        SyncCustomNotifyPolicyTask task = new SyncCustomNotifyPolicyTask(cronJobId, cronJobInfoDTO);
         asyncCustomNotifyPolicyExecutor.execute(task);
     }
 
@@ -76,14 +76,16 @@ public class CustomNotifyPolicyServiceImpl implements CustomNotifyPolicyService 
     class SyncCustomNotifyPolicyTask implements Runnable {
 
         private final Long cronJobId;
+        private final CronJobInfoDTO cronJobInfoDTO;
 
-        SyncCustomNotifyPolicyTask(Long cronJobId) {
+        SyncCustomNotifyPolicyTask(Long cronJobId, CronJobInfoDTO cronJobInfoDTO) {
             this.cronJobId = cronJobId;
+            this.cronJobInfoDTO = cronJobInfoDTO;
         }
 
         @Override
         public void run() {
-            CronJobInfoDTO cronJobInfoDTO = cronJobDAO.getCronJobById(cronJobId);
+            log.info("Start create or update cronJob custom notify policy async with cronJobId:{}", cronJobId);
             if (cronJobInfoDTO == null) {
                 log.error("[asyncCustomNotifyPolicy]aim to async custom notify "
                     + "policy with id:{} fail, cron job does not exist", cronJobId);

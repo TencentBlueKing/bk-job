@@ -58,7 +58,8 @@ public class CustomCronJobNotifyDTO {
             Map<String, List<String>> customNotifyChannelMap = new HashMap<>();
             customCronJobNotifyDTO.getCustomNotifyChannel().forEach(cronJobStatusNotifyChannel ->
                 customNotifyChannelMap.put(
-                    cronJobStatusNotifyChannel.getExecuteStatus().getName(), cronJobStatusNotifyChannel.getChannelList())
+                    cronJobStatusNotifyChannel.getExecuteStatus().getName(),
+                    cronJobStatusNotifyChannel.getChannelList())
             );
             cronJobCustomNotifyVO.setResourceStatusChannelMap(customNotifyChannelMap);
         }

@@ -562,14 +562,13 @@ public class CronJobDAOImpl implements CronJobDAO {
     }
 
     private List<CronJobInfoDTO> fetchData(Collection<Condition> conditions) {
-        Result<Record21<ULong, ULong, String, String, ULong, ULong, String, ULong, String, ULong, String, UByte, UByte,
-            UByte, ULong, String, ULong, ULong, ULong, String, String>> records =
-            context
+        Result<Record> records = context
                 .select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.CREATOR, TABLE.TASK_TEMPLATE_ID,
                     TABLE.TASK_PLAN_ID, TABLE.SCRIPT_ID, TABLE.SCRIPT_VERSION_ID, TABLE.CRON_EXPRESSION,
                     TABLE.EXECUTE_TIME, TABLE.VARIABLE_VALUE, TABLE.LAST_EXECUTE_STATUS, TABLE.IS_ENABLE,
                     TABLE.IS_DELETED, TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME,
-                    TABLE.END_TIME, TABLE.NOTIFY_OFFSET, TABLE.NOTIFY_USER, TABLE.NOTIFY_CHANNEL)
+                    TABLE.END_TIME, TABLE.NOTIFY_OFFSET, TABLE.NOTIFY_USER, TABLE.NOTIFY_CHANNEL,TABLE.NOTIFY_TYPE,
+                    TABLE.CUSTOM_NOTIFY_ROLE, TABLE.CUSTOM_EXTRA_OBSERVER, TABLE.CUSTOM_NOTIFY_TRIGGER)
                 .from(TABLE).where(conditions).fetch();
 
         List<CronJobInfoDTO> cronJobInfoList = new ArrayList<>();

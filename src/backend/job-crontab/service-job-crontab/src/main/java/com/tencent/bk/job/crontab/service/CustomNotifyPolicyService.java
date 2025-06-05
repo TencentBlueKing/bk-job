@@ -25,9 +25,11 @@
 package com.tencent.bk.job.crontab.service;
 
 
+import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
+
 public interface CustomNotifyPolicyService {
 
-    void createOrUpdateCronJobCustomNotifyPolicy(Long cronJobId);
+    void createOrUpdateCronJobCustomNotifyPolicy(Long cronJobId, CronJobInfoDTO cronJobInfoDTO);
 
     void deleteCronJobCustomNotifyPolicy(Long appId, Long cronJobId);
 }

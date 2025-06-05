@@ -232,7 +232,7 @@ public class CronJobServiceImpl implements CronJobService {
 
     private void pushCustomNotifyPolicyIfNeeded(Long id, CronJobInfoDTO cronJobInfo) {
         if (cronJobInfo.hasCustomNotifyPolicy()) {
-            customNotifyPolicyService.createOrUpdateCronJobCustomNotifyPolicy(id);
+            customNotifyPolicyService.createOrUpdateCronJobCustomNotifyPolicy(id, cronJobInfo);
         }
     }
 
