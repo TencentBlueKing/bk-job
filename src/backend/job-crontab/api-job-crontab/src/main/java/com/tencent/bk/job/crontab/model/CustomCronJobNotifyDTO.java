@@ -25,6 +25,7 @@
 package com.tencent.bk.job.crontab.model;
 
 import lombok.Data;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -53,20 +54,22 @@ public class CustomCronJobNotifyDTO {
         CronJobCustomNotifyVO cronJobCustomNotifyVO = new CronJobCustomNotifyVO();
         cronJobCustomNotifyVO.setRoleList(customCronJobNotifyDTO.getRoleList());
         cronJobCustomNotifyVO.setExtraObserverList(customCronJobNotifyDTO.getExtraObserverList());
-        Map<String, List<String>> customNotifyChannelMap = new HashMap<>();
-        customCronJobNotifyDTO.getCustomNotifyChannel().forEach(cronJobStatusNotifyChannel ->
-            customNotifyChannelMap.put(
-                cronJobStatusNotifyChannel.getExecuteStatus().getName(), cronJobStatusNotifyChannel.getChannelList())
-        );
-        cronJobCustomNotifyVO.setResourceStatusChannelMap(customNotifyChannelMap);
+        if (CollectionUtils.isNotEmpty(customCronJobNotifyDTO.getCustomNotifyChannel())) {
+            Map<String, List<String>> customNotifyChannelMap = new HashMap<>();
+            customCronJobNotifyDTO.getCustomNotifyChannel().forEach(cronJobStatusNotifyChannel ->
+                customNotifyChannelMap.put(
+                    cronJobStatusNotifyChannel.getExecuteStatus().getName(), cronJobStatusNotifyChannel.getChannelList())
+            );
+            cronJobCustomNotifyVO.setResourceStatusChannelMap(customNotifyChannelMap);
+        }
         return cronJobCustomNotifyVO;
     }
 
     public static CustomCronJobNotifyDTO fromReq(CronJobCreateUpdateReq cronJobCreateUpdateReq) {
         CustomCronJobNotifyDTO cronJobNotifyDTO = new CustomCronJobNotifyDTO();
-        if (cronJobCreateUpdateReq.getNotifyUser() != null) {
-            cronJobNotifyDTO.setRoleList(cronJobCreateUpdateReq.getNotifyUser().getRoleList());
-            cronJobNotifyDTO.setExtraObserverList(cronJobCreateUpdateReq.getNotifyUser().getUserList());
+        if (cronJobCreateUpdateReq.getCustomNotifyUser() != null) {
+            cronJobNotifyDTO.setRoleList(cronJobCreateUpdateReq.getCustomNotifyUser().getRoleList());
+            cronJobNotifyDTO.setExtraObserverList(cronJobCreateUpdateReq.getCustomNotifyUser().getUserList());
         }
         cronJobNotifyDTO.setCustomNotifyChannel(cronJobCreateUpdateReq.getCustomNotifyChannel());
         return cronJobNotifyDTO;

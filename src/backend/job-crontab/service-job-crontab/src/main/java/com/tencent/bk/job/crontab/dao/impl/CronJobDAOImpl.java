@@ -300,13 +300,14 @@ public class CronJobDAOImpl implements CronJobDAO {
 
         String roleStr;
         String extraObserverStr;
-        if (cronJob.getCustomCronJobNotifyDTO() != null && cronJob.getCustomCronJobNotifyDTO().getRoleList() != null) {
+        if (cronJob.getCustomCronJobNotifyDTO() != null
+            && CollectionUtils.isNotEmpty(cronJob.getCustomCronJobNotifyDTO().getRoleList())) {
             roleStr = String.join(USER_DELIMITER, cronJob.getCustomCronJobNotifyDTO().getRoleList());
         } else {
             roleStr = null;
         }
         if (cronJob.getCustomCronJobNotifyDTO() != null
-            && cronJob.getCustomCronJobNotifyDTO().getExtraObserverList() != null) {
+            && CollectionUtils.isNotEmpty(cronJob.getCustomCronJobNotifyDTO().getExtraObserverList())) {
             extraObserverStr = String.join(USER_DELIMITER, cronJob.getCustomCronJobNotifyDTO().getExtraObserverList());
         } else {
             extraObserverStr = null;
@@ -715,11 +716,11 @@ public class CronJobDAOImpl implements CronJobDAO {
         }
 
         CustomCronJobNotifyDTO customCronJobNotifyDTO = new CustomCronJobNotifyDTO();
-        if (record.get(TABLE.CUSTOM_NOTIFY_ROLE) != null) {
+        if (StringUtils.isNotEmpty(record.get(TABLE.CUSTOM_NOTIFY_ROLE))) {
             customCronJobNotifyDTO.setRoleList(
                 Arrays.asList(record.get(TABLE.CUSTOM_NOTIFY_ROLE).split(USER_DELIMITER)));
         }
-        if (record.get(TABLE.CUSTOM_EXTRA_OBSERVER) != null) {
+        if (StringUtils.isNotEmpty(record.get(TABLE.CUSTOM_EXTRA_OBSERVER))) {
             customCronJobNotifyDTO.setExtraObserverList(
                 Arrays.asList(record.get(TABLE.CUSTOM_EXTRA_OBSERVER).split(USER_DELIMITER)));
         }

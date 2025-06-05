@@ -28,7 +28,6 @@ import com.tencent.bk.audit.annotations.ActionAuditRecord;
 import com.tencent.bk.audit.annotations.AuditInstanceRecord;
 import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
-import com.tencent.bk.job.common.constant.CronJobNotifyType;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
@@ -97,7 +96,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.common.audit.JobAuditAttributeNames.OPERATION;
@@ -233,7 +231,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     private void pushCustomNotifyPolicyIfNeeded(Long id, CronJobInfoDTO cronJobInfo) {
-        if (Objects.equals(cronJobInfo.getNotifyType(), CronJobNotifyType.CUSTOM.getType())) {
+        if (cronJobInfo.hasCustomNotifyPolicy()) {
             customNotifyPolicyService.createOrUpdateCronJobCustomNotifyPolicy(id);
         }
     }
@@ -412,7 +410,7 @@ public class CronJobServiceImpl implements CronJobService {
     }
 
     private void asyncDeleteCustomNotifyPolicy(Long appId, CronJobInfoDTO cronJob) {
-        if (Objects.equals(cronJob.getNotifyType(), CronJobNotifyType.CUSTOM.getType())) {
+        if (cronJob.hasCustomNotifyPolicy()) {
             customNotifyPolicyService.deleteCronJobCustomNotifyPolicy(appId, cronJob.getId());
         }
     }

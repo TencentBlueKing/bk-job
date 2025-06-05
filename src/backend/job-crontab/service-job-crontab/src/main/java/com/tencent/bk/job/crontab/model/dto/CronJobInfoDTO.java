@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.model.dto;
 
+import com.tencent.bk.job.common.constant.CronJobNotifyType;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -59,6 +60,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -298,7 +300,9 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
         cronJobInfo.setNotifyUser(UserRoleInfoDTO.fromVO(cronJobCreateUpdateReq.getNotifyUser()));
         cronJobInfo.setNotifyChannel(cronJobCreateUpdateReq.getNotifyChannel());
         cronJobInfo.setNotifyType(cronJobCreateUpdateReq.getNotifyType().getType());
-        cronJobInfo.setCustomCronJobNotifyDTO(CustomCronJobNotifyDTO.fromReq(cronJobCreateUpdateReq));
+        if (cronJobInfo.hasCustomNotifyPolicy()) {
+            cronJobInfo.setCustomCronJobNotifyDTO(CustomCronJobNotifyDTO.fromReq(cronJobCreateUpdateReq));
+        }
         cronJobInfo.setEndTime(cronJobCreateUpdateReq.getEndTime());
         return cronJobInfo;
     }
@@ -388,6 +392,10 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
             "/cron/list?cronJobId=" + cronJobInfo.getId() + "&mode=detail";
         variableMap.put("task.url", "{{BASE_HOST}}" + cronUri);
         variableMap.put("cron_uri", cronUri);
+    }
+
+    public boolean hasCustomNotifyPolicy() {
+        return Objects.equals(this.getNotifyType(), CronJobNotifyType.CUSTOM.getType());
     }
 
     public static ServiceTemplateNotificationDTO buildNotifyInfo(CronJobInfoDTO cronJobInfo) {
