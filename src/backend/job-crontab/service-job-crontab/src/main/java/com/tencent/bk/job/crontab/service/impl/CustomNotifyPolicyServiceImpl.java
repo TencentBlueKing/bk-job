@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.crontab.service.impl;
 
-import com.tencent.bk.job.crontab.dao.CronJobDAO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.service.CustomNotifyPolicyService;
 import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
@@ -46,18 +45,15 @@ import java.util.stream.Collectors;
 public class CustomNotifyPolicyServiceImpl implements CustomNotifyPolicyService {
 
     private final ThreadPoolExecutor asyncCustomNotifyPolicyExecutor;
-    private final CronJobDAO cronJobDAO;
     private final ServiceNotificationResource notificationResource;
 
     @Autowired
     public CustomNotifyPolicyServiceImpl(
         @Qualifier("asyncCustomNotifyPolicyExecutor")
         ThreadPoolExecutor asyncCustomNotifyPolicyExecutor,
-        CronJobDAO cronJobDAO,
         ServiceNotificationResource notificationResource
     ) {
         this.asyncCustomNotifyPolicyExecutor = asyncCustomNotifyPolicyExecutor;
-        this.cronJobDAO = cronJobDAO;
         this.notificationResource = notificationResource;
     }
 
@@ -97,7 +93,7 @@ public class CustomNotifyPolicyServiceImpl implements CustomNotifyPolicyService 
             specificResourceNotifyPolicy.setAppId(cronJobInfoDTO.getAppId());
             specificResourceNotifyPolicy.setTriggerType(TriggerTypeEnum.TIMER_TASK);
             specificResourceNotifyPolicy.setResourceType(ResourceTypeEnum.CRON.getType());
-            specificResourceNotifyPolicy.setResourceId(cronJobInfoDTO.getId());
+            specificResourceNotifyPolicy.setResourceId(cronJobId);
             if (cronJobInfoDTO.getCustomCronJobNotifyDTO() != null) {
                 specificResourceNotifyPolicy.setRoleList(cronJobInfoDTO.getCustomCronJobNotifyDTO().getRoleList());
                 specificResourceNotifyPolicy.setExtraObserverList(

@@ -232,7 +232,13 @@ public class CronJobServiceImpl implements CronJobService {
 
     private void pushCustomNotifyPolicyIfNeeded(Long id, CronJobInfoDTO cronJobInfo) {
         if (cronJobInfo.hasCustomNotifyPolicy()) {
+            log.debug("[pushCustomNotifyPolicyIfNeeded] cron task:{} has custom notify policy,"
+                    + " try to sync custom notify policy", id);
             customNotifyPolicyService.createOrUpdateCronJobCustomNotifyPolicy(id, cronJobInfo);
+        } else {
+            log.debug("[pushCustomNotifyPolicyIfNeeded] cron task:{} use app notify policy, clean its configed policy",
+                id);
+            customNotifyPolicyService.deleteCronJobCustomNotifyPolicy(cronJobInfo.getAppId(), id);
         }
     }
 
@@ -411,6 +417,8 @@ public class CronJobServiceImpl implements CronJobService {
 
     private void asyncDeleteCustomNotifyPolicy(Long appId, CronJobInfoDTO cronJob) {
         if (cronJob.hasCustomNotifyPolicy()) {
+            log.debug("[asyncDeleteCustomNotifyPolicy]deleted cron task:{} has custom notify policy,"
+                + "try to delete notify policy", cronJob.getId());
             customNotifyPolicyService.deleteCronJobCustomNotifyPolicy(appId, cronJob.getId());
         }
     }
