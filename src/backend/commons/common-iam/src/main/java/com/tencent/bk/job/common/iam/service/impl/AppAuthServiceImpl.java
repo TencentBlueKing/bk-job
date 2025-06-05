@@ -136,8 +136,8 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
             instance.setSystem(ResourceTypeEnum.BUSINESS.getSystemId());
             instance.setPath(buildResourceScopePath(appResourceScope));
         } else if (appResourceScope.getType() == ResourceScopeTypeEnum.TENANT_SET) {
-            instance.setType(ResourceTypeEnum.TENANT_SET.getId());
-            instance.setSystem(ResourceTypeEnum.TENANT_SET.getSystemId());
+            instance.setType(ResourceTypeEnum.BUSINESS.getId());
+            instance.setSystem(ResourceTypeEnum.BUSINESS.getSystemId());
             instance.setPath(buildResourceScopePath(appResourceScope));
         } else {
             FormattingTuple msg = MessageFormatter.format(
