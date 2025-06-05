@@ -298,6 +298,20 @@ public class CronJobDAOImpl implements CronJobDAO {
         }
         standardizeDynamicGroupId(cronJob.getVariableValue());
 
+        String roleStr;
+        String extraObserverStr;
+        if (cronJob.getCustomCronJobNotifyDTO() != null && cronJob.getCustomCronJobNotifyDTO().getRoleList() != null) {
+            roleStr = String.join(USER_DELIMITER, cronJob.getCustomCronJobNotifyDTO().getRoleList());
+        } else {
+            roleStr = null;
+        }
+        if (cronJob.getCustomCronJobNotifyDTO() != null
+            && cronJob.getCustomCronJobNotifyDTO().getExtraObserverList() != null) {
+            extraObserverStr = String.join(USER_DELIMITER, cronJob.getCustomCronJobNotifyDTO().getExtraObserverList());
+        } else {
+            extraObserverStr = null;
+        }
+
         CronJobRecord cronJobRecord = context.insertInto(TABLE)
             .columns(TABLE.APP_ID, TABLE.NAME, TABLE.CREATOR, TABLE.TASK_TEMPLATE_ID, TABLE.TASK_PLAN_ID,
                 TABLE.SCRIPT_ID, TABLE.SCRIPT_VERSION_ID, TABLE.CRON_EXPRESSION, TABLE.EXECUTE_TIME,
@@ -317,10 +331,8 @@ public class CronJobDAOImpl implements CronJobDAO {
                 cronJob.getNotifyUser() == null ? null : JsonUtils.toJson(cronJob.getNotifyUser()),
                 cronJob.getNotifyChannel() == null ? null : JsonUtils.toJson(cronJob.getNotifyChannel()),
                 UByte.valueOf(cronJob.getNotifyType()),
-                cronJob.getCustomCronJobNotifyDTO() == null ? null :
-                    String.join(USER_DELIMITER, cronJob.getCustomCronJobNotifyDTO().getRoleList()),
-                cronJob.getCustomCronJobNotifyDTO() == null ? null :
-                    String.join(USER_DELIMITER, cronJob.getCustomCronJobNotifyDTO().getExtraObserverList()),
+                roleStr,
+                extraObserverStr,
                 cronJob.getCustomCronJobNotifyDTO() == null ? null :
                     JsonUtils.toJson(cronJob.getCustomCronJobNotifyDTO().getCustomNotifyChannel())
             )
@@ -703,12 +715,17 @@ public class CronJobDAOImpl implements CronJobDAO {
         }
 
         CustomCronJobNotifyDTO customCronJobNotifyDTO = new CustomCronJobNotifyDTO();
-        customCronJobNotifyDTO.setRoleList(Arrays.asList(record.get(TABLE.CUSTOM_NOTIFY_ROLE).split(USER_DELIMITER)));
-        customCronJobNotifyDTO.setExtraObserverList(
-            Arrays.asList(record.get(TABLE.CUSTOM_EXTRA_OBSERVER).split(USER_DELIMITER)));
+        if (record.get(TABLE.CUSTOM_NOTIFY_ROLE) != null) {
+            customCronJobNotifyDTO.setRoleList(
+                Arrays.asList(record.get(TABLE.CUSTOM_NOTIFY_ROLE).split(USER_DELIMITER)));
+        }
+        if (record.get(TABLE.CUSTOM_EXTRA_OBSERVER) != null) {
+            customCronJobNotifyDTO.setExtraObserverList(
+                Arrays.asList(record.get(TABLE.CUSTOM_EXTRA_OBSERVER).split(USER_DELIMITER)));
+        }
         customCronJobNotifyDTO.setCustomNotifyChannel(
             JsonUtils.fromJson(
-                record.get(TABLE.CUSTOM_NOTIFY_ROLE),
+                record.get(TABLE.CUSTOM_NOTIFY_TRIGGER),
                 new TypeReference<List<CronJobStatusNotifyChannel>>() {})
         );
         return customCronJobNotifyDTO;

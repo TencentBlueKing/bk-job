@@ -47,7 +47,7 @@ public class CustomCronJobNotifyDTO {
      * 自定义通知，当notifyType为CUSTOM时生效
      * 执行状态与对应通知渠道列表
      */
-    private List<CronJobStatusNotifyChannel> customNotifyChannel = Collections.emptyList();
+    private List<CronJobStatusNotifyChannel> customNotifyChannel;
 
     public static CronJobCustomNotifyVO toVO(CustomCronJobNotifyDTO customCronJobNotifyDTO) {
         CronJobCustomNotifyVO cronJobCustomNotifyVO = new CronJobCustomNotifyVO();
