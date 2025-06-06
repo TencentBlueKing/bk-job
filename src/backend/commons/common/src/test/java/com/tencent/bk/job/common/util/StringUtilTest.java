@@ -134,7 +134,9 @@ public class StringUtilTest {
         Pair<List<Double>, List<String>> doubleValuePair = StringUtil.extractValueFromStrings(rawStrs, Double.class);
         assertThat(doubleValuePair.getLeft()).contains(1.0, 2.0, 3.0);
         Pair<List<Boolean>, List<String>> booleanValuePair = StringUtil.extractValueFromStrings(rawStrs, Boolean.class);
-        System.out.println("valueList=" + booleanValuePair.getLeft() + ", remainStrList=" + booleanValuePair.getRight());
+        System.out.println(
+            "valueList=" + booleanValuePair.getLeft() + ", remainStrList=" + booleanValuePair.getRight()
+        );
         assertEquals(8, booleanValuePair.getRight().size());
         assertThat(booleanValuePair.getLeft()).contains(true, false);
         assertThat(booleanValuePair.getRight())
