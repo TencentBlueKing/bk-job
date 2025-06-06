@@ -35,7 +35,7 @@ import java.util.List;
 @ApiModel("定时任务状态通知渠道")
 public class CronJobStatusNotifyChannel {
 
-    @ApiModelProperty(value = "资源状态Code", required = true)
+    @ApiModelProperty(value = "资源状态Code（SUCCESS/FAIL）", required = true)
     private ExecuteStatusEnum executeStatus;
 
     @ApiModelProperty(value = "通知渠道Code列表", required = true)

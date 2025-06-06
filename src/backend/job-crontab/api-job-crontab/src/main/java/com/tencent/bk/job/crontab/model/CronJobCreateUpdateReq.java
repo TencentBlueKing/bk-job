@@ -141,7 +141,7 @@ public class CronJobCreateUpdateReq {
      * 通知方式（1-继承业务, 2-自定义）
      * @see com.tencent.bk.job.common.constant.CronJobNotifyType
      */
-    @ApiModelProperty("通知方式（继承业务/自定义）")
+    @ApiModelProperty("通知方式（EXTENDS_APP:继承业务/CUSTOM:自定义），默认继承业务")
     private CronJobNotifyType notifyType = CronJobNotifyType.EXTENDS_APP;
 
     /**
