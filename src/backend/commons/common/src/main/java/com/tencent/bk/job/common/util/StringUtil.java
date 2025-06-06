@@ -432,7 +432,10 @@ public class StringUtil {
     }
 
     /**
-     * 严格解析布尔值（仅接受 "true" 或 "false"）
+     * 从字符串解析布尔值（仅接受 "true" 或 "false"，大小写不敏感）
+     *
+     * @param str 原始字符串
+     * @return 布尔值
      */
     private static Boolean parseStrictBoolean(String str) {
         if ("true".equalsIgnoreCase(str)) return true;

@@ -192,6 +192,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
     public List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByKey(AppResourceScope appResourceScope,
                                                                        ActionScopeEnum actionScope,
                                                                        Collection<String> keys) {
+        // 1.数字优先解析为hostId进行匹配
         Pair<List<Long>, List<String>> hostIdValuePair = StringUtil.extractValueFromStrings(keys, Long.class);
         List<Long> hostIdList = hostIdValuePair.getLeft();
         List<String> remainKeys = hostIdValuePair.getRight();
@@ -202,7 +203,7 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
             }
             finalHostList.addAll(scopeHostService.getScopeHostsByIds(appResourceScope, hostIdList));
         }
-        // 当前关键字仅支持主机名称匹配
+        // 2.剩余关键字通过主机名称匹配
         finalHostList.addAll(scopeHostService.getScopeHostsByHostNames(appResourceScope, remainKeys));
         return finalHostList;
     }
