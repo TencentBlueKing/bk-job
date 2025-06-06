@@ -85,7 +85,7 @@ public class MockBizCmdbClient implements IBizCmdbClient {
             ApplicationHostDTO host = new ApplicationHostDTO();
             host.setHostId(3L);
             host.setBizId(1L);
-            host.setIp("10.0.0.3");
+            host.setIp("127.0.0.3");
             host.setHostName("MockHost1");
             host.setGseAgentStatus(-2);
             host.setAgentId(null);

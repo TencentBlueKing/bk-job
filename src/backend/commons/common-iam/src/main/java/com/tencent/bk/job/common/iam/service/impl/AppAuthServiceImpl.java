@@ -99,46 +99,6 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
         }
     }
 
-    public String getApplyUrl(String actionId, AppResourceScope appResourceScope) {
-        InstanceDTO instance = new InstanceDTO();
-        RelatedResourceTypeDTO relatedResourceType = new RelatedResourceTypeDTO();
-        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
-            instance.setId(appResourceScope.getId());
-            instance.setType(ResourceTypeEnum.BUSINESS.getId());
-
-            relatedResourceType.setSystemId(ResourceTypeEnum.BUSINESS.getSystemId());
-            relatedResourceType.setType(ResourceTypeEnum.BUSINESS.getId());
-            relatedResourceType.setInstance(Collections.singletonList(Collections.singletonList(instance)));
-
-        } else if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
-            instance.setType(ResourceTypeEnum.BUSINESS_SET.getId());
-            instance.setId(appResourceScope.getId());
-            instance.setPath(buildResourceScopePath(appResourceScope));
-
-            relatedResourceType.setSystemId(ResourceTypeEnum.BUSINESS.getSystemId());
-            relatedResourceType.setType(ResourceTypeEnum.BUSINESS.getId());
-            relatedResourceType.setInstance(Collections.singletonList(Collections.singletonList(instance)));
-        } else if (appResourceScope.getType() == ResourceScopeTypeEnum.TENANT_SET) {
-            instance.setType(ResourceTypeEnum.TENANT_SET.getId());
-            instance.setId(appResourceScope.getId());
-            instance.setPath(buildResourceScopePath(appResourceScope));
-
-            relatedResourceType.setSystemId(ResourceTypeEnum.BUSINESS.getSystemId());
-            relatedResourceType.setType(ResourceTypeEnum.BUSINESS.getId());
-            relatedResourceType.setInstance(Collections.singletonList(Collections.singletonList(instance)));
-        } else {
-            FormattingTuple msg = MessageFormatter.format(
-                "not supported resourceType:{}",
-                appResourceScope.getType().getValue());
-            throw new RuntimeException(msg.getMessage());
-        }
-        ActionDTO action = new ActionDTO();
-        action.setId(actionId);
-        action.setRelatedResourceTypes(Collections.singletonList(relatedResourceType));
-
-        return iamClient.getApplyUrl(Collections.singletonList(action));
-    }
-
     private AuthResult buildFailAuthResult(User user, String actionId, AppResourceScope appResourceScope) {
         AuthResult authResult = AuthResult.fail(user);
         ResourceTypeEnum resourceType = IamUtil.getIamResourceTypeForResourceScope(appResourceScope);
@@ -176,8 +136,8 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
             instance.setSystem(ResourceTypeEnum.BUSINESS.getSystemId());
             instance.setPath(buildResourceScopePath(appResourceScope));
         } else if (appResourceScope.getType() == ResourceScopeTypeEnum.TENANT_SET) {
-            instance.setType(ResourceTypeEnum.TENANT_SET.getId());
-            instance.setSystem(ResourceTypeEnum.TENANT_SET.getSystemId());
+            instance.setType(ResourceTypeEnum.BUSINESS.getId());
+            instance.setSystem(ResourceTypeEnum.BUSINESS.getSystemId());
             instance.setPath(buildResourceScopePath(appResourceScope));
         } else {
             FormattingTuple msg = MessageFormatter.format(

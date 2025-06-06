@@ -132,7 +132,7 @@ public class TenantHostSyncService {
             log.info("syncHost(tenantId={}) thread already running on {}", tenantId, lockKeyValue);
             return;
         }
-        syncHostExecutor.execute(() -> tryToSyncTenantHostWithLock(tenantId, lock));
+        tryToSyncTenantHostWithLock(tenantId, lock);
     }
 
     private Future<Triple<Set<BasicHostDTO>, Long, Long>> arrangeSyncBizHostsTask(ApplicationDTO bizApp) {
