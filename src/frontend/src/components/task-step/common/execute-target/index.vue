@@ -307,6 +307,7 @@
     },
     created() {
       this.ipSelectorConfig = {};
+      // 业务集场景不支持容器静态拓扑和容器手动输入
       if (this.from === 'execute' && window.PROJECT_CONFIG.SCOPE_TYPE !== 'biz_set') {
         this.ipSelectorConfig = {
           panelList: [
@@ -316,6 +317,16 @@
             'manualInput',
             'containerStaticTopo',
             'containerManualInput',
+          ],
+        };
+      }
+      // 多租户场景只支持静态拓扑、动态拓扑和手动输入
+      if (window.PROJECT_CONFIG.TENANT_ID) {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'dynamicTopo',
+            'manualInput',
           ],
         };
       }
