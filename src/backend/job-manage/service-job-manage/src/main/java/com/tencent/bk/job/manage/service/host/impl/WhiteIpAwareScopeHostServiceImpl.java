@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.service.host.impl;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.service.WhiteIPService;
 import com.tencent.bk.job.manage.service.host.HostService;
@@ -34,6 +35,7 @@ import com.tencent.bk.job.manage.service.host.ScopeHostService;
 import com.tencent.bk.job.manage.service.host.WhiteIpAwareScopeHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -190,7 +192,18 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
     public List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByKey(AppResourceScope appResourceScope,
                                                                        ActionScopeEnum actionScope,
                                                                        Collection<String> keys) {
+        Pair<List<Long>, List<String>> hostIdValuePair = StringUtil.extractValueFromStrings(keys, Long.class);
+        List<Long> hostIdList = hostIdValuePair.getLeft();
+        List<String> remainKeys = hostIdValuePair.getRight();
+        List<ApplicationHostDTO> finalHostList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(hostIdList)) {
+            if (log.isDebugEnabled()) {
+                log.debug("hostIdList={}, remainKeys={}", hostIdList, remainKeys);
+            }
+            finalHostList.addAll(scopeHostService.getScopeHostsByIds(appResourceScope, hostIdList));
+        }
         // 当前关键字仅支持主机名称匹配
-        return scopeHostService.getScopeHostsByHostNames(appResourceScope, keys);
+        finalHostList.addAll(scopeHostService.getScopeHostsByHostNames(appResourceScope, remainKeys));
+        return finalHostList;
     }
 }
