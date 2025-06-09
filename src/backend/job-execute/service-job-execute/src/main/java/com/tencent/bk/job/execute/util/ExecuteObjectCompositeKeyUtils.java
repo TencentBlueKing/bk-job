@@ -53,8 +53,8 @@ public class ExecuteObjectCompositeKeyUtils {
             } else {
                 // 管控区域+ip方式作为主机标识
                 return openApiHostDTOList.stream()
-                    .map(esbIp -> ExecuteObjectCompositeKey.ofHostIp(
-                        IpUtils.buildCloudIp(esbIp.getBkCloudId(), esbIp.getIp())))
+                    .map(openApiHostDTO -> ExecuteObjectCompositeKey.ofHostIp(
+                        IpUtils.buildCloudIp(openApiHostDTO.getBkCloudId(), openApiHostDTO.getIp())))
                     .collect(Collectors.toList());
             }
         } else {
