@@ -295,22 +295,17 @@ public class LogServiceImpl implements LogService {
         if (CollectionUtils.isEmpty(executeObjectCompositeKeys)) {
             return Collections.emptyList();
         }
-        ServiceScriptLogQueryRequest query = new ServiceScriptLogQueryRequest();
-        query.setBatch(batch);
-
         List<ExecuteObject> queryExecuteObjects =
             stepInstanceService.findExecuteObjectByCompositeKeys(stepInstance, executeObjectCompositeKeys);
-        setExecuteObjectCondition(query, stepInstance, queryExecuteObjects);
 
-        long stepInstanceId = stepInstance.getId();
-        InternalResponse<List<ServiceExecuteObjectLogDTO>> resp =
-            logResource.listScriptExecuteObjectLogs(jobCreateDateStr, stepInstanceId, executeCount, query);
-        if (!resp.isSuccess()) {
-            log.error("Get script log content by execute objects error, stepInstanceId={}, executeCount={}, batch={}," +
-                "executeObjectCompositeKeys: {}", stepInstanceId, executeCount, batch, executeObjectCompositeKeys);
-            throw new InternalException(resp.getCode());
-        }
-        if (CollectionUtils.isEmpty(resp.getData())) {
+        List<ServiceExecuteObjectLogDTO> logList = queryScriptLogsFromLogsvr(
+            jobCreateDateStr,
+            stepInstance,
+            executeCount,
+            batch,
+            queryExecuteObjects
+        );
+        if (CollectionUtils.isEmpty(logList)) {
             return Collections.emptyList();
         }
 
@@ -318,7 +313,7 @@ public class LogServiceImpl implements LogService {
             Map<String, ExecuteObject> executeObjectMap = queryExecuteObjects.stream()
                 .collect(Collectors.toMap(ExecuteObject::getId, executeObject -> executeObject,
                     (oldValue, newValue) -> newValue));
-            return resp.getData().stream().map(logDTO -> {
+            return logList.stream().map(logDTO -> {
                 String scriptContent = logDTO.getScriptLog() != null ? logDTO.getScriptLog().getContent() : "";
                 ExecuteObject executeObject = executeObjectMap.get(logDTO.getExecuteObjectId());
                 if (executeObject == null) {
@@ -335,7 +330,7 @@ public class LogServiceImpl implements LogService {
                 .collect(Collectors.toMap(
                     executeObject -> executeObject.getHost().getHostId(), executeObject -> executeObject,
                     (oldValue, newValue) -> newValue));
-            return resp.getData().stream().map(logDTO -> {
+            return logList.stream().map(logDTO -> {
                 String scriptContent = logDTO.getScriptLog() != null ? logDTO.getScriptLog().getContent() : "";
                 ExecuteObject executeObject = executeObjectMap.get(logDTO.getHostId());
                 if (executeObject == null) {
@@ -350,19 +345,95 @@ public class LogServiceImpl implements LogService {
         }
     }
 
-    private void setExecuteObjectCondition(ServiceScriptLogQueryRequest query,
-                                           StepInstanceBaseDTO stepInstance,
-                                           List<ExecuteObject> queryExecuteObjects) {
-        if (stepInstance.isSupportExecuteObjectFeature()) {
-            List<String> executeObjectId = queryExecuteObjects.stream()
-                .map(ExecuteObject::getId).collect(Collectors.toList());
-            query.setExecuteObjectIds(executeObjectId);
-        } else {
-            // 兼容 hostId 查询
-            List<Long> hostIds = queryExecuteObjects.stream()
-                .map(executeObject -> executeObject.getHost().getHostId()).collect(Collectors.toList());
-            query.setHostIds(hostIds);
+    private List<ServiceExecuteObjectLogDTO> queryScriptLogsFromLogsvr(String jobCreateDateStr,
+                                                                       StepInstanceBaseDTO stepInstance,
+                                                                       int executeCount,
+                                                                       Integer batch,
+                                                                       List<ExecuteObject> queryExecuteObjects) {
+        List<ServiceExecuteObjectLogDTO> logList = new ArrayList<>();
+
+        List<ExecuteObjectTask> executeObjectTaskList =
+            scriptExecuteObjectTaskService.getTaskByExecuteObjectIds(
+                stepInstance,
+                executeCount,
+                batch,
+                queryExecuteObjects.stream().map(ExecuteObject::getId).collect(Collectors.toList())
+            );
+        long stepInstanceId = stepInstance.getId();
+        // 根据真实执行次数对执行对象进行分组
+        Map<Integer, List<ExecuteObjectTask>> actualExecuteCountObjMap = executeObjectTaskList.stream()
+            .collect(Collectors.groupingBy(ExecuteObjectTask::getActualExecuteCount));
+
+        actualExecuteCountObjMap.forEach(
+            (actualExecuteCount, executeObjectTasks) -> {
+                if (CollectionUtils.isEmpty(executeObjectTasks)) {
+                    return;
+                }
+                List<String> executeObjectIds = executeObjectTasks.stream()
+                    .map(ExecuteObjectTask::getExecuteObjectId)
+                    .collect(Collectors.toList());
+                List<ServiceExecuteObjectLogDTO> actualExecuteLogs = queryScriptLogsForExecuteOnce(
+                    jobCreateDateStr,
+                    stepInstanceId,
+                    actualExecuteCount,
+                    batch,
+                    executeObjectIds
+                );
+                logList.addAll(actualExecuteLogs);
+            }
+        );
+        return logList;
+    }
+
+    /**
+     * 查询单次执行对应的脚本日志
+     *
+     * @param jobCreateDateStr   任务创建日期
+     * @param stepInstanceId     步骤实例ID
+     * @param actualExecuteCount 实际执行次数
+     * @param batch              批次
+     * @param executeObjectIds   执行目标ID列表
+     * @return 单次执行对应的脚本日志
+     */
+    private List<ServiceExecuteObjectLogDTO> queryScriptLogsForExecuteOnce(String jobCreateDateStr,
+                                                                           long stepInstanceId,
+                                                                           int actualExecuteCount,
+                                                                           Integer batch,
+                                                                           List<String> executeObjectIds) {
+        ServiceScriptLogQueryRequest query = new ServiceScriptLogQueryRequest();
+        query.setBatch(batch);
+        query.setExecuteObjectIds(executeObjectIds);
+
+        InternalResponse<List<ServiceExecuteObjectLogDTO>> resp = logResource.listScriptExecuteObjectLogs(
+            jobCreateDateStr,
+            stepInstanceId,
+            actualExecuteCount,
+            query
+        );
+        if (!resp.isSuccess()) {
+            log.error(
+                "Get script log content by execute objects error, " +
+                    "stepInstanceId={}, actualExecuteCount={}, batch={}, executeObjectIds: {}",
+                stepInstanceId,
+                actualExecuteCount,
+                batch,
+                executeObjectIds
+            );
+            throw new InternalException(resp.getCode());
         }
+        List<ServiceExecuteObjectLogDTO> logDTOList = resp.getData();
+        if (log.isDebugEnabled()) {
+            log.debug(
+                "Get {} script log content by execute objects, " +
+                    "stepInstanceId={}, actualExecuteCount={}, batch={}, executeObjectIds: {}",
+                logDTOList == null ? 0 : logDTOList.size(),
+                stepInstanceId,
+                actualExecuteCount,
+                batch,
+                executeObjectIds
+            );
+        }
+        return logDTOList;
     }
 
     @Override
