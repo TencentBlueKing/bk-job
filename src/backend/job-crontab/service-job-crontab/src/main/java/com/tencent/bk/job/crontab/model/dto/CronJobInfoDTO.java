@@ -299,7 +299,7 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
         }
         cronJobInfo.setNotifyUser(UserRoleInfoDTO.fromVO(cronJobCreateUpdateReq.getNotifyUser()));
         cronJobInfo.setNotifyChannel(cronJobCreateUpdateReq.getNotifyChannel());
-        cronJobInfo.setNotifyType(cronJobCreateUpdateReq.getNotifyType().getType());
+        cronJobInfo.setNotifyType(cronJobCreateUpdateReq.getNotifyType());
         if (cronJobInfo.hasCustomNotifyPolicy()) {
             cronJobInfo.setCustomCronJobNotifyDTO(CustomCronJobNotifyDTO.fromReq(cronJobCreateUpdateReq));
         }
