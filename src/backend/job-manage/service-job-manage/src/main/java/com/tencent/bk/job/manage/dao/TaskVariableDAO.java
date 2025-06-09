@@ -76,12 +76,12 @@ public interface TaskVariableDAO {
     List<Long> batchInsertVariables(List<TaskVariableDTO> variableList);
 
     /**
-     * 根据变量 ID 更新变量信息
+     * 根据 父资源（作业模板/执行方案）ID+变量ID 更新变量信息
      *
      * @param variable 变量信息
      * @return 是否更新成功
      */
-    boolean updateVarByPlanIdAndTplVarId(TaskVariableDTO variable);
+    boolean updateVarByParentResourceIdAndTplVarId(TaskVariableDTO variable);
 
     /**
      * 根据变量 ID 和父 ID 删除变量信息

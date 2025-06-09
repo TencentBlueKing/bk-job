@@ -416,7 +416,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         for (TaskVariableDTO taskVariable : taskPlanInfo.getVariableList()) {
             taskVariable.setPlanId(planId);
             // Update exist variable
-            taskPlanVariableService.updateVarByPlanIdAndTplVarId(taskVariable);
+            taskPlanVariableService.updateVarByParentResourceIdAndTplVarId(taskVariable);
         }
 
         TaskPlanInfoDTO updatedPlan = getTaskPlanById(planId);
@@ -723,7 +723,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                     taskVariable.setPlanId(planId);
                     if (oldVariableIdList.contains(taskVariable.getId())) {
                         // 更新变量
-                        taskPlanVariableService.updateVarByPlanIdAndTplVarId(taskVariable);
+                        taskPlanVariableService.updateVarByParentResourceIdAndTplVarId(taskVariable);
                         oldVariableIdList.remove(taskVariable.getId());
                     } else {
                         newVariable.add(taskVariable);

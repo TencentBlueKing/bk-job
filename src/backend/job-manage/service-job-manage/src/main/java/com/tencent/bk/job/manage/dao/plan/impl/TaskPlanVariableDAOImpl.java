@@ -201,7 +201,7 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
     }
 
     @Override
-    public boolean updateVarByPlanIdAndTplVarId(TaskVariableDTO variable) {
+    public boolean updateVarByParentResourceIdAndTplVarId(TaskVariableDTO variable) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.TEMPLATE_VARIABLE_ID.eq(ULong.valueOf(variable.getId())));
         conditions.add(TABLE.PLAN_ID.eq(ULong.valueOf(variable.getPlanId())));
