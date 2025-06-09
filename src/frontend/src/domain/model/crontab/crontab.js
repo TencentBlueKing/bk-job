@@ -78,9 +78,11 @@ export default class Crontab {
     this.failCount = payload.failCount || 0;
     this.totalCount = payload.totalCount || 0;
     this.lastFailRecord = payload.lastFailRecord || [];
+    this.notifyType = payload.notifyType || 1;
 
     this.variableValue = this.initVariableValue(payload.variableValue);
     this.notifyUser = this.initNotifyUser(payload.notifyUser);
+    this.cronJobCustomNotifyVO = this.initCronJobCustomNotifyVO(payload.cronJobCustomNotifyVO);
 
     // 权限
     this.canManage = payload.canManage;
@@ -300,6 +302,22 @@ export default class Crontab {
     return {
       roleList: payload.roleList || [],
       userList: payload.userList || [],
+    };
+  }
+
+  initCronJobCustomNotifyVO(payload) {
+    if (!_.isObject(payload)) {
+      return {
+        extraObserverList: [],
+        resourceStatusChannelMap: [],
+        roleList: [],
+      };
+    }
+
+    return {
+      extraObserverList: payload.extraObserverList || [],
+      resourceStatusChannelMap: payload.resourceStatusChannelMap || {},
+      roleList: payload.roleList || [],
     };
   }
 }

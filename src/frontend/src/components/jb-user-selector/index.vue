@@ -350,6 +350,7 @@
 <style lang="postcss">
   .jb-user-selector {
     width: 100%;
+    height: 32px;
 
     &.disabled {
       height: 32px;

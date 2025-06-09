@@ -181,6 +181,9 @@
           </global-variable-layout>
         </render-info-detail>
       </div>
+      <custom-notify
+        :form-data="formData"
+        @on-change="handleFormItemChange" />
     </jb-form>
   </div>
 </template>
@@ -206,6 +209,7 @@
   import RenderInfoDetail from '../render-info-detail';
 
   import Crontab from './crontab';
+  import CustomNotify from './custom-notify';
   import FormItemFactory from './form-item-strategy';
 
   const onceItemList = [
@@ -231,6 +235,21 @@
       roleList: [],
       userList: [],
     },
+    notifyType: 1,
+    customNotifyUser: { // 用户角色列表
+      roleList: [],
+      userList: [],
+    },
+    customNotifyChannel: [
+      {
+        executeStatus: 'SUCCESS',
+        channelList: [],
+      },
+      {
+        executeStatus: 'FAIL',
+        channelList: [],
+      },
+    ],
     taskPlanId: 0, // 关联的执行方案 ID
     taskTemplateId: 0,
     variableValue: [], // 变量信息
@@ -246,6 +265,7 @@
       JbInput,
       FormItemFactory,
       Crontab,
+      CustomNotify,
     },
     props: {
       data: {
@@ -445,7 +465,11 @@
             scriptVersionId,
             taskPlanId,
             taskTemplateId,
+            notifyType,
+            cronJobCustomNotifyVO,
+
           } = cronJob;
+          console.log('cronJob = ', cronJob);
 
           if (executeTime) {
             this.strategy = 'once';
@@ -465,7 +489,19 @@
             taskPlanId,
             taskTemplateId,
             variableValue: [],
+            notifyType,
+            customNotifyUser: {
+              roleList: cronJobCustomNotifyVO.roleList,
+              userList: cronJobCustomNotifyVO.extraObserverList,
+            },
           };
+
+          if (Object.keys(cronJobCustomNotifyVO.resourceStatusChannelMap).length > 0) {
+            this.formData.customNotifyChannel = Object.entries(cronJobCustomNotifyVO.resourceStatusChannelMap).map(([executeStatus, channelList]) => ({
+              executeStatus,
+              channelList,
+            }));
+          }
 
           // 使用执行方案的变量
           // 如果定时任务任务中存有变量变量值——拷贝过来
@@ -585,10 +621,12 @@
        * @param {Object} payload 字段名和值
        */
       handleFormItemChange(payload) {
-        this.formData = {
-          ...this.formData,
-          ...payload,
-        };
+        // this.formData = {
+        //   ...this.formData,
+        //   ...payload,
+        // };
+        Object.assign(this.formData, payload);
+        console.log('this.formData = ', this.formData);
       },
       /**
        * @desc 作业模板更新
