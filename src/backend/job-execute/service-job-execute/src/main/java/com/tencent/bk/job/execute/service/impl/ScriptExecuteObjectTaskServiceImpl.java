@@ -173,6 +173,22 @@ public class ScriptExecuteObjectTaskServiceImpl
     }
 
     @Override
+    public List<ExecuteObjectTask> getTaskByExecuteObjectIds(StepInstanceBaseDTO stepInstance,
+                                                             Integer executeCount,
+                                                             Integer batch,
+                                                             Collection<String> executeObjectIds) {
+        long stepInstanceId = stepInstance.getId();
+        List<ExecuteObjectTask> executeObjectTaskList = scriptExecuteObjectTaskDAO.getTaskByExecuteObjectIds(
+            stepInstance.getTaskInstanceId(),
+            stepInstanceId, executeCount,
+            batch,
+            executeObjectIds
+        );
+        fillExecuteObjectForExecuteObjectTasks(stepInstance, executeObjectTaskList);
+        return executeObjectTaskList;
+    }
+
+    @Override
     public List<ResultGroupDTO> listAndGroupTasks(StepInstanceBaseDTO stepInstance,
                                                   int executeCount,
                                                   Integer batch) {

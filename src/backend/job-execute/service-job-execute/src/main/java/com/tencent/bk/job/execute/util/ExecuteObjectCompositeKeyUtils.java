@@ -25,8 +25,8 @@
 package com.tencent.bk.job.execute.util;
 
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
-import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteObjectDTO;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiHostDTO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import org.apache.commons.collections4.CollectionUtils;
@@ -36,24 +36,25 @@ import java.util.stream.Collectors;
 
 public class ExecuteObjectCompositeKeyUtils {
 
-    public static List<ExecuteObjectCompositeKey> fromEsbHostParams(List<Long> hostIds, List<EsbIpDTO> esbIps) {
+    public static List<ExecuteObjectCompositeKey> fromEsbHostParams(List<Long> hostIds,
+                                                                    List<OpenApiHostDTO> openApiHostDTOList) {
         if (CollectionUtils.isNotEmpty(hostIds)) {
             // hostId方式作为主机标识
             return hostIds.stream()
                 .map(ExecuteObjectCompositeKey::ofHostId)
                 .collect(Collectors.toList());
-        } else if (CollectionUtils.isNotEmpty(esbIps)) {
-            EsbIpDTO anyEsbIp = esbIps.get(0);
-            if (anyEsbIp.getHostId() != null) {
+        } else if (CollectionUtils.isNotEmpty(openApiHostDTOList)) {
+            OpenApiHostDTO firstHost = openApiHostDTOList.get(0);
+            if (firstHost.getHostId() != null) {
                 // hostId方式作为主机标识
-                return esbIps.stream()
+                return openApiHostDTOList.stream()
                     .map(esbIp -> ExecuteObjectCompositeKey.ofHostId(esbIp.getHostId()))
                     .collect(Collectors.toList());
             } else {
                 // 管控区域+ip方式作为主机标识
-                return esbIps.stream()
-                    .map(esbIp -> ExecuteObjectCompositeKey.ofHostIp(
-                        IpUtils.buildCloudIp(esbIp.getBkCloudId(), esbIp.getIp())))
+                return openApiHostDTOList.stream()
+                    .map(openApiHostDTO -> ExecuteObjectCompositeKey.ofHostIp(
+                        IpUtils.buildCloudIp(openApiHostDTO.getBkCloudId(), openApiHostDTO.getIp())))
                     .collect(Collectors.toList());
             }
         } else {

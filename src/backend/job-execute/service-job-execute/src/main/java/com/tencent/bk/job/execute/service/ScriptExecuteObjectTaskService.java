@@ -28,6 +28,9 @@ import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 
+import java.util.Collection;
+import java.util.List;
+
 public interface ScriptExecuteObjectTaskService extends ExecuteObjectTaskService {
     /**
      * 根据执行对象复合 KEY 获取执行对象任务
@@ -42,4 +45,18 @@ public interface ScriptExecuteObjectTaskService extends ExecuteObjectTaskService
                                                          Integer executeCount,
                                                          Integer batch,
                                                          ExecuteObjectCompositeKey executeObjectCompositeKey);
+
+    /**
+     * 根据执行对象ID批量获取执行对象任务
+     *
+     * @param stepInstance     步骤实例
+     * @param executeCount     执行次数
+     * @param batch            滚动执行批次；传入null或者0将忽略该参数
+     * @param executeObjectIds 执行对象ID列表
+     * @return 执行对象任务列表
+     */
+    List<ExecuteObjectTask> getTaskByExecuteObjectIds(StepInstanceBaseDTO stepInstance,
+                                                      Integer executeCount,
+                                                      Integer batch,
+                                                      Collection<String> executeObjectIds);
 }

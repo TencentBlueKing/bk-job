@@ -138,7 +138,7 @@ public interface ScriptExecuteObjectTaskDAO {
     List<ExecuteObjectTask> listTasksByGseTaskId(Long taskInstanceId, Long gseTaskId);
 
     /**
-     * 根据hostId查询任务
+     * 根据执行对象ID查询任务
      *
      * @param taskInstanceId  作业实例 ID
      * @param stepInstanceId  步骤实例ID
@@ -152,6 +152,22 @@ public interface ScriptExecuteObjectTaskDAO {
                                                Integer executeCount,
                                                Integer batch,
                                                String executeObjectId);
+
+    /**
+     * 根据执行对象ID批量查询任务
+     *
+     * @param taskInstanceId   作业实例 ID
+     * @param stepInstanceId   步骤实例ID
+     * @param executeCount     执行次数
+     * @param batch            滚动执行批次；传入null或者0将忽略该参数
+     * @param executeObjectIds 执行对象ID集合
+     * @return 任务
+     */
+    List<ExecuteObjectTask> getTaskByExecuteObjectIds(Long taskInstanceId,
+                                                      Long stepInstanceId,
+                                                      Integer executeCount,
+                                                      Integer batch,
+                                                      Collection<String> executeObjectIds);
 
     /**
      * 判断步骤实例的执行对象任务记录是否存在
