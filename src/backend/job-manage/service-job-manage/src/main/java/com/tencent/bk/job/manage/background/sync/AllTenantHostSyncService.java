@@ -45,6 +45,8 @@ public class AllTenantHostSyncService {
     private final TenantHostSyncService tenantHostSyncService;
     private final IUserApiClient userMgrApiClient;
 
+    private volatile boolean isRunning = false;
+
     @Autowired
     public AllTenantHostSyncService(JobManageConfig jobManageConfig,
                                     TenantHostSyncService tenantHostSyncService,
@@ -61,6 +63,21 @@ public class AllTenantHostSyncService {
             );
             return;
         }
+        if (isRunning) {
+            log.info("last syncAllTenantHost is running, skip");
+            return;
+        }
+        try {
+            isRunning = true;
+            doSyncHost();
+        } catch (Throwable t) {
+            log.error("Fail to syncAllTenantHost", t);
+        } finally {
+            isRunning = false;
+        }
+    }
+
+    private void doSyncHost() {
         List<OpenApiTenant> tenantList = userMgrApiClient.listAllTenant();
         // 遍历所有租户同步主机
         for (OpenApiTenant openApiTenant : tenantList) {

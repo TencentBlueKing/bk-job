@@ -54,16 +54,6 @@ public class WebAuthServiceImpl implements WebAuthService {
     }
 
     @Override
-    public AuthResultVO auth(boolean isReturnApplyUrl,
-                             User user,
-                             List<PermissionActionResource> actionResources) {
-        return toAuthResultVO(
-            isReturnApplyUrl,
-            authService.auth(isReturnApplyUrl, user, actionResources)
-        );
-    }
-
-    @Override
     public String getApplyUrl(String tenantId, List<PermissionActionResource> permissionActionResources) {
         return authService.getApplyUrl(tenantId, permissionActionResources);
     }

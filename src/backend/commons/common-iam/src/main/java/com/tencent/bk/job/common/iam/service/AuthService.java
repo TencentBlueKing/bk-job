@@ -70,18 +70,6 @@ public interface AuthService {
                     PathInfoDTO pathInfo);
 
     /**
-     * 多个操作鉴权
-     *
-     * @param isReturnApplyUrl 是否返回权限申请url
-     * @param user             用户
-     * @param actionResources  操作列表
-     * @return 鉴权结果
-     */
-    AuthResult auth(boolean isReturnApplyUrl,
-                    User user,
-                    List<PermissionActionResource> actionResources);
-
-    /**
      * 批量鉴权：用于Job自有非业务下资源（如运营视图）的批量鉴权
      *
      * @param user           用户
@@ -106,26 +94,6 @@ public interface AuthService {
     AuthResult batchAuthResources(User user,
                                   String actionId,
                                   List<PermissionResource> resources);
-
-    /**
-     * 获取权限申请URL
-     *
-     * @param tenantId 租户 ID
-     * @param actionId 操作ID
-     * @return 权限申请URL
-     */
-    String getApplyUrl(String tenantId, String actionId);
-
-    /**
-     * 获取权限申请URL
-     *
-     * @param tenantId     租户 ID
-     * @param actionId     操作ID
-     * @param resourceType 资源类型
-     * @param resourceId   资源ID
-     * @return 权限申请URL
-     */
-    String getApplyUrl(String tenantId, String actionId, ResourceTypeEnum resourceType, String resourceId);
 
     /**
      * 获取权限申请URL

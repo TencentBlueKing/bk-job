@@ -34,14 +34,7 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.esb.sdk.BkApiV1Client;
 import com.tencent.bk.job.common.exception.InternalIamException;
-import com.tencent.bk.job.common.iam.dto.AuthByPathReq;
-import com.tencent.bk.job.common.iam.dto.BatchAuthByPathReq;
-import com.tencent.bk.job.common.iam.dto.EsbIamAction;
-import com.tencent.bk.job.common.iam.dto.EsbIamAuthedPolicy;
 import com.tencent.bk.job.common.iam.dto.EsbIamBatchAuthedPolicy;
-import com.tencent.bk.job.common.iam.dto.EsbIamBatchPathResource;
-import com.tencent.bk.job.common.iam.dto.EsbIamResource;
-import com.tencent.bk.job.common.iam.dto.EsbIamSubject;
 import com.tencent.bk.job.common.iam.dto.GetApplyUrlRequest;
 import com.tencent.bk.job.common.iam.dto.GetApplyUrlResponse;
 import com.tencent.bk.job.common.iam.dto.RegisterResourceRequest;
@@ -70,8 +63,6 @@ public class ApiGwIamClient extends BkApiV1Client implements IIamClient {
 
     private static final String API_GET_APPLY_URL = "/api/v1/open/application/";
     private static final String API_REGISTER_RESOURCE_URL = "/api/v1/open/authorization/resource_creator_action/";
-    private static final String API_AUTH_BY_PATH_URL = "/api/v1/open/authorization/path/";
-    private static final String API_BATCH_AUTH_BY_PATH_URL = "/api/v1/open/authorization/batch_path/";
 
     private final AppProperties appProperties;
     private final IVirtualAdminAccountProvider virtualAdminAccountProvider;
@@ -131,48 +122,6 @@ public class ApiGwIamClient extends BkApiV1Client implements IIamClient {
             new TypeReference<EsbResp<List<EsbIamBatchAuthedPolicy>>>() {
             });
         return esbResp.getResult();
-    }
-
-    @Override
-    public EsbIamAuthedPolicy authByPath(
-        EsbIamAction esbIamAction,
-        EsbIamSubject esbIamSubject,
-        List<EsbIamResource> esbIamResources
-    ) {
-        AuthByPathReq authByPathReq = EsbReq.buildRequest(AuthByPathReq.class, null);
-        authByPathReq.setAction(esbIamAction);
-        authByPathReq.setSubject(esbIamSubject);
-        authByPathReq.setResources(esbIamResources);
-
-        EsbResp<EsbIamAuthedPolicy> esbResp = requestIamApi(
-            HttpMethodEnum.POST,
-            API_AUTH_BY_PATH_URL,
-            authByPathReq,
-            new TypeReference<EsbResp<EsbIamAuthedPolicy>>() {
-            });
-        return esbResp.getData();
-    }
-
-    @Override
-    public List<EsbIamBatchAuthedPolicy> batchAuthByPath(
-        List<EsbIamAction> esbIamActions,
-        EsbIamSubject esbIamSubject,
-        List<EsbIamBatchPathResource> esbIamBatchPathResources,
-        Long expiredAt
-    ) {
-        BatchAuthByPathReq batchAuthByPathReq =
-            EsbReq.buildRequest(BatchAuthByPathReq.class, null);
-        batchAuthByPathReq.setActions(esbIamActions);
-        batchAuthByPathReq.setSubject(esbIamSubject);
-        batchAuthByPathReq.setResources(esbIamBatchPathResources);
-        batchAuthByPathReq.setExpiredAt(expiredAt);
-        EsbResp<List<EsbIamBatchAuthedPolicy>> esbResp = requestIamApi(
-            HttpMethodEnum.POST,
-            API_BATCH_AUTH_BY_PATH_URL,
-            batchAuthByPathReq,
-            new TypeReference<EsbResp<List<EsbIamBatchAuthedPolicy>>>() {
-            });
-        return esbResp.getData();
     }
 
     /**
