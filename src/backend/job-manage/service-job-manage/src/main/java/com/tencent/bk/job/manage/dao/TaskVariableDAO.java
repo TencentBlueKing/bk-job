@@ -81,7 +81,7 @@ public interface TaskVariableDAO {
      * @param variable 变量信息
      * @return 是否更新成功
      */
-    boolean updateVariableById(TaskVariableDTO variable);
+    boolean updateVarByPlanIdAndTplVarId(TaskVariableDTO variable);
 
     /**
      * 根据变量 ID 和父 ID 删除变量信息
