@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.crontab.model.inner;
 
-import com.tencent.bk.job.crontab.model.CustomCronJobNotifyDTO;
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -87,5 +87,5 @@ public class ServiceCronJobDTO {
      * 自定义通知配置
      */
     @ApiModelProperty("自定义通知配置")
-    private CustomCronJobNotifyDTO customCronJobNotifyDTO = new CustomCronJobNotifyDTO();
+    private CustomNotifyDTO customCronJobNotifyDTO = new CustomNotifyDTO();
 }

@@ -28,6 +28,7 @@ import com.tencent.bk.audit.annotations.ActionAuditRecord;
 import com.tencent.bk.audit.annotations.AuditInstanceRecord;
 import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
+import com.tencent.bk.job.common.constant.CronJobNotifyType;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
@@ -43,6 +44,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -150,7 +152,9 @@ public class CronJobServiceImpl implements CronJobService {
 
     @Override
     public CronJobInfoDTO getCronJobInfoById(Long cronJobId) {
-        return cronJobDAO.getCronJobById(cronJobId);
+        CronJobInfoDTO cronJobInfo = cronJobDAO.getCronJobById(cronJobId);
+        fillCronJobInfoWithCustomNotifyPolicy(cronJobId, cronJobInfo);
+        return cronJobInfo;
     }
 
     @Override
@@ -165,7 +169,9 @@ public class CronJobServiceImpl implements CronJobService {
 
     @Override
     public CronJobInfoDTO getCronJobInfoById(Long appId, Long cronJobId) {
-        return cronJobDAO.getCronJobById(appId, cronJobId);
+        CronJobInfoDTO cronJobInfo = cronJobDAO.getCronJobById(appId, cronJobId);
+        fillCronJobInfoWithCustomNotifyPolicy(cronJobId, cronJobInfo);
+        return cronJobInfo;
     }
 
     @Override
@@ -222,15 +228,15 @@ public class CronJobServiceImpl implements CronJobService {
         cronJobInfo.setEnable(false);
 
         Long id = cronJobDAO.insertCronJob(cronJobInfo);
-        // 异步推送自定义通知策略
-        pushCustomNotifyPolicyIfNeeded(id, cronJobInfo);
+        // 保存定时任务自定义通知策略
+        saveCustomNotifyPolicyIfNeeded(id, cronJobInfo);
 
         cronAuthService.registerCron(id, cronJobInfo.getName(), cronJobInfo.getCreator());
 
         return getCronJobInfoById(id);
     }
 
-    private void pushCustomNotifyPolicyIfNeeded(Long id, CronJobInfoDTO cronJobInfo) {
+    private void saveCustomNotifyPolicyIfNeeded(Long id, CronJobInfoDTO cronJobInfo) {
         if (cronJobInfo.hasCustomNotifyPolicy()) {
             log.debug("[pushCustomNotifyPolicyIfNeeded] cron task:{} has custom notify policy,"
                     + " try to sync custom notify policy", id);
@@ -279,8 +285,8 @@ public class CronJobServiceImpl implements CronJobService {
             }
         }
 
-        // 推送自定义定时任务级别通知策略
-        pushCustomNotifyPolicyIfNeeded(cronJobInfo.getId(), cronJobInfo);
+        // 保存自定义定时任务级别通知策略
+        saveCustomNotifyPolicyIfNeeded(cronJobInfo.getId(), cronJobInfo);
 
         CronJobInfoDTO updateCron = getCronJobInfoById(cronJobInfo.getId());
 
@@ -290,6 +296,18 @@ public class CronJobServiceImpl implements CronJobService {
             .setInstance(CronJobInfoDTO.toEsbCronInfoV3(updateCron));
 
         return updateCron;
+    }
+
+    private void fillCronJobInfoWithCustomNotifyPolicy(Long cronJobId, CronJobInfoDTO cronJobInfo) {
+        CustomNotifyDTO cronJobCustomNotifyPolicy = customNotifyPolicyService.getCronJobCustomNotifyPolicyById(
+            cronJobInfo.getAppId(), cronJobId);
+        if (cronJobCustomNotifyPolicy == null) {
+            // 定时任务继承业务通知配置
+            cronJobInfo.setNotifyType(CronJobNotifyType.EXTENDS_APP.getType());
+        } else {
+            cronJobInfo.setNotifyType(CronJobNotifyType.CUSTOM.getType());
+            cronJobInfo.setCustomCronJobNotifyDTO(cronJobCustomNotifyPolicy);
+        }
     }
 
     private void authExecuteTask(CronJobInfoDTO cronJobInfo) {
@@ -409,13 +427,13 @@ public class CronJobServiceImpl implements CronJobService {
 
         if (cronJobDAO.deleteCronJobById(appId, cronJobId)) {
             informAllToDeleteJobFromQuartz(appId, cronJobId);
-            asyncDeleteCustomNotifyPolicy(appId, cron);
+            deleteCustomNotifyPolicy(appId, cron);
             return true;
         }
         return false;
     }
 
-    private void asyncDeleteCustomNotifyPolicy(Long appId, CronJobInfoDTO cronJob) {
+    private void deleteCustomNotifyPolicy(Long appId, CronJobInfoDTO cronJob) {
         if (cronJob.hasCustomNotifyPolicy()) {
             log.debug("[asyncDeleteCustomNotifyPolicy]deleted cron task:{} has custom notify policy,"
                 + "try to delete notify policy", cronJob.getId());

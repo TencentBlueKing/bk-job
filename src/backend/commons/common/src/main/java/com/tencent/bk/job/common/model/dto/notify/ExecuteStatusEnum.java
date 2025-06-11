@@ -22,22 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.model;
+package com.tencent.bk.job.common.model.dto.notify;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import java.util.List;
+@Getter
+@AllArgsConstructor
+public enum ExecuteStatusEnum {
+    /**
+     * 成功
+     */
+    SUCCESS(1, "SUCCESS"),
+    /**
+     * 失败
+     */
+    FAIL(2, "FAIL");
 
+    private final int value;
 
-@Data
-@ApiModel("定时任务状态通知渠道")
-public class CronJobStatusNotifyChannel {
+    private final String name;
 
-    @ApiModelProperty(value = "资源状态Code（SUCCESS/FAIL）", required = true)
-    private ExecuteStatusEnum executeStatus;
+    public static boolean hasName(String name) {
+        for (ExecuteStatusEnum statusEnum : ExecuteStatusEnum.values()) {
+            if (statusEnum.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-    @ApiModelProperty(value = "通知渠道Code列表", required = true)
-    private List<String> channelList;
 }

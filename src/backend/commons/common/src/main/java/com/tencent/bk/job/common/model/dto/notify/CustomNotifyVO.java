@@ -22,25 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.model;
+package com.tencent.bk.job.common.model.dto.notify;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-@Getter
-@AllArgsConstructor
-public enum ExecuteStatusEnum {
+import java.util.List;
+import java.util.Map;
+
+@Data
+@ApiModel("定时任务级别的自定义通知配置")
+public class CustomNotifyVO {
+
     /**
-     * 成功
+     * 自定义通知角色
      */
-    SUCCESS(1, "SUCCESS"),
+    @ApiModelProperty(value = "任务角色（通知对象）列表", required = true)
+    private List<String> roleList;
+
     /**
-     * 失败
+     * 自定义额外通知人
      */
-    FAIL(2, "FAIL");
+    @ApiModelProperty(value = "额外通知人列表", required = true)
+    private List<String> extraObserverList;
 
-    private final int value;
-
-    private final String name;
-
+    @ApiModelProperty(value = "状态通知渠道列表，key:执行状态(SUCCESS,FAIL),value:通知渠道列表", required = true)
+    private Map<String, List<String>> resourceStatusChannelMap;
 }

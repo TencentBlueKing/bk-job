@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.notify;
 
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
 
@@ -36,7 +37,10 @@ public interface NotifyTriggerPolicyDAO {
 
     int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId);
 
-    List<TriggerPolicyVO> list(String triggerUser, Long appId, String resourceId);
+    CustomNotifyDTO SpecificResourceNotifyPolicy(Long appId, Integer resourceType,
+                                                 String resourceId, Integer triggerType);
+
+    List<TriggerPolicyVO> listAppDefault(String triggerUser, Long appId, String resourceId);
 
     List<NotifyTriggerPolicyDTO> list(String triggerUser, Long appId, String resourceId,
                                       Integer resourceType, Integer triggerType, Integer executeStatus);

@@ -22,18 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.model;
+package com.tencent.bk.job.common.model.dto.notify;
 
 import lombok.Data;
 import org.apache.commons.collections.CollectionUtils;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Data
-public class CustomCronJobNotifyDTO {
+public class CustomNotifyDTO {
     /**
      * 自定义通知角色
      */
@@ -48,32 +48,35 @@ public class CustomCronJobNotifyDTO {
      * 自定义通知，当notifyType为CUSTOM时生效
      * 执行状态与对应通知渠道列表
      */
-    private List<CronJobStatusNotifyChannel> customNotifyChannel;
+    private List<StatusNotifyChannel> customNotifyChannel;
 
-    public static CronJobCustomNotifyVO toVO(CustomCronJobNotifyDTO customCronJobNotifyDTO) {
-        CronJobCustomNotifyVO cronJobCustomNotifyVO = new CronJobCustomNotifyVO();
-        cronJobCustomNotifyVO.setRoleList(customCronJobNotifyDTO.getRoleList());
-        cronJobCustomNotifyVO.setExtraObserverList(customCronJobNotifyDTO.getExtraObserverList());
-        if (CollectionUtils.isNotEmpty(customCronJobNotifyDTO.getCustomNotifyChannel())) {
+    public void buildCustomNotifyChannel(Map<String, List<String>> map) {
+        this.setCustomNotifyChannel(
+            map.entrySet().stream()
+            .filter(entry -> ExecuteStatusEnum.hasName(entry.getKey()))
+            .map(entry -> {
+                StatusNotifyChannel channel = new StatusNotifyChannel();
+                channel.setExecuteStatus(ExecuteStatusEnum.valueOf(entry.getKey()));
+                channel.setChannelList(entry.getValue());
+                return channel;
+            }).collect(Collectors.toList())
+        );
+    }
+
+    public static CustomNotifyVO toVO(CustomNotifyDTO customNotifyDTO) {
+        CustomNotifyVO cronJobCustomNotifyVO = new CustomNotifyVO();
+        cronJobCustomNotifyVO.setRoleList(customNotifyDTO.getRoleList());
+        cronJobCustomNotifyVO.setExtraObserverList(customNotifyDTO.getExtraObserverList());
+        if (CollectionUtils.isNotEmpty(customNotifyDTO.getCustomNotifyChannel())) {
             Map<String, List<String>> customNotifyChannelMap = new HashMap<>();
-            customCronJobNotifyDTO.getCustomNotifyChannel().forEach(cronJobStatusNotifyChannel ->
+            customNotifyDTO.getCustomNotifyChannel().forEach(statusNotifyChannel ->
                 customNotifyChannelMap.put(
-                    cronJobStatusNotifyChannel.getExecuteStatus().getName(),
-                    cronJobStatusNotifyChannel.getChannelList())
+                    statusNotifyChannel.getExecuteStatus().getName(),
+                    statusNotifyChannel.getChannelList())
             );
             cronJobCustomNotifyVO.setResourceStatusChannelMap(customNotifyChannelMap);
         }
         return cronJobCustomNotifyVO;
-    }
-
-    public static CustomCronJobNotifyDTO fromReq(CronJobCreateUpdateReq cronJobCreateUpdateReq) {
-        CustomCronJobNotifyDTO cronJobNotifyDTO = new CustomCronJobNotifyDTO();
-        if (cronJobCreateUpdateReq.getCustomNotifyUser() != null) {
-            cronJobNotifyDTO.setRoleList(cronJobCreateUpdateReq.getCustomNotifyUser().getRoleList());
-            cronJobNotifyDTO.setExtraObserverList(cronJobCreateUpdateReq.getCustomNotifyUser().getUserList());
-        }
-        cronJobNotifyDTO.setCustomNotifyChannel(cronJobCreateUpdateReq.getCustomNotifyChannel());
-        return cronJobNotifyDTO;
     }
 
 }

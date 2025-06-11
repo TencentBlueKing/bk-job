@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceSpecificResourceNotifyPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceAppRoleDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
@@ -94,7 +95,7 @@ public interface ServiceNotificationResource {
 
     @ApiOperation(value = "创建或更新特定资源消息通知策略", produces = "application/json")
     @PostMapping("/service/notification/notifyPolicy")
-    InternalResponse<Integer> createOrUpdateSpecificResourceNotifyPolicy(
+    InternalResponse<Boolean> createOrUpdateSpecificResourceNotifyPolicy(
         @ApiParam("操作人")
         @RequestHeader("username")
         String username,
@@ -118,6 +119,24 @@ public interface ServiceNotificationResource {
         @ApiParam("资源id")
         @PathVariable("resourceId")
         String resourceId
+    );
+
+    @ApiOperation(value = "获取特定资源通知策略", produces = "application/json")
+    @GetMapping("/service/notification/resourceNotifyPolicy/resourceType/{resourceType}/resourceId/{resourceId}"
+        + "/triggerType/{triggerType}")
+    InternalResponse<CustomNotifyDTO> getSpecificResourceNotifyPolicy(
+        @ApiParam("业务id")
+        @RequestHeader("appId")
+        Long appId,
+        @ApiParam("资源类型")
+        @PathVariable("resourceType")
+        Integer resourceType,
+        @ApiParam("资源id")
+        @PathVariable("resourceId")
+        String resourceId,
+        @ApiParam("触发类型")
+        @PathVariable("triggerType")
+        Integer triggerType
     );
 
 }

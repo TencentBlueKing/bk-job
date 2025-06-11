@@ -24,6 +24,10 @@
 
 package com.tencent.bk.job.crontab.service.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.service.CustomNotifyPolicyService;
 import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
@@ -59,77 +63,57 @@ public class CustomNotifyPolicyServiceImpl implements CustomNotifyPolicyService 
 
     @Override
     public void createOrUpdateCronJobCustomNotifyPolicy(Long cronJobId, CronJobInfoDTO cronJobInfoDTO) {
-        SyncCustomNotifyPolicyTask task = new SyncCustomNotifyPolicyTask(cronJobId, cronJobInfoDTO);
-        asyncCustomNotifyPolicyExecutor.execute(task);
-    }
-
-    @Override
-    public void deleteCronJobCustomNotifyPolicy(Long appId, Long cronJobId) {
-        DeleteCustomNotifyPolicyTask task = new DeleteCustomNotifyPolicyTask(appId, cronJobId);
-        asyncCustomNotifyPolicyExecutor.execute(task);
-    }
-
-    class SyncCustomNotifyPolicyTask implements Runnable {
-
-        private final Long cronJobId;
-        private final CronJobInfoDTO cronJobInfoDTO;
-
-        SyncCustomNotifyPolicyTask(Long cronJobId, CronJobInfoDTO cronJobInfoDTO) {
-            this.cronJobId = cronJobId;
-            this.cronJobInfoDTO = cronJobInfoDTO;
+        log.info("Start create or update cronJob custom notify policy with cronJobId:{}", cronJobId);
+        if (cronJobInfoDTO == null) {
+            log.error("[asyncCustomNotifyPolicy]aim to save custom notify "
+                + "policy with id:{} fail, cron job does not exist", cronJobId);
+            throw new InternalException(ErrorCode.SAVE_CRON_CUSTOM_NOTIFY_FAILED, new Object[]{cronJobId});
         }
 
-        @Override
-        public void run() {
-            log.info("Start create or update cronJob custom notify policy async with cronJobId:{}", cronJobId);
-            if (cronJobInfoDTO == null) {
-                log.error("[asyncCustomNotifyPolicy]aim to async custom notify "
-                    + "policy with id:{} fail, cron job does not exist", cronJobId);
-                return;
-            }
-
-            ServiceSpecificResourceNotifyPolicyDTO specificResourceNotifyPolicy =
-                new ServiceSpecificResourceNotifyPolicyDTO();
-            specificResourceNotifyPolicy.setAppId(cronJobInfoDTO.getAppId());
-            specificResourceNotifyPolicy.setTriggerType(TriggerTypeEnum.TIMER_TASK);
-            specificResourceNotifyPolicy.setResourceType(ResourceTypeEnum.CRON.getType());
-            specificResourceNotifyPolicy.setResourceId(cronJobId);
-            if (cronJobInfoDTO.getCustomCronJobNotifyDTO() != null) {
-                specificResourceNotifyPolicy.setRoleList(cronJobInfoDTO.getCustomCronJobNotifyDTO().getRoleList());
-                specificResourceNotifyPolicy.setExtraObserverList(
-                    cronJobInfoDTO.getCustomCronJobNotifyDTO().getExtraObserverList()
-                );
-                specificResourceNotifyPolicy.setResourceStatusChannelList(
-                    cronJobInfoDTO.getCustomCronJobNotifyDTO().getCustomNotifyChannel().stream()
-                        .map(cronJobStatusNotifyChannel -> new ResourceStatusChannel(
+        ServiceSpecificResourceNotifyPolicyDTO specificResourceNotifyPolicy =
+            new ServiceSpecificResourceNotifyPolicyDTO();
+        specificResourceNotifyPolicy.setAppId(cronJobInfoDTO.getAppId());
+        specificResourceNotifyPolicy.setTriggerType(TriggerTypeEnum.TIMER_TASK);
+        specificResourceNotifyPolicy.setResourceType(ResourceTypeEnum.CRON.getType());
+        specificResourceNotifyPolicy.setResourceId(cronJobId);
+        if (cronJobInfoDTO.getCustomCronJobNotifyDTO() != null) {
+            specificResourceNotifyPolicy.setRoleList(cronJobInfoDTO.getCustomCronJobNotifyDTO().getRoleList());
+            specificResourceNotifyPolicy.setExtraObserverList(
+                cronJobInfoDTO.getCustomCronJobNotifyDTO().getExtraObserverList()
+            );
+            specificResourceNotifyPolicy.setResourceStatusChannelList(
+                cronJobInfoDTO.getCustomCronJobNotifyDTO().getCustomNotifyChannel().stream()
+                    .map(cronJobStatusNotifyChannel -> new ResourceStatusChannel(
                             ExecuteStatusEnum.get(cronJobStatusNotifyChannel.getExecuteStatus().getValue()),
                             cronJobStatusNotifyChannel.getChannelList()
                         )
                     ).collect(Collectors.toList())
-                );
-            }
-            notificationResource.createOrUpdateSpecificResourceNotifyPolicy(
-                cronJobInfoDTO.getLastModifyUser(),
-                cronJobInfoDTO.getAppId(),
-                specificResourceNotifyPolicy);
+            );
+        }
+        InternalResponse<Boolean> resp = notificationResource.createOrUpdateSpecificResourceNotifyPolicy(
+            cronJobInfoDTO.getLastModifyUser(),
+            cronJobInfoDTO.getAppId(),
+            specificResourceNotifyPolicy);
+        if (resp == null || !resp.isSuccess()) {
+            throw new InternalException(ErrorCode.SAVE_CRON_CUSTOM_NOTIFY_FAILED, new Object[]{cronJobId});
         }
     }
 
-    class DeleteCustomNotifyPolicyTask implements Runnable {
-
-        private final Long appId;
-        private final Long cronJobId;
-
-        DeleteCustomNotifyPolicyTask(Long appId, Long cronJobId) {
-            this.appId = appId;
-            this.cronJobId = cronJobId;
-        }
-
-        @Override
-        public void run() {
-            log.info("try to delete custom notify policy by async with cron task id:{}", cronJobId);
-            notificationResource.deleteSpecificResourceNotifyPolicy(appId, ResourceTypeEnum.CRON.getType(),
-                String.valueOf(cronJobId));
-        }
+    @Override
+    public void deleteCronJobCustomNotifyPolicy(Long appId, Long cronJobId) {
+        log.info("try to delete custom notify policy with cron task id:{}", cronJobId);
+        notificationResource.deleteSpecificResourceNotifyPolicy(appId, ResourceTypeEnum.CRON.getType(),
+            String.valueOf(cronJobId));
     }
+
+    @Override
+    public CustomNotifyDTO getCronJobCustomNotifyPolicyById(Long appId, Long cronJobId) {
+        return notificationResource.getSpecificResourceNotifyPolicy(
+            appId,
+            ResourceTypeEnum.CRON.getType(),
+            String.valueOf(cronJobId),
+            TriggerTypeEnum.TIMER_TASK.getType()
+        ).getData();
+    }
+
 }

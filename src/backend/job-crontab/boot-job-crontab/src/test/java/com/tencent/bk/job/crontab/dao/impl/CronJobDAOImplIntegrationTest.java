@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.crontab.dao.impl;
 
-import com.tencent.bk.job.common.constant.CronJobNotifyType;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
@@ -32,9 +31,6 @@ import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.dao.CronJobDAO;
-import com.tencent.bk.job.crontab.model.CronJobStatusNotifyChannel;
-import com.tencent.bk.job.crontab.model.CustomCronJobNotifyDTO;
-import com.tencent.bk.job.crontab.model.ExecuteStatusEnum;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
 import com.tencent.bk.job.crontab.util.CronExpressionUtil;
@@ -53,7 +49,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -132,21 +127,6 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_1.setNotifyOffset(10L * 60L);
         CRON_JOB_1.setNotifyUser(NOTIFY_USER_1);
         CRON_JOB_1.setNotifyChannel(Arrays.asList("wechat", "email"));
-        CRON_JOB_1.setNotifyType(CronJobNotifyType.CUSTOM.getType());
-        CustomCronJobNotifyDTO customCronJobNotifyDTO1 = new CustomCronJobNotifyDTO();
-        customCronJobNotifyDTO1.setRoleList(Arrays.asList("JOB_ROLE_1", "JOB_ROLE_2"));
-        customCronJobNotifyDTO1.setExtraObserverList(Collections.singletonList("people1"));
-        List<CronJobStatusNotifyChannel> statusNotifyChannel1 = new ArrayList<>();
-        CronJobStatusNotifyChannel successChannel = new CronJobStatusNotifyChannel();
-        successChannel.setExecuteStatus(ExecuteStatusEnum.SUCCESS);
-        successChannel.setChannelList(Collections.emptyList());
-        CronJobStatusNotifyChannel failChannel = new CronJobStatusNotifyChannel();
-        failChannel.setExecuteStatus(ExecuteStatusEnum.FAIL);
-        failChannel.setChannelList(Arrays.asList("rtx", "voice"));
-        statusNotifyChannel1.add(successChannel);
-        statusNotifyChannel1.add(failChannel);
-        customCronJobNotifyDTO1.setCustomNotifyChannel(statusNotifyChannel1);
-        CRON_JOB_1.setCustomCronJobNotifyDTO(customCronJobNotifyDTO1);
 
         CRON_JOB_2.setId(2L);
         CRON_JOB_2.setAppId(2L);
@@ -169,7 +149,6 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_2.setNotifyOffset(10L * 60L);
         CRON_JOB_2.setNotifyUser(NOTIFY_USER_2);
         CRON_JOB_2.setNotifyChannel(Collections.singletonList("email"));
-        CRON_JOB_2.setNotifyType(CronJobNotifyType.EXTENDS_APP.getType());
 
         CRON_JOB_3.setId(3L);
         CRON_JOB_3.setAppId(2L);
@@ -192,21 +171,6 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_3.setNotifyOffset(0L);
         CRON_JOB_3.setNotifyUser(new UserRoleInfoDTO());
         CRON_JOB_3.setNotifyChannel(Collections.emptyList());
-        CRON_JOB_3.setNotifyType(CronJobNotifyType.CUSTOM.getType());
-        CustomCronJobNotifyDTO customCronJobNotifyDTO3 = new CustomCronJobNotifyDTO();
-        customCronJobNotifyDTO3.setRoleList(Collections.singletonList("JOB_ROLE_1"));
-        customCronJobNotifyDTO3.setExtraObserverList(Collections.singletonList("people1"));
-        List<CronJobStatusNotifyChannel> statusNotifyChannel3 = new ArrayList<>();
-        CronJobStatusNotifyChannel successChannel3 = new CronJobStatusNotifyChannel();
-        successChannel3.setExecuteStatus(ExecuteStatusEnum.SUCCESS);
-        successChannel3.setChannelList(Collections.emptyList());
-        CronJobStatusNotifyChannel failChannel3 = new CronJobStatusNotifyChannel();
-        failChannel3.setExecuteStatus(ExecuteStatusEnum.FAIL);
-        failChannel3.setChannelList(Arrays.asList("rtx", "voice"));
-        statusNotifyChannel3.add(successChannel);
-        statusNotifyChannel3.add(failChannel);
-        customCronJobNotifyDTO3.setCustomNotifyChannel(statusNotifyChannel3);
-        CRON_JOB_3.setCustomCronJobNotifyDTO(customCronJobNotifyDTO3);
 
         CRON_JOB_4.setId(4L);
         CRON_JOB_4.setAppId(2L);
@@ -229,21 +193,6 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_4.setNotifyOffset(0L);
         CRON_JOB_4.setNotifyUser(new UserRoleInfoDTO());
         CRON_JOB_4.setNotifyChannel(Collections.emptyList());
-        CRON_JOB_4.setNotifyType(CronJobNotifyType.CUSTOM.getType());
-        CustomCronJobNotifyDTO customCronJobNotifyDTO4 = new CustomCronJobNotifyDTO();
-        customCronJobNotifyDTO4.setRoleList(Collections.singletonList("JOB_ROLE_1"));
-        customCronJobNotifyDTO4.setExtraObserverList(Collections.singletonList("people1"));
-        List<CronJobStatusNotifyChannel> statusNotifyChannel4 = new ArrayList<>();
-        CronJobStatusNotifyChannel successChannel4 = new CronJobStatusNotifyChannel();
-        successChannel4.setExecuteStatus(ExecuteStatusEnum.SUCCESS);
-        successChannel4.setChannelList(Collections.emptyList());
-        CronJobStatusNotifyChannel failChannel4 = new CronJobStatusNotifyChannel();
-        failChannel4.setExecuteStatus(ExecuteStatusEnum.FAIL);
-        failChannel4.setChannelList(Arrays.asList("rtx", "voice"));
-        statusNotifyChannel4.add(successChannel4);
-        statusNotifyChannel4.add(failChannel4);
-        customCronJobNotifyDTO4.setCustomNotifyChannel(statusNotifyChannel4);
-        CRON_JOB_4.setCustomCronJobNotifyDTO(customCronJobNotifyDTO4);
 
         CRON_JOB_5.setId(5L);
         CRON_JOB_5.setAppId(2L);
@@ -266,7 +215,6 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_5.setNotifyOffset(0L);
         CRON_JOB_5.setNotifyUser(new UserRoleInfoDTO());
         CRON_JOB_5.setNotifyChannel(Collections.emptyList());
-        CRON_JOB_5.setNotifyType(CronJobNotifyType.EXTENDS_APP.getType());
 
         CRON_JOB_6.setId(6L);
         CRON_JOB_6.setAppId(2L);
@@ -289,7 +237,6 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_6.setNotifyOffset(0L);
         CRON_JOB_6.setNotifyUser(new UserRoleInfoDTO());
         CRON_JOB_6.setNotifyChannel(Collections.emptyList());
-        CRON_JOB_6.setNotifyType(CronJobNotifyType.EXTENDS_APP.getType());
 
         CRON_JOB_7.setId(7L);
         CRON_JOB_7.setAppId(2L);
@@ -312,7 +259,6 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_7.setNotifyOffset(0L);
         CRON_JOB_7.setNotifyUser(new UserRoleInfoDTO());
         CRON_JOB_7.setNotifyChannel(Collections.emptyList());
-        CRON_JOB_7.setNotifyType(CronJobNotifyType.EXTENDS_APP.getType());
 
         CRON_JOB_8.setId(8L);
         CRON_JOB_8.setAppId(2L);
@@ -335,7 +281,6 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_8.setNotifyOffset(0L);
         CRON_JOB_8.setNotifyUser(new UserRoleInfoDTO());
         CRON_JOB_8.setNotifyChannel(Collections.emptyList());
-        CRON_JOB_8.setNotifyType(CronJobNotifyType.EXTENDS_APP.getType());
 
         CRON_JOB_9.setId(9L);
         CRON_JOB_9.setAppId(2L);
@@ -358,7 +303,6 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_9.setNotifyOffset(0L);
         CRON_JOB_9.setNotifyUser(new UserRoleInfoDTO());
         CRON_JOB_9.setNotifyChannel(Collections.emptyList());
-        CRON_JOB_9.setNotifyType(CronJobNotifyType.EXTENDS_APP.getType());
     }
 
     @Test

@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.dao.notify.impl;
 
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
+import com.tencent.bk.job.common.model.dto.notify.StatusNotifyChannel;
 import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
@@ -154,7 +156,37 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
     }
 
     @Override
-    public List<TriggerPolicyVO> list(String triggerUser, Long appId, String resourceId) {
+    public CustomNotifyDTO SpecificResourceNotifyPolicy(Long appId,
+                                                        Integer resourceType,
+                                                        String resourceId,
+                                                        Integer triggerType) {
+        var records = dslContext.selectFrom(defaultTable)
+            .where(defaultTable.APP_ID.eq(appId))
+            .and(defaultTable.RESOURCE_TYPE.eq(resourceType.byteValue()))
+            .and(defaultTable.RESOURCE_ID.eq(resourceId))
+            .and(defaultTable.TRIGGER_TYPE.eq(triggerType.byteValue()))
+            .fetch();
+        if (records.isEmpty()) {
+            return null;
+        }
+        return extractCustomNotifyDTOFromTriggerPolicyVO(
+            getTriggerPolicyVO(records, TriggerTypeEnum.get(triggerType))
+        );
+    }
+
+    private CustomNotifyDTO extractCustomNotifyDTOFromTriggerPolicyVO(TriggerPolicyVO triggerPolicyVO) {
+        if (triggerPolicyVO == null) {
+            return null;
+        }
+        CustomNotifyDTO notifyDTO = new CustomNotifyDTO();
+        notifyDTO.setRoleList(triggerPolicyVO.getRoleList());
+        notifyDTO.setExtraObserverList(triggerPolicyVO.getExtraObserverList());
+        notifyDTO.buildCustomNotifyChannel(triggerPolicyVO.getResourceStatusChannelMap());
+        return notifyDTO;
+    }
+
+    @Override
+    public List<TriggerPolicyVO> listAppDefault(String triggerUser, Long appId, String resourceId) {
         val resultList = new ArrayList<TriggerPolicyVO>();
         var records = dslContext.selectFrom(defaultTable)
             .where(defaultTable.TRIGGER_USER.eq(triggerUser))

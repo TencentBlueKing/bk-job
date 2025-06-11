@@ -25,19 +25,15 @@
 package com.tencent.bk.job.crontab.dao.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.common.constant.CronJobNotifyType;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
-import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.crontab.dao.CronJobDAO;
-import com.tencent.bk.job.crontab.model.CronJobStatusNotifyChannel;
 import com.tencent.bk.job.crontab.model.dto.CronJobBasicInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobWithVarsDTO;
-import com.tencent.bk.job.crontab.model.CustomCronJobNotifyDTO;
 import com.tencent.bk.job.crontab.model.tables.CronJob;
 import com.tencent.bk.job.crontab.model.tables.records.CronJobRecord;
 import com.tencent.bk.job.crontab.util.DbRecordMapper;
@@ -67,11 +63,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -81,7 +75,6 @@ import java.util.stream.Collectors;
 @Repository
 public class CronJobDAOImpl implements CronJobDAO {
     private static final CronJob TABLE = CronJob.CRON_JOB;
-    private static final String USER_DELIMITER = ";";
 
     private final DSLContext context;
 
@@ -172,11 +165,7 @@ public class CronJobDAOImpl implements CronJobDAO {
                     TABLE.END_TIME,
                     TABLE.NOTIFY_OFFSET,
                     TABLE.NOTIFY_USER,
-                    TABLE.NOTIFY_CHANNEL,
-                    TABLE.NOTIFY_TYPE,
-                    TABLE.CUSTOM_NOTIFY_ROLE,
-                    TABLE.CUSTOM_EXTRA_OBSERVER,
-                    TABLE.CUSTOM_NOTIFY_TRIGGER
+                    TABLE.NOTIFY_CHANNEL
                 ).from(TABLE)
                 .where(conditions)
                 .orderBy(orderFields)
@@ -277,13 +266,14 @@ public class CronJobDAOImpl implements CronJobDAO {
     }
 
     private CronJobInfoDTO getCronJobByConditions(Collection<Condition> conditions) {
-        Record record = context
+        Record21<ULong, ULong, String, String, ULong, ULong, String, ULong, String, ULong, String, UByte, UByte, UByte,
+            ULong, String, ULong, ULong, ULong, String,
+            String> record = context
             .select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.CREATOR, TABLE.TASK_TEMPLATE_ID, TABLE.TASK_PLAN_ID,
                 TABLE.SCRIPT_ID, TABLE.SCRIPT_VERSION_ID, TABLE.CRON_EXPRESSION, TABLE.EXECUTE_TIME,
                 TABLE.VARIABLE_VALUE, TABLE.LAST_EXECUTE_STATUS, TABLE.IS_ENABLE, TABLE.IS_DELETED,
                 TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.END_TIME,
-                TABLE.NOTIFY_OFFSET, TABLE.NOTIFY_USER, TABLE.NOTIFY_CHANNEL, TABLE.NOTIFY_TYPE,
-                TABLE.CUSTOM_NOTIFY_ROLE, TABLE.CUSTOM_EXTRA_OBSERVER, TABLE.CUSTOM_NOTIFY_TRIGGER)
+                TABLE.NOTIFY_OFFSET, TABLE.NOTIFY_USER, TABLE.NOTIFY_CHANNEL)
             .from(TABLE).where(conditions).fetchOne();
         return convertToCronJobDTO(record);
     }
@@ -298,28 +288,12 @@ public class CronJobDAOImpl implements CronJobDAO {
         }
         standardizeDynamicGroupId(cronJob.getVariableValue());
 
-        String roleStr;
-        String extraObserverStr;
-        if (cronJob.getCustomCronJobNotifyDTO() != null
-            && CollectionUtils.isNotEmpty(cronJob.getCustomCronJobNotifyDTO().getRoleList())) {
-            roleStr = String.join(USER_DELIMITER, cronJob.getCustomCronJobNotifyDTO().getRoleList());
-        } else {
-            roleStr = null;
-        }
-        if (cronJob.getCustomCronJobNotifyDTO() != null
-            && CollectionUtils.isNotEmpty(cronJob.getCustomCronJobNotifyDTO().getExtraObserverList())) {
-            extraObserverStr = String.join(USER_DELIMITER, cronJob.getCustomCronJobNotifyDTO().getExtraObserverList());
-        } else {
-            extraObserverStr = null;
-        }
-
         CronJobRecord cronJobRecord = context.insertInto(TABLE)
             .columns(TABLE.APP_ID, TABLE.NAME, TABLE.CREATOR, TABLE.TASK_TEMPLATE_ID, TABLE.TASK_PLAN_ID,
                 TABLE.SCRIPT_ID, TABLE.SCRIPT_VERSION_ID, TABLE.CRON_EXPRESSION, TABLE.EXECUTE_TIME,
                 TABLE.VARIABLE_VALUE, TABLE.LAST_EXECUTE_STATUS, TABLE.IS_ENABLE, TABLE.IS_DELETED, TABLE.CREATE_TIME,
                 TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.END_TIME, TABLE.NOTIFY_OFFSET, TABLE.NOTIFY_USER,
-                TABLE.NOTIFY_CHANNEL, TABLE.NOTIFY_TYPE, TABLE.CUSTOM_NOTIFY_ROLE, TABLE.CUSTOM_EXTRA_OBSERVER,
-                TABLE.CUSTOM_NOTIFY_TRIGGER)
+                TABLE.NOTIFY_CHANNEL)
             .values(ULong.valueOf(cronJob.getAppId()), cronJob.getName(), cronJob.getCreator(),
                 DbUtils.getJooqLongValue(cronJob.getTaskTemplateId()),
                 DbUtils.getJooqLongValue(cronJob.getTaskPlanId()), cronJob.getScriptId(),
@@ -330,13 +304,7 @@ public class CronJobDAOImpl implements CronJobDAO {
                 cronJob.getLastModifyUser(), ULong.valueOf(cronJob.getLastModifyTime()),
                 ULong.valueOf(cronJob.getEndTime()), ULong.valueOf(cronJob.getNotifyOffset()),
                 cronJob.getNotifyUser() == null ? null : JsonUtils.toJson(cronJob.getNotifyUser()),
-                cronJob.getNotifyChannel() == null ? null : JsonUtils.toJson(cronJob.getNotifyChannel()),
-                UByte.valueOf(cronJob.getNotifyType()),
-                roleStr,
-                extraObserverStr,
-                cronJob.getCustomCronJobNotifyDTO() == null ? null :
-                    JsonUtils.toJson(cronJob.getCustomCronJobNotifyDTO().getCustomNotifyChannel())
-            )
+                cronJob.getNotifyChannel() == null ? null : JsonUtils.toJson(cronJob.getNotifyChannel()))
             .returning(TABLE.ID).fetchOne();
         if (cronJobRecord != null) {
             return cronJobRecord.getId().longValue();
@@ -415,26 +383,6 @@ public class CronJobDAOImpl implements CronJobDAO {
         }
         if (cronJob.getNotifyChannel() != null) {
             updateStep = updateStep.set(TABLE.NOTIFY_CHANNEL, JsonUtils.toJson(cronJob.getNotifyChannel()));
-        }
-        if (cronJob.getNotifyType() != null) {
-            updateStep = updateStep.set(TABLE.NOTIFY_TYPE, JooqDataTypeUtil.toUByte(cronJob.getNotifyType()));
-        }
-        if (Objects.equals(cronJob.getNotifyType(), CronJobNotifyType.CUSTOM.getType())
-            && cronJob.getCustomCronJobNotifyDTO() != null) {
-
-            updateStep = updateStep.set(
-                TABLE.CUSTOM_NOTIFY_ROLE,
-                String.join(USER_DELIMITER, cronJob.getCustomCronJobNotifyDTO().getRoleList()));
-            updateStep = updateStep.set(
-                TABLE.CUSTOM_EXTRA_OBSERVER,
-                String.join(USER_DELIMITER, cronJob.getCustomCronJobNotifyDTO().getExtraObserverList()));
-            updateStep = updateStep.set(
-                TABLE.CUSTOM_NOTIFY_TRIGGER,
-                JsonUtils.toJson(cronJob.getCustomCronJobNotifyDTO().getCustomNotifyChannel()));
-        } else {
-            updateStep = updateStep.set(TABLE.CUSTOM_NOTIFY_ROLE, (String) null);
-            updateStep = updateStep.set(TABLE.CUSTOM_EXTRA_OBSERVER, (String) null);
-            updateStep = updateStep.set(TABLE.CUSTOM_NOTIFY_TRIGGER, (String) null);
         }
 
         return 1 == updateStep.where(conditions).limit(1).execute();
@@ -562,13 +510,14 @@ public class CronJobDAOImpl implements CronJobDAO {
     }
 
     private List<CronJobInfoDTO> fetchData(Collection<Condition> conditions) {
-        Result<Record> records = context
+        Result<Record21<ULong, ULong, String, String, ULong, ULong, String, ULong, String, ULong, String, UByte, UByte,
+            UByte, ULong, String, ULong, ULong, ULong, String, String>> records =
+            context
                 .select(TABLE.ID, TABLE.APP_ID, TABLE.NAME, TABLE.CREATOR, TABLE.TASK_TEMPLATE_ID,
                     TABLE.TASK_PLAN_ID, TABLE.SCRIPT_ID, TABLE.SCRIPT_VERSION_ID, TABLE.CRON_EXPRESSION,
                     TABLE.EXECUTE_TIME, TABLE.VARIABLE_VALUE, TABLE.LAST_EXECUTE_STATUS, TABLE.IS_ENABLE,
                     TABLE.IS_DELETED, TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME,
-                    TABLE.END_TIME, TABLE.NOTIFY_OFFSET, TABLE.NOTIFY_USER, TABLE.NOTIFY_CHANNEL,TABLE.NOTIFY_TYPE,
-                    TABLE.CUSTOM_NOTIFY_ROLE, TABLE.CUSTOM_EXTRA_OBSERVER, TABLE.CUSTOM_NOTIFY_TRIGGER)
+                    TABLE.END_TIME, TABLE.NOTIFY_OFFSET, TABLE.NOTIFY_USER, TABLE.NOTIFY_CHANNEL)
                 .from(TABLE).where(conditions).fetch();
 
         List<CronJobInfoDTO> cronJobInfoList = new ArrayList<>();
@@ -671,8 +620,6 @@ public class CronJobDAOImpl implements CronJobDAO {
         cronJobInfoDTO.setLastModifyTime(record.get(TABLE.LAST_MODIFY_TIME).longValue());
         cronJobInfoDTO.setEndTime(record.get(TABLE.END_TIME).longValue());
         cronJobInfoDTO.setNotifyOffset(record.get(TABLE.NOTIFY_OFFSET).longValue());
-        cronJobInfoDTO.setNotifyType(record.get(TABLE.NOTIFY_TYPE).intValue());
-        cronJobInfoDTO.setCustomCronJobNotifyDTO(buildCustomCronJobNotifyDTO(record));
         if (record.get(TABLE.NOTIFY_USER) != null) {
             cronJobInfoDTO.setNotifyUser(JsonUtils.fromJson(record.get(TABLE.NOTIFY_USER), UserRoleInfoDTO.class));
         } else {
@@ -707,27 +654,5 @@ public class CronJobDAOImpl implements CronJobDAO {
             variables.stream().filter(variable -> variable.getServer() != null)
                 .forEach(variable -> variable.getServer().standardizeDynamicGroupId());
         }
-    }
-
-    private CustomCronJobNotifyDTO buildCustomCronJobNotifyDTO(Record record) {
-        if (record == null) {
-            return null;
-        }
-
-        CustomCronJobNotifyDTO customCronJobNotifyDTO = new CustomCronJobNotifyDTO();
-        if (StringUtils.isNotEmpty(record.get(TABLE.CUSTOM_NOTIFY_ROLE))) {
-            customCronJobNotifyDTO.setRoleList(
-                Arrays.asList(record.get(TABLE.CUSTOM_NOTIFY_ROLE).split(USER_DELIMITER)));
-        }
-        if (StringUtils.isNotEmpty(record.get(TABLE.CUSTOM_EXTRA_OBSERVER))) {
-            customCronJobNotifyDTO.setExtraObserverList(
-                Arrays.asList(record.get(TABLE.CUSTOM_EXTRA_OBSERVER).split(USER_DELIMITER)));
-        }
-        customCronJobNotifyDTO.setCustomNotifyChannel(
-            JsonUtils.fromJson(
-                record.get(TABLE.CUSTOM_NOTIFY_TRIGGER),
-                new TypeReference<List<CronJobStatusNotifyChannel>>() {})
-        );
-        return customCronJobNotifyDTO;
     }
 }

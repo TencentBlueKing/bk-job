@@ -36,7 +36,7 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.model.CronJobCreateUpdateReq;
 import com.tencent.bk.job.crontab.model.CronJobVO;
-import com.tencent.bk.job.crontab.model.CustomCronJobNotifyDTO;
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.crontab.model.esb.response.EsbCronInfoResponse;
 import com.tencent.bk.job.crontab.model.esb.v3.response.EsbCronInfoV3DTO;
 import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
@@ -185,7 +185,7 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
     /**
      * 自定义通知配置
      */
-    private CustomCronJobNotifyDTO customCronJobNotifyDTO = new CustomCronJobNotifyDTO();
+    private CustomNotifyDTO customCronJobNotifyDTO = new CustomNotifyDTO();
 
     /**
      * 周期执行结束时间
@@ -211,7 +211,7 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
         cronJobVO.setScriptId(cronJobInfo.getScriptId());
         cronJobVO.setScriptVersionId(cronJobInfo.getScriptVersionId());
         cronJobVO.setNotifyType(cronJobInfo.getNotifyType());
-        cronJobVO.setCronJobCustomNotifyVO(CustomCronJobNotifyDTO.toVO(cronJobInfo.getCustomCronJobNotifyDTO()));
+        cronJobVO.setCronJobCustomNotifyVO(CustomNotifyDTO.toVO(cronJobInfo.getCustomCronJobNotifyDTO()));
         if (StringUtils.isNotBlank(cronJobInfo.getCronExpression())) {
             cronJobVO.setCronExpression(CronExpressionUtil.fixExpressionForUser(cronJobInfo.getCronExpression()));
         } else {
@@ -301,10 +301,20 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
         cronJobInfo.setNotifyChannel(cronJobCreateUpdateReq.getNotifyChannel());
         cronJobInfo.setNotifyType(cronJobCreateUpdateReq.getNotifyType());
         if (cronJobInfo.hasCustomNotifyPolicy()) {
-            cronJobInfo.setCustomCronJobNotifyDTO(CustomCronJobNotifyDTO.fromReq(cronJobCreateUpdateReq));
+            cronJobInfo.setCustomCronJobNotifyDTO(extractCustomNotifyDTOFromReq(cronJobCreateUpdateReq));
         }
         cronJobInfo.setEndTime(cronJobCreateUpdateReq.getEndTime());
         return cronJobInfo;
+    }
+
+    private static CustomNotifyDTO extractCustomNotifyDTOFromReq(CronJobCreateUpdateReq cronJobCreateUpdateReq) {
+        CustomNotifyDTO cronJobNotifyDTO = new CustomNotifyDTO();
+        if (cronJobCreateUpdateReq.getCustomNotifyUser() != null) {
+            cronJobNotifyDTO.setRoleList(cronJobCreateUpdateReq.getCustomNotifyUser().getRoleList());
+            cronJobNotifyDTO.setExtraObserverList(cronJobCreateUpdateReq.getCustomNotifyUser().getUserList());
+        }
+        cronJobNotifyDTO.setCustomNotifyChannel(cronJobCreateUpdateReq.getCustomNotifyChannel());
+        return cronJobNotifyDTO;
     }
 
     public static EsbCronInfoResponse toEsbCronInfo(CronJobInfoDTO cronJobInfoDTO) {

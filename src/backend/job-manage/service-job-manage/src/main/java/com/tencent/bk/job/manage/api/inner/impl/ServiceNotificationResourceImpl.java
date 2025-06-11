@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.common.util.PrefConsts;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceNotificationResource;
@@ -122,7 +123,7 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
     }
 
     @Override
-    public InternalResponse<Integer> createOrUpdateSpecificResourceNotifyPolicy(
+    public InternalResponse<Boolean> createOrUpdateSpecificResourceNotifyPolicy(
         String username,
         Long appId,
         ServiceSpecificResourceNotifyPolicyDTO serviceNotifyPolicyDTO) {
@@ -142,5 +143,12 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
             resourceType,
             resourceId
         ));
+    }
+
+    @Override
+    public InternalResponse<CustomNotifyDTO> getSpecificResourceNotifyPolicy(Long appId, Integer resourceType,
+                                                                             String resourceId, Integer triggerType) {
+        return InternalResponse.buildSuccessResp(notifyService.getSpecificResourceNotifyPolicy(
+            appId, resourceType, resourceId, triggerType));
     }
 }

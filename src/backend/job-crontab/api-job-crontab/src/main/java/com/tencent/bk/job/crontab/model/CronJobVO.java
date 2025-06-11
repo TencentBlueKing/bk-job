@@ -25,6 +25,7 @@
 package com.tencent.bk.job.crontab.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyVO;
 import com.tencent.bk.job.common.model.vo.UserRoleInfoVO;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
@@ -202,7 +203,7 @@ public class CronJobVO {
     private Integer notifyType;
 
     @ApiModelProperty("自定义通知配置")
-    private CronJobCustomNotifyVO cronJobCustomNotifyVO;
+    private CustomNotifyVO cronJobCustomNotifyVO;
 
     /**
      * 周期执行的结束时间

@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -156,8 +157,15 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Override
     public List<TriggerPolicyVO> listAppDefaultNotifyPolicies(String username, Long appId) {
-        return notifyTriggerPolicyDAO.list(getDefaultTriggerUser(), appId, NotifyConsts.DEFAULT_RESOURCE_ID);
+        return notifyTriggerPolicyDAO.listAppDefault(getDefaultTriggerUser(), appId, NotifyConsts.DEFAULT_RESOURCE_ID);
     }
+
+    @Override
+    public CustomNotifyDTO getSpecificResourceNotifyPolicy(Long appId, Integer resourceType,
+                                                           String resourceId, Integer triggerType) {
+        return notifyTriggerPolicyDAO.SpecificResourceNotifyPolicy(appId, resourceType, resourceId, triggerType);
+    }
+
 
     @Override
     @ActionAuditRecord(
@@ -300,16 +308,16 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Override
     @JobTransactional(transactionManager = "jobManageTransactionManager")
-    public Integer saveSpecificResourceNotifyPolicies(
+    public Boolean saveSpecificResourceNotifyPolicies(
         Long appId,
         String operator,
         ServiceSpecificResourceNotifyPolicyDTO specificResourceNotifyPolicyDTO
     ) {
 
         if (specificResourceNotifyPolicyDTO.getResourceId() == -1) {
-            log.warn("[saveSpecificResourceNotifyPolicies] not allow to delete app default resource notify policies "
+            log.warn("[saveSpecificResourceNotifyPolicies] not allow to save app default resource notify policies "
                 + "with resourceId=-1");
-            return 0;
+            return false;
         }
 
         notifyTriggerPolicyDAO.deleteAppResourceNotifyPolicies(
@@ -332,7 +340,7 @@ public class NotifyServiceImpl implements NotifyService {
             );
         });
 
-        return 1;
+        return true;
     }
 
     private TriggerPolicy buildTriggerPolicy(ServiceSpecificResourceNotifyPolicyDTO specificResourceNotifyPolicyDTO) {
