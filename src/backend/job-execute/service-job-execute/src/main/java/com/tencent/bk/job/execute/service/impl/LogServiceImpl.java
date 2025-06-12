@@ -359,29 +359,41 @@ public class LogServiceImpl implements LogService {
                 batch,
                 queryExecuteObjects.stream().map(ExecuteObject::getId).collect(Collectors.toList())
             );
+        log.debug(
+            "queryExecuteObjects={},executeObjectTaskList={}",
+            queryExecuteObjects,
+            executeObjectTaskList
+        );
         long stepInstanceId = stepInstance.getId();
         // 根据真实执行次数对执行对象进行分组
         Map<Integer, List<ExecuteObjectTask>> actualExecuteCountObjMap = executeObjectTaskList.stream()
             .collect(Collectors.groupingBy(ExecuteObjectTask::getActualExecuteCount));
 
-        actualExecuteCountObjMap.forEach(
-            (actualExecuteCount, executeObjectTasks) -> {
-                if (CollectionUtils.isEmpty(executeObjectTasks)) {
-                    return;
-                }
-                List<String> executeObjectIds = executeObjectTasks.stream()
-                    .map(ExecuteObjectTask::getExecuteObjectId)
-                    .collect(Collectors.toList());
-                List<ServiceExecuteObjectLogDTO> actualExecuteLogs = queryScriptLogsForExecuteOnce(
-                    jobCreateDateStr,
-                    stepInstanceId,
+        for (Map.Entry<Integer, List<ExecuteObjectTask>> entry : actualExecuteCountObjMap.entrySet()) {
+            Integer actualExecuteCount = entry.getKey();
+            List<ExecuteObjectTask> executeObjectTasks = entry.getValue();
+            if (log.isDebugEnabled()) {
+                log.debug(
+                    "actualExecuteCount={},executeObjectTasks={}",
                     actualExecuteCount,
-                    batch,
-                    executeObjectIds
+                    executeObjectTasks
                 );
-                logList.addAll(actualExecuteLogs);
             }
-        );
+            if (CollectionUtils.isEmpty(executeObjectTasks)) {
+                continue;
+            }
+            List<String> executeObjectIds = executeObjectTasks.stream()
+                .map(ExecuteObjectTask::getExecuteObjectId)
+                .collect(Collectors.toList());
+            List<ServiceExecuteObjectLogDTO> actualExecuteLogs = queryScriptLogsForExecuteOnce(
+                jobCreateDateStr,
+                stepInstanceId,
+                actualExecuteCount,
+                batch,
+                executeObjectIds
+            );
+            logList.addAll(actualExecuteLogs);
+        }
         return logList;
     }
 
