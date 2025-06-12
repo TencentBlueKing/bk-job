@@ -44,19 +44,18 @@ public class ExecuteObjectCompositeKeyUtils {
                 .map(ExecuteObjectCompositeKey::ofHostId)
                 .collect(Collectors.toList());
         } else if (CollectionUtils.isNotEmpty(openApiHostDTOList)) {
-            OpenApiHostDTO firstHost = openApiHostDTOList.get(0);
-            if (firstHost.getHostId() != null) {
-                // hostId方式作为主机标识
-                return openApiHostDTOList.stream()
-                    .map(esbIp -> ExecuteObjectCompositeKey.ofHostId(esbIp.getHostId()))
-                    .collect(Collectors.toList());
-            } else {
-                // 管控区域+ip方式作为主机标识
-                return openApiHostDTOList.stream()
-                    .map(openApiHostDTO -> ExecuteObjectCompositeKey.ofHostIp(
-                        IpUtils.buildCloudIp(openApiHostDTO.getBkCloudId(), openApiHostDTO.getIp())))
-                    .collect(Collectors.toList());
-            }
+            return openApiHostDTOList.stream()
+                .map(openApiHostDTO -> {
+                        if (openApiHostDTO.getHostId() != null) {
+                            // hostId方式作为主机标识
+                            return ExecuteObjectCompositeKey.ofHostId(openApiHostDTO.getHostId());
+                        } else {
+                            // 管控区域+ip方式作为主机标识
+                            return ExecuteObjectCompositeKey.ofHostIp(
+                                IpUtils.buildCloudIp(openApiHostDTO.getBkCloudId(), openApiHostDTO.getIp()));
+                        }
+                    }
+                ).collect(Collectors.toList());
         } else {
             throw new IllegalArgumentException("Invalid host params");
         }
