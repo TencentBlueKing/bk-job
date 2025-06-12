@@ -48,16 +48,12 @@ import java.util.stream.Collectors;
 @Service
 public class CustomNotifyPolicyServiceImpl implements CustomNotifyPolicyService {
 
-    private final ThreadPoolExecutor asyncCustomNotifyPolicyExecutor;
     private final ServiceNotificationResource notificationResource;
 
     @Autowired
     public CustomNotifyPolicyServiceImpl(
-        @Qualifier("asyncCustomNotifyPolicyExecutor")
-        ThreadPoolExecutor asyncCustomNotifyPolicyExecutor,
         ServiceNotificationResource notificationResource
     ) {
-        this.asyncCustomNotifyPolicyExecutor = asyncCustomNotifyPolicyExecutor;
         this.notificationResource = notificationResource;
     }
 

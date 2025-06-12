@@ -51,17 +51,4 @@ public class ExecutorConfiguration {
         );
     }
 
-    @Bean("asyncCustomNotifyPolicyExecutor")
-    public ThreadPoolExecutor asyncCustomNotifyPolicyExecutor(MeterRegistry meterRegistry) {
-        return new WatchableThreadPoolExecutor(
-            meterRegistry,
-            "asyncCustomNotifyPolicyExecutor",
-            2,
-            4,
-            60,
-            TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>()
-        );
-    }
-
 }

@@ -163,7 +163,7 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     public CustomNotifyDTO getSpecificResourceNotifyPolicy(Long appId, Integer resourceType,
                                                            String resourceId, Integer triggerType) {
-        return notifyTriggerPolicyDAO.SpecificResourceNotifyPolicy(appId, resourceType, resourceId, triggerType);
+        return notifyTriggerPolicyDAO.getSpecificResourceNotifyPolicy(appId, resourceType, resourceId, triggerType);
     }
 
 
@@ -192,7 +192,6 @@ public class NotifyServiceImpl implements NotifyService {
             new NotifyTriggerPolicyDTO(
                 null,
                 appId,
-//                NotifyConsts.DEFAULT_RESOURCE_ID,
                 resourceId,
                 resourceType,
                 triggerUser,

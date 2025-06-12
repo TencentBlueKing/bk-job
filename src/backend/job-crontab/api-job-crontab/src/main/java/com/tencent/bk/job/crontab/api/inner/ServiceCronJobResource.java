@@ -65,13 +65,6 @@ public interface ServiceCronJobResource {
         @ApiParam(value = "是否开启", required = false, example = "true") @RequestParam("enable") Boolean enable
     );
 
-    @GetMapping("/service/cron/job/{cronJobId}")
-    InternalResponse<ServiceCronJobDTO> getCronJobById(
-        @ApiParam(value = "定时任务ID", required = true)
-        @PathVariable("cronJobId")
-        Long cronJobId
-    );
-
     /**
      * 新建、更新定时任务
      *

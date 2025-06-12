@@ -37,8 +37,8 @@ public interface NotifyTriggerPolicyDAO {
 
     int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId);
 
-    CustomNotifyDTO SpecificResourceNotifyPolicy(Long appId, Integer resourceType,
-                                                 String resourceId, Integer triggerType);
+    CustomNotifyDTO getSpecificResourceNotifyPolicy(Long appId, Integer resourceType,
+                                                    String resourceId, Integer triggerType);
 
     List<TriggerPolicyVO> listAppDefault(String triggerUser, Long appId, String resourceId);
 

@@ -156,10 +156,10 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
     }
 
     @Override
-    public CustomNotifyDTO SpecificResourceNotifyPolicy(Long appId,
-                                                        Integer resourceType,
-                                                        String resourceId,
-                                                        Integer triggerType) {
+    public CustomNotifyDTO getSpecificResourceNotifyPolicy(Long appId,
+                                                           Integer resourceType,
+                                                           String resourceId,
+                                                           Integer triggerType) {
         var records = dslContext.selectFrom(defaultTable)
             .where(defaultTable.APP_ID.eq(appId))
             .and(defaultTable.RESOURCE_TYPE.eq(resourceType.byteValue()))
