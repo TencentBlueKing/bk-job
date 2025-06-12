@@ -424,7 +424,6 @@ public class ScriptExecuteObjectTaskDAOImpl extends BaseDAO implements ScriptExe
             // 滚动执行批次，传入null或者0将忽略该参数
             selectConditionStep.and(T.BATCH.eq(batch.shortValue()));
         }
-        selectConditionStep.limit(1);
         Result<?> records = selectConditionStep.fetch();
         return records.map(this::extract);
     }

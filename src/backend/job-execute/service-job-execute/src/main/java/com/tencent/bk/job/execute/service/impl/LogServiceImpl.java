@@ -364,24 +364,31 @@ public class LogServiceImpl implements LogService {
         Map<Integer, List<ExecuteObjectTask>> actualExecuteCountObjMap = executeObjectTaskList.stream()
             .collect(Collectors.groupingBy(ExecuteObjectTask::getActualExecuteCount));
 
-        actualExecuteCountObjMap.forEach(
-            (actualExecuteCount, executeObjectTasks) -> {
-                if (CollectionUtils.isEmpty(executeObjectTasks)) {
-                    return;
-                }
-                List<String> executeObjectIds = executeObjectTasks.stream()
-                    .map(ExecuteObjectTask::getExecuteObjectId)
-                    .collect(Collectors.toList());
-                List<ServiceExecuteObjectLogDTO> actualExecuteLogs = queryScriptLogsForExecuteOnce(
-                    jobCreateDateStr,
-                    stepInstanceId,
+        for (Map.Entry<Integer, List<ExecuteObjectTask>> entry : actualExecuteCountObjMap.entrySet()) {
+            Integer actualExecuteCount = entry.getKey();
+            List<ExecuteObjectTask> executeObjectTasks = entry.getValue();
+            if (log.isDebugEnabled()) {
+                log.debug(
+                    "actualExecuteCount={},executeObjectTasks.size={}",
                     actualExecuteCount,
-                    batch,
-                    executeObjectIds
+                    executeObjectTasks.size()
                 );
-                logList.addAll(actualExecuteLogs);
             }
-        );
+            if (CollectionUtils.isEmpty(executeObjectTasks)) {
+                continue;
+            }
+            List<String> executeObjectIds = executeObjectTasks.stream()
+                .map(ExecuteObjectTask::getExecuteObjectId)
+                .collect(Collectors.toList());
+            List<ServiceExecuteObjectLogDTO> actualExecuteLogs = queryScriptLogsForExecuteOnce(
+                jobCreateDateStr,
+                stepInstanceId,
+                actualExecuteCount,
+                batch,
+                executeObjectIds
+            );
+            logList.addAll(actualExecuteLogs);
+        }
         return logList;
     }
 
