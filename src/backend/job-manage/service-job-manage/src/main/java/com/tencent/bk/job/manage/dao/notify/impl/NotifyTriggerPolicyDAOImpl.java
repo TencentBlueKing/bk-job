@@ -25,7 +25,6 @@
 package com.tencent.bk.job.manage.dao.notify.impl;
 
 import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
-import com.tencent.bk.job.common.model.dto.notify.StatusNotifyChannel;
 import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
@@ -47,6 +46,7 @@ import lombok.var;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
 import org.jooq.types.ULong;
@@ -120,22 +120,23 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
         }
     }
 
-    private int cascadeDelete(Result<NotifyTriggerPolicyRecord> records) {
+    private int cascadeDelete(Result<Record1<Long>> records) {
         if (null == records || records.isEmpty()) {
             return 0;
         }
         //1.删从表
-        records.forEach(record -> notifyPolicyRoleTargetDAO.deleteByPolicyId(record.getId()));
+        records.forEach(record -> notifyPolicyRoleTargetDAO.deleteByPolicyId(record.get(defaultTable.ID)));
         //2.删主表
         return dslContext.deleteFrom(defaultTable).where(
-            defaultTable.ID.in(records.map(NotifyTriggerPolicyRecord::getId))
+            defaultTable.ID.in(records.map(record -> record.get(defaultTable.ID)))
         ).execute();
     }
 
     @Override
     public int deleteAppNotifyPolicies(Long appId, String triggerUser) {
         // 1.查出所有记录
-        val records = dslContext.selectFrom(defaultTable)
+        Result<Record1<Long>> records = dslContext.select(defaultTable.ID)
+            .from(defaultTable)
             .where(defaultTable.TRIGGER_USER.eq(triggerUser))
             .and(defaultTable.APP_ID.eq(appId))
             .and(defaultTable.RESOURCE_ID.eq(NotifyConsts.DEFAULT_RESOURCE_ID))
@@ -147,7 +148,8 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
     @Override
     public int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId) {
 
-        val records = dslContext.selectFrom(defaultTable)
+        Result<Record1<Long>> records = dslContext.select(defaultTable.ID)
+            .from(defaultTable)
             .where(defaultTable.APP_ID.eq(appId))
             .and(defaultTable.RESOURCE_TYPE.eq(resourceType.byteValue()))
             .and(defaultTable.RESOURCE_ID.eq(resourceId))
@@ -221,8 +223,12 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
     }
 
     @Override
-    public List<NotifyTriggerPolicyDTO> list(String triggerUser, Long appId, String resourceId
-        , Integer resourceType, Integer triggerType, Integer executeStatus) {
+    public List<NotifyTriggerPolicyDTO> list(String triggerUser,
+                                             Long appId,
+                                             String resourceId,
+                                             Integer resourceType,
+                                             Integer triggerType,
+                                             Integer executeStatus) {
         List<NotifyTriggerPolicyDTO> resultList;
         List<Condition> conditions = new ArrayList<>();
         if (null != triggerUser) {

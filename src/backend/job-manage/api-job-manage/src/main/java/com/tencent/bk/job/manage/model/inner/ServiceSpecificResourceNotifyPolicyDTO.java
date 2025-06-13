@@ -24,18 +24,21 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
-import com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
-import com.tencent.bk.job.manage.model.web.request.notify.ResourceStatusChannel;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class ServiceSpecificResourceNotifyPolicyDTO {
 
     private Long appId;
 
-    private TriggerTypeEnum triggerType;
+    /**
+     * 触发类型
+     * @see com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
+     */
+    private Integer triggerType;
 
     /**
      * 资源类型
@@ -49,5 +52,5 @@ public class ServiceSpecificResourceNotifyPolicyDTO {
 
     private List<String> extraObserverList;
 
-    private List<ResourceStatusChannel> resourceStatusChannelList;
+    private Map<Integer, List<String>> resourceStatusChannelMap;
 }

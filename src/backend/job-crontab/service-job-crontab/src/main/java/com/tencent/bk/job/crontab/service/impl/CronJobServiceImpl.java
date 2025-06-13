@@ -152,7 +152,12 @@ public class CronJobServiceImpl implements CronJobService {
 
     @Override
     public CronJobInfoDTO getCronJobInfoById(Long cronJobId) {
-        CronJobInfoDTO cronJobInfo = cronJobDAO.getCronJobById(cronJobId);
+        return cronJobDAO.getCronJobById(cronJobId);
+    }
+
+    @Override
+    public CronJobInfoDTO getIntegralCronJobInfoById(Long cronJobId) {
+        CronJobInfoDTO cronJobInfo = getCronJobInfoById(cronJobId);
         fillCronJobInfoWithCustomNotifyPolicy(cronJobId, cronJobInfo);
         return cronJobInfo;
     }
@@ -169,9 +174,7 @@ public class CronJobServiceImpl implements CronJobService {
 
     @Override
     public CronJobInfoDTO getCronJobInfoById(Long appId, Long cronJobId) {
-        CronJobInfoDTO cronJobInfo = cronJobDAO.getCronJobById(appId, cronJobId);
-        fillCronJobInfoWithCustomNotifyPolicy(cronJobId, cronJobInfo);
-        return cronJobInfo;
+        return cronJobDAO.getCronJobById(appId, cronJobId);
     }
 
     @Override
@@ -185,7 +188,7 @@ public class CronJobServiceImpl implements CronJobService {
         content = EventContentConstants.VIEW_CRON_JOB
     )
     public CronJobInfoDTO getCronJobInfoById(String username, Long appId, Long cronJobId) {
-        CronJobInfoDTO cronJob = getCronJobInfoById(appId, cronJobId);
+        CronJobInfoDTO cronJob = getIntegralCronJobInfoById(cronJobId);
         if (cronJob == null) {
             throw new NotFoundException(ErrorCode.CRON_JOB_NOT_EXIST);
         }
@@ -233,17 +236,17 @@ public class CronJobServiceImpl implements CronJobService {
 
         cronAuthService.registerCron(id, cronJobInfo.getName(), cronJobInfo.getCreator());
 
-        return getCronJobInfoById(id);
+        return getIntegralCronJobInfoById(id);
     }
 
     private void saveCustomNotifyPolicyIfNeeded(Long id, CronJobInfoDTO cronJobInfo) {
         if (cronJobInfo.hasCustomNotifyPolicy()) {
-            log.debug("[pushCustomNotifyPolicyIfNeeded] cron task:{} has custom notify policy,"
-                    + " try to sync custom notify policy", id);
+            log.debug("[saveCustomNotifyPolicyIfNeeded] cron task:{} has custom notify policy,"
+                    + " try to save custom notify policy", id);
             customNotifyPolicyService.createOrUpdateCronJobCustomNotifyPolicy(id, cronJobInfo);
         } else {
-            log.debug("[pushCustomNotifyPolicyIfNeeded] cron task:{} use app notify policy, clean its configed policy",
-                id);
+            log.debug("[saveCustomNotifyPolicyIfNeeded] cron task with id={} use app notify policy,"
+                    + "clean its configured policy", id);
             customNotifyPolicyService.deleteCronJobCustomNotifyPolicy(cronJobInfo.getAppId(), id);
         }
     }
@@ -262,7 +265,7 @@ public class CronJobServiceImpl implements CronJobService {
         cronAuthService.authManageCron(username,
             new AppResourceScope(cronJobInfo.getAppId()), cronJobInfo.getId(), null).denyIfNoPermission();
 
-        CronJobInfoDTO originCron = getCronJobInfoById(cronJobInfo.getId());
+        CronJobInfoDTO originCron = getIntegralCronJobInfoById(cronJobInfo.getId());
         if (originCron == null) {
             throw new NotFoundException(ErrorCode.CRON_JOB_NOT_EXIST);
         }
@@ -288,7 +291,7 @@ public class CronJobServiceImpl implements CronJobService {
         // 保存自定义定时任务级别通知策略
         saveCustomNotifyPolicyIfNeeded(cronJobInfo.getId(), cronJobInfo);
 
-        CronJobInfoDTO updateCron = getCronJobInfoById(cronJobInfo.getId());
+        CronJobInfoDTO updateCron = getIntegralCronJobInfoById(cronJobInfo.getId());
 
         // 审计
         ActionAuditContext.current()
@@ -417,7 +420,7 @@ public class CronJobServiceImpl implements CronJobService {
         cronAuthService.authManageCron(username,
             new AppResourceScope(appId), cronJobId, null).denyIfNoPermission();
 
-        CronJobInfoDTO cron = getCronJobInfoById(cronJobId);
+        CronJobInfoDTO cron = getIntegralCronJobInfoById(cronJobId);
         if (cron == null) {
             throw new NotFoundException(ErrorCode.CRON_JOB_NOT_EXIST);
         }
@@ -435,7 +438,7 @@ public class CronJobServiceImpl implements CronJobService {
 
     private void deleteCustomNotifyPolicy(Long appId, CronJobInfoDTO cronJob) {
         if (cronJob.hasCustomNotifyPolicy()) {
-            log.debug("[asyncDeleteCustomNotifyPolicy]deleted cron task:{} has custom notify policy,"
+            log.debug("[deleteCustomNotifyPolicy]deleted cron task:{} has custom notify policy,"
                 + "try to delete notify policy", cronJob.getId());
             customNotifyPolicyService.deleteCronJobCustomNotifyPolicy(appId, cronJob.getId());
         }

@@ -44,7 +44,7 @@ public class CustomNotifyVO {
     /**
      * 自定义额外通知人
      */
-    @ApiModelProperty(value = "额外通知人列表", required = true)
+    @ApiModelProperty(value = "额外通知人列表", required = false)
     private List<String> extraObserverList;
 
     @ApiModelProperty(value = "状态通知渠道列表，key:执行状态(SUCCESS,FAIL),value:通知渠道列表", required = true)

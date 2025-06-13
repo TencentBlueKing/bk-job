@@ -89,6 +89,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
+import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -161,8 +162,10 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
-    public CustomNotifyDTO getSpecificResourceNotifyPolicy(Long appId, Integer resourceType,
-                                                           String resourceId, Integer triggerType) {
+    public CustomNotifyDTO getSpecificResourceNotifyPolicy(Long appId,
+                                                           Integer resourceType,
+                                                           String resourceId,
+                                                           Integer triggerType) {
         return notifyTriggerPolicyDAO.getSpecificResourceNotifyPolicy(appId, resourceType, resourceId, triggerType);
     }
 
@@ -314,9 +317,9 @@ public class NotifyServiceImpl implements NotifyService {
     ) {
 
         if (specificResourceNotifyPolicyDTO.getResourceId() == -1) {
-            log.warn("[saveSpecificResourceNotifyPolicies] not allow to save app default resource notify policies "
+            log.error("[saveSpecificResourceNotifyPolicies] not allow to save app default resource notify policies "
                 + "with resourceId=-1");
-            return false;
+            throw new InvalidParameterException("cannot save custom notify policy with resourceId=-1");
         }
 
         notifyTriggerPolicyDAO.deleteAppResourceNotifyPolicies(
@@ -327,7 +330,10 @@ public class NotifyServiceImpl implements NotifyService {
 
         TriggerPolicy triggerPolicy = buildTriggerPolicy(specificResourceNotifyPolicyDTO);
 
-        specificResourceNotifyPolicyDTO.getResourceStatusChannelList().forEach(resourceStatusChannel -> {
+        List<ResourceStatusChannel> resourceStatusChannelList = ResourceStatusChannel.fromMap(
+            specificResourceNotifyPolicyDTO.getResourceStatusChannelMap()
+        );
+        resourceStatusChannelList.forEach(resourceStatusChannel -> {
             cascadeSaveTriggerPolicyAndTarget(
                 appId,
                 operator,
@@ -344,13 +350,15 @@ public class NotifyServiceImpl implements NotifyService {
 
     private TriggerPolicy buildTriggerPolicy(ServiceSpecificResourceNotifyPolicyDTO specificResourceNotifyPolicyDTO) {
         TriggerPolicy triggerPolicy = new TriggerPolicy();
-        triggerPolicy.setTriggerType(specificResourceNotifyPolicyDTO.getTriggerType());
+        triggerPolicy.setTriggerType(TriggerTypeEnum.get(specificResourceNotifyPolicyDTO.getTriggerType()));
         triggerPolicy.setResourceTypeList(Collections.singletonList(ResourceTypeEnum.get(
             specificResourceNotifyPolicyDTO.getResourceType()
         )));
         triggerPolicy.setRoleList(specificResourceNotifyPolicyDTO.getRoleList());
         triggerPolicy.setExtraObserverList(specificResourceNotifyPolicyDTO.getExtraObserverList());
-        triggerPolicy.setResourceStatusChannelList(specificResourceNotifyPolicyDTO.getResourceStatusChannelList());
+        triggerPolicy.setResourceStatusChannelList(
+            ResourceStatusChannel.fromMap(specificResourceNotifyPolicyDTO.getResourceStatusChannelMap())
+        );
         return triggerPolicy;
     }
 
@@ -396,8 +404,8 @@ public class NotifyServiceImpl implements NotifyService {
     public int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId) {
         // 业务全局消息通知方式不允许删除
         if (NotifyConsts.DEFAULT_RESOURCE_ID.equals(resourceId)) {
-            log.warn("not allow to delete app default resource notify policies with resourceId=-1");
-            return 0;
+            log.error("not allow to delete app default resource notify policies with resourceId=-1");
+            throw new InvalidParameterException("cannot delete notify policy with resourceId=-1");
         }
         return notifyTriggerPolicyDAO.deleteAppResourceNotifyPolicies(appId, resourceType, resourceId);
     }

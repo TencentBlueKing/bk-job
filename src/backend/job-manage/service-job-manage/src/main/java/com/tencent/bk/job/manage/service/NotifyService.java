@@ -54,19 +54,25 @@ public interface NotifyService {
 
     List<TriggerPolicyVO> listAppDefaultNotifyPolicies(String username, Long appId);
 
-    CustomNotifyDTO getSpecificResourceNotifyPolicy(Long appId, Integer resourceType,
-                                                    String resourceId, Integer triggerType);
+    CustomNotifyDTO getSpecificResourceNotifyPolicy(Long appId,
+                                                    Integer resourceType,
+                                                    String resourceId,
+                                                    Integer triggerType);
 
     Long saveAppDefaultNotifyPolicies(String username, Long appId, NotifyPoliciesCreateUpdateReq createUpdateReq);
 
-    Long saveAppDefaultNotifyPoliciesToLocal(String username, Long appId, String triggerUser,
+    Long saveAppDefaultNotifyPoliciesToLocal(String username,
+                                             Long appId,
+                                             String triggerUser,
                                              NotifyPoliciesCreateUpdateReq createUpdateReq);
 
     Boolean saveSpecificResourceNotifyPolicies(Long appId,
                                             String operator,
                                             ServiceSpecificResourceNotifyPolicyDTO specificResourceNotifyPolicyDTO);
 
-    Long saveAppDefaultNotifyPolicies(String username, Long appId, NotifyPoliciesCreateUpdateReq createUpdateReq,
+    Long saveAppDefaultNotifyPolicies(String username,
+                                      Long appId,
+                                      NotifyPoliciesCreateUpdateReq createUpdateReq,
                                       boolean checkAuth);
 
     int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId);
