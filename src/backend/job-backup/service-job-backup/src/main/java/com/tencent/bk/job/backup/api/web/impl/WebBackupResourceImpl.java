@@ -76,9 +76,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * @since 21/7/2020 15:44
- */
 @Slf4j
 @RestController
 public class WebBackupResourceImpl implements WebBackupResource {
@@ -140,19 +137,12 @@ public class WebBackupResourceImpl implements WebBackupResource {
         exportJobInfoDTO.setTemplateInfo(exportRequest.getTemplateInfo().stream()
             .map(BackupTemplateInfoDTO::fromVO).collect(Collectors.toList()));
         String id = exportJobService.startExport(exportJobInfoDTO);
-
-        if (exportJobInfoDTO.getId().equals(id)) {
-            ExportInfoVO exportInfoVO = new ExportInfoVO();
-            exportInfoVO.setId(id);
-            exportInfoVO.setStatus(BackupJobStatusEnum.INIT.getStatus());
-            try {
-                exportJobExecutor.startExport(id);
-            } catch (Exception e) {
-                throw new InternalException("Start job failed! System busy!", e, ErrorCode.INTERNAL_ERROR);
-            }
-            return Response.buildSuccessResp(exportInfoVO);
-        }
-        throw new InternalException("Start failed!", ErrorCode.INTERNAL_ERROR);
+        ExportInfoVO exportInfoVO = new ExportInfoVO();
+        exportInfoVO.setId(id);
+        exportInfoVO.setStatus(BackupJobStatusEnum.INIT.getStatus());
+        // 启动后台导出任务
+        exportJobExecutor.startExport(id);
+        return Response.buildSuccessResp(exportInfoVO);
     }
 
     @Override
@@ -301,7 +291,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
         Long appId = appResourceScope.getAppId();
         String originalFileName = uploadFile.getOriginalFilename();
         if (originalFileName != null && originalFileName.endsWith(Constant.JOB_EXPORT_FILE_SUFFIX)) {
-            String id = UUID.randomUUID().toString();
+            String id = UUID.randomUUID().toString().replace("-", "");
             String fileName = importJobService.saveFile(username, appId, id, uploadFile);
             String jobId = importJobService.addImportJob(username, appId, id, fileName);
             if (id.equals(jobId)) {

@@ -77,6 +77,7 @@ import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -111,7 +112,7 @@ public class ImportJobExecutor {
     private final ThreadPoolExecutor importJobExecutor;
 
     @Autowired
-    public ImportJobExecutor(ImportJobService importJobService,
+    public ImportJobExecutor(@Lazy ImportJobService importJobService,
                              TaskTemplateService taskTemplateService,
                              TaskPlanService taskPlanService,
                              ScriptService scriptService,
