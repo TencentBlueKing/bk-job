@@ -591,8 +591,15 @@ public class NotifyServiceImpl implements NotifyService {
                                                                      Integer resourceType,
                                                                      String resourceIdStr,
                                                                      Integer resourceExecuteStatus) {
-        log.debug("try to get resource custom trigger policy:|{}|{}|{}|{}|{}",
-            appId, triggerType, resourceType, resourceIdStr, resourceExecuteStatus);
+        log.debug(
+            "try to get resource custom trigger policy:|appId={}|triggerType={}"
+                + "|resourceType={}|resourceIdStr={}|resourceExecuteStatus={}",
+            appId,
+            triggerType,
+            resourceType,
+            resourceIdStr,
+            resourceExecuteStatus
+        );
         return notifyTriggerPolicyDAO.list(
             NotifyConsts.DEFAULT_TRIGGER_USER,
             appId,
@@ -636,27 +643,39 @@ public class NotifyServiceImpl implements NotifyService {
         return notifyConfigStatusDAO.exist(getDefaultTriggerUser(), appId);
     }
 
-    private List<NotifyTriggerPolicyDTO> getTriggerPolicys(Long appId,
-                                                           String triggerUser,
-                                                           Integer triggerType,
-                                                           Integer resourceType,
-                                                           String resourceIdStr,
-                                                           Integer resourceExecuteStatus) {
+    private List<NotifyTriggerPolicyDTO> getTriggerPolicys(ServiceNotificationTriggerDTO triggerDTO) {
+        Long appId = triggerDTO.getAppId() == null ? NotifyConsts.DEFAULT_APP_ID : triggerDTO.getAppId();
+        String triggerUser = triggerDTO.getTriggerUser();
+        Integer triggerType = triggerDTO.getTriggerType();
+        Integer resourceType = triggerDTO.getResourceType();
+        String resourceIdStr = triggerDTO.getResourceId();
+        Integer resourceExecuteStatus = triggerDTO.getResourceExecuteStatus();
         List<NotifyTriggerPolicyDTO> triggerPolicyList = Collections.emptyList();
         // 1.查找资源级别的触发策略
-        if (canHaveCustomTriggerPolicy(resourceType)) {
+        if (canHaveCustomTriggerPolicy(triggerDTO)) {
+            Pair<Integer, String> resource = getResourceIndeed(triggerDTO);
+            Integer triggerPolicyResourceType = resource.getLeft();
+            String triggerPolicyResourceId = resource.getRight();
             triggerPolicyList = searchResourceNotifyPolices(
                 appId,
                 triggerType,
-                resourceType,
-                resourceIdStr,
+                triggerPolicyResourceType,
+                triggerPolicyResourceId,
                 resourceExecuteStatus
             );
         }
         // 2.业务公共触发策略
         if (CollectionUtils.isEmpty(triggerPolicyList)) {
-            log.debug("not found custom trigger policy|{}|{}|{}|{}|{}|{}",
-                appId, triggerUser, triggerType, resourceType, resourceIdStr, resourceExecuteStatus);
+            log.debug(
+                "not found custom trigger policy|appId={}|triggerUser={}"
+                    + "|triggerType={}|resourceType={}|{}|resourceIdStr={}",
+                appId,
+                triggerUser,
+                triggerType,
+                resourceType,
+                resourceIdStr,
+                resourceExecuteStatus
+            );
             triggerPolicyList = searchAppNotifyPolices(
                 appId,
                 triggerType,
@@ -682,9 +701,10 @@ public class NotifyServiceImpl implements NotifyService {
         return triggerPolicyList;
     }
 
-    private boolean canHaveCustomTriggerPolicy(Integer resourceType) {
+    private boolean canHaveCustomTriggerPolicy(ServiceNotificationTriggerDTO triggerDTO) {
+        Pair<Integer, String> resource = getResourceIndeed(triggerDTO);
         // 当前只有定时任务支持资源级别的自定义通知
-        if (resourceType == ResourceTypeEnum.CRON.getType()) {
+        if (resource.getLeft() == ResourceTypeEnum.CRON.getType()) {
             return true;
         }
 
@@ -714,20 +734,8 @@ public class NotifyServiceImpl implements NotifyService {
     private Map<String, Set<String>> getChannelUsersMap(ServiceNotificationTriggerDTO triggerDTO) {
         Long appId = triggerDTO.getAppId() == null ? NotifyConsts.DEFAULT_APP_ID : triggerDTO.getAppId();
         String triggerUser = triggerDTO.getTriggerUser();
-        Integer triggerType = triggerDTO.getTriggerType();
         Integer resourceType = triggerDTO.getResourceType();
-        Integer resourceExecuteStatus = triggerDTO.getResourceExecuteStatus();
-        Pair<Integer, String> resource = getResourceIndeed(triggerDTO);
-        Integer triggerPolicyResourceType = resource.getLeft();
-        String triggerPolicyResourceId = resource.getRight();
-        List<NotifyTriggerPolicyDTO> triggerPolicyList = getTriggerPolicys(
-            appId,
-            triggerUser,
-            triggerType,
-            triggerPolicyResourceType,
-            triggerPolicyResourceId,
-            resourceExecuteStatus
-        );
+        List<NotifyTriggerPolicyDTO> triggerPolicyList = getTriggerPolicys(triggerDTO);
         if (CollectionUtils.isEmpty(triggerPolicyList)) {
             return Collections.emptyMap();
         }
