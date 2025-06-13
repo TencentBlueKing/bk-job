@@ -870,6 +870,12 @@ gatewayConfig:
     enabled: false
     # 开启登录豁免时使用的默认用户名
     defaultUser: admin
+  # 用户映射功能
+  userMap:
+    # 是否开启用户映射，仅限开发测试环境使用，生产环境请勿开启
+    enabled: false
+    # 用户名（多租户环境下为用户唯一标识UUID）映射规则：key为原用户名，value为目标用户名
+    map: {}
   image:
     registry: hub.bktencent.com
     repository: blueking/job-gateway
