@@ -90,6 +90,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
     private final ArtifactoryClient artifactoryClient;
     private final ArtifactoryHelper artifactoryHelper;
     private final BackupStorageConfig backupStorageConfig;
+    private final ExportJobExecutor exportJobExecutor;
 
     @Autowired
     public WebBackupResourceImpl(ImportJobService importJobService,
@@ -98,7 +99,8 @@ public class WebBackupResourceImpl implements WebBackupResource {
                                  StorageService storageService,
                                  ArtifactoryClient artifactoryClient,
                                  ArtifactoryHelper artifactoryHelper,
-                                 BackupStorageConfig backupStorageConfig) {
+                                 BackupStorageConfig backupStorageConfig,
+                                 ExportJobExecutor exportJobExecutor) {
         this.importJobService = importJobService;
         this.exportJobService = exportJobService;
         this.logService = logService;
@@ -106,6 +108,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
         this.artifactoryClient = artifactoryClient;
         this.artifactoryHelper = artifactoryHelper;
         this.backupStorageConfig = backupStorageConfig;
+        this.exportJobExecutor = exportJobExecutor;
     }
 
     @Override
@@ -143,7 +146,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
             exportInfoVO.setId(id);
             exportInfoVO.setStatus(BackupJobStatusEnum.INIT.getStatus());
             try {
-                ExportJobExecutor.startExport(id);
+                exportJobExecutor.startExport(id);
             } catch (Exception e) {
                 throw new InternalException("Start job failed! System busy!", e, ErrorCode.INTERNAL_ERROR);
             }

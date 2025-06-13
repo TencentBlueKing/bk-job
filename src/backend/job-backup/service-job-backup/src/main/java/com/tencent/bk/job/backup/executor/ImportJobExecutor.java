@@ -76,6 +76,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -89,17 +90,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 
-/**
- * @since 30/7/2020 15:47
- */
 @Slf4j
 @Service
 public class ImportJobExecutor {
-    private static final LinkedBlockingQueue<String> IMPORT_JOB_QUEUE = new LinkedBlockingQueue<>(100);
     private static final String LOG_HR = "************************************************************";
     private final ImportJobService importJobService;
     private final TaskTemplateService taskTemplateService;
@@ -112,6 +108,7 @@ public class ImportJobExecutor {
     private final ArtifactoryClient artifactoryClient;
     private final ArtifactoryHelper artifactoryHelper;
     private final BackupStorageConfig backupStorageConfig;
+    private final ThreadPoolExecutor importJobExecutor;
 
     @Autowired
     public ImportJobExecutor(ImportJobService importJobService,
@@ -124,7 +121,8 @@ public class ImportJobExecutor {
                              MessageI18nService i18nService,
                              ArtifactoryClient artifactoryClient,
                              ArtifactoryHelper artifactoryHelper,
-                             BackupStorageConfig backupStorageConfig) {
+                             BackupStorageConfig backupStorageConfig,
+                             @Qualifier("backupImportJobExecutor") ThreadPoolExecutor importJobExecutor) {
         this.importJobService = importJobService;
         this.taskTemplateService = taskTemplateService;
         this.taskPlanService = taskPlanService;
@@ -136,13 +134,10 @@ public class ImportJobExecutor {
         this.artifactoryClient = artifactoryClient;
         this.artifactoryHelper = artifactoryHelper;
         this.backupStorageConfig = backupStorageConfig;
-
-        ImportJobExecutor.ImportJobExecutorThread importJobExecutorThread =
-            new ImportJobExecutor.ImportJobExecutorThread();
-        importJobExecutorThread.start();
+        this.importJobExecutor = importJobExecutor;
     }
 
-    public static JobBackupInfoDTO readJobBackupInfoFromFile(File file) {
+    public JobBackupInfoDTO readJobBackupInfoFromFile(File file) {
         JobBackupInfoDTO jobBackupInfo;
         FileInputStream fileInputStream = null;
         try {
@@ -170,13 +165,8 @@ public class ImportJobExecutor {
         return null;
     }
 
-    public static void startImport(String id) {
-        try {
-            IMPORT_JOB_QUEUE.add(id);
-        } catch (Exception e) {
-            log.error("Import job queue is full!");
-            throw e;
-        }
+    public void startImport(String jobId) {
+        importJobExecutor.submit(new ImportJobTask(jobId));
     }
 
     private void processImportJob(String jobId) {
@@ -929,28 +919,22 @@ public class ImportJobExecutor {
         templateInfo.setName(templateName);
     }
 
-    @SuppressWarnings("InfiniteLoopStatement")
-    class ImportJobExecutorThread extends Thread {
+    class ImportJobTask implements Runnable {
+
+        private final String jobId;
+
+        ImportJobTask(String jobId) {
+            this.jobId = jobId;
+        }
 
         @Override
         public void run() {
-            this.setName("Import-Job-Executor-Thread");
-            while (true) {
-                String uuid = UUID.randomUUID().toString();
-                try {
-                    String jobId = IMPORT_JOB_QUEUE.take();
-                    log.debug("{}|Import job queue length|{}", uuid, IMPORT_JOB_QUEUE.size());
-                    processImportJob(jobId);
-                    log.info("{}|Import job process finished!|{}", uuid, jobId);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                } catch (Exception e) {
-                    String msg = MessageFormatter.format(
-                        "{}|Error while processing import job!",
-                        uuid
-                    ).getMessage();
-                    log.error(msg, e);
-                }
+            try {
+                processImportJob(jobId);
+                log.info("ImportJob finished, jobId={}", jobId);
+            } catch (Exception e) {
+                String msg = MessageFormatter.format("ImportJob error, jobId={}", jobId).getMessage();
+                log.error(msg, e);
             }
         }
     }
