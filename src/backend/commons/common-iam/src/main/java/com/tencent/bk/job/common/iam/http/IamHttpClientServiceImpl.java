@@ -51,7 +51,6 @@ import java.util.List;
 @Slf4j
 public class IamHttpClientServiceImpl implements HttpClientService {
 
-    private final String DEFAULT_CHARSET = "UTF-8";
     private final HttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
     private final IamConfiguration iamConfiguration;
     protected final IVirtualAdminAccountProvider virtualAdminAccountProvider;
@@ -65,73 +64,85 @@ public class IamHttpClientServiceImpl implements HttpClientService {
 
     @Override
     public String doHttpGet(String tenantId, String uri, List<Pair<String, String>> headerList) {
+        String respStr = null;
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.requestForSuccessResp(
+            respStr = httpHelper.requestForSuccessResp(
                     HttpRequest.builder(HttpMethodEnum.GET, buildUrl(uri))
                         .setHeaders(buildHeaders(tenantId, headerList))
                         .build())
                 .getEntity();
+            return respStr;
         } catch (Exception e) {
             throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
         } finally {
             HttpMetricUtil.clearHttpMetric();
+            logRequest(HttpMethodEnum.GET, tenantId, uri, headerList, null, respStr);
         }
     }
 
     @Override
     public String doHttpPost(String tenantId, String uri, List<Pair<String, String>> headerList, Object body) {
+        String respStr = null;
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.requestForSuccessResp(
+            respStr = httpHelper.requestForSuccessResp(
                     HttpRequest.builder(HttpMethodEnum.POST, buildUrl(uri))
                         .setHeaders(buildHeaders(tenantId, headerList))
                         .setStringEntity(JsonUtils.toJson(body))
                         .build())
                 .getEntity();
+            return respStr;
         } catch (Exception e) {
             log.error("Fail to request IAM", e);
             throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
         } finally {
             HttpMetricUtil.clearHttpMetric();
+            logRequest(HttpMethodEnum.POST, tenantId, uri, headerList, body, respStr);
         }
     }
 
     @Override
     public String doHttpPut(String tenantId, String uri, List<Pair<String, String>> headerList, Object body) {
+        String respStr = null;
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.requestForSuccessResp(
+            respStr = httpHelper.requestForSuccessResp(
                     HttpRequest.builder(HttpMethodEnum.PUT, buildUrl(uri))
                         .setHeaders(buildHeaders(tenantId, headerList))
                         .setStringEntity(JsonUtils.toJson(body))
                         .build())
                 .getEntity();
+            return respStr;
         } catch (Exception e) {
             log.error("Fail to request IAM", e);
             throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
         } finally {
             HttpMetricUtil.clearHttpMetric();
+            logRequest(HttpMethodEnum.PUT, tenantId, uri, headerList, body, respStr);
         }
     }
 
     @Override
     public String doHttpDelete(String tenantId, String uri, List<Pair<String, String>> headerList) {
+        String respStr = null;
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.requestForSuccessResp(
+            respStr = httpHelper.requestForSuccessResp(
                     HttpRequest.builder(HttpMethodEnum.DELETE, buildUrl(uri))
                         .setHeaders(buildHeaders(tenantId, headerList))
                         .build())
                 .getEntity();
+            return respStr;
         } catch (Exception e) {
             throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
         } finally {
             HttpMetricUtil.clearHttpMetric();
+            logRequest(HttpMethodEnum.DELETE, tenantId, uri, headerList, null, respStr);
         }
     }
 
@@ -161,5 +172,22 @@ public class IamHttpClientServiceImpl implements HttpClientService {
 
     private Header buildTenantIdHeader(String tenantId) {
         return new BasicHeader(HttpHeader.KEY_BK_TENANT_ID, tenantId);
+    }
+
+    private void logRequest(HttpMethodEnum method,
+                            String tenantId,
+                            String uri,
+                            List<Pair<String, String>> headerList,
+                            Object body,
+                            String respStr) {
+        log.info(
+            "requestIAM, method={}, tenantId={}, uri={}, headerList={}, body={}, respStr={}",
+            method.name(),
+            tenantId,
+            uri,
+            headerList == null ? null : JsonUtils.toJson(headerList),
+            body == null ? null : JsonUtils.toJson(body),
+            respStr
+        );
     }
 }
