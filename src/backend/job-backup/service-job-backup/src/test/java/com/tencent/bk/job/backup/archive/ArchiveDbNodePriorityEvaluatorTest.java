@@ -25,7 +25,7 @@
 package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.archive.model.DbDataNode;
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +41,7 @@ class ArchiveDbNodePriorityEvaluatorTest {
     @Test
     void testStandaloneDb() {
 
-        List<JobInstanceArchiveTaskInfo> runningTasks = new ArrayList<>();
+        List<ArchiveTaskInfo> runningTasks = new ArrayList<>();
         runningTasks.add(genTask(DbDataNode.standaloneDbDataNode(), 20240808, 2));
         runningTasks.add(genTask(DbDataNode.standaloneDbDataNode(), 20240808, 2));
         runningTasks.add(genTask(DbDataNode.standaloneDbDataNode(), 20240808, 3));
@@ -60,7 +60,7 @@ class ArchiveDbNodePriorityEvaluatorTest {
     @Test
     void testShardingDb() {
 
-        List<JobInstanceArchiveTaskInfo> runningTasks = new ArrayList<>();
+        List<ArchiveTaskInfo> runningTasks = new ArrayList<>();
         Map<String, Integer> scheduleTaskCountGroupByDb = new HashMap<>();
 
         runningTasks.add(genTask(DbDataNode.shardingDbDataNode("ds", 0, 1), 20240808, 1));
@@ -89,8 +89,8 @@ class ArchiveDbNodePriorityEvaluatorTest {
 
     }
 
-    private JobInstanceArchiveTaskInfo genTask(DbDataNode dataNode, Integer day, Integer hour) {
-        JobInstanceArchiveTaskInfo task = new JobInstanceArchiveTaskInfo();
+    private ArchiveTaskInfo genTask(DbDataNode dataNode, Integer day, Integer hour) {
+        ArchiveTaskInfo task = new ArchiveTaskInfo();
         task.setTaskType(ArchiveTaskTypeEnum.JOB_INSTANCE);
         task.setDbDataNode(dataNode);
         task.setDay(day);

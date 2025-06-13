@@ -43,6 +43,7 @@ import com.tencent.bk.job.backup.service.TaskPlanService;
 import com.tencent.bk.job.backup.service.TaskTemplateService;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
+import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
@@ -52,6 +53,7 @@ import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.file.FileUtil;
 import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonMapper;
+import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
@@ -273,11 +275,33 @@ public class ExportJobExecutor {
         }
 
         if (CollectionUtils.isNotEmpty(accountIdSet)) {
-            accountIdSet.forEach(accountId -> accountList.add(
-                accountService.getAccountAliasById(accountId)));
+            accountIdSet.forEach(accountId -> {
+                ServiceAccountDTO accountDTO = accountService.getAccountAliasById(accountId);
+                clearSensitiveInfo(accountDTO);
+                accountList.add(accountDTO);
+            });
         }
 
         jobBackupInfo.setAccountList(accountList);
+    }
+
+    private void clearSensitiveInfo(ServiceAccountDTO accountDTO) {
+        if (accountDTO == null) {
+            return;
+        }
+
+        if (AccountTypeEnum.WINDOW.getType().equals(accountDTO.getType())) {
+            accountDTO.setPassword(null);
+        }
+
+        if (AccountCategoryEnum.DB.getValue().equals(accountDTO.getCategory())) {
+            accountDTO.setDbPassword(null);
+            ServiceAccountDTO dbSystemAccount = accountDTO.getDbSystemAccount();
+            if (dbSystemAccount != null &&
+                AccountTypeEnum.WINDOW.getType().equals(dbSystemAccount.getType())) {
+                dbSystemAccount.setPassword(null);
+            }
+        }
     }
 
     private void extractAccount(List<TaskStepVO> stepList, Set<Long> accountIdSet) {

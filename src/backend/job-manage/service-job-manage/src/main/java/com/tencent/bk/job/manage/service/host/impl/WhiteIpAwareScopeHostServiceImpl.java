@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.service.host.impl;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
@@ -195,8 +196,20 @@ public class WhiteIpAwareScopeHostServiceImpl implements WhiteIpAwareScopeHostSe
     public List<ApplicationHostDTO> getScopeHostsIncludingWhiteIPByKey(AppResourceScope appResourceScope,
                                                                        ActionScopeEnum actionScope,
                                                                        Collection<String> keys) {
-        // 当前关键字仅支持主机名称匹配
-        return scopeHostService.getScopeHostsByHostNames(appResourceScope, keys);
+        // 1.数字优先解析为hostId进行匹配
+        Pair<List<Long>, List<String>> hostIdValuePair = StringUtil.extractValueFromStrings(keys, Long.class);
+        List<Long> hostIdList = hostIdValuePair.getLeft();
+        List<String> remainKeys = hostIdValuePair.getRight();
+        List<ApplicationHostDTO> finalHostList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(hostIdList)) {
+            if (log.isDebugEnabled()) {
+                log.debug("hostIdList={}, remainKeys={}", hostIdList, remainKeys);
+            }
+            finalHostList.addAll(scopeHostService.getScopeHostsByIds(appResourceScope, hostIdList));
+        }
+        // 2.剩余关键字通过主机名称匹配
+        finalHostList.addAll(scopeHostService.getScopeHostsByHostNames(appResourceScope, remainKeys));
+        return finalHostList;
     }
 
     @Override

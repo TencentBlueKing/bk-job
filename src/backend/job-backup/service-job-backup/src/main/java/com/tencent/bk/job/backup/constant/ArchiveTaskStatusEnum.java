@@ -50,7 +50,11 @@ public enum ArchiveTaskStatusEnum {
     /**
      * 成功
      */
-    SUCCESS(4);
+    SUCCESS(4),
+    /**
+     * 试运行
+     */
+    DRYRUN(5);
 
     private final int status;
 

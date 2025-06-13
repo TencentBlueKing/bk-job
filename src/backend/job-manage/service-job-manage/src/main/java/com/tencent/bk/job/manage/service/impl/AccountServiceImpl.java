@@ -79,7 +79,8 @@ import java.util.regex.Pattern;
 @Service
 public class AccountServiceImpl implements AccountService {
     public final String DEFAULT_LINUX_ACCOUNT = "root";
-    public final String DEFAULT_WINDOWS_ACCOUNT = "system";
+    public final String DEFAULT_WINDOWS_SYSTEM_ACCOUNT = "system";
+    public final String DEFAULT_WINDOWS_ADMIN_ACCOUNT = "Administrator";
     private final AccountDAO accountDAO;
     private final Encryptor encryptor;
     private final GlobalSettingsService globalSettingsService;
@@ -481,14 +482,14 @@ public class AccountServiceImpl implements AccountService {
             }
         }
         AccountDTO windowsSystem = accountDAO.getAccount(appId, AccountCategoryEnum.SYSTEM, AccountTypeEnum.WINDOW,
-            DEFAULT_WINDOWS_ACCOUNT, DEFAULT_WINDOWS_ACCOUNT);
+            DEFAULT_WINDOWS_SYSTEM_ACCOUNT, DEFAULT_WINDOWS_SYSTEM_ACCOUNT);
         if (windowsSystem == null) {
             windowsSystem = new AccountDTO();
             windowsSystem.setAppId(appId);
             windowsSystem.setCategory(AccountCategoryEnum.SYSTEM);
             windowsSystem.setType(AccountTypeEnum.WINDOW);
-            windowsSystem.setAccount(DEFAULT_WINDOWS_ACCOUNT);
-            windowsSystem.setAlias(DEFAULT_WINDOWS_ACCOUNT);
+            windowsSystem.setAccount(DEFAULT_WINDOWS_SYSTEM_ACCOUNT);
+            windowsSystem.setAlias(DEFAULT_WINDOWS_SYSTEM_ACCOUNT);
             windowsSystem.setCreator("admin");
             windowsSystem.setCreateTime(DateUtils.currentTimeMillis());
             windowsSystem.setLastModifyUser("admin");
@@ -497,6 +498,25 @@ public class AccountServiceImpl implements AccountService {
                 log.info("system account of appId={} created", appId);
             } catch (Exception e) {
                 log.warn("Fail to create default system account", e);
+            }
+        }
+        AccountDTO windowsAdmin = accountDAO.getAccount(appId, AccountCategoryEnum.SYSTEM, AccountTypeEnum.WINDOW,
+            DEFAULT_WINDOWS_ADMIN_ACCOUNT, DEFAULT_WINDOWS_ADMIN_ACCOUNT);
+        if (windowsAdmin == null) {
+            windowsAdmin = new AccountDTO();
+            windowsAdmin.setAppId(appId);
+            windowsAdmin.setCategory(AccountCategoryEnum.SYSTEM);
+            windowsAdmin.setType(AccountTypeEnum.WINDOW);
+            windowsAdmin.setAccount(DEFAULT_WINDOWS_ADMIN_ACCOUNT);
+            windowsAdmin.setAlias(DEFAULT_WINDOWS_ADMIN_ACCOUNT);
+            windowsAdmin.setCreator("admin");
+            windowsAdmin.setCreateTime(DateUtils.currentTimeMillis());
+            windowsAdmin.setLastModifyUser("admin");
+            try {
+                accountDAO.saveAccount(windowsAdmin);
+                log.info("administrator account of appId={} created", appId);
+            } catch (Exception e) {
+                log.warn("Fail to create default administrator account", e);
             }
         }
     }
