@@ -22,50 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner;
+package com.tencent.bk.job.common.model.dto.notify;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-/**
- * 通知DTO
- */
-@Data
-public class ServiceNotificationTriggerDTO {
+@Getter
+@AllArgsConstructor
+public enum ExecuteStatusEnum {
     /**
-     * 触发者
+     * 成功
      */
-    private String triggerUser;
+    SUCCESS(1, "SUCCESS"),
     /**
-     * 业务Id
+     * 失败
      */
-    private Long appId;
-    /**
-     * 资源Id
-     */
-    private String resourceId;
-    /**
-     * 触发方式
-     *
-     * @see com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum
-     */
-    private Integer triggerType;
+    FAIL(2, "FAIL");
 
-    /**
-     * 触发通知的资源类型
-     *
-     * @see com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum
-     */
-    private Integer resourceType;
+    private final int value;
 
-    /**
-     * 定时任务ID
-     */
-    private Long cronTaskId;
+    private final String name;
 
-    /**
-     * 资源操作结果
-     *
-     * @see com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum
-     */
-    private Integer resourceExecuteStatus;
+    public static boolean hasName(String name) {
+        for (ExecuteStatusEnum statusEnum : ExecuteStatusEnum.values()) {
+            if (statusEnum.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

@@ -22,50 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner;
+package com.tencent.bk.job.crontab.service;
 
-import lombok.Data;
 
-/**
- * 通知DTO
- */
-@Data
-public class ServiceNotificationTriggerDTO {
-    /**
-     * 触发者
-     */
-    private String triggerUser;
-    /**
-     * 业务Id
-     */
-    private Long appId;
-    /**
-     * 资源Id
-     */
-    private String resourceId;
-    /**
-     * 触发方式
-     *
-     * @see com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum
-     */
-    private Integer triggerType;
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
+import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 
-    /**
-     * 触发通知的资源类型
-     *
-     * @see com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum
-     */
-    private Integer resourceType;
+public interface CustomNotifyPolicyService {
 
-    /**
-     * 定时任务ID
-     */
-    private Long cronTaskId;
+    void createOrUpdateCronJobCustomNotifyPolicy(Long cronJobId, CronJobInfoDTO cronJobInfoDTO);
 
-    /**
-     * 资源操作结果
-     *
-     * @see com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum
-     */
-    private Integer resourceExecuteStatus;
+    void deleteCronJobCustomNotifyPolicy(Long appId, Long cronJobId);
+
+    CustomNotifyDTO getCronJobCustomNotifyPolicyById(Long appId, Long cronJobId);
 }

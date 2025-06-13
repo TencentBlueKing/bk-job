@@ -203,9 +203,11 @@ public class NotifyServiceImpl implements NotifyService {
         } else {
             log.warn("Invalid startup mode!");
         }
+
         trigger.setResourceExecuteStatus(taskNotifyDTO.getResourceExecuteStatus());
         trigger.setResourceType(taskNotifyDTO.getResourceType());
         trigger.setResourceId(taskNotifyDTO.getResourceId());
+        trigger.setCronTaskId(taskNotifyDTO.getCronTaskId());
         return trigger;
     }
 
@@ -409,6 +411,7 @@ public class NotifyServiceImpl implements NotifyService {
         taskNotifyDTO.setNotifyDTO(notifyDTO);
         taskNotifyDTO.setResourceId(String.valueOf(taskInstance.getPlanId()));
         taskNotifyDTO.setResourceType(ResourceTypeEnum.JOB.getType());
+        taskNotifyDTO.setCronTaskId(taskInstance.getCronTaskId());
         taskNotifyDTO.setOperator(stepInstance.getOperator());
         taskExecuteMQEventDispatcher.dispatchNotifyMsg(taskNotifyDTO);
     }
@@ -418,6 +421,7 @@ public class NotifyServiceImpl implements NotifyService {
                                  TaskNotifyDTO taskNotifyDTO) {
         Long taskPlanId = taskInstance.getPlanId();
         taskNotifyDTO.setResourceId(String.valueOf(taskPlanId));
+        taskNotifyDTO.setCronTaskId(taskInstance.getCronTaskId());
         if (taskPlanId == -1L) {
             if (stepInstance.isScriptStep()) {
                 taskNotifyDTO.setResourceType(ResourceTypeEnum.SCRIPT.getType());

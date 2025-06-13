@@ -22,50 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner;
+package com.tencent.bk.job.common.model.dto.notify;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-/**
- * 通知DTO
- */
+import java.util.List;
+
+
 @Data
-public class ServiceNotificationTriggerDTO {
-    /**
-     * 触发者
-     */
-    private String triggerUser;
-    /**
-     * 业务Id
-     */
-    private Long appId;
-    /**
-     * 资源Id
-     */
-    private String resourceId;
-    /**
-     * 触发方式
-     *
-     * @see com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum
-     */
-    private Integer triggerType;
+@ApiModel("定时任务状态通知渠道")
+public class StatusNotifyChannel {
 
-    /**
-     * 触发通知的资源类型
-     *
-     * @see com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum
-     */
-    private Integer resourceType;
+    @ApiModelProperty(value = "资源状态Code（SUCCESS/FAIL）", required = true)
+    private ExecuteStatusEnum executeStatus;
 
-    /**
-     * 定时任务ID
-     */
-    private Long cronTaskId;
-
-    /**
-     * 资源操作结果
-     *
-     * @see com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum
-     */
-    private Integer resourceExecuteStatus;
+    @ApiModelProperty(value = "通知渠道Code列表", required = true)
+    private List<String> channelList;
 }

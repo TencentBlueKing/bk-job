@@ -39,19 +39,25 @@ public enum ResourceTypeEnum {
     /**
      * 快速执行脚本
      */
-    SCRIPT(1, "job.manage.resource.type.script"),
+    SCRIPT(1, "job.manage.resource.type.script", true),
     /**
      * 快速分发文件
      */
-    FILE(3, "job.manage.resource.type.file"),
+    FILE(3, "job.manage.resource.type.file", true),
 
     /**
      * 执行方案
      */
-    JOB(2, "job.manage.resource.type.job");
+    JOB(2, "job.manage.resource.type.job", true),
+
+    /**
+     * 定时任务
+     */
+    CRON(4, "job.manage.resource.type.cron", false);
 
     private final int type;
     private final String defaultName;
+    private final boolean showInPageTemplate;
 
     public static ResourceTypeEnum get(int type) {
         val values = ResourceTypeEnum.values();
@@ -77,6 +83,9 @@ public enum ResourceTypeEnum {
         List<ResourceTypeVO> resultList = new ArrayList<ResourceTypeVO>();
         val values = ResourceTypeEnum.values();
         for (int i = 0; i < values.length; i++) {
+            if (!values[i].showInPageTemplate) {
+                continue;
+            }
             resultList.add(new ResourceTypeVO(values[i].name(), I18nUtil.getI18nMessage(values[i].getDefaultName())));
         }
         return resultList;
