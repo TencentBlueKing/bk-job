@@ -109,10 +109,15 @@
   };
 
   const handleApprovalUserChange = (userList, roleList) =>  {
+    const realRoleList = [...roleList];
+    if (roleList.length > 0) {
+      realRoleList.push('JOB_EXTRA_OBSERVER');
+    }
+
     emits('on-change', {
       customNotifyUser: {
         userList,
-        roleList,
+        roleList: realRoleList,
       },
     });
   };
@@ -153,6 +158,7 @@
         color: #63656e;
         border-top: 1px solid #dcdee5;
       }
+
     }
   }
 </style>

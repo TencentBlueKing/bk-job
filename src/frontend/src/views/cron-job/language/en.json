@@ -120,5 +120,6 @@
   "通知对象必填": "Notify to is required",
   "通知方式必填": "Notify by is required",
   "自定义": "Custom Setup",
-  "状态": "Status"
+  "状态": "Status",
+  "消息通知：": "Notifications:"
 }
