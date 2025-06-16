@@ -33,6 +33,9 @@ export const scopeCache = {
   getItem() {
     return JSON.parse(localStorage.getItem(scopeCache.key) || '{}');
   },
+  clearItem() {
+    localStorage.removeItem(scopeCache.key);
+  },
 };
 
 export const routerCache = {

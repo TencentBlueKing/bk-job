@@ -23,6 +23,7 @@
  * IN THE SOFTWARE.
 */
 
+import Cookie from 'js-cookie';
 import _ from 'lodash';
 import Vue from 'vue';
 
@@ -118,6 +119,20 @@ const entryTask = new EntryTask();
 let EntryApp = subEnv ? IframeApp : App;
 
 /**
+ * @desc 登录用户信息
+ */
+entryTask.add(() => UserService.fetchUserInfo().then((data) => {
+  window.PROJECT_CONFIG.TENANT_ID = data.tenantId;
+  const latestTenantId = Cookie.get('tenant_id');
+  if (latestTenantId !== data.templateId) {
+    scopeCache.clearItem();
+  }
+  Cookie.set('tenant_id', data.tenantId, {
+    expires: 365,
+  });
+}));
+
+/**
  * @desc 解析路由 scopeType、scopeId
  */
 entryTask.add((context) => {
@@ -180,12 +195,6 @@ entryTask.add(() => QueryGlobalSettingService.fetchRelatedSystemUrls().then((dat
   window.PROJECT_CONFIG.BK_USER_WEB_API_ROOT_URL = data.BK_USER_WEB_API_ROOT_URL;
 }));
 
-/**
- * @desc 登录用户信息
- */
-entryTask.add(() => UserService.fetchUserInfo().then((data) => {
-  window.PROJECT_CONFIG.TENANT_ID = data.tenantId;
-}));
 
 /**
  * @desc 通过第三方系统查看任务执行详情
