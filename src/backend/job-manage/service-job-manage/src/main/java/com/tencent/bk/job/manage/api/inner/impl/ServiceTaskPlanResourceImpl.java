@@ -39,6 +39,7 @@ import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskPlanResource;
+import com.tencent.bk.job.manage.auth.PlanAuthService;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.converter.TaskStepConverter;
@@ -86,6 +87,7 @@ import java.util.stream.Collectors;
 public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
     private static final Integer PLAN_IS_ENABLE = 1;
     private final TaskPlanService taskPlanService;
+    private final PlanAuthService planAuthService;
     private final AbstractTaskVariableService taskVariableService;
 
     private final ScriptService scriptService;
@@ -98,14 +100,16 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
 
     @Autowired
     public ServiceTaskPlanResourceImpl(
-            TaskPlanService taskPlanService,
-            @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskVariableService,
-            ScriptService scriptService,
-            PublicScriptService publicScriptService,
-            AccountService accountService,
-            UserLocalCache userLocalCache,
-            TenantService tenantService) {
+        TaskPlanService taskPlanService, PlanAuthService planAuthService,
+        @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskVariableService,
+        ScriptService scriptService,
+        PublicScriptService publicScriptService,
+        AccountService accountService,
+        UserLocalCache userLocalCache,
+        TenantService tenantService
+    ) {
         this.taskPlanService = taskPlanService;
+        this.planAuthService = planAuthService;
         this.taskVariableService = taskVariableService;
         this.scriptService = scriptService;
         this.publicScriptService = publicScriptService;
@@ -247,13 +251,15 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
     @Override
     public InternalResponse<Long> savePlanForImport(String username, Long appId, Long templateId,
                                                     Long createTime, TaskPlanVO planInfo) {
+        User user = userLocalCache.getUser(tenantService.getTenantIdByAppId(appId), username);
         planInfo.validateForImport();
         TaskPlanInfoDTO taskPlanInfo = TaskPlanInfoDTO.fromVO(username, appId, planInfo);
         if (createTime != null && createTime > 0) {
             taskPlanInfo.setCreateTime(createTime);
         }
-        Long finalTemplateId = taskPlanService.saveTaskPlanForBackup(taskPlanInfo);
-        return InternalResponse.buildSuccessResp(finalTemplateId);
+        Long planId = taskPlanService.saveTaskPlanForBackup(taskPlanInfo);
+        planAuthService.registerPlan(user, planId, planInfo.getName());
+        return InternalResponse.buildSuccessResp(planId);
     }
 
     @Override

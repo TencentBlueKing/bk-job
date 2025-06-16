@@ -149,6 +149,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq
     ) {
         User user = userLocalCache.getUser(tenantService.getTenantIdByAppId(appId), username);
+        JobContextUtil.setUser(user);
         JobContextUtil.setAllowMigration(true);
         if (templateId > 0) {
             taskTemplateCreateUpdateReq.setId(templateId);
