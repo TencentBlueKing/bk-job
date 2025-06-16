@@ -324,7 +324,11 @@
         this.$emit('on-reset', {
           isScriptContentLoading: true,
         });
-        ScriptService.versionDetail({
+
+        const  requestHandler = this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC
+          ? PublicScriptService.versionDetail : ScriptService.versionDetail;
+
+        requestHandler({
           id: scriptVersionId,
         }).then(({ id, content, type, publicScript }) => {
           let scriptSource = TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS;
