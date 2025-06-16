@@ -469,7 +469,6 @@
             cronJobCustomNotifyVO,
 
           } = cronJob;
-          console.log('cronJob = ', cronJob);
 
           if (executeTime) {
             this.strategy = 'once';
@@ -621,12 +620,10 @@
        * @param {Object} payload 字段名和值
        */
       handleFormItemChange(payload) {
-        // this.formData = {
-        //   ...this.formData,
-        //   ...payload,
-        // };
-        Object.assign(this.formData, payload);
-        console.log('this.formData = ', this.formData);
+        this.formData = {
+          ...this.formData,
+          ...payload,
+        };
       },
       /**
        * @desc 作业模板更新
