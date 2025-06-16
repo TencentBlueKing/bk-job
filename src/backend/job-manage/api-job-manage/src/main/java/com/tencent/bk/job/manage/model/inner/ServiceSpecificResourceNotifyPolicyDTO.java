@@ -26,46 +26,31 @@ package com.tencent.bk.job.manage.model.inner;
 
 import lombok.Data;
 
-/**
- * 通知DTO
- */
+import java.util.List;
+import java.util.Map;
+
 @Data
-public class ServiceNotificationTriggerDTO {
-    /**
-     * 触发者
-     */
-    private String triggerUser;
-    /**
-     * 业务Id
-     */
+public class ServiceSpecificResourceNotifyPolicyDTO {
+
     private Long appId;
+
     /**
-     * 资源Id
-     */
-    private String resourceId;
-    /**
-     * 触发方式
-     *
-     * @see com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum
+     * 触发类型
+     * @see com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
      */
     private Integer triggerType;
 
     /**
-     * 触发通知的资源类型
-     *
+     * 资源类型
      * @see com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum
      */
     private Integer resourceType;
 
-    /**
-     * 定时任务ID
-     */
-    private Long cronTaskId;
+    private Long resourceId;
 
-    /**
-     * 资源操作结果
-     *
-     * @see com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum
-     */
-    private Integer resourceExecuteStatus;
+    private List<String> roleList;
+
+    private List<String> extraObserverList;
+
+    private Map<Integer, List<String>> resourceStatusChannelMap;
 }

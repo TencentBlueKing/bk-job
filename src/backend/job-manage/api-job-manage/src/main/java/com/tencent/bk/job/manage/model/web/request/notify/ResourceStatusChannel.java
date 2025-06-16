@@ -31,7 +31,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -44,4 +46,21 @@ public class ResourceStatusChannel {
 
     @ApiModelProperty(value = "通知渠道Code列表", required = true)
     private List<String> channelList;
+
+    public static ResourceStatusChannel fromKV(Integer key, List<String> value) {
+        ExecuteStatusEnum executeStatus = ExecuteStatusEnum.get(key);
+        if (executeStatus == null) {
+            throw new IllegalArgumentException("Parse ResourceStatusChannel with illegal ExecuteStatusEnum["
+                + key + "]");
+        }
+        return new ResourceStatusChannel(executeStatus, value);
+    }
+
+    public static List<ResourceStatusChannel> fromMap(Map<Integer, List<String>> map) {
+        List<ResourceStatusChannel> statusChannelList = new ArrayList<>();
+        for (Map.Entry<Integer, List<String>> entry : map.entrySet()) {
+            statusChannelList.add(fromKV(entry.getKey(), entry.getValue()));
+        }
+        return statusChannelList;
+    }
 }

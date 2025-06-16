@@ -370,6 +370,8 @@ public class ErrorCode {
     public static final int CRON_JOB_TIME_PASSED = 1245006;
     public static final int END_TIME_OR_NOTIFY_TIME_ALREADY_PASSED = 1245007;
     public static final int DELETE_CRON_FAILED = 1245008;
+    // 保存定时任务(id={0})自定义消息通知策略失败
+    public static final int SAVE_CRON_CUSTOM_NOTIFY_FAILED = 1245009;
     // 定时作业 end
 
     // 日志服务
