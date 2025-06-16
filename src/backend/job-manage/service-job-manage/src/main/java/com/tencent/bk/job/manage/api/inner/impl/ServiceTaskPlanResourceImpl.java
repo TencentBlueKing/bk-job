@@ -31,9 +31,9 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
@@ -221,22 +221,6 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
     }
 
     @Override
-    @JobTransactional(transactionManager = "jobManageTransactionManager")
-    public InternalResponse<Long> createPlanWithIdForMigration(
-        String username,
-        Long appId,
-        Long templateId,
-        Long planId,
-        Long createTime,
-        Long lastModifyTime,
-        String lastModifyUser
-    ) {
-        User user = userLocalCache.getUser(tenantService.getTenantIdByAppId(appId), username);
-        return InternalResponse.buildSuccessResp(taskPlanService.saveTaskPlanForMigration(user, appId, templateId,
-            planId, createTime, lastModifyTime, lastModifyUser));
-    }
-
-    @Override
     public InternalResponse<ServiceIdNameCheckDTO> checkIdAndName(Long appId, Long templateId, Long planId,
                                                                   String name) {
         boolean idResult = taskPlanService.checkPlanId(planId);
@@ -252,6 +236,7 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
     public InternalResponse<Long> savePlanForImport(String username, Long appId, Long templateId,
                                                     Long createTime, TaskPlanVO planInfo) {
         User user = userLocalCache.getUser(tenantService.getTenantIdByAppId(appId), username);
+        JobContextUtil.setUser(user);
         planInfo.validateForImport();
         TaskPlanInfoDTO taskPlanInfo = TaskPlanInfoDTO.fromVO(username, appId, planInfo);
         if (createTime != null && createTime > 0) {
