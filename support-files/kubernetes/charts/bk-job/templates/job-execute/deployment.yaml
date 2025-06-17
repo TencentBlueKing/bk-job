@@ -120,9 +120,7 @@ spec:
       terminationGracePeriodSeconds: 120
       volumes:
         - name: distribute-volume
-          hostPath:
-            path: {{ .Values.fileDistribute.hostPath }}
-            type: DirectoryOrCreate
+          {{- include "job.distribute.volume.name" . |nindent 10 }}
         - name: job-storage
           persistentVolumeClaim:
             claimName: {{ include "job.storage.pvc.name" . }}
