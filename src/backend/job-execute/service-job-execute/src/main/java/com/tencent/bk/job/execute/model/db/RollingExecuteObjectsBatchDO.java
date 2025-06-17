@@ -26,17 +26,13 @@ package com.tencent.bk.job.execute.model.db;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
-import com.tencent.bk.job.common.constant.CompatibleType;
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 滚动执行-执行对象分批 DO
@@ -50,25 +46,12 @@ public class RollingExecuteObjectsBatchDO {
      * 滚动执行批次
      */
     private Integer batch;
-    /**
-     * 该批次的执行目标
-     */
-    @Deprecated
-    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA,
-        explain = "兼容老数据，数据失效后可删除。使用 executeObjects 替换")
-    private List<HostDTO> hosts;
 
     private List<ExecuteObject> executeObjects;
 
     public RollingExecuteObjectsBatchDO(Integer batch, List<ExecuteObject> executeObjects) {
         this.batch = batch;
-        boolean isSupportExecuteObject = executeObjects.get(0).isSupportExecuteObjectFeature();
-        if (isSupportExecuteObject) {
-            this.executeObjects = executeObjects;
-        } else {
-            // 执行对象发布兼容
-            this.hosts = executeObjects.stream().map(ExecuteObject::getHost).collect(Collectors.toList());
-        }
+        this.executeObjects = executeObjects;
     }
 
     /**
@@ -78,8 +61,6 @@ public class RollingExecuteObjectsBatchDO {
     public List<ExecuteObject> getExecuteObjectsCompatibly() {
         if (executeObjects != null) {
             return executeObjects;
-        } else if (hosts != null) {
-            return hosts.stream().map(ExecuteObject::buildCompatibleExecuteObject).collect(Collectors.toList());
         } else {
             return Collections.emptyList();
         }
