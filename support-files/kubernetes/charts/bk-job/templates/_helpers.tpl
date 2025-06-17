@@ -924,6 +924,27 @@ Return the storage PVC name
 {{- end -}}
 
 {{/*
+Return the nfs PVC name, when enable external agent host to distribute files
+*/}}
+{{- define "job.execute.distribute.externalAgent.PVCName" -}}
+{{ printf "%s-pv-claim-nfs-external-agent" (include "common.names.fullname" .) }}
+{{- end -}}
+
+{{/*
+Return the job-execute or job-file-worker distribute volume
+*/}}
+{{- define "job.distribute.volume.name" -}}
+{{- if .Values.externalGseAgent.enabled -}}
+persistentVolumeClaim:
+  claimName : {{ include "job.execute.distribute.externalAgent.PVCName" . }}
+{{- else -}}
+hostPath:
+  path: {{ .Values.fileDistribute.hostPath }}
+  type: DirectoryOrCreate
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the job pod terminationGracePeriodSeconds
 */}}
 {{- define "job.podTerminationGracePeriodSeconds" -}}

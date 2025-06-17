@@ -102,7 +102,5 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "job.storage.pvc.name" . }}
         - name: distribute-volume
-          hostPath:
-            path: {{ .Values.fileDistribute.hostPath }}
-            type: DirectoryOrCreate
+          {{- include "job.distribute.volume.name" . |nindent 10 }}
 {{- end }}
