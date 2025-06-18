@@ -103,6 +103,8 @@
   </div>
 </template>
 <script>
+  import _ from 'lodash';
+
   import AppManageService from '@service/app-manage';
   import HostAllManageService from '@service/host-all-manage';
   import WhiteIpService from '@service/white-ip';
@@ -167,7 +169,7 @@
             hostList,
           };
 
-          this.scopeValue = this.formData.scopeList.map(item => `#${item.scopeType}#${item.scopeId}`);
+          this.scopeValue = _.filter(this.formData.scopeList, item => item.scopeType && item.scopeId).map(item => `#${item.scopeType}#${item.scopeId}`);
         },
         immediate: true,
       },
