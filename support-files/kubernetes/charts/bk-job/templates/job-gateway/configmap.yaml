@@ -249,6 +249,104 @@ data:
                 - RecordIamAccessLog
                 - CheckTenant
                 - AddEsbLangHeader
+            {{- if eq (include "job.profileIsDev" .) "true" }}
+            - id: job-execute-swagger
+              uri: lb://job-execute
+              predicates:
+                - Path=/job-execute/swagger-ui/**,/job-execute/swagger-resources/**,/job-execute/v3/api-docs
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-manage-swagger
+              uri: lb://job-manage
+              predicates:
+                - Path=/job-manage/swagger-ui/**,/job-manage/swagger-resources/**,/job-manage/v3/api-docs
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-analysis-swagger
+              uri: lb://job-analysis
+              predicates:
+                - Path=/job-analysis/swagger-ui/**,/job-analysis/swagger-resources/**,/job-analysis/v3/api-docs
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-crontab-swagger
+              uri: lb://job-crontab
+              predicates:
+                - Path=/job-crontab/swagger-ui/**,/job-crontab/swagger-resources/**,/job-crontab/v3/api-docs
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-backup-swagger
+              uri: lb://job-backup
+              predicates:
+                - Path=/job-backup/swagger-ui/**,/job-backup/swagger-resources/**,/job-backup/v3/api-docs
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-file-gateway-swagger
+              uri: lb://job-file-gateway
+              predicates:
+                - Path=/job-file-gateway/swagger-ui/**,/job-file-gateway/swagger-resources/**,/job-file-gateway/v3/api-docs
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-execute-swagger-service-op-esb
+              uri: lb://job-execute
+              predicates:
+                - Path=/job-execute/service/**,/job-execute/op/**,/job-execute/esb/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-manage-swagger-service-op-esb
+              uri: lb://job-manage
+              predicates:
+                - Path=/job-manage/service/**,/job-manage/op/**,/job-manage/esb/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-analysis-swagger-service-op-esb
+              uri: lb://job-analysis
+              predicates:
+                - Path=/job-analysis/service/**,/job-analysis/op/**,/job-analysis/esb/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-crontab-swagger-service-op-esb
+              uri: lb://job-crontab
+              predicates:
+                - Path=/job-crontab/service/**,/job-crontab/op/**,/job-crontab/esb/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-backup-swagger-service-op-esb
+              uri: lb://job-backup
+              predicates:
+                - Path=/job-backup/service/**,/job-backup/op/**,/job-backup/esb/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-file-gateway-swagger-service-op-esb
+              uri: lb://job-file-gateway
+              predicates:
+                - Path=/job-file-gateway/service/**,/job-file-gateway/op/**,/job-file-gateway/esb/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            {{- end }}
             {{- else if eq .Values.deploy.mode "lite" }}
             - id: job-logout
               uri: lb://job-gateway
@@ -274,7 +372,7 @@ data:
               filters:
                 - AuthorizeRemote
                 - StripPrefix=1
-    
+
             - id: job-esb
               uri: lb://job-assemble
               predicates:

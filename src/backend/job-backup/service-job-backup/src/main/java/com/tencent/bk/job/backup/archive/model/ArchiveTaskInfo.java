@@ -30,11 +30,11 @@ import lombok.Data;
 import lombok.ToString;
 
 /**
- * 作业实例归档任务信息
+ * 归档任务信息
  */
 @Data
 @ToString
-public class JobInstanceArchiveTaskInfo {
+public class ArchiveTaskInfo {
     /**
      * 归档任务类型
      */

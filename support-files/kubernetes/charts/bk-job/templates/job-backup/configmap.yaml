@@ -95,6 +95,11 @@ data:
           poolName: "job-execute-archive"
           validationTimeout: 5000
         {{- end }}
+        {{- if and .Values.backupConfig.archive.executeLog.enabled (or (eq .Values.backupConfig.archive.executeLog.mode "deleteOnly") (eq .Values.backupConfig.archive.executeLog.mode "backupThenDelete")) }}
+        job-execute-mongodb:
+          uri: {{ include "job.mongodb.connect.uri" . | quote }}
+          database: "joblog"
+        {{- end }}
       redis:
       {{- include "job.redis.config" . | indent 8 }}
         database: 0
@@ -121,13 +126,14 @@ data:
         storage-backend: {{ .Values.backupConfig.storageBackend }}
         artifactory:
           repo: {{ .Values.backupConfig.artifactory.repo }}
-        archive:  
-          execute:
-            {{- toYaml .Values.backupConfig.archive.execute | nindent 12 }}
+        archive:
+          {{- toYaml .Values.backupConfig.archive | nindent 10 }}
     mysql:
       {{- toYaml .Values.backupConfig.mysql | nindent 6 }}
     tls:
       # 连接Redis使用的TLS配置
       redis:
         {{- include "job.redis.tls" . | nindent 8 }}
+      mongodb:
+        {{- include "job.mongodb.tls" . | nindent 8 }}
 {{- end }}

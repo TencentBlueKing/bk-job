@@ -201,12 +201,12 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
     }
 
     @Override
-    public boolean updateVariableById(TaskVariableDTO variable) {
+    public boolean updateVarByParentResourceIdAndTplVarId(TaskVariableDTO variable) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.TEMPLATE_VARIABLE_ID.eq(ULong.valueOf(variable.getId())));
         conditions.add(TABLE.PLAN_ID.eq(ULong.valueOf(variable.getPlanId())));
         UpdateSetMoreStep<TaskPlanVariableRecord> updateStep;
-        if (variable.getType().isNeedMask() && variable.getDefaultValue().equals(variable.getType().getMask())) {
+        if (variable.cipherNotChange()) {
             updateStep = context.update(TABLE).set(TABLE.DEFAULT_VALUE, TABLE.DEFAULT_VALUE);
         } else {
             updateStep = context.update(TABLE)

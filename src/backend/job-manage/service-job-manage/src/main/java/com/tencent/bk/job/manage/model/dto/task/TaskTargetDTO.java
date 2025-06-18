@@ -133,6 +133,7 @@ public class TaskTargetDTO {
                     hostDTO = hostIdHostMapping.get(hostNode.getHostId());
                 }
                 if (hostDTO != null) {
+                    hostNode.setHostId(hostDTO.getHostId());
                     hostNode.setAgentId(hostDTO.getAgentId());
                     hostNode.setCloudAreaId(hostDTO.getCloudAreaId());
                     hostNode.setIp(hostDTO.getIp());
@@ -144,6 +145,7 @@ public class TaskTargetDTO {
                 } else {
                     log.warn("Cannot find host by hostId={} or by cloudIp={}",
                         hostNode.getHostId(), hostNode.getCloudIp());
+                    hostNode.setHostId(-1L);
                 }
             });
         }

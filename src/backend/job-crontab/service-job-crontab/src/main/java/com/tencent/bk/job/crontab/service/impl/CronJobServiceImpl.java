@@ -28,6 +28,7 @@ import com.tencent.bk.audit.annotations.ActionAuditRecord;
 import com.tencent.bk.audit.annotations.AuditInstanceRecord;
 import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
+import com.tencent.bk.job.common.constant.CronJobNotifyType;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
@@ -43,6 +44,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -64,6 +66,7 @@ import com.tencent.bk.job.crontab.model.inner.request.ServiceAddInnerCronJobRequ
 import com.tencent.bk.job.crontab.mq.CrontabMQEventDispatcher;
 import com.tencent.bk.job.crontab.service.BatchCronJobService;
 import com.tencent.bk.job.crontab.service.CronJobService;
+import com.tencent.bk.job.crontab.service.CustomNotifyPolicyService;
 import com.tencent.bk.job.crontab.service.ExecuteTaskService;
 import com.tencent.bk.job.crontab.service.HostService;
 import com.tencent.bk.job.crontab.service.QuartzService;
@@ -118,6 +121,7 @@ public class CronJobServiceImpl implements CronJobService {
     private final CrontabMQEventDispatcher crontabMQEventDispatcher;
     private final BatchCronJobService batchCronJobService;
     private final ServiceTenantResource tenantResource;
+    private final CustomNotifyPolicyService customNotifyPolicyService;
 
     @Autowired
     public CronJobServiceImpl(CronJobDAO cronJobDAO,
@@ -129,7 +133,8 @@ public class CronJobServiceImpl implements CronJobService {
                               HostService hostService,
                               CrontabMQEventDispatcher crontabMQEventDispatcher,
                               BatchCronJobServiceImpl batchCronJobService,
-                              ServiceTenantResource tenantResource) {
+                              ServiceTenantResource tenantResource,
+                              CustomNotifyPolicyService customNotifyPolicyService) {
         this.cronJobDAO = cronJobDAO;
         this.quartzTaskHandler = quartzTaskHandler;
         this.quartzService = quartzService;
@@ -140,6 +145,7 @@ public class CronJobServiceImpl implements CronJobService {
         this.crontabMQEventDispatcher = crontabMQEventDispatcher;
         this.batchCronJobService = batchCronJobService;
         this.tenantResource = tenantResource;
+        this.customNotifyPolicyService = customNotifyPolicyService;
     }
 
     @Override
@@ -151,6 +157,13 @@ public class CronJobServiceImpl implements CronJobService {
     @Override
     public CronJobInfoDTO getCronJobInfoById(Long cronJobId) {
         return cronJobDAO.getCronJobById(cronJobId);
+    }
+
+    @Override
+    public CronJobInfoDTO getIntegralCronJobInfoById(Long cronJobId) {
+        CronJobInfoDTO cronJobInfo = getCronJobInfoById(cronJobId);
+        fillCronJobInfoWithCustomNotifyPolicy(cronJobId, cronJobInfo);
+        return cronJobInfo;
     }
 
     @Override
@@ -179,7 +192,7 @@ public class CronJobServiceImpl implements CronJobService {
         content = EventContentConstants.VIEW_CRON_JOB
     )
     public CronJobInfoDTO getCronJobInfoById(User user, Long appId, Long cronJobId) {
-        CronJobInfoDTO cronJob = getCronJobInfoById(appId, cronJobId);
+        CronJobInfoDTO cronJob = getIntegralCronJobInfoById(cronJobId);
         if (cronJob == null) {
             throw new NotFoundException(ErrorCode.CRON_JOB_NOT_EXIST);
         }
@@ -222,9 +235,24 @@ public class CronJobServiceImpl implements CronJobService {
         cronJobInfo.setEnable(false);
 
         Long id = cronJobDAO.insertCronJob(cronJobInfo);
+        // 保存定时任务自定义通知策略
+        saveCustomNotifyPolicyIfNeeded(id, cronJobInfo);
+
         cronAuthService.registerCron(user, id, cronJobInfo.getName());
 
-        return getCronJobInfoById(id);
+        return getIntegralCronJobInfoById(id);
+    }
+
+    private void saveCustomNotifyPolicyIfNeeded(Long id, CronJobInfoDTO cronJobInfo) {
+        if (cronJobInfo.hasCustomNotifyPolicy()) {
+            log.debug("[saveCustomNotifyPolicyIfNeeded] cron task:{} has custom notify policy,"
+                    + " try to save custom notify policy", id);
+            customNotifyPolicyService.createOrUpdateCronJobCustomNotifyPolicy(id, cronJobInfo);
+        } else {
+            log.debug("[saveCustomNotifyPolicyIfNeeded] cron task with id={} use app notify policy,"
+                    + "clean its configured policy", id);
+            customNotifyPolicyService.deleteCronJobCustomNotifyPolicy(cronJobInfo.getAppId(), id);
+        }
     }
 
     @Override
@@ -241,7 +269,7 @@ public class CronJobServiceImpl implements CronJobService {
         cronAuthService.authManageCron(user,
             new AppResourceScope(cronJobInfo.getAppId()), cronJobInfo.getId(), null).denyIfNoPermission();
 
-        CronJobInfoDTO originCron = getCronJobInfoById(cronJobInfo.getId());
+        CronJobInfoDTO originCron = getIntegralCronJobInfoById(cronJobInfo.getId());
         if (originCron == null) {
             throw new NotFoundException(ErrorCode.CRON_JOB_NOT_EXIST);
         }
@@ -264,7 +292,10 @@ public class CronJobServiceImpl implements CronJobService {
             }
         }
 
-        CronJobInfoDTO updateCron = getCronJobInfoById(cronJobInfo.getId());
+        // 保存自定义定时任务级别通知策略
+        saveCustomNotifyPolicyIfNeeded(cronJobInfo.getId(), cronJobInfo);
+
+        CronJobInfoDTO updateCron = getIntegralCronJobInfoById(cronJobInfo.getId());
 
         // 审计
         ActionAuditContext.current()
@@ -272,6 +303,18 @@ public class CronJobServiceImpl implements CronJobService {
             .setInstance(CronJobInfoDTO.toEsbCronInfoV3(updateCron));
 
         return updateCron;
+    }
+
+    private void fillCronJobInfoWithCustomNotifyPolicy(Long cronJobId, CronJobInfoDTO cronJobInfo) {
+        CustomNotifyDTO cronJobCustomNotifyPolicy = customNotifyPolicyService.getCronJobCustomNotifyPolicyById(
+            cronJobInfo.getAppId(), cronJobId);
+        if (cronJobCustomNotifyPolicy == null) {
+            // 定时任务继承业务通知配置
+            cronJobInfo.setNotifyType(CronJobNotifyType.EXTENDS_APP.getType());
+        } else {
+            cronJobInfo.setNotifyType(CronJobNotifyType.CUSTOM.getType());
+            cronJobInfo.setCustomCronJobNotifyDTO(cronJobCustomNotifyPolicy);
+        }
     }
 
     private void authExecuteTask(CronJobInfoDTO cronJobInfo) {
@@ -382,7 +425,7 @@ public class CronJobServiceImpl implements CronJobService {
         cronAuthService.authManageCron(user,
             new AppResourceScope(appId), cronJobId, null).denyIfNoPermission();
 
-        CronJobInfoDTO cron = getCronJobInfoById(cronJobId);
+        CronJobInfoDTO cron = getIntegralCronJobInfoById(cronJobId);
         if (cron == null) {
             throw new NotFoundException(ErrorCode.CRON_JOB_NOT_EXIST);
         }
@@ -392,9 +435,18 @@ public class CronJobServiceImpl implements CronJobService {
 
         if (cronJobDAO.deleteCronJobById(appId, cronJobId)) {
             informAllToDeleteJobFromQuartz(appId, cronJobId);
+            deleteCustomNotifyPolicy(appId, cron);
             return true;
         }
         return false;
+    }
+
+    private void deleteCustomNotifyPolicy(Long appId, CronJobInfoDTO cronJob) {
+        if (cronJob.hasCustomNotifyPolicy()) {
+            log.debug("[deleteCustomNotifyPolicy]deleted cron task:{} has custom notify policy,"
+                + "try to delete notify policy", cronJob.getId());
+            customNotifyPolicyService.deleteCronJobCustomNotifyPolicy(appId, cronJob.getId());
+        }
     }
 
     @Override

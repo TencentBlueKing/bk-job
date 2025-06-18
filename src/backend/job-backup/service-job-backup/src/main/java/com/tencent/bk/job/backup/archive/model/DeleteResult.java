@@ -45,4 +45,9 @@ public class DeleteResult {
         this.deletedRows = deletedRows;
         this.deleteCost = deleteCost;
     }
+
+    /**
+     * 未执行删除操作返回的特殊DeleteResult
+     */
+    public static final DeleteResult NON_OP_DELETE_RESULT = new DeleteResult(-1, -1);
 }

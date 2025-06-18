@@ -686,6 +686,17 @@ Return the Job Profile
 {{- end -}}
 
 {{/*
+Return whether the environment is dev
+*/}}
+{{- define "job.profileIsDev" -}}
+{{- if has "dev" (regexSplit "[ ]*,[ ]*" .Values.job.profile -1) -}}
+{{- printf "%t" true -}}
+{{- else -}}
+{{- printf "%t" false -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the Job InitContainer WaitForMigration Content
 */}}
 {{- define "job.initContainer.waitForMigration" -}}

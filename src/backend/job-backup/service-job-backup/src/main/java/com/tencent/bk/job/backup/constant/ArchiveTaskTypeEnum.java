@@ -35,7 +35,11 @@ public enum ArchiveTaskTypeEnum {
     /**
      * 作业实例按业务冗余数据归档
      */
-    JOB_INSTANCE_APP(2);
+    JOB_INSTANCE_APP(2),
+    /**
+     * 作业执行日志归档
+     */
+    JOB_EXECUTE_LOG(3);
 
     private final int type;
 

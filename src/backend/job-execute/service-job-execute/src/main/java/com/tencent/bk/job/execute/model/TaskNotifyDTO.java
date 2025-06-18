@@ -59,6 +59,10 @@ public class TaskNotifyDTO implements JobMessage {
      * @see TaskStartupModeEnum
      */
     private Integer startupMode;
+    /**
+     * 定时任务ID
+     */
+    private Long cronTaskId;
 
     /**
      * 资源操作结果

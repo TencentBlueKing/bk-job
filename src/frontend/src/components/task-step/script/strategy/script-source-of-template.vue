@@ -315,7 +315,9 @@
        * @param {Object} params 脚本数据
        */
       fetchScriptVersionDetail(params) {
-        return ScriptManageService.versionDetail(params);
+        const requestHandler = this.formData[this.scriptSourceField] === TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC
+          ? PublicScriptManageService.versionDetail : ScriptManageService.versionDetail;
+        return requestHandler(params);
       },
       /**
        * @desc 初始化脚本来源
