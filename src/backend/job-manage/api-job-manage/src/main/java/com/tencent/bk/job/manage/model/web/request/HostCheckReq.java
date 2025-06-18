@@ -39,10 +39,6 @@ import java.util.Map;
 @ApiModel("主机检查请求报文")
 public class HostCheckReq {
 
-    @Deprecated
-    @ApiModelProperty(value = "兼容字段，请勿使用：应用场景：脚本执行/文件分发")
-    ActionScopeEnum actionScope;
-
     @ApiModelProperty(value = "应用场景：脚本执行/文件分发，Key为actionScope，Value分别为SCRIPT_EXECUTE/FILE_DISTRIBUTION")
     Map<String, Object> meta = new HashMap<>();
 
@@ -64,13 +60,6 @@ public class HostCheckReq {
             return null;
         }
         return ActionScopeEnum.valueOf(actionScopeName);
-    }
-
-    public void setActionScope(ActionScopeEnum actionScope) {
-        this.actionScope = actionScope;
-        if (actionScope != null) {
-            this.meta.put("actionScope", actionScope.name());
-        }
     }
 }
 

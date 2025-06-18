@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.model.JobInstanceArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.archive.util.lock.FailedArchiveTaskRescheduleLock;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
@@ -72,6 +72,8 @@ public class AbnormalArchiveTaskReScheduler {
             reScheduleFailedTasks();
             // 处理超时未结束的任务
             reScheduleTimeoutTasks();
+            // 试运行的任务
+            reScheduleDryRunTasks();
         } finally {
             if (locked) {
                 failedArchiveTaskRescheduleLock.unlock();
@@ -82,11 +84,11 @@ public class AbnormalArchiveTaskReScheduler {
 
     private void reScheduleFailedTasks() {
         int readLimit = 100;
-        List<JobInstanceArchiveTaskInfo> failedTasks;
+        List<ArchiveTaskInfo> failedTasks;
         do {
             failedTasks =
-                archiveTaskService.listTasks(ArchiveTaskTypeEnum.JOB_INSTANCE, ArchiveTaskStatusEnum.FAIL,
-                    readLimit);
+                archiveTaskService.listTasks(ArchiveTaskStatusEnum.FAIL, readLimit);
+
             if (CollectionUtils.isEmpty(failedTasks)) {
                 return;
             }
@@ -106,7 +108,7 @@ public class AbnormalArchiveTaskReScheduler {
     }
 
     private void reScheduleTimeoutTasks() {
-        List<JobInstanceArchiveTaskInfo> runningTasks =
+        List<ArchiveTaskInfo> runningTasks =
             archiveTaskService.listRunningTasks(ArchiveTaskTypeEnum.JOB_INSTANCE);
         if (CollectionUtils.isEmpty(runningTasks)) {
             return;
@@ -127,5 +129,30 @@ public class AbnormalArchiveTaskReScheduler {
                 );
             }
         });
+    }
+
+    private void reScheduleDryRunTasks() {
+        int readLimit = 100;
+        List<ArchiveTaskInfo> dryRunTasks;
+        do {
+            dryRunTasks =
+                archiveTaskService.listTasks(ArchiveTaskStatusEnum.DRYRUN, readLimit);
+
+            if (CollectionUtils.isEmpty(dryRunTasks)) {
+                return;
+            }
+            // 设置为pending状态，会被重新调度
+            dryRunTasks.forEach(taskInfo -> {
+                log.info("Found dry run archive task, and set archive task status to pending, taskId : {}",
+                    taskInfo.buildTaskUniqueId());
+                archiveTaskService.updateArchiveTaskStatus(
+                    taskInfo.getTaskType(),
+                    taskInfo.getDbDataNode(),
+                    taskInfo.getDay(),
+                    taskInfo.getHour(),
+                    ArchiveTaskStatusEnum.PENDING
+                );
+            });
+        } while (dryRunTasks.size() == readLimit);
     }
 }

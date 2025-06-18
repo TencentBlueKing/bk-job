@@ -64,6 +64,7 @@ public class DbDataNode {
     public String toDataNodeId() {
         switch (type) {
             case STANDALONE:
+            case SINGLE_MONGODB:
                 return type.getValue() + ":" + STANDALONE_DS_NAME;
             case SHARDING:
                 return type.getValue() + ":" + dataSource + ":" + dbIndex + ":" + tableIndex;
@@ -75,6 +76,7 @@ public class DbDataNode {
     public String toDbNodeId() {
         switch (type) {
             case STANDALONE:
+            case SINGLE_MONGODB:
                 return STANDALONE_DS_NAME;
             case SHARDING:
                 return dataSource + ":" + dbIndex;
@@ -88,6 +90,7 @@ public class DbDataNode {
         DbDataNodeTypeEnum dbDataNodeType = DbDataNodeTypeEnum.valOf(Integer.parseInt(dataNodeParts[0]));
         switch (dbDataNodeType) {
             case STANDALONE:
+            case SINGLE_MONGODB:
                 return new DbDataNode(dbDataNodeType, STANDALONE_DS_NAME, null, null);
             case SHARDING:
                 return new DbDataNode(
@@ -107,6 +110,10 @@ public class DbDataNode {
 
     public static DbDataNode shardingDbDataNode(String dataSource, Integer dbIndex, Integer tableIndex) {
         return new DbDataNode(DbDataNodeTypeEnum.SHARDING, dataSource, dbIndex, tableIndex);
+    }
+
+    public static DbDataNode standaloneMongoDbDataNode() {
+        return new DbDataNode(DbDataNodeTypeEnum.SINGLE_MONGODB, STANDALONE_DS_NAME, null, null);
     }
 
     @Override

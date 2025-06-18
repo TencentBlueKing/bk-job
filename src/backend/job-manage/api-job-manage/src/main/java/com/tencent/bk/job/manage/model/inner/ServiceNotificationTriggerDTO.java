@@ -58,6 +58,11 @@ public class ServiceNotificationTriggerDTO {
     private Integer resourceType;
 
     /**
+     * 定时任务ID
+     */
+    private Long cronTaskId;
+
+    /**
      * 资源操作结果
      *
      * @see com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum

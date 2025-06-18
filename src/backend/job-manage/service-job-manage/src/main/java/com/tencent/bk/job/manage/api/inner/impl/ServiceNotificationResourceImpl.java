@@ -27,9 +27,11 @@ package com.tencent.bk.job.manage.api.inner.impl;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.compat.util.TenantCompatUtil;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.common.util.PrefConsts;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceNotificationResource;
+import com.tencent.bk.job.manage.model.inner.ServiceSpecificResourceNotifyPolicyDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceAppRoleDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotifyChannelDTO;
@@ -98,5 +100,35 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
             channels.stream().map(channel ->
                 new ServiceNotifyChannelDTO(channel.getType(), channel.getLabel())).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(result);
+    }
+
+    @Override
+    public InternalResponse<Boolean> createOrUpdateSpecificResourceNotifyPolicy(
+        String username,
+        Long appId,
+        ServiceSpecificResourceNotifyPolicyDTO serviceNotifyPolicyDTO) {
+
+        return InternalResponse.buildSuccessResp(notifyService.saveSpecificResourceNotifyPolicies(
+            appId,
+            username,
+            serviceNotifyPolicyDTO
+        ));
+    }
+
+    @Override
+    public InternalResponse<Integer> deleteSpecificResourceNotifyPolicy(Long appId,
+                                                                        Integer resourceType, String resourceId) {
+        return InternalResponse.buildSuccessResp(notifyService.deleteAppResourceNotifyPolicies(
+            appId,
+            resourceType,
+            resourceId
+        ));
+    }
+
+    @Override
+    public InternalResponse<CustomNotifyDTO> getSpecificResourceNotifyPolicy(Long appId, Integer resourceType,
+                                                                             String resourceId, Integer triggerType) {
+        return InternalResponse.buildSuccessResp(notifyService.getSpecificResourceNotifyPolicy(
+            appId, resourceType, resourceId, triggerType));
     }
 }

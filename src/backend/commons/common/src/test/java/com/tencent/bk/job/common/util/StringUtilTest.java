@@ -24,12 +24,16 @@
 
 package com.tencent.bk.job.common.util;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -99,5 +103,43 @@ public class StringUtilTest {
 
     @Test
     void concatArray() {
+    }
+
+    @Test
+    void extractValueFromStrings() {
+        Set<String> rawStrs = new HashSet<>(12);
+        rawStrs.add(null);
+        rawStrs.add("");
+        rawStrs.add("1");
+        rawStrs.add("not value");
+        rawStrs.add(" 2");
+        rawStrs.add("3 ");
+        rawStrs.add("not value2");
+        rawStrs.add("4 xx");
+        rawStrs.add("true");
+        rawStrs.add("false");
+        rawStrs.add(" True ");
+        rawStrs.add(" FALSE  ");
+        Pair<List<Long>, List<String>> longValuePair = StringUtil.extractValueFromStrings(rawStrs, Long.class);
+        System.out.println("valueList=" + longValuePair.getLeft() + ", remainStrList=" + longValuePair.getRight());
+        assertEquals(3, longValuePair.getLeft().size());
+        assertThat(longValuePair.getLeft()).contains(1L, 2L, 3L);
+        assertEquals(9, longValuePair.getRight().size());
+        assertThat(longValuePair.getRight())
+            .contains(null, "", "not value", "not value2", "4 xx", "true", "false", " True ", " FALSE  ");
+        Pair<List<Integer>, List<String>> intValuePair = StringUtil.extractValueFromStrings(rawStrs, Integer.class);
+        assertThat(intValuePair.getLeft()).contains(1, 2, 3);
+        Pair<List<Float>, List<String>> floatValuePair = StringUtil.extractValueFromStrings(rawStrs, Float.class);
+        assertThat(floatValuePair.getLeft()).contains(1.0f, 2.0f, 3.0f);
+        Pair<List<Double>, List<String>> doubleValuePair = StringUtil.extractValueFromStrings(rawStrs, Double.class);
+        assertThat(doubleValuePair.getLeft()).contains(1.0, 2.0, 3.0);
+        Pair<List<Boolean>, List<String>> booleanValuePair = StringUtil.extractValueFromStrings(rawStrs, Boolean.class);
+        System.out.println(
+            "valueList=" + booleanValuePair.getLeft() + ", remainStrList=" + booleanValuePair.getRight()
+        );
+        assertEquals(8, booleanValuePair.getRight().size());
+        assertThat(booleanValuePair.getLeft()).contains(true, false);
+        assertThat(booleanValuePair.getRight())
+            .contains(null, "", "1", "not value", " 2", "3 ", "not value2", "4 xx");
     }
 }

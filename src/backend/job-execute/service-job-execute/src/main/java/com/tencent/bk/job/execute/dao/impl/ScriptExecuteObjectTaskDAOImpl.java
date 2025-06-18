@@ -408,6 +408,28 @@ public class ScriptExecuteObjectTaskDAOImpl extends BaseDAO implements ScriptExe
 
     @Override
     @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
+    public List<ExecuteObjectTask> getTaskByExecuteObjectIds(Long taskInstanceId,
+                                                             Long stepInstanceId,
+                                                             Integer executeCount,
+                                                             Integer batch,
+                                                             Collection<String> executeObjectIds) {
+        SelectConditionStep<?> selectConditionStep =
+            dsl().select(ALL_FIELDS)
+                .from(T)
+                .where(buildTaskInstanceIdQueryCondition(taskInstanceId))
+                .and(T.STEP_INSTANCE_ID.eq(stepInstanceId))
+                .and(T.EXECUTE_COUNT.eq(executeCount.shortValue()))
+                .and(T.EXECUTE_OBJ_ID.in(executeObjectIds));
+        if (batch != null && batch > 0) {
+            // 滚动执行批次，传入null或者0将忽略该参数
+            selectConditionStep.and(T.BATCH.eq(batch.shortValue()));
+        }
+        Result<?> records = selectConditionStep.fetch();
+        return records.map(this::extract);
+    }
+
+    @Override
+    @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.READ)
     public boolean isStepInstanceRecordExist(Long taskInstanceId, long stepInstanceId) {
         return dsl().fetchExists(
             T,

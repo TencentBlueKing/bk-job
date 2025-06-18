@@ -471,7 +471,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 } else {
                     if (taskVariable.getId() > 0) {
                         // Update exist variable
-                        taskVariableService.updateVariableById(taskVariable);
+                        taskVariableService.updateVarByParentResourceIdAndTplVarId(taskVariable);
                     } else {
                         newVariables.add(taskVariable);
                     }
