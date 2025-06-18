@@ -37,7 +37,6 @@ import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
-import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -51,6 +50,7 @@ import com.tencent.bk.job.execute.common.cache.WhiteHostCache;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
+import com.tencent.bk.job.execute.metrics.ExecuteObjectSampler;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
@@ -58,17 +58,14 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceExecuteObjects;
-import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.ContainerService;
 import com.tencent.bk.job.execute.service.HostService;
-import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tags;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -100,10 +97,8 @@ public class TaskInstanceExecuteObjectProcessor {
     private final AppScopeMappingService appScopeMappingService;
     private final WhiteHostCache whiteHostCache;
     private final AgentStateClient agentStateClient;
-
-    private final MeterRegistry meterRegistry;
-
     private final IBizCmdbClient bizCmdbClient;
+    private final ExecuteObjectSampler executeObjectSampler;
 
     public TaskInstanceExecuteObjectProcessor(HostService hostService,
                                               RemoteAppService remoteAppService,
@@ -111,16 +106,16 @@ public class TaskInstanceExecuteObjectProcessor {
                                               AppScopeMappingService appScopeMappingService,
                                               WhiteHostCache whiteHostCache,
                                               AgentStateClient agentStateClient,
-                                              MeterRegistry meterRegistry,
-                                              IBizCmdbClient bizCmdbClient) {
+                                              IBizCmdbClient bizCmdbClient,
+                                              ExecuteObjectSampler executeObjectSampler) {
         this.hostService = hostService;
         this.remoteAppService = remoteAppService;
         this.containerService = containerService;
         this.appScopeMappingService = appScopeMappingService;
         this.whiteHostCache = whiteHostCache;
         this.agentStateClient = agentStateClient;
-        this.meterRegistry = meterRegistry;
         this.bizCmdbClient = bizCmdbClient;
+        this.executeObjectSampler = executeObjectSampler;
     }
 
     /**
@@ -136,11 +131,10 @@ public class TaskInstanceExecuteObjectProcessor {
                                                             Collection<TaskVariableDTO> variables) {
 
         StopWatch watch = new StopWatch("processExecuteObjects");
-        boolean hasContainer = false;
-        boolean hasHost = false;
+        boolean hasContainer;
+        TaskInstanceExecuteObjects taskInstanceExecuteObjects = new TaskInstanceExecuteObjects();
         try {
             hasContainer = isJobHasContainerExecuteObject(stepInstanceList, variables);
-            hasHost = isJobHasHostExecuteObject(stepInstanceList, variables);
 
             if (hasContainer && !isContainerExecuteFeatureEnabled(taskInstance.getAppId())) {
                 // 如果资源空间不支持容器执行（比如业务集不支持容器执行），或者该资源空间未在容器执行特性灰度列表，需要返回错误信息
@@ -151,7 +145,6 @@ public class TaskInstanceExecuteObjectProcessor {
             long appId = taskInstance.getAppId();
             // 获取执行对象
             watch.start("acquireAndSetExecuteObjects");
-            TaskInstanceExecuteObjects taskInstanceExecuteObjects = new TaskInstanceExecuteObjects();
             // 获取并设置主机执行对象
             acquireAndSetHosts(taskInstanceExecuteObjects, taskInstance, stepInstanceList, variables);
             // 获取并设置容器执行对象
@@ -181,11 +174,10 @@ public class TaskInstanceExecuteObjectProcessor {
 
             return taskInstanceExecuteObjects;
         } finally {
-            // 指标 - 记录作业的执行对象组成
-            recordTaskExecuteObjectComposition(
-                GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
-                hasHost,
-                hasContainer
+            // 记录作业执行对象相关指标
+            executeObjectSampler.tryToRecordExecuteObjectMetrics(
+                taskInstance,
+                taskInstanceExecuteObjects
             );
             if (watch.isRunning()) {
                 watch.stop();
@@ -194,34 +186,6 @@ public class TaskInstanceExecuteObjectProcessor {
                 log.warn("ProcessExecuteObjects is slow, taskInfo: {}", watch.prettyPrint());
             }
         }
-    }
-
-    private void recordTaskExecuteObjectComposition(ResourceScope resourceScope,
-                                                    boolean hasHost,
-                                                    boolean hasContainer) {
-        String executeObjectCompositionTagValue = null;
-        if (hasHost && hasContainer) {
-            executeObjectCompositionTagValue = "mixed";
-        } else if (hasHost) {
-            executeObjectCompositionTagValue = "host";
-        } else if (hasContainer) {
-            executeObjectCompositionTagValue = "container";
-        }
-        if (executeObjectCompositionTagValue != null) {
-            // 统计作业的执行对象组成
-            meterRegistry.counter(
-                    "job_task_execute_object_composition_total",
-                    Tags.of(CommonMetricTags.KEY_RESOURCE_SCOPE, buildResourceScopeTagValue(resourceScope))
-                        .and("execute_object_composition", executeObjectCompositionTagValue))
-                .increment();
-        }
-    }
-
-    private String buildResourceScopeTagValue(ResourceScope resourceScope) {
-        if (resourceScope == null) {
-            return "None";
-        }
-        return resourceScope.getType() + ":" + resourceScope.getId();
     }
 
     private boolean isContainerExecuteFeatureEnabled(long appId) {
@@ -244,12 +208,6 @@ public class TaskInstanceExecuteObjectProcessor {
                                                    Collection<TaskVariableDTO> variables) {
         return checkExecuteObjectExists(stepInstanceList, variables,
             ExecuteTargetDTO::hasContainerExecuteObject);
-    }
-
-    private boolean isJobHasHostExecuteObject(List<StepInstanceDTO> stepInstanceList,
-                                              Collection<TaskVariableDTO> variables) {
-        return checkExecuteObjectExists(stepInstanceList, variables,
-            ExecuteTargetDTO::hasHostExecuteObject);
     }
 
     /**
