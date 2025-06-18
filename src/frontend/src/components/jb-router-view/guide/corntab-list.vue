@@ -36,11 +36,12 @@
           {{ $t('采用类Unix Crontab的配置表达式风格，降低使用门槛更快上手！提供了执行前/后通知提醒、执行记录等辅助功能，让用户可以放心地把定期执行的任务交给Job！') }}
         </div>
         <div class="page-action">
-          <bk-button
+          <auth-button
+            auth="cron/create"
             theme="primary"
             @click="handleCreateCron">
             {{ $t('新建定时任务') }}
-          </bk-button>
+          </auth-button>
         </div>
       </div>
     </div>
