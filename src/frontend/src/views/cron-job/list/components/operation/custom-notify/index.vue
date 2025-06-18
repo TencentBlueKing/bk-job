@@ -110,7 +110,7 @@
 
   const handleApprovalUserChange = (userList, roleList) =>  {
     const realRoleList = [...roleList];
-    if (roleList.length > 0) {
+    if (userList.length > 0) {
       realRoleList.push('JOB_EXTRA_OBSERVER');
     }
 
