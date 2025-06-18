@@ -38,6 +38,10 @@ public class ExecuteMetricsConstants {
      * 任务执行结束后的回调指标
      */
     public static final String NAME_JOB_TASK_CALLBACK = "job.task.callback";
+    /**
+     * 任务执行对象数量分布指标
+     */
+    public static final String NAME_JOB_TASK_EXECUTE_OBJECT_NUM = "job.task.executeObjectNum";
 
     // tag
     /**
@@ -122,4 +126,24 @@ public class ExecuteMetricsConstants {
      * 任务回调结果：回调失败
      */
     public static final String TAG_VALUE_RESULT_FAILED = "failed";
+    /**
+     * 执行对象组成
+     */
+    public static final String TAG_KEY_EXECUTE_OBJECT_COMPOSITION = "execute_object_composition";
+    /**
+     * 执行对象组成：无执行对象
+     */
+    public static final String TAG_VALUE_EXECUTE_OBJECT_COMPOSITION_NONE = "none";
+    /**
+     * 执行对象组成：主机
+     */
+    public static final String TAG_VALUE_EXECUTE_OBJECT_COMPOSITION_HOST = "host";
+    /**
+     * 执行对象组成：容器
+     */
+    public static final String TAG_VALUE_EXECUTE_OBJECT_COMPOSITION_CONTAINER = "container";
+    /**
+     * 执行对象组成：混合
+     */
+    public static final String TAG_VALUE_EXECUTE_OBJECT_COMPOSITION_MIXED = "mixed";
 }

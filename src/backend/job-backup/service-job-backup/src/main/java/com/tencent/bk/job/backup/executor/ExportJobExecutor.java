@@ -75,6 +75,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -89,17 +90,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
-/**
- * @since 29/7/2020 17:12
- */
 @Slf4j
 @Service
 public class ExportJobExecutor {
-    private static final LinkedBlockingQueue<String> EXPORT_JOB_QUEUE = new LinkedBlockingQueue<>(100);
     private static final String JOB_EXPORT_FILE_PREFIX = "export" + File.separatorChar;
     private final ExportJobService exportJobService;
     private final TaskTemplateService taskTemplateService;
@@ -114,6 +110,7 @@ public class ExportJobExecutor {
     private final BackupStorageConfig backupStorageConfig;
     private final LocalFileConfigForBackup localFileConfig;
     private final BackupFileCryptoService backupFileCryptoService;
+    private final ThreadPoolExecutor exportJobExecutor;
 
     @Autowired
     public ExportJobExecutor(ExportJobService exportJobService,
@@ -128,7 +125,8 @@ public class ExportJobExecutor {
                              ArtifactoryHelper artifactoryHelper,
                              BackupStorageConfig backupStorageConfig,
                              LocalFileConfigForBackup localFileConfig,
-                             BackupFileCryptoService backupFileCryptoService) {
+                             BackupFileCryptoService backupFileCryptoService,
+                             @Qualifier("backupExportJobExecutor") ThreadPoolExecutor exportJobExecutor) {
         this.exportJobService = exportJobService;
         this.taskTemplateService = taskTemplateService;
         this.taskPlanService = taskPlanService;
@@ -142,12 +140,11 @@ public class ExportJobExecutor {
         this.backupStorageConfig = backupStorageConfig;
         this.localFileConfig = localFileConfig;
         this.backupFileCryptoService = backupFileCryptoService;
+        this.exportJobExecutor = exportJobExecutor;
 
         File storageDirectory = new File(storageService.getStoragePath().concat(JOB_EXPORT_FILE_PREFIX));
         checkDirectory(storageDirectory);
 
-        ExportJobExecutorThread exportJobExecutorThread = new ExportJobExecutorThread();
-        exportJobExecutorThread.start();
     }
 
     public static String getExportLocalUploadFilePath(ExportJobInfoDTO exportInfo) {
@@ -162,13 +159,8 @@ public class ExportJobExecutor {
         return JOB_EXPORT_FILE_PREFIX + username + File.separatorChar + id + File.separatorChar;
     }
 
-    public static void startExport(String id) {
-        try {
-            EXPORT_JOB_QUEUE.add(id);
-        } catch (Exception e) {
-            log.error("Export job queue is full!");
-            throw e;
-        }
+    public void startExport(String jobId) {
+        exportJobExecutor.submit(new ExportJobTask(jobId));
     }
 
     private void saveToArtifactory(String fileName) {
@@ -655,27 +647,22 @@ public class ExportJobExecutor {
         }
     }
 
-    @SuppressWarnings("InfiniteLoopStatement")
-    class ExportJobExecutorThread extends Thread {
+    class ExportJobTask implements Runnable {
+
+        private final String jobId;
+
+        ExportJobTask(String jobId) {
+            this.jobId = jobId;
+        }
+
         @Override
         public void run() {
-            this.setName("Export-Job-Executor-Thread");
-            while (true) {
-                String uuid = UUID.randomUUID().toString();
-                try {
-                    String jobId = EXPORT_JOB_QUEUE.take();
-                    log.debug("{}|Export job queue length|{}", uuid, EXPORT_JOB_QUEUE.size());
-                    processExportJob(jobId);
-                    log.info("{}|Export job process finished!|{}", uuid, jobId);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                } catch (Exception e) {
-                    String msg = MessageFormatter.format(
-                        "{}|Error while processing export job!",
-                        uuid
-                    ).getMessage();
-                    log.error(msg, e);
-                }
+            try {
+                processExportJob(jobId);
+                log.info("ExportJob finished, jobId={}", jobId);
+            } catch (Exception e) {
+                String msg = MessageFormatter.format("ExportJob error, jobId={}", jobId).getMessage();
+                log.error(msg, e);
             }
         }
 

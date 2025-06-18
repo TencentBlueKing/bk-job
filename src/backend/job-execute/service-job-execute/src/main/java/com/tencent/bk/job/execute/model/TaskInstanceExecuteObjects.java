@@ -147,4 +147,29 @@ public class TaskInstanceExecuteObjects {
             return null;
         }
     }
+
+    /**
+     * 获取执行对象总数（同时包含有效、无效执行对象）
+     *
+     * @return 执行对象总数
+     */
+    public int getExecuteObjectNum() {
+        int num = 0;
+        if (CollectionUtils.isNotEmpty(validHosts)) {
+            num += validHosts.size();
+        }
+        if (CollectionUtils.isNotEmpty(notExistHosts)) {
+            num += notExistHosts.size();
+        }
+        if (CollectionUtils.isNotEmpty(notInAppHosts)) {
+            num += notInAppHosts.size();
+        }
+        if (CollectionUtils.isNotEmpty(validContainers)) {
+            num += validContainers.size();
+        }
+        if (CollectionUtils.isNotEmpty(notExistContainerIds)) {
+            num += notExistContainerIds.size();
+        }
+        return num;
+    }
 }

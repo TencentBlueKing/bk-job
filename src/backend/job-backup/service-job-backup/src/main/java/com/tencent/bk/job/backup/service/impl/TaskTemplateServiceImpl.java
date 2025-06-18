@@ -28,7 +28,7 @@ import com.tencent.bk.job.backup.service.TaskTemplateService;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.manage.api.inner.ServiceBackupTmpResource;
+import com.tencent.bk.job.manage.api.inner.ServiceBackupResource;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
@@ -49,20 +49,19 @@ import java.util.stream.Collectors;
 @Service("jobBackupTaskTemplateServiceImpl")
 public class TaskTemplateServiceImpl implements TaskTemplateService {
     private final ServiceTaskTemplateResource templateResource;
-    private final ServiceBackupTmpResource backupTmpResource;
+    private final ServiceBackupResource backupResource;
 
     @Autowired
     public TaskTemplateServiceImpl(ServiceTaskTemplateResource templateResource,
-                                   ServiceBackupTmpResource backupTmpResource) {
+                                   ServiceBackupResource backupResource) {
         this.templateResource = templateResource;
-        this.backupTmpResource = backupTmpResource;
+        this.backupResource = backupResource;
     }
 
     @Override
     public TaskTemplateVO getTemplateById(String username, Long appId, Long id) {
         try {
-            Response<TaskTemplateVO> templateByIdResponse =
-                backupTmpResource.getTemplateById(username, appId, id);
+            Response<TaskTemplateVO> templateByIdResponse = backupResource.getTemplateById(appId, id);
             if (templateByIdResponse != null) {
                 if (0 == templateByIdResponse.getCode()) {
                     return templateByIdResponse.getData();

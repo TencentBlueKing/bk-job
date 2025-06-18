@@ -103,16 +103,6 @@ public interface ServiceTaskPlanResource {
         @RequestParam(value = "includeDisabledSteps", required = false, defaultValue = "false")
             Boolean includeDisabledSteps);
 
-    @PutMapping("/service/app/{appId}/plan/{templateId}/{planId}/createPlanWithId")
-    InternalResponse<Long> createPlanWithIdForMigration(
-        @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
-        @ApiParam(value = "模版 ID") @PathVariable("templateId") Long templateId,
-        @ApiParam(value = "执行方案 ID") @PathVariable("planId") Long planId,
-        @ApiParam(value = "创建时间") @RequestHeader(value = "X-Create-Time", required = false) Long createTime,
-        @ApiParam(value = "修改时间") @RequestHeader(value = "X-Update-Time", required = false) Long lastModifyTime,
-        @ApiParam(value = "最后修改人") @RequestHeader(value = "X-Update-User", required = false) String lastModifyUser);
-
     @GetMapping("/service/app/{appId}/plan/check")
     InternalResponse<ServiceIdNameCheckDTO> checkIdAndName(
         @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,

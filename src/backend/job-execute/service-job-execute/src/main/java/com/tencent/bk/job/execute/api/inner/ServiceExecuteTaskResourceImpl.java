@@ -33,6 +33,8 @@ import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.iam.AuthResultDTO;
+import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -67,14 +69,17 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
     private final WebAuthService webAuthService;
 
     private final RemoteAppService remoteAppService;
+    private final TenantService tenantService;
 
     @Autowired
     public ServiceExecuteTaskResourceImpl(TaskExecuteService taskExecuteService,
                                           WebAuthService webAuthService,
-                                          RemoteAppService remoteAppService) {
+                                          RemoteAppService remoteAppService,
+                                          TenantService tenantService) {
         this.taskExecuteService = taskExecuteService;
         this.webAuthService = webAuthService;
         this.remoteAppService = remoteAppService;
+        this.tenantService = tenantService;
     }
 
     @Override
@@ -188,6 +193,8 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
     @Override
     public InternalResponse<AuthResultDTO> authExecuteTask(ServiceTaskExecuteRequest request) {
         log.info("Auth execute task, request={}", request);
+        String tenantId = tenantService.getTenantIdByAppId(request.getAppId());
+        JobContextUtil.setUser(new User(tenantId, request.getOperator(), request.getOperator()));
         if (!checkExecuteTaskRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }

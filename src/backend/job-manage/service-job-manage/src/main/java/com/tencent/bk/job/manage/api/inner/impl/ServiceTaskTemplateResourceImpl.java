@@ -122,16 +122,6 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
     }
 
     @Override
-    public InternalResponse<ServiceTaskTemplateDTO> getTemplateById(String username, Long appId, Long templateId) {
-        TaskTemplateInfoDTO templateInfo = templateService.getTaskTemplateById(appId, templateId);
-        if (templateInfo == null) {
-            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
-        }
-        ServiceTaskTemplateDTO serviceTaskTemplateDTO = TaskTemplateInfoDTO.toServiceDTO(templateInfo);
-        return InternalResponse.buildSuccessResp(serviceTaskTemplateDTO);
-    }
-
-    @Override
     public InternalResponse<ServiceTaskTemplateDTO> getTemplateById(Long templateId) {
         TaskTemplateInfoDTO templateInfo = templateService.getTemplateById(templateId);
         if (templateInfo == null) {
@@ -159,6 +149,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq
     ) {
         User user = userLocalCache.getUser(tenantService.getTenantIdByAppId(appId), username);
+        JobContextUtil.setUser(user);
         JobContextUtil.setAllowMigration(true);
         if (templateId > 0) {
             taskTemplateCreateUpdateReq.setId(templateId);
