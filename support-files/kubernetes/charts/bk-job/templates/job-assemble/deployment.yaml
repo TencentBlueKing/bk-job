@@ -127,9 +127,9 @@ spec:
             - name: redis
               mountPath: /etc/secrets/redis
               readOnly: true
-            - name: mongodb
-              mountPath: /etc/secrets/mongodb
-              readOnly: true
+            - name : mongodb
+              mountPath : /etc/secrets/mongodb
+              readOnly : true
             {{- include "job.mariadb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.backup.archive.mariadb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.mongodb.certsVolumeMount" . | nindent 12 }}

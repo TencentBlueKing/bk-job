@@ -25,9 +25,11 @@
 package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceSpecificResourceNotifyPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
@@ -50,14 +52,28 @@ public interface NotifyService {
 
     List<TriggerPolicyVO> listAppDefaultNotifyPolicies(String username, Long appId);
 
+    CustomNotifyDTO getSpecificResourceNotifyPolicy(Long appId,
+                                                    Integer resourceType,
+                                                    String resourceId,
+                                                    Integer triggerType);
 
     Long saveAppDefaultNotifyPolicies(String username, Long appId, NotifyPoliciesCreateUpdateReq createUpdateReq);
 
-    Long saveAppDefaultNotifyPoliciesToLocal(String username, Long appId, String triggerUser,
+    Long saveAppDefaultNotifyPoliciesToLocal(String username,
+                                             Long appId,
+                                             String triggerUser,
                                              NotifyPoliciesCreateUpdateReq createUpdateReq);
 
-    Long saveAppDefaultNotifyPolicies(String username, Long appId, NotifyPoliciesCreateUpdateReq createUpdateReq,
+    Boolean saveSpecificResourceNotifyPolicies(Long appId,
+                                            String operator,
+                                            ServiceSpecificResourceNotifyPolicyDTO specificResourceNotifyPolicyDTO);
+
+    Long saveAppDefaultNotifyPolicies(String username,
+                                      Long appId,
+                                      NotifyPoliciesCreateUpdateReq createUpdateReq,
                                       boolean checkAuth);
+
+    int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId);
 
     List<TriggerTypeVO> listTriggerType(String username);
 

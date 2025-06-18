@@ -22,50 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner;
+package com.tencent.bk.job.common.constant;
 
-import lombok.Data;
+import lombok.Getter;
 
-/**
- * 通知DTO
- */
-@Data
-public class ServiceNotificationTriggerDTO {
+@Getter
+public enum CronJobNotifyType {
     /**
-     * 触发者
+     * 继承业务
      */
-    private String triggerUser;
-    /**
-     * 业务Id
-     */
-    private Long appId;
-    /**
-     * 资源Id
-     */
-    private String resourceId;
-    /**
-     * 触发方式
-     *
-     * @see com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum
-     */
-    private Integer triggerType;
+    EXTENDS_APP(1),
 
     /**
-     * 触发通知的资源类型
-     *
-     * @see com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum
+     * 自定义通知方式
      */
-    private Integer resourceType;
+    CUSTOM(2);
 
-    /**
-     * 定时任务ID
-     */
-    private Long cronTaskId;
+    private final Integer type;
 
-    /**
-     * 资源操作结果
-     *
-     * @see com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum
-     */
-    private Integer resourceExecuteStatus;
+    CronJobNotifyType(Integer type) {
+        this.type = type;
+    }
 }
