@@ -25,22 +25,26 @@
 package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.cc.sdk.BkNetClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.common.TopologyHelper;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.dao.CurrentTenantHostDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
+import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.cloudarea.BkNetService;
+import com.tencent.bk.job.manage.service.host.BizTopoHostService;
 import com.tencent.bk.job.manage.service.host.ScopeTopoHostService;
 import com.tencent.bk.job.manage.service.impl.agent.AgentStatusService;
+import com.tencent.bk.job.manage.util.ScopeFeatureUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -60,26 +64,35 @@ import java.util.stream.Collectors;
 @Service
 public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
 
-    private final ApplicationHostDAO applicationHostDAO;
+    private final CurrentTenantHostDAO currentTenantHostDAO;
+    private final NoTenantHostDAO noTenantHostDAO;
     private final ApplicationService applicationService;
     private final HostTopoDAO hostTopoDAO;
     private final TopologyHelper topologyHelper;
     private final AgentStatusService agentStatusService;
     private final MessageI18nService i18nService;
+    private final BkNetService bkNetService;
+    private final BizTopoHostService bizTopoHostService;
 
     @Autowired
-    public ScopeTopoHostServiceImpl(ApplicationHostDAO applicationHostDAO,
+    public ScopeTopoHostServiceImpl(CurrentTenantHostDAO currentTenantHostDAO,
+                                    NoTenantHostDAO noTenantHostDAO,
                                     ApplicationService applicationService,
                                     HostTopoDAO hostTopoDAO,
                                     TopologyHelper topologyHelper,
                                     AgentStatusService agentStatusService,
-                                    MessageI18nService i18nService) {
-        this.applicationHostDAO = applicationHostDAO;
+                                    MessageI18nService i18nService,
+                                    BkNetService bkNetService,
+                                    BizTopoHostService bizTopoHostService) {
+        this.currentTenantHostDAO = currentTenantHostDAO;
+        this.noTenantHostDAO = noTenantHostDAO;
         this.applicationService = applicationService;
         this.hostTopoDAO = hostTopoDAO;
         this.topologyHelper = topologyHelper;
         this.agentStatusService = agentStatusService;
         this.i18nService = i18nService;
+        this.bkNetService = bkNetService;
+        this.bizTopoHostService = bizTopoHostService;
     }
 
     @Override
@@ -87,9 +100,9 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
                                                          AppResourceScope appResourceScope) {
         StopWatch watch = new StopWatch("listAppTopologyHostCountTree");
         watch.start("listAppTopologyHostCountTree");
-        CcTopologyNodeVO topologyTree = this.listAppTopologyTree(username, appResourceScope);
+        CcTopologyNodeVO topologyTree = this.listAppTopologyTree(appResourceScope);
         watch.stop();
-        if (appResourceScope.getType() == ResourceScopeTypeEnum.BIZ) {
+        if (appResourceScope.isBiz()) {
             watch.start("fillHostInfo");
             fillHostInfo(Long.valueOf(appResourceScope.getId()), topologyTree, false);
             watch.stop();
@@ -101,6 +114,13 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
         return topologyTree;
     }
 
+    @Override
+    public List<ApplicationHostDTO> listHostByNodes(AppResourceScope appResourceScope, List<BizTopoNode> nodeList) {
+        ScopeFeatureUtil.assertOnlyBizSupported(appResourceScope);
+        Long bizId = Long.valueOf(appResourceScope.getId());
+        return bizTopoHostService.listHostByNodes(bizId, nodeList);
+    }
+
     private CcTopologyNodeVO fillObjInfoForNode(ApplicationDTO appInfo, CcTopologyNodeVO node) {
         if (appInfo.isBiz()) {
             node.setObjectId("biz");
@@ -108,11 +128,14 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
         } else if (appInfo.isBizSet()) {
             node.setObjectId("biz_set");
             node.setObjectName(i18nService.getI18n("cmdb.object.name.biz_set"));
+        } else if (appInfo.isTenantSet()) {
+            node.setObjectId("tenant_set");
+            node.setObjectName(i18nService.getI18n("cmdb.object.name.tenant_set"));
         }
         return node;
     }
 
-    public CcTopologyNodeVO listAppTopologyTree(String username, AppResourceScope appResourceScope) {
+    public CcTopologyNodeVO listAppTopologyTree(AppResourceScope appResourceScope) {
         ApplicationDTO appInfo = applicationService.getAppByAppId(appResourceScope.getAppId());
         if (appInfo == null) {
             throw new InvalidParamException(ErrorCode.WRONG_APP_ID);
@@ -120,14 +143,18 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
         CcTopologyNodeVO ccTopologyNodeVO = fillObjInfoForNode(appInfo, new CcTopologyNodeVO());
         ccTopologyNodeVO.setInstanceId(Long.valueOf(appResourceScope.getId()));
         ccTopologyNodeVO.setInstanceName(appInfo.getName());
-        if (appInfo.isAllBizSet()) {
+        if (appInfo.isAllTenantSet()) {
+            // 全租户
+            ccTopologyNodeVO.setCount((int) noTenantHostDAO.countAllHosts());
+            return ccTopologyNodeVO;
+        } else if (appInfo.isAllBizSet()) {
             // 全业务
-            ccTopologyNodeVO.setCount((int) applicationHostDAO.countAllHosts());
+            ccTopologyNodeVO.setCount((int) currentTenantHostDAO.countAllHosts());
             return ccTopologyNodeVO;
         } else if (appInfo.isBizSet()) {
             // 业务集
             ccTopologyNodeVO.setCount(
-                (int) applicationHostDAO.countHostsByBizIds(topologyHelper.getBizSetSubBizIds(appInfo))
+                (int) currentTenantHostDAO.countHostsByBizIds(topologyHelper.getBizSetSubBizIds(appInfo))
             );
             return ccTopologyNodeVO;
         }
@@ -146,7 +173,7 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
             map.put(topologyTree.getInstanceId(), topologyTree);
         } else {
             List<CcTopologyNodeVO> childs = topologyTree.getChild();
-            if (childs != null && childs.size() > 0) {
+            if (childs != null && !childs.isEmpty()) {
                 childs.forEach(child -> constructMap(map, child));
             }
         }
@@ -201,7 +228,7 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
         watch.stop();
         watch.start("getHosts of Module:" + topologyTree.getInstanceId());
         // 从DB拿主机
-        List<ApplicationHostDTO> dbHosts = applicationHostDAO.listHostInfoByBizId(bizId);
+        List<ApplicationHostDTO> dbHosts = currentTenantHostDAO.listHostInfoByBizId(bizId);
         log.info("find {} hosts from DB", dbHosts.size());
         watch.stop();
         //批量设置agent状态
@@ -254,17 +281,22 @@ public class ScopeTopoHostServiceImpl implements ScopeTopoHostService {
         countHosts(topologyTree);
         watch.stop();
         if (watch.getTotalTimeMillis() > 4000) {
-            log.warn("PERF:SLOW:fillHostInfo: {}", watch.toString());
+            log.warn("PERF:SLOW:fillHostInfo: {}", watch);
         } else {
             if (log.isDebugEnabled()) {
-                log.debug("fillHostInfo: {}", watch.toString());
+                log.debug("fillHostInfo: {}", watch);
             }
         }
     }
 
     private void fillCloudAreaName(List<ApplicationHostDTO> hostDTOList) {
         hostDTOList.forEach(hostDTO ->
-            hostDTO.setCloudAreaName(BkNetClient.getCloudAreaNameFromCache(hostDTO.getCloudAreaId()))
+            hostDTO.setCloudAreaName(
+                bkNetService.getCloudAreaNameFromCache(
+                    JobContextUtil.getTenantId(),
+                    hostDTO.getCloudAreaId()
+                )
+            )
         );
     }
 }

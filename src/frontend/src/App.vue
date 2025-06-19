@@ -103,7 +103,9 @@
         theme="light site-header-dropdown"
         :tippy-options="{ hideOnClick: false }">
         <div class="user-flag">
-          <span style="margin-right: 5px;">{{ currentUser.username }}</span>
+          <span style="margin-right: 5px;">
+            <bk-user-display-name :user-id="currentUser.username" />
+          </span>
           <i class="bk-icon icon-down-shape" />
         </div>
         <template slot="content">
@@ -140,6 +142,7 @@
   import I18n, { setLocale } from '@/i18n';
 
   import Layout from './layout-new';
+
 
   export default {
     name: 'App',

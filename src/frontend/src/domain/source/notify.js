@@ -66,7 +66,21 @@ class NotifyManage extends ModuleBase {
 
   // 拉取全量用户列表（不包括黑名单内用户）
   getAllUsers(params) {
-    return Request.get(`${this.module}/users/list`, { params });
+    return Request.get(`${window.PROJECT_CONFIG.BK_USER_WEB_API_ROOT_URL}/api/v3/open-web/tenant/users/-/search/`, {
+      params,
+      headers: {
+        'X-Bk-Tenant-Id': window.PROJECT_CONFIG.TENANT_ID,
+      },
+    });
+  }
+
+  getBatchUserInfo(params) {
+    return Request.get(`${window.PROJECT_CONFIG.BK_USER_WEB_API_ROOT_URL}/api/v3/open-web/tenant/users/-/lookup/`, {
+      params,
+      headers: {
+        'X-Bk-Tenant-Id': window.PROJECT_CONFIG.TENANT_ID,
+      },
+    });
   }
 
   // 获取页面模板

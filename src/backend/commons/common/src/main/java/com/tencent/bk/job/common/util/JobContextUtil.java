@@ -27,7 +27,8 @@ package com.tencent.bk.job.common.util;
 import com.tencent.bk.job.common.context.JobContext;
 import com.tencent.bk.job.common.context.JobContextThreadLocal;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.BasicApp;
+import com.tencent.bk.job.common.model.User;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -86,24 +87,24 @@ public class JobContextUtil {
         return staffName;
     }
 
-    public static void setUsername(String username) {
+    public static void setUser(User user) {
         JobContext jobContext = getOrInitContext();
-        jobContext.setUsername(username);
+        jobContext.setUser(user);
     }
 
-    public static AppResourceScope getAppResourceScope() {
+    public static BasicApp getApp() {
         JobContext jobContext = JobContextThreadLocal.get();
-        AppResourceScope appResourceScope = null;
+        BasicApp app = null;
         if (jobContext != null) {
-            appResourceScope = jobContext.getAppResourceScope();
+            app = jobContext.getApp();
         }
 
-        return appResourceScope;
+        return app;
     }
 
-    public static void setAppResourceScope(AppResourceScope appResourceScope) {
+    public static void setApp(BasicApp app) {
         JobContext jobContext = getOrInitContext();
-        jobContext.setAppResourceScope(appResourceScope);
+        jobContext.setApp(app);
     }
 
     public static String getRequestId() {
@@ -262,5 +263,35 @@ public class JobContextUtil {
     public static void setRequestFrom(String requestFrom) {
         JobContext jobContext = getOrInitContext();
         jobContext.setRequestFrom(requestFrom);
+    }
+
+    public static String getTenantId() {
+        JobContext jobContext = JobContextThreadLocal.get();
+        String tenantId = jobContext == null ? null : jobContext.getTenantId();
+        if (tenantId == null) {
+            log.warn("tenantId is null in JobContext: {}", StackTraceUtil.getCurrentStackTrace());
+        }
+        return tenantId;
+    }
+
+    public static User getUser() {
+        JobContext jobContext = JobContextThreadLocal.get();
+        if (jobContext == null || jobContext.getUser() == null) {
+            throw new IllegalStateException("User not set in JobContext");
+        }
+        return jobContext.getUser();
+    }
+
+    /**
+     * 获取用户展示名
+     *
+     * @return 用户展示名
+     */
+    public static String getUserDisplayName() {
+        User user = getUser();
+        if (user == null) {
+            return null;
+        }
+        return user.getDisplayName();
     }
 }

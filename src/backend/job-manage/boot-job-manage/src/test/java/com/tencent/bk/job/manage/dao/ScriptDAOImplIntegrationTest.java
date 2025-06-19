@@ -486,7 +486,7 @@ class ScriptDAOImplIntegrationTest {
     @Test
     @DisplayName("当存在公共脚本，返回true")
     void whenAppPublicExistThenReturnTrue() {
-        boolean existAnyPublicScript = scriptDAO.isExistAnyPublicScript();
+        boolean existAnyPublicScript = scriptDAO.isExistAnyPublicScript("tencent");
         assertThat(existAnyPublicScript).isEqualTo(true);
     }
 

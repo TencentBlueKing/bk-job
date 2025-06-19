@@ -30,7 +30,8 @@
     v-bkloading="{ isLoading }"
     class="user-box">
     <div class="user-name">
-      Hi, {{ userInfo.username }}
+      Hi,
+      <bk-user-display-name :user-id="userInfo.username" />
     </div>
     <greeting />
     <div

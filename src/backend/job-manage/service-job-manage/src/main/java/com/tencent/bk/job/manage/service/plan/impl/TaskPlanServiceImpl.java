@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -248,8 +249,8 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         ),
         content = EventContentConstants.VIEW_JOB_PLAN
     )
-    public TaskPlanInfoDTO getTaskPlan(String username, Long appId, Long templateId, Long planId) {
-        checkViewPlanPermission(username, appId, templateId, planId);
+    public TaskPlanInfoDTO getTaskPlan(User user, Long appId, Long templateId, Long planId) {
+        checkViewPlanPermission(user, appId, templateId, planId);
 
         TaskPlanInfoDTO taskPlan = getTaskPlanById(appId, templateId, planId);
         if (taskPlan == null) {
@@ -269,14 +270,14 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         ),
         content = EventContentConstants.VIEW_JOB_PLAN
     )
-    public TaskPlanInfoDTO getTaskPlan(String username, Long appId, Long planId) {
+    public TaskPlanInfoDTO getTaskPlan(User user, Long appId, Long planId) {
         TaskPlanInfoDTO taskPlan = getTaskPlanById(appId, planId);
         if (taskPlan == null) {
             log.warn("Task plan not exist, appId: {}, planId: {}", appId, planId);
             throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
         }
 
-        checkViewPlanPermission(username, appId, taskPlan.getTemplateId(), planId);
+        checkViewPlanPermission(user, appId, taskPlan.getTemplateId(), planId);
 
         return taskPlan;
     }
@@ -292,10 +293,10 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         ),
         content = EventContentConstants.CREATE_JOB_PLAN
     )
-    public TaskPlanInfoDTO createTaskPlan(String username, TaskPlanInfoDTO taskPlanInfo) {
-        checkCreatePlanPermission(username, taskPlanInfo.getAppId(), taskPlanInfo.getTemplateId());
+    public TaskPlanInfoDTO createTaskPlan(User user, TaskPlanInfoDTO taskPlanInfo) {
+        checkCreatePlanPermission(user, taskPlanInfo.getAppId(), taskPlanInfo.getTemplateId());
         TaskPlanInfoDTO newPlan = createTaskPlan(taskPlanInfo);
-        planAuthService.registerPlan(newPlan.getId(), newPlan.getName(), username);
+        planAuthService.registerPlan(user, newPlan.getId(), newPlan.getName());
         return newPlan;
     }
 
@@ -336,23 +337,23 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         return getTaskPlanById(planId);
     }
 
-    private void checkCreatePlanPermission(String username, long appId, long templateId) {
-        planAuthService.authCreateJobPlan(username, new AppResourceScope(appId), templateId, null)
+    private void checkCreatePlanPermission(User user, long appId, long templateId) {
+        planAuthService.authCreateJobPlan(user, new AppResourceScope(appId), templateId, null)
             .denyIfNoPermission();
     }
 
-    private void checkViewPlanPermission(String username, long appId, long templateId, long planId) {
-        planAuthService.authViewJobPlan(username, new AppResourceScope(appId), templateId, planId, null)
+    private void checkViewPlanPermission(User user, long appId, long templateId, long planId) {
+        planAuthService.authViewJobPlan(user, new AppResourceScope(appId), templateId, planId, null)
             .denyIfNoPermission();
     }
 
-    private void checkEditPlanPermission(String username, long appId, long templateId, long planId) {
-        planAuthService.authEditJobPlan(username, new AppResourceScope(appId), templateId, planId, null)
+    private void checkEditPlanPermission(User user, long appId, long templateId, long planId) {
+        planAuthService.authEditJobPlan(user, new AppResourceScope(appId), templateId, planId, null)
             .denyIfNoPermission();
     }
 
-    private void checkDeletePlanPermission(String username, long appId, long templateId, long planId) {
-        planAuthService.authDeleteJobPlan(username, new AppResourceScope(appId), templateId, planId, null)
+    private void checkDeletePlanPermission(User user, long appId, long templateId, long planId) {
+        planAuthService.authDeleteJobPlan(user, new AppResourceScope(appId), templateId, planId, null)
             .denyIfNoPermission();
     }
 
@@ -367,8 +368,8 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         ),
         content = EventContentConstants.EDIT_JOB_PLAN
     )
-    public TaskPlanInfoDTO updateTaskPlan(String username, TaskPlanInfoDTO taskPlanInfo) {
-        checkEditPlanPermission(username, taskPlanInfo.getAppId(), taskPlanInfo.getTemplateId(),
+    public TaskPlanInfoDTO updateTaskPlan(User user, TaskPlanInfoDTO taskPlanInfo) {
+        checkEditPlanPermission(user, taskPlanInfo.getAppId(), taskPlanInfo.getTemplateId(),
             taskPlanInfo.getId());
 
         return updateTaskPlan(taskPlanInfo);
@@ -376,9 +377,9 @@ public class TaskPlanServiceImpl implements TaskPlanService {
 
     @Override
     @JobTransactional(transactionManager = "jobManageTransactionManager")
-    public TaskPlanInfoDTO updateDebugTaskPlan(String username, TaskPlanInfoDTO taskPlanInfo) {
+    public TaskPlanInfoDTO updateDebugTaskPlan(User user, TaskPlanInfoDTO taskPlanInfo) {
         // 调试作业模版会保存一份内置的执行方案；从用户角度来说仍然还是在处理跟模版相关的操作，所以使用模版查看鉴权
-        templateAuthService.authViewJobTemplate(username,
+        templateAuthService.authViewJobTemplate(user,
             new AppResourceScope(taskPlanInfo.getAppId()), taskPlanInfo.getTemplateId())
             .denyIfNoPermission();
 
@@ -439,8 +440,8 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         ),
         content = EventContentConstants.DELETE_JOB_PLAN
     )
-    public TaskPlanInfoDTO deleteTaskPlan(String username, Long appId, Long templateId, Long planId) {
-        checkDeletePlanPermission(username, appId, templateId, planId);
+    public TaskPlanInfoDTO deleteTaskPlan(User user, Long appId, Long templateId, Long planId) {
+        checkDeletePlanPermission(user, appId, templateId, planId);
 
         TaskPlanInfoDTO plan = getTaskPlanById(appId, templateId, planId);
         if (plan == null) {
@@ -459,7 +460,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
 
     @Override
     @JobTransactional(transactionManager = "jobManageTransactionManager")
-    public TaskPlanInfoDTO getDebugTaskPlan(String username, Long appId, Long templateId) {
+    public TaskPlanInfoDTO getDebugTaskPlan(User user, Long appId, Long templateId) {
         TaskPlanInfoDTO taskPlan = taskPlanDAO.getDebugTaskPlan(appId, templateId);
         TaskTemplateInfoDTO taskTemplateInfo = taskTemplateService.getTaskTemplateBasicInfoById(appId, templateId);
         if (taskTemplateInfo == null) {
@@ -495,8 +496,8 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         taskPlan.setAppId(appId);
         taskPlan.setTemplateId(templateId);
         taskPlan.setName(taskTemplateInfo.getName());
-        taskPlan.setCreator(username);
-        taskPlan.setLastModifyUser(username);
+        taskPlan.setCreator(user.getUsername());
+        taskPlan.setLastModifyUser(user.getUsername());
         taskPlan.setLastModifyTime(DateUtils.currentTimeSeconds());
         taskPlan.setDebug(true);
         taskPlan.setId(createTaskPlan(taskPlan).getId());
@@ -749,7 +750,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     @Override
-    public Long saveTaskPlanForMigration(String username, Long appId, Long templateId, Long planId, Long createTime,
+    public Long saveTaskPlanForMigration(User user, Long appId, Long templateId, Long planId, Long createTime,
                                          Long lastModifyTime, String lastModifyUser) {
         try {
             TaskTemplateInfoDTO taskTemplateInfo = taskTemplateService.getTaskTemplateById(appId, templateId);
@@ -763,7 +764,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             } else {
                 throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
             }
-            taskPlan.setCreator(username);
+            taskPlan.setCreator(user.getUsername());
             if (createTime != null && createTime > 0) {
                 taskPlan.setCreateTime(createTime);
             } else {
@@ -772,7 +773,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             if (StringUtils.isNotBlank(lastModifyUser)) {
                 taskPlan.setLastModifyUser(lastModifyUser);
             } else {
-                taskPlan.setLastModifyUser(username);
+                taskPlan.setLastModifyUser(user.getUsername());
             }
             if (lastModifyTime != null && lastModifyTime > 0) {
                 taskPlan.setLastModifyTime(lastModifyTime);

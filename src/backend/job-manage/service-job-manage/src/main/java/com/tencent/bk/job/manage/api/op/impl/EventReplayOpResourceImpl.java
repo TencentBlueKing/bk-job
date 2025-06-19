@@ -28,7 +28,8 @@ import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.api.op.EventReplayOpResource;
-import com.tencent.bk.job.manage.service.impl.sync.HostEventWatcher;
+import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventManager;
+import com.tencent.bk.job.manage.background.event.cmdb.TenantHostEventWatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,17 +38,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class EventReplayOpResourceImpl implements EventReplayOpResource {
 
-    private final HostEventWatcher hostEventWatcher;
+    private final CmdbEventManager cmdbEventManager;
 
     @Autowired
-    public EventReplayOpResourceImpl(HostEventWatcher hostEventWatcher) {
-        this.hostEventWatcher = hostEventWatcher;
+    public EventReplayOpResourceImpl(CmdbEventManager cmdbEventManager) {
+        this.cmdbEventManager = cmdbEventManager;
     }
 
     @Override
-    public Response<Void> replayHostEvent(String username, ResourceEvent<HostEventDetail> event) {
-        hostEventWatcher.handleEvent(event);
-        return Response.buildSuccessResp(null);
+    public Response<Boolean> replayHostEvent(String username, String tenantId, ResourceEvent<HostEventDetail> event) {
+        TenantHostEventWatcher tenantHostEventWatcher = cmdbEventManager.getTenantHostEventWatcher(tenantId);
+        if (tenantHostEventWatcher == null) {
+            return Response.buildSuccessResp(false);
+        }
+        tenantHostEventWatcher.handleEvent(event);
+        return Response.buildSuccessResp(true);
     }
 
 }

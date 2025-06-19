@@ -34,8 +34,10 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.web.WebTagResource;
 import com.tencent.bk.job.manage.auth.NoResourceScopeAuthService;
 import com.tencent.bk.job.manage.auth.ScriptAuthService;
@@ -132,19 +134,19 @@ public class WebTagResourceImpl implements WebTagResource {
             });
         }
 
-        processManagePermission(username, appResourceScope, pageTagVOs.getData());
+        processManagePermission(JobContextUtil.getUser(), appResourceScope, pageTagVOs.getData());
 
         return Response.buildSuccessResp(pageTagVOs);
     }
 
-    private void processManagePermission(String username, AppResourceScope appResourceScope, List<TagVO> tags) {
+    private void processManagePermission(User user, AppResourceScope appResourceScope, List<TagVO> tags) {
         if (CollectionUtils.isEmpty(tags)) {
             return;
         }
         List<Long> tagIds =
             tags.stream().map(TagVO::getId).distinct().collect(Collectors.toList());
 
-        List<Long> allowTagIds = tagAuthService.batchAuthManageTag(username, appResourceScope, tagIds);
+        List<Long> allowTagIds = tagAuthService.batchAuthManageTag(user, appResourceScope, tagIds);
 
         tags.forEach(tagVO -> tagVO.setCanManage(allowTagIds.contains(tagVO.getId())));
     }
@@ -187,12 +189,13 @@ public class WebTagResourceImpl implements WebTagResource {
                                            String scopeId,
                                            Long tagId,
                                            TagCreateUpdateReq tagCreateUpdateReq) {
+        User user = JobContextUtil.getUser();
         TagDTO tag = new TagDTO();
         tag.setId(tagId);
         tag.setAppId(appResourceScope.getAppId());
         tag.setName(tagCreateUpdateReq.getName());
         tag.setDescription(tagCreateUpdateReq.getDescription());
-        return Response.buildSuccessResp(tagService.updateTagById(username, tag));
+        return Response.buildSuccessResp(tagService.updateTagById(user, tag));
     }
 
     @Override
@@ -202,11 +205,12 @@ public class WebTagResourceImpl implements WebTagResource {
                                        String scopeType,
                                        String scopeId,
                                        @AuditRequestBody TagCreateUpdateReq tagCreateUpdateReq) {
+        User user = JobContextUtil.getUser();
         TagDTO tag = new TagDTO();
         tag.setAppId(appResourceScope.getAppId());
         tag.setName(tagCreateUpdateReq.getName());
         tag.setDescription(tagCreateUpdateReq.getDescription());
-        TagDTO newTag = tagService.createTag(username, tag);
+        TagDTO newTag = tagService.createTag(user, tag);
         return Response.buildSuccessResp(TagDTO.toVO(newTag));
     }
 
@@ -217,7 +221,8 @@ public class WebTagResourceImpl implements WebTagResource {
                                        String scopeType,
                                        String scopeId,
                                        Long tagId) {
-        tagService.deleteTag(username, appResourceScope.getAppId(), tagId);
+        User user = JobContextUtil.getUser();
+        tagService.deleteTag(user, appResourceScope.getAppId(), tagId);
         return Response.buildSuccessResp(true);
     }
 
@@ -240,7 +245,8 @@ public class WebTagResourceImpl implements WebTagResource {
             return Response.buildSuccessResp(null);
         }
 
-        AuthResult authResult = checkTagRelatedResourcesUpdatePermission(username, appResourceScope, resourceGroups);
+        AuthResult authResult = checkTagRelatedResourcesUpdatePermission(JobContextUtil.getUser(),
+            appResourceScope, resourceGroups);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -264,32 +270,33 @@ public class WebTagResourceImpl implements WebTagResource {
         return Response.buildSuccessResp(null);
     }
 
-    private AuthResult checkTagRelatedResourcesUpdatePermission(String username, AppResourceScope appResourceScope,
+    private AuthResult checkTagRelatedResourcesUpdatePermission(User user,
+                                                                AppResourceScope appResourceScope,
                                                                 Map<JobResourceTypeEnum, Set<String>> resourceGroup) {
         if (resourceGroup.size() == 0) {
-            return AuthResult.pass();
+            return AuthResult.pass(user);
         }
 
-        AuthResult authResult = AuthResult.pass();
+        AuthResult authResult = AuthResult.pass(user);
         for (Map.Entry<JobResourceTypeEnum, Set<String>> entry : resourceGroup.entrySet()) {
             JobResourceTypeEnum resourceType = entry.getKey();
             Set<String> resources = entry.getValue();
             switch (resourceType) {
                 case APP_SCRIPT:
-                    authResult = authResult.mergeAuthResult(scriptAuthService.batchAuthResultManageScript(username,
+                    authResult = authResult.mergeAuthResult(scriptAuthService.batchAuthResultManageScript(user,
                         appResourceScope, new ArrayList<>(resources)));
                     break;
                 case PUBLIC_SCRIPT:
                     authResult = authResult.mergeAuthResult(
                         noResourceScopeAuthService.batchAuthResultManagePublicScript(
-                            username, new ArrayList<>(resources)
+                            user, new ArrayList<>(resources)
                         )
                     );
                     break;
                 case TEMPLATE:
                     authResult = authResult.mergeAuthResult(
                         templateAuthService.batchAuthResultEditJobTemplate(
-                            username, appResourceScope,
+                            user, appResourceScope,
                             resources.stream().map(Long::valueOf).collect(Collectors.toList())
                         )
                     );

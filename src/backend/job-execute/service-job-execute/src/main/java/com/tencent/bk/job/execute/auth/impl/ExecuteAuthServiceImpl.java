@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
@@ -96,23 +97,23 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         this.appAuthService.setResourceNameQueryService(resourceNameQueryService);
     }
 
-    public AuthResult authFastExecuteScript(String username,
+    public AuthResult authFastExecuteScript(User user,
                                             AppResourceScope appResourceScope,
                                             ExecuteTargetDTO executeTarget) {
 
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
         if (log.isDebugEnabled()) {
-            log.debug("Auth fast execute script, username:{}, appResourceScope:{}, hostInstances:{}", username,
-                appResourceScope, hostInstanceList);
+            log.debug("Auth fast execute script, username:{}, appResourceScope:{}, hostInstances:{}",
+                user.getUsername(), appResourceScope, hostInstanceList);
         }
-        boolean isAllowed = authHelper.isAllowed(
-            username, ActionId.QUICK_EXECUTE_SCRIPT, null, hostInstanceList);
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(),
+            user.getUsername(), ActionId.QUICK_EXECUTE_SCRIPT, null, hostInstanceList);
 
         if (isAllowed) {
-            return AuthResult.pass();
+            return AuthResult.pass(user);
         }
 
-        AuthResult authResult = AuthResult.fail();
+        AuthResult authResult = AuthResult.fail(user);
 
         List<PermissionResource> hostResources = convertHostsToPermissionResourceList(
             appResourceScope, executeTarget);
@@ -123,22 +124,22 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return authResult;
     }
 
-    public AuthResult authFastPushFile(String username,
+    public AuthResult authFastPushFile(User user,
                                        AppResourceScope appResourceScope,
                                        ExecuteTargetDTO executeTarget) {
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
         if (log.isDebugEnabled()) {
-            log.debug("Auth Fast transfer file, username:{}, appResourceScope:{}, hostInstances:{}", username,
+            log.debug("Auth Fast transfer file, username:{}, appResourceScope:{}, hostInstances:{}", user.getUsername(),
                 appResourceScope, hostInstanceList);
         }
-        boolean isAllowed = authHelper.isAllowed(
-            username, ActionId.QUICK_TRANSFER_FILE, null, hostInstanceList);
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(),
+            user.getUsername(), ActionId.QUICK_TRANSFER_FILE, null, hostInstanceList);
 
         if (isAllowed) {
-            return AuthResult.pass();
+            return AuthResult.pass(user);
         }
 
-        AuthResult authResult = AuthResult.fail();
+        AuthResult authResult = AuthResult.fail(user);
 
         List<PermissionResource> hostResources = convertHostsToPermissionResourceList(appResourceScope, executeTarget);
         authResult.addRequiredPermissions(ActionId.QUICK_TRANSFER_FILE, hostResources);
@@ -148,7 +149,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return authResult;
     }
 
-    public AuthResult authExecuteAppScript(String username, AppResourceScope appResourceScope,
+    public AuthResult authExecuteAppScript(User user, AppResourceScope appResourceScope,
                                            String scriptId, String scriptName, ExecuteTargetDTO executeTarget) {
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
 
@@ -157,15 +158,16 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         if (log.isDebugEnabled()) {
             log.debug("Auth execute script, username:{}, appResourceScope:{}, scriptId:{}, scriptInstance:{}, " +
                     "hostInstances:{}",
-                username, appResourceScope, scriptId, scriptInstance, hostInstanceList);
+                user.getUsername(), appResourceScope, scriptId, scriptInstance, hostInstanceList);
         }
-        boolean isAllowed = authHelper.isAllowed(username, ActionId.EXECUTE_SCRIPT, scriptInstance, hostInstanceList);
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
+            ActionId.EXECUTE_SCRIPT, scriptInstance, hostInstanceList);
 
         if (isAllowed) {
-            return AuthResult.pass();
+            return AuthResult.pass(user);
         }
 
-        AuthResult authResult = AuthResult.fail();
+        AuthResult authResult = AuthResult.fail(user);
 
         PermissionResource scriptResource = new PermissionResource();
         scriptResource.setSystemId(SystemId.JOB);
@@ -203,7 +205,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return executeInstance;
     }
 
-    public AuthResult authExecutePublicScript(String username,
+    public AuthResult authExecutePublicScript(User user,
                                               AppResourceScope appResourceScope,
                                               String scriptId,
                                               String scriptName,
@@ -215,16 +217,16 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
         if (log.isDebugEnabled()) {
             log.debug("Auth execute public script, username:{}, appResourceScope:{}, scriptId:{}, scriptInstance:{}, " +
-                "hostInstances:{}", username, appResourceScope, scriptId, scriptInstance, hostInstanceList);
+                "hostInstances:{}", user.getUsername(), appResourceScope, scriptId, scriptInstance, hostInstanceList);
         }
-        boolean isAllowed = authHelper.isAllowed(username, ActionId.EXECUTE_PUBLIC_SCRIPT, scriptInstance,
-            hostInstanceList);
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
+            ActionId.EXECUTE_PUBLIC_SCRIPT, scriptInstance, hostInstanceList);
 
         if (isAllowed) {
-            return AuthResult.pass();
+            return AuthResult.pass(user);
         }
 
-        AuthResult authResult = AuthResult.fail();
+        AuthResult authResult = AuthResult.fail(user);
 
         PermissionResource scriptResource = new PermissionResource();
         scriptResource.setSystemId(SystemId.JOB);
@@ -247,7 +249,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return authResult;
     }
 
-    public AuthResult authExecutePlan(String username,
+    public AuthResult authExecutePlan(User user,
                                       AppResourceScope appResourceScope,
                                       Long templateId,
                                       Long planId,
@@ -264,15 +266,16 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         if (log.isDebugEnabled()) {
             log.debug("Auth execute plan, username:{}, appResourceScope:{}, planId:{}, planInstance:{}," +
                     " hostInstances:{}",
-                username, appResourceScope, planId, planInstance, hostInstanceList);
+                user.getUsername(), appResourceScope, planId, planInstance, hostInstanceList);
         }
-        boolean isAllowed = authHelper.isAllowed(username, ActionId.LAUNCH_JOB_PLAN, planInstance, hostInstanceList);
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(),
+            ActionId.LAUNCH_JOB_PLAN, planInstance, hostInstanceList);
 
         if (isAllowed) {
-            return AuthResult.pass();
+            return AuthResult.pass(user);
         }
 
-        AuthResult authResult = AuthResult.fail();
+        AuthResult authResult = AuthResult.fail(user);
 
         PermissionResource planResource = new PermissionResource();
         planResource.setSystemId(SystemId.JOB);
@@ -296,7 +299,9 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     @Override
-    public AuthResult authDebugTemplate(String username, AppResourceScope appResourceScope, Long templateId,
+    public AuthResult authDebugTemplate(User user,
+                                        AppResourceScope appResourceScope,
+                                        Long templateId,
                                         ExecuteTargetDTO executeTarget) {
         List<InstanceDTO> hostInstanceList = buildHostInstances(appResourceScope, executeTarget);
 
@@ -305,16 +310,17 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
 
         if (log.isDebugEnabled()) {
             log.debug("Auth execute job template, username:{}, appResourceScope:{}, planId:{}, templateInstance:{}, " +
-                "hostInstances:{}", username, appResourceScope, templateId, jobTemplateInstance, hostInstanceList);
+                    "hostInstances:{}", user.getUsername(), appResourceScope, templateId, jobTemplateInstance,
+                hostInstanceList);
         }
-        boolean isAllowed = authHelper.isAllowed(username, ActionId.DEBUG_JOB_TEMPLATE, jobTemplateInstance,
-            hostInstanceList);
+        boolean isAllowed = authHelper.isAllowed(user.getTenantId(), user.getUsername(), ActionId.DEBUG_JOB_TEMPLATE,
+            jobTemplateInstance, hostInstanceList);
 
         if (isAllowed) {
-            return AuthResult.pass();
+            return AuthResult.pass(user);
         }
 
-        AuthResult authResult = AuthResult.fail();
+        AuthResult authResult = AuthResult.fail(user);
 
         PermissionResource jobTemplateResource = new PermissionResource();
         jobTemplateResource.setSystemId(SystemId.JOB);
@@ -425,6 +431,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                     hostInstanceList.addAll(buildBizStaticHostInstances(appResourceScope, executeObjects));
                     break;
                 case BIZ_SET:
+                case TENANT_SET:
                     InstanceDTO hostInstance = new InstanceDTO();
                     hostInstance.setType(ResourceTypeEnum.HOST.getId());
                     hostInstance.setSystem(SystemId.CMDB);
@@ -504,6 +511,19 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         resource.setResourceName(getResourceName(appResourceScope));
         resource.setSystemId(SystemId.CMDB);
         resource.setType(ResourceTypeId.BUSINESS_SET);
+        hostResources.add(resource);
+        return hostResources;
+    }
+
+    private List<PermissionResource> convertTenantSetStaticIpToPermissionResourceList(AppResourceScope appResourceScope) {
+        List<PermissionResource> hostResources = new ArrayList<>();
+        PermissionResource resource = new PermissionResource();
+        resource.setResourceId(appResourceScope.getId());
+        resource.setResourceType(ResourceTypeEnum.HOST);
+        resource.setSubResourceType("tenant_set");
+        resource.setResourceName(getResourceName(appResourceScope));
+        resource.setSystemId(SystemId.CMDB);
+        resource.setType(ResourceTypeId.TENANT_SET);
         hostResources.add(resource);
         return hostResources;
     }
@@ -592,6 +612,10 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                     hostResources.addAll(
                         convertBizSetStaticIpToPermissionResourceList(appResourceScope));
                     break;
+                case TENANT_SET:
+                    hostResources.addAll(
+                        convertTenantSetStaticIpToPermissionResourceList(appResourceScope));
+                    break;
                 default:
                     throw new NotImplementedException(
                         "Unsupported appScopeType:" + appResourceScope.getType().getValue(),
@@ -632,37 +656,37 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     @Override
-    public void authViewTaskInstance(String username,
+    public void authViewTaskInstance(User user,
                                      AppResourceScope appResourceScope,
                                      TaskInstanceDTO taskInstance) throws PermissionDeniedException {
-        if (username.equals(taskInstance.getOperator())) {
+        if (user.getUsername().equals(taskInstance.getOperator())) {
             return;
         }
-        AuthResult authResult = appAuthService.auth(username, ActionId.VIEW_HISTORY, appResourceScope);
+        AuthResult authResult = appAuthService.auth(user, ActionId.VIEW_HISTORY, appResourceScope);
         authResult.denyIfNoPermission();
     }
 
     @Override
-    public AuthResult checkViewTaskInstancePermission(String username,
+    public AuthResult checkViewTaskInstancePermission(User user,
                                                       AppResourceScope appResourceScope,
                                                       TaskInstanceDTO taskInstance) {
-        if (username.equals(taskInstance.getOperator())) {
-            return AuthResult.pass();
+        if (user.getUsername().equals(taskInstance.getOperator())) {
+            return AuthResult.pass(user);
         }
-        return appAuthService.auth(username, ActionId.VIEW_HISTORY, appResourceScope);
+        return appAuthService.auth(user, ActionId.VIEW_HISTORY, appResourceScope);
     }
 
     @Override
-    public AuthResult authViewAllTaskInstance(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(username, ActionId.VIEW_HISTORY, appResourceScope);
+    public AuthResult authViewAllTaskInstance(User user, AppResourceScope appResourceScope) {
+        return appAuthService.auth(user, ActionId.VIEW_HISTORY, appResourceScope);
     }
 
     @Override
-    public AuthResult authAccountExecutable(String username, AppResourceScope appResourceScope, Long accountId) {
+    public AuthResult authAccountExecutable(User user, AppResourceScope appResourceScope, Long accountId) {
         if (!shouldAuthAccount(appResourceScope)) {
-            return AuthResult.pass();
+            return AuthResult.pass(user);
         }
-        return authService.auth(username, ActionId.USE_ACCOUNT,
+        return authService.auth(user, ActionId.USE_ACCOUNT,
             ResourceTypeEnum.ACCOUNT, accountId.toString(), buildAppScopeResourcePath(
                 appResourceScope, ResourceTypeEnum.ACCOUNT, accountId.toString()));
     }
@@ -712,10 +736,11 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
     }
 
     @Override
-    public AuthResult batchAuthAccountExecutable(String username, AppResourceScope appResourceScope,
+    public AuthResult batchAuthAccountExecutable(User user,
+                                                 AppResourceScope appResourceScope,
                                                  Collection<Long> accountIds) {
         if (!shouldAuthAccount(appResourceScope)) {
-            return AuthResult.pass();
+            return AuthResult.pass(user);
         }
         List<PermissionResource> accountResources = accountIds.stream().map(accountId -> {
             PermissionResource accountResource = new PermissionResource();
@@ -725,7 +750,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
                 accountId.toString()));
             return accountResource;
         }).collect(Collectors.toList());
-        return appAuthService.batchAuthResources(username, ActionId.USE_ACCOUNT, appResourceScope,
+        return appAuthService.batchAuthResources(user, ActionId.USE_ACCOUNT, appResourceScope,
             accountResources);
     }
 }

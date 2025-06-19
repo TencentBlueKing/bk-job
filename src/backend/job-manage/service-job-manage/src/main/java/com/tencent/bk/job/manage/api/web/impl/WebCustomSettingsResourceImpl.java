@@ -50,29 +50,45 @@ public class WebCustomSettingsResourceImpl implements WebCustomSettingsResource 
     }
 
     @Override
-    public Response<Map<String, Map<String, Object>>> saveCustomSettings(String username,
-                                                                         AppResourceScope appResourceScope,
-                                                                         String scopeType,
-                                                                         String scopeId,
-                                                                         SaveCustomSettingsReq req) {
-        return Response.buildSuccessResp(customSettingsService.saveCustomSettings(username, appResourceScope, req));
+    public Response<Map<String, Map<String, Object>>> saveCustomSettingsForScope(String username,
+                                                                                 AppResourceScope appResourceScope,
+                                                                                 String scopeType,
+                                                                                 String scopeId,
+                                                                                 SaveCustomSettingsReq req) {
+        return Response.buildSuccessResp(customSettingsService.saveCustomSettings(username, req));
+    }
+
+    @Override
+    public Response<Map<String, Map<String, Object>>> saveCustomSettings(String username, SaveCustomSettingsReq req) {
+        return Response.buildSuccessResp(customSettingsService.saveCustomSettings(username, req));
+    }
+
+    @Override
+    public Response<Map<String, Map<String, Object>>> batchGetCustomSettingsForScope(String username,
+                                                                                     AppResourceScope appResourceScope,
+                                                                                     String scopeType,
+                                                                                     String scopeId,
+                                                                                     BatchGetCustomSettingsReq req) {
+        return Response.buildSuccessResp(customSettingsService.batchGetCustomSettings(username, req));
     }
 
     @Override
     public Response<Map<String, Map<String, Object>>> batchGetCustomSettings(String username,
-                                                                             AppResourceScope appResourceScope,
-                                                                             String scopeType,
-                                                                             String scopeId,
                                                                              BatchGetCustomSettingsReq req) {
-        return Response.buildSuccessResp(customSettingsService.batchGetCustomSettings(username, appResourceScope, req));
+        return Response.buildSuccessResp(customSettingsService.batchGetCustomSettings(username, req));
     }
 
     @Override
-    public Response<Integer> deleteCustomSettings(String username,
-                                                  AppResourceScope appResourceScope,
-                                                  String scopeType,
-                                                  String scopeId,
-                                                  DeleteCustomSettingsReq req) {
-        return Response.buildSuccessResp(customSettingsService.deleteCustomSettings(username, appResourceScope, req));
+    public Response<Integer> deleteCustomSettingsForScope(String username,
+                                                          AppResourceScope appResourceScope,
+                                                          String scopeType,
+                                                          String scopeId,
+                                                          DeleteCustomSettingsReq req) {
+        return Response.buildSuccessResp(customSettingsService.deleteCustomSettings(username, req));
+    }
+
+    @Override
+    public Response<Integer> deleteCustomSettings(String username, DeleteCustomSettingsReq req) {
+        return Response.buildSuccessResp(customSettingsService.deleteCustomSettings(username, req));
     }
 }

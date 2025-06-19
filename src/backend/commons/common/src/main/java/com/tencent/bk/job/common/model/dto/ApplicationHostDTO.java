@@ -140,6 +140,8 @@ public class ApplicationHostDTO {
      */
     private Long lastTime;
 
+    private String tenantId;
+
     /**
      * 集群ID
      */

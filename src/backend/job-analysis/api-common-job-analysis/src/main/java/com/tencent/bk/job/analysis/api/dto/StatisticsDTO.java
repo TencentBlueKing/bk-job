@@ -42,7 +42,11 @@ public class StatisticsDTO implements Cloneable {
      */
     private Long id;
     /**
-     * id
+     * 租户ID
+     */
+    private String tenantId;
+    /**
+     * Job业务ID
      */
     private Long appId;
     /**
@@ -82,6 +86,7 @@ public class StatisticsDTO implements Cloneable {
     public StatisticsDTO clone() {
         StatisticsDTO statisticsDTO = new StatisticsDTO();
         statisticsDTO.setId(id);
+        statisticsDTO.setTenantId(tenantId);
         statisticsDTO.setAppId(appId);
         statisticsDTO.setResource(resource);
         statisticsDTO.setDimension(dimension);

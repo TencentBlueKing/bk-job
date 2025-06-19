@@ -206,7 +206,7 @@ export default class SourceFile {
       return this.host.variable;
     }
     const textArr = [];
-    const { dynamicGroupList, hostList, nodeList, containerList = [] } = this.host.executeObjectsInfo;
+    const { dynamicGroupList = [], hostList = [], nodeList = [], containerList = [] } = this.host.executeObjectsInfo;
 
     // eslint-disable-next-line max-len
     const getHtml = (len, text) => `<span><span class="strong number">${len}</span>${text}</span>`;

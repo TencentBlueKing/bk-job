@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.execute.task;
 
-import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.PageData;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.file.PathUtil;
@@ -58,16 +58,16 @@ import java.util.List;
 public class LogExportFileCleanTask {
 
     private final LogExportConfig logExportConfig;
-    private final ArtifactoryConfig artifactoryConfig;
+    private final ArtifactoryHelper artifactoryHelper;
     private final StorageConfig storageConfig;
     private final ArtifactoryClient artifactoryClient;
 
     public LogExportFileCleanTask(LogExportConfig logExportConfig,
-                                  ArtifactoryConfig artifactoryConfig,
+                                  ArtifactoryHelper artifactoryHelper,
                                   StorageConfig storageConfig,
                                   @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient) {
         this.logExportConfig = logExportConfig;
-        this.artifactoryConfig = artifactoryConfig;
+        this.artifactoryHelper = artifactoryHelper;
         this.storageConfig = storageConfig;
         this.artifactoryClient = artifactoryClient;
     }
@@ -101,7 +101,7 @@ public class LogExportFileCleanTask {
                     .plusDays(logExportConfig.getArtifactoryFileExpireDays())
                     .compareTo(LocalDateTime.now()) < 0) {
                     artifactoryClient.deleteNode(
-                        artifactoryConfig.getArtifactoryJobProject(),
+                        artifactoryHelper.getJobRealProject(),
                         logExportConfig.getLogExportRepo(),
                         nodeDTO.getFullPath()
                     );
@@ -130,7 +130,7 @@ public class LogExportFileCleanTask {
         List<NodeDTO> nodeList;
         do {
             PageData<NodeDTO> nodePage = artifactoryClient.listNode(
-                artifactoryConfig.getArtifactoryJobProject(),
+                artifactoryHelper.getJobRealProject(),
                 logExportConfig.getLogExportRepo(),
                 "/",
                 start,
