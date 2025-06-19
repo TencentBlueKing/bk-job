@@ -65,10 +65,18 @@ public class UserLocalCache {
                       List<SimpleUserInfo> userList = userMgrApiClient.listUsersByUsernames(tenantId, usernames);
                       Map<String, SimpleUserInfo> existUserMap = userList.stream()
                           .collect(Collectors.toMap(SimpleUserInfo::getBkUsername, userInfo -> userInfo));
+
+                      Set<String> invalidUsernameSet = new HashSet<>(usernames);
+                      invalidUsernameSet.removeAll(existUserMap.keySet());
+                      if (!invalidUsernameSet.isEmpty()) {
+                          log.warn("UserLocalCache try to loadAll, invalidUsernameSet={}", invalidUsernameSet);
+                      }
+
                       Map<UserCacheQuery, SimpleUserInfo> result = new HashMap<>();
                       for (UserCacheQuery query : querys) {
                           String username = query.getUsername();
-                          result.put(query, existUserMap.getOrDefault(username, null));
+                          // 返回的 Map 中，keys 和 values 都不能为null
+                          result.put(query, existUserMap.getOrDefault(username, new SimpleUserInfo()));
                       }
                       return result;
                   }
@@ -95,7 +103,10 @@ public class UserLocalCache {
             .map(username -> new UserCacheQuery(tenantId,username))
             .collect(Collectors.toSet());
         try {
-            return userCache.getAll(querySet).values().stream().filter(Objects::nonNull).collect(Collectors.toSet());
+            return userCache.getAll(querySet).values()
+                .stream()
+                .filter(SimpleUserInfo::isNotEmpty)
+                .collect(Collectors.toSet());
         } catch (ExecutionException | UncheckedExecutionException e) {
             log.error("[UserLocalCache]batchGetUser failed, throws ExecutionException, when batch get {} of tenant:{}",
                 usernames, tenantId, e);
