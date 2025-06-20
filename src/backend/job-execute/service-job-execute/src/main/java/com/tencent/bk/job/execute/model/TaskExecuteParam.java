@@ -82,5 +82,6 @@ public class TaskExecuteParam {
     /**
      * 是否启动任务
      */
+    @Builder.Default
     private Boolean startTask = true;
 }
