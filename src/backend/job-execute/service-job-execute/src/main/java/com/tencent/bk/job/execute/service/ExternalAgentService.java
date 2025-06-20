@@ -28,7 +28,15 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
 
+/**
+ * 当且仅当启用了集群外机器作为文件分发的源时生效
+ * 用于管理集群外的机器
+ */
 public interface ExternalAgentService {
 
+    /**
+     * 从已配置的集群外主机池中获取一台主机作为分发源
+     * @return 可用的分发源主机
+     */
     HostDTO getDistributeSourceHost();
 }

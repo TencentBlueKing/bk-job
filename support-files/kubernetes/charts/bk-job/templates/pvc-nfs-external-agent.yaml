@@ -10,6 +10,6 @@ spec:
     - ReadWriteMany
   resources :
     requests :
-      storage : {{ .Values.externalGseAgent.storageClass.size }}
-  storageClassName: {{ .Values.externalGseAgent.storageClass.name }}
+      storage : {{ .Values.externalGseAgent.storageSize }}
+  storageClassName: {{ .Values.externalGseAgent.storageClass }}
 {{- end }}

@@ -1,6 +1,21 @@
 # chart values 更新日志
 ## 0.7.4
-1. 增加作业执行结果轮询规则的配置
+1. 文件分发时采用外部的Gse Agent代替Job机器作为源机器分发
+```yaml
+externalGseAgent:
+  ## 默认不使用集群外的GSE Agent分发文件
+  enabled: false
+    ## 与集群外GSE Agent共享文件采用的storageClass名
+  storageClass: nfs-client
+  ## 期望的大小
+  storageSize: 200Gi
+  ## 集群外部已安装 GSE Agent 的机器
+  hosts:
+    - bkCloudId: 0
+      ip: ""
+```
+
+2增加作业执行结果轮询规则的配置
 
 ```yaml
 executeConfig:  

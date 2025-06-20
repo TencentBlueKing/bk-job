@@ -22,21 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.exception;
+package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.common.model.error.ErrorType;
-
+import com.tencent.bk.job.common.model.dto.HostDTO;
 
 /**
- * 当使用集群外部的机器作为文件的分发源时，不满足分发条件（没有可用的源机器/...）时抛出的异常
+ * 使用集群外主机作为文件分发源机器时，用于接收配置中的主机信息
  */
-public class DistributeFileFromExternalAgentException extends ServiceException {
+public class ExternalHostDTO {
 
-    public DistributeFileFromExternalAgentException(Integer errorCode) {
-        super(ErrorType.INTERNAL, errorCode);
-    }
+    /**
+     * 云区域ID
+     */
+    private Long bkCloudId;
 
-    public DistributeFileFromExternalAgentException(String message, Integer errorCode) {
-        super(message, ErrorType.INTERNAL, errorCode);
+    /**
+     * 主机IP - IPv4
+     */
+    private String ip;
+
+    public HostDTO convertToHostDTO() {
+        return new HostDTO(bkCloudId, ip);
     }
 }

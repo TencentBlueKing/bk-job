@@ -28,7 +28,13 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
 
+/**
+ * 分发本地文件时，根据配置使用job机器或者集群外机器作为源进行分发
+ */
 public interface LocalFileDistributeSourceHostProvisioner {
 
+    /**
+     * @return job-execute所在Node 信息 或者 集群外的机器信息
+     */
     HostDTO getLocalFileDistributeSourceHost();
 }

@@ -30,6 +30,9 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.service.ExternalAgentService;
 import com.tencent.bk.job.execute.service.LocalFileDistributeSourceHostProvisioner;
 
+/**
+ * 分发本地文件时，使用集群外机器作为源分发
+ */
 public class LocalFileExternalAgentHostProvisioner implements LocalFileDistributeSourceHostProvisioner {
 
     private final ExternalAgentService externalAgentService;
