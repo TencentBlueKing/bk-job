@@ -55,6 +55,12 @@ public class EsbExecuteJobV3Request extends EsbAppScopeReq {
     @JsonProperty("callback_url")
     private String callbackUrl;
 
+    /**
+     * 是否启动任务
+     */
+    @JsonProperty("start_task")
+    private Boolean startTask = true;
+
     public void trimIps() {
         if (globalVars != null && globalVars.size() > 0) {
             globalVars.forEach(globalVar -> {
