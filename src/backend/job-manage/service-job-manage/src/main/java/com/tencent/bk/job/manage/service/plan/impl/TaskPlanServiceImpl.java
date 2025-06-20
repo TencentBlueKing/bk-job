@@ -139,21 +139,18 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     }
 
     /**
-     * Sync plan variable to task variable
+     * 提取执行方案变量中已经被用户设置的的字段值放入新的变量中
      *
-     * @param templateVariable 模版中的变量信息
-     * @param planVariable     执行方案中的变量信息
+     * @param originPlanVariable 执行方案中的旧的变量信息
+     * @param newVariable        新的变量信息
      */
-    private static void processVariableSync(TaskVariableDTO templateVariable, TaskVariableDTO planVariable) {
-        if (planVariable != null) {
-            planVariable.setDescription(templateVariable.getDescription());
-            planVariable.setChangeable(templateVariable.getChangeable());
-            planVariable.setRequired(templateVariable.getRequired());
-
-            templateVariable.setId(planVariable.getId());
-            templateVariable.setPlanId(planVariable.getPlanId());
-            templateVariable.setTemplateId(null);
-            templateVariable.setDefaultValue(planVariable.getDefaultValue());
+    private static void extractFieldToNewVariable(TaskVariableDTO originPlanVariable,TaskVariableDTO newVariable) {
+        if (originPlanVariable != null) {
+            // 执行方案变量中的ID信息与已经被用户指定的取值需要保留
+            newVariable.setId(originPlanVariable.getId());
+            newVariable.setPlanId(originPlanVariable.getPlanId());
+            newVariable.setTemplateId(null);
+            newVariable.setDefaultValue(originPlanVariable.getDefaultValue());
         }
     }
 
@@ -419,7 +416,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         for (TaskVariableDTO taskVariable : taskPlanInfo.getVariableList()) {
             taskVariable.setPlanId(planId);
             // Update exist variable
-            taskPlanVariableService.updateVariableById(taskVariable);
+            taskPlanVariableService.updateVarByParentResourceIdAndTplVarId(taskVariable);
         }
 
         TaskPlanInfoDTO updatedPlan = getTaskPlanById(planId);
@@ -591,22 +588,37 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     public Boolean sync(Long appId, Long templateId, Long planId, String templateVersion) {
         TaskTemplateInfoDTO taskTemplate = taskTemplateService.getTaskTemplateById(appId, templateId);
         if (taskTemplate == null) {
+            log.warn("taskTemplate is null, appId={}, templateId={}", appId, templateId);
             return false;
         }
         if (!templateVersion.equals(taskTemplate.getVersion())) {
+            log.warn(
+                "templateVersion expired, templateVersion={}, newest version={}",
+                templateVersion,
+                taskTemplate.getVersion()
+            );
             return false;
         }
         TaskPlanInfoDTO taskPlan = getTaskPlanById(appId, planId);
         if (taskPlan == null) {
+            log.warn("taskPlan is null, appId={}, planId={}", appId, planId);
             return false;
         }
         if (!taskPlan.getTemplateId().equals(templateId)) {
+            log.warn(
+                "taskPlan(id={},templateId={}) not belong to template(id={})",
+                taskPlan.getId(),
+                taskPlan.getTemplateId(),
+                templateId
+            );
             return false;
         }
+        // 用模板数据覆盖执行方案数据
         taskPlan.setVersion(taskTemplate.getVersion());
         taskPlan.setLastModifyTime(DateUtils.currentTimeSeconds());
         taskPlan.setLastModifyUser(JobContextUtil.getUsername());
 
+        // 记录执行方案中启用的步骤列表对应的模板步骤ID
         if (taskPlan.getStepList() != null) {
             taskPlan.setEnableStepList(new ArrayList<>());
             taskPlan.getStepList().forEach(taskStep -> {
@@ -615,6 +627,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                 }
             });
         }
+        // 通过模板的步骤列表数据构造执行方案步骤数据
         taskTemplate.getStepList().forEach(taskStep -> {
             taskStep.setTemplateStepId(taskStep.getId());
             taskStep.setId(null);
@@ -627,21 +640,26 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         });
         taskPlan.setStepList(taskTemplate.getStepList());
 
+        // 构建执行方案变量Map<变量ID,变量数据>
         Map<Long, TaskVariableDTO> originPlanVariableMap;
         if (taskPlan.getVariableList() != null) {
             originPlanVariableMap = new HashMap<>(taskPlan.getVariableList().size());
             taskPlan.getVariableList().forEach(planVariable -> {
+                // 执行方案变量ID实际是执行方案变量对应的模板变量ID
+                // 赋值处见：TaskPlanVariableDAOImpl.extract()
                 originPlanVariableMap.put(planVariable.getId(), planVariable);
             });
         } else {
             originPlanVariableMap = null;
         }
         if (CollectionUtils.isNotEmpty(taskTemplate.getVariableList())) {
+            // 通过赋值将模板变量改造为新的执行方案变量后续设置到执行方案中
             taskTemplate.getVariableList().forEach(templateVariable -> {
                 templateVariable.setPlanId(planId);
                 if (originPlanVariableMap != null) {
                     TaskVariableDTO originPlanVariable = originPlanVariableMap.get(templateVariable.getId());
-                    processVariableSync(templateVariable, originPlanVariable);
+                    // 复用模板变量作为新的变量
+                    extractFieldToNewVariable(originPlanVariable, templateVariable);
                     originPlanVariableMap.remove(templateVariable.getId());
                 }
             });
@@ -665,16 +683,18 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             // process plan id
             Long planId = taskPlanInfo.getId();
 
+            // 更新执行方案基础信息
             if (!taskPlanDAO.updateTaskPlanById(taskPlanInfo)) {
                 throw new InternalException(ErrorCode.UPDATE_TASK_PLAN_FAILED);
             }
 
+            // 删除所有老的步骤
             List<TaskStepDTO> taskStepList = taskPlanStepService.listStepsByParentId(planId);
             if (CollectionUtils.isNotEmpty(taskStepList)) {
                 taskStepList.forEach(taskStep -> taskPlanStepService.deleteStepById(planId, taskStep.getId()));
             }
 
-            // Save step
+            // 保存新的步骤信息
             for (TaskStepDTO taskStep : taskPlanInfo.getStepList()) {
                 taskStep.setPlanId(planId);
                 // Insert give template step id
@@ -687,6 +707,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                 taskStep.setId(taskPlanStepService.insertStep(taskStep));
             }
 
+            // 更新变量
             List<TaskVariableDTO> oldVariableList = taskPlanVariableService.listVariablesByParentId(planId);
             List<Long> oldVariableIdList;
             if (CollectionUtils.isNotEmpty(oldVariableList)) {
@@ -701,18 +722,20 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                 for (TaskVariableDTO taskVariable : taskPlanInfo.getVariableList()) {
                     taskVariable.setPlanId(planId);
                     if (oldVariableIdList.contains(taskVariable.getId())) {
-                        // Update exist variable
-                        taskPlanVariableService.updateVariableById(taskVariable);
+                        // 更新变量
+                        taskPlanVariableService.updateVarByParentResourceIdAndTplVarId(taskVariable);
                         oldVariableIdList.remove(taskVariable.getId());
                     } else {
                         newVariable.add(taskVariable);
                     }
                 }
+                // 新增变量
                 taskPlanVariableService.batchInsertVariable(newVariable);
             } else {
                 taskPlanVariableService.batchInsertVariable(taskPlanInfo.getVariableList());
             }
 
+            // 删除模板中已删除的变量
             if (CollectionUtils.isNotEmpty(oldVariableIdList)) {
                 oldVariableIdList.forEach(variableId ->
                     taskPlanVariableService.deleteVariableById(planId, variableId));

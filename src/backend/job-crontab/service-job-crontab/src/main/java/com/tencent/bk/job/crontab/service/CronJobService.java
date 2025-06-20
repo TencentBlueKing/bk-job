@@ -59,6 +59,14 @@ public interface CronJobService {
     CronJobInfoDTO getCronJobInfoById(Long cronJobId);
 
     /**
+     * 根据 ID 查询完整的定时任务详情
+     *
+     * @param cronJobId 定时任务 ID
+     * @return 带有自定义消息通知配置定时任务信息
+     */
+    public CronJobInfoDTO getIntegralCronJobInfoById(Long cronJobId);
+
+    /**
      * 根据 IDs 查询定时任务信息，返回Map
      *
      * @param cronJobIdList 定时任务 IDs

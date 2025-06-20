@@ -22,47 +22,57 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.archive;
+package com.tencent.bk.job.common.properties;
 
-/**
- * 作业执行实例归档任务
- */
-public interface JobInstanceArchiveTask {
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.util.StringUtils;
 
-    /**
-     * 执行任务
-     */
-    void execute();
+@Getter
+@Setter
+public class JobSslProperties {
 
     /**
-     * 优雅终止任务
-     *
-     * @param stopCallback 回调
+     * 连接mongo是否启用ssl
      */
-    void stop(ArchiveTaskStopCallback stopCallback);
+    private boolean enabled = false;
 
     /**
-     * 强制终止
+     * 信任库类型，默认PKCS12
      */
-    void forceStopAtOnce();
+    private String trustStoreType = "PKCS12";
 
     /**
-     * 注册任务完成回调函数
-     *
-     * @param archiveTaskDoneCallback 回调函数
+     * 信任库地址，暂时以文件形式（运维提供）
      */
-    void registerDoneCallback(ArchiveTaskDoneCallback archiveTaskDoneCallback);
+    private String trustStore;
 
     /**
-     * 获取任务 ID
+     * 信任库密码
      */
-    String getTaskId();
+    private String trustStorePassword;
 
     /**
-     * 设置归档任务的 worker 信息
-     *
-     * @param archiveTaskWorker 归档任务执行线程
+     * 客户端证书存储类型，默认PKCS12
      */
-    void initArchiveTaskWorker(ArchiveTaskWorker archiveTaskWorker);
+    private String keyStoreType = "PKCS12";
 
+    /**
+     * 客户端的证书地址，文件形式
+     */
+    private String keyStore;
+
+    /**
+     * 客户端证书存储密钥
+     */
+    private String keyStorePassword;
+
+    /**
+     * 是否校验主机名
+     */
+    private boolean verifyHostname = false;
+
+    public boolean isMutualTlsConfigured() {
+        return StringUtils.hasText(keyStore);
+    }
 }

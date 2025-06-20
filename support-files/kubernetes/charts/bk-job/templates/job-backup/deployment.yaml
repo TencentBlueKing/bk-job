@@ -103,6 +103,14 @@ spec:
             - name: redis
               mountPath: /etc/secrets/redis
               readOnly: true
+            - name: mongodb
+              mountPath: /etc/secrets/mongodb
+              readOnly: true
+            {{- include "job.mariadb.certsVolumeMount" . | nindent 12 }}
+            {{- include "job.backup.archive.mariadb.certsVolumeMount" . | nindent 12 }}
+            {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
+            {{- include "job.redis.certsVolumeMount" . | nindent 12 }}
+            {{- include "job.mongodb.certsVolumeMount" . | nindent 12 }}
       terminationGracePeriodSeconds: 80
       volumes:
         - name: job-storage
@@ -122,4 +130,12 @@ spec:
         - name: redis
           secret:
             secretName: {{ include "job.redis.secretName" . }}
+        - name: mongodb
+          secret:
+            secretName: {{ include "job.mongodb.secretName" . }}
+        {{- include "job.mariadb.certsVolume" . | nindent 8 }}
+        {{- include "job.backup.archive.mariadb.certsVolume" . | nindent 8 }}
+        {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
+        {{- include "job.redis.certsVolume" . | nindent 8 }}
+        {{- include "job.mongodb.certsVolume" . | nindent 8 }}
 {{- end }}

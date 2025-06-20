@@ -171,4 +171,13 @@ public class TaskVariableDTO {
         }
         return esbGlobalVar;
     }
+
+    /**
+     * 判断是否密文未变更
+     *
+     * @return 布尔值
+     */
+    public boolean cipherNotChange() {
+        return type.isNeedMask() && defaultValue != null && defaultValue.equals(type.getMask());
+    }
 }

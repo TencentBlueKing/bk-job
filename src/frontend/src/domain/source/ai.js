@@ -47,7 +47,7 @@ class Ai extends ModuleBase {
   }
 
   getConfig(params) {
-    return Request.get(`${this.path}/config`, {
+    return Request.get(`${this.module}/config`, {
       params,
       cache: true,
     });

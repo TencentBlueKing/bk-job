@@ -56,6 +56,8 @@ public class EncryptConfig {
 
     @PostConstruct
     public void print() {
-        log.info("EncryptConfig init: {}", JsonUtils.toJson(this));
+        if (log.isDebugEnabled()) {
+            log.debug("EncryptConfig init: {}", JsonUtils.toJson(this));
+        }
     }
 }

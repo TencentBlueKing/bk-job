@@ -34,10 +34,10 @@ import org.springframework.cloud.sleuth.Tracer;
 @Slf4j
 public class ArchiveTaskWorker extends Thread {
 
-    private final JobInstanceArchiveTask archiveTask;
+    private final JobHistoricalDataArchiveTask archiveTask;
     private final Tracer tracer;
 
-    public ArchiveTaskWorker(JobInstanceArchiveTask archiveTask, Tracer tracer) {
+    public ArchiveTaskWorker(JobHistoricalDataArchiveTask archiveTask, Tracer tracer) {
         this.tracer = tracer;
         this.archiveTask = archiveTask;
         this.archiveTask.initArchiveTaskWorker(this);

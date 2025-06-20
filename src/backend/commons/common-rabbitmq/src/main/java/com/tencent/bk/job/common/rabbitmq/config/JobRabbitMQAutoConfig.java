@@ -22,46 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.logsvr.config;
+package com.tencent.bk.job.common.rabbitmq.config;
 
-import com.mongodb.Block;
-import com.mongodb.ReadConcern;
-import com.mongodb.ReadPreference;
-import com.mongodb.WriteConcern;
-import com.mongodb.connection.ConnectionPoolSettings;
-import com.mongodb.connection.SocketSettings;
+import com.rabbitmq.client.impl.CredentialsProvider;
+import com.rabbitmq.client.impl.CredentialsRefreshService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.mongo.MongoClientSettingsBuilderCustomizer;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
+import org.springframework.boot.autoconfigure.amqp.RabbitConnectionFactoryBeanConfigurer;
+import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.mongodb.core.WriteConcernResolver;
+import org.springframework.core.io.FileSystemResourceLoader;
 
-import java.util.concurrent.TimeUnit;
-
-@Configuration
 @Slf4j
-public class MongoDBConfig {
-    @Bean
-    public MongoClientSettingsBuilderCustomizer mongoClientCustomizer() {
-        log.info("Init MongoClientSettingsBuilderCustomizer");
-        Block<SocketSettings.Builder> socketSettings = builder -> builder.connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS);
-        Block<ConnectionPoolSettings.Builder> connectionPoolSettings = builder -> builder.minSize(200).maxSize(500)
-            .maxConnectionLifeTime(0, TimeUnit.SECONDS)
-            .maxConnectionIdleTime(0, TimeUnit.SECONDS);
-        return clientSettingsBuilder -> clientSettingsBuilder.writeConcern(WriteConcern.W1)
-            .readConcern(ReadConcern.LOCAL)
-            .readPreference(ReadPreference.primaryPreferred())
-            .applyToSocketSettings(socketSettings)
-            .applyToConnectionPoolSettings(connectionPoolSettings);
-
-    }
+@Configuration
+@AutoConfigureBefore(RabbitAutoConfiguration.class)
+@EnableConfigurationProperties(RabbitProperties.class)
+public class JobRabbitMQAutoConfig {
 
     @Bean
-    public WriteConcernResolver writeConcernResolver() {
-        return action -> {
-            log.info("Using Write Concern of Unacknowledged");
-            return WriteConcern.W1;
-        };
+    RabbitConnectionFactoryBeanConfigurer rabbitConnectionFactoryBeanConfigurer(
+        RabbitProperties properties,
+        ObjectProvider<CredentialsProvider> credentialsProvider,
+        ObjectProvider<CredentialsRefreshService> credentialsRefreshService
+    ) {
+        RabbitConnectionFactoryBeanConfigurer configurer = new RabbitConnectionFactoryBeanConfigurer(
+            // 从系统文件读取truststore与keystore
+            new FileSystemResourceLoader(),
+            properties
+        );
+        configurer.setCredentialsProvider(credentialsProvider.getIfUnique());
+        configurer.setCredentialsRefreshService(credentialsRefreshService.getIfUnique());
+        log.info("rabbitConnectionFactoryBeanConfigurer init");
+        return configurer;
     }
 }
