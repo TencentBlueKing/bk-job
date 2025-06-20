@@ -298,16 +298,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 保存作业
             saveTaskInstance(watch, fastTask, taskInstance, stepInstance);
 
-            boolean startTask = !Boolean.FALSE.equals(fastTask.getStartTask());
-
             // 记录操作日志
             watch.start("saveOperationLog");
             taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
-                startTask ? UserOperationEnum.START : UserOperationEnum.CREATE_JOB));
+                fastTask.getStartTask() ? UserOperationEnum.START : UserOperationEnum.CREATE_JOB));
             watch.stop();
 
             // 启动作业
-            if (startTask) {
+            if (fastTask.getStartTask()) {
                 watch.start("startJob");
                 startTask(taskInstance.getId());
                 watch.stop();
@@ -1003,16 +1001,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             saveTaskInstanceHosts(taskInstance.getAppId(), taskInstance.getId(), allHosts);
             watch.stop();
 
-            boolean startTask = !Boolean.FALSE.equals(executeParam.getStartTask());
-
             // 记录操作日志
             watch.start("saveOperationLog");
             taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
-                startTask ? UserOperationEnum.START : UserOperationEnum.CREATE_JOB));
+                executeParam.getStartTask() ? UserOperationEnum.START : UserOperationEnum.CREATE_JOB));
             watch.stop();
 
             // 启动作业
-            if (startTask) {
+            if (executeParam.getStartTask()) {
                 watch.start("startJob");
                 startTask(taskInstance.getId());
                 watch.stop();

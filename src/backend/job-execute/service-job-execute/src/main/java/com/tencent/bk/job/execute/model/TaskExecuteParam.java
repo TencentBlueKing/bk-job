@@ -82,5 +82,5 @@ public class TaskExecuteParam {
     /**
      * 是否启动任务
      */
-    private Boolean startTask;
+    private Boolean startTask = true;
 }
