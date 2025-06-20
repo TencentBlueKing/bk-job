@@ -121,6 +121,12 @@ public class EsbFastTransferFileV3Request extends EsbAppScopeReq {
     @JsonProperty("rolling_config")
     private EsbRollingConfigDTO rollingConfig;
 
+    /**
+     * 是否启动任务
+     */
+    @JsonProperty("start_task")
+    private Boolean startTask;
+
     public void trimIps() {
         if (this.targetServer != null) {
             trimIps(this.targetServer.getIps());

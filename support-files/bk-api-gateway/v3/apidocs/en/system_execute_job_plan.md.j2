@@ -13,6 +13,7 @@ Start Job Plan
 | job_plan_id     | long   | yes      | JOB plan ID                                                                                                                                                                                                                                                            |
 | global_var_list | array  | no       | Global variables. For global variable values in a job execution plan, the value of the incoming variable is used if it is included in the request parameters; otherwise, the default value currently configured by the JOB Plan is used. See global_var for definition |
 | callback_url    | string | no       | Callback URL, when the task execution is completed, JOB will call this URL to inform the task execution result. The callback protocol refers to the callback_protocol component documentation                                                                          |
+| start_task      | boolean| no       | Whether to start the task, default true. If it is false, you can start a task through the operating job instance interface |
 
 #### global_var
 

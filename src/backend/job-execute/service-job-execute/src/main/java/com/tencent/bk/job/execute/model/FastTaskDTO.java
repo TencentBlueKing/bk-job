@@ -45,6 +45,10 @@ public class FastTaskDTO {
      * 滚动配置
      */
     private StepRollingConfigDTO rollingConfig;
+    /**
+     * 是否启动任务
+     */
+    private Boolean startTask;
 
     /**
      * 是否滚动执行

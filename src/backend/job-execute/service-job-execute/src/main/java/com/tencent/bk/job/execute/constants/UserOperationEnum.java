@@ -37,7 +37,8 @@ public enum UserOperationEnum {
     CONFIRM_CONTINUE(7, "人工确认-继续"),
     CONFIRM_TERMINATE(8, "人工确认-终止"),
     NEXT_STEP(9, "进入下一步"),
-    CONFIRM_RESTART(10, "重新发起确认");
+    CONFIRM_RESTART(10, "重新发起确认"),
+    CREATE_JOB(11, "创建作业");
 
     private final Integer value;
     private final String name;
