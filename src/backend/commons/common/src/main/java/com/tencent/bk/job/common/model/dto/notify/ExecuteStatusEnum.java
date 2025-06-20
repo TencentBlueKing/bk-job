@@ -22,45 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request;
+package com.tencent.bk.job.common.model.dto.notify;
 
-import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+@Getter
+@AllArgsConstructor
+public enum ExecuteStatusEnum {
+    /**
+     * 成功
+     */
+    SUCCESS(1, "SUCCESS"),
+    /**
+     * 失败
+     */
+    FAIL(2, "FAIL");
 
-@Data
-@ApiModel("主机检查请求报文")
-public class HostCheckReq {
+    private final int value;
 
-    @ApiModelProperty(value = "应用场景：脚本执行/文件分发，Key为actionScope，Value分别为SCRIPT_EXECUTE/FILE_DISTRIBUTION")
-    Map<String, Object> meta = new HashMap<>();
+    private final String name;
 
-    @ApiModelProperty(value = "hostId列表", required = true)
-    List<Long> hostIdList = new ArrayList<>();
-
-    @ApiModelProperty(value = "IP列表，单个IP格式：cloudAreaId:[ip]或cloudAreaId:ip或ip")
-    List<String> ipList = new ArrayList<>();
-
-    @ApiModelProperty(value = "IPv6列表，单个IPv6格式：cloudAreaId:[ipv6]或ipv6")
-    List<String> ipv6List = new ArrayList<>();
-
-    @ApiModelProperty(value = "关键字列表，可匹配主机名称")
-    List<String> keyList = new ArrayList<>();
-
-    public ActionScopeEnum getActionScope() {
-        String actionScopeName = (String) meta.get("actionScope");
-        if (StringUtils.isBlank(actionScopeName)) {
-            return null;
+    public static boolean hasName(String name) {
+        for (ExecuteStatusEnum statusEnum : ExecuteStatusEnum.values()) {
+            if (statusEnum.getName().equals(name)) {
+                return true;
+            }
         }
-        return ActionScopeEnum.valueOf(actionScopeName);
+        return false;
     }
+
 }
-
-

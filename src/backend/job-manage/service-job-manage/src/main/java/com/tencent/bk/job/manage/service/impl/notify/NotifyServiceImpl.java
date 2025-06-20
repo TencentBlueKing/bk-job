@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.redis.util.LockUtils;
@@ -60,6 +61,7 @@ import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationTriggerDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceSpecificResourceNotifyPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceUserNotificationDTO;
@@ -80,12 +82,14 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
+import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -154,8 +158,17 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Override
     public List<TriggerPolicyVO> listAppDefaultNotifyPolicies(String username, Long appId) {
-        return notifyTriggerPolicyDAO.list(getDefaultTriggerUser(), appId, NotifyConsts.DEFAULT_RESOURCE_ID);
+        return notifyTriggerPolicyDAO.listAppDefault(getDefaultTriggerUser(), appId, NotifyConsts.DEFAULT_RESOURCE_ID);
     }
+
+    @Override
+    public CustomNotifyDTO getSpecificResourceNotifyPolicy(Long appId,
+                                                           Integer resourceType,
+                                                           String resourceId,
+                                                           Integer triggerType) {
+        return notifyTriggerPolicyDAO.getSpecificResourceNotifyPolicy(appId, resourceType, resourceId, triggerType);
+    }
+
 
     @Override
     @ActionAuditRecord(
@@ -173,6 +186,7 @@ public class NotifyServiceImpl implements NotifyService {
 
     private Long saveTriggerPolicy(Long appId,
                                    ResourceTypeEnum resourceType,
+                                   String resourceId,
                                    String triggerUser,
                                    TriggerPolicy triggerPolicy,
                                    ResourceStatusChannel resourceStatusChannel,
@@ -181,7 +195,7 @@ public class NotifyServiceImpl implements NotifyService {
             new NotifyTriggerPolicyDTO(
                 null,
                 appId,
-                NotifyConsts.DEFAULT_RESOURCE_ID,
+                resourceId,
                 resourceType,
                 triggerUser,
                 triggerPolicy.getTriggerType(),
@@ -252,15 +266,32 @@ public class NotifyServiceImpl implements NotifyService {
         resourceTypeSet.forEach(resourceType -> {
             Set<ResourceStatusChannel> channelSet = new HashSet<>(triggerPolicy.getResourceStatusChannelList());
             channelSet.forEach(channel -> {
-                //保存触发策略
-                val policyId = saveTriggerPolicy(
-                    appId, resourceType,
-                    triggerUser, triggerPolicy, channel, operator
-                );
-                //保存所有通知对象
-                saveNotifyRoleTargets(policyId, triggerPolicy, channel, operator);
+                cascadeSaveTriggerPolicyAndTarget(
+                    appId,
+                    operator,
+                    resourceType,
+                    NotifyConsts.DEFAULT_RESOURCE_ID,
+                    triggerUser,
+                    triggerPolicy,
+                    channel);
             });
         });
+    }
+
+    private void cascadeSaveTriggerPolicyAndTarget(Long appId,
+                                                   String operator,
+                                                   ResourceTypeEnum resourceType,
+                                                   String resourceId,
+                                                   String triggerUser,
+                                                   TriggerPolicy triggerPolicy,
+                                                   ResourceStatusChannel channel) {
+        //保存触发策略
+        val policyId = saveTriggerPolicy(
+            appId, resourceType, resourceId,
+            triggerUser, triggerPolicy, channel, operator
+        );
+        //保存所有通知对象
+        saveNotifyRoleTargets(policyId, triggerPolicy, channel, operator);
     }
 
     @Override
@@ -275,6 +306,60 @@ public class NotifyServiceImpl implements NotifyService {
         //3.保存notify_trigger_policy
         policyList.forEach(policy -> saveTriggerPolicy(operator, appId, triggerUser, policy));
         return (long) policyList.size();
+    }
+
+    @Override
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
+    public Boolean saveSpecificResourceNotifyPolicies(
+        Long appId,
+        String operator,
+        ServiceSpecificResourceNotifyPolicyDTO specificResourceNotifyPolicyDTO
+    ) {
+
+        if (specificResourceNotifyPolicyDTO.getResourceId() == -1) {
+            log.error("[saveSpecificResourceNotifyPolicies] not allow to save app default resource notify policies "
+                + "with resourceId=-1");
+            throw new InvalidParameterException("cannot save custom notify policy with resourceId=-1");
+        }
+
+        notifyTriggerPolicyDAO.deleteAppResourceNotifyPolicies(
+            appId,
+            specificResourceNotifyPolicyDTO.getResourceType(),
+            specificResourceNotifyPolicyDTO.getResourceId().toString()
+        );
+
+        TriggerPolicy triggerPolicy = buildTriggerPolicy(specificResourceNotifyPolicyDTO);
+
+        List<ResourceStatusChannel> resourceStatusChannelList = ResourceStatusChannel.fromMap(
+            specificResourceNotifyPolicyDTO.getResourceStatusChannelMap()
+        );
+        resourceStatusChannelList.forEach(resourceStatusChannel -> {
+            cascadeSaveTriggerPolicyAndTarget(
+                appId,
+                operator,
+                ResourceTypeEnum.get(specificResourceNotifyPolicyDTO.getResourceType()),
+                specificResourceNotifyPolicyDTO.getResourceId().toString(),
+                getDefaultTriggerUser(),
+                triggerPolicy,
+                resourceStatusChannel
+            );
+        });
+
+        return true;
+    }
+
+    private TriggerPolicy buildTriggerPolicy(ServiceSpecificResourceNotifyPolicyDTO specificResourceNotifyPolicyDTO) {
+        TriggerPolicy triggerPolicy = new TriggerPolicy();
+        triggerPolicy.setTriggerType(TriggerTypeEnum.get(specificResourceNotifyPolicyDTO.getTriggerType()));
+        triggerPolicy.setResourceTypeList(Collections.singletonList(ResourceTypeEnum.get(
+            specificResourceNotifyPolicyDTO.getResourceType()
+        )));
+        triggerPolicy.setRoleList(specificResourceNotifyPolicyDTO.getRoleList());
+        triggerPolicy.setExtraObserverList(specificResourceNotifyPolicyDTO.getExtraObserverList());
+        triggerPolicy.setResourceStatusChannelList(
+            ResourceStatusChannel.fromMap(specificResourceNotifyPolicyDTO.getResourceStatusChannelMap())
+        );
+        return triggerPolicy;
     }
 
     private String getDefaultTriggerUser() {
@@ -313,6 +398,16 @@ public class NotifyServiceImpl implements NotifyService {
             notifyConfigStatusDAO.insertNotifyConfigStatus(getDefaultTriggerUser(), appId);
         }
         return tryToSavePoliciesToLocal(username, appId, createUpdateReq);
+    }
+
+    @Override
+    public int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId) {
+        // 业务全局消息通知方式不允许删除
+        if (NotifyConsts.DEFAULT_RESOURCE_ID.equals(resourceId)) {
+            log.error("not allow to delete app default resource notify policies with resourceId=-1");
+            throw new InvalidParameterException("cannot delete notify policy with resourceId=-1");
+        }
+        return notifyTriggerPolicyDAO.deleteAppResourceNotifyPolicies(appId, resourceType, resourceId);
     }
 
     @Override
@@ -491,6 +586,30 @@ public class NotifyServiceImpl implements NotifyService {
         );
     }
 
+    private List<NotifyTriggerPolicyDTO> searchResourceNotifyPolices(Long appId,
+                                                                     Integer triggerType,
+                                                                     Integer resourceType,
+                                                                     String resourceIdStr,
+                                                                     Integer resourceExecuteStatus) {
+        log.debug(
+            "try to get resource custom trigger policy:|appId={}|triggerType={}"
+                + "|resourceType={}|resourceIdStr={}|resourceExecuteStatus={}",
+            appId,
+            triggerType,
+            resourceType,
+            resourceIdStr,
+            resourceExecuteStatus
+        );
+        return notifyTriggerPolicyDAO.list(
+            NotifyConsts.DEFAULT_TRIGGER_USER,
+            appId,
+            resourceIdStr,
+            resourceType,
+            triggerType,
+            resourceExecuteStatus
+        );
+    }
+
     private List<NotifyTriggerPolicyDTO> searchAppNotifyPolices(Long appId,
                                                                 Integer triggerType,
                                                                 Integer resourceType,
@@ -524,19 +643,47 @@ public class NotifyServiceImpl implements NotifyService {
         return notifyConfigStatusDAO.exist(getDefaultTriggerUser(), appId);
     }
 
-    private List<NotifyTriggerPolicyDTO> getTriggerPolicys(Long appId,
-                                                           String triggerUser,
-                                                           Integer triggerType,
-                                                           Integer resourceType,
-                                                           Integer resourceExecuteStatus) {
-        // 1.业务公共触发策略
-        List<NotifyTriggerPolicyDTO> triggerPolicyList = searchAppNotifyPolices(
-            appId,
-            triggerType,
-            resourceType,
-            resourceExecuteStatus
-        );
-        // 2.查找当前触发者自己制定的触发策略
+    private List<NotifyTriggerPolicyDTO> getTriggerPolicys(ServiceNotificationTriggerDTO triggerDTO) {
+        Long appId = triggerDTO.getAppId() == null ? NotifyConsts.DEFAULT_APP_ID : triggerDTO.getAppId();
+        String triggerUser = triggerDTO.getTriggerUser();
+        Integer triggerType = triggerDTO.getTriggerType();
+        Integer resourceType = triggerDTO.getResourceType();
+        String resourceIdStr = triggerDTO.getResourceId();
+        Integer resourceExecuteStatus = triggerDTO.getResourceExecuteStatus();
+        List<NotifyTriggerPolicyDTO> triggerPolicyList = Collections.emptyList();
+        // 1.查找资源级别的触发策略
+        if (canHaveCustomTriggerPolicy(triggerDTO)) {
+            Pair<Integer, String> resource = getResourceIndeed(triggerDTO);
+            Integer triggerPolicyResourceType = resource.getLeft();
+            String triggerPolicyResourceId = resource.getRight();
+            triggerPolicyList = searchResourceNotifyPolices(
+                appId,
+                triggerType,
+                triggerPolicyResourceType,
+                triggerPolicyResourceId,
+                resourceExecuteStatus
+            );
+        }
+        // 2.业务公共触发策略
+        if (CollectionUtils.isEmpty(triggerPolicyList)) {
+            log.debug(
+                "not found custom trigger policy|appId={}|triggerUser={}"
+                    + "|triggerType={}|resourceType={}|{}|resourceIdStr={}",
+                appId,
+                triggerUser,
+                triggerType,
+                resourceType,
+                resourceIdStr,
+                resourceExecuteStatus
+            );
+            triggerPolicyList = searchAppNotifyPolices(
+                appId,
+                triggerType,
+                resourceType,
+                resourceExecuteStatus
+            );
+        }
+        // 3.查找当前触发者自己制定的触发策略
         if (CollectionUtils.isEmpty(triggerPolicyList)) {
             triggerPolicyList = searchNotifyPolices(
                 appId,
@@ -546,12 +693,22 @@ public class NotifyServiceImpl implements NotifyService {
                 resourceExecuteStatus
             );
         }
-        // 3.默认业务
+        // 4.默认业务
         // 业务未配置消息通知策略才使用默认策略
         if (!appNotifyPolicyConfigured(appId) && CollectionUtils.isEmpty(triggerPolicyList)) {
             triggerPolicyList = systemDefaultNotifyPolices(triggerType, resourceType, resourceExecuteStatus);
         }
         return triggerPolicyList;
+    }
+
+    private boolean canHaveCustomTriggerPolicy(ServiceNotificationTriggerDTO triggerDTO) {
+        Pair<Integer, String> resource = getResourceIndeed(triggerDTO);
+        // 当前只有定时任务支持资源级别的自定义通知
+        if (resource.getLeft() == ResourceTypeEnum.CRON.getType()) {
+            return true;
+        }
+
+        return false;
     }
 
     private Set<String> findUserByRole(Long appId,
@@ -577,16 +734,8 @@ public class NotifyServiceImpl implements NotifyService {
     private Map<String, Set<String>> getChannelUsersMap(ServiceNotificationTriggerDTO triggerDTO) {
         Long appId = triggerDTO.getAppId() == null ? NotifyConsts.DEFAULT_APP_ID : triggerDTO.getAppId();
         String triggerUser = triggerDTO.getTriggerUser();
-        Integer triggerType = triggerDTO.getTriggerType();
         Integer resourceType = triggerDTO.getResourceType();
-        Integer resourceExecuteStatus = triggerDTO.getResourceExecuteStatus();
-        List<NotifyTriggerPolicyDTO> triggerPolicyList = getTriggerPolicys(
-            appId,
-            triggerUser,
-            triggerType,
-            resourceType,
-            resourceExecuteStatus
-        );
+        List<NotifyTriggerPolicyDTO> triggerPolicyList = getTriggerPolicys(triggerDTO);
         if (CollectionUtils.isEmpty(triggerPolicyList)) {
             return Collections.emptyMap();
         }
@@ -618,6 +767,17 @@ public class NotifyServiceImpl implements NotifyService {
             channelUsersMap.put(key, notifyUserService.filterBlackUser(channelUsersMap.get(key)))
         );
         return channelUsersMap;
+    }
+
+    /**
+     * 是定时任务的话，返回定时任务ID而非执行方案ID
+     */
+    private Pair<Integer, String> getResourceIndeed(ServiceNotificationTriggerDTO triggerDTO) {
+        if (triggerDTO.getCronTaskId() != null && triggerDTO.getCronTaskId() != -1L) {
+            return Pair.of(ResourceTypeEnum.CRON.getType(), String.valueOf(triggerDTO.getCronTaskId()));
+        }
+
+        return Pair.of(triggerDTO.getResourceType(), triggerDTO.getResourceId());
     }
 
     @Override

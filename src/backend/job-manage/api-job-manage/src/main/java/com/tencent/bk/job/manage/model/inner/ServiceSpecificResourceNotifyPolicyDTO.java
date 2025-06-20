@@ -22,45 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.request;
+package com.tencent.bk.job.manage.model.inner;
 
-import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Data
-@ApiModel("主机检查请求报文")
-public class HostCheckReq {
+public class ServiceSpecificResourceNotifyPolicyDTO {
 
-    @ApiModelProperty(value = "应用场景：脚本执行/文件分发，Key为actionScope，Value分别为SCRIPT_EXECUTE/FILE_DISTRIBUTION")
-    Map<String, Object> meta = new HashMap<>();
+    private Long appId;
 
-    @ApiModelProperty(value = "hostId列表", required = true)
-    List<Long> hostIdList = new ArrayList<>();
+    /**
+     * 触发类型
+     * @see com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
+     */
+    private Integer triggerType;
 
-    @ApiModelProperty(value = "IP列表，单个IP格式：cloudAreaId:[ip]或cloudAreaId:ip或ip")
-    List<String> ipList = new ArrayList<>();
+    /**
+     * 资源类型
+     * @see com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum
+     */
+    private Integer resourceType;
 
-    @ApiModelProperty(value = "IPv6列表，单个IPv6格式：cloudAreaId:[ipv6]或ipv6")
-    List<String> ipv6List = new ArrayList<>();
+    private Long resourceId;
 
-    @ApiModelProperty(value = "关键字列表，可匹配主机名称")
-    List<String> keyList = new ArrayList<>();
+    private List<String> roleList;
 
-    public ActionScopeEnum getActionScope() {
-        String actionScopeName = (String) meta.get("actionScope");
-        if (StringUtils.isBlank(actionScopeName)) {
-            return null;
-        }
-        return ActionScopeEnum.valueOf(actionScopeName);
-    }
+    private List<String> extraObserverList;
+
+    private Map<Integer, List<String>> resourceStatusChannelMap;
 }
-
-

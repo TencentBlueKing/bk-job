@@ -114,5 +114,12 @@
   "原因": "Failed message",
   "任务正常启动": "Launched",
   "任务未能启动": "Unlaunched",
-  "_日_和_周_暂无法同时生效": "\"Day\" and \"Week\" cannot work at the same time"
+  "_日_和_周_暂无法同时生效": "\"Day\" and \"Week\" cannot work at the same time",
+  "消息通知": "Notifications",
+  "继承业务设置": "Business Defaults",
+  "通知对象必填": "Notify to is required",
+  "通知方式必填": "Notify by is required",
+  "自定义": "Custom Setup",
+  "状态": "Status",
+  "消息通知：": "Notifications:"
 }

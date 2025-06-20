@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.model.dto;
 
+import com.tencent.bk.job.common.constant.CronJobNotifyType;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -35,6 +36,7 @@ import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.model.CronJobCreateUpdateReq;
 import com.tencent.bk.job.crontab.model.CronJobVO;
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.crontab.model.esb.response.EsbCronInfoResponse;
 import com.tencent.bk.job.crontab.model.esb.v3.response.EsbCronInfoV3DTO;
 import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
@@ -58,6 +60,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -174,6 +177,17 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
     private List<String> notifyChannel = Collections.emptyList();
 
     /**
+     * 通知方式（1-继承业务, 2-自定义）
+     * @see com.tencent.bk.job.common.constant.CronJobNotifyType
+     */
+    private Integer notifyType = 1;
+
+    /**
+     * 自定义通知配置
+     */
+    private CustomNotifyDTO customCronJobNotifyDTO = new CustomNotifyDTO();
+
+    /**
      * 周期执行结束时间
      */
     private Long endTime = 0L;
@@ -196,6 +210,8 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
         cronJobVO.setTaskPlanId(cronJobInfo.getTaskPlanId());
         cronJobVO.setScriptId(cronJobInfo.getScriptId());
         cronJobVO.setScriptVersionId(cronJobInfo.getScriptVersionId());
+        cronJobVO.setNotifyType(cronJobInfo.getNotifyType());
+        cronJobVO.setCronJobCustomNotifyVO(CustomNotifyDTO.toVO(cronJobInfo.getCustomCronJobNotifyDTO()));
         if (StringUtils.isNotBlank(cronJobInfo.getCronExpression())) {
             cronJobVO.setCronExpression(CronExpressionUtil.fixExpressionForUser(cronJobInfo.getCronExpression()));
         } else {
@@ -283,8 +299,22 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
         }
         cronJobInfo.setNotifyUser(UserRoleInfoDTO.fromVO(cronJobCreateUpdateReq.getNotifyUser()));
         cronJobInfo.setNotifyChannel(cronJobCreateUpdateReq.getNotifyChannel());
+        cronJobInfo.setNotifyType(cronJobCreateUpdateReq.getNotifyType());
+        if (cronJobInfo.hasCustomNotifyPolicy()) {
+            cronJobInfo.setCustomCronJobNotifyDTO(extractCustomNotifyDTOFromReq(cronJobCreateUpdateReq));
+        }
         cronJobInfo.setEndTime(cronJobCreateUpdateReq.getEndTime());
         return cronJobInfo;
+    }
+
+    private static CustomNotifyDTO extractCustomNotifyDTOFromReq(CronJobCreateUpdateReq cronJobCreateUpdateReq) {
+        CustomNotifyDTO cronJobNotifyDTO = new CustomNotifyDTO();
+        if (cronJobCreateUpdateReq.getCustomNotifyUser() != null) {
+            cronJobNotifyDTO.setRoleList(cronJobCreateUpdateReq.getCustomNotifyUser().getRoleList());
+            cronJobNotifyDTO.setExtraObserverList(cronJobCreateUpdateReq.getCustomNotifyUser().getUserList());
+        }
+        cronJobNotifyDTO.setCustomNotifyChannel(cronJobCreateUpdateReq.getCustomNotifyChannel());
+        return cronJobNotifyDTO;
     }
 
     public static EsbCronInfoResponse toEsbCronInfo(CronJobInfoDTO cronJobInfoDTO) {
@@ -372,6 +402,10 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
             "/cron/list?cronJobId=" + cronJobInfo.getId() + "&mode=detail";
         variableMap.put("task.url", "{{BASE_HOST}}" + cronUri);
         variableMap.put("cron_uri", cronUri);
+    }
+
+    public boolean hasCustomNotifyPolicy() {
+        return Objects.equals(this.getNotifyType(), CronJobNotifyType.CUSTOM.getType());
     }
 
     public static ServiceTemplateNotificationDTO buildNotifyInfo(CronJobInfoDTO cronJobInfo) {
@@ -587,6 +621,8 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
         cronJob.setEnable(enable);
         cronJob.setLastModifyUser(lastModifyUser);
         cronJob.setLastModifyTime(lastModifyTime);
+        cronJob.setNotifyType(notifyType);
+        cronJob.setCustomCronJobNotifyDTO(customCronJobNotifyDTO);
         return cronJob;
     }
 
