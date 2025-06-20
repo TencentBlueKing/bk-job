@@ -43,6 +43,9 @@ import org.springframework.context.annotation.Configuration;
 
 import static com.tencent.bk.job.execute.config.GseConfig.EXECUTE_BEAN_AGENT_STATE_CLIENT;
 
+/**
+ * 通过开关控制使用job机器分发文件 还是使用 配置的集群外机器分发文件
+ */
 @Configuration
 @Slf4j
 public class DistributeSourceHostConfiguration {

@@ -30,6 +30,10 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.LocalFileDistributeSourceHostProvisioner;
 
+/**
+ * 分发本地文件时，使用job-execute机器进行分发
+ * 获取本机信息
+ */
 public class LocalAgentHostProvisioner implements LocalFileDistributeSourceHostProvisioner {
 
     private final AgentService agentService;

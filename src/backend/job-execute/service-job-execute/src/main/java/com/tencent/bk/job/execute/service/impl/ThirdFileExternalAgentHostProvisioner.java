@@ -31,6 +31,9 @@ import com.tencent.bk.job.execute.service.ExternalAgentService;
 import com.tencent.bk.job.execute.service.ThirdFileDistributeSourceHostProvisioner;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 使用外部机器作为文件源文件的分发源
+ */
 @Slf4j
 public class ThirdFileExternalAgentHostProvisioner implements ThirdFileDistributeSourceHostProvisioner {
 
@@ -42,7 +45,7 @@ public class ThirdFileExternalAgentHostProvisioner implements ThirdFileDistribut
 
     @Override
     public HostDTO getThirdFileDistributeSourceHost(Long cloudId, String protocol, String ip) {
-        log.info("distribute third file from external agent host");
+        log.debug("distribute third file from external agent host");
         return externalAgentService.getDistributeSourceHost();
     }
 }

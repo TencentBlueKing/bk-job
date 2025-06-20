@@ -26,7 +26,7 @@
 
 package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.execute.model.ExternalHostDTO;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -34,6 +34,9 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+/**
+ * 集群外部共享了文件分发路径的NFS客户端配置
+ */
 @Configuration
 @ConfigurationProperties(prefix = "external-gse-agent")
 @Getter
@@ -42,5 +45,5 @@ public class NFSExternalAgentHostConfig {
 
     private Boolean enabled;
 
-    private List<HostDTO> hosts;
+    private List<ExternalHostDTO> hosts;
 }

@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.config.NFSExternalAgentHostConfig;
+import com.tencent.bk.job.execute.model.ExternalHostDTO;
 import com.tencent.bk.job.execute.service.ExternalAgentService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
@@ -41,6 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 
 /**
@@ -67,7 +69,12 @@ public class ExternalAgentServiceImpl implements ExternalAgentService {
     public HostDTO getDistributeSourceHost() {
         Map<HostDTO, ServiceHostDTO> cmdbHostMap = hostService.batchGetHosts(externalAgentHostPool);
         List<ServiceHostDTO> cmdbHostList = new ArrayList<>();
-        externalAgentHostPool.forEach(hostDTO -> cmdbHostList.add(cmdbHostMap.get(hostDTO)));
+        externalAgentHostPool.forEach(hostDTO -> {
+            ServiceHostDTO serviceHostDTO = cmdbHostMap.get(hostDTO);
+            if (serviceHostDTO != null) {
+                cmdbHostList.add(serviceHostDTO);
+            }
+        });
         return ServiceHostDTO.toHostDTO(getOneAliveAgentHost(cmdbHostList));
     }
 
@@ -84,28 +91,41 @@ public class ExternalAgentServiceImpl implements ExternalAgentService {
         });
         Map<String, Boolean> hostIpAliveStatusMap = agentStateClient.batchGetAgentAliveStatus(agentStateQueries);
         ServiceHostDTO sourceHost = null;
-        for (int i = 1; i <= hostCnt; i++) {
-            // 同一个服务实例内通过RR获取分发的源主机，负载均衡
+        // 同一个服务实例内通过RR获取分发的源主机，遍历配置的主机池直至找到一个 agent 状态正常的主机
+        for (int i = 0; i < hostCnt; i++) {
+            // 从上次使用的主机的下一个开始获取
             int idx = (i + (int) roundRobinCnt.get()) % hostCnt;
             ServiceHostDTO serviceHostDTO = hosts.get(idx);
             if (Boolean.TRUE.equals(hostIpAliveStatusMap.get(serviceHostDTO.getAgentId()))) {
-                roundRobinCnt.accumulateAndGet(i, Long::sum);
+                // 下一次获取，计数器从下一个开始
+                roundRobinCnt.accumulateAndGet(i + 1, Long::sum);
                 sourceHost = serviceHostDTO;
                 break;
             }
         }
 
         if (sourceHost == null) {
-            log.error("Distribute file use external agent, but no available host found, please check configuration");
-            throw new DistributeFileFromExternalAgentException(ErrorCode.INTERNAL_ERROR);
+            String msg = "Distribute file use external agent, but no available host found, please check configuration";
+            log.error(msg);
+            throw new DistributeFileFromExternalAgentException(msg, ErrorCode.INTERNAL_ERROR);
         }
 
-        log.info("Using external agent host: {} to distribute file", sourceHost.getCloudIp());
+        log.info(
+            "Using external agent host:(cloudIp={}, hostId={}, agentId={}) to distribute file",
+            sourceHost.getCloudIp(),
+            sourceHost.getHostId(),
+            sourceHost.getAgentId()
+        );
         return sourceHost;
     }
 
     private void initExternalHostsPool(NFSExternalAgentHostConfig configFromDeployment) {
-        externalAgentHostPool.addAll(configFromDeployment.getHosts());
+        externalAgentHostPool.addAll(
+            configFromDeployment.getHosts()
+                .stream()
+                .map(ExternalHostDTO::convertToHostDTO)
+                .collect(Collectors.toList())
+        );
     }
 
 }

@@ -31,6 +31,10 @@ import com.tencent.bk.job.execute.engine.prepare.third.FileWorkerHostService;
 import com.tencent.bk.job.execute.service.ThirdFileDistributeSourceHostProvisioner;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 使用job-file-worker所在Node作为文件源文件的分发源
+ * 用于获取job-file-worker信息
+ */
 @Slf4j
 public class FileWorkerHostProvisioner implements ThirdFileDistributeSourceHostProvisioner {
 
@@ -42,7 +46,7 @@ public class FileWorkerHostProvisioner implements ThirdFileDistributeSourceHostP
 
     @Override
     public HostDTO getThirdFileDistributeSourceHost(Long cloudId, String protocol, String ip) {
-        log.info("distribute third file from file worker host");
+        log.debug("distribute third file from file worker host");
         return fileWorkerHostService.parseFileWorkerHostWithCache(cloudId, protocol, ip);
     }
 }

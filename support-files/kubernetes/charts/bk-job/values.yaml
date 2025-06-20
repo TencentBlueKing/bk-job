@@ -439,11 +439,10 @@ externalMongoDB:
 externalGseAgent:
   ## 默认不使用集群外的GSE Agent分发文件
   enabled: false
-  storageClass:
-    ## 与集群外GSE Agent共享文件采用的storageClass名
-    name: nfs-client
-    ## 期望的大小
-    size: 200Gi
+  ## 与集群外GSE Agent共享文件采用的storageClass名
+  storageClass: nfs-client
+  ## 期望的大小
+  storageSize: 200Gi
   ## 集群外部已安装 GSE Agent 的机器
   hosts:
     - bkCloudId: 0

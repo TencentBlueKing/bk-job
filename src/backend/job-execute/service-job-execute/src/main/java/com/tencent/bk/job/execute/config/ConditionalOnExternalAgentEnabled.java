@@ -38,7 +38,7 @@ import java.lang.annotation.Target;
 @Documented
 @Inherited
 @ConditionalOnProperty(
-    value = "externalGseAgent.enabled",
+    value = "external-gse-agent.enabled",
     havingValue = "true"
 )
 public @interface ConditionalOnExternalAgentEnabled {
