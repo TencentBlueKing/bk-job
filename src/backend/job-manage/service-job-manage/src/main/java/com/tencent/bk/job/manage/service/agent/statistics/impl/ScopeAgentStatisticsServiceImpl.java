@@ -130,13 +130,13 @@ public class ScopeAgentStatisticsServiceImpl implements ScopeAgentStatisticsServ
             // 普通业务
             bizIds = Collections.singletonList(Long.valueOf(appResourceScope.getId()));
             statisticsDTOS = currentTenantHostDAO.countHostStatusNumByBizIds(bizIds);
+        } else if (appInfo.isAllBizSet()) {
+            // 全业务
+            statisticsDTOS = currentTenantHostDAO.countHostStatusNumByBizIds(null);
         } else if (appInfo.isBizSet()) {
             // 业务集
             bizIds = appInfo.getSubBizIds();
             statisticsDTOS = currentTenantHostDAO.countHostStatusNumByBizIds(bizIds);
-        } else if (appInfo.isAllBizSet()) {
-            // 全业务
-            statisticsDTOS = currentTenantHostDAO.countHostStatusNumByBizIds(null);
         } else if (appInfo.isAllTenantSet()) {
             // 全租户
             statisticsDTOS = noTenantHostDAO.countHostStatusNumByBizIds(null);
