@@ -25,10 +25,12 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import lombok.Data;
 
 /**
  * 使用集群外主机作为文件分发源机器时，用于接收配置中的主机信息
  */
+@Data
 public class ExternalHostDTO {
 
     /**
