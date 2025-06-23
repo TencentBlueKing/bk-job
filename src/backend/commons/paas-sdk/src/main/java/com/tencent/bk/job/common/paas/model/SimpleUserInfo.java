@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.paas.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 @Getter
 public class SimpleUserInfo {
@@ -47,4 +48,8 @@ public class SimpleUserInfo {
      */
     @JsonProperty("display_name")
     private String displayName;
+
+    public boolean isNotEmpty() {
+        return StringUtils.isNotEmpty(bkUsername);
+    }
 }
