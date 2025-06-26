@@ -498,10 +498,11 @@ public class ScriptDAOImpl implements ScriptDAO {
 
     @SuppressWarnings("DataFlowIssue")
     @Override
-    public boolean isExistDuplicateName(Long appId, String scriptName) {
+    public boolean isExistDuplicateName(String tenantId, Long appId, String scriptName) {
         int count = dslContext.selectCount()
             .from(TB_SCRIPT)
             .where(TB_SCRIPT.APP_ID.eq(ULong.valueOf(appId)))
+            .and(TB_SCRIPT.TENANT_ID.eq(tenantId))
             .and(TB_SCRIPT.NAME.eq(scriptName))
             .and(TB_SCRIPT.IS_DELETED.eq(UByte.valueOf(0)))
             .fetchOne(0, Integer.class);

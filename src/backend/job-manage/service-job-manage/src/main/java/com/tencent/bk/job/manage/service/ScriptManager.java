@@ -207,7 +207,7 @@ public interface ScriptManager {
      * @param scriptId 脚本ID
      * @param newName  脚本名称
      */
-    ScriptDTO updateScriptName(String operator, Long appId, String scriptId, String newName);
+    ScriptDTO updateScriptName(User operator, Long appId, String scriptId, String newName);
 
     /**
      * 更新脚本标签
