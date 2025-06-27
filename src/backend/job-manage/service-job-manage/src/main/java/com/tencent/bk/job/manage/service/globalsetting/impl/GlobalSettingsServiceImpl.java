@@ -328,9 +328,9 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     // 默认账号命名规则：Linux
-    private static final String DEFAULT_ACCOUNT_NAME_RULE_LINUX = "^[a-z_][a-z0-9_-]{1,31}$";
+    private static final String DEFAULT_ACCOUNT_NAME_RULE_LINUX = "^[a-z_][a-zA-Z0-9_-]{1,31}$";
     // 默认账号命名规则：Windows
-    private static final String DEFAULT_ACCOUNT_NAME_RULE_WINDOWS = "^[a-æA-Æ0-9-]{1,32}$";
+    private static final String DEFAULT_ACCOUNT_NAME_RULE_WINDOWS = "^[a-zA-Z0-9-]{1,32}$";
     // 默认账号命名规则：Database
     private static final String DEFAULT_ACCOUNT_NAME_RULE_DATABASE = "^[a-zA-Z0-9\\.\\-\\_]{1,16}$";
 
