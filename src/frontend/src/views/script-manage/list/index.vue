@@ -280,6 +280,8 @@
   import ScriptService from '@service/script-manage';
   import TagManageService from '@service/tag-manage';
 
+  import TaskStepModel from '@model/task/task-step';
+
   import { checkPublicScript } from '@utils/assist';
   import { listColumnsCache } from '@utils/cache-helper';
   import { scriptNameRule } from '@utils/validator';
@@ -297,6 +299,7 @@
   import BatchEditTag from './components/batch-edit-tag';
   import Layout from './components/layout';
   import TagPanel from './components/tag-panel';
+
 
   const TABLE_COLUMN_CACHE = 'script_list_columns';
 
@@ -610,6 +613,9 @@
             params: {
               taskInstanceId: 0,
               scriptVersionId: script.scriptVersionId,
+            },
+            query: {
+              source: this.isPublicScript ? TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC : TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS,
             },
           });
         });
