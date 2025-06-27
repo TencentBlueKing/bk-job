@@ -74,12 +74,7 @@ public class LoginServiceImpl implements LoginService {
     }
 
     private String getLoginUrlProp() {
-        String loginUrl;
-        if (loginConfig.isCustomPaasLoginEnabled()) {
-            loginUrl = loginConfig.getCustomLoginUrl();
-        } else {
-            loginUrl = loginConfig.getLoginUrl();
-        }
+        String loginUrl = loginConfig.getRealLoginUrl();
         if (!loginUrl.endsWith("?")) {
             loginUrl = loginUrl + "?";
         }
