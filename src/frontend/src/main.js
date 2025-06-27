@@ -119,20 +119,6 @@ const entryTask = new EntryTask();
 let EntryApp = subEnv ? IframeApp : App;
 
 /**
- * @desc 登录用户信息
- */
-entryTask.add(() => UserService.fetchUserInfo().then((data) => {
-  window.PROJECT_CONFIG.TENANT_ID = data.tenantId;
-  const latestTenantId = Cookie.get('tenant_id');
-  if (latestTenantId !== data.tenantId) {
-    scopeCache.clearItem();
-  }
-  Cookie.set('tenant_id', data.tenantId, {
-    expires: 365,
-  });
-}));
-
-/**
  * @desc 解析路由 scopeType、scopeId
  */
 entryTask.add((context) => {
@@ -341,4 +327,16 @@ entryTask.add('', (context) => {
   });
 });
 
-entryTask.start();
+UserService.fetchUserInfo()
+  .then((data) => {
+    window.PROJECT_CONFIG.TENANT_ID = data.tenantId;
+    const latestTenantId = Cookie.get('tenant_id');
+    if (latestTenantId !== data.tenantId) {
+      scopeCache.clearItem();
+    }
+    Cookie.set('tenant_id', data.tenantId, {
+      expires: 365,
+    });
+    entryTask.start();
+})
+
