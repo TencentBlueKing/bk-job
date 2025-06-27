@@ -51,6 +51,7 @@ import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.FileSourceTaskLogService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
+import com.tencent.bk.job.execute.service.ThirdFileDistributeSourceHostProvisioner;
 import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceTaskResource;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.StopBatchTaskReq;
@@ -100,6 +101,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     private FileSourceTaskLogService fileSourceTaskLogService;
     private final ThirdFilePrepareTaskResultHandler resultHandler;
     private StepInstanceService stepInstanceService;
+    private ThirdFileDistributeSourceHostProvisioner thirdFileDistributeSourceHostProvisioner;
     private int pullTimes = 0;
     private long logStart = 0L;
 
@@ -133,7 +135,8 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         FileWorkerHostService fileWorkerHostService,
         LogService logService,
         TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-        FileSourceTaskLogService fileSourceTaskLogService
+        FileSourceTaskLogService fileSourceTaskLogService,
+        ThirdFileDistributeSourceHostProvisioner thirdFileDistributeSourceHostProvisioner
     ) {
         this.fileSourceTaskResource = fileSourceTaskResource;
         this.accountService = accountService;
@@ -142,6 +145,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.fileSourceTaskLogService = fileSourceTaskLogService;
         this.stepInstanceService = stepInstanceService;
+        this.thirdFileDistributeSourceHostProvisioner = thirdFileDistributeSourceHostProvisioner;
     }
 
     @Override
@@ -384,8 +388,15 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         fileSourceDTO.setAccountId(accountDTO.getId());
         fileSourceDTO.setLocalUpload(false);
 
+        log.info(
+            "third file download to file-worker completed, taskId={}, file-worker=(cloudId:{},protocol:{}, ip{})",
+            stepInstance.getTaskInstanceId(),
+            fileSourceTaskStatusDTO.getCloudId(),
+            fileSourceTaskStatusDTO.getIpProtocol(),
+            fileSourceTaskStatusDTO.getIp()
+        );
         ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
-        HostDTO hostDTO = fileWorkerHostService.parseFileWorkerHostWithCache(
+        HostDTO hostDTO = thirdFileDistributeSourceHostProvisioner.getThirdFileDistributeSourceHost(
             fileSourceTaskStatusDTO.getCloudId(),
             fileSourceTaskStatusDTO.getIpProtocol(),
             fileSourceTaskStatusDTO.getIp()

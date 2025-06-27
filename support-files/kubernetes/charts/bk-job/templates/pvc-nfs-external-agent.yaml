@@ -1,0 +1,15 @@
+{{- if .Values.externalGseAgent.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "job.execute.distribute.externalAgent.PVCName" . }}
+  labels:
+    {{- include "common.labels.standard" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources :
+    requests :
+      storage : {{ .Values.externalGseAgent.storageSize }}
+  storageClassName: {{ .Values.externalGseAgent.storageClass }}
+{{- end }}

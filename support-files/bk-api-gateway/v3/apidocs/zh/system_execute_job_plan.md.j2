@@ -14,6 +14,7 @@
 | job_plan_id     | long   | 是  | 作业执行方案ID                                                                    |
 | global_var_list | array  | 否  | 全局变量。对于作业执行方案中的全局变量值，如果请求参数中包含该变量，则使用传入的变量值；否则使用执行方案当前已配置的默认值。定义见global_var |
 | callback_url    | string | 否  | 回调URL，当任务执行完成后，JOB会调用该URL告知任务执行结果。回调协议参考callback_protocol组件文档               |
+| start_task      | boolean| 否  | 是否启动任务，默认true，如果是false可以通过operate_job_instance接口启动任务|
 
 ##### global_var
 
