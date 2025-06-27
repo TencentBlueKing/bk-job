@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.api.iam;
+package com.tencent.bk.job.file_gateway.api.iam.impl;
 
 import com.tencent.bk.audit.utils.json.JsonSchemaUtils;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.file_gateway.api.iam.IamFileSourceCallbackResource;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceBasicInfoDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceV3DTO;
