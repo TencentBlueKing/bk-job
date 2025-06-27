@@ -785,7 +785,7 @@
           values: [
             {
               id: currentUserName,
-              name: currentUserName,
+              name: this.currentUser.displayName,
             },
           ],
         };

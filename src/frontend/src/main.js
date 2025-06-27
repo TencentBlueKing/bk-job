@@ -124,7 +124,7 @@ let EntryApp = subEnv ? IframeApp : App;
 entryTask.add(() => UserService.fetchUserInfo().then((data) => {
   window.PROJECT_CONFIG.TENANT_ID = data.tenantId;
   const latestTenantId = Cookie.get('tenant_id');
-  if (latestTenantId !== data.templateId) {
+  if (latestTenantId !== data.tenantId) {
     scopeCache.clearItem();
   }
   Cookie.set('tenant_id', data.tenantId, {
