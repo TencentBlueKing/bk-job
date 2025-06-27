@@ -199,6 +199,8 @@
   import PublicScriptService from '@service/public-script-manage';
   import ScriptService from '@service/script-manage';
 
+  import TaskStepModel from '@model/task/task-step';
+
   import {
     checkPublicScript,
     getOffset,
@@ -410,7 +412,7 @@
             scriptVersionId: this.scriptInfo.scriptVersionId,
           },
           query: {
-            from: 'scriptVersion',
+            source: this.publicScript ? TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC : TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS,
           },
         });
       },
