@@ -115,7 +115,9 @@ public class RouteConfig {
             }
             if (user == null) {
                 Response<?> resp = Response.buildCommonFailResp(ErrorCode.USER_NOT_EXIST_OR_NOT_LOGIN_IN);
-                return ServerResponse.status(HttpStatus.UNAUTHORIZED).body(Mono.just(resp), Response.class);
+                return ServerResponse.status(HttpStatus.UNAUTHORIZED)
+                    .header("x-login-url", loginService.getLoginRedirectUrl())
+                    .body(Mono.just(resp), Response.class);
             }
             Response<BkUserDTO> resp = Response.buildSuccessResp(user);
             return ServerResponse.ok().body(Mono.just(resp), Response.class);
