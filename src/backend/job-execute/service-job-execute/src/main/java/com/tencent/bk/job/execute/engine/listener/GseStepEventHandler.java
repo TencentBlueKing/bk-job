@@ -49,7 +49,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.db.RollingExecuteObjectsBatchDO;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
-import com.tencent.bk.job.execute.service.RollingConfigService;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -311,9 +311,10 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         if (stepInstance.isFirstRollingBatch()) {
             // 如果是第一批次的执行，需要提前初始化所有批次的执行对象任务（作业详情查询主机任务列表需要)
             List<ExecuteObjectTask> executeObjectTasks = new ArrayList<>();
-            if (rollingConfig.isBatchRollingStep(stepInstanceId)) {
+            if (rollingConfig.isExecuteObjectBatchRollingStep(stepInstanceId)) {
+                // 按目标执行对象分批
                 List<RollingExecuteObjectsBatchDO> executeObjectsBatchList =
-                    rollingConfig.getConfigDetail().getExecuteObjectsBatchListCompatibly();
+                    rollingConfig.getExecuteObjectRollingConfig().getExecuteObjectsBatchListCompatibly();
                 executeObjectsBatchList.forEach(executeObjectsBatch -> {
                     executeObjectTasks.addAll(
                         buildInitialExecuteObjectTasks(
@@ -328,6 +329,8 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                     );
                 });
                 saveExecuteObjectTasks(stepInstance, executeObjectTasks);
+            } else if (rollingConfig.isFileSourceBatchRollingStep(stepInstanceId)) {
+                // TODO:按源文件分批
             } else {
                 // 暂时不支持，滚动执行二期需求
                 log.warn("All rolling step is not supported!");
@@ -757,7 +760,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                     stepInstance.getRollingConfigId());
             finishRollingTask(taskInstanceId, stepInstanceId, stepInstance.getExecuteCount(), stepInstance.getBatch(),
                 RunStatusEnum.SUCCESS);
-            int totalBatch = rollingConfig.getConfigDetail().getTotalBatch();
+            int totalBatch = rollingConfig.getExecuteObjectRollingConfig().getTotalBatch();
             boolean isLastBatch = totalBatch == stepInstance.getBatch();
             if (isLastBatch) {
                 stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId, RunStatusEnum.SUCCESS,
@@ -797,7 +800,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             RollingConfigDTO rollingConfig =
                 rollingConfigService.getRollingConfig(stepInstance.getTaskInstanceId(),
                     stepInstance.getRollingConfigId());
-            RollingModeEnum rollingMode = RollingModeEnum.valOf(rollingConfig.getConfigDetail().getMode());
+            RollingModeEnum rollingMode = RollingModeEnum.valOf(rollingConfig.getExecuteObjectRollingConfig().getMode());
             switch (rollingMode) {
                 case IGNORE_ERROR:
                     log.info("Ignore error for rolling step, rollingMode: {}", rollingMode);

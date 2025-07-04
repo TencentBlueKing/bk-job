@@ -92,7 +92,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceExecuteObjects;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
-import com.tencent.bk.job.execute.service.RollingConfigService;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;

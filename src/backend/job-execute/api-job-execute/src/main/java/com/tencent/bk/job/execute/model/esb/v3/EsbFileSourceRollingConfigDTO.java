@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 Tencent.  All rights reserved.
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -22,33 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao.common;
+package com.tencent.bk.job.execute.model.esb.v3;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
 /**
- * ID 生成器
+ * 源文件滚动配置
  */
-public interface IdGen {
-    Long genTaskInstanceId();
+@Data
+public class EsbFileSourceRollingConfigDTO {
+    /**
+     * 一个滚动批次中的最大执行对象数量
+     */
+    @JsonProperty("max_execute_object_num_in_batch")
+    private Integer maxExecuteObjectNumInBatch;
 
-    Long genStepInstanceId();
+    /**
+     * 一个滚动批次中的最大文件数量
+     */
+    @JsonProperty("max_file_num_in_batch")
+    private Integer maxFileNumInBatch;
 
-    Long genGseTaskId();
-
-    Long genOperationLogId();
-
-    Long genFileSourceTaskLogId();
-
-    Long genGseFileExecuteObjTaskId();
-
-    Long genGseScriptExecuteObjTaskId();
-
-    Long genRollingConfigId();
-
-    Long genStepInstanceRollingTaskId();
-
-    Long genStepInstanceVariableId();
-
-    Long genTaskInstanceVariableId();
-
-    Long genStepInstanceFileBatchId();
 }

@@ -39,9 +39,9 @@ import com.tencent.bk.job.execute.engine.quota.limit.RunningJobResourceQuotaMana
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
+import com.tencent.bk.job.execute.model.db.ExecuteObjectRollingConfigDetailDO;
 import com.tencent.bk.job.execute.service.NotifyService;
-import com.tencent.bk.job.execute.service.RollingConfigService;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.statistics.StatisticsService;
@@ -214,7 +214,7 @@ public class JobListener extends BaseJobMqListener {
             RollingConfigDTO taskInstanceRollingConfig =
                 rollingConfigService.getRollingConfig(currentStepInstance.getTaskInstanceId(),
                     currentStepInstance.getRollingConfigId());
-            RollingConfigDetailDO rollingConfig = taskInstanceRollingConfig.getConfigDetail();
+            ExecuteObjectRollingConfigDetailDO rollingConfig = taskInstanceRollingConfig.getExecuteObjectRollingConfig();
             StepInstanceBaseDTO nextStepInstance = getNextStepInstance(taskInstance, currentStepInstance,
                 rollingConfig);
             if (nextStepInstance == null) {
@@ -290,7 +290,7 @@ public class JobListener extends BaseJobMqListener {
      */
     private StepInstanceBaseDTO getNextStepInstance(TaskInstanceDTO taskInstance,
                                                     StepInstanceBaseDTO currentStepInstance,
-                                                    RollingConfigDetailDO rollingConfig) {
+                                                    ExecuteObjectRollingConfigDetailDO rollingConfig) {
         StepInstanceBaseDTO nextStepInstance = null;
         if (currentStepInstance.isRollingStep()) {
             int currentBatch = currentStepInstance.getBatch();

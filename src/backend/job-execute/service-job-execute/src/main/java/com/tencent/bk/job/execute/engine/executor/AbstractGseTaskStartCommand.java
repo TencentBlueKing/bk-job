@@ -53,6 +53,7 @@ import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -79,6 +80,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     protected final JobExecuteConfig jobExecuteConfig;
     protected final StepInstanceService stepInstanceService;
     protected final RunningJobKeepaliveManager runningJobKeepaliveManager;
+    protected final RollingConfigService rollingConfigService;
     /**
      * 任务下发请求ID,防止重复下发任务
      */
@@ -132,6 +134,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         this.stepInstanceService = engineDependentServiceHolder.getStepInstanceService();
         this.resultHandleManager = engineDependentServiceHolder.getResultHandleManager();
         this.taskInstanceService = engineDependentServiceHolder.getTaskInstanceService();
+        this.rollingConfigService = engineDependentServiceHolder.getRollingConfigService();
         this.jobExecuteConfig = jobExecuteConfig;
         this.requestId = requestId;
     }

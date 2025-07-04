@@ -36,13 +36,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 滚动详细配置DO
+ * 目标执行对象滚动详细配置DO
  */
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @NoArgsConstructor
 @PersistenceObject
-public class RollingConfigDetailDO {
+public class ExecuteObjectRollingConfigDetailDO {
     /**
      * 滚动配置名称
      */

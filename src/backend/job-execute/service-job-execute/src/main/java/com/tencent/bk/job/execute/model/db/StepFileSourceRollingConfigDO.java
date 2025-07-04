@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 Tencent.  All rights reserved.
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -22,31 +22,50 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3;
+package com.tencent.bk.job.execute.model.db;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * 滚动执行配置
+ * 源文件滚动详细配置DO
  */
 @Data
-public class EsbRollingConfigDTO {
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@NoArgsConstructor
+@PersistenceObject
+public class StepFileSourceRollingConfigDO {
     /**
-     * 目标执行对象滚动分批策略表达式，当前不支持与源文件滚动同时配置
-     */
-    private String expression;
-
-    /**
-     * 滚动机制,1-执行失败则暂停；2-忽略失败，自动滚动下一批；3-人工确认
+     * 滚动策略
      *
      * @see com.tencent.bk.job.common.constant.RollingModeEnum
      */
+    @JsonProperty("mode")
     private Integer mode;
 
     /**
-     * 源文件滚动配置，当前不支持与目标执行对象同时配置
+     * 一个滚动批次中的最大执行对象数量
      */
-    @JsonProperty("file_source")
-    private EsbFileSourceRollingConfigDTO fileSource;
+    @JsonProperty("maxExecuteObjectNumInBatch")
+    private Integer maxExecuteObjectNumInBatch;
+
+    /**
+     * 一个滚动批次中的最大文件数量
+     */
+    @JsonProperty("maxFileNumInBatch")
+    private Integer maxFileNumInBatch;
+
+    public static StepFileSourceRollingConfigDO fromStepRollingConfigDTO(StepRollingConfigDTO rollingConfig) {
+        StepFileSourceRollingConfigDO fileSourceRollingConfig = new StepFileSourceRollingConfigDO();
+        fileSourceRollingConfig.setMode(rollingConfig.getMode());
+        Integer maxExecuteObjectNumInBatch = rollingConfig.getFileSource().getMaxExecuteObjectNumInBatch();
+        Integer maxFileNumInBatch = rollingConfig.getFileSource().getMaxFileNumInBatch();
+        fileSourceRollingConfig.setMaxExecuteObjectNumInBatch(maxExecuteObjectNumInBatch);
+        fileSourceRollingConfig.setMaxFileNumInBatch(maxFileNumInBatch);
+        return fileSourceRollingConfig;
+    }
 }

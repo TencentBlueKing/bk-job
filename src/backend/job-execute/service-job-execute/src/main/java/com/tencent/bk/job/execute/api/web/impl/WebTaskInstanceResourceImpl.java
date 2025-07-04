@@ -53,7 +53,7 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.converter.TaskInstanceConverter;
-import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
+import com.tencent.bk.job.execute.model.db.ExecuteObjectRollingConfigDetailDO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteApprovalStepVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
@@ -65,7 +65,7 @@ import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceDetailVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskOperationLogVO;
-import com.tencent.bk.job.execute.service.RollingConfigService;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -155,9 +155,9 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             RollingConfigDTO rollingConfigDTO =
                 rollingConfigService.getRollingConfig(stepInstance.getTaskInstanceId(),
                     stepInstance.getRollingConfigId());
-            RollingConfigDetailDO rollingConfig = rollingConfigDTO.getConfigDetail();
+            ExecuteObjectRollingConfigDetailDO rollingConfig = rollingConfigDTO.getExecuteObjectRollingConfig();
             rollingConfigVO.setMode(rollingConfig.getMode());
-            if (rollingConfigDTO.isBatchRollingStep(stepInstance.getId())) {
+            if (rollingConfigDTO.isExecuteObjectBatchRollingStep(stepInstance.getId())) {
                 rollingConfigVO.setExpr(rollingConfig.getExpr());
             }
             stepVO.setRollingConfig(rollingConfigVO);

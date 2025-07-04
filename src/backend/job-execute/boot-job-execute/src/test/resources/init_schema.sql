@@ -340,6 +340,7 @@ CREATE TABLE IF NOT EXISTS `rolling_config`
 (
     `id`               bigint(20)   NOT NULL AUTO_INCREMENT,
     `task_instance_id` bigint(20)   NOT NULL DEFAULT '0',
+    `type`             tinyint(4)   NOT NULL DEFAULT 1,
     `config_name`      varchar(128) NOT NULL,
     `config`           longtext     NOT NULL,
     `row_create_time`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,

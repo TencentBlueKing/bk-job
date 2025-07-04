@@ -24,7 +24,10 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.execute.constants.RollingTypeEnum;
+import com.tencent.bk.job.execute.model.db.ExecuteObjectRollingConfigDetailDO;
+import com.tencent.bk.job.execute.model.db.FileSourceRollingConfigDO;
 import lombok.Data;
 
 /**
@@ -48,17 +51,79 @@ public class RollingConfigDTO {
     private String configName;
 
     /**
-     * 滚动配置
+     * 滚动配置类型
      */
-    private RollingConfigDetailDO configDetail;
+    private Integer type;
 
     /**
-     * 步骤是否分批执行
+     * 目标执行对象滚动配置
+     */
+    private ExecuteObjectRollingConfigDetailDO executeObjectRollingConfig;
+
+    /**
+     * 源文件滚动配置
+     */
+    private FileSourceRollingConfigDO stepFileSourceRollingConfigs;
+
+    /**
+     * 步骤是否为目标执行对象分批执行
      *
      * @param stepInstanceId 步骤实例ID
      */
-    public boolean isBatchRollingStep(long stepInstanceId) {
-        return configDetail != null && configDetail.getStepRollingConfigs().get(stepInstanceId).isBatch();
+    public boolean isExecuteObjectBatchRollingStep(long stepInstanceId) {
+        return executeObjectRollingConfig != null
+            && executeObjectRollingConfig.getStepRollingConfigs().get(stepInstanceId).isBatch();
+    }
+
+    /**
+     * 步骤是否为源文件分批执行
+     *
+     * @param stepInstanceId 步骤实例ID
+     */
+    public boolean isFileSourceBatchRollingStep(long stepInstanceId) {
+        return stepFileSourceRollingConfigs != null
+            && stepFileSourceRollingConfigs.getStepFileSourceRollingConfigs().get(stepInstanceId) != null;
+    }
+
+    /**
+     * 是否是源文件滚动配置
+     *
+     * @return 布尔值
+     */
+    public boolean isFileSourceRolling() {
+        return RollingTypeEnum.FILE_SOURCE.getValue().equals(type);
+    }
+
+    /**
+     * 获取序列化后的配置详情
+     *
+     * @return 序列化后的配置详情
+     */
+    public String getSerializedConfigDetail() {
+        if (isFileSourceRolling()) {
+            return JsonUtils.toJson(stepFileSourceRollingConfigs);
+        } else {
+            return JsonUtils.toJson(executeObjectRollingConfig);
+        }
+    }
+
+    /**
+     * 设置配置详情
+     *
+     * @param serializedConfigDetail 序列化的配置详情
+     */
+    public void setConfigDetail(String serializedConfigDetail) {
+        if (isFileSourceRolling()) {
+            stepFileSourceRollingConfigs = JsonUtils.fromJson(
+                serializedConfigDetail,
+                FileSourceRollingConfigDO.class
+            );
+        } else {
+            executeObjectRollingConfig = JsonUtils.fromJson(
+                serializedConfigDetail,
+                ExecuteObjectRollingConfigDetailDO.class
+            );
+        }
     }
 }
 

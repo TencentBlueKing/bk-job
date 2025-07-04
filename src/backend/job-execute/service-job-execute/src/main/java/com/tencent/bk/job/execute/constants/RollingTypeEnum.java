@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 Tencent.  All rights reserved.
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -22,33 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao.common;
+package com.tencent.bk.job.execute.constants;
 
 /**
- * ID 生成器
+ * 滚动类型
  */
-public interface IdGen {
-    Long genTaskInstanceId();
+public enum RollingTypeEnum {
+    TARGET_EXECUTE_OBJECT(1, "目标执行对象"),
+    FILE_SOURCE(2, "源文件");
 
-    Long genStepInstanceId();
+    private final Integer value;
+    private final String name;
 
-    Long genGseTaskId();
+    RollingTypeEnum(Integer val, String name) {
+        this.value = val;
+        this.name = name;
+    }
 
-    Long genOperationLogId();
+    public static RollingTypeEnum getRollingType(int value) {
+        for (RollingTypeEnum rollingTypeEnum : values()) {
+            if (rollingTypeEnum.getValue() == value) {
+                return rollingTypeEnum;
+            }
+        }
+        return null;
+    }
 
-    Long genFileSourceTaskLogId();
+    public Integer getValue() {
+        return value;
+    }
 
-    Long genGseFileExecuteObjTaskId();
-
-    Long genGseScriptExecuteObjTaskId();
-
-    Long genRollingConfigId();
-
-    Long genStepInstanceRollingTaskId();
-
-    Long genStepInstanceVariableId();
-
-    Long genTaskInstanceVariableId();
-
-    Long genStepInstanceFileBatchId();
+    public String getName() {
+        return name;
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 Tencent.  All rights reserved.
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -22,33 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.dao.common;
+package com.tencent.bk.job.execute.service.rolling;
+
+import com.tencent.bk.job.execute.model.FileSourceDTO;
+import com.tencent.bk.job.execute.model.StepInstanceFileBatchDTO;
+import com.tencent.bk.job.execute.model.db.StepFileSourceRollingConfigDO;
+
+import java.util.List;
 
 /**
- * ID 生成器
+ * 源文件滚动批次计算器
  */
-public interface IdGen {
-    Long genTaskInstanceId();
+public interface FileSourceBatchCalculator {
 
-    Long genStepInstanceId();
-
-    Long genGseTaskId();
-
-    Long genOperationLogId();
-
-    Long genFileSourceTaskLogId();
-
-    Long genGseFileExecuteObjTaskId();
-
-    Long genGseScriptExecuteObjTaskId();
-
-    Long genRollingConfigId();
-
-    Long genStepInstanceRollingTaskId();
-
-    Long genStepInstanceVariableId();
-
-    Long genTaskInstanceVariableId();
-
-    Long genStepInstanceFileBatchId();
+    /**
+     * 根据源文件滚动策略计算每个滚动批次中需要分发的源文件
+     *
+     * @param taskInstanceId          作业实例ID
+     * @param stepInstanceId          步骤实例ID
+     * @param fileSourceList          源文件列表
+     * @param fileSourceRollingConfig 源文件滚动策略
+     * @return 源文件滚动批次列表
+     */
+    List<StepInstanceFileBatchDTO> calc(Long taskInstanceId,
+                                        Long stepInstanceId,
+                                        List<FileSourceDTO> fileSourceList,
+                                        StepFileSourceRollingConfigDO fileSourceRollingConfig);
 }

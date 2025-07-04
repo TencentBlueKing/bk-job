@@ -43,9 +43,13 @@ public class StepRollingConfigDTO {
      */
     private Integer mode;
     /**
-     * 滚动表达式
+     * 目标执行对象滚动表达式，当前不支持与源文件滚动同时配置，同时配置时，以目标执行对象滚动为准
      */
     private String expr;
+    /**
+     * 源文件滚动配置，当前不支持与目标执行对象同时配置
+     */
+    private FileSourceRollingConfigDTO fileSource;
 
     public static StepRollingConfigDTO fromRollingConfigVO(RollingConfigVO rollingConfigVO) {
         StepRollingConfigDTO stepRollingConfigDTO = new StepRollingConfigDTO();
@@ -61,6 +65,26 @@ public class StepRollingConfigDTO {
         stepRollingConfigDTO.setName("default");
         stepRollingConfigDTO.setMode(rollingConfig.getMode());
         stepRollingConfigDTO.setExpr(rollingConfig.getExpression());
+        stepRollingConfigDTO.setFileSource(FileSourceRollingConfigDTO.fromEsbFileSourceRollingConfig(
+            rollingConfig.getFileSource())
+        );
         return stepRollingConfigDTO;
+    }
+
+    /**
+     * 判断是否为目标执行对象类型的滚动
+     * @return 布尔值
+     */
+    public boolean isTargetExecuteObjectRolling() {
+        return StringUtils.isNotBlank(expr);
+    }
+
+    /**
+     * 判断是否为源文件类型的滚动
+     *
+     * @return 布尔值
+     */
+    public boolean isFileSourceRolling() {
+        return fileSource != null;
     }
 }

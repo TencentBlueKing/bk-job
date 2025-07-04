@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 Tencent.  All rights reserved.
+ * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -22,44 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.execute.model.db;
 
-import com.tencent.bk.job.execute.engine.model.ExecuteObject;
-import com.tencent.bk.job.execute.model.FastTaskDTO;
-import com.tencent.bk.job.execute.model.RollingConfigDTO;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Map;
 
 /**
- * 滚动配置服务
+ * 所有步骤的源文件滚动详细配置DO
  */
-public interface RollingConfigService {
+@Data
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@NoArgsConstructor
+@PersistenceObject
+public class FileSourceRollingConfigDO {
     /**
-     * 根据滚动批次获取执行对象
-     *
-     * @param stepInstance 步骤实例
-     * @param batch        滚动执行批次
-     * @return 主机列表
+     * 各个步骤的源文件滚动配置
      */
-    List<ExecuteObject> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch);
+    @JsonProperty("stepFileSourceRollingConfigs")
+    private Map<Long, StepFileSourceRollingConfigDO> stepFileSourceRollingConfigs;
 
-    /**
-     * 保存快速执行作业滚动配置
-     *
-     * @param fastTask 快速执行作业
-     * @return 保存之后的滚动配置
-     */
-    RollingConfigDTO saveRollingConfigForFastJob(FastTaskDTO fastTask);
-
-    RollingConfigDTO getRollingConfig(Long taskInstanceId, long rollingConfigId);
-
-    /**
-     * 任务是否启用了滚动执行
-     * @param taskInstanceId 任务id
-     * @return boolean true启用，false未启用
-     */
-    boolean isTaskRollingEnabled(long taskInstanceId);
-
-    long addRollingConfig(RollingConfigDTO rollingConfig);
 }

@@ -22,25 +22,44 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.sharding.mysql;
+package com.tencent.bk.job.execute.service.rolling;
+
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.execute.model.FastTaskDTO;
+import com.tencent.bk.job.execute.model.RollingConfigDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+
+import java.util.List;
 
 /**
- * 分布式 ID KEY
+ * 滚动配置服务
  */
-public class SegmentIdKeys {
+public interface RollingConfigService {
+    /**
+     * 根据滚动批次获取执行对象
+     *
+     * @param stepInstance 步骤实例
+     * @param batch        滚动执行批次
+     * @return 主机列表
+     */
+    List<ExecuteObject> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch);
 
-    public static final String KEY_JOB_EXECUTE_TASK_INSTANCE = "job_execute.task_instance";
-    public static final String KEY_JOB_EXECUTE_STEP_INSTANCE = "job_execute.step_instance";
-    public static final String KEY_JOB_EXECUTE_GSE_TASK = "job_execute.gse_task";
-    public static final String KEY_JOB_EXECUTE_OPERATION_LOG = "job_execute.operation_log";
-    public static final String KEY_JOB_EXECUTE_FILE_SOURCE_TASK_LOG = "job_execute.file_source_task_log";
-    public static final String KEY_JOB_EXECUTE_GSE_FILE_EXECUTE_OBJ_TASK = "job_execute.gse_file_execute_obj_task";
-    public static final String KEY_JOB_EXECUTE_GSE_SCRIPT_EXECUTE_OBJ_TASK =
-        "job_execute.gse_script_execute_obj_task";
-    public static final String KEY_JOB_EXECUTE_ROLLING_CONFIG = "job_execute.rolling_config";
-    public static final String KEY_JOB_EXECUTE_STEP_INSTANCE_ROLLING_TASK =
-        "job_execute.step_instance_rolling_task";
-    public static final String KEY_JOB_EXECUTE_STEP_INSTANCE_VARIABLE = "job_execute.step_instance_variable";
-    public static final String KEY_JOB_EXECUTE_TASK_INSTANCE_VARIABLE = "job_execute.task_instance_variable";
-    public static final String KEY_JOB_EXECUTE_STEP_INSTANCE_FILE_BATCH = "job_execute.step_instance_file_batch";
+    /**
+     * 保存快速执行作业滚动配置
+     *
+     * @param fastTask 快速执行作业
+     * @return 保存之后的滚动配置
+     */
+    RollingConfigDTO saveRollingConfigForFastJob(FastTaskDTO fastTask);
+
+    RollingConfigDTO getRollingConfig(Long taskInstanceId, long rollingConfigId);
+
+    /**
+     * 任务是否启用了滚动执行
+     * @param taskInstanceId 任务id
+     * @return boolean true启用，false未启用
+     */
+    boolean isTaskRollingEnabled(long taskInstanceId);
+
+    long addRollingConfig(RollingConfigDTO rollingConfig);
 }
