@@ -34,17 +34,19 @@ import lombok.Getter;
  */
 @Getter
 public enum MySQLTextDataType {
-    TINYTEXT("TINYTEXT", 255L),
-    TEXT("TEXT", 65535L),
-    MEDIUMTEXT("MEDIUMTEXT", 16777215L),
-    LONGTEXT("LONGTEXT", 4294967295L);
+    TINYTEXT("TINYTEXT", 255L, null),
+    TEXT("TEXT", 65535L, 48128L),
+    MEDIUMTEXT("MEDIUMTEXT", 16777215L, null),
+    LONGTEXT("LONGTEXT", 4294967295L, null);
 
     private final String value;
     private final Long maximumLength;   // MySQL能存的最大字节数
+    private final Long maximumLengthForEncrypted; // 加密后能存的最大字节数
 
-    MySQLTextDataType(String value, Long maximumLength) {
+    MySQLTextDataType(String value, Long maximumLength, Long maximumLengthForEncrypted) {
         this.value = value;
         this.maximumLength = maximumLength;
+        this.maximumLengthForEncrypted = maximumLengthForEncrypted;
     }
 
     public static MySQLTextDataType valOf(String value) {
@@ -54,6 +56,14 @@ public enum MySQLTextDataType {
             }
         }
         return null;
+    }
+
+    public Long getMaximumLengthForEncrypted() {
+        if (maximumLengthForEncrypted != null) {
+            return maximumLengthForEncrypted;
+        }
+        // 加密后长度会增加1.33左右
+        return (long) Math.floor(maximumLength / 1.36);
     }
 
     @Override
