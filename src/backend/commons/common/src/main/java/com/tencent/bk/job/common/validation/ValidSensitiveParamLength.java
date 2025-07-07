@@ -128,7 +128,8 @@ public @interface ValidSensitiveParamLength {
                 if (currentLength > maxLength) {
                     if (isEncrypted) {
                         message = "validation.constraints.NotExceedMySQLFieldLengthForEncrypted.message";
-                        message = messageI18nService.getI18nWithArgs(message, new Object[]{paramName, maxLength});
+                        message = messageI18nService.getI18nWithArgs(message,
+                            new Object[]{paramName, String.valueOf(maxLength)});
                     }
                     context.disableDefaultConstraintViolation();
                     context.buildConstraintViolationWithTemplate(message)

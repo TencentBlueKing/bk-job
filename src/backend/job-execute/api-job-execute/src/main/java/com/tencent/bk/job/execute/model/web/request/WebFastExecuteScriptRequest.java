@@ -47,7 +47,7 @@ import javax.validation.constraints.NotNull;
  */
 @Data
 @ApiModel("快速执行脚本请求报文")
-@ValidSensitiveParamLength
+@ValidSensitiveParamLength(sensitiveFlag = "secureParam")
 public class WebFastExecuteScriptRequest {
     /**
      * 脚本执行任务名称

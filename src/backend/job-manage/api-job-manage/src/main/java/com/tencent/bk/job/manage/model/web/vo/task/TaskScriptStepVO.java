@@ -44,7 +44,7 @@ import org.hibernate.validator.constraints.Range;
 @Data
 @ApiModel("任务脚本步骤信息")
 @Slf4j
-@ValidSensitiveParamLength(usedBase64 = false)
+@ValidSensitiveParamLength(usedBase64 = false, sensitiveFlag = "secureParam")
 public class TaskScriptStepVO {
 
     @ApiModelProperty(value = "脚本类型 1-本地脚本 2-引用业务脚本 3-引用公共脚本")
