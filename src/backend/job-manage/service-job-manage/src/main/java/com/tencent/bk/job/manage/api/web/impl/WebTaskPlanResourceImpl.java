@@ -515,12 +515,6 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
                                            Long templateId,
                                            Long planId,
                                            String name) {
-        User user = JobContextUtil.getUser();
-        AuthResult authResult = templateAuthService.authViewJobTemplate(user, appResourceScope,
-            templateId);
-        if (!authResult.isPass()) {
-            throw new PermissionDeniedException(authResult);
-        }
         return Response.buildSuccessResp(planService.checkPlanName(appResourceScope.getAppId(), templateId, planId,
             name));
     }
