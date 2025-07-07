@@ -25,10 +25,9 @@
 package com.tencent.bk.job.common.validation;
 
 import com.tencent.bk.job.common.constant.MySQLTextDataType;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.util.I18nUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
@@ -80,8 +79,8 @@ public @interface ValidSensitiveParamLength {
 
     @Slf4j
     class Validator implements ConstraintValidator<ValidSensitiveParamLength, Object> {
-        @Autowired
-        private MessageI18nService messageI18nService;
+        private static final String MESSAGE_FIELD_LENGTH_EXCEED = "validation.constraints" +
+            ".NotExceedMySQLFieldLengthForEncrypted.message";
 
         private String message;
         private String paramName;
@@ -127,8 +126,7 @@ public @interface ValidSensitiveParamLength {
 
                 if (currentLength > maxLength) {
                     if (isEncrypted) {
-                        message = "validation.constraints.NotExceedMySQLFieldLengthForEncrypted.message";
-                        message = messageI18nService.getI18nWithArgs(message,
+                        message = I18nUtil.getI18nMessage(MESSAGE_FIELD_LENGTH_EXCEED,
                             new Object[]{paramName, String.valueOf(maxLength)});
                     }
                     context.disableDefaultConstraintViolation();
