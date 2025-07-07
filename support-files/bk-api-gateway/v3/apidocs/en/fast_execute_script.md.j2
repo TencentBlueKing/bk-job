@@ -23,6 +23,7 @@ Fast execute script
 | target_server      | object | no       | Target server, see server definition                                                                                                                                                        |
 | callback_url       | string | no       | Callback URL, when the task execution is completed, the JOB will call this URL to inform the task execution result. Callback protocol refer to the callback_protocol component documentation |
 | rolling_config       | object | no       | Rolling config，see rolling_config definition                                                                                                                                             |
+| start_task         | boolean| no       | Whether to start the task, default true. If it is false, you can start a task through the operating job instance interface |
 
 {% include '_generic_server.md.j2' %}
 

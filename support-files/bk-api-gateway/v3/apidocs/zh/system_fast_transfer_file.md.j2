@@ -23,6 +23,7 @@
 | target_server        | object | 否  | 目标服务器，见server定义                                                                                   |
 | callback_url         | string | 否  | 回调URL，当任务执行完成后，JOB会调用该URL告知任务执行结果。回调协议参考callback_protocol组件文档                                     |
 | rolling_config       | object | 否  | 滚动配置，见rolling_config定义                                                                            |
+| start_task           | boolean| 否  | 是否启动任务，默认true，如果是false可以通过operate_job_instance接口启动任务|
 
 {% include '_generic_file_source.md.j2' %}
 

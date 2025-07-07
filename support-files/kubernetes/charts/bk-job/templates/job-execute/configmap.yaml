@@ -269,4 +269,9 @@ data:
       # 连接Redis使用的TLS配置
       redis:
         {{- include "job.redis.tls" . | nindent 8 }}
+    externalGseAgent:
+      enabled: {{ .Values.externalGseAgent.enabled | default false }}
+      hosts:
+        {{ toYaml .Values.externalGseAgent.hosts | nindent 8 }}
+
 {{- end }}

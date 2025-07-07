@@ -173,6 +173,8 @@ public class ErrorCode {
     public static final int NOT_SUPPORT_FEATURE_FOR_BIZ_SET = 1241013;
     // IPv6地址不合法：{0}
     public static final int INVALID_IPV6_ADDRESS = 1241014;
+    // 不支持的操作，请勿重复启动作业：{0}
+    public static final int UNSUPPORTED_OPERATION_REPEAT_START_JOB = 1241015;
     // 业务通用 end
 
     // 配置服务 start

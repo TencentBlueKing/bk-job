@@ -22,62 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.request;
+package com.tencent.bk.job.common.exception;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
-import lombok.Getter;
-import lombok.Setter;
+import com.tencent.bk.job.common.model.error.ErrorType;
 
-import java.util.List;
 
 /**
- * 作业执行请求
+ * 当使用集群外部的机器作为文件的分发源时，不满足分发条件（没有可用的源机器/...）时抛出的异常
  */
-@Getter
-@Setter
-public class EsbExecuteJobV3Request extends EsbAppScopeReq {
+public class DistributeFileFromExternalAgentException extends ServiceException {
 
-    /**
-     * 执行方案 ID
-     */
-    @JsonProperty("job_plan_id")
-    private Long taskId;
-
-    @JsonProperty("global_var_list")
-    private List<EsbGlobalVarV3DTO> globalVars;
-
-    /**
-     * 任务执行完成之后回调URL
-     */
-    @JsonProperty("callback_url")
-    private String callbackUrl;
-
-    /**
-     * 是否启动任务
-     */
-    @JsonProperty("start_task")
-    private Boolean startTask = true;
-
-    public void trimIps() {
-        if (globalVars != null && globalVars.size() > 0) {
-            globalVars.forEach(globalVar -> {
-                if (globalVar.getServer() != null) {
-                    trimIps(globalVar.getServer().getIps());
-                }
-            });
-        }
+    public DistributeFileFromExternalAgentException(Integer errorCode) {
+        super(ErrorType.INTERNAL, errorCode);
     }
 
-    private void trimIps(List<EsbIpDTO> ips) {
-        if (ips != null && ips.size() > 0) {
-            ips.forEach(host -> {
-                host.setIp(host.getIp().trim());
-            });
-        }
+    public DistributeFileFromExternalAgentException(String message, Integer errorCode) {
+        super(message, ErrorType.INTERNAL, errorCode);
     }
-
-
 }

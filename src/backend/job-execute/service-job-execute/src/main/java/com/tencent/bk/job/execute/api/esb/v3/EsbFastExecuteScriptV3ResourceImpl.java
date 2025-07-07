@@ -107,6 +107,7 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
                 .taskInstance(taskInstance)
                 .stepInstance(stepInstance)
                 .rollingConfig(rollingConfig)
+                .startTask(request.getStartTask())
                 .build()
         );
 

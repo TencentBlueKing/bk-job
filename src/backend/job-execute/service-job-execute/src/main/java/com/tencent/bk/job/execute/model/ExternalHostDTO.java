@@ -22,62 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.request;
+package com.tencent.bk.job.execute.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.List;
+import com.tencent.bk.job.common.model.dto.HostDTO;
+import lombok.Data;
 
 /**
- * 作业执行请求
+ * 使用集群外主机作为文件分发源机器时，用于接收配置中的主机信息
  */
-@Getter
-@Setter
-public class EsbExecuteJobV3Request extends EsbAppScopeReq {
+@Data
+public class ExternalHostDTO {
 
     /**
-     * 执行方案 ID
+     * 云区域ID
      */
-    @JsonProperty("job_plan_id")
-    private Long taskId;
-
-    @JsonProperty("global_var_list")
-    private List<EsbGlobalVarV3DTO> globalVars;
+    private Long bkCloudId;
 
     /**
-     * 任务执行完成之后回调URL
+     * 主机IP - IPv4
      */
-    @JsonProperty("callback_url")
-    private String callbackUrl;
+    private String ip;
 
-    /**
-     * 是否启动任务
-     */
-    @JsonProperty("start_task")
-    private Boolean startTask = true;
-
-    public void trimIps() {
-        if (globalVars != null && globalVars.size() > 0) {
-            globalVars.forEach(globalVar -> {
-                if (globalVar.getServer() != null) {
-                    trimIps(globalVar.getServer().getIps());
-                }
-            });
-        }
+    public HostDTO convertToHostDTO() {
+        return new HostDTO(bkCloudId, ip);
     }
-
-    private void trimIps(List<EsbIpDTO> ips) {
-        if (ips != null && ips.size() > 0) {
-            ips.forEach(host -> {
-                host.setIp(host.getIp().trim());
-            });
-        }
-    }
-
-
 }
