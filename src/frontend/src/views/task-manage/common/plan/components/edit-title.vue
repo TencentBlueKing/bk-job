@@ -240,6 +240,7 @@
       font-size: 18px;
       line-height: 32px;
       color: #313238;
+      align-items: center;
 
       .edit-btn {
         margin-left: 4px;
