@@ -64,10 +64,21 @@
       ref="text"
       class="text">
       <span>{{ localValue }}</span>
-      <icon
-        class="edit-btn"
-        type="edit-2"
-        @click="handleEdit" />
+      <auth-component
+        auth="job_plan/edit"
+        class="mr10"
+        :permission="data.canEdit"
+        :resource-id="data.id">
+        <icon
+          class="edit-btn"
+          type="edit-2"
+          @click="handleEdit" />
+        <template #forbid>
+          <icon
+            class="edit-btn"
+            type="edit-2" />
+        </template>
+      </auth-component>
     </div>
   </div>
 </template>
@@ -225,11 +236,13 @@
     }
 
     .text {
+      display: flex;
       font-size: 18px;
       line-height: 32px;
       color: #313238;
 
       .edit-btn {
+        margin-left: 4px;
         font-size: 15px;
         color: #979ba5;
         cursor: pointer;
