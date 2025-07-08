@@ -37,6 +37,7 @@
           slot="title"
           class="view-title">
           <edit-title
+            v-if="planInfo.id"
             :data="planInfo"
             @on-edit-success="handleEditSuccess" />
           <span
