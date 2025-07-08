@@ -351,7 +351,8 @@
         // 执行指定版本的脚本
         if (this.scriptVersionId > 0) {
           this.formData.scriptVersionId = this.scriptVersionId;
-          this.formData.scriptSource = TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC;
+          this.formData.scriptSource = this.$route.query.source === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS
+            ? TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS : TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC;
         }
       },
       /**

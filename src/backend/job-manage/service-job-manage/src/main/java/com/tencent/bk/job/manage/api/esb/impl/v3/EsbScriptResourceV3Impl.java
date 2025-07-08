@@ -341,6 +341,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         script.setPublicScript(false);
         script.setCreator(username);
         script.setLastModifyUser(username);
+        script.setTenantId(user.getTenantId());
         ScriptDTO savedScript = scriptService.createScript(user, script);
 
         EsbScriptVersionDetailV3DTO result = savedScript.toEsbCreateScriptV3DTO();

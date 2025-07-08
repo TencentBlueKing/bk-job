@@ -38,6 +38,7 @@ import com.tencent.bk.job.manage.service.NotifyService;
 import com.tencent.bk.job.manage.service.impl.notify.NotifyChannelInitService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
@@ -48,6 +49,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
 @Component
@@ -57,6 +59,7 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
     private final NotifyService notifyService;
     private final NotifyTriggerPolicyDAO notifyTriggerPolicyDAO;
     private final NotifyChannelInitService notifyChannelInitService;
+    private final ThreadPoolExecutor initRunnerExecutor;
 
     @Value("${job.manage.notify.default.channels.available:mail,weixin,rtx}")
     private final String defaultAvailableNotifyChannelsStr = "mail,weixin,rtx";
@@ -64,15 +67,21 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
     @Autowired
     public NotifyInitListener(NotifyService notifyService,
                               NotifyTriggerPolicyDAO notifyTriggerPolicyDAO,
-                              NotifyChannelInitService notifyChannelInitService) {
+                              NotifyChannelInitService notifyChannelInitService,
+                              @Qualifier("initRunnerExecutor") ThreadPoolExecutor initRunnerExecutor) {
         this.notifyService = notifyService;
         this.notifyTriggerPolicyDAO = notifyTriggerPolicyDAO;
         this.notifyChannelInitService = notifyChannelInitService;
+        this.initRunnerExecutor = initRunnerExecutor;
     }
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
-        // 应用启动完成后的一些初始化操作
+        // 应用启动完成后异步执行一些初始化操作
+        initRunnerExecutor.submit(this::initNotifyChannelAndPolicies);
+    }
+
+    private void initNotifyChannelAndPolicies() {
         // 1.消息通知默认配置
         notifyChannelInitService.initAllTenantDefaultNotifyChannels();
         // 2.用户侧默认配置

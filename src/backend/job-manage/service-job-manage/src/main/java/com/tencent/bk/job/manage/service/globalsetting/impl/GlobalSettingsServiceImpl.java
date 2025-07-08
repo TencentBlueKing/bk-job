@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.notice.config.BkNoticeProperties;
+import com.tencent.bk.job.common.paas.config.LoginConfiguration;
 import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 import com.tencent.bk.job.common.paas.user.IUserApiClient;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -133,6 +134,8 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private final NotifyTemplateConverter notifyTemplateConverter;
     private final BuildProperties buildProperties;
     private final IUserApiClient userApiClient;
+    private final LoginConfiguration loginConfiguration;
+
     @Value("${job.manage.upload.filesize.max:5GB}")
     private String configedMaxFileSize;
 
@@ -151,7 +154,8 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                                      BkApiGatewayProperties bkApiGatewayProperties,
                                      NotifyTemplateConverter notifyTemplateConverter,
                                      BuildProperties buildProperties,
-                                     IUserApiClient userApiClient) {
+                                     IUserApiClient userApiClient,
+                                     LoginConfiguration loginConfiguration) {
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyService = notifyService;
@@ -167,6 +171,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         this.notifyTemplateConverter = notifyTemplateConverter;
         this.buildProperties = buildProperties;
         this.userApiClient = userApiClient;
+        this.loginConfiguration = loginConfiguration;
     }
 
     private static String removeSuffixBackSlash(String rawStr) {
@@ -323,9 +328,9 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     // 默认账号命名规则：Linux
-    private static final String DEFAULT_ACCOUNT_NAME_RULE_LINUX = "^[a-z_][a-z0-9_-]{1,31}$";
+    private static final String DEFAULT_ACCOUNT_NAME_RULE_LINUX = "^[a-z_][a-zA-Z0-9_-]{1,31}$";
     // 默认账号命名规则：Windows
-    private static final String DEFAULT_ACCOUNT_NAME_RULE_WINDOWS = "^[a-æA-Æ0-9-]{1,32}$";
+    private static final String DEFAULT_ACCOUNT_NAME_RULE_WINDOWS = "^[a-zA-Z0-9-]{1,32}$";
     // 默认账号命名规则：Database
     private static final String DEFAULT_ACCOUNT_NAME_RULE_DATABASE = "^[a-zA-Z0-9\\.\\-\\_]{1,16}$";
 
@@ -749,6 +754,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         return url;
     }
 
+    private String getBkLoginUrl() {
+        return loginConfiguration.getRealLoginUrl();
+    }
+
     @Override
     public Map<String, String> getRelatedSystemUrls(String username) {
         Map<String, String> urlMap = new HashMap<>();
@@ -761,6 +770,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         urlMap.put(RelatedUrlKeys.KEY_BK_FEED_BACK_ROOT_URL, getFeedBackRootUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_SHARED_RES_BASE_JS_URL, getBkSharedResBaseJsUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_USER_WEB_API_ROOT_URL, getBkUserWebApiRootUrl());
+        urlMap.put(RelatedUrlKeys.KEY_BK_LOGIN_URL, getBkLoginUrl());
         return urlMap;
     }
 

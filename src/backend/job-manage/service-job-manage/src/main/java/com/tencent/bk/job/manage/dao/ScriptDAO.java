@@ -135,11 +135,12 @@ public interface ScriptDAO {
     /**
      * 业务下是否存在同名脚本
      *
-     * @param appId
-     * @param scriptName
-     * @return
+     * @param tenantId   租户ID
+     * @param appId      Job业务ID
+     * @param scriptName 脚本名称
+     * @return true-存在同名脚本，false-不存在同名脚本
      */
-    boolean isExistDuplicateName(Long appId, String scriptName);
+    boolean isExistDuplicateName(String tenantId, Long appId, String scriptName);
 
     /**
      * 更新脚本描述

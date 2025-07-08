@@ -97,7 +97,12 @@ public class EsbFastExecuteSQLV3ResourceImpl
         TaskInstanceDTO taskInstance = buildFastSQLTaskInstance(username, appCode, request);
         StepInstanceDTO stepInstance = buildFastSQLStepInstance(username, request);
         TaskInstanceDTO executeTaskInstance = taskExecuteService.executeFastTask(
-            FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).operator(user).build()
+            FastTaskDTO.builder()
+                .taskInstance(taskInstance)
+                .stepInstance(stepInstance)
+                .startTask(request.getStartTask())
+                .operator(user)
+                .build()
         );
 
         EsbJobExecuteV3DTO jobExecuteInfo = new EsbJobExecuteV3DTO();

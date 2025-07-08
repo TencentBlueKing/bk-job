@@ -169,6 +169,7 @@ public class AuthResult {
     public AuthResult mergeAuthResult(AuthResult otherAuthResult) {
         AuthResult authResult = new AuthResult();
         boolean isPass = this.pass && otherAuthResult.isPass();
+        authResult.setUser(user);
         authResult.setPass(isPass);
         if (!isPass) {
             List<PermissionActionResource> requiredActionResourceList = new ArrayList<>();
@@ -186,6 +187,7 @@ public class AuthResult {
 
     public static AuthResultDTO toAuthResultDTO(AuthResult authResult) {
         AuthResultDTO result = new AuthResultDTO();
+        result.setUser(authResult.getUser());
         result.setPass(authResult.isPass());
         result.setApplyUrl(authResult.getApplyUrl());
 
@@ -297,6 +299,7 @@ public class AuthResult {
 
     public static AuthResult fromAuthResultDTO(AuthResultDTO authResultDTO) {
         AuthResult result = new AuthResult();
+        result.setUser(authResultDTO.getUser());
         result.setPass(authResultDTO.isPass());
         result.setApplyUrl(authResultDTO.getApplyUrl());
 

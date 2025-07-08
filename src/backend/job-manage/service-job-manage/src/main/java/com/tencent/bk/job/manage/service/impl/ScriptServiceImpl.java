@@ -343,7 +343,7 @@ public class ScriptServiceImpl implements ScriptService {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
         }
 
-        ScriptDTO updateScript = scriptManager.updateScriptName(user.getUsername(), appId, scriptId, newName);
+        ScriptDTO updateScript = scriptManager.updateScriptName(user, appId, scriptId, newName);
 
         addModifyScriptAuditInfo(originScript, updateScript);
 

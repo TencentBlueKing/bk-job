@@ -277,7 +277,7 @@ public class ScriptManagerImpl implements ScriptManager {
         log.info("Begin to  create script: {}", script);
         long appId = script.getAppId();
 
-        boolean isNameDuplicate = scriptDAO.isExistDuplicateName(appId, script.getName());
+        boolean isNameDuplicate = scriptDAO.isExistDuplicateName(script.getTenantId(), appId, script.getName());
         if (isNameDuplicate) {
             log.warn("The script name:{} is exist for app:{}", script.getName(), appId);
             throw new AlreadyExistsException(ErrorCode.SCRIPT_NAME_DUPLICATE);
@@ -551,7 +551,7 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
-    public ScriptDTO updateScriptName(String operator, Long appId, String scriptId, String newName) {
+    public ScriptDTO updateScriptName(User operator, Long appId, String scriptId, String newName) {
         log.info("Begin to update script name,appId={},operator={},scriptId={},desc={}", appId, operator, scriptId,
             newName);
         ScriptDTO script = scriptDAO.getScriptByScriptId(scriptId);
@@ -563,13 +563,13 @@ public class ScriptManagerImpl implements ScriptManager {
         if (script.isPublicScript()) {
             targetAppId = PUBLIC_APP_ID;
         }
-        boolean isNameExist = scriptDAO.isExistDuplicateName(targetAppId, newName);
+        boolean isNameExist = scriptDAO.isExistDuplicateName(operator.getTenantId(), targetAppId, newName);
         if (isNameExist) {
             log.warn("Update script name, script:{} new name {} is duplicate", scriptId, newName);
             throw new AlreadyExistsException(ErrorCode.SCRIPT_NAME_DUPLICATE);
         }
 
-        scriptDAO.updateScriptName(operator, scriptId, newName);
+        scriptDAO.updateScriptName(operator.getUsername(), scriptId, newName);
         script.setName(newName);
 
         return script;

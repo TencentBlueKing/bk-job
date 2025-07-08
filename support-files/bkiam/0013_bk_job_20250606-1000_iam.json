@@ -213,7 +213,8 @@
                         "id": "account",
                         "system_id": "bk_job"
                     }
-                ]
+                ],
+                "tenant_id": "system"
             }
         },
         {
@@ -232,7 +233,8 @@
                         "id": "cron",
                         "system_id": "bk_job"
                     }
-                ]
+                ],
+                "tenant_id": "system"
             }
         },
         {
@@ -251,7 +253,8 @@
                         "id": "file_source",
                         "system_id": "bk_job"
                     }
-                ]
+                ],
+                "tenant_id": "system"
             }
         },
         {
@@ -269,7 +272,8 @@
                         "system_id": "bk_job",
                         "id": "job_template"
                     }
-                ]
+                ],
+                "tenant_id": "system"
             }
         },
         {
@@ -291,7 +295,8 @@
                         "system_id": "bk_job",
                         "id": "job_plan"
                     }
-                ]
+                ],
+                "tenant_id": "system"
             }
         },
         {
@@ -309,7 +314,8 @@
                         "system_id": "bk_job",
                         "id": "script"
                     }
-                ]
+                ],
+                "tenant_id": "system"
             }
         },
         {
@@ -328,7 +334,8 @@
                         "system_id": "bk_job",
                         "id": "tag"
                     }
-                ]
+                ],
+                "tenant_id": "system"
             }
         },
         {
@@ -347,7 +354,8 @@
                         "system_id": "bk_job",
                         "id": "ticket"
                     }
-                ]
+                ],
+                "tenant_id": "system"
             }
         },
         {

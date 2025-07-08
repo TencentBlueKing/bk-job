@@ -336,7 +336,7 @@ public class PublicScriptServiceImpl implements PublicScriptService {
 
         authManagePublicScript(user, scriptId);
 
-        ScriptDTO updateScript = scriptManager.updateScriptName(user.getUsername(), PUBLIC_APP_ID, scriptId, newName);
+        ScriptDTO updateScript = scriptManager.updateScriptName(user, PUBLIC_APP_ID, scriptId, newName);
 
         addModifyPublicScriptAuditInfo(originScript, updateScript);
 

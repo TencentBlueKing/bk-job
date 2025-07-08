@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpCookie;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.server.RouterFunction;
@@ -95,10 +96,13 @@ public class RouteConfig {
 
             List<String> bkTokenList = RequestUtil.getCookieValuesFromCookies(cookieList, tokenCookieName);
             if (CollectionUtils.isEmpty(bkTokenList)) {
-                log.warn("Fail to parse token from headers, please check");
-                String bkToken = cookieMap.getFirst(tokenCookieName).getValue();
-                if (StringUtils.isNotBlank(bkToken)) {
-                    bkTokenList.add(bkToken);
+                log.info("Fail to parse token from headers, try to parse token from cookie");
+                HttpCookie httpCookie = cookieMap.getFirst(tokenCookieName);
+                if (httpCookie != null) {
+                    String bkToken = httpCookie.getValue();
+                    if (StringUtils.isNotBlank(bkToken)) {
+                        bkTokenList.add(bkToken);
+                    }
                 }
             }
             BkUserDTO user = null;
@@ -111,7 +115,9 @@ public class RouteConfig {
             }
             if (user == null) {
                 Response<?> resp = Response.buildCommonFailResp(ErrorCode.USER_NOT_EXIST_OR_NOT_LOGIN_IN);
-                return ServerResponse.ok().body(Mono.just(resp), Response.class);
+                return ServerResponse.status(HttpStatus.UNAUTHORIZED)
+                    .header("x-login-url", loginService.getLoginRedirectUrl())
+                    .body(Mono.just(resp), Response.class);
             }
             Response<BkUserDTO> resp = Response.buildSuccessResp(user);
             return ServerResponse.ok().body(Mono.just(resp), Response.class);

@@ -115,6 +115,9 @@
                   <dropdown-menu-item @click="() => handleCopyIPv6(true)">
                     {{ $t('管控区域 ID:IPv6') }}
                   </dropdown-menu-item>
+                  <dropdown-menu-item @click="handleCopyHostID">
+                    {{ $t('主机 ID') }}
+                  </dropdown-menu-item>
                 </template>
               </dropdown-menu-group>
               <dropdown-menu-group>
@@ -131,6 +134,9 @@
                   </dropdown-menu-item>
                   <dropdown-menu-item @click="() => handleCopyAbnormalIPv6(true)">
                     {{ $t('管控区域 ID:IPv6') }}
+                  </dropdown-menu-item>
+                  <dropdown-menu-item @click="handleCopyAbnormalHostID">
+                    {{ $t('主机 ID') }}
                   </dropdown-menu-item>
                 </template>
               </dropdown-menu-group>
@@ -506,6 +512,22 @@
             this.isCopyLoading = false;
           });
       },
+      handleCopyHostID() {
+        this.isCopyLoading = true;
+        this.$refs.ipSelector.getHostList().then((hostList) => {
+          if (hostList.length < 1) {
+            this.messageWarn(I18n.t('没有可复制的 Host ID'));
+            return;
+          }
+
+          const hostIdStr = hostList.map(item => item.host_id).join('\n');
+
+          execCopy(hostIdStr, `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个 Host ID')}）`);
+        })
+          .finally(() => {
+            this.isCopyLoading = false;
+          });
+      },
       handleCopyAbnormalIPv4(withNet = false) {
         this.isCopyLoading = true;
         this.$refs.ipSelector.getAbnormalIpv4HostList().then((hostList) => {
@@ -533,6 +555,23 @@
           const ipv6Str = hostList.map(item => (withNet ? `${item.cloud_area.id}:${item.ipv6}` : item.ipv6)).join('\n');
 
           execCopy(ipv6Str, `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
+        })
+          .finally(() => {
+            this.isCopyLoading = false;
+          });
+      },
+      handleCopyAbnormalHostID() {
+        this.isCopyLoading = true;
+        this.$refs.ipSelector.getHostList().then((hostList) => {
+          const abnormalHostList = hostList.filter(item => item.alive !== 1);
+          if (abnormalHostList.length < 1) {
+            this.messageWarn(I18n.t('没有可复制的 Host ID'));
+            return;
+          }
+
+          const hostIdStr = abnormalHostList.map(item => item.host_id).join('\n');
+
+          execCopy(hostIdStr, `${I18n.t('复制成功')}（${abnormalHostList.length}${I18n.t('个 Host ID')}）`);
         })
           .finally(() => {
             this.isCopyLoading = false;

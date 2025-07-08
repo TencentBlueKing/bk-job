@@ -379,6 +379,7 @@
   import ScriptService from '@service/script-manage';
 
   import ScriptModel from '@model/script/script';
+  import TaskStepModel from '@model/task/task-step';
 
   import {
     checkPublicScript,
@@ -886,7 +887,7 @@
             scriptVersionId: payload.scriptVersionId,
           },
           query: {
-            from: 'scriptDetail',
+            source: this.isPublicScript ? TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC : TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS,
           },
         });
       },

@@ -44,6 +44,7 @@ import com.tencent.bk.job.execute.service.FileSourceTaskLogService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.ThirdFileDistributeSourceHostProvisioner;
 import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceTaskResource;
 import com.tencent.bk.job.file_gateway.consts.TaskStatusEnum;
 import com.tencent.bk.job.file_gateway.model.req.inner.ClearTaskFilesReq;
@@ -80,6 +81,7 @@ public class ThirdFilePrepareService {
     private final FileSourceTaskLogService fileSourceTaskLogService;
     private final AccountService accountService;
     private final FileWorkerHostService fileWorkerHostService;
+    private final ThirdFileDistributeSourceHostProvisioner thirdFileDistributeSourceHostProvisioner;
     private final LogService logService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     // 记录第三方文件准备任务信息，用于在需要时查找并终止任务
@@ -94,7 +96,8 @@ public class ThirdFilePrepareService {
                                    AccountService accountService,
                                    FileWorkerHostService fileWorkerHostService,
                                    LogService logService,
-                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher) {
+                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
+                                   ThirdFileDistributeSourceHostProvisioner thirdFileDistributeSourceHostProvisioner) {
         this.resultHandleManager = resultHandleManager;
         this.fileSourceTaskResource = fileSourceTaskResource;
         this.taskInstanceService = taskInstanceService;
@@ -104,6 +107,7 @@ public class ThirdFilePrepareService {
         this.fileWorkerHostService = fileWorkerHostService;
         this.logService = logService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
+        this.thirdFileDistributeSourceHostProvisioner = thirdFileDistributeSourceHostProvisioner;
     }
 
     /**
@@ -403,8 +407,14 @@ public class ThirdFilePrepareService {
             new RecordableThirdFilePrepareTaskResultHandler(stepInstance, resultHandler)
         );
         batchResultHandleTask.initDependentService(
-            fileSourceTaskResource, stepInstanceService, accountService,
-            fileWorkerHostService, logService, taskExecuteMQEventDispatcher, fileSourceTaskLogService
+            fileSourceTaskResource,
+            stepInstanceService,
+            accountService,
+            fileWorkerHostService,
+            logService,
+            taskExecuteMQEventDispatcher,
+            fileSourceTaskLogService,
+            thirdFileDistributeSourceHostProvisioner
         );
         resultHandleManager.handleDeliveredTask(batchResultHandleTask);
         return batchResultHandleTask;

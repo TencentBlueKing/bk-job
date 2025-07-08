@@ -47,6 +47,11 @@ public class FastTaskDTO {
      */
     private StepRollingConfigDTO rollingConfig;
     /**
+     * 是否启动任务
+     */
+    @Builder.Default
+    private Boolean startTask = true;
+    /**
      * 操作者
      */
     private User operator;
