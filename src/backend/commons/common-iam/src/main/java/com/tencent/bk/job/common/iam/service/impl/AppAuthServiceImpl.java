@@ -251,7 +251,7 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
     @Override
     public String getBusinessApplyUrl(String tenantId, AppResourceScope appResourceScope) {
         if (appResourceScope == null) {
-            return jobIamProperties.getWebUrl();
+            return jobIamProperties.getWebUrl() + "/apply-join-user-group";
         }
         ActionDTO action = new ActionDTO();
         action.setId(ActionId.ACCESS_BUSINESS);
