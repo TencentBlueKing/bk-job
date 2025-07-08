@@ -30,7 +30,9 @@ import com.tencent.bk.job.manage.model.tables.NotifyTemplate;
 import lombok.val;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.Record13;
+import org.jooq.Record14;
 import org.jooq.Result;
 import org.jooq.conf.ParamType;
 import org.jooq.types.ULong;
@@ -76,7 +78,8 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
             defaultTable.CREATOR,
             defaultTable.CREATE_TIME,
             defaultTable.LAST_MODIFY_USER,
-            defaultTable.LAST_MODIFY_TIME
+            defaultTable.LAST_MODIFY_TIME,
+            defaultTable.TENANT_ID
         ).values(
             notifyTemplateDTO.getCode(),
             notifyTemplateDTO.getName(),
@@ -89,7 +92,8 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
             notifyTemplateDTO.getCreator(),
             ULong.valueOf(notifyTemplateDTO.getCreateTime()),
             notifyTemplateDTO.getLastModifyUser(),
-            ULong.valueOf(notifyTemplateDTO.getLastModifyTime())
+            ULong.valueOf(notifyTemplateDTO.getLastModifyTime()),
+            notifyTemplateDTO.getTenantId()
         );
         val sql = query.getSQL(ParamType.INLINED);
         try {
@@ -122,8 +126,7 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
         }
     }
 
-    private NotifyTemplateDTO convert(Record13<Integer, String, String, String, String, String, String, String,
-        Boolean, String, ULong, String, ULong> record) {
+    private NotifyTemplateDTO convert(Record record) {
         return new NotifyTemplateDTO(
             record.get(defaultTable.ID),
             record.get(defaultTable.CODE),
@@ -137,32 +140,39 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
             record.get(defaultTable.CREATOR),
             record.get(defaultTable.CREATE_TIME).longValue(),
             record.get(defaultTable.LAST_MODIFY_USER),
-            record.get(defaultTable.LAST_MODIFY_TIME).longValue()
+            record.get(defaultTable.LAST_MODIFY_TIME).longValue(),
+            record.get(defaultTable.TENANT_ID)
         );
     }
 
     @Override
-    public NotifyTemplateDTO getNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault) {
-        val record = dslContext.select(
-            defaultTable.ID,
-            defaultTable.CODE,
-            defaultTable.NAME,
-            defaultTable.CHANNEL,
-            defaultTable.TITLE,
-            defaultTable.CONTENT,
-            defaultTable.TITLE_EN,
-            defaultTable.CONTENT_EN,
-            defaultTable.IS_DEFAULT,
-            defaultTable.CREATOR,
-            defaultTable.CREATE_TIME,
-            defaultTable.LAST_MODIFY_USER,
-            defaultTable.LAST_MODIFY_TIME
-        )
+    public NotifyTemplateDTO getNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault,
+                                               String tenantId) {
+        val query = dslContext.select(
+                defaultTable.ID,
+                defaultTable.CODE,
+                defaultTable.NAME,
+                defaultTable.CHANNEL,
+                defaultTable.TITLE,
+                defaultTable.CONTENT,
+                defaultTable.TITLE_EN,
+                defaultTable.CONTENT_EN,
+                defaultTable.IS_DEFAULT,
+                defaultTable.CREATOR,
+                defaultTable.CREATE_TIME,
+                defaultTable.LAST_MODIFY_USER,
+                defaultTable.LAST_MODIFY_TIME,
+                defaultTable.TENANT_ID
+            )
             .from(defaultTable)
             .where(defaultTable.CHANNEL.eq(channelCode))
             .and(defaultTable.CODE.eq(messageTypeCode))
-            .and(defaultTable.IS_DEFAULT.eq(isDefault))
-            .fetchOne();
+            .and(defaultTable.IS_DEFAULT.eq(isDefault));
+        // 默认的配置不分租户
+        if (tenantId != null && !isDefault) {
+            query.and(defaultTable.TENANT_ID.eq(tenantId));
+        }
+        val record = query.fetchOne();
         if (record == null) {
             return null;
         } else {
@@ -171,14 +181,18 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
     }
 
     @Override
-    public List<NotifyTemplateDTO> listNotifyTemplateByCode(String code) {
+    public List<NotifyTemplateDTO> listNotifyTemplateByCode(String code, String tenantId) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.CODE.eq(code));
+        conditions.add(defaultTable.TENANT_ID.eq(tenantId));
         return listNotifyTemplateByConditions(conditions);
     }
 
     @Override
-    public boolean existsNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault) {
+    public boolean existsNotifyTemplate(String channelCode,
+                                        String messageTypeCode,
+                                        boolean isDefault,
+                                        String tenantId) {
         Integer count = dslContext.selectCount().from(defaultTable)
             .where(defaultTable.CHANNEL.eq(channelCode))
             .and(defaultTable.CODE.eq(messageTypeCode))
@@ -205,13 +219,14 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
             defaultTable.CREATOR,
             defaultTable.CREATE_TIME,
             defaultTable.LAST_MODIFY_USER,
-            defaultTable.LAST_MODIFY_TIME
+            defaultTable.LAST_MODIFY_TIME,
+            defaultTable.TENANT_ID
         )
             .from(defaultTable)
             .where(conditions);
-        Result<Record13<Integer, String, String, String, String, String, String, String, Boolean, String, ULong,
-            String, ULong>> records;
-        records = baseQuery.fetch();
+        Result<Record14<Integer, String, String, String, String, String,
+                    String, String, Boolean, String, ULong, String, ULong, String>> records;
+        records= baseQuery.fetch();
         if (records.isEmpty()) {
             return new ArrayList<>();
         } else {

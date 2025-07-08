@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
+import com.tencent.bk.job.common.compat.util.TenantCompatUtil;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.common.util.PrefConsts;
@@ -33,11 +34,9 @@ import com.tencent.bk.job.manage.api.inner.ServiceNotificationResource;
 import com.tencent.bk.job.manage.model.inner.ServiceSpecificResourceNotifyPolicyDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceAppRoleDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
 import com.tencent.bk.job.manage.model.inner.ServiceNotifyChannelDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceUserNotificationDTO;
 import com.tencent.bk.job.manage.service.NotifyService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,27 +54,6 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
     @Autowired
     public ServiceNotificationResourceImpl(NotifyService notifyService) {
         this.notifyService = notifyService;
-    }
-
-    @Override
-    public InternalResponse<Integer> sendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO) {
-        if (log.isDebugEnabled()) {
-            log.debug("Input: {}", JsonUtils.toJson(serviceUserNotificationDTO));
-        }
-        return InternalResponse.buildSuccessResp(
-            notifyService.asyncSendNotificationsToUsers(serviceUserNotificationDTO));
-    }
-
-    @Override
-    public InternalResponse<Integer> sendNotificationsToAdministrators(
-        ServiceNotificationMessage serviceNotificationMessage
-    ) {
-        if (log.isDebugEnabled()) {
-            log.debug("Input: {}", JsonUtils.toJson(serviceNotificationMessage));
-        }
-        return InternalResponse.buildSuccessResp(
-            notifyService.asyncSendNotificationsToAdministrators(serviceNotificationMessage)
-        );
     }
 
     @Override
@@ -106,16 +84,18 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
     }
 
     @Override
-    public InternalResponse<List<ServiceAppRoleDTO>> getNotifyRoles(String lang) {
-        List<AppRoleDTO> roles = notifyService.listRoles();
+    public InternalResponse<List<ServiceAppRoleDTO>> getNotifyRoles(String tenantId, String lang) {
+        List<AppRoleDTO> roles = notifyService.listRoles(
+            TenantCompatUtil.getTenantIdWithDefault(tenantId)
+        );
         List<ServiceAppRoleDTO> result = roles.stream().map(role -> new ServiceAppRoleDTO(role.getId(),
             role.getName())).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(result);
     }
 
     @Override
-    public InternalResponse<List<ServiceNotifyChannelDTO>> getNotifyChannels(String lang) {
-        List<NotifyEsbChannelDTO> channels = notifyService.listAllNotifyChannel();
+    public InternalResponse<List<ServiceNotifyChannelDTO>> getNotifyChannels(String lang, String tenantId) {
+        List<NotifyEsbChannelDTO> channels = notifyService.listAllNotifyChannel(tenantId);
         List<ServiceNotifyChannelDTO> result =
             channels.stream().map(channel ->
                 new ServiceNotifyChannelDTO(channel.getType(), channel.getLabel())).collect(Collectors.toList());

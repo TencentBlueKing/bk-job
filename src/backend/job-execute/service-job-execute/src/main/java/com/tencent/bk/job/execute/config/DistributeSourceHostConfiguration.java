@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.config;
 
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.execute.engine.prepare.third.FileWorkerHostService;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.ExternalAgentService;
@@ -58,11 +59,13 @@ public class DistributeSourceHostConfiguration {
     ExternalAgentService externalAgentService(NFSExternalAgentHostConfig nfsExternalAgentHostConfig,
                                               HostService hostService,
                                               @Qualifier(EXECUTE_BEAN_AGENT_STATE_CLIENT)
-                                              AgentStateClient agentStateClient) {
+                                              AgentStateClient agentStateClient,
+                                              TenantEnvService tenantEnvService) {
         return new ExternalAgentServiceImpl(
             nfsExternalAgentHostConfig,
             hostService,
-            agentStateClient
+            agentStateClient,
+            tenantEnvService
         );
     }
 

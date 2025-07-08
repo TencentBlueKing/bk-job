@@ -27,7 +27,7 @@ package com.tencent.bk.job.backup.service.impl;
 import com.tencent.bk.job.backup.service.TaskPlanService;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.manage.api.inner.ServiceBackupTmpResource;
+import com.tencent.bk.job.manage.api.inner.ServiceBackupResource;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskPlanResource;
 import com.tencent.bk.job.manage.model.inner.ServiceIdNameCheckDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
@@ -46,13 +46,13 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service("jobBackupTaskPlanService")
 public class TaskPlanServiceImpl implements TaskPlanService {
-    private final ServiceBackupTmpResource backupTmpResource;
+    private final ServiceBackupResource backupResource;
     private final ServiceTaskPlanResource taskPlanResource;
 
     @Autowired
-    public TaskPlanServiceImpl(ServiceBackupTmpResource backupTmpResource,
+    public TaskPlanServiceImpl(ServiceBackupResource backupResource,
                                ServiceTaskPlanResource taskPlanResource) {
-        this.backupTmpResource = backupTmpResource;
+        this.backupResource = backupResource;
         this.taskPlanResource = taskPlanResource;
     }
 
@@ -69,8 +69,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                     continue;
                 }
                 log.debug("Fetching plan {}/{}/{} using {}", appId, templateId, planId, username);
-                Response<TaskPlanVO> planByIdResponse =
-                    backupTmpResource.getPlanById(username, appId, templateId, planId);
+                Response<TaskPlanVO> planByIdResponse = backupResource.getPlanById(appId, templateId, planId);
                 if (planByIdResponse != null) {
                     if (0 == planByIdResponse.getCode()) {
                         taskPlanList.add(planByIdResponse.getData());
@@ -100,8 +99,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     @Override
     public List<TaskPlanVO> listPlans(String username, Long appId, Long templateId) {
         try {
-            Response<List<TaskPlanVO>> planListResponse =
-                backupTmpResource.listPlans(username, appId, templateId);
+            Response<List<TaskPlanVO>> planListResponse = backupResource.listPlans(appId, templateId);
             if (planListResponse != null) {
                 if (0 == planListResponse.getCode()) {
                     log.debug("Fetching plan list of {}/{} finished.", appId, templateId);

@@ -35,7 +35,7 @@
     </div>
     <template slot="sub-header">
       <span style="font-size: 12px; color: #63656e;">
-        <span>{{ scriptInfo.lastModifyUser }}</span>
+        <bk-user-display-name :user-id="scriptInfo.lastModifyUser" />
         <span>|</span>
         <span>{{ scriptInfo.lastModifyTime }}</span>
       </span>

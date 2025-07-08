@@ -29,7 +29,9 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.web.WebNotifyResource;
 import com.tencent.bk.job.manage.auth.NotificationAuthService;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
@@ -37,7 +39,6 @@ import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUp
 import com.tencent.bk.job.manage.model.web.vo.notify.PageTemplateVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.RoleVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import com.tencent.bk.job.manage.service.LocalPermissionService;
 import com.tencent.bk.job.manage.service.NotifyService;
 import com.tencent.bk.job.manage.service.impl.notify.NotifyUserService;
@@ -85,7 +86,8 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
                                                        String scopeType,
                                                        String scopeId,
                                                        NotifyPoliciesCreateUpdateReq createUpdateReq) {
-        AuthResult authResult = notificationAuthService.authNotificationSetting(username, appResourceScope);
+        User user = JobContextUtil.getUser();
+        AuthResult authResult = notificationAuthService.authNotificationSetting(user, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -101,14 +103,6 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
     @Override
     public Response<List<RoleVO>> listRoles(String username) {
         return Response.buildSuccessResp(notifyService.listRole(username));
-    }
-
-    @Override
-    public Response<List<UserVO>> listUsers(String username,
-                                            String prefixStr,
-                                            Long offset,
-                                            Long limit) {
-        return Response.buildSuccessResp(notifyUserService.listUsers(prefixStr, offset, limit, true));
     }
 
     @Override

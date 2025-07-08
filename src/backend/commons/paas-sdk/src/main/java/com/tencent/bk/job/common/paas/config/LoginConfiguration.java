@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.paas.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -64,4 +65,18 @@ public class LoginConfiguration {
      */
     @Value("${paas.login.custom.api-url:}")
     private String customLoginApiUrl;
+
+    /**
+     * 获取真正使用的登录url
+     *
+     * @return 登录url
+     */
+    @JsonIgnore
+    public String getRealLoginUrl() {
+        if (isCustomPaasLoginEnabled()) {
+            return getCustomLoginUrl();
+        } else {
+            return getLoginUrl();
+        }
+    }
 }

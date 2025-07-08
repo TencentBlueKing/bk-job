@@ -43,7 +43,7 @@ import java.util.List;
  * 临时提供给job-backup的API
  */
 @Api(tags = {"job-manage:service:tmp_for_backup"})
-@SmartFeignClient(value = "job-manage", contextId = "backupResource")
+@SmartFeignClient(value = "job-manage", contextId = "tmpBackupResource")
 @InternalAPI
 public interface ServiceBackupTmpResource {
     @ApiOperation(value = "根据模版 ID 获取模版信息", produces = "application/json")

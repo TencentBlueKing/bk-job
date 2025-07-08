@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.util.StackTraceUtil;
 import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
 import com.tencent.bk.job.common.util.toggle.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants;
@@ -83,11 +84,7 @@ public class TaskInstanceIdDynamicCondition {
 
     private static void safePrintStackTrace() {
         try {
-            StringBuilder message = new StringBuilder();
-            for (StackTraceElement stackTraceElement : Thread.currentThread().getStackTrace()) {
-                message.append(System.lineSeparator()).append(stackTraceElement.toString());
-            }
-            log.info("InvalidTaskInstanceIdConditionStackTrace: {}", message);
+            log.info("InvalidTaskInstanceIdConditionStackTrace: {}", StackTraceUtil.getCurrentStackTrace());
         } catch (Throwable e) {
             // ignore
         }

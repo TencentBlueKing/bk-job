@@ -29,11 +29,11 @@ import com.tencent.bk.audit.annotations.AuditAttribute;
 import com.tencent.bk.audit.annotations.AuditInstanceRecord;
 import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.manage.auth.NoResourceScopeAuthService;
 import com.tencent.bk.job.manage.model.dto.ScriptBasicDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
@@ -44,6 +44,7 @@ import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
 import com.tencent.bk.job.manage.service.PublicScriptService;
 import com.tencent.bk.job.manage.service.ScriptManager;
+import com.tencent.bk.job.manage.util.AssertUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -71,8 +72,8 @@ public class PublicScriptServiceImpl implements PublicScriptService {
     }
 
     @Override
-    public PageData<ScriptDTO> listPageScript(ScriptQuery scriptCondition) {
-        return scriptManager.listPageScript(scriptCondition);
+    public PageData<ScriptDTO> listPageScript(ScriptQuery scriptQuery) {
+        return scriptManager.listPageScript(scriptQuery);
     }
 
     @Override
@@ -83,6 +84,24 @@ public class PublicScriptServiceImpl implements PublicScriptService {
     @Override
     public ScriptDTO getScript(String scriptId) {
         return scriptManager.getScript(PUBLIC_APP_ID, scriptId);
+    }
+
+    @Override
+    public ScriptDTO getScript(String tenantId, String scriptId) {
+        ScriptDTO script = scriptManager.getScript(PUBLIC_APP_ID, scriptId);
+        if (!checkScriptTenantMatch(script, tenantId)) {
+            return null;
+        }
+        return script;
+    }
+
+    private boolean checkScriptTenantMatch(ScriptDTO script, String expectedTenantId) {
+        if (script != null && !script.getTenantId().equals(expectedTenantId)) {
+            log.info("Script is not belong to current tenant, currentUserTenantId: {}, scriptTenantId: {}",
+                expectedTenantId, script.getTenantId());
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -100,19 +119,19 @@ public class PublicScriptServiceImpl implements PublicScriptService {
         ),
         content = EventContentConstants.CREATE_PUBLIC_SCRIPT
     )
-    public ScriptDTO saveScript(String username, ScriptDTO script) {
-        authCreatePublicScript(username);
+    public ScriptDTO saveScript(User user, ScriptDTO script) {
+        authCreatePublicScript(user);
         ScriptDTO savedScript = scriptManager.createScript(script);
-        noResourceScopeAuthService.registerPublicScript(savedScript.getId(), savedScript.getName(), username);
+        noResourceScopeAuthService.registerPublicScript(user, savedScript.getId(), savedScript.getName());
         return savedScript;
     }
 
-    private void authCreatePublicScript(String username) {
-        noResourceScopeAuthService.authCreatePublicScript(username).denyIfNoPermission();
+    private void authCreatePublicScript(User user) {
+        noResourceScopeAuthService.authCreatePublicScript(user).denyIfNoPermission();
     }
 
-    private void authManagePublicScript(String username, String scriptId) {
-        noResourceScopeAuthService.authManagePublicScript(username, scriptId).denyIfNoPermission();
+    private void authManagePublicScript(User user, String scriptId) {
+        noResourceScopeAuthService.authManagePublicScript(user, scriptId).denyIfNoPermission();
     }
 
     @Override
@@ -124,18 +143,37 @@ public class PublicScriptServiceImpl implements PublicScriptService {
         ),
         content = EventContentConstants.DELETE_PUBLIC_SCRIPT
     )
-    public void deleteScript(String username, String scriptId) {
-        log.info("Delete script[{}], operator={}", scriptId, username);
-        authManagePublicScript(username, scriptId);
+    public void deleteScript(User user, String scriptId) {
+        log.info("Delete script[{}], operator={}", scriptId, user.getUsername());
+        ScriptDTO script = getAndCheckScriptAvailable(user.getTenantId(), scriptId);
 
-        ScriptDTO script = getScript(scriptId);
-        if (script == null) {
-            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
-        }
+        authManagePublicScript(user, scriptId);
 
         ActionAuditContext.current().setInstanceName(script.getName());
 
         scriptManager.deleteScript(PUBLIC_APP_ID, scriptId);
+    }
+
+    private ScriptDTO getAndCheckScriptAvailable(String tenantId, String scriptId) throws NotFoundException {
+        ScriptDTO script = getScript(tenantId, scriptId);
+        AssertUtil.scriptAvailable(() -> script != null);
+        return script;
+    }
+
+    private ScriptDTO getAndCheckScriptVersionAvailable(String tenantId,
+                                                        Long scriptVersionId) throws NotFoundException {
+        ScriptDTO script = getScriptVersion(tenantId, scriptVersionId);
+        AssertUtil.scriptAvailable(() -> script != null);
+        return script;
+    }
+
+    @Override
+    public ScriptDTO getScriptVersion(String tenantId, Long scriptVersionId) {
+        ScriptDTO scriptVersion = scriptManager.getScriptVersion(PUBLIC_APP_ID, scriptVersionId);
+        if (!checkScriptTenantMatch(scriptVersion, tenantId)) {
+            return null;
+        }
+        return scriptVersion;
     }
 
     @Override
@@ -161,8 +199,9 @@ public class PublicScriptServiceImpl implements PublicScriptService {
         ),
         content = EventContentConstants.CREATE_PUBLIC_SCRIPT_VERSION
     )
-    public ScriptDTO saveScriptVersion(String username, ScriptDTO scriptVersion) {
-        authManagePublicScript(username, scriptVersion.getId());
+    public ScriptDTO saveScriptVersion(User user, ScriptDTO scriptVersion) {
+        getAndCheckScriptAvailable(user.getTenantId(), scriptVersion.getId());
+        authManagePublicScript(user, scriptVersion.getId());
         return scriptManager.createScriptVersion(scriptVersion);
     }
 
@@ -174,13 +213,9 @@ public class PublicScriptServiceImpl implements PublicScriptService {
         ),
         content = EventContentConstants.EDIT_PUBLIC_SCRIPT_VERSION
     )
-    public ScriptDTO updateScriptVersion(String username, ScriptDTO scriptVersion) {
-        authManagePublicScript(username, scriptVersion.getId());
-
-        ScriptDTO originScript = getScriptByScriptId(scriptVersion.getId());
-        if (originScript == null) {
-            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
-        }
+    public ScriptDTO updateScriptVersion(User user, ScriptDTO scriptVersion) {
+        ScriptDTO originScript = getAndCheckScriptAvailable(user.getTenantId(), scriptVersion.getId());
+        authManagePublicScript(user, scriptVersion.getId());
         ScriptDTO updateScript = scriptManager.updateScriptVersion(scriptVersion);
 
         // 审计
@@ -207,19 +242,16 @@ public class PublicScriptServiceImpl implements PublicScriptService {
         ),
         content = EventContentConstants.DELETE_PUBLIC_SCRIPT_VERSION
     )
-    public void deleteScriptVersion(String username, Long scriptVersionId) {
-        log.info("Delete scriptVersion[{}], operator={}", scriptVersionId, username);
-        preProcessManagePublicScriptVersion(username, scriptVersionId);
+    public void deleteScriptVersion(User user, Long scriptVersionId) {
+        log.info("Delete scriptVersion[{}], operator={}", scriptVersionId, user);
+        preProcessManagePublicScriptVersion(user, scriptVersionId);
         scriptManager.deleteScriptVersion(PUBLIC_APP_ID, scriptVersionId);
     }
 
-    private void preProcessManagePublicScriptVersion(String username, Long scriptVersionId) {
-        ScriptDTO script = getScriptVersion(scriptVersionId);
-        if (script == null) {
-            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
-        }
+    private void preProcessManagePublicScriptVersion(User user, Long scriptVersionId) {
+        ScriptDTO script = getAndCheckScriptVersionAvailable(user.getTenantId(), scriptVersionId);
 
-        authManagePublicScript(username, script.getId());
+        authManagePublicScript(user, script.getId());
 
         ActionAuditContext.current()
             .setInstanceId(script.getId())
@@ -235,10 +267,10 @@ public class PublicScriptServiceImpl implements PublicScriptService {
         ),
         content = EventContentConstants.ONLINE_PUBLIC_SCRIPT_VERSION
     )
-    public void publishScript(String username, String scriptId, Long scriptVersionId) {
-        log.info("Publish script version, scriptId={}, scriptVersionId={}, username={}",
-            scriptId, scriptVersionId, username);
-        preProcessManagePublicScriptVersion(username, scriptVersionId);
+    public void publishScript(User user, String scriptId, Long scriptVersionId) {
+        log.info("Publish script version, scriptId={}, scriptVersionId={}, user={}",
+            scriptId, scriptVersionId, user);
+        preProcessManagePublicScriptVersion(user, scriptVersionId);
         scriptManager.publishScript(PUBLIC_APP_ID, scriptId, scriptVersionId);
     }
 
@@ -250,10 +282,10 @@ public class PublicScriptServiceImpl implements PublicScriptService {
         ),
         content = EventContentConstants.FORBIDDEN_PUBLIC_SCRIPT_VERSION
     )
-    public void disableScript(String username, String scriptId, Long scriptVersionId) {
-        log.info("Disable script version, scriptId={}, scriptVersionId={}, username={}",
-            scriptId, scriptVersionId, username);
-        preProcessManagePublicScriptVersion(username, scriptVersionId);
+    public void disableScript(User user, String scriptId, Long scriptVersionId) {
+        log.info("Disable script version, scriptId={}, scriptVersionId={}, user={}",
+            scriptId, scriptVersionId, user);
+        preProcessManagePublicScriptVersion(user, scriptVersionId);
         scriptManager.disableScript(PUBLIC_APP_ID, scriptId, scriptVersionId);
     }
 
@@ -270,15 +302,12 @@ public class PublicScriptServiceImpl implements PublicScriptService {
         ),
         content = EventContentConstants.EDIT_PUBLIC_SCRIPT
     )
-    public ScriptDTO updateScriptDesc(String operator, String scriptId, String desc) {
-        ScriptDTO originScript = getScript(scriptId);
-        if (originScript == null) {
-            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
-        }
+    public ScriptDTO updateScriptDesc(User user, String scriptId, String desc) {
+        ScriptDTO originScript = getAndCheckScriptAvailable(user.getTenantId(), scriptId);
 
-        authManagePublicScript(operator, scriptId);
+        authManagePublicScript(user, scriptId);
 
-        ScriptDTO updateScript = scriptManager.updateScriptDesc(operator, PUBLIC_APP_ID, scriptId, desc);
+        ScriptDTO updateScript = scriptManager.updateScriptDesc(user.getUsername(), PUBLIC_APP_ID, scriptId, desc);
 
         addModifyPublicScriptAuditInfo(originScript, updateScript);
 
@@ -302,15 +331,12 @@ public class PublicScriptServiceImpl implements PublicScriptService {
         ),
         content = EventContentConstants.EDIT_PUBLIC_SCRIPT
     )
-    public ScriptDTO updateScriptName(String operator, String scriptId, String newName) {
-        ScriptDTO originScript = getScript(scriptId);
-        if (originScript == null) {
-            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
-        }
+    public ScriptDTO updateScriptName(User user, String scriptId, String newName) {
+        ScriptDTO originScript = getAndCheckScriptAvailable(user.getTenantId(), scriptId);
 
-        authManagePublicScript(operator, scriptId);
+        authManagePublicScript(user, scriptId);
 
-        ScriptDTO updateScript = scriptManager.updateScriptName(operator, PUBLIC_APP_ID, scriptId, newName);
+        ScriptDTO updateScript = scriptManager.updateScriptName(user, PUBLIC_APP_ID, scriptId, newName);
 
         addModifyPublicScriptAuditInfo(originScript, updateScript);
 
@@ -325,17 +351,14 @@ public class PublicScriptServiceImpl implements PublicScriptService {
         ),
         content = EventContentConstants.EDIT_PUBLIC_SCRIPT
     )
-    public ScriptDTO updateScriptTags(String operator,
+    public ScriptDTO updateScriptTags(User user,
                                       String scriptId,
                                       List<TagDTO> tags) {
-        ScriptDTO originScript = getScript(scriptId);
-        if (originScript == null) {
-            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST);
-        }
+        ScriptDTO originScript = getAndCheckScriptAvailable(user.getTenantId(), scriptId);
 
-        authManagePublicScript(operator, scriptId);
+        authManagePublicScript(user, scriptId);
 
-        ScriptDTO updateScript = scriptManager.updateScriptTags(operator, PUBLIC_APP_ID, scriptId, tags);
+        ScriptDTO updateScript = scriptManager.updateScriptTags(user.getUsername(), PUBLIC_APP_ID, scriptId, tags);
 
         addModifyPublicScriptAuditInfo(originScript, updateScript);
 
@@ -343,13 +366,13 @@ public class PublicScriptServiceImpl implements PublicScriptService {
     }
 
     @Override
-    public List<String> listScriptNames(String keyword) {
-        return scriptManager.listScriptNames(PUBLIC_APP_ID, keyword);
+    public List<String> listScriptNames(String tenantId, String keyword) {
+        return scriptManager.listPublicScriptNames(tenantId, keyword);
     }
 
     @Override
-    public List<ScriptDTO> listOnlineScript() {
-        return scriptManager.listOnlineScriptForApp(PUBLIC_APP_ID);
+    public List<ScriptDTO> listOnlineScript(String tenantId) {
+        return scriptManager.listOnlinePublicScript(tenantId);
     }
 
     @Override
@@ -363,36 +386,36 @@ public class PublicScriptServiceImpl implements PublicScriptService {
     }
 
     @Override
-    public List<SyncScriptResultDTO> syncScriptToTaskTemplate(String operator,
+    public List<SyncScriptResultDTO> syncScriptToTaskTemplate(User user,
                                                               String scriptId,
                                                               Long syncScriptVersionId,
                                                               List<TemplateStepIDDTO> templateStepIDs) {
-        return scriptManager.syncScriptToTaskTemplate(operator, PUBLIC_APP_ID, scriptId, syncScriptVersionId,
+        getAndCheckScriptVersionAvailable(user.getTenantId(), syncScriptVersionId);
+        return scriptManager.syncScriptToTaskTemplate(user, PUBLIC_APP_ID, scriptId, syncScriptVersionId,
             templateStepIDs);
     }
 
     @Override
-    public List<String> listScriptIds() {
-        return scriptManager.listScriptIds(PUBLIC_APP_ID);
+    public List<String> listScriptIds(String tenantId) {
+        return scriptManager.listPublicScriptIds(tenantId);
     }
 
     @Override
-    public TagCountVO getTagScriptCount() {
-        return scriptManager.getTagScriptCount(PUBLIC_APP_ID);
+    public TagCountVO getTagScriptCount(String tenantId) {
+        return scriptManager.getTagPublicScriptCount(tenantId);
     }
 
     @Override
-    public boolean isExistAnyPublicScript() {
-        return scriptManager.isExistAnyScript(PUBLIC_APP_ID);
+    public boolean isExistAnyPublicScript(String tenantId) {
+        return scriptManager.isExistAnyPublicScript(tenantId);
     }
 
     @Override
-    public ScriptDTO getByScriptIdAndVersion(String scriptId, String version) {
-        return scriptManager.getByScriptIdAndVersion(PUBLIC_APP_ID, scriptId, version);
-    }
-
-    @Override
-    public ScriptDTO getScriptByScriptId(String scriptId) {
-        return scriptManager.getScriptByScriptId(scriptId);
+    public ScriptDTO getByScriptIdAndVersion(String tenantId, String scriptId, String version) {
+        ScriptDTO script = scriptManager.getByScriptIdAndVersion(PUBLIC_APP_ID, scriptId, version);
+        if (!checkScriptTenantMatch(script, tenantId)) {
+            return null;
+        }
+        return script;
     }
 }

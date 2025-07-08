@@ -26,9 +26,7 @@ package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.api.inner.ServiceWhiteIPResource;
-import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPRecordDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
-import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
 import com.tencent.bk.job.manage.service.WhiteIPService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
@@ -45,25 +43,14 @@ public class ServiceWhiteIPResourceImpl implements ServiceWhiteIPResource {
         this.whiteIPService = whiteIPService;
     }
 
-
-    @Override
-    public InternalResponse<List<String>> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId, Long hostId) {
-        return InternalResponse.buildSuccessResp(whiteIPService.getWhiteIPActionScopes(appId, ip, cloudAreaId, hostId));
-    }
-
     @Override
     public InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfos() {
         return InternalResponse.buildSuccessResp(whiteIPService.listWhiteIPInfos());
     }
 
     @Override
-    public InternalResponse<Long> saveWhiteIP(String username, WhiteIPRecordCreateUpdateReq createUpdateReq) {
-        WhiteIPRecordDTO record;
-        if (createUpdateReq.getId() != null && createUpdateReq.getId() > 0) {
-            record = whiteIPService.updateWhiteIP(username, createUpdateReq);
-        } else {
-            record = whiteIPService.createWhiteIP(username, createUpdateReq);
-        }
-        return InternalResponse.buildSuccessResp(record.getId());
+    public InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfosByTenantId(String tenantId) {
+        return InternalResponse.buildSuccessResp(whiteIPService.listWhiteIPInfos(tenantId));
     }
+
 }

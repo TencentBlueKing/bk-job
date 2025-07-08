@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptBasicDTO;
@@ -37,7 +38,6 @@ import com.tencent.bk.job.manage.model.dto.script.ScriptCitedTaskPlanDTO;
 import com.tencent.bk.job.manage.model.dto.script.ScriptCitedTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;
 import java.util.List;
@@ -66,6 +66,7 @@ public interface ScriptManager {
      * @return 脚本版本
      */
     ScriptDTO getByScriptIdAndVersion(Long appId, String scriptId, String version);
+
 
     /**
      * 根据ID查询脚本版本
@@ -99,14 +100,6 @@ public interface ScriptManager {
      * @return 脚本
      */
     List<ScriptBasicDTO> listScriptBasicInfoByScriptIds(Collection<String> scriptIds);
-
-    /**
-     * 根据scriptId查询脚本基本信息,不包含标签信息
-     *
-     * @param scriptId 脚本ID
-     * @return 脚本
-     */
-    ScriptDTO getScriptWithoutTagByScriptId(String scriptId);
 
     /**
      * 根据脚本ID查询所有版本的脚本
@@ -153,17 +146,6 @@ public interface ScriptManager {
      * @param scriptVersion 脚本版本
      */
     ScriptDTO updateScriptVersion(ScriptDTO scriptVersion);
-
-    /**
-     * 指定版本Id创建脚本版本
-     *
-     * @param appId  业务ID
-     * @param script 脚本信息
-     */
-    Pair<String, Long> createScriptWithVersionId(Long appId,
-                                                 ScriptDTO script,
-                                                 Long createTime,
-                                                 Long lastModifyTime);
 
     /**
      * 删除脚本
@@ -225,7 +207,7 @@ public interface ScriptManager {
      * @param scriptId 脚本ID
      * @param newName  脚本名称
      */
-    ScriptDTO updateScriptName(String operator, Long appId, String scriptId, String newName);
+    ScriptDTO updateScriptName(User operator, Long appId, String scriptId, String newName);
 
     /**
      * 更新脚本标签
@@ -247,12 +229,29 @@ public interface ScriptManager {
     List<String> listScriptNames(Long appId, String keyword);
 
     /**
+     * 根据脚本名称模糊查询业务下的公共脚本名
+     *
+     * @param tenantId 租户 ID
+     * @param keyword  关键字
+     * @return 脚本名称列表
+     */
+    List<String> listPublicScriptNames(String tenantId, String keyword);
+
+    /**
      * 获取已上线脚本列表
      *
      * @param appId 业务ID
      * @return 脚本列表
      */
     List<ScriptDTO> listOnlineScriptForApp(long appId);
+
+    /**
+     * 获取已上线公共脚本列表
+     *
+     * @param tenantId 租户
+     * @return 脚本列表
+     */
+    List<ScriptDTO> listOnlinePublicScript(String tenantId);
 
     /**
      * 获取脚本已上线脚本版本
@@ -291,14 +290,14 @@ public interface ScriptManager {
     /**
      * 批量同步脚本到作业模板
      *
-     * @param username            用户名
+     * @param user                用户
      * @param appId               业务ID
      * @param scriptId            脚本ID
      * @param syncScriptVersionId 需要同步的脚本版本ID
      * @param templateStepIDs     作业模板与步骤信息
      * @return 同步结果
      */
-    List<SyncScriptResultDTO> syncScriptToTaskTemplate(String username,
+    List<SyncScriptResultDTO> syncScriptToTaskTemplate(User user,
                                                        Long appId,
                                                        String scriptId,
                                                        Long syncScriptVersionId,
@@ -346,10 +345,12 @@ public interface ScriptManager {
 
     List<String> listScriptIds(Long appId);
 
+    List<String> listPublicScriptIds(String tenantId);
+
     Integer countCiteScripts(Long appId);
 
     /**
-     * 获取标签关联的模版数量
+     * 获取标签关联的脚本数量
      *
      * @param appId 业务 ID
      * @return 标签模版数量
@@ -357,11 +358,26 @@ public interface ScriptManager {
     TagCountVO getTagScriptCount(Long appId);
 
     /**
+     * 获取标签关联的公共脚本数量
+     *
+     * @param tenantId 租户 ID
+     * @return 标签模版数量
+     */
+    TagCountVO getTagPublicScriptCount(String tenantId);
+
+    /**
      * 当前业务下是否存在任意脚本
      *
      * @param appId 业务 ID
      */
     boolean isExistAnyScript(Long appId);
+
+    /**
+     * 当前租户下是否存在任意公共脚本
+     *
+     * @param tenantId 租户 ID
+     */
+    boolean isExistAnyPublicScript(String tenantId);
 
     /**
      * 脚本版本是否被引用

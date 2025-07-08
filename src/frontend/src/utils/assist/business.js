@@ -75,15 +75,15 @@ export const compareHost = (preHost, nextHost) => {
   }
   // 全都手动添加对比值
   const {
-    hostList: preIPList,
-    nodeList: preNodeList,
-    dynamicGroupList: preDynamicGroupList,
+    hostList: preIPList = [],
+    nodeList: preNodeList = [],
+    dynamicGroupList: preDynamicGroupList = [],
     containerList: preContainerList = [],
   } = preHost.executeObjectsInfo;
   const {
-    hostList: nextIPList,
-    nodeList: nextNodeList,
-    dynamicGroupList: nextDynamicGroupList,
+    hostList: nextIPList = [],
+    nodeList: nextNodeList = [],
+    dynamicGroupList: nextDynamicGroupList = [],
     containerList: nextContainerList = [],
   } = nextHost.executeObjectsInfo;
     // 对比主机

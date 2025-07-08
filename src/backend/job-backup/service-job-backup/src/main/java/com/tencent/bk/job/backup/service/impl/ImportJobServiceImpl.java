@@ -78,18 +78,21 @@ public class ImportJobServiceImpl implements ImportJobService {
     private final LogService logService;
     private final MessageI18nService i18nService;
     private final BackupFileCryptoService backupFileCryptoService;
+    private final ImportJobExecutor importJobExecutor;
 
     @Autowired
     public ImportJobServiceImpl(ImportJobDAO importJobDAO,
                                 StorageService storageService,
                                 LogService logService,
                                 MessageI18nService i18nService,
-                                BackupFileCryptoService backupFileCryptoService) {
+                                BackupFileCryptoService backupFileCryptoService,
+                                ImportJobExecutor importJobExecutor) {
         this.importJobDAO = importJobDAO;
         this.storageService = storageService;
         this.logService = logService;
         this.i18nService = i18nService;
         this.backupFileCryptoService = backupFileCryptoService;
+        this.importJobExecutor = importJobExecutor;
     }
 
     @Override
@@ -129,7 +132,7 @@ public class ImportJobServiceImpl implements ImportJobService {
             importJobInfo.setStatus(BackupJobStatusEnum.SUBMIT);
             Boolean startResult = importJobDAO.updateImportJobById(importJobInfo);
             if (startResult) {
-                ImportJobExecutor.startImport(importJobInfo.getId());
+                importJobExecutor.startImport(importJobInfo.getId());
             }
             return startResult;
         }
@@ -165,7 +168,7 @@ public class ImportJobServiceImpl implements ImportJobService {
                 if (!file.getName().endsWith(".json")) {
                     continue;
                 }
-                JobBackupInfoDTO jobBackupInfo = ImportJobExecutor.readJobBackupInfoFromFile(file);
+                JobBackupInfoDTO jobBackupInfo = importJobExecutor.readJobBackupInfoFromFile(file);
                 if (jobBackupInfo == null) {
                     continue;
                 }

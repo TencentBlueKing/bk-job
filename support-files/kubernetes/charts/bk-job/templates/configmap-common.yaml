@@ -51,38 +51,23 @@ data:
         url: {{ .Values.bkCmdbApiGatewayUrl }}
       bkApiGateway:
         url: {{ .Values.bkApiGatewayConfig.url }}
+      bkUser:
+        url: {{ .Values.bkUserApiGatewayUrl }}
+      bkUserWeb:
+        url: {{ .Values.bkUserWebApiGatewayUrl }}
+      bkLogin:
+        url: {{ .Values.bkLoginApiGatewayUrl }}
+      bkIam:
+        url: {{ .Values.bkIamApiGatewayUrl }}
+      cmsi:
+        url: {{ .Values.bkCmsiApiGatewayUrl }}
     gse:
-      enabled: {{ .Values.gse.enabled }}
-      cache:
-        apiserver:
-          host: {{ .Values.gse.cacheApiServer.host }}
-          port: {{ .Values.gse.cacheApiServer.port }}
-      ssl:
-        enabled: {{ .Values.gse.ssl.enabled }}
-        keystore:
-          password: ${gse.keystore.password}
-          path: "/data/job/cert/gse_job_api_client.keystore"
-        truststore:
-          manager-type: SunX509
-          password: ${gse.truststore.password}
-          store-type: JKS
-          path: "/data/job/cert/gse_job_api_client.truststore"
-      taskserver:
-        host: {{ .Values.gse.taskserver.host }}
-        port: {{ .Values.gse.taskserver.port }}
-      server:
-        discovery:
-          type: {{ .Values.gse.server.discovery.type }}
-        zookeeper:
-          connect:
-            string: {{ .Values.gse.server.zookeeper.connect.string }}
       query:
         {{- toYaml .Values.gse.query | nindent 8 }}
       script:
         rootPath: {{ .Values.gse.script.rootPath }}
     iam:
       web-url: {{ .Values.bkIamUrl }}
-      base-url: {{ .Values.bkIamApiUrl }}
       system-id: {{ .Values.iam.systemId }}
     audit:
       enabled: {{ .Values.audit.enabled }}
@@ -181,3 +166,11 @@ data:
         enabled: {{ .Values.jvmDiagnosticFile.clearByLastModifyTime.enabled }}
         # JVM诊断文件保留的小时数，默认168小时（7天）
         keep-hours: {{ .Values.jvmDiagnosticFile.clearByLastModifyTime.keepHours }}
+    tenant:
+      enabled:  {{ .Values.tenant.enabled }}
+    # MockAPI配置：构造依赖系统（CMDB、IAM等）的Mock数据用于联调前的自测
+    mockApi:
+      {{- toYaml .Values.mockApi | nindent 6 }}
+    # # 调用蓝鲸系统时，使用虚拟账号 bk_admin 的 username
+    virtualAccount:
+      useAdminUsername: {{ .Values.virtualAccount.queryAdminUsername }}

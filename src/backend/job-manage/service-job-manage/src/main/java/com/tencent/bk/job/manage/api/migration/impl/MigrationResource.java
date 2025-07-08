@@ -33,13 +33,11 @@ import com.tencent.bk.job.manage.migration.AddHostIdForTemplateAndPlanMigrationT
 import com.tencent.bk.job.manage.migration.AddHostIdForWhiteIpMigrationTask;
 import com.tencent.bk.job.manage.migration.EncryptDbAccountPasswordMigrationTask;
 import com.tencent.bk.job.manage.migration.ResourceTagsMigrationTask;
-import com.tencent.bk.job.manage.migration.UpdateAppIdForWhiteIpMigrationTask;
 import com.tencent.bk.job.manage.model.dto.ResourceTagDTO;
 import com.tencent.bk.job.manage.model.migration.AddHostIdMigrationReq;
 import com.tencent.bk.job.manage.model.migration.BkPlatformInfo;
 import com.tencent.bk.job.manage.model.migration.MigrationRecordsResult;
 import com.tencent.bk.job.manage.model.migration.SetBizSetMigrationStatusReq;
-import com.tencent.bk.job.manage.model.migration.UpdateAppIdForWhiteIpMigrationReq;
 import com.tencent.bk.job.manage.service.globalsetting.BkPlatformInfoService;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
@@ -65,7 +63,6 @@ public class MigrationResource {
     private final ResourceTagsMigrationTask resourceTagsMigrationTask;
     private final BizSetService bizSetService;
     private final AddHostIdForTemplateAndPlanMigrationTask addHostIdForTemplateAndPlanMigrationTask;
-    private final UpdateAppIdForWhiteIpMigrationTask updateAppIdForWhiteIpMigrationTask;
     private final AddHostIdForWhiteIpMigrationTask addHostIdForWhiteIpMigrationTask;
     private final AppScopeMappingService appScopeMappingService;
     private final BkPlatformInfoService bkPlatformInfoService;
@@ -76,7 +73,6 @@ public class MigrationResource {
         ResourceTagsMigrationTask resourceTagsMigrationTask,
         BizSetService bizSetService,
         AddHostIdForTemplateAndPlanMigrationTask addHostIdForTemplateAndPlanMigrationTask,
-        UpdateAppIdForWhiteIpMigrationTask updateAppIdForWhiteIpMigrationTask,
         AddHostIdForWhiteIpMigrationTask addHostIdForWhiteIpMigrationTask,
         AppScopeMappingService appScopeMappingService,
         BkPlatformInfoService bkPlatformInfoService) {
@@ -84,7 +80,6 @@ public class MigrationResource {
         this.resourceTagsMigrationTask = resourceTagsMigrationTask;
         this.bizSetService = bizSetService;
         this.addHostIdForTemplateAndPlanMigrationTask = addHostIdForTemplateAndPlanMigrationTask;
-        this.updateAppIdForWhiteIpMigrationTask = updateAppIdForWhiteIpMigrationTask;
         this.addHostIdForWhiteIpMigrationTask = addHostIdForWhiteIpMigrationTask;
         this.appScopeMappingService = appScopeMappingService;
         this.bkPlatformInfoService = bkPlatformInfoService;
@@ -112,19 +107,6 @@ public class MigrationResource {
     @PostMapping("/action/setBizSetMigrationStatus")
     public Response<Boolean> setBizSetMigrationStatus(@RequestBody SetBizSetMigrationStatusReq req) {
         return Response.buildSuccessResp(bizSetService.setBizSetMigratedToCMDB(req.getMigrated()));
-    }
-
-    /**
-     * IP白名单AppId更新，全业务ID->代表所有业务的ID
-     */
-    @PostMapping("/action/updateAppIdForWhiteIpMigrationTask")
-    public Response<String> updateAppIdForWhiteIpMigrationTask(@RequestBody UpdateAppIdForWhiteIpMigrationReq req) {
-        List<MigrationRecordsResult> results = new ArrayList<>();
-        results.add(updateAppIdForWhiteIpMigrationTask.execute(req.isDryRun()));
-        boolean success = results.stream().allMatch(MigrationRecordsResult::isSuccess);
-        return success ? Response.buildSuccessResp(JsonUtils.toJson(results)) :
-            Response.buildCommonFailResp(ErrorCode.MIGRATION_FAIL, new String[]{"UpdateAppIdForWhiteIpMigrationTask",
-                JsonUtils.toJson(results)});
     }
 
     /**

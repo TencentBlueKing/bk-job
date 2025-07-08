@@ -345,14 +345,13 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         Map<String, FileSourceTaskStatusDTO> map = new HashMap<>();
         fileSourceTaskStatusList.forEach(taskStatus -> map.put(taskStatus.getTaskId(), taskStatus));
         //添加服务器文件信息
-        boolean isGseV2Task = stepInstance.isTargetGseV2Agent();
         int updatedNum = 0;
         for (FileSourceDTO fileSourceDTO : fileSourceList) {
             String fileSourceTaskId = fileSourceDTO.getFileSourceTaskId();
             if (StringUtils.isBlank(fileSourceTaskId)) {
                 continue;
             }
-            updateServerInfoForFileSource(map, fileSourceTaskId, fileSourceDTO, isGseV2Task);
+            updateServerInfoForFileSource(map, fileSourceTaskId, fileSourceDTO);
             updatedNum += 1;
         }
         if (updatedNum > 0) {
@@ -368,8 +367,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
 
     private void updateServerInfoForFileSource(Map<String, FileSourceTaskStatusDTO> map,
                                                String fileSourceTaskId,
-                                               FileSourceDTO fileSourceDTO,
-                                               boolean isGseV2Task) {
+                                               FileSourceDTO fileSourceDTO) {
         FileSourceTaskStatusDTO fileSourceTaskStatusDTO = map.get(fileSourceTaskId);
         fileSourceDTO.setAccount("root");
         AccountDTO accountDTO = accountService.getAccountByAccountName(stepInstance.getAppId(), "root");
@@ -416,12 +414,8 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         }
 
         HostDTO sourceHost = hostDTO.clone();
-        if (isGseV2Task) {
-            if (StringUtils.isBlank(sourceHost.getAgentId())) {
-                log.error("Using gseV2, source host agent id is empty! host: {}", sourceHost);
-                throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
-            }
-        } else {
+        if (StringUtils.isBlank(sourceHost.getAgentId())) {
+            // GSE 2.0管控1.0 Agent的场景使用cloudIp作为AgentId
             sourceHost.setAgentId(sourceHost.toCloudIp());
         }
         log.info(

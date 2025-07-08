@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.exception.DistributeFileFromExternalAgentExcept
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.execute.config.NFSExternalAgentHostConfig;
 import com.tencent.bk.job.execute.model.ExternalHostDTO;
 import com.tencent.bk.job.execute.service.ExternalAgentService;
@@ -53,21 +54,28 @@ public class ExternalAgentServiceImpl implements ExternalAgentService {
 
     private final HostService hostService;
     private final AgentStateClient agentStateClient;
+    private final TenantEnvService tenantEnvService;
 
     private final AtomicLong roundRobinCnt = new AtomicLong(0);
     private final List<HostDTO> externalAgentHostPool = new ArrayList<>();
 
     public ExternalAgentServiceImpl(NFSExternalAgentHostConfig externalAgentHostConfig,
                                     HostService hostService,
-                                    AgentStateClient agentStateClient) {
+                                    AgentStateClient agentStateClient,
+                                    TenantEnvService tenantEnvService) {
         this.hostService = hostService;
         this.agentStateClient = agentStateClient;
+        this.tenantEnvService = tenantEnvService;
         initExternalHostsPool(externalAgentHostConfig);
     }
 
     @Override
     public HostDTO getDistributeSourceHost() {
-        Map<HostDTO, ServiceHostDTO> cmdbHostMap = hostService.batchGetHosts(externalAgentHostPool);
+        String tenantId = tenantEnvService.getJobMachineTenantId();
+        Map<HostDTO, ServiceHostDTO> cmdbHostMap = hostService.batchGetHostsFromCacheOrDB(
+            tenantId,
+            externalAgentHostPool
+        );
         List<ServiceHostDTO> cmdbHostList = new ArrayList<>();
         externalAgentHostPool.forEach(hostDTO -> {
             ServiceHostDTO serviceHostDTO = cmdbHostMap.get(hostDTO);

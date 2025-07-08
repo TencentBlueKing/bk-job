@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.dao;
 
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.JobUUID;
@@ -313,16 +314,17 @@ class ScriptDAOImplIntegrationTest {
 
     @Test
     public void whenExistScriptNameThenReturnTrue() {
-        boolean isExist = scriptDAO.isExistDuplicateName(2L, "test1");
+        boolean isExist = scriptDAO.isExistDuplicateName(TenantIdConstants.DEFAULT_TENANT_ID, 2L, "test1");
         assertThat(isExist).as("check script name duplicate").isEqualTo(true);
     }
 
     @Test
     public void whenNotExistScriptNameThenReturnFalse() {
-        boolean isDuplicateName = scriptDAO.isExistDuplicateName(2L, "test_not_exist_name");
+        boolean isDuplicateName = scriptDAO.isExistDuplicateName(TenantIdConstants.DEFAULT_TENANT_ID, 2L,
+            "test_not_exist_name");
         assertThat(isDuplicateName).as("Check if the script name is duplicated").isEqualTo(false);
 
-        isDuplicateName = scriptDAO.isExistDuplicateName(1L, "test1");
+        isDuplicateName = scriptDAO.isExistDuplicateName(TenantIdConstants.DEFAULT_TENANT_ID, 1L, "test1");
         assertThat(isDuplicateName).as("Check if the script name is duplicated").isEqualTo(false);
     }
 
@@ -486,7 +488,7 @@ class ScriptDAOImplIntegrationTest {
     @Test
     @DisplayName("当存在公共脚本，返回true")
     void whenAppPublicExistThenReturnTrue() {
-        boolean existAnyPublicScript = scriptDAO.isExistAnyPublicScript();
+        boolean existAnyPublicScript = scriptDAO.isExistAnyPublicScript("tencent");
         assertThat(existAnyPublicScript).isEqualTo(true);
     }
 

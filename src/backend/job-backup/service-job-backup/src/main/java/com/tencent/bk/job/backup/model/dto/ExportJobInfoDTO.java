@@ -105,7 +105,7 @@ public class ExportJobInfoDTO {
     private Locale locale;
 
     public ExportJobInfoDTO() {
-        this.id = UUID.randomUUID().toString();
+        this.id = UUID.randomUUID().toString().replace("-", "");
         this.createTime = System.currentTimeMillis();
         this.updateTime = createTime;
     }
