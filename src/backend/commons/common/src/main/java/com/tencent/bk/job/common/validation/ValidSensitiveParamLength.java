@@ -44,6 +44,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
  * 校验敏感参数的长度是否合法
+ * 用于校验指定对象中某个敏感参数字段的长度是否超过指定的数据库字段最大长度限制
  */
 @Target({ElementType.TYPE})
 @Constraint(validatedBy = ValidSensitiveParamLength.Validator.class)
@@ -81,20 +82,11 @@ public @interface ValidSensitiveParamLength {
     class Validator implements ConstraintValidator<ValidSensitiveParamLength, Object> {
         private static final String MESSAGE_FIELD_LENGTH_EXCEED = "validation.constraints" +
             ".NotExceedMySQLFieldLengthForEncrypted.message";
-
-        private String message;
-        private String paramName;
-        private String sensitiveFlag;
-        private boolean usedBase64;
-        MySQLTextDataType mySQLDataType;
+        private ValidSensitiveParamLength constraintAnnotation;
 
         @Override
         public void initialize(ValidSensitiveParamLength constraintAnnotation) {
-            this.message = constraintAnnotation.message();
-            this.paramName = constraintAnnotation.paramName();
-            this.sensitiveFlag = constraintAnnotation.sensitiveFlag();
-            this.usedBase64 = constraintAnnotation.usedBase64();
-            this.mySQLDataType = constraintAnnotation.mySQLDataType();
+            this.constraintAnnotation = constraintAnnotation;
         }
 
         @Override
@@ -103,6 +95,12 @@ public @interface ValidSensitiveParamLength {
                 if (value == null) {
                     return true;
                 }
+
+                String message = constraintAnnotation.message();
+                String paramName = constraintAnnotation.paramName();
+                String sensitiveFlag = constraintAnnotation.sensitiveFlag();
+                boolean usedBase64 = constraintAnnotation.usedBase64();
+                MySQLTextDataType mySQLDataType = constraintAnnotation.mySQLDataType();
 
                 Field paramField = getFieldRecursively(value.getClass(), paramName);
                 Field flagField = getFieldRecursively(value.getClass(), sensitiveFlag);
@@ -125,12 +123,13 @@ public @interface ValidSensitiveParamLength {
                     mySQLDataType.getMaximumLength();
 
                 if (currentLength > maxLength) {
+                    String errorMessage  = message;
                     if (isEncrypted) {
-                        message = I18nUtil.getI18nMessage(MESSAGE_FIELD_LENGTH_EXCEED,
+                        errorMessage = I18nUtil.getI18nMessage(MESSAGE_FIELD_LENGTH_EXCEED,
                             new Object[]{paramName, String.valueOf(maxLength)});
                     }
                     context.disableDefaultConstraintViolation();
-                    context.buildConstraintViolationWithTemplate(message)
+                    context.buildConstraintViolationWithTemplate(errorMessage)
                         .addPropertyNode(paramName)
                         .addConstraintViolation();
                     return false;
