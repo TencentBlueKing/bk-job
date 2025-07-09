@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbServerDTO;
 import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
+import com.tencent.bk.job.common.validation.ValidSensitiveParamLength;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
@@ -42,6 +43,7 @@ import java.util.List;
  */
 @Getter
 @Setter
+@ValidSensitiveParamLength
 public class EsbFastExecuteScriptRequest extends EsbAppScopeReq {
 
     /**
@@ -76,11 +78,6 @@ public class EsbFastExecuteScriptRequest extends EsbAppScopeReq {
      * 脚本参数， BASE64编码
      */
     @JsonProperty("script_param")
-    @NotExceedMySQLTextFieldLength(
-        fieldName = "script_param",
-        fieldType = MySQLTextDataType.TEXT,
-        base64 = true
-    )
     private String scriptParam;
 
     /**
