@@ -62,7 +62,7 @@ public enum MySQLTextDataType {
         if (maximumLengthForEncrypted != null) {
             return maximumLengthForEncrypted;
         }
-        // 加密后长度会增加1.33左右
+        // TEXT(64kb)类型测试的结论：如果加密存储，明文最大只支持47kb，加密后长度会增加1.36左右
         return (long) Math.floor(maximumLength / 1.36);
     }
 

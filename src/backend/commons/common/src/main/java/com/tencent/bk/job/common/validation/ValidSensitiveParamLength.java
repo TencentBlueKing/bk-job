@@ -24,10 +24,12 @@
 
 package com.tencent.bk.job.common.validation;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.MySQLTextDataType;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.I18nUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.Constraint;
 import javax.validation.ConstraintValidator;
@@ -51,8 +53,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Documented
 @Retention(RUNTIME)
 public @interface ValidSensitiveParamLength {
-    String message() default "{paramName} {validation.constraints.NotExceedMySQLFieldLength.message} " +
-        "limit:{mySQLDataType}";
+    String message() default "{validation.constraints.NotExceedMySQLFieldLength.message} limit:{mySQLDataType}";
 
     Class<?>[] groups() default {};
 
@@ -123,10 +124,13 @@ public @interface ValidSensitiveParamLength {
                     mySQLDataType.getMaximumLength();
 
                 if (currentLength > maxLength) {
-                    String errorMessage  = message;
+                    String displayName = resolveDisplayName(paramField, paramName);
+                    String errorMessage;
                     if (isEncrypted) {
                         errorMessage = I18nUtil.getI18nMessage(MESSAGE_FIELD_LENGTH_EXCEED,
-                            new Object[]{paramName, String.valueOf(maxLength)});
+                            new Object[]{displayName, String.valueOf(maxLength)});
+                    } else {
+                        errorMessage  = displayName + message;
                     }
                     context.disableDefaultConstraintViolation();
                     context.buildConstraintViolationWithTemplate(errorMessage)
@@ -142,7 +146,7 @@ public @interface ValidSensitiveParamLength {
         }
 
         /**
-         * 递归查找字段
+         * 子类、父类查找字段
          */
         private Field getFieldRecursively(Class<?> clazz, String fieldName) {
             while (clazz != null) {
@@ -155,6 +159,17 @@ public @interface ValidSensitiveParamLength {
                 }
             }
             return null;
+        }
+
+        /**
+         * 优先使用@JsonProperty，默认字段名
+         */
+        private String resolveDisplayName(Field field, String defaultName) {
+            JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
+            if (jsonProperty != null && StringUtils.isNotEmpty(jsonProperty.value())) {
+                return jsonProperty.value();
+            }
+            return defaultName;
         }
     }
 }
