@@ -437,6 +437,10 @@ public class ErrorCode {
     public static final int FAIL_TO_REQUEST_FILE_WORKER_WITH_REASON = 1260018;
     // 文件源code不可为空
     public static final int FILE_SOURCE_CODE_CAN_NOT_BE_EMPTY = 1260019;
+    // 制品库根地址不在允许范围内（默认仅支持当前环境蓝鲸制品库），如需对接其他环境请联系平台管理员添加白名单
+    public static final int BK_ARTIFACTORY_BASE_URL_INVALID = 1260020;
+    // 白名单记录已存在，请删除旧数据后再添加
+    public static final int FILE_SOURCE_WHITE_INFO_ALREADY_EXISTS = 1260021;
 
     // 文件网关 end
     // 文件代理 start

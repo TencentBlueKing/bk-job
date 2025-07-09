@@ -25,7 +25,12 @@
 package com.tencent.bk.job.file_gateway.model.req.web;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.validation.NotBlankField;
+import com.tencent.bk.job.file_gateway.consts.FileSourceInfoConsts;
+import com.tencent.bk.job.file_gateway.consts.FileSourceTypeEnum;
+import com.tencent.bk.job.file_gateway.validate.ValidFileSourceInfo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -41,6 +46,7 @@ public class FileSourceCreateUpdateReq {
      * 文件源Code
      */
     @ApiModelProperty(value = "文件源Code", required = true)
+    @NotBlankField(fieldName = "code")
     private String code;
     /**
      * 文件源别名
@@ -57,6 +63,7 @@ public class FileSourceCreateUpdateReq {
      * 文件源信息Map
      */
     @ApiModelProperty(value = "文件源信息Map")
+    @ValidFileSourceInfo
     private Map<String, Object> fileSourceInfoMap;
     /**
      * 是否为公共文件源
@@ -77,6 +84,7 @@ public class FileSourceCreateUpdateReq {
      * 文件源凭证Id
      */
     @ApiModelProperty(value = "文件源凭证Id", required = true)
+    @NotBlankField(fieldName = "credentialId")
     private String credentialId;
     /**
      * 文件前缀
@@ -98,4 +106,24 @@ public class FileSourceCreateUpdateReq {
      */
     @ApiModelProperty(value = "接入点Id，手动选择时传入，自动选择不传")
     private Long workerId;
+
+    /**
+     * 判断是否为蓝鲸制品库类型的文件源
+     *
+     * @return 布尔值
+     */
+    @JsonIgnore
+    public boolean isBlueKingArtifactoryType() {
+        return FileSourceTypeEnum.isBlueKingArtifactory(fileSourceTypeCode);
+    }
+
+    /**
+     * 获取蓝鲸制品库根地址
+     *
+     * @return 蓝鲸制品库根地址
+     */
+    @JsonIgnore
+    public String getBkArtifactoryBaseUrl() {
+        return (String) fileSourceInfoMap.get(FileSourceInfoConsts.KEY_BK_ARTIFACTORY_BASE_URL);
+    }
 }
