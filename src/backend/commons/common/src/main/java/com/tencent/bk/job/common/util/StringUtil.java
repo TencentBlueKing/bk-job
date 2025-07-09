@@ -442,4 +442,10 @@ public class StringUtil {
         if ("false".equalsIgnoreCase(str)) return false;
         throw new IllegalArgumentException("Invalid boolean value: " + str);
     }
+
+    public static String removeHttpOrHttpsSchemeOfUrl(String url) {
+        String urlWithoutScheme = StringUtil.removePrefix(url, "http://");
+        urlWithoutScheme = StringUtil.removePrefix(urlWithoutScheme, "https://");
+        return urlWithoutScheme;
+    }
 }

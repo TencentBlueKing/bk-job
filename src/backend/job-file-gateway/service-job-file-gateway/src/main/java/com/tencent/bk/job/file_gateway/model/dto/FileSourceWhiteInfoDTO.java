@@ -22,35 +22,58 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.artifactory.service;
+package com.tencent.bk.job.file_gateway.model.dto;
 
-import com.tencent.bk.job.common.model.dto.CommonCredential;
-import com.tencent.bk.job.file.worker.model.req.BaseReq;
-import com.tencent.bk.job.file_gateway.consts.FileSourceInfoConsts;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.tencent.bk.job.common.util.TimeUtil;
+import com.tencent.bk.job.file_gateway.model.resp.op.FileSourceWhiteInfoVO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import java.util.Map;
+import java.time.LocalDateTime;
 
-@Service
-public class ArtifactoryBaseService {
+/**
+ * 文件源白名单信息
+ */
+@Data
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+public class FileSourceWhiteInfoDTO {
+    /**
+     * id
+     */
+    private Integer id;
+    /**
+     * 类型
+     */
+    private String type;
+    /**
+     * 内容
+     */
+    private String content;
+    /**
+     * 备注
+     */
+    private String remark;
+    /**
+     * 创建人
+     */
+    private String creator;
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
 
-    private final MeterRegistry meterRegistry;
-
-    @Autowired
-    public ArtifactoryBaseService(MeterRegistry meterRegistry) {
-        this.meterRegistry = meterRegistry;
-    }
-
-    public ArtifactoryRemoteClient getArtifactoryClientFromBaseReq(BaseReq req) {
-        CommonCredential credential = req.getCredential();
-        Map<String, Object> fileSourceInfoMap = req.getFileSourceInfoMap();
-        return new ArtifactoryRemoteClient(
-            (String) fileSourceInfoMap.get(FileSourceInfoConsts.KEY_BK_ARTIFACTORY_BASE_URL),
-            credential.getUsername(),
-            credential.getPassword(),
-            meterRegistry
-        );
+    public FileSourceWhiteInfoVO toFileSourceWhiteInfoVO() {
+        FileSourceWhiteInfoVO fileSourceWhiteInfoVO = new FileSourceWhiteInfoVO();
+        fileSourceWhiteInfoVO.setId(this.id);
+        fileSourceWhiteInfoVO.setType(this.type);
+        fileSourceWhiteInfoVO.setContent(this.content);
+        fileSourceWhiteInfoVO.setRemark(this.remark);
+        fileSourceWhiteInfoVO.setCreator(this.creator);
+        fileSourceWhiteInfoVO.setCreateTime(TimeUtil.getTimeStr(this.createTime, TimeUtil.DEFAULT_TIME_FORMAT));
+        return fileSourceWhiteInfoVO;
     }
 }

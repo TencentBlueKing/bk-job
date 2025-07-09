@@ -22,9 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.consts;
+package com.tencent.bk.job.file_gateway.model.req.op;
 
-public enum FileSourceTypeEnum {
-    TENCENT_CLOUD_COS,
-    BLUEKING_ARTIFACTORY
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+
+import java.util.List;
+
+@Data
+@ApiModel("删除文件源蓝鲸制品库地址白名单请求内容")
+public class BatchDeleteFileSourceWhiteInfoReq {
+
+    /**
+     * 需要删除的id列表
+     */
+    @ApiModelProperty(value = "需要删除的id列表")
+    private List<Integer> idList;
+
 }
