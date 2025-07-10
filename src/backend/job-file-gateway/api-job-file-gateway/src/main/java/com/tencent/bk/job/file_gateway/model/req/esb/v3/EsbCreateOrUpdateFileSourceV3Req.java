@@ -3,6 +3,7 @@ package com.tencent.bk.job.file_gateway.model.req.esb.v3;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import com.tencent.bk.job.common.validation.NotBlankField;
 import com.tencent.bk.job.common.validation.NotContainSpecialChar;
 import com.tencent.bk.job.file_gateway.consts.FileSourceInfoConsts;
 import com.tencent.bk.job.file_gateway.consts.FileSourceTypeEnum;
@@ -22,18 +23,21 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
      * 文件源Code
      */
     @ApiModelProperty(value = "文件源Code")
+    @NotBlankField(fieldName = "code")
     @NotContainSpecialChar(fieldName = "code")
     private String code;
     /**
      * 文件源别名
      */
     @ApiModelProperty(value = "文件源名称")
+    @NotBlankField(fieldName = "alias")
     @NotContainSpecialChar(fieldName = "alias")
     private String alias;
     /**
      * 文件源类型
      */
     @ApiModelProperty(value = "文件源类型")
+    @NotBlankField(fieldName = "type")
     @NotContainSpecialChar(fieldName = "type")
     private String type;
 
@@ -49,6 +53,7 @@ public class EsbCreateOrUpdateFileSourceV3Req extends EsbAppScopeReq {
      */
     @ApiModelProperty(value = "文件源凭证Id")
     @JsonProperty(value = "credential_id")
+    @NotBlankField(fieldName = "credential_id")
     @NotContainSpecialChar(fieldName = "credential_id")
     private String credentialId;
     /**

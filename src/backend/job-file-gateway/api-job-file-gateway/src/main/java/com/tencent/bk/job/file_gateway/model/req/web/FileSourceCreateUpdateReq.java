@@ -52,12 +52,15 @@ public class FileSourceCreateUpdateReq {
      * 文件源别名
      */
     @ApiModelProperty(value = "文件源名称", required = true)
+    @NotBlankField(fieldName = "alias")
     private String alias;
 
     @ApiModelProperty(value = "存储类型", required = true)
+    @NotBlankField(fieldName = "storageType")
     private String storageType;
 
     @ApiModelProperty(value = "文件源类型Code", required = true)
+    @NotBlankField(fieldName = "fileSourceTypeCode")
     private String fileSourceTypeCode;
     /**
      * 文件源信息Map
@@ -95,11 +98,13 @@ public class FileSourceCreateUpdateReq {
      * 接入点选择范围
      */
     @ApiModelProperty(value = "接入点选择范围:APP/PUBLIC/ALL，分别为业务私有接入点/公共接入点/全部", required = true)
+    @NotBlankField(fieldName = "workerSelectScope")
     private String workerSelectScope;
     /**
      * 接入点选择模式
      */
     @ApiModelProperty(value = "接入点选择模式：AUTO/MANUAL，分别为自动/手动", required = true)
+    @NotBlankField(fieldName = "workerSelectMode")
     private String workerSelectMode;
     /**
      * 接入点Id
