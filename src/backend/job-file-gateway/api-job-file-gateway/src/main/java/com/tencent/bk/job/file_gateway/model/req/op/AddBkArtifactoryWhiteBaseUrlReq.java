@@ -22,35 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.artifactory.service;
+package com.tencent.bk.job.file_gateway.model.req.op;
 
-import com.tencent.bk.job.common.model.dto.CommonCredential;
-import com.tencent.bk.job.file.worker.model.req.BaseReq;
-import com.tencent.bk.job.file_gateway.consts.FileSourceInfoConsts;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-@Service
-public class ArtifactoryBaseService {
+@Data
+@ApiModel("添加文件源蓝鲸制品库地址白名单请求内容")
+public class AddBkArtifactoryWhiteBaseUrlReq {
 
-    private final MeterRegistry meterRegistry;
+    /**
+     * 根地址
+     */
+    @ApiModelProperty(value = "蓝鲸制品库根地址")
+    private String baseUrl;
 
-    @Autowired
-    public ArtifactoryBaseService(MeterRegistry meterRegistry) {
-        this.meterRegistry = meterRegistry;
-    }
-
-    public ArtifactoryRemoteClient getArtifactoryClientFromBaseReq(BaseReq req) {
-        CommonCredential credential = req.getCredential();
-        Map<String, Object> fileSourceInfoMap = req.getFileSourceInfoMap();
-        return new ArtifactoryRemoteClient(
-            (String) fileSourceInfoMap.get(FileSourceInfoConsts.KEY_BK_ARTIFACTORY_BASE_URL),
-            credential.getUsername(),
-            credential.getPassword(),
-            meterRegistry
-        );
-    }
+    /**
+     * 备注
+     */
+    @ApiModelProperty(value = "备注")
+    private String remark;
 }

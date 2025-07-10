@@ -22,35 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.artifactory.service;
+package com.tencent.bk.job.file_gateway.consts;
 
-import com.tencent.bk.job.common.model.dto.CommonCredential;
-import com.tencent.bk.job.file.worker.model.req.BaseReq;
-import com.tencent.bk.job.file_gateway.consts.FileSourceInfoConsts;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+public enum FileSourceTypeEnum {
+    TENCENT_CLOUD_COS,
+    BLUEKING_ARTIFACTORY;
 
-import java.util.Map;
-
-@Service
-public class ArtifactoryBaseService {
-
-    private final MeterRegistry meterRegistry;
-
-    @Autowired
-    public ArtifactoryBaseService(MeterRegistry meterRegistry) {
-        this.meterRegistry = meterRegistry;
-    }
-
-    public ArtifactoryRemoteClient getArtifactoryClientFromBaseReq(BaseReq req) {
-        CommonCredential credential = req.getCredential();
-        Map<String, Object> fileSourceInfoMap = req.getFileSourceInfoMap();
-        return new ArtifactoryRemoteClient(
-            (String) fileSourceInfoMap.get(FileSourceInfoConsts.KEY_BK_ARTIFACTORY_BASE_URL),
-            credential.getUsername(),
-            credential.getPassword(),
-            meterRegistry
-        );
+    /**
+     * 根据文件源类型编码判断是否为蓝鲸制品库文件源
+     *
+     * @param fileSourceTypeCode 文件源类型编码
+     * @return 布尔值
+     */
+    public static boolean isBlueKingArtifactory(String fileSourceTypeCode) {
+        return BLUEKING_ARTIFACTORY.name().equals(fileSourceTypeCode);
     }
 }

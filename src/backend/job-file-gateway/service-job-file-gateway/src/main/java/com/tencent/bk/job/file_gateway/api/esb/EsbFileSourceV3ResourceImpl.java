@@ -7,7 +7,6 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.exception.MissingParameterException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -20,6 +19,7 @@ import com.tencent.bk.job.file_gateway.model.req.esb.v3.EsbGetFileSourceDetailV3
 import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceSimpleInfoV3DTO;
 import com.tencent.bk.job.file_gateway.model.resp.esb.v3.EsbFileSourceV3DTO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
+import com.tencent.bk.job.file_gateway.service.validation.FileSourceValidateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,12 +33,15 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
 
     private final FileSourceService fileSourceService;
     private final AppScopeMappingService appScopeMappingService;
+    private final FileSourceValidateService fileSourceValidateService;
 
     @Autowired
     public EsbFileSourceV3ResourceImpl(FileSourceService fileSourceService,
-                                       AppScopeMappingService appScopeMappingService) {
+                                       AppScopeMappingService appScopeMappingService,
+                                       FileSourceValidateService fileSourceValidateService) {
         this.fileSourceService = fileSourceService;
         this.appScopeMappingService = appScopeMappingService;
+        this.fileSourceValidateService = fileSourceValidateService;
     }
 
     @Override
@@ -114,29 +117,22 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
 
     private void checkCreateParam(EsbCreateOrUpdateFileSourceV3Req req) {
         String code = req.getCode();
-        if (StringUtils.isBlank(code)) {
-            throw new InvalidParamException(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME,
-                new String[]{"code"});
-        }
         FileSourceTypeDTO fileSourceTypeDTO = fileSourceService.getFileSourceTypeByCode(
             req.getType()
         );
         if (fileSourceTypeDTO == null) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
-                new String[]{"type"});
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"type"});
         }
         if (fileSourceService.existsCode(req.getAppId(), code)) {
             throw new FailedPreconditionException(ErrorCode.FILE_SOURCE_CODE_ALREADY_EXISTS, new String[]{code});
         }
         checkCommonParam(req);
+        checkBkArtifactoryBaseUrlIfNeed(req);
     }
 
     private Integer checkUpdateParamAndGetId(EsbCreateOrUpdateFileSourceV3Req req) {
         Long appId = req.getAppId();
         String code = req.getCode();
-        if (StringUtils.isBlank(code)) {
-            throw new MissingParameterException(ErrorCode.FILE_SOURCE_CODE_CAN_NOT_BE_EMPTY);
-        }
         Integer id = fileSourceService.getFileSourceIdByCode(appId, code);
         if (id == null) {
             throw new FailedPreconditionException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE, new String[]{code});
@@ -144,16 +140,20 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         if (!fileSourceService.existsFileSource(appId, id)) {
             throw new FailedPreconditionException(ErrorCode.FILE_SOURCE_ID_NOT_IN_BIZ, new String[]{id.toString()});
         }
-        if (StringUtils.isNotBlank(req.getType())) {
-            FileSourceTypeDTO fileSourceTypeDTO = fileSourceService.getFileSourceTypeByCode(
-                req.getType()
-            );
-            if (fileSourceTypeDTO == null) {
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
-                    new String[]{"type"});
-            }
+        FileSourceTypeDTO fileSourceTypeDTO = fileSourceService.getFileSourceTypeByCode(req.getType());
+        if (fileSourceTypeDTO == null) {
+            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
+                new String[]{"type"});
         }
+        checkBkArtifactoryBaseUrlIfNeed(req);
         return id;
+    }
+
+    private void checkBkArtifactoryBaseUrlIfNeed(EsbCreateOrUpdateFileSourceV3Req req) {
+        if (req.isBlueKingArtifactoryType()) {
+            // 制品库类型的文件源需要校验根地址
+            fileSourceValidateService.checkBkArtifactoryBaseUrl(req.getBkArtifactoryBaseUrl());
+        }
     }
 
     private FileSourceDTO buildFileSourceDTO(String username,
