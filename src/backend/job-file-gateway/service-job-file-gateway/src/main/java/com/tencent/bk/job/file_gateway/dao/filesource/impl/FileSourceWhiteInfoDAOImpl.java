@@ -35,13 +35,14 @@ import org.jooq.Result;
 import org.jooq.TableField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-@Service
+@Repository
 public class FileSourceWhiteInfoDAOImpl implements FileSourceWhiteInfoDAO {
 
     private static final FileSourceWhiteInfo defaultTable = FileSourceWhiteInfo.FILE_SOURCE_WHITE_INFO;

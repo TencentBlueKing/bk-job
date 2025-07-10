@@ -28,7 +28,6 @@ import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.file_gateway.model.resp.op.FileSourceWhiteInfoVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -37,7 +36,6 @@ import java.time.LocalDateTime;
  * 文件源白名单信息
  */
 @Data
-@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 public class FileSourceWhiteInfoDTO {
