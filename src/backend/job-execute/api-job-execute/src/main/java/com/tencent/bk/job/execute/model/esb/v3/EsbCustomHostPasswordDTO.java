@@ -22,50 +22,53 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.model.esb.v3;
 
-import com.tencent.bk.job.common.constant.AccountCategoryEnum;
-import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.Length;
+
+import javax.validation.constraints.NotEmpty;
 
 /**
- * 执行帐号
+ * 主机密码
  */
 @Data
-public class AccountDTO {
-    private Long id;
+public class EsbCustomHostPasswordDTO {
 
-    private String account;
+    /**
+     * 云区域ID
+     */
+    @JsonProperty("bk_cloud_id")
+    private Long cloudAreaId;
 
-    private String alias;
+    /**
+     * 主机IP
+     */
+    @JsonProperty("ip")
+    private String ip;
 
-    private Long appId;
+    /**
+     * 主机ID
+     */
+    @JsonProperty("host_id")
+    private Long hostId;
 
+    /**
+     * 密码
+     */
+    @JsonProperty("password")
+    @Length(max = 255, message = "{validation.constraints.AccountPassword_tooLong.message}")
+    @NotEmpty(message = "{validation.constraints.AccountPassword_empty.message}")
     private String password;
 
-    private AccountTypeEnum type;
-
-    private AccountCategoryEnum category;
-
-    private String grantees;
-
-    /**
-     * DB账号对应的端口号
-     */
-    private Integer dbPort;
-    /**
-     * DB账号对应的密码
-     */
-    private String dbPassword;
-    /**
-     * DB账号依赖的系统账号
-     */
-    private Long dbSystemAccountId;
-
-    public boolean isWindowsAccount() {
-        if (AccountTypeEnum.WINDOW.getType().equals(this.type.getType())) {
-            return true;
+    @JsonIgnore
+    public String getCloudIp() {
+        if (StringUtils.isNotBlank(ip) && cloudAreaId !=null) {
+            return cloudAreaId + ":" + ip;
         }
-        return false;
+        return null;
     }
 }

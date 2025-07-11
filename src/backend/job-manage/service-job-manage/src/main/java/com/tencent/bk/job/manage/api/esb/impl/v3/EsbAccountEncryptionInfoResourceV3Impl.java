@@ -22,50 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.manage.api.esb.impl.v3;
 
-import com.tencent.bk.job.common.constant.AccountCategoryEnum;
-import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
-import lombok.Data;
+import com.tencent.bk.job.common.crypto.util.RSAUtils;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.gse.constants.GseConstants;
+import com.tencent.bk.job.manage.api.esb.v3.EsbAccountEncryptionInfoV3Resource;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountEncryptionMetadataV3DTO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RestController;
 
-/**
- * 执行帐号
- */
-@Data
-public class AccountDTO {
-    private Long id;
+@RestController
+@Slf4j
+public class EsbAccountEncryptionInfoResourceV3Impl implements EsbAccountEncryptionInfoV3Resource {
 
-    private String account;
-
-    private String alias;
-
-    private Long appId;
-
-    private String password;
-
-    private AccountTypeEnum type;
-
-    private AccountCategoryEnum category;
-
-    private String grantees;
-
-    /**
-     * DB账号对应的端口号
-     */
-    private Integer dbPort;
-    /**
-     * DB账号对应的密码
-     */
-    private String dbPassword;
-    /**
-     * DB账号依赖的系统账号
-     */
-    private Long dbSystemAccountId;
-
-    public boolean isWindowsAccount() {
-        if (AccountTypeEnum.WINDOW.getType().equals(this.type.getType())) {
-            return true;
-        }
-        return false;
+    @Override
+    public EsbResp<EsbAccountEncryptionMetadataV3DTO> getAccountEncryptionMetadata(String username,
+                                                                                   String appCode) {
+        EsbAccountEncryptionMetadataV3DTO encryptionMetadataV3DTO = new EsbAccountEncryptionMetadataV3DTO();
+        encryptionMetadataV3DTO.setPublicKey(GseConstants.publicKeyPermBase64);
+        encryptionMetadataV3DTO.setEncryptAlgorithm(RSAUtils.getKeyAlgorithm());
+        return EsbResp.buildSuccessResp(encryptionMetadataV3DTO);
     }
 }

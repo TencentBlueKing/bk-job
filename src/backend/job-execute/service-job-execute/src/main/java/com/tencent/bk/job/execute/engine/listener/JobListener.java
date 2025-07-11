@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.engine.listener;
 import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.constant.RollingModeEnum;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.execute.common.cache.TargetHostCustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
@@ -68,6 +69,7 @@ public class JobListener extends BaseJobMqListener {
     private final StepInstanceService stepInstanceService;
     private final RollingConfigService rollingConfigService;
     private final NotifyService notifyService;
+    protected final TargetHostCustomPasswordCache targetHostCustomPasswordCache;
 
     private final RunningJobResourceQuotaManager runningJobResourceQuotaManager;
 
@@ -78,7 +80,8 @@ public class JobListener extends BaseJobMqListener {
                        StepInstanceService stepInstanceService,
                        RollingConfigService rollingConfigService,
                        NotifyService notifyService,
-                       RunningJobResourceQuotaManager runningJobResourceQuotaManager) {
+                       RunningJobResourceQuotaManager runningJobResourceQuotaManager,
+                       TargetHostCustomPasswordCache targetHostCustomPasswordCache) {
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.statisticsService = statisticsService;
         this.taskInstanceService = taskInstanceService;
@@ -86,6 +89,7 @@ public class JobListener extends BaseJobMqListener {
         this.rollingConfigService = rollingConfigService;
         this.notifyService = notifyService;
         this.runningJobResourceQuotaManager = runningJobResourceQuotaManager;
+        this.targetHostCustomPasswordCache = targetHostCustomPasswordCache;
     }
 
 
@@ -259,8 +263,10 @@ public class JobListener extends BaseJobMqListener {
 
             // 作业执行结果消息通知
             if (RunStatusEnum.SUCCESS == jobStatus || RunStatusEnum.IGNORE_ERROR == jobStatus) {
+                targetHostCustomPasswordCache.deleteCache(jobInstanceId);
                 notifyService.asyncSendMQSuccessTaskNotification(taskInstance, stepInstance);
             } else {
+                targetHostCustomPasswordCache.refreshExpire(jobInstanceId);
                 notifyService.asyncSendMQFailTaskNotification(taskInstance, stepInstance);
             }
 
