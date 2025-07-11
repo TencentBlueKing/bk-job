@@ -136,7 +136,7 @@ const copyright = (target) => {
         if (/<!--/.test(fileLines[0]) && oldLincense) {
           // eslint-disable-next-line no-plusplus
           for (let i = 0; i < fileLines.length; i++) {
-            if (/-->/.test(fileLines[i])) {
+            if (/--(?:!?)>/.test(fileLines[i])) {
               endIndex = i + 2;
               break;
             }
