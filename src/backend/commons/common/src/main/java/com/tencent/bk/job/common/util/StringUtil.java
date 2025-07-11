@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -378,5 +378,74 @@ public class StringUtil {
         } else {
             return str.substring(0, maxLength);
         }
+    }
+
+    /**
+     * 从字符串集合中抽取指定类型的数据（不抽取null值）
+     *
+     * @param rawStrs 原始字符串集合
+     * @param clazz   目标类型Class对象
+     * @param <T>     目标类型
+     * @return Pair<抽取的值列表 ， 抽取后剩余的字符串列表>
+     */
+    public static <T> Pair<List<T>, List<String>> extractValueFromStrings(Collection<String> rawStrs,
+                                                                          Class<T> clazz) {
+        List<T> valueList = new ArrayList<>();
+        List<String> remainStrList = new ArrayList<>();
+        for (String rawStr : rawStrs) {
+            if (StringUtils.isBlank(rawStr)) {
+                remainStrList.add(rawStr);
+                continue;
+            }
+            try {
+                T value = parseStringToType(rawStr.trim(), clazz);
+                valueList.add(value);
+            } catch (Exception e) {
+                remainStrList.add(rawStr);
+            }
+        }
+        return Pair.of(valueList, remainStrList);
+    }
+
+    /**
+     * 将字符串内容解析为指定类型的值
+     *
+     * @param str   原始字符串
+     * @param clazz 目标类型Class对象
+     * @param <T>   目标类型
+     * @return 目标类型的值
+     */
+    private static <T> T parseStringToType(String str, Class<T> clazz) {
+        if (clazz == Integer.class) {
+            return clazz.cast(Integer.parseInt(str));
+        } else if (clazz == Long.class) {
+            return clazz.cast(Long.parseLong(str));
+        } else if (clazz == Double.class) {
+            return clazz.cast(Double.parseDouble(str));
+        } else if (clazz == Boolean.class) {
+            return clazz.cast(parseStrictBoolean(str));
+        } else if (clazz == Float.class) {
+            return clazz.cast(Float.parseFloat(str));
+        } else {
+            throw new IllegalArgumentException("Unsupported type: " + clazz.getName());
+        }
+    }
+
+    /**
+     * 从字符串解析布尔值（仅接受 "true" 或 "false"，大小写不敏感）
+     *
+     * @param str 原始字符串
+     * @return 布尔值
+     */
+    private static Boolean parseStrictBoolean(String str) {
+        if ("true".equalsIgnoreCase(str)) return true;
+        if ("false".equalsIgnoreCase(str)) return false;
+        throw new IllegalArgumentException("Invalid boolean value: " + str);
+    }
+
+    public static String removeHttpOrHttpsSchemeOfUrl(String url) {
+        String urlWithoutScheme = StringUtil.removePrefix(url, "http://");
+        urlWithoutScheme = StringUtil.removePrefix(urlWithoutScheme, "https://");
+        return urlWithoutScheme;
     }
 }
