@@ -56,10 +56,20 @@ public interface RollingConfigService {
 
     /**
      * 任务是否启用了滚动执行
+     *
      * @param taskInstanceId 任务id
      * @return boolean true启用，false未启用
      */
     boolean isTaskRollingEnabled(long taskInstanceId);
 
     long addRollingConfig(RollingConfigDTO rollingConfig);
+
+    /**
+     * 获取滚动配置的总批次
+     *
+     * @param taskInstanceId 任务实例ID
+     * @param stepInstanceId 步骤实例ID
+     * @return 总批次
+     */
+    int getTotalBatch(long taskInstanceId, long stepInstanceId);
 }

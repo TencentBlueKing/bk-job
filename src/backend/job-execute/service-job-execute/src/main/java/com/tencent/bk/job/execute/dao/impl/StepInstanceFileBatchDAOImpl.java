@@ -75,7 +75,7 @@ public class StepInstanceFileBatchDAOImpl extends BaseDAO implements StepInstanc
             param[1] = stepInstanceFileBatchDTO.getTaskInstanceId();
             param[2] = stepInstanceFileBatchDTO.getStepInstanceId();
             param[3] = stepInstanceFileBatchDTO.getBatch();
-            param[4] = stepInstanceFileBatchDTO.getFileSourceList();
+            param[4] = JsonUtils.toJson(stepInstanceFileBatchDTO.getFileSourceList());
             params[batchCount++] = param;
         }
         return Arrays.stream(dsl().batch(BATCH_INSERT_SQL, params).execute()).sum();

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.constant.RollingModeEnum;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.constants.RollingTypeEnum;
 import com.tencent.bk.job.execute.model.db.ExecuteObjectRollingConfigDetailDO;
@@ -124,6 +125,22 @@ public class RollingConfigDTO {
                 ExecuteObjectRollingConfigDetailDO.class
             );
         }
+    }
+
+    /**
+     * 获取指定步骤的滚动模式
+     *
+     * @param stepInstanceId 步骤实例ID
+     * @return 滚动模式
+     */
+    public RollingModeEnum getModeOfStep(long stepInstanceId) {
+        Integer mode;
+        if (isFileSourceRolling()) {
+            mode = stepFileSourceRollingConfigs.getStepFileSourceRollingConfigs().get(stepInstanceId).getMode();
+        } else {
+            mode = executeObjectRollingConfig.getMode();
+        }
+        return RollingModeEnum.valOf(mode);
     }
 }
 

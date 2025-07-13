@@ -217,4 +217,14 @@ public class RollingConfigServiceImpl implements RollingConfigService {
         rollingConfig.setId(idGen.genRollingConfigId());
         return rollingConfigDAO.saveRollingConfig(rollingConfig);
     }
+
+    @Override
+    public int getTotalBatch(long taskInstanceId, long stepInstanceId) {
+        RollingConfigDTO rollingConfig = getRollingConfig(taskInstanceId, stepInstanceId);
+        if (rollingConfig.isFileSourceRolling()) {
+            return stepInstanceFileBatchService.getMaxBatch(taskInstanceId, stepInstanceId);
+        } else {
+            return rollingConfig.getExecuteObjectRollingConfig().getTotalBatch();
+        }
+    }
 }
