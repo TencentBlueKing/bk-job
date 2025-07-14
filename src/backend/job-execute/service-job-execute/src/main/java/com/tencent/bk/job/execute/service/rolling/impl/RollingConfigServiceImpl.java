@@ -219,8 +219,8 @@ public class RollingConfigServiceImpl implements RollingConfigService {
     }
 
     @Override
-    public int getTotalBatch(long taskInstanceId, long stepInstanceId) {
-        RollingConfigDTO rollingConfig = getRollingConfig(taskInstanceId, stepInstanceId);
+    public int getTotalBatch(long taskInstanceId, long stepInstanceId, Long rollingConfigId) {
+        RollingConfigDTO rollingConfig = getRollingConfig(taskInstanceId, rollingConfigId);
         if (rollingConfig.isFileSourceRolling()) {
             return stepInstanceFileBatchService.getMaxBatch(taskInstanceId, stepInstanceId);
         } else {

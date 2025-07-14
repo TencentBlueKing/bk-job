@@ -788,7 +788,11 @@ public class TaskResultServiceImpl implements TaskResultService {
                     stepInstanceRollingTask -> stepInstanceRollingTask, (oldValue, newValue) -> newValue));
 
         // 如果滚动任务还未调度，那么需要在结果中补充
-        int totalBatch = rollingConfig.getExecuteObjectRollingConfig().getTotalBatch();
+        int totalBatch = rollingConfigService.getTotalBatch(
+            stepInstance.getTaskInstanceId(),
+            stepInstance.getId(),
+            stepInstance.getRollingConfigId()
+        );
         List<StepInstanceRollingTaskDTO> stepInstanceRollingTasks = new ArrayList<>();
         for (int batch = 1; batch <= totalBatch; batch++) {
             StepInstanceRollingTaskDTO stepInstanceRollingTask = latestStepInstanceRollingTasks.get(batch);

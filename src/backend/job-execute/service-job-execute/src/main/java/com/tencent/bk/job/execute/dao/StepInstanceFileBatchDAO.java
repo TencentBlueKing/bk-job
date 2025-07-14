@@ -62,6 +62,15 @@ public interface StepInstanceFileBatchDAO {
     StepInstanceFileBatchDTO get(long taskInstanceId, long stepInstanceId, int batch);
 
     /**
+     * 获取某个文件步骤的所有批次数据
+     *
+     * @param taskInstanceId 作业实例ID
+     * @param stepInstanceId 步骤实例ID
+     * @return 文件步骤批次数据
+     */
+    List<StepInstanceFileBatchDTO> list(long taskInstanceId, long stepInstanceId);
+
+    /**
      * 更新变量解析之后的源文件
      *
      * @param taskInstanceId      作业实例ID

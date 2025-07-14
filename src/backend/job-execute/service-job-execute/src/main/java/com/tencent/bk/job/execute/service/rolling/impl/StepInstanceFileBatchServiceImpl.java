@@ -71,6 +71,11 @@ public class StepInstanceFileBatchServiceImpl implements StepInstanceFileBatchSe
     }
 
     @Override
+    public List<StepInstanceFileBatchDTO> list(long taskInstanceId, long stepInstanceId) {
+        return stepInstanceFileBatchDAO.list(taskInstanceId, stepInstanceId);
+    }
+
+    @Override
     public int updateResolvedSourceFile(long taskInstanceId,
                                         long stepInstanceId,
                                         int batch,

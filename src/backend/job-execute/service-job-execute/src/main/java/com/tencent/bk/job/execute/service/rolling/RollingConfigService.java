@@ -69,7 +69,8 @@ public interface RollingConfigService {
      *
      * @param taskInstanceId 任务实例ID
      * @param stepInstanceId 步骤实例ID
+     * @param rollingConfigId 滚动配置ID
      * @return 总批次
      */
-    int getTotalBatch(long taskInstanceId, long stepInstanceId);
+    int getTotalBatch(long taskInstanceId, long stepInstanceId, Long rollingConfigId);
 }

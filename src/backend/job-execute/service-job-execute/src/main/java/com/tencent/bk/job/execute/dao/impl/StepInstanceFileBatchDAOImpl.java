@@ -33,6 +33,7 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceFileBatchDTO;
 import com.tencent.bk.job.execute.model.tables.StepInstanceFileBatch;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.jooq.Condition;
 import org.jooq.Record;
 import org.jooq.TableField;
@@ -88,6 +89,7 @@ public class StepInstanceFileBatchDAOImpl extends BaseDAO implements StepInstanc
             .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
             .orderBy(TABLE.BATCH.desc())
+            .limit(1)
             .fetchOne();
         if (record == null) {
             return 0;
@@ -104,6 +106,17 @@ public class StepInstanceFileBatchDAOImpl extends BaseDAO implements StepInstanc
             .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
             .fetchOne();
         return extract(record);
+    }
+
+    @Override
+    public List<StepInstanceFileBatchDTO> list(long taskInstanceId, long stepInstanceId) {
+        val result = dsl().select(ALL_FIELDS)
+            .from(TABLE)
+            .where(TABLE.STEP_INSTANCE_ID.eq(stepInstanceId))
+            .and(buildTaskInstanceIdQueryCondition(taskInstanceId))
+            .orderBy(TABLE.BATCH.asc())
+            .fetch();
+        return result.map(this::extract);
     }
 
     @Override

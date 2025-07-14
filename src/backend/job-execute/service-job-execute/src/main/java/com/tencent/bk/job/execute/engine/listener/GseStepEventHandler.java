@@ -44,6 +44,7 @@ import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.StepInstanceFileBatchDTO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.db.RollingExecuteObjectsBatchDO;
@@ -54,6 +55,7 @@ import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
+import com.tencent.bk.job.execute.service.rolling.StepInstanceFileBatchService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -78,6 +80,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
     private final StepInstanceRollingTaskService stepInstanceRollingTaskService;
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
+    private final StepInstanceFileBatchService stepInstanceFileBatchService;
 
     @Autowired
     public GseStepEventHandler(TaskInstanceService taskInstanceService,
@@ -88,7 +91,8 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                                RollingConfigService rollingConfigService,
                                StepInstanceRollingTaskService stepInstanceRollingTaskService,
                                ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
-                               FileExecuteObjectTaskService fileExecuteObjectTaskService) {
+                               FileExecuteObjectTaskService fileExecuteObjectTaskService,
+                               StepInstanceFileBatchService stepInstanceFileBatchService) {
         super(taskInstanceService, stepInstanceService, taskExecuteMQEventDispatcher);
         this.filePrepareService = filePrepareService;
         this.gseTaskService = gseTaskService;
@@ -96,6 +100,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         this.stepInstanceRollingTaskService = stepInstanceRollingTaskService;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
+        this.stepInstanceFileBatchService = stepInstanceFileBatchService;
     }
 
     @Override
@@ -315,6 +320,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                 // 按目标执行对象分批
                 List<RollingExecuteObjectsBatchDO> executeObjectsBatchList =
                     rollingConfig.getExecuteObjectRollingConfig().getExecuteObjectsBatchListCompatibly();
+                // 为每一批执行对象生成单个执行对象任务数据
                 executeObjectsBatchList.forEach(executeObjectsBatch -> {
                     executeObjectTasks.addAll(
                         buildInitialExecuteObjectTasks(
@@ -330,7 +336,25 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                 });
                 saveExecuteObjectTasks(stepInstance, executeObjectTasks);
             } else if (rollingConfig.isFileSourceBatchRollingStep(stepInstanceId)) {
-                // TODO:按源文件分批
+                // 按源文件分批
+                List<StepInstanceFileBatchDTO> stepInstanceFileBatchList = stepInstanceFileBatchService.list(
+                    stepInstance.getTaskInstanceId(),
+                    stepInstanceId
+                );
+                stepInstanceFileBatchList.forEach(stepInstanceFileBatch -> {
+                    executeObjectTasks.addAll(
+                        buildInitialExecuteObjectTasks(
+                            stepInstance.getTaskInstanceId(),
+                            stepInstanceId,
+                            executeCount,
+                            stepInstanceFileBatch.getBatch() == 1 ? executeCount : null,
+                            stepInstanceFileBatch.getBatch(),
+                            stepInstanceFileBatch.getBatch() == 1 ? gseTaskId : 0,
+                            stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly()
+                        )
+                    );
+                });
+                saveExecuteObjectTasks(stepInstance, executeObjectTasks);
             } else {
                 // 暂时不支持，滚动执行二期需求
                 log.warn("All rolling step is not supported!");
@@ -762,7 +786,11 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                 stepInstance.getBatch(),
                 RunStatusEnum.SUCCESS
             );
-            int totalBatch = rollingConfigService.getTotalBatch(taskInstanceId, stepInstanceId);
+            int totalBatch = rollingConfigService.getTotalBatch(
+                taskInstanceId,
+                stepInstanceId,
+                stepInstance.getRollingConfigId()
+            );
             boolean isLastBatch = totalBatch == stepInstance.getBatch();
             if (isLastBatch) {
                 stepInstanceService.updateStepExecutionInfo(
