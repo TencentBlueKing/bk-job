@@ -22,41 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.config;
+package com.tencent.bk.job.common.security.annotation;
 
-import com.tencent.bk.job.common.jwt.JwtManager;
-import com.tencent.bk.job.common.security.annotation.ConditionalOnSecurityEnabled;
-import com.tencent.bk.job.common.service.SpringProfile;
-import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
-import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
-import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.sleuth.Tracer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-/**
- * 拦截器 AutoConfiguration
- */
-@Slf4j
-@Configuration(proxyBeanMethods = false)
-public class WebInterceptorAutoConfiguration {
-    @Bean
-    public JobCommonInterceptor jobCommonInterceptor(Tracer tracer) {
-        return new JobCommonInterceptor(tracer);
-    }
-
-    @Bean
-    public EsbApiLogInterceptor esbApiLogInterceptor() {
-        return new EsbApiLogInterceptor();
-    }
-
-
-    @ConditionalOnSecurityEnabled
-    @Bean
-    public ServiceSecurityInterceptor serviceSecurityInterceptor(JwtManager jwtManager, SpringProfile springProfile) {
-        log.info("ServiceSecurityInterceptor inited");
-        return new ServiceSecurityInterceptor(jwtManager, springProfile);
-    }
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@ConditionalOnProperty(
+    value = "job.security.service.enabled",
+    havingValue = "true",
+    matchIfMissing = true
+)
+public @interface ConditionalOnSecurityEnabled {
 }

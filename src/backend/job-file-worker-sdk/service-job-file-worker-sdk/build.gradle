@@ -27,6 +27,7 @@ dependencies {
     api project(":commons:common-task")
     api project(":commons:common-i18n")
     api project(":commons:common-otel")
+    api project(":commons:common-security")
     api project(":job-file-worker-sdk:api-job-file-worker-sdk")
     api "org.springframework.boot:spring-boot-starter-web"
     api "ch.qos.logback:logback-core"
