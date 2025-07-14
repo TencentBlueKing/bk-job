@@ -22,41 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.config;
+package com.tencent.bk.job.file.worker.config;
 
-import com.tencent.bk.job.common.jwt.JwtManager;
-import com.tencent.bk.job.common.security.annotation.ConditionalOnSecurityEnabled;
-import com.tencent.bk.job.common.service.SpringProfile;
-import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
-import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
-import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
+import com.tencent.bk.job.common.annotation.JobInterceptor;
+import com.tencent.bk.job.file.worker.interceptor.FileWorkerSecurityInterceptor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.sleuth.Tracer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 
 /**
- * 拦截器 AutoConfiguration
+ * 拦截器注册
  */
 @Slf4j
-@Configuration(proxyBeanMethods = false)
-public class WebInterceptorAutoConfiguration {
-    @Bean
-    public JobCommonInterceptor jobCommonInterceptor(Tracer tracer) {
-        return new JobCommonInterceptor(tracer);
+public class InterceptorConfigurer implements WebMvcConfigurer {
+
+    private final FileWorkerSecurityInterceptor interceptor;
+
+    public InterceptorConfigurer(FileWorkerSecurityInterceptor interceptor) {
+        this.interceptor = interceptor;
     }
 
-    @Bean
-    public EsbApiLogInterceptor esbApiLogInterceptor() {
-        return new EsbApiLogInterceptor();
-    }
-
-
-    @ConditionalOnSecurityEnabled
-    @Bean
-    public ServiceSecurityInterceptor serviceSecurityInterceptor(JwtManager jwtManager, SpringProfile springProfile) {
-        log.info("ServiceSecurityInterceptor inited");
-        return new ServiceSecurityInterceptor(jwtManager, springProfile);
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        JobInterceptor jobInterceptor = interceptor.getClass().getAnnotation(JobInterceptor.class);
+        if (jobInterceptor != null) {
+            log.info("Add job interceptor: {}, pathPatterns: {}, order: {}",
+                interceptor.getClass().getName(),
+                jobInterceptor.pathPatterns(),
+                jobInterceptor.order());
+            registry.addInterceptor(interceptor)
+                .addPathPatterns(jobInterceptor.pathPatterns())
+                .order(jobInterceptor.order());
+        }
     }
 }

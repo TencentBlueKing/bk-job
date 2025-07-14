@@ -22,17 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.exception;
+package com.tencent.bk.job.file.worker.config;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.jwt.JwtManager;
+import com.tencent.bk.job.common.security.annotation.ConditionalOnSecurityEnabled;
+import com.tencent.bk.job.file.worker.interceptor.FileWorkerSecurityInterceptor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 
 /**
- * 服务拒绝访问
+ * 拦截器配置
  */
-public class ServiceNoAuthException extends InternalException {
-    public ServiceNoAuthException() {
-        super(ErrorCode.SERVICE_AUTH_FAIL);
+@Slf4j
+@Configuration(proxyBeanMethods = false)
+public class InterceptorConfig {
+
+    @Bean
+    @ConditionalOnSecurityEnabled
+    public FileWorkerSecurityInterceptor fileWorkerSecurityInterceptor(JwtManager jwtManager) {
+        log.info("fileWorkerSecurityInterceptor inited");
+        return new FileWorkerSecurityInterceptor(jwtManager);
     }
 
+    @Bean
+    @ConditionalOnSecurityEnabled
+    InterceptorConfigurer webInterceptorAutoRegister(FileWorkerSecurityInterceptor interceptor) {
+        return new InterceptorConfigurer(interceptor);
+    }
 }

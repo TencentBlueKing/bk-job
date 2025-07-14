@@ -22,35 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.interceptor;
+package com.tencent.bk.job.file.worker.interceptor;
 
 import com.tencent.bk.job.common.annotation.JobInterceptor;
 import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.jwt.JwtManager;
 import com.tencent.bk.job.common.security.consts.JwtConsts;
 import com.tencent.bk.job.common.security.exception.ServiceNoAuthException;
-import com.tencent.bk.job.common.service.SpringProfile;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * 服务间调用请求认证拦截器
+ * File-Worker请求认证拦截器
  */
 @Slf4j
 @JobInterceptor(pathPatterns = "/**", order = InterceptorOrder.Init.CHECK_VALID)
-public class ServiceSecurityInterceptor extends HandlerInterceptorAdapter {
-    private final SpringProfile springProfile;
+public class FileWorkerSecurityInterceptor extends HandlerInterceptorAdapter {
+
     private final JwtManager jwtManager;
 
-    @Autowired
-    public ServiceSecurityInterceptor(JwtManager jwtManager, SpringProfile springProfile) {
+    public FileWorkerSecurityInterceptor(JwtManager jwtManager) {
         this.jwtManager = jwtManager;
-        this.springProfile = springProfile;
     }
 
     @Override
@@ -71,16 +67,8 @@ public class ServiceSecurityInterceptor extends HandlerInterceptorAdapter {
     }
 
     public boolean shouldFilter(HttpServletRequest request) {
-        // dev环境需要支持swagger，请求无需认证
-        if (springProfile.isDevProfileActive()) {
-            return false;
-        }
-
         String uri = request.getServletPath();
-        // 只拦截web/service/esb/remote的API请求
-        return uri.startsWith("/web/")
-            || uri.startsWith("/service/")
-            || uri.startsWith("/esb/")
-            || uri.startsWith("/remote/");
+        // 拦截所有Worker API请求
+        return uri.startsWith("/worker/api/");
     }
 }
