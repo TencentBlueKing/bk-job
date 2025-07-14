@@ -76,7 +76,7 @@ public class ServiceSecurityInterceptor extends HandlerInterceptorAdapter {
             return false;
         }
 
-        String uri = request.getRequestURI();
+        String uri = request.getServletPath();
         // 只拦截web/service/esb的API请求
         return uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/");
     }
