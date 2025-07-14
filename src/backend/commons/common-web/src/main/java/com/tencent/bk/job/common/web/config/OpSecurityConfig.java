@@ -24,35 +24,26 @@
 
 package com.tencent.bk.job.common.web.config;
 
-import com.tencent.bk.job.common.esb.metrics.EsbApiTimedAspect;
-import com.tencent.bk.job.common.web.feign.FeignConfiguration;
-import com.tencent.bk.job.common.web.validation.ValidationConfiguration;
-import io.micrometer.core.instrument.MeterRegistry;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-@Import({
-    ActuatorSecurityConfig.class,
-    OpSecurityConfig.class,
-    SwaggerAdapterConfig.class,
-    FeignConfiguration.class,
-    FilterConfig.class,
-    ValidationConfiguration.class,
-    WebServerEventListenerConfiguration.class
-})
-@Configuration(proxyBeanMethods = false)
-public class WebAutoConfiguration {
-
+@Order(200)
+@Configuration
+@EnableWebSecurity
+public class OpSecurityConfig {
     @Bean
-    public EsbApiTimedAspect esbApiTimedAspect(@Autowired MeterRegistry meterRegistry) {
-        return new EsbApiTimedAspect(meterRegistry);
+    SecurityFilterChain opChain(HttpSecurity http) throws Exception {
+        http.csrf().disable();
+        http.requestMatcher(new AntPathRequestMatcher("/op/**"))
+            .authorizeHttpRequests()
+            .anyRequest().authenticated()
+            .and()
+            .httpBasic();
+        return http.build();
     }
-
-    @Bean
-    public ApiTypeTagsContributor apiTypeTagsContributor() {
-        return new ApiTypeTagsContributor();
-    }
-
 }
