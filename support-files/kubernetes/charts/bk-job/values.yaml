@@ -883,6 +883,9 @@ gatewayConfig:
     enabled: false
     # 开启登录豁免时使用的默认用户名
     defaultUser: admin
+  csrfCheck:
+    # 是否开启CSRF校验，默认开启
+    enabled: true
   image:
     registry: hub.bktencent.com
     repository: blueking/job-gateway
