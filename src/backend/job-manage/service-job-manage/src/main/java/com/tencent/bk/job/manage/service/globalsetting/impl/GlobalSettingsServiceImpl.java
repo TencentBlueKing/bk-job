@@ -55,8 +55,6 @@ import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.config.LocalFileConfigForManage;
 import com.tencent.bk.job.manage.dao.globalsetting.GlobalSettingDAO;
-import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
-import com.tencent.bk.job.manage.dao.notify.NotifyEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.GlobalSettingDTO;
 import com.tencent.bk.job.manage.model.dto.converter.NotifyTemplateConverter;
@@ -64,8 +62,6 @@ import com.tencent.bk.job.manage.model.dto.globalsetting.HelperInfo;
 import com.tencent.bk.job.manage.model.dto.globalsetting.TitleFooter;
 import com.tencent.bk.job.manage.model.dto.globalsetting.TitleFooterDTO;
 import com.tencent.bk.job.manage.model.dto.globalsetting.UploadFileRestrictDTO;
-import com.tencent.bk.job.manage.model.dto.notify.AvailableEsbChannelDTO;
-import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTemplateDTO;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRule;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRulesReq;
@@ -74,20 +70,15 @@ import com.tencent.bk.job.manage.model.web.request.globalsetting.HistoryExpireRe
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplatePreviewReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
-import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChannelReq;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRuleVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.TitleFooterVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.TemplateBasicInfo;
-import com.tencent.bk.job.manage.service.NotifyService;
 import com.tencent.bk.job.manage.service.globalsetting.GlobalSettingsService;
 import com.tencent.bk.job.manage.service.impl.notify.NotifySendService;
 import com.tencent.bk.job.manage.service.impl.notify.NotifyUserService;
@@ -119,9 +110,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private static final Pattern PATTERN = Pattern.compile("^([.0-9]+)([a-zA-Z]{0,2})$");
     private static final String STRING_TPL_KEY_CURRENT_VERSION = "current_ver";
     private static final String STRING_TPL_KEY_CURRENT_YEAR = "current_year";
-    private final NotifyEsbChannelDAO notifyEsbChannelDAO;
-    private final AvailableEsbChannelDAO availableEsbChannelDAO;
-    private final NotifyService notifyService;
     private final NotifySendService notifySendService;
     private final NotifyUserService notifyUserService;
     private final GlobalSettingDAO globalSettingDAO;
@@ -140,10 +128,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private String configedMaxFileSize;
 
 
-    public GlobalSettingsServiceImpl(NotifyEsbChannelDAO notifyEsbChannelDAO,
-                                     AvailableEsbChannelDAO availableEsbChannelDAO,
-                                     NotifyService notifyService,
-                                     NotifySendService notifySendService,
+    public GlobalSettingsServiceImpl(NotifySendService notifySendService,
                                      NotifyUserService notifyUserService,
                                      GlobalSettingDAO globalSettingDAO,
                                      NotifyTemplateDAO notifyTemplateDAO,
@@ -156,9 +141,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                                      BuildProperties buildProperties,
                                      IUserApiClient userApiClient,
                                      LoginConfiguration loginConfiguration) {
-        this.notifyEsbChannelDAO = notifyEsbChannelDAO;
-        this.availableEsbChannelDAO = availableEsbChannelDAO;
-        this.notifyService = notifyService;
         this.notifySendService = notifySendService;
         this.notifyUserService = notifyUserService;
         this.globalSettingDAO = globalSettingDAO;
@@ -212,40 +194,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         } else {
             return true;
         }
-    }
-
-    @Override
-    public List<NotifyChannelWithIconVO> listNotifyChannel(String username) {
-        String tenantId = JobContextUtil.getTenantId();
-        List<NotifyEsbChannelDTO> allNotifyChannelList =
-            notifyEsbChannelDAO.listNotifyEsbChannel(tenantId).stream()
-                .filter(NotifyEsbChannelDTO::isActive).collect(Collectors.toList());
-        List<AvailableEsbChannelDTO> availableNotifyChannelList =
-            availableEsbChannelDAO.listAvailableEsbChannel(tenantId);
-        Set<String> availableNotifyChannelTypeSet =
-            availableNotifyChannelList.stream().map(AvailableEsbChannelDTO::getType).collect(Collectors.toSet());
-        return allNotifyChannelList.stream().map(it -> {
-            String icon = it.getIcon();
-            String prefix = "data:image/png;base64,";
-            if (icon != null && !icon.startsWith("data:image")) {
-                icon = prefix + icon;
-            }
-            return new NotifyChannelWithIconVO(
-                it.getType(),
-                it.getLabel(),
-                icon,
-                availableNotifyChannelTypeSet.contains(it.getType())
-            );
-        }).collect(Collectors.toList());
-    }
-
-    @Override
-    @ActionAuditRecord(
-        actionId = ActionId.GLOBAL_SETTINGS,
-        content = EventContentConstants.EDIT_GLOBAL_SETTINGS
-    )
-    public Integer setAvailableNotifyChannel(String username, SetAvailableNotifyChannelReq req) {
-        return notifyService.setAvailableNotifyChannel(username, req);
     }
 
     @Override
@@ -645,42 +593,6 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
             }
         }
         return new ChannelTemplateDetailWithDefaultVO(currentChannelTemplateVO, defaultChannelTemplateVO);
-    }
-
-    @Override
-    public List<ChannelTemplateStatusVO> listChannelTemplateStatus(String username) {
-        List<ChannelTemplateStatusVO> resultList = new ArrayList<>();
-        List<String> messageCodeList = Arrays.asList(
-            NotifyConsts.NOTIFY_TEMPLATE_CODE_CONFIRMATION,
-            NotifyConsts.NOTIFY_TEMPLATE_CODE_EXECUTE_SUCCESS,
-            NotifyConsts.NOTIFY_TEMPLATE_CODE_EXECUTE_FAILURE,
-            NotifyConsts.NOTIFY_TEMPLATE_CODE_BEFORE_CRON_JOB_EXECUTE,
-            NotifyConsts.NOTIFY_TEMPLATE_CODE_BEFORE_CRON_JOB_END,
-            NotifyConsts.NOTIFY_TEMPLATE_CODE_CRON_EXECUTE_FAILED
-        );
-        List<NotifyChannelWithIconVO> notifyChannelWithIconVOList = listNotifyChannel(username);
-        String tenantId = JobContextUtil.getTenantId();
-        notifyChannelWithIconVOList.forEach(notifyChannelWithIconVO -> {
-            String channelCode = notifyChannelWithIconVO.getCode();
-            List<TemplateBasicInfo> configStatusList = new ArrayList<>();
-            messageCodeList.forEach(messageCode -> {
-                Boolean configStatus = notifyTemplateDAO.existsNotifyTemplate(
-                    channelCode,
-                    messageCode,
-                    false,
-                    tenantId);
-                configStatusList.add(new TemplateBasicInfo(messageCode,
-                    i18nService.getI18n(NotifyConsts.NOTIFY_TEMPLATE_NAME_PREFIX + messageCode), configStatus));
-            });
-            resultList.add(new ChannelTemplateStatusVO(
-                channelCode,
-                notifyChannelWithIconVO.getName(),
-                notifyChannelWithIconVO.getIcon(),
-                notifyChannelWithIconVO.getIsActive(),
-                configStatusList
-            ));
-        });
-        return resultList;
     }
 
     @Override

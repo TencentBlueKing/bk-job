@@ -45,6 +45,7 @@ import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoWithDefa
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
+import com.tencent.bk.job.manage.service.globalsetting.EsbNotifyChannelService;
 import com.tencent.bk.job.manage.service.globalsetting.GlobalSettingsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,10 +58,13 @@ import java.util.List;
 public class WebGlobalSettingsResourceImpl implements WebGlobalSettingsResource {
 
     private final GlobalSettingsService globalSettingsService;
+    private final EsbNotifyChannelService esbNotifyChannelService;
 
     @Autowired
-    public WebGlobalSettingsResourceImpl(GlobalSettingsService globalSettingsService) {
+    public WebGlobalSettingsResourceImpl(GlobalSettingsService globalSettingsService,
+                                         EsbNotifyChannelService esbNotifyChannelService) {
         this.globalSettingsService = globalSettingsService;
+        this.esbNotifyChannelService = esbNotifyChannelService;
     }
 
     @Override
@@ -70,14 +74,14 @@ public class WebGlobalSettingsResourceImpl implements WebGlobalSettingsResource 
         content = EventContentConstants.VIEW_GLOBAL_SETTINGS
     )
     public Response<List<NotifyChannelWithIconVO>> listNotifyChannel(String username) {
-        return Response.buildSuccessResp(globalSettingsService.listNotifyChannel(username));
+        return Response.buildSuccessResp(esbNotifyChannelService.listNotifyChannel(username));
     }
 
     @Override
     @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
     public Response<Integer> setAvailableNotifyChannel(String username,
                                                        @AuditRequestBody SetAvailableNotifyChannelReq req) {
-        return Response.buildSuccessResp(globalSettingsService.setAvailableNotifyChannel(username, req));
+        return Response.buildSuccessResp(esbNotifyChannelService.setAvailableNotifyChannel(username, req));
     }
 
     @Override
@@ -113,7 +117,7 @@ public class WebGlobalSettingsResourceImpl implements WebGlobalSettingsResource 
         content = EventContentConstants.VIEW_GLOBAL_SETTINGS
     )
     public Response<List<ChannelTemplateStatusVO>> listChannelTemplateStatus(String username) {
-        return Response.buildSuccessResp(globalSettingsService.listChannelTemplateStatus(username));
+        return Response.buildSuccessResp(esbNotifyChannelService.listChannelTemplateStatus(username));
     }
 
     @Override

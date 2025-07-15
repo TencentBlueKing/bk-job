@@ -43,6 +43,7 @@ import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIco
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.PublicScriptService;
+import com.tencent.bk.job.manage.service.globalsetting.EsbNotifyChannelService;
 import com.tencent.bk.job.manage.service.globalsetting.GlobalSettingsService;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.tools.StringUtils;
@@ -67,6 +68,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     private final JobManageConfig jobManageConfig;
     private final NoResourceScopeAuthService noResourceScopeAuthService;
     private final AppAuthService appAuthService;
+    private final EsbNotifyChannelService esbNotifyChannelService;
     private final PublicScriptService publicScriptService;
     private final ThreadPoolExecutor adminAuthExecutor;
 
@@ -75,6 +77,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
                                               ApplicationService applicationService,
                                               JobManageConfig jobManageConfig,
                                               NoResourceScopeAuthService noResourceScopeAuthService,
+                                              EsbNotifyChannelService esbNotifyChannelService,
                                               AppAuthService appAuthService,
                                               PublicScriptService publicScriptService,
                                               @Qualifier("adminAuthExecutor") ThreadPoolExecutor adminAuthExecutor) {
@@ -82,6 +85,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
         this.applicationService = applicationService;
         this.jobManageConfig = jobManageConfig;
         this.noResourceScopeAuthService = noResourceScopeAuthService;
+        this.esbNotifyChannelService = esbNotifyChannelService;
         this.appAuthService = appAuthService;
         this.publicScriptService = publicScriptService;
         this.adminAuthExecutor = adminAuthExecutor;
@@ -90,7 +94,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     @Override
     @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
     public Response<List<NotifyChannelWithIconVO>> listNotifyChannel(String username) {
-        return Response.buildSuccessResp(globalSettingsService.listNotifyChannel(username));
+        return Response.buildSuccessResp(esbNotifyChannelService.listNotifyChannel(username));
     }
 
     @Override
