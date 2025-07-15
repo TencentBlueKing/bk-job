@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.api.op.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.redis.util.DistributedUniqueTask;
 import com.tencent.bk.job.common.util.ip.IpUtils;
@@ -136,7 +137,11 @@ public class TenantOpResourceImpl implements TenantOpResource {
         watch.stop();
 
         // 6.启用默认消息渠道
-        notifyChannelInitService.initDefaultNotifyChannelsWithSingleTenant(tenantId);
+        if (!TenantIdConstants.SYSTEM_TENANT_ID.equals(tenantId)) {
+            // system租户初始化时，CMSI不可以，后续采用懒加载
+            notifyChannelInitService.tryToInitDefaultNotifyChannelsWithSingleTenant(tenantId);
+        }
+
         return true;
     }
 }

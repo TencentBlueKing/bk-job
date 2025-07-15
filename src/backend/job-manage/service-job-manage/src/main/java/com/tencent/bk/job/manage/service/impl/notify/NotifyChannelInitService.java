@@ -47,12 +47,17 @@ public class NotifyChannelInitService {
         log.info("init default notify channels");
         List<OpenApiTenant> tenantList = userMgrApiClient.listAllTenant();
         tenantList.forEach(tenant ->
-            initDefaultNotifyChannelsWithSingleTenant(tenant.getId())
+            tryToInitDefaultNotifyChannelsWithSingleTenant(tenant.getId())
         );
     }
 
     @JobTransactional(transactionManager = "jobManageTransactionManager")
-    public void initDefaultNotifyChannelsWithSingleTenant(String tenantId) {
+    public void tryToInitDefaultNotifyChannelsWithSingleTenant(String tenantId) {
+        if (globalSettingsService.isNotifyChannelConfiged(tenantId)) {
+            // 当前租户已初始化过消息通知渠道，无需再配置
+            return;
+        }
+
         List<EsbNotifyChannelDTO> esbNotifyChannelDTOList = cmsiApiClient.getNotifyChannelList(tenantId);
         if (esbNotifyChannelDTOList == null) {
             log.error("Fail to get tenant: {} notify channels from esb, null", tenantId);
@@ -63,31 +68,29 @@ public class NotifyChannelInitService {
 
     @JobTransactional(transactionManager = "jobManageTransactionManager")
     public void saveDefaultNotifyChannelsToDb(String tenantId, List<EsbNotifyChannelDTO> esbNotifyChannelDTOList) {
-        if (!globalSettingsService.isNotifyChannelConfiged(tenantId)) {
-            globalSettingsService.setNotifyChannelConfiged(tenantId);
-            availableEsbChannelDAO.deleteAllChannelsByTenantId(tenantId);
-            for (EsbNotifyChannelDTO esbNotifyChannelDTO : esbNotifyChannelDTOList) {
-                // 租户内通知渠道不可用
-                if (!esbNotifyChannelDTO.isEnabled()) {
-                    continue;
-                }
-                Set<String> defaultAvailableChannelCodeSet = new HashSet<>(
-                    Arrays.asList(defaultAvailableNotifyChannelsStr.split(",")));
-
-                if (!defaultAvailableChannelCodeSet.contains(esbNotifyChannelDTO.getType())) {
-                    continue;
-                }
-
-                availableEsbChannelDAO.insertAvailableEsbChannel(
-                    new AvailableEsbChannelDTO(
-                        esbNotifyChannelDTO.getType(),
-                        true,
-                        "admin",
-                        LocalDateTime.now(),
-                        tenantId
-                    )
-                );
+        globalSettingsService.setNotifyChannelConfiged(tenantId);
+        availableEsbChannelDAO.deleteAllChannelsByTenantId(tenantId);
+        for (EsbNotifyChannelDTO esbNotifyChannelDTO : esbNotifyChannelDTOList) {
+            // 租户内通知渠道不可用
+            if (!esbNotifyChannelDTO.isEnabled()) {
+                continue;
             }
+            Set<String> defaultAvailableChannelCodeSet = new HashSet<>(
+                Arrays.asList(defaultAvailableNotifyChannelsStr.split(",")));
+
+            if (!defaultAvailableChannelCodeSet.contains(esbNotifyChannelDTO.getType())) {
+                continue;
+            }
+
+            availableEsbChannelDAO.insertAvailableEsbChannel(
+                new AvailableEsbChannelDTO(
+                    esbNotifyChannelDTO.getType(),
+                    true,
+                    "admin",
+                    LocalDateTime.now(),
+                    tenantId
+                )
+            );
         }
     }
 }
