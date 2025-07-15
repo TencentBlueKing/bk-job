@@ -292,6 +292,8 @@ data:
         login-exemption:
           enabled: {{ .Values.gatewayConfig.loginExemption.enabled | default false }}
           default-user: {{ .Values.gatewayConfig.loginExemption.defaultUser | default "admin" }}
+        csrf-check:
+          enabled: {{ .Values.gatewayConfig.csrfCheck.enabled }}
       bkApiGateway:
         enabled: {{ .Values.bkApiGatewayConfig.enabled | default false }}
         gatewayName: {{ .Values.bkApiGatewayConfig.gatewayName | default "bk-job" }}
