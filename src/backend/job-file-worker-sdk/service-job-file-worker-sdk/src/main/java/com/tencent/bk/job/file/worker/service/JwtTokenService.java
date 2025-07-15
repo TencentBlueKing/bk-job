@@ -22,41 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.config;
+package com.tencent.bk.job.file.worker.service;
 
 import com.tencent.bk.job.common.jwt.JwtManager;
-import com.tencent.bk.job.common.security.annotation.ConditionalOnSecurityEnabled;
-import com.tencent.bk.job.common.service.SpringProfile;
-import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
-import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
-import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
+import com.tencent.bk.job.common.security.consts.JwtConsts;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.sleuth.Tracer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * 拦截器 AutoConfiguration
- */
 @Slf4j
-@Configuration(proxyBeanMethods = false)
-public class WebInterceptorAutoConfiguration {
-    @Bean
-    public JobCommonInterceptor jobCommonInterceptor(Tracer tracer) {
-        return new JobCommonInterceptor(tracer);
+@Service
+public class JwtTokenService {
+
+    private final JwtManager jwtManager;
+
+    @Autowired
+    public JwtTokenService(JwtManager jwtManager) {
+        this.jwtManager = jwtManager;
     }
 
-    @Bean
-    public EsbApiLogInterceptor esbApiLogInterceptor() {
-        return new EsbApiLogInterceptor();
-    }
-
-
-    @ConditionalOnSecurityEnabled
-    @Bean
-    public ServiceSecurityInterceptor serviceSecurityInterceptor(JwtManager jwtManager, SpringProfile springProfile) {
-        log.info("ServiceSecurityInterceptor inited");
-        return new ServiceSecurityInterceptor(jwtManager, springProfile);
+    /**
+     * 获取jwt token的header列表
+     *
+     * @return jwt token的header列表
+     */
+    public List<Header> getJwtTokenHeaders() {
+        String token = jwtManager.getToken();
+        List<Header> headerList = new ArrayList<>();
+        headerList.add(new BasicHeader(JwtConsts.HEADER_KEY_SERVICE_JWT_TOKEN, token));
+        return headerList;
     }
 }

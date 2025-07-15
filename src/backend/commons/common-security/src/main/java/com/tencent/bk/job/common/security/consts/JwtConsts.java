@@ -22,41 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.config;
-
-import com.tencent.bk.job.common.jwt.JwtManager;
-import com.tencent.bk.job.common.security.annotation.ConditionalOnSecurityEnabled;
-import com.tencent.bk.job.common.service.SpringProfile;
-import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
-import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
-import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.sleuth.Tracer;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
+package com.tencent.bk.job.common.security.consts;
 
 /**
- * 拦截器 AutoConfiguration
+ * Jwt相关常量
  */
-@Slf4j
-@Configuration(proxyBeanMethods = false)
-public class WebInterceptorAutoConfiguration {
-    @Bean
-    public JobCommonInterceptor jobCommonInterceptor(Tracer tracer) {
-        return new JobCommonInterceptor(tracer);
-    }
-
-    @Bean
-    public EsbApiLogInterceptor esbApiLogInterceptor() {
-        return new EsbApiLogInterceptor();
-    }
-
-
-    @ConditionalOnSecurityEnabled
-    @Bean
-    public ServiceSecurityInterceptor serviceSecurityInterceptor(JwtManager jwtManager, SpringProfile springProfile) {
-        log.info("ServiceSecurityInterceptor inited");
-        return new ServiceSecurityInterceptor(jwtManager, springProfile);
-    }
+public class JwtConsts {
+    // 服务间调用使用的Jwt Token Header Key
+    public static final String HEADER_KEY_SERVICE_JWT_TOKEN = "x-job-auth-token";
 }

@@ -41,12 +41,15 @@ public class TaskReporterImpl implements TaskReporter {
 
     private final GatewayInfoService gatewayInfoService;
     private final JobHttpClient jobHttpClient;
+    private final JwtTokenService jwtTokenService;
 
     @Autowired
     public TaskReporterImpl(GatewayInfoService gatewayInfoService,
-                            JobHttpClient jobHttpClient) {
+                            JobHttpClient jobHttpClient,
+                            JwtTokenService jwtTokenService) {
         this.gatewayInfoService = gatewayInfoService;
         this.jobHttpClient = jobHttpClient;
+        this.jwtTokenService = jwtTokenService;
     }
 
     public void reportFileDownloadStart(String taskId, String filePath, String downloadPath) {
@@ -157,7 +160,11 @@ public class TaskReporterImpl implements TaskReporter {
 
     public void reportTaskStatus(UpdateFileSourceTaskReq updateFileSourceTaskReq) {
         String url = gatewayInfoService.getReportTaskStatusUrl();
-        HttpReq req = HttpReqGenUtil.genSimpleJsonReq(url, updateFileSourceTaskReq);
+        HttpReq req = HttpReqGenUtil.genSimpleJsonReq(
+            url,
+            jwtTokenService.getJwtTokenHeaders(),
+            updateFileSourceTaskReq
+        );
         try {
             log.info("url={},body={}", url, req.getBody());
             jobHttpClient.post(req);
