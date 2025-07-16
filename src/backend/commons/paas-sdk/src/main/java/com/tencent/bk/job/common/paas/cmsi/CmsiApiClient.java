@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.esb.sdk.BkApiClient;
 import com.tencent.bk.job.common.exception.InternalCmsiException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.error.ErrorType;
+import com.tencent.bk.job.common.paas.config.CmsiApiProperties;
 import com.tencent.bk.job.common.paas.exception.PaasException;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
@@ -63,13 +64,14 @@ public class CmsiApiClient extends BkApiClient {
 
     private static final String API_GET_NOTIFY_CHANNEL_LIST = "/api/c/compapi/cmsi/get_msg_type/";
     private static final String API_POST_SEND_MSG = "/api/c/compapi/cmsi/send_msg/";
-    private static final String API_SEND_VOICE_MSG = "/c/compapi/v2/cmsi/send_voice_msg/";
 
+    private final String uriSendVoice;
     private final BkApiAuthorization authorization;
 
     public CmsiApiClient(EsbProperties esbProperties,
                          AppProperties appProperties,
-                         MeterRegistry meterRegistry) {
+                         MeterRegistry meterRegistry,
+                         CmsiApiProperties cmsiApiProperties) {
         super(
             meterRegistry,
             ESB_CMSI_API,
@@ -78,6 +80,7 @@ public class CmsiApiClient extends BkApiClient {
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
             )
         );
+        this.uriSendVoice = cmsiApiProperties.getVoice().getUri();
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");
     }
@@ -145,7 +148,7 @@ public class CmsiApiClient extends BkApiClient {
 
     public void sendVoiceMsg(String content,
                              Collection<String> receivers) {
-        String uri = API_SEND_VOICE_MSG;
+        String uri = this.uriSendVoice;
         SendVoiceReq req = new SendVoiceReq();
         req.setMessage(content);
         req.setReceivers(String.join(",", receivers));

@@ -22,23 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.model;
+package com.tencent.bk.job.common.paas.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
-public class SendVoiceReq {
+@ConfigurationProperties(prefix = "cmsi")
+public class CmsiApiProperties {
 
     /**
-     * 自动语音读字信息
+     * CMSI语音通知接口配置
      */
-    @JsonProperty("auto_read_message")
-    private String message;
+    private ChannelConfig voice;
 
-    /**
-     * 待通知的用户列表，包含用户名，多个以逗号分隔
-     */
-    @JsonProperty("receiver__username")
-    public String receivers;
+    @Getter
+    @Setter
+    public static class ChannelConfig {
+        private String uri;
+    }
 }

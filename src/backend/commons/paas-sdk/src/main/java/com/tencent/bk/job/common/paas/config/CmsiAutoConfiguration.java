@@ -30,19 +30,27 @@ import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
 @Slf4j
+@EnableConfigurationProperties({CmsiApiProperties.class})
 public class CmsiAutoConfiguration {
 
     @Bean
     public CmsiApiClient cmsiApiClient(AppProperties appProperties,
                                        EsbProperties esbProperties,
-                                       ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
+                                       ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
+                                       CmsiApiProperties cmsiApiProperties) {
         log.info("Init CmsiApiClient");
-        return new CmsiApiClient(esbProperties, appProperties, meterRegistryObjectProvider.getIfAvailable());
+        return new CmsiApiClient(
+            esbProperties,
+            appProperties,
+            meterRegistryObjectProvider.getIfAvailable(),
+            cmsiApiProperties
+        );
     }
 
 }
