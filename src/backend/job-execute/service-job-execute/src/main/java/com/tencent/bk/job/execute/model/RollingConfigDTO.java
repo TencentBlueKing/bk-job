@@ -142,5 +142,19 @@ public class RollingConfigDTO {
         }
         return RollingModeEnum.valOf(mode);
     }
+
+    /**
+     * 多个步骤一起滚动时，判断当前步骤是否为第一个滚动步骤
+     *
+     * @param stepInstanceId 步骤ID
+     * @return 布尔值
+     */
+    public boolean isFirstRollingStep(long stepInstanceId) {
+        if (isFileSourceRolling()) {
+            return stepFileSourceRollingConfigs.getStepFileSourceRollingConfigs().containsKey(stepInstanceId);
+        } else {
+            return executeObjectRollingConfig.isFirstRollingStep(stepInstanceId);
+        }
+    }
 }
 
