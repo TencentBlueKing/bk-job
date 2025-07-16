@@ -36,3 +36,6 @@ bk-api-gateway:
 esb:
   service:
     url: esb.service
+cmsi:
+  voice:
+    uri: /api/c/compapi/v2/cmsi/send_voice_msg/
