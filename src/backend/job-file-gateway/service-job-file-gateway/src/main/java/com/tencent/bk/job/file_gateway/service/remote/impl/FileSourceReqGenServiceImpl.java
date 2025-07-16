@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.service.remote.impl;
 
+import com.tencent.bk.job.common.jwt.JwtManager;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
@@ -44,8 +45,8 @@ import java.util.Map;
 public class FileSourceReqGenServiceImpl extends BaseRemoteFileReqGenServiceImpl implements FileSourceReqGenService {
 
     @Autowired
-    public FileSourceReqGenServiceImpl(CredentialService credentialService) {
-        super(credentialService);
+    public FileSourceReqGenServiceImpl(CredentialService credentialService, JwtManager jwtManager) {
+        super(credentialService, jwtManager);
     }
 
     @Override

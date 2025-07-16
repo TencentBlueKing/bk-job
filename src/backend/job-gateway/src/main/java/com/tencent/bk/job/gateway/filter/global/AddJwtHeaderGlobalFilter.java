@@ -25,6 +25,7 @@
 package com.tencent.bk.job.gateway.filter.global;
 
 import com.tencent.bk.job.common.jwt.JwtManager;
+import com.tencent.bk.job.common.security.consts.JwtConsts;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -50,7 +51,7 @@ public class AddJwtHeaderGlobalFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String jwt = jwtManager.getToken();
         ServerHttpRequest request = exchange.getRequest();
-        request = request.mutate().header("x-job-auth-token", jwt).build();
+        request = request.mutate().header(JwtConsts.HEADER_KEY_SERVICE_JWT_TOKEN, jwt).build();
         return chain.filter(exchange.mutate().request(request).build());
     }
 

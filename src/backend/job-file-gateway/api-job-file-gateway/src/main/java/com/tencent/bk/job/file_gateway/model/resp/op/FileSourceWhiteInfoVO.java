@@ -22,30 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.tmp;
+package com.tencent.bk.job.file_gateway.model.resp.op;
 
-import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.manage.model.tmp.MigrationPlanBasic;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
-
-@RestController
-@Api(tags = {"job-manage:tmp:Migration"})
-@RequestMapping("/tmp/migration")
-public interface TmpMigrationResource {
-
-    @ApiOperation(value = "获取业务下的执行方案的基础信息", produces = "application/json")
-    @GetMapping("/app/{appId}/plan/basic/list")
-    Response<List<MigrationPlanBasic>> listAppPlanBasicInfo(
-        @ApiParam(value = "用户名，网关自动传入", required = true) @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true) @PathVariable("appId") Long appId);
-
+/**
+ * 文件源白名单信息
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class FileSourceWhiteInfoVO {
+    /**
+     * id
+     */
+    private Integer id;
+    /**
+     * 类型
+     */
+    private String type;
+    /**
+     * 内容
+     */
+    private String content;
+    /**
+     * 备注
+     */
+    private String remark;
+    /**
+     * 创建人
+     */
+    private String creator;
+    /**
+     * 创建时间
+     */
+    private String createTime;
 }

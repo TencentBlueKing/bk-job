@@ -55,6 +55,7 @@ public class OpService {
     private final EnvironmentService environmentService;
     private final TaskReporter taskReporter;
     private final WorkerEventService workerEventService;
+    private final JwtTokenService jwtTokenService;
 
     @Autowired
     public OpService(WorkerConfig workerConfig,
@@ -62,13 +63,15 @@ public class OpService {
                      GatewayInfoService gatewayInfoService,
                      EnvironmentService environmentService,
                      TaskReporter taskReporter,
-                     WorkerEventService workerEventService) {
+                     WorkerEventService workerEventService,
+                     JwtTokenService jwtTokenService) {
         this.workerConfig = workerConfig;
         this.fileTaskService = fileTaskService;
         this.gatewayInfoService = gatewayInfoService;
         this.environmentService = environmentService;
         this.taskReporter = taskReporter;
         this.workerEventService = workerEventService;
+        this.jwtTokenService = jwtTokenService;
     }
 
     public List<String> offLine() {
@@ -90,7 +93,11 @@ public class OpService {
         offLineReq.setInitDelayMills(3000L);
         offLineReq.setIntervalMills(3000L);
         log.info("offLine: url={},body={}", url, JsonUtils.toJsonWithoutSkippedFields(offLineReq));
-        HttpReq req = HttpReqGenUtil.genSimpleJsonReq(url, offLineReq);
+        HttpReq req = HttpReqGenUtil.genSimpleJsonReq(
+            url,
+            jwtTokenService.getJwtTokenHeaders(),
+            offLineReq
+        );
         String respStr;
         try {
             respStr = httpHelper.requestForSuccessResp(

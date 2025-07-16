@@ -35,6 +35,7 @@ import org.springframework.context.annotation.Import;
 
 @Import({
     ActuatorSecurityConfig.class,
+    OpSecurityConfig.class,
     SwaggerAdapterConfig.class,
     FeignConfiguration.class,
     FilterConfig.class,
