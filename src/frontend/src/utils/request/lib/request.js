@@ -34,13 +34,6 @@ import responseMiddleware from '../middleware/response'
 const CancelToken = axios.CancelToken
 const CRRF_TOKEN_KEY = 'job_csrf_key'
 
-const csrfHashCode = key => {
-    let hashCode = 5381
-    for (let i = 0; i < key.length; i++) {
-        hashCode += (hashCode << 5) + key.charCodeAt(i)
-    }
-    return hashCode & 0x7fffffff
-}
 const defaultConfig = {
     timeout: 60000,
     headers: {},
@@ -143,7 +136,7 @@ export default class Request {
     injectCSRFTokenToHeaders () {
         const CSRFToken = Cookie.get(CRRF_TOKEN_KEY)
         if (CSRFToken !== undefined) {
-            axios.defaults.headers.common['X-CSRF-Token'] = csrfHashCode(CSRFToken)
+            axios.defaults.headers.common['X-CSRF-Token'] = CSRFToken
         } else {
             console.warn('Can not find csrftoken in document.cookie')
         }
