@@ -43,6 +43,8 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class WatchableSendMsgService {
 
+    private static final String VOICE_TYPE = "voice";
+
     private final CmsiApiClient cmsiApiClient;
     private final MeterRegistry meterRegistry;
 
@@ -65,7 +67,12 @@ public class WatchableSendMsgService {
     ) {
         String sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_FAILED;
         try {
-            cmsiApiClient.sendMsg(msgType, sender, receivers, title, content);
+            // 语音通知走专门接口，其余渠道走通用发送接口
+            if (VOICE_TYPE.equalsIgnoreCase(msgType)) {
+                cmsiApiClient.sendVoiceMsg(content, receivers);
+            } else {
+                cmsiApiClient.sendMsg(msgType, sender, receivers, title, content);
+            }
             sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
         } finally {
             long delayMillis = System.currentTimeMillis() - createTimeMillis;

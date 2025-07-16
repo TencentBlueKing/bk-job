@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.paas.exception.PaasException;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
+import com.tencent.bk.job.common.paas.model.SendVoiceReq;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -48,6 +49,7 @@ import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -61,6 +63,7 @@ public class CmsiApiClient extends BkApiClient {
 
     private static final String API_GET_NOTIFY_CHANNEL_LIST = "/api/c/compapi/cmsi/get_msg_type/";
     private static final String API_POST_SEND_MSG = "/api/c/compapi/cmsi/send_msg/";
+    private static final String API_SEND_VOICE_MSG = "/c/compapi/v2/cmsi/send_voice_msg/";
 
     private final BkApiAuthorization authorization;
 
@@ -125,15 +128,7 @@ public class CmsiApiClient extends BkApiClient {
                 }
             );
 
-            if (esbResp.getResult() == null || !esbResp.getResult() || esbResp.getCode() != 0) {
-                throw new PaasException(
-                    ErrorType.INTERNAL,
-                    ErrorCode.CMSI_FAIL_TO_SEND_MSG,
-                    new Object[]{
-                        esbResp.getCode().toString(),
-                        esbResp.getMessage()
-                    });
-            }
+            handleResultOrThrow(esbResp, ErrorType.INTERNAL, ErrorCode.CMSI_FAIL_TO_SEND_MSG);
         } catch (PaasException e) {
             throw e;
         } catch (Exception e) {
@@ -145,6 +140,44 @@ public class CmsiApiClient extends BkApiClient {
             throw new PaasException(e, ErrorType.INTERNAL, ErrorCode.CMSI_API_ACCESS_ERROR, new Object[]{});
         } finally {
             HttpMetricUtil.clearHttpMetric();
+        }
+    }
+
+    public void sendVoiceMsg(String content,
+                             Collection<String> receivers) {
+        String uri = API_SEND_VOICE_MSG;
+        SendVoiceReq req = new SendVoiceReq();
+        req.setMessage(content);
+        req.setReceivers(String.join(",", receivers));
+        try {
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of(EsbMetricTags.KEY_API_NAME, uri));
+            EsbResp<Object> esbResp = doRequest(
+                OpenApiRequestInfo.builder()
+                    .method(HttpMethodEnum.POST)
+                    .uri(uri)
+                    .body(req)
+                    .authorization(authorization)
+                    .build(),
+                new TypeReference<EsbResp<Object>>() {
+                }
+            );
+
+            handleResultOrThrow(esbResp, ErrorType.INTERNAL, ErrorCode.CMSI_FAIL_TO_SEND_MSG);
+        } catch (PaasException e) {
+            throw e;
+        }
+    }
+
+    private void handleResultOrThrow(EsbResp<Object> esbResp, ErrorType errorType, int errorCode) {
+        if (esbResp.getResult() == null || !esbResp.getResult() || esbResp.getCode() != 0) {
+            throw new PaasException(
+                errorType,
+                errorCode,
+                new Object[]{
+                    esbResp.getCode().toString(),
+                    esbResp.getMessage()
+                });
         }
     }
 
