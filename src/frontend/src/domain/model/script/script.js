@@ -23,6 +23,8 @@
  * IN THE SOFTWARE.
 */
 
+import DOMPurify from 'dompurify';
+
 import TagModel from '@model/tag';
 
 import {
@@ -170,11 +172,11 @@ export default class Script extends BaseModel {
       default:
         styles += 'background: #F0F1F5; color: #979BA5';
     }
-    return [
+    return DOMPurify.sanitize([
       `<span style="${styles}" data-script-status="${this.status}">`,
       Script.STATUS_TEXT_MAP[this.status],
       '</span>',
-    ].join('');
+    ].join(''));
   }
 
   /**

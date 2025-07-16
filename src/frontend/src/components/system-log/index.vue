@@ -73,7 +73,6 @@
 </template>
 <script>
   import Tippy from 'bk-magic-vue/lib/utils/tippy';
-  import Cookie from 'js-cookie';
   import * as marked from 'marked';
 
   import WebGlobalService from '@service/web-global';

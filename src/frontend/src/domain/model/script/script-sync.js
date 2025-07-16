@@ -23,6 +23,8 @@
  * IN THE SOFTWARE.
 */
 
+import DOMPurify from 'dompurify';
+
 import Model from '@model/model';
 
 import I18n from '@/i18n';
@@ -86,7 +88,7 @@ export default class ScriptSync extends Model {
     } else {
       styles += 'background: #F0F1F5; color: #979BA5';
     }
-    return `<span style="${styles}">${this.scriptStatusDesc}</span>`;
+    return DOMPurify.sanitize(`<span style="${styles}">${this.scriptStatusDesc}</span>`);
   }
 
   /**
