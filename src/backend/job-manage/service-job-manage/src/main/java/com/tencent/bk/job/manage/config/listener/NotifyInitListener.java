@@ -35,7 +35,6 @@ import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUp
 import com.tencent.bk.job.manage.model.web.request.notify.ResourceStatusChannel;
 import com.tencent.bk.job.manage.model.web.request.notify.TriggerPolicy;
 import com.tencent.bk.job.manage.service.NotifyService;
-import com.tencent.bk.job.manage.service.impl.notify.NotifyChannelInitService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -58,7 +57,6 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
 
     private final NotifyService notifyService;
     private final NotifyTriggerPolicyDAO notifyTriggerPolicyDAO;
-    private final NotifyChannelInitService notifyChannelInitService;
     private final ThreadPoolExecutor initRunnerExecutor;
 
     @Value("${job.manage.notify.default.channels.available:mail,weixin,rtx}")
@@ -67,11 +65,9 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
     @Autowired
     public NotifyInitListener(NotifyService notifyService,
                               NotifyTriggerPolicyDAO notifyTriggerPolicyDAO,
-                              NotifyChannelInitService notifyChannelInitService,
                               @Qualifier("initRunnerExecutor") ThreadPoolExecutor initRunnerExecutor) {
         this.notifyService = notifyService;
         this.notifyTriggerPolicyDAO = notifyTriggerPolicyDAO;
-        this.notifyChannelInitService = notifyChannelInitService;
         this.initRunnerExecutor = initRunnerExecutor;
     }
 
@@ -82,9 +78,7 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
     }
 
     private void initNotifyChannelAndPolicies() {
-        // 1.消息通知默认配置
-        notifyChannelInitService.initAllTenantDefaultNotifyChannels();
-        // 2.用户侧默认配置
+
         try {
             if (notifyTriggerPolicyDAO.countDefaultPolicies() == 0) {
                 NotifyPoliciesCreateUpdateReq req = new NotifyPoliciesCreateUpdateReq();

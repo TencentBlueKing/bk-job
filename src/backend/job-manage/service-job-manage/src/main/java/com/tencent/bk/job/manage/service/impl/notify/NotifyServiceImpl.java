@@ -120,6 +120,7 @@ public class NotifyServiceImpl implements NotifyService {
     private final NotifySendService notifySendService;
     private final AppRoleService roleService;
     private final TenantService tenantService;
+    private final NotifyChannelInitService notifyChannelInitService;
 
     @Autowired
     public NotifyServiceImpl(
@@ -135,7 +136,8 @@ public class NotifyServiceImpl implements NotifyService {
         NotifyTemplateService notifyTemplateService,
         TaskPlanDAO taskPlanDAO,
         NotifyUserService notifyUserService,
-        TenantService tenantService) {
+        TenantService tenantService,
+        NotifyChannelInitService notifyChannelInitService) {
         this.notifyTriggerPolicyDAO = notifyTriggerPolicyDAO;
         this.notifyPolicyRoleTargetDAO = notifyPolicyRoleTargetDAO;
         this.notifyRoleTargetChannelDAO = notifyRoleTargetChannelDAO;
@@ -149,6 +151,7 @@ public class NotifyServiceImpl implements NotifyService {
         this.notifyTemplateService = notifyTemplateService;
         this.taskPlanDAO = taskPlanDAO;
         this.tenantService = tenantService;
+        this.notifyChannelInitService = notifyChannelInitService;
     }
 
     @Override
@@ -464,6 +467,10 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     private List<String> getAvailableChannelTypeList(String tenantId) {
+
+        // 懒加载当前租户下的消息通知渠道
+        notifyChannelInitService.tryToInitDefaultNotifyChannelsWithSingleTenant(tenantId);
+
         List<AvailableEsbChannelDTO> availableEsbChannelDTOList =
             availableEsbChannelDAO.listAvailableEsbChannel(tenantId);
         return availableEsbChannelDTOList.stream().map(AvailableEsbChannelDTO::getType).collect(Collectors.toList());
