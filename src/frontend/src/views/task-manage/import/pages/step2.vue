@@ -157,6 +157,8 @@
   </div>
 </template>
 <script>
+  import DOMPurify from 'dompurify';
+
   import BackupService from '@service/backup';
 
   import { prettyDateTimeFormat } from '@utils/assist';
@@ -165,10 +167,6 @@
   import I18n from '@/i18n';
 
   import ActionBar from '../components/action-bar';
-
-  const escapeHTML = str => str.replace(/&/g, '&#38;').replace(/"/g, '&#34;')
-    .replace(/'/g, '&#39;')
-    .replace(/</g, '&#60;');
 
   const TASK_STATUS_DEFAULT = 0;
   const TASK_STATUS_PACKAGE_PARSE_SUCCESS = 1;
@@ -276,7 +274,7 @@
 
       renderLogRow(row, index, list) {
         // eslint-disable-next-line max-len
-        const logContent = `<span class="log-header">[ ${escapeHTML(row.timestamp)} ]</span> ${escapeHTML(row.content)}`;
+        const logContent = DOMPurify.sanitize(`<span class="log-header">[ ${row.timestamp} ]</span> ${row.content}`);
         const errorTypeMap = {
           // eslint-disable-next-line max-len
           [LOG_TYPE_NEED_PASSWORD]: `<span class="action" data-action="passwordRetry">${I18n.t('template.输入密码')}</span>`,
