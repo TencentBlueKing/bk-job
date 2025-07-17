@@ -38,5 +38,5 @@ esb:
     url: esb.service
 cmsi:
   voice:
-    enabled: true
     uri: /api/c/compapi/v2/cmsi/send_voice_msg/
+  useStandaloneVoiceAPI: true

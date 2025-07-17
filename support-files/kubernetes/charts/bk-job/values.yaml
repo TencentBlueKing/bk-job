@@ -549,10 +549,10 @@ bkSharedBaseJsPath: "/bk_job/base.js"
 cmsi:
   # 语音通知配置
   voice:
-    # 使用独立发送语音的接口
-    enabled: true
     # 接口uri
     uri: /api/c/compapi/v2/cmsi/send_voice_msg/
+  # 是否使用独立发送语音的接口
+  useStandaloneVoiceAPI: true
 
 ## 蓝鲸GSE参数配置
 gse:

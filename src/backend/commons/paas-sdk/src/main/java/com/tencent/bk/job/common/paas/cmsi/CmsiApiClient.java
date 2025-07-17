@@ -85,7 +85,7 @@ public class CmsiApiClient extends BkApiClient {
             )
         );
         this.uriSendVoice = cmsiApiProperties.getVoice().getUri();
-        this.useStandaloneVoiceAPI = cmsiApiProperties.getVoice().getEnabled()
+        this.useStandaloneVoiceAPI = cmsiApiProperties.getUseStandaloneVoiceAPI()
             && StringUtils.isNotEmpty(this.uriSendVoice);
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");

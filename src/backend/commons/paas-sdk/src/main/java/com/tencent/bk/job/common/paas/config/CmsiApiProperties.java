@@ -38,10 +38,14 @@ public class CmsiApiProperties {
      */
     private ChannelConfig voice;
 
+    /**
+     * CMSI语音通知是否走独立接口
+     */
+    private Boolean useStandaloneVoiceAPI;
+
     @Getter
     @Setter
     public static class ChannelConfig {
-        private Boolean enabled;
         private String uri;
     }
 }
