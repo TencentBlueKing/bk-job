@@ -41,6 +41,7 @@ public class CmsiApiProperties {
     @Getter
     @Setter
     public static class ChannelConfig {
+        private Boolean enabled;
         private String uri;
     }
 }

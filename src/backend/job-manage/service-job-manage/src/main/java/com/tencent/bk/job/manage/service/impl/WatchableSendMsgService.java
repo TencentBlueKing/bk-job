@@ -68,7 +68,7 @@ public class WatchableSendMsgService {
         String sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_FAILED;
         try {
             // 语音通知走专门接口，其余渠道走通用发送接口
-            if (VOICE_TYPE.equalsIgnoreCase(msgType)) {
+            if (VOICE_TYPE.equalsIgnoreCase(msgType) && cmsiApiClient.canUseStandaloneVoiceAPI()) {
                 cmsiApiClient.sendVoiceMsg(content, receivers);
             } else {
                 cmsiApiClient.sendMsg(msgType, sender, receivers, title, content);

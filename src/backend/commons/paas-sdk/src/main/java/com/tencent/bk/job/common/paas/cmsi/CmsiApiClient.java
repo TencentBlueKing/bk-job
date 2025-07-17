@@ -48,6 +48,7 @@ import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Collection;
@@ -65,7 +66,10 @@ public class CmsiApiClient extends BkApiClient {
     private static final String API_GET_NOTIFY_CHANNEL_LIST = "/api/c/compapi/cmsi/get_msg_type/";
     private static final String API_POST_SEND_MSG = "/api/c/compapi/cmsi/send_msg/";
 
+    // 语音发送接口，环境不同URI不同，通过配置获取
     private final String uriSendVoice;
+    // 使用语音发送的独立接口发送语音通知
+    private final Boolean useStandaloneVoiceAPI;
     private final BkApiAuthorization authorization;
 
     public CmsiApiClient(EsbProperties esbProperties,
@@ -81,6 +85,8 @@ public class CmsiApiClient extends BkApiClient {
             )
         );
         this.uriSendVoice = cmsiApiProperties.getVoice().getUri();
+        this.useStandaloneVoiceAPI = cmsiApiProperties.getVoice().getEnabled()
+            && StringUtils.isNotEmpty(this.uriSendVoice);
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");
     }
@@ -169,7 +175,20 @@ public class CmsiApiClient extends BkApiClient {
             handleResultOrThrow(esbResp, ErrorType.INTERNAL, ErrorCode.CMSI_FAIL_TO_SEND_MSG);
         } catch (PaasException e) {
             throw e;
+        } catch (Exception e) {
+            String msg = MessageFormatter.format(
+                "Fail to request {}",
+                uri
+            ).getMessage();
+            log.error(msg, e);
+            throw new PaasException(e, ErrorType.INTERNAL, ErrorCode.CMSI_API_ACCESS_ERROR, new Object[]{});
+        } finally {
+            HttpMetricUtil.clearHttpMetric();
         }
+    }
+
+    public Boolean canUseStandaloneVoiceAPI() {
+        return this.useStandaloneVoiceAPI;
     }
 
     private void handleResultOrThrow(EsbResp<Object> esbResp, ErrorType errorType, int errorCode) {
