@@ -261,12 +261,13 @@ public class JobListener extends BaseJobMqListener {
             taskInstance.setStatus(jobStatus);
             taskInstanceService.updateTaskExecutionInfo(jobInstanceId, jobStatus, null, null, endTime, totalTime);
 
+            // 处理目标主机的密码缓存
+            handleTargetHostPasswordCache(jobInstanceId, jobStatus);
+
             // 作业执行结果消息通知
             if (RunStatusEnum.SUCCESS == jobStatus || RunStatusEnum.IGNORE_ERROR == jobStatus) {
-                targetHostCustomPasswordCache.deleteCache(jobInstanceId);
                 notifyService.asyncSendMQSuccessTaskNotification(taskInstance, stepInstance);
             } else {
-                targetHostCustomPasswordCache.refreshExpire(jobInstanceId);
                 notifyService.asyncSendMQFailTaskNotification(taskInstance, stepInstance);
             }
 
@@ -284,6 +285,14 @@ public class JobListener extends BaseJobMqListener {
             );
         }
 
+    }
+
+    private void handleTargetHostPasswordCache(Long jobInstanceId, RunStatusEnum jobStatus) {
+        if (RunStatusEnum.SUCCESS == jobStatus || RunStatusEnum.IGNORE_ERROR == jobStatus) {
+            targetHostCustomPasswordCache.deleteCache(jobInstanceId);
+        } else {
+            targetHostCustomPasswordCache.refreshExpire(jobInstanceId);
+        }
     }
 
     /**
