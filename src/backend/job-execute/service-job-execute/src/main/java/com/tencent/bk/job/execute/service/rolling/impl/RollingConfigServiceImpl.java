@@ -28,7 +28,7 @@ import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.constants.RollingTypeEnum;
+import com.tencent.bk.job.common.constant.RollingTypeEnum;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
 import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
@@ -114,20 +114,19 @@ public class RollingConfigServiceImpl implements RollingConfigService {
 
         String rollingConfigName = getRollingConfigName(rollingConfig);
         taskInstanceRollingConfig.setConfigName(rollingConfigName);
+        taskInstanceRollingConfig.setType(rollingConfig.getType());
 
         if (rollingConfig.isTargetExecuteObjectRolling()) {
             ExecuteObjectRollingConfigDetailDO executeObjectRollingConfig = buildExecuteObjectRollingConfig(
                 rollingConfig,
                 fastTask
             );
-            taskInstanceRollingConfig.setType(RollingTypeEnum.TARGET_EXECUTE_OBJECT.getValue());
             taskInstanceRollingConfig.setExecuteObjectRollingConfig(executeObjectRollingConfig);
         } else if (rollingConfig.isFileSourceRolling()) {
             FileSourceRollingConfigDO stepFileSourceRollingConfigs = buildFileSourceRollingConfig(
                 fastTask,
                 rollingConfig
             );
-            taskInstanceRollingConfig.setType(RollingTypeEnum.FILE_SOURCE.getValue());
             taskInstanceRollingConfig.setStepFileSourceRollingConfigs(stepFileSourceRollingConfigs);
         } else {
             throw new IllegalArgumentException("Unknown rolling config: " + JsonUtils.toJson(rollingConfig));

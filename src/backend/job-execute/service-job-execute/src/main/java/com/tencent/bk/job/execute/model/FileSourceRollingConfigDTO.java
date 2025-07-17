@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.execute.model.esb.v3.EsbFileSourceRollingConfigDTO;
+import com.tencent.bk.job.execute.model.web.vo.FileSourceRollingConfigVO;
 import lombok.Data;
 
 /**
@@ -33,21 +34,28 @@ import lombok.Data;
 @Data
 public class FileSourceRollingConfigDTO {
     /**
-     * 一个滚动批次中的最大执行对象数量
+     * 单批次最大源执行对象数
      */
     private Integer maxExecuteObjectNumInBatch;
 
     /**
-     * 一个滚动批次中的最大文件数量
+     * 单个执行对象的最大并发文件数
      */
-    private Integer maxFileNumInBatch;
+    private Integer maxFileNumOfSingleExecuteObject;
+
+    public static FileSourceRollingConfigDTO fromVO(FileSourceRollingConfigVO fileSourceRollingConfigVO){
+        FileSourceRollingConfigDTO rollingConfigDTO = new FileSourceRollingConfigDTO();
+        rollingConfigDTO.setMaxExecuteObjectNumInBatch(fileSourceRollingConfigVO.getMaxExecuteObjectNumInBatch());
+        rollingConfigDTO.setMaxFileNumOfSingleExecuteObject(fileSourceRollingConfigVO.getMaxFileNumOfSingleExecuteObject());
+        return rollingConfigDTO;
+    }
 
     public static FileSourceRollingConfigDTO fromEsbFileSourceRollingConfig(
-        EsbFileSourceRollingConfigDTO esbFileSourceRollingConfig
+        EsbFileSourceRollingConfigDTO config
     ) {
         FileSourceRollingConfigDTO rollingConfigDTO = new FileSourceRollingConfigDTO();
-        rollingConfigDTO.setMaxExecuteObjectNumInBatch(esbFileSourceRollingConfig.getMaxExecuteObjectNumInBatch());
-        rollingConfigDTO.setMaxFileNumInBatch(esbFileSourceRollingConfig.getMaxFileNumInBatch());
+        rollingConfigDTO.setMaxExecuteObjectNumInBatch(config.getMaxExecuteObjectNumInBatch());
+        rollingConfigDTO.setMaxFileNumOfSingleExecuteObject(config.getMaxFileNumOfSingleExecuteObject());
         return rollingConfigDTO;
     }
 }

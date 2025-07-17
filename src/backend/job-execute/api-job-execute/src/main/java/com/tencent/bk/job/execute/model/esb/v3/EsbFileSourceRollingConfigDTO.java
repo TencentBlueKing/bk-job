@@ -33,15 +33,15 @@ import lombok.Data;
 @Data
 public class EsbFileSourceRollingConfigDTO {
     /**
-     * 一个滚动批次中的最大执行对象数量
+     * 单批次最大源主机/容器数，为空表示不限制
      */
     @JsonProperty("max_execute_object_num_in_batch")
     private Integer maxExecuteObjectNumInBatch;
 
     /**
-     * 一个滚动批次中的最大文件数量
+     * 单主机/容器最大并发文件数，为空表示不限制
      */
-    @JsonProperty("max_file_num_in_batch")
-    private Integer maxFileNumInBatch;
+    @JsonProperty("max_file_num_of_single_execute_object")
+    private Integer maxFileNumOfSingleExecuteObject;
 
 }

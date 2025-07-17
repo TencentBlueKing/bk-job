@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.constant.RollingTypeEnum;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import lombok.Data;
@@ -38,6 +39,10 @@ public class StepRollingConfigDTO {
      * 滚动配置名称
      */
     private String name;
+    /**
+     * 滚动对象
+     */
+    private Integer type;
     /**
      * 滚动策略
      */
@@ -55,28 +60,34 @@ public class StepRollingConfigDTO {
         StepRollingConfigDTO stepRollingConfigDTO = new StepRollingConfigDTO();
         stepRollingConfigDTO.setName(StringUtils.isBlank(rollingConfigVO.getName()) ? "default" :
             rollingConfigVO.getName());
+        stepRollingConfigDTO.setType(rollingConfigVO.getType());
         stepRollingConfigDTO.setMode(rollingConfigVO.getMode());
         stepRollingConfigDTO.setExpr(rollingConfigVO.getExpr());
+        stepRollingConfigDTO.setFileSource(
+            FileSourceRollingConfigDTO.fromVO(rollingConfigVO.getFileSource())
+        );
         return stepRollingConfigDTO;
     }
 
     public static StepRollingConfigDTO fromEsbRollingConfig(EsbRollingConfigDTO rollingConfig) {
         StepRollingConfigDTO stepRollingConfigDTO = new StepRollingConfigDTO();
         stepRollingConfigDTO.setName("default");
+        stepRollingConfigDTO.setType(rollingConfig.getType());
         stepRollingConfigDTO.setMode(rollingConfig.getMode());
         stepRollingConfigDTO.setExpr(rollingConfig.getExpression());
-        stepRollingConfigDTO.setFileSource(FileSourceRollingConfigDTO.fromEsbFileSourceRollingConfig(
-            rollingConfig.getFileSource())
+        stepRollingConfigDTO.setFileSource(
+            FileSourceRollingConfigDTO.fromEsbFileSourceRollingConfig(rollingConfig.getFileSource())
         );
         return stepRollingConfigDTO;
     }
 
     /**
      * 判断是否为目标执行对象类型的滚动
+     *
      * @return 布尔值
      */
     public boolean isTargetExecuteObjectRolling() {
-        return StringUtils.isNotBlank(expr);
+        return RollingTypeEnum.TARGET_EXECUTE_OBJECT.getValue().equals(type) && StringUtils.isNotBlank(expr);
     }
 
     /**
@@ -85,6 +96,6 @@ public class StepRollingConfigDTO {
      * @return 布尔值
      */
     public boolean isFileSourceRolling() {
-        return fileSource != null;
+        return RollingTypeEnum.FILE_SOURCE.getValue().equals(type) && fileSource != null;
     }
 }

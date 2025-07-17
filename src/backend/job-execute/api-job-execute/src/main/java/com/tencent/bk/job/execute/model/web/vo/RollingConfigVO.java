@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
+import com.tencent.bk.job.common.constant.RollingModeEnum;
+import com.tencent.bk.job.common.constant.RollingTypeEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -37,10 +39,16 @@ public class RollingConfigVO {
     @ApiModelProperty(value = "滚动配置名称")
     private String name;
 
-    @ApiModelProperty(value = "滚动分批策略表达式")
-    private String expr;
+    @ApiModelProperty(value = "滚动对象,1-传输目标；2-源文件")
+    private Integer type = RollingTypeEnum.TARGET_EXECUTE_OBJECT.getValue();
 
     @ApiModelProperty(value = "滚动机制,1-执行失败则暂停；2-忽略失败，自动滚动下一批；3-人工确认")
-    private Integer mode;
+    private Integer mode = RollingModeEnum.PAUSE_IF_FAIL.getValue();
+
+    @ApiModelProperty(value = "滚动对象为【传输目标】时的滚动分批策略表达式")
+    private String expr;
+
+    @ApiModelProperty(value = "滚动对象为【源文件】时的源文件滚动配置")
+    private FileSourceRollingConfigVO fileSource;
 
 }

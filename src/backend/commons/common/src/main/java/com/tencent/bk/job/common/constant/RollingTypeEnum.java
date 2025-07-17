@@ -22,43 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3;
+package com.tencent.bk.job.common.constant;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.constant.RollingModeEnum;
-import com.tencent.bk.job.common.constant.RollingTypeEnum;
-import lombok.Data;
+import lombok.Getter;
 
 /**
- * 滚动执行配置
+ * 滚动类型
  */
-@Data
-public class EsbRollingConfigDTO {
+@Getter
+public enum RollingTypeEnum {
+    TARGET_EXECUTE_OBJECT(1, "传输目标"),
+    FILE_SOURCE(2, "源文件");
 
-    /**
-     * 滚动对象，1-传输目标；2-源文件，默认为传输目标
-     *
-     * @see com.tencent.bk.job.common.constant.RollingTypeEnum
-     */
-    private Integer type = RollingTypeEnum.TARGET_EXECUTE_OBJECT.getValue();
+    private final Integer value;
+    private final String name;
 
-    /**
-     * 滚动机制，1-执行失败则暂停；2-忽略失败，自动滚动下一批；3-人工确认，默认为执行失败则暂停
-     *
-     * @see com.tencent.bk.job.common.constant.RollingModeEnum
-     */
-    private Integer mode = RollingModeEnum.PAUSE_IF_FAIL.getValue();
+    RollingTypeEnum(Integer val, String name) {
+        this.value = val;
+        this.name = name;
+    }
 
-    /**
-     * 滚动对象为【传输目标】的配置项
-     * 目标执行对象滚动分批策略表达式，当前不支持与源文件滚动同时配置
-     */
-    private String expression;
+    public static RollingTypeEnum getRollingType(int value) {
+        for (RollingTypeEnum rollingTypeEnum : values()) {
+            if (rollingTypeEnum.getValue() == value) {
+                return rollingTypeEnum;
+            }
+        }
+        return null;
+    }
 
-    /**
-     * 滚动对象为【源文件】的配置项
-     * 源文件滚动配置，当前不支持与目标执行对象同时配置
-     */
-    @JsonProperty("file_source")
-    private EsbFileSourceRollingConfigDTO fileSource;
 }

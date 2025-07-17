@@ -48,24 +48,24 @@ public class StepFileSourceRollingConfigDO {
     private Integer mode;
 
     /**
-     * 一个滚动批次中的最大执行对象数量
+     * 单批次最大源执行对象数
      */
     @JsonProperty("maxExecuteObjectNumInBatch")
     private Integer maxExecuteObjectNumInBatch;
 
     /**
-     * 一个滚动批次中的最大文件数量
+     * 单个执行对象的最大并发文件数
      */
-    @JsonProperty("maxFileNumInBatch")
-    private Integer maxFileNumInBatch;
+    @JsonProperty("maxFileNumOfSingleExecuteObject")
+    private Integer maxFileNumOfSingleExecuteObject;
 
     public static StepFileSourceRollingConfigDO fromStepRollingConfigDTO(StepRollingConfigDTO rollingConfig) {
         StepFileSourceRollingConfigDO fileSourceRollingConfig = new StepFileSourceRollingConfigDO();
         fileSourceRollingConfig.setMode(rollingConfig.getMode());
         Integer maxExecuteObjectNumInBatch = rollingConfig.getFileSource().getMaxExecuteObjectNumInBatch();
-        Integer maxFileNumInBatch = rollingConfig.getFileSource().getMaxFileNumInBatch();
+        Integer maxFileNumOfSingleExecuteObject = rollingConfig.getFileSource().getMaxFileNumOfSingleExecuteObject();
         fileSourceRollingConfig.setMaxExecuteObjectNumInBatch(maxExecuteObjectNumInBatch);
-        fileSourceRollingConfig.setMaxFileNumInBatch(maxFileNumInBatch);
+        fileSourceRollingConfig.setMaxFileNumOfSingleExecuteObject(maxFileNumOfSingleExecuteObject);
         return fileSourceRollingConfig;
     }
 }

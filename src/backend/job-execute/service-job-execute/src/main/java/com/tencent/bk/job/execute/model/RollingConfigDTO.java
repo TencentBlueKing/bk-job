@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.constant.RollingModeEnum;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.constants.RollingTypeEnum;
+import com.tencent.bk.job.common.constant.RollingTypeEnum;
 import com.tencent.bk.job.execute.model.db.ExecuteObjectRollingConfigDetailDO;
 import com.tencent.bk.job.execute.model.db.FileSourceRollingConfigDO;
 import lombok.Data;
@@ -84,6 +84,15 @@ public class RollingConfigDTO {
     public boolean isFileSourceBatchRollingStep(long stepInstanceId) {
         return stepFileSourceRollingConfigs != null
             && stepFileSourceRollingConfigs.getStepFileSourceRollingConfigs().get(stepInstanceId) != null;
+    }
+
+    /**
+     * 是否是传输目标滚动配置
+     *
+     * @return 布尔值
+     */
+    public boolean isTargetExecuteObjectRolling() {
+        return RollingTypeEnum.TARGET_EXECUTE_OBJECT.getValue().equals(type);
     }
 
     /**

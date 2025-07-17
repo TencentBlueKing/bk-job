@@ -22,37 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.constants;
+package com.tencent.bk.job.execute.model.web.vo;
+
+import lombok.Data;
 
 /**
- * 滚动类型
+ * 源文件滚动配置
  */
-public enum RollingTypeEnum {
-    TARGET_EXECUTE_OBJECT(1, "目标执行对象"),
-    FILE_SOURCE(2, "源文件");
+@Data
+public class FileSourceRollingConfigVO {
+    /**
+     * 单批次最大源执行对象数
+     */
+    private Integer maxExecuteObjectNumInBatch;
 
-    private final Integer value;
-    private final String name;
-
-    RollingTypeEnum(Integer val, String name) {
-        this.value = val;
-        this.name = name;
-    }
-
-    public static RollingTypeEnum getRollingType(int value) {
-        for (RollingTypeEnum rollingTypeEnum : values()) {
-            if (rollingTypeEnum.getValue() == value) {
-                return rollingTypeEnum;
-            }
-        }
-        return null;
-    }
-
-    public Integer getValue() {
-        return value;
-    }
-
-    public String getName() {
-        return name;
-    }
+    /**
+     * 单个执行对象的最大并发文件数
+     */
+    private Integer maxFileNumOfSingleExecuteObject;
 }
