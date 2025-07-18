@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.execute.common.cache.TargetHostCustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
@@ -79,6 +80,8 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     protected final JobExecuteConfig jobExecuteConfig;
     protected final StepInstanceService stepInstanceService;
     protected final RunningJobKeepaliveManager runningJobKeepaliveManager;
+    protected final TargetHostCustomPasswordCache targetHostCustomPasswordCache;
+
     /**
      * 任务下发请求ID,防止重复下发任务
      */
@@ -111,7 +114,8 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                                 String requestId,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
-                                GseTaskDTO gseTask) {
+                                GseTaskDTO gseTask,
+                                TargetHostCustomPasswordCache targetHostCustomPasswordCache) {
         super(
             engineDependentServiceHolder,
             executeObjectTaskService,
@@ -133,6 +137,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         this.resultHandleManager = engineDependentServiceHolder.getResultHandleManager();
         this.taskInstanceService = engineDependentServiceHolder.getTaskInstanceService();
         this.jobExecuteConfig = jobExecuteConfig;
+        this.targetHostCustomPasswordCache = targetHostCustomPasswordCache;
         this.requestId = requestId;
     }
 

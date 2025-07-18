@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.execute.common.cache.TargetHostCustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
@@ -113,14 +114,16 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                    TaskInstanceDTO taskInstance,
                                    StepInstanceDTO stepInstance,
                                    GseTaskDTO gseTask,
-                                   String fileStorageRootPath) {
+                                   String fileStorageRootPath,
+                                   TargetHostCustomPasswordCache targetHostCustomPasswordCache) {
         super(engineDependentServiceHolder,
             fileExecuteObjectTaskService,
             jobExecuteConfig,
             requestId,
             taskInstance,
             stepInstance,
-            gseTask);
+            gseTask,
+            targetHostCustomPasswordCache);
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.fileStorageRootPath = fileStorageRootPath;
     }
