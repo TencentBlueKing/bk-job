@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -22,9 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.consts;
+package com.tencent.bk.job.file.worker.config;
 
-public enum FileSourceTypeEnum {
-    TENCENT_CLOUD_COS,
-    BLUEKING_ARTIFACTORY
+import com.tencent.bk.job.common.jwt.JwtManager;
+import com.tencent.bk.job.common.security.annotation.ConditionalOnSecurityEnabled;
+import com.tencent.bk.job.file.worker.interceptor.FileWorkerSecurityInterceptor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+
+/**
+ * 拦截器配置
+ */
+@Slf4j
+@Configuration(proxyBeanMethods = false)
+public class InterceptorConfig {
+
+    @Bean
+    @ConditionalOnSecurityEnabled
+    public FileWorkerSecurityInterceptor fileWorkerSecurityInterceptor(JwtManager jwtManager) {
+        log.info("fileWorkerSecurityInterceptor inited");
+        return new FileWorkerSecurityInterceptor(jwtManager);
+    }
+
+    @Bean
+    @ConditionalOnSecurityEnabled
+    InterceptorConfigurer webInterceptorAutoRegister(FileWorkerSecurityInterceptor interceptor) {
+        return new InterceptorConfigurer(interceptor);
+    }
 }
