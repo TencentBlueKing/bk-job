@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,10 +42,10 @@ public class TaskInstanceAccessProcessor {
         this.taskInstanceService = taskInstanceService;
     }
 
-    public void processBeforeAccess(String username, long appId, long taskInstanceId)
+    public void processBeforeAccess(User user, long appId, long taskInstanceId)
         throws NotFoundException, PermissionDeniedException {
         // 触发获取作业实例操作，会进行资源检查、鉴权、审计等操作
-        taskInstanceService.getTaskInstance(username, appId, taskInstanceId);
+        taskInstanceService.getTaskInstance(user, appId, taskInstanceId);
     }
 
 }

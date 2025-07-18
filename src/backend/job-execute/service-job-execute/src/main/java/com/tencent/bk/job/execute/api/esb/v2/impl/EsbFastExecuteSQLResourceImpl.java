@@ -36,9 +36,11 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.api.esb.v2.EsbFastExecuteSQLResource;
@@ -94,7 +96,7 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
                                                     String appCode,
                                                     @AuditRequestBody EsbFastExecuteSQLRequest request) {
 
-
+        User user = JobContextUtil.getUser();
         ValidateResult validateResult = checkFastExecuteSQLRequest(request);
         if (!validateResult.isPass()) {
             log.warn("Fast execute SQL request is illegal!");
@@ -106,7 +108,7 @@ public class EsbFastExecuteSQLResourceImpl extends JobExecuteCommonProcessor imp
         TaskInstanceDTO taskInstance = buildFastSQLTaskInstance(username, appCode, request);
         StepInstanceDTO stepInstance = buildFastSQLStepInstance(username, request);
         TaskInstanceDTO executeTaskInstance = taskExecuteService.executeFastTask(
-            FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
+            FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).operator(user).build()
         );
 
         EsbJobExecuteDTO jobExecuteInfo = new EsbJobExecuteDTO();

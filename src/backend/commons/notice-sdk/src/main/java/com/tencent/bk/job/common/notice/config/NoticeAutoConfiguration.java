@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.notice.config;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.notice.impl.BkNoticeClient;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -41,8 +42,9 @@ public class NoticeAutoConfiguration {
     @Bean
     public BkNoticeClient bkNoticeClient(MeterRegistry meterRegistry,
                                          AppProperties appProperties,
-                                         BkApiGatewayProperties bkApiGatewayProperties) {
-        return new BkNoticeClient(meterRegistry, appProperties, bkApiGatewayProperties);
+                                         BkApiGatewayProperties bkApiGatewayProperties,
+                                         TenantEnvService tenantEnvService) {
+        return new BkNoticeClient(meterRegistry, appProperties, bkApiGatewayProperties, tenantEnvService);
     }
 
 }

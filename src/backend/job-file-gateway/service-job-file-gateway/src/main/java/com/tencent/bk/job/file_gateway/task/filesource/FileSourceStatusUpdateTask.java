@@ -25,10 +25,10 @@
 package com.tencent.bk.job.file_gateway.task.filesource;
 
 import com.tencent.bk.job.file_gateway.consts.FileSourceStatusEnum;
+import com.tencent.bk.job.file_gateway.dao.filesource.NoTenantFileSourceDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
-import com.tencent.bk.job.file_gateway.service.FileService;
-import com.tencent.bk.job.file_gateway.service.FileSourceService;
+import com.tencent.bk.job.file_gateway.service.FileAvailableService;
 import com.tencent.bk.job.file_gateway.service.dispatch.DispatchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,16 +40,17 @@ import java.util.List;
 @Service
 public class FileSourceStatusUpdateTask {
 
-    private final FileService fileService;
+    private final FileAvailableService fileAvailableService;
     private final DispatchService dispatchService;
-    private final FileSourceService fileSourceService;
+    private final NoTenantFileSourceDAO noTenantFileSourceDAO;
 
     @Autowired
-    public FileSourceStatusUpdateTask(FileService fileService, DispatchService dispatchService,
-                                      FileSourceService fileSourceService) {
-        this.fileService = fileService;
+    public FileSourceStatusUpdateTask(FileAvailableService fileAvailableService,
+                                      DispatchService dispatchService,
+                                      NoTenantFileSourceDAO noTenantFileSourceDAO) {
+        this.fileAvailableService = fileAvailableService;
         this.dispatchService = dispatchService;
-        this.fileSourceService = fileSourceService;
+        this.noTenantFileSourceDAO = noTenantFileSourceDAO;
     }
 
     public void run() {
@@ -57,16 +58,11 @@ public class FileSourceStatusUpdateTask {
         int start = 0;
         int pageSize = 20;
         do {
-            fileSourceDTOList = fileSourceService.listWorkTableFileSource(
-                null,
-                null,
-                null,
-                start,
-                pageSize
-            );
+            fileSourceDTOList = noTenantFileSourceDAO.listEnabledFileSource(start, pageSize);
             for (FileSourceDTO fileSourceDTO : fileSourceDTOList) {
                 FileWorkerDTO fileWorkerDTO = dispatchService.findBestFileWorker(
-                    fileSourceDTO, "FileSourceStatusUpdateTask"
+                    fileSourceDTO,
+                    "FileSourceStatusUpdateTask"
                 );
                 int status;
                 if (fileWorkerDTO == null) {
@@ -81,25 +77,51 @@ public class FileSourceStatusUpdateTask {
                     if (onlineStatus == 0) {
                         status = onlineStatus;
                     } else {
-                        // 通过Worker调用listFileNode接口，OK的才算正常
-                        try {
-                            if (fileService.isFileAvailable(fileSourceDTO.getCreator(), fileSourceDTO.getAppId(),
-                                fileSourceDTO.getId())) {
-                                status = 1;
-                            } else {
-                                status = 0;
-                            }
-                        } catch (Throwable t) {
-                            status = 0;
-                        }
+                        status = getFileSourceStatus(fileSourceDTO);
                     }
                 }
-                fileSourceService.updateFileSourceStatus(fileSourceDTO.getId(), status);
-                log.debug("Update fileSource:fileSourceId={}, fileSourceCode={}, status={}", fileSourceDTO.getId(),
-                    fileSourceDTO.getCode(), status);
+                int affectedNum = noTenantFileSourceDAO.updateFileSourceStatus(fileSourceDTO.getId(), status);
+                log.debug(
+                    "Update fileSource:fileSourceId={}, fileSourceCode={}, status={}, affectedNum={}",
+                    fileSourceDTO.getId(),
+                    fileSourceDTO.getCode(),
+                    status,
+                    affectedNum
+                );
             }
             start += pageSize;
         } while (fileSourceDTOList.size() == pageSize);
         log.info("Updated status of {} fileSources", start - pageSize + fileSourceDTOList.size());
+    }
+
+    /**
+     * 获取文件源状态
+     *
+     * @param fileSourceDTO 文件源
+     * @return 文件源状态
+     */
+    private int getFileSourceStatus(FileSourceDTO fileSourceDTO) {
+        // 通过Worker调用listFileNode接口，OK的才算正常
+        int status;
+        try {
+            if (isAvailable(fileSourceDTO)) {
+                status = 1;
+            } else {
+                status = 0;
+            }
+        } catch (Throwable t) {
+            status = 0;
+        }
+        return status;
+    }
+
+    /**
+     * 判断文件源是否可用
+     *
+     * @param fileSourceDTO 文件源
+     * @return 是否可用
+     */
+    private boolean isAvailable(FileSourceDTO fileSourceDTO) {
+        return fileAvailableService.isFileAvailable(fileSourceDTO.getId());
     }
 }

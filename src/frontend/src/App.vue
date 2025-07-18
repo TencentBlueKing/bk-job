@@ -48,7 +48,7 @@
           <div
             class="item"
             :class="{ active: currentLangType === 'lang-zh' }"
-            @click="handleToggleLang('zh-CN')">
+            @click="handleToggleLang('zh-cn')">
             <icon
               class="lang-flag"
               type="lang-zh" />
@@ -103,7 +103,9 @@
         theme="light site-header-dropdown"
         :tippy-options="{ hideOnClick: false }">
         <div class="user-flag">
-          <span style="margin-right: 5px;">{{ currentUser.username }}</span>
+          <span style="margin-right: 5px;">
+            <bk-user-display-name :user-id="currentUser.username" />
+          </span>
           <i class="bk-icon icon-down-shape" />
         </div>
         <template slot="content">
@@ -125,21 +127,19 @@
 
   import AiService from '@service/ai';
   import EnvService from '@service/env';
-  import LogoutService from '@service/logout';
+  import LanguageService from '@service/language';
   import QueryGlobalSettingService from '@service/query-global-setting';
   import UserService from '@service/user';
-
-  import { jsonp } from '@utils/assist';
-  import EventBus from '@utils/event-bus';
 
   import RouterBack from '@components/router-back';
   import SystemLog from '@components/system-log';
 
   import { getPlatformConfig, setDocumentTitle, setShortcutIcon } from '@blueking/platform-config';
 
-  import I18n, { setLocale } from '@/i18n';
+  import I18n from '@/i18n';
 
   import Layout from './layout-new';
+
 
   export default {
     name: 'App',
@@ -263,14 +263,18 @@
        * @param {String} lang 语言类型
        */
       handleToggleLang(lang) {
-        Cookie.remove('blueking_language', { path: '' });
-        Cookie.set('blueking_language', lang.toLocaleLowerCase(), {
-          expires: 365,
-          domain: this.envConfig.bkDomain,
-        });
-        setLocale(lang);
-        jsonp(`${this.envConfig['esb.url']}/api/c/compapi/v2/usermanage/fe_update_user_language/?language=${lang.toLocaleLowerCase()}`);
-        window.location.reload();
+        LanguageService.update({ language: lang })
+          .then(() => {
+            Cookie.remove('blueking_language', { path: '' });
+            Cookie.set('blueking_language', lang.toLocaleLowerCase(), {
+              expires: 365,
+              domain: this.envConfig.bkDomain,
+            });
+            window.location.reload();
+          })
+          .catch(() => {
+            this.messageError(I18n.t('语言切换失败，请稍后重试'));
+          });
       },
       /**
        * @desc 显示版本更新日志
@@ -308,8 +312,7 @@
         this.$bkInfo({
           title: I18n.t('确认退出登录？'),
           confirmFn: () => {
-            EventBus.$emit('logout');
-            LogoutService.logout();
+            window.location.href = `${this.relatedSystemUrls.BK_LOGIN_URL}?c_url=${decodeURIComponent(window.location.origin)}`;
           },
         });
       },

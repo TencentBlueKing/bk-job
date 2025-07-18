@@ -86,7 +86,7 @@
           v-else-if="data.operator"
           class="confirm-reason-text">
           <div class="person">
-            {{ data.operator }}
+            <bk-user-display-name :user-id="data.operator" />
           </div>
           <span v-html="data.confirmReasonHtml" />
         </div>

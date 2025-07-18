@@ -25,12 +25,14 @@
 package com.tencent.bk.job.gateway;
 
 import com.tencent.bk.job.common.service.boot.JobBootApplication;
+import com.tencent.bk.job.gateway.config.UserMapProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.cloud.openfeign.EnableFeignClients;
@@ -47,6 +49,7 @@ import javax.annotation.PreDestroy;
     excludeName = {"org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration"})
 @Slf4j
 @EnableFeignClients
+@EnableConfigurationProperties(UserMapProperties.class)
 public class JobGatewayBootApplication {
     private final HttpHandler httpHandler;
 

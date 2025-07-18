@@ -32,30 +32,20 @@ import com.tencent.bk.job.manage.model.web.request.globalsetting.HistoryExpireRe
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplatePreviewReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ChannelTemplateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyBlackUsersReq;
-import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChannelReq;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 
 import java.util.List;
 import java.util.Map;
 
 public interface GlobalSettingsService {
-    Boolean isNotifyChannelConfiged();
+    Boolean isNotifyChannelConfiged(String tenantId);
 
-    Boolean setNotifyChannelConfiged();
-
-    List<NotifyChannelWithIconVO> listNotifyChannel(String username);
-
-    Integer setAvailableNotifyChannel(String username, SetAvailableNotifyChannelReq req);
-
-    List<UserVO> listUsers(String username, String prefixStr, Long offset, Long limit);
+    Boolean setNotifyChannelConfiged(String tenantId);
 
     List<NotifyBlackUserInfoVO> listNotifyBlackUsers(String username, Integer start, Integer pageSize);
 
@@ -95,8 +85,6 @@ public interface GlobalSettingsService {
 
     ChannelTemplateDetailWithDefaultVO getChannelTemplateDetail(String username, String channelCode,
                                                                 String messageTypeCode);
-
-    List<ChannelTemplateStatusVO> listChannelTemplateStatus(String username);
 
     String getDocCenterBaseUrl();
 

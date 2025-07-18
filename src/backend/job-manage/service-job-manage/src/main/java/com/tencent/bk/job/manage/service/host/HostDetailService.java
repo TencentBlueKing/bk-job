@@ -30,26 +30,46 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 主机详情服务，查出的主机信息包含Agent状态，云区域名称，云厂商等详情信息
  */
 public interface HostDetailService {
 
-    List<ApplicationHostDTO> listHostDetails(AppResourceScope appResourceScope, Collection<Long> hostIds);
+    /**
+     * 查询主机详情
+     *
+     * @param tenantId         租户ID
+     * @param appResourceScope 业务资源范围
+     * @param hostIds          主机ID列表
+     * @return 主机详情列表
+     */
+    List<ApplicationHostDTO> listHostDetails(String tenantId,
+                                             AppResourceScope appResourceScope,
+                                             Collection<Long> hostIds);
 
     /**
      * 为主机填充云区域、云厂商、系统类型名称等信息
      *
+     * @param tenantId 租户ID
      * @param hostList 主机列表
      */
-    void fillDetailForApplicationHosts(List<ApplicationHostDTO> hostList);
+    void fillDetailForApplicationHosts(String tenantId, List<ApplicationHostDTO> hostList);
 
     /**
      * 为主机填充云区域、云厂商、系统类型名称等信息
      *
+     * @param tenantHostMap Map<租户ID,主机列表>
+     */
+    void fillDetailForTenantHosts(Map<String, List<ApplicationHostDTO>> tenantHostMap);
+
+    /**
+     * 为主机填充云区域、云厂商、系统类型名称等信息
+     *
+     * @param tenantId 租户ID
      * @param hostList 主机列表
      */
-    void fillDetailForHosts(List<HostDTO> hostList);
+    void fillDetailForHosts(String tenantId, List<HostDTO> hostList);
 
 }

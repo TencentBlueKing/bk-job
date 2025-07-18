@@ -63,12 +63,17 @@ public class ScheduledTasks {
     public void disableCronJobOfArchivedScopeTask() {
         log.info(Thread.currentThread().getId() + ":disableCronJobOfArchivedScopeTask start");
         long start = System.currentTimeMillis();
+        boolean result = false;
         try {
-            disableCronJobOfArchivedScopeTask.execute();
+            result = disableCronJobOfArchivedScopeTask.execute();
         } catch (Exception e) {
             log.error("disableCronJobOfArchivedScopeTask fail", e);
         } finally {
-            log.info("disableCronJobOfArchivedScopeTask end, duration={}ms", System.currentTimeMillis() - start);
+            log.info(
+                "disableCronJobOfArchivedScopeTask end, result={}, duration={}ms",
+                result,
+                System.currentTimeMillis() - start
+            );
         }
     }
 }

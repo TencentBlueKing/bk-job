@@ -31,6 +31,41 @@ data:
                     password: ${rabbitmq-password}
                     {{- end }}
                     virtual-host: {{ include "job.rabbitmq.vhost" . }}
+            jobManage:
+              type: rabbit
+              environment:
+                spring:
+                  rabbitmq:
+                    host: {{ include "job.rabbitmq.host" . }}
+                    port: {{ include "job.rabbitmq.port" . }}
+                    username: {{ include "job.rabbitmq.username" . }}
+                    {{ if .Values.externalRabbitMQ.existingPasswordSecret }}
+                    password: {{ .Values.externalRabbitMQ.existingPasswordKey | default "rabbitmq-password" | printf "${%s}" }}
+                    {{- else -}}
+                    password: ${rabbitmq-password}
+                    {{- end }}
+                    virtual-host: {{ include "job.rabbitmq.vhost" . }}
+          outputBindings: sendBackGroundTask
+          bindings:
+            handleBackGroundTask-in-0:
+              destination: backGroundTask
+              group: service.job.manage
+              binder: jobManage
+              consumer:
+                concurrency: 1
+            sendBackGroundTask-out-0:
+              destination: backGroundTask
+              group: service.job.manage
+              binder: jobManage
+              consumer:
+                concurrency: 1
+          rabbit:
+            bindings:
+              handleBackGroundTask-in-0:
+                consumer:
+                  maxConcurrency: 1
+        function:
+          definition: handleBackGroundTask
       datasource:
         job-manage:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
@@ -78,10 +113,12 @@ data:
       manage:
         sync:
           {{- toYaml .Values.manageConfig.sync | nindent 10 }}
+        background-task:
+          {{- toYaml .Values.manageConfig.backGroundTask | nindent 10 }}
         notify:
           default:
             channels:
-              available: mail
+              available: mail,weixin,rtx
     mysql:
       {{- toYaml .Values.manageConfig.mysql | nindent 6 }}
     server:

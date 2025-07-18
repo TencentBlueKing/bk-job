@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.auth;
 
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -39,36 +40,36 @@ public interface ExecuteAuthService {
     /**
      * 快速分发文件鉴权
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 业务范围
      * @param executeTarget    执行目标
      * @return 鉴权结果
      */
-    AuthResult authFastPushFile(String username, AppResourceScope appResourceScope, ExecuteTargetDTO executeTarget);
+    AuthResult authFastPushFile(User user, AppResourceScope appResourceScope, ExecuteTargetDTO executeTarget);
 
     /**
      * 快速执行脚本鉴权
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 业务范围
      * @param executeTarget    执行目标
      * @return 鉴权结果
      */
-    AuthResult authFastExecuteScript(String username,
+    AuthResult authFastExecuteScript(User user,
                                      AppResourceScope appResourceScope,
                                      ExecuteTargetDTO executeTarget);
 
     /**
      * 执行业务脚本鉴权
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 业务范围
      * @param scriptId         脚本ID
      * @param scriptName       脚本名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @param executeTarget    执行目标
      * @return 鉴权结果
      */
-    AuthResult authExecuteAppScript(String username,
+    AuthResult authExecuteAppScript(User user,
                                     AppResourceScope appResourceScope,
                                     String scriptId,
                                     String scriptName,
@@ -77,14 +78,14 @@ public interface ExecuteAuthService {
     /**
      * 执行公共脚本鉴权
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 业务范围
      * @param scriptId         脚本ID
      * @param scriptName       脚本名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @param executeTarget    执行目标
      * @return 鉴权结果
      */
-    AuthResult authExecutePublicScript(String username,
+    AuthResult authExecutePublicScript(User user,
                                        AppResourceScope appResourceScope,
                                        String scriptId,
                                        String scriptName,
@@ -93,14 +94,14 @@ public interface ExecuteAuthService {
     /**
      * 执行执行方案鉴权
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 业务范围
      * @param planId           执行方案ID
      * @param planName         执行方案名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @param executeTarget    执行目标
      * @return 鉴权结果
      */
-    AuthResult authExecutePlan(String username,
+    AuthResult authExecutePlan(User user,
                                AppResourceScope appResourceScope,
                                Long templateId,
                                Long planId,
@@ -110,13 +111,13 @@ public interface ExecuteAuthService {
     /**
      * 作业模板调试鉴权
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 业务范围
      * @param templateId       作业模板ID
      * @param executeTarget    执行目标
      * @return 鉴权结果
      */
-    AuthResult authDebugTemplate(String username,
+    AuthResult authDebugTemplate(User user,
                                  AppResourceScope appResourceScope,
                                  Long templateId,
                                  ExecuteTargetDTO executeTarget);
@@ -124,49 +125,54 @@ public interface ExecuteAuthService {
     /**
      * 作业执行实例查看权限鉴权
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 业务范围
      * @param taskInstance     作业实例
      * @throws PermissionDeniedException 用户无权限
      */
-    void authViewTaskInstance(String username, AppResourceScope appResourceScope, TaskInstanceDTO taskInstance)
+    void authViewTaskInstance(User user, AppResourceScope appResourceScope, TaskInstanceDTO taskInstance)
         throws PermissionDeniedException;
 
     /**
      * 检查是否拥有作业执行实例查看权限
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 业务范围
      * @param taskInstance     作业实例
      */
-    AuthResult checkViewTaskInstancePermission(String username,
+    AuthResult checkViewTaskInstancePermission(User user,
                                                AppResourceScope appResourceScope,
                                                TaskInstanceDTO taskInstance);
 
     /**
      * 用户是否具有查看所有作业实例权限
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 业务范围
      * @return 鉴权结果
      */
-    AuthResult authViewAllTaskInstance(String username, AppResourceScope appResourceScope);
+    AuthResult authViewAllTaskInstance(User user, AppResourceScope appResourceScope);
 
     /**
      * 账号执行权限鉴权
      *
-     * @param accountId 账号ID
+     * @param user             用户
+     * @param appResourceScope 业务范围
+     * @param accountId        账号ID
      * @return 鉴权结果
      */
-    AuthResult authAccountExecutable(String username, AppResourceScope appResourceScope, Long accountId);
+    AuthResult authAccountExecutable(User user, AppResourceScope appResourceScope, Long accountId);
 
     /**
      * 账号执行权限鉴权
      *
-     * @param accountIds 账号ID列表
+     * @param user             用户
+     * @param appResourceScope 业务范围
+     * @param accountIds       账号ID列表
      * @return 鉴权结果
      */
-    AuthResult batchAuthAccountExecutable(String username, AppResourceScope appResourceScope,
+    AuthResult batchAuthAccountExecutable(User user,
+                                          AppResourceScope appResourceScope,
                                           Collection<Long> accountIds);
 
 }
