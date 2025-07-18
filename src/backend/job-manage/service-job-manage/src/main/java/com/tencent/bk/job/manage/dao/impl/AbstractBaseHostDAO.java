@@ -369,7 +369,12 @@ abstract public class AbstractBaseHostDAO {
                 condition = condition.or(field.like("%" + keyList.get(i) + "%"));
             }
             conditions.add(condition);
+        } else if (keys != null && keys.isEmpty()) {
+            // keys为空数组，表示不匹配任何数据
+            Condition condition = field.in(Collections.emptyList());
+            conditions.add(condition);
         }
+        // keys为null，表示没有任何条件，匹配所有数据
     }
 
     private List<Condition> buildMultiKeysConditions(Collection<Long> bizIds,

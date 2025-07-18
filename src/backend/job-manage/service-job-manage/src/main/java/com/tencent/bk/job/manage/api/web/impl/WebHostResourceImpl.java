@@ -205,10 +205,10 @@ public class WebHostResourceImpl implements WebHostResource {
             req.getNodeList(),
             req.getAlive(),
             req.getSearchContent(),
-            req.getIpKeyList(),
-            req.getIpv6KeyList(),
-            req.getHostNameKeyList(),
-            req.getOsNameKeyList(),
+            req.getCleanIpKeyList(),
+            req.getCleanIpv6KeyList(),
+            req.getCleanHostNameKeyList(),
+            req.getCleanOsNameKeyList(),
             pagePair.getLeft(),
             pagePair.getRight()
         );
@@ -234,10 +234,10 @@ public class WebHostResourceImpl implements WebHostResource {
             req.getNodeList(),
             req.getSearchContent(),
             req.getAlive(),
-            req.getIpKeyList(),
-            req.getIpv6KeyList(),
-            req.getHostNameKeyList(),
-            req.getOsNameKeyList(),
+            req.getCleanIpKeyList(),
+            req.getCleanIpv6KeyList(),
+            req.getCleanHostNameKeyList(),
+            req.getCleanOsNameKeyList(),
             pagePair.getLeft(),
             pagePair.getRight()
         );
