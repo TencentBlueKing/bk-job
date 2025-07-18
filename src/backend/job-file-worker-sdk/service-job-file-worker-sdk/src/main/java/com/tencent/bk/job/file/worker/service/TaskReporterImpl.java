@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -41,12 +41,15 @@ public class TaskReporterImpl implements TaskReporter {
 
     private final GatewayInfoService gatewayInfoService;
     private final JobHttpClient jobHttpClient;
+    private final JwtTokenService jwtTokenService;
 
     @Autowired
     public TaskReporterImpl(GatewayInfoService gatewayInfoService,
-                            JobHttpClient jobHttpClient) {
+                            JobHttpClient jobHttpClient,
+                            JwtTokenService jwtTokenService) {
         this.gatewayInfoService = gatewayInfoService;
         this.jobHttpClient = jobHttpClient;
+        this.jwtTokenService = jwtTokenService;
     }
 
     public void reportFileDownloadStart(String taskId, String filePath, String downloadPath) {
@@ -157,7 +160,11 @@ public class TaskReporterImpl implements TaskReporter {
 
     public void reportTaskStatus(UpdateFileSourceTaskReq updateFileSourceTaskReq) {
         String url = gatewayInfoService.getReportTaskStatusUrl();
-        HttpReq req = HttpReqGenUtil.genSimpleJsonReq(url, updateFileSourceTaskReq);
+        HttpReq req = HttpReqGenUtil.genSimpleJsonReq(
+            url,
+            jwtTokenService.getJwtTokenHeaders(),
+            updateFileSourceTaskReq
+        );
         try {
             log.info("url={},body={}", url, req.getBody());
             jobHttpClient.post(req);

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -22,34 +22,61 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.tmp;
+package com.tencent.bk.job.file_gateway.api.op;
 
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.manage.model.tmp.TmpAccountCreateUpdateReq;
+import com.tencent.bk.job.file_gateway.model.req.op.AddBkArtifactoryWhiteBaseUrlReq;
+import com.tencent.bk.job.file_gateway.model.req.op.BatchDeleteFileSourceWhiteInfoReq;
+import com.tencent.bk.job.file_gateway.model.resp.op.FileSourceWhiteInfoVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
+
+@Api(tags = {"job-file-gateway:OP:文件源白名单OP管理接口"})
+@RequestMapping("/op/fileSourceWhiteInfo")
 @RestController
-@Api(tags = {"job-manage:tmp:App_Account"})
-@RequestMapping("/tmp/account/app/{appId}")
-public interface TmpAppAccountResource {
+public interface FileSourceWhiteInfoOpResource {
 
-    @ApiOperation(value = "新增账号（不校验alias）", produces = "application/json")
-    @PostMapping("/account")
-    Response saveAccount(
-        @ApiParam(value = "用户名，网关自动传入", required = true) @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true) @PathVariable("appId") Long appId,
-        @ApiParam("创建时间") @RequestHeader(value = "X-Create-Time", required = false) Long createTime,
-        @ApiParam("修改时间") @RequestHeader(value = "X-Update-Time", required = false) Long lastModifyTime,
-        @ApiParam("最后修改人") @RequestHeader(value = "X-Update-User", required = false) String lastModifyUser,
-        @ApiParam("是否使用当前时间") @RequestHeader(value = "X-Use-Current-Time", required = false) Boolean useCurrentTime,
-        @ApiParam(value = "创建账号请求") @RequestBody TmpAccountCreateUpdateReq accountCreateUpdateReq);
+    @ApiOperation(value = "添加蓝鲸制品库地址白名单", produces = "application/json")
+    @PostMapping("/addBkArtifactoryWhiteBaseUrl")
+    Response<Integer> addBkArtifactoryWhiteBaseUrl(
+        @ApiParam("用户名")
+        @RequestHeader("username")
+        String username,
+        @RequestBody
+        AddBkArtifactoryWhiteBaseUrlReq req
+    );
 
+    @ApiOperation(value = "查询白名单列表", produces = "application/json")
+    @GetMapping("/list")
+    Response<List<FileSourceWhiteInfoVO>> list(
+        @ApiParam("用户名")
+        @RequestHeader("username")
+        String username,
+        @RequestParam(value = "start", required = false, defaultValue = "0")
+        Integer start,
+        @RequestParam(value = "length", required = false, defaultValue = "10")
+        Integer length
+    );
+
+    @ApiOperation(value = "批量删除白名单", produces = "application/json")
+    @DeleteMapping("/batchDelete")
+    Response<Integer> batchDelete(
+        @ApiParam("用户名")
+        @RequestHeader("username")
+        String username,
+        @RequestBody
+        BatchDeleteFileSourceWhiteInfoReq req
+    );
 }

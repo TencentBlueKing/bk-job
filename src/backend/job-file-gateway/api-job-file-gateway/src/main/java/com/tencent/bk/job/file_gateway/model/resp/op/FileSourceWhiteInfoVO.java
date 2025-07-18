@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -22,17 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.exception;
+package com.tencent.bk.job.file_gateway.model.resp.op;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.InternalException;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * 服务拒绝访问
+ * 文件源白名单信息
  */
-public class ServiceNoAuthException extends InternalException {
-    public ServiceNoAuthException() {
-        super(ErrorCode.SERVICE_AUTH_FAIL);
-    }
-
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class FileSourceWhiteInfoVO {
+    /**
+     * id
+     */
+    private Integer id;
+    /**
+     * 类型
+     */
+    private String type;
+    /**
+     * 内容
+     */
+    private String content;
+    /**
+     * 备注
+     */
+    private String remark;
+    /**
+     * 创建人
+     */
+    private String creator;
+    /**
+     * 创建时间
+     */
+    private String createTime;
 }

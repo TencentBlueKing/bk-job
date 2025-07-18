@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,7 +24,11 @@
 
 package com.tencent.bk.job.common.util.file;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.util.FilePathUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -154,7 +158,19 @@ public final class ZipUtil {
                 zis = new ZipInputStream(in, StandardCharsets.UTF_8);
                 ZipEntry entry;
                 while ((entry = zis.getNextEntry()) != null && !entry.isDirectory()) {
-                    File target = new File(source.getParent(), entry.getName());
+                    String rawFileName = entry.getName();
+                    String pureFileName = FilePathUtils.getPureFileName(rawFileName);
+                    if (isIllegalFileName(pureFileName)) {
+                        throw new InvalidParamException(ErrorCode.ILLEGAL_FILE);
+                    }
+                    if (!rawFileName.trim().equals(pureFileName)) {
+                        log.warn(
+                            "AttackAttemptFound|Illegal name of zip file entry: {}, replace it with {}",
+                            rawFileName,
+                            pureFileName
+                        );
+                    }
+                    File target = new File(source.getParent(), pureFileName);
                     unzipFiles.add(target);
                     if (!target.getParentFile().exists()) {// 创建文件父目录
                         boolean createDirSuccess = target.getParentFile().mkdirs();
@@ -182,6 +198,9 @@ public final class ZipUtil {
         return unzipFiles;
     }
 
+    private static boolean isIllegalFileName(String fileName) {
+        return (fileName.equals("..") || fileName.equals("."));
+    }
 
     /**
      * 关闭一个或多个流对象

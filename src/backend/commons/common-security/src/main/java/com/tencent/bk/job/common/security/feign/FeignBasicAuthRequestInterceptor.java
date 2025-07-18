@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.security.feign;
 
 import com.tencent.bk.job.common.jwt.JwtManager;
+import com.tencent.bk.job.common.security.consts.JwtConsts;
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
 import lombok.extern.slf4j.Slf4j;
@@ -39,9 +40,9 @@ public class FeignBasicAuthRequestInterceptor implements RequestInterceptor {
 
     @Override
     public void apply(RequestTemplate template) {
-        if (!template.headers().containsKey("x-job-auth-token")) {
+        if (!template.headers().containsKey(JwtConsts.HEADER_KEY_SERVICE_JWT_TOKEN)) {
             String token = jwtManager.getToken();
-            template.header("x-job-auth-token", token);
+            template.header(JwtConsts.HEADER_KEY_SERVICE_JWT_TOKEN, token);
         }
     }
 }

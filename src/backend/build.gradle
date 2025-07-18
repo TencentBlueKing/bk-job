@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -91,7 +91,7 @@ ext {
     // https://mvnrepository.com/artifact/org.projectlombok/lombok
     set('lombokVersion', "1.18.24")
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
-    set('jacksonVersion', "2.13.5")
+    set('jacksonVersion', "2.15.4")
     set('jaxrsVersion', "2.0")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-core
     // Fix CVE-2023-6378 1.2.11->1.2.13
@@ -389,7 +389,7 @@ subprojects {
     }
     dependencies {
         constraints {
-            implementation('commons-fileupload:commons-fileupload:1.5') {
+            implementation('commons-fileupload:commons-fileupload:1.6.0') {
                 because 'version 1.4 pulled from spring-cloud-starter-openfeign has vulnerabilities(CVE-2023-24998)'
             }
         }
