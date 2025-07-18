@@ -22,39 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.execute.validation;
 
-import lombok.Getter;
+import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * 滚动类型
+ * ESB接口滚动配置联合校验分组提供者
  */
-@Getter
-public enum RollingTypeEnum {
-    TARGET_EXECUTE_OBJECT(1, "传输目标"),
-    FILE_SOURCE(2, "源文件");
+@Slf4j
+public class EsbRollingConfigGroupSequenceProvider extends AbstractRollingConfigGroupSequenceProvider<EsbRollingConfigDTO> {
 
-    private final Integer value;
-    private final String name;
-
-    RollingTypeEnum(Integer val, String name) {
-        this.value = val;
-        this.name = name;
-    }
-
-    public static RollingTypeEnum getRollingType(int value) {
-        for (RollingTypeEnum rollingTypeEnum : values()) {
-            if (rollingTypeEnum.getValue() == value) {
-                return rollingTypeEnum;
-            }
-        }
-        return null;
-    }
-
-    public static boolean isValid(Integer value) {
-        if (value == null) {
-            return false;
-        }
-        return getRollingType(value) != null;
+    @Override
+    Integer getRollingType(EsbRollingConfigDTO rollingConfigDTO) {
+        return rollingConfigDTO.getType();
     }
 }

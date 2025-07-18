@@ -25,7 +25,10 @@
 package com.tencent.bk.job.execute.model.esb.v3;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.validation.ValidationGroups;
 import lombok.Data;
+
+import javax.validation.constraints.Positive;
 
 /**
  * 源文件滚动配置
@@ -35,12 +38,18 @@ public class EsbFileSourceRollingConfigDTO {
     /**
      * 单批次最大源主机/容器数，为空表示不限制
      */
+    @Positive(
+        message = "{validation.constraints.RollingFileSourceMaxExecuteObjectNumInBatch_Positive.message}"
+    )
     @JsonProperty("max_execute_object_num_in_batch")
     private Integer maxExecuteObjectNumInBatch;
 
     /**
      * 单主机/容器最大并发文件数，为空表示不限制
      */
+    @Positive(
+        message = "{validation.constraints.RollingFileSourceMaxFileNumOfExecuteObject_Positive.message}"
+    )
     @JsonProperty("max_file_num_of_single_execute_object")
     private Integer maxFileNumOfSingleExecuteObject;
 

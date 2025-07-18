@@ -27,12 +27,21 @@ package com.tencent.bk.job.execute.model.esb.v3;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.RollingModeEnum;
 import com.tencent.bk.job.common.constant.RollingTypeEnum;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.execute.validation.EsbRollingConfigGroupSequenceProvider;
 import lombok.Data;
+import org.hibernate.validator.group.GroupSequenceProvider;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 /**
  * 滚动执行配置
  */
 @Data
+@GroupSequenceProvider(EsbRollingConfigGroupSequenceProvider.class)
 public class EsbRollingConfigDTO {
 
     /**
@@ -40,6 +49,7 @@ public class EsbRollingConfigDTO {
      *
      * @see com.tencent.bk.job.common.constant.RollingTypeEnum
      */
+    @CheckEnum(enumClass = RollingTypeEnum.class, message = "{validation.constraints.RollingType_illegal.message}")
     private Integer type = RollingTypeEnum.TARGET_EXECUTE_OBJECT.getValue();
 
     /**
@@ -47,18 +57,28 @@ public class EsbRollingConfigDTO {
      *
      * @see com.tencent.bk.job.common.constant.RollingModeEnum
      */
+    @CheckEnum(enumClass = RollingModeEnum.class, message = "{validation.constraints.RollingMode_illegal.message}")
     private Integer mode = RollingModeEnum.PAUSE_IF_FAIL.getValue();
 
     /**
      * 滚动对象为【传输目标】的配置项
      * 目标执行对象滚动分批策略表达式，当前不支持与源文件滚动同时配置
      */
+    @NotBlank(
+        groups = ValidationGroups.RollingType.TargetExecuteObject.class,
+        message = "{validation.constraints.RollingExpression_NotBlank.message}"
+    )
     private String expression;
 
     /**
      * 滚动对象为【源文件】的配置项
      * 源文件滚动配置，当前不支持与目标执行对象同时配置
      */
+    @NotNull(
+        groups = ValidationGroups.RollingType.FileSource.class,
+        message = "{validation.constraints.RollingFileSource_NotNull.message}"
+    )
     @JsonProperty("file_source")
+    @Valid
     private EsbFileSourceRollingConfigDTO fileSource;
 }

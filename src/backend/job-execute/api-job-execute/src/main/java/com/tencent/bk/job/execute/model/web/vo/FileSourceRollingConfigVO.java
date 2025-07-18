@@ -24,7 +24,10 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
+import com.tencent.bk.job.common.validation.ValidationGroups;
 import lombok.Data;
+
+import javax.validation.constraints.Positive;
 
 /**
  * 源文件滚动配置
@@ -34,10 +37,18 @@ public class FileSourceRollingConfigVO {
     /**
      * 单批次最大源执行对象数
      */
+    @Positive(
+        groups = ValidationGroups.RollingType.FileSource.class,
+        message = "{validation.constraints.RollingFileSourceMaxExecuteObjectNumInBatch_Positive.message}"
+    )
     private Integer maxExecuteObjectNumInBatch;
 
     /**
      * 单个执行对象的最大并发文件数
      */
+    @Positive(
+        groups = ValidationGroups.RollingType.FileSource.class,
+        message = "{validation.constraints.RollingFileSourceMaxFileNumOfExecuteObject_Positive.message}"
+    )
     private Integer maxFileNumOfSingleExecuteObject;
 }

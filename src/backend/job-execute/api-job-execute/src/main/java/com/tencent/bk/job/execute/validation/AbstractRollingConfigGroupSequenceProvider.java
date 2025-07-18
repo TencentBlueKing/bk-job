@@ -22,39 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.execute.validation;
 
-import lombok.Getter;
+import com.tencent.bk.job.common.constant.RollingTypeEnum;
+import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * 滚动类型
+ * 抽象的滚动配置联合校验分组提供者
  */
-@Getter
-public enum RollingTypeEnum {
-    TARGET_EXECUTE_OBJECT(1, "传输目标"),
-    FILE_SOURCE(2, "源文件");
+@Slf4j
+public abstract class AbstractRollingConfigGroupSequenceProvider<T> implements DefaultGroupSequenceProvider<T> {
 
-    private final Integer value;
-    private final String name;
-
-    RollingTypeEnum(Integer val, String name) {
-        this.value = val;
-        this.name = name;
-    }
-
-    public static RollingTypeEnum getRollingType(int value) {
-        for (RollingTypeEnum rollingTypeEnum : values()) {
-            if (rollingTypeEnum.getValue() == value) {
-                return rollingTypeEnum;
-            }
+    @Override
+    public List<Class<?>> getValidationGroups(T rollingConfig) {
+        List<Class<?>> validationGroups = new ArrayList<>();
+        validationGroups.add(EsbRollingConfigDTO.class);
+        if (rollingConfig == null) {
+            return validationGroups;
         }
-        return null;
+        Integer type = getRollingType(rollingConfig);
+        if (RollingTypeEnum.TARGET_EXECUTE_OBJECT.getValue().equals(type)) {
+            validationGroups.add(ValidationGroups.RollingType.TargetExecuteObject.class);
+        } else if (RollingTypeEnum.FILE_SOURCE.getValue().equals(type)) {
+            validationGroups.add(ValidationGroups.RollingType.FileSource.class);
+        }
+        return validationGroups;
     }
 
-    public static boolean isValid(Integer value) {
-        if (value == null) {
-            return false;
-        }
-        return getRollingType(value) != null;
-    }
+    abstract Integer getRollingType(T t);
 }
