@@ -24,33 +24,28 @@
 
 package com.tencent.bk.job.common.paas.config;
 
-import com.tencent.bk.job.common.esb.config.AppProperties;
-import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
-import io.micrometer.core.instrument.MeterRegistry;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Configuration(proxyBeanMethods = false)
-@Slf4j
-@EnableConfigurationProperties({CmsiApiProperties.class})
-public class CmsiAutoConfiguration {
+@Data
+@ConfigurationProperties(prefix = "cmsi")
+public class CmsiApiProperties {
 
-    @Bean
-    public CmsiApiClient cmsiApiClient(AppProperties appProperties,
-                                       EsbProperties esbProperties,
-                                       ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
-                                       CmsiApiProperties cmsiApiProperties) {
-        log.info("Init CmsiApiClient");
-        return new CmsiApiClient(
-            esbProperties,
-            appProperties,
-            meterRegistryObjectProvider.getIfAvailable(),
-            cmsiApiProperties
-        );
+    /**
+     * CMSI语音通知接口配置
+     */
+    private ChannelConfig voice;
+
+    /**
+     * CMSI语音通知是否走独立接口
+     */
+    private Boolean useStandaloneVoiceAPI;
+
+    @Getter
+    @Setter
+    public static class ChannelConfig {
+        private String uri;
     }
-
 }

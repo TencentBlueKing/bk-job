@@ -100,6 +100,10 @@ data:
         {{- else }}
         url: {{ .Values.bkLoginUrl }}
         {{- end }}
+    cmsi:
+      voice:
+        uri: {{ .Values.cmsi.voice.uri }}
+      useStandaloneVoiceAPI: {{ .Values.cmsi.useStandaloneVoiceAPI }}
     bkNotice:
       enabled: {{ .Values.bkNotice.enabled }}
     job:

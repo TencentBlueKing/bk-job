@@ -22,35 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.config;
+package com.tencent.bk.job.common.paas.model;
 
-import com.tencent.bk.job.common.esb.config.AppProperties;
-import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
-import io.micrometer.core.instrument.MeterRegistry;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
-@Configuration(proxyBeanMethods = false)
-@Slf4j
-@EnableConfigurationProperties({CmsiApiProperties.class})
-public class CmsiAutoConfiguration {
+@Data
+public class SendVoiceReq {
 
-    @Bean
-    public CmsiApiClient cmsiApiClient(AppProperties appProperties,
-                                       EsbProperties esbProperties,
-                                       ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
-                                       CmsiApiProperties cmsiApiProperties) {
-        log.info("Init CmsiApiClient");
-        return new CmsiApiClient(
-            esbProperties,
-            appProperties,
-            meterRegistryObjectProvider.getIfAvailable(),
-            cmsiApiProperties
-        );
-    }
+    /**
+     * 自动语音读字信息
+     */
+    @JsonProperty("auto_read_message")
+    private String message;
 
+    /**
+     * 待通知的用户列表，包含用户名，多个以逗号分隔
+     */
+    @JsonProperty("receiver__username")
+    public String receivers;
 }
