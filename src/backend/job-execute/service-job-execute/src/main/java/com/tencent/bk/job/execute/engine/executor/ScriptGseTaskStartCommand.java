@@ -312,13 +312,21 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             || varType == TaskVariableTypeEnum.NAMESPACE.getType()) {
             appendStringVariableDeclareScript(sb, paramName, paramValue);
         } else if (varType == TaskVariableTypeEnum.ASSOCIATIVE_ARRAY.getType()) {
-            sb.append("declare -A ").append(paramName);
+            if (isKshInterpreter()) {
+                sb.append("typeset -A ").append(paramName);
+            } else {
+                sb.append("declare -A ").append(paramName);
+            }
             if (StringUtils.isNotBlank(paramValue)) {
                 sb.append("=").append(paramValue);
             }
             sb.append("\n");
         } else if (varType == TaskVariableTypeEnum.INDEX_ARRAY.getType()) {
-            sb.append("declare -a ");
+            if (isKshInterpreter()) {
+                sb.append("typeset -a ");
+            } else {
+                sb.append("declare -a ");
+            }
             sb.append(paramName);
             if (StringUtils.isNotBlank(paramValue)) {
                 sb.append("=").append(paramValue);
@@ -328,7 +336,11 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     }
 
     private void appendStringVariableDeclareScript(StringBuffer sb, String variableName, String variableValue) {
-        sb.append("declare ").append(variableName).append("=");
+        if (isKshInterpreter()) {
+            sb.append(variableName).append("=");
+        } else {
+            sb.append("declare ").append(variableName).append("=");
+        }
         sb.append("'").append(escapeSingleQuote(StringUtils.isEmpty(variableValue) ? "" : variableValue)).append("'\n");
     }
 
@@ -546,7 +558,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         namespaceParamsOutputFileName,
                                                  String allParamsOutputFileName) {
         StringBuilder sb = new StringBuilder();
-        sb.append("function outputVarOnExit(){\n");
+        sb.append("outputVarOnExit(){\n");
         sb.append("  exit_code=$?\n");
         if (taskVariablesAnalyzeResult.isExistAnyVar()) {
             sb.append("  set|egrep '");
@@ -600,8 +612,13 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         sb.append("fi\n");
         sb.append("\n");
         String catFilePath = "${BASE_PATH}" + scriptFilePath + File.separator + varOutputFileName;
-        sb.append("declare -i total_time=10\n");
-        sb.append("declare -i cost_time=0\n");
+        if (isKshInterpreter()) {
+            sb.append("total_time=10\n");
+            sb.append("cost_time=0\n");
+        } else {
+            sb.append("declare -i total_time=10\n");
+            sb.append("declare -i cost_time=0\n");
+        }
         sb.append("while [ $cost_time -le $total_time ];do\n");
         sb.append("  if [ -f ").append(catFilePath).append(" ];then\n");
         sb.append("    cat ").append(catFilePath).append("\n");
@@ -674,5 +691,15 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             return false;
         }
         return true;
+    }
+
+    /**
+     * ksh解释器
+     */
+    private boolean isKshInterpreter() {
+        if (StringUtils.isEmpty(this.extractedShebang)) {
+            return false;
+        }
+        return this.extractedShebang.contains("ksh");
     }
 }
