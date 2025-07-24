@@ -22,32 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.api.esb.v3;
+package com.tencent.bk.job.common.paas.config;
 
-import com.tencent.bk.job.common.annotation.EsbAPI;
-import com.tencent.bk.job.common.constant.JobCommonHeaders;
-import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
-import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.EsbBkCIPluginFastTransferFileV3Request;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@RequestMapping("/esb/api/v3")
-@RestController
-@EsbAPI
-public interface EsbBkCIPluginFastTransferFileV3Resource {
+@Data
+@ConfigurationProperties(prefix = "cmsi")
+public class CmsiApiProperties {
 
-    @PostMapping("/bkci_plugin_fast_transfer_file")
-    EsbResp<EsbJobExecuteV3DTO> bkciPluginFastTransferFile(
-        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
-        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestBody
-        @Validated
-            EsbBkCIPluginFastTransferFileV3Request request
-    );
+    /**
+     * CMSI语音通知接口配置
+     */
+    private ChannelConfig voice;
 
+    /**
+     * CMSI语音通知是否走独立接口
+     */
+    private Boolean useStandaloneVoiceAPI;
+
+    @Getter
+    @Setter
+    public static class ChannelConfig {
+        private String uri;
+    }
 }

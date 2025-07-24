@@ -22,32 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.api.esb.v3;
+package com.tencent.bk.job.common.paas.model;
 
-import com.tencent.bk.job.common.annotation.EsbAPI;
-import com.tencent.bk.job.common.constant.JobCommonHeaders;
-import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
-import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.EsbBkCIPluginFastTransferFileV3Request;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
-@RequestMapping("/esb/api/v3")
-@RestController
-@EsbAPI
-public interface EsbBkCIPluginFastTransferFileV3Resource {
+@Data
+public class SendVoiceReq {
 
-    @PostMapping("/bkci_plugin_fast_transfer_file")
-    EsbResp<EsbJobExecuteV3DTO> bkciPluginFastTransferFile(
-        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
-        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestBody
-        @Validated
-            EsbBkCIPluginFastTransferFileV3Request request
-    );
+    /**
+     * 自动语音读字信息
+     */
+    @JsonProperty("auto_read_message")
+    private String message;
 
+    /**
+     * 待通知的用户列表，包含用户名，多个以逗号分隔
+     */
+    @JsonProperty("receiver__username")
+    public String receivers;
 }
