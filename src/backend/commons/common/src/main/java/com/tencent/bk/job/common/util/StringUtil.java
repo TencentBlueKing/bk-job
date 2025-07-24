@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -441,5 +441,11 @@ public class StringUtil {
         if ("true".equalsIgnoreCase(str)) return true;
         if ("false".equalsIgnoreCase(str)) return false;
         throw new IllegalArgumentException("Invalid boolean value: " + str);
+    }
+
+    public static String removeHttpOrHttpsSchemeOfUrl(String url) {
+        String urlWithoutScheme = StringUtil.removePrefix(url, "http://");
+        urlWithoutScheme = StringUtil.removePrefix(urlWithoutScheme, "https://");
+        return urlWithoutScheme;
     }
 }

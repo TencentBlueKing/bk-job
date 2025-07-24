@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -32,6 +32,21 @@ import org.apache.commons.lang3.tuple.Pair;
  * 文件路径解析器
  */
 public class FilePathUtils {
+
+    /**
+     * 从可能含有路径的文件名称中获取纯净的文件名
+     *
+     * @param fileNameWithPath 可能含有路径的原始文件名
+     * @return 纯净的文件名
+     */
+    public static String getPureFileName(String fileNameWithPath) {
+        if (StringUtils.isBlank(fileNameWithPath)) {
+            return "";
+        }
+        Pair<String, String> dirAndFileNamePair = parseDirAndFileName(fileNameWithPath);
+        return dirAndFileNamePair.getRight();
+    }
+
     /**
      * 解析全路径文件的文件名和路径
      */
