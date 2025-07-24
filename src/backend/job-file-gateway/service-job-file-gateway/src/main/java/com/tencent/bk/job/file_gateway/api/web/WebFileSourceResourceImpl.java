@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -43,9 +43,9 @@ import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;
 import com.tencent.bk.job.file_gateway.model.req.web.FileSourceCreateUpdateReq;
 import com.tencent.bk.job.file_gateway.model.resp.web.FileSourceVO;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
+import com.tencent.bk.job.file_gateway.service.validation.FileSourceValidateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jooq.tools.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -62,27 +62,24 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
     private final FileSourceService fileSourceService;
     private final FileSourceAuthService fileSourceAuthService;
     private final AppScopeMappingService appScopeMappingService;
+    private final FileSourceValidateService fileSourceValidateService;
 
     @Autowired
     public WebFileSourceResourceImpl(
         FileSourceService fileSourceService,
         FileSourceAuthService fileSourceAuthService,
-        AppScopeMappingService appScopeMappingService) {
+        AppScopeMappingService appScopeMappingService,
+        FileSourceValidateService fileSourceValidateService) {
         this.fileSourceService = fileSourceService;
         this.fileSourceAuthService = fileSourceAuthService;
         this.appScopeMappingService = appScopeMappingService;
+        this.fileSourceValidateService = fileSourceValidateService;
     }
 
-    private void checkCodeBlank(String code) {
-        if (StringUtils.isBlank(code)) {
-            throw new InvalidParamException(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, new String[]{"code"});
-        }
-    }
-
-    private void checkParam(FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
-        checkCodeBlank(fileSourceCreateUpdateReq.getCode());
-        if (StringUtils.isBlank(fileSourceCreateUpdateReq.getCredentialId())) {
-            throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, new String[]{"credentialId"});
+    private void checkParamSecurity(FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
+        if(fileSourceCreateUpdateReq.isBlueKingArtifactoryType()){
+            // 制品库类型的文件源需要校验根地址
+            fileSourceValidateService.checkBkArtifactoryBaseUrl(fileSourceCreateUpdateReq.getBkArtifactoryBaseUrl());
         }
     }
 
@@ -104,12 +101,11 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         AppResourceScope appResourceScope,
         String scopeType,
         String scopeId,
-        @AuditRequestBody FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
+        @AuditRequestBody FileSourceCreateUpdateReq req) {
         try {
             Long appId = appResourceScope.getAppId();
-            checkParam(fileSourceCreateUpdateReq);
-            FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, null,
-                fileSourceCreateUpdateReq);
+            checkParamSecurity(req);
+            FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, null, req);
             FileSourceDTO createdFileSource = fileSourceService.saveFileSource(username, appId, fileSourceDTO);
             return Response.buildSuccessResp(FileSourceDTO.toVO(createdFileSource));
         } catch (ServiceException e) {
@@ -125,11 +121,11 @@ public class WebFileSourceResourceImpl implements WebFileSourceResource {
         String scopeType,
         String scopeId,
         Integer id,
-        @AuditRequestBody FileSourceCreateUpdateReq fileSourceCreateUpdateReq) {
+        @AuditRequestBody FileSourceCreateUpdateReq req) {
         Long appId = appResourceScope.getAppId();
-        log.info("Input=({},{},{})", username, appId, fileSourceCreateUpdateReq);
-        FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, id, fileSourceCreateUpdateReq);
-        checkParam(fileSourceCreateUpdateReq);
+        log.info("Input=({},{},{})", username, appId, req);
+        FileSourceDTO fileSourceDTO = buildFileSourceDTO(username, appId, id, req);
+        checkParamSecurity(req);
 
         FileSourceDTO updateFileSource = fileSourceService.updateFileSourceById(username, appId, fileSourceDTO);
         return Response.buildSuccessResp(FileSourceDTO.toVO(updateFileSource));

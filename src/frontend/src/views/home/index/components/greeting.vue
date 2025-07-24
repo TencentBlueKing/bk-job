@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -72,27 +72,27 @@
           }
           return false;
         };
-        const txtSeven = (currentHour, currentMin) => {
+        const txtSeven = (currentHour) => {
           if (currentHour >= 14 && currentHour < 18) {
-            return I18n.t('home.下午好！预防「久坐成疾」，记得多起来走动走动，松松肩颈，放松片刻。', { 'HH:MM': `${currentHour}:${currentMin}` });
+            return I18n.t('home.下午好！预防「久坐成疾」，记得多起来走动走动，松松肩颈，放松片刻。');
           }
           return false;
         };
         const txtEight = (currentHour, currentMin) => {
           if (currentHour === 18 || (currentHour === 19 && currentMin < 30)) {
-            return I18n.t('home.晚上好！夜间人体内消化能力偏弱，饮食切忌太饱，健康绿色膳食为宜。', { 'HH:MM': `${currentHour}:${currentMin}` });
+            return I18n.t('home.晚上好！夜间人体内消化能力偏弱，饮食切忌太饱，健康绿色膳食为宜。');
           }
           return false;
         };
         const txtNight = (currentHour, currentMin) => {
           if ((currentHour === 19 && currentMin >= 30) || (currentHour >= 20 && currentHour < 23)) {
-            return I18n.t('home.晚上好！少加班，多锻炼噢~ 只要每天做好规划，不怕事情做不好！', { 'HH:MM': `${currentHour}:${currentMin}` });
+            return I18n.t('home.晚上好！少加班，多锻炼噢~ 只要每天做好规划，不怕事情做不好！');
           }
           return false;
         };
         const txtTen = (currentHour, currentMin) => {
           if (currentHour >= 23 || currentHour < 1) {
-            return I18n.t('home.现在是晚上 {HH:MM}，夜深了... 为了自己的身体健康，请早点休息，保持足够睡眠！', { 'HH:MM': `${currentHour}:${currentMin}` });
+            return I18n.t('home.现在是晚上 t，夜深了_ 为了自己的身体健康，请早点休息，保持足够睡眠！', { t: `${currentHour}:${currentMin}` });
           }
           return false;
         };

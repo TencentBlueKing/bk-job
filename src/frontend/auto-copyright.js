@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -38,7 +38,7 @@ const javascriptCopyright = [
   '/*',
   ' * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.',
   ' *',
-  ' * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.',
+  ' * Copyright (C) 2021 Tencent.  All rights reserved.',
   ' *',
   ' * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.',
   ' *',
@@ -65,7 +65,7 @@ const vueCopyright = [
   '<!--',
   ' * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.',
   ' *',
-  ' * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.',
+  ' * Copyright (C) 2021 Tencent.  All rights reserved.',
   ' *',
   ' * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.',
   ' *',
@@ -136,7 +136,7 @@ const copyright = (target) => {
         if (/<!--/.test(fileLines[0]) && oldLincense) {
           // eslint-disable-next-line no-plusplus
           for (let i = 0; i < fileLines.length; i++) {
-            if (/-->/.test(fileLines[i])) {
+            if (/--(?:!?)>/.test(fileLines[i])) {
               endIndex = i + 2;
               break;
             }

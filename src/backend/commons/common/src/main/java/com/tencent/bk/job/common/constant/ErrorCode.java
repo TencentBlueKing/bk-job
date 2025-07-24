@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -175,6 +175,8 @@ public class ErrorCode {
     public static final int INVALID_IPV6_ADDRESS = 1241014;
     // 不支持的操作，请勿重复启动作业：{0}
     public static final int UNSUPPORTED_OPERATION_REPEAT_START_JOB = 1241015;
+    // 非法文件
+    public static final int ILLEGAL_FILE = 1241016;
     // 业务通用 end
 
     // 配置服务 start
@@ -449,6 +451,10 @@ public class ErrorCode {
     public static final int FAIL_TO_REQUEST_FILE_WORKER_WITH_REASON = 1260018;
     // 文件源code不可为空
     public static final int FILE_SOURCE_CODE_CAN_NOT_BE_EMPTY = 1260019;
+    // 制品库根地址不在允许范围内（默认仅支持当前环境蓝鲸制品库），如需对接其他环境请联系平台管理员添加白名单
+    public static final int BK_ARTIFACTORY_BASE_URL_INVALID = 1260020;
+    // 白名单记录已存在，请删除旧数据后再添加
+    public static final int FILE_SOURCE_WHITE_INFO_ALREADY_EXISTS = 1260021;
 
     // 文件网关 end
     // 文件代理 start

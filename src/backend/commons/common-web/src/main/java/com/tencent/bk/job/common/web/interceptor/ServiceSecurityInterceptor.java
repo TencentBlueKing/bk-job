@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -27,8 +27,9 @@ package com.tencent.bk.job.common.web.interceptor;
 import com.tencent.bk.job.common.annotation.JobInterceptor;
 import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.jwt.JwtManager;
+import com.tencent.bk.job.common.security.consts.JwtConsts;
+import com.tencent.bk.job.common.security.exception.ServiceNoAuthException;
 import com.tencent.bk.job.common.service.SpringProfile;
-import com.tencent.bk.job.common.web.exception.ServiceNoAuthException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,13 +39,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * 服务认证拦截器
+ * 服务间调用请求认证拦截器
  */
 @Slf4j
 @JobInterceptor(pathPatterns = "/**", order = InterceptorOrder.Init.CHECK_VALID)
 public class ServiceSecurityInterceptor extends HandlerInterceptorAdapter {
-    private final JwtManager jwtManager;
     private final SpringProfile springProfile;
+    private final JwtManager jwtManager;
 
     @Autowired
     public ServiceSecurityInterceptor(JwtManager jwtManager, SpringProfile springProfile) {
@@ -52,11 +53,10 @@ public class ServiceSecurityInterceptor extends HandlerInterceptorAdapter {
         this.springProfile = springProfile;
     }
 
-
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         if (shouldFilter(request)) {
-            String jwt = request.getHeader("x-job-auth-token");
+            String jwt = request.getHeader(JwtConsts.HEADER_KEY_SERVICE_JWT_TOKEN);
             if (StringUtils.isEmpty(jwt)) {
                 log.error("Invalid request, jwt is empty! url: {}", request.getRequestURI());
                 throw new ServiceNoAuthException();
@@ -70,14 +70,17 @@ public class ServiceSecurityInterceptor extends HandlerInterceptorAdapter {
         return true;
     }
 
-    private boolean shouldFilter(HttpServletRequest request) {
+    public boolean shouldFilter(HttpServletRequest request) {
         // dev环境需要支持swagger，请求无需认证
         if (springProfile.isDevProfileActive()) {
             return false;
         }
 
-        String uri = request.getRequestURI();
-        // 只拦截web/service/esb的API请求
-        return uri.startsWith("/web/") || uri.startsWith("/service/") || uri.startsWith("/esb/");
+        String uri = request.getServletPath();
+        // 只拦截web/service/esb/remote的API请求
+        return uri.startsWith("/web/")
+            || uri.startsWith("/service/")
+            || uri.startsWith("/esb/")
+            || uri.startsWith("/remote/");
     }
 }

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -22,30 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.tmp;
+package com.tencent.bk.job.common.web.config;
 
-import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.manage.model.tmp.MigrationPlanBasic;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import java.util.List;
-
-@RestController
-@Api(tags = {"job-manage:tmp:Migration"})
-@RequestMapping("/tmp/migration")
-public interface TmpMigrationResource {
-
-    @ApiOperation(value = "获取业务下的执行方案的基础信息", produces = "application/json")
-    @GetMapping("/app/{appId}/plan/basic/list")
-    Response<List<MigrationPlanBasic>> listAppPlanBasicInfo(
-        @ApiParam(value = "用户名，网关自动传入", required = true) @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true) @PathVariable("appId") Long appId);
-
+@Order(200)
+@Configuration
+@EnableWebSecurity
+public class OpSecurityConfig {
+    @Bean
+    SecurityFilterChain opChain(HttpSecurity http) throws Exception {
+        http.csrf().disable();
+        http.requestMatcher(new AntPathRequestMatcher("/op/**"))
+            .authorizeHttpRequests()
+            .anyRequest().authenticated()
+            .and()
+            .httpBasic();
+        return http.build();
+    }
 }
