@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.constant.RollingTypeEnum;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import lombok.Data;
@@ -39,28 +40,62 @@ public class StepRollingConfigDTO {
      */
     private String name;
     /**
+     * 滚动对象
+     */
+    private Integer type;
+    /**
      * 滚动策略
      */
     private Integer mode;
     /**
-     * 滚动表达式
+     * 目标执行对象滚动表达式，当前不支持与源文件滚动同时配置，同时配置时，以目标执行对象滚动为准
      */
     private String expr;
+    /**
+     * 源文件滚动配置，当前不支持与目标执行对象同时配置
+     */
+    private FileSourceRollingConfigDTO fileSource;
 
     public static StepRollingConfigDTO fromRollingConfigVO(RollingConfigVO rollingConfigVO) {
         StepRollingConfigDTO stepRollingConfigDTO = new StepRollingConfigDTO();
         stepRollingConfigDTO.setName(StringUtils.isBlank(rollingConfigVO.getName()) ? "default" :
             rollingConfigVO.getName());
+        stepRollingConfigDTO.setType(rollingConfigVO.getType());
         stepRollingConfigDTO.setMode(rollingConfigVO.getMode());
         stepRollingConfigDTO.setExpr(rollingConfigVO.getExpr());
+        stepRollingConfigDTO.setFileSource(
+            FileSourceRollingConfigDTO.fromVO(rollingConfigVO.getFileSource())
+        );
         return stepRollingConfigDTO;
     }
 
     public static StepRollingConfigDTO fromEsbRollingConfig(EsbRollingConfigDTO rollingConfig) {
         StepRollingConfigDTO stepRollingConfigDTO = new StepRollingConfigDTO();
         stepRollingConfigDTO.setName("default");
+        stepRollingConfigDTO.setType(rollingConfig.getType());
         stepRollingConfigDTO.setMode(rollingConfig.getMode());
         stepRollingConfigDTO.setExpr(rollingConfig.getExpression());
+        stepRollingConfigDTO.setFileSource(
+            FileSourceRollingConfigDTO.fromEsbFileSourceRollingConfig(rollingConfig.getFileSource())
+        );
         return stepRollingConfigDTO;
+    }
+
+    /**
+     * 判断是否为目标执行对象类型的滚动
+     *
+     * @return 布尔值
+     */
+    public boolean isTargetExecuteObjectRolling() {
+        return RollingTypeEnum.TARGET_EXECUTE_OBJECT.getValue().equals(type) && StringUtils.isNotBlank(expr);
+    }
+
+    /**
+     * 判断是否为源文件类型的滚动
+     *
+     * @return 布尔值
+     */
+    public boolean isFileSourceRolling() {
+        return RollingTypeEnum.FILE_SOURCE.getValue().equals(type) && fileSource != null;
     }
 }

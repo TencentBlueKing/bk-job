@@ -49,4 +49,6 @@ public interface IdGen {
     Long genStepInstanceVariableId();
 
     Long genTaskInstanceVariableId();
+
+    Long genStepInstanceFileBatchId();
 }

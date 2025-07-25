@@ -67,4 +67,16 @@ public enum RollingModeEnum {
     public int getValue() {
         return mode;
     }
+
+    public static boolean isValid(Integer mode) {
+        if (mode == null) {
+            return false;
+        }
+        try {
+            valOf(mode);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
 }

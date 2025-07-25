@@ -46,4 +46,21 @@ public interface ValidationGroups {
         interface AccountAlias {
         }
     }
+
+    /**
+     * 滚动类型
+     */
+    interface RollingType {
+        /**
+         * 按目标执行对象滚动
+         */
+        interface TargetExecuteObject {
+        }
+
+        /**
+         * 按源文件滚动
+         */
+        interface FileSource {
+        }
+    }
 }

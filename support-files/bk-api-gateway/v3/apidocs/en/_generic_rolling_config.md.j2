@@ -1,6 +1,57 @@
 ##### rolling_config
 
-| Fields    | Type   | Required | Description |
-|------------|--------|----|------------------------------------|
-| expression | string | yes  | Rolling strategy expression                            |
-| mode       | int    | yes  | Rolling mechanism, 1-pause if execution fails; 2- Ignore failure and automatically scroll to the next batch; 3- Manual confirmation |
+| Fields       | Type   | Required | Description                                                                                                                                                                                                                                                                                          |
+|--------------|--------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| type         | int    | no       | Rolling target: 1-Transfer target; 2-Source file; Default value is 1。                                                                                                                                                                                                                                |
+| mode         | int    | yes      | Rolling mechanism: 1-pause if execution fails; 2- Ignore failure and automatically scroll to the next batch; 3- Manual confirmation                                                                                                                                                                  |
+| expression   | string | no       | When type is 1, this field is required, which means rolling strategy expression                                                                                                                                                                                                                      |
+| file_source  | object | no       | When type is 1, this field is required, which means source file rolling configuration, as defined in rolling_config.file_source. Source file rolling and transfer target rolling are not supported at the same time in the same task. If this field is set, all source file type must be server file |
+
+##### rolling_config.file_source
+
+| Fields    | Type   | Required | Description                                                                               |
+|------------|--------|----------|-------------------------------------------------------------------------------------------|
+| max_execute_object_num_in_batch        | int    | no  | The maximum number of source hosts/containers per batch, not filled in indicates no limit |
+| max_file_num_of_single_execute_object  | int    | no  | The maximum concurrent file count for a single host/container, not filled in indicates no limit |
+  
+**Source File Rolling Strategy Description:**  
+A source file group is treated as a unit. For each group, check if the number of target machines or files exceeds the specified limits:  
+If no limit is exceeded: Group as many adjacent source file groups as possible into a single rolling batch in sequence.  
+If any limit is exceeded: Split the source file group into multiple rolling batches based on the rolling parameters.  
+Priority: When dividing batches, prioritize completing all batches for the same group of machines before moving to the next group.  
+  
+**Example 1 (Single Machine, Single File, Serial Batches):**  
+Source File Configuration:  
+Source File Group 1: Files [File1, File2] | Machines [Machine1, Machine2, Machine3]  
+max_execute_object_num_in_batch = 1  
+max_file_num_of_single_execute_object = 1  
+Resulting Batches (6 batches):  
+Batch 1: Machine1 x File1  
+Batch 2: Machine1 x File2  
+Batch 3: Machine2 x File1  
+Batch 4: Machine2 x File2  
+Batch 5: Machine3 x File1  
+Batch 6: Machine3 x File2  
+  
+**Example 2 (Splitting a Source File Group into Multiple Batches):**  
+Source File Configuration:  
+Source File Group 1: Files [File1, File2, File3] | Machines [Machine1, Machine2, Machine3]  
+Source File Group 2: File [File4] | Machine [Machine4]  
+max_execute_object_num_in_batch = 2  
+max_file_num_of_single_execute_object = 2  
+Resulting Batches (5 batches):  
+Batch 1: Machines [Machine1, Machine2] x Files [File1, File2]  
+Batch 2: Machines [Machine1, Machine2] x File [File3]  
+Batch 3: Machine [Machine3] x Files [File1, File2]  
+Batch 4: Machine [Machine3] x File [File3]  
+Batch 5: Machine [Machine4] x File [File4]  
+  
+**Example 3 (Large Rolling Parameters Merge Multiple Groups into One Batch):**  
+Source File Configuration:  
+Source File Group 1: Files [File1, File2, File3] | Machines [Machine1, Machine2, Machine3]  
+Source File Group 2: File [File4] | Machine [Machine4]  
+max_execute_object_num_in_batch = 4  
+max_file_num_of_single_execute_object = 4  
+Resulting Batch (1 batch):  
+Batch 1:  
+Machines [Machine1, Machine2, Machine3] x Files [File1, File2, File3] (parallel) Machine [Machine4] x File [File4]

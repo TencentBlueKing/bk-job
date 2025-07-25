@@ -82,4 +82,8 @@ public class SegmentIdGen implements IdGen {
     public Long genTaskInstanceVariableId() {
         return gen(SegmentIdKeys.KEY_JOB_EXECUTE_TASK_INSTANCE_VARIABLE);
     }
+
+    public Long genStepInstanceFileBatchId() {
+        return gen(SegmentIdKeys.KEY_JOB_EXECUTE_STEP_INSTANCE_FILE_BATCH);
+    }
 }

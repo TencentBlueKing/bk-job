@@ -79,4 +79,9 @@ public class AutoIncrementIdGen implements IdGen {
     public Long genTaskInstanceVariableId() {
         return null;
     }
+
+    @Override
+    public Long genStepInstanceFileBatchId() {
+        return null;
+    }
 }

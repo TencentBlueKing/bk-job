@@ -22,44 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.common.constant;
 
-import com.tencent.bk.job.execute.engine.model.ExecuteObject;
-import com.tencent.bk.job.execute.model.FastTaskDTO;
-import com.tencent.bk.job.execute.model.RollingConfigDTO;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-
-import java.util.List;
+import lombok.Getter;
 
 /**
- * 滚动配置服务
+ * 滚动类型
  */
-public interface RollingConfigService {
-    /**
-     * 根据滚动批次获取执行对象
-     *
-     * @param stepInstance 步骤实例
-     * @param batch        滚动执行批次
-     * @return 主机列表
-     */
-    List<ExecuteObject> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch);
+@Getter
+public enum RollingTypeEnum {
+    TARGET_EXECUTE_OBJECT(1, "传输目标"),
+    FILE_SOURCE(2, "源文件");
 
-    /**
-     * 保存快速执行作业滚动配置
-     *
-     * @param fastTask 快速执行作业
-     * @return 保存之后的滚动配置
-     */
-    RollingConfigDTO saveRollingConfigForFastJob(FastTaskDTO fastTask);
+    private final Integer value;
+    private final String name;
 
-    RollingConfigDTO getRollingConfig(Long taskInstanceId, long rollingConfigId);
+    RollingTypeEnum(Integer val, String name) {
+        this.value = val;
+        this.name = name;
+    }
 
-    /**
-     * 任务是否启用了滚动执行
-     * @param taskInstanceId 任务id
-     * @return boolean true启用，false未启用
-     */
-    boolean isTaskRollingEnabled(long taskInstanceId);
+    public static RollingTypeEnum getRollingType(int value) {
+        for (RollingTypeEnum rollingTypeEnum : values()) {
+            if (rollingTypeEnum.getValue() == value) {
+                return rollingTypeEnum;
+            }
+        }
+        return null;
+    }
 
-    long addRollingConfig(RollingConfigDTO rollingConfig);
+    public static boolean isValid(Integer value) {
+        if (value == null) {
+            return false;
+        }
+        return getRollingType(value) != null;
+    }
 }

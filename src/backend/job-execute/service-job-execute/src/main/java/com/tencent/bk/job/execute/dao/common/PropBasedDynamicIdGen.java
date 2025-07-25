@@ -121,4 +121,9 @@ public class PropBasedDynamicIdGen extends AbstractPropBasedDynamicComponent<IdG
     public Long genTaskInstanceVariableId() {
         return currentIdGen().genTaskInstanceVariableId();
     }
+
+    @Override
+    public Long genStepInstanceFileBatchId() {
+        return currentIdGen().genStepInstanceFileBatchId();
+    }
 }
