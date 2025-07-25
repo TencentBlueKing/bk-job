@@ -42,6 +42,8 @@ import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.result.ScriptResultHandleTask;
+import com.tencent.bk.job.execute.engine.syntax.ShellSyntaxFactory;
+import com.tencent.bk.job.execute.engine.syntax.ShellSyntaxProcessor;
 import com.tencent.bk.job.execute.engine.util.MacroUtil;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.engine.variable.JobBuildInVariableResolver;
@@ -98,6 +100,11 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
      */
     private String extractedShebang;
 
+    /**
+     * shell语法差异处理对象
+     */
+    private ShellSyntaxProcessor shellSyntaxProcessor;
+
     public ScriptGseTaskStartCommand(EngineDependentServiceHolder engineDependentServiceHolder,
                                      ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                      JobExecuteConfig jobExecuteConfig,
@@ -118,6 +125,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         this.jobBuildInVariableResolver = engineDependentServiceHolder.getJobBuildInVariableResolver();
         this.scriptFileNamePrefix = buildScriptFileNamePrefix(stepInstance);
         this.extractedShebang = extractShebang(stepInstance.getScriptContent());
+        this.shellSyntaxProcessor = ShellSyntaxFactory.fromShebang(this.extractedShebang);
     }
 
     /**
@@ -327,26 +335,12 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         int varType = var.getType();
         if (varType == TaskVariableTypeEnum.STRING.getType() || varType == TaskVariableTypeEnum.CIPHER.getType()
             || varType == TaskVariableTypeEnum.NAMESPACE.getType()) {
-            appendStringVariableDeclareScript(sb, paramName, paramValue);
+            sb.append(shellSyntaxProcessor.declareVariable(paramName, paramValue, true));
         } else if (varType == TaskVariableTypeEnum.ASSOCIATIVE_ARRAY.getType()) {
-            sb.append("declare -A ").append(paramName);
-            if (StringUtils.isNotBlank(paramValue)) {
-                sb.append("=").append(paramValue);
-            }
-            sb.append("\n");
+            sb.append(shellSyntaxProcessor.declareAssociativeArray(paramName, paramValue, true));
         } else if (varType == TaskVariableTypeEnum.INDEX_ARRAY.getType()) {
-            sb.append("declare -a ");
-            sb.append(paramName);
-            if (StringUtils.isNotBlank(paramValue)) {
-                sb.append("=").append(paramValue);
-            }
-            sb.append("\n");
+            sb.append(shellSyntaxProcessor.declareIndexArray(paramName, paramValue, true));
         }
-    }
-
-    private void appendStringVariableDeclareScript(StringBuffer sb, String variableName, String variableValue) {
-        sb.append("declare ").append(variableName).append("=");
-        sb.append("'").append(escapeSingleQuote(StringUtils.isEmpty(variableValue) ? "" : variableValue)).append("'\n");
     }
 
     private void appendImportVariablesDeclareScript(StringBuffer sb, List<TaskVariableDTO> taskVars,
@@ -381,7 +375,8 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             }
         }
         variableValues.forEach((variableName, variableValue) ->
-            appendStringVariableDeclareScript(sb, variableName, variableValue));
+            sb.append(shellSyntaxProcessor.declareVariable(variableName, variableValue, true))
+        );
     }
 
     private String escapeSingleQuote(String value) {
@@ -564,7 +559,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         namespaceParamsOutputFileName,
                                                  String allParamsOutputFileName) {
         StringBuilder sb = new StringBuilder();
-        sb.append("function outputVarOnExit(){\n");
+        sb.append("outputVarOnExit(){\n");
         sb.append("  exit_code=$?\n");
         if (taskVariablesAnalyzeResult.isExistAnyVar()) {
             sb.append("  set|egrep '");
@@ -618,8 +613,8 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         sb.append("fi\n");
         sb.append("\n");
         String catFilePath = "${BASE_PATH}" + scriptFilePath + File.separator + varOutputFileName;
-        sb.append("declare -i total_time=10\n");
-        sb.append("declare -i cost_time=0\n");
+        sb.append(shellSyntaxProcessor.declareIntVariable("total_time", 10, true));
+        sb.append(shellSyntaxProcessor.declareIntVariable("cost_time", 0, true));
         sb.append("while [ $cost_time -le $total_time ];do\n");
         sb.append("  if [ -f ").append(catFilePath).append(" ];then\n");
         sb.append("    cat ").append(catFilePath).append("\n");

@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -65,11 +66,15 @@ public class JobHttpClientImpl implements JobHttpClient {
     @Override
     public String post(HttpReq req) {
         logReq(req);
-        HttpHeaders headers = new HttpHeaders();
-        MediaType type = MediaType.APPLICATION_JSON;
-        headers.setContentType(type);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        Header[] headers = req.getHeaders();
+        for (Header header : headers) {
+            if (header.getName() != null && header.getValue() != null) {
+                httpHeaders.add(header.getName(), header.getValue());
+            }
+        }
         String requestJson = req.getBody();
-        HttpEntity<String> entity = new HttpEntity<>(requestJson, headers);
+        HttpEntity<String> entity = new HttpEntity<>(requestJson, httpHeaders);
         ResponseEntity<String> respEntity = restTemplate.postForEntity(
             req.getUrl(),
             entity,

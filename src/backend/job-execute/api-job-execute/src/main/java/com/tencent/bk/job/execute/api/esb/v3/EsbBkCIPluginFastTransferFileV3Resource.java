@@ -47,7 +47,7 @@ public interface EsbBkCIPluginFastTransferFileV3Resource {
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
-        EsbBkCIPluginFastTransferFileV3Request request
+            EsbBkCIPluginFastTransferFileV3Request request
     );
 
 }

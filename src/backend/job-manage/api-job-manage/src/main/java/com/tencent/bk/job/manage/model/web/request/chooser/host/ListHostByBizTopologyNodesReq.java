@@ -29,14 +29,13 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-/**
- * @Description
- * @Date 2020/3/23
- * @Version 1.0
- */
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -69,4 +68,57 @@ public class ListHostByBizTopologyNodesReq {
 
     @ApiModelProperty(value = "拉取数量")
     Long pageSize;
+
+    /**
+     * 获取清洗后的ip关键字列表
+     *
+     * @return 清洗后的ip关键字列表
+     */
+    public List<String> getCleanIpKeyList() {
+        return getCleanStringList(ipKeyList);
+    }
+
+    /**
+     * 获取清洗后的ipv6关键字列表
+     *
+     * @return 清洗后的ipv6关键字列表
+     */
+    public List<String> getCleanIpv6KeyList() {
+        return getCleanStringList(ipv6KeyList);
+    }
+
+    /**
+     * 获取清洗后的主机名称关键字列表
+     *
+     * @return 清洗后的主机名称关键字列表
+     */
+    public List<String> getCleanHostNameKeyList() {
+        return getCleanStringList(hostNameKeyList);
+    }
+
+    /**
+     * 获取清洗后的操作系统名称关键字列表
+     *
+     * @return 清洗后的操作系统名称关键字列表
+     */
+    public List<String> getCleanOsNameKeyList() {
+        return getCleanStringList(osNameKeyList);
+    }
+
+    /**
+     * 获取清洗后的字符串列表，去除null值与空字符串
+     *
+     * @param rawList 原始字符串列表
+     * @return 清洗后的字符串列表
+     */
+    private List<String> getCleanStringList(List<String> rawList) {
+        if (CollectionUtils.isEmpty(rawList)) {
+            return rawList;
+        }
+        return rawList.stream()
+            .filter(Objects::nonNull)
+            .map(String::trim)
+            .filter(StringUtils::isNotBlank)
+            .collect(Collectors.toList());
+    }
 }
