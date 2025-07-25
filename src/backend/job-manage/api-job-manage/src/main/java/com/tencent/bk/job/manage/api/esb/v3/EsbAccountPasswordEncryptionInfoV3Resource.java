@@ -43,7 +43,7 @@ public interface EsbAccountPasswordEncryptionInfoV3Resource {
 
 
     @GetMapping("/get_account_password_encryption_metadata")
-    EsbResp<EsbAccountPasswordEncryptionMetadataV3DTO> getAccountPasswordEncryptionMetadata(
+    EsbResp<EsbAccountPasswordEncryptionMetadataV3DTO> getAccountPwdEncryptionMetadata(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode
     );

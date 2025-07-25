@@ -37,9 +37,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class EsbAccountPasswordEncryptionInfoResourceV3Impl implements EsbAccountPasswordEncryptionInfoV3Resource {
 
     @Override
-    public EsbResp<EsbAccountPasswordEncryptionMetadataV3DTO> getAccountPasswordEncryptionMetadata(String username,
-                                                                                                   String appCode) {
-        EsbAccountPasswordEncryptionMetadataV3DTO encryptionMetadataV3DTO = new EsbAccountPasswordEncryptionMetadataV3DTO();
+    public EsbResp<EsbAccountPasswordEncryptionMetadataV3DTO> getAccountPwdEncryptionMetadata(String username,
+                                                                                              String appCode) {
+        EsbAccountPasswordEncryptionMetadataV3DTO encryptionMetadataV3DTO =
+            new EsbAccountPasswordEncryptionMetadataV3DTO();
         encryptionMetadataV3DTO.setPublicKey(GseConstants.publicKeyPermBase64);
         encryptionMetadataV3DTO.setEncryptAlgorithm(RSAUtils.getKeyAlgorithm());
         return EsbResp.buildSuccessResp(encryptionMetadataV3DTO);
