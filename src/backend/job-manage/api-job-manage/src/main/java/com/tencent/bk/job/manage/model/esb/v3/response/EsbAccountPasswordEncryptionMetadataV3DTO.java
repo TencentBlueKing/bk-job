@@ -22,50 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.manage.model.esb.v3.response;
 
-import com.tencent.bk.job.common.constant.AccountCategoryEnum;
-import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
- * 执行帐号
+ * 主机账号的密码的加密元信息
  */
-@Data
-public class AccountDTO {
-    private Long id;
-
-    private String account;
-
-    private String alias;
-
-    private Long appId;
-
-    private String password;
-
-    private AccountTypeEnum type;
-
-    private AccountCategoryEnum category;
-
-    private String grantees;
+@Getter
+@Setter
+@ToString
+public class EsbAccountPasswordEncryptionMetadataV3DTO {
+    /**
+     * 加密公钥
+     */
+    @JsonPropertyDescription("public_key")
+    private String publicKey;
 
     /**
-     * DB账号对应的端口号
+     * 加密算法
      */
-    private Integer dbPort;
-    /**
-     * DB账号对应的密码
-     */
-    private String dbPassword;
-    /**
-     * DB账号依赖的系统账号
-     */
-    private Long dbSystemAccountId;
-
-    public boolean isWindowsAccount() {
-        if (AccountTypeEnum.WINDOW.getType().equals(this.type.getType())) {
-            return true;
-        }
-        return false;
-    }
+    @JsonPropertyDescription("encrypt_algorithm")
+    private String encryptAlgorithm;
 }

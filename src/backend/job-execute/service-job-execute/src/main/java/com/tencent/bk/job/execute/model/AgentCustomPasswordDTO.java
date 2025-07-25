@@ -24,48 +24,32 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.common.constant.AccountCategoryEnum;
-import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
 import lombok.Data;
+import lombok.ToString;
 
 /**
- * 执行帐号
+ * agent密码
  */
 @Data
-public class AccountDTO {
-    private Long id;
-
-    private String account;
-
-    private String alias;
-
-    private Long appId;
-
-    private String password;
-
-    private AccountTypeEnum type;
-
-    private AccountCategoryEnum category;
-
-    private String grantees;
+public class AgentCustomPasswordDTO {
+    /**
+     * agent ID
+     */
+    private String agentId;
 
     /**
-     * DB账号对应的端口号
+     * 主机ID
      */
-    private Integer dbPort;
-    /**
-     * DB账号对应的密码
-     */
-    private String dbPassword;
-    /**
-     * DB账号依赖的系统账号
-     */
-    private Long dbSystemAccountId;
+    private Long hostId;
 
-    public boolean isWindowsAccount() {
-        if (AccountTypeEnum.WINDOW.getType().equals(this.type.getType())) {
-            return true;
-        }
-        return false;
-    }
+    /**
+     * 主机IP
+     */
+    private String cloudIp;
+
+    /**
+     * 加密后的密码
+     */
+    @ToString.Exclude
+    private String encryptedPassword;
 }

@@ -22,50 +22,53 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.model.esb.v3;
 
-import com.tencent.bk.job.common.constant.AccountCategoryEnum;
-import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.Length;
+
+import javax.validation.constraints.NotEmpty;
 
 /**
- * 执行帐号
+ * 主机密码
  */
 @Data
-public class AccountDTO {
-    private Long id;
-
-    private String account;
-
-    private String alias;
-
-    private Long appId;
-
-    private String password;
-
-    private AccountTypeEnum type;
-
-    private AccountCategoryEnum category;
-
-    private String grantees;
+public class EsbCustomHostPasswordDTO {
 
     /**
-     * DB账号对应的端口号
+     * 云区域ID
      */
-    private Integer dbPort;
-    /**
-     * DB账号对应的密码
-     */
-    private String dbPassword;
-    /**
-     * DB账号依赖的系统账号
-     */
-    private Long dbSystemAccountId;
+    @JsonProperty("bk_cloud_id")
+    private Long cloudAreaId;
 
-    public boolean isWindowsAccount() {
-        if (AccountTypeEnum.WINDOW.getType().equals(this.type.getType())) {
-            return true;
+    /**
+     * 主机IP
+     */
+    @JsonProperty("ip")
+    private String ip;
+
+    /**
+     * 主机ID
+     */
+    @JsonProperty("host_id")
+    private Long hostId;
+
+    /**
+     * 加密后的密码
+     */
+    @JsonProperty("encrypted_password")
+    @Length(max = 172, message = "{validation.constraints.AccountPassword_tooLong.message}")
+    @NotEmpty(message = "{validation.constraints.AccountPassword_empty.message}")
+    private String encryptedPassword;
+
+    @JsonIgnore
+    public String getCloudIp() {
+        if (StringUtils.isNotBlank(ip) && cloudAreaId !=null) {
+            return cloudAreaId + ":" + ip;
         }
-        return false;
+        return null;
     }
 }

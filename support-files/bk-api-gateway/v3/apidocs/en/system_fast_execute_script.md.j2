@@ -24,10 +24,13 @@ Fast execute script
 | callback_url       | string | no       | Callback URL, when the task execution is completed, the JOB will call this URL to inform the task execution result. Callback protocol refer to the callback_protocol component documentation |
 | rolling_config       | object | no       | Rolling config，see rolling_config definition                                                                                                                                             |
 | start_task         | boolean| no       | Whether to start the task, default true. If it is false, you can start a task through the operating job instance interface |
+| host_password_list | array  | no       | Windows Host Password，see host_password_list definition|
 
 {% include '_generic_server.md.j2' %}
 
 {% include '_generic_rolling_config.md.j2' %}
+
+{% include '_generic_host_password_list.md.j2' %}
 
 ### Example of request
 

@@ -22,50 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.manage.api.esb.v3;
 
-import com.tencent.bk.job.common.constant.AccountCategoryEnum;
-import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
-import lombok.Data;
+import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountPasswordEncryptionMetadataV3DTO;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 执行帐号
+ * 主机账号的密码的加密信息
  */
-@Data
-public class AccountDTO {
-    private Long id;
+@RequestMapping("/esb/api/v3")
+@RestController
+@EsbAPI
+public interface EsbAccountPasswordEncryptionInfoV3Resource {
 
-    private String account;
 
-    private String alias;
-
-    private Long appId;
-
-    private String password;
-
-    private AccountTypeEnum type;
-
-    private AccountCategoryEnum category;
-
-    private String grantees;
-
-    /**
-     * DB账号对应的端口号
-     */
-    private Integer dbPort;
-    /**
-     * DB账号对应的密码
-     */
-    private String dbPassword;
-    /**
-     * DB账号依赖的系统账号
-     */
-    private Long dbSystemAccountId;
-
-    public boolean isWindowsAccount() {
-        if (AccountTypeEnum.WINDOW.getType().equals(this.type.getType())) {
-            return true;
-        }
-        return false;
-    }
+    @GetMapping("/get_account_password_encryption_metadata")
+    EsbResp<EsbAccountPasswordEncryptionMetadataV3DTO> getAccountPwdEncryptionMetadata(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode
+    );
 }

@@ -131,4 +131,8 @@ public class RSAUtils {
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
         return Base64.encodeBase64String(cipher.doFinal(messageBytes));
     }
+
+    public static String getKeyAlgorithm() {
+        return KEY_ALGORITHM;
+    }
 }
