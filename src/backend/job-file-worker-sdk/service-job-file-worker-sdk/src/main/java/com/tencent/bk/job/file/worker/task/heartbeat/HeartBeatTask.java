@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.util.machine.MachineUtil;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
 import com.tencent.bk.job.file.worker.service.EnvironmentService;
 import com.tencent.bk.job.file.worker.service.GatewayInfoService;
+import com.tencent.bk.job.file.worker.service.JwtTokenService;
 import com.tencent.bk.job.file.worker.service.MetaDataService;
 import com.tencent.bk.job.file_gateway.model.req.inner.HeartBeatReq;
 import lombok.extern.slf4j.Slf4j;
@@ -50,18 +51,21 @@ public class HeartBeatTask {
     private final GatewayInfoService gatewayInfoService;
     private final MetaDataService metaDataService;
     private final EnvironmentService environmentService;
+    private final JwtTokenService jwtTokenService;
 
     @Autowired
     public HeartBeatTask(JobHttpClient jobHttpClient,
                          WorkerConfig workerConfig,
                          GatewayInfoService gatewayInfoService,
                          MetaDataService metaDataService,
-                         EnvironmentService environmentService) {
+                         EnvironmentService environmentService,
+                         JwtTokenService jwtTokenService) {
         this.jobHttpClient = jobHttpClient;
         this.workerConfig = workerConfig;
         this.gatewayInfoService = gatewayInfoService;
         this.metaDataService = metaDataService;
         this.environmentService = environmentService;
+        this.jwtTokenService = jwtTokenService;
     }
 
     private HeartBeatReq getHeartBeatReq() {
@@ -99,7 +103,11 @@ public class HeartBeatTask {
         String url = gatewayInfoService.getHeartBeatUrl();
         HeartBeatReq heartBeatReq = getHeartBeatReq();
         log.info("HeartBeat: url={},body={}", url, JsonUtils.toJsonWithoutSkippedFields(heartBeatReq));
-        HttpReq req = HttpReqGenUtil.genSimpleJsonReq(url, heartBeatReq);
+        HttpReq req = HttpReqGenUtil.genSimpleJsonReq(
+            url,
+            jwtTokenService.getJwtTokenHeaders(),
+            heartBeatReq
+        );
         jobHttpClient.post(req);
     }
 }

@@ -22,30 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.tmp;
+package com.tencent.bk.job.common.paas.model;
 
-import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.manage.model.tmp.MigrationPlanBasic;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
-import java.util.List;
+@Data
+public class SendVoiceReq {
 
-@RestController
-@Api(tags = {"job-manage:tmp:Migration"})
-@RequestMapping("/tmp/migration")
-public interface TmpMigrationResource {
+    /**
+     * 自动语音读字信息
+     */
+    @JsonProperty("auto_read_message")
+    private String message;
 
-    @ApiOperation(value = "获取业务下的执行方案的基础信息", produces = "application/json")
-    @GetMapping("/app/{appId}/plan/basic/list")
-    Response<List<MigrationPlanBasic>> listAppPlanBasicInfo(
-        @ApiParam(value = "用户名，网关自动传入", required = true) @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true) @PathVariable("appId") Long appId);
-
+    /**
+     * 待通知的用户列表，包含用户名，多个以逗号分隔
+     */
+    @JsonProperty("receiver__username")
+    public String receivers;
 }

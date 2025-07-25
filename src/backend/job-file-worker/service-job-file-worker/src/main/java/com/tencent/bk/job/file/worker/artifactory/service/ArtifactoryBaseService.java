@@ -26,6 +26,7 @@ package com.tencent.bk.job.file.worker.artifactory.service;
 
 import com.tencent.bk.job.common.model.dto.CommonCredential;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
+import com.tencent.bk.job.file_gateway.consts.FileSourceInfoConsts;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,7 +46,11 @@ public class ArtifactoryBaseService {
     public ArtifactoryRemoteClient getArtifactoryClientFromBaseReq(BaseReq req) {
         CommonCredential credential = req.getCredential();
         Map<String, Object> fileSourceInfoMap = req.getFileSourceInfoMap();
-        return new ArtifactoryRemoteClient((String) fileSourceInfoMap.get("base_url"), credential.getUsername(),
-            credential.getPassword(), meterRegistry);
+        return new ArtifactoryRemoteClient(
+            (String) fileSourceInfoMap.get(FileSourceInfoConsts.KEY_BK_ARTIFACTORY_BASE_URL),
+            credential.getUsername(),
+            credential.getPassword(),
+            meterRegistry
+        );
     }
 }

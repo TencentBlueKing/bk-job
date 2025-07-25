@@ -123,7 +123,7 @@
       }
       const realRule = rule.toLowerCase();
       // . 开头，中间不允许出现空格
-      if (!/^\.[a-zA-Z0-9]+(.[a-zA-Z0-9_-]+)*$/.test(realRule)) {
+      if (!/^\.[a-zA-Z0-9]+(\.[^.\s][a-zA-Z0-9_-]*)*$/.test(realRule)) {
         errorStack.push(realRule);
         return;
       }

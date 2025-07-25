@@ -16,7 +16,10 @@ plugins {
     id 'java'
     id 'idea'
 }
-
+ext {
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
+    set('jacksonVersion', "2.15.4")
+}
 apply plugin: "io.freefair.lombok"
 group 'org.tencent.bk.job'
 version '1.0.0'
@@ -39,10 +42,10 @@ allprojects {
 
 dependencies {
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.10.0'
-    testImplementation 'com.fasterxml.jackson.core:jackson-core:2.13.5'
-    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.13.5'
-    testImplementation 'com.fasterxml.jackson.core:jackson-annotations:2.13.5'
-    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-joda:2.13.5'
+    testImplementation "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
+    testImplementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+    testImplementation "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
+    testImplementation "com.fasterxml.jackson.datatype:jackson-datatype-joda:$jacksonVersion"
     testImplementation 'io.jsonwebtoken:jjwt:0.9.1'
     testImplementation 'com.google.guava:guava:28.2-jre'
     testImplementation 'com.squareup.okhttp3:okhttp:3.10.0'

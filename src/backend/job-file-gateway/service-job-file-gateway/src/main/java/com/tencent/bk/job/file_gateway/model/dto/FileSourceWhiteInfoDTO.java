@@ -1,0 +1,77 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 Tencent.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+package com.tencent.bk.job.file_gateway.model.dto;
+
+import com.tencent.bk.job.common.util.TimeUtil;
+import com.tencent.bk.job.file_gateway.model.resp.op.FileSourceWhiteInfoVO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+/**
+ * 文件源白名单信息
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class FileSourceWhiteInfoDTO {
+    /**
+     * id
+     */
+    private Integer id;
+    /**
+     * 类型
+     */
+    private String type;
+    /**
+     * 内容
+     */
+    private String content;
+    /**
+     * 备注
+     */
+    private String remark;
+    /**
+     * 创建人
+     */
+    private String creator;
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
+
+    public FileSourceWhiteInfoVO toFileSourceWhiteInfoVO() {
+        FileSourceWhiteInfoVO fileSourceWhiteInfoVO = new FileSourceWhiteInfoVO();
+        fileSourceWhiteInfoVO.setId(this.id);
+        fileSourceWhiteInfoVO.setType(this.type);
+        fileSourceWhiteInfoVO.setContent(this.content);
+        fileSourceWhiteInfoVO.setRemark(this.remark);
+        fileSourceWhiteInfoVO.setCreator(this.creator);
+        fileSourceWhiteInfoVO.setCreateTime(TimeUtil.getTimeStr(this.createTime, TimeUtil.DEFAULT_TIME_FORMAT));
+        return fileSourceWhiteInfoVO;
+    }
+}

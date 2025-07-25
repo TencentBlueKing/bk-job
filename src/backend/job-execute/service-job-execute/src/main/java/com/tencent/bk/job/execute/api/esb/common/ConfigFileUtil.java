@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.api.esb.common;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.common.util.file.FileUtil;
 import com.tencent.bk.job.execute.engine.consts.FileDirTypeConf;
@@ -48,9 +49,10 @@ public class ConfigFileUtil {
                                                String userName,
                                                String fileName,
                                                String base64Content) {
+        String pureFileName = FilePathUtils.getPureFileName(fileName);
         String uploadPath = NFSUtils.getFileDir(jobStorageRootPath, FileDirTypeConf.UPLOAD_FILE_DIR);
         String configFileRelativePath = JobUUID.getUUID() + File.separatorChar +
-            userName + File.separatorChar + fileName;
+            userName + File.separatorChar + pureFileName;
         String fullFilePath = uploadPath.concat(configFileRelativePath);
         if (!FileUtil.saveBase64StrToFile(fullFilePath, base64Content)) {
             throw new InternalException(ErrorCode.FAIL_TO_SAVE_FILE_TO_LOCAL);

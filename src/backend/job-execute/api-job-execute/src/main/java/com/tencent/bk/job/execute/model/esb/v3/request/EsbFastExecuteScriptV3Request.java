@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.validation.EndWith;
 import com.tencent.bk.job.common.validation.MaxLength;
 import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
+import com.tencent.bk.job.common.validation.ValidSensitiveParamLength;
 import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import lombok.Getter;
@@ -47,6 +48,7 @@ import java.util.List;
  */
 @Getter
 @Setter
+@ValidSensitiveParamLength
 public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
 
     /**
@@ -88,11 +90,6 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
      * 脚本参数， BASE64编码
      */
     @JsonProperty("script_param")
-    @NotExceedMySQLTextFieldLength(
-        fieldName = "script_param",
-        fieldType = MySQLTextDataType.TEXT,
-        base64 = true
-    )
     private String scriptParam;
 
     /**
