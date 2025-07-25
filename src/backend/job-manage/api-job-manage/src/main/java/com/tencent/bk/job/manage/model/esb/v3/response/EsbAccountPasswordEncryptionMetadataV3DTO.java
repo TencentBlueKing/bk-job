@@ -30,12 +30,12 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 主机账号加密元信息
+ * 主机账号的密码的加密元信息
  */
 @Getter
 @Setter
 @ToString
-public class EsbAccountEncryptionMetadataV3DTO {
+public class EsbAccountPasswordEncryptionMetadataV3DTO {
     /**
      * 加密公钥
      */

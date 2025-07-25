@@ -28,7 +28,7 @@ import com.google.common.collect.Maps;
 import com.tencent.bk.job.common.gse.util.ScriptRequestBuilder;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
-import com.tencent.bk.job.execute.common.cache.TargetHostCustomPasswordCache;
+import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
@@ -104,7 +104,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
                                         TaskInstanceDTO taskInstance,
                                         StepInstanceDTO stepInstance,
                                         GseTaskDTO gseTask,
-                                        TargetHostCustomPasswordCache targetHostCustomPasswordCache) {
+                                        CustomPasswordCache customPasswordCache) {
         super(
             engineDependentServiceHolder,
             scriptExecuteObjectTaskService,
@@ -113,7 +113,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
             taskInstance,
             stepInstance,
             gseTask,
-            targetHostCustomPasswordCache);
+                customPasswordCache);
     }
 
     @Override

@@ -57,12 +57,12 @@ public class EsbCustomHostPasswordDTO {
     private Long hostId;
 
     /**
-     * 密码
+     * 加密后的密码
      */
-    @JsonProperty("password")
-    @Length(max = 255, message = "{validation.constraints.AccountPassword_tooLong.message}")
+    @JsonProperty("encrypted_password")
+    @Length(max = 172, message = "{validation.constraints.AccountPassword_tooLong.message}")
     @NotEmpty(message = "{validation.constraints.AccountPassword_empty.message}")
-    private String password;
+    private String encryptedPassword;
 
     @JsonIgnore
     public String getCloudIp() {

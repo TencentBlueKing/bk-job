@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.common.cache;
 
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.execute.model.AgentCustomPasswordDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -35,11 +36,11 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 目标主机密码缓存
+ * 自定义密码缓存
  */
 @Slf4j
 @Component
-public class TargetHostCustomPasswordCache {
+public class CustomPasswordCache {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -48,14 +49,14 @@ public class TargetHostCustomPasswordCache {
     /**
      * 作业执行失败，密码1h过期
      */
-    private static final Long TASK_FAIL_PWD_EXPIRE_TIME = 3600L;
+    private static final int TASK_FAIL_PWD_EXPIRE_TIME_SECONDS = 3600;
 
     /**
-     * 密码缓存的最长时间1天
+     * 密码缓存的最长时间(作业最大超时时间)
      */
-    private static final Long MAX_EXPIRE_TIME = 86400L;
+    private static final int MAX_EXPIRE_TIME_SECONDS = JobConstants.MAX_JOB_TIMEOUT_SECONDS;
 
-    public TargetHostCustomPasswordCache(RedisTemplate<String, Object> redisTemplate) {
+    public CustomPasswordCache(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
@@ -64,7 +65,7 @@ public class TargetHostCustomPasswordCache {
             return;
         }
         String key = buildCacheKey(taskInstanceId);
-        redisTemplate.opsForValue().set(key, passwordList, MAX_EXPIRE_TIME, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(key, passwordList, MAX_EXPIRE_TIME_SECONDS, TimeUnit.SECONDS);
     }
 
     public void deleteCache(Long taskInstanceId) {
@@ -84,8 +85,11 @@ public class TargetHostCustomPasswordCache {
         return Collections.emptyList();
     }
 
-    public void refreshExpire(Long taskInstanceId) {
-        redisTemplate.expire(buildCacheKey(taskInstanceId), TASK_FAIL_PWD_EXPIRE_TIME, TimeUnit.SECONDS);
+    /**
+     * 作业执行失败密码不立即清理，延迟一会过期，以便失败'重试'可用
+     */
+    public void setPwdExpireTimeOnTaskFail(Long taskInstanceId) {
+        redisTemplate.expire(buildCacheKey(taskInstanceId), TASK_FAIL_PWD_EXPIRE_TIME_SECONDS, TimeUnit.SECONDS);
     }
 
     private String buildCacheKey(Long taskInstanceId) {

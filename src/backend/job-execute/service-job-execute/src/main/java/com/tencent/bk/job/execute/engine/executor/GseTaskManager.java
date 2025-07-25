@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.engine.executor;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.redis.util.LockUtils;
-import com.tencent.bk.job.execute.common.cache.TargetHostCustomPasswordCache;
+import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
@@ -78,7 +78,7 @@ public class GseTaskManager implements SmartLifecycle {
     private final JobExecuteConfig jobExecuteConfig;
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     private final StepInstanceService stepInstanceService;
-    private final TargetHostCustomPasswordCache targetHostCustomPasswordCache;
+    private final CustomPasswordCache customPasswordCache;
 
     private final Object lifecycleMonitor = new Object();
     private final RunningTaskCounter<String> counter = new RunningTaskCounter<>("GseTask-Counter");
@@ -121,7 +121,7 @@ public class GseTaskManager implements SmartLifecycle {
                           ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                           FileExecuteObjectTaskService fileExecuteObjectTaskService,
                           StepInstanceService stepInstanceService,
-                          TargetHostCustomPasswordCache targetHostCustomPasswordCache) {
+                          CustomPasswordCache customPasswordCache) {
         this.engineDependentServiceHolder = engineDependentServiceHolder;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
@@ -133,7 +133,7 @@ public class GseTaskManager implements SmartLifecycle {
         this.jobExecuteConfig = jobExecuteConfig;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.stepInstanceService = stepInstanceService;
-        this.targetHostCustomPasswordCache = targetHostCustomPasswordCache;
+        this.customPasswordCache = customPasswordCache;
     }
 
     /**
@@ -301,7 +301,7 @@ public class GseTaskManager implements SmartLifecycle {
                 taskInstance,
                 stepInstance,
                 gseTask,
-                targetHostCustomPasswordCache
+                customPasswordCache
             );
             scriptTaskCounter.incrementAndGet();
         } else if (executeType == StepExecuteTypeEnum.EXECUTE_SQL) {
@@ -313,7 +313,7 @@ public class GseTaskManager implements SmartLifecycle {
                 taskInstance,
                 stepInstance,
                 gseTask,
-                targetHostCustomPasswordCache
+                customPasswordCache
             );
             scriptTaskCounter.incrementAndGet();
         } else if (executeType == StepExecuteTypeEnum.SEND_FILE) {
@@ -326,7 +326,7 @@ public class GseTaskManager implements SmartLifecycle {
                 stepInstance,
                 gseTask,
                 fileDistributeConfig.getJobDistributeRootPath(),
-                targetHostCustomPasswordCache
+                customPasswordCache
             );
             fileTaskCounter.incrementAndGet();
         }

@@ -27,23 +27,23 @@ package com.tencent.bk.job.manage.api.esb.v3;
 import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountEncryptionMetadataV3DTO;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountPasswordEncryptionMetadataV3DTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 主机账号的加密信息
+ * 主机账号的密码的加密信息
  */
 @RequestMapping("/esb/api/v3")
 @RestController
 @EsbAPI
-public interface EsbAccountEncryptionInfoV3Resource {
+public interface EsbAccountPasswordEncryptionInfoV3Resource {
 
 
-    @GetMapping("/get_account_encryption_metadata")
-    EsbResp<EsbAccountEncryptionMetadataV3DTO> getAccountEncryptionMetadata(
+    @GetMapping("/get_account_password_encryption_metadata")
+    EsbResp<EsbAccountPasswordEncryptionMetadataV3DTO> getAccountPasswordEncryptionMetadata(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode
     );

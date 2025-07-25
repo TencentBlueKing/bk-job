@@ -1,6 +1,6 @@
 ### 功能描述
 
-获取主机账号加密元信息
+获取主机账号的密码的加密信息
 
 ### 请求参数
 
@@ -17,7 +17,7 @@
 - GET
 
 ```json
-/api/v3/get_account_encryption_metadata?bk_scope_type=biz&bk_scope_id=1
+/api/v3/get_account_password_encryption_metadata?bk_scope_type=biz&bk_scope_id=1
 ```
 
 ### 返回结果示例
@@ -29,7 +29,7 @@
   "result": true,
   "data": {
     "public_key": "xxx",
-    "encrypt_algorithm": "xxx"
+    "encrypt_algorithm": "RSA"
   }
 }
 ```
@@ -43,4 +43,4 @@
 | 字段               | 类型     | 描述            |
 |-------------------|---------|-----------------|
 | public_key        | string  | 公钥（Base64编码）|
-| encrypt_algorithm | string  | 加密算法，比如RSA |
+| encrypt_algorithm | string  | 加密算法，支持经典密码算法（RSA、AES）和国家商用密码算法（SM2、SM4）|

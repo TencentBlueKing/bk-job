@@ -27,19 +27,19 @@ package com.tencent.bk.job.manage.api.esb.impl.v3;
 import com.tencent.bk.job.common.crypto.util.RSAUtils;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.gse.constants.GseConstants;
-import com.tencent.bk.job.manage.api.esb.v3.EsbAccountEncryptionInfoV3Resource;
-import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountEncryptionMetadataV3DTO;
+import com.tencent.bk.job.manage.api.esb.v3.EsbAccountPasswordEncryptionInfoV3Resource;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountPasswordEncryptionMetadataV3DTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Slf4j
-public class EsbAccountEncryptionInfoResourceV3Impl implements EsbAccountEncryptionInfoV3Resource {
+public class EsbAccountPasswordEncryptionInfoResourceV3Impl implements EsbAccountPasswordEncryptionInfoV3Resource {
 
     @Override
-    public EsbResp<EsbAccountEncryptionMetadataV3DTO> getAccountEncryptionMetadata(String username,
-                                                                                   String appCode) {
-        EsbAccountEncryptionMetadataV3DTO encryptionMetadataV3DTO = new EsbAccountEncryptionMetadataV3DTO();
+    public EsbResp<EsbAccountPasswordEncryptionMetadataV3DTO> getAccountPasswordEncryptionMetadata(String username,
+                                                                                                   String appCode) {
+        EsbAccountPasswordEncryptionMetadataV3DTO encryptionMetadataV3DTO = new EsbAccountPasswordEncryptionMetadataV3DTO();
         encryptionMetadataV3DTO.setPublicKey(GseConstants.publicKeyPermBase64);
         encryptionMetadataV3DTO.setEncryptAlgorithm(RSAUtils.getKeyAlgorithm());
         return EsbResp.buildSuccessResp(encryptionMetadataV3DTO);

@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.service.VariableResolver;
 import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.execute.common.cache.TargetHostCustomPasswordCache;
+import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
@@ -105,7 +105,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                      TaskInstanceDTO taskInstance,
                                      StepInstanceDTO stepInstance,
                                      GseTaskDTO gseTask,
-                                     TargetHostCustomPasswordCache targetHostCustomPasswordCache) {
+                                     CustomPasswordCache customPasswordCache) {
         super(engineDependentServiceHolder,
             scriptExecuteObjectTaskService,
             jobExecuteConfig,
@@ -113,7 +113,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             taskInstance,
             stepInstance,
             gseTask,
-            targetHostCustomPasswordCache);
+            customPasswordCache);
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.jobBuildInVariableResolver = engineDependentServiceHolder.getJobBuildInVariableResolver();
         this.scriptFileNamePrefix = buildScriptFileNamePrefix(stepInstance);
@@ -267,14 +267,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         // windows账号优先使用用户传入的自定义密码
         if (account.isWindowsAccount()) {
-            List<AgentCustomPasswordDTO> passwordDTOList = targetHostCustomPasswordCache.getCache(taskInstanceId);
-            if (CollectionUtils.isNotEmpty(passwordDTOList)) {
-                Map<String, String> passwordMap = passwordDTOList.stream()
-                    .collect(Collectors.toMap(AgentCustomPasswordDTO::getAgentId, AgentCustomPasswordDTO::getPwd));
-                for (Agent agent : agentList) {
-                    agent.setPwd(passwordMap.get(agent.getAgentId()));
-                }
-            }
+            setCustomPasswordIfPresent(agentList, taskInstanceId);
         }
 
         return gseClient.fillAgentAuthInfo(agentList,

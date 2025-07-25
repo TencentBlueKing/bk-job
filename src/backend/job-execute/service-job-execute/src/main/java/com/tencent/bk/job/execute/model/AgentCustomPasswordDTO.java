@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * agent密码
@@ -32,12 +33,23 @@ import lombok.Data;
 @Data
 public class AgentCustomPasswordDTO {
     /**
-     * 云区域ip或者agentId
+     * agent ID
      */
     private String agentId;
 
     /**
-     * 密码
+     * 主机ID
      */
-    private String pwd;
+    private Long hostId;
+
+    /**
+     * 主机IP
+     */
+    private String cloudIp;
+
+    /**
+     * 加密后的密码
+     */
+    @ToString.Exclude
+    private String encryptedPassword;
 }

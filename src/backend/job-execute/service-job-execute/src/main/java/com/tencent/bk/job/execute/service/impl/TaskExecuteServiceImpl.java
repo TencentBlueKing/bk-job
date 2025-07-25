@@ -53,7 +53,7 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.audit.ExecuteJobAuditEventBuilder;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
-import com.tencent.bk.job.execute.common.cache.TargetHostCustomPasswordCache;
+import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
@@ -175,7 +175,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final ServiceTaskTemplateResource taskTemplateResource;
     private final TaskInstanceExecuteObjectProcessor taskInstanceExecuteObjectProcessor;
     private final HostService hostService;
-    private final TargetHostCustomPasswordCache targetHostCustomPasswordCache;
+    private final CustomPasswordCache customPasswordCache;
 
     private final RunningJobResourceQuotaManager runningJobResourceQuotaManager;
 
@@ -200,7 +200,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   TaskInstanceExecuteObjectProcessor taskInstanceExecuteObjectProcessor,
                                   RunningJobResourceQuotaManager runningJobResourceQuotaManager,
                                   HostService hostService,
-                                  TargetHostCustomPasswordCache targetHostCustomPasswordCache) {
+                                  CustomPasswordCache customPasswordCache) {
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -219,7 +219,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.taskInstanceExecuteObjectProcessor = taskInstanceExecuteObjectProcessor;
         this.runningJobResourceQuotaManager = runningJobResourceQuotaManager;
         this.hostService = hostService;
-        this.targetHostCustomPasswordCache = targetHostCustomPasswordCache;
+        this.customPasswordCache = customPasswordCache;
     }
 
     @Override
@@ -346,59 +346,99 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     /**
+     * 是否为windows账号
+     */
+    private boolean isWindowsAccount(Long accountId) {
+        AccountDTO accountDTO = accountService.getAccountById(accountId);
+        return accountDTO != null && accountDTO.isWindowsAccount();
+    }
+
+    /**
+     * 通过自定义密码列表查询真实的主机信息
+     */
+    private Collection<ServiceHostDTO> getRealHostsByCustomPwdList(
+        List<EsbCustomHostPasswordDTO> customHostPasswordDTOList) {
+        List<HostDTO> queryHostDTOList = customHostPasswordDTOList.stream()
+            .map(dto -> new HostDTO(dto.getHostId(), dto.getCloudAreaId(), dto.getIp()))
+            .collect(Collectors.toList());
+
+        Map<HostDTO, ServiceHostDTO> hostDTOServiceHostDTOMap = hostService.batchGetHosts(queryHostDTOList);
+
+        if (hostDTOServiceHostDTOMap.isEmpty()) {
+            log.info("The custom password is incorrect, no real host is found. queryList={}", queryHostDTOList);
+        }
+        Collection<ServiceHostDTO> serviceHostDTOs = hostDTOServiceHostDTOMap.values();
+        if (customHostPasswordDTOList.size() != serviceHostDTOs.size()) {
+            log.debug("Custom password size doesn't match actual host size, customList={}, actualList={}",
+                queryHostDTOList, serviceHostDTOs);
+        }
+        return serviceHostDTOs;
+    }
+
+
+    /**
+     * 给主机赋值密码
+     */
+    private List<AgentCustomPasswordDTO> setAgentCustomPwd(List<EsbCustomHostPasswordDTO> customPasswordDTOList,
+                                                       Collection<ServiceHostDTO> serviceHosts) {
+        // 构造原始主机密码列表映射关系，加快匹配
+        Map<Long, EsbCustomHostPasswordDTO> hostIdMap = customPasswordDTOList.stream()
+            .filter(dto -> dto.getHostId() != null)
+            .collect(Collectors.toMap(EsbCustomHostPasswordDTO::getHostId, dto -> dto, (oldVal, newVal) -> newVal));
+        Map<String, EsbCustomHostPasswordDTO> cloudIpMap = customPasswordDTOList.stream()
+            .filter(dto -> dto.getCloudIp() != null)
+            .collect(Collectors.toMap(EsbCustomHostPasswordDTO::getCloudIp, dto -> dto, (oldVal, newVal) -> newVal));
+
+        List<AgentCustomPasswordDTO> result = new ArrayList<>();
+        List<ServiceHostDTO> unmatchedHosts = new ArrayList<>();
+
+        for (ServiceHostDTO host : serviceHosts) {
+            // 优先hostId
+            EsbCustomHostPasswordDTO matched = hostIdMap.getOrDefault(host.getHostId(),
+                cloudIpMap.get(host.getCloudIp()));
+            if (matched != null) {
+                AgentCustomPasswordDTO dto = new AgentCustomPasswordDTO();
+                dto.setEncryptedPassword(matched.getEncryptedPassword());
+                dto.setAgentId(host.getAgentId());
+                dto.setCloudIp(host.getCloudIp());
+                dto.setHostId(host.getHostId());
+                result.add(dto);
+            } else {
+                unmatchedHosts.add(host);
+            }
+        }
+
+        log.info("Custom password collection size {}, actual matching password collection size {}.",
+            customPasswordDTOList.size(), result.size());
+        if (!unmatchedHosts.isEmpty()) {
+            log.debug("Some hosts have no matching password entries. Unmatched hosts: {}", unmatchedHosts);
+        }
+
+        return result;
+    }
+
+    /**
      * 缓存用户传入的主机密码，后续执行任务使用
      */
     private void cacheTargetHostPwd(StopWatch watch,
-                                       FastTaskDTO fastTask,
-                                       TaskInstanceDTO taskInstance,
-                                       StepInstanceDTO stepInstanceDTO) {
+                                    FastTaskDTO fastTask,
+                                    TaskInstanceDTO taskInstance,
+                                    StepInstanceDTO stepInstanceDTO) {
         List<EsbCustomHostPasswordDTO> customHostPasswordDTOList = fastTask.getHostPasswordList();
         if (CollectionUtils.isEmpty(customHostPasswordDTOList)) {
             return ;
         }
 
-        AccountDTO accountDTO = accountService.getAccountById(stepInstanceDTO.getAccountId());
-        if (!accountDTO.isWindowsAccount()) {
+        watch.start("cacheTargetHostPwd");
+        if (!isWindowsAccount(stepInstanceDTO.getAccountId())) {
             log.debug("Not windows target host, no password is required, skip.");
             return ;
         }
 
-        watch.start("cacheTargetHostPwd");
-        log.debug("Custom the target host password，size：{}", customHostPasswordDTOList.size());
-
-        // 查询真实的host信息
-        List<HostDTO> queryHostDTOList = customHostPasswordDTOList.stream()
-            .map(dto -> new HostDTO(dto.getHostId(), dto.getCloudAreaId(), dto.getIp()))
-            .collect(Collectors.toList());
-        Collection<ServiceHostDTO> serviceHostDTOs = hostService.batchGetHosts(queryHostDTOList).values();
-
-        // 构造原始主机密码列表映射关系，加快匹配
-        Map<Long, EsbCustomHostPasswordDTO> hostIdMap = customHostPasswordDTOList.stream()
-            .filter(dto -> dto.getHostId() != null)
-            .collect(Collectors.toMap(EsbCustomHostPasswordDTO::getHostId, dto -> dto, (oldVal, newVal) -> newVal));
-        Map<String, EsbCustomHostPasswordDTO> cloudIpMap = customHostPasswordDTOList.stream()
-            .filter(dto -> dto.getCloudIp() != null)
-            .collect(Collectors.toMap(EsbCustomHostPasswordDTO::getCloudIp, dto -> dto, (oldVal, newVal) -> newVal));
-
-        List<AgentCustomPasswordDTO> agentCustomPasswordDTOList = new ArrayList<>();
-        for (ServiceHostDTO serviceHostDTO : serviceHostDTOs) {
-            EsbCustomHostPasswordDTO matched = null;
-            // 优先hostId
-            if (hostIdMap.containsKey(serviceHostDTO.getHostId())) {
-                matched = hostIdMap.get(serviceHostDTO.getHostId());
-            } else if (cloudIpMap.containsKey(serviceHostDTO.getCloudIp())) {
-                matched = cloudIpMap.get(serviceHostDTO.getCloudIp());
-            }
-            if (matched != null) {
-                AgentCustomPasswordDTO dto = new AgentCustomPasswordDTO();
-                dto.setPwd(matched.getPassword());
-                dto.setAgentId(serviceHostDTO.getAgentId());
-                agentCustomPasswordDTOList.add(dto);
-            }
-        }
-        log.debug("Custom the agent password, size:{}", agentCustomPasswordDTOList.size());
-
-        targetHostCustomPasswordCache.addCache(agentCustomPasswordDTOList, taskInstance.getId());
+        Collection<ServiceHostDTO> serviceHostDTOs = getRealHostsByCustomPwdList(customHostPasswordDTOList);
+        List<AgentCustomPasswordDTO> agentCustomPasswordDTOList = setAgentCustomPwd(customHostPasswordDTOList,
+            serviceHostDTOs);
+        customPasswordCache.addCache(agentCustomPasswordDTOList, taskInstance.getId());
         watch.stop();
     }
 
