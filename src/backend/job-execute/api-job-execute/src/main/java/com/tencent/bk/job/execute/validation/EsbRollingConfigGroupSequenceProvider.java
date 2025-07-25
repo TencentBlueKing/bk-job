@@ -31,7 +31,8 @@ import lombok.extern.slf4j.Slf4j;
  * ESB接口滚动配置联合校验分组提供者
  */
 @Slf4j
-public class EsbRollingConfigGroupSequenceProvider extends AbstractRollingConfigGroupSequenceProvider<EsbRollingConfigDTO> {
+public class EsbRollingConfigGroupSequenceProvider
+    extends AbstractRollingConfigGroupSequenceProvider<EsbRollingConfigDTO> {
 
     @Override
     Integer getRollingType(EsbRollingConfigDTO rollingConfigDTO) {

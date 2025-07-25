@@ -46,7 +46,9 @@ public class FileSourceRollingConfigDTO {
     public static FileSourceRollingConfigDTO fromVO(FileSourceRollingConfigVO fileSourceRollingConfigVO) {
         FileSourceRollingConfigDTO rollingConfigDTO = new FileSourceRollingConfigDTO();
         rollingConfigDTO.setMaxExecuteObjectNumInBatch(fileSourceRollingConfigVO.getMaxExecuteObjectNumInBatch());
-        rollingConfigDTO.setMaxFileNumOfSingleExecuteObject(fileSourceRollingConfigVO.getMaxFileNumOfSingleExecuteObject());
+        rollingConfigDTO.setMaxFileNumOfSingleExecuteObject(
+            fileSourceRollingConfigVO.getMaxFileNumOfSingleExecuteObject()
+        );
         return rollingConfigDTO;
     }
 
