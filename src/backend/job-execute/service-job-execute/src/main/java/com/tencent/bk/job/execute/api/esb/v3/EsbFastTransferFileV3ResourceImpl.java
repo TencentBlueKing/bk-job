@@ -29,6 +29,7 @@ import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
+import com.tencent.bk.job.common.constant.RollingTypeEnum;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbAccountV3BasicDTO;
@@ -59,6 +60,7 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
+import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbFastTransferFileV3Request;
 import com.tencent.bk.job.execute.service.ArtifactoryLocalFileService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
@@ -188,6 +190,21 @@ public class EsbFastTransferFileV3ResourceImpl
         return null;
     }
 
+    private ValidateResult checkRollingFileSources(EsbFastTransferFileV3Request request) {
+        EsbRollingConfigDTO rollingConfig = request.getRollingConfig();
+        if (!RollingTypeEnum.FILE_SOURCE.getValue().equals(rollingConfig.getType())) {
+            return null;
+        }
+        List<EsbFileSourceV3DTO> fileSources = request.getFileSources();
+        for (EsbFileSourceV3DTO fileSource : fileSources) {
+            Integer fileType = fileSource.getFileType();
+            if (fileType != null && fileType != TaskFileTypeEnum.SERVER.getType()) {
+                return ValidateResult.fail(ErrorCode.FILE_SOURCE_ROLLING_ONLY_SUPPORT_SERVER_FILE);
+            }
+        }
+        return null;
+    }
+
     private ValidateResult checkFastTransferFileRequest(EsbFastTransferFileV3Request request) {
         if (!FilePathValidateUtil.validateFileSystemAbsolutePath(request.getTrimmedTargetPath())) {
             log.warn("Fast transfer file, target path is invalid!path={}", request.getTrimmedTargetPath());
@@ -206,6 +223,10 @@ public class EsbFastTransferFileV3ResourceImpl
         if (request.getFileSources() == null || request.getFileSources().isEmpty()) {
             log.warn("Fast transfer file, file source list is null or empty!");
             return ValidateResult.fail(ErrorCode.MISSING_PARAM_WITH_PARAM_NAME, "file_source_list");
+        }
+        if (request.getRollingConfig() != null) {
+            ValidateResult result = checkRollingFileSources(request);
+            if (result != null) return result;
         }
         List<EsbFileSourceV3DTO> fileSources = request.getFileSources();
         for (EsbFileSourceV3DTO fileSource : fileSources) {
