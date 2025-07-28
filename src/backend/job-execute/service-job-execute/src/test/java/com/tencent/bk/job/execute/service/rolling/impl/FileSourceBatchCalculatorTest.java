@@ -151,8 +151,8 @@ public class FileSourceBatchCalculatorTest {
         fileSourceList.add(buildFileSource(new long[]{1, 2, 3}, new String[]{"file_1", "file_2", "file_3"}));
         StepFileSourceRollingConfigDO fileSourceRollingConfig = new StepFileSourceRollingConfigDO();
         fileSourceRollingConfig.setMode(RollingModeEnum.PAUSE_IF_FAIL.getValue());
-        fileSourceRollingConfig.setMaxExecuteObjectNumInBatch(null);
-        fileSourceRollingConfig.setMaxFileNumOfSingleExecuteObject(null);
+        fileSourceRollingConfig.setMaxExecuteObjectNumInBatch(Integer.MAX_VALUE);
+        fileSourceRollingConfig.setMaxFileNumOfSingleExecuteObject(Integer.MAX_VALUE);
         List<StepInstanceFileBatchDTO> fileBatchList = fileSourceBatchCalculator.calc(
             1L,
             1L,
