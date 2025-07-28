@@ -53,6 +53,7 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.audit.ExecuteJobAuditEventBuilder;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
+import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
@@ -73,6 +74,7 @@ import com.tencent.bk.job.execute.engine.quota.limit.ResourceQuotaCheckResultEnu
 import com.tencent.bk.job.execute.engine.quota.limit.RunningJobResourceQuotaManager;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.AgentCustomPasswordDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
@@ -87,8 +89,10 @@ import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInfo;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceExecuteObjects;
+import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
+import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -109,6 +113,7 @@ import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.api.inner.ServiceUserResource;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
@@ -166,6 +171,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     private final ServiceTaskTemplateResource taskTemplateResource;
     private final TaskInstanceExecuteObjectProcessor taskInstanceExecuteObjectProcessor;
+    private final HostService hostService;
+    private final CustomPasswordCache customPasswordCache;
 
     private final RunningJobResourceQuotaManager runningJobResourceQuotaManager;
 
@@ -188,7 +195,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   RollingConfigService rollingConfigService,
                                   ServiceTaskTemplateResource taskTemplateResource,
                                   TaskInstanceExecuteObjectProcessor taskInstanceExecuteObjectProcessor,
-                                  RunningJobResourceQuotaManager runningJobResourceQuotaManager) {
+                                  RunningJobResourceQuotaManager runningJobResourceQuotaManager,
+                                  HostService hostService,
+                                  CustomPasswordCache customPasswordCache) {
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -206,6 +215,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.taskTemplateResource = taskTemplateResource;
         this.taskInstanceExecuteObjectProcessor = taskInstanceExecuteObjectProcessor;
         this.runningJobResourceQuotaManager = runningJobResourceQuotaManager;
+        this.hostService = hostService;
+        this.customPasswordCache = customPasswordCache;
     }
 
     @Override
@@ -295,6 +306,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 保存作业
             saveTaskInstance(watch, fastTask, taskInstance, stepInstance);
 
+            // 缓存目标主机密码
+            cacheTargetHostPwd(watch, fastTask, taskInstance, stepInstance);
+
             // 记录操作日志
             watch.start("saveOperationLog");
             taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
@@ -326,6 +340,103 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 log.warn("CreateTaskInstanceFast is slow, statistics: {}", watch.prettyPrint());
             }
         }
+    }
+
+    /**
+     * 是否为windows账号
+     */
+    private boolean isWindowsAccount(Long accountId) {
+        AccountDTO accountDTO = accountService.getAccountById(accountId);
+        return accountDTO != null && accountDTO.isWindowsAccount();
+    }
+
+    /**
+     * 通过自定义密码列表查询真实的主机信息
+     */
+    private Collection<ServiceHostDTO> getRealHostsByCustomPwdList(
+        List<EsbCustomHostPasswordDTO> customHostPasswordDTOList) {
+        List<HostDTO> queryHostDTOList = customHostPasswordDTOList.stream()
+            .map(dto -> new HostDTO(dto.getHostId(), dto.getCloudAreaId(), dto.getIp()))
+            .collect(Collectors.toList());
+
+        Map<HostDTO, ServiceHostDTO> hostDTOServiceHostDTOMap = hostService.batchGetHosts(queryHostDTOList);
+
+        if (hostDTOServiceHostDTOMap.isEmpty()) {
+            log.info("The custom password is incorrect, no real host is found. queryList={}", queryHostDTOList);
+        }
+        Collection<ServiceHostDTO> serviceHostDTOs = hostDTOServiceHostDTOMap.values();
+        if (customHostPasswordDTOList.size() != serviceHostDTOs.size()) {
+            log.debug("Custom password size doesn't match actual host size, customList={}, actualList={}",
+                queryHostDTOList, serviceHostDTOs);
+        }
+        return serviceHostDTOs;
+    }
+
+
+    /**
+     * 给主机赋值密码
+     */
+    private List<AgentCustomPasswordDTO> setAgentCustomPwd(List<EsbCustomHostPasswordDTO> customPasswordDTOList,
+                                                       Collection<ServiceHostDTO> serviceHosts) {
+        // 构造原始主机密码列表映射关系，加快匹配
+        Map<Long, EsbCustomHostPasswordDTO> hostIdMap = customPasswordDTOList.stream()
+            .filter(dto -> dto.getHostId() != null)
+            .collect(Collectors.toMap(EsbCustomHostPasswordDTO::getHostId, dto -> dto, (oldVal, newVal) -> newVal));
+        Map<String, EsbCustomHostPasswordDTO> cloudIpMap = customPasswordDTOList.stream()
+            .filter(dto -> dto.getCloudIp() != null)
+            .collect(Collectors.toMap(EsbCustomHostPasswordDTO::getCloudIp, dto -> dto, (oldVal, newVal) -> newVal));
+
+        List<AgentCustomPasswordDTO> result = new ArrayList<>();
+        List<ServiceHostDTO> unmatchedHosts = new ArrayList<>();
+
+        for (ServiceHostDTO host : serviceHosts) {
+            // 优先hostId
+            EsbCustomHostPasswordDTO matched = hostIdMap.getOrDefault(host.getHostId(),
+                cloudIpMap.get(host.getCloudIp()));
+            if (matched != null) {
+                AgentCustomPasswordDTO dto = new AgentCustomPasswordDTO();
+                dto.setEncryptedPassword(matched.getEncryptedPassword());
+                dto.setAgentId(host.getAgentId());
+                dto.setCloudIp(host.getCloudIp());
+                dto.setHostId(host.getHostId());
+                result.add(dto);
+            } else {
+                unmatchedHosts.add(host);
+            }
+        }
+
+        log.info("Custom password collection size {}, actual matching password collection size {}.",
+            customPasswordDTOList.size(), result.size());
+        if (!unmatchedHosts.isEmpty()) {
+            log.debug("Some hosts have no matching password entries. Unmatched hosts: {}", unmatchedHosts);
+        }
+
+        return result;
+    }
+
+    /**
+     * 缓存用户传入的主机密码，后续执行任务使用
+     */
+    private void cacheTargetHostPwd(StopWatch watch,
+                                    FastTaskDTO fastTask,
+                                    TaskInstanceDTO taskInstance,
+                                    StepInstanceDTO stepInstanceDTO) {
+        List<EsbCustomHostPasswordDTO> customHostPasswordDTOList = fastTask.getHostPasswordList();
+        if (CollectionUtils.isEmpty(customHostPasswordDTOList)) {
+            return ;
+        }
+
+        watch.start("cacheTargetHostPwd");
+        if (!isWindowsAccount(stepInstanceDTO.getAccountId())) {
+            log.debug("Not windows target host, no password is required, skip.");
+            return ;
+        }
+
+        Collection<ServiceHostDTO> serviceHostDTOs = getRealHostsByCustomPwdList(customHostPasswordDTOList);
+        List<AgentCustomPasswordDTO> agentCustomPasswordDTOList = setAgentCustomPwd(customHostPasswordDTOList,
+            serviceHostDTOs);
+        customPasswordCache.addCache(agentCustomPasswordDTOList, taskInstance.getId());
+        watch.stop();
     }
 
     /*

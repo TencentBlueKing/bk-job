@@ -34,6 +34,7 @@
 | target_server    | object | 否     | 目标服务器，见server定义 |
 | callback_url |  string   | 否     | 回调URL，当任务执行完成后，JOB会调用该URL告知任务执行结果。回调协议参考callback_protocol组件文档 |
 | rolling_config    | object | 否     | 滚动配置，见rolling_config定义 |
+| host_password_list | array  | 否  | windows主机密码，见host_password_list定义。该字段默认情况下无需填写，默认使用在作业平台中配置的指定账号对应密码，只有在各主机账号相同密码不同的情况下才需要填写。|
 
 ##### server
 | 字段               | 类型  | 必选 | 描述                                |
@@ -69,6 +70,15 @@
 | ---- | ------ | ---- | -------------- |
 | expression   | string | 是   | 滚动策略表达式 |
 | mode   | int | 是   | 滚动机制,1-执行失败则暂停；2-忽略失败，自动滚动下一批；3-人工确认 |
+
+##### host_password_list
+
+| 字段         | 类型   | 必选 | 描述  |
+|-------------|--------|-----|--------|
+| bk_cloud_id | long   | 否  | 管控区域ID  |
+| ip          | string | 否  | IP地址     |
+| host_id     | long   | 否  | 主机ID。host_id与bk_cloud_id+ip，二者至少填写其一，host_id优先。|
+| encrypted_password    | String | 是  | 加密后的密码 |
 
 ### 请求参数示例
 
