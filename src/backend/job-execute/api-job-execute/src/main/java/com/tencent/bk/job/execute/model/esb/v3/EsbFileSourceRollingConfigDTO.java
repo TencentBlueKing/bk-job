@@ -42,7 +42,7 @@ public class EsbFileSourceRollingConfigDTO {
         message = "{validation.constraints.RollingFileSourceMaxExecuteObjectNumInBatch_Positive.message}"
     )
     @JsonProperty("max_execute_object_num_in_batch")
-    private Integer maxExecuteObjectNumInBatch;
+    private Integer maxExecuteObjectNumInBatch = Integer.MAX_VALUE;
 
     /**
      * 单主机/容器最大并发文件数，为空表示不限制
@@ -51,6 +51,6 @@ public class EsbFileSourceRollingConfigDTO {
         message = "{validation.constraints.RollingFileSourceMaxFileNumOfExecuteObject_Positive.message}"
     )
     @JsonProperty("max_file_num_of_single_execute_object")
-    private Integer maxFileNumOfSingleExecuteObject;
+    private Integer maxFileNumOfSingleExecuteObject = Integer.MAX_VALUE;
 
 }

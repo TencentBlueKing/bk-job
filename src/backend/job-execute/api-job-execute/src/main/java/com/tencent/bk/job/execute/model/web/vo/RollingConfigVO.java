@@ -47,11 +47,11 @@ public class RollingConfigVO {
     @ApiModelProperty(value = "滚动配置名称")
     private String name;
 
-    @ApiModelProperty(value = "滚动对象,1-传输目标；2-源文件")
+    @ApiModelProperty(value = "滚动对象：1-传输目标，2-源文件，不传默认为1")
     @CheckEnum(enumClass = RollingTypeEnum.class, message = "{validation.constraints.RollingType_illegal.message}")
     private Integer type = RollingTypeEnum.TARGET_EXECUTE_OBJECT.getValue();
 
-    @ApiModelProperty(value = "滚动机制,1-执行失败则暂停；2-忽略失败，自动滚动下一批；3-人工确认")
+    @ApiModelProperty(value = "滚动机制：1-执行失败则暂停，2-忽略失败，自动滚动下一批，3-人工确认，不传默认为1")
     @CheckEnum(enumClass = RollingModeEnum.class, message = "{validation.constraints.RollingMode_illegal.message}")
     private Integer mode = RollingModeEnum.PAUSE_IF_FAIL.getValue();
 
