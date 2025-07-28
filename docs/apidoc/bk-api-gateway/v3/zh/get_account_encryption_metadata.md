@@ -10,7 +10,6 @@
 |---------------|--------|-----|---------------------------------------------------------------|
 | bk_scope_type | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                  |
 | bk_scope_id   | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID             |
-| bk_biz_id     | long   | 是  | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
 
 ### 请求参数示例
 
