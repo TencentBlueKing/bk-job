@@ -25,9 +25,11 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
+import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
@@ -40,6 +42,7 @@ import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
 import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
+import com.tencent.bk.job.execute.model.AgentCustomPasswordDTO;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -59,6 +62,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.StopWatch;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +84,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     protected final JobExecuteConfig jobExecuteConfig;
     protected final StepInstanceService stepInstanceService;
     protected final RunningJobKeepaliveManager runningJobKeepaliveManager;
+    protected final CustomPasswordCache customPasswordCache;
     protected final RollingConfigService rollingConfigService;
     /**
      * 任务下发请求ID,防止重复下发任务
@@ -113,7 +118,8 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                                 String requestId,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
-                                GseTaskDTO gseTask) {
+                                GseTaskDTO gseTask,
+                                CustomPasswordCache customPasswordCache) {
         super(
             engineDependentServiceHolder,
             executeObjectTaskService,
@@ -136,6 +142,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
         this.taskInstanceService = engineDependentServiceHolder.getTaskInstanceService();
         this.rollingConfigService = engineDependentServiceHolder.getRollingConfigService();
         this.jobExecuteConfig = jobExecuteConfig;
+        this.customPasswordCache = customPasswordCache;
         this.requestId = requestId;
     }
 
@@ -318,6 +325,36 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                     batch,
                     gseTask.getId()
                 )));
+    }
+
+    /**
+     * 如果存在自定义密码，给agent设置密码
+     */
+    protected void setCustomPasswordIfPresent(List<Agent> agentList, Long taskInstanceId) {
+        List<AgentCustomPasswordDTO> passwordDTOList = customPasswordCache.getCache(taskInstanceId);
+        if (CollectionUtils.isNotEmpty(passwordDTOList)) {
+            Map<String, AgentCustomPasswordDTO> passwordMap = passwordDTOList.stream()
+                .collect(Collectors.toMap(AgentCustomPasswordDTO::getAgentId, dto -> dto,
+                    (oldValue, newValue) -> newValue));
+            List<Agent> unmatchedAgentList = new ArrayList<>();
+            List<AgentCustomPasswordDTO> emptyPwdList = new ArrayList<>();
+            for (Agent agent : agentList) {
+                AgentCustomPasswordDTO customPasswordDTO = passwordMap.get(agent.getAgentId());
+                if (customPasswordDTO == null) {
+                    unmatchedAgentList.add(agent);
+                    continue;
+                }
+                if (StringUtils.isNotEmpty(customPasswordDTO.getEncryptedPassword())) {
+                    agent.setPwd(customPasswordDTO.getEncryptedPassword());
+                } else {
+                    emptyPwdList.add(customPasswordDTO);
+                }
+            }
+            if (!unmatchedAgentList.isEmpty() || !emptyPwdList.isEmpty()) {
+                log.info("Some agents have no custom password. taskInstanceId={}, unmatchedAgentList={}," +
+                    "emptyPwdAgentList={}", taskInstanceId, unmatchedAgentList, emptyPwdList);
+            }
+        }
     }
 
     /**
