@@ -23,10 +23,13 @@ Fast execute script
 | target_server      | object | no       | Target server, see server definition                                                                                                                                                        |
 | callback_url       | string | no       | Callback URL, when the task execution is completed, the JOB will call this URL to inform the task execution result. Callback protocol refer to the callback_protocol component documentation |
 | rolling_config       | object | no       | Rolling config，see rolling_config definition                                                                                                                                             |
+| host_password_list | array  | no       | Windows Host Password，see host_password_list definition. This field does not need to be filled in by default, It uses the corresponding password for the specified account configured in the job platform by default, It only needs to be filled in if the host account has the same password differently.|
 
 {% include '_generic_server.md.j2' %}
 
 {% include '_generic_rolling_config.md.j2' %}
+
+{% include '_generic_host_password_list.md.j2' %}
 
 ### Example of request
 

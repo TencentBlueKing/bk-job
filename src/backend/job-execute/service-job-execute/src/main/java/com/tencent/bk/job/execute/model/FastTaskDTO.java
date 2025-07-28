@@ -24,8 +24,11 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
 import lombok.Builder;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * 快速执行任务
@@ -45,6 +48,11 @@ public class FastTaskDTO {
      * 滚动配置
      */
     private StepRollingConfigDTO rollingConfig;
+
+    /**
+     * 目标主机密码
+     */
+    private List<EsbCustomHostPasswordDTO> hostPasswordList;
 
     /**
      * 是否滚动执行

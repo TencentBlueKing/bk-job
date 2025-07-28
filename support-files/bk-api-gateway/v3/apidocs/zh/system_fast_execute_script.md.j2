@@ -24,10 +24,13 @@
 | target_server      | object | 否  | 目标服务器，见server定义                                                                                                  |
 | callback_url       | string | 否  | 回调URL，当任务执行完成后，JOB会调用该URL告知任务执行结果。回调协议参考callback_protocol组件文档                                                    |
 | rolling_config     | object | 否  | 滚动配置，见rolling_config定义                                                                                           |
+| host_password_list | array  | 否  | windows主机密码，见host_password_list定义。该字段默认情况下无需填写，默认使用在作业平台中配置的指定账号对应密码，只有在各主机账号相同密码不同的情况下才需要填写。|
 
 {% include '_generic_server.md.j2' %}
 
 {% include '_generic_rolling_config.md.j2' %}
+
+{% include '_generic_host_password_list.md.j2' %}
 
 ### 请求参数示例
 
