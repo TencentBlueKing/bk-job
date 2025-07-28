@@ -22,7 +22,7 @@
 | script_version_id | long | 否 | 脚本版本ID。当script_version_id不为空的时候，使用script_version_id对应的脚本版本                                                                           |
 | script_id | string | 否 | 脚本ID。当传入script_id，且script_version_id为空的时候，使用脚本的上线版本                                                                                  |
 | script_content | string | 否 | 脚本内容Base64。如果不存在script_version_id和script_id,那么使用script_content。优先级：script_version_id>script_id>script_content                        |
-| task_name | string | 否 | 自定义作业名称                                                                                                                              |
+| task_name | string | 否 | 自定义作业名称，长度不可超过512字符                                                                                                                              |
 | script_param | string | 否 | 脚本参数Base64。注意：1.如果有多个参数，比如&#34;param1 param2&#34;这种，需要对&#34;param1 param2&#34;整体进行base64编码，而不是对每个参数进行base64编码再拼接起来。2.非敏感参数编码前长度不能超过64K，敏感参数编码前长度不能超过47K |
 | windows_interpreter | string | 否 | 自定义Windows解释器路径，当该值不为空时，在windows中优先使用该解释器运行脚本，只对Windows机器生效 |
 | timeout | long | 否 | 脚本执行超时时间，秒。默认7200，取值范围1-86400                                                                                                        |
