@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.service.VariableResolver;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
@@ -48,6 +49,7 @@ import com.tencent.bk.job.execute.engine.variable.VariableResolveContext;
 import com.tencent.bk.job.execute.engine.variable.VariableResolveResult;
 import com.tencent.bk.job.execute.engine.variable.VariableResolveUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.AgentCustomPasswordDTO;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -102,14 +104,16 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                      String requestId,
                                      TaskInstanceDTO taskInstance,
                                      StepInstanceDTO stepInstance,
-                                     GseTaskDTO gseTask) {
+                                     GseTaskDTO gseTask,
+                                     CustomPasswordCache customPasswordCache) {
         super(engineDependentServiceHolder,
             scriptExecuteObjectTaskService,
             jobExecuteConfig,
             requestId,
             taskInstance,
             stepInstance,
-            gseTask);
+            gseTask,
+            customPasswordCache);
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.jobBuildInVariableResolver = engineDependentServiceHolder.getJobBuildInVariableResolver();
         this.scriptFileNamePrefix = buildScriptFileNamePrefix(stepInstance);
@@ -254,11 +258,21 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     protected List<Agent> buildTargetAgents() {
         AccountDTO account = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
-        return gseClient.fillAgentAuthInfo(
-            targetExecuteObjectTaskMap.values().stream().map(executeObjectTask ->
-                executeObjectTask.getExecuteObject().toGseAgent()).collect(Collectors.toList()),
+
+        List<Agent> agentList = targetExecuteObjectTaskMap.values()
+            .stream()
+            .map(executeObjectTask -> executeObjectTask.getExecuteObject().toGseAgent())
+            .collect(Collectors.toList());
+
+        // windows账号优先使用用户传入的自定义密码
+        if (account.isWindowsAccount()) {
+            setCustomPasswordIfPresent(agentList, taskInstanceId);
+        }
+
+        return gseClient.fillAgentAuthInfo(agentList,
             account.getAccount(),
-            account.getPassword());
+            account.getPassword()
+        );
     }
 
     /**

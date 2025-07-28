@@ -66,7 +66,7 @@ public class EsbCreateAccountV3Req extends EsbAppScopeReq {
      * 系统账号的密码(Windows)
      */
     @SkipLogFields
-    @Length(max = 255, message = "{validation.constraints.AccountPassword_tooLong.message}")
+    @Length(max = 117, message = "{validation.constraints.AccountPassword_tooLong.message}")
     private String password;
 
     /**

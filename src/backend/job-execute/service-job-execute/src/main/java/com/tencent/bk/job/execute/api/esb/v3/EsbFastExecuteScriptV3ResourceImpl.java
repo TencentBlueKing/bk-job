@@ -112,6 +112,7 @@ public class EsbFastExecuteScriptV3ResourceImpl extends JobExecuteCommonV3Proces
                 .rollingConfig(rollingConfig)
                 .startTask(request.getStartTask())
                 .operator(user)
+                .hostPasswordList(request.getHostPasswordList())
                 .build()
         );
 

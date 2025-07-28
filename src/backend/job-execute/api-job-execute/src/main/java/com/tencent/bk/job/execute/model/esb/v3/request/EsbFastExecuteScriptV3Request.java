@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.validation.EndWith;
 import com.tencent.bk.job.common.validation.MaxLength;
 import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
+import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import lombok.Getter;
 import lombok.Setter;
@@ -150,6 +151,13 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
      */
     @JsonProperty("start_task")
     private Boolean startTask = true;
+
+    /**
+     * 目标主机密码
+     */
+    @JsonProperty("host_password_list")
+    @Valid
+    private List<EsbCustomHostPasswordDTO> hostPasswordList;
 
     public void trimIps() {
         if (this.targetServer != null) {
