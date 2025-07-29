@@ -22,54 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.engine.syntax;
 
-import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
-import lombok.Builder;
-import lombok.Data;
-
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * 快速执行任务
+ * shell类型枚举
  */
-@Data
-@Builder
-public class FastTaskDTO {
-    /**
-     * 作业实例
-     */
-    private TaskInstanceDTO taskInstance;
-    /**
-     * 步骤实例
-     */
-    private StepInstanceDTO stepInstance;
-    /**
-     * 滚动配置
-     */
-    private StepRollingConfigDTO rollingConfig;
-    /**
-     * 是否启动任务
-     */
-    @Builder.Default
-    private Boolean startTask = true;
-    /**
-     * 操作者
-     */
-    private User operator;
+public enum ShellTypeEnum {
+    BASH("bash"),
+    KSH("ksh");
 
-    /**
-     * 目标主机密码
-     */
-    private List<EsbCustomHostPasswordDTO> hostPasswordList;
+    private final String shellType;
 
-    /**
-     * 是否滚动执行
-     *
-     * @return 是否滚动执行
-     */
-    public boolean isRollingEnabled() {
-        return this.rollingConfig != null;
+    ShellTypeEnum(String shellType) {
+        this.shellType = shellType;
+    }
+
+    public static ShellTypeEnum fromShebang(String shebang) {
+        if (StringUtils.isBlank(shebang)) return BASH;
+
+        String shebangTrimmed = shebang.toLowerCase().trim();
+        for (ShellTypeEnum shellTypeEnum : values()) {
+            if (shebangTrimmed.endsWith("/" + shellTypeEnum.shellType)) {
+                return shellTypeEnum;
+            }
+        }
+        return BASH;
     }
 }

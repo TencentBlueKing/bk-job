@@ -61,4 +61,11 @@ public class AccountDTO {
      * DB账号依赖的系统账号
      */
     private Long dbSystemAccountId;
+
+    public boolean isWindowsAccount() {
+        if (AccountTypeEnum.WINDOW.getType().equals(this.type.getType())) {
+            return true;
+        }
+        return false;
+    }
 }

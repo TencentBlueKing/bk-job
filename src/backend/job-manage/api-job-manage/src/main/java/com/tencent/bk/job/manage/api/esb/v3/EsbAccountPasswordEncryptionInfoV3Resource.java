@@ -22,54 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.manage.api.esb.v3;
 
-import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
-import lombok.Builder;
-import lombok.Data;
-
-import java.util.List;
+import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountPasswordEncryptionMetadataV3DTO;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 快速执行任务
+ * 主机账号的密码的加密信息
  */
-@Data
-@Builder
-public class FastTaskDTO {
-    /**
-     * 作业实例
-     */
-    private TaskInstanceDTO taskInstance;
-    /**
-     * 步骤实例
-     */
-    private StepInstanceDTO stepInstance;
-    /**
-     * 滚动配置
-     */
-    private StepRollingConfigDTO rollingConfig;
-    /**
-     * 是否启动任务
-     */
-    @Builder.Default
-    private Boolean startTask = true;
-    /**
-     * 操作者
-     */
-    private User operator;
+@RequestMapping("/esb/api/v3")
+@RestController
+@EsbAPI
+public interface EsbAccountPasswordEncryptionInfoV3Resource {
 
-    /**
-     * 目标主机密码
-     */
-    private List<EsbCustomHostPasswordDTO> hostPasswordList;
 
-    /**
-     * 是否滚动执行
-     *
-     * @return 是否滚动执行
-     */
-    public boolean isRollingEnabled() {
-        return this.rollingConfig != null;
-    }
+    @GetMapping("/get_account_password_encryption_metadata")
+    EsbResp<EsbAccountPasswordEncryptionMetadataV3DTO> getAccountPwdEncryptionMetadata(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode
+    );
 }

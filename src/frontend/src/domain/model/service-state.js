@@ -23,6 +23,8 @@
  * IN THE SOFTWARE.
 */
 
+import DOMPurify from 'dompurify';
+
 import Model from '@model/model';
 
 import I18n from '@/i18n';
@@ -43,7 +45,7 @@ export default class SeverState extends Model {
   get versionHtml() {
     /* eslint-disable max-len */
     return this.versionConsistent
-      ? `<span>${this.version}</span>`
+      ? DOMPurify.sanitize(`<span>${this.version}</span>`)
       : `<i class="job-icon job-icon-script-disable" style="color: #EA3636;" svg /><span style="color: #63656E;">${I18n.t('存在不同版本')}</span>`;
   }
 }

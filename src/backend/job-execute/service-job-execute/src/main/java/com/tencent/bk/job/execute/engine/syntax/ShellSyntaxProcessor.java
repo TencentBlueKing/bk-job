@@ -22,54 +22,49 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.engine.syntax;
 
-import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
-import lombok.Builder;
-import lombok.Data;
 
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * 快速执行任务
+ * shell语法差异处理
  */
-@Data
-@Builder
-public class FastTaskDTO {
-    /**
-     * 作业实例
-     */
-    private TaskInstanceDTO taskInstance;
-    /**
-     * 步骤实例
-     */
-    private StepInstanceDTO stepInstance;
-    /**
-     * 滚动配置
-     */
-    private StepRollingConfigDTO rollingConfig;
-    /**
-     * 是否启动任务
-     */
-    @Builder.Default
-    private Boolean startTask = true;
-    /**
-     * 操作者
-     */
-    private User operator;
+public interface ShellSyntaxProcessor {
 
     /**
-     * 目标主机密码
+     * 声明一个字符串变量
      */
-    private List<EsbCustomHostPasswordDTO> hostPasswordList;
+    String declareVariable(String varName, String varValue, boolean appendNewline);
 
     /**
-     * 是否滚动执行
-     *
-     * @return 是否滚动执行
+     * 声明一个关联数组
      */
-    public boolean isRollingEnabled() {
-        return this.rollingConfig != null;
+    String declareIntVariable(String varName, int varValue, boolean appendNewline);
+
+
+    /**
+     * 声明一个关联数组
+     */
+    String declareAssociativeArray(String varName, String varValue, boolean appendNewline);
+
+    /**
+     * 声明一个索引数组
+     */
+    String declareIndexArray(String varName, String varValue, boolean appendNewline);
+
+    /**
+     * 单引号替换成'\''，避免Shell报错
+     */
+    default String escapeSingleQuote(String value) {
+        if (StringUtils.isEmpty(value)) return "";
+        return value.replaceAll("'", "'\\\\''");
+    }
+
+    /**
+     * 如果appendNewline为true，则在content末尾添加换行
+     */
+    default String withOptionalNewline(String content, boolean appendNewline) {
+        return appendNewline ? content + "\n" : content;
     }
 }

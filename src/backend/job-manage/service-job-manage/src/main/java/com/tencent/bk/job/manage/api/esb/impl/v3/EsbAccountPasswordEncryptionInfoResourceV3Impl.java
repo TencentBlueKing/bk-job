@@ -22,54 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.manage.api.esb.impl.v3;
 
-import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
-import lombok.Builder;
-import lombok.Data;
+import com.tencent.bk.job.common.crypto.util.RSAUtils;
+import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.gse.constants.GseConstants;
+import com.tencent.bk.job.manage.api.esb.v3.EsbAccountPasswordEncryptionInfoV3Resource;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountPasswordEncryptionMetadataV3DTO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+@RestController
+@Slf4j
+public class EsbAccountPasswordEncryptionInfoResourceV3Impl implements EsbAccountPasswordEncryptionInfoV3Resource {
 
-/**
- * 快速执行任务
- */
-@Data
-@Builder
-public class FastTaskDTO {
-    /**
-     * 作业实例
-     */
-    private TaskInstanceDTO taskInstance;
-    /**
-     * 步骤实例
-     */
-    private StepInstanceDTO stepInstance;
-    /**
-     * 滚动配置
-     */
-    private StepRollingConfigDTO rollingConfig;
-    /**
-     * 是否启动任务
-     */
-    @Builder.Default
-    private Boolean startTask = true;
-    /**
-     * 操作者
-     */
-    private User operator;
-
-    /**
-     * 目标主机密码
-     */
-    private List<EsbCustomHostPasswordDTO> hostPasswordList;
-
-    /**
-     * 是否滚动执行
-     *
-     * @return 是否滚动执行
-     */
-    public boolean isRollingEnabled() {
-        return this.rollingConfig != null;
+    @Override
+    public EsbResp<EsbAccountPasswordEncryptionMetadataV3DTO> getAccountPwdEncryptionMetadata(String username,
+                                                                                              String appCode) {
+        EsbAccountPasswordEncryptionMetadataV3DTO encryptionMetadataV3DTO =
+            new EsbAccountPasswordEncryptionMetadataV3DTO();
+        encryptionMetadataV3DTO.setPublicKey(GseConstants.publicKeyPermBase64);
+        encryptionMetadataV3DTO.setEncryptAlgorithm(RSAUtils.getKeyAlgorithm());
+        return EsbResp.buildSuccessResp(encryptionMetadataV3DTO);
     }
 }

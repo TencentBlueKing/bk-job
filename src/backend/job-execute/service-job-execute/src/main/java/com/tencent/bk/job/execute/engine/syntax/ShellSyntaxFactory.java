@@ -22,54 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.engine.syntax;
 
-import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
-import lombok.Builder;
-import lombok.Data;
-
-import java.util.List;
 
 /**
- * 快速执行任务
+ * shell语法差异工厂
  */
-@Data
-@Builder
-public class FastTaskDTO {
-    /**
-     * 作业实例
-     */
-    private TaskInstanceDTO taskInstance;
-    /**
-     * 步骤实例
-     */
-    private StepInstanceDTO stepInstance;
-    /**
-     * 滚动配置
-     */
-    private StepRollingConfigDTO rollingConfig;
-    /**
-     * 是否启动任务
-     */
-    @Builder.Default
-    private Boolean startTask = true;
-    /**
-     * 操作者
-     */
-    private User operator;
+public class ShellSyntaxFactory {
 
-    /**
-     * 目标主机密码
-     */
-    private List<EsbCustomHostPasswordDTO> hostPasswordList;
-
-    /**
-     * 是否滚动执行
-     *
-     * @return 是否滚动执行
-     */
-    public boolean isRollingEnabled() {
-        return this.rollingConfig != null;
+    public static ShellSyntaxProcessor fromShebang(String shebang) {
+        ShellTypeEnum type = ShellTypeEnum.fromShebang(shebang);
+        switch (type) {
+            case KSH:
+                return new KshSyntaxProcessor();
+            case BASH:
+            default:
+                return new BashSyntaxProcessor();
+        }
     }
 }

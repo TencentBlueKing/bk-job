@@ -22,54 +22,53 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.model.esb.v3;
 
-import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
-import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.Length;
 
-import java.util.List;
+import javax.validation.constraints.NotEmpty;
 
 /**
- * 快速执行任务
+ * 主机密码
  */
 @Data
-@Builder
-public class FastTaskDTO {
-    /**
-     * 作业实例
-     */
-    private TaskInstanceDTO taskInstance;
-    /**
-     * 步骤实例
-     */
-    private StepInstanceDTO stepInstance;
-    /**
-     * 滚动配置
-     */
-    private StepRollingConfigDTO rollingConfig;
-    /**
-     * 是否启动任务
-     */
-    @Builder.Default
-    private Boolean startTask = true;
-    /**
-     * 操作者
-     */
-    private User operator;
+public class EsbCustomHostPasswordDTO {
 
     /**
-     * 目标主机密码
+     * 云区域ID
      */
-    private List<EsbCustomHostPasswordDTO> hostPasswordList;
+    @JsonProperty("bk_cloud_id")
+    private Long cloudAreaId;
 
     /**
-     * 是否滚动执行
-     *
-     * @return 是否滚动执行
+     * 主机IP
      */
-    public boolean isRollingEnabled() {
-        return this.rollingConfig != null;
+    @JsonProperty("ip")
+    private String ip;
+
+    /**
+     * 主机ID
+     */
+    @JsonProperty("host_id")
+    private Long hostId;
+
+    /**
+     * 加密后的密码
+     */
+    @JsonProperty("encrypted_password")
+    @Length(max = 172, message = "{validation.constraints.AccountPassword_tooLong.message}")
+    @NotEmpty(message = "{validation.constraints.AccountPassword_empty.message}")
+    private String encryptedPassword;
+
+    @JsonIgnore
+    public String getCloudIp() {
+        if (StringUtils.isNotBlank(ip) && cloudAreaId !=null) {
+            return cloudAreaId + ":" + ip;
+        }
+        return null;
     }
 }

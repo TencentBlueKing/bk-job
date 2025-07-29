@@ -11,6 +11,7 @@ import com.tencent.bk.job.common.gse.v2.model.TerminateGseTaskRequest;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
+import org.apache.zookeeper.common.StringUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -49,13 +50,15 @@ public interface IGseClient {
      *
      * @param agents   agent列表
      * @param user     用户
-     * @param password 密码
+     * @param defaultPwd 密码
      * @return Agent
      */
-    default List<Agent> fillAgentAuthInfo(Collection<Agent> agents, String user, String password) {
+    default List<Agent> fillAgentAuthInfo(Collection<Agent> agents, String user, String defaultPwd) {
         return agents.stream().peek(agent -> {
             agent.setUser(user);
-            agent.setPwd(password);
+            if (StringUtils.isEmpty(agent.getPwd())) {
+                agent.setPwd(defaultPwd);
+            }
         }).collect(Collectors.toList());
     }
 

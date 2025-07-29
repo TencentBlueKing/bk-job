@@ -22,54 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.execute.engine.syntax;
 
-import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
-import lombok.Builder;
-import lombok.Data;
-
-import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * 快速执行任务
+ * ksh语法差异实现
  */
-@Data
-@Builder
-public class FastTaskDTO {
-    /**
-     * 作业实例
-     */
-    private TaskInstanceDTO taskInstance;
-    /**
-     * 步骤实例
-     */
-    private StepInstanceDTO stepInstance;
-    /**
-     * 滚动配置
-     */
-    private StepRollingConfigDTO rollingConfig;
-    /**
-     * 是否启动任务
-     */
-    @Builder.Default
-    private Boolean startTask = true;
-    /**
-     * 操作者
-     */
-    private User operator;
+public class KshSyntaxProcessor implements ShellSyntaxProcessor {
 
-    /**
-     * 目标主机密码
-     */
-    private List<EsbCustomHostPasswordDTO> hostPasswordList;
+    @Override
+    public String declareVariable(String varName, String varValue, boolean appendNewline) {
+        String str = varName + "='" + escapeSingleQuote(varValue) + "'";
+        return withOptionalNewline(str, appendNewline);
+    }
 
-    /**
-     * 是否滚动执行
-     *
-     * @return 是否滚动执行
-     */
-    public boolean isRollingEnabled() {
-        return this.rollingConfig != null;
+    @Override
+    public String declareIntVariable(String varName, int varValue, boolean appendNewline) {
+        String str = varName + "=" + varValue;
+        return withOptionalNewline(str, appendNewline);
+    }
+
+    @Override
+    public String declareAssociativeArray(String varName, String varValue, boolean appendNewline) {
+        String str = StringUtils.isNotBlank(varValue)
+            ? "typeset -A " + varName + "=" + varValue
+            : "typeset -A " + varName;
+        return withOptionalNewline(str, appendNewline);
+    }
+
+    @Override
+    public String declareIndexArray(String varName, String varValue, boolean appendNewline) {
+        String str = StringUtils.isNotBlank(varValue)
+            ? "typeset -a " + varName + "=" + varValue
+            : "typeset -a " + varName;
+        return withOptionalNewline(str, appendNewline);
     }
 }
