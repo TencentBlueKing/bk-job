@@ -22,54 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.manage.model.esb.v3.response;
 
-import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
-import lombok.Builder;
-import lombok.Data;
-
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
- * 快速执行任务
+ * 主机账号的密码的加密元信息
  */
-@Data
-@Builder
-public class FastTaskDTO {
+@Getter
+@Setter
+@ToString
+public class EsbAccountPasswordEncryptionMetadataV3DTO {
     /**
-     * 作业实例
+     * 加密公钥
      */
-    private TaskInstanceDTO taskInstance;
-    /**
-     * 步骤实例
-     */
-    private StepInstanceDTO stepInstance;
-    /**
-     * 滚动配置
-     */
-    private StepRollingConfigDTO rollingConfig;
-    /**
-     * 是否启动任务
-     */
-    @Builder.Default
-    private Boolean startTask = true;
-    /**
-     * 操作者
-     */
-    private User operator;
+    @JsonPropertyDescription("public_key")
+    private String publicKey;
 
     /**
-     * 目标主机密码
+     * 加密算法
      */
-    private List<EsbCustomHostPasswordDTO> hostPasswordList;
-
-    /**
-     * 是否滚动执行
-     *
-     * @return 是否滚动执行
-     */
-    public boolean isRollingEnabled() {
-        return this.rollingConfig != null;
-    }
+    @JsonPropertyDescription("encrypt_algorithm")
+    private String encryptAlgorithm;
 }

@@ -24,52 +24,32 @@
 
 package com.tencent.bk.job.execute.model;
 
-import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
-import lombok.Builder;
 import lombok.Data;
-
-import java.util.List;
+import lombok.ToString;
 
 /**
- * 快速执行任务
+ * agent密码
  */
 @Data
-@Builder
-public class FastTaskDTO {
+public class AgentCustomPasswordDTO {
     /**
-     * 作业实例
+     * agent ID
      */
-    private TaskInstanceDTO taskInstance;
-    /**
-     * 步骤实例
-     */
-    private StepInstanceDTO stepInstance;
-    /**
-     * 滚动配置
-     */
-    private StepRollingConfigDTO rollingConfig;
-    /**
-     * 是否启动任务
-     */
-    @Builder.Default
-    private Boolean startTask = true;
-    /**
-     * 操作者
-     */
-    private User operator;
+    private String agentId;
 
     /**
-     * 目标主机密码
+     * 主机ID
      */
-    private List<EsbCustomHostPasswordDTO> hostPasswordList;
+    private Long hostId;
 
     /**
-     * 是否滚动执行
-     *
-     * @return 是否滚动执行
+     * 主机IP
      */
-    public boolean isRollingEnabled() {
-        return this.rollingConfig != null;
-    }
+    private String cloudIp;
+
+    /**
+     * 加密后的密码
+     */
+    @ToString.Exclude
+    private String encryptedPassword;
 }

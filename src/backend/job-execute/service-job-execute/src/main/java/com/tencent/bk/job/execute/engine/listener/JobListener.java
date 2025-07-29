@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.engine.listener;
 import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.constant.RollingModeEnum;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
@@ -68,6 +69,7 @@ public class JobListener extends BaseJobMqListener {
     private final StepInstanceService stepInstanceService;
     private final RollingConfigService rollingConfigService;
     private final NotifyService notifyService;
+    protected final CustomPasswordCache customPasswordCache;
 
     private final RunningJobResourceQuotaManager runningJobResourceQuotaManager;
 
@@ -78,7 +80,8 @@ public class JobListener extends BaseJobMqListener {
                        StepInstanceService stepInstanceService,
                        RollingConfigService rollingConfigService,
                        NotifyService notifyService,
-                       RunningJobResourceQuotaManager runningJobResourceQuotaManager) {
+                       RunningJobResourceQuotaManager runningJobResourceQuotaManager,
+                       CustomPasswordCache customPasswordCache) {
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.statisticsService = statisticsService;
         this.taskInstanceService = taskInstanceService;
@@ -86,6 +89,7 @@ public class JobListener extends BaseJobMqListener {
         this.rollingConfigService = rollingConfigService;
         this.notifyService = notifyService;
         this.runningJobResourceQuotaManager = runningJobResourceQuotaManager;
+        this.customPasswordCache = customPasswordCache;
     }
 
 
@@ -257,6 +261,9 @@ public class JobListener extends BaseJobMqListener {
             taskInstance.setStatus(jobStatus);
             taskInstanceService.updateTaskExecutionInfo(jobInstanceId, jobStatus, null, null, endTime, totalTime);
 
+            // 处理目标主机的密码缓存
+            handleTargetHostPasswordCache(jobInstanceId, jobStatus);
+
             // 作业执行结果消息通知
             if (RunStatusEnum.SUCCESS == jobStatus || RunStatusEnum.IGNORE_ERROR == jobStatus) {
                 notifyService.asyncSendMQSuccessTaskNotification(taskInstance, stepInstance);
@@ -278,6 +285,14 @@ public class JobListener extends BaseJobMqListener {
             );
         }
 
+    }
+
+    private void handleTargetHostPasswordCache(Long jobInstanceId, RunStatusEnum jobStatus) {
+        if (RunStatusEnum.SUCCESS == jobStatus || RunStatusEnum.IGNORE_ERROR == jobStatus) {
+            customPasswordCache.deleteCache(jobInstanceId);
+        } else {
+            customPasswordCache.setPwdExpireTimeOnTaskFail(jobInstanceId);
+        }
     }
 
     /**

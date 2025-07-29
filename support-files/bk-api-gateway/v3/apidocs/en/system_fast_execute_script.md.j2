@@ -14,7 +14,7 @@ Fast execute script
 | script_id          | string | no       | Script id. When script_id is passed in and script_version_id is empty, the online version of the script is used                                                                             |
 | script_content     | string | no       | Script content Base64. If script_version_id and script_id do not exist, script_content is used. Priority: script_version_id>script_id>script_content                                        |
 | task_name          | string | no       | Custom job name                                                                                                                                                                             |
-| script_param       | string | no       | Script parameter Base64 encoding.                                                                                                                                                           |
+| script_param       | string | no       | Script parameter Base64 encoding. Note: 1.If there are multiple parameters, such as 'param1 param2', it is necessary to perform base64 encoding on the entire 'param1 param2' instead of encoding each parameter separately and then concatenating them together. 2. The length before encoding non sensitive parameters cannot exceed 64K, and the length before encoding sensitive parameters cannot exceed 47K|
 | timeout            | long   | no       | Script execution timeout in seconds. The default value is 7200, and the value range is [1,86400]                                                                                            |
 | account_alias      | string | no       | Execution account alias.  The account_id takes precedence when both account_alias and account_id exist.                                                                                     |
 | account_id         | long   | no       | Execution account ID. The account_id takes precedence when both account_alias and account_id exist.                                                                                         |
@@ -24,10 +24,13 @@ Fast execute script
 | callback_url       | string | no       | Callback URL, when the task execution is completed, the JOB will call this URL to inform the task execution result. Callback protocol refer to the callback_protocol component documentation |
 | rolling_config       | object | no       | Rolling config，see rolling_config definition                                                                                                                                             |
 | start_task         | boolean| no       | Whether to start the task, default true. If it is false, you can start a task through the operating job instance interface |
+| host_password_list | array  | no       | Windows Host Password，see host_password_list definition. This field does not need to be filled in by default, It uses the corresponding password for the specified account configured in the job platform by default, It only needs to be filled in if the host account has the same password differently.|
 
 {% include '_generic_server.md.j2' %}
 
 {% include '_generic_rolling_config.md.j2' %}
+
+{% include '_generic_host_password_list.md.j2' %}
 
 ### Example of request
 
