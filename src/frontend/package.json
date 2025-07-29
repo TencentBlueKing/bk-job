@@ -19,7 +19,6 @@
     "@blueking/ip-selector": "0.3.0-beta.49",
     "@blueking/bk-user-display-name": "1.0.1",
     "@blueking/bk-user-selector": "0.0.29-beta.8",
-    "@blueking/ip-selector": "0.3.0-beta.48",
     "@blueking/login-modal": "1.0.6",
     "@blueking/notice-component-vue2": "2.0.6-beta.3",
     "@blueking/paas-login": "0.0.11",
