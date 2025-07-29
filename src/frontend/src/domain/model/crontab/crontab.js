@@ -75,8 +75,8 @@ export default class Crontab {
     this.taskPlanId = payload.taskPlanId || 0;
     this.taskPlanName = payload.taskPlanName;
     this.taskTemplateId = payload.taskTemplateId;
-    this.failCount = payload.failCount || 0;
-    this.totalCount = payload.totalCount || 0;
+    this.failCount = Number(payload.failCount || 0);
+    this.totalCount = Number(payload.totalCount || 0);
     this.lastFailRecord = payload.lastFailRecord || [];
 
     this.variableValue = this.initVariableValue(payload.variableValue);
@@ -232,11 +232,11 @@ export default class Crontab {
      */
   get successRateTips() {
     const tips = `
-            <p>
-                ${I18n.t('最近')}<span style="padding: 0 0.2em;">${this.totalCount}</span>${I18n.t('次')}
-                ${I18n.t('有')}<span style="padding: 0 0.2em;">${this.failCount}</span>${I18n.t('次失败')}:
-            </p>
-        `;
+      <p>
+        ${I18n.t('最近')}<span style="padding: 0 0.2em;">${this.totalCount}</span>${I18n.t('次')}
+        ${I18n.t('有')}<span style="padding: 0 0.2em;">${this.failCount}</span>${I18n.t('次失败')}:
+      </p>
+    `;
     return this.lastFailRecord.slice(0, 5).reduce((result, item) => {
       result = `${result}<p>${item}</p>`;
       return result;
