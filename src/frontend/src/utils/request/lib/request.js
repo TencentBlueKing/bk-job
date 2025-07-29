@@ -171,6 +171,7 @@ export default class Request {
             payload: { ...this.requestPayload, },
         }).then(data => {
             this.setCache(requestHandler)
+            this.injectCSRFTokenToHeaders()
             return data
         })
         this.setCache(requestHandler)
