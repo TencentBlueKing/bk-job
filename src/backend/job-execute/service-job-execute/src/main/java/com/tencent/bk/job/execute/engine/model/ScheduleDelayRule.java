@@ -22,33 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.result;
+package com.tencent.bk.job.execute.engine.model;
 
-import com.tencent.bk.job.execute.config.ScheduleStrategyProperties;
+import lombok.Data;
 
 /**
- * 文件任务结果处理调度策略
+ * 调度延迟规则
  */
-public class FileTaskResultHandleScheduleStrategy extends AbstractResultHandleScheduleStrategy {
+@Data
+public class ScheduleDelayRule {
 
-    public FileTaskResultHandleScheduleStrategy(ScheduleStrategyProperties.DelayConfig config) {
-        super(config);
-    }
+    /**
+     * 次数上限阈值，当前次数小于等于maxCount时，应用当前delay值
+     */
+    private final int maxCount;
 
-    @Override
-    protected long getDelayWithoutRules(int handleCount) {
-        if (handleCount <= 2) {
-            // 2s以内，周期为1s
-            return 1000;
-        } else if (handleCount <= 11) {
-            // 2s-20s,周期为2s
-            return 2000;
-        } else if (handleCount <= 67) {
-            // 20s-5min,周期为5s
-            return 5000;
-        } else {
-            // 超过5min,周期为10s
-            return 10000;
-        }
-    }
+    /**
+     * 延迟时间，单位毫秒
+     */
+    private final int delay;
 }

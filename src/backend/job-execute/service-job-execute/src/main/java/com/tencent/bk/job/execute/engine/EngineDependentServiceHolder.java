@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine;
 
 import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.execute.config.ScheduleStrategyProperties;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
@@ -69,6 +70,7 @@ public class EngineDependentServiceHolder {
     private final GseClient gseClient;
     private final RunningJobKeepaliveManager runningJobKeepaliveManager;
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
+    private final ScheduleStrategyProperties scheduleStrategyProperties;
 
     public EngineDependentServiceHolder(ResultHandleManager resultHandleManager,
                                         TaskInstanceService taskInstanceService,
@@ -87,7 +89,8 @@ public class EngineDependentServiceHolder {
                                         Tracer tracer,
                                         GseClient gseClient,
                                         RunningJobKeepaliveManager runningJobKeepaliveManager,
-                                        JobBuildInVariableResolver jobBuildInVariableResolver) {
+                                        JobBuildInVariableResolver jobBuildInVariableResolver,
+                                        ScheduleStrategyProperties scheduleStrategyProperties) {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
@@ -106,5 +109,6 @@ public class EngineDependentServiceHolder {
         this.gseClient = gseClient;
         this.runningJobKeepaliveManager = runningJobKeepaliveManager;
         this.jobBuildInVariableResolver = jobBuildInVariableResolver;
+        this.scheduleStrategyProperties = scheduleStrategyProperties;
     }
 }
