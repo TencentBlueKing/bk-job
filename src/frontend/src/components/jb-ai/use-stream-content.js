@@ -1,3 +1,4 @@
+import Cookie from 'js-cookie';
 import { ref } from 'vue';
 
 import I18n from '@/i18n';
@@ -24,6 +25,7 @@ export default (messageList) => {
       }),
       headers: {
         'Content-Type': 'application/json',
+        'X-CSRF-Token': Cookie.get('job_csrf_key') || '',
       },
     })
       .then((response) => {
