@@ -1005,11 +1005,18 @@ public class TaskResultServiceImpl implements TaskResultService {
         }
 
         List<StepExecutionRecordDTO> records;
-        if (batch == null || batch == 0) {
-            // 获取步骤维度的重试记录
+        if (batch == null) {
+            // 获取滚动任务当前滚动批次的重试记录
+            records = queryStepRollingTaskRetryRecords(
+                stepInstance.getTaskInstanceId(),
+                stepInstanceId,
+                stepInstance.getBatch()
+            );
+        } else if (batch == 0) {
+            // 获取步骤维度的全部重试记录
             records = queryStepRetryRecords(stepInstance);
         } else {
-            // 获取滚动任务维度的重试记录
+            // 获取滚动任务特定批次的重试记录
             records = queryStepRollingTaskRetryRecords(stepInstance.getTaskInstanceId(), stepInstanceId, batch);
         }
 
