@@ -32,20 +32,34 @@
     <task-step-detail
       :data="stepInfo"
       :variable="variableList">
-      <detail-item
-        v-if="rollingConfigExpr"
-        :label="$t('history.滚动策略：')">
-        <span
-          v-bk-tooltips.right="rollingExprParse(rollingConfigExpr)"
-          class="tips">
-          {{ rollingConfigExpr }}
-        </span>
-      </detail-item>
-      <detail-item
-        v-if="rollingModeText"
-        :label="$t('history.滚动机制：')">
-        {{ rollingModeText }}
-      </detail-item>
+      <template v-if="stepInfo.rollingConfig">
+        <detail-item :label="$t('history.滚动对象：')">
+          {{ stepInfo.rollingConfig.fileSource ? $t('history.源文件') : $t('history.传输目标') }}
+        </detail-item>
+        <detail-item :label="$t('history.分批策略：')">
+          <span
+            v-if="rollingConfigExpr"
+            v-bk-tooltips.right="rollingExprParse(rollingConfigExpr)"
+            class="tips">
+            {{ rollingConfigExpr }}
+          </span>
+          <template v-if="stepInfo.rollingConfig.fileSource">
+            <div>
+              <span>{{ $t('history.单批次最大并发源主机/容器数') }}</span>
+              <span class="strong">{{ stepInfo.rollingConfig.fileSource.maxExecuteObjectNumInBatch }}</span>
+            </div>
+            <div>
+              <span>{{ $t('history.源单主机/容器最大并发文件数') }}</span>
+              <span class="strong">{{ stepInfo.rollingConfig.fileSource.maxFileNumOfSingleExecuteObject }}</span>
+            </div>
+          </template>
+        </detail-item>
+        <detail-item
+          v-if="rollingModeText"
+          :label="$t('history.滚动机制：')">
+          {{ rollingModeText }}
+        </detail-item>
+      </template>
     </task-step-detail>
   </div>
 </template>
@@ -57,8 +71,8 @@
 
   import TaskExecuteService from '@service/task-execute';
 
+  import TaskInstanceDetailStepMode from '@model/execution/task-instance-detail-step';
   import GlobalVariableModel from '@model/task/global-variable';
-  import TaskStepModel from '@model/task/task-step';
 
   import rollingExprParse from '@utils/rolling-expr-parse';
 
@@ -99,7 +113,7 @@
       rollingModeText.value = modeMap[data.rollingConfig.mode];
     }
 
-    stepInfo.value = new TaskStepModel(data);
+    stepInfo.value = new TaskInstanceDetailStepMode(data);
   });
 
   const fetchTaskVariables = () => TaskExecuteService.fetchStepInstanceParam({
