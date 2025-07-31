@@ -60,6 +60,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceExecuteObjects;
 import com.tencent.bk.job.execute.service.ContainerService;
 import com.tencent.bk.job.execute.service.HostService;
+import com.tencent.bk.job.file_gateway.consts.FileSourceTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
@@ -993,7 +994,7 @@ public class TaskInstanceExecuteObjectProcessor {
                 List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
                 if (fileSourceList != null) {
                     for (FileSourceDTO fileSource : fileSourceList) {
-                        if (fileSource.getServers() != null) {
+                        if (fileSource.needToCheckHosts() && fileSource.getServers() != null) {
                             hosts.addAll(fileSource.getServers().extractHosts());
                         }
                     }
