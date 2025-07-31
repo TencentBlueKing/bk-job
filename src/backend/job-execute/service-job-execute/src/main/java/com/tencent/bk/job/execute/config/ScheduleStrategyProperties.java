@@ -22,33 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.result;
+package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.execute.config.ScheduleStrategyProperties;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 /**
- * 文件任务结果处理调度策略
+ * 任务执行结果延迟调度策略配置
  */
-public class FileTaskResultHandleScheduleStrategy extends AbstractResultHandleScheduleStrategy {
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "job.execute.result.schedule-strategy")
+@Component
+public class ScheduleStrategyProperties {
 
-    public FileTaskResultHandleScheduleStrategy(ScheduleStrategyProperties.DelayConfig config) {
-        super(config);
-    }
+    /**
+     * 脚本执行日志调度延迟配置
+     */
+    private DelayConfig script;
 
-    @Override
-    protected long getDelayWithoutRules(int handleCount) {
-        if (handleCount <= 2) {
-            // 2s以内，周期为1s
-            return 1000;
-        } else if (handleCount <= 11) {
-            // 2s-20s,周期为2s
-            return 2000;
-        } else if (handleCount <= 67) {
-            // 20s-5min,周期为5s
-            return 5000;
-        } else {
-            // 超过5min,周期为10s
-            return 10000;
-        }
+    /**
+     * 文件分发日志调度延迟配置
+     */
+    private DelayConfig file;
+
+    @Getter
+    @Setter
+    @ToString
+    public static class DelayConfig {
+        /**
+         * 延迟规则格式："2:500,11:1000"
+         */
+        private String delayRules;
+
+        /**
+         * 超出所有规则后使用的统一延迟（单位：毫秒）
+         */
+        private int finalDelay = 10000;
     }
 }

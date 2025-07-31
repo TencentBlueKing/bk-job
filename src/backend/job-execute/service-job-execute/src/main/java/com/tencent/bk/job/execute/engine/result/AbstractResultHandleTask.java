@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
+import com.tencent.bk.job.execute.config.ScheduleStrategyProperties;
 import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
@@ -219,6 +220,11 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     private TaskContext taskContext;
 
+    /**
+     * 延迟调度策略配置
+     */
+    protected final ScheduleStrategyProperties scheduleStrategyProperties;
+
     protected AbstractResultHandleTask(EngineDependentServiceHolder engineDependentServiceHolder,
                                        ExecuteObjectTaskService executeObjectTaskService,
                                        JobExecuteConfig jobExecuteConfig,
@@ -240,6 +246,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.stepInstanceService = engineDependentServiceHolder.getStepInstanceService();
         this.gseClient = engineDependentServiceHolder.getGseClient();
         this.runningJobKeepaliveManager = engineDependentServiceHolder.getRunningJobKeepaliveManager();
+        this.scheduleStrategyProperties = engineDependentServiceHolder.getScheduleStrategyProperties();
 
         this.executeObjectTaskService = executeObjectTaskService;
         this.jobExecuteConfig = jobExecuteConfig;

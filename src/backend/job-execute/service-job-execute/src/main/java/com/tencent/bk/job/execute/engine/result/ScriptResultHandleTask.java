@@ -617,7 +617,7 @@ public class ScriptResultHandleTask extends AbstractResultHandleTask<ScriptTaskR
     @Override
     public ScheduleStrategy getScheduleStrategy() {
         if (this.scheduleStrategy == null) {
-            this.scheduleStrategy = new ScriptTaskResultHandleScheduleStrategy();
+            this.scheduleStrategy = new ScriptTaskResultHandleScheduleStrategy(scheduleStrategyProperties.getScript());
         }
         return this.scheduleStrategy;
     }

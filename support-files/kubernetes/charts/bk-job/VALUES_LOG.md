@@ -1,4 +1,24 @@
 # chart values 更新日志
+## 0.7.4
+1. 增加作业执行结果轮询规则的配置
+
+```yaml
+executeConfig:  
+  result:
+    scheduleStrategy:
+      # 脚本执行  
+      script:
+        # 轮训规则，间隔不应太短，任务量大会给执行引擎、GSE增加压力，应根据实际情况渐进式调整，格式"count:delay,count:delay"
+        # 下面示例，表示前2次每500毫秒轮训一次，3到11次每1秒轮训一次，轮训次数超过11每5秒轮训一次
+        delayRules: "2:500,11:1000"
+        # 超出所有规则后使用的统一延迟（单位：毫秒）    
+        finalDelay: 5000
+      # 文件分发  
+      file:
+        delayRules: "2:500,11:1000"
+        finalDelay: 5000
+```
+
 ## 0.7.3
 1. 增加连接外部MariaDB、Redis、RabbitMQ、MongoDB支持TLS相关配置
 ```yaml
