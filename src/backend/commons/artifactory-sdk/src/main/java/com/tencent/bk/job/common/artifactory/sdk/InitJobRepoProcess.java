@@ -57,6 +57,17 @@ public class InitJobRepoProcess {
      * 执行仓库初始化流程
      */
     public void execute() {
+        log.info("InitJobRepoProcess start");
+        try {
+            doExecute();
+        } catch (Exception e) {
+            log.error("InitJobRepoProcess error", e);
+        } finally {
+            log.info("InitJobRepoProcess end");
+        }
+    }
+
+    private void doExecute() {
         boolean storeServiceReady = artifactoryHelper.waitUntilStoreServiceReady(1800);
         if (!storeServiceReady) {
             log.error(
@@ -84,6 +95,7 @@ public class InitJobRepoProcess {
             );
         }
         if (userRepoExists) {
+            log.info("Repo already exists");
             return;
         }
         // 2.创建项目与用户
