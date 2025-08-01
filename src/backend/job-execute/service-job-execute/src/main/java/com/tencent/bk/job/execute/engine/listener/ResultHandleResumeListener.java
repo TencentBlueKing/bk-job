@@ -183,8 +183,11 @@ public class ResultHandleResumeListener extends BaseJobMqListener {
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
                                 GseTaskDTO gseTask,
                                 String requestId) {
-        Set<JobFile> sendFiles = JobSrcFileUtils.parseSrcFiles(stepInstance,
-            fileDistributeConfig.getJobDistributeRootPath());
+        Set<JobFile> sendFiles = JobSrcFileUtils.parseSrcFilesFromFileSource(
+            stepInstance,
+            stepInstance.getFileSourceList(),
+            fileDistributeConfig.getJobDistributeRootPath()
+        );
         String targetDir = FilePathUtils.standardizedDirPath(stepInstance.getResolvedFileTargetPath());
         Map<JobFile, FileDest> srcAndDestMap = JobSrcFileUtils.buildSourceDestPathMapping(
             sendFiles, targetDir, stepInstance.getFileTargetName());

@@ -42,4 +42,5 @@ public class SegmentIdKeys {
         "job_execute.step_instance_rolling_task";
     public static final String KEY_JOB_EXECUTE_STEP_INSTANCE_VARIABLE = "job_execute.step_instance_variable";
     public static final String KEY_JOB_EXECUTE_TASK_INSTANCE_VARIABLE = "job_execute.task_instance_variable";
+    public static final String KEY_JOB_EXECUTE_STEP_INSTANCE_FILE_BATCH = "job_execute.step_instance_file_batch";
 }

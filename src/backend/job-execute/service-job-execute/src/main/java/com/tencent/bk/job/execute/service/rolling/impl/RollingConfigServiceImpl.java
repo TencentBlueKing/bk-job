@@ -22,25 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service.impl;
+package com.tencent.bk.job.execute.service.rolling.impl;
 
 import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.common.constant.RollingTypeEnum;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
 import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.rolling.RollingBatchExecuteObjectsResolver;
 import com.tencent.bk.job.execute.engine.rolling.RollingExecuteObjectBatch;
 import com.tencent.bk.job.execute.model.FastTaskDTO;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.StepInstanceFileBatchDTO;
 import com.tencent.bk.job.execute.model.StepRollingConfigDTO;
-import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
+import com.tencent.bk.job.execute.model.db.ExecuteObjectRollingConfigDetailDO;
+import com.tencent.bk.job.execute.model.db.StepFileSourceRollingConfigDO;
+import com.tencent.bk.job.execute.model.db.FileSourceRollingConfigDO;
 import com.tencent.bk.job.execute.model.db.RollingExecuteObjectsBatchDO;
 import com.tencent.bk.job.execute.model.db.StepRollingConfigDO;
-import com.tencent.bk.job.execute.service.RollingConfigService;
+import com.tencent.bk.job.execute.service.rolling.FileSourceBatchCalculator;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
+import com.tencent.bk.job.execute.service.rolling.StepInstanceFileBatchService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,12 +65,18 @@ public class RollingConfigServiceImpl implements RollingConfigService {
 
     private final RollingConfigDAO rollingConfigDAO;
     private final IdGen idGen;
-
+    private final FileSourceBatchCalculator fileSourceBatchCalculator;
+    private final StepInstanceFileBatchService stepInstanceFileBatchService;
 
     @Autowired
-    public RollingConfigServiceImpl(RollingConfigDAO rollingConfigDAO, IdGen idGen) {
+    public RollingConfigServiceImpl(RollingConfigDAO rollingConfigDAO,
+                                    IdGen idGen,
+                                    FileSourceBatchCalculator fileSourceBatchCalculator,
+                                    StepInstanceFileBatchService stepInstanceFileBatchService) {
         this.rollingConfigDAO = rollingConfigDAO;
         this.idGen = idGen;
+        this.fileSourceBatchCalculator = fileSourceBatchCalculator;
+        this.stepInstanceFileBatchService = stepInstanceFileBatchService;
     }
 
     @Override
@@ -72,13 +86,13 @@ public class RollingConfigServiceImpl implements RollingConfigService {
 
         RollingConfigDTO rollingConfig =
             rollingConfigDAO.queryRollingConfigById(stepInstance.getTaskInstanceId(), rollingConfigId);
-        if (rollingConfig.isBatchRollingStep(stepInstanceId)) {
+        if (rollingConfig.isExecuteObjectBatchRollingStep(stepInstanceId)) {
             if (batch == null || batch == 0) {
                 // 忽略滚动批次，返回当前步骤的所有目标服务器
                 return stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly();
             } else {
                 return rollingConfig
-                    .getConfigDetail()
+                    .getExecuteObjectRollingConfig()
                     .getExecuteObjectsBatchListCompatibly()
                     .stream()
                     .filter(serverBatch -> serverBatch.getBatch().equals(batch))
@@ -93,44 +107,98 @@ public class RollingConfigServiceImpl implements RollingConfigService {
 
     @Override
     public RollingConfigDTO saveRollingConfigForFastJob(FastTaskDTO fastTask) {
-        StepInstanceDTO stepInstance = fastTask.getStepInstance();
-
         RollingConfigDTO taskInstanceRollingConfig = new RollingConfigDTO();
         taskInstanceRollingConfig.setTaskInstanceId(fastTask.getTaskInstance().getId());
 
         StepRollingConfigDTO rollingConfig = fastTask.getRollingConfig();
 
-        String rollingConfigName = StringUtils.isBlank(rollingConfig.getName()) ? "default" : rollingConfig.getName();
+        String rollingConfigName = getRollingConfigName(rollingConfig);
         taskInstanceRollingConfig.setConfigName(rollingConfigName);
+        taskInstanceRollingConfig.setType(rollingConfig.getType());
 
-        RollingConfigDetailDO rollingConfigDetailDO = new RollingConfigDetailDO();
-        rollingConfigDetailDO.setName(rollingConfigName);
-        rollingConfigDetailDO.setMode(rollingConfig.getMode());
-        rollingConfigDetailDO.setExpr(rollingConfig.getExpr());
+        if (rollingConfig.isTargetExecuteObjectRolling()) {
+            ExecuteObjectRollingConfigDetailDO executeObjectRollingConfig = buildExecuteObjectRollingConfig(
+                rollingConfig,
+                fastTask
+            );
+            taskInstanceRollingConfig.setExecuteObjectRollingConfig(executeObjectRollingConfig);
+        } else if (rollingConfig.isFileSourceRolling()) {
+            FileSourceRollingConfigDO stepFileSourceRollingConfigs = buildFileSourceRollingConfig(
+                fastTask,
+                rollingConfig
+            );
+            taskInstanceRollingConfig.setStepFileSourceRollingConfigs(stepFileSourceRollingConfigs);
+        } else {
+            throw new IllegalArgumentException("Unknown rolling config: " + JsonUtils.toJson(rollingConfig));
+        }
+
+        Long rollingConfigId = addRollingConfig(taskInstanceRollingConfig);
+        taskInstanceRollingConfig.setId(rollingConfigId);
+        return taskInstanceRollingConfig;
+    }
+
+    private String getRollingConfigName(StepRollingConfigDTO rollingConfig) {
+        if (StringUtils.isBlank(rollingConfig.getName())) {
+            return "default";
+        } else {
+            return rollingConfig.getName();
+        }
+    }
+
+    private ExecuteObjectRollingConfigDetailDO buildExecuteObjectRollingConfig(StepRollingConfigDTO rollingConfig,
+                                                                               FastTaskDTO fastTask) {
+        StepInstanceDTO stepInstance = fastTask.getStepInstance();
+        String rollingConfigName = getRollingConfigName(rollingConfig);
+        ExecuteObjectRollingConfigDetailDO executeObjectRollingConfig = new ExecuteObjectRollingConfigDetailDO();
+        executeObjectRollingConfig.setName(rollingConfigName);
+        executeObjectRollingConfig.setMode(rollingConfig.getMode());
+        executeObjectRollingConfig.setExpr(rollingConfig.getExpr());
 
         RollingBatchExecuteObjectsResolver resolver =
             new RollingBatchExecuteObjectsResolver(
                 fastTask.getStepInstance().getTargetExecuteObjects().getExecuteObjectsCompatibly(),
                 rollingConfig.getExpr());
         List<RollingExecuteObjectBatch> executeObjectsBatchList = resolver.resolve();
-        rollingConfigDetailDO.setExecuteObjectsBatchList(
+        executeObjectRollingConfig.setExecuteObjectsBatchList(
             executeObjectsBatchList.stream()
                 .map(rollingExecuteObjectBatch ->
                     new RollingExecuteObjectsBatchDO(rollingExecuteObjectBatch.getBatch(),
                         rollingExecuteObjectBatch.getExecuteObjects()))
                 .collect(Collectors.toList()));
 
-        rollingConfigDetailDO.setTotalBatch(rollingConfigDetailDO.getExecuteObjectsBatchListCompatibly().size());
-        taskInstanceRollingConfig.setConfigDetail(rollingConfigDetailDO);
+        executeObjectRollingConfig.setTotalBatch(
+            executeObjectRollingConfig.getExecuteObjectsBatchListCompatibly().size()
+        );
 
-        rollingConfigDetailDO.setIncludeStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
+        executeObjectRollingConfig.setIncludeStepInstanceIdList(Lists.newArrayList(stepInstance.getId()));
         Map<Long, StepRollingConfigDO> stepRollingConfigs = new HashMap<>();
         stepRollingConfigs.put(stepInstance.getId(), new StepRollingConfigDO(true));
-        rollingConfigDetailDO.setStepRollingConfigs(stepRollingConfigs);
+        executeObjectRollingConfig.setStepRollingConfigs(stepRollingConfigs);
+        return executeObjectRollingConfig;
+    }
 
-        Long rollingConfigId = addRollingConfig(taskInstanceRollingConfig);
-        taskInstanceRollingConfig.setId(rollingConfigId);
-        return taskInstanceRollingConfig;
+    private FileSourceRollingConfigDO buildFileSourceRollingConfig(FastTaskDTO fastTask,
+                                                                   StepRollingConfigDTO rollingConfig) {
+        FileSourceRollingConfigDO fileSourceRollingConfigDO = new FileSourceRollingConfigDO();
+        StepFileSourceRollingConfigDO fileSourceRollingConfig =
+            StepFileSourceRollingConfigDO.fromStepRollingConfigDTO(rollingConfig);
+
+        Long taskInstanceId = fastTask.getTaskInstance().getId();
+        Long stepInstanceId = fastTask.getStepInstance().getId();
+        List<FileSourceDTO> fileSourceList = fastTask.getStepInstance().getFileSourceList();
+        // 对源文件进行分批，生成多个批次的源文件并保存
+        List<StepInstanceFileBatchDTO> stepInstanceFileBatchDTOList = fileSourceBatchCalculator.calc(
+            taskInstanceId,
+            stepInstanceId,
+            fileSourceList,
+            fileSourceRollingConfig
+        );
+        stepInstanceFileBatchService.batchInsert(stepInstanceFileBatchDTOList);
+
+        Map<Long, StepFileSourceRollingConfigDO> stepFileSourceRollingConfigs = new HashMap<>();
+        stepFileSourceRollingConfigs.put(stepInstanceId, fileSourceRollingConfig);
+        fileSourceRollingConfigDO.setStepFileSourceRollingConfigs(stepFileSourceRollingConfigs);
+        return fileSourceRollingConfigDO;
     }
 
     @Override
@@ -147,5 +215,15 @@ public class RollingConfigServiceImpl implements RollingConfigService {
     public long addRollingConfig(RollingConfigDTO rollingConfig) {
         rollingConfig.setId(idGen.genRollingConfigId());
         return rollingConfigDAO.saveRollingConfig(rollingConfig);
+    }
+
+    @Override
+    public int getTotalBatch(long taskInstanceId, long stepInstanceId, Long rollingConfigId) {
+        RollingConfigDTO rollingConfig = getRollingConfig(taskInstanceId, rollingConfigId);
+        if (rollingConfig.isFileSourceRolling()) {
+            return stepInstanceFileBatchService.getMaxBatch(taskInstanceId, stepInstanceId);
+        } else {
+            return rollingConfig.getExecuteObjectRollingConfig().getTotalBatch();
+        }
     }
 }

@@ -65,7 +65,7 @@ import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatis
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.FileSourceTaskLogService;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.RollingConfigService;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -788,7 +788,11 @@ public class TaskResultServiceImpl implements TaskResultService {
                     stepInstanceRollingTask -> stepInstanceRollingTask, (oldValue, newValue) -> newValue));
 
         // 如果滚动任务还未调度，那么需要在结果中补充
-        int totalBatch = rollingConfig.getConfigDetail().getTotalBatch();
+        int totalBatch = rollingConfigService.getTotalBatch(
+            stepInstance.getTaskInstanceId(),
+            stepInstance.getId(),
+            stepInstance.getRollingConfigId()
+        );
         List<StepInstanceRollingTaskDTO> stepInstanceRollingTasks = new ArrayList<>();
         for (int batch = 1; batch <= totalBatch; batch++) {
             StepInstanceRollingTaskDTO stepInstanceRollingTask = latestStepInstanceRollingTasks.get(batch);
@@ -811,7 +815,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
         stepExecutionDetail.setRollingTasks(stepInstanceRollingTasks);
         stepExecutionDetail.setLatestBatch(stepInstance.getBatch());
-        stepExecutionDetail.setRunMode(rollingConfig.isBatchRollingStep(stepInstance.getId()) ?
+        stepExecutionDetail.setRunMode(rollingConfig.isExecuteObjectBatchRollingStep(stepInstance.getId()) ?
             StepRunModeEnum.ROLLING_IN_BATCH : StepRunModeEnum.ROLLING_ALL);
     }
 
@@ -1001,11 +1005,18 @@ public class TaskResultServiceImpl implements TaskResultService {
         }
 
         List<StepExecutionRecordDTO> records;
-        if (batch == null || batch == 0) {
-            // 获取步骤维度的重试记录
+        if (batch == null) {
+            // 获取滚动任务当前滚动批次的重试记录
+            records = queryStepRollingTaskRetryRecords(
+                stepInstance.getTaskInstanceId(),
+                stepInstanceId,
+                stepInstance.getBatch()
+            );
+        } else if (batch == 0) {
+            // 获取步骤维度的全部重试记录
             records = queryStepRetryRecords(stepInstance);
         } else {
-            // 获取滚动任务维度的重试记录
+            // 获取滚动任务特定批次的重试记录
             records = queryStepRollingTaskRetryRecords(stepInstance.getTaskInstanceId(), stepInstanceId, batch);
         }
 

@@ -96,7 +96,6 @@ import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
 import com.tencent.bk.job.execute.service.HostService;
-import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
@@ -104,6 +103,7 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.execute.service.TaskPlanService;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.execute.util.LoggerFactory;
 import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
@@ -380,7 +380,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
      * 给主机赋值密码
      */
     private List<AgentCustomPasswordDTO> setAgentCustomPwd(List<EsbCustomHostPasswordDTO> customPasswordDTOList,
-                                                       Collection<ServiceHostDTO> serviceHosts) {
+                                                           Collection<ServiceHostDTO> serviceHosts) {
         // 构造原始主机密码列表映射关系，加快匹配
         Map<Long, EsbCustomHostPasswordDTO> hostIdMap = customPasswordDTOList.stream()
             .filter(dto -> dto.getHostId() != null)
@@ -426,13 +426,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                     StepInstanceDTO stepInstanceDTO) {
         List<EsbCustomHostPasswordDTO> customHostPasswordDTOList = fastTask.getHostPasswordList();
         if (CollectionUtils.isEmpty(customHostPasswordDTOList)) {
-            return ;
+            return;
         }
 
         watch.start("cacheTargetHostPwd");
         if (!isWindowsAccount(stepInstanceDTO.getAccountId())) {
             log.debug("Not windows target host, no password is required, skip.");
-            return ;
+            return;
         }
 
         Collection<ServiceHostDTO> serviceHostDTOs = getRealHostsByCustomPwdList(customHostPasswordDTOList);
