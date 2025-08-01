@@ -72,15 +72,21 @@ export default class TaskInstanceDetailStep {
       return {
         expr: '',
         mode: '',
+        name: '',
+        fileSource: undefined,
       };
     }
     const {
       expr = '',
       mode = '',
+      name = '',
+      fileSource,
     } = rollingConfig;
     return {
       expr,
       mode,
+      name,
+      fileSource,
     };
   }
 }
