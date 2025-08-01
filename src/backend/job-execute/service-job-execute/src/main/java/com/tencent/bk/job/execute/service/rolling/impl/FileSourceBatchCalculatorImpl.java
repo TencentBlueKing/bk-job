@@ -70,6 +70,12 @@ public class FileSourceBatchCalculatorImpl implements FileSourceBatchCalculator 
         List<StepInstanceFileBatchDTO> resultList = new ArrayList<>();
         Integer maxExecuteObjectNumInBatch = fileSourceRollingConfig.getMaxExecuteObjectNumInBatch();
         Integer maxFileNumOfSingleExecuteObject = fileSourceRollingConfig.getMaxFileNumOfSingleExecuteObject();
+        if (maxExecuteObjectNumInBatch == null || maxExecuteObjectNumInBatch <= 0) {
+            maxExecuteObjectNumInBatch = Integer.MAX_VALUE;
+        }
+        if (maxFileNumOfSingleExecuteObject == null || maxFileNumOfSingleExecuteObject <= 0) {
+            maxFileNumOfSingleExecuteObject = Integer.MAX_VALUE;
+        }
         for (int i = 0; i < fileSourceList.size(); i++) {
             FileSourceDTO fileSourceDTO = fileSourceList.get(i);
             if (fileSourceDTO.getFileNum() > maxFileNumOfSingleExecuteObject

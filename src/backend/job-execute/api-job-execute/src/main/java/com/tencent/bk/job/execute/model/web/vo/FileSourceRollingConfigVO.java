@@ -45,7 +45,7 @@ public class FileSourceRollingConfigVO {
         message = "{validation.constraints.RollingFileSourceMaxExecuteObjectNumInBatch_Positive.message}"
     )
     @ApiModelProperty(value = "单批次最大源执行对象数，不传表示不限制")
-    private Integer maxExecuteObjectNumInBatch = Integer.MAX_VALUE;
+    private Integer maxExecuteObjectNumInBatch;
 
     /**
      * 单个执行对象的最大并发文件数
@@ -55,5 +55,5 @@ public class FileSourceRollingConfigVO {
         message = "{validation.constraints.RollingFileSourceMaxFileNumOfExecuteObject_Positive.message}"
     )
     @ApiModelProperty(value = "单个执行对象的最大并发文件数，不传表示不限制")
-    private Integer maxFileNumOfSingleExecuteObject = Integer.MAX_VALUE;
+    private Integer maxFileNumOfSingleExecuteObject;
 }
