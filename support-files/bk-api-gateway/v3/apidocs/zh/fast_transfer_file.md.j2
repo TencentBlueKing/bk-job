@@ -11,7 +11,7 @@
 | bk_scope_type        | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                                                |
 | bk_scope_id          | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                                           |
 | bk_biz_id            | long   | 是  | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换                                                 |
-| task_name            | string | 否  | 自定义作业名称                                                                                           |
+| task_name            | string | 否  | 自定义作业名称，长度不可超过512字符                                                                                           |
 | account_alias        | string | 否  | 目标执行账号别名，可从账号页面获取，推荐使用。与account_id必须存在一个。当同时存在account_alias和account_id时，account_id优先。             |
 | account_id           | long   | 否  | 目标执行账号ID，可从get_account_list接口获取。与account_alias必须存在一个。当同时存在account_alias和account_id时，account_id优先。 |
 | file_target_path     | string | 是  | 文件传输目标路径                                                                                          |

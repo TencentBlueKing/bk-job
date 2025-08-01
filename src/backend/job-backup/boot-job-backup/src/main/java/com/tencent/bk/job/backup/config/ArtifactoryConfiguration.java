@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.manage.api.inner.ServiceRealProjectNameResource;
 import com.tencent.bk.job.manage.remote.RemoteRealProjectNameStore;
 import com.tentent.bk.job.common.api.artifactory.IRealProjectNameStore;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -37,8 +38,9 @@ import org.springframework.context.annotation.Configuration;
 public class ArtifactoryConfiguration {
 
     @Bean
-    public IRealProjectNameStore realProjectNameStore(ServiceRealProjectNameResource realProjectNameResource) {
-        return new RemoteRealProjectNameStore(realProjectNameResource);
+    public IRealProjectNameStore realProjectNameStore(ServiceRealProjectNameResource realProjectNameResource,
+                                                      DiscoveryClient discoveryClient) {
+        return new RemoteRealProjectNameStore(realProjectNameResource, discoveryClient);
     }
 
     @Bean

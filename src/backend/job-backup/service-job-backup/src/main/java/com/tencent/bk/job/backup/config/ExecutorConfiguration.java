@@ -72,4 +72,16 @@ public class ExecutorConfiguration {
         );
     }
 
+    @Bean("backupInitRunnerExecutor")
+    public ThreadPoolExecutor backupInitRunnerExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "initRunnerExecutor",
+            0,
+            5,
+            1,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>()
+        );
+    }
 }

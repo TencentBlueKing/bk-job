@@ -8,15 +8,15 @@ Distribute configuration files, this interface is used to distribute small plain
 
 #### Interface parameters
 
-| Fields |  Type  | Required | Description |
-|-------------|------------|--------|------------|
-| bk_scope_type | string | yes  | Resource scope type. Optional values: biz - Business，biz_set - Business Set |
+| Fields |  Type  | Required | Description                                                                           |
+|-------------|------------|--------|---------------------------------------------------------------------------------------|
+| bk_scope_type | string | yes  | Resource scope type. Optional values: biz - Business，biz_set - Business Set           |
 | bk_scope_id | string | yes | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| task_name        |   string     |  no   | Custom job name|
-| account_alias  |  string    |  yes  |Execute account alias|
-| file_target_path |  string    |  yes  |File transfer destination path|
-| file_list        |   array     |  yes  |Source file object array, see file definition below|
-| target_server |  object  | yes |Target server, see server definition       |
+| task_name        |   string     |  no   | Custom job name, length cannot exceed 512 characters                                  |
+| account_alias  |  string    |  yes  | Execute account alias                                                                 |
+| file_target_path |  string    |  yes  | File transfer destination path                                                        |
+| file_list        |   array     |  yes  | Source file object array, see file definition below                                   |
+| target_server |  object  | yes | Target server, see server definition                                                  |
 
 #### file
 

@@ -893,6 +893,9 @@ gatewayConfig:
     enabled: false
     # 用户名（多租户环境下为用户唯一标识UUID）映射规则：key为原用户名，value为目标用户名
     map: {}
+  csrfCheck:
+    # 是否开启CSRF校验，默认开启
+    enabled: true
   image:
     registry: hub.bktencent.com
     repository: blueking/job-gateway

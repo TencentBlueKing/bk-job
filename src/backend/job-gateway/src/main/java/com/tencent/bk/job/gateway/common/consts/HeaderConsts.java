@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -22,33 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tentent.bk.job.common.api.artifactory;
+package com.tencent.bk.job.gateway.common.consts;
 
-/**
- * 保存创建好的真实项目名称接口
- */
-public interface IRealProjectNameStore {
-
-    /**
-     * 等待存储服务准备就绪
-     *
-     * @param maxWaitSeconds 最大等待时间
-     * @return 存储服务是否准备就绪
-     */
-    boolean waitUntilStoreServiceReady(Integer maxWaitSeconds);
-
-    /**
-     * 保存真实项目名称
-     *
-     * @param saveKey         用于存储真实项目名称的Key
-     * @param realProjectName 真实项目名称
-     */
-    void saveRealProjectName(String saveKey, String realProjectName);
-
-    /**
-     * 查询真实项目名称
-     *
-     * @param saveKey 用于存储真实项目名称的Key
-     */
-    String queryRealProjectName(String saveKey);
+public class HeaderConsts {
+    // 登录跳转链接
+    public static final String KEY_LOGIN_URL = "x-login-url";
 }

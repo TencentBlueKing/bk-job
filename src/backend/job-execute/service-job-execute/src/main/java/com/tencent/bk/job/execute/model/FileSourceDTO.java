@@ -24,10 +24,12 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.execute.model.inner.ServiceFileSourceDTO;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -122,5 +124,15 @@ public class FileSourceDTO implements Cloneable {
         }
         serviceFileSourceDTO.setServers(servers.toServiceExecuteTargetDTO());
         return serviceFileSourceDTO;
+    }
+
+    /**
+     * 是否需要校验源主机，当前只有服务器文件需要校验
+     *
+     * @return 布尔值
+     */
+    @JsonIgnore
+    public boolean needToCheckHosts() {
+        return getFileType() == TaskFileTypeEnum.SERVER.getType();
     }
 }
