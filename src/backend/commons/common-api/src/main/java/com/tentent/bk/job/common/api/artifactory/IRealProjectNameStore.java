@@ -30,6 +30,14 @@ package com.tentent.bk.job.common.api.artifactory;
 public interface IRealProjectNameStore {
 
     /**
+     * 等待存储服务准备就绪
+     *
+     * @param maxWaitSeconds 最大等待时间
+     * @return 存储服务是否准备就绪
+     */
+    boolean waitUntilStoreServiceReady(Integer maxWaitSeconds);
+
+    /**
      * 保存真实项目名称
      *
      * @param saveKey         用于存储真实项目名称的Key

@@ -57,6 +57,14 @@ public class InitJobRepoProcess {
      * 执行仓库初始化流程
      */
     public void execute() {
+        boolean storeServiceReady = artifactoryHelper.waitUntilStoreServiceReady(1800);
+        if (!storeServiceReady) {
+            log.error(
+                "Store service to interact with Artifactory is not ready after 30 minutes, " +
+                    "ignore InitJobRepoProcess"
+            );
+            return;
+        }
         String baseUrl = artifactoryConfig.getArtifactoryBaseUrl();
         String adminUsername = artifactoryConfig.getArtifactoryAdminUsername();
         String adminPassword = artifactoryConfig.getArtifactoryAdminPassword();
