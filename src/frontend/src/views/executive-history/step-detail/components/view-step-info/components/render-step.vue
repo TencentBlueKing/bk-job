@@ -53,7 +53,10 @@
             </div>
             <div>
               <span>{{ $t('history.源单主机/容器最大并发文件数') }}</span>
-              <span class="strong">{{ stepInfo.rollingConfig.fileSource.maxFileNumOfSingleExecuteObject }}</span>
+              <span
+                v-if="stepInfo.rollingConfig.fileSource.maxFileNumOfSingleExecuteObject"
+                class="strong">{{ stepInfo.rollingConfig.fileSource.maxFileNumOfSingleExecuteObject }}</span>
+              <span v-else>{{ $t('history.「不限制」') }}</span>
             </div>
           </template>
         </detail-item>
