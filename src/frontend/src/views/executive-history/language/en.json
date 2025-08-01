@@ -199,5 +199,6 @@
   "传输目标": "Target",
   "分批策略：": "Batch strategy：",
   "单批次最大并发源主机/容器数": "Max concurrent source hosts/containers per batch",
-  "源单主机/容器最大并发文件数": "Max concurrent files per source host/container"
+  "源单主机/容器最大并发文件数": "Max concurrent files per source host/container",
+  "「不限制」": "「No limit」"
 }
