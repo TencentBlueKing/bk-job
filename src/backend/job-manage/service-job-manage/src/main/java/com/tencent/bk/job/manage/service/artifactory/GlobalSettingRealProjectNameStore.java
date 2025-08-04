@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.manage.service.artifactory;
 
-import com.tentent.bk.job.common.api.artifactory.IRealProjectNameStore;
 import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.manage.dao.globalsetting.GlobalSettingDAO;
 import com.tencent.bk.job.manage.model.dto.GlobalSettingDTO;
+import com.tentent.bk.job.common.api.artifactory.IRealProjectNameStore;
 
 /**
  * 将真实仓库名称存放于全局配置中的实现
@@ -43,6 +43,17 @@ public class GlobalSettingRealProjectNameStore implements IRealProjectNameStore 
 
     public GlobalSettingRealProjectNameStore(GlobalSettingDAO globalSettingDAO) {
         this.globalSettingDAO = globalSettingDAO;
+    }
+
+    /**
+     * 等待存储服务准备就绪，在job-manage服务中，Bean准备好即可立即使用
+     *
+     * @param maxWaitSeconds 最大等待时间
+     * @return 是否准备就绪
+     */
+    @Override
+    public boolean waitUntilStoreServiceReady(Integer maxWaitSeconds) {
+        return true;
     }
 
     /**

@@ -36,6 +36,16 @@ public class ArtifactoryHelper {
     }
 
     /**
+     * 阻塞等待存储服务准备就绪
+     *
+     * @param maxWaitSeconds 最大等待时间，单位：秒
+     * @return 是否准备就绪
+     */
+    public boolean waitUntilStoreServiceReady(Integer maxWaitSeconds) {
+        return realProjectNameStore.waitUntilStoreServiceReady(maxWaitSeconds);
+    }
+
+    /**
      * 获取Job实际使用的制品库项目名称
      *
      * @return 实际的项目名称

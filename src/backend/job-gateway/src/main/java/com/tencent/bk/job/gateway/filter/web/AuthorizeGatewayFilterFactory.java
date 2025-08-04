@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.paas.exception.AppPermissionDeniedException;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.gateway.common.consts.HeaderConsts;
 import com.tencent.bk.job.gateway.config.LoginExemptionConfig;
 import com.tencent.bk.job.gateway.config.UserMapProperties;
 import com.tencent.bk.job.gateway.web.service.LoginService;
@@ -116,7 +117,7 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             if (CollectionUtils.isEmpty(bkTokenList)) {
                 log.warn("Cookie {} is empty,illegal request!", tokenCookieName);
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
-                response.getHeaders().add("x-login-url", loginService.getLoginRedirectUrl());
+                response.getHeaders().add(HeaderConsts.KEY_LOGIN_URL, loginService.getLoginRedirectUrl());
                 return response.setComplete();
             }
             BkUserDTO user;
@@ -133,7 +134,7 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             if (user == null || !user.validate()) {
                 log.warn("Invalid user token");
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
-                response.getHeaders().add("x-login-url", loginService.getLoginRedirectUrl());
+                response.getHeaders().add(HeaderConsts.KEY_LOGIN_URL, loginService.getLoginRedirectUrl());
                 return response.setComplete();
             }
 
