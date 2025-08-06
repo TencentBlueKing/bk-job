@@ -57,7 +57,7 @@ public class PollingStrategyProperties {
     public static class PollingConfig {
         /**
          * 轮询间隔表
-         * Key：轮询次数起点~轮询次数终点，Value：使用的轮询间隔时间，单位为毫秒
+         * Key：轮询次数起点-轮询次数终点，Value：使用的轮询间隔时间，单位为毫秒
          *
          */
         private Map<String, Integer> intervalMap;

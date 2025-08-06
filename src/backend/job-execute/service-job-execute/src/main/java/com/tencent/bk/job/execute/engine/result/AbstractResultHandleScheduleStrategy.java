@@ -114,8 +114,8 @@ public abstract class AbstractResultHandleScheduleStrategy implements ScheduleSt
         if (interval <= 0) {
             throw new InternalException("Polling rule configuration error, interval must > 0, interval: " + interval);
         }
-        if (key.contains("~")) {
-            String[] parts = key.trim().split("~");
+        if (key.contains("-")) {
+            String[] parts = key.trim().split("-");
             if (parts.length != 2) {
                 throw new InternalException("Polling rule configuration error, the interval format should be " +
                     "'start~end', actual:" + key);
@@ -128,7 +128,7 @@ public abstract class AbstractResultHandleScheduleStrategy implements ScheduleSt
             }
             return new ScheduleIntervalRule(start, end, interval);
         } else {
-            throw new InternalException("Polling rule configuration error, missing separator '~', key: " + key);
+            throw new InternalException("Polling rule configuration error, missing separator '-', key: " + key);
         }
     }
 
