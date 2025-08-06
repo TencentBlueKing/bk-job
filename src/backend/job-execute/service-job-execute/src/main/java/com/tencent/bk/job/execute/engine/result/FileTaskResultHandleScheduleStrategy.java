@@ -24,14 +24,14 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
-import com.tencent.bk.job.execute.config.ScheduleStrategyProperties;
+import com.tencent.bk.job.execute.config.PollingStrategyProperties;
 
 /**
  * 文件任务结果处理调度策略
  */
 public class FileTaskResultHandleScheduleStrategy extends AbstractResultHandleScheduleStrategy {
 
-    public FileTaskResultHandleScheduleStrategy(ScheduleStrategyProperties.DelayConfig config) {
+    public FileTaskResultHandleScheduleStrategy(PollingStrategyProperties.PollingConfig config) {
         super(config);
     }
 

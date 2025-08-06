@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
-import com.tencent.bk.job.execute.config.ScheduleStrategyProperties;
+import com.tencent.bk.job.execute.config.PollingStrategyProperties;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ScriptTaskResultHandleScheduleStrategy extends AbstractResultHandleScheduleStrategy {
 
-    public ScriptTaskResultHandleScheduleStrategy(ScheduleStrategyProperties.DelayConfig config) {
+    public ScriptTaskResultHandleScheduleStrategy(PollingStrategyProperties.PollingConfig config) {
         super(config);
     }
 

@@ -30,15 +30,26 @@ import lombok.Data;
  * 调度延迟规则
  */
 @Data
-public class ScheduleDelayRule {
+public class ScheduleIntervalRule {
 
     /**
-     * 次数上限阈值，当前次数小于等于maxCount时，应用当前delay值
+     * 轮训起始点
      */
-    private final int maxCount;
+    private final int start;
+
+    /**
+     * 轮训结束点
+     */
+    private final int end;
 
     /**
      * 延迟时间，单位毫秒
      */
-    private final int delay;
+    private final int interval;
+
+
+    public boolean matches(int count) {
+        return count >= start && count <= end;
+    }
+
 }

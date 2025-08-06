@@ -30,37 +30,41 @@ import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 /**
  * 任务执行结果延迟调度策略配置
  */
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "job.execute.result.schedule-strategy")
+@ConfigurationProperties(prefix = "job.execute.result.polling-strategy")
 @Component
-public class ScheduleStrategyProperties {
+public class PollingStrategyProperties {
 
     /**
      * 脚本执行日志调度延迟配置
      */
-    private DelayConfig script;
+    private PollingConfig script;
 
     /**
      * 文件分发日志调度延迟配置
      */
-    private DelayConfig file;
+    private PollingConfig file;
 
     @Getter
     @Setter
     @ToString
-    public static class DelayConfig {
+    public static class PollingConfig {
         /**
-         * 延迟规则格式："2:500,11:1000"
+         * 轮询间隔表
+         * Key：轮询次数起点~轮询次数终点，Value：使用的轮询间隔时间，单位为毫秒
+         *
          */
-        private String delayRules;
+        private Map<String, Integer> intervalMap;
 
         /**
-         * 超出所有规则后使用的统一延迟（单位：毫秒）
+         * 超出轮询间隔表中配置的轮询次数后使用的统一间隔（单位：毫秒）
          */
-        private int finalDelay = 10000;
+        private int finalInterval = 10000;
     }
 }

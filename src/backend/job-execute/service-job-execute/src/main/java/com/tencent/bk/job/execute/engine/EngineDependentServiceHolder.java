@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine;
 
 import com.tencent.bk.job.common.gse.GseClient;
-import com.tencent.bk.job.execute.config.ScheduleStrategyProperties;
+import com.tencent.bk.job.execute.config.PollingStrategyProperties;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
@@ -70,7 +70,7 @@ public class EngineDependentServiceHolder {
     private final GseClient gseClient;
     private final RunningJobKeepaliveManager runningJobKeepaliveManager;
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
-    private final ScheduleStrategyProperties scheduleStrategyProperties;
+    private final PollingStrategyProperties pollingStrategyProperties;
 
     public EngineDependentServiceHolder(ResultHandleManager resultHandleManager,
                                         TaskInstanceService taskInstanceService,
@@ -90,7 +90,7 @@ public class EngineDependentServiceHolder {
                                         GseClient gseClient,
                                         RunningJobKeepaliveManager runningJobKeepaliveManager,
                                         JobBuildInVariableResolver jobBuildInVariableResolver,
-                                        ScheduleStrategyProperties scheduleStrategyProperties) {
+                                        PollingStrategyProperties pollingStrategyProperties) {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
@@ -109,6 +109,6 @@ public class EngineDependentServiceHolder {
         this.gseClient = gseClient;
         this.runningJobKeepaliveManager = runningJobKeepaliveManager;
         this.jobBuildInVariableResolver = jobBuildInVariableResolver;
-        this.scheduleStrategyProperties = scheduleStrategyProperties;
+        this.pollingStrategyProperties = pollingStrategyProperties;
     }
 }

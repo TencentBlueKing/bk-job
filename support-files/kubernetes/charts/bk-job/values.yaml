@@ -1089,7 +1089,7 @@ executeConfig:
           readTimeout: 20000
   # 任务执行结果轮训规则配置
   result:
-    scheduleStrategy: {}
+    pollingStrategy: {}
   # extraEnv:
   #   # 设置容器使用的 linux arena 内存分配区数量（资源充足的情况下，建议设置 MALLOC_ARENA_MAX=容器使用的 CPU 核数（resources.limits.cpu) * 8
   #   - name: MALLOC_ARENA_MAX
