@@ -22,35 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.result;
+package com.tencent.bk.job.execute.engine.model;
 
-import com.tencent.bk.job.execute.config.PollingStrategyProperties;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
 
 /**
- * 脚本任务调度策略
+ * 调度间隔规则
  */
-@Slf4j
-public class ScriptTaskResultHandleScheduleStrategy extends AbstractResultHandleScheduleStrategy {
+@Data
+public class ScheduleIntervalRule {
 
-    public ScriptTaskResultHandleScheduleStrategy(PollingStrategyProperties.PollingConfig config) {
-        super(config);
+    /**
+     * 轮询起始点
+     */
+    private final int start;
+
+    /**
+     * 轮询结束点
+     */
+    private final int end;
+
+    /**
+     * 间隔时间，单位毫秒
+     */
+    private final int interval;
+
+
+    public boolean matches(int count) {
+        return count >= start && count <= end;
     }
 
-    @Override
-    protected long getDelayWithoutRules(int handleCount) {
-        if (handleCount <= 10) {
-            // 10s以内，周期为1s
-            return 1000;
-        } else if (handleCount <= 35) {
-            // 10s-1min,周期为2s
-            return 2000;
-        } else if (handleCount <= 88) {
-            // 1min-5min,周期为5s
-            return 5000;
-        } else {
-            // 超过5min,周期为10s
-            return 10000;
-        }
-    }
 }
