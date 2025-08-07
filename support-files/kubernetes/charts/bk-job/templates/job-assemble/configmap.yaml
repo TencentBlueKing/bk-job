@@ -357,10 +357,10 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
-        {{- if .Values.executeConfig.result.scheduleStrategy }}
+        {{- if .Values.executeConfig.result.pollingStrategy }}
         result:
-          schedule-strategy:
-            {{- toYaml .Values.executeConfig.result.scheduleStrategy | nindent 12 }}
+          polling-strategy:
+            {{- toYaml .Values.executeConfig.result.pollingStrategy | nindent 12 }}
         {{- end }}
       crontab:
         notification-policy:

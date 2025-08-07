@@ -221,7 +221,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     private TaskContext taskContext;
 
     /**
-     * 延迟调度策略配置
+     * 轮询策略配置
      */
     protected final PollingStrategyProperties pollingStrategyProperties;
 
