@@ -36,6 +36,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -119,6 +120,7 @@ public class EsbFastTransferFileV3Request extends EsbAppScopeReq {
      * 滚动配置
      */
     @JsonProperty("rolling_config")
+    @Valid
     private EsbRollingConfigDTO rollingConfig;
 
     /**

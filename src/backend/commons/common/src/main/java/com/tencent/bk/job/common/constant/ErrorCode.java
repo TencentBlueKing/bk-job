@@ -379,6 +379,8 @@ public class ErrorCode {
     public static final int RUNNING_JOB_EXCEED_APP_QUOTA_LIMIT = 1244033;
     // 当前执行的作业总量超过系统配额限制
     public static final int RUNNING_JOB_EXCEED_SYSTEM_QUOTA_LIMIT = 1244034;
+    // 按源文件滚动策略仅支持服务器文件
+    public static final int FILE_SOURCE_ROLLING_ONLY_SUPPORT_SERVER_FILE = 1244035;
     // 作业执行 end
 
     // 定时作业 start

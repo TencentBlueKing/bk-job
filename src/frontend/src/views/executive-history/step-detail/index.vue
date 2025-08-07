@@ -121,7 +121,6 @@
             :is-file="isFile"
             :is-task="isTask"
             :log-filter="params.keyword"
-            :name="`${params.id}_${params.executeCount}_${dispalyGroup.groupName}_${currentResultTask.key}_${params.keyword}`"
             :step-instance-id="data.stepInstanceId"
             :task-execute-detail="currentResultTask"
             :task-instance-id="taskInstanceId" />

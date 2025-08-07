@@ -2063,3 +2063,9 @@ tenant:
   enabled: false
 virtualAccount:
   queryAdminUsername: false
+
+# 服务启动时，组件的健康检查
+healthCheck:
+  # 默认开启 启动时检查mongodb是否可达且账号密码正确
+  mongo:
+    enabled: true

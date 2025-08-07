@@ -50,6 +50,7 @@ import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.rolling.StepInstanceFileBatchService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,7 @@ public class GseTaskManager implements SmartLifecycle {
     private final GseTaskService gseTaskService;
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
+    private final StepInstanceFileBatchService stepInstanceFileBatchService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final ExecuteMonitor executeMonitor;
     private final FileDistributeConfig fileDistributeConfig;
@@ -113,6 +115,7 @@ public class GseTaskManager implements SmartLifecycle {
     public GseTaskManager(EngineDependentServiceHolder engineDependentServiceHolder,
                           TaskInstanceService taskInstanceService,
                           GseTaskService gseTaskService,
+                          StepInstanceFileBatchService stepInstanceFileBatchService,
                           TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                           FileDistributeConfig fileDistributeConfig,
                           ExecuteMonitor executeMonitor,
@@ -125,6 +128,7 @@ public class GseTaskManager implements SmartLifecycle {
         this.engineDependentServiceHolder = engineDependentServiceHolder;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
+        this.stepInstanceFileBatchService = stepInstanceFileBatchService;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -320,6 +324,7 @@ public class GseTaskManager implements SmartLifecycle {
             gseTaskStartCommand = new FileGseTaskStartCommand(
                 engineDependentServiceHolder,
                 fileExecuteObjectTaskService,
+                stepInstanceFileBatchService,
                 jobExecuteConfig,
                 requestId,
                 taskInstance,
