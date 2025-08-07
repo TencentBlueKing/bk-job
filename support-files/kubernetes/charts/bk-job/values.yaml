@@ -1087,6 +1087,9 @@ executeConfig:
           connectTimeout: 5000
           # 读取超时，单位：毫秒
           readTimeout: 20000
+  # 任务执行结果轮询规则配置
+  result:
+    pollingStrategy: {}
   # extraEnv:
   #   # 设置容器使用的 linux arena 内存分配区数量（资源充足的情况下，建议设置 MALLOC_ARENA_MAX=容器使用的 CPU 核数（resources.limits.cpu) * 8
   #   - name: MALLOC_ARENA_MAX
