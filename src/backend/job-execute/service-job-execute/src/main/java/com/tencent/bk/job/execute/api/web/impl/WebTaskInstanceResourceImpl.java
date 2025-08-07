@@ -55,7 +55,9 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.converter.TaskInstanceConverter;
-import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
+import com.tencent.bk.job.execute.model.db.ExecuteObjectRollingConfigDetailDO;
+import com.tencent.bk.job.execute.model.db.FileSourceRollingConfigDO;
+import com.tencent.bk.job.execute.model.db.StepFileSourceRollingConfigDO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteApprovalStepVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
@@ -63,16 +65,17 @@ import com.tencent.bk.job.execute.model.web.vo.ExecuteFileStepVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteScriptStepVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteStepVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
+import com.tencent.bk.job.execute.model.web.vo.FileSourceRollingConfigVO;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceDetailVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskOperationLogVO;
-import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.execute.util.FileTransferModeUtil;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
@@ -154,13 +157,29 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     private void fillRollingConfigForRollingStep(ExecuteStepVO stepVO, StepInstanceBaseDTO stepInstance) {
         if (stepInstance.isRollingStep()) {
             RollingConfigVO rollingConfigVO = new RollingConfigVO();
-            RollingConfigDTO rollingConfigDTO =
-                rollingConfigService.getRollingConfig(stepInstance.getTaskInstanceId(),
-                    stepInstance.getRollingConfigId());
-            RollingConfigDetailDO rollingConfig = rollingConfigDTO.getConfigDetail();
-            rollingConfigVO.setMode(rollingConfig.getMode());
-            if (rollingConfigDTO.isBatchRollingStep(stepInstance.getId())) {
-                rollingConfigVO.setExpr(rollingConfig.getExpr());
+            RollingConfigDTO rollingConfigDTO = rollingConfigService.getRollingConfig(
+                stepInstance.getTaskInstanceId(),
+                stepInstance.getRollingConfigId()
+            );
+            rollingConfigVO.setName(rollingConfigDTO.getConfigName());
+            rollingConfigVO.setType(rollingConfigDTO.getType());
+            if (rollingConfigDTO.isTargetExecuteObjectRolling()) {
+                ExecuteObjectRollingConfigDetailDO rollingConfig = rollingConfigDTO.getExecuteObjectRollingConfig();
+                rollingConfigVO.setMode(rollingConfig.getMode());
+                if (rollingConfigDTO.isExecuteObjectBatchRollingStep(stepInstance.getId())) {
+                    rollingConfigVO.setExpr(rollingConfig.getExpr());
+                }
+            } else if (rollingConfigDTO.isFileSourceRolling()) {
+                Long stepInstanceId = stepInstance.getId();
+                FileSourceRollingConfigDO stepFileSourceRollingConfigs =
+                    rollingConfigDTO.getStepFileSourceRollingConfigs();
+                StepFileSourceRollingConfigDO stepFRConfig =
+                    stepFileSourceRollingConfigs.getStepFileSourceRollingConfigs().get(stepInstanceId);
+                rollingConfigVO.setMode(stepFRConfig.getMode());
+                FileSourceRollingConfigVO fileSource = new FileSourceRollingConfigVO();
+                fileSource.setMaxExecuteObjectNumInBatch(stepFRConfig.getMaxExecuteObjectNumInBatch());
+                fileSource.setMaxFileNumOfSingleExecuteObject(stepFRConfig.getMaxFileNumOfSingleExecuteObject());
+                rollingConfigVO.setFileSource(fileSource);
             }
             stepVO.setRollingConfig(rollingConfigVO);
             stepVO.setRollingEnabled(true);

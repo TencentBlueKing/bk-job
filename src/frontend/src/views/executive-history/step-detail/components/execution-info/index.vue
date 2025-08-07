@@ -70,7 +70,7 @@
         :font-size="fontSize"
         :line-feed="isScriptLogLineFeed"
         :mode="activePanel"
-        :name="`${stepInstanceId}_${taskExecuteDetail.key}_${executeCount}`"
+        :name="`${stepInstanceId}_${taskExecuteDetail.key}_${executeCount}_${taskExecuteDetail.batch}`"
         :step-instance-id="stepInstanceId"
         :task-execute-detail="taskExecuteDetail"
         :task-instance-id="taskInstanceId"

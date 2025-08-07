@@ -193,5 +193,12 @@
   "报错日志看不懂？来提问小鲸吧～": "Find out with AI",
   "管控区域_ID_IPv4": "BK-Net ID:IPv4",
   "管控区域_ID_IPv6": "BK-Net ID:IPv6",
-  "解释器：": "Interpreter："
+  "解释器：": "Interpreter：",
+  "滚动对象：": "Scroll object：",
+  "源文件": "Source file",
+  "传输目标": "Target",
+  "分批策略：": "Batch strategy：",
+  "单批次最大并发源主机/容器数": "Max concurrent source hosts/containers per batch",
+  "源单主机/容器最大并发文件数": "Max concurrent files per source host/container",
+  "「不限制」": "「No limit」"
 }

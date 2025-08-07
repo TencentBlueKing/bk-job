@@ -22,44 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service;
+package com.tencent.bk.job.execute.model.esb.v3;
 
-import com.tencent.bk.job.execute.engine.model.ExecuteObject;
-import com.tencent.bk.job.execute.model.FastTaskDTO;
-import com.tencent.bk.job.execute.model.RollingConfigDTO;
-import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
-import java.util.List;
+import javax.validation.constraints.Positive;
 
 /**
- * 滚动配置服务
+ * 源文件滚动配置
  */
-public interface RollingConfigService {
+@Data
+public class EsbFileSourceRollingConfigDTO {
     /**
-     * 根据滚动批次获取执行对象
-     *
-     * @param stepInstance 步骤实例
-     * @param batch        滚动执行批次
-     * @return 主机列表
+     * 单批次最大源主机/容器数，为空表示不限制
      */
-    List<ExecuteObject> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch);
-
-    /**
-     * 保存快速执行作业滚动配置
-     *
-     * @param fastTask 快速执行作业
-     * @return 保存之后的滚动配置
-     */
-    RollingConfigDTO saveRollingConfigForFastJob(FastTaskDTO fastTask);
-
-    RollingConfigDTO getRollingConfig(Long taskInstanceId, long rollingConfigId);
+    @Positive(
+        message = "{validation.constraints.RollingFileSourceMaxExecuteObjectNumInBatch_Positive.message}"
+    )
+    @JsonProperty("max_execute_object_num_in_batch")
+    private Integer maxExecuteObjectNumInBatch;
 
     /**
-     * 任务是否启用了滚动执行
-     * @param taskInstanceId 任务id
-     * @return boolean true启用，false未启用
+     * 单主机/容器最大并发文件数，为空表示不限制
      */
-    boolean isTaskRollingEnabled(long taskInstanceId);
+    @Positive(
+        message = "{validation.constraints.RollingFileSourceMaxFileNumOfExecuteObject_Positive.message}"
+    )
+    @JsonProperty("max_file_num_of_single_execute_object")
+    private Integer maxFileNumOfSingleExecuteObject;
 
-    long addRollingConfig(RollingConfigDTO rollingConfig);
 }
