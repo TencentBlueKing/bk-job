@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.redis.util.HeartBeatRedisLock;
 import com.tencent.bk.job.common.redis.util.LockResult;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.tracing.util.SpanUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
@@ -60,6 +61,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
     public static final int SINGLE_WATCHER_THREAD_RESOURCE_COST = 1;
 
     protected final String tenantId;
+    private final TenantService tenantService;
     private final Tracer tracer;
     private final CmdbEventSampler cmdbEventSampler;
 
@@ -79,14 +81,29 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
     public AbstractCmdbResourceEventWatcher(String tenantId,
                                             String watcherResourceName,
                                             RedisTemplate<String, String> redisTemplate,
+                                            TenantService tenantService,
                                             Tracer tracer,
                                             CmdbEventSampler cmdbEventSampler) {
         this.tenantId = tenantId;
+        this.tenantService = tenantService;
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.watcherResourceName = watcherResourceName;
         this.setName(getUniqueCode());
         this.redisLock = new HeartBeatRedisLock(redisTemplate, getUniqueCode(), IpUtils.getFirstMachineIP());
+    }
+
+    /**
+     * 检查当前监听器是否处于活跃状态
+     *
+     * @return 布尔值
+     */
+    private boolean checkActive() {
+        if (!tenantService.isTenantEnabled(tenantId)) {
+            log.info("tenant {} is not enabled, stop watch {}", tenantId, watcherResourceName);
+            active = false;
+        }
+        return active;
     }
 
     @NewSpan
@@ -122,7 +139,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
         }
         log.info("{} start", getUniqueCode());
         LockResult lockResult = null;
-        while (active) {
+        while (checkActive()) {
             Span span = SpanUtil.buildNewSpan(this.tracer, this.watcherResourceName + "WatchOuterLoop");
             try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
                 lockResult = redisLock.lock();
@@ -145,7 +162,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
                 if (lockResult != null) {
                     lockResult.tryToRelease();
                 }
-                if (active) {
+                if (checkActive()) {
                     // 过5s后重新尝试监听事件
                     ThreadUtils.sleep(5000);
                 }
@@ -158,7 +175,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
         log.info("Start watch {} resource at {},{}", watcherResourceName, TimeUtil.getCurrentTimeStr("HH:mm:ss"),
             System.currentTimeMillis());
         String cursor = null;
-        while (active && isWatchingEnabled()) {
+        while (checkActive() && isWatchingEnabled()) {
             Span span = SpanUtil.buildNewSpan(this.tracer, "watchAndHandle-" + this.watcherResourceName + "Events");
             try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
                 ResourceWatchResult<E> watchResult;

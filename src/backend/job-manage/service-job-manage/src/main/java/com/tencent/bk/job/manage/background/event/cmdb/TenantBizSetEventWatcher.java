@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
@@ -57,8 +58,9 @@ public class TenantBizSetEventWatcher extends AbstractCmdbResourceEventWatcher<B
                                     ApplicationService applicationService,
                                     BizSetService bizSetService,
                                     IBizSetCmdbClient bizSetCmdbClient,
+                                    TenantService tenantService,
                                     String tenantId) {
-        super(tenantId, "bizSet", redisTemplate, tracer, cmdbEventSampler);
+        super(tenantId, "bizSet", redisTemplate, tenantService, tracer, cmdbEventSampler);
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
         this.bizSetCmdbClient = bizSetCmdbClient;

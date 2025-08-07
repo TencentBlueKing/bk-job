@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
@@ -57,8 +58,9 @@ public class TenantBizEventWatcher extends AbstractCmdbResourceEventWatcher<BizE
                                  CmdbEventSampler cmdbEventSampler,
                                  IBizCmdbClient bizCmdbClient,
                                  ApplicationService applicationService,
+                                 TenantService tenantService,
                                  String tenantId) {
-        super(tenantId, "biz", redisTemplate, tracer, cmdbEventSampler);
+        super(tenantId, "biz", redisTemplate, tenantService, tracer, cmdbEventSampler);
         this.bizCmdbClient = bizCmdbClient;
         this.applicationService = applicationService;
     }

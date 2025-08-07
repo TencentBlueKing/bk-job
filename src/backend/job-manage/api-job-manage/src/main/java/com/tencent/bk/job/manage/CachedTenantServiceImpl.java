@@ -31,23 +31,44 @@ import com.tencent.bk.job.common.model.tenant.TenantDTO;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.helpers.MessageFormatter;
 
 import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class CachedTenantServiceImpl implements TenantService {
 
-    private final LoadingCache<Long, String> tenantIdCache =
+    // AppId与租户ID映射表的缓存
+    private final LoadingCache<Long, String> appIdToTenantIdMapCache =
         CacheBuilder.newBuilder().maximumSize(500)
             .expireAfterWrite(5, TimeUnit.MINUTES)
             .build(new CacheLoader<Long, String>() {
                        @Override
                        public @Nonnull String load(@Nonnull Long appId) {
                            return serviceTenantResource.getTenantIdByAppId(appId).getData();
+                       }
+                   }
+            );
+
+    private final String CACHE_KEY_ENABLED_TENANT_IDS = "enabledTenantIds";
+    // 已启用的租户ID缓存
+    private final LoadingCache<String, Set<String>> enabledTenantIdsCache =
+        CacheBuilder.newBuilder().maximumSize(1)
+            .expireAfterWrite(1, TimeUnit.MINUTES)
+            .build(new CacheLoader<String, Set<String>>() {
+                       @Override
+                       public @Nonnull Set<String> load(@Nonnull String key) {
+                           if (CACHE_KEY_ENABLED_TENANT_IDS.equals(key)) {
+                               return getEnabledTenantIdsFromRemote();
+                           }
+                           return Collections.emptySet();
                        }
                    }
             );
@@ -64,9 +85,32 @@ public class CachedTenantServiceImpl implements TenantService {
     }
 
     @Override
+    public boolean isTenantEnabled(String tenantId) {
+        try {
+            return enabledTenantIdsCache.get(CACHE_KEY_ENABLED_TENANT_IDS).contains(tenantId);
+        } catch (Exception e) {
+            log.warn("Fail to get enabled tenantIds from cache", e);
+            return getEnabledTenantIdsFromRemote().contains(tenantId);
+        }
+    }
+
+    /**
+     * 通过服务间调用获取启用的租户ID
+     *
+     * @return 启用的租户ID集合
+     */
+    private Set<String> getEnabledTenantIdsFromRemote() {
+        List<TenantDTO> enabledTenantList = listEnabledTenant();
+        if (CollectionUtils.isEmpty(enabledTenantList)) {
+            return Collections.emptySet();
+        }
+        return enabledTenantList.stream().map(TenantDTO::getId).collect(Collectors.toSet());
+    }
+
+    @Override
     public String getTenantIdByAppId(long appId) {
         try {
-            return tenantIdCache.get(appId);
+            return appIdToTenantIdMapCache.get(appId);
         } catch (ExecutionException e) {
             String message = MessageFormatter.format(
                 "Fail to getTenantIdByAppId from cache, appId={}",

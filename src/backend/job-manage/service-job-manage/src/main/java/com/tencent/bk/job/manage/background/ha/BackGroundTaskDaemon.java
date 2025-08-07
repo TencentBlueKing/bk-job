@@ -90,6 +90,10 @@ public class BackGroundTaskDaemon {
             } else {
                 log.info("{} backGroundTasks started", resumedTaskCount);
             }
+        } else {
+            if (onStartup) {
+                log.info("All backGroundTasks are alive, no need to start");
+            }
         }
     }
 

@@ -68,6 +68,18 @@ public class TenantServiceImpl implements TenantService {
     }
 
     @Override
+    public boolean isTenantEnabled(String tenantId) {
+        // 当前用户管理没有单个租户查询接口，只能获取所有租户进行判断
+        List<TenantDTO> enabledTenantList = listEnabledTenant();
+        for (TenantDTO tenantDTO : enabledTenantList) {
+            if (tenantDTO.getId().equals(tenantId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public String getTenantIdByAppId(long appId) {
         String tenantId = applicationService.getTenantIdByAppId(appId);
         if (tenantId == null) {
