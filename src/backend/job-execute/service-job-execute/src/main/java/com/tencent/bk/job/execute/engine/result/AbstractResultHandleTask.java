@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.config.PollingStrategyProperties;
 import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
@@ -216,6 +217,11 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
     private final TaskContext taskContext;
 
+    /**
+     * 轮询策略配置
+     */
+    protected final PollingStrategyProperties pollingStrategyProperties;
+
     protected AbstractResultHandleTask(EngineDependentServiceHolder engineDependentServiceHolder,
                                        ExecuteObjectTaskService executeObjectTaskService,
                                        TaskInstanceDTO taskInstance,
@@ -236,6 +242,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.stepInstanceService = engineDependentServiceHolder.getStepInstanceService();
         this.gseClient = engineDependentServiceHolder.getGseClient();
         this.runningJobKeepaliveManager = engineDependentServiceHolder.getRunningJobKeepaliveManager();
+        this.pollingStrategyProperties = engineDependentServiceHolder.getPollingStrategyProperties();
 
         this.executeObjectTaskService = executeObjectTaskService;
 

@@ -997,7 +997,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     @Override
     public ScheduleStrategy getScheduleStrategy() {
         if (scheduleStrategy == null) {
-            this.scheduleStrategy = new FileTaskResultHandleScheduleStrategy();
+            this.scheduleStrategy = new FileTaskResultHandleScheduleStrategy(pollingStrategyProperties.getFile());
         }
         return this.scheduleStrategy;
     }
