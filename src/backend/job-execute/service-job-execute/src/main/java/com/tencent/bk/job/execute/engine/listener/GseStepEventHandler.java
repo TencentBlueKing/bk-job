@@ -44,16 +44,18 @@ import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.StepInstanceFileBatchDTO;
 import com.tencent.bk.job.execute.model.StepInstanceRollingTaskDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.db.RollingExecuteObjectsBatchDO;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.GseTaskService;
-import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
+import com.tencent.bk.job.execute.service.rolling.StepInstanceFileBatchService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -78,6 +80,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
     private final StepInstanceRollingTaskService stepInstanceRollingTaskService;
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
+    private final StepInstanceFileBatchService stepInstanceFileBatchService;
 
     @Autowired
     public GseStepEventHandler(TaskInstanceService taskInstanceService,
@@ -88,7 +91,8 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                                RollingConfigService rollingConfigService,
                                StepInstanceRollingTaskService stepInstanceRollingTaskService,
                                ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
-                               FileExecuteObjectTaskService fileExecuteObjectTaskService) {
+                               FileExecuteObjectTaskService fileExecuteObjectTaskService,
+                               StepInstanceFileBatchService stepInstanceFileBatchService) {
         super(taskInstanceService, stepInstanceService, taskExecuteMQEventDispatcher);
         this.filePrepareService = filePrepareService;
         this.gseTaskService = gseTaskService;
@@ -96,6 +100,7 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         this.stepInstanceRollingTaskService = stepInstanceRollingTaskService;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
+        this.stepInstanceFileBatchService = stepInstanceFileBatchService;
     }
 
     @Override
@@ -311,9 +316,11 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         if (stepInstance.isFirstRollingBatch()) {
             // 如果是第一批次的执行，需要提前初始化所有批次的执行对象任务（作业详情查询主机任务列表需要)
             List<ExecuteObjectTask> executeObjectTasks = new ArrayList<>();
-            if (rollingConfig.isBatchRollingStep(stepInstanceId)) {
+            if (rollingConfig.isExecuteObjectBatchRollingStep(stepInstanceId)) {
+                // 按目标执行对象分批
                 List<RollingExecuteObjectsBatchDO> executeObjectsBatchList =
-                    rollingConfig.getConfigDetail().getExecuteObjectsBatchListCompatibly();
+                    rollingConfig.getExecuteObjectRollingConfig().getExecuteObjectsBatchListCompatibly();
+                // 为每一批执行对象生成单个执行对象任务数据
                 executeObjectsBatchList.forEach(executeObjectsBatch -> {
                     executeObjectTasks.addAll(
                         buildInitialExecuteObjectTasks(
@@ -324,6 +331,26 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
                             executeObjectsBatch.getBatch(),
                             executeObjectsBatch.getBatch() == 1 ? gseTaskId : 0,
                             executeObjectsBatch.getExecuteObjectsCompatibly()
+                        )
+                    );
+                });
+                saveExecuteObjectTasks(stepInstance, executeObjectTasks);
+            } else if (rollingConfig.isFileSourceBatchRollingStep(stepInstanceId)) {
+                // 按源文件分批
+                List<StepInstanceFileBatchDTO> stepInstanceFileBatchList = stepInstanceFileBatchService.list(
+                    stepInstance.getTaskInstanceId(),
+                    stepInstanceId
+                );
+                stepInstanceFileBatchList.forEach(stepInstanceFileBatch -> {
+                    executeObjectTasks.addAll(
+                        buildInitialExecuteObjectTasks(
+                            stepInstance.getTaskInstanceId(),
+                            stepInstanceId,
+                            executeCount,
+                            stepInstanceFileBatch.getBatch() == 1 ? executeCount : null,
+                            stepInstanceFileBatch.getBatch(),
+                            stepInstanceFileBatch.getBatch() == 1 ? gseTaskId : 0,
+                            stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly()
                         )
                     );
                 });
@@ -752,25 +779,49 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         long totalTime = endTime - startTime;
 
         if (stepInstance.isRollingStep()) {
-            RollingConfigDTO rollingConfig =
-                rollingConfigService.getRollingConfig(stepInstance.getTaskInstanceId(),
-                    stepInstance.getRollingConfigId());
-            finishRollingTask(taskInstanceId, stepInstanceId, stepInstance.getExecuteCount(), stepInstance.getBatch(),
-                RunStatusEnum.SUCCESS);
-            int totalBatch = rollingConfig.getConfigDetail().getTotalBatch();
+            finishRollingTask(
+                taskInstanceId,
+                stepInstanceId,
+                stepInstance.getExecuteCount(),
+                stepInstance.getBatch(),
+                RunStatusEnum.SUCCESS
+            );
+            int totalBatch = rollingConfigService.getTotalBatch(
+                taskInstanceId,
+                stepInstanceId,
+                stepInstance.getRollingConfigId()
+            );
             boolean isLastBatch = totalBatch == stepInstance.getBatch();
             if (isLastBatch) {
-                stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId, RunStatusEnum.SUCCESS,
-                    startTime, endTime, totalTime);
+                stepInstanceService.updateStepExecutionInfo(
+                    taskInstanceId,
+                    stepInstanceId,
+                    RunStatusEnum.SUCCESS,
+                    startTime,
+                    endTime,
+                    totalTime
+                );
                 // 步骤执行成功后清理产生的临时文件
                 clearStep(stepInstance);
             } else {
-                stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId,
-                    RunStatusEnum.ROLLING_WAITING, startTime, endTime, totalTime);
+                stepInstanceService.updateStepExecutionInfo(
+                    taskInstanceId,
+                    stepInstanceId,
+                    RunStatusEnum.ROLLING_WAITING,
+                    startTime,
+                    endTime,
+                    totalTime
+                );
             }
         } else {
-            stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId, RunStatusEnum.SUCCESS,
-                startTime, endTime, totalTime);
+            stepInstanceService.updateStepExecutionInfo(
+                taskInstanceId,
+                stepInstanceId,
+                RunStatusEnum.SUCCESS,
+                startTime,
+                endTime,
+                totalTime
+            );
             // 步骤执行成功后清理产生的临时文件
             clearStep(stepInstance);
         }
@@ -784,41 +835,81 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
         long totalTime = endTime - startTime;
         if (stepInstance.isIgnoreError()) {
             log.info("Ignore error for step: {}", stepInstanceId);
-            stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId, RunStatusEnum.IGNORE_ERROR,
-                startTime, endTime, totalTime);
+            stepInstanceService.updateStepExecutionInfo(
+                taskInstanceId,
+                stepInstanceId,
+                RunStatusEnum.IGNORE_ERROR,
+                startTime,
+                endTime,
+                totalTime
+            );
             if (stepInstance.isRollingStep()) {
-                finishRollingTask(taskInstanceId, stepInstanceId, stepInstance.getExecuteCount(),
-                    stepInstance.getBatch(), RunStatusEnum.IGNORE_ERROR);
+                finishRollingTask(
+                    taskInstanceId,
+                    stepInstanceId,
+                    stepInstance.getExecuteCount(),
+                    stepInstance.getBatch(),
+                    RunStatusEnum.IGNORE_ERROR
+                );
             }
             return;
         }
 
         if (stepInstance.isRollingStep()) {
-            RollingConfigDTO rollingConfig =
-                rollingConfigService.getRollingConfig(stepInstance.getTaskInstanceId(),
-                    stepInstance.getRollingConfigId());
-            RollingModeEnum rollingMode = RollingModeEnum.valOf(rollingConfig.getConfigDetail().getMode());
+            RollingConfigDTO rollingConfig = rollingConfigService.getRollingConfig(
+                stepInstance.getTaskInstanceId(),
+                stepInstance.getRollingConfigId()
+            );
+            RollingModeEnum rollingMode = rollingConfig.getModeOfStep(stepInstanceId);
             switch (rollingMode) {
                 case IGNORE_ERROR:
                     log.info("Ignore error for rolling step, rollingMode: {}", rollingMode);
-                    finishRollingTask(taskInstanceId, stepInstanceId, stepInstance.getExecuteCount(),
-                        stepInstance.getBatch(), RunStatusEnum.IGNORE_ERROR);
-                    stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId,
-                        RunStatusEnum.IGNORE_ERROR, startTime, endTime, totalTime);
+                    finishRollingTask(
+                        taskInstanceId,
+                        stepInstanceId,
+                        stepInstance.getExecuteCount(),
+                        stepInstance.getBatch(),
+                        RunStatusEnum.IGNORE_ERROR
+                    );
+                    stepInstanceService.updateStepExecutionInfo(
+                        taskInstanceId,
+                        stepInstanceId,
+                        RunStatusEnum.IGNORE_ERROR,
+                        startTime,
+                        endTime,
+                        totalTime
+                    );
                     break;
                 case PAUSE_IF_FAIL:
                 case MANUAL:
-                    finishRollingTask(taskInstanceId, stepInstanceId, stepInstance.getExecuteCount(),
-                        stepInstance.getBatch(), RunStatusEnum.FAIL);
-                    stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId, RunStatusEnum.FAIL,
-                        startTime, endTime, totalTime);
+                    finishRollingTask(
+                        taskInstanceId,
+                        stepInstanceId,
+                        stepInstance.getExecuteCount(),
+                        stepInstance.getBatch(),
+                        RunStatusEnum.FAIL
+                    );
+                    stepInstanceService.updateStepExecutionInfo(
+                        taskInstanceId,
+                        stepInstanceId,
+                        RunStatusEnum.FAIL,
+                        startTime,
+                        endTime,
+                        totalTime
+                    );
                     break;
                 default:
                     log.error("Invalid rolling mode: {}", rollingMode);
             }
         } else {
-            stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId, RunStatusEnum.FAIL,
-                startTime, endTime, totalTime);
+            stepInstanceService.updateStepExecutionInfo(
+                taskInstanceId,
+                stepInstanceId,
+                RunStatusEnum.FAIL,
+                startTime,
+                endTime,
+                totalTime
+            );
         }
     }
 

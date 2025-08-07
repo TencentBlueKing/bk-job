@@ -26,11 +26,12 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
+import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.dao.RollingConfigDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
-import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
+import com.tencent.bk.job.execute.model.db.ExecuteObjectRollingConfigDetailDO;
 import com.tencent.bk.job.execute.model.tables.RollingConfig;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Record;
@@ -57,12 +58,14 @@ public class RollingConfigDAOImpl extends BaseDAO implements RollingConfigDAO {
                 TABLE.ID,
                 TABLE.TASK_INSTANCE_ID,
                 TABLE.CONFIG_NAME,
+                TABLE.TYPE,
                 TABLE.CONFIG)
             .values(
                 rollingConfig.getId(),
                 rollingConfig.getTaskInstanceId(),
                 rollingConfig.getConfigName(),
-                JsonUtils.toJson(rollingConfig.getConfigDetail()))
+                JooqDataTypeUtil.getByteFromInteger(rollingConfig.getType()),
+                rollingConfig.getSerializedConfigDetail())
             .returning(TABLE.ID)
             .fetchOne();
 
@@ -77,6 +80,7 @@ public class RollingConfigDAOImpl extends BaseDAO implements RollingConfigDAO {
                 TABLE.ID,
                 TABLE.TASK_INSTANCE_ID,
                 TABLE.CONFIG_NAME,
+                TABLE.TYPE,
                 TABLE.CONFIG)
             .from(TABLE)
             .where(TaskInstanceIdDynamicCondition.build(taskInstanceId, TABLE.TASK_INSTANCE_ID::eq))
@@ -104,7 +108,8 @@ public class RollingConfigDAOImpl extends BaseDAO implements RollingConfigDAO {
         rollingConfig.setId(record.get(TABLE.ID));
         rollingConfig.setTaskInstanceId(record.get(TABLE.TASK_INSTANCE_ID));
         rollingConfig.setConfigName(record.get(TABLE.CONFIG_NAME));
-        rollingConfig.setConfigDetail(JsonUtils.fromJson(record.get(TABLE.CONFIG), RollingConfigDetailDO.class));
+        rollingConfig.setType(record.get(TABLE.TYPE).intValue());
+        rollingConfig.setConfigDetail(record.get(TABLE.CONFIG));
         return rollingConfig;
     }
 }

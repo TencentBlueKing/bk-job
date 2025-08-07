@@ -141,6 +141,7 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
      * 滚动配置
      */
     @JsonProperty("rolling_config")
+    @Valid
     private EsbRollingConfigDTO rollingConfig;
 
     /**

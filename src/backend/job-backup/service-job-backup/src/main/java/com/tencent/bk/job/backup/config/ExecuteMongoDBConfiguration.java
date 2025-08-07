@@ -32,6 +32,9 @@ import com.tencent.bk.job.backup.archive.JobLogArchivers;
 import com.tencent.bk.job.backup.archive.impl.JobFileLogArchiver;
 import com.tencent.bk.job.backup.archive.impl.JobScriptLogArchiver;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
+import com.tencent.bk.job.common.mongodb.config.ConditionalOnMongoDBHealthCheckEnabled;
+import com.tencent.bk.job.common.mongodb.listener.CheckMongoOnStartupListener;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.mongo.MongoClientSettingsBuilderCustomizer;
@@ -41,6 +44,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 
 import java.util.List;
 
+@Slf4j
 @Configuration("executeMongoDBConfiguration")
 @ConditionalOnExpression("${job.backup.archive.execute-log.enabled:false}")
 public class ExecuteMongoDBConfiguration {
@@ -89,5 +93,15 @@ public class ExecuteMongoDBConfiguration {
                                                   JobScriptLogArchiver jobScriptLogArchiver) {
         return new JobLogArchivers(jobFileLogArchiver,
             jobScriptLogArchiver);
+    }
+
+    /**
+     * 开启执行结果日志归档情况下，是否开启mongoDB健康检查
+     */
+    @Bean
+    @ConditionalOnMongoDBHealthCheckEnabled
+    public CheckMongoOnStartupListener jobMongoStartupIndicator(MongoTemplate mongoTemplate) {
+        log.info("enable mongodb health check");
+        return new CheckMongoOnStartupListener(mongoTemplate);
     }
 }
