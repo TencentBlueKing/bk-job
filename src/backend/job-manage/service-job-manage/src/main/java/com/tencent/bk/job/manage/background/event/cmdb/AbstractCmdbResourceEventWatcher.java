@@ -226,7 +226,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
             tryToRecordEvents(events.size());
             // 解析事件，进行处理
             for (ResourceEvent<E> event : events) {
-                handleEvent(event);
+                checkAndHandleEvent(event);
             }
             latestCursor = events.get(events.size() - 1).getCursor();
             log.info("Handle {} watch events successfully! events.size: {}", this.watcherResourceName, events.size());
@@ -259,6 +259,25 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
     protected void initBeforeWatch() {
     }
 
+    /**
+     * 检查事件数据有效性并处理事件
+     *
+     * @param event 事件数据
+     */
+    private void checkAndHandleEvent(ResourceEvent<E> event) {
+        log.info("Handle {} event: {}", watcherResourceName, event);
+        String eventType = event.getEventType();
+        if (StringUtils.isBlank(eventType)) {
+            log.warn("Event type is blank, ignore");
+            return;
+        }
+        E eventDetail = event.getDetail();
+        if (eventDetail == null) {
+            log.warn("Event detail is null, ignore");
+            return;
+        }
+        handleEvent(event);
+    }
 
     /**
      * 事件监听开关

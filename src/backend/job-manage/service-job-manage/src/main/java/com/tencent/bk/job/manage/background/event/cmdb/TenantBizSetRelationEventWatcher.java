@@ -80,10 +80,9 @@ public class TenantBizSetRelationEventWatcher extends AbstractCmdbResourceEventW
         return bizSetCmdbClient.getBizSetRelationEvents(tenantId, startTime, null);
     }
 
+    @SuppressWarnings("SwitchStatementWithTooFewBranches")
     @Override
     public void handleEvent(ResourceEvent<BizSetRelationEventDetail> event) {
-        log.info("Handle BizSetRelationEvent: {}", event);
-
         String eventType = event.getEventType();
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
@@ -122,8 +121,7 @@ public class TenantBizSetRelationEventWatcher extends AbstractCmdbResourceEventW
     protected boolean isWatchingEnabled() {
         boolean isBizSetMigratedToCMDB = bizSetService.isBizSetMigratedToCMDB();
         if (!isBizSetMigratedToCMDB) {
-            log.info("Watching biz set disabled, isBizSetMigratedToCMDB: {}",
-                isBizSetMigratedToCMDB);
+            log.info("Watching biz set disabled, isBizSetMigratedToCMDB: {}", false);
         }
         return isBizSetMigratedToCMDB;
     }

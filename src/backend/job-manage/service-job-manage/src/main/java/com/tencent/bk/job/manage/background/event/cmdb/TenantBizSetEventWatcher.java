@@ -78,8 +78,7 @@ public class TenantBizSetEventWatcher extends AbstractCmdbResourceEventWatcher<B
 
     @Override
     public void handleEvent(ResourceEvent<BizSetEventDetail> event) {
-        log.info("Handle BizSetEvent: {}", event);
-        ApplicationDTO latestApp = event.getDetail().toApplicationDTO();
+        ApplicationDTO latestApp = event.getDetail().toApplicationDTO(tenantId);
         String eventType = event.getEventType();
         ApplicationDTO cachedApp =
             applicationService.getAppByScopeIncludingDeleted(latestApp.getScope());

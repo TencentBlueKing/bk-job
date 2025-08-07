@@ -52,15 +52,16 @@ public class BizEventDetail {
     @JsonProperty("default")
     private Integer deFault = 0;
 
-    public static ApplicationDTO toAppInfoDTO(BizEventDetail bizEventDetail) {
+    public ApplicationDTO toAppInfoDTO(String tenantId) {
         ApplicationDTO applicationDTO = new ApplicationDTO();
+        applicationDTO.setTenantId(tenantId);
         applicationDTO.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ,
-            String.valueOf(bizEventDetail.getBizId())));
-        applicationDTO.setName(bizEventDetail.getAppName());
-        applicationDTO.setBkSupplierAccount(bizEventDetail.getSupplierAccount());
-        applicationDTO.setTimeZone(bizEventDetail.getTimezone());
-        applicationDTO.setLanguage(bizEventDetail.getLanguage());
-        applicationDTO.setDeFault(bizEventDetail.getDeFault());
+            String.valueOf(bizId)));
+        applicationDTO.setName(appName);
+        applicationDTO.setBkSupplierAccount(supplierAccount);
+        applicationDTO.setTimeZone(timezone);
+        applicationDTO.setLanguage(language);
+        applicationDTO.setDeFault(deFault);
         return applicationDTO;
     }
 }

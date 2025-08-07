@@ -88,14 +88,14 @@ public class TenantBizEventWatcher extends AbstractCmdbResourceEventWatcher<BizE
 
     @Override
     public void handleEvent(ResourceEvent<BizEventDetail> event) {
-        String eventType = event.getEventType();
-        ApplicationDTO newestApp = BizEventDetail.toAppInfoDTO(event.getDetail());
+        ApplicationDTO newestApp = event.getDetail().toAppInfoDTO(tenantId);
         ApplicationDTO cachedApp = null;
         try {
             cachedApp = applicationService.getAppByScope(newestApp.getScope());
         } catch (NotFoundException e) {
             log.debug("cannot find app by scope:{}, need to create", newestApp.getScope());
         }
+        String eventType = event.getEventType();
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_CREATE:
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
