@@ -27,23 +27,23 @@ package com.tencent.bk.job.execute.engine.model;
 import lombok.Data;
 
 /**
- * 调度延迟规则
+ * 调度间隔规则
  */
 @Data
 public class ScheduleIntervalRule {
 
     /**
-     * 轮训起始点
+     * 轮询起始点
      */
     private final int start;
 
     /**
-     * 轮训结束点
+     * 轮询结束点
      */
     private final int end;
 
     /**
-     * 延迟时间，单位毫秒
+     * 间隔时间，单位毫秒
      */
     private final int interval;
 

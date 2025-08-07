@@ -24,11 +24,9 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
-import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.execute.config.PollingStrategyProperties;
 import com.tencent.bk.job.execute.engine.model.ScheduleIntervalRule;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Comparator;
 import java.util.List;
@@ -57,7 +55,7 @@ public abstract class AbstractResultHandleScheduleStrategy implements ScheduleSt
     private final int finalInterval;
 
     /**
-     * 默认最大延迟（毫秒）
+     * 默认最大的轮训间隔时间（毫秒）
      */
     protected final int DEFAULT_MAX_DELAY = 10000;
 
@@ -65,11 +63,30 @@ public abstract class AbstractResultHandleScheduleStrategy implements ScheduleSt
         if (config != null && config.getIntervalMap() != null) {
             this.rules = parseRules(config.getIntervalMap());
             this.finalInterval = config.getFinalInterval() > 0 ? config.getFinalInterval() : DEFAULT_MAX_DELAY;
-            log.debug("Loaded rolling rules: {}, finalInterval: {}", rules, finalInterval);
+            log.debug("Loaded polling rules: {}, finalInterval: {}", rules, finalInterval);
         } else {
             this.rules = null;
             this.finalInterval = DEFAULT_MAX_DELAY;
         }
+    }
+
+    /**
+     * 解析轮轮询规则
+     */
+    private List<ScheduleIntervalRule> parseRules(Map<String, Integer> intervalMap) {
+        if (intervalMap == null || intervalMap.isEmpty()) {
+            return null;
+        }
+        // 微服务启动时，pollingStrategyProperties对象有合法性校验，这里不需要再次校验
+        return intervalMap.entrySet().stream()
+            .map(e -> parseMapEntry(e.getKey(), e.getValue()))
+            .sorted(Comparator.comparingInt(ScheduleIntervalRule::getStart))
+            .collect(Collectors.toList());
+    }
+
+    private ScheduleIntervalRule parseMapEntry(String key, Integer value) {
+        String[] parts = key.trim().split("-");
+        return new ScheduleIntervalRule(Integer.parseInt(parts[0].trim()) , Integer.parseInt(parts[1].trim()), value);
     }
 
     @Override
@@ -84,52 +101,6 @@ public abstract class AbstractResultHandleScheduleStrategy implements ScheduleSt
             return finalInterval;
         }
         return getDelayWithoutRules(count);
-    }
-
-    /**
-     * 解析轮训规则
-     */
-    private List<ScheduleIntervalRule> parseRules(Map<String, Integer> intervalMap) {
-        if (intervalMap == null || intervalMap.isEmpty()) {
-            return null;
-        }
-        try {
-            List<ScheduleIntervalRule> rules = intervalMap.entrySet().stream()
-                .map(e -> parseMapEntry(e.getKey(), e.getValue()))
-                .sorted(Comparator.comparingInt(ScheduleIntervalRule::getStart))
-                .collect(Collectors.toList());
-            return rules;
-        } catch (Exception e) {
-            log.error("Parse polling rule configuration error.", e);
-            return null;
-        }
-    }
-
-    private static ScheduleIntervalRule parseMapEntry(String key, Integer value) {
-        if (StringUtils.isBlank(key) || value == null) {
-            throw new InternalException("Polling rule configuration error, key or value is empty, key=" + key + ", " +
-                "value=" + value);
-        }
-        int interval = value;
-        if (interval <= 0) {
-            throw new InternalException("Polling rule configuration error, interval must > 0, interval: " + interval);
-        }
-        if (key.contains("-")) {
-            String[] parts = key.trim().split("-");
-            if (parts.length != 2) {
-                throw new InternalException("Polling rule configuration error, the interval format should be " +
-                    "'start~end', actual:" + key);
-            }
-            int start = Integer.parseInt(parts[0].trim());
-            int end = Integer.parseInt(parts[1].trim());
-            if (start <= 0 || end <= 0 || end < start) {
-                throw new InternalException(String.format("Polling rule configuration error, start must be > 0 and " +
-                    "end >= start, start='%s', end='%s'", start, end));
-            }
-            return new ScheduleIntervalRule(start, end, interval);
-        } else {
-            throw new InternalException("Polling rule configuration error, missing separator '-', key: " + key);
-        }
     }
 
     /**

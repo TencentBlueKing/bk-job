@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * 任务执行结果延迟调度策略配置
+ * 任务执行结果轮询策略配置
  */
 @Getter
 @Setter
@@ -42,12 +42,12 @@ import java.util.Map;
 public class PollingStrategyProperties {
 
     /**
-     * 脚本执行日志调度延迟配置
+     * 脚本执行日志轮询策略配置
      */
     private PollingConfig script;
 
     /**
-     * 文件分发日志调度延迟配置
+     * 文件分发日志轮询策略配置
      */
     private PollingConfig file;
 
