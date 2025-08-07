@@ -22,35 +22,49 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.result;
+package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.execute.config.PollingStrategyProperties;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 /**
- * 脚本任务调度策略
+ * 任务执行结果轮询策略配置
  */
-@Slf4j
-public class ScriptTaskResultHandleScheduleStrategy extends AbstractResultHandleScheduleStrategy {
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "job.execute.result.polling-strategy")
+@Component
+public class PollingStrategyProperties {
 
-    public ScriptTaskResultHandleScheduleStrategy(PollingStrategyProperties.PollingConfig config) {
-        super(config);
-    }
+    /**
+     * 脚本执行日志轮询策略配置
+     */
+    private PollingConfig script;
 
-    @Override
-    protected long getDelayWithoutRules(int handleCount) {
-        if (handleCount <= 10) {
-            // 10s以内，周期为1s
-            return 1000;
-        } else if (handleCount <= 35) {
-            // 10s-1min,周期为2s
-            return 2000;
-        } else if (handleCount <= 88) {
-            // 1min-5min,周期为5s
-            return 5000;
-        } else {
-            // 超过5min,周期为10s
-            return 10000;
-        }
+    /**
+     * 文件分发日志轮询策略配置
+     */
+    private PollingConfig file;
+
+    @Getter
+    @Setter
+    @ToString
+    public static class PollingConfig {
+        /**
+         * 轮询间隔表
+         * Key：轮询次数起点-轮询次数终点，Value：使用的轮询间隔时间，单位为毫秒
+         *
+         */
+        private Map<String, Integer> intervalMap;
+
+        /**
+         * 超出轮询间隔表中配置的轮询次数后使用的统一间隔（单位：毫秒）
+         */
+        private int finalInterval = 10000;
     }
 }
