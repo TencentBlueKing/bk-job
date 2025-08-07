@@ -2044,3 +2044,9 @@ assembleConfig:
 
 # pod删除时等待优雅关闭的最大时间，单位为秒（超出后强制删除）
 podTerminationGracePeriodSeconds: 60
+
+# 服务启动时，组件的健康检查
+healthCheck:
+  # 默认开启 启动时检查mongodb是否可达且账号密码正确
+  mongo:
+    enabled: true
