@@ -37,11 +37,11 @@ import org.springframework.data.mongodb.core.MongoTemplate;
  * 检查包含连通性检查，认证检查
  */
 @Slf4j
-public class JobMongoStartupIndicator implements ApplicationListener<ApplicationReadyEvent> {
+public class CheckMongoOnStartupListener implements ApplicationListener<ApplicationReadyEvent> {
 
     private final MongoTemplate mongoTemplate;
 
-    public JobMongoStartupIndicator(MongoTemplate mongoTemplate) {
+    public CheckMongoOnStartupListener(MongoTemplate mongoTemplate) {
         this.mongoTemplate = mongoTemplate;
     }
 
@@ -64,9 +64,12 @@ public class JobMongoStartupIndicator implements ApplicationListener<Application
                 log.error("fail to auth user to mongodb, please check username and password", e);
                 throw new JobMongoAuthException(e.getCause());
             } else {
-                log.error("mongodb connection failed, please check host and port", e);
+                log.error("mongodb connection failed", e);
                 throw e;
             }
+        } catch (Exception e) {
+            log.error("mongodb health check failed, not allow to start job service", e);
+            throw e;
         }
     }
 }

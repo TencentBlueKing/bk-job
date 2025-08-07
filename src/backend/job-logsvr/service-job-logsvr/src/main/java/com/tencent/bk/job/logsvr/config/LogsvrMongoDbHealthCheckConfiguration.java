@@ -25,7 +25,7 @@
 package com.tencent.bk.job.logsvr.config;
 
 import com.tencent.bk.job.common.mongodb.config.ConditionalOnMongoDBHealthCheckEnabled;
-import com.tencent.bk.job.common.mongodb.listener.JobMongoStartupIndicator;
+import com.tencent.bk.job.common.mongodb.listener.CheckMongoOnStartupListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,8 +40,8 @@ public class LogsvrMongoDbHealthCheckConfiguration {
      */
     @ConditionalOnMongoDBHealthCheckEnabled
     @Bean
-    public JobMongoStartupIndicator jobMongoStartupIndicator(MongoTemplate mongoTemplate) {
+    public CheckMongoOnStartupListener jobMongoStartupIndicator(MongoTemplate mongoTemplate) {
         log.info("enable mongodb health check");
-        return new JobMongoStartupIndicator(mongoTemplate);
+        return new CheckMongoOnStartupListener(mongoTemplate);
     }
 }
