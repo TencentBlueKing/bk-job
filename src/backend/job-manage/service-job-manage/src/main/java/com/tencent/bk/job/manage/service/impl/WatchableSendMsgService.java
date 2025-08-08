@@ -25,7 +25,9 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
-import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
+import com.tencent.bk.job.common.paas.cmsi.ICmsiClient;
+import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -36,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -43,20 +46,21 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class WatchableSendMsgService {
 
-    private static final String VOICE_TYPE = "voice";
-
-    private final CmsiApiClient cmsiApiClient;
+    private final ICmsiClient cmsiApiClient;
     private final MeterRegistry meterRegistry;
+    private final TenantService tenantService;
 
     @Autowired
-    public WatchableSendMsgService(CmsiApiClient cmsiApiClient,
-                                   MeterRegistry meterRegistry) {
+    public WatchableSendMsgService(ICmsiClient cmsiApiClient,
+                                   MeterRegistry meterRegistry,
+                                   TenantService tenantService) {
         this.cmsiApiClient = cmsiApiClient;
         this.meterRegistry = meterRegistry;
+        this.tenantService = tenantService;
     }
 
     @EsbApiTimed
-    public void sendMsg(
+    public void sendMsgWithApp(
         Long appId,
         long createTimeMillis,
         String msgType,
@@ -67,24 +71,72 @@ public class WatchableSendMsgService {
     ) {
         String sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_FAILED;
         try {
-            // 语音通知走专门接口，其余渠道走通用发送接口
-            if (VOICE_TYPE.equalsIgnoreCase(msgType) && cmsiApiClient.canUseStandaloneVoiceAPI()) {
-                cmsiApiClient.sendVoiceMsg(content, receivers);
-            } else {
-                cmsiApiClient.sendMsg(msgType, sender, receivers, title, content);
-            }
+            NotifyMessageDTO notifyMessageDTO = buildNotifyMessage(sender, receivers, title, content);
+            beginSendMessage(
+                msgType,
+                notifyMessageDTO,
+                tenantService.getTenantIdByAppId(appId)
+            );
             sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
         } finally {
-            long delayMillis = System.currentTimeMillis() - createTimeMillis;
-            Tags tags = Tags.of(MetricsConstants.TAG_KEY_MSG_TYPE, msgType);
-            tags = tags.and(MetricsConstants.TAG_KEY_SEND_STATUS, sendStatus);
-            tags = tags.and(MetricsConstants.TAG_KEY_APP_ID, buildAppIdStr(appId));
-            recordSendMsgDelay(delayMillis, tags);
+            recordMetrics(createTimeMillis, msgType, sendStatus, appId);
         }
+    }
+
+    public void sendMsgWithCurrentTenant(
+        String tenantId,
+        long createTimeMillis,
+        String msgType,
+        String sender,
+        Set<String> receivers,
+        String title,
+        String content
+    ) {
+        String sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_FAILED;
+        try {
+            NotifyMessageDTO notifyMessageDTO = buildNotifyMessage(sender, receivers, title, content);
+            beginSendMessage(
+                msgType,
+                notifyMessageDTO,
+                tenantId
+            );
+            sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
+        } finally {
+            recordMetrics(createTimeMillis, msgType, sendStatus, null);
+        }
+
+    }
+
+    private void beginSendMessage(String msgType, NotifyMessageDTO notifyMessageDTO, String tenantId) {
+        cmsiApiClient.sendMsg(
+            msgType,
+            notifyMessageDTO,
+            tenantId
+        );
+    }
+
+    private NotifyMessageDTO buildNotifyMessage(String sender,
+                                    Set<String> receivers,
+                                    String title,
+                                    String content) {
+        NotifyMessageDTO notifyMessageDTO = new NotifyMessageDTO();
+        notifyMessageDTO.setTitle(title);
+        notifyMessageDTO.setContent(content);
+        notifyMessageDTO.setSender(sender);
+        notifyMessageDTO.setReceiverUsername(new ArrayList<>(receivers));
+        return notifyMessageDTO;
     }
 
     private String buildAppIdStr(Long appId) {
         return appId == null ? MetricsConstants.TAG_VALUE_APP_ID_NULL : appId.toString();
+    }
+
+    private void recordMetrics(Long createTimeMillis, String msgType, String sendStatus, Long appId) {
+        long delayMillis = System.currentTimeMillis() - createTimeMillis;
+        Tags tags = Tags.of(MetricsConstants.TAG_KEY_MSG_TYPE, msgType);
+        tags = tags.and(MetricsConstants.TAG_KEY_SEND_STATUS, sendStatus);
+        tags = tags.and(MetricsConstants.TAG_KEY_APP_ID, buildAppIdStr(appId));
+        recordSendMsgDelay(delayMillis, tags);
     }
 
     private void recordSendMsgDelay(long delayMillis, Iterable<Tag> tags) {

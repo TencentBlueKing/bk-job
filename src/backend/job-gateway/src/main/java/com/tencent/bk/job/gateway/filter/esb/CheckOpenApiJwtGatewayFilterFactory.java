@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.service.SpringProfile;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
+import com.tencent.bk.job.gateway.model.esb.BkGwJwtInfo;
 import com.tencent.bk.job.gateway.service.OpenApiJwtService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -59,6 +59,7 @@ public class CheckOpenApiJwtGatewayFilterFactory
     private final OpenApiJwtService openApiJwtService;
     private final SpringProfile springProfile;
     private final ServiceSecurityProperties securityProperties;
+
 
     @Autowired
     public CheckOpenApiJwtGatewayFilterFactory(OpenApiJwtService openApiJwtService,
@@ -89,20 +90,13 @@ public class CheckOpenApiJwtGatewayFilterFactory
                 return response.setComplete();
             }
 
-            EsbJwtInfo authInfo;
+            BkGwJwtInfo authInfo;
             if (isOpenApiTestActive(request)) {
                 // 如果是 OpenApi 测试请求，使用 Job 的 JWT 认证方式，不使用 ESB JWT（避免依赖 ESB)
                 authInfo = openApiJwtService.extractFromJwt(token,
                     RSAUtils.getPublicKey(securityProperties.getPublicKeyBase64()));
             } else {
                 authInfo = openApiJwtService.extractFromJwt(token);
-            }
-
-            if (authInfo == null) {
-                log.warn("Untrusted esb request, request-id:{}", RequestUtil.getHeaderValue(request,
-                    JobCommonHeaders.BK_GATEWAY_REQUEST_ID));
-                response.setStatusCode(HttpStatus.UNAUTHORIZED);
-                return response.setComplete();
             }
 
             // 缺少用户信息
@@ -117,14 +111,16 @@ public class CheckOpenApiJwtGatewayFilterFactory
                 return buildResponse(response, ErrorCode.MISSING_APP_CODE);
             }
 
-            // set app code header
-            request.mutate().header(JobCommonHeaders.APP_CODE, new String[]{authInfo.getAppCode()}).build();
-            request.mutate().header(JobCommonHeaders.USERNAME, new String[]{authInfo.getUsername()}).build();
+            // set header
+            request = request.mutate()
+                .header(JobCommonHeaders.APP_CODE, authInfo.getAppCode())
+                .header(JobCommonHeaders.USERNAME, authInfo.getUsername())
+                .build();
             return chain.filter(exchange.mutate().request(request).build());
         };
     }
 
-    private void logAuthInfo(ServerHttpRequest request, EsbJwtInfo authInfo) {
+    private void logAuthInfo(ServerHttpRequest request, BkGwJwtInfo authInfo) {
         log.warn(
             "Untrusted open api request, request-id:{}, authInfo: {}",
             RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_GATEWAY_REQUEST_ID),

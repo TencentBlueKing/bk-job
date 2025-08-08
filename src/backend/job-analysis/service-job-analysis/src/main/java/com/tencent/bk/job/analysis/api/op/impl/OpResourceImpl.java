@@ -26,7 +26,7 @@ package com.tencent.bk.job.analysis.api.op.impl;
 
 import com.tencent.bk.job.analysis.api.op.OpResource;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.model.op.CancelTasksReq;
 import com.tencent.bk.job.analysis.model.op.ClearStatisticsReq;
 import com.tencent.bk.job.analysis.model.op.ConfigStatisticsReq;
@@ -46,14 +46,15 @@ public class OpResourceImpl implements OpResource {
 
     private final StatisticsTaskScheduler statisticsTaskScheduler;
     private final StatisticConfig statisticConfig;
-    private final StatisticsDAO statisticsDAO;
+    private final NoTenantStatisticsDAO noTenantStatisticsDAO;
 
     @Autowired
-    public OpResourceImpl(StatisticsTaskScheduler statisticsTaskScheduler, StatisticConfig statisticConfig,
-                          StatisticsDAO statisticsDAO) {
+    public OpResourceImpl(StatisticsTaskScheduler statisticsTaskScheduler,
+                          StatisticConfig statisticConfig,
+                          NoTenantStatisticsDAO noTenantStatisticsDAO) {
         this.statisticsTaskScheduler = statisticsTaskScheduler;
         this.statisticConfig = statisticConfig;
-        this.statisticsDAO = statisticsDAO;
+        this.noTenantStatisticsDAO = noTenantStatisticsDAO;
     }
 
     @Override
@@ -93,7 +94,7 @@ public class OpResourceImpl implements OpResource {
         int totalCount = 0;
         if (dateStrList != null) {
             for (String s : dateStrList) {
-                totalCount += statisticsDAO.deleteStatisticsByDate(s);
+                totalCount += noTenantStatisticsDAO.deleteStatisticsByDate(s);
             }
             return Response.buildSuccessResp(totalCount);
         } else {

@@ -41,6 +41,7 @@ import java.util.Date;
 public class TimeUtil {
 
     public static final String DEFAULT_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String TIME_FORMAT_WITH_MILLIS = "yyyy-MM-dd HH:mm:ss.SSS";
 
     /**
      * 从今天00:00:00开始到现在一共过了多少秒
@@ -112,6 +113,10 @@ public class TimeUtil {
 
     public static String getCurrentTimeStr() {
         return getCurrentTimeStr(DEFAULT_TIME_FORMAT);
+    }
+
+    public static String getCurrentTimeStrWithMs() {
+        return getCurrentTimeStr(TIME_FORMAT_WITH_MILLIS);
     }
 
     public static String getCurrentTimeStr(String format) {

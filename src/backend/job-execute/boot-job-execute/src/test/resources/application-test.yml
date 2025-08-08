@@ -42,6 +42,14 @@ bk-api-gateway:
     url: gse.apigw.com
   cmdb:
     url: cmdb.apigw.com
+  bk-login:
+    url: bk-login.apigw.com
+  bk-user:
+    url: bk-user.apigw.com
+  bkIam:
+    url: iam.apigw.com
+  cmsi:
+    url: cmsi.apigw.com
 esb:
   service:
     url: esb.service

@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.manage.api.web;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.WebAPI;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.web.request.customsetting.BatchGetCustomSettingsReq;
@@ -46,10 +48,38 @@ import springfox.documentation.annotations.ApiIgnore;
 import java.util.Map;
 
 @Api(tags = {"job-manage:web:CustomSettings"})
-@RequestMapping("/web/customSettings/scope/{scopeType}/{scopeId}")
+@RequestMapping("/web/customSettings")
 @RestController
 @WebAPI
 public interface WebCustomSettingsResource {
+
+    // 标准接口19
+    @Deprecated
+    @CompatibleImplementation(
+        name = "tenant",
+        explain = "兼容发布过程中老的调用，发布完成后删除",
+        deprecatedVersion = "3.12.x",
+        type = CompatibleType.DEPLOY
+    )
+    @ApiOperation(value = "保存多个配置项，返回成功保存的配置项内容", produces = "application/json")
+    @PostMapping("/scope/{scopeType}/{scopeId}")
+    Response<Map<String, Map<String, Object>>> saveCustomSettingsForScope(
+        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @RequestHeader("username")
+        String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+        AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+        String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+        String scopeId,
+        @ApiParam(value = "保存配置项请求体", required = true)
+        @RequestBody
+        SaveCustomSettingsReq req
+    );
 
     // 标准接口19
     @ApiOperation(value = "保存多个配置项，返回成功保存的配置项内容", produces = "application/json")
@@ -57,20 +87,38 @@ public interface WebCustomSettingsResource {
     Response<Map<String, Map<String, Object>>> saveCustomSettings(
         @ApiParam(value = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId,
+        String username,
         @ApiParam(value = "保存配置项请求体", required = true)
         @RequestBody
-            SaveCustomSettingsReq req
+        SaveCustomSettingsReq req
     );
+
+    // 标准接口20
+    @Deprecated
+    @CompatibleImplementation(
+        name = "tenant",
+        explain = "兼容发布过程中老的调用，发布完成后删除",
+        deprecatedVersion = "3.12.x",
+        type = CompatibleType.DEPLOY
+    )
+    @ApiOperation(value = "批量获取多个配置项内容，返回配置项内容Map，Key为配置模块", produces = "application/json")
+    @PostMapping("/scope/{scopeType}/{scopeId}/batchGet")
+    Response<Map<String, Map<String, Object>>> batchGetCustomSettingsForScope(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+        String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+        AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+        String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+        String scopeId,
+        @ApiParam(value = "批量获取配置项请求体", required = true)
+        @RequestBody(required = false)
+        BatchGetCustomSettingsReq req);
 
     // 标准接口20
     @ApiOperation(value = "批量获取多个配置项内容，返回配置项内容Map，Key为配置模块", produces = "application/json")
@@ -78,19 +126,37 @@ public interface WebCustomSettingsResource {
     Response<Map<String, Map<String, Object>>> batchGetCustomSettings(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId,
+        String username,
         @ApiParam(value = "批量获取配置项请求体", required = true)
         @RequestBody(required = false)
-            BatchGetCustomSettingsReq req);
+        BatchGetCustomSettingsReq req);
+
+    // 标准接口21
+    @Deprecated
+    @CompatibleImplementation(
+        name = "tenant",
+        explain = "兼容发布过程中老的调用，发布完成后删除",
+        deprecatedVersion = "3.12.x",
+        type = CompatibleType.DEPLOY
+    )
+    @ApiOperation(value = "删除多个模块配置项内容，返回删除成功的模块配置数量", produces = "application/json")
+    @DeleteMapping("/scope/{scopeType}/{scopeId}")
+    Response<Integer> deleteCustomSettingsForScope(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+        String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+        AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+        String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+        String scopeId,
+        @ApiParam(value = "删除配置项请求体", required = true)
+        @RequestBody
+        DeleteCustomSettingsReq req);
 
     // 标准接口21
     @ApiOperation(value = "删除多个模块配置项内容，返回删除成功的模块配置数量", produces = "application/json")
@@ -98,18 +164,9 @@ public interface WebCustomSettingsResource {
     Response<Integer> deleteCustomSettings(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId,
+        String username,
         @ApiParam(value = "删除配置项请求体", required = true)
         @RequestBody
-            DeleteCustomSettingsReq req);
+        DeleteCustomSettingsReq req);
 
 }
