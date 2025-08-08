@@ -40,6 +40,7 @@ import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.cloud.sleuth.annotation.NewSpan;
@@ -99,11 +100,29 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
      * @return 布尔值
      */
     private boolean checkActive() {
-        if (!tenantService.isTenantEnabledPreferCache(tenantId)) {
+        if (!checkTenantSafely()) {
             log.info("tenant {} is not enabled, stop watch {}", tenantId, watcherResourceName);
             active = false;
         }
         return active;
+    }
+
+    /**
+     * 安全地检查当前租户是否启用，接口调用异常视为启用，不停止事件监听线程
+     *
+     * @return 布尔值
+     */
+    private boolean checkTenantSafely() {
+        try {
+            return tenantService.isTenantEnabledPreferCache(tenantId);
+        } catch (Throwable t) {
+            String message = MessageFormatter.format(
+                "Fail to check tenant({}) enabled status, regard as true",
+                tenantId
+            ).getMessage();
+            log.warn(message, t);
+            return true;
+        }
     }
 
     @NewSpan
