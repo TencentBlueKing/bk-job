@@ -41,6 +41,7 @@ public class BkApiContext<T, R> {
     private String method;
     private String uri;
     private T req;
+    private String queryParams;
     /**
      * 原始的 API 响应
      */
@@ -74,6 +75,7 @@ public class BkApiContext<T, R> {
     public BkApiContext(String method,
                         String uri,
                         T req,
+                        String queryParams,
                         String originResp,
                         R resp,
                         long costTime,
@@ -81,6 +83,7 @@ public class BkApiContext<T, R> {
         this.method = method;
         this.uri = uri;
         this.req = req;
+        this.queryParams = queryParams;
         this.originResp = originResp;
         this.resp = resp;
         this.costTime = costTime;
