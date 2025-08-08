@@ -3311,3 +3311,55 @@ paths:
           userVerifiedRequired: false
           resourcePermissionRequired: false
         descriptionEn: Callback protocol
+  /api/v3/get_account_password_encryption_metadata:
+    get:
+      operationId: get_account_password_encryption_metadata
+      description: 获取主机账号的密码的加密信息
+      tags: [ 'open' ]
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: get
+          path: /api/job/v3/job-manage/get_account_password_encryption_metadata
+          matchSubpath: false
+          timeout: 0
+          upstreams: { }
+          transformHeaders: { }
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Get account password encryption metadata
+  /api/v3/system/get_account_password_encryption_metadata:
+    get:
+      operationId: system_get_account_password_encryption_metadata
+      description: 获取主机账号的密码的加密信息
+      tags: [ 'system' ]
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: get
+          path: /api/job/v3/job-manage/get_account_password_encryption_metadata
+          matchSubpath: false
+          timeout: 0
+          upstreams: { }
+          transformHeaders: { }
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: false
+          resourcePermissionRequired: true
+        descriptionEn: Get account password encryption metadata
