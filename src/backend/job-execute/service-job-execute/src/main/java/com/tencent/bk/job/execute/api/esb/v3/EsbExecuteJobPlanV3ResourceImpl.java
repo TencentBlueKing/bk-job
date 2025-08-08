@@ -113,6 +113,7 @@ public class EsbExecuteJobPlanV3ResourceImpl
                 .startupMode(TaskStartupModeEnum.API)
                 .callbackUrl(request.getCallbackUrl())
                 .appCode(appCode)
+                .startTask(request.getStartTask())
                 .build());
 
         EsbJobExecuteV3DTO result = new EsbJobExecuteV3DTO();

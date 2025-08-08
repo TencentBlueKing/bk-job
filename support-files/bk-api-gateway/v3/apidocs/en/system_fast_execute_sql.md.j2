@@ -17,6 +17,7 @@ Quick execution of SQL scripts
 | db_account_id     | long   | yes      | Db account ID for SQL execution                                                                                                                                                              |
 | target_server     | object | no       | Target server, see server definition                                                                                                                                                         |
 | callback_url      | string | no       | Callback URL, when the task execution is completed, the JOB will call this URL to inform the task execution result. Callback protocol refer to the callback_protocol component documentation |
+| start_task        | boolean| no       | Whether to start the task, default true. If it is false, you can start a task through the operating job instance interface |
 
 {% include '_generic_server.md.j2' %}
 

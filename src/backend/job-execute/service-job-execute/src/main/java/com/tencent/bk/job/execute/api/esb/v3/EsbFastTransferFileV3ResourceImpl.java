@@ -130,6 +130,7 @@ public class EsbFastTransferFileV3ResourceImpl
                 .taskInstance(taskInstance)
                 .stepInstance(stepInstance)
                 .rollingConfig(rollingConfig)
+                .startTask(request.getStartTask())
                 .build()
         );
 

@@ -48,6 +48,11 @@ public class FastTaskDTO {
      * 滚动配置
      */
     private StepRollingConfigDTO rollingConfig;
+    /**
+     * 是否启动任务
+     */
+    @Builder.Default
+    private Boolean startTask = true;
 
     /**
      * 目标主机密码

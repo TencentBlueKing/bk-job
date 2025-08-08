@@ -130,6 +130,11 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
     @Valid
     private List<EsbCustomHostPasswordDTO> hostPasswordList;
 
+     * 是否启动任务
+     */
+    @JsonProperty("start_task")
+    private Boolean startTask = true;
+
     public void trimIps() {
         if (this.targetServer != null) {
             trimIps(this.targetServer.getIps());
