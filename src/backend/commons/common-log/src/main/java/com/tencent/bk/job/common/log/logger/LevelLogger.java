@@ -21,28 +21,17 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-dependencies {
-    api project(":commons:common")
-    api project(":commons:common-api")
-    api project(":commons:common-log")
-    implementation 'com.fasterxml.jackson.core:jackson-core'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.core:jackson-annotations'
-    api 'org.apache.commons:commons-lang3'
-    implementation "org.springframework:spring-jdbc"
-    implementation 'org.springframework:spring-web'
-    implementation "net.sf.dozer:dozer"
-    implementation 'org.apache.commons:commons-collections4'
-    implementation 'net.sourceforge.jchardet:jchardet'
-    implementation 'org.aspectj:aspectjrt'
-    implementation 'org.aspectj:aspectjweaver'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation group: 'org.apache.httpcomponents', name: 'httpclient'
-    implementation group: 'org.apache.httpcomponents', name: 'httpmime'
-    implementation "org.hibernate.validator:hibernate-validator"
-    implementation('jakarta.validation:jakarta.validation-api')
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    testImplementation "org.junit.jupiter:junit-jupiter"
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+package com.tencent.bk.job.common.log.logger;
+
+import org.slf4j.event.Level;
+
+/**
+ * 指定日志级别并打印日志
+ */
+public interface LevelLogger {
+
+    void log(Level level, String format, Object... arguments);
+
+    void log(Level level, String msg, Throwable t);
 }
