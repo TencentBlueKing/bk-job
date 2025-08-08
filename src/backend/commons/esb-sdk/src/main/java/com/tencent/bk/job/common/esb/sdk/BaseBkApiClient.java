@@ -1,5 +1,3 @@
-package com.tencent.bk.job.common.esb.sdk;
-
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
@@ -23,6 +21,8 @@ package com.tencent.bk.job.common.esb.sdk;
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+
+package com.tencent.bk.job.common.esb.sdk;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
@@ -139,8 +139,16 @@ public class BaseBkApiClient {
                               BkApiLogStrategy logStrategy,
                               HttpHelper httpHelper) throws BkOpenApiException {
         HttpMethodEnum httpMethod = requestInfo.getMethod();
-        BkApiContext<T, R> apiContext = new BkApiContext<>(httpMethod.name(), requestInfo.getUri(),
-            requestInfo.getBody(), null, null, 0, false);
+        BkApiContext<T, R> apiContext = new BkApiContext<>(
+            httpMethod.name(),
+            requestInfo.getUri(),
+            requestInfo.getBody(),
+            requestInfo.buildQueryParamUrl(),
+            null,
+            null,
+            0,
+            false
+        );
 
         String tenantId = extractBkTenantId(requestInfo);
         if (logStrategy != null) {
@@ -151,7 +159,7 @@ public class BaseBkApiClient {
                     "[BaseBkApiClient] Request|tenantId={}|method={}|uri={}|reqStr={}",
                     tenantId,
                     httpMethod.name(),
-                    requestInfo.getUri(),
+                    requestInfo.buildFinalUri(),
                     requestInfo.getBody() != null ?
                         JsonUtils.toJsonWithoutSkippedFields(requestInfo.getBody()) : null
                 );

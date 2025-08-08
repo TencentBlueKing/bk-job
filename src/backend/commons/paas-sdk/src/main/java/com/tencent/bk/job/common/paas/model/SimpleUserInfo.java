@@ -25,10 +25,16 @@
 package com.tencent.bk.job.common.paas.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 @Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class SimpleUserInfo {
 
     /**

@@ -22,71 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.sdk;
-
-import lombok.Data;
+package com.tencent.bk.job.common.paas.exception;
 
 /**
- * BK Open API 调用上下文
- *
- * @param <T> 请求
- * @param <R> 响应对象
+ * 在用户管理(bk-user)中，无法通过username查到用户的异常
  */
-@Data
-public class BkApiContext<T, R> {
+public class UserNotFoundException extends RuntimeException {
 
-    /**
-     * HTTP 请求方法
-     */
-    private String method;
-    private String uri;
-    private T req;
-    private String queryParams;
-    /**
-     * 原始的 API 响应
-     */
-    private String originResp;
-    /**
-     * 反序列化之后的 API 响应
-     */
-    private R resp;
-    /**
-     * API 调用耗时
-     */
-    private long costTime;
-
-    /**
-     * API 响应耗时
-     */
-    private long requestCostTime;
-    /**
-     * 响应数据反序列化耗时
-     */
-    private long deserializeCostTime;
-    /**
-     * API 是否调用成功并正确响应
-     */
-    private boolean success;
-    /**
-     * 网关 request_id
-     */
-    private String requestId;
-
-    public BkApiContext(String method,
-                        String uri,
-                        T req,
-                        String queryParams,
-                        String originResp,
-                        R resp,
-                        long costTime,
-                        boolean success) {
-        this.method = method;
-        this.uri = uri;
-        this.req = req;
-        this.queryParams = queryParams;
-        this.originResp = originResp;
-        this.resp = resp;
-        this.costTime = costTime;
-        this.success = success;
+    public UserNotFoundException(String msg) {
+        super(msg);
     }
 }
