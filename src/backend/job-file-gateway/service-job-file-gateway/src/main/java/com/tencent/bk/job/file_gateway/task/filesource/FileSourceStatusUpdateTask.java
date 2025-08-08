@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.file_gateway.task.filesource;
 
+import com.tencent.bk.job.common.redis.util.DistributedUniqueTask;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.file_gateway.consts.FileSourceStatusEnum;
 import com.tencent.bk.job.file_gateway.dao.filesource.NoTenantFileSourceDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
@@ -32,6 +34,9 @@ import com.tencent.bk.job.file_gateway.service.FileAvailableService;
 import com.tencent.bk.job.file_gateway.service.dispatch.DispatchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.sleuth.CurrentTraceContext;
+import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,58 +45,105 @@ import java.util.List;
 @Service
 public class FileSourceStatusUpdateTask {
 
+    private final Tracer tracer;
+    private final CurrentTraceContext currentTraceContext;
     private final FileAvailableService fileAvailableService;
     private final DispatchService dispatchService;
     private final NoTenantFileSourceDAO noTenantFileSourceDAO;
+    private final RedisTemplate<String, String> redisTemplate;
+    private static final String machineIp = IpUtils.getFirstMachineIP();
+    private static final String REDIS_KEY_FILE_SOURCE_STATUS_UPDATE_TASK_RUNNING_MACHINE =
+        "file-gateway:FileSourceStatusUpdateTask-running-machine";
 
     @Autowired
-    public FileSourceStatusUpdateTask(FileAvailableService fileAvailableService,
+    public FileSourceStatusUpdateTask(Tracer tracer,
+                                      FileAvailableService fileAvailableService,
                                       DispatchService dispatchService,
-                                      NoTenantFileSourceDAO noTenantFileSourceDAO) {
+                                      NoTenantFileSourceDAO noTenantFileSourceDAO,
+                                      RedisTemplate<String, String> redisTemplate) {
+        this.tracer = tracer;
+        this.currentTraceContext = tracer.currentTraceContext();
         this.fileAvailableService = fileAvailableService;
         this.dispatchService = dispatchService;
         this.noTenantFileSourceDAO = noTenantFileSourceDAO;
+        this.redisTemplate = redisTemplate;
     }
 
     public void run() {
+        Integer updatedNum;
+        try {
+            // 分布式唯一性保证
+            updatedNum = new DistributedUniqueTask<>(
+                redisTemplate,
+                this.getClass().getSimpleName(),
+                REDIS_KEY_FILE_SOURCE_STATUS_UPDATE_TASK_RUNNING_MACHINE,
+                machineIp,
+                this::updateAllFileSourceStatus
+            ).execute();
+            if (updatedNum == null) {
+                // 任务已在其他实例执行
+                log.info("FileSourceStatusUpdateTask already executed by another instance");
+            }
+        } catch (Throwable t) {
+            log.warn("Fail to updateFileSourceStatus", t);
+        }
+    }
+
+    /**
+     * 更新所有文件源状态
+     *
+     * @return 更新数量
+     */
+    private Integer updateAllFileSourceStatus() {
         List<FileSourceDTO> fileSourceDTOList;
         int start = 0;
         int pageSize = 20;
         do {
             fileSourceDTOList = noTenantFileSourceDAO.listEnabledFileSource(start, pageSize);
             for (FileSourceDTO fileSourceDTO : fileSourceDTOList) {
-                FileWorkerDTO fileWorkerDTO = dispatchService.findBestFileWorker(
-                    fileSourceDTO,
-                    "FileSourceStatusUpdateTask"
-                );
-                int status;
-                if (fileWorkerDTO == null) {
-                    log.info(
-                        "cannot find available file worker for fileSource {}:{}",
-                        fileSourceDTO.getId(),
-                        fileSourceDTO.getAlias()
-                    );
-                    status = FileSourceStatusEnum.NO_WORKER.getStatus().intValue();
-                } else {
-                    int onlineStatus = fileWorkerDTO.getOnlineStatus().intValue();
-                    if (onlineStatus == 0) {
-                        status = onlineStatus;
-                    } else {
-                        status = getFileSourceStatus(fileSourceDTO);
-                    }
-                }
-                int affectedNum = noTenantFileSourceDAO.updateFileSourceStatus(fileSourceDTO.getId(), status);
-                log.debug(
-                    "Update fileSource:fileSourceId={}, fileSourceCode={}, status={}, affectedNum={}",
-                    fileSourceDTO.getId(),
-                    fileSourceDTO.getCode(),
-                    status,
-                    affectedNum
-                );
+                updateFileSourceStatus(fileSourceDTO);
             }
             start += pageSize;
         } while (fileSourceDTOList.size() == pageSize);
-        log.info("Updated status of {} fileSources", start - pageSize + fileSourceDTOList.size());
+        int updatedNum = start - pageSize + fileSourceDTOList.size();
+        log.info("Updated status of {} fileSources", updatedNum);
+        return updatedNum;
+    }
+
+    /**
+     * 更新单个文件源状态
+     *
+     * @param fileSourceDTO 文件源信息
+     */
+    private void updateFileSourceStatus(FileSourceDTO fileSourceDTO) {
+        FileWorkerDTO fileWorkerDTO = dispatchService.findBestFileWorker(
+            fileSourceDTO,
+            "FileSourceStatusUpdateTask"
+        );
+        int status;
+        if (fileWorkerDTO == null) {
+            log.info(
+                "cannot find available file worker for fileSource {}:{}",
+                fileSourceDTO.getId(),
+                fileSourceDTO.getAlias()
+            );
+            status = FileSourceStatusEnum.NO_WORKER.getStatus().intValue();
+        } else {
+            int onlineStatus = fileWorkerDTO.getOnlineStatus().intValue();
+            if (onlineStatus == 0) {
+                status = onlineStatus;
+            } else {
+                status = getFileSourceStatus(fileSourceDTO);
+            }
+        }
+        int affectedNum = noTenantFileSourceDAO.updateFileSourceStatus(fileSourceDTO.getId(), status);
+        log.debug(
+            "Update fileSource:fileSourceId={}, fileSourceCode={}, status={}, affectedNum={}",
+            fileSourceDTO.getId(),
+            fileSourceDTO.getCode(),
+            status,
+            affectedNum
+        );
     }
 
     /**
