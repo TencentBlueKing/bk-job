@@ -41,8 +41,13 @@ public interface BkApiLogStrategy {
      */
     default <T, R> void logReq(Logger log, BkApiContext<T, R> context) {
         if (log.isInfoEnabled()) {
-            log.info("Request|method={}|uri={}|reqStr={}", context.getMethod(),
-                context.getUri(), JsonUtils.toJsonWithoutSkippedFields(context.getReq()));
+            log.info(
+                "Request|method={}|uri={}|queryParams={}|reqStr={}",
+                context.getMethod(),
+                context.getUri(),
+                context.getQueryParams(),
+                JsonUtils.toJsonWithoutSkippedFields(context.getReq())
+            );
         }
     }
 

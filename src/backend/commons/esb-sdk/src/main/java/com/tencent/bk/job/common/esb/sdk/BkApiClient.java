@@ -135,17 +135,21 @@ public class BkApiClient {
                                        BkApiLogStrategy logStrategy,
                                        HttpHelper httpHelper) {
         HttpMethodEnum httpMethod = requestInfo.getMethod();
-        BkApiContext<T, R> apiContext = new BkApiContext<>(httpMethod.name(), requestInfo.getUri(),
-            requestInfo.getBody(), null, null, 0, false);
+        BkApiContext<T, R> apiContext = new BkApiContext<>(
+            httpMethod.name(),
+            requestInfo.getUri(),
+            requestInfo.getBody(),
+            requestInfo.buildQueryParamUrl(),
+            null,
+            null,
+            0,
+            false
+        );
 
         if (logStrategy != null) {
             logStrategy.logReq(log, apiContext);
         } else {
-            if (log.isInfoEnabled()) {
-                log.info("[AbstractBkApiClient] Request|method={}|uri={}|reqStr={}",
-                    httpMethod.name(), requestInfo.getUri(),
-                    requestInfo.getBody() != null ? JsonUtils.toJsonWithoutSkippedFields(requestInfo.getBody()) : null);
-            }
+            logRequest(requestInfo);
         }
 
         try {
@@ -173,14 +177,20 @@ public class BkApiClient {
         }
     }
 
+    private <T> void logRequest(OpenApiRequestInfo<T> requestInfo) {
+        if (log.isInfoEnabled()) {
+            log.info("[AbstractBkApiClient] Request|method={}|uri={}|reqStr={}",
+                requestInfo.getMethod().name(),
+                requestInfo.buildFinalUri(),
+                requestInfo.getBody() != null ? JsonUtils.toJsonWithoutSkippedFields(requestInfo.getBody()) : null
+            );
+        }
+    }
+
     public <T, R> R requestApiAndWrapResponse(OpenApiRequestInfo<T> requestInfo,
                                               TypeReference<R> typeReference,
                                               HttpHelper httpHelper) {
-        if (log.isInfoEnabled()) {
-            log.info("[AbstractBkApiClient] Request|method={}|uri={}|reqStr={}",
-                requestInfo.getMethod().name(), requestInfo.getUri(),
-                requestInfo.getBody() != null ? JsonUtils.toJsonWithoutSkippedFields(requestInfo.getBody()) : null);
-        }
+        logRequest(requestInfo);
         String uri = requestInfo.getUri();
         String respStr = null;
         String status = EsbMetricTags.VALUE_STATUS_OK;
