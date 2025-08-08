@@ -41,11 +41,11 @@ public interface TenantService {
     List<TenantDTO> listEnabledTenant();
 
     /**
-     * 判断租户是否启用（租户被禁用或不存在均视为未启用）
+     * 优先使用本地缓存数据判断租户是否启用（租户被禁用或不存在均视为未启用）
      *
      * @return 租户ID
      */
-    boolean isTenantEnabled(String tenantId);
+    boolean isTenantEnabledPreferCache(String tenantId);
 
     /**
      * 通过appId获取tenantId

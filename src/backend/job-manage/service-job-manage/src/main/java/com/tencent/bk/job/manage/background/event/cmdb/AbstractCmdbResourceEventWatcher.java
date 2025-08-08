@@ -99,7 +99,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
      * @return 布尔值
      */
     private boolean checkActive() {
-        if (!tenantService.isTenantEnabled(tenantId)) {
+        if (!tenantService.isTenantEnabledPreferCache(tenantId)) {
             log.info("tenant {} is not enabled, stop watch {}", tenantId, watcherResourceName);
             active = false;
         }

@@ -57,21 +57,8 @@ public class CachedTenantServiceImpl implements TenantService {
                    }
             );
 
-    private final String CACHE_KEY_ENABLED_TENANT_IDS = "enabledTenantIds";
-    // 已启用的租户ID缓存
-    private final LoadingCache<String, Set<String>> enabledTenantIdsCache =
-        CacheBuilder.newBuilder().maximumSize(1)
-            .expireAfterWrite(1, TimeUnit.MINUTES)
-            .build(new CacheLoader<String, Set<String>>() {
-                       @Override
-                       public @Nonnull Set<String> load(@Nonnull String key) {
-                           if (CACHE_KEY_ENABLED_TENANT_IDS.equals(key)) {
-                               return getEnabledTenantIdsFromRemote();
-                           }
-                           return Collections.emptySet();
-                       }
-                   }
-            );
+    private final EnabledTenantIdsCache enabledTenantIdsCache =
+        new EnabledTenantIdsCache(this::getEnabledTenantIdsFromRemote);
 
     private final ServiceTenantResource serviceTenantResource;
 
@@ -84,14 +71,16 @@ public class CachedTenantServiceImpl implements TenantService {
         return serviceTenantResource.listEnabledTenant().getData();
     }
 
+
+    /**
+     * 根据本地缓存（过期时间1分钟）的租户数据判断某个租户是否启用
+     *
+     * @param tenantId 租户ID
+     * @return 布尔值
+     */
     @Override
-    public boolean isTenantEnabled(String tenantId) {
-        try {
-            return enabledTenantIdsCache.get(CACHE_KEY_ENABLED_TENANT_IDS).contains(tenantId);
-        } catch (Exception e) {
-            log.warn("Fail to get enabled tenantIds from cache", e);
-            return getEnabledTenantIdsFromRemote().contains(tenantId);
-        }
+    public boolean isTenantEnabledPreferCache(String tenantId) {
+        return enabledTenantIdsCache.getEnabledTenantIds().contains(tenantId);
     }
 
     /**
