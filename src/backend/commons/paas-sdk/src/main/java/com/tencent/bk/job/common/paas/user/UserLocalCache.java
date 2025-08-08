@@ -7,19 +7,20 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.paas.exception.PaasException;
+import com.tencent.bk.job.common.paas.exception.UserNotFoundException;
 import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 import com.tencent.bk.job.common.paas.model.UserCacheQuery;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -41,14 +42,23 @@ public class UserLocalCache {
         .maximumSize(10000).expireAfterWrite(1, TimeUnit.HOURS).
         build(new CacheLoader<UserCacheQuery, SimpleUserInfo>() {
                   @Override
-                  public SimpleUserInfo load(UserCacheQuery query) {
+                  public @NonNull SimpleUserInfo load(@NonNull UserCacheQuery query) {
                       String tenantId = query.getTenantId();
                       String username = query.getUsername();
+                      SimpleUserInfo user = userMgrApiClient.getUserByUsername(tenantId, username);
+                      // 用户在用户管理中不存在
+                      if (user == null) {
+                          log.info("cannot find user(tenantId={}, username={}) in bk-user by ", tenantId, username);
+                          throw new UserNotFoundException(
+                              "user(tenantId=" + tenantId + ", username=" + username + ") not found in bk-user");
+                      }
                       return userMgrApiClient.getUserByUsername(tenantId, username);
                   }
 
                   @Override
-                  public Map<UserCacheQuery, SimpleUserInfo> loadAll(Iterable<? extends UserCacheQuery> querys) {
+                  public @NonNull Map<UserCacheQuery, SimpleUserInfo> loadAll(
+                      @NonNull Iterable<? extends UserCacheQuery> querys
+                  ) {
                       Set<UserCacheQuery> querySet = Sets.newHashSet(querys);
                       if (CollectionUtils.isEmpty(querySet)) {
                           return new HashMap<>();
@@ -86,16 +96,48 @@ public class UserLocalCache {
 
     public User getUser(String tenantId, String username) {
         UserCacheQuery query = new UserCacheQuery(tenantId, username);
-        SimpleUserInfo bkUser = userCache.getUnchecked(query);
-        if (bkUser == null) {
-            return null;
+        SimpleUserInfo bkUser;
+        User result = new User();
+        try {
+            bkUser = userCache.getUnchecked(query);
+            result.setTenantId(tenantId);
+            result.setUsername(bkUser.getBkUsername());
+            result.setDisplayName(bkUser.getDisplayName());
+        } catch (UncheckedExecutionException e) {
+            if (e.getCause() instanceof UserNotFoundException) {
+                // 用户不存在，使用username作为loginName兜底
+                log.info(
+                    "user(tenantId={}, username={}) not found in bk-user, fill loginName by username({})",
+                    tenantId,
+                    username,
+                    username);
+                result.setTenantId(tenantId);
+                result.setUsername(username);
+                result.setDisplayName(username);
+                return result;
+            }
+            throw e;
         }
-        return new User(tenantId, bkUser.getBkUsername(), bkUser.getDisplayName());
+        return result;
     }
 
     public SimpleUserInfo getSingleUser(String tenantId, String username) {
         UserCacheQuery query = new UserCacheQuery(tenantId, username);
-        return userCache.getUnchecked(query);
+        try {
+            return userCache.getUnchecked(query);
+        } catch (UncheckedExecutionException e) {
+            if (e.getCause() instanceof UserNotFoundException) {
+                // 用户不存在，使用username作为loginName兜底
+                log.info(
+                    "user(tenantId={}, username={}) not found in bk-user, fill loginName by username({})",
+                    tenantId,
+                    username,
+                    username
+                );
+                return new SimpleUserInfo(username, username, username);
+            }
+            throw e;
+        }
     }
 
     public Set<SimpleUserInfo> batchGetUser(String tenantId, Collection<String> usernames) {
@@ -128,11 +170,20 @@ public class UserLocalCache {
 
     public String getDisplayName(String tenantId, String username) {
         UserCacheQuery query = new UserCacheQuery(tenantId, username);
-        SimpleUserInfo bkUser = userCache.getUnchecked(query);
-        String displayName = username;
-        if (bkUser != null && StringUtils.isNotEmpty(bkUser.getDisplayName())) {
-            displayName = bkUser.getDisplayName();
+        SimpleUserInfo bkUser;
+        try {
+             bkUser = userCache.getUnchecked(query);
+        } catch (UncheckedExecutionException e) {
+            if (e.getCause() instanceof UserNotFoundException) {
+                log.info(
+                    "user(tenantId={}, username={}) not found in bk-user, fill displayName by username({})",
+                    tenantId,
+                    username,
+                    username);
+                return username;
+            }
+            throw e;
         }
-        return displayName;
+        return StringUtils.isNotBlank(bkUser.getDisplayName()) ? bkUser.getDisplayName() : username;
     }
 }

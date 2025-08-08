@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -22,40 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.model;
+package com.tencent.bk.job.common.paas.exception;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
+/**
+ * 在用户管理(bk-user)中，无法通过username查到用户的异常
+ */
+public class UserNotFoundException extends RuntimeException {
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-public class SimpleUserInfo {
-
-    /**
-     * 蓝鲸用户唯一标识
-     */
-    @JsonProperty("bk_username")
-    private String bkUsername;
-
-    /**
-     * 企业内用户唯一标识
-     */
-    @JsonProperty("login_name")
-    private String loginName;
-
-    /**
-     * 用户展示名
-     */
-    @JsonProperty("display_name")
-    private String displayName;
-
-    public boolean isNotEmpty() {
-        return StringUtils.isNotEmpty(bkUsername);
+    public UserNotFoundException(String msg) {
+        super(msg);
     }
 }
