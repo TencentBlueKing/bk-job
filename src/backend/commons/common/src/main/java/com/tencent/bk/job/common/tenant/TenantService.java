@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -39,6 +39,13 @@ public interface TenantService {
      * @return 租户列表
      */
     List<TenantDTO> listEnabledTenant();
+
+    /**
+     * 优先使用本地缓存数据判断租户是否启用（租户被禁用或不存在均视为未启用）
+     *
+     * @return 租户ID
+     */
+    boolean isTenantEnabledPreferCache(String tenantId);
 
     /**
      * 通过appId获取tenantId

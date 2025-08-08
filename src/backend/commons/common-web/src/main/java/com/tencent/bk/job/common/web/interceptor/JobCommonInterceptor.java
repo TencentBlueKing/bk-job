@@ -106,7 +106,7 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
 
     private void addUser(HttpServletRequest request) {
         HttpRequestSourceEnum requestSource = RequestUtil.parseHttpRequestSource(request);
-        if (requestSource == HttpRequestSourceEnum.UNKNOWN) {
+        if (requestSource == HttpRequestSourceEnum.UNKNOWN || requestSource == HttpRequestSourceEnum.INTERNAL) {
             return;
         }
 

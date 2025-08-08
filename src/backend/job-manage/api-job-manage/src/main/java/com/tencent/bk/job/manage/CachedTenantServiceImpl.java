@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -31,17 +31,22 @@ import com.tencent.bk.job.common.model.tenant.TenantDTO;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.helpers.MessageFormatter;
 
 import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class CachedTenantServiceImpl implements TenantService {
 
-    private final LoadingCache<Long, String> tenantIdCache =
+    // AppId与租户ID映射表的缓存
+    private final LoadingCache<Long, String> appIdToTenantIdMapCache =
         CacheBuilder.newBuilder().maximumSize(500)
             .expireAfterWrite(5, TimeUnit.MINUTES)
             .build(new CacheLoader<Long, String>() {
@@ -51,6 +56,9 @@ public class CachedTenantServiceImpl implements TenantService {
                        }
                    }
             );
+
+    private final EnabledTenantIdsCache enabledTenantIdsCache =
+        new EnabledTenantIdsCache(this::getEnabledTenantIdsFromRemote);
 
     private final ServiceTenantResource serviceTenantResource;
 
@@ -63,10 +71,35 @@ public class CachedTenantServiceImpl implements TenantService {
         return serviceTenantResource.listEnabledTenant().getData();
     }
 
+
+    /**
+     * 根据本地缓存（过期时间1分钟）的租户数据判断某个租户是否启用
+     *
+     * @param tenantId 租户ID
+     * @return 布尔值
+     */
+    @Override
+    public boolean isTenantEnabledPreferCache(String tenantId) {
+        return enabledTenantIdsCache.getEnabledTenantIds().contains(tenantId);
+    }
+
+    /**
+     * 通过服务间调用获取启用的租户ID
+     *
+     * @return 启用的租户ID集合
+     */
+    private Set<String> getEnabledTenantIdsFromRemote() {
+        List<TenantDTO> enabledTenantList = listEnabledTenant();
+        if (CollectionUtils.isEmpty(enabledTenantList)) {
+            return Collections.emptySet();
+        }
+        return enabledTenantList.stream().map(TenantDTO::getId).collect(Collectors.toSet());
+    }
+
     @Override
     public String getTenantIdByAppId(long appId) {
         try {
-            return tenantIdCache.get(appId);
+            return appIdToTenantIdMapCache.get(appId);
         } catch (ExecutionException e) {
             String message = MessageFormatter.format(
                 "Fail to getTenantIdByAppId from cache, appId={}",

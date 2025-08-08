@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.model.tenant.TenantDTO;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
 import com.tencent.bk.job.common.paas.user.IUserApiClient;
 import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.manage.EnabledTenantIdsCache;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -37,6 +38,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -45,6 +47,7 @@ public class TenantServiceImpl implements TenantService {
 
     private final IUserApiClient userMgrApiClient;
     private final ApplicationService applicationService;
+    private final EnabledTenantIdsCache enabledTenantIdsCache = new EnabledTenantIdsCache(this::getEnabledTenantIds);
 
     @Autowired
     public TenantServiceImpl(IUserApiClient userMgrApiClient,
@@ -55,6 +58,11 @@ public class TenantServiceImpl implements TenantService {
     }
 
 
+    /**
+     * 获取实时的已启用租户列表
+     *
+     * @return 租户列表
+     */
     @Override
     public List<TenantDTO> listEnabledTenant() {
         List<OpenApiTenant> openApiTenantList = userMgrApiClient.listAllTenant();
@@ -65,6 +73,22 @@ public class TenantServiceImpl implements TenantService {
             .filter(OpenApiTenant::isEnabled)
             .map(openApiTenant -> new TenantDTO(openApiTenant.getId(), openApiTenant.getName()))
             .collect(Collectors.toList());
+    }
+
+    /**
+     * 根据本地缓存（过期时间1分钟）的租户数据判断某个租户是否启用
+     *
+     * @param tenantId 租户ID
+     * @return 布尔值
+     */
+    @Override
+    public boolean isTenantEnabledPreferCache(String tenantId) {
+        // 当前用户管理没有单个租户查询接口，只能获取所有租户进行判断，增加一级缓存避免频繁调用用户管理接口
+        return enabledTenantIdsCache.getEnabledTenantIds().contains(tenantId);
+    }
+
+    private Set<String> getEnabledTenantIds() {
+        return listEnabledTenant().stream().map(TenantDTO::getId).collect(Collectors.toSet());
     }
 
     @Override

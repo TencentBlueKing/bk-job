@@ -78,8 +78,9 @@ public class BizSetEventDetail {
     @JsonProperty("default")
     private Integer deFault = 0;
 
-    public ApplicationDTO toApplicationDTO() {
+    public ApplicationDTO toApplicationDTO(String tenantId) {
         ApplicationDTO applicationDTO = new ApplicationDTO();
+        applicationDTO.setTenantId(tenantId);
         ResourceScope resourceScope = new ResourceScope(ResourceScopeTypeEnum.BIZ_SET, String.valueOf(bizSetId));
         applicationDTO.setScope(resourceScope);
         applicationDTO.setName(bizSetName);

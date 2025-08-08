@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
@@ -61,8 +62,9 @@ public class TenantBizSetRelationEventWatcher extends AbstractCmdbResourceEventW
                                             ApplicationService applicationService,
                                             BizSetService bizSetService,
                                             IBizSetCmdbClient bizSetCmdbClient,
+                                            TenantService tenantService,
                                             String tenantId) {
-        super(tenantId, "bizSetRelation", redisTemplate, tracer, cmdbEventSampler);
+        super(tenantId, "bizSetRelation", redisTemplate, tenantService, tracer, cmdbEventSampler);
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
         this.bizSetCmdbClient = bizSetCmdbClient;
@@ -78,10 +80,9 @@ public class TenantBizSetRelationEventWatcher extends AbstractCmdbResourceEventW
         return bizSetCmdbClient.getBizSetRelationEvents(tenantId, startTime, null);
     }
 
+    @SuppressWarnings("SwitchStatementWithTooFewBranches")
     @Override
     public void handleEvent(ResourceEvent<BizSetRelationEventDetail> event) {
-        log.info("Handle BizSetRelationEvent: {}", event);
-
         String eventType = event.getEventType();
         switch (eventType) {
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
@@ -120,8 +121,7 @@ public class TenantBizSetRelationEventWatcher extends AbstractCmdbResourceEventW
     protected boolean isWatchingEnabled() {
         boolean isBizSetMigratedToCMDB = bizSetService.isBizSetMigratedToCMDB();
         if (!isBizSetMigratedToCMDB) {
-            log.info("Watching biz set disabled, isBizSetMigratedToCMDB: {}",
-                isBizSetMigratedToCMDB);
+            log.info("Watching biz set disabled, isBizSetMigratedToCMDB: {}", false);
         }
         return isBizSetMigratedToCMDB;
     }
