@@ -295,10 +295,18 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             // 保存作业
             saveTaskInstance(watch, fastTask, taskInstance, stepInstance);
 
-            // 启动作业
-            watch.start("startJob");
-            startTask(taskInstance.getId());
+            // 记录操作日志
+            watch.start("saveOperationLog");
+            taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
+                fastTask.getStartTask() ? UserOperationEnum.START : UserOperationEnum.CREATE_JOB));
             watch.stop();
+
+            // 启动作业
+            if (fastTask.getStartTask()) {
+                watch.start("startJob");
+                startTask(taskInstance.getId());
+                watch.stop();
+            }
 
             // 审计
             Set<HostDTO> allHosts = taskInstanceExecuteObjectProcessor.extractHosts(
@@ -388,12 +396,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             stepInstanceService.updateStepRollingConfigId(stepInstanceId, rollingConfigId);
             watch.stop();
         }
-
-        // 记录操作日志
-        watch.start("saveOperationLog");
-        taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
-            UserOperationEnum.START));
-        watch.stop();
 
         // 记录到当前正在运行的任务存储中，用于配额限制
         watch.start("addRunningJobResourceQuota");
@@ -981,15 +983,18 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             saveTaskInstanceHosts(taskInstance.getId(), allHosts);
             watch.stop();
 
+            // 记录操作日志
             watch.start("saveOperationLog");
             taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
-                UserOperationEnum.START));
+                executeParam.getStartTask() ? UserOperationEnum.START : UserOperationEnum.CREATE_JOB));
             watch.stop();
 
             // 启动作业
-            watch.start("startJob");
-            startTask(taskInstance.getId());
-            watch.stop();
+            if (executeParam.getStartTask()) {
+                watch.start("startJob");
+                startTask(taskInstance.getId());
+                watch.stop();
+            }
 
             // 日志记录容器执行对象的作业，用于统计、分析
             logContainerExecuteObjectJob(taskInstance, taskInstanceExecuteObjects);
@@ -2109,19 +2114,36 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     @Override
-    public void terminateJob(String username, Long appId, Long taskInstanceId) throws ServiceException {
+    public void terminateJob(String username, Long appId, Long taskInstanceId) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
         if (taskInstance == null || !taskInstance.getAppId().equals(appId)) {
             log.warn("Task instance is not exist, appId:{}, taskInstanceId:{}", appId, taskInstance);
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
+        terminateJob(username, taskInstance);
+    }
+
+    private void terminateJob(String operator, TaskInstanceDTO taskInstance) {
         if (RunStatusEnum.RUNNING != taskInstance.getStatus()
             && RunStatusEnum.WAITING_USER != taskInstance.getStatus()) {
             log.warn("TaskInstance:{} status is not running/waiting, should not terminate it!", taskInstance.getId());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.stopJob(taskInstanceId));
-        OperationLogDTO operationLog = buildTaskOperationLog(taskInstance, username, UserOperationEnum.TERMINATE_JOB);
+        taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.stopJob(taskInstance.getId()));
+        OperationLogDTO operationLog = buildTaskOperationLog(taskInstance, operator, UserOperationEnum.TERMINATE_JOB);
+        taskOperationLogService.saveOperationLog(operationLog);
+    }
+
+    private void startJob(String operator, TaskInstanceDTO taskInstance) {
+        // 只有等待中的作业才可以启动
+        if (RunStatusEnum.BLANK != taskInstance.getStatus()) {
+            log.warn("TaskInstance:{} status:{} Only task waiting for execution can be started!",
+                taskInstance.getId(), taskInstance.getStatus());
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION_REPEAT_START_JOB,
+                new Long[]{taskInstance.getId()});
+        }
+        startTask(taskInstance.getId());
+        OperationLogDTO operationLog = buildTaskOperationLog(taskInstance, operator, UserOperationEnum.START);
         taskOperationLogService.saveOperationLog(operationLog);
     }
 
@@ -2130,10 +2152,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                 TaskOperationEnum operation) throws ServiceException {
         log.info("Operate task instance, appId:{}, taskInstanceId:{}, operator:{}, operation:{}", appId,
             taskInstanceId, operator, operation.getValue());
-        if (operation == TaskOperationEnum.TERMINATE_JOB) {
-            terminateJob(operator, appId, taskInstanceId);
-        } else {
-            log.warn("Undefined task operation!");
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
+        switch (operation) {
+            case TERMINATE_JOB:
+                terminateJob(operator, taskInstance);
+                break;
+            case START_JOB:
+                startJob(operator, taskInstance);
+                break;
+            default:
+                log.warn("Undefined task operation!");
+                break;
         }
     }
 

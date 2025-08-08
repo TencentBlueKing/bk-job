@@ -78,4 +78,10 @@ public class TaskExecuteParam {
      * 是否跳过权限校验
      */
     private boolean skipAuth;
+
+    /**
+     * 是否启动任务
+     */
+    @Builder.Default
+    private Boolean startTask = true;
 }
