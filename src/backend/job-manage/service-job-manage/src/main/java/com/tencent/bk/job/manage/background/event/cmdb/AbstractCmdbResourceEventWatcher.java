@@ -172,11 +172,18 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
 
     @SuppressWarnings("BusyWait")
     private void watchAndHandleEvent() {
-        log.info("Start watch {} resource at {},{}", watcherResourceName, TimeUtil.getCurrentTimeStr("HH:mm:ss"),
-            System.currentTimeMillis());
+        log.info(
+            "Start watch {} resource at {},{}",
+            watcherResourceName,
+            TimeUtil.getCurrentTimeStr("HH:mm:ss"),
+            System.currentTimeMillis()
+        );
         String cursor = null;
         while (checkActive() && isWatchingEnabled()) {
-            Span span = SpanUtil.buildNewSpan(this.tracer, "watchAndHandle-" + this.watcherResourceName + "Events");
+            Span span = SpanUtil.buildNewSpan(
+                this.tracer,
+                "watchAndHandle-" + this.watcherResourceName + "Events"
+            );
             try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
                 ResourceWatchResult<E> watchResult;
                 if (cursor == null) {
@@ -197,14 +204,18 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
             } catch (Throwable t) {
                 span.error(t);
                 log.error("EventWatch thread fail", t);
-                // 如果处理事件过程中碰到异常，等待5s重试
-                ThreadUtils.sleep(5_000);
+                // 如果处理事件过程中碰到异常，但监听未被主动关闭，等待5s重试
+                if (checkActive()) {
+                    ThreadUtils.sleep(5_000);
+                }
             } finally {
                 span.end();
             }
         }
-        // 如果事件开关为disabled，间隔30s重新判断是否开启
-        ThreadUtils.sleep(30_000L);
+        if (checkActive()) {
+            // 如果事件开关为disabled，但监听未被主动关闭，间隔30s重新判断是否开启
+            ThreadUtils.sleep(30_000L);
+        }
     }
 
     private String handleWatchResult(ResourceWatchResult<E> watchResult,

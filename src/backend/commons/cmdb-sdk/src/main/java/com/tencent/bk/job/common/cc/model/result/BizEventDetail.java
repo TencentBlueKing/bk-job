@@ -55,8 +55,9 @@ public class BizEventDetail {
     public ApplicationDTO toAppInfoDTO(String tenantId) {
         ApplicationDTO applicationDTO = new ApplicationDTO();
         applicationDTO.setTenantId(tenantId);
-        applicationDTO.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ,
-            String.valueOf(bizId)));
+        applicationDTO.setScope(
+            new ResourceScope(ResourceScopeTypeEnum.BIZ, String.valueOf(bizId))
+        );
         applicationDTO.setName(appName);
         applicationDTO.setBkSupplierAccount(supplierAccount);
         applicationDTO.setTimeZone(timezone);
