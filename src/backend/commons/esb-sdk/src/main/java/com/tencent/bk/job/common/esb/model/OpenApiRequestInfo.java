@@ -166,7 +166,7 @@ public class OpenApiRequestInfo<T> {
         return result;
     }
 
-    private String buildQueryParamUrl() {
+    public String buildQueryParamUrl() {
         if (queryParamsMap != null && !queryParamsMap.isEmpty()) {
             StringBuilder urlString = new StringBuilder(512);
             queryParamsMap.forEach((name, value) ->
