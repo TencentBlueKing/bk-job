@@ -34,8 +34,6 @@ import com.tencent.bk.job.file_gateway.service.FileAvailableService;
 import com.tencent.bk.job.file_gateway.service.dispatch.DispatchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.sleuth.CurrentTraceContext;
-import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -45,8 +43,6 @@ import java.util.List;
 @Service
 public class FileSourceStatusUpdateTask {
 
-    private final Tracer tracer;
-    private final CurrentTraceContext currentTraceContext;
     private final FileAvailableService fileAvailableService;
     private final DispatchService dispatchService;
     private final NoTenantFileSourceDAO noTenantFileSourceDAO;
@@ -56,13 +52,10 @@ public class FileSourceStatusUpdateTask {
         "file-gateway:FileSourceStatusUpdateTask-running-machine";
 
     @Autowired
-    public FileSourceStatusUpdateTask(Tracer tracer,
-                                      FileAvailableService fileAvailableService,
+    public FileSourceStatusUpdateTask(FileAvailableService fileAvailableService,
                                       DispatchService dispatchService,
                                       NoTenantFileSourceDAO noTenantFileSourceDAO,
                                       RedisTemplate<String, String> redisTemplate) {
-        this.tracer = tracer;
-        this.currentTraceContext = tracer.currentTraceContext();
         this.fileAvailableService = fileAvailableService;
         this.dispatchService = dispatchService;
         this.noTenantFileSourceDAO = noTenantFileSourceDAO;
