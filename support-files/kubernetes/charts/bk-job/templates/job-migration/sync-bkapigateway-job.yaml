@@ -57,6 +57,8 @@ spec:
           value: {{ .Values.bkDbmAppCode }}
         - name: BK_MONITOR_APP_CODE
           value: {{ .Values.bkMonitorAppCode }}
+        - name: BK_LOG_SEARCH_APP_CODE
+          value: {{ .Values.bkLogSearchAppCode }}
         - name: BK_BCS_APP_CODE
           value: {{ .Values.bkBcsAppCode }}
       restartPolicy: Never
