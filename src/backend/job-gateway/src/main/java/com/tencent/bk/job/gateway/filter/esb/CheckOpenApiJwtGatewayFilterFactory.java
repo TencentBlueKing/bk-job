@@ -71,6 +71,7 @@ public class CheckOpenApiJwtGatewayFilterFactory
         this.securityProperties = securityProperties;
     }
 
+    @SuppressWarnings("ClassEscapesDefinedScope")
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
@@ -99,6 +100,9 @@ public class CheckOpenApiJwtGatewayFilterFactory
                 authInfo = openApiJwtService.extractFromJwt(token);
             }
 
+            // 对于应用态接口，优先使用从Header中传入的用户名
+            tryToUpdateUserByHeaderValueOnAppTypeApi(request, authInfo);
+
             // 缺少用户信息
             if (StringUtils.isEmpty(authInfo.getUsername())) {
                 logAuthInfo(request, authInfo);
@@ -118,6 +122,49 @@ public class CheckOpenApiJwtGatewayFilterFactory
                 .build();
             return chain.filter(exchange.mutate().request(request).build());
         };
+    }
+
+    /**
+     * 对于应用态接口，尝试优先使用从Header中传入的用户名
+     *
+     * @param request  请求
+     * @param authInfo 认证信息
+     */
+    private void tryToUpdateUserByHeaderValueOnAppTypeApi(ServerHttpRequest request, BkGwJwtInfo authInfo) {
+        try {
+            updateUserByHeaderValueOnAppTypeApi(request, authInfo);
+        } catch (Exception e) {
+            log.error("Fail to updateUserByHeaderValueOnAppTypeApi", e);
+        }
+    }
+
+    /**
+     * 优先使用从Header中传入的用户名更新认证信息
+     *
+     * @param request  请求
+     * @param authInfo 认证信息
+     */
+    private void updateUserByHeaderValueOnAppTypeApi(ServerHttpRequest request, BkGwJwtInfo authInfo) {
+        String apiType = RequestUtil.getHeaderValue(request, JobCommonHeaders.KEY_BK_GATEWAY_API_TYPE);
+        if (!JobCommonHeaders.VALUE_BK_GATEWAY_API_TYPE_APP.equals(apiType)) {
+            return;
+        }
+        String userNameFromHeader = RequestUtil.getHeaderValue(request, JobCommonHeaders.KEY_BK_USERNAME);
+        if (StringUtils.isBlank(userNameFromHeader)) {
+            return;
+        }
+        String userNameFromJwt = authInfo.getUsername();
+        if (userNameFromHeader.equals(userNameFromJwt)) {
+            return;
+        }
+        authInfo.setUsername(userNameFromHeader);
+        if (StringUtils.isNotBlank(userNameFromJwt)) {
+            log.info(
+                "userNameFromHeader({}) is different from userNameFromJwt({}), use header value",
+                userNameFromHeader,
+                userNameFromJwt
+            );
+        }
     }
 
     private void logAuthInfo(ServerHttpRequest request, BkGwJwtInfo authInfo) {
