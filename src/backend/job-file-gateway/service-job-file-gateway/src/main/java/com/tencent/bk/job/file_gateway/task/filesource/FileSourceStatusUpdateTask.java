@@ -48,7 +48,7 @@ public class FileSourceStatusUpdateTask {
     private final NoTenantFileSourceDAO noTenantFileSourceDAO;
     private final RedisTemplate<String, String> redisTemplate;
     private static final String machineIp = IpUtils.getFirstMachineIP();
-    private static final String REDIS_KEY_FILE_SOURCE_STATUS_UPDATE_TASK_RUNNING_MACHINE =
+    private static final String REDIS_LOCK_KEY_FILE_SOURCE_STATUS_UPDATE_TASK_RUNNING_MACHINE =
         "file-gateway:FileSourceStatusUpdateTask-running-machine";
 
     @Autowired
@@ -69,7 +69,7 @@ public class FileSourceStatusUpdateTask {
             updatedNum = new DistributedUniqueTask<>(
                 redisTemplate,
                 this.getClass().getSimpleName(),
-                REDIS_KEY_FILE_SOURCE_STATUS_UPDATE_TASK_RUNNING_MACHINE,
+                REDIS_LOCK_KEY_FILE_SOURCE_STATUS_UPDATE_TASK_RUNNING_MACHINE,
                 machineIp,
                 this::updateAllFileSourceStatus
             ).execute();

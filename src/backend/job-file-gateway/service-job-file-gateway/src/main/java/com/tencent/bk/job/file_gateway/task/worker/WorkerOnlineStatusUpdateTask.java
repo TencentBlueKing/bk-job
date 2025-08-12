@@ -40,7 +40,7 @@ public class WorkerOnlineStatusUpdateTask {
     private final FileWorkerDAO fileWorkerDAO;
     private final RedisTemplate<String, String> redisTemplate;
     private static final String machineIp = IpUtils.getFirstMachineIP();
-    private static final String REDIS_KEY_WORKER_ONLINE_STATUS_UPDATE_TASK_RUNNING_MACHINE =
+    private static final String REDIS_LOCK_KEY_WORKER_ONLINE_STATUS_UPDATE_TASK_RUNNING_MACHINE =
         "file-gateway:WorkerOnlineStatusUpdateTask-running-machine";
 
     @Autowired
@@ -57,7 +57,7 @@ public class WorkerOnlineStatusUpdateTask {
             updatedNum = new DistributedUniqueTask<>(
                 redisTemplate,
                 this.getClass().getSimpleName(),
-                REDIS_KEY_WORKER_ONLINE_STATUS_UPDATE_TASK_RUNNING_MACHINE,
+                REDIS_LOCK_KEY_WORKER_ONLINE_STATUS_UPDATE_TASK_RUNNING_MACHINE,
                 machineIp,
                 this::updateFileWorkerOnlineStatus
             ).execute();
