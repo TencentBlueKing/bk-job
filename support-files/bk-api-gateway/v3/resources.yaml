@@ -35,7 +35,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -69,7 +69,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -103,7 +103,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -137,7 +137,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -171,7 +171,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -205,7 +205,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -239,7 +239,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -273,7 +273,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -307,7 +307,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -341,7 +341,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -375,7 +375,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -409,7 +409,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -443,7 +443,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -477,7 +477,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -511,7 +511,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -545,7 +545,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -579,7 +579,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -613,7 +613,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -647,7 +647,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -681,7 +681,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -715,7 +715,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -749,7 +749,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -783,7 +783,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -817,7 +817,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -851,7 +851,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -885,7 +885,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -919,7 +919,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -953,7 +953,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -987,7 +987,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -1021,7 +1021,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -1055,7 +1055,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -1089,7 +1089,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -1123,7 +1123,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -1157,7 +1157,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -1191,7 +1191,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -1225,7 +1225,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -1259,7 +1259,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -1293,7 +1293,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -1327,7 +1327,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -1361,7 +1361,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -1395,7 +1395,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -1429,7 +1429,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -1463,7 +1463,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -1497,7 +1497,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -1531,7 +1531,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -1565,7 +1565,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -1599,7 +1599,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -1633,7 +1633,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -1667,7 +1667,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -1701,7 +1701,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -1735,7 +1735,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -1769,7 +1769,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -1803,7 +1803,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -1837,7 +1837,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -1871,7 +1871,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -1905,7 +1905,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -1939,7 +1939,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -1973,7 +1973,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -2007,7 +2007,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -2041,7 +2041,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -2075,7 +2075,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -2109,7 +2109,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -2143,7 +2143,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -2177,7 +2177,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -2211,7 +2211,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -2245,7 +2245,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -2279,7 +2279,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -2313,7 +2313,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -2347,7 +2347,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -2381,7 +2381,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -2415,7 +2415,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -2449,7 +2449,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -2483,7 +2483,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -2517,7 +2517,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -2551,7 +2551,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -2585,7 +2585,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -2619,7 +2619,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -2653,7 +2653,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -2687,7 +2687,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -2721,7 +2721,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -2755,7 +2755,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -2789,7 +2789,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -2823,7 +2823,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -2857,7 +2857,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -2891,7 +2891,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -2925,7 +2925,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -2959,7 +2959,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -2993,7 +2993,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -3027,7 +3027,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -3061,7 +3061,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -3095,7 +3095,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -3129,7 +3129,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -3163,7 +3163,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -3197,7 +3197,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -3231,7 +3231,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -3265,7 +3265,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -3299,7 +3299,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -3333,7 +3333,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -3367,7 +3367,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -3401,7 +3401,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -3435,7 +3435,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -3469,7 +3469,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -3503,7 +3503,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -3537,7 +3537,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -3571,7 +3571,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -3605,7 +3605,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -3639,7 +3639,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -3673,7 +3673,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -3707,7 +3707,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -3741,7 +3741,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -3775,7 +3775,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -3809,7 +3809,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -3843,7 +3843,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -3877,7 +3877,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -3911,7 +3911,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -3945,7 +3945,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -3979,7 +3979,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -4013,7 +4013,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -4047,7 +4047,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -4081,7 +4081,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -4115,7 +4115,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -4149,7 +4149,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -4183,7 +4183,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -4217,7 +4217,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -4251,7 +4251,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -4285,7 +4285,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -4319,7 +4319,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -4353,7 +4353,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -4387,7 +4387,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -4421,7 +4421,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:
@@ -4455,7 +4455,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'user'
               remove: []
         authConfig:
@@ -4489,7 +4489,7 @@ paths:
           - type: bk-header-rewrite
             yaml: |-
               set:
-                - key: X-Bkapi-Type
+                - key: X-Bk-Job-Api-Type
                   value: 'app'
               remove: []
         authConfig:

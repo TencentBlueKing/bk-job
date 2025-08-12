@@ -145,8 +145,8 @@ public class CheckOpenApiJwtGatewayFilterFactory
      * @param authInfo 认证信息
      */
     private void updateUserByHeaderValueOnAppTypeApi(ServerHttpRequest request, BkGwJwtInfo authInfo) {
-        String apiType = RequestUtil.getHeaderValue(request, JobCommonHeaders.KEY_BK_GATEWAY_API_TYPE);
-        if (!JobCommonHeaders.VALUE_BK_GATEWAY_API_TYPE_APP.equals(apiType)) {
+        String apiType = RequestUtil.getHeaderValue(request, JobCommonHeaders.KEY_BK_JOB_API_TYPE);
+        if (!JobCommonHeaders.VALUE_BK_JOB_API_TYPE_APP.equals(apiType)) {
             return;
         }
         String userNameFromHeader = RequestUtil.getHeaderValue(request, JobCommonHeaders.KEY_BK_USERNAME);

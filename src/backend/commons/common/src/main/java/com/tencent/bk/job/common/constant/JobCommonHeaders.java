@@ -62,17 +62,17 @@ public interface JobCommonHeaders {
     String KEY_BK_USERNAME = "X-Bk-Username";
 
     /**
-     * 蓝鲸网关-接口类型
+     * 作业平台-蓝鲸网关上的接口类型
      */
-    String KEY_BK_GATEWAY_API_TYPE = "X-Bkapi-Type";
+    String KEY_BK_JOB_API_TYPE = "X-Bk-Job-Api-Type";
 
     /**
-     * 蓝鲸网关-接口类型：应用态接口
+     * 作业平台-蓝鲸网关上的接口类型：应用态接口
      */
-    String VALUE_BK_GATEWAY_API_TYPE_APP = "app";
+    String VALUE_BK_JOB_API_TYPE_APP = "app";
 
     /**
-     * 蓝鲸网关-接口类型：用户态接口
+     * 作业平台-蓝鲸网关上的接口类型：用户态接口
      */
-    String VALUE_BK_GATEWAY_API_TYPE_USER = "user";
+    String VALUE_BK_JOB_API_TYPE_USER = "user";
 }
