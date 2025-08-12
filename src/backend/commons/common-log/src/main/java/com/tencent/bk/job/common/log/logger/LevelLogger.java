@@ -22,41 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.redis.util;
+package com.tencent.bk.job.common.log.logger;
 
-import com.tencent.bk.job.common.util.JobUUID;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.slf4j.event.Level;
 
 /**
- * 支持心跳的Redis锁配置
+ * 指定日志级别并打印日志
  */
-@Setter
-@Getter
-@NoArgsConstructor
-public class HeartBeatRedisLockConfig {
+public interface LevelLogger {
 
-    /**
-     * 锁过期时间，单位：毫秒
-     */
-    private long expireTimeMillis = 5_000L;
-    /**
-     * 锁心跳间隔时间，单位：毫秒
-     */
-    private long periodMillis = 2_000L;
-    /**
-     * 心跳线程名称
-     */
-    private String heartBeatThreadName = "redisKeyHeartBeatThread-" + JobUUID.getUUID().substring(0, 8);
+    void log(Level level, String format, Object... arguments);
 
-    public static HeartBeatRedisLockConfig getDefault() {
-        return new HeartBeatRedisLockConfig();
-    }
-
-    public HeartBeatRedisLockConfig(String heartBeatThreadName, long expireTimeMillis, long periodMillis) {
-        this.heartBeatThreadName = heartBeatThreadName;
-        this.expireTimeMillis = expireTimeMillis;
-        this.periodMillis = periodMillis;
-    }
+    void log(Level level, String msg, Throwable t);
 }

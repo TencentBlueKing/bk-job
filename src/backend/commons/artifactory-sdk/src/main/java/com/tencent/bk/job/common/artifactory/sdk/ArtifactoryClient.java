@@ -59,6 +59,7 @@ import com.tencent.bk.job.common.exception.HttpStatusException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.log.logger.DynamicLevelLogger;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.http.HttpHelper;
@@ -69,7 +70,6 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -83,6 +83,8 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.message.BasicHeader;
+import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.web.util.UriUtils;
 
@@ -97,9 +99,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 
-@Slf4j
 public class ArtifactoryClient {
 
+    private final DynamicLevelLogger log = new DynamicLevelLogger(LoggerFactory.getLogger(ArtifactoryClient.class));
     public static final String URL_ACTUATOR_INFO = "/repository/actuator/info";
     public static final String URL_LIST_PROJECT = "/repository/api/project/list";
     public static final String URL_LIST_REPO_PAGE = "/repository/api/repo/page/{projectId}/{pageNumber}/{pageSize}";
@@ -291,6 +293,26 @@ public class ArtifactoryClient {
         TypeReference<R> typeReference,
         HttpHelper httpHelper
     ) throws ServiceException {
+        return getArtifactoryRespByReq(
+            Level.ERROR,
+            tenantId,
+            method,
+            urlTemplate,
+            reqBody,
+            typeReference,
+            httpHelper
+        );
+    }
+
+    private <R> R getArtifactoryRespByReq(
+        Level errorLogLevel,
+        String tenantId,
+        String method,
+        String urlTemplate,
+        ArtifactoryReq reqBody,
+        TypeReference<R> typeReference,
+        HttpHelper httpHelper
+    ) throws ServiceException {
         // URL模板变量替换
         String url = StringUtil.replacePathVariables(urlTemplate, reqBody);
         url = getCompleteUrl(url);
@@ -319,7 +341,7 @@ public class ArtifactoryClient {
                     throw new InternalException(ErrorCode.NOT_SUPPORT_FEATURE);
             }
             if (StringUtils.isBlank(respStr)) {
-                log.error("fail:response is blank|method={}|url={}|reqStr={}", method, url, reqStr);
+                log.log(errorLogLevel, "fail:response is blank|method={}|url={}|reqStr={}", method, url, reqStr);
                 throw new InternalException("response is blank", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
             } else {
                 log.info(
@@ -343,7 +365,7 @@ public class ArtifactoryClient {
                     reqStr
                 }
             ).getMessage();
-            log.error(msg, e);
+            log.log(errorLogLevel, msg, e);
             statusRef.set(MetricsConstants.TAG_VALUE_ERROR);
             return ArtifactoryExceptionConverter.convertException(e);
         } finally {
@@ -370,9 +392,16 @@ public class ArtifactoryClient {
 
     public boolean isAvailable() {
         try {
-            getArtifactoryRespByReq(HttpGet.METHOD_NAME, URL_ACTUATOR_INFO,
-                new ArtifactoryReq(), new TypeReference<Map<Object, Object>>() {
-                }, httpHelper);
+            getArtifactoryRespByReq(
+                Level.INFO,
+                null,
+                HttpGet.METHOD_NAME,
+                URL_ACTUATOR_INFO,
+                new ArtifactoryReq(),
+                new TypeReference<Map<Object, Object>>() {
+                },
+                httpHelper
+            );
             return true;
         } catch (Throwable t) {
             return false;
