@@ -40,14 +40,14 @@ import org.springframework.stereotype.Component;
 public class OpenApiProperties {
 
     /**
-     * get_job_instance_list接口配置
+     * v3_get_job_instance_list接口配置
      */
-    private GetJobInstanceListConfig getJobInstanceList = new GetJobInstanceListConfig();
+    private V3GetJobInstanceListConfig v3GetJobInstanceList = new V3GetJobInstanceListConfig();
 
     @Getter
     @Setter
     @ToString
-    public static class GetJobInstanceListConfig {
+    public static class V3GetJobInstanceListConfig {
 
         /**
          * 是否开启start参数限制，默认不限制

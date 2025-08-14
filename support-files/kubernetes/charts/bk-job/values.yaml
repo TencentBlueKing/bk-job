@@ -1153,8 +1153,8 @@ executeConfig:
         expireSeconds: 10
   # OpenAPI相关配置
   openapi:
-    # get_job_instance_list接口
-    getJobInstanceList:
+    # v3_get_job_instance_list接口
+    v3GetJobInstanceList:
       # 是否开启start参数限制，默认不限制
       startLimitEnabled : false
       # start参数最大值，用于避免深度分页导致的DB慢查询

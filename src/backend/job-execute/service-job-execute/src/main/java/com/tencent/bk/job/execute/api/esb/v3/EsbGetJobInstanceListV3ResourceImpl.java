@@ -163,13 +163,13 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
             log.warn("Param type is illegal!");
             return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM, "type");
         }
-        if (openApiProperties.getGetJobInstanceList().isStartLimitEnabled()
-            && request.getStart() > openApiProperties.getGetJobInstanceList().getMaxStart()) {
+        if (openApiProperties.getV3GetJobInstanceList().isStartLimitEnabled()
+            && request.getStart() > openApiProperties.getV3GetJobInstanceList().getMaxStart()) {
             return ValidateResult.fail(
                 ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
                 new String[]{
                     "start",
-                    "The value of start cannot exceed " + openApiProperties.getGetJobInstanceList().getMaxStart()
+                    "The value of start cannot exceed " + openApiProperties.getV3GetJobInstanceList().getMaxStart()
                 }
             );
         }
