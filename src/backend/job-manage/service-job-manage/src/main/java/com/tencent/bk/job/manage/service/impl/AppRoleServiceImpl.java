@@ -25,9 +25,9 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
-import com.tencent.bk.job.common.cc.sdk.BizSetCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
@@ -48,19 +48,19 @@ import java.util.Set;
 public class AppRoleServiceImpl implements AppRoleService {
 
     private final ApplicationService applicationService;
-    private final BizSetCmdbClient bizSetCmdbClient;
+    private final IBizSetCmdbClient bizSetCmdbClient;
 
     @Autowired
     public AppRoleServiceImpl(@Lazy ApplicationService applicationService,
-                              BizSetCmdbClient bizSetCmdbClient) {
+                              IBizSetCmdbClient bizSetCmdbClient) {
         this.applicationService = applicationService;
         this.bizSetCmdbClient = bizSetCmdbClient;
     }
 
     @Override
-    public List<AppRoleDTO> listAppRoles(String lang) {
+    public List<AppRoleDTO> listAppRoles(String lang,String tenantId) {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(lang);
-        return bizCmdbClient.listRoles();
+        return bizCmdbClient.listRoles(tenantId);
     }
 
     @Override
@@ -72,7 +72,10 @@ public class AppRoleServiceImpl implements AppRoleService {
             return bizCmdbClient.listUsersByRole(Long.valueOf(scope.getId()), role);
         } else if (scope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
             // 业务集当前只支持运维人员
-            return bizSetCmdbClient.listUsersByRole(Long.valueOf(scope.getId()), role);
+            return bizSetCmdbClient.listUsersByRole(application.getTenantId(), Long.valueOf(scope.getId()), role);
+        } else if (scope.getType() == ResourceScopeTypeEnum.TENANT_SET) {
+            // TODO:租户集当前不支持任何角色，待后续完善
+            return Collections.emptySet();
         } else {
             log.warn("Not supported resourceScope:{}", scope);
         }

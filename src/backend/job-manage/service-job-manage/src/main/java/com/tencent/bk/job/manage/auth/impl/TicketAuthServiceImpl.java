@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.TicketAuthService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -62,17 +63,17 @@ public class TicketAuthServiceImpl implements TicketAuthService {
     }
 
     @Override
-    public AuthResult authCreateTicket(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(username, ActionId.CREATE_TICKET, appResourceScope);
+    public AuthResult authCreateTicket(User user, AppResourceScope appResourceScope) {
+        return appAuthService.auth(user, ActionId.CREATE_TICKET, appResourceScope);
     }
 
     @Override
-    public AuthResult authManageTicket(String username,
+    public AuthResult authManageTicket(User user,
                                        AppResourceScope appResourceScope,
                                        String ticketId,
                                        String ticketName) {
         return authService.auth(
-            username,
+            user,
             ActionId.MANAGE_TICKET,
             ResourceTypeEnum.TICKET,
             ticketId,
@@ -81,12 +82,12 @@ public class TicketAuthServiceImpl implements TicketAuthService {
     }
 
     @Override
-    public AuthResult authUseTicket(String username,
+    public AuthResult authUseTicket(User user,
                                     AppResourceScope appResourceScope,
                                     String ticketId,
                                     String ticketName) {
         return authService.auth(
-            username,
+            user,
             ActionId.USE_TICKET,
             ResourceTypeEnum.TICKET,
             ticketId,
@@ -95,11 +96,11 @@ public class TicketAuthServiceImpl implements TicketAuthService {
     }
 
     @Override
-    public List<String> batchAuthManageTicket(String username,
+    public List<String> batchAuthManageTicket(User user,
                                               AppResourceScope appResourceScope,
                                               List<String> ticketIdList) {
         return appAuthService.batchAuth(
-            username,
+            user,
             ActionId.MANAGE_TICKET,
             appResourceScope,
             ResourceTypeEnum.TICKET,
@@ -108,11 +109,11 @@ public class TicketAuthServiceImpl implements TicketAuthService {
     }
 
     @Override
-    public List<String> batchAuthUseTicket(String username,
+    public List<String> batchAuthUseTicket(User user,
                                            AppResourceScope appResourceScope,
                                            List<String> ticketIdList) {
         return appAuthService.batchAuth(
-            username,
+            user,
             ActionId.USE_TICKET,
             appResourceScope,
             ResourceTypeEnum.TICKET,
@@ -121,7 +122,7 @@ public class TicketAuthServiceImpl implements TicketAuthService {
     }
 
     @Override
-    public boolean registerTicket(String creator, String id, String name) {
-        return authService.registerResource(id, name, ResourceTypeId.TICKET, creator, null);
+    public boolean registerTicket(User creator, String id, String name) {
+        return authService.registerResource(creator, id, name, ResourceTypeId.TICKET, null);
     }
 }

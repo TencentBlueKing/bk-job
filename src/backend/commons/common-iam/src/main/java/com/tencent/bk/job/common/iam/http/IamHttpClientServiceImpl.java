@@ -26,8 +26,11 @@ package com.tencent.bk.job.common.iam.http;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.esb.constants.ApiGwConsts;
+import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.exception.InternalIamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.util.http.HttpHelper;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
@@ -38,90 +41,108 @@ import com.tencent.bk.sdk.iam.constants.HttpHeader;
 import com.tencent.bk.sdk.iam.service.HttpClientService;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
+
+import java.util.List;
 
 @Slf4j
 public class IamHttpClientServiceImpl implements HttpClientService {
 
-    private final String DEFAULT_CHARSET = "UTF-8";
     private final HttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
     private final IamConfiguration iamConfiguration;
+    protected final IVirtualAdminAccountProvider virtualAdminAccountProvider;
 
-    public IamHttpClientServiceImpl(IamConfiguration iamConfiguration) {
+    public IamHttpClientServiceImpl(IamConfiguration iamConfiguration,
+                                    IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         this.iamConfiguration = iamConfiguration;
+        this.virtualAdminAccountProvider = virtualAdminAccountProvider;
         log.debug("IamHttpClientServiceImpl init");
     }
 
     @Override
-    public String doHttpGet(String uri) {
+    public String doHttpGet(String tenantId, String uri, List<Pair<String, String>> headerList) {
+        String respStr = null;
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.requestForSuccessResp(
-                HttpRequest.builder(HttpMethodEnum.GET, buildUrl(uri))
-                    .setHeaders(buildAuthHeader())
-                    .build())
+            respStr = httpHelper.requestForSuccessResp(
+                    HttpRequest.builder(HttpMethodEnum.GET, buildUrl(uri))
+                        .setHeaders(buildHeaders(tenantId, headerList))
+                        .build())
                 .getEntity();
+            return respStr;
         } catch (Exception e) {
             throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
         } finally {
             HttpMetricUtil.clearHttpMetric();
+            logRequest(HttpMethodEnum.GET, tenantId, uri, headerList, null, respStr);
         }
     }
 
     @Override
-    public String doHttpPost(String uri, Object body) {
+    public String doHttpPost(String tenantId, String uri, List<Pair<String, String>> headerList, Object body) {
+        String respStr = null;
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.requestForSuccessResp(
-                HttpRequest.builder(HttpMethodEnum.POST, buildUrl(uri))
-                    .setHeaders(buildAuthHeader())
-                    .setStringEntity(JsonUtils.toJson(body))
-                    .build())
+            respStr = httpHelper.requestForSuccessResp(
+                    HttpRequest.builder(HttpMethodEnum.POST, buildUrl(uri))
+                        .setHeaders(buildHeaders(tenantId, headerList))
+                        .setStringEntity(JsonUtils.toJson(body))
+                        .build())
                 .getEntity();
+            return respStr;
         } catch (Exception e) {
             log.error("Fail to request IAM", e);
             throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
         } finally {
             HttpMetricUtil.clearHttpMetric();
+            logRequest(HttpMethodEnum.POST, tenantId, uri, headerList, body, respStr);
         }
     }
 
     @Override
-    public String doHttpPut(String uri, Object body) {
+    public String doHttpPut(String tenantId, String uri, List<Pair<String, String>> headerList, Object body) {
+        String respStr = null;
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.requestForSuccessResp(
-                HttpRequest.builder(HttpMethodEnum.PUT, buildUrl(uri))
-                    .setHeaders(buildAuthHeader())
-                    .setStringEntity(JsonUtils.toJson(body))
-                    .build())
+            respStr = httpHelper.requestForSuccessResp(
+                    HttpRequest.builder(HttpMethodEnum.PUT, buildUrl(uri))
+                        .setHeaders(buildHeaders(tenantId, headerList))
+                        .setStringEntity(JsonUtils.toJson(body))
+                        .build())
                 .getEntity();
+            return respStr;
         } catch (Exception e) {
             log.error("Fail to request IAM", e);
             throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
         } finally {
             HttpMetricUtil.clearHttpMetric();
+            logRequest(HttpMethodEnum.PUT, tenantId, uri, headerList, body, respStr);
         }
     }
 
     @Override
-    public String doHttpDelete(String uri) {
+    public String doHttpDelete(String tenantId, String uri, List<Pair<String, String>> headerList) {
+        String respStr = null;
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.IAM_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", uri));
-            return httpHelper.requestForSuccessResp(
-                HttpRequest.builder(HttpMethodEnum.DELETE, buildUrl(uri))
-                    .setHeaders(buildAuthHeader())
-                    .build())
+            respStr = httpHelper.requestForSuccessResp(
+                    HttpRequest.builder(HttpMethodEnum.DELETE, buildUrl(uri))
+                        .setHeaders(buildHeaders(tenantId, headerList))
+                        .build())
                 .getEntity();
+            return respStr;
         } catch (Exception e) {
             throw new InternalIamException(e, ErrorCode.IAM_API_DATA_ERROR, null);
         } finally {
             HttpMetricUtil.clearHttpMetric();
+            logRequest(HttpMethodEnum.DELETE, tenantId, uri, headerList, null, respStr);
         }
     }
 
@@ -129,11 +150,44 @@ public class IamHttpClientServiceImpl implements HttpClientService {
         return iamConfiguration.getIamBaseUrl() + uri;
     }
 
-    private Header[] buildAuthHeader() {
-        Header[] headers = new Header[2];
-        headers[0] = new BasicHeader(HttpHeader.BK_APP_CODE, iamConfiguration.getAppCode());
-        headers[1] = new BasicHeader(HttpHeader.BK_APP_SECRET, iamConfiguration.getAppSecret());
+    private Header[] buildHeaders(String tenantId, List<Pair<String, String>> headerList) {
+        int headerSize = (CollectionUtils.isEmpty(headerList) ? 0 : headerList.size()) + 2;
+        String username = virtualAdminAccountProvider.getVirtualAdminUsername(tenantId);
+        BkApiAuthorization authorization = BkApiAuthorization.appAuthorization(
+            iamConfiguration.getAppCode(),
+            iamConfiguration.getAppSecret(),
+            username
+        );
+        Header[] headers = new Header[headerSize];
+        headers[0] = buildTenantIdHeader(tenantId);
+        headers[1] = new BasicHeader(ApiGwConsts.HEADER_BK_API_AUTH, JsonUtils.toJson(authorization));
+        if (CollectionUtils.isNotEmpty(headerList)) {
+            int index = 2;
+            for (Pair<String, String> header : headerList) {
+                headers[index++] = new BasicHeader(header.getKey(), header.getValue());
+            }
+        }
         return headers;
     }
 
+    private Header buildTenantIdHeader(String tenantId) {
+        return new BasicHeader(HttpHeader.KEY_BK_TENANT_ID, tenantId);
+    }
+
+    private void logRequest(HttpMethodEnum method,
+                            String tenantId,
+                            String uri,
+                            List<Pair<String, String>> headerList,
+                            Object body,
+                            String respStr) {
+        log.info(
+            "requestIAM, method={}, tenantId={}, uri={}, headerList={}, body={}, respStr={}",
+            method.name(),
+            tenantId,
+            uri,
+            headerList == null ? null : JsonUtils.toJson(headerList),
+            body == null ? null : JsonUtils.toJson(body),
+            respStr
+        );
+    }
 }

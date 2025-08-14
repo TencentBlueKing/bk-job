@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.model.permission.PermissionResourceVO;
 import com.tencent.bk.job.common.model.permission.RequiredPermissionVO;
@@ -46,30 +47,26 @@ import java.util.StringJoiner;
 public class WebAuthServiceImpl implements WebAuthService {
     private final MessageI18nService i18nService;
     private final AuthService authService;
-    
+
     public WebAuthServiceImpl(MessageI18nService i18nService, AuthService authService) {
         this.i18nService = i18nService;
         this.authService = authService;
     }
 
     @Override
-    public AuthResultVO auth(boolean isReturnApplyUrl, String username,
-                             List<PermissionActionResource> actionResources) {
-        return toAuthResultVO(isReturnApplyUrl, authService.auth(isReturnApplyUrl, username, actionResources));
+    public String getApplyUrl(String tenantId, List<PermissionActionResource> permissionActionResources) {
+        return authService.getApplyUrl(tenantId, permissionActionResources);
     }
 
     @Override
-    public String getApplyUrl(List<PermissionActionResource> permissionActionResources) {
-        return authService.getApplyUrl(permissionActionResources);
-    }
-
     public AuthResultVO toAuthResultVO(boolean isReturnApplyUrl, AuthResult authResult) {
         AuthResultVO vo = new AuthResultVO();
         vo.setPass(authResult.isPass());
         if (!authResult.isPass()) {
             String applyUrl = authResult.getApplyUrl();
             if (isReturnApplyUrl && StringUtils.isBlank(applyUrl)) {
-                applyUrl = authService.getApplyUrl(authResult.getRequiredActionResources());
+                applyUrl = authService.getApplyUrl(authResult.getUser().getTenantId(),
+                    authResult.getRequiredActionResources());
             }
             vo.setApplyUrl(applyUrl);
 

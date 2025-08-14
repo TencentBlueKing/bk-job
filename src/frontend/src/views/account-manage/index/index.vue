@@ -115,7 +115,11 @@
         :label="$t('account.创建人')"
         prop="creator"
         show-overflow-tooltip
-        width="120" />
+        width="120">
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.creator" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.createTime"
         key="createTime"
@@ -131,7 +135,11 @@
         :label="$t('account.更新人_colHead')"
         prop="lastModifyUser"
         show-overflow-tooltip
-        width="120" />
+        width="120">
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.lastModifyUser" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyTime"
         key="lastModifyTime"
@@ -271,14 +279,22 @@
         {
           name: I18n.t('account.创建人'),
           id: 'creator',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
         {
           name: I18n.t('account.更新人_colHead'),
           id: 'lastModifyUser',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
       ];
       this.tableColumn = [
