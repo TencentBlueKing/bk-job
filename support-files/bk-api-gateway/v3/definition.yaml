@@ -143,6 +143,16 @@ grant_permissions:
       - system_get_job_instance_status
       - system_fast_execute_script
       - system_batch_get_job_instance_ip_log
+  # 日志平台
+  - bk_app_code: "{{ environ.BK_LOG_SEARCH_APP_CODE }}"
+    grant_dimension: "resource"
+    resource_names:
+      - system_get_public_script_list
+      - system_fast_execute_script
+      - system_fast_transfer_file
+      - system_get_job_instance_ip_log
+      - system_get_job_instance_status
+      - system_batch_get_job_instance_ip_log
   # 容器管理平台
   - bk_app_code: "{{ environ.BK_BCS_APP_CODE }}"
     grant_dimension: "resource"

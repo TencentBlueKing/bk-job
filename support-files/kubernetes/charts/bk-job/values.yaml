@@ -515,6 +515,8 @@ bkNodemanAppCode: "bk_nodeman"
 bkDbmAppCode: "bk_dbm"
 ## 监控平台
 bkMonitorAppCode: "bk_monitorv3"
+## 日志平台
+bkLogSearchAppCode: "bk_log_search"
 ## 容器管理平台
 bkBcsAppCode: "bk_bcs"
 

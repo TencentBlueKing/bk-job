@@ -55,4 +55,24 @@ public interface JobCommonHeaders {
      * 租户 ID
      */
     String BK_TENANT_ID = "X-Bk-Tenant-Id";
+
+    /**
+     * 应用态接口传递的用户名Header Key
+     */
+    String KEY_BK_USERNAME = "X-Bk-Username";
+
+    /**
+     * 作业平台-蓝鲸网关上的接口类型
+     */
+    String KEY_BK_JOB_API_TYPE = "X-Bk-Job-Api-Type";
+
+    /**
+     * 作业平台-蓝鲸网关上的接口类型：应用态接口
+     */
+    String VALUE_BK_JOB_API_TYPE_APP = "app";
+
+    /**
+     * 作业平台-蓝鲸网关上的接口类型：用户态接口
+     */
+    String VALUE_BK_JOB_API_TYPE_USER = "user";
 }
