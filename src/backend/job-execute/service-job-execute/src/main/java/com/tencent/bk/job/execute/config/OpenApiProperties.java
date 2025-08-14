@@ -22,81 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.request;
+package com.tencent.bk.job.execute.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.validator.constraints.Range;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 /**
- * get_job_instance_list, 查询作业执行历史
+ * OpenAPI配置
  */
 @Getter
 @Setter
-@ToString
-public class EsbGetJobInstanceListV3Request extends EsbAppScopeReq {
+@ConfigurationProperties(prefix = "job.execute.openapi")
+@Component
+public class OpenApiProperties {
 
     /**
-     * 作业执行实例 ID
+     * v3_get_job_instance_list接口配置
      */
-    @JsonProperty("job_instance_id")
-    private Long taskInstanceId;
+    private V3GetJobInstanceListConfig v3GetJobInstanceList = new V3GetJobInstanceListConfig();
 
-    @JsonProperty("create_time_start")
-    private Long createTimeStart;
+    @Getter
+    @Setter
+    @ToString
+    public static class V3GetJobInstanceListConfig {
 
-    @JsonProperty("create_time_end")
-    private Long createTimeEnd;
+        /**
+         * 是否开启start参数限制，默认不限制
+         */
+        private boolean startLimitEnabled = false;
 
-    /**
-     * 定时任务ID
-     */
-    @JsonProperty("job_cron_id")
-    private Long cronId;
-
-    private String operator;
-
-    /**
-     * 任务名称
-     */
-    @JsonProperty("name")
-    private String taskName;
-
-    /**
-     * 执行方式
-     */
-    @JsonProperty("launch_mode")
-    private Integer startupMode;
-
-    /**
-     * 任务类型
-     */
-    @JsonProperty("type")
-    private Integer taskType;
-
-    /**
-     * 任务状态
-     */
-    @JsonProperty("status")
-    private Integer taskStatus;
-
-    /**
-     * 执行目标服务器IP
-     */
-    @JsonProperty("ip")
-    private String ip;
-
-    /**
-     * 分页返回记录起始位置
-     */
-    private Integer start = 0;
-
-    /**
-     * 返回记录数量
-     */
-    @Range(min = 1L, max = 1000L, message = "{validation.constraints.InvalidJobInstanceLength.message}")
-    private Integer length = 20;
+        /**
+         * start参数最大值，用于避免深度分页导致的DB慢查询
+         */
+        private int maxStart = 1000;
+    }
 }
