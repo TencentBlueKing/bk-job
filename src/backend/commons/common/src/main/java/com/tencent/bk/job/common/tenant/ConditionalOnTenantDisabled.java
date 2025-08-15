@@ -24,27 +24,24 @@
 
 package com.tencent.bk.job.common.tenant;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-@Slf4j
-@Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(TenantProperties.class)
-public class TenantAutoConfiguration {
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    @Bean
-    @ConditionalOnTenantEnabled
-    public TenantEnvService tenantEnvService(TenantProperties tenantProperties) {
-        log.info("init tenantEnvService");
-        return new TenantEnvServiceImpl(tenantProperties);
-    }
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@ConditionalOnProperty(
+    value = "tenant.enabled",
+    havingValue = "false",
+    matchIfMissing = true
+)
+public @interface ConditionalOnTenantDisabled {
 
-    @Bean
-    @ConditionalOnTenantDisabled
-    public TenantEnvService nonTenantEnvService() {
-        log.info("init nonTenantEnvService");
-        return new NonTenantEnvService();
-    }
 }

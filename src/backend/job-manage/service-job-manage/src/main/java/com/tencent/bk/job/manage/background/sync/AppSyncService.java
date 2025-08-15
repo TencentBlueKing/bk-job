@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
 import com.tencent.bk.job.common.redis.util.LockResult;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
+import com.tencent.bk.job.manage.background.sync.tenantset.ITenantSetSyncService;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import lombok.extern.slf4j.Slf4j;
@@ -62,13 +63,13 @@ public class AppSyncService {
     private final ApplicationCache applicationCache;
     private final BizSyncService bizSyncService;
     private final BizSetSyncService bizSetSyncService;
-    private final TenantSetSyncService tenantSetSyncService;
+    private final ITenantSetSyncService tenantSetSyncService;
     private final IUserApiClient userMgrApiClient;
 
     @Autowired
     public AppSyncService(BizSyncService bizSyncService,
                           BizSetSyncService bizSetSyncService,
-                          TenantSetSyncService tenantSetSyncService,
+                          ITenantSetSyncService tenantSetSyncService,
                           JobManageConfig jobManageConfig,
                           RedisTemplate<String, String> redisTemplate,
                           ApplicationCache applicationCache,

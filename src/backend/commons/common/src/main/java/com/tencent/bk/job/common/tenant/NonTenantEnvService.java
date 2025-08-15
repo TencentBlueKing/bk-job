@@ -24,27 +24,30 @@
 
 package com.tencent.bk.job.common.tenant;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 
-@Slf4j
-@Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(TenantProperties.class)
-public class TenantAutoConfiguration {
+public class NonTenantEnvService implements TenantEnvService {
 
-    @Bean
-    @ConditionalOnTenantEnabled
-    public TenantEnvService tenantEnvService(TenantProperties tenantProperties) {
-        log.info("init tenantEnvService");
-        return new TenantEnvServiceImpl(tenantProperties);
+    @Override
+    public boolean isTenantEnabled() {
+        return false;
     }
 
-    @Bean
-    @ConditionalOnTenantDisabled
-    public TenantEnvService nonTenantEnvService() {
-        log.info("init nonTenantEnvService");
-        return new NonTenantEnvService();
+    @Override
+    public String getJobMachineTenantId() {
+        // 不开启多租户时，Job的机器属于默认租户
+        return TenantIdConstants.DEFAULT_TENANT_ID;
+    }
+
+    @Override
+    public String getTenantIdForGSE() {
+        // 不开启多租户时，使用默认租户
+        return TenantIdConstants.DEFAULT_TENANT_ID;
+    }
+
+    @Override
+    public String getTenantIdForArtifactoryBkJobProject() {
+        // 不开启多租户时，要求不传任何租户信息
+        return null;
     }
 }

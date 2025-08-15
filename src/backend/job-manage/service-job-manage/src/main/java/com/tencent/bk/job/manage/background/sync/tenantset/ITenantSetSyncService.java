@@ -22,29 +22,15 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.tenant;
+package com.tencent.bk.job.manage.background.sync.tenantset;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+/**
+ * CMDB租户集同步接口
+ */
+public interface ITenantSetSyncService {
 
-@Slf4j
-@Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(TenantProperties.class)
-public class TenantAutoConfiguration {
-
-    @Bean
-    @ConditionalOnTenantEnabled
-    public TenantEnvService tenantEnvService(TenantProperties tenantProperties) {
-        log.info("init tenantEnvService");
-        return new TenantEnvServiceImpl(tenantProperties);
-    }
-
-    @Bean
-    @ConditionalOnTenantDisabled
-    public TenantEnvService nonTenantEnvService() {
-        log.info("init nonTenantEnvService");
-        return new NonTenantEnvService();
-    }
+    /**
+     * 从CMDB同步租户集信息到本地DB
+     */
+    void syncTenantSetFromCMDB();
 }
