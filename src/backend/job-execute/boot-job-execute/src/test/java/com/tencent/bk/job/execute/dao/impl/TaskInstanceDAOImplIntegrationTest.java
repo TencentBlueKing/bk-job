@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.DeepPaginationCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -271,5 +272,51 @@ class TaskInstanceDAOImplIntegrationTest {
         hosts.add(host3);
 
         taskInstanceDAO.saveTaskInstanceHosts(appId, taskInstanceId, hosts);
+    }
+
+    @Test
+    @DisplayName("测试使用ID解决深度分页查询作业实例")
+    void testListJobInstanceStartingFromId() {
+        TaskInstanceQuery taskQuery = new TaskInstanceQuery();
+        taskQuery.setAppId(2L);
+        taskQuery.setOperator("admin");
+        taskQuery.setStartTime(1572868860003L);
+        taskQuery.setEndTime(1572868860017L);
+
+        DeepPaginationCondition deepPaginationCondition = new DeepPaginationCondition();
+        deepPaginationCondition.setLength(2);
+
+        List<TaskInstanceDTO> taskInstanceDTOS = taskInstanceDAO.listJobInstanceStartingFromId(
+            taskQuery,
+            deepPaginationCondition
+        );
+        System.out.println(
+            "first query, limit=2, cursor=" + deepPaginationCondition.getStartId() + "result=" + taskInstanceDTOS);
+        assertThat(taskInstanceDTOS.size()).isEqualTo(2);
+
+        Long nextCursor = findMinId(taskInstanceDTOS);
+        deepPaginationCondition.setStartId(nextCursor);
+        taskInstanceDTOS = taskInstanceDAO.listJobInstanceStartingFromId(
+            taskQuery,
+            deepPaginationCondition
+        );
+        System.out.println(
+            "second query, limit=2, cursor=" + deepPaginationCondition.getStartId() + "result=" + taskInstanceDTOS);
+        assertThat(taskInstanceDTOS.size()).isEqualTo(2);
+
+        nextCursor = findMinId(taskInstanceDTOS);
+        deepPaginationCondition.setStartId(nextCursor);
+        taskInstanceDTOS = taskInstanceDAO.listJobInstanceStartingFromId(
+            taskQuery,
+            deepPaginationCondition
+        );
+        System.out.println(
+            "third query, limit=2, cursor=" + deepPaginationCondition.getStartId() + "result=" + taskInstanceDTOS);
+        assertThat(taskInstanceDTOS.size()).isEqualTo(1);
+
+    }
+
+    private Long findMinId(List<TaskInstanceDTO> taskInstanceDTOS) {
+        return taskInstanceDTOS.stream().map(TaskInstanceDTO::getId).min(Long::compareTo).get();
     }
 }

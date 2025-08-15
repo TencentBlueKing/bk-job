@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.web.config;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.web.exception.handler.EsbExceptionControllerAdvice;
+import com.tencent.bk.job.common.web.exception.handler.EsbV4ExceptionControllerAdvice;
 import com.tencent.bk.job.common.web.exception.handler.IamCallbackExceptionControllerAdvice;
 import com.tencent.bk.job.common.web.exception.handler.ServiceExceptionControllerAdvice;
 import com.tencent.bk.job.common.web.exception.handler.WebExceptionControllerAdvice;
@@ -57,5 +58,9 @@ public class ExceptionAdviceAutoConfiguration {
         return new IamCallbackExceptionControllerAdvice();
     }
 
+    @Bean
+    public EsbV4ExceptionControllerAdvice esbV4ExceptionControllerAdvice(AuthService authService) {
+        return new EsbV4ExceptionControllerAdvice(authService);
+    }
 
 }

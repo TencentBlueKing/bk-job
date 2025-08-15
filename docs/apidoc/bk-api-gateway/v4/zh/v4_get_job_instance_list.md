@@ -1,0 +1,136 @@
+### 功能描述
+
+查询任务执行历史
+
+### 请求参数
+
+#### Header参数
+
+| 字段                    |  类型      | 必选   |  描述      |
+|-----------------------|------------|--------|------------|
+| X-Bkapi-Authorization |  string    | 是     | 认证信息。详情参考[调用网关 API](https://github.com/TencentBlueKing/BKDocs/blob/master/ZH/7.0/APIGateway/apigateway/use-api/use-apigw-api.md) |
+| Accept                |  string    | 是     | 固定值。application/json|
+| Content-Type          |  string    | 是     | 固定值。application/json|
+
+#### Query参数
+
+| 字段                     | 类型     | 必选 | 描述                                                                                  |
+|------------------------|--------|----|-------------------------------------------------------------------------------------|
+| bk_scope_type          | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                                  |
+| bk_scope_id            | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                             |
+| create_time_start      | long   | 是  | 创建起始时间，Unix 时间戳，单位毫秒                                                                |
+| create_time_end        | long   | 是  | 创建结束时间，Unix 时间戳，单位毫秒                                                                |
+| job_instance_id        | long   | 否  | 任务实例ID。 如果传入job_instance_id，将忽略其他查询条件                                               |
+| job_cron_id            | long   | 否  | 定时任务ID                                                                              |
+| operator               | string | 否  | 执行人，精准匹配                                                                            |
+| name                   | string | 否  | 任务名称，模糊匹配                                                                           |
+| launch_mode            | int    | 否  | 执行方式。1 - 页面执行，2 - API调用，3 - 定时执行                                                    |
+| type                   | int    | 否  | 任务类型。0 - 作业执行，1 - 脚本执行，2 - 文件分发                                                     |
+| status                 | int    | 否  | 任务状态。1 -  等待执行，2 - 正在执行，3 - 执行成功，4 - 执行失败，7 - 等待确认，10 - 强制终止中，11 - 强制终止成功，13 - 确认终止 |
+| ip                     | string | 否  | 执行目标服务器IP, 精准匹配                                                                     |
+| cursor_job_instance_id | int    | 否  | 上次查询结果中的最小job_instance_id，若是不传默认从最近执行历史开始返回                                         |
+| length                 | int    | 否  | 单次返回最大记录数，最大1000，不传默认为10                                                            |
+
+
+### 请求参数示例
+
+- GET
+
+```json
+/api/v4/get_job_instance_list?bk_scope_type=biz&bk_scope_id=1&type=0&launch_mode=1&status=3&operator=admin&name=test&create_time_start=1546272000000&create_time_end=1577807999999&cursor_job_instance_id=40&length=20
+```
+
+### 返回结果示例
+
+```json
+# http status=200
+{
+  "data": {
+    "job_instance_list": [
+      {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "1",
+        "id": 102,
+        "job_template_id": 1,
+        "job_plan_id": 1,
+        "name": "test",
+        "operator": "admin",
+        "create_time": 1546272000000,
+        "start_time": 1546272000000,
+        "end_time": 1546272001000,
+        "total_time": 1000,
+        "launch_mode": 1,
+        "task_status": 3,
+        "task_type": 0
+      },
+      {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "1",
+        "id": 101,
+        "job_template_id": 1,
+        "job_plan_id": 1,
+        "name": "test",
+        "operator": "admin",
+        "create_time": 1546272000000,
+        "start_time": 1546272000000,
+        "end_time": 1546272001000,
+        "total_time": 1000,
+        "launch_mode": 1,
+        "task_status": 3,
+        "task_type": 0
+      }
+    ],
+    "new_job_instance_id_cursor": 101
+  }
+}
+```
+
+### 返回结果参数说明
+
+##### 正常响应体
+
+| 字段    | 类型     | 描述   |
+|-------|--------|------|
+| data  | object | 响应数据 |
+
+##### 异常响应体
+
+| 字段    | 类型     | 描述   |
+|-------|--------|------|
+| error | object | 错误信息 |
+
+#### error
+
+| 字段      | 类型    | 描述    |
+|---------|---------|-------|
+| code    | string | 错误码   |
+| message | string  | 错误信息  |
+
+#### data
+
+| 字段                         | 类型    | 必须 | 描述                                                                      |
+|----------------------------|-------|----|-------------------------------------------------------------------------|
+| job_instance_list          | array | 是  | 任务执行历史列表                                                                |
+| new_job_instance_id_cursor | long  | 否  | 当次查询结果中最小的job_instance_id，可作为下次请求时传入的cursor_job_instance_id；结果为空时，该字段为空 |
+
+#### job_instance
+
+
+| 字段              | 类型     | 描述                                                                                  |
+|-----------------|--------|-------------------------------------------------------------------------------------|
+| bk_scope_type   | string | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                                  |
+| bk_scope_id     | string | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                             |
+| id              | long   | 执行方案 ID                                                                             |
+| job_template_id | long   | 作业模版 ID，当任务为执行方案的时候有值                                                               |
+| job_plan_id     | long   | 作业执行方案 ID，当任务为执行方案的时候有值                                                             |
+| name            | string | 任务名称                                                                                |
+| operator        | string | 操作者                                                                                 |
+| create_time     | long   | 创建时间，Unix 时间戳，单位毫秒                                                                  |
+| status          | int    | 任务状态。1 -  等待执行，2 - 正在执行，3 - 执行成功，4 - 执行失败，7 - 等待确认，10 - 强制终止中，11 - 强制终止成功，13 - 确认终止 |
+| type            | int    | 任务类型。0 - 作业执行，1 - 脚本执行，2 - 文件分发                                                     |
+| launch_mode     | int    | 执行方式。1 - 页面执行，2 - API调用，3 - 定时执行                                                    |
+| start_time      | long   | 任务启动时间，Unix 时间戳，单位毫秒                                                                |
+| end_time        | long   | 任务结束时间，Unix 时间戳，单位毫秒                                                                |
+| total_time      | long   | 任务执行时间，Unix 时间戳，单位毫秒                                                                |
+
+

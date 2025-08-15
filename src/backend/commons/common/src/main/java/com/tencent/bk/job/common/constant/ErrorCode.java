@@ -29,6 +29,13 @@ package com.tencent.bk.job.common.constant;
  * <p>
  * 错误码分类： 文件磁盘系统 59 MySQL系统 52 Redis系统 50 MQ 55 GSE 10 CMDB 11 作业平台 12 PAAS 13
  * </p>
+ *
+ * @since 2025-08-14
+ * 在蓝鲸新版 HTTP API 协议中：
+ *   错误码不应用于返回展示给用户，响应使用标准 HTTP 状态码
+ *   错误码应仅用于系统内部错误处理，可用于平台开发排查问题
+ *   错误码可用于上下文传递，获取对应描述
+ *
  */
 public class ErrorCode {
 
@@ -177,6 +184,14 @@ public class ErrorCode {
     public static final int UNSUPPORTED_OPERATION_REPEAT_START_JOB = 1241015;
     // 非法文件
     public static final int ILLEGAL_FILE = 1241016;
+    // 不支持的Http方法
+    public static final int NOT_SUPPORTED_HTTP_REQUEST_METHOD = 1241017;
+    // 不支持的MediaType
+    public static final int NOT_SUPPORTED_MEDIA_TYPE = 1241018;
+    // 缺少路径参数
+    public static final int MISSING_PATH_VARIABLE = 1241019;
+    // 请求参数[{0}]类型错误
+    public static final int PARAMETER_TYPE_ERROR = 1241020;
     // 业务通用 end
 
     // 配置服务 start
