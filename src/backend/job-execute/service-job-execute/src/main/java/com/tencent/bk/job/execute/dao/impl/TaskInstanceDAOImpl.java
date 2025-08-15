@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.DeepPaginationCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
@@ -59,6 +60,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 作业执行实例DAO
@@ -220,6 +222,57 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
         }
     }
 
+    @Override
+    public List<TaskInstanceDTO> listJobInstanceStartingFromId(TaskInstanceQuery taskQuery,
+                                                               DeepPaginationCondition deepPaginationCondition) {
+        List<Condition> conditions = buildSearchCondition(taskQuery);
+        processDeepPaginationCondition(conditions, deepPaginationCondition);
+
+        Collection<SortField<?>> orderFields = new ArrayList<>();
+        orderFields.add(TASK_INSTANCE.ID.desc());
+        Result<?> result = dsl().select(ALL_FIELDS)
+            .from(TASK_INSTANCE)
+            .where(conditions)
+            .orderBy(orderFields)
+            .limit(deepPaginationCondition.getLength())
+            .fetch();
+
+        return result.stream().map(this::extractInfo).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TaskInstanceDTO> listJobInstanceWithIpStartingFromId(TaskInstanceQuery taskQuery,
+                                                                     DeepPaginationCondition deepPaginationCondition) {
+        List<Condition> conditions = buildSearchCondition(taskQuery);
+        if (StringUtils.isNotEmpty(taskQuery.getIp())) {
+            conditions.add(TASK_INSTANCE_HOST.IP.eq(taskQuery.getIp()));
+        } else {
+            conditions.add(TASK_INSTANCE_HOST.IPV6.eq(taskQuery.getIpv6()));
+        }
+        processDeepPaginationCondition(conditions, deepPaginationCondition);
+
+        Result<? extends Record> result = selectTaskInstanceByIpCondition(
+            conditions,
+            0,
+            deepPaginationCondition.getLength()
+        );
+        return result.stream().map(this::extractInfo).collect(Collectors.toList());
+    }
+
+    /**
+     * 处理深度分页条件
+     *
+     * @param conditions 基础查询条件
+     * @param deepPaginationCondition 深度分页条件
+     */
+    private void processDeepPaginationCondition(List<Condition> conditions,
+                                                DeepPaginationCondition deepPaginationCondition) {
+        if (deepPaginationCondition.getStartId() != null && deepPaginationCondition.getStartId() != 0) {
+            // 查询是按照时间，先查到最新的，所以下次应该是从id往前查
+            conditions.add(TASK_INSTANCE.ID.lessThan(deepPaginationCondition.getStartId()));
+        }
+    }
+
     private PageData<TaskInstanceDTO> listPageTaskInstanceByBasicInfo(TaskInstanceQuery taskQuery,
                                                                       BaseSearchCondition baseSearchCondition) {
         int start = baseSearchCondition.getStartOrDefault(0);
@@ -252,6 +305,7 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
         }
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
+
         Integer count = 0;
         if (baseSearchCondition.isCountPageTotal()) {
             count = dsl().selectCount().from(TaskInstance.TASK_INSTANCE)
@@ -262,8 +316,17 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
                 return PageData.emptyPageData(start, length);
             }
         }
+
+        Result<? extends Record> result = selectTaskInstanceByIpCondition(conditions, start, length);
+        return buildTaskInstancePageData(start, length, count, result);
+    }
+
+    private Result<? extends Record> selectTaskInstanceByIpCondition(List<Condition> conditions,
+                                                                     int start,
+                                                                     int length) {
         Collection<SortField<?>> orderFields = new ArrayList<>();
         orderFields.add(TASK_INSTANCE.ID.desc());
+        // 条件中包含IP需要连表查询
         Result<? extends Record> result = dsl().select(ALL_FIELDS)
             .from(TaskInstanceDAOImpl.TASK_INSTANCE)
             .leftJoin(TASK_INSTANCE_HOST).on(TaskInstance.TASK_INSTANCE.ID.eq(TASK_INSTANCE_HOST.TASK_INSTANCE_ID))
@@ -272,8 +335,7 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
             .orderBy(orderFields)
             .limit(start, length)
             .fetch();
-
-        return buildTaskInstancePageData(start, length, count, result);
+        return result;
     }
 
     private PageData<TaskInstanceDTO> buildTaskInstancePageData(int start,
@@ -302,6 +364,7 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
     private List<Condition> buildSearchCondition(TaskInstanceQuery taskQuery) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TASK_INSTANCE.APP_ID.eq(taskQuery.getAppId()));
+
         if (taskQuery.getTaskInstanceId() != null && taskQuery.getTaskInstanceId() > 0) {
             conditions.add(TASK_INSTANCE.ID.eq(taskQuery.getTaskInstanceId()));
             return conditions;

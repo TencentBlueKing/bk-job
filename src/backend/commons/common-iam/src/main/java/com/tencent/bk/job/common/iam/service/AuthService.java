@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.iam.service;
 
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.esb.model.iam.EsbApplyPermissionDTO;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -143,6 +144,14 @@ public interface AuthService {
      * @return 第三方鉴权失败返回结果
      */
     <T> EsbResp<T> buildEsbAuthFailResp(PermissionDeniedException exception);
+
+    /**
+     * 解析异常并返回用户没有权限的动作详情信息
+     *
+     * @param exception 鉴权失败返回的异常
+     * @return 无权限的详细信息
+     */
+    EsbApplyPermissionDTO buildPermissionDetailByPermissionApplyDTO(PermissionDeniedException exception);
 
     /**
      * 注册资源实例
