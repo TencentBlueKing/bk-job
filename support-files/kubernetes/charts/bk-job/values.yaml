@@ -702,8 +702,6 @@ cmsi:
   voice:
     # 接口uri
     uri: /api/c/compapi/v2/cmsi/send_voice_msg/
-  # 是否使用独立发送语音的接口
-  useStandaloneVoiceAPI: true
 
 # 消息通知中心配置
 bkNotice:

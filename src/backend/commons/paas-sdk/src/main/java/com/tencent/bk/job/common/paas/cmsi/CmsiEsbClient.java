@@ -51,7 +51,6 @@ import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.util.CollectionUtils;
 
@@ -74,7 +73,6 @@ public class CmsiEsbClient extends BkApiV1Client implements ICmsiClient {
     // 语音发送接口，环境不同URI不同，通过配置获取
     private final String uriSendVoice;
     // 使用语音发送的独立接口发送语音通知
-    private final Boolean useStandaloneVoiceAPI;
     private final BkApiAuthorization authorization;
 
     public CmsiEsbClient(EsbProperties esbProperties,
@@ -92,8 +90,6 @@ public class CmsiEsbClient extends BkApiV1Client implements ICmsiClient {
             tenantEnvService
         );
         this.uriSendVoice = cmsiApiProperties.getVoice().getUri();
-        this.useStandaloneVoiceAPI = cmsiApiProperties.getUseStandaloneVoiceAPI()
-            && StringUtils.isNotEmpty(this.uriSendVoice);
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");
     }
@@ -193,10 +189,6 @@ public class CmsiEsbClient extends BkApiV1Client implements ICmsiClient {
         }
     }
 
-    public Boolean canUseStandaloneVoiceAPI() {
-        return this.useStandaloneVoiceAPI;
-    }
-
     private void handleResultOrThrow(EsbResp<Object> esbResp, ErrorType errorType, int errorCode) {
         if (esbResp.getResult() == null || !esbResp.getResult() || esbResp.getCode() != 0) {
             throw new PaasException(
@@ -246,7 +238,7 @@ public class CmsiEsbClient extends BkApiV1Client implements ICmsiClient {
             .map(String::trim)
             .collect(Collectors.toSet());
         // 语音通知走专门接口，其余渠道走通用发送接口
-        if (NotifyChannelEnum.isVoice(msgType) && canUseStandaloneVoiceAPI()) {
+        if (NotifyChannelEnum.isVoice(msgType)) {
             sendVoiceMsg(notifyMessageDTO.getContent(), receiverUserList);
             return;
         }

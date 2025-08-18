@@ -89,7 +89,6 @@ data:
       api-type: {{ .Values.cmsi.apiType }}
       voice:
         uri: {{ .Values.cmsi.voice.uri }}
-      useStandaloneVoiceAPI: {{ .Values.cmsi.useStandaloneVoiceAPI }}
     bkNotice:
       enabled: {{ .Values.bkNotice.enabled }}
     job:

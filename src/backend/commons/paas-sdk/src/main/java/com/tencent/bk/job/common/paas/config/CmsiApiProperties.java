@@ -35,19 +35,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class CmsiApiProperties {
 
     /**
-     * CMSI语音通知接口配置
-     */
-    private ChannelConfig voice;
-
-    /**
-     * CMSI语音通知是否走独立接口
-     */
-    private Boolean useStandaloneVoiceAPI;
-
-    /**
      * CMSI接口类型，默认APIGW
      */
     private String apiType = BkApiTypeEnum.APIGW.getType();
+
+    /**
+     * CMSI语音通知接口配置
+     */
+    private ChannelConfig voice;
 
     @Getter
     @Setter
