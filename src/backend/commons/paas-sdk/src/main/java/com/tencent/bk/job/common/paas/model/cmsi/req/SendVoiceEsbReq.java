@@ -22,38 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.model;
+package com.tencent.bk.job.common.paas.model.cmsi.req;
 
-public enum NotifyChannelEnum {
-    Mail("mail"),
-    Sms("sms"),
-    Voice("voice"),
-    Weixin("weixin");
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
-    private final String type;
+@Data
+public class SendVoiceEsbReq {
 
-    NotifyChannelEnum(String type) {
-        this.type = type;
-    }
+    /**
+     * 自动语音读字信息
+     */
+    @JsonProperty("auto_read_message")
+    private String message;
 
-    public String getType() {
-        return type;
-    }
-
-
-    public static Boolean isMail(String channel) {
-        return Mail.getType().equalsIgnoreCase(channel);
-    }
-
-    public static Boolean isSms(String channel) {
-        return Sms.getType().equalsIgnoreCase(channel);
-    }
-
-    public static Boolean isVoice(String channel) {
-        return Voice.getType().equalsIgnoreCase(channel);
-    }
-
-    public static Boolean isWeixin(String channel) {
-        return Weixin.getType().equalsIgnoreCase(channel);
-    }
+    /**
+     * 待通知的用户列表，包含用户名，多个以逗号分隔
+     */
+    @JsonProperty("receiver__username")
+    public String receivers;
 }

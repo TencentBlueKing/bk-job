@@ -24,16 +24,26 @@
 
 package com.tencent.bk.job.common.esb.constants;
 
+import lombok.Getter;
+
 /**
- * 蓝鲸 API 网关类型
+ * 蓝鲸 API 类型
  */
-public enum ApiGwType {
+@Getter
+public enum BkApiTypeEnum {
+
     /**
      * ESB
      */
-    ESB,
+    ESB("esb"),
     /**
      * 蓝鲸网关，用于替换 ESB
      */
-    BK_APIGW;
+    APIGW("apigw");
+
+    private final String type;
+
+    BkApiTypeEnum(String type) {
+        this.type = type;
+    }
 }

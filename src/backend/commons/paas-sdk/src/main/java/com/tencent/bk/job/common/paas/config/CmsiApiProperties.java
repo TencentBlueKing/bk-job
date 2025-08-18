@@ -22,38 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.model;
+package com.tencent.bk.job.common.paas.config;
 
-public enum NotifyChannelEnum {
-    Mail("mail"),
-    Sms("sms"),
-    Voice("voice"),
-    Weixin("weixin");
+import com.tencent.bk.job.common.esb.constants.BkApiTypeEnum;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-    private final String type;
+@Data
+@ConfigurationProperties(prefix = "cmsi")
+public class CmsiApiProperties {
 
-    NotifyChannelEnum(String type) {
-        this.type = type;
-    }
+    /**
+     * CMSI语音通知接口配置
+     */
+    private ChannelConfig voice;
 
-    public String getType() {
-        return type;
-    }
+    /**
+     * CMSI语音通知是否走独立接口
+     */
+    private Boolean useStandaloneVoiceAPI;
 
+    /**
+     * CMSI接口类型，默认APIGW
+     */
+    private String apiType = BkApiTypeEnum.APIGW.getType();
 
-    public static Boolean isMail(String channel) {
-        return Mail.getType().equalsIgnoreCase(channel);
-    }
-
-    public static Boolean isSms(String channel) {
-        return Sms.getType().equalsIgnoreCase(channel);
-    }
-
-    public static Boolean isVoice(String channel) {
-        return Voice.getType().equalsIgnoreCase(channel);
-    }
-
-    public static Boolean isWeixin(String channel) {
-        return Weixin.getType().equalsIgnoreCase(channel);
+    @Getter
+    @Setter
+    public static class ChannelConfig {
+        private String uri;
     }
 }

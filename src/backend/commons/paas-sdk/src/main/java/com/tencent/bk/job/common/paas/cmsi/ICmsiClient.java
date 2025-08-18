@@ -31,9 +31,9 @@ import java.util.List;
 
 public interface ICmsiClient {
 
-    public List<EsbNotifyChannelDTO> getNotifyChannelList(String tenantId);
+    List<EsbNotifyChannelDTO> getNotifyChannelList(String tenantId);
 
-    public void sendMsg(String msgType,
-                        NotifyMessageDTO notifyMessageDTO,
-                        String tenantId);
+    void sendMsg(String msgType,
+                 NotifyMessageDTO notifyMessageDTO,
+                 String tenantId);
 }

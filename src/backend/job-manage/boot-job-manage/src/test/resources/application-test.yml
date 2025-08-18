@@ -45,3 +45,8 @@ esb:
   service:
     url: esb.service
 
+cmsi:
+  api-type: apigw
+  voice:
+    uri: /api/c/compapi/v2/cmsi/send_voice_msg/
+  useStandaloneVoiceAPI: true

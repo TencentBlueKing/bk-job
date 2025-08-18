@@ -22,38 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.model;
+package com.tencent.bk.job.common.paas.config.condition;
 
-public enum NotifyChannelEnum {
-    Mail("mail"),
-    Sms("sms"),
-    Voice("voice"),
-    Weixin("weixin");
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-    private final String type;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    NotifyChannelEnum(String type) {
-        this.type = type;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-
-    public static Boolean isMail(String channel) {
-        return Mail.getType().equalsIgnoreCase(channel);
-    }
-
-    public static Boolean isSms(String channel) {
-        return Sms.getType().equalsIgnoreCase(channel);
-    }
-
-    public static Boolean isVoice(String channel) {
-        return Voice.getType().equalsIgnoreCase(channel);
-    }
-
-    public static Boolean isWeixin(String channel) {
-        return Weixin.getType().equalsIgnoreCase(channel);
-    }
+/**
+ * @see com.tencent.bk.job.common.esb.constants.BkApiTypeEnum
+ */
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@ConditionalOnProperty(
+    value = "cmsi.api-type",
+    havingValue = "esb"
+)
+public @interface ConditionalOnCmsiUseEsb {
 }
