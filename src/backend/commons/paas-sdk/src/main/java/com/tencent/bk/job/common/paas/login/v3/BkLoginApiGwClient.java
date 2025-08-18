@@ -28,20 +28,20 @@ import static com.tencent.bk.job.common.metrics.CommonMetricNames.BK_LOGIN_API;
 import static com.tencent.bk.job.common.metrics.CommonMetricNames.BK_LOGIN_API_HTTP;
 
 /**
- * bk-login API 客户端
+ * bk-login APIGW 客户端
  */
 @Slf4j
-public class BkLoginApiClient extends BkApiV2Client {
+public class BkLoginApiGwClient extends BkApiV2Client {
 
     public static final String API_URL_USERINFO = "/login/api/v3/open/bk-tokens/userinfo";
 
     protected final BkApiAuthorization authorization;
 
 
-    public BkLoginApiClient(BkApiGatewayProperties bkApiGatewayProperties,
-                            AppProperties appProperties,
-                            MeterRegistry meterRegistry,
-                            TenantEnvService tenantEnvService) {
+    public BkLoginApiGwClient(BkApiGatewayProperties bkApiGatewayProperties,
+                              AppProperties appProperties,
+                              MeterRegistry meterRegistry,
+                              TenantEnvService tenantEnvService) {
         super(
             meterRegistry,
             BK_LOGIN_API,

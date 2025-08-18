@@ -683,6 +683,8 @@ swagger:
 
 ## 登录配置
 login:
+  # 对接的API类型，取值：apigw、esb
+  apiType: apigw
   ## 自定义登录配置
   custom:
     # 是否对接自定义登录地址，默认不开启（使用蓝鲸集成的统一登录）

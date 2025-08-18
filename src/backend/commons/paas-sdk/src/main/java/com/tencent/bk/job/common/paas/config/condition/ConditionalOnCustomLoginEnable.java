@@ -22,61 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.config;
+package com.tencent.bk.job.common.paas.config.condition;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-@Configuration(proxyBeanMethods = false)
-@Getter
-@Setter
-@ToString
-public class LoginConfiguration {
-    /**
-     * 蓝鲸标准的登录url
-     */
-    @Value("${paas.login.url:}")
-    private String loginUrl;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    /**
-     * 是否使用第三方登录系统
-     */
-    @Value("${paas.login.custom.enabled:false}")
-    private boolean customPaasLoginEnabled;
-
-    /**
-     * 第三方登录系统用户token的cookie名称
-     */
-    @Value("${paas.login.custom.token-name:bk_token}")
-    private String customLoginToken;
-
-    /**
-     * 第三方登录系统登录url
-     */
-    @Value("${paas.login.custom.login-url:}")
-    private String customLoginUrl;
-
-    /**
-     * 第三方登录系统API url，用于根据token获取用户信息
-     */
-    @Value("${paas.login.custom.api-url:}")
-    private String customLoginApiUrl;
-
-    /**
-     * 获取真正使用的登录url
-     *
-     * @return 登录url
-     */
-    @JsonIgnore
-    public String getRealLoginUrl() {
-        if (isCustomPaasLoginEnabled()) {
-            return getCustomLoginUrl();
-        } else {
-            return getLoginUrl();
-        }
-    }
+/**
+ * @see com.tencent.bk.job.common.esb.constants.BkApiTypeEnum
+ */
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@ConditionalOnProperty(
+    value = "paas.login.custom.enabled",
+    havingValue = "true"
+)
+public @interface ConditionalOnCustomLoginEnable {
 }

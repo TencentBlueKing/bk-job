@@ -83,6 +83,7 @@ data:
           api-url: {{ .Values.login.custom.apiUrl }}
           token-name: {{ .Values.login.custom.tokenName }}
         {{- else }}
+        api-type: {{ .Values.login.apiType }}
         url: {{ .Values.bkLoginUrl }}
         {{- end }}
     cmsi:
