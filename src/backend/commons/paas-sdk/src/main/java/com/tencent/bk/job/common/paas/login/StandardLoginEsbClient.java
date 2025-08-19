@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.paas.login;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
@@ -133,6 +134,10 @@ public class StandardLoginEsbClient extends BkApiV1Client implements ILoginClien
         bkUserDTO.setPhone(esbUserDto.getPhone());
         bkUserDTO.setWxUserId(esbUserDto.getWxUserId());
         bkUserDTO.setTimeZone(esbUserDto.getTimeZone());
+        // 兼容单租户环境
+        if(!tenantEnvService.isTenantEnabled()){
+            bkUserDTO.setTenantId(TenantIdConstants.DEFAULT_TENANT_ID);
+        }
         return bkUserDTO;
     }
 }

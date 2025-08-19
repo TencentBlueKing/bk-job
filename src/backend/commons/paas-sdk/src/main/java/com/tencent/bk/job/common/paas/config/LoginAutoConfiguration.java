@@ -73,7 +73,8 @@ public class LoginAutoConfiguration {
                 appProperties,
                 meterRegistryObjectProvider.getIfAvailable(),
                 tenantEnvService
-            )
+            ),
+            tenantEnvService
         );
     }
 

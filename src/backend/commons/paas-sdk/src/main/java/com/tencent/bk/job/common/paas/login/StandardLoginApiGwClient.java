@@ -24,18 +24,23 @@
 
 package com.tencent.bk.job.common.paas.login;
 
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.login.v3.BkLoginApiGwClient;
 import com.tencent.bk.job.common.paas.login.v3.OpenApiBkUser;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
+import io.micrometer.core.instrument.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class StandardLoginApiGwClient implements ILoginClient {
 
     private final BkLoginApiGwClient bkLoginApiClient;
+    protected final TenantEnvService tenantEnvService;
 
-    public StandardLoginApiGwClient(BkLoginApiGwClient bkLoginApiGwClient) {
+    public StandardLoginApiGwClient(BkLoginApiGwClient bkLoginApiGwClient, TenantEnvService tenantEnvService) {
         this.bkLoginApiClient = bkLoginApiGwClient;
+        this.tenantEnvService = tenantEnvService;
     }
 
     /**
@@ -56,6 +61,10 @@ public class StandardLoginApiGwClient implements ILoginClient {
         bkUserDTO.setTimeZone(bkUser.getTimeZone());
         bkUserDTO.setTenantId(bkUser.getTenantId());
         bkUserDTO.setLanguage(bkUser.getLanguage());
+        // 兼容单租户环境
+        if (StringUtils.isBlank(bkUserDTO.getTenantId()) && !tenantEnvService.isTenantEnabled()) {
+            bkUserDTO.setTenantId(TenantIdConstants.DEFAULT_TENANT_ID);
+        }
         return bkUserDTO;
     }
 }
