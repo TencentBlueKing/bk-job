@@ -25,35 +25,19 @@
 package com.tencent.bk.job.common.paas.user;
 
 import com.tencent.bk.job.common.constant.TenantIdConstants;
-import com.tencent.bk.job.common.esb.config.AppProperties;
-import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
+import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 import com.tencent.bk.job.common.paas.model.TenantStatusEnum;
-import com.tencent.bk.job.common.tenant.TenantEnvService;
-import io.micrometer.core.instrument.MeterRegistry;
-import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class MockUserApiClient implements IUserApiClient {
-
-    @Delegate
-    private final IUserApiClient proxy;
-
-    public MockUserApiClient(BkApiGatewayProperties bkApiGatewayProperties,
-                             AppProperties appProperties,
-                             MeterRegistry meterRegistry,
-                             TenantEnvService tenantEnvService) {
-        this.proxy = new UserMgrApiClient(
-            bkApiGatewayProperties,
-            appProperties,
-            meterRegistry,
-            tenantEnvService
-        );
-    }
 
     @Override
     public List<OpenApiTenant> listAllTenant() {
@@ -62,5 +46,25 @@ public class MockUserApiClient implements IUserApiClient {
         openApiTenant.setName(TenantIdConstants.DEFAULT_TENANT_ID);
         openApiTenant.setStatus(TenantStatusEnum.ENABLED.getStatus());
         return Collections.singletonList(openApiTenant);
+    }
+
+    @Override
+    public SimpleUserInfo getUserByUsername(String tenantId, String username) {
+        return new SimpleUserInfo(username, username, username);
+    }
+
+    @Override
+    public List<SimpleUserInfo> batchGetVirtualUserByLoginName(String tenantId, String loginName) {
+        return Collections.singletonList(new SimpleUserInfo(loginName, loginName, loginName));
+    }
+
+    @Override
+    public List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames) {
+        if (CollectionUtils.isEmpty(usernames)) {
+            return Collections.emptyList();
+        }
+        return usernames.stream()
+            .map(username -> new SimpleUserInfo(username, username, username))
+            .collect(Collectors.toList());
     }
 }

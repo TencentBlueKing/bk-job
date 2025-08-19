@@ -32,11 +32,11 @@ import java.util.List;
 
 public interface IUserApiClient {
 
-    public List<OpenApiTenant> listAllTenant();
+    List<OpenApiTenant> listAllTenant();
 
-    public SimpleUserInfo getUserByUsername(String tenantId, String username);
+    SimpleUserInfo getUserByUsername(String tenantId, String username);
 
-    public List<SimpleUserInfo> batchGetVirtualUserByLoginName(String tenantId, String loginName);
+    List<SimpleUserInfo> batchGetVirtualUserByLoginName(String tenantId, String loginName);
 
     List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames);
 
