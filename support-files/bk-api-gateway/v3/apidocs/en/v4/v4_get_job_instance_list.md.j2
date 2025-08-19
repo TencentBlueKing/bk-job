@@ -86,28 +86,28 @@ list task history
 
 #### data
 
-| field                      | type  | required | description                                      |
-|----------------------------|-------|----------|--------------------------------------------------|
-| job_instance_list          | array | Yes      | Task History List, sort in order from new to old |
+| field                      | type  | always_exist | description                                      |
+|----------------------------|-------|--------------|--------------------------------------------------|
+| job_instance_list          | array | Yes          | Task History List, sort in order from new to old |
 
 #### job_instance
 
-| Fields          | Type   | Description                                                                                 |
-|-----------------|--------|---------------------------------------------------------------------------------------------|
-| bk_scope_type   | string | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
-| bk_scope_id     | string | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| id              | long   | Job Plan ID                                                                                 |
-| job_template_id | long   | Job Template ID, which has a value when the task is Job Plan                                |
-| job_plan_id     | long   | Job Plan ID, which has a value when the task is a Job Plan                                  |
-| name            | string | Task name                                                                                   |
-| operator        | string | Operator                                                                                    |
-| create_time     | long   | Creation time, Unix timestamp, in milliseconds                                              |
-| status          | int    | Job status code. Please see task_status description in the bottom                           |
-| type            | int    | Task type. 0 - Plan execution, 1 - Script execution, 2 - File distribution                  |
-| launch_mode     | int    | Launch mode. 1 - Web UI, 2 - API, 3 - Cron Job                                              |
-| start_time      | long   | Task start time, Unix timestamp, in milliseconds                                            |
-| end_time        | long   | Task end time, Unix timestamp, in milliseconds                                              |
-| total_time      | long   | Task execution time, Unix timestamp, in milliseconds                                        |
+| Fields          | Type   | always_exist | Description                                                                                 |
+|-----------------|--------|--------------|---------------------------------------------------------------------------------------------|
+| bk_scope_type   | string | Yes          | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id     | string | Yes          | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| id              | long   | Yes          | Job Plan ID                                                                                 |
+| job_template_id | long   | No           | Job Template ID, which has a value when the task is Job Plan                                |
+| job_plan_id     | long   | No           | Job Plan ID, which has a value when the task is a Job Plan                                  |
+| name            | string | Yes          | Task name                                                                                   |
+| operator        | string | Yes          | Operator                                                                                    |
+| create_time     | long   | Yes          | Creation time, Unix timestamp, in milliseconds                                              |
+| status          | int    | Yes          | Job status code. Please see task_status description in the bottom                           |
+| type            | int    | Yes          | Task type. 0 - Plan execution, 1 - Script execution, 2 - File distribution                  |
+| launch_mode     | int    | Yes          | Launch mode. 1 - Web UI, 2 - API, 3 - Cron Job                                              |
+| start_time      | long   | Yes          | Task start time, Unix timestamp, in milliseconds                                            |
+| end_time        | long   | Yes          | Task end time, Unix timestamp, in milliseconds                                              |
+| total_time      | long   | Yes          | Task execution time, Unix timestamp, in milliseconds                                        |
 
 #### task_status
 

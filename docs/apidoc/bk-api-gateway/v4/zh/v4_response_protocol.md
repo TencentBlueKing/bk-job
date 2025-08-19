@@ -11,6 +11,10 @@ V4版本的接口全面采用蓝鲸新版 HTTP API 协议，严格遵守标准 H
 - 20x
 
   - 200 OK: 请求成功
+  
+  - 201 Created: POST接口创建时使用, 通常响应中包含Location
+
+  - 204 No Content: 表示操作成功但是无响应体, 例如 DELETE成功
 
 - 40x
 
@@ -31,6 +35,8 @@ V4版本的接口全面采用蓝鲸新版 HTTP API 协议，严格遵守标准 H
 - 50x
 
   - 500 Internal Server Error: 服务端错误
+
+注意：20x 都代表请求成功, 判断请求成功请使用 http_status>=200 && http_status<300 来判断，而不是http_status==200。
 
 ## 响应体
 

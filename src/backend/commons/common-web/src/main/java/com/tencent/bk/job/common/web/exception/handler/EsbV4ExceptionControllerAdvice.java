@@ -28,7 +28,7 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.annotation.EsbV4API;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
-import com.tencent.bk.job.common.esb.model.v4.V4ErrorCode;
+import com.tencent.bk.job.common.esb.model.v4.V4ErrorCodeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -42,6 +42,7 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.error.ErrorDetailDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpHeaders;
@@ -85,14 +86,16 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
      */
     @ExceptionHandler({Throwable.class})
     public ResponseEntity<?> handleException(Throwable ex, HttpServletRequest request) {
-
-        log.error("Handle exception, uri={}", request.getRequestURI(), ex);
+        String errorMsg = MessageFormatter.format(
+            "Handle exception, uri={}", request.getRequestURI()
+        ).getMessage();
+        log.error(errorMsg, ex);
         if (ex instanceof UncheckedExecutionException) {
             if (ex.getCause() instanceof ServiceException) {
                 ServiceException e = (ServiceException) ex.getCause();
                 return new ResponseEntity<>(
                     EsbV4Response.buildFailedResponse(
-                        V4ErrorCode.INTERNAL,
+                        V4ErrorCodeEnum.INTERNAL,
                         e.getErrorCode(),
                         e.getErrorParams()
                     ),
@@ -102,7 +105,7 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
         }
         // 未被Job处理过的异常，属于内部异常
         return new ResponseEntity<>(
-            EsbV4Response.buildFailedResponse(V4ErrorCode.INTERNAL, ErrorCode.INTERNAL_ERROR),
+            EsbV4Response.buildFailedResponse(V4ErrorCodeEnum.INTERNAL, ErrorCode.INTERNAL_ERROR),
             HttpStatus.INTERNAL_SERVER_ERROR
         );
     }
@@ -113,9 +116,12 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
      */
     @ExceptionHandler(ServiceException.class)
     ResponseEntity<?> handleServiceException(HttpServletRequest request, ServiceException ex) {
-        log.error("Handle ServiceException", ex);
+        String errorMsg = MessageFormatter.format(
+            "Handle serviceException, uri={}", request.getRequestURI()
+        ).getMessage();
+        log.error(errorMsg, ex);
         EsbV4Response<Object> resp = EsbV4Response.buildFailedResponse(
-            V4ErrorCode.INTERNAL,
+            V4ErrorCodeEnum.INTERNAL,
             ex.getErrorCode(),
             ex.getErrorParams()
         );
@@ -131,7 +137,7 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
         String errorMsg = "Handle InternalException, uri: " + request.getRequestURI();
         log.error(errorMsg, ex);
         return new ResponseEntity<>(
-            EsbV4Response.buildFailedResponse(V4ErrorCode.INTERNAL, ex.getErrorCode(), ex.getErrorParams()),
+            EsbV4Response.buildFailedResponse(V4ErrorCodeEnum.INTERNAL, ex.getErrorCode(), ex.getErrorParams()),
             HttpStatus.INTERNAL_SERVER_ERROR
         );
     }
@@ -144,7 +150,7 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
         String errorMsg = "Handle InvalidParamException, uri: " + request.getRequestURI();
         log.warn(errorMsg, ex);
         EsbV4Response<Object> body = EsbV4Response.buildFailedResponse(
-            V4ErrorCode.INVALID_ARGUMENT,
+            V4ErrorCodeEnum.INVALID_ARGUMENT,
             ex.getErrorCode(),
             ex.getErrorParams()
         );
@@ -157,7 +163,11 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
     @ExceptionHandler({PermissionDeniedException.class})
     public ResponseEntity<?> handlePermissionDeniedException(PermissionDeniedException ex,
                                                              HttpServletRequest request) {
-        log.warn("Handle PermissionDeniedException, uri={}", request.getRequestURI(), ex);
+        String errorMsg = MessageFormatter.format(
+            "Handle PermissionDeniedException, uri={}",
+            request.getRequestURI()
+        ).getMessage();
+        log.warn(errorMsg, ex);
         EsbV4Response<Object> body = EsbV4Response.buildPermissionDeniedResponse(
             authService.buildPermissionDetailByPermissionApplyDTO(ex)
         );
@@ -172,7 +182,7 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
         String errorMsg = "Handle FailedPreconditionException, uri: " + request.getRequestURI();
         log.info(errorMsg, ex);
         EsbV4Response<Object> body = EsbV4Response.buildFailedResponse(
-            V4ErrorCode.FAILED_PRECONDITION,
+            V4ErrorCodeEnum.FAILED_PRECONDITION,
             ex.getErrorCode(),
             ex.getErrorParams()
         );
@@ -187,7 +197,7 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
         String errorMsg = "Handle NotFoundException, uri: " + request.getRequestURI();
         log.info(errorMsg, ex);
         EsbV4Response<Object> body = EsbV4Response.buildFailedResponse(
-            V4ErrorCode.NOT_FOUND,
+            V4ErrorCodeEnum.NOT_FOUND,
             ex.getErrorCode(), ex.getErrorParams()
         );
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
@@ -201,7 +211,7 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
         String errorMsg = "Handle AlreadyExistsException, uri: " + request.getRequestURI();
         log.info(errorMsg, ex);
         EsbV4Response<Object> body = EsbV4Response.buildFailedResponse(
-            V4ErrorCode.ALREADY_EXISTS,
+            V4ErrorCodeEnum.ALREADY_EXISTS,
             ex.getErrorCode(),
             ex.getErrorParams()
         );
@@ -216,7 +226,7 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
         String errorMsg = "Handle UnauthenticatedException, uri: " + request.getRequestURI();
         log.warn(errorMsg, ex);
         EsbV4Response<Object> body = EsbV4Response.buildFailedResponse(
-            V4ErrorCode.UNAUTHENTICATED,
+            V4ErrorCodeEnum.UNAUTHENTICATED,
             ex.getErrorCode(),
             ex.getErrorParams()
         );
@@ -230,9 +240,9 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
     ResponseEntity<?> handleMissingParameterException(HttpServletRequest request,
                                                       MissingParameterException ex) {
         String errorMsg = "Handle MissingParameterException , uri: " + request.getRequestURI();
-        log.warn(errorMsg, ex);
+        log.info(errorMsg, ex);
         EsbV4Response<Object> body = EsbV4Response.buildFailedResponse(
-            V4ErrorCode.INVALID_ARGUMENT,
+            V4ErrorCodeEnum.INVALID_ARGUMENT,
             ex.getErrorCode(),
             ex.getErrorParams()
         );
@@ -245,12 +255,12 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
     @ExceptionHandler(ConstraintViolationException.class)
     ResponseEntity<?> handleConstraintViolationException(HttpServletRequest request, ConstraintViolationException ex) {
         ErrorDetailDTO errorDetail = buildErrorDetail(ex);
-        log.warn(
+        log.info(
             "handle ConstraintViolationException, uri: {}, errorDetail: {}",
             request.getRequestURI(),
             errorDetail
         );
-        EsbV4Response<?> resp = EsbV4Response.paramValidateFail(V4ErrorCode.INVALID_ARGUMENT, errorDetail);
+        EsbV4Response<?> resp = EsbV4Response.paramValidateFail(V4ErrorCodeEnum.INVALID_ARGUMENT, errorDetail);
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
 
@@ -266,7 +276,7 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
             log.info(errorMsg);
         }
         EsbV4Response<Object> body = EsbV4Response.buildFailedResponse(
-            V4ErrorCode.RESOURCE_EXHAUSTED,
+            V4ErrorCodeEnum.RESOURCE_EXHAUSTED,
             ex.getErrorCode(),
             ex.getErrorParams()
         );
@@ -283,8 +293,8 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
                                                                   HttpHeaders headers, HttpStatus status,
                                                                   WebRequest request) {
         ErrorDetailDTO errorDetail = buildErrorDetail(ex);
-        log.warn("Handle MethodArgumentNotValid, errorDetail: {}", errorDetail);
-        EsbV4Response<?> resp = EsbV4Response.paramValidateFail(V4ErrorCode.INVALID_ARGUMENT, errorDetail);
+        log.info("Handle MethodArgumentNotValid, errorDetail: {}", errorDetail);
+        EsbV4Response<?> resp = EsbV4Response.paramValidateFail(V4ErrorCodeEnum.INVALID_ARGUMENT, errorDetail);
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
 
@@ -293,7 +303,7 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
     protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException ex,
                                                                          HttpHeaders headers, HttpStatus status,
                                                                          WebRequest request) {
-        log.warn("Handle HttpRequestMethodNotSupportedException", ex);
+        log.info("Handle HttpRequestMethodNotSupportedException", ex);
         EsbV4Response<?> resp = EsbV4Response.badRequestResponse(ErrorCode.NOT_SUPPORTED_HTTP_REQUEST_METHOD);
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
@@ -335,7 +345,7 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
     protected ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException ex,
                                                                           HttpHeaders headers, HttpStatus status,
                                                                           WebRequest request) {
-        log.warn("Handle MissingServletRequestParameterException", ex);
+        log.info("Handle MissingServletRequestParameterException", ex);
         EsbV4Response<?> resp = EsbV4Response.badRequestResponse(
             ErrorCode.MISSING_PARAM_WITH_PARAM_NAME,
             new String[]{ex.getParameterName()}
@@ -429,7 +439,7 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
                                                                         HttpHeaders headers, HttpStatus status,
                                                                         WebRequest webRequest) {
         log.error("Handle AsyncRequestTimeoutException", ex);
-        EsbV4Response<?> resp = EsbV4Response.buildFailedResponse(V4ErrorCode.INTERNAL, ErrorCode.INTERNAL_ERROR);
+        EsbV4Response<?> resp = EsbV4Response.buildFailedResponse(V4ErrorCodeEnum.INTERNAL, ErrorCode.INTERNAL_ERROR);
         return new ResponseEntity<>(resp, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

@@ -28,11 +28,11 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * ESB新协议中，错误请求的 responseBody.error.code 字段，
+ * 蓝鲸 APIGW 新协议中，错误请求的 responseBody.error.code 字段，
  * 需要是语义化的英文标识, 整个蓝鲸会定义一套通用的错误大分类
  */
 @Getter
-public enum V4ErrorCode {
+public enum V4ErrorCodeEnum {
 
     // 参数不符合参数格式
     INVALID_ARGUMENT(400, "INVALID_ARGUMENT"),
@@ -76,7 +76,7 @@ public enum V4ErrorCode {
     private final Integer status;
     private final String code;
 
-    V4ErrorCode(Integer status, String code) {
+    V4ErrorCodeEnum(Integer status, String code) {
         this.status = status;
         this.code = code;
     }
@@ -86,12 +86,12 @@ public enum V4ErrorCode {
             throw new IllegalArgumentException("V4ErrorCode enum's code cannot be empty");
         }
 
-        for (V4ErrorCode errorCode : V4ErrorCode.values()) {
+        for (V4ErrorCodeEnum errorCode : V4ErrorCodeEnum.values()) {
             if (errorCode.code.equals(code)) {
                 return errorCode.status;
             }
         }
 
-        throw new IllegalArgumentException("V4ErrorCode enum has not code: " + code);
+        throw new IllegalArgumentException("V4ErrorCodeEnum enum has no code: " + code);
     }
 }

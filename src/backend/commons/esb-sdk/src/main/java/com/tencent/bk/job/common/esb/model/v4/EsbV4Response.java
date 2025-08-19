@@ -66,17 +66,17 @@ public class EsbV4Response<T> {
         return resp;
     }
 
-    public static <T> EsbV4Response<T> buildFailedResponse(V4ErrorCode v4ErrorCode,
+    public static <T> EsbV4Response<T> buildFailedResponse(V4ErrorCodeEnum v4ErrorCodeEnum,
                                                            Integer errorCode,
                                                            Object[] errorParams) {
         EsbV4Response<T> resp = new EsbV4Response<>();
-        EsbV4RespError error = EsbV4RespError.buildCommonError(v4ErrorCode, errorCode, errorParams);
+        EsbV4RespError error = EsbV4RespError.buildCommonError(v4ErrorCodeEnum, errorCode, errorParams);
         resp.setError(error);
         return resp;
     }
 
-    public static <T> EsbV4Response<T> buildFailedResponse(V4ErrorCode v4ErrorCode, Integer errorCode) {
-        return buildFailedResponse(v4ErrorCode, errorCode, new Object[]{});
+    public static <T> EsbV4Response<T> buildFailedResponse(V4ErrorCodeEnum v4ErrorCodeEnum, Integer errorCode) {
+        return buildFailedResponse(v4ErrorCodeEnum, errorCode, new Object[]{});
     }
 
     public static <T> EsbV4Response<T> buildPermissionDeniedResponse(EsbApplyPermissionDTO permissionDetail) {
@@ -107,7 +107,7 @@ public class EsbV4Response<T> {
         return resp;
     }
 
-    public static <T> EsbV4Response<T> paramValidateFail(V4ErrorCode v4ErrorCode, ErrorDetailDTO errorDetail) {
+    public static <T> EsbV4Response<T> paramValidateFail(V4ErrorCodeEnum v4ErrorCodeEnum, ErrorDetailDTO errorDetail) {
         String errMsg = null;
         if (errorDetail != null
             && errorDetail.getBadRequestDetail() != null
@@ -115,7 +115,7 @@ public class EsbV4Response<T> {
         ) {
             errMsg = errorDetail.getBadRequestDetail().findFirstFieldErrorDesc();
         }
-        EsbV4RespError error = EsbV4RespError.buildCommonError(v4ErrorCode, errMsg);
+        EsbV4RespError error = EsbV4RespError.buildCommonError(v4ErrorCodeEnum, errMsg);
         EsbV4Response<T> resp = new EsbV4Response<>();
         resp.setError(error);
         return resp;

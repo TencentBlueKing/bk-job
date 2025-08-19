@@ -47,7 +47,7 @@ public class EsbV4RespError {
      * 错误码,语义化的英文标识, 整个蓝鲸会定义一套通用的错误大分类;
      * 作用: 上游编码基于这个做代码层面的逻辑判断(所以必须是确定的枚举); 枚举; 不会有 .ABC 子分类, 不允许各系统自定义
      *
-     * @see V4ErrorCode
+     * @see V4ErrorCodeEnum
      *
      */
     private String code;
@@ -82,28 +82,28 @@ public class EsbV4RespError {
     /**
      * 根据Job内部的 ErrorCode 构造一般失败的请求
      *
-     * @param v4HttpCode 新蓝鲸协议的状态码, 为HTTP状态码的描述, 为可读的英文字符串
-     * @see V4ErrorCode
+     * @param v4ErrorCodeEnum 新蓝鲸协议的状态码, 为HTTP状态码的描述, 为可读的英文字符串
+     * @see V4ErrorCodeEnum
      * @param errorCode Job内部错误码, 为数字
      * @see ErrorCode
      */
-    public static EsbV4RespError buildCommonError(V4ErrorCode v4HttpCode, Integer errorCode, Object[] errorParams) {
+    public static EsbV4RespError buildCommonError(V4ErrorCodeEnum v4ErrorCodeEnum, Integer errorCode, Object[] errorParams) {
         EsbV4RespError error = new EsbV4RespError();
-        error.setCode(v4HttpCode.getCode());
+        error.setCode(v4ErrorCodeEnum.getCode());
         error.setMessage(I18nUtil.getI18nMessage(String.valueOf(errorCode), errorParams));
         return error;
     }
 
-    public static EsbV4RespError buildCommonError(V4ErrorCode v4HttpCode, String errorMsg) {
+    public static EsbV4RespError buildCommonError(V4ErrorCodeEnum v4ErrorCodeEnum, String errorMsg) {
         EsbV4RespError error = new EsbV4RespError();
-        error.setCode(v4HttpCode.getCode());
+        error.setCode(v4ErrorCodeEnum.getCode());
         error.setMessage(errorMsg);
         return error;
     }
 
     public static EsbV4RespError buildBadRequestError(String errorMsg) {
         EsbV4RespError error = new EsbV4RespError();
-        error.setCode(V4ErrorCode.INVALID_ARGUMENT.getCode());
+        error.setCode(V4ErrorCodeEnum.INVALID_ARGUMENT.getCode());
         error.setMessage(errorMsg);
         return error;
     }
@@ -127,7 +127,7 @@ public class EsbV4RespError {
      */
     public static EsbV4RespError buildPermissionDeniedError(EsbApplyPermissionDTO applyPermissionDTO) {
         EsbV4RespError error = new EsbV4RespError();
-        error.setCode(V4ErrorCode.NO_PERMISSION.getCode());
+        error.setCode(V4ErrorCodeEnum.NO_PERMISSION.getCode());
         error.setMessage(I18nUtil.getI18nMessage(
             String.valueOf(ErrorCode.BK_PERMISSION_DENIED),
             new String[]{JobContextUtil.getUsername()})

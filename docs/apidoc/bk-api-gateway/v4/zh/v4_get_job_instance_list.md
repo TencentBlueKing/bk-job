@@ -158,28 +158,28 @@
 
 #### data
 
-| 字段                         | 类型    | 必须 | 描述                  |
-|----------------------------|-------|----|---------------------|
-| job_instance_list          | array | 是  | 任务执行历史列表，按从新到老的顺序排序 |
+| 字段                | 类型    | 是否一定存在 | 描述                  |
+|-------------------|-------|--------|---------------------|
+| job_instance_list | array | 是      | 任务执行历史列表，按从新到老的顺序排序 |
 
 #### job_instance
 
-| 字段              | 类型     | 描述                                      |
-|-----------------|--------|-----------------------------------------|
-| bk_scope_type   | string | 资源范围类型。可选值: biz - 业务，biz_set - 业务集      |
-| bk_scope_id     | string | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
-| id              | long   | 执行方案 ID                                 |
-| job_template_id | long   | 作业模版 ID，当任务为执行方案的时候有值                   |
-| job_plan_id     | long   | 作业执行方案 ID，当任务为执行方案的时候有值                 |
-| name            | string | 任务名称                                    |
-| operator        | string | 操作者                                     |
-| create_time     | long   | 创建时间，Unix 时间戳，单位毫秒                      |
-| status          | int    | 任务状态。详见文末 task_status 描述                |
-| type            | int    | 任务类型。0 - 作业执行，1 - 脚本执行，2 - 文件分发         |
-| launch_mode     | int    | 执行方式。1 - 页面执行，2 - API调用，3 - 定时执行        |
-| start_time      | long   | 任务启动时间，Unix 时间戳，单位毫秒                    |
-| end_time        | long   | 任务结束时间，Unix 时间戳，单位毫秒                    |
-| total_time      | long   | 任务执行时间，Unix 时间戳，单位毫秒                    |
+| 字段              | 类型     | 是否一定存在 | 描述                                      |
+|-----------------|--------|--------|-----------------------------------------|
+| bk_scope_type   | string | 是      | 资源范围类型。可选值: biz - 业务，biz_set - 业务集      |
+| bk_scope_id     | string | 是      | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
+| id              | long   | 是      | 执行方案 ID                                 |
+| job_template_id | long   | 否      | 作业模版 ID，当任务为执行方案的时候有值                   |
+| job_plan_id     | long   | 否      | 作业执行方案 ID，当任务为执行方案的时候有值                 |
+| name            | string | 是      | 任务名称                                    |
+| operator        | string | 是      | 操作者                                     |
+| create_time     | long   | 是      | 创建时间，Unix 时间戳，单位毫秒                      |
+| status          | int    | 是      | 任务状态。详见文末 task_status 描述                |
+| type            | int    | 是      | 任务类型。0 - 作业执行，1 - 脚本执行，2 - 文件分发         |
+| launch_mode     | int    | 是      | 执行方式。1 - 页面执行，2 - API调用，3 - 定时执行        |
+| start_time      | long   | 是      | 任务启动时间，Unix 时间戳，单位毫秒                    |
+| end_time        | long   | 是      | 任务结束时间，Unix 时间戳，单位毫秒                    |
+| total_time      | long   | 是      | 任务执行时间，Unix 时间戳，单位毫秒                    |
 
 #### task_status
 
