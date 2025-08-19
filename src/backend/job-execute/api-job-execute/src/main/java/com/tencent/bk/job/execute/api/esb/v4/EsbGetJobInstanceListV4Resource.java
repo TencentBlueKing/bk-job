@@ -55,7 +55,7 @@ public interface EsbGetJobInstanceListV4Resource {
         @RequestParam(value = "status", required = false) Integer taskStatus,
         @RequestParam(value = "ip", required = false) String ip,
         @RequestParam(value = "job_cron_id", required = false) Long cronId,
-        @RequestParam(value = "cursor_job_instance_id", required = false) Long cursorJobInstanceId,
+        @RequestParam(value = "offset", required = false) Integer offset,
         @RequestParam(value = "length", required = false, defaultValue = "10") Integer length
     );
 }

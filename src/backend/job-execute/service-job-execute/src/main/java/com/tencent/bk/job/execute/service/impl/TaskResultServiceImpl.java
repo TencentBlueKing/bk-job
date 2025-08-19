@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.DeepPaginationCondition;
+import com.tencent.bk.job.common.model.SimplePaginationCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -149,13 +149,13 @@ public class TaskResultServiceImpl implements TaskResultService {
     }
 
     @Override
-    public List<TaskInstanceDTO> listJobInstanceStartingFromId(TaskInstanceQuery taskQuery,
-                                                                DeepPaginationCondition condition) {
+    public List<TaskInstanceDTO> listJobInstance(TaskInstanceQuery taskQuery,
+                                                 SimplePaginationCondition condition) {
         List<TaskInstanceDTO> taskInstanceList;
         if (StringUtils.isNotEmpty(taskQuery.getIp()) || StringUtils.isNotEmpty(taskQuery.getIpv6())) {
-            taskInstanceList = taskInstanceDAO.listJobInstanceWithIpStartingFromId(taskQuery, condition);
+            taskInstanceList = taskInstanceDAO.listJobInstanceWithIpCondition(taskQuery, condition);
         } else {
-            taskInstanceList = taskInstanceDAO.listJobInstanceStartingFromId(taskQuery, condition);
+            taskInstanceList = taskInstanceDAO.listJobInstance(taskQuery, condition);
         }
         computeTotalTime(taskInstanceList);
 

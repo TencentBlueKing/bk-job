@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.dao;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.DeepPaginationCondition;
+import com.tencent.bk.job.common.model.SimplePaginationCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -60,16 +60,16 @@ public interface TaskInstanceDAO {
                                                    BaseSearchCondition baseSearchCondition);
 
     /**
-     * 为避免深度分页造成的性能问题，分批拉取作业实例时，通过上次查询结果的最大ID作为起始点进行查询
+     * 根据条件分页查询作业实例
      */
-    List<TaskInstanceDTO> listJobInstanceStartingFromId(TaskInstanceQuery taskQuery,
-                                                         DeepPaginationCondition condition);
+    List<TaskInstanceDTO> listJobInstance(TaskInstanceQuery taskQuery,
+                                          SimplePaginationCondition condition);
 
     /**
-     * 带有IP条件的深度分页查询
+     * 带有IP条件的分页查询
      */
-    List<TaskInstanceDTO> listJobInstanceWithIpStartingFromId(TaskInstanceQuery taskQuery,
-                                                              DeepPaginationCondition condition);
+    List<TaskInstanceDTO> listJobInstanceWithIpCondition(TaskInstanceQuery taskQuery,
+                                                         SimplePaginationCondition condition);
 
     /**
      * 获取定时作业执行情况

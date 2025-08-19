@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.model.DeepPaginationCondition;
+import com.tencent.bk.job.common.model.SimplePaginationCondition;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -81,7 +81,7 @@ public class EsbGetJobInstanceListV4ResourceImpl implements EsbGetJobInstanceLis
                                                                         Integer taskStatus,
                                                                         String ip,
                                                                         Long cronId,
-                                                                        Long cursorJobInstanceId,
+                                                                        Integer offset,
                                                                         Integer length) {
         GetJobInstanceListReqValidationTarget validationTarget = new GetJobInstanceListReqValidationTarget();
         validationTarget.setCreateTimeStart(createTimeStart);
@@ -118,15 +118,15 @@ public class EsbGetJobInstanceListV4ResourceImpl implements EsbGetJobInstanceLis
         query.setEndTime(createTimeEnd);
         query.setIp(ip);
 
-        DeepPaginationCondition condition = new DeepPaginationCondition();
-        if (cursorJobInstanceId != null) {
-            condition.setStartId(cursorJobInstanceId);
+        SimplePaginationCondition condition = new SimplePaginationCondition();
+        if (offset != null) {
+            condition.setOffset(offset);
         }
         if (length != null) {
             condition.setLength(length);
         }
 
-        List<TaskInstanceDTO> jobInstanceList = taskResultService.listJobInstanceStartingFromId(query, condition);
+        List<TaskInstanceDTO> jobInstanceList = taskResultService.listJobInstance(query, condition);
         V4GetJobInstanceListResult result = buildFinalResult(jobInstanceList);
         return EsbV4Response.success(result);
     }

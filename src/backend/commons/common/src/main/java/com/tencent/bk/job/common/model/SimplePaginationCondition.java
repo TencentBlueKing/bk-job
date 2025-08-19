@@ -29,17 +29,17 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * 深度分页专用的条件查询
+ * 简单分页专用的条件查询，为避免DB性能问题，分页查询时不返回数据总数
  */
 @Setter
 @Getter
 @NoArgsConstructor
-public class DeepPaginationCondition {
+public class SimplePaginationCondition {
 
     /**
-     * 上一次查询返回的最大的ID，这次查询从该ID开始，避免使用offset
+     * 偏移量
      */
-    private Long startId;
+    private Integer offset = 0;
 
     /**
      * 查询条数，默认为10
