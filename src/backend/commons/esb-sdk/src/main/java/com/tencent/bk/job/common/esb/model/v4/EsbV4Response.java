@@ -26,12 +26,14 @@ package com.tencent.bk.job.common.esb.model.v4;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.iam.EsbApplyPermissionDTO;
 import com.tencent.bk.job.common.model.error.ErrorDetailDTO;
+import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections.CollectionUtils;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
@@ -84,7 +86,6 @@ public class EsbV4Response<T> {
         EsbV4Response<T> resp = new EsbV4Response<>();
         resp.setError(error);
         return resp;
-
     }
 
     public static <T> EsbV4Response<T> badRequestResponse() {
@@ -107,15 +108,20 @@ public class EsbV4Response<T> {
         return resp;
     }
 
+    /**
+     * 多个字段报错
+     */
     public static <T> EsbV4Response<T> paramValidateFail(V4ErrorCodeEnum v4ErrorCodeEnum, ErrorDetailDTO errorDetail) {
-        String errMsg = null;
+        String errMsg = "";
         if (errorDetail != null
             && errorDetail.getBadRequestDetail() != null
-            && StringUtils.isNotBlank(errorDetail.getBadRequestDetail().findFirstFieldErrorDesc())
+            && CollectionUtils.isNotEmpty(errorDetail.getBadRequestDetail().getFieldViolations())
         ) {
-            errMsg = errorDetail.getBadRequestDetail().findFirstFieldErrorDesc();
+            errMsg = I18nUtil.getI18nMessage(
+                String.valueOf(ErrorCode.FIELD_BIND_FAILED),
+                new String[]{errorDetail.getBadRequestDetail().getViolationFieldsStr()});
         }
-        EsbV4RespError error = EsbV4RespError.buildCommonError(v4ErrorCodeEnum, errMsg);
+        EsbV4RespError error = EsbV4RespError.buildFieldViolationError(v4ErrorCodeEnum, errMsg, errorDetail);
         EsbV4Response<T> resp = new EsbV4Response<>();
         resp.setError(error);
         return resp;

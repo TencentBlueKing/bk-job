@@ -27,13 +27,18 @@ package com.tencent.bk.job.common.esb.model.v4;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.iam.EsbApplyPermissionDTO;
+import com.tencent.bk.job.common.model.error.ErrorDetailDTO;
+import com.tencent.bk.job.common.model.error.FieldViolationDTO;
 import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.collections.CollectionUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Getter
@@ -87,17 +92,38 @@ public class EsbV4RespError {
      * @param errorCode Job内部错误码, 为数字
      * @see ErrorCode
      */
-    public static EsbV4RespError buildCommonError(V4ErrorCodeEnum v4ErrorCodeEnum, Integer errorCode, Object[] errorParams) {
+    public static EsbV4RespError buildCommonError(V4ErrorCodeEnum v4ErrorCodeEnum,
+                                                  Integer errorCode,
+                                                  Object[] errorParams) {
         EsbV4RespError error = new EsbV4RespError();
         error.setCode(v4ErrorCodeEnum.getCode());
-        error.setMessage(I18nUtil.getI18nMessage(String.valueOf(errorCode), errorParams));
+        String message = I18nUtil.getI18nMessage(String.valueOf(errorCode), errorParams);
+        error.setMessage(message);
+        V4RespSubError subError = V4RespSubError.builder().code(String.valueOf(errorCode)).message(message).build();
+        error.setDetails(Collections.singletonList(subError));
         return error;
     }
 
-    public static EsbV4RespError buildCommonError(V4ErrorCodeEnum v4ErrorCodeEnum, String errorMsg) {
+    public static EsbV4RespError buildFieldViolationError(V4ErrorCodeEnum v4ErrorCodeEnum,
+                                                          String errorMsg,
+                                                          ErrorDetailDTO errorDetail) {
         EsbV4RespError error = new EsbV4RespError();
         error.setCode(v4ErrorCodeEnum.getCode());
         error.setMessage(errorMsg);
+        // 填充子错误
+        if (errorDetail != null
+            && errorDetail.getBadRequestDetail() != null
+            && CollectionUtils.isNotEmpty(errorDetail.getBadRequestDetail().getFieldViolations())) {
+            List<V4RespSubError> details = new ArrayList<>();
+            for (FieldViolationDTO fieldViolation : errorDetail.getBadRequestDetail().getFieldViolations()) {
+                V4RespSubError subError = V4RespSubError.builder()
+                    .code(String.valueOf(ErrorCode.FIELD_BIND_FAILED))
+                    .message(fieldViolation.getDescription())
+                    .build();
+                details.add(subError);
+            }
+            error.setDetails(details);
+        }
         return error;
     }
 
@@ -109,11 +135,15 @@ public class EsbV4RespError {
     }
 
     public static EsbV4RespError buildBadRequestError() {
-        return buildBadRequestError(null);
+        return buildBadRequestError(I18nUtil.getI18nMessage(String.valueOf(ErrorCode.BAD_REQUEST)));
     }
 
     public static EsbV4RespError buildBadRequestError(Integer errorCode, Object[] errorParams) {
-        return buildBadRequestError(I18nUtil.getI18nMessage(String.valueOf(errorCode), errorParams));
+        String message = I18nUtil.getI18nMessage(String.valueOf(errorCode), errorParams);
+        EsbV4RespError error = buildBadRequestError(message);
+        V4RespSubError subError = V4RespSubError.builder().code(String.valueOf(errorCode)).message(message).build();
+        error.setDetails(Collections.singletonList(subError));
+        return error;
     }
 
     /**

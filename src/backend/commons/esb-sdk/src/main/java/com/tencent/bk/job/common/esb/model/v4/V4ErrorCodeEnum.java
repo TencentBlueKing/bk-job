@@ -54,10 +54,16 @@ public enum V4ErrorCodeEnum {
     // 资源不存在
     NOT_FOUND(404, "NOT_FOUND"),
 
+    // 服务器无法满足客户端的期望格式
+    MEDIA_TYPE_NOT_ACCEPTABLE(406, "MEDIA_TYPE_NOT_ACCEPTABLE"),
+
     // 客户端尝试创建的资源已存在
     ALREADY_EXISTS(409, "ALREADY_EXISTS"),
     // 并发冲突，例如读取/修改/写入冲突
     ABORTED(409, "ABORTED"),
+
+    //
+    UNSUPPORTED_MEDIA_TYPE(415, "Unsupported Media Type"),
 
     // 超过频率限制
     RATELIMIT_EXCEED(429, "RATELIMIT_EXCEED"),

@@ -24,10 +24,23 @@
 
 package com.tencent.bk.job.common.esb.model.v4;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Builder
 public class V4RespSubError {
 
     /**
-     * 错误子分类, 语义化的, 整个蓝鲸会定义一份公共的推荐子分类, 各个系统可以自行扩展更多的
+     * 错误子分类, 整个蓝鲸会定义一份公共的推荐子分类, 各个系统可以自行扩展更多的
+     * 作业平台侧会在code这个字段填充作业平台内部定义的错误码，供排查问题
+     * @see com.tencent.bk.job.common.constant.ErrorCode
      */
     private String code;
 

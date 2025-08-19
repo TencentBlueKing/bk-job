@@ -192,6 +192,16 @@ public class ErrorCode {
     public static final int MISSING_PATH_VARIABLE = 1241019;
     // 请求参数[{0}]类型错误
     public static final int PARAMETER_TYPE_ERROR = 1241020;
+    // ACCEPT头中指定了服务器不提供的Content-Type
+    public static final int NOT_ACCEPTABLE_MEDIA_TYPE = 1241021;
+    // HTTP请求体格式不正确
+    public static final int HTTP_REQUEST_BODY_FORMAT_ERROR = 1241022;
+    // 缺少请求部分[{0}]
+    public static final int MISSING_SERVLET_REQUEST_PART = 1241023;
+    // {0}请求的URL[{1}]没有对应的Handler
+    public static final int REQUEST_DOES_NOT_HAS_HANDLER = 1241024;
+    // 字段[{0}]绑定失败
+    public static final int FIELD_BIND_FAILED = 1241025;
     // 业务通用 end
 
     // 配置服务 start

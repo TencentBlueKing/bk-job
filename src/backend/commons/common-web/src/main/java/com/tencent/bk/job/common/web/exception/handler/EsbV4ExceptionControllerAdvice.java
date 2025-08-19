@@ -308,24 +308,36 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * 不支持的MediaType，415
+     */
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex,
                                                                      HttpHeaders headers, HttpStatus status,
                                                                      WebRequest request) {
         log.warn("Handle HttpMediaTypeNotSupportedException", ex);
-        EsbV4Response<?> resp = EsbV4Response.badRequestResponse(ErrorCode.NOT_SUPPORTED_MEDIA_TYPE);
-        return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+        EsbV4Response<?> resp = EsbV4Response.buildFailedResponse(
+            V4ErrorCodeEnum.UNSUPPORTED_MEDIA_TYPE,
+            ErrorCode.NOT_SUPPORTED_MEDIA_TYPE
+        );
+        return new ResponseEntity<>(resp, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
     }
 
+    /**
+     * 客户端传的ACCEPT头中指定了服务器不提供的Content-Type，406
+     */
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleHttpMediaTypeNotAcceptable(HttpMediaTypeNotAcceptableException ex,
                                                                       HttpHeaders headers, HttpStatus status,
                                                                       WebRequest request) {
         log.warn("Handle HttpMediaTypeNotAcceptableException", ex);
-        EsbV4Response<?> resp = EsbV4Response.badRequestResponse();
-        return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+        EsbV4Response<?> resp = EsbV4Response.buildFailedResponse(
+            V4ErrorCodeEnum.MEDIA_TYPE_NOT_ACCEPTABLE,
+            ErrorCode.NOT_ACCEPTABLE_MEDIA_TYPE
+        );
+        return new ResponseEntity<>(resp, HttpStatus.NOT_ACCEPTABLE);
     }
 
     @Override
@@ -369,7 +381,10 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
                                                                   HttpHeaders headers, HttpStatus status,
                                                                   WebRequest request) {
         log.warn("Handle ConversionNotSupportedException", ex);
-        EsbV4Response<?> resp = EsbV4Response.badRequestResponse();
+        EsbV4Response<?> resp = EsbV4Response.badRequestResponse(
+            ErrorCode.PARAMETER_TYPE_ERROR,
+            new String[]{ex.getPropertyName()}
+        );
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
 
@@ -385,13 +400,16 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * 反序列化request body失败，格式错误，400
+     */
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
                                                                   HttpHeaders headers, HttpStatus status,
                                                                   WebRequest request) {
         log.warn("Handle HttpMessageNotReadableException", ex);
-        EsbV4Response<?> resp = EsbV4Response.badRequestResponse();
+        EsbV4Response<?> resp = EsbV4Response.badRequestResponse(ErrorCode.HTTP_REQUEST_BODY_FORMAT_ERROR);
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
 
@@ -405,13 +423,19 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * 缺少请求部分,400
+     */
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleMissingServletRequestPart(MissingServletRequestPartException ex,
                                                                      HttpHeaders headers, HttpStatus status,
                                                                      WebRequest request) {
         log.warn("Handle MissingServletRequestPartException", ex);
-        EsbV4Response<?> resp = EsbV4Response.badRequestResponse();
+        EsbV4Response<?> resp = EsbV4Response.badRequestResponse(
+            ErrorCode.MISSING_SERVLET_REQUEST_PART,
+            new String[]{ex.getRequestPartName()}
+        );
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
 
@@ -419,18 +443,36 @@ public class EsbV4ExceptionControllerAdvice extends ExceptionControllerAdviceBas
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleBindException(BindException ex, HttpHeaders headers, HttpStatus status,
                                                          WebRequest request) {
-        log.warn("Handle BindException", ex);
-        EsbV4Response<?> resp = EsbV4Response.badRequestResponse();
+        ErrorDetailDTO errorDetailDTO = buildErrorDetail(ex);
+        String message = MessageFormatter.format(
+            "Handle BindException, errorDetail: {}",
+            errorDetailDTO
+        ).getMessage();
+        log.warn(message, ex);
+
+        EsbV4Response<?> resp = EsbV4Response.paramValidateFail(V4ErrorCodeEnum.INVALID_ARGUMENT, errorDetailDTO);
         return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
     }
 
+    /**
+     * 请求方法+路径 没有找到对应的处理器，404
+     */
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, HttpHeaders headers,
                                                                    HttpStatus status, WebRequest request) {
-        log.warn("Handle NoHandlerFoundException", ex);
-        EsbV4Response<?> resp = EsbV4Response.badRequestResponse();
-        return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+        String message = MessageFormatter.format(
+            "Handle NoHandlerFoundException, uri: {}, method: {}",
+            ex.getRequestURL(),
+            ex.getHttpMethod()
+        ).getMessage();
+        log.warn(message, ex);
+        EsbV4Response<?> resp = EsbV4Response.buildFailedResponse(
+            V4ErrorCodeEnum.NOT_FOUND,
+            ErrorCode.REQUEST_DOES_NOT_HAS_HANDLER,
+            new String[]{ex.getHttpMethod(), ex.getRequestURL().toString()}
+        );
+        return new ResponseEntity<>(resp, HttpStatus.NOT_FOUND);
     }
 
     @Override
