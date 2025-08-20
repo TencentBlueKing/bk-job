@@ -40,7 +40,4 @@ public class V4GetJobInstanceListResult {
 
     @JsonProperty("job_instance_list")
     List<V4JobInstanceDTO> list;
-
-    @JsonProperty("new_job_instance_id_cursor")
-    Long newJobInstanceIdCursor;
 }

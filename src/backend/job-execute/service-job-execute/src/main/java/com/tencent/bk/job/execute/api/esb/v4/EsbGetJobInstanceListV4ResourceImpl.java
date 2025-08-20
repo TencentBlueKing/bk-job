@@ -51,6 +51,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
@@ -83,20 +84,6 @@ public class EsbGetJobInstanceListV4ResourceImpl implements EsbGetJobInstanceLis
                                                                         Long cronId,
                                                                         Integer offset,
                                                                         Integer length) {
-        GetJobInstanceListReqValidationTarget validationTarget = new GetJobInstanceListReqValidationTarget();
-        validationTarget.setCreateTimeStart(createTimeStart);
-        validationTarget.setCreateTimeEnd(createTimeEnd);
-        validationTarget.setJobInstanceId(jobInstanceId);
-        validationTarget.setTaskType(taskType);
-        validationTarget.setTaskStatus(taskStatus);
-        validationTarget.setStartupMode(startupMode);
-        ValidateResult validateResult = checkRequest(validationTarget);
-
-        if (!validateResult.isPass()) {
-            log.warn("Get job instance ip log request is illegal!");
-            throw new InvalidParamException(validateResult);
-        }
-
         Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
         TaskInstanceQuery query = new TaskInstanceQuery();
         query.setAppId(appId);
@@ -127,59 +114,9 @@ public class EsbGetJobInstanceListV4ResourceImpl implements EsbGetJobInstanceLis
         }
 
         List<TaskInstanceDTO> jobInstanceList = taskResultService.listJobInstance(query, condition);
-        V4GetJobInstanceListResult result = buildFinalResult(jobInstanceList);
+        V4GetJobInstanceListResult result = new V4GetJobInstanceListResult();
+        result.setList(jobInstanceList.stream().map(this::convertTaskInstanceToV4DTO).collect(Collectors.toList()));
         return EsbV4Response.success(result);
-    }
-
-    private ValidateResult checkRequest(GetJobInstanceListReqValidationTarget validationTarget) {
-        if (validationTarget.getJobInstanceId() != null) {
-            if (validationTarget.getJobInstanceId() < 1) {
-                log.warn("jobInstanceId is illegal, jobInstanceId={}", validationTarget.getJobInstanceId());
-                return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "job_instance_id");
-            } else {
-                // 若是查询条件中有 job_instance_id 则其他条件不需要再判断
-                return ValidateResult.pass();
-            }
-        }
-
-        if (validationTarget.getCreateTimeStart() == null || validationTarget.getCreateTimeStart() < 1) {
-            log.warn("createTimeStart is empty or illegal, createTimeStart={}", validationTarget.getCreateTimeStart());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "create_time_start");
-        }
-        if (validationTarget.getCursorJobInstanceId() != null && validationTarget.getCursorJobInstanceId() < 1) {
-            log.warn("cursorJobInstanceId is illegal, cursorJobInstanceId={}",
-                validationTarget.getCursorJobInstanceId());
-            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "cursor_job_instance_id");
-        }
-        if (validationTarget.getCreateTimeEnd() == null || validationTarget.getCreateTimeEnd() < 1) {
-            log.warn("createTimeEnd is empty or illegal, createTimeEnd={}", validationTarget.getCreateTimeEnd());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "create_time_end");
-        }
-        long period = validationTarget.getCreateTimeEnd() - validationTarget.getCreateTimeStart();
-        if (period <= 0) {
-            log.warn("CreateStartTime is greater or equal to createTimeEnd, getCreateTimeStart={}, createTimeEnd={}",
-                validationTarget.getCreateTimeStart(), validationTarget.getCreateTimeEnd());
-            return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME,
-                "create_time_start|create_time_end");
-        } else if (period > Consts.MAX_SEARCH_TASK_HISTORY_RANGE_MILLS) {
-            log.warn("Search time range greater than {} days!", Consts.MAX_SEARCH_TASK_HISTORY_RANGE_MILLS);
-            return ValidateResult.fail(
-                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME,
-                "create_time_start|create_time_end");
-        }
-        if (validationTarget.getLength() != null
-            && (validationTarget.getLength() < 1 || validationTarget.getLength() > 1000)) {
-            log.warn("length is illegal, length={}", validationTarget.getLength());
-            return ValidateResult.fail(
-                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
-                new String[]{"length", "must be between 1 and 1000"}
-            );
-        }
-        if (validationTarget.getTaskType() != null && TaskTypeEnum.valueOf(validationTarget.getTaskType()) == null) {
-            log.warn("Param type is illegal!");
-            return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME, "type");
-        }
-        return ValidateResult.pass();
     }
 
     private V4JobInstanceDTO convertTaskInstanceToV4DTO(TaskInstanceDTO taskInstanceDTO) {
@@ -201,39 +138,4 @@ public class EsbGetJobInstanceListV4ResourceImpl implements EsbGetJobInstanceLis
         return v4JobInstanceDTO;
     }
 
-    private V4GetJobInstanceListResult buildFinalResult(List<TaskInstanceDTO> taskInstanceList) {
-        ArrayList<V4JobInstanceDTO> jobInstanceResultList = new ArrayList<>();
-        Long cursor = null;
-        for (TaskInstanceDTO taskInstanceDTO : taskInstanceList) {
-            jobInstanceResultList.add(convertTaskInstanceToV4DTO(taskInstanceDTO));
-            // 由于是倒着差，所以下次查询的游标应该是本次结果集中最小的id
-            cursor = cursor == null ? taskInstanceDTO.getId() : Math.min(cursor, taskInstanceDTO.getId());
-        }
-        V4GetJobInstanceListResult result = new V4GetJobInstanceListResult();
-        result.setList(jobInstanceResultList);
-        result.setNewJobInstanceIdCursor(cursor);
-        return result;
-    }
-
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    class GetJobInstanceListReqValidationTarget {
-
-        private Long createTimeStart;
-
-        private Long createTimeEnd;
-
-        private Long jobInstanceId;
-
-        private Integer startupMode;
-
-        private Integer taskType;
-
-        private Integer taskStatus;
-
-        private Integer cursorJobInstanceId;
-
-        private Integer length;
-    }
 }

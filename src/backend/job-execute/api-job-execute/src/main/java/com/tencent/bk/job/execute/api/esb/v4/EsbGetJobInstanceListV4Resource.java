@@ -28,25 +28,42 @@ import com.tencent.bk.job.common.annotation.EsbV4API;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.execute.model.esb.v4.resp.V4GetJobInstanceListResult;
+import org.hibernate.validator.constraints.Range;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+
 @RequestMapping("/esb/api/v4")
 @EsbV4API
 @RestController
+@Validated
 public interface EsbGetJobInstanceListV4Resource {
 
     @GetMapping("/get_job_instance_list")
     EsbV4Response<V4GetJobInstanceListResult> getJobInstanceList(
-        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
-        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestParam(value = "bk_scope_type") String scopeType,
-        @RequestParam(value = "bk_scope_id") String scopeId,
-        @RequestParam(value = "create_time_start") Long createTimeStart,
-        @RequestParam(value = "create_time_end") Long createTimeEnd,
+        @RequestHeader(value = JobCommonHeaders.USERNAME)
+            String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE)
+            String appCode,
+        @RequestParam(value = "bk_scope_type")
+        @Pattern(regexp = "biz|biz_set", message = "{validation.constraints.InvalidJobInstanceScopeType.message}")
+            String scopeType,
+        @RequestParam(value = "bk_scope_id")
+        @NotBlank(message = "{validation.constraints.EmptyJobInstanceScopeId.message}")
+            String scopeId,
+        @RequestParam(value = "create_time_start")
+        @NotNull(message = "{validation.constraints.EmptyJobInstanceTimeStart.message}")
+            Long createTimeStart,
+        @RequestParam(value = "create_time_end")
+        @NotNull(message = "{validation.constraints.EmptyJobInstanceTimeEnd.message}")
+            Long createTimeEnd,
         @RequestParam(value = "job_instance_id", required = false) Long jobInstanceId,
         @RequestParam(value = "operator", required = false) String operator,
         @RequestParam(value = "name", required = false) String taskName,
@@ -55,7 +72,11 @@ public interface EsbGetJobInstanceListV4Resource {
         @RequestParam(value = "status", required = false) Integer taskStatus,
         @RequestParam(value = "ip", required = false) String ip,
         @RequestParam(value = "job_cron_id", required = false) Long cronId,
-        @RequestParam(value = "offset", required = false) Integer offset,
-        @RequestParam(value = "length", required = false, defaultValue = "10") Integer length
+        @RequestParam(value = "offset", required = false, defaultValue = "0")
+        @Range(min = 0L, max = 10000L, message = "{validation.constraints.InvalidJobInstanceOffset.message}")
+            Integer offset,
+        @RequestParam(value = "length", required = false, defaultValue = "10")
+        @Range(min = 1L, max = 200L, message = "{validation.constraints.InvalidJobInstanceLength.message}")
+            Integer length
     );
 }
