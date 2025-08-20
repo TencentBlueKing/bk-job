@@ -1,0 +1,21 @@
+#### response
+
+##### normal response body
+
+| field | type   | always_exists | description                                                                                        |
+|-------|--------|---------------|----------------------------------------------------------------------------------------------------|
+| data  | object | Yes           | response data. This field only exists in normal responses and does not exist in abnormal responses |
+
+##### error response body
+
+| field | type   | always_exists | description                                                                                                                                                |
+|-------|--------|---------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| error | object | Yes           | error detail. This field only exists when it is =2xx) (due to insufficient permission, incorrect parameters, etc.), and does not exist in normal responses |
+
+#### error
+
+| field   | type   | always_exists | description                           |
+|---------|--------|---------------|---------------------------------------|
+| code    | string | Yes           | error code                            |
+| message | string | Yes           | error description                     |
+| data    | object | No            | error detail, e.g. permission details |
