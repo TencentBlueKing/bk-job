@@ -292,7 +292,7 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
         Set<Long> taskInstanceIds = idResult.stream()
             .map(record -> record.get(TASK_INSTANCE.ID))
             .collect(Collectors.toSet());
-        Result<? extends Record> result= dsl().select(ALL_FIELDS)
+        Result<? extends Record> result = dsl().select(ALL_FIELDS)
             .from(TaskInstanceDAOImpl.TASK_INSTANCE)
             .where(TASK_INSTANCE.ID.in(taskInstanceIds))
             .orderBy(orderFields)
@@ -342,7 +342,9 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
             .limit(start, length)
             .fetch();
         // 根据ID查询完整任务实例信息
-        Set<Long> taskInstanceIds = result.stream().map(record -> record.get(TASK_INSTANCE.ID)).collect(Collectors.toSet());
+        Set<Long> taskInstanceIds = result.stream()
+            .map(record -> record.get(TASK_INSTANCE.ID))
+            .collect(Collectors.toSet());
         Result<? extends Record> allFieldResult = dsl().select(ALL_FIELDS)
             .from(TASK_INSTANCE)
             .where(TASK_INSTANCE.ID.in(taskInstanceIds))
