@@ -26,7 +26,9 @@ package com.tencent.bk.job.execute.api.esb.v4;
 
 import com.tencent.bk.job.common.annotation.EsbV4API;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
+import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.execute.model.esb.v4.resp.V4GetJobInstanceListResult;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.validation.annotation.Validated;
@@ -38,7 +40,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 
 @RequestMapping("/esb/api/v4")
 @EsbV4API
@@ -53,7 +54,11 @@ public interface EsbGetJobInstanceListV4Resource {
         @RequestHeader(value = JobCommonHeaders.APP_CODE)
             String appCode,
         @RequestParam(value = "bk_scope_type")
-        @Pattern(regexp = "biz|biz_set", message = "{validation.constraints.InvalidJobInstanceScopeType.message}")
+        @NotNull(message = "{validation.constraints.EmptyJobInstanceScopeType.message}")
+        @CheckEnum(
+            enumClass = ResourceScopeTypeEnum.class,
+            message = "{validation.constraints.InvalidJobInstanceScopeType.message}"
+        )
             String scopeType,
         @RequestParam(value = "bk_scope_id")
         @NotBlank(message = "{validation.constraints.EmptyJobInstanceScopeId.message}")
