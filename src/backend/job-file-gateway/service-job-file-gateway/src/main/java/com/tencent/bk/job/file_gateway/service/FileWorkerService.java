@@ -41,7 +41,7 @@ public interface FileWorkerService {
 
     List<FileWorkerDTO> listFileWorker(String username, Long appId, WorkerSelectScopeEnum workerSelectScope);
 
-    FileWorkerDTO getFileWorker(String accessHost, Integer accessPort);
+    FileWorkerDTO getFileWorker(String clusterName, String accessHost, Integer accessPort);
 
     WorkerIdsCondition getIncludedAndExcludedWorkerIds();
 }

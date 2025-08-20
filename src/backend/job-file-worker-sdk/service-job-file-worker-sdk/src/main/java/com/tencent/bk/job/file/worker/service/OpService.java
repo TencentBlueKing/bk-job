@@ -84,14 +84,7 @@ public class OpService {
         List<String> runningTaskIdList = fileTaskService.getAllTaskIdList();
         // 调网关接口下线自己
         String url = gatewayInfoService.getWorkerOffLineUrl();
-        OffLineAndReDispatchReq offLineReq = new OffLineAndReDispatchReq();
-        offLineReq.setAccessHost(environmentService.getAccessHost());
-        offLineReq.setAccessPort(workerConfig.getAccessPort());
-        offLineReq.setAppId(workerConfig.getAppId());
-        offLineReq.setToken(workerConfig.getToken());
-        offLineReq.setTaskIdList(runningTaskIdList);
-        offLineReq.setInitDelayMills(3000L);
-        offLineReq.setIntervalMills(3000L);
+        OffLineAndReDispatchReq offLineReq = buildOffLineReq(runningTaskIdList);
         log.info("offLine: url={},body={}", url, JsonUtils.toJsonWithoutSkippedFields(offLineReq));
         HttpReq req = HttpReqGenUtil.genSimpleJsonReq(
             url,
@@ -124,6 +117,19 @@ public class OpService {
             log.error(msg.getMessage(), e);
         }
         return runningTaskIdList;
+    }
+
+    private OffLineAndReDispatchReq buildOffLineReq(List<String> runningTaskIdList) {
+        OffLineAndReDispatchReq offLineReq = new OffLineAndReDispatchReq();
+        offLineReq.setClusterName(workerConfig.getClusterName());
+        offLineReq.setAccessHost(environmentService.getAccessHost());
+        offLineReq.setAccessPort(workerConfig.getAccessPort());
+        offLineReq.setAppId(workerConfig.getAppId());
+        offLineReq.setToken(workerConfig.getToken());
+        offLineReq.setTaskIdList(runningTaskIdList);
+        offLineReq.setInitDelayMills(3000L);
+        offLineReq.setIntervalMills(3000L);
+        return offLineReq;
     }
 
     public List<String> taskList() {

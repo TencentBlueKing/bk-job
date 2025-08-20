@@ -84,6 +84,7 @@ public class FileWorkerServiceImpl implements FileWorkerService {
             }
         }
         if (!fileWorkerDAO.existsFileWorker(
+            fileWorkerDTO.getClusterName(),
             fileWorkerDTO.getAccessHost(),
             fileWorkerDTO.getAccessPort())
         ) {
@@ -167,7 +168,9 @@ public class FileWorkerServiceImpl implements FileWorkerService {
 
     private Long updateFileWorker(FileWorkerDTO fileWorkerDTO) {
         FileWorkerDTO oldFileWorkerDTO = fileWorkerDAO.getFileWorker(
-            fileWorkerDTO.getAccessHost(), fileWorkerDTO.getAccessPort()
+            fileWorkerDTO.getClusterName(),
+            fileWorkerDTO.getAccessHost(),
+            fileWorkerDTO.getAccessPort()
         );
         Long workerId = oldFileWorkerDTO.getId();
         fileWorkerDTO.setId(workerId);
@@ -228,8 +231,8 @@ public class FileWorkerServiceImpl implements FileWorkerService {
     }
 
     @Override
-    public FileWorkerDTO getFileWorker(String accessHost, Integer accessPort) {
-        return fileWorkerDAO.getFileWorker(accessHost, accessPort);
+    public FileWorkerDTO getFileWorker(String clusterName, String accessHost, Integer accessPort) {
+        return fileWorkerDAO.getFileWorker(clusterName, accessHost, accessPort);
     }
 
     @Override

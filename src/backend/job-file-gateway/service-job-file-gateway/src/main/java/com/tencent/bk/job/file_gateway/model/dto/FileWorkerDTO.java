@@ -40,6 +40,7 @@ import com.tencent.bk.job.file_gateway.model.resp.web.FileWorkerVO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -75,6 +76,10 @@ public class FileWorkerDTO {
      */
     @SkipLogFields
     private String token;
+    /**
+     * 所在集群名称
+     */
+    private String clusterName;
     /**
      * 访问Host
      */
@@ -170,19 +175,13 @@ public class FileWorkerDTO {
         fileWorkerDTO.setTagList(heartBeatReq.getTagList());
         fileWorkerDTO.setAppId(heartBeatReq.getAppId());
         fileWorkerDTO.setToken(heartBeatReq.getToken());
+        fileWorkerDTO.setClusterName(heartBeatReq.getClusterName());
         fileWorkerDTO.setAccessHost(heartBeatReq.getAccessHost());
         fileWorkerDTO.setAccessPort(heartBeatReq.getAccessPort());
         fileWorkerDTO.setCloudAreaId(heartBeatReq.getCloudAreaId());
         fileWorkerDTO.setInnerIpProtocol(heartBeatReq.getInnerIpProtocol());
         fileWorkerDTO.setInnerIp(heartBeatReq.getInnerIp());
-        FileWorkerConfig fileWorkerConfig = heartBeatReq.getFileWorkerConfig();
-        List<FileSourceMetaData> fileSourceMetaDataList = fileWorkerConfig.getFileSourceMetaDataList();
-        // 能力标签合并、去重
-        Set<String> tagSet = new HashSet<>(heartBeatReq.getAbilityTagList());
-        for (FileSourceMetaData fileSourceMetaData : fileSourceMetaDataList) {
-            tagSet.add(FileGatewayConsts.ABILITY_TAG_KEY_FILE_SOURCE_TYPE_CODE
-                + "=" + fileSourceMetaData.getFileSourceTypeCode());
-        }
+        Set<String> tagSet = extractTagSet(heartBeatReq);
         fileWorkerDTO.setAbilityTagList(new ArrayList<>(tagSet));
         fileWorkerDTO.setCpuOverload(heartBeatReq.getCpuOverload());
         fileWorkerDTO.setMemRate(heartBeatReq.getMemRate());
@@ -194,6 +193,19 @@ public class FileWorkerDTO {
         fileWorkerDTO.setLastHeartBeat(System.currentTimeMillis());
         fileWorkerDTO.setConfigStr(JsonUtils.toJson(heartBeatReq.getFileWorkerConfig()));
         return fileWorkerDTO;
+    }
+
+    @NotNull
+    private static Set<String> extractTagSet(HeartBeatReq heartBeatReq) {
+        FileWorkerConfig fileWorkerConfig = heartBeatReq.getFileWorkerConfig();
+        List<FileSourceMetaData> fileSourceMetaDataList = fileWorkerConfig.getFileSourceMetaDataList();
+        // 能力标签合并、去重
+        Set<String> tagSet = new HashSet<>(heartBeatReq.getAbilityTagList());
+        for (FileSourceMetaData fileSourceMetaData : fileSourceMetaDataList) {
+            tagSet.add(FileGatewayConsts.ABILITY_TAG_KEY_FILE_SOURCE_TYPE_CODE
+                + "=" + fileSourceMetaData.getFileSourceTypeCode());
+        }
+        return tagSet;
     }
 
     public FileWorkerVO toVO() {

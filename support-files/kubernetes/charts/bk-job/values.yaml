@@ -1722,6 +1722,8 @@ fileWorkerConfig:
   tags: "k8s"
   # 安全凭据
   token: "testToken"
+  # 所在集群名称，用于在多集群部署模式下消除不同集群的file-worker身份冲突
+  clusterName: "default"
   # 所属业务Id
   appId: -1
   # 启用的文件源类型，逗号分隔，当前支持的类型：BLUEKING_ARTIFACTORY（蓝鲸制品库）

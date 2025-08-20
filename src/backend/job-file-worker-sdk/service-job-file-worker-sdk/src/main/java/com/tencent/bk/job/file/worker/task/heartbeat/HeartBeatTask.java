@@ -74,6 +74,7 @@ public class HeartBeatTask {
         heartBeatReq.setTagList(workerConfig.getTagList());
         heartBeatReq.setAppId(workerConfig.getAppId());
         heartBeatReq.setToken(workerConfig.getToken());
+        heartBeatReq.setClusterName(workerConfig.getClusterName());
 
         // 二进制部署环境与K8s环境差异处理
         heartBeatReq.setAccessHost(environmentService.getAccessHost());
