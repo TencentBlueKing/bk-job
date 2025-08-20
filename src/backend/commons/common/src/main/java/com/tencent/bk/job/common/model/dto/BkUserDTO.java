@@ -76,14 +76,19 @@ public class BkUserDTO {
     private String wxUserId;
 
     /**
-     * 用户所属租户 ID
-     */
-    private String tenantId;
-
-    /**
      * 用户语言，枚举值：zh-cn / en
      */
     private String language;
+
+    /**
+     * 当前所在环境是否开启了多租户
+     */
+    private Boolean tenantEnabled;
+
+    /**
+     * 用户所属租户 ID
+     */
+    private String tenantId;
 
     /**
      * 是否为系统租户
@@ -97,7 +102,8 @@ public class BkUserDTO {
         return displayName + ":" + username + "@" + tenantId;
     }
 
-    public void setTenantId(String tenantId){
+    public void setTenantInfo(boolean tenantEnabled, String tenantId) {
+        this.tenantEnabled = tenantEnabled;
         this.tenantId = tenantId;
         this.systemTenant = TenantIdConstants.SYSTEM_TENANT_ID.equals(tenantId);
     }

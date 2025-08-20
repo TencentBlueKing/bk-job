@@ -136,7 +136,7 @@ public class StandardLoginEsbClient extends BkApiV1Client implements ILoginClien
         bkUserDTO.setTimeZone(esbUserDto.getTimeZone());
         // 兼容单租户环境
         if(!tenantEnvService.isTenantEnabled()){
-            bkUserDTO.setTenantId(TenantIdConstants.DEFAULT_TENANT_ID);
+            bkUserDTO.setTenantInfo(false, TenantIdConstants.DEFAULT_TENANT_ID);
         }
         return bkUserDTO;
     }

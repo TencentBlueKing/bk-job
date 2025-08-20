@@ -59,11 +59,11 @@ public class StandardLoginApiGwClient implements ILoginClient {
         bkUserDTO.setUsername(bkUser.getUsername());
         bkUserDTO.setDisplayName(bkUser.getDisplayName());
         bkUserDTO.setTimeZone(bkUser.getTimeZone());
-        bkUserDTO.setTenantId(bkUser.getTenantId());
+        bkUserDTO.setTenantInfo(tenantEnvService.isTenantEnabled(), bkUser.getTenantId());
         bkUserDTO.setLanguage(bkUser.getLanguage());
         // 兼容单租户环境
         if (StringUtils.isBlank(bkUserDTO.getTenantId()) && !tenantEnvService.isTenantEnabled()) {
-            bkUserDTO.setTenantId(TenantIdConstants.DEFAULT_TENANT_ID);
+            bkUserDTO.setTenantInfo(false, TenantIdConstants.DEFAULT_TENANT_ID);
         }
         return bkUserDTO;
     }

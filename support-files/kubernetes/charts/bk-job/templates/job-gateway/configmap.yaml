@@ -409,6 +409,7 @@ data:
         login-exemption:
           enabled: {{ .Values.gatewayConfig.loginExemption.enabled | default false }}
           default-user: {{ .Values.gatewayConfig.loginExemption.defaultUser | default "admin" }}
+          default-user-tenant-id: {{ .Values.gatewayConfig.loginExemption.defaultUserTenantId | default "default" }}
         user-map:
           {{- toYaml .Values.gatewayConfig.userMap | nindent 10 }}
         csrf-check:
