@@ -248,7 +248,7 @@
                 {{ $t('检测记录') }}
               </jb-item>
             </jb-item-group>
-            <jb-item-group v-if="isSystemTenant">
+            <jb-item-group v-if="isShowServiceStateMenu">
               <div slot="title">
                 {{ $t('视图') }}
               </div>
@@ -316,11 +316,11 @@
   const isFrameSideFixed = ref(localStorage.getItem(TOGGLE_CACHE) !== null);
   const isSideExpand = ref(false);
   const isAdmin = ref(false);
-  const isSystemTenant = ref(false);
   const routerTitle = ref('');
   const isEnableFeatureFileManage = ref(false);
   const isEnableBKNotice = ref(false);
   const isShowBKNotice = ref(false);
+  const isShowServiceStateMenu = ref(false);
 
   const route = useRoute();
   const router = useRouter();
@@ -384,7 +384,7 @@
    */
   UserService.fetchUserInfo()
     .then((data) => {
-      isSystemTenant.value = data.systemTenant;
+      isShowServiceStateMenu.value = !data.tenantEnabled || (data.tenantEnabled && data.systemTenant);
     });
   const handleSideExpandChange = (sideExpand) => {
     isSideExpand.value = sideExpand;
