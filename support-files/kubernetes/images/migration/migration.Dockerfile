@@ -1,13 +1,12 @@
-FROM bkjob/tool-set:3.12.0
+FROM bkjob/tool-set:3.12.1
 
 LABEL maintainer="Tencent BlueKing Job"
-LABEL dockerfile.version="3.12.0"
+LABEL dockerfile.version="3.12.1"
 
 ENV BK_JOB_HOME=/data/job/exec
 
 COPY ./ /data/job/exec/
 
-RUN yum -y install mysql
 RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo 'Asia/Shanghai' > /etc/timezone && \
     chmod +x /data/job/exec/runUpgrader.sh && \
