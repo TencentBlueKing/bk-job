@@ -3,9 +3,9 @@ Return the job-migration mysqlSchema sslMode
 */}}
 {{- define "job.migration.mysqlSchema.sslModeOption" -}}
 {{- if .Values.job.migration.mysqlSchema.tls.verifyHostname -}}
-{{ printf "--ssl-verify-server-cert" }}
+{{ printf "--ssl-mode=VERIFY_IDENTITY" }}
 {{- else -}}
-{{ printf "" }}
+{{ printf "--ssl-mode=VERIFY_CA" }}
 {{- end -}}
 {{- end -}}
 
