@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.validator.constraints.Range;
 
 /**
  * get_job_instance_list, 查询作业执行历史
@@ -91,10 +92,11 @@ public class EsbGetJobInstanceListV3Request extends EsbAppScopeReq {
     /**
      * 分页返回记录起始位置
      */
-    private Integer start;
+    private Integer start = 0;
 
     /**
      * 返回记录数量
      */
-    private Integer length;
+    @Range(min = 1L, max = 1000L, message = "{validation.constraints.InvalidJobInstanceLength.message}")
+    private Integer length = 20;
 }

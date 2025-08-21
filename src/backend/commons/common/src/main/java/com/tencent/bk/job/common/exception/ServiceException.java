@@ -33,6 +33,7 @@ import java.util.Locale;
 
 /**
  * 服务异常
+ * 若是非服务端的自定义异常继承于ServiceException，确保能被更具体的异常处理器处理，否则将会被统一处理为服务器异常
  */
 @Getter
 @ToString

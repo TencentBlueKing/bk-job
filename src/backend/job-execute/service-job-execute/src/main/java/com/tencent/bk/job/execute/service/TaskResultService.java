@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.SimplePaginationCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
@@ -53,6 +54,14 @@ public interface TaskResultService {
     PageData<TaskInstanceDTO> listPageTaskInstance(TaskInstanceQuery taskQuery,
                                                    BaseSearchCondition baseSearchCondition);
 
+    /**
+     * 根据偏移量和长度获取作业实例列表
+     * @param taskQuery 任务实例查询条件
+     * @param condition 分页条件
+     * @return 作业实例列表
+     */
+    List<TaskInstanceDTO> listJobInstance(TaskInstanceQuery taskQuery,
+                                          SimplePaginationCondition condition);
 
     /**
      * 获取作业执行结果
