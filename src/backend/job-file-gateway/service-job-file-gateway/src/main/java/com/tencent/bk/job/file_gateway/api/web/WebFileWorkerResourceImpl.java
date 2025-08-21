@@ -32,6 +32,7 @@ import com.tencent.bk.job.file_gateway.model.resp.web.FileWorkerVO;
 import com.tencent.bk.job.file_gateway.service.FileWorkerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
@@ -58,7 +59,7 @@ public class WebFileWorkerResourceImpl implements WebFileWorkerResource {
                                                        WorkerSelectScopeEnum workerSelectScope) {
         Long appId = appResourceScope.getAppId();
         List<FileWorkerDTO> fileWorkerDTOList = fileWorkerService.listFileWorker(username, appId, workerSelectScope);
-        if (fileWorkerDTOList == null || fileWorkerDTOList.size() == 0) {
+        if (CollectionUtils.isEmpty(fileWorkerDTOList)) {
             return Response.buildSuccessResp(Collections.emptyList());
         }
         List<FileWorkerVO> fileWorkerVOList =

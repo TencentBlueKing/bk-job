@@ -18,7 +18,6 @@ data:
         enabled-file-source-types: {{ .Values.fileWorkerConfig.enabledFileSourceTypes }}
         tags: {{ .Values.fileWorkerConfig.tags }}
         token: {{ .Values.fileWorkerConfig.token }}
-        cluster-name: {{ .Values.fileWorkerConfig.clusterName }}
         app-id: {{ .Values.fileWorkerConfig.appId }}
         ability-tags: {{ .Values.fileWorkerConfig.abilityTags }}
         access:

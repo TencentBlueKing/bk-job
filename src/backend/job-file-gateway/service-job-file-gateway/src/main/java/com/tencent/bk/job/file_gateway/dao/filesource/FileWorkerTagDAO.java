@@ -38,4 +38,13 @@ public interface FileWorkerTagDAO {
     List<WorkerTagDTO> listTagByWorkerId(Long workerId);
 
     List<Long> listWorkerIdByTag(Collection<String> tags);
+
+    /**
+     * 根据集群名称和标签列表获取workerId列表
+     *
+     * @param clusterName 集群名称
+     * @param tags        标签列表
+     * @return workerId列表
+     */
+    List<Long> listWorkerIdByClusterNameAndTag(String clusterName, Collection<String> tags);
 }

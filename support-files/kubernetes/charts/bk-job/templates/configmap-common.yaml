@@ -189,3 +189,6 @@ data:
     # 服务启动时 依赖组件的健康检查
     healthCheck:
       {{- toYaml .Values.healthCheck | nindent 6 }}
+    # 部署集群配置
+    cluster:
+      {{- toYaml .Values.cluster | nindent 6 }}

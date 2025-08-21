@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file.worker.service;
 
+import com.tencent.bk.job.common.config.ClusterProperties;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.http.HttpHelper;
@@ -49,6 +50,7 @@ import java.util.List;
 public class OpService {
 
     private final HttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
+    private final ClusterProperties clusterProperties;
     private final WorkerConfig workerConfig;
     private final FileTaskService fileTaskService;
     private final GatewayInfoService gatewayInfoService;
@@ -58,13 +60,15 @@ public class OpService {
     private final JwtTokenService jwtTokenService;
 
     @Autowired
-    public OpService(WorkerConfig workerConfig,
+    public OpService(ClusterProperties clusterProperties,
+                     WorkerConfig workerConfig,
                      FileTaskService fileTaskService,
                      GatewayInfoService gatewayInfoService,
                      EnvironmentService environmentService,
                      TaskReporter taskReporter,
                      WorkerEventService workerEventService,
                      JwtTokenService jwtTokenService) {
+        this.clusterProperties = clusterProperties;
         this.workerConfig = workerConfig;
         this.fileTaskService = fileTaskService;
         this.gatewayInfoService = gatewayInfoService;
@@ -121,7 +125,7 @@ public class OpService {
 
     private OffLineAndReDispatchReq buildOffLineReq(List<String> runningTaskIdList) {
         OffLineAndReDispatchReq offLineReq = new OffLineAndReDispatchReq();
-        offLineReq.setClusterName(workerConfig.getClusterName());
+        offLineReq.setClusterName(clusterProperties.getName());
         offLineReq.setAccessHost(environmentService.getAccessHost());
         offLineReq.setAccessPort(workerConfig.getAccessPort());
         offLineReq.setAppId(workerConfig.getAppId());

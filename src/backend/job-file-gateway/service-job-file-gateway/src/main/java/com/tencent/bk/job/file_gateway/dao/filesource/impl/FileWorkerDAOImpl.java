@@ -440,6 +440,16 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         }
     }
 
+    @Override
+    public List<Long> listWorkerIdByClusterName(String clusterName) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.CLUSTER_NAME.eq(clusterName));
+        return defaultContext.select(defaultTable.ID)
+            .from(defaultTable)
+            .where(conditions)
+            .fetchInto(Long.class);
+    }
+
     private boolean existsFileWorkerByConditions(DSLContext dslContext, Collection<Condition> conditions) {
         if (conditions == null) {
             conditions = new ArrayList<>();

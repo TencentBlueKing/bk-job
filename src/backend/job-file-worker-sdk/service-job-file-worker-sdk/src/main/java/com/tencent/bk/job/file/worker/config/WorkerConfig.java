@@ -48,9 +48,6 @@ public class WorkerConfig {
     @Value("${job.file-worker.token:}")
     private String token;
 
-    @Value("${job.file-worker.cluster-name:default}")
-    private String clusterName;
-
     @Value("${job.file-worker.app-id:-1}")
     private Long appId;
 
