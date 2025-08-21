@@ -24,16 +24,27 @@
 
 package com.tencent.bk.job.common.tenant;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+@Slf4j
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(TenantProperties.class)
 public class TenantAutoConfiguration {
 
     @Bean
+    @ConditionalOnTenantEnabled
     public TenantEnvService tenantEnvService(TenantProperties tenantProperties) {
+        log.info("init tenantEnvService");
         return new TenantEnvServiceImpl(tenantProperties);
+    }
+
+    @Bean
+    @ConditionalOnTenantDisabled
+    public TenantEnvService nonTenantEnvService() {
+        log.info("init nonTenantEnvService");
+        return new NonTenantEnvService();
     }
 }

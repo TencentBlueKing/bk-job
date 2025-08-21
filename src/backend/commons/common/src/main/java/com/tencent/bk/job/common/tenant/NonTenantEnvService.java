@@ -22,18 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.esb.constants;
+package com.tencent.bk.job.common.tenant;
 
-/**
- * 蓝鲸 API 网关类型
- */
-public enum ApiGwType {
-    /**
-     * ESB
-     */
-    ESB,
-    /**
-     * 蓝鲸网关，用于替换 ESB
-     */
-    BK_APIGW;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
+
+public class NonTenantEnvService implements TenantEnvService {
+
+    @Override
+    public boolean isTenantEnabled() {
+        return false;
+    }
+
+    @Override
+    public String getJobMachineTenantId() {
+        // 不开启多租户时，Job的机器属于默认租户
+        return TenantIdConstants.DEFAULT_TENANT_ID;
+    }
+
+    @Override
+    public String getTenantIdForGSE() {
+        // 不开启多租户时，使用默认租户
+        return TenantIdConstants.DEFAULT_TENANT_ID;
+    }
+
+    @Override
+    public String getTenantIdForArtifactoryBkJobProject() {
+        // 不开启多租户时，要求不传任何租户信息
+        return null;
+    }
 }

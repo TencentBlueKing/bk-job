@@ -683,6 +683,8 @@ swagger:
 
 ## 登录配置
 login:
+  # 对接的API类型，取值：apigw、esb
+  apiType: apigw
   ## 自定义登录配置
   custom:
     # 是否对接自定义登录地址，默认不开启（使用蓝鲸集成的统一登录）
@@ -693,6 +695,15 @@ login:
     apiUrl: "http://login.example.com/api/"
     # 完成页面登录后前端通过Cookie提交的凭据的Key，也是后台向apiUrl获取用户信息提交的凭据的Key
     tokenName: "bk_token"
+
+ # CMSI接口配置
+cmsi:
+  # 对接的API类型，取值：apigw、esb
+  apiType: apigw
+  # 语音通知配置
+  voice:
+    # 接口uri
+    uri: /api/c/compapi/v2/cmsi/send_voice_msg/
 
 # 消息通知中心配置
 bkNotice:
@@ -889,6 +900,8 @@ gatewayConfig:
     enabled: false
     # 开启登录豁免时使用的默认用户名
     defaultUser: admin
+    # 开启登录豁免时使用的默认用户所在的租户ID
+    defaultUserTenantId: default
   # 用户映射功能
   userMap:
     # 是否开启用户映射，仅限开发测试环境使用，生产环境请勿开启

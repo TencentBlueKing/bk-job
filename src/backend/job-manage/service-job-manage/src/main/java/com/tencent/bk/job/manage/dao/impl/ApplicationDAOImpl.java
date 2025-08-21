@@ -256,7 +256,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             applicationDTO.getAttrs() == null ? null : JsonUtils.toJson(applicationDTO.getAttrs()),
             UByte.valueOf(Bool.FALSE.byteValue()),
             applicationDTO.getTenantId(),
-            applicationDTO.getDeFault()
+            applicationDTO.getDeFaultOrDefaultValue()
         );
         try {
             val record = query.returning(T_APP.APP_ID).fetchOne();
@@ -286,7 +286,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             .set(T_APP.TIMEZONE, applicationDTO.getTimeZone())
             .set(T_APP.LANGUAGE, applicationDTO.getLanguage())
             .set(T_APP.ATTRS, applicationDTO.getAttrs() == null ? null : JsonUtils.toJson(applicationDTO.getAttrs()))
-            .set(T_APP.DEFAULT, applicationDTO.getDeFault())
+            .set(T_APP.DEFAULT, applicationDTO.getDeFaultOrDefaultValue())
             .where(T_APP.APP_ID.eq(ULong.valueOf(applicationDTO.getId())));
         return query.execute();
     }

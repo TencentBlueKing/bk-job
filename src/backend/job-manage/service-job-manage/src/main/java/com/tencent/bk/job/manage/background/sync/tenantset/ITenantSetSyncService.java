@@ -22,22 +22,15 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.user;
+package com.tencent.bk.job.manage.background.sync.tenantset;
 
-import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
+/**
+ * CMDB租户集同步接口
+ */
+public interface ITenantSetSyncService {
 
-import java.util.Collection;
-import java.util.List;
-
-public interface IUserApiClient {
-
-    List<OpenApiTenant> listAllTenant();
-
-    SimpleUserInfo getUserByUsername(String tenantId, String username);
-
-    List<SimpleUserInfo> batchGetVirtualUserByLoginName(String tenantId, String loginName);
-
-    List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames);
-
+    /**
+     * 从CMDB同步租户集信息到本地DB
+     */
+    void syncTenantSetFromCMDB();
 }

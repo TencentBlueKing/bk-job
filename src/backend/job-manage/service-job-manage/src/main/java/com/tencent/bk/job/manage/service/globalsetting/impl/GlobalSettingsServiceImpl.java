@@ -36,7 +36,7 @@ import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.notice.config.BkNoticeProperties;
-import com.tencent.bk.job.common.paas.config.LoginConfiguration;
+import com.tencent.bk.job.common.paas.config.LoginProperties;
 import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 import com.tencent.bk.job.common.paas.user.IUserApiClient;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -122,7 +122,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     private final NotifyTemplateConverter notifyTemplateConverter;
     private final BuildProperties buildProperties;
     private final IUserApiClient userApiClient;
-    private final LoginConfiguration loginConfiguration;
+    private final LoginProperties loginProperties;
 
     @Value("${job.manage.upload.filesize.max:5GB}")
     private String configedMaxFileSize;
@@ -140,7 +140,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
                                      NotifyTemplateConverter notifyTemplateConverter,
                                      BuildProperties buildProperties,
                                      IUserApiClient userApiClient,
-                                     LoginConfiguration loginConfiguration) {
+                                     LoginProperties loginProperties) {
         this.notifySendService = notifySendService;
         this.notifyUserService = notifyUserService;
         this.globalSettingDAO = globalSettingDAO;
@@ -153,7 +153,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         this.notifyTemplateConverter = notifyTemplateConverter;
         this.buildProperties = buildProperties;
         this.userApiClient = userApiClient;
-        this.loginConfiguration = loginConfiguration;
+        this.loginProperties = loginProperties;
     }
 
     private static String removeSuffixBackSlash(String rawStr) {
@@ -667,7 +667,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
     }
 
     private String getBkLoginUrl() {
-        return loginConfiguration.getRealLoginUrl();
+        return loginProperties.getRealLoginUrl();
     }
 
     @Override

@@ -83,7 +83,7 @@ public class CacheAppDO {
         cacheAppDO.setName(application.getName());
         cacheAppDO.setAttrs(application.getAttrs());
         cacheAppDO.setTenantId(application.getTenantId());
-        cacheAppDO.setDeFault(application.getDeFault());
+        cacheAppDO.setDeFault(application.getDeFaultOrDefaultValue());
         return cacheAppDO;
     }
 

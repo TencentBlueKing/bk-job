@@ -22,22 +22,57 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.user;
+package com.tencent.bk.job.common.paas.model;
 
-import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-import java.util.Collection;
-import java.util.List;
+import java.io.Serializable;
 
-public interface IUserApiClient {
+/**
+ * 蓝鲸平台用户信息,仅用于转换ESB API 调用返回的数据
+ */
+@Getter
+@Setter
+@ToString
+public class EsbUserDto implements Serializable {
 
-    List<OpenApiTenant> listAllTenant();
+    /**
+     * 用户名
+     */
+    @JsonProperty("bk_username")
+    private String username;
 
-    SimpleUserInfo getUserByUsername(String tenantId, String username);
+    @JsonProperty("bk_role")
+    private int role;
 
-    List<SimpleUserInfo> batchGetVirtualUserByLoginName(String tenantId, String loginName);
+    private String qq;
 
-    List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames);
+    private String phone;
 
+    private String email;
+
+    /**
+     * 中文名称
+     */
+    private String chname;
+
+    private String language;
+
+    @JsonProperty("time_zone")
+    private String timeZone;
+
+    /**
+     * 企业号用户USERID/公众号用户OPENID
+     */
+    @JsonProperty("wx_userid")
+    private String wxUserId;
+
+    /**
+     * 开发商code
+     */
+    @JsonProperty("bk_supplier_account")
+    private String owner;
 }

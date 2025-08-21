@@ -22,22 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.user;
+package com.tencent.bk.job.common.paas.model.cmsi.req;
 
-import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
-import java.util.Collection;
-import java.util.List;
+@Data
+public class SendVoiceEsbReq {
 
-public interface IUserApiClient {
+    /**
+     * 自动语音读字信息
+     */
+    @JsonProperty("auto_read_message")
+    private String message;
 
-    List<OpenApiTenant> listAllTenant();
-
-    SimpleUserInfo getUserByUsername(String tenantId, String username);
-
-    List<SimpleUserInfo> batchGetVirtualUserByLoginName(String tenantId, String loginName);
-
-    List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames);
-
+    /**
+     * 待通知的用户列表，包含用户名，多个以逗号分隔
+     */
+    @JsonProperty("receiver__username")
+    public String receivers;
 }

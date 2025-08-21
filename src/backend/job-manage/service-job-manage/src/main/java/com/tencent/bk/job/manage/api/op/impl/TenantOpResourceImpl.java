@@ -33,8 +33,8 @@ import com.tencent.bk.job.manage.api.op.TenantOpResource;
 import com.tencent.bk.job.manage.background.ha.BackGroundTaskDaemon;
 import com.tencent.bk.job.manage.background.sync.BizSetSyncService;
 import com.tencent.bk.job.manage.background.sync.BizSyncService;
+import com.tencent.bk.job.manage.background.sync.tenantset.ITenantSetSyncService;
 import com.tencent.bk.job.manage.background.sync.TenantHostSyncService;
-import com.tencent.bk.job.manage.background.sync.TenantSetSyncService;
 import com.tencent.bk.job.manage.model.op.req.InitTenantReq;
 import com.tencent.bk.job.manage.service.impl.notify.NotifyChannelInitService;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +54,7 @@ public class TenantOpResourceImpl implements TenantOpResource {
     private final RedisTemplate<String, String> redisTemplate;
     private final BizSyncService bizSyncService;
     private final BizSetSyncService bizSetSyncService;
-    private final TenantSetSyncService tenantSetSyncService;
+    private final ITenantSetSyncService tenantSetSyncService;
     private final TenantHostSyncService tenantHostSyncService;
     private final NotifyChannelInitService notifyChannelInitService;
     private final BackGroundTaskDaemon backGroundTaskDaemon;
@@ -64,7 +64,7 @@ public class TenantOpResourceImpl implements TenantOpResource {
     public TenantOpResourceImpl(RedisTemplate<String, String> redisTemplate,
                                 BizSyncService bizSyncService,
                                 BizSetSyncService bizSetSyncService,
-                                TenantSetSyncService tenantSetSyncService,
+                                ITenantSetSyncService tenantSetSyncService,
                                 TenantHostSyncService tenantHostSyncService,
                                 NotifyChannelInitService notifyChannelInitService,
                                 BackGroundTaskDaemon backGroundTaskDaemon) {

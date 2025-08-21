@@ -22,22 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.user;
+package com.tencent.bk.job.common.tenant;
 
-import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-import java.util.Collection;
-import java.util.List;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface IUserApiClient {
-
-    List<OpenApiTenant> listAllTenant();
-
-    SimpleUserInfo getUserByUsername(String tenantId, String username);
-
-    List<SimpleUserInfo> batchGetVirtualUserByLoginName(String tenantId, String loginName);
-
-    List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames);
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@ConditionalOnProperty(
+    value = "tenant.enabled",
+    havingValue = "true"
+)
+public @interface ConditionalOnTenantEnabled {
 
 }

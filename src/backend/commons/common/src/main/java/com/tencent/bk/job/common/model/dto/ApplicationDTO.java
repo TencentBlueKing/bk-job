@@ -28,7 +28,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collections;
@@ -160,5 +159,10 @@ public class ApplicationDTO {
     @JsonIgnore
     public boolean isBuiltInResource() {
         return this.deFault != null && this.deFault == 1;
+    }
+
+    @JsonIgnore
+    public Integer getDeFaultOrDefaultValue(){
+        return this.deFault == null ? 0 : deFault;
     }
 }

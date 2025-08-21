@@ -39,4 +39,21 @@ public enum NotifyChannelEnum {
     public String getType() {
         return type;
     }
+
+
+    public static Boolean isMail(String channel) {
+        return Mail.getType().equalsIgnoreCase(channel);
+    }
+
+    public static Boolean isSms(String channel) {
+        return Sms.getType().equalsIgnoreCase(channel);
+    }
+
+    public static Boolean isVoice(String channel) {
+        return Voice.getType().equalsIgnoreCase(channel);
+    }
+
+    public static Boolean isWeixin(String channel) {
+        return Weixin.getType().equalsIgnoreCase(channel);
+    }
 }

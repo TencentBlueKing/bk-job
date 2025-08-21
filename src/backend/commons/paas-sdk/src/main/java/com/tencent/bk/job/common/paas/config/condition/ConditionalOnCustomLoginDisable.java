@@ -22,40 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.login;
+package com.tencent.bk.job.common.paas.config.condition;
 
-import com.tencent.bk.job.common.model.dto.BkUserDTO;
-import com.tencent.bk.job.common.paas.login.v3.BkLoginApiClient;
-import com.tencent.bk.job.common.paas.login.v3.OpenApiBkUser;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-@Slf4j
-public class StandardLoginClient implements ILoginClient {
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    private final BkLoginApiClient bkLoginApiClient;
-
-    public StandardLoginClient(BkLoginApiClient bkLoginApiClient) {
-        this.bkLoginApiClient = bkLoginApiClient;
-    }
-
-    /**
-     * 根据 token 获取指定用户信息
-     *
-     * @param bkToken 用户登录 token
-     * @return 用户信息
-     */
-    @Override
-    public BkUserDTO getUserInfoByToken(String bkToken) {
-        OpenApiBkUser bkUser = bkLoginApiClient.getBkUserByToken(bkToken);
-        if (bkUser == null) {
-            return null;
-        }
-        BkUserDTO bkUserDTO = new BkUserDTO();
-        bkUserDTO.setUsername(bkUser.getUsername());
-        bkUserDTO.setDisplayName(bkUser.getDisplayName());
-        bkUserDTO.setTimeZone(bkUser.getTimeZone());
-        bkUserDTO.setTenantId(bkUser.getTenantId());
-        bkUserDTO.setLanguage(bkUser.getLanguage());
-        return bkUserDTO;
-    }
+/**
+ * @see com.tencent.bk.job.common.esb.constants.BkApiTypeEnum
+ */
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@ConditionalOnProperty(
+    value = "paas.login.custom.enabled",
+    havingValue = "false",
+    matchIfMissing = true
+)
+public @interface ConditionalOnCustomLoginDisable {
 }

@@ -85,7 +85,8 @@ public class CustomLoginClient implements ILoginClient {
             }
             BkUserDTO bkUserDto = new BkUserDTO();
             bkUserDto.setUsername(resp.getData().getUsername());
-            bkUserDto.setTenantId(TenantIdConstants.DEFAULT_TENANT_ID);
+            // 当前只有在单租户环境下才会用到自定义登录
+            bkUserDto.setTenantInfo(false, TenantIdConstants.DEFAULT_TENANT_ID);
             return bkUserDto;
         } catch (Exception e) {
             log.error("Error occur when get user info", e);

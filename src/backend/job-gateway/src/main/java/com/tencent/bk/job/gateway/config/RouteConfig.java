@@ -27,6 +27,7 @@ package com.tencent.bk.job.gateway.config;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
@@ -58,19 +59,23 @@ public class RouteConfig {
     }
 
     @Bean
-    public UserHandler userHandler(@Autowired LoginService loginService,
+    public UserHandler userHandler(@Autowired TenantEnvService tenantEnvService,
+                                   @Autowired LoginService loginService,
                                    @Autowired LoginExemptionConfig loginExemptionConfig) {
-        return new UserHandler(loginService, loginExemptionConfig);
+        return new UserHandler(tenantEnvService, loginService, loginExemptionConfig);
     }
 
     static class UserHandler {
+        private final TenantEnvService tenantEnvService;
         private final LoginService loginService;
         private final LoginExemptionConfig loginExemptionConfig;
 
         UserHandler(
+            TenantEnvService tenantEnvService,
             LoginService loginService,
             LoginExemptionConfig loginExemptionConfig
         ) {
+            this.tenantEnvService = tenantEnvService;
             this.loginService = loginService;
             this.loginExemptionConfig = loginExemptionConfig;
         }
@@ -80,6 +85,7 @@ public class RouteConfig {
             bkUserDTO.setId(1L);
             bkUserDTO.setUsername(loginExemptionConfig.getDefaultUser());
             bkUserDTO.setDisplayName(loginExemptionConfig.getDefaultUser());
+            bkUserDTO.setTenantInfo(tenantEnvService.isTenantEnabled(), loginExemptionConfig.getDefaultUserTenantId());
             return bkUserDTO;
         }
 

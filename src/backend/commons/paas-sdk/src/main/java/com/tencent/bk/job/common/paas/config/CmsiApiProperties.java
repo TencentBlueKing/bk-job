@@ -22,22 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.user;
+package com.tencent.bk.job.common.paas.config;
 
-import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
+import com.tencent.bk.job.common.esb.constants.BkApiTypeEnum;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.Collection;
-import java.util.List;
+@Data
+@ConfigurationProperties(prefix = "cmsi")
+public class CmsiApiProperties {
 
-public interface IUserApiClient {
+    /**
+     * CMSI接口类型，默认APIGW
+     */
+    private String apiType = BkApiTypeEnum.APIGW.getType();
 
-    List<OpenApiTenant> listAllTenant();
+    /**
+     * CMSI语音通知接口配置
+     */
+    private ChannelConfig voice;
 
-    SimpleUserInfo getUserByUsername(String tenantId, String username);
-
-    List<SimpleUserInfo> batchGetVirtualUserByLoginName(String tenantId, String loginName);
-
-    List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames);
-
+    @Getter
+    @Setter
+    public static class ChannelConfig {
+        private String uri;
+    }
 }

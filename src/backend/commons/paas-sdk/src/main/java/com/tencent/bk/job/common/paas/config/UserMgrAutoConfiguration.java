@@ -65,17 +65,9 @@ public class UserMgrAutoConfiguration {
 
     @Bean
     @ConditionalOnMockUserApiEnable
-    public IUserApiClient mockUserApiClient(AppProperties appProperties,
-                                            BkApiGatewayProperties bkApiGatewayProperties,
-                                            ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
-                                            TenantEnvService tenantEnvService) {
+    public IUserApiClient mockUserApiClient() {
         log.info("Init MockUserApiClient");
-        return new MockUserApiClient(
-            bkApiGatewayProperties,
-            appProperties,
-            meterRegistryObjectProvider.getIfAvailable(),
-            tenantEnvService
-        );
+        return new MockUserApiClient();
     }
 
     @Bean

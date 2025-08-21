@@ -60,10 +60,10 @@ import java.util.List;
 import static com.tencent.bk.job.common.metrics.CommonMetricNames.ESB_CMSI_API;
 
 /**
- * 消息通知 API 客户端
+ * 消息通知 APIGW 客户端
  */
 @Slf4j
-public class CmsiApiClient extends BkApiV2Client implements ICmsiClient {
+public class CmsiApiGwClient extends BkApiV2Client implements ICmsiClient {
 
     private static final String API_GET_NOTIFY_CHANNEL_LIST = "/v1/channels/";
     private static final String API_SEND_MAIL = "/v1/send_mail/";
@@ -74,11 +74,11 @@ public class CmsiApiClient extends BkApiV2Client implements ICmsiClient {
     private final AppProperties appProperties;
     private final IVirtualAdminAccountProvider virtualAdminAccountProvider;
 
-    public CmsiApiClient(BkApiGatewayProperties bkApiGatewayProperties,
-                         AppProperties appProperties,
-                         MeterRegistry meterRegistry,
-                         TenantEnvService tenantEnvService,
-                         IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+    public CmsiApiGwClient(BkApiGatewayProperties bkApiGatewayProperties,
+                           AppProperties appProperties,
+                           MeterRegistry meterRegistry,
+                           TenantEnvService tenantEnvService,
+                           IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         super(
             meterRegistry,
             ESB_CMSI_API,
@@ -125,16 +125,16 @@ public class CmsiApiClient extends BkApiV2Client implements ICmsiClient {
         CmsiSendMsgV1BasicReq req;
         String uri;
 
-        if (isMail(msgType)) {
+        if (NotifyChannelEnum.isMail(msgType)) {
             req = buildSendMailReq(notifyMessageDTO);
             uri = API_SEND_MAIL;
-        } else if (isSms(msgType)) {
+        } else if (NotifyChannelEnum.isSms(msgType)) {
             req = buildSendSmsReq(notifyMessageDTO);
             uri = API_SEND_SMS;
-        } else if (isVoice(msgType)) {
+        } else if (NotifyChannelEnum.isVoice(msgType)) {
             req = buildSendVoiceReq(notifyMessageDTO);
             uri = API_SEND_VOICE;
-        } else if (isWeixin(msgType)) {
+        } else if (NotifyChannelEnum.isWeixin(msgType)) {
             req = buildSendWxReq(notifyMessageDTO);
             uri = API_SEND_WEIXIN;
         } else {
@@ -181,21 +181,6 @@ public class CmsiApiClient extends BkApiV2Client implements ICmsiClient {
         }
     }
 
-    private Boolean isMail(String channel) {
-        return NotifyChannelEnum.Mail.getType().equals(channel);
-    }
-
-    private Boolean isSms(String channel) {
-        return NotifyChannelEnum.Sms.getType().equals(channel);
-    }
-
-    private Boolean isVoice(String channel) {
-        return NotifyChannelEnum.Voice.getType().equals(channel);
-    }
-
-    private Boolean isWeixin(String channel) {
-        return NotifyChannelEnum.Weixin.getType().equals(channel);
-    }
 
     private SendMailV1Req buildSendMailReq(NotifyMessageDTO notifyMessageDTO) {
         return SendMailV1Req.fromNotifyMessageDTO(notifyMessageDTO);

@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.sync;
+package com.tencent.bk.job.manage.background.sync.tenantset;
 
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.model.tenantset.TenantSetInfo;
@@ -35,12 +35,11 @@ import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.background.sync.BasicAppSyncService;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Set;
@@ -50,14 +49,12 @@ import java.util.stream.Collectors;
  * CMDB租户集同步逻辑
  */
 @Slf4j
-@Service
-public class TenantSetSyncService extends BasicAppSyncService {
+public class TenantSetSyncService extends BasicAppSyncService implements ITenantSetSyncService {
 
     private final ApplicationDAO applicationDAO;
     protected final ITenantSetCmdbClient tenantSetCmdbClient;
     private final CmdbConfig cmdbConfig;
 
-    @Autowired
     public TenantSetSyncService(ApplicationDAO applicationDAO,
                                 NoTenantHostDAO noTenantHostDAO,
                                 ApplicationService applicationService,
@@ -73,6 +70,7 @@ public class TenantSetSyncService extends BasicAppSyncService {
     /**
      * 从CMDB同步租户集信息到本地DB
      */
+    @Override
     public void syncTenantSetFromCMDB() {
         log.info("[{}] Begin to sync tenantSet from cmdb", Thread.currentThread().getName());
         List<TenantSetInfo> ccTenantSets = tenantSetCmdbClient.listAllTenantSet();

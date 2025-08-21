@@ -22,22 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.user;
+package com.tencent.bk.job.common.esb.constants;
 
-import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
+import lombok.Getter;
 
-import java.util.Collection;
-import java.util.List;
+/**
+ * 蓝鲸 API 类型
+ */
+@Getter
+public enum BkApiTypeEnum {
 
-public interface IUserApiClient {
+    /**
+     * ESB
+     */
+    ESB("esb"),
+    /**
+     * 蓝鲸网关，用于替换 ESB
+     */
+    APIGW("apigw");
 
-    List<OpenApiTenant> listAllTenant();
+    private final String type;
 
-    SimpleUserInfo getUserByUsername(String tenantId, String username);
-
-    List<SimpleUserInfo> batchGetVirtualUserByLoginName(String tenantId, String loginName);
-
-    List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames);
-
+    BkApiTypeEnum(String type) {
+        this.type = type;
+    }
 }
