@@ -246,6 +246,8 @@ data:
         {{- end }}
         iam:
           {{- toYaml .Values.executeConfig.iam | nindent 10 }}
+        openapi:
+          {{- toYaml .Values.executeConfig.openapi | nindent 10 }}
     mysql:
       {{- toYaml .Values.executeConfig.mysql | nindent 6 }}
     idGen:

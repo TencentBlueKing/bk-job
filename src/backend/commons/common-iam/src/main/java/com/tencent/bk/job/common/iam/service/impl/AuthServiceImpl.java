@@ -259,11 +259,22 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     @Override
     public <T> EsbResp<T> buildEsbAuthFailResp(List<PermissionActionResource> permissionActionResources) {
         List<ActionDTO> actions = buildApplyActions(permissionActionResources);
+        OpenApiApplyPermissionDTO applyPermission = buildPermissionApplyDTO(actions);
+        return EsbResp.buildAuthFailResult(applyPermission);
+    }
+
+    @Override
+    public OpenApiApplyPermissionDTO buildPermissionDetailByPermissionApplyDTO(PermissionDeniedException exception) {
+        List<ActionDTO> actions = buildApplyActions(exception.getAuthResult().getRequiredActionResources());
+        return buildPermissionApplyDTO(actions);
+    }
+
+    private OpenApiApplyPermissionDTO buildPermissionApplyDTO(List<ActionDTO> actions) {
         OpenApiApplyPermissionDTO applyPermission = new OpenApiApplyPermissionDTO();
         applyPermission.setSystemId(SystemId.JOB);
         applyPermission.setSystemName(i18nService.getI18n("system.bk_job"));
         applyPermission.setActions(actions.stream().map(this::convertToEsbAction).collect(Collectors.toList()));
-        return EsbResp.buildAuthFailResult(applyPermission);
+        return applyPermission;
     }
 
     private EsbActionDTO convertToEsbAction(ActionDTO action) {

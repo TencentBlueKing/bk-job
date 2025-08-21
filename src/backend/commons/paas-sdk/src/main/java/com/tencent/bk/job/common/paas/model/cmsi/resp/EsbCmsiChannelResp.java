@@ -22,20 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.model;
+package com.tencent.bk.job.common.paas.model.cmsi.resp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import com.tencent.bk.job.common.paas.model.NotifyChannelDTO;
+import lombok.Data;
 
 /**
- * ESB通知渠道DTO
+ * 访问ESB的CMSI获取通知渠道列表的响应，响应字段与APIGW的CMSI不同，需要区分
  */
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-@ToString
-public class EsbNotifyChannelDTO {
+@Data
+public class EsbCmsiChannelResp {
     /**
      * 渠道类型
      */
@@ -45,13 +43,25 @@ public class EsbNotifyChannelDTO {
      * 渠道名称
      */
     private String name;
+
     /**
      * 该租户内是否支持
      */
-    @JsonProperty("enabled")
-    private boolean enabled;
+    @JsonProperty("is_active")
+    private boolean isActive;
+
     /**
      * 渠道图标Base64编码
      */
     private String icon;
+
+    @JsonIgnore
+    public NotifyChannelDTO toNotifyChannelDTO() {
+        NotifyChannelDTO notifyChannelDTO = new NotifyChannelDTO();
+        notifyChannelDTO.setType(type);
+        notifyChannelDTO.setName(name);
+        notifyChannelDTO.setIcon(icon);
+        notifyChannelDTO.setEnabled(isActive);
+        return notifyChannelDTO;
+    }
 }

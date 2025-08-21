@@ -2,7 +2,7 @@ package com.tencent.bk.job.manage.service.impl.notify;
 
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.paas.cmsi.ICmsiClient;
-import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
+import com.tencent.bk.job.common.paas.model.NotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
 import com.tencent.bk.job.common.paas.user.IUserApiClient;
 import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
@@ -58,33 +58,33 @@ public class NotifyChannelInitService {
             return;
         }
 
-        List<EsbNotifyChannelDTO> esbNotifyChannelDTOList = cmsiApiClient.getNotifyChannelList(tenantId);
-        if (esbNotifyChannelDTOList == null) {
+        List<NotifyChannelDTO> notifyChannelDTOList = cmsiApiClient.getNotifyChannelList(tenantId);
+        if (notifyChannelDTOList == null) {
             log.error("Fail to get tenant: {} notify channels from esb, null", tenantId);
             return;
         }
-        saveDefaultNotifyChannelsToDb(tenantId, esbNotifyChannelDTOList);
+        saveDefaultNotifyChannelsToDb(tenantId, notifyChannelDTOList);
     }
 
     @JobTransactional(transactionManager = "jobManageTransactionManager")
-    public void saveDefaultNotifyChannelsToDb(String tenantId, List<EsbNotifyChannelDTO> esbNotifyChannelDTOList) {
+    public void saveDefaultNotifyChannelsToDb(String tenantId, List<NotifyChannelDTO> notifyChannelDTOList) {
         globalSettingsService.setNotifyChannelConfiged(tenantId);
         availableEsbChannelDAO.deleteAllChannelsByTenantId(tenantId);
-        for (EsbNotifyChannelDTO esbNotifyChannelDTO : esbNotifyChannelDTOList) {
+        for (NotifyChannelDTO notifyChannelDTO : notifyChannelDTOList) {
             // 租户内通知渠道不可用
-            if (!esbNotifyChannelDTO.isEnabled()) {
+            if (!notifyChannelDTO.isEnabled()) {
                 continue;
             }
             Set<String> defaultAvailableChannelCodeSet = new HashSet<>(
                 Arrays.asList(defaultAvailableNotifyChannelsStr.split(",")));
 
-            if (!defaultAvailableChannelCodeSet.contains(esbNotifyChannelDTO.getType())) {
+            if (!defaultAvailableChannelCodeSet.contains(notifyChannelDTO.getType())) {
                 continue;
             }
 
             availableEsbChannelDAO.insertAvailableEsbChannel(
                 new AvailableEsbChannelDTO(
-                    esbNotifyChannelDTO.getType(),
+                    notifyChannelDTO.getType(),
                     true,
                     "admin",
                     LocalDateTime.now(),

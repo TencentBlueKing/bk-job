@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.common.paas.cmsi;
 
-import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
+import com.tencent.bk.job.common.paas.model.NotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
 
 import java.util.ArrayList;
@@ -34,16 +34,16 @@ import java.util.List;
 public class MockCmsiClient implements ICmsiClient {
 
     @Override
-    public List<EsbNotifyChannelDTO> getNotifyChannelList(String tenantId) {
+    public List<NotifyChannelDTO> getNotifyChannelList(String tenantId) {
         if ("system".equals(tenantId)) {
-            List<EsbNotifyChannelDTO> channelList = new ArrayList<>();
-            channelList.add(new EsbNotifyChannelDTO(
+            List<NotifyChannelDTO> channelList = new ArrayList<>();
+            channelList.add(new NotifyChannelDTO(
                 "weixin",
                 "微信",
                 true,
                 ""
             ));
-            channelList.add(new EsbNotifyChannelDTO(
+            channelList.add(new NotifyChannelDTO(
                 "rtx",
                 "企业微信",
                 true,
@@ -51,14 +51,14 @@ public class MockCmsiClient implements ICmsiClient {
             ));
             return channelList;
         } else if ("putongoa".equals(tenantId)) {
-            List<EsbNotifyChannelDTO> channelList = new ArrayList<>();
-            channelList.add(new EsbNotifyChannelDTO(
+            List<NotifyChannelDTO> channelList = new ArrayList<>();
+            channelList.add(new NotifyChannelDTO(
                 "weixin",
                 "微信",
                 true,
                 ""
             ));
-            channelList.add(new EsbNotifyChannelDTO(
+            channelList.add(new NotifyChannelDTO(
                 "sms",
                 "短信",
                 true,

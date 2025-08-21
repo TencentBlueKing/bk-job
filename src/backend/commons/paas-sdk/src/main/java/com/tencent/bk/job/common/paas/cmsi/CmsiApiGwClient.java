@@ -38,7 +38,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.paas.exception.PaasException;
-import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
+import com.tencent.bk.job.common.paas.model.NotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.NotifyChannelEnum;
 import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
 import com.tencent.bk.job.common.paas.model.cmsi.req.CmsiSendMsgV1BasicReq;
@@ -46,6 +46,7 @@ import com.tencent.bk.job.common.paas.model.cmsi.req.SendMailV1Req;
 import com.tencent.bk.job.common.paas.model.cmsi.req.SendSmsV1Req;
 import com.tencent.bk.job.common.paas.model.cmsi.req.SendVoiceV1Req;
 import com.tencent.bk.job.common.paas.model.cmsi.req.SendWxV1Req;
+import com.tencent.bk.job.common.paas.model.cmsi.resp.ApiGwCmsiChannelResp;
 import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
@@ -56,6 +57,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.common.metrics.CommonMetricNames.ESB_CMSI_API;
 
@@ -93,31 +95,11 @@ public class CmsiApiGwClient extends BkApiV2Client implements ICmsiClient {
     }
 
     @Override
-    public List<EsbNotifyChannelDTO> getNotifyChannelList(String tenantId) {
-        try {
-            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
-            HttpMetricUtil.addTagForCurrentMetric(
-                Tag.of(EsbMetricTags.KEY_API_NAME, API_GET_NOTIFY_CHANNEL_LIST)
-            );
-            OpenApiResponse<List<EsbNotifyChannelDTO>> resp = doRequest(
-                OpenApiRequestInfo.builder()
-                    .method(HttpMethodEnum.GET)
-                    .uri(API_GET_NOTIFY_CHANNEL_LIST)
-                    .addHeader(buildTenantHeader(tenantId))
-                    .authorization(buildAuthorization(
-                        appProperties, virtualAdminAccountProvider.getVirtualAdminUsername(tenantId)))
-                    .build(),
-                new TypeReference<OpenApiResponse<List<EsbNotifyChannelDTO>>>() {
-                }
-            );
-            return resp.getData();
-        } catch (Exception e) {
-            String errorMsg = "Get " + API_GET_NOTIFY_CHANNEL_LIST + " error";
-            log.error(errorMsg, e);
-            throw new InternalCmsiException(errorMsg, e, ErrorCode.CMSI_MSG_CHANNEL_DATA_ERROR);
-        } finally {
-            HttpMetricUtil.clearHttpMetric();
-        }
+    public List<NotifyChannelDTO> getNotifyChannelList(String tenantId) {
+        List<ApiGwCmsiChannelResp> channelList = fetchAndGetChannelList(tenantId);
+        return channelList.stream()
+            .map(ApiGwCmsiChannelResp::toNotifyChannelDTO)
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -181,6 +163,33 @@ public class CmsiApiGwClient extends BkApiV2Client implements ICmsiClient {
         }
     }
 
+    private List<ApiGwCmsiChannelResp> fetchAndGetChannelList(String tenantId) {
+        try {
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(
+                Tag.of(EsbMetricTags.KEY_API_NAME, API_GET_NOTIFY_CHANNEL_LIST)
+            );
+            OpenApiResponse<List<ApiGwCmsiChannelResp>> resp = doRequest(
+                OpenApiRequestInfo.builder()
+                    .method(HttpMethodEnum.GET)
+                    .uri(API_GET_NOTIFY_CHANNEL_LIST)
+                    .addHeader(buildTenantHeader(tenantId))
+                    .authorization(
+                        buildAuthorization(
+                            appProperties, virtualAdminAccountProvider.getVirtualAdminUsername(tenantId)))
+                    .build(),
+                new TypeReference<OpenApiResponse<List<ApiGwCmsiChannelResp>>>() {
+                }
+            );
+            return resp.getData();
+        } catch (Exception e) {
+            String errorMsg = "Get " + API_GET_NOTIFY_CHANNEL_LIST + " error";
+            log.error(errorMsg, e);
+            throw new InternalCmsiException(errorMsg, e, ErrorCode.CMSI_MSG_CHANNEL_DATA_ERROR);
+        } finally {
+            HttpMetricUtil.clearHttpMetric();
+        }
+    }
 
     private SendMailV1Req buildSendMailReq(NotifyMessageDTO notifyMessageDTO) {
         return SendMailV1Req.fromNotifyMessageDTO(notifyMessageDTO);

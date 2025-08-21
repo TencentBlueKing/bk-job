@@ -1,0 +1,47 @@
+```json
+# http status: 400
+{
+    "error": {
+        "code": "INVALID_ARGUMENT",
+        "message": "query param [bk_scope_type] is illegal"
+    }
+}
+```
+
+```json
+# http status: 403
+{
+    "error": {
+        "code": "NO_PERMISSION",
+        "message": "zhangsan has no permission",
+        "data": {
+            "system_id": "bk_job",
+            "system_name": "job",
+            "actions": [
+                {
+                    "id": "access_business",
+                    "name": "access_business",
+                    "related_resource_types": [
+                        {
+                            "type": "biz",
+                            "system_id": "bk_cmdb",
+                            "system_name": "bk_cmdb",
+                            "type_name": "business",
+                            "instances": [
+                                [
+                                    {
+                                        "id": "1",
+                                        "type": "business",
+                                        "name": "blueking",
+                                        "type_name": "business"
+                                    }
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
+```

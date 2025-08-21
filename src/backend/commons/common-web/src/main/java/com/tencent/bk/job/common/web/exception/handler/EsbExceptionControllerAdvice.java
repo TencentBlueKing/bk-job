@@ -70,7 +70,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolationException;
 
 /**
- * 处理ESB异常
+ * ESB V2/V3 接口异常的全局处理器
  */
 @ControllerAdvice(annotations = {EsbAPI.class})
 @Slf4j
