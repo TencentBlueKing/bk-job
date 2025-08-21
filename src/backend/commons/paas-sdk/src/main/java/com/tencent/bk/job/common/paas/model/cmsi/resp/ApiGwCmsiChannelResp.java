@@ -22,55 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.cmsi;
+package com.tencent.bk.job.common.paas.model.cmsi.resp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.paas.model.NotifyChannelDTO;
-import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
+import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+/**
+ * 访问APIGW的CMSI获取通知渠道列表的响应，响应字段与ESB的CMSI不同，需要区分
+ */
+@Data
+public class ApiGwCmsiChannelResp {
+    /**
+     * 渠道类型
+     */
+    private String type;
 
-public class MockCmsiClient implements ICmsiClient {
+    /**
+     * 渠道名称
+     */
+    private String name;
 
-    @Override
-    public List<NotifyChannelDTO> getNotifyChannelList(String tenantId) {
-        if ("system".equals(tenantId)) {
-            List<NotifyChannelDTO> channelList = new ArrayList<>();
-            channelList.add(new NotifyChannelDTO(
-                "weixin",
-                "微信",
-                true,
-                ""
-            ));
-            channelList.add(new NotifyChannelDTO(
-                "rtx",
-                "企业微信",
-                true,
-                ""
-            ));
-            return channelList;
-        } else if ("putongoa".equals(tenantId)) {
-            List<NotifyChannelDTO> channelList = new ArrayList<>();
-            channelList.add(new NotifyChannelDTO(
-                "weixin",
-                "微信",
-                true,
-                ""
-            ));
-            channelList.add(new NotifyChannelDTO(
-                "sms",
-                "短信",
-                true,
-                ""
-            ));
-            return channelList;
-        } else {
-            return Collections.emptyList();
-        }
-    }
+    /**
+     * 该租户内是否支持
+     */
+    @JsonProperty("enable")
+    private boolean enable;
 
-    @Override
-    public void sendMsg(String msgType, NotifyMessageDTO notifyMessageDTO, String tenantId) {
+    /**
+     * 渠道图标Base64编码
+     */
+    private String icon;
+
+    @JsonIgnore
+    public NotifyChannelDTO toNotifyChannelDTO() {
+        NotifyChannelDTO notifyChannelDTO = new NotifyChannelDTO();
+        notifyChannelDTO.setType(type);
+        notifyChannelDTO.setName(name);
+        notifyChannelDTO.setIcon(icon);
+        notifyChannelDTO.setEnabled(enable);
+        return notifyChannelDTO;
     }
 }

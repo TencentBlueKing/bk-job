@@ -209,7 +209,7 @@ public class NotifyTemplateService {
     }
 
     /**
-     * originalVariablesMap 中有一些跟人有关的内置变量是以username的形式存在的，需要把这里面设计到的username -> displayName
+     * originalVariablesMap 中有一些跟人有关的内置变量是以username的形式存在的，需要把这里面涉及到的username -> displayName
      */
     private Map<String, String> replaceUsernameInMap(Long appId, Map<String, String> originalVariablesMap) {
         String tenantId = tenantService.getTenantIdByAppId(appId);

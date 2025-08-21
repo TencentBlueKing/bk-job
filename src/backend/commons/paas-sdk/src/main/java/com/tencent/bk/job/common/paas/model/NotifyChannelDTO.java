@@ -22,18 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.cmsi;
+package com.tencent.bk.job.common.paas.model;
 
-import com.tencent.bk.job.common.paas.model.NotifyChannelDTO;
-import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
 
-import java.util.List;
+/**
+ * 通知渠道DTO
+ */
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@ToString
+public class NotifyChannelDTO {
+    /**
+     * 渠道类型
+     */
+    private String type;
 
-public interface ICmsiClient {
-
-    List<NotifyChannelDTO> getNotifyChannelList(String tenantId);
-
-    void sendMsg(String msgType,
-                 NotifyMessageDTO notifyMessageDTO,
-                 String tenantId);
+    /**
+     * 渠道名称
+     */
+    private String name;
+    /**
+     * 该租户内是否支持
+     */
+    @JsonProperty("enabled")
+    private boolean enabled;
+    /**
+     * 渠道图标Base64编码
+     */
+    private String icon;
 }

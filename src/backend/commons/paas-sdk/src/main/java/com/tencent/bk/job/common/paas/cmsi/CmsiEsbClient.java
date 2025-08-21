@@ -40,11 +40,12 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.paas.config.CmsiApiProperties;
 import com.tencent.bk.job.common.paas.exception.PaasException;
-import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
+import com.tencent.bk.job.common.paas.model.NotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.NotifyChannelEnum;
 import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
 import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
 import com.tencent.bk.job.common.paas.model.cmsi.req.SendVoiceEsbReq;
+import com.tencent.bk.job.common.paas.model.cmsi.resp.EsbCmsiChannelResp;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
@@ -94,19 +95,19 @@ public class CmsiEsbClient extends BkApiV1Client implements ICmsiClient {
             appProperties.getSecret(), "admin");
     }
 
-    public List<EsbNotifyChannelDTO> getNotifyChannelList() {
+    public List<EsbCmsiChannelResp> getNotifyChannelList() {
         try {
             HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(
                 Tag.of(EsbMetricTags.KEY_API_NAME, API_GET_NOTIFY_CHANNEL_LIST)
             );
-            EsbResp<List<EsbNotifyChannelDTO>> esbResp = doRequest(
+            EsbResp<List<EsbCmsiChannelResp>> esbResp = doRequest(
                 OpenApiRequestInfo.builder()
                     .method(HttpMethodEnum.GET)
                     .uri(API_GET_NOTIFY_CHANNEL_LIST)
                     .authorization(authorization)
                     .build(),
-                new TypeReference<EsbResp<List<EsbNotifyChannelDTO>>>() {
+                new TypeReference<EsbResp<List<EsbCmsiChannelResp>>>() {
                 }
             );
             return esbResp.getData();
@@ -219,8 +220,11 @@ public class CmsiEsbClient extends BkApiV1Client implements ICmsiClient {
     }
 
     @Override
-    public List<EsbNotifyChannelDTO> getNotifyChannelList(String tenantId) {
-        return getNotifyChannelList();
+    public List<NotifyChannelDTO> getNotifyChannelList(String tenantId) {
+        List<EsbCmsiChannelResp> notifyChannelList = getNotifyChannelList();
+        return notifyChannelList.stream()
+            .map(EsbCmsiChannelResp::toNotifyChannelDTO)
+            .collect(Collectors.toList());
     }
 
     @Override
