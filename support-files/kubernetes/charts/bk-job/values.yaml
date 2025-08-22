@@ -24,6 +24,11 @@ deploy:
   ## 部署方式。支持标准(standard) 和 轻量化部署(lite)方式
   mode: standard
 
+# 部署集群配置，单集群部署时无需修改，多集群部署且共享DB时需要分别指定不同的集群名称，用于避免资源冲突
+cluster:
+  ## 集群名称
+  name: default
+
 ## @section Common parameters
 
 ## @param nameOverride String to partially override common.names.fullname

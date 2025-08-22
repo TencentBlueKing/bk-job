@@ -58,7 +58,16 @@ public class EnvironmentService implements ApplicationContextAware {
                 new String[]{"ENV:BK_JOB_FILE_WORKER_SERVICE_NAME"}
             );
         }
-        String accessHost = podName + "." + fileWorkerServiceName;
+        String namespace = System.getenv("KUBERNETES_NAMESPACE");
+        if (StringUtils.isBlank(namespace)) {
+            String message = "ENV KUBERNETES_NAMESPACE cannot be blank!";
+            throw new IncorrectConfigException(
+                message,
+                ErrorCode.INVALID_CONFIG,
+                new String[]{"ENV:KUBERNETES_NAMESPACE"}
+            );
+        }
+        String accessHost = podName + "." + fileWorkerServiceName + "." + namespace;
         log.debug("accessHost={}", accessHost);
         return accessHost;
     }
