@@ -287,8 +287,8 @@ module.exports = function (env) {
               horizontalLayout: 'full',
             })}`),
             JOB_VERSION: JSON.stringify('latest'),
-            __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
           },
+          __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
         }
         : {
           'process.env': {
@@ -298,8 +298,8 @@ module.exports = function (env) {
               horizontalLayout: 'full',
             })}`),
             JOB_VERSION: JSON.stringify(process.env.JOB_VERSION),
-            __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
           },
+          __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
         }),
       new HtmlWebpackPlugin(isDevelopment
         ? {
