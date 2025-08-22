@@ -41,7 +41,12 @@ public interface FileWorkerService {
 
     List<FileWorkerDTO> listFileWorker(String username, Long appId, WorkerSelectScopeEnum workerSelectScope);
 
-    FileWorkerDTO getFileWorker(String accessHost, Integer accessPort);
+    FileWorkerDTO getFileWorker(String clusterName, String accessHost, Integer accessPort);
 
+    /**
+     * 获取当前File-Gateway调度File-Worker时需要考虑的workerId范围和排除条件
+     *
+     * @return workerId范围和排除条件
+     */
     WorkerIdsCondition getIncludedAndExcludedWorkerIds();
 }

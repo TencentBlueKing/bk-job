@@ -73,6 +73,15 @@ gse:
 bkIamApiUrl: "http://bkiam-api.example.com"
 ```
 
+## 0.8.9
+1. 支持多集群部署（共享MySQL、MongoDB、Redis、周边系统等基础组件）
+```yaml
+# 部署集群配置，单集群部署时无需修改，多集群部署且共享DB时需要分别指定不同的集群名称，用于避免资源冲突
+cluster:
+  ## 集群名称
+  name: default
+```
+
 ## 0.8.6
 1. 文件分发时采用外部的Gse Agent代替Job机器作为源机器分发
 ```yaml

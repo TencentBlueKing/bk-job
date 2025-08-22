@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file.worker.task.heartbeat;
 
+import com.tencent.bk.job.common.config.ClusterProperties;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
 import com.tencent.bk.job.common.util.http.JobHttpClient;
@@ -47,6 +48,7 @@ import java.io.FileNotFoundException;
 public class HeartBeatTask {
 
     private final JobHttpClient jobHttpClient;
+    private final ClusterProperties clusterProperties;
     private final WorkerConfig workerConfig;
     private final GatewayInfoService gatewayInfoService;
     private final MetaDataService metaDataService;
@@ -55,12 +57,14 @@ public class HeartBeatTask {
 
     @Autowired
     public HeartBeatTask(JobHttpClient jobHttpClient,
+                         ClusterProperties clusterProperties,
                          WorkerConfig workerConfig,
                          GatewayInfoService gatewayInfoService,
                          MetaDataService metaDataService,
                          EnvironmentService environmentService,
                          JwtTokenService jwtTokenService) {
         this.jobHttpClient = jobHttpClient;
+        this.clusterProperties = clusterProperties;
         this.workerConfig = workerConfig;
         this.gatewayInfoService = gatewayInfoService;
         this.metaDataService = metaDataService;
@@ -74,6 +78,7 @@ public class HeartBeatTask {
         heartBeatReq.setTagList(workerConfig.getTagList());
         heartBeatReq.setAppId(workerConfig.getAppId());
         heartBeatReq.setToken(workerConfig.getToken());
+        heartBeatReq.setClusterName(clusterProperties.getName());
 
         // 二进制部署环境与K8s环境差异处理
         heartBeatReq.setAccessHost(environmentService.getAccessHost());
