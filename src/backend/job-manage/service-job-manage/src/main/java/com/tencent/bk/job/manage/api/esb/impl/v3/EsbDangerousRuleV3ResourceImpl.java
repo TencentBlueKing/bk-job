@@ -139,9 +139,10 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_disable_dangerous_rule"})
     @AuditEntry(actionId = ActionId.HIGH_RISK_DETECT_RULE)
-    public EsbResp<EsbDangerousRuleStatusV3DTO> disableDangerousRule(String username,
-                                                                     String appCode,
-                                                                     @AuditRequestBody EsbManageDangerousRuleV3Req request) {
+    public EsbResp<EsbDangerousRuleStatusV3DTO> disableDangerousRule(
+        String username,
+        String appCode,
+        @AuditRequestBody EsbManageDangerousRuleV3Req request) {
         DangerousRuleDTO dangerousRuleDTO = dangerousRuleService.updateDangerousRuleStatus(username,
             request.getId(),
             EnableStatusEnum.DISABLED);
