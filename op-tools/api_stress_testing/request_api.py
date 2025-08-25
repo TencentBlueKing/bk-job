@@ -103,11 +103,16 @@ def generate_report(nums, times, errors, request_time_list):
     print(f"Average response time: {avg_time:.2f} ms")
     print(f"Error rate: {error_rate:.2f}%")
     print(f"Time spent sending requests: {time_spent_sending_requests:.2f} ms")
-    print("BK_CI_SETENV:avg_time=" + f"{avg_time:.2f}" + "BK_CI_SETENV_END")
-    print("BK_CI_SETENV:max_time=" + f"{max_time:.2f}" + "BK_CI_SETENV_END")
-    print("BK_CI_SETENV:min_time=" + f"{min_time:.2f}" + "BK_CI_SETENV_END")
-    print("BK_CI_SETENV:error_rate=" + str(error_rate) + "BK_CI_SETENV_END")
-    print("BK_CI_SETENV:time_spent_sending_requests=" + f"{time_spent_sending_requests:.2f}" + "BK_CI_SETENV_END")
+
+    filename = f"report.md"
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write("|指标|值|\n")
+        f.write("|---|---|\n")
+        f.write(f"|平均响应耗时|{avg_time} ms|\n")
+        f.write(f"|最大响应耗时|{max_time} ms|\n")
+        f.write(f"|最小响应耗时|{min_time} ms|\n")
+        f.write(f"|错误率|{error_rate} %|\n")
+        f.write(f"|所有请求发送时间|{time_spent_sending_requests} ms|\n")
 
 
 if __name__ == '__main__':
@@ -187,4 +192,3 @@ if __name__ == '__main__':
         errors = errors,
         request_time_list = request_time_list
     )
-
