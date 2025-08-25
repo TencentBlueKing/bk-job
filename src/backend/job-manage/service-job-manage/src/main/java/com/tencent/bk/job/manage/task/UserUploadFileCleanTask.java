@@ -25,10 +25,10 @@
 package com.tencent.bk.job.manage.task;
 
 import com.google.common.collect.Sets;
-import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.PageData;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.redis.util.HeartBeatRedisLock;
 import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
@@ -72,7 +72,7 @@ public class UserUploadFileCleanTask {
     private final File uploadDirectory;
     private final TaskTemplateService taskTemplateService;
     private final TaskPlanService taskPlanService;
-    private final ArtifactoryConfig artifactoryConfig;
+    private final ArtifactoryHelper artifactoryHelper;
     private final LocalFileConfigForManage localFileConfigForManage;
     private final ArtifactoryClient artifactoryClient;
     private final RedisTemplate<String, String> redisTemplate;
@@ -81,7 +81,7 @@ public class UserUploadFileCleanTask {
         StorageSystemConfig storageSystemConfig,
         TaskTemplateService taskTemplateService,
         TaskPlanService taskPlanService,
-        ArtifactoryConfig artifactoryConfig,
+        ArtifactoryHelper artifactoryHelper,
         LocalFileConfigForManage localFileConfigForManage,
         @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
         RedisTemplate<String, String> redisTemplate
@@ -89,7 +89,7 @@ public class UserUploadFileCleanTask {
         this.uploadPath = storageSystemConfig.getJobStorageRootPath() + "/localupload/";
         this.taskTemplateService = taskTemplateService;
         this.taskPlanService = taskPlanService;
-        this.artifactoryConfig = artifactoryConfig;
+        this.artifactoryHelper = artifactoryHelper;
         this.localFileConfigForManage = localFileConfigForManage;
         this.artifactoryClient = artifactoryClient;
         this.uploadDirectory = new File(uploadPath);
@@ -186,7 +186,7 @@ public class UserUploadFileCleanTask {
         int pageSize = 100;
         do {
             nodePage = artifactoryClient.listNode(
-                artifactoryConfig.getArtifactoryJobProject(),
+                artifactoryHelper.getJobRealProject(),
                 localFileConfigForManage.getLocalUploadRepo(),
                 node.getFullPath(),
                 pageNumber,
@@ -238,7 +238,7 @@ public class UserUploadFileCleanTask {
 
     private boolean isDirNodeEmpty(NodeDTO dirNode) {
         PageData<NodeDTO> nodePage = artifactoryClient.listNode(
-            artifactoryConfig.getArtifactoryJobProject(),
+            artifactoryHelper.getJobRealProject(),
             localFileConfigForManage.getLocalUploadRepo(),
             dirNode.getFullPath(),
             1,
@@ -312,7 +312,7 @@ public class UserUploadFileCleanTask {
     private boolean deleteNode(NodeDTO nodeDTO) {
         if (localFileConfigForManage.isExpireDelete()) {
             boolean deleted = artifactoryClient.deleteNode(
-                artifactoryConfig.getArtifactoryJobProject(),
+                artifactoryHelper.getJobRealProject(),
                 localFileConfigForManage.getLocalUploadRepo(),
                 nodeDTO.getFullPath()
             );
@@ -331,7 +331,7 @@ public class UserUploadFileCleanTask {
      */
     private void processArtifactoryFile(Set<String> skipFile) {
         NodeDTO localUploadNode = artifactoryClient.queryNodeDetail(
-            artifactoryConfig.getArtifactoryJobProject(),
+            artifactoryHelper.getJobRealProject(),
             localFileConfigForManage.getLocalUploadRepo(),
             "/"
         );

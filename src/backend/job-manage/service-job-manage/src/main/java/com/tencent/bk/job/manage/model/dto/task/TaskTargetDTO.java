@@ -39,7 +39,7 @@ import com.tencent.bk.job.common.util.json.JsonMapper;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskHostNodeDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTargetDTO;
-import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.CurrentTenantHostService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -106,7 +106,8 @@ public class TaskTargetDTO {
     }
 
     private static void fillHostDetail(TaskTargetDTO target) {
-        HostService hostService = ApplicationContextRegister.getBean(HostService.class);
+        CurrentTenantHostService currentTenantHostService =
+            ApplicationContextRegister.getBean(CurrentTenantHostService.class);
         if (target.getHostNodeList() != null && CollectionUtils.isNotEmpty(target.getHostNodeList().getHostList())) {
             List<ApplicationHostDTO> hostList = target.getHostNodeList().getHostList();
             Set<Long> hostIds = new HashSet<>();
@@ -123,16 +124,14 @@ public class TaskTargetDTO {
             if (hostIds.isEmpty() && hostCloudIps.isEmpty()) {
                 return;
             }
-
-            Map<Long, ApplicationHostDTO> hostIdHostMapping = hostService.listHostsByHostIds(hostIds);
-            Map<String, ApplicationHostDTO> cloudIpHostMapping = hostService.listHostsByIps(hostCloudIps);
+            Map<Long, ApplicationHostDTO> hostIdHostMapping = currentTenantHostService.listHostsByHostIds(hostIds);
+            Map<String, ApplicationHostDTO> cloudIpHostMapping = currentTenantHostService.listHostsByIps(hostCloudIps);
 
             hostList.forEach(hostNode -> {
                 ApplicationHostDTO hostDTO = cloudIpHostMapping.get(hostNode.getCloudIp());
                 if (hostDTO == null && StringUtils.isBlank(hostNode.getIp())) {
                     hostDTO = hostIdHostMapping.get(hostNode.getHostId());
                 }
-
                 if (hostDTO != null) {
                     hostNode.setHostId(hostDTO.getHostId());
                     hostNode.setAgentId(hostDTO.getAgentId());

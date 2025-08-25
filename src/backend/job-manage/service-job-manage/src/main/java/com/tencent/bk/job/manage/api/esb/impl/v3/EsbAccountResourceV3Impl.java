@@ -33,7 +33,9 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.api.esb.v3.EsbAccountV3Resource;
@@ -154,8 +156,9 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
     public EsbResp<EsbAccountV3DTO> createAccount(String username,
                                                   String appCode,
                                                   @AuditRequestBody EsbCreateAccountV3Req req) {
+        User user = JobContextUtil.getUser();
         AccountDTO accountDTO = buildCreateAccountDTO(username, req.getAppId(), req);
-        AccountDTO createdAccountDTO = accountService.createAccount(username, accountDTO);
+        AccountDTO createdAccountDTO = accountService.createAccount(user, accountDTO);
         return EsbResp.buildSuccessResp(createdAccountDTO.toEsbAccountV3DTO());
     }
 
@@ -195,9 +198,10 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
     public EsbResp<EsbAccountV3DTO> deleteAccountUsingPost(String username,
                                                            String appCode,
                                                            @AuditRequestBody EsbDeleteAccountV3Req req) {
+        User user = JobContextUtil.getUser();
         Long appId = appScopeMappingService.getAppIdByScope(req.getScopeType(), req.getScopeId());
         AccountDTO accountDTO = accountService.getAccount(appId, req.getId());
-        accountService.deleteAccount(username, appId, req.getId());
+        accountService.deleteAccount(user, appId, req.getId());
         return EsbResp.buildSuccessResp(accountDTO.toEsbAccountV3DTO());
     }
 }

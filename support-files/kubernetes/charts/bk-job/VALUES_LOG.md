@@ -1,4 +1,78 @@
 # chart values 更新日志
+## 0.9.0
+1. 新增 bk-login/bk-user蓝鲸网关配置
+```yaml
+# 蓝鲸登录 API Gateway url
+bkLoginApiGatewayUrl: "http://bkapi.example.com/api/bk-login/prod"
+# 蓝鲸用户管理 API Gateway url
+bkUserApiGatewayUrl: "http://bkapi.example.com/api/bk-user/prod"
+# 蓝鲸用户管理前端服务 API Gateway url
+bkUserWebApiGatewayUrl: "http://bkapi.example.com/api/bk-user-web/prod"
+# 蓝鲸权限中心 API Gateway url
+bkIamApiGatewayUrl: "http://bkapi.example.com/api/bk-iam/prod"
+# 消息通知 API Gateway url
+bkCmsiApiGatewayUrl: "http://bkapi.example.com/api/cmsi/prod"
+```
+
+2. 新增租户配置
+```yaml
+# 多租户配置
+tenant:
+  # 是否启用多租户
+  enabled: false
+```
+
+3. 去除GSE 1.0相关配置项，不再支持使用1.0的Thrift协议调用GSE接口（但是在GSE 2.0服务端兼容1.0 Agent的前提下，作业平台支持用2.0的HTTP协议调用GSE 2.0接口管控1.0的Agent）
+```yaml
+# 被去除的配置项
+gse:
+  # 是否初始化 GSE1.0 Client。如果需要对接GSE1.0(job.features.gseV2.enabled=false), 必须设置gse.enabled=true
+  enabled: true
+  # 已存在的Tls证书Secret名称
+  existingTlsSecret: ""
+  # Agent状态查询接口相关配置
+  cacheApiServer:
+    # 接口地址host
+    host: "gse-api.example.com"
+    # 端口
+    port: 59313
+  # ssl证书相关配置
+  ssl:
+    # 是否开启SSL，默认开启
+    enabled: true
+    keystore:
+      ## 证书keystore文件单行base64编码值，此处默认值为社区版公开的默认证书keystore内容，正式部署请自行修改
+      base64Content: "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"
+      ## keystore的密码，此处默认值为社区版公开的默认证书keystore的密码，正式部署请自行修改
+      password: "2y#8VI2B4Sm9Dk^J"
+    truststore:
+      ## 证书truststore文件单行base64编码值，此处默认值为社区版公开的默认证书truststore内容，正式部署请自行修改
+      base64Content: "/u3+7QAAAAIAAAABAAAAAgACY2EAAAF8F68PKQAFWC41MDkAAAM4MIIDNDCCAhwCCQC4iHdzcyDjoTANBgkqhkiG9w0BAQUFADBbMQswCQYDVQQGEwJDTjELMAkGA1UECAwCR0QxCzAJBgNVBAcMAlNaMQwwCgYDVQQKDANpZWcxEDAOBgNVBAsMB2JsdWtpbmcxEjAQBgNVBAMMCUdTRVJPT1RDQTAgFw0xOTAyMjUxMDMyMDRaGA8yMTE5MDIwMTEwMzIwNFowWzELMAkGA1UEBhMCQ04xCzAJBgNVBAgMAkdEMQswCQYDVQQHDAJTWjEMMAoGA1UECgwDaWVnMRAwDgYDVQQLDAdibHVraW5nMRIwEAYDVQQDDAlHU0VST09UQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDWRsDA1FRFoVPJkLA0XBk3ZHFg5CGjVDeZJGw2L+Y5SJEt/KTB4sLfwIELO1mldos6VEDuGQGAk3g4oA8qqY5jrZXRRRd/bUanyb1GaXi4oXMnZaTy+uGZcYHTpI0RPuzIMD5e/P5+ecsBlnFnAxCjBY2Ivfg04QuwxYMST2IvCy4qpfeuc+TGvucZVdsVrIvKVqHyCGAmeRvHcGCbh/i0SUi30BXljOy+LVE5PqdWmoyFAelCbMyKclAmv+Yhm38NE8bgahV9Zb8zc4sxiU3gGqyrXUzTFII6/hdHPyhNYKniUWxaI7BWkfFyJ75aJPcawqhBoLCA4XVFKpUNBGQHAgMBAAEwDQYJKoZIhvcNAQEFBQADggEBAMnrbZFPGtfHBio/bl7V1as8NNeJWAPRj5dPr2cPBFyPHyAccixlLlh0wXr1EvyBpmENQ3P3IuPq+j37AcJS4YnS/1ncZhDZfOVIOxGvjaMIOTADQj4SIB2FMv2541Z0Y51WYwDO8x36YKBVJZKQ+xVhFI4ZknkZS7gTGyuYDy8FT020Yi4ufAhga8Zw3qun3RzE9b0Ua8XGfPIVuqB7pk5Bn++ou/2t6eb2qkEKBo/lRqHxWQk1og2L+7tibhK3D48WATZNKd81Sm3RYOMpmjrgVwIG/2FGInWoa+VdbVvxdKFSzRBLHMMETockEQTwmKFT9neXwxNM5oeT+W+Q2QrbpmZGDsc6xjUy7MDM2PvfOjI3OA=="
+      ## truststore的密码，此处默认值为社区版公开的默认证书truststore的密码，正式部署请自行修改
+      password: "2y#8VI2B4Sm9Dk^J"
+  # 任务下发接口相关配置
+  taskserver:
+    # 接口地址host
+    host: "gse-task.example.com"
+    # 端口
+    port: 48673
+  # 服务发现配置
+  server:
+    discovery:
+      # 服务发现模式：取值为zookeeper，不使用zookeeper则无需配置
+      type: zookeeper
+    zookeeper:
+      connect:
+        # zookeeper连接字符串，由host:port构成
+        string: "gse-zk.example.com:2181"
+```
+
+4. 去除权限中心后台接口配置（调用权限中心的请求改为全部走APIGW）
+```yaml
+# 蓝鲸 IAM 后台 url
+bkIamApiUrl: "http://bkiam-api.example.com"
+```
+
 ## 0.8.9
 1. 支持多集群部署（共享MySQL、MongoDB、Redis、周边系统等基础组件）
 ```yaml

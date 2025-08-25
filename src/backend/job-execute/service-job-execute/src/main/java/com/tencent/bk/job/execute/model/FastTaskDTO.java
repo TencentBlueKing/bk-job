@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
 import lombok.Builder;
 import lombok.Data;
@@ -53,6 +54,10 @@ public class FastTaskDTO {
      */
     @Builder.Default
     private Boolean startTask = true;
+    /**
+     * 操作者
+     */
+    private User operator;
 
     /**
      * 目标主机密码

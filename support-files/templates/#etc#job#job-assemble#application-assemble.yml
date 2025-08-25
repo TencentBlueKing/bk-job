@@ -367,7 +367,7 @@ job:
     notify:
       default:
         channels:
-          available: mail
+          available: mail,weixin,rtx
   execute:
     # 执行日志导出产生的临时文件相关配置
     log-export:

@@ -57,6 +57,21 @@ public class HeartBeatRedisLock {
         this.config = HeartBeatRedisLockConfig.getDefault();
     }
 
+    /**
+     * 在不加锁的情况下查看锁定Key的当前值，如果尚未锁定，该值为null
+     *
+     * @return 锁定Key的当前值
+     */
+    public String peekLockKeyValue() {
+        String realLockKey = getRealLockKey();
+        return redisTemplate.opsForValue().get(realLockKey);
+    }
+
+    /**
+     * 尝试对指定的Key加锁，如果加锁成功，开启心跳线程维持该锁
+     *
+     * @return 加锁结果
+     */
     public LockResult lock() {
         boolean lockGotten;
         try {

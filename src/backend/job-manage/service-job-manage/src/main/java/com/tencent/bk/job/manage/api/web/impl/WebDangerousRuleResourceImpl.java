@@ -29,13 +29,15 @@ import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.web.WebDangerousRuleResource;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import com.tencent.bk.job.manage.model.query.DangerousRuleQuery;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AddOrUpdateDangerousRuleReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.MoveDangerousRuleReq;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
-import com.tencent.bk.job.manage.service.DangerousRuleService;
+import com.tencent.bk.job.manage.service.CurrentTenantDangerousRuleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -45,10 +47,10 @@ import java.util.List;
 @RestController
 @Slf4j
 public class WebDangerousRuleResourceImpl implements WebDangerousRuleResource {
-    private final DangerousRuleService dangerousRuleService;
+    private final CurrentTenantDangerousRuleService dangerousRuleService;
 
     @Autowired
-    public WebDangerousRuleResourceImpl(DangerousRuleService dangerousRuleService) {
+    public WebDangerousRuleResourceImpl(CurrentTenantDangerousRuleService dangerousRuleService) {
         this.dangerousRuleService = dangerousRuleService;
     }
 
@@ -76,7 +78,8 @@ public class WebDangerousRuleResourceImpl implements WebDangerousRuleResource {
     @Override
     @AuditEntry(actionId = ActionId.HIGH_RISK_DETECT_RULE)
     public Response<DangerousRuleVO> createDangerousRule(String username, AddOrUpdateDangerousRuleReq req) {
-        DangerousRuleDTO dangerousRule = dangerousRuleService.createDangerousRule(username, req);
+        User user = JobContextUtil.getUser();
+        DangerousRuleDTO dangerousRule = dangerousRuleService.createDangerousRule(user, req);
         return Response.buildSuccessResp(dangerousRule.toVO());
     }
 
@@ -85,20 +88,23 @@ public class WebDangerousRuleResourceImpl implements WebDangerousRuleResource {
     public Response<DangerousRuleVO> updateDangerousRule(String username,
                                                          Long id,
                                                          AddOrUpdateDangerousRuleReq req) {
+        User user = JobContextUtil.getUser();
         req.setId(id);
-        DangerousRuleDTO dangerousRule = dangerousRuleService.updateDangerousRule(username, req);
+        DangerousRuleDTO dangerousRule = dangerousRuleService.updateDangerousRule(user, req);
         return Response.buildSuccessResp(dangerousRule.toVO());
     }
 
     @Override
     @AuditEntry(actionId = ActionId.HIGH_RISK_DETECT_RULE)
     public Response<Integer> moveDangerousRule(String username, MoveDangerousRuleReq req) {
-        return Response.buildSuccessResp(dangerousRuleService.moveDangerousRule(username, req));
+        User user = JobContextUtil.getUser();
+        return Response.buildSuccessResp(dangerousRuleService.moveDangerousRule(user, req));
     }
 
     @Override
     @AuditEntry(actionId = ActionId.HIGH_RISK_DETECT_RULE)
     public Response<Integer> deleteDangerousRuleById(String username, Long id) {
-        return Response.buildSuccessResp(dangerousRuleService.deleteDangerousRuleById(username, id));
+        User user = JobContextUtil.getUser();
+        return Response.buildSuccessResp(dangerousRuleService.deleteDangerousRuleById(user, id));
     }
 }
