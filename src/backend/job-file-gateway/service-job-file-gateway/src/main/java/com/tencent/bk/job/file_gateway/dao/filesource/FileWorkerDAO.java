@@ -58,7 +58,15 @@ public interface FileWorkerDAO {
 
     Long countOnlineFileWorkers();
 
-    boolean existsFileWorker(String accessHost, Integer accessPort);
+    boolean existsFileWorker(String clusterName, String accessHost, Integer accessPort);
 
-    FileWorkerDTO getFileWorker(String accessHost, Integer accessPort);
+    FileWorkerDTO getFileWorker(String clusterName, String accessHost, Integer accessPort);
+
+    /**
+     * 获取集群对应的workerId列表
+     *
+     * @param clusterName 集群名称
+     * @return workerId列表
+     */
+    List<Long> listWorkerIdByClusterName(String clusterName);
 }

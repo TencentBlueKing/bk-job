@@ -33,6 +33,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
  * 下线事件处理器
  */
@@ -71,7 +73,8 @@ public class OffLineEventHandler implements EventHandler {
     private void offLine() {
         workerStateMachine.offlineStart();
         try {
-            opService.doOffLine();
+            List<String> runningTaskIdList = opService.doOffLine();
+            log.info("OffLine success, runningTaskIdList={}", runningTaskIdList);
             workerStateMachine.offlineSuccess();
         } catch (Throwable t) {
             log.warn("Fail to offLine", t);

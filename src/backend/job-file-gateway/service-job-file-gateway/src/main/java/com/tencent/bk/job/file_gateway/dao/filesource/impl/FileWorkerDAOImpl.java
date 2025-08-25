@@ -43,6 +43,7 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
+import org.jooq.TableField;
 import org.jooq.UpdateConditionStep;
 import org.jooq.UpdateSetFirstStep;
 import org.jooq.UpdateSetMoreStep;
@@ -66,34 +67,39 @@ import java.util.stream.Collectors;
 public class FileWorkerDAOImpl implements FileWorkerDAO {
 
     public static final String GROUP_CONCAT_SEPARATOR = ",";
-    public static final String KEY_FILE_WORKER_ID = "id";
-    public static final String KEY_FILE_WORKER_APP_ID = "appId";
-    public static final String KEY_FILE_WORKER_NAME = "name";
-    public static final String KEY_FILE_WORKER_DESCRIPTION = "description";
-    public static final String KEY_FILE_WORKER_TOKEN = "token";
-    public static final String KEY_FILE_WORKER_ACCESS_HOST = "accessHost";
-    public static final String KEY_FILE_WORKER_ACCESS_PORT = "accessPort";
-    public static final String KEY_FILE_WORKER_CLOUD_AREA_ID = "cloudAreaId";
-    public static final String KEY_FILE_WORKER_INNER_IP_PROTOCOL = "innerIpProtocol";
-    public static final String KEY_FILE_WORKER_INNER_IP = "innerIp";
-    public static final String KEY_FILE_WORKER_CPU_OVERLOAD = "cpuOverload";
-    public static final String KEY_FILE_WORKER_MEM_RATE = "memRate";
-    public static final String KEY_FILE_WORKER_MEM_FREE_SPACE = "memFreeSpace";
-    public static final String KEY_FILE_WORKER_DISK_RATE = "diskRate";
-    public static final String KEY_FILE_WORKER_DISK_FREE_SPACE = "diskFreeSpace";
-    public static final String KEY_FILE_WORKER_VERSION = "version";
-    public static final String KEY_FILE_WORKER_ONLINE_STATUS = "onlineStatus";
-    public static final String KEY_FILE_WORKER_LAST_HEART_BEAT = "lastHeartBeat";
-    public static final String KEY_FILE_WORKER_CREATOR = "creator";
-    public static final String KEY_FILE_WORKER_CREATE_TIME = "createTime";
-    public static final String KEY_FILE_WORKER_LAST_MODIFY_USER = "lastModifyUser";
-    public static final String KEY_FILE_WORKER_LAST_MODIFY_TIME = "lastModifyTime";
     public static final String KEY_FILE_WORKER_ABILITY_TAGS = "abilityTags";
     private static final FileWorker defaultTable = FileWorker.FILE_WORKER;
     private static final FileWorkerAbility tFileWorkerAbility = FileWorkerAbility.FILE_WORKER_ABILITY;
     private final DSLContext defaultContext;
     private final FileWorkerAbilityDAO fileWorkerAbilityDAO;
     private final FileWorkerTagDAO fileWorkerTagDAO;
+
+    private static final TableField<?, ?>[] ALL_FIELDS = {
+        defaultTable.ID,
+        defaultTable.APP_ID,
+        defaultTable.NAME,
+        defaultTable.DESCRIPTION,
+        defaultTable.TOKEN,
+        defaultTable.CLUSTER_NAME,
+        defaultTable.ACCESS_HOST,
+        defaultTable.ACCESS_PORT,
+        defaultTable.CLOUD_AREA_ID,
+        defaultTable.INNER_IP_PROTOCOL,
+        defaultTable.INNER_IP,
+        defaultTable.CPU_OVERLOAD,
+        defaultTable.MEM_RATE,
+        defaultTable.MEM_FREE_SPACE,
+        defaultTable.DISK_RATE,
+        defaultTable.DISK_FREE_SPACE,
+        defaultTable.VERSION,
+        defaultTable.ONLINE_STATUS,
+        defaultTable.LAST_HEART_BEAT,
+        defaultTable.CREATOR,
+        defaultTable.CREATE_TIME,
+        defaultTable.LAST_MODIFY_USER,
+        defaultTable.LAST_MODIFY_TIME,
+        defaultTable.CONFIG_STR
+    };
 
     @Autowired
     public FileWorkerDAOImpl(@Qualifier("job-file-gateway-dsl-context") DSLContext dslContext,
@@ -118,6 +124,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
             defaultTable.NAME,
             defaultTable.DESCRIPTION,
             defaultTable.TOKEN,
+            defaultTable.CLUSTER_NAME,
             defaultTable.ACCESS_HOST,
             defaultTable.ACCESS_PORT,
             defaultTable.CLOUD_AREA_ID,
@@ -141,6 +148,7 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
             fileWorkerDTO.getName(),
             fileWorkerDTO.getDescription(),
             fileWorkerDTO.getToken(),
+            fileWorkerDTO.getClusterName(),
             fileWorkerDTO.getAccessHost(),
             fileWorkerDTO.getAccessPort(),
             fileWorkerDTO.getCloudAreaId(),
@@ -178,6 +186,9 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         UpdateSetFirstStep<FileWorkerRecord> query = defaultContext.update(defaultTable);
         UpdateSetMoreStep<FileWorkerRecord> updateSetMoreStep = query.set(defaultTable.APP_ID,
             fileWorkerDTO.getAppId());
+        if (fileWorkerDTO.getClusterName() != null) {
+            updateSetMoreStep = updateSetMoreStep.set(defaultTable.CLUSTER_NAME, fileWorkerDTO.getClusterName());
+        }
         if (fileWorkerDTO.getAccessHost() != null) {
             updateSetMoreStep = updateSetMoreStep.set(defaultTable.ACCESS_HOST, fileWorkerDTO.getAccessHost());
         }
@@ -322,7 +333,11 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
     public FileWorkerDTO getFileWorkerById(Long id) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(defaultTable.ID.eq(id));
-        Record record = defaultContext.selectFrom(defaultTable).where(conditions).fetchOne();
+        Record record = defaultContext
+            .select(ALL_FIELDS)
+            .from(defaultTable)
+            .where(conditions)
+            .fetchOne();
         if (record == null) {
             return null;
         } else {
@@ -403,16 +418,18 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         return countFileWorkersByConditions(conditions);
     }
 
-    public boolean existsFileWorker(String accessHost, Integer accessPort) {
+    public boolean existsFileWorker(String clusterName, String accessHost, Integer accessPort) {
         List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.CLUSTER_NAME.eq(clusterName));
         conditions.add(defaultTable.ACCESS_HOST.eq(accessHost));
         conditions.add(defaultTable.ACCESS_PORT.eq(accessPort));
         return existsFileWorkerByConditions(defaultContext, conditions);
     }
 
     @Override
-    public FileWorkerDTO getFileWorker(String accessHost, Integer accessPort) {
+    public FileWorkerDTO getFileWorker(String clusterName, String accessHost, Integer accessPort) {
         List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.CLUSTER_NAME.eq(clusterName));
         conditions.add(defaultTable.ACCESS_HOST.eq(accessHost));
         conditions.add(defaultTable.ACCESS_PORT.eq(accessPort));
         List<FileWorkerDTO> fileWorkerDTOList = listFileWorkersByConditions(conditions);
@@ -423,11 +440,21 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         }
     }
 
+    @Override
+    public List<Long> listWorkerIdByClusterName(String clusterName) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.CLUSTER_NAME.eq(clusterName));
+        return defaultContext.select(defaultTable.ID)
+            .from(defaultTable)
+            .where(conditions)
+            .fetchInto(Long.class);
+    }
+
     private boolean existsFileWorkerByConditions(DSLContext dslContext, Collection<Condition> conditions) {
         if (conditions == null) {
             conditions = new ArrayList<>();
         }
-        return dslContext.fetchExists(dslContext.selectOne().from(defaultTable).where(conditions));
+        return dslContext.fetchExists(defaultTable, conditions);
     }
 
     public List<FileWorkerDTO> listFileWorkersByConditions(Collection<Condition> conditions) {
@@ -436,30 +463,31 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         }
         Result<Record> records = null;
         val query = defaultContext.select(
-            defaultTable.ID.as(KEY_FILE_WORKER_ID),
-            defaultTable.APP_ID.as(KEY_FILE_WORKER_APP_ID),
-            defaultTable.NAME.as(KEY_FILE_WORKER_NAME),
-            defaultTable.DESCRIPTION.as(KEY_FILE_WORKER_DESCRIPTION),
-            defaultTable.TOKEN.as(KEY_FILE_WORKER_TOKEN),
-            defaultTable.ACCESS_HOST.as(KEY_FILE_WORKER_ACCESS_HOST),
-            defaultTable.ACCESS_PORT.as(KEY_FILE_WORKER_ACCESS_PORT),
-            defaultTable.CLOUD_AREA_ID.as(KEY_FILE_WORKER_CLOUD_AREA_ID),
-            defaultTable.INNER_IP_PROTOCOL.as(KEY_FILE_WORKER_INNER_IP_PROTOCOL),
-            defaultTable.INNER_IP.as(KEY_FILE_WORKER_INNER_IP),
-            defaultTable.CPU_OVERLOAD.as(KEY_FILE_WORKER_CPU_OVERLOAD),
-            defaultTable.MEM_RATE.as(KEY_FILE_WORKER_MEM_RATE),
-            defaultTable.MEM_FREE_SPACE.as(KEY_FILE_WORKER_MEM_FREE_SPACE),
-            defaultTable.DISK_RATE.as(KEY_FILE_WORKER_DISK_RATE),
-            defaultTable.DISK_FREE_SPACE.as(KEY_FILE_WORKER_DISK_FREE_SPACE),
-            defaultTable.VERSION.as(KEY_FILE_WORKER_VERSION),
-            defaultTable.ONLINE_STATUS.as(KEY_FILE_WORKER_ONLINE_STATUS),
-            defaultTable.LAST_HEART_BEAT.as(KEY_FILE_WORKER_LAST_HEART_BEAT),
-            defaultTable.CREATOR.as(KEY_FILE_WORKER_CREATOR),
-            defaultTable.CREATE_TIME.as(KEY_FILE_WORKER_CREATE_TIME),
-            defaultTable.LAST_MODIFY_USER.as(KEY_FILE_WORKER_LAST_MODIFY_USER),
-            defaultTable.LAST_MODIFY_TIME.as(KEY_FILE_WORKER_LAST_MODIFY_TIME),
-            DSL.groupConcat(tFileWorkerAbility.TAG).separator(GROUP_CONCAT_SEPARATOR).as(KEY_FILE_WORKER_ABILITY_TAGS)
-        )
+                defaultTable.ID,
+                defaultTable.APP_ID,
+                defaultTable.NAME,
+                defaultTable.DESCRIPTION,
+                defaultTable.TOKEN,
+                defaultTable.CLUSTER_NAME,
+                defaultTable.ACCESS_HOST,
+                defaultTable.ACCESS_PORT,
+                defaultTable.CLOUD_AREA_ID,
+                defaultTable.INNER_IP_PROTOCOL,
+                defaultTable.INNER_IP,
+                defaultTable.CPU_OVERLOAD,
+                defaultTable.MEM_RATE,
+                defaultTable.MEM_FREE_SPACE,
+                defaultTable.DISK_RATE,
+                defaultTable.DISK_FREE_SPACE,
+                defaultTable.VERSION,
+                defaultTable.ONLINE_STATUS,
+                defaultTable.LAST_HEART_BEAT,
+                defaultTable.CREATOR,
+                defaultTable.CREATE_TIME,
+                defaultTable.LAST_MODIFY_USER,
+                defaultTable.LAST_MODIFY_TIME,
+                DSL.groupConcat(tFileWorkerAbility.TAG).separator(GROUP_CONCAT_SEPARATOR).as(KEY_FILE_WORKER_ABILITY_TAGS)
+            )
             .from(defaultTable)
             .leftJoin(tFileWorkerAbility)
             .on(defaultTable.ID.eq(tFileWorkerAbility.WORKER_ID))
@@ -481,60 +509,44 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
     }
 
     private FileWorkerDTO convertRecordToDto(Record record, List<String> abilityTagList) {
-        FileWorkerDTO fileWorkerDTO = new FileWorkerDTO();
-        fileWorkerDTO.setId(record.get(defaultTable.ID));
-        fileWorkerDTO.setAppId(record.get(defaultTable.APP_ID));
-        fileWorkerDTO.setName(record.get(defaultTable.NAME));
-        fileWorkerDTO.setDescription(record.get(defaultTable.DESCRIPTION));
-        fileWorkerDTO.setToken(record.get(defaultTable.TOKEN));
-        fileWorkerDTO.setAccessHost(record.get(defaultTable.ACCESS_HOST));
-        fileWorkerDTO.setAccessPort(record.get(defaultTable.ACCESS_PORT));
-        fileWorkerDTO.setCloudAreaId(record.get(defaultTable.CLOUD_AREA_ID));
-        fileWorkerDTO.setInnerIpProtocol(record.get(defaultTable.INNER_IP_PROTOCOL));
-        fileWorkerDTO.setInnerIp(record.get(defaultTable.INNER_IP));
-        fileWorkerDTO.setCpuOverload(JooqTypeUtil.convertToFloat(record.get(defaultTable.CPU_OVERLOAD)));
-        fileWorkerDTO.setMemRate(JooqTypeUtil.convertToFloat((record.get(defaultTable.MEM_RATE))));
-        fileWorkerDTO.setMemFreeSpace(JooqTypeUtil.convertToFloat((record.get(defaultTable.MEM_FREE_SPACE))));
-        fileWorkerDTO.setDiskRate(JooqTypeUtil.convertToFloat((record.get(defaultTable.DISK_RATE))));
-        fileWorkerDTO.setDiskFreeSpace(JooqTypeUtil.convertToFloat((record.get(defaultTable.DISK_FREE_SPACE))));
-        fileWorkerDTO.setVersion((record.get(defaultTable.VERSION)));
-        fileWorkerDTO.setOnlineStatus((record.get(defaultTable.ONLINE_STATUS)));
-        fileWorkerDTO.setLastHeartBeat((record.get(defaultTable.LAST_HEART_BEAT)));
-        fileWorkerDTO.setCreator((record.get(defaultTable.CREATOR)));
-        fileWorkerDTO.setCreateTime((record.get(defaultTable.CREATE_TIME)));
-        fileWorkerDTO.setLastModifyUser((record.get(defaultTable.LAST_MODIFY_USER)));
-        fileWorkerDTO.setLastModifyTime((record.get(defaultTable.LAST_MODIFY_TIME)));
+        FileWorkerDTO fileWorkerDTO = extractBasicField(record);
         fileWorkerDTO.setConfigStr((record.get(defaultTable.CONFIG_STR)));
         fileWorkerDTO.setAbilityTagList(abilityTagList);
         return fileWorkerDTO;
     }
 
     private FileWorkerDTO convertRecordToDto(Record record) {
-        FileWorkerDTO fileWorkerDTO = new FileWorkerDTO();
-        fileWorkerDTO.setId((Long) (record.get(KEY_FILE_WORKER_ID)));
-        fileWorkerDTO.setAppId((Long) (record.get(KEY_FILE_WORKER_APP_ID)));
-        fileWorkerDTO.setName((String) (record.get(KEY_FILE_WORKER_NAME)));
-        fileWorkerDTO.setDescription((String) (record.get(KEY_FILE_WORKER_DESCRIPTION)));
-        fileWorkerDTO.setToken((String) (record.get(KEY_FILE_WORKER_TOKEN)));
-        fileWorkerDTO.setAccessHost((String) (record.get(KEY_FILE_WORKER_ACCESS_HOST)));
-        fileWorkerDTO.setAccessPort((Integer) (record.get(KEY_FILE_WORKER_ACCESS_PORT)));
-        fileWorkerDTO.setCloudAreaId((Long) (record.get(KEY_FILE_WORKER_CLOUD_AREA_ID)));
-        fileWorkerDTO.setInnerIpProtocol((String) (record.get(KEY_FILE_WORKER_INNER_IP_PROTOCOL)));
-        fileWorkerDTO.setInnerIp((String) (record.get(KEY_FILE_WORKER_INNER_IP)));
-        fileWorkerDTO.setCpuOverload(JooqTypeUtil.convertToFloat((Double) (record.get(KEY_FILE_WORKER_CPU_OVERLOAD))));
-        fileWorkerDTO.setMemRate(JooqTypeUtil.convertToFloat((Double) (record.get(KEY_FILE_WORKER_MEM_RATE))));
-        fileWorkerDTO.setMemFreeSpace(JooqTypeUtil.convertToFloat((Double) (record.get(KEY_FILE_WORKER_MEM_FREE_SPACE))));
-        fileWorkerDTO.setDiskRate(JooqTypeUtil.convertToFloat((Double) (record.get(KEY_FILE_WORKER_DISK_RATE))));
-        fileWorkerDTO.setDiskFreeSpace(JooqTypeUtil.convertToFloat((Double) (record.get(KEY_FILE_WORKER_DISK_FREE_SPACE))));
-        fileWorkerDTO.setVersion((String) (record.get(KEY_FILE_WORKER_VERSION)));
-        fileWorkerDTO.setOnlineStatus((Byte) (record.get(KEY_FILE_WORKER_ONLINE_STATUS)));
-        fileWorkerDTO.setLastHeartBeat((Long) (record.get(KEY_FILE_WORKER_LAST_HEART_BEAT)));
-        fileWorkerDTO.setCreator((String) (record.get(KEY_FILE_WORKER_CREATOR)));
-        fileWorkerDTO.setCreateTime((Long) (record.get(KEY_FILE_WORKER_CREATE_TIME)));
-        fileWorkerDTO.setLastModifyUser((String) (record.get(KEY_FILE_WORKER_LAST_MODIFY_USER)));
-        fileWorkerDTO.setLastModifyTime((Long) (record.get(KEY_FILE_WORKER_LAST_MODIFY_TIME)));
+        FileWorkerDTO fileWorkerDTO = extractBasicField(record);
         String abilityTagStr = (String) (record.get(KEY_FILE_WORKER_ABILITY_TAGS));
         fileWorkerDTO.setAbilityTagList(StringUtil.strToList(abilityTagStr, String.class, GROUP_CONCAT_SEPARATOR));
+        return fileWorkerDTO;
+    }
+
+    private FileWorkerDTO extractBasicField(Record record) {
+        FileWorkerDTO fileWorkerDTO = new FileWorkerDTO();
+        fileWorkerDTO.setId(record.get(defaultTable.ID));
+        fileWorkerDTO.setAppId(record.get(defaultTable.APP_ID));
+        fileWorkerDTO.setName(record.get(defaultTable.NAME));
+        fileWorkerDTO.setDescription(record.get(defaultTable.DESCRIPTION));
+        fileWorkerDTO.setToken(record.get(defaultTable.TOKEN));
+        fileWorkerDTO.setClusterName(record.get(defaultTable.CLUSTER_NAME));
+        fileWorkerDTO.setAccessHost(record.get(defaultTable.ACCESS_HOST));
+        fileWorkerDTO.setAccessPort(record.get(defaultTable.ACCESS_PORT));
+        fileWorkerDTO.setCloudAreaId(record.get(defaultTable.CLOUD_AREA_ID));
+        fileWorkerDTO.setInnerIpProtocol(record.get(defaultTable.INNER_IP_PROTOCOL));
+        fileWorkerDTO.setInnerIp(record.get(defaultTable.INNER_IP));
+        fileWorkerDTO.setCpuOverload(JooqTypeUtil.convertToFloat(record.get(defaultTable.CPU_OVERLOAD)));
+        fileWorkerDTO.setMemRate(JooqTypeUtil.convertToFloat(record.get(defaultTable.MEM_RATE)));
+        fileWorkerDTO.setMemFreeSpace(JooqTypeUtil.convertToFloat(record.get(defaultTable.MEM_FREE_SPACE)));
+        fileWorkerDTO.setDiskRate(JooqTypeUtil.convertToFloat(record.get(defaultTable.DISK_RATE)));
+        fileWorkerDTO.setDiskFreeSpace(JooqTypeUtil.convertToFloat(record.get(defaultTable.DISK_FREE_SPACE)));
+        fileWorkerDTO.setVersion(record.get(defaultTable.VERSION));
+        fileWorkerDTO.setOnlineStatus(record.get(defaultTable.ONLINE_STATUS));
+        fileWorkerDTO.setLastHeartBeat(record.get(defaultTable.LAST_HEART_BEAT));
+        fileWorkerDTO.setCreator(record.get(defaultTable.CREATOR));
+        fileWorkerDTO.setCreateTime(record.get(defaultTable.CREATE_TIME));
+        fileWorkerDTO.setLastModifyUser(record.get(defaultTable.LAST_MODIFY_USER));
+        fileWorkerDTO.setLastModifyTime(record.get(defaultTable.LAST_MODIFY_TIME));
         return fileWorkerDTO;
     }
 }
