@@ -6,11 +6,12 @@ Gets the value of the job instance global variable
 
 #### Interface parameters
 
-| Fields          | Type   | Required | Description                                                                                 |
-|-----------------|--------|----------|---------------------------------------------------------------------------------------------|
-| bk_scope_type   | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
-| bk_scope_id     | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| job_instance_id | long   | yes      | Job instance ID                                                                             |
+| Fields          | Type   | Required | Description                                                                                                 |
+|-----------------|--------|----------|-------------------------------------------------------------------------------------------------------------|
+| bk_scope_type   | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                 |
+| bk_scope_id     | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                 |
+| bk_biz_id       | long   | yes      | Deprecated. Business ID. This field has been deprecated and replaced by the field bk_scope_type+bk_scope_id |
+| job_instance_id | long   | yes      | Job instance ID                                                                                             |
 
 ### Example of request
 
@@ -24,44 +25,44 @@ Gets the value of the job instance global variable
 
 ```json
 {
-  "result": true,
-  "code": 0,
-  "message": "",
-  "data": {
-    "job_instance_id": 100,
-    "step_instance_var_list": [
-      {
-        "step_instance_id": 292778,
-        "global_var_list": [
-          {
-            "name": "aa",
-            "value": "AA",
-            "type": 1
-          },
-          {
-            "name": "password",
-            "value": "mypassword",
-            "type": 4
-          }
+    "result": true,
+    "code": 0,
+    "data": {
+        "job_instance_id": 100,
+        "step_instance_var_list": [
+            {
+                "step_instance_id": 292778,
+                "global_var_list": [
+                    {
+                        "name": "aa",
+                        "value": "AA",
+                        "type": 1
+                    },
+                    {
+                        "name": "password",
+                        "value": "mypassword",
+                        "type": 4
+                    }
+                ]
+            },
+            {
+                "step_instance_id": 292779,
+                "global_var_list": [
+                    {
+                        "name": "aa",
+                        "value": "AAAA",
+                        "type": 1
+                    },
+                    {
+                        "name": "password",
+                        "value": "mypassword",
+                        "type": 4
+                    }
+                ]
+            }
         ]
-      },
-      {
-        "step_instance_id": 292779,
-        "global_var_list": [
-          {
-            "name": "aa",
-            "value": "AAAA",
-            "type": 1
-          },
-          {
-            "name": "password",
-            "value": "mypassword",
-            "type": 4
-          }
-        ]
-      }
-    ]
-  }
+    },
+    "job_request_id": "xxx"
 }
 
 ```
@@ -72,25 +73,25 @@ Gets the value of the job instance global variable
 
 #### data
 
-| Fields                 | Type  | Description                                                                    |
-|------------------------|-------|--------------------------------------------------------------------------------|
-| job_instance_id        | long  | Job instance ID                                                                |
-| step_instance_var_list | array | Job step instance global variable value. See step_instance_var for definitions |
+| Fields                 | Type  | Whether it must exist | Description                                                                    |
+|------------------------|-------|-----------------------|--------------------------------------------------------------------------------|
+| job_instance_id        | long  | yes                   | Job instance ID                                                                |
+| step_instance_var_list | array | no                    | Job step instance global variable value. See step_instance_var for definitions |
 
 #### step_instance_var
 
-| Fields           | Type  | Description                                                   |
-|------------------|-------|---------------------------------------------------------------|
-| step_instance_id | long  | Step instance ID                                              |
-| global_var_list  | array | For global variable value list, see global_var for definition |
+| Fields           | Type  | Whether it must exist | Description                                                   |
+|------------------|-------|-----------------------|---------------------------------------------------------------|
+| step_instance_id | long  | yes                   | Step instance ID                                              |
+| global_var_list  | array | no                    | For global variable value list, see global_var for definition |
 
 #### global_var
 
-| Fields | Type   | Required | Description                                                                                                   |
-|--------|--------|----------|---------------------------------------------------------------------------------------------------------------|
-| id     | long   | no       | Global variable id, unique identification. If the id is empty, then name is used as the unique identification |
-| name   | string | no       | Global variable name                                                                                          |
-| value  | string | no       | Values of global variables of String, Ciphertext, Namespace, and Array types                                  |
-| server | object | no       | For the value of the host type global variable, see server definition                                         |
+| Fields | Type   | Whether it must exist | Description                                                                                                   |
+|--------|--------|-----------------------|---------------------------------------------------------------------------------------------------------------|
+| id     | long   | yes                   | Global variable id, unique identification. If the id is empty, then name is used as the unique identification |
+| name   | string | yes                   | Global variable name                                                                                          |
+| value  | string | no                    | Values of global variables of String, Ciphertext, Namespace, and Array types                                  |
+| server | object | no                    | For the value of the host type global variable, see server definition                                         |
 
 {% include '_generic_server.md.j2' %}

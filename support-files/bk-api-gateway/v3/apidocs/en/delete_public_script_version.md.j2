@@ -7,19 +7,15 @@ Delete script version
 #### Interface parameters
 
 | Fields            | Type   | Required | Description              |
-| ----------------- | ------ | -------- | ------------------------ |
+|-------------------|--------|----------|--------------------------|
 | script_id         | string | yes      | Public script id         |
 | script_version_id | long   | yes      | Public script version id |
-
 
 ### Example of request
 
 ```json
 {
-    "bk_app_code": "esb_test",
-    "bk_app_secret": "xxx",
-    "bk_token": "xxx",
-    "script_id":"4537fb49ec0840a1b91cef4179c99f9c",
+    "script_id": "4537fb49ec0840a1b91cef4179c99f9c",
     "script_version_id": "1000017"
 }
 ```
@@ -29,7 +25,8 @@ Delete script version
 ```json
 {
     "code": 0,
-    "result": true
+    "result": true,
+    "job_request_id": "xxx"
 }
 ```
 

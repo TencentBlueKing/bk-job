@@ -1,28 +1,26 @@
 ### Function Description
 
-After the online script version is launched, the previous online script will be set to offline status, but it will not affect the use of homework.
+After the online script version is launched, the previous online script will be set to offline status, but it will not
+affect the use of homework.
 
 ### Request Parameters
 
 #### Interface parameters
 
-| Fields            | Type   | Required | Description                                                  |
-| ----------------- | ------ | -------- | ------------------------------------------------------------ |
-| bk_scope_type     | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set |
-| bk_scope_id       | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| script_id         | string | yes      | Script id                                                    |
-| script_version_id | long   | yes      | Script version id                                            |
-
+| Fields            | Type   | Required | Description                                                                                                 |
+|-------------------|--------|----------|-------------------------------------------------------------------------------------------------------------|
+| bk_scope_type     | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                 |
+| bk_scope_id       | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                 |
+| bk_biz_id         | long   | yes      | Deprecated. Business ID. This field has been deprecated and replaced by the field bk_scope_type+bk_scope_id |
+| script_id         | string | yes      | Script id                                                                                                   |
+| script_version_id | long   | yes      | Script version id                                                                                           |
 
 ### Example of request
 
 ```json
 {
-    "bk_app_code": "esb_test",
-    "bk_app_secret": "xxx",
-    "bk_token": "xxx",
-    "bk_scope_type":"biz",
-    "bk_scope_id":"2",
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
     "script_id": "4a350b0e0707450e93326f6ace921072",
     "script_version_id": 1000019
 }
@@ -38,7 +36,8 @@ After the online script version is launched, the previous online script will be 
         "id": 1000019,
         "script_id": "4a350b0e0707450e93326f6ace921072",
         "status": 1
-    }
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -48,8 +47,8 @@ After the online script version is launched, the previous online script will be 
 
 #### data
 
-| Fields            | Type   | Description                                                  |
-| ----------------- | ------ | ------------------------------------------------------------ |
-| script_id                | string | Script id                                                    |
-| id | long   | Script version id                                            |
-| status            | int    | Script version status (0: Not online, 1: Online, 2: Offline, 3: Disabled) |
+| Fields    | Type   | Whether it must exist | Description                                                               |
+|-----------|--------|-----------------------|---------------------------------------------------------------------------|
+| script_id | string | yes                   | Script id                                                                 |
+| id        | long   | yes                   | Script version id                                                         |
+| status    | int    | yes                   | Script version status (0: Not online, 1: Online, 2: Offline, 3: Disabled) |

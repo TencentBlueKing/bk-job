@@ -19,6 +19,7 @@
 |---------------|------------|--------|--------------------------------------------------------------------------------------------------------------------------------------|
 | bk_scope_type | string | 是 | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                                                                                   |
 | bk_scope_id | string | 是 | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                                                                              |
+| bk_biz_id     | long   | 是   | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
 | script_version_id | long | 否 | 脚本版本ID。当script_version_id不为空的时候，使用script_version_id对应的脚本版本                                                                           |
 | script_id | string | 否 | 脚本ID。当传入script_id，且script_version_id为空的时候，使用脚本的上线版本                                                                                  |
 | script_content | string | 否 | 脚本内容Base64。如果不存在script_version_id和script_id,那么使用script_content。优先级：script_version_id>script_id>script_content                        |
@@ -31,7 +32,7 @@
 | is_param_sensitive | boolean | 否 | 敏感参数将会在执行详情页面上隐藏。默认为 false                                                                                                           |
 | script_language | int | 否 | 脚本语言：1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell。当使用script_content传入自定义脚本的时候，需要指定script_language                        |
 | execute_target | object | 是 | 执行目标，定义见 execute_target                                                                                                              |
-| callback | object | 否 | 回调配置。当任务执行完成后，JOB会调用该URL告知任务执行结果。回调协议参考callback_protocol组件文档 ｜                                                                       
+| callback | object | 否 | 回调配置。当任务执行完成后，JOB会调用该URL告知任务执行结果。回调协议参考callback_protocol组件文档 ｜                                                               |        
 | rolling_config | object | 否 | 滚动配置，见rolling_config定义                                                                                                               |
 
 ##### execute_target
@@ -233,7 +234,8 @@
         "job_instance_name": "API Quick execution script1521100521303",
         "job_instance_id": 10000,
         "step_instance_id": 10001
-    }
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -241,18 +243,18 @@
 
 #### response
 
-| 字段 | 类型 | 描述 |
-|-----------|-----------|-----------|
-| result       | bool   | 请求成功与否。true:请求成功；false请求失败 |
-| code         | int    | 错误编码。 0表示success，>0表示失败错误 |
-| message      | string | 请求失败返回的错误信息|
-| data         | object | 请求返回的数据|
-| permission   | object | 权限信息|
-
+| 字段             | 类型     | 是否一定存在 | 描述                         |
+|----------------|--------|--------|----------------------------|
+| result         | bool   | 是      | 请求成功与否。true:请求成功；false请求失败 |
+| code           | int    | 是      | 错误编码。 0表示success，>0表示失败错误  |
+| message        | string | 否      | 请求失败返回的错误信息                |
+| data           | object | 否      | 请求返回的数据，删除操作可能没有值          |
+| job_request_id | string | 是      | 请求ID，请求唯一标识                |
+| permission     | object | 否      | 无权限返回的权限信息                 |
 ##### data
 
-| 字段 | 类型 | 描述 |
-|-----------|-----------|-----------|
-| job_instance_id | long | 作业实例ID |
-| job_instance_name | string | 作业实例名称 |
-| step_instance_id | long | 步骤实例ID |
+| 字段                | 类型   | 是否一定存在 | 描述     |
+|-------------------|------|--------|--------|
+| job_instance_id   | long | 是      | 作业实例ID |
+| job_instance_name | long | 是      | 作业实例名称 |
+| step_instance_id  | long | 是      | 步骤实例ID |

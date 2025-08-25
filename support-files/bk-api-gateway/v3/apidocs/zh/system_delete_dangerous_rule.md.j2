@@ -6,18 +6,14 @@
 
 #### 接口参数
 
-| 字段 | 类型 | 必选 | 描述           |
-| ---- | ---- | ---- | -------------- |
-| id   | long | 是   | 高危语句规则ID |
-
+| 字段  | 类型   | 必选  | 描述       |
+|-----|------|-----|----------|
+| id  | long | 是   | 高危语句规则ID |
 
 ### 请求参数示例
 
 ```json
 {
-    "bk_app_code": "esb_test",
-    "bk_app_secret": "xxx",
-    "bk_token": "xxx",
     "id": 1
 }
 ```
@@ -27,7 +23,8 @@
 ```json
 {
     "code": 0,
-    "result": true
+    "result": true,
+    "job_request_id": "xxx"
 }
 ```
 

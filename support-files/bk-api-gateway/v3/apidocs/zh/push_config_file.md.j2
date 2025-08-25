@@ -6,29 +6,30 @@
 
 #### Body参数
 
-| 字段        |  类型      | 必选   |  描述      |
-|-------------|------------|--------|------------|
-| bk_scope_type | string | 是     | 资源范围类型。可选值: biz - 业务，biz_set - 业务集 |
-| bk_scope_id | string | 是 | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
-| bk_biz_id        |  long       | 是     | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
-| task_name        |  string     | 否     | 自定义作业名称，长度不可超过512字符 |
-| account_alias  |  string    | 是     | 执行账号别名 |
-| file_target_path |  string    | 是     | 文件传输目标路径 |
-| file_list        |  array     | 是     | 源文件对象数组，见下面file定义 |
-| target_server |  object  | 是 | 目标服务器，见server定义       |
+| 字段               | 类型     | 必选  | 描述                                                |
+|------------------|--------|-----|---------------------------------------------------|
+| bk_scope_type    | string | 是   | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                |
+| bk_scope_id      | string | 是   | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID           |
+| bk_biz_id        | long   | 是   | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
+| task_name        | string | 否   | 自定义作业名称，长度不可超过512字符                               |
+| account_alias    | string | 是   | 执行账号别名                                            |
+| file_target_path | string | 是   | 文件传输目标路径                                          |
+| file_list        | array  | 是   | 源文件对象数组，见下面file定义                                 |
+| target_server    | object | 是   | 目标服务器，见server定义                                   |
 
 ##### file
 
-| 字段      |  类型      | 必选   |  描述      |
-|-----------|------------|--------|------------|
-| file_name |  string    | 是     | 文件名称 |
-| content   |  string    | 是     | 文件内容Base64 |
+| 字段        | 类型     | 必选  | 描述         |
+|-----------|--------|-----|------------|
+| file_name | string | 是   | 文件名称       |
+| content   | string | 是   | 文件内容Base64 |
 
 {% include '_generic_server.md.j2' %}
 
 ### 请求参数示例
 
 - POST
+
 ```json
 {
     "bk_scope_type": "biz",
@@ -57,11 +58,27 @@
                 "node_type": "module"
             }
         ]
-    }
+    },
+    "job_request_id": "xxx"
 }
 ```
 
 ### 返回结果示例
+
+```json
+{
+    "result": true,
+    "code": 0,
+    "data": {
+        "job_instance_name": "API_PUSH_CONFIG_FILE_script1521100521303",
+        "job_instance_id": 10000,
+        "step_instance_id": 10001
+    },
+    "job_request_id": "xxx"
+}
+```
+
+### 返回结果说明
 
 {% include '_generic_response.md.j2' %}
 

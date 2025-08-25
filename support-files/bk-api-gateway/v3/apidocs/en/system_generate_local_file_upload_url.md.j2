@@ -6,20 +6,17 @@ Generate the local file upload URL.
 
 #### Interface parameters
 
-| Fields                  |  Type  | Required | Description |
-|----------------------------|------------|--------|------------|
-| bk_scope_type | string | yes  | Resource scope type. Optional values: biz - Business，biz_set - Business Set |
-| bk_scope_id | string | yes | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| file_name_list             | string []  | yes  |List of file names to upload|
-
+| Fields         | Type      | Required | Description                                                                                                 |
+|----------------|-----------|----------|-------------------------------------------------------------------------------------------------------------|
+| bk_scope_type  | string    | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                 |
+| bk_scope_id    | string    | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                 |
+| bk_biz_id      | long      | yes      | Deprecated. Business ID. This field has been deprecated and replaced by the field bk_scope_type+bk_scope_id |
+| file_name_list | string [] | yes      | List of file names to upload                                                                                |
 
 ### Example of request
 
 ```json
 {
-    "bk_app_code": "esb_test",
-    "bk_app_secret": "xxx",
-    "bk_token": "xxx",
     "bk_scope_type": "biz",
     "bk_scope_id": "1",
     "file_name_list": [
@@ -35,7 +32,6 @@ Generate the local file upload URL.
 {
     "result": true,
     "code": 0,
-    "message": "success",
     "data": {
         "url_map": {
             "file1.txt": {
@@ -47,7 +43,8 @@ Generate the local file upload URL.
                 "path": "1/008f821f-259b-4f62-bd84-1e89d6f05f0d/admin/file2.txt"
             }
         }
-    }
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -57,6 +54,6 @@ Generate the local file upload URL.
 
 #### data
 
-| Fields | Type  |Whether the field must exist  | Description |
-|-----------|----------|---------------|---------|
-| url_map   |  map      |   yes     | key: file name passed in, value: Upload_url is the file upload address with credentials, and path is the path to the file distribution interface when distributing the file|
+| Fields  | Type | Whether the field must exist | Description                                                                                                                                                                 |
+|---------|------|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| url_map | map  | yes                          | key: file name passed in, value: Upload_url is the file upload address with credentials, and path is the path to the file distribution interface when distributing the file |

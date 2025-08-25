@@ -22,60 +22,51 @@ query gse task id by step instance id
 
 ```json
 {
-  "result": true,
-  "code": 0,
-  "message": "success",
-  "data": [
-    {
-      "bk_scope_type": "biz",
-      "bk_scope_id": "1",
-      "job_instance_id": 1000000,
-      "step_instance_id": 10000001,
-      "retry_count": 0,
-      "batch": 1,
-      "gse_task_id": "aa:aa:aa:aa",
-      "link": [
-        "https://xxx.com"
-      ]
-    },
-    {
-      "bk_scope_type": "biz",
-      "bk_scope_id": "1",
-      "job_instance_id": 1000000,
-      "step_instance_id": 10000001,
-      "retry_count": 0,
-      "batch": 2,
-      "gse_task_id": "aa:aa:aa:aa",
-      "link": [
-        "https://xxx.com"
-      ]
-    }
-  ]
+    "result": true,
+    "code": 0,
+    "data": [
+        {
+            "bk_scope_type": "biz",
+            "bk_scope_id": "1",
+            "job_instance_id": 1000000,
+            "step_instance_id": 10000001,
+            "retry_count": 0,
+            "batch": 1,
+            "gse_task_id": "aa:aa:aa:aa",
+            "link": [
+                "https://xxx.com"
+            ]
+        },
+        {
+            "bk_scope_type": "biz",
+            "bk_scope_id": "1",
+            "job_instance_id": 1000000,
+            "step_instance_id": 10000001,
+            "retry_count": 0,
+            "batch": 2,
+            "gse_task_id": "aa:aa:aa:aa",
+            "link": [
+                "https://xxx.com"
+            ]
+        }
+    ],
+    "job_request_id": "xxx"
 }
 ```
 
 ### Response Description
 
-#### response
+{% include '_generic_response.md.j2' %}
 
-| Fields     | Type              | Description                                                                              |
-|------------|-------------------|------------------------------------------------------------------------------------------|
-| result     | bool              | Whether the request was successful or not. True: request succeeded;False: request failed |
-| code       | int               | Error code. 0 indicates success, >0 indicates failure                                    |
-| message    | string            | Error message                                                                            |
-| data       | List<TaskLinkDTO> | Data returned by request                                                                 |
-| permission | object            | Permission information                                                                   |
-| request_id | string            | Request chain id                                                                         |
+##### data
 
-##### TaskLinkDTO
-
-| Fields           | Type     | Description                                                                                 |
-|------------------|----------|---------------------------------------------------------------------------------------------|
-| bk_scope_type    | string   | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
-| bk_scope_id      | string   | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| job_instance_id  | long     | Job instance ID                                                                             |
-| step_instance_id | long     | Step instance ID                                                                            |
-| retry_count      | int      | Step retry count                                                                            |
-| batch            | int      | Batch No. Not set to 0 when rolling                                                         |
-| gse_task_id      | string   | Gse task id                                                                                 |
-| link             | string[] | Gse task id corresponding job links                                                         |
+| Fields           | Type     | Whether it must exist | Description                                                                                 |
+|------------------|----------|-----------------------|---------------------------------------------------------------------------------------------|
+| bk_scope_type    | string   | yes                   | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id      | string   | yes                   | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| job_instance_id  | long     | yes                   | Job instance ID                                                                             |
+| step_instance_id | long     | yes                   | Step instance ID                                                                            |
+| retry_count      | int      | yes                   | Step retry count                                                                            |
+| batch            | int      | yes                   | Batch No. Not set to 0 when rolling                                                         |
+| gse_task_id      | string   | no                    | Gse task id                                                                                 |
+| link             | string[] | no                    | Gse task id corresponding job links                                                         |

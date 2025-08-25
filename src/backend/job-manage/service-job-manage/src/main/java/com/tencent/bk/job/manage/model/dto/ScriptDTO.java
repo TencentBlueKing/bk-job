@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionStatusV3DTO;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -184,11 +185,11 @@ public class ScriptDTO {
         return scriptDetail;
     }
 
-    public EsbScriptVersionDetailV3DTO toEsbManageScriptV3DTO() {
-        EsbScriptVersionDetailV3DTO result = new EsbScriptVersionDetailV3DTO();
-        result.setId(scriptVersionId);
-        result.setScriptId(id);
-        result.setStatus(status);
-        return result;
+    public EsbScriptVersionStatusV3DTO toEsbScriptVersionStatusV3DTO() {
+        EsbScriptVersionStatusV3DTO esbScriptVersionStatus = new EsbScriptVersionStatusV3DTO();
+        esbScriptVersionStatus.setId(scriptVersionId);
+        esbScriptVersionStatus.setScriptId(id);
+        esbScriptVersionStatus.setStatus(status);
+        return esbScriptVersionStatus;
     }
 }

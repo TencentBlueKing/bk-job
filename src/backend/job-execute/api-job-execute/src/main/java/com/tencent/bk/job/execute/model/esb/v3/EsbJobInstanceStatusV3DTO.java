@@ -47,6 +47,7 @@ public class EsbJobInstanceStatusV3DTO {
 
     @Setter
     @Getter
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class JobInstance extends EsbAppScopeDTO {
         @JsonProperty("job_instance_id")
         private Long id;
@@ -84,6 +85,7 @@ public class EsbJobInstanceStatusV3DTO {
 
     @Setter
     @Getter
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class StepInst {
         /**
          * id
@@ -134,12 +136,12 @@ public class EsbJobInstanceStatusV3DTO {
         private Long createTime;
 
         @JsonProperty("step_ip_result_list")
-        @JsonInclude(JsonInclude.Include.NON_EMPTY)
         private List<IpResult> stepIpResult;
     }
 
     @Setter
     @Getter
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class IpResult {
         @JsonProperty("bk_host_id")
         private Long hostId;
