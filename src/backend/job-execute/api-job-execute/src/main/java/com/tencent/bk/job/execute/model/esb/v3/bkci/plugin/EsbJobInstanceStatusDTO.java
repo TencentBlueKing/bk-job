@@ -48,6 +48,7 @@ public class EsbJobInstanceStatusDTO {
 
     @Setter
     @Getter
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class JobInstance extends EsbAppScopeDTO {
         @JsonProperty("job_instance_id")
         private Long id;
@@ -88,6 +89,7 @@ public class EsbJobInstanceStatusDTO {
      */
     @Setter
     @Getter
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class StepResult {
         /**
          * id
@@ -152,6 +154,7 @@ public class EsbJobInstanceStatusDTO {
      */
     @Setter
     @Getter
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class ExecuteObjectResult {
 
         @JsonProperty("execute_object")

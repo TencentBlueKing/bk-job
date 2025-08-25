@@ -35,6 +35,7 @@ import javax.validation.constraints.Min;
  * 全局变量
  */
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbGlobalVarV3DTO {
     /**
      * 全局变量ID

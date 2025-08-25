@@ -6,23 +6,19 @@ Create public script
 
 #### Interface parameters
 
-| Fields          | Type   | Required | Description                                                  |
-| --------------- | ------ | -------- | ------------------------------------------------------------ |
-| name            | string | yes      | Public script name                                           |
-| description     | string | no       | Public script description                                    |
+| Fields          | Type   | Required | Description                                                                       |
+|-----------------|--------|----------|-----------------------------------------------------------------------------------|
+| name            | string | yes      | Public script name                                                                |
+| description     | string | no       | Public script description                                                         |
 | script_language | int    | yes      | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
-| content         | string | yes      | Script content, requiring Base64 encoding                    |
-| version         | string | yes      | Version                                                      |
-| version_desc    | string | no       | Version Description                                          |
-
+| content         | string | yes      | Script content, requiring Base64 encoding                                         |
+| version         | string | yes      | Version                                                                           |
+| version_desc    | string | no       | Version Description                                                               |
 
 ### Example of request
 
 ```json
 {
-    "bk_app_code": "esb_test",
-    "bk_app_secret": "xxx",
-    "bk_token": "xxx",
     "name": "public script test",
     "description": "public script test",
     "script_language": "1",
@@ -50,7 +46,8 @@ Create public script
         "version": "1.0",
         "status": 0,
         "description": "public script test"
-    }
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -60,18 +57,18 @@ Create public script
 
 #### data
 
-| Fields            | Type   | Description                                                  |
-| ----------------- | ------ | ------------------------------------------------------------ |
-| id | long   | Script version id                                            |
-| script_id         | string | Script id                                                    |
-| name              | string | Script name                                                  |
-| script_language   | int    | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
-| content           | string | Script content                                               |
-| creator           | string | Creator                                                      |
-| create_time       | long   | Created time, Unix timestamp                                 |
-| last_modify_user  | string | Last modify user                                             |
-| last_modify_time  | long   | Last modified time, Unix timestamp                           |
-| version           | string | Script version                                               |
-| version_desc      | string | Version description                                          |
-| status            | int    | Script version status (0: Not online, 1: Online, 2: Offline, 3: Disabled) |
-| description       | string | Description                                                  |
+| Fields           | Type   | Whether it must exist | Description                                                                       |
+|------------------|--------|-----------------------|-----------------------------------------------------------------------------------|
+| id               | long   | yes                   | Script version id                                                                 |
+| script_id        | string | yes                   | Script id                                                                         |
+| name             | string | yes                   | Script name                                                                       |
+| script_language  | int    | yes                   | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
+| content          | string | yes                   | Script content                                                                    |
+| creator          | string | yes                   | Creator                                                                           |
+| create_time      | long   | yes                   | Created time, Unix timestamp                                                      |
+| last_modify_user | string | yes                   | Last modify user                                                                  |
+| last_modify_time | long   | yes                   | Last modified time, Unix timestamp                                                |
+| version          | string | yes                   | Script version                                                                    |
+| version_desc     | string | yes                   | Version description                                                               |
+| status           | int    | yes                   | Script version status (0: Not online, 1: Online, 2: Offline, 3: Disabled)         |
+| description      | string | no                    | Description                                                                       |

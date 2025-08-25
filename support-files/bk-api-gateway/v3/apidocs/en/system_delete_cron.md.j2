@@ -6,11 +6,12 @@ Delete cron job
 
 #### Interface parameters
 
-| Fields        | Type   | Required | Description                                                                                 |
-|---------------|--------|----------|---------------------------------------------------------------------------------------------|
-| bk_scope_type | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
-| bk_scope_id   | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| id            | long   | yes      | cron job id                                                                                 |
+| Fields        | Type   | Required | Description                                                                                                 |
+|---------------|--------|----------|-------------------------------------------------------------------------------------------------------------|
+| bk_scope_type | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                 |
+| bk_scope_id   | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                 |
+| bk_biz_id     | long   | yes      | Deprecated. Business ID. This field has been deprecated and replaced by the field bk_scope_type+bk_scope_id |
+| id            | long   | yes      | cron job id                                                                                                 |
 
 ### Example of request
 
@@ -18,12 +19,9 @@ Delete cron job
 
 ```json
 {
-  "bk_app_code": "esb_test",
-  "bk_app_secret": "xxx",
-  "bk_token": "xxx",
-  "bk_scope_type": "biz",
-  "bk_scope_id": "2",
-  "id": 1000045
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "id": 1000045
 }
 ```
 
@@ -31,8 +29,9 @@ Delete cron job
 
 ```json
 {
-  "code": 0,
-  "result": true
+    "code": 0,
+    "result": true,
+    "job_request_id": "xxx"
 }
 ```
 

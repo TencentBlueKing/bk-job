@@ -6,22 +6,19 @@ Update script basic information
 
 #### Interface parameters
 
-| Fields        | Type   | Required | Description                                                  |
-| ------------- | ------ | -------- | ------------------------------------------------------------ |
-| bk_scope_type | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set |
-| bk_scope_id   | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| script_id     | string | yes      | Script id                                                    |
-| name          | string | yes      | Script name                                                  |
-| description   | string | no       | Script description                                           |
-
+| Fields        | Type   | Required | Description                                                                                                 |
+|---------------|--------|----------|-------------------------------------------------------------------------------------------------------------|
+| bk_scope_type | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                 |
+| bk_scope_id   | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                 |
+| bk_biz_id     | long   | yes      | Deprecated. Business ID. This field has been deprecated and replaced by the field bk_scope_type+bk_scope_id |
+| script_id     | string | yes      | Script id                                                                                                   |
+| name          | string | yes      | Script name                                                                                                 |
+| description   | string | no       | Script description                                                                                          |
 
 ### Example of request
 
 ```json
 {
-    "bk_app_code": "esb_test",
-    "bk_app_secret": "xxx",
-    "bk_token": "xxx",
     "bk_scope_type": "biz",
     "bk_scope_id": "2",
     "script_id": "4a350b0e0707450e93326f6ace921072",
@@ -46,7 +43,8 @@ Update script basic information
         "last_modify_user": "admin",
         "last_modify_time": 1691743715000,
         "description": "script test"
-	}
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -56,15 +54,15 @@ Update script basic information
 
 #### data
 
-| Fields           | Type   | Description                                                  |
-| ---------------- | ------ | ------------------------------------------------------------ |
-| id               | string | Script id                                                    |
-| name             | string | Script name                                                  |
-| script_language  | int    | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
-| bk_scope_type    | string | Resource scope type. Optional values: biz - Business，biz_set - Business Set |
-| bk_scope_id      | string | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| creator          | string | Creator                                                      |
-| create_time      | long   | Created time, Unix timestamp                                 |
-| last_modify_user | string | Last modify user                                             |
-| last_modify_time | long   | Last modified time, Unix timestamp                           |
-| description      | string | Description                                                  |
+| Fields           | Type   | Whether it must exist | Description                                                                                 |
+|------------------|--------|-----------------------|---------------------------------------------------------------------------------------------|
+| id               | string | yes                   | Script id                                                                                   |
+| name             | string | yes                   | Script name                                                                                 |
+| script_language  | int    | yes                   | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql           |
+| bk_scope_type    | string | yes                   | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id      | string | yes                   | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| creator          | string | yes                   | Creator                                                                                     |
+| create_time      | long   | yes                   | Created time, Unix timestamp                                                                |
+| last_modify_user | string | yes                   | Last modify user                                                                            |
+| last_modify_time | long   | yes                   | Last modified time, Unix timestamp                                                          |
+| description      | string | no                    | Description                                                                                 |

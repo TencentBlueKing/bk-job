@@ -1,10 +1,10 @@
 #### response
 
-| Fields     | Type   | Description                                                                              |
-|------------|--------|------------------------------------------------------------------------------------------|
-| result     | bool   | Whether the request was successful or not. True: request succeeded;False: request failed |
-| code       | int    | Error code. 0 indicates success, >0 indicates failure                                    |
-| message    | string | Error message                                                                            |
-| data       | object | Data returned by request                                                                 |
-| permission | object | Permission information                                                                   |
-| request_id | string | Request chain id                                                                         |
+| Fields         | Type   | Whether it must exist | Description                                                                              |
+|----------------|--------|-----------------------|------------------------------------------------------------------------------------------|
+| result         | bool   | yes                   | Whether the request was successful or not. True: request succeeded;False: request failed |
+| code           | int    | yes                   | Error code. 0 indicates success, >0 indicates failure                                    |
+| message        | string | no                    | Error message                                                                            |
+| data           | object | no                    | Data returned by request, the delete action may not have a valu                          |
+| permission     | object | no                    | Permission information                                                                   |
+| job_request_id | string | yes                   | Request chain id                                                                         |

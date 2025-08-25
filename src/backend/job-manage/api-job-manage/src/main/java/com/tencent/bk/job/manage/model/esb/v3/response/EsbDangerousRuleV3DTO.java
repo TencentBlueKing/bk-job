@@ -24,12 +24,14 @@
 
 package com.tencent.bk.job.manage.model.esb.v3.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbDangerousRuleV3DTO {
     /**
      * 高危语句规则ID

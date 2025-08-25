@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.esb.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
@@ -38,6 +39,7 @@ import lombok.ToString;
 @Setter
 @Getter
 @ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbAppScopeDTO {
     /**
      * 兼容字段,表示cmdb 业务/业务集ID

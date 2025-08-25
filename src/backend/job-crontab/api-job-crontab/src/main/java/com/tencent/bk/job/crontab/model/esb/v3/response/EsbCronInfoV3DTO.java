@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.model.esb.v3.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
@@ -40,6 +41,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbCronInfoV3DTO extends EsbAppScopeDTO {
 
     /**

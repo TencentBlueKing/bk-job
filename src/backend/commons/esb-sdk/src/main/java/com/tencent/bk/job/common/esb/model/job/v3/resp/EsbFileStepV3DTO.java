@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.esb.model.job.v3.resp;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbFileDestinationV3DTO;
@@ -38,6 +39,7 @@ import java.util.List;
  * @since 17/11/2020 20:37
  */
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbFileStepV3DTO {
     /**
      * 源文件列表

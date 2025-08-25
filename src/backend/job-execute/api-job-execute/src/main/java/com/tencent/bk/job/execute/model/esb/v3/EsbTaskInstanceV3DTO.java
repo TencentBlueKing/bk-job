@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model.esb.v3;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
@@ -34,6 +35,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbTaskInstanceV3DTO extends EsbAppScopeDTO {
     /**
      * id

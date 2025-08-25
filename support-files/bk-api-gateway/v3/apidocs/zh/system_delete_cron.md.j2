@@ -6,11 +6,12 @@
 
 #### Body参数
 
-| 字段            | 类型     | 必选 | 描述                                      |
-|---------------|--------|----|-----------------------------------------|
-| bk_scope_type | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集      |
-| bk_scope_id   | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
-| id            | long   | 否  | 定时任务ID                                  |
+| 字段            | 类型     | 必选  | 描述                                                |
+|---------------|--------|-----|---------------------------------------------------|
+| bk_scope_type | string | 是   | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                |
+| bk_scope_id   | string | 是   | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID           |
+| bk_biz_id     | long   | 是   | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
+| id            | long   | 否   | 定时任务ID                                            |
 
 ### 请求参数示例
 
@@ -18,12 +19,9 @@
 
 ```json
 {
-  "bk_app_code": "esb_test",
-  "bk_app_secret": "xxx",
-  "bk_token": "xxx",
-  "bk_scope_type": "biz",
-  "bk_scope_id": "2",
-  "id": 1000045
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
+    "id": 1000045
 }
 ```
 
@@ -31,8 +29,9 @@
 
 ```json
 {
-  "code": 0,
-  "result": true
+    "code": 0,
+    "result": true,
+    "job_request_id": "xxx"
 }
 ```
 
