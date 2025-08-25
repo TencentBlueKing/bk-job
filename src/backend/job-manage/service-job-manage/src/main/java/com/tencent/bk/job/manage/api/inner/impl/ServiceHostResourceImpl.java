@@ -215,13 +215,13 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         }
         if (CollectionUtils.isNotEmpty(hosts)) {
             log.warn(
-                "Deprecated: getTenantIdWithDefault is still work with hosts, please check stack:{}",
+                "CompatibleImplementation: getTenantIdWithDefault is still work with hosts, please check stack:{}",
                 StackTraceUtil.getCurrentStackTrace()
             );
             return hosts.get(0).getTenantId();
         }
         log.warn(
-            "Deprecated: getTenantIdWithDefault is still work with default, please check stack:{}",
+            "CompatibleImplementation: getTenantIdWithDefault is still work with default, please check stack:{}",
             StackTraceUtil.getCurrentStackTrace()
         );
         return TenantIdConstants.DEFAULT_TENANT_ID;
@@ -256,7 +256,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         if (req.getTenantId() != null) {
             return;
         }
-        log.warn("Deprecated: addDefaultTenant is still work with default, please check");
+        log.warn("CompatibleImplementation: addDefaultTenant is still work with default, please check");
         req.setTenantId(TenantIdConstants.DEFAULT_TENANT_ID);
     }
 

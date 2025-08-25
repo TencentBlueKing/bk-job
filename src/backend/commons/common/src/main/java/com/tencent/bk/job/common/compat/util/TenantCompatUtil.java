@@ -49,7 +49,7 @@ public class TenantCompatUtil {
             return tenantId;
         }
         log.warn(
-            "Deprecated: getTenantIdWithDefault is still work with default, please check stack:{}",
+            "CompatibleImplementation: getTenantIdWithDefault is still work with default, please check stack:{}",
             StackTraceUtil.getCurrentStackTrace()
         );
         return TenantIdConstants.DEFAULT_TENANT_ID;
