@@ -61,6 +61,7 @@ import com.tencent.bk.job.manage.service.host.ScopeDynamicGroupHostService;
 import com.tencent.bk.job.manage.service.host.TenantHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -218,7 +219,10 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
                 "CompatibleImplementation: getTenantIdWithDefault is still work with hosts, please check stack:{}",
                 StackTraceUtil.getCurrentStackTrace()
             );
-            return hosts.get(0).getTenantId();
+            String tenantId = hosts.get(0).getTenantId();
+            if (StringUtils.isNotBlank(tenantId)) {
+                return tenantId;
+            }
         }
         log.warn(
             "CompatibleImplementation: getTenantIdWithDefault is still work with default, please check stack:{}",
