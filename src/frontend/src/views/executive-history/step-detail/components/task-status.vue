@@ -154,11 +154,11 @@
 
 
       const { taskInstanceId } = this.$route.params;
-      const { stepInstanceId, executeCount = 0 } = this.$route.query;
+      const { stepInstanceId, executeCount } = this.$route.query;
 
       this.taskInstanceId = parseInt(taskInstanceId, 10);
       this.stepInstanceId = parseInt(stepInstanceId, 10);
-      this.executeCount = parseInt(executeCount, 10);
+      this.executeCount = executeCount ? parseInt(executeCount, 10) : undefined;
 
       this.fetchData();
     },
@@ -190,6 +190,12 @@
             ] = data.stepExecution;
             this.stepInstanceId = stepInstanceId;
             this.executeCount = executeCount;
+          } else {
+            const stepInfo = _.find(data.stepExecution, item => item.stepInstanceId === this.stepInstanceId);
+            // url 上面没有指定executeCount，取step步骤的executeCount
+            if (stepInfo && !_.isNumber(this.executeCount)) {
+              this.executeCount = stepInfo.executeCount;
+            }
           }
 
           this.currentStepInstanceId = this.stepInstanceId;
