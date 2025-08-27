@@ -1978,6 +1978,15 @@ waitForDependServices:
     service: ""
   # 日志级别：默认INFO，可选DEBUG/WARN/ERROR
   logLevel: "INFO"
+  # 服务启动时的外部依赖状态检查
+  externalDependencyCheck:
+    # 是否开启
+    enabled: false
+    # 检查地址（该地址提供的服务需要接收并处理Http Get请求的Query参数：namespace=${namespace}&serviceName=${serviceName}），
+    # 返回值格式：
+    # 已准备就绪：{"ready": true}
+    # 未准备就绪：{"ready": false}
+    url: "http://example.com/checkServiceDependency"
   # 资源要求与限制
   resources:
     limits:

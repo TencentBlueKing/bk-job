@@ -736,6 +736,10 @@ Return the Job InitContainer WaitForDependServices Content
       value: {{ .context.Values.waitForDependServices.expectPodLabels.common }}
     - name: BK_JOB_EXPECT_POD_LABELS_SERVICE
       value: {{ .context.Values.waitForDependServices.expectPodLabels.service }}
+    - name: BK_JOB_EXTERNAL_DEPENDENCY_CHECK_ENABLED
+      value: {{ .context.Values.waitForDependServices.externalDependencyCheck.enabled }}
+    - name: BK_JOB_EXTERNAL_DEPENDENCY_CHECK_URL
+      value: {{ .context.Values.waitForDependServices.externalDependencyCheck.url }}
 {{- end -}}
 {{- end -}}
 

@@ -22,23 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.k8s;
+package com.tencent.bk.job.k8s.external;
 
-public class Consts {
-    // k8s命名空间
-    public static final String KEY_KUBERNETES_NAMESPACE = "KUBERNETES_NAMESPACE";
-    // k8s默认命名空间
-    public static final String VALUE_NAMESPACE_DEFAULT = "default";
-    // 服务启动依赖关系定义字符串
-    public static final String KEY_STARTUP_DEPENDENCIES_STR = "BK_JOB_STARTUP_DEPENDENCIES_STR";
-    // 当前服务名称
-    public static final String KEY_CURRENT_SERVICE_NAME = "BK_JOB_CURRENT_SERVICE_NAME";
-    // 所有依赖服务达到Ready状态时必须要有的公共标签
-    public static final String KEY_EXPECT_POD_LABELS_COMMON = "BK_JOB_EXPECT_POD_LABELS_COMMON";
-    // 为每个依赖服务单独定义的达到Ready状态时必须要有的标签
-    public static final String KEY_EXPECT_POD_LABELS_SERVICE = "BK_JOB_EXPECT_POD_LABELS_SERVICE";
-    // 是否启用检查服务外部依赖是否就绪
-    public static final String KEY_EXTERNAL_DEPENDENCY_CHECK_ENABLED = "BK_JOB_EXTERNAL_DEPENDENCY_CHECK_ENABLED";
-    // 用于检查服务外部依赖是否就绪的HTTP接口地址
-    public static final String KEY_EXTERNAL_DEPENDENCY_CHECK_URL = "BK_JOB_EXTERNAL_DEPENDENCY_CHECK_URL";
+/**
+ * 服务外部依赖检查接口
+ */
+public interface IServiceExternalDependencyCheck {
+
+    /**
+     * 检查服务的外部依赖是否已经准备就绪
+     *
+     * @param namespace   服务所在命名空间
+     * @param serviceName 服务名称
+     * @return 布尔值，依赖是否准备就绪
+     */
+    boolean isReady(String namespace, String serviceName);
 }
