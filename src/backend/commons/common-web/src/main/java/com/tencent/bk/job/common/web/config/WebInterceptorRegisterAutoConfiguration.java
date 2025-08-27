@@ -28,7 +28,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 /**
  * 拦截器注册 AutoConfiguration
@@ -38,7 +38,8 @@ import org.springframework.context.annotation.Configuration;
 public class WebInterceptorRegisterAutoConfiguration {
 
     @Bean
-    WebInterceptorAutoRegister webInterceptorAutoRegister(ApplicationContext applicationContext) {
-        return new WebInterceptorAutoRegister(applicationContext);
+    WebInterceptorAutoRegister webInterceptorAutoRegister(ApplicationContext applicationContext,
+                                                          Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
+        return new WebInterceptorAutoRegister(applicationContext, jackson2ObjectMapperBuilder);
     }
 }

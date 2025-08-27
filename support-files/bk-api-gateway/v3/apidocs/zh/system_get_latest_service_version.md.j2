@@ -20,12 +20,12 @@
 
 ```json
 {
-  "result": true,
-  "code": 0,
-  "message": "success",
-  "data": {
-    "version": "3.6.4"
-  }
+    "result": true,
+    "code": 0,
+    "data": {
+        "version": "3.6.4"
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -35,6 +35,6 @@
 
 ##### data
 
-| 字段      | 类型     | 描述      |
-|---------|--------|---------|
-| version | string | 服务最新版本号 |
+| 字段      | 类型     | 是否一定存在 | 描述      |
+|---------|--------|--------|---------|
+| version | string | 是      | 服务最新版本号 |

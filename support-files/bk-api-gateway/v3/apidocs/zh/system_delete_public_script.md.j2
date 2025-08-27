@@ -6,18 +6,14 @@
 
 #### 接口参数
 
-| 字段      | 类型   | 必选 | 描述       |
-| --------- | ------ | ---- | ---------- |
+| 字段        | 类型     | 必选  | 描述     |
+|-----------|--------|-----|--------|
 | script_id | string | 是   | 公共脚本ID |
-
 
 ### 请求参数示例
 
 ```json
 {
-    "bk_app_code": "esb_test",
-    "bk_app_secret": "xxx",
-    "bk_token": "xxx",
     "script_id": "4537fb49ec0840a1b91cef4179c99f9c"
 }
 ```
@@ -27,7 +23,8 @@
 ```json
 {
     "code": 0,
-    "result": true
+    "result": true,
+    "job_request_id": "xxx"
 }
 ```
 

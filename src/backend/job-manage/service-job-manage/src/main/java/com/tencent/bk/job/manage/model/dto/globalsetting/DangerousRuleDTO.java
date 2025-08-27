@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import com.tencent.bk.job.manage.api.common.constants.EnableStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.RuleMatchHandleActionEnum;
 import com.tencent.bk.job.manage.model.db.DangerousRuleDO;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbDangerousRuleStatusV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbDangerousRuleV3DTO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
 import lombok.Data;
@@ -195,8 +196,8 @@ public class DangerousRuleDTO {
         return esbDangerousRuleV3DTO;
     }
 
-    public EsbDangerousRuleV3DTO toEsbManageDangerousRuleV3DTO() {
-        EsbDangerousRuleV3DTO esbManageDangerousRuleV3DTO = new EsbDangerousRuleV3DTO();
+    public EsbDangerousRuleStatusV3DTO toEsbDangerousRuleStatusV3DTO() {
+        EsbDangerousRuleStatusV3DTO esbManageDangerousRuleV3DTO = new EsbDangerousRuleStatusV3DTO();
         esbManageDangerousRuleV3DTO.setId(id);
         esbManageDangerousRuleV3DTO.setStatus(status);
         return esbManageDangerousRuleV3DTO;
