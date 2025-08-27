@@ -27,7 +27,6 @@ package com.tencent.bk.job.common.web.converter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tencent.bk.job.common.annotation.EsbAPI;
-import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -45,17 +44,12 @@ import javax.servlet.http.HttpServletRequest;
 @Slf4j
 public class EsbJackson2HttpMessageConverter extends MappingJackson2HttpMessageConverter {
 
-    public EsbJackson2HttpMessageConverter() {
-        super(buildObjectMapper());
+    public EsbJackson2HttpMessageConverter(Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
+        super(buildObjectMapper(jackson2ObjectMapperBuilder));
     }
 
-    private static ObjectMapper buildObjectMapper() {
-        Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder =
-            ApplicationContextRegister.getBean(Jackson2ObjectMapperBuilder.class);
-        ObjectMapper mapper = new ObjectMapper();
-        if (jackson2ObjectMapperBuilder != null) {
-            mapper = jackson2ObjectMapperBuilder.build();
-        }
+    private static ObjectMapper buildObjectMapper(Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
+        ObjectMapper mapper = jackson2ObjectMapperBuilder.build();
         // 排除null字段
         mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         return mapper;

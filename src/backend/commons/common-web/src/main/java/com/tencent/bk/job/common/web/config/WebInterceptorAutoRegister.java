@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.web.converter.EsbJackson2HttpMessageConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -45,9 +46,12 @@ import java.util.Map;
 public class WebInterceptorAutoRegister implements WebMvcConfigurer {
 
     private final ApplicationContext applicationContext;
+    private final Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder;
 
-    public WebInterceptorAutoRegister(ApplicationContext applicationContext) {
+    public WebInterceptorAutoRegister(ApplicationContext applicationContext,
+                                      Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
         this.applicationContext = applicationContext;
+        this.jackson2ObjectMapperBuilder = jackson2ObjectMapperBuilder;
     }
 
     @Override
@@ -77,6 +81,6 @@ public class WebInterceptorAutoRegister implements WebMvcConfigurer {
             }
         }
         // 在默认Jackson Converter之前
-        converters.add(index, new EsbJackson2HttpMessageConverter());
+        converters.add(index, new EsbJackson2HttpMessageConverter(jackson2ObjectMapperBuilder));
     }
 }
