@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.esb.model.job.v3.resp;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Data;
@@ -37,7 +36,6 @@ import java.util.List;
  * @since 17/11/2020 20:38
  */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbApprovalStepV3DTO {
 
     /**

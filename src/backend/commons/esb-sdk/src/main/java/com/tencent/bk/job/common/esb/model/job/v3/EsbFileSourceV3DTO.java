@@ -25,7 +25,6 @@
 package com.tencent.bk.job.common.esb.model.job.v3;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.util.ListUtil;
 import lombok.Data;
@@ -36,7 +35,6 @@ import java.util.List;
  * 源文件定义-ESB
  */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbFileSourceV3DTO {
     /**
      * 文件列表

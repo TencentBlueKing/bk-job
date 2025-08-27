@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.model.esb.v3;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.Getter;
@@ -36,7 +35,6 @@ import java.util.List;
  * 作业实例全局变量值
  */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbJobInstanceGlobalVarValueV3DTO {
 
     @JsonProperty("job_instance_id")

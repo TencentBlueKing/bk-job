@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.model.esb.v3;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
 import lombok.Data;
@@ -47,7 +46,6 @@ public class EsbJobInstanceStatusV3DTO {
 
     @Setter
     @Getter
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class JobInstance extends EsbAppScopeDTO {
         @JsonProperty("job_instance_id")
         private Long id;
@@ -85,7 +83,6 @@ public class EsbJobInstanceStatusV3DTO {
 
     @Setter
     @Getter
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class StepInst {
         /**
          * id
@@ -141,7 +138,6 @@ public class EsbJobInstanceStatusV3DTO {
 
     @Setter
     @Getter
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class IpResult {
         @JsonProperty("bk_host_id")
         private Long hostId;

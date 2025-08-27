@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.esb.model.job.v3;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Data;
 
@@ -32,7 +31,6 @@ import lombok.Data;
  * 账号信息
  */
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class EsbAccountV3BasicDTO {
     /**
      * 账号ID
