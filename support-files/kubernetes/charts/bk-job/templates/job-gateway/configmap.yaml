@@ -201,6 +201,7 @@ data:
               predicates:
                 - JobEsbV2Path=/api/job/v4/job-execute/{api_name}
               filters:
+                - CheckTenant
                 - CheckOpenApiJwt
                 - SetPath=/esb/api/v4/{api_name}
                 - RecordEsbAccessLog
@@ -211,6 +212,7 @@ data:
               predicates:
                 - JobEsbV2Path=/api/job/v4/job-manage/{api_name}
               filters:
+                - CheckTenant
                 - CheckOpenApiJwt
                 - SetPath=/esb/api/v4/{api_name}
                 - RecordEsbAccessLog
@@ -221,6 +223,7 @@ data:
               predicates:
                 - JobEsbV2Path=/api/job/v4/job-file-gateway/{api_name}
               filters:
+                - CheckTenant
                 - CheckOpenApiJwt
                 - SetPath=/esb/api/v4/{api_name}
                 - RecordEsbAccessLog
@@ -231,6 +234,7 @@ data:
               predicates:
                 - JobEsbV2Path=/api/job/v4/job-crontab/{api_name}
               filters:
+                - CheckTenant
                 - CheckOpenApiJwt
                 - SetPath=/esb/api/v4/{api_name}
                 - RecordEsbAccessLog
