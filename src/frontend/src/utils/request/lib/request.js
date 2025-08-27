@@ -24,7 +24,6 @@
 */
 
 import axios from 'axios'
-import Cookie from 'js-cookie'
 import {
     paramsSerializer,
 } from './utils'
@@ -32,7 +31,6 @@ import requestMiddleware from '../middleware/request'
 import responseMiddleware from '../middleware/response'
 
 const CancelToken = axios.CancelToken
-const CRRF_TOKEN_KEY = 'job_csrf_key'
 
 const defaultConfig = {
     timeout: 60000,
@@ -64,7 +62,6 @@ export default class Request {
     constructor (cache) {
         this.cache = cache
         this.init()
-        this.injectCSRFTokenToHeaders()
     }
     _url = ''
     config = {}
@@ -130,17 +127,6 @@ export default class Request {
         requestMiddleware(axios.interceptors.request)
         responseMiddleware(axios.interceptors.response)
     }
-    /**
-    * @desc 向 http header 注入 CSRFToken，CSRFToken key 值与后端一起协商制定
-    */
-    injectCSRFTokenToHeaders () {
-        const CSRFToken = Cookie.get(CRRF_TOKEN_KEY)
-        if (CSRFToken !== undefined) {
-            axios.defaults.headers.common['X-CSRF-Token'] = CSRFToken
-        } else {
-            console.warn('Can not find csrftoken in document.cookie')
-        }
-    }
     checkCache () {
         return this.isCanBeCached && this.cache.has(this.name)
     }
@@ -171,7 +157,6 @@ export default class Request {
             payload: { ...this.requestPayload, },
         }).then(data => {
             this.setCache(requestHandler)
-            this.injectCSRFTokenToHeaders()
             return data
         })
         this.setCache(requestHandler)

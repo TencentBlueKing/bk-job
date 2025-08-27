@@ -30,7 +30,7 @@
     <notice-component
       v-if="isEnableBKNotice"
       :api-url="noticApiUrl"
-      :custom-headers="noticeComponentCustomHeaders"
+      :headers-fn="genNoticeHeader"
       @show-alert-change="showNoticChange" />
     <site-frame
       :side-fixed="isFrameSideFixed"
@@ -328,9 +328,9 @@
 
   const noticApiUrl = `${window.PROJECT_CONFIG.AJAX_URL_PREFIX}/job-manage/web/notice/announcement/currentAnnouncements`;
 
-  const noticeComponentCustomHeaders = {
+  const genNoticeHeader = () => ({
     ['X-CSRF-Token']: Cookie.get('job_csrf_key') || '',
-  };
+  });
 
   const productName = computed(() => (locale === 'en-US' ? store.state.platformConfig.productNameEn : store.state.platformConfig.productName));
 
