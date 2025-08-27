@@ -76,9 +76,17 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.in(stepIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
         Result<Record9<ULong, ULong, UByte, String, ULong, String, String, ULong, Integer>> result =
-            context.select(TABLE.ID, TABLE.STEP_ID, TABLE.FILE_TYPE, TABLE.FILE_LOCATION, TABLE.FILE_SIZE,
-                TABLE.FILE_HASH, TABLE.HOST,
-                TABLE.HOST_ACCOUNT, TABLE.FILE_SOURCE_ID).from(TABLE).where(conditions).fetch();
+            context.select(
+                TABLE.ID,
+                TABLE.STEP_ID,
+                TABLE.FILE_TYPE,
+                TABLE.FILE_LOCATION,
+                TABLE.FILE_SIZE,
+                TABLE.FILE_HASH,
+                TABLE.HOST,
+                TABLE.HOST_ACCOUNT,
+                TABLE.FILE_SOURCE_ID)
+                .from(TABLE).where(conditions).fetch();
         Map<Long, List<TaskFileInfoDTO>> taskFileInfoMap = new HashMap<>(stepIdList.size());
         if (result != null && result.size() >= 1) {
             result.map(record -> {
@@ -96,9 +104,17 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.STEP_ID.eq(ULong.valueOf(stepId)));
         Result<Record9<ULong, ULong, UByte, String, ULong, String, String, ULong, Integer>> result =
-            context.select(TABLE.ID, TABLE.STEP_ID, TABLE.FILE_TYPE, TABLE.FILE_LOCATION, TABLE.FILE_SIZE,
-                TABLE.FILE_HASH, TABLE.HOST,
-                TABLE.HOST_ACCOUNT, TABLE.FILE_SOURCE_ID).from(TABLE).where(conditions).fetch();
+            context.select(
+                TABLE.ID,
+                TABLE.STEP_ID,
+                TABLE.FILE_TYPE,
+                TABLE.FILE_LOCATION,
+                TABLE.FILE_SIZE,
+                TABLE.FILE_HASH,
+                TABLE.HOST,
+                TABLE.HOST_ACCOUNT,
+                TABLE.FILE_SOURCE_ID)
+                .from(TABLE).where(conditions).fetch();
         List<TaskFileInfoDTO> taskFileInfoList = new ArrayList<>();
         if (result != null && result.size() >= 1) {
             result.map(record -> taskFileInfoList.add(DbRecordMapper.convertRecordToTaskFileInfo(record)));
@@ -112,9 +128,17 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
         conditions.add(TABLE.STEP_ID.eq(ULong.valueOf(stepId)));
         conditions.add(TABLE.ID.eq(ULong.valueOf(fileId)));
         Record9<ULong, ULong, UByte, String, ULong, String, String, ULong, Integer> record =
-            context.select(TABLE.ID, TABLE.STEP_ID, TABLE.FILE_TYPE, TABLE.FILE_LOCATION, TABLE.FILE_SIZE,
-                TABLE.FILE_HASH, TABLE.HOST,
-                TABLE.HOST_ACCOUNT, TABLE.FILE_SOURCE_ID).from(TABLE).where(conditions).fetchOne();
+            context.select(
+                TABLE.ID,
+                TABLE.STEP_ID,
+                TABLE.FILE_TYPE,
+                TABLE.FILE_LOCATION,
+                TABLE.FILE_SIZE,
+                TABLE.FILE_HASH,
+                TABLE.HOST,
+                TABLE.HOST_ACCOUNT,
+                TABLE.FILE_SOURCE_ID)
+                .from(TABLE).where(conditions).fetchOne();
         if (record != null) {
             return DbRecordMapper.convertRecordToTaskFileInfo(record);
         } else {
@@ -124,9 +148,17 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
 
     @Override
     public long insertFileInfo(TaskFileInfoDTO fileInfo) {
-        TaskTemplateStepFileListRecord record = context.insertInto(TABLE)
-            .columns(TABLE.STEP_ID, TABLE.FILE_TYPE, TABLE.FILE_LOCATION, TABLE.FILE_SIZE, TABLE.FILE_HASH, TABLE.HOST,
-                TABLE.HOST_ACCOUNT, TABLE.FILE_SOURCE_ID)
+        TaskTemplateStepFileListRecord record =
+            context.insertInto(TABLE)
+            .columns(
+                TABLE.STEP_ID,
+                TABLE.FILE_TYPE,
+                TABLE.FILE_LOCATION,
+                TABLE.FILE_SIZE,
+                TABLE.FILE_HASH,
+                TABLE.HOST,
+                TABLE.HOST_ACCOUNT,
+                TABLE.FILE_SOURCE_ID)
             .values(
                 ULong.valueOf(fileInfo.getStepId()),
                 UByte.valueOf(fileInfo.getFileType().getType()),
@@ -147,10 +179,16 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
             return Collections.emptyList();
         }
         InsertValuesStep8<TaskTemplateStepFileListRecord, ULong, UByte, String, ULong, String, String, ULong,
-            Integer> insertStep =
-            context.insertInto(TABLE).columns(TABLE.STEP_ID, TABLE.FILE_TYPE, TABLE.FILE_LOCATION, TABLE.FILE_SIZE,
+            Integer> insertStep = context.insertInto(TABLE)
+            .columns(
+                TABLE.STEP_ID,
+                TABLE.FILE_TYPE,
+                TABLE.FILE_LOCATION,
+                TABLE.FILE_SIZE,
                 TABLE.FILE_HASH,
-                TABLE.HOST, TABLE.HOST_ACCOUNT, TABLE.FILE_SOURCE_ID);
+                TABLE.HOST,
+                TABLE.HOST_ACCOUNT,
+                TABLE.FILE_SOURCE_ID);
 
         fileInfoList.forEach(fileInfo -> insertStep.values(
             ULong.valueOf(fileInfo.getStepId()),
@@ -186,7 +224,8 @@ public class TaskTemplateFileInfoDAOImpl implements TaskFileInfoDAO {
         conditions.add(TABLE.STEP_ID.eq(ULong.valueOf(fileInfo.getStepId())));
         conditions.add(TABLE.ID.eq(ULong.valueOf(fileInfo.getId())));
 
-        return 1 == context.update(TABLE).set(TABLE.FILE_TYPE, UByte.valueOf(fileInfo.getFileType().getType()))
+        return 1 == context.update(TABLE)
+            .set(TABLE.FILE_TYPE, UByte.valueOf(fileInfo.getFileType().getType()))
             .set(TABLE.FILE_LOCATION, JsonUtils.toJson(fileInfo.getFileLocation()))
             .set(TABLE.FILE_SIZE, DbRecordMapper.getJooqLongValue(fileInfo.getFileSize()))
             .set(TABLE.FILE_HASH, fileInfo.getFileHash())
