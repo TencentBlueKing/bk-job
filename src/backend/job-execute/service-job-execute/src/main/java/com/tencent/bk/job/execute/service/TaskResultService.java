@@ -125,7 +125,7 @@ public interface TaskResultService {
      * @param appId          业务ID
      * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
-     * @param batch          滚动执行批次，0表示获取所有批次的数据，null表示获取当前批次数据
+     * @param batch          滚动执行批次，非滚动步骤不需要传入，0表示获取所有批次的数据，null表示获取当前批次数据
      * @return 执行历史
      */
     List<StepExecutionRecordDTO> listStepExecutionHistory(User user,
