@@ -93,8 +93,13 @@ public class Response<T> {
     }
 
     public static <T> Response<T> buildAuthFailResp(AuthResultVO authResult) {
-        Response<T> resp = new Response<>(ErrorCode.PERMISSION_DENIED
-                                            , new String[]{JobContextUtil.getUsername()}, null);
+        Response<T> resp = new Response<>(
+            ErrorCode.PERMISSION_DENIED,
+            new String[]{
+                JobContextUtil.getUserDisplayName()
+            },
+            null
+        );
         resp.authResult = authResult;
         return resp;
     }

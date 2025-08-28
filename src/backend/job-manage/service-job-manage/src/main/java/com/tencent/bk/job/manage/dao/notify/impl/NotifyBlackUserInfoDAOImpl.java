@@ -27,12 +27,12 @@ package com.tencent.bk.job.manage.dao.notify.impl;
 import com.tencent.bk.job.manage.dao.notify.NotifyBlackUserInfoDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyBlackUserInfoDTO;
 import com.tencent.bk.job.manage.model.tables.NotifyBlackUserInfo;
-import com.tencent.bk.job.manage.model.tables.records.NotifyBlackUserInfoRecord;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
 import lombok.val;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
+import org.jooq.TableField;
 import org.jooq.conf.ParamType;
 import org.jooq.types.ULong;
 import org.slf4j.Logger;
@@ -55,6 +55,14 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
     private static final Logger logger = LoggerFactory.getLogger(NotifyBlackUserInfoDAOImpl.class);
     private static final NotifyBlackUserInfo T_ESB_USER_INFO = NotifyBlackUserInfo.NOTIFY_BLACK_USER_INFO;
     private static final NotifyBlackUserInfo defaultTable = T_ESB_USER_INFO;
+    private static final TableField<?, ?>[] ALL_FIELDS = {
+        defaultTable.ID,
+        defaultTable.TENANT_ID,
+        defaultTable.USERNAME,
+        defaultTable.DISPLAY_NAME,
+        defaultTable.CREATOR,
+        defaultTable.LAST_MODIFY_TIME
+    };
 
     private final DSLContext dslContext;
 
@@ -66,11 +74,15 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
     @Override
     public Long insertNotifyBlackUserInfo(NotifyBlackUserInfoDTO notifyBlackUserInfoDTO) {
         val query = dslContext.insertInto(defaultTable,
+            defaultTable.TENANT_ID,
             defaultTable.USERNAME,
+            defaultTable.DISPLAY_NAME,
             defaultTable.CREATOR,
             defaultTable.LAST_MODIFY_TIME
         ).values(
+            notifyBlackUserInfoDTO.getTenantId(),
             notifyBlackUserInfoDTO.getUsername(),
+            notifyBlackUserInfoDTO.getDisplayName(),
             notifyBlackUserInfoDTO.getCreator(),
             ULong.valueOf(notifyBlackUserInfoDTO.getLastModifyTime())
         ).returning(defaultTable.ID);
@@ -86,31 +98,36 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
     }
 
     @Override
-    public int deleteAllNotifyBlackUser() {
-        return dslContext.deleteFrom(defaultTable).execute();
+    public int deleteAllNotifyBlackUser(String tenantId) {
+        return dslContext.deleteFrom(defaultTable).where(defaultTable.TENANT_ID.eq(tenantId)).execute();
     }
 
     @Override
-    public List<NotifyBlackUserInfoDTO> listNotifyBlackUserInfo() {
-        val records = dslContext.selectFrom(defaultTable).fetch();
+    public List<NotifyBlackUserInfoDTO> listNotifyBlackUserInfo(String tenantId) {
+        val records = dslContext.select(ALL_FIELDS)
+            .from(defaultTable)
+            .where(defaultTable.TENANT_ID.eq(tenantId))
+            .fetch();
         if (records.isEmpty()) {
             return new ArrayList<>();
         } else {
             return records.map(record -> new NotifyBlackUserInfoDTO(
-                record.getId(),
-                record.getUsername(),
-                record.getCreator(),
-                record.getLastModifyTime().longValue()
+                record.get(defaultTable.ID),
+                record.get(defaultTable.TENANT_ID),
+                record.get(defaultTable.USERNAME),
+                record.get(defaultTable.DISPLAY_NAME),
+                record.get(defaultTable.CREATOR),
+                record.get(defaultTable.LAST_MODIFY_TIME).longValue()
             ));
         }
     }
 
     @Override
-    public List<NotifyBlackUserInfoVO> listNotifyBlackUserInfo(Integer start, Integer limit) {
+    public List<NotifyBlackUserInfoVO> listNotifyBlackUserInfo(String tenantId, Integer start, Integer limit) {
         if (null == start) start = 0;
         if (null == limit) limit = -1;
-        val baseQuery = dslContext.selectFrom(defaultTable);
-        Result<NotifyBlackUserInfoRecord> records;
+        val baseQuery = dslContext.select(ALL_FIELDS).from(defaultTable).where(defaultTable.TENANT_ID.eq(tenantId));
+        Result<Record> records;
         if (start > 0 && limit > 0) {
             records = baseQuery.offset(start).limit(limit).fetch();
         } else if (start > 0) {
@@ -122,10 +139,11 @@ public class NotifyBlackUserInfoDAOImpl implements NotifyBlackUserInfoDAO {
             return new ArrayList<>();
         } else {
             return records.map(record -> new NotifyBlackUserInfoVO(
-                record.getId(),
-                record.getUsername(),
-                record.getCreator(),
-                record.getLastModifyTime().longValue()
+                record.get(defaultTable.ID),
+                record.get(defaultTable.USERNAME),
+                record.get(defaultTable.DISPLAY_NAME),
+                record.get(defaultTable.CREATOR),
+                record.get(defaultTable.LAST_MODIFY_TIME).longValue()
             ));
         }
     }

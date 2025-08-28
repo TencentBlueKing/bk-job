@@ -30,12 +30,16 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.mysql.JobTransactional;
+import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
+import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskPlanResource;
+import com.tencent.bk.job.manage.auth.PlanAuthService;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.converter.TaskStepConverter;
@@ -83,24 +87,35 @@ import java.util.stream.Collectors;
 public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
     private static final Integer PLAN_IS_ENABLE = 1;
     private final TaskPlanService taskPlanService;
+    private final PlanAuthService planAuthService;
     private final AbstractTaskVariableService taskVariableService;
 
     private final ScriptService scriptService;
     private final PublicScriptService publicScriptService;
 
     private final AccountService accountService;
+    private final TenantService tenantService;
+
+    private final UserLocalCache userLocalCache;
 
     @Autowired
     public ServiceTaskPlanResourceImpl(
-        TaskPlanService taskPlanService,
+        TaskPlanService taskPlanService, PlanAuthService planAuthService,
         @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskVariableService,
-        ScriptService scriptService, PublicScriptService publicScriptService,
-        AccountService accountService) {
+        ScriptService scriptService,
+        PublicScriptService publicScriptService,
+        AccountService accountService,
+        UserLocalCache userLocalCache,
+        TenantService tenantService
+    ) {
         this.taskPlanService = taskPlanService;
+        this.planAuthService = planAuthService;
         this.taskVariableService = taskVariableService;
         this.scriptService = scriptService;
         this.publicScriptService = publicScriptService;
         this.accountService = accountService;
+        this.userLocalCache = userLocalCache;
+        this.tenantService = tenantService;
     }
 
     @Override
@@ -206,21 +221,6 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
     }
 
     @Override
-    @JobTransactional(transactionManager = "jobManageTransactionManager")
-    public InternalResponse<Long> createPlanWithIdForMigration(
-        String username,
-        Long appId,
-        Long templateId,
-        Long planId,
-        Long createTime,
-        Long lastModifyTime,
-        String lastModifyUser
-    ) {
-        return InternalResponse.buildSuccessResp(taskPlanService.saveTaskPlanForMigration(username, appId, templateId,
-            planId, createTime, lastModifyTime, lastModifyUser));
-    }
-
-    @Override
     public InternalResponse<ServiceIdNameCheckDTO> checkIdAndName(Long appId, Long templateId, Long planId,
                                                                   String name) {
         boolean idResult = taskPlanService.checkPlanId(planId);
@@ -235,13 +235,16 @@ public class ServiceTaskPlanResourceImpl implements ServiceTaskPlanResource {
     @Override
     public InternalResponse<Long> savePlanForImport(String username, Long appId, Long templateId,
                                                     Long createTime, TaskPlanVO planInfo) {
+        User user = userLocalCache.getUser(tenantService.getTenantIdByAppId(appId), username);
+        JobContextUtil.setUser(user);
         planInfo.validateForImport();
         TaskPlanInfoDTO taskPlanInfo = TaskPlanInfoDTO.fromVO(username, appId, planInfo);
         if (createTime != null && createTime > 0) {
             taskPlanInfo.setCreateTime(createTime);
         }
-        Long finalTemplateId = taskPlanService.saveTaskPlanForBackup(taskPlanInfo);
-        return InternalResponse.buildSuccessResp(finalTemplateId);
+        Long planId = taskPlanService.saveTaskPlanForBackup(taskPlanInfo);
+        planAuthService.registerPlan(user, planId, planInfo.getName());
+        return InternalResponse.buildSuccessResp(planId);
     }
 
     @Override

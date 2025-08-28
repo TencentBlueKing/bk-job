@@ -44,9 +44,11 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -178,6 +180,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final CustomPasswordCache customPasswordCache;
 
     private final RunningJobResourceQuotaManager runningJobResourceQuotaManager;
+    private final TenantService tenantService;
 
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
@@ -200,7 +203,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   TaskInstanceExecuteObjectProcessor taskInstanceExecuteObjectProcessor,
                                   RunningJobResourceQuotaManager runningJobResourceQuotaManager,
                                   HostService hostService,
-                                  CustomPasswordCache customPasswordCache) {
+                                  CustomPasswordCache customPasswordCache,
+                                  TenantService tenantService) {
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -220,12 +224,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.runningJobResourceQuotaManager = runningJobResourceQuotaManager;
         this.hostService = hostService;
         this.customPasswordCache = customPasswordCache;
+        this.tenantService = tenantService;
     }
 
     @Override
     public TaskInstanceDTO executeFastTask(FastTaskDTO fastTask) {
         // 设置脚本信息
-        checkAndSetScript(fastTask.getTaskInstance(), fastTask.getStepInstance());
+        checkAndSetScript(fastTask.getOperator().getTenantId(), fastTask.getTaskInstance(), fastTask.getStepInstance());
 
         StepInstanceDTO stepInstance = fastTask.getStepInstance();
 
@@ -303,7 +308,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 鉴权
             watch.start("authFastExecute");
-            authFastExecute(taskInstance, stepInstance, taskInstanceExecuteObjects.getWhiteHostAllowActions());
+            authFastExecute(fastTask.getOperator(), taskInstance, stepInstance,
+                taskInstanceExecuteObjects.getWhiteHostAllowActions());
             watch.stop();
 
             // 保存作业
@@ -357,12 +363,18 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
      * 通过自定义密码列表查询真实的主机信息
      */
     private Collection<ServiceHostDTO> getRealHostsByCustomPwdList(
-        List<EsbCustomHostPasswordDTO> customHostPasswordDTOList) {
+        long appId,
+        List<EsbCustomHostPasswordDTO> customHostPasswordDTOList
+    ) {
         List<HostDTO> queryHostDTOList = customHostPasswordDTOList.stream()
             .map(dto -> new HostDTO(dto.getHostId(), dto.getCloudAreaId(), dto.getIp()))
             .collect(Collectors.toList());
 
-        Map<HostDTO, ServiceHostDTO> hostDTOServiceHostDTOMap = hostService.batchGetHosts(queryHostDTOList);
+        String tenantId = tenantService.getTenantIdByAppId(appId);
+        Map<HostDTO, ServiceHostDTO> hostDTOServiceHostDTOMap = hostService.batchGetHostsFromCacheOrDB(
+            tenantId,
+            queryHostDTOList
+        );
 
         if (hostDTOServiceHostDTOMap.isEmpty()) {
             log.info("The custom password is incorrect, no real host is found. queryList={}", queryHostDTOList);
@@ -435,9 +447,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             return;
         }
 
-        Collection<ServiceHostDTO> serviceHostDTOs = getRealHostsByCustomPwdList(customHostPasswordDTOList);
-        List<AgentCustomPasswordDTO> agentCustomPasswordDTOList = setAgentCustomPwd(customHostPasswordDTOList,
-            serviceHostDTOs);
+        Collection<ServiceHostDTO> serviceHostDTOs = getRealHostsByCustomPwdList(
+            taskInstance.getAppId(),
+            customHostPasswordDTOList
+        );
+        List<AgentCustomPasswordDTO> agentCustomPasswordDTOList = setAgentCustomPwd(
+            customHostPasswordDTOList,
+            serviceHostDTOs
+        );
         customPasswordCache.addCache(agentCustomPasswordDTOList, taskInstance.getId());
         watch.stop();
     }
@@ -700,7 +717,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private void checkAndSetScript(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance) {
+    private void checkAndSetScript(String tenantId, TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance) {
         long appId = taskInstance.getAppId();
         ServiceScriptDTO script = null;
         if (stepInstance.isScriptStep()) {
@@ -736,7 +753,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
         }
         // 检查高危脚本
-        checkScriptMatchDangerousRule(taskInstance, stepInstance);
+        checkScriptMatchDangerousRule(tenantId, taskInstance, stepInstance);
     }
 
     private void checkScriptExist(long appId, StepInstanceDTO stepInstance, ServiceScriptDTO script) {
@@ -765,21 +782,23 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private void checkScriptMatchDangerousRule(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance) {
+    private void checkScriptMatchDangerousRule(String tenantId,
+                                               TaskInstanceDTO taskInstance,
+                                               StepInstanceDTO stepInstance) {
         if (!stepInstance.isScriptStep()) {
             return;
         }
 
         String content = stepInstance.getScriptContent();
         List<ServiceScriptCheckResultItemDTO> checkResultItems =
-            dangerousScriptCheckService.check(stepInstance.getScriptType(), content);
+            dangerousScriptCheckService.check(tenantId, stepInstance.getScriptType(), content);
         if (CollectionUtils.isNotEmpty(checkResultItems)) {
             String checkResultSummary =
                 dangerousScriptCheckService.summaryDangerousScriptCheckResult(stepInstance.getName(), checkResultItems);
             if (StringUtils.isNotBlank(checkResultSummary)) {
                 log.info("Script match dangerous rule, checkResult: {}", checkResultItems);
                 dangerousScriptCheckService.saveDangerousRecord(taskInstance, stepInstance, checkResultItems);
-                if (dangerousScriptCheckService.shouldIntercept(checkResultItems)) {
+                if (dangerousScriptCheckService.shouldIntercept(tenantId, checkResultItems)) {
                     throw new AbortedException(ErrorCode.DANGEROUS_SCRIPT_FORBIDDEN_EXECUTION,
                         ArrayUtil.toArray(checkResultSummary));
                 }
@@ -787,21 +806,23 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private void batchCheckScriptMatchDangerousRule(TaskInstanceDTO taskInstance,
+    private void batchCheckScriptMatchDangerousRule(String tenantId,
+                                                    TaskInstanceDTO taskInstance,
                                                     List<StepInstanceDTO> stepInstanceList) {
-        stepInstanceList.forEach(stepInstance -> checkScriptMatchDangerousRule(taskInstance, stepInstance));
+        stepInstanceList.forEach(stepInstance -> checkScriptMatchDangerousRule(tenantId, taskInstance, stepInstance));
     }
 
-    private void authFastExecute(TaskInstanceDTO taskInstance,
+    private void authFastExecute(User operator,
+                                 TaskInstanceDTO taskInstance,
                                  StepInstanceDTO stepInstance,
                                  Map<Long, List<String>> whiteHostAllowActions) {
         AuthResult authResult;
         if (stepInstance.isScriptStep()) {
             // 鉴权脚本任务
-            authResult = authExecuteScript(taskInstance, stepInstance, whiteHostAllowActions);
+            authResult = authExecuteScript(operator, taskInstance, stepInstance, whiteHostAllowActions);
         } else {
             // 鉴权文件任务
-            authResult = authFileTransfer(taskInstance, stepInstance, whiteHostAllowActions);
+            authResult = authFileTransfer(operator, taskInstance, stepInstance, whiteHostAllowActions);
         }
 
         if (!authResult.isPass()) {
@@ -809,11 +830,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private AuthResult authExecuteScript(TaskInstanceDTO taskInstance,
+    private AuthResult authExecuteScript(User user,
+                                         TaskInstanceDTO taskInstance,
                                          StepInstanceDTO stepInstance,
                                          Map<Long, List<String>> whiteHostAllowActions) {
         Long appId = taskInstance.getAppId();
-        String username = taskInstance.getOperator();
         Long accountId = null;
         if (StepExecuteTypeEnum.EXECUTE_SCRIPT == stepInstance.getExecuteType()) {
             accountId = stepInstance.getAccountId();
@@ -821,10 +842,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             accountId = stepInstance.getDbAccountId();
         }
         if (accountId == null) {
-            return AuthResult.fail();
+            return AuthResult.fail(user);
         }
 
-        AuthResult accountAuthResult = executeAuthService.authAccountExecutable(username,
+        AuthResult accountAuthResult = executeAuthService.authAccountExecutable(user,
             new AppResourceScope(appId), accountId);
 
         AuthResult serverAuthResult;
@@ -838,17 +859,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (scriptSource == ScriptSourceEnum.CUSTOM) {
             // 快速执行脚本鉴权
             serverAuthResult = executeAuthService.authFastExecuteScript(
-                username, new AppResourceScope(appId), executeObjects);
+                user, new AppResourceScope(appId), executeObjects);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_APP) {
             serverAuthResult = executeAuthService.authExecuteAppScript(
-                username, new AppResourceScope(appId), stepInstance.getScriptId(),
+                user, new AppResourceScope(appId), stepInstance.getScriptId(),
                 stepInstance.getScriptName(), executeObjects);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_PUBLIC) {
             serverAuthResult = executeAuthService.authExecutePublicScript(
-                username, new AppResourceScope(appId), stepInstance.getScriptId(),
+                user, new AppResourceScope(appId), stepInstance.getScriptId(),
                 stepInstance.getScriptName(), executeObjects);
         } else {
-            serverAuthResult = AuthResult.fail();
+            serverAuthResult = AuthResult.fail(user);
         }
 
         return accountAuthResult.mergeAuthResult(serverAuthResult);
@@ -877,10 +898,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private AuthResult authFileTransfer(TaskInstanceDTO taskInstance,
+    private AuthResult authFileTransfer(User operator,
+                                        TaskInstanceDTO taskInstance,
                                         StepInstanceDTO stepInstance,
                                         Map<Long, List<String>> whiteHostAllowActions) {
-        String username = taskInstance.getOperator();
         Long appId = taskInstance.getAppId();
 
         Set<Long> accounts = new HashSet<>();
@@ -890,7 +911,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             .forEach(fileSource -> accounts.add(fileSource.getAccountId()));
 
         AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
-            username, new AppResourceScope(appId), accounts);
+            operator, new AppResourceScope(appId), accounts);
 
         ExecuteTargetDTO executeTarget = stepInstance.getTargetExecuteObjects().clone();
         stepInstance.getFileSourceList().stream()
@@ -905,7 +926,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         AuthResult serverAuthResult = executeAuthService.authFastPushFile(
-            username, new AppResourceScope(appId), executeTarget);
+            operator, new AppResourceScope(appId), executeTarget);
 
         return accountAuthResult.mergeAuthResult(serverAuthResult);
     }
@@ -1076,7 +1097,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 检查高危脚本
             watch.start("checkDangerousScript");
-            batchCheckScriptMatchDangerousRule(taskInstance, stepInstanceList);
+            batchCheckScriptMatchDangerousRule(
+                executeParam.getOperator().getTenantId(),
+                taskInstance,
+                stepInstanceList
+            );
             watch.stop();
 
             // 处理执行对象
@@ -1183,7 +1208,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private TaskInfo buildTaskInfoFromExecuteParam(TaskExecuteParam executeParam, StopWatch watch) {
         Long appId = executeParam.getAppId();
         Long planId = executeParam.getPlanId();
-        String operator = executeParam.getOperator();
+        User operator = executeParam.getOperator();
         log.info("Create task instance for task, appId={}, planId={}, operator={}, variables={}", appId, planId,
             operator, executeParam.getExecuteVariableValues());
         watch.start("getPlan");
@@ -1211,7 +1236,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         List<StepInstanceDTO> stepInstanceList = new ArrayList<>();
         for (ServiceTaskStepDTO step : taskPlan.getStepList()) {
             StepExecuteTypeEnum executeType = getExecuteTypeFromTaskStepType(step);
-            StepInstanceDTO stepInstance = createCommonStepInstanceDTO(appId, operator, step.getId(),
+            StepInstanceDTO stepInstance = createCommonStepInstanceDTO(appId, operator.getUsername(), step.getId(),
                 step.getName(), executeType);
             TaskStepTypeEnum stepType = TaskStepTypeEnum.valueOf(step.getType());
             switch (stepType) {
@@ -1233,7 +1258,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return new TaskInfo(taskInstance, stepInstanceList, finalVariableValueMap, taskPlan);
     }
 
-    private void authExecuteJobPlan(String username, long appId, ServiceTaskPlanDTO plan,
+    private void authExecuteJobPlan(User user,
+                                    long appId,
+                                    ServiceTaskPlanDTO plan,
                                     List<StepInstanceDTO> stepInstanceList,
                                     Map<Long, List<String>> whiteHostAllowActions) throws PermissionDeniedException {
         boolean needAuth = stepInstanceList.stream()
@@ -1257,7 +1284,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 账号使用鉴权
         AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
-            username, new AppResourceScope(appId), accountIds);
+            user, new AppResourceScope(appId), accountIds);
 
         AuthResult authResult;
         if (authServers.isEmpty()) {
@@ -1269,11 +1296,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (isDebugTask) {
                 // 鉴权模板调试
                 serverAuthResult = executeAuthService.authDebugTemplate(
-                    username, new AppResourceScope(appId), plan.getTaskTemplateId(), authServers);
+                    user, new AppResourceScope(appId), plan.getTaskTemplateId(), authServers);
             } else {
                 // 鉴权执行方案的执行
                 serverAuthResult = executeAuthService.authExecutePlan(
-                    username, new AppResourceScope(appId), plan.getTaskTemplateId(),
+                    user, new AppResourceScope(appId), plan.getTaskTemplateId(),
                     plan.getId(), plan.getName(), authServers);
             }
             authResult = accountAuthResult.mergeAuthResult(serverAuthResult);
@@ -1323,7 +1350,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return Pair.of(authServers, accountIds);
     }
 
-    private void authRedoJob(String username, long appId, TaskInstanceDTO taskInstance,
+    private void authRedoJob(User user,
+                             long appId,
+                             TaskInstanceDTO taskInstance,
                              Map<Long, List<String>> whiteHostAllowActions) {
         Integer taskType = taskInstance.getType();
         if (taskType.equals(TaskTypeEnum.NORMAL.getValue())
@@ -1336,7 +1365,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     taskInstance.getPlanId());
                 throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
             }
-            authExecuteJobPlan(username, appId, serviceTaskPlanDTO, taskInstance.getStepInstances(),
+            authExecuteJobPlan(user, appId, serviceTaskPlanDTO, taskInstance.getStepInstances(),
                 whiteHostAllowActions);
         } else if (taskType.equals(TaskTypeEnum.SCRIPT.getValue())) {
             // 快速执行脚本鉴权
@@ -1348,14 +1377,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     scriptStepInstance.setScriptName(script.getName());
                 }
             }
-            authFastExecute(taskInstance, scriptStepInstance, whiteHostAllowActions);
+            authFastExecute(user, taskInstance, scriptStepInstance, whiteHostAllowActions);
         } else if (taskType.equals(TaskTypeEnum.FILE.getValue())) {
             // 快速分发文件鉴权
             StepInstanceDTO fileStepInstance = taskInstance.getStepInstances().get(0);
-            authFastExecute(taskInstance, fileStepInstance, whiteHostAllowActions);
+            authFastExecute(user, taskInstance, fileStepInstance, whiteHostAllowActions);
         } else {
             log.warn("Auth fail because of invalid task type!");
-            throw new PermissionDeniedException(AuthResult.fail());
+            throw new PermissionDeniedException(AuthResult.fail(user));
         }
     }
 
@@ -1393,7 +1422,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
         taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
-        taskInstance.setOperator(executeParam.getOperator());
+        taskInstance.setOperator(executeParam.getOperator().getUsername());
         String taskName = StringUtils.isBlank(executeParam.getTaskName()) ? taskPlan.getName() :
             executeParam.getTaskName();
         taskInstance.setName(taskName);
@@ -1422,7 +1451,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     public TaskInstanceDTO redoJob(Long appId,
                                    Long taskInstanceId,
-                                   String operator,
+                                   User operator,
                                    List<TaskVariableDTO> executeVariableValues) {
         log.info("Create task instance for redo, appId={}, taskInstanceId={}, operator={}, variables={}", appId,
             taskInstanceId, operator, executeVariableValues);
@@ -1433,7 +1462,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
-        TaskInstanceDTO taskInstance = createTaskInstanceForRedo(originTaskInstance, operator);
+        TaskInstanceDTO taskInstance = createTaskInstanceForRedo(originTaskInstance, operator.getUsername());
 
         Map<String, TaskVariableDTO> finalVariableValueMap = buildFinalTaskVariableValues(
             originTaskInstance.getVariables(), executeVariableValues);
@@ -1447,7 +1476,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         List<StepInstanceDTO> stepInstanceList = new ArrayList<>();
         for (StepInstanceDTO originStepInstance : originTaskInstance.getStepInstances()) {
             StepExecuteTypeEnum executeType = originStepInstance.getExecuteType();
-            StepInstanceDTO stepInstance = createCommonStepInstanceDTO(appId, operator,
+            StepInstanceDTO stepInstance = createCommonStepInstanceDTO(appId, operator.getUsername(),
                 originStepInstance.getStepId(), originStepInstance.getName(), executeType);
             TaskStepTypeEnum stepType = StepTypeExecuteTypeConverter.convertToStepType(executeType);
             switch (stepType) {
@@ -1465,7 +1494,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         // 检查高危脚本
-        batchCheckScriptMatchDangerousRule(taskInstance, stepInstanceList);
+        batchCheckScriptMatchDangerousRule(operator.getTenantId(), taskInstance, stepInstanceList);
 
         // 处理执行对象
         TaskInstanceExecuteObjects taskInstanceExecuteObjects =
@@ -1915,7 +1944,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     @Override
     public Integer doStepOperation(Long appId,
-                                   String operator,
+                                   User operator,
                                    StepOperationDTO stepOperation) {
         long stepInstanceId = stepOperation.getStepInstanceId();
         StepOperationEnum operation = stepOperation.getOperation();
@@ -1932,30 +1961,30 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         int executeCount = stepInstance.getExecuteCount();
         switch (operation) {
             case CONFIRM_CONTINUE:
-                confirmContinue(stepInstance, operator, stepOperation.getConfirmReason());
+                confirmContinue(stepInstance, operator.getUsername(), stepOperation.getConfirmReason());
                 break;
             case RETRY_FAIL_IP:
-                retryStepFail(taskInstance, stepInstance, operator);
+                retryStepFail(taskInstance, stepInstance, operator.getUsername());
                 executeCount++;
                 break;
             case IGNORE_ERROR:
-                ignoreError(taskInstance, stepInstance, operator);
+                ignoreError(taskInstance, stepInstance, operator.getUsername());
                 break;
             case RETRY_ALL_IP:
-                retryStepAll(taskInstance, stepInstance, operator);
+                retryStepAll(taskInstance, stepInstance, operator.getUsername());
                 executeCount++;
                 break;
             case CONFIRM_TERMINATE:
-                confirmTerminate(stepInstance, operator, stepOperation.getConfirmReason());
+                confirmTerminate(stepInstance, operator.getUsername(), stepOperation.getConfirmReason());
                 break;
             case CONFIRM_RESTART:
-                confirmRestart(stepInstance, operator);
+                confirmRestart(stepInstance, operator.getUsername());
                 break;
             case NEXT_STEP:
-                nextStep(taskInstance, stepInstance, operator);
+                nextStep(taskInstance, stepInstance, operator.getUsername());
                 break;
             case SKIP:
-                skipStep(taskInstance, stepInstance, operator);
+                skipStep(taskInstance, stepInstance, operator.getUsername());
                 break;
             case ROLLING_CONTINUE:
                 continueRolling(stepInstance);
@@ -2281,9 +2310,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     @Override
-    public void terminateJob(String username, Long appId, Long taskInstanceId) {
+    public void terminateJob(User user, Long appId, Long taskInstanceId) {
         TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(appId, taskInstanceId);
-        terminateJob(username, taskInstance);
+        terminateJob(user.getUsername(), taskInstance);
     }
 
     private void terminateJob(String operator, TaskInstanceDTO taskInstance) {
@@ -2312,7 +2341,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     @Override
     public void doTaskOperation(Long appId,
-                                String operator,
+                                User operator,
                                 long taskInstanceId,
                                 TaskOperationEnum operation) {
         log.info("Operate task instance, appId:{}, taskInstanceId:{}, operator:{}, operation:{}", appId,
@@ -2321,10 +2350,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         addJobInstanceContext(taskInstance);
         switch (operation) {
             case TERMINATE_JOB:
-                terminateJob(operator, taskInstance);
+                terminateJob(operator.getUsername(), taskInstance);
                 break;
             case START_JOB:
-                startJob(operator, taskInstance);
+                startJob(operator.getUsername(), taskInstance);
                 break;
             default:
                 log.warn("Undefined task operation!");

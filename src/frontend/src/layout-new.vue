@@ -248,7 +248,7 @@
                 {{ $t('检测记录') }}
               </jb-item>
             </jb-item-group>
-            <jb-item-group>
+            <jb-item-group v-if="isShowServiceStateMenu">
               <div slot="title">
                 {{ $t('视图') }}
               </div>
@@ -291,6 +291,7 @@
   } from 'vue';
 
   import QueryGlobalSettingService from '@service/query-global-setting';
+  import UserService from '@service/user';
 
   import AppSelect from '@components/app-select';
   import JbMenu from '@components/jb-menu';
@@ -319,6 +320,7 @@
   const isEnableFeatureFileManage = ref(false);
   const isEnableBKNotice = ref(false);
   const isShowBKNotice = ref(false);
+  const isShowServiceStateMenu = ref(false);
 
   const route = useRoute();
   const router = useRouter();
@@ -376,6 +378,14 @@
       localStorage.removeItem(TOGGLE_CACHE);
     }
   };
+
+  /**
+   * @desc 获取登录用户信息
+   */
+  UserService.fetchUserInfo()
+    .then((data) => {
+      isShowServiceStateMenu.value = !data.tenantEnabled || (data.tenantEnabled && data.systemTenant);
+    });
   const handleSideExpandChange = (sideExpand) => {
     isSideExpand.value = sideExpand;
   };

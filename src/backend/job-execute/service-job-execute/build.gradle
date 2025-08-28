@@ -37,6 +37,7 @@ dependencies {
     api project(':commons:common-redis')
     api project(":commons:artifactory-sdk")
     api project(":commons:common-mysql-sharding")
+    api project(":commons:paas-sdk")
     api("org.springframework.boot:spring-boot-starter-web")
     api("org.springframework.boot:spring-boot-starter-jdbc")
     api "org.springframework.boot:spring-boot-starter-jooq"

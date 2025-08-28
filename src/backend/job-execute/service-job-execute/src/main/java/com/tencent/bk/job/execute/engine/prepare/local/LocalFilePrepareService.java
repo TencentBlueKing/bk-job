@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.execute.engine.prepare.local;
 
-import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.config.FileDistributeConfig;
@@ -39,6 +39,7 @@ import com.tencent.bk.job.execute.service.LocalFileDistributeSourceHostProvision
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.tools.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -54,7 +55,7 @@ import java.util.concurrent.ExecutorService;
 public class LocalFilePrepareService {
 
     private final FileDistributeConfig fileDistributeConfig;
-    private final ArtifactoryConfig artifactoryConfig;
+    private final ArtifactoryHelper artifactoryHelper;
     private final LocalFileConfigForExecute localFileConfigForExecute;
     private final LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner;
     private final StepInstanceService stepInstanceService;
@@ -65,7 +66,7 @@ public class LocalFilePrepareService {
 
     @Autowired
     public LocalFilePrepareService(FileDistributeConfig fileDistributeConfig,
-                                   ArtifactoryConfig artifactoryConfig,
+                                   ArtifactoryHelper artifactoryHelper,
                                    LocalFileConfigForExecute localFileConfigForExecute,
                                    LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner,
                                    StepInstanceService stepInstanceService,
@@ -73,7 +74,7 @@ public class LocalFilePrepareService {
                                    @Qualifier("localFileDownloadExecutor") ExecutorService localFileDownloadExecutor,
                                    @Qualifier("localFileWatchExecutor") ExecutorService localFileWatchExecutor) {
         this.fileDistributeConfig = fileDistributeConfig;
-        this.artifactoryConfig = artifactoryConfig;
+        this.artifactoryHelper = artifactoryHelper;
         this.localFileConfigForExecute = localFileConfigForExecute;
         this.localFileDistributeSourceHostProvisioner = localFileDistributeSourceHostProvisioner;
         this.stepInstanceService = stepInstanceService;
@@ -111,7 +112,7 @@ public class LocalFilePrepareService {
             fileSourceList,
             new RecordableLocalFilePrepareTaskResultHandler(stepInstance, resultHandler),
             artifactoryClient,
-            artifactoryConfig.getArtifactoryJobProject(),
+            artifactoryHelper.getJobRealProject(),
             localFileConfigForExecute.getLocalUploadRepo(),
             fileDistributeConfig.getJobDistributeRootPath(),
             localFileDownloadExecutor,
@@ -122,20 +123,19 @@ public class LocalFilePrepareService {
     }
 
     private void fillLocalFileSourceHost(List<FileSourceDTO> fileSourceList, StepInstanceBaseDTO stepInstance) {
-        boolean isGseV2Task = stepInstance.isTargetGseV2Agent();
         fileSourceList.forEach(fileSourceDTO -> {
             if (fileSourceDTO.getFileType() == TaskFileTypeEnum.LOCAL.getType() || fileSourceDTO.isLocalUpload()) {
                 HostDTO localHost = localFileDistributeSourceHostProvisioner.getLocalFileDistributeSourceHost().clone();
-                if (!isGseV2Task) {
-                    // 如果目标Agent是GSE V1, 那么源Agent也必须要GSE1.0 Agent，设置agentId={云区域:ip}
+                if (StringUtils.isBlank(localHost.getAgentId())) {
+                    // 如果AgentId为空，那么该环境是GSE 2.0管控1.0 Agent，那么源Agent也必须要设置agentId={云区域:ip}
                     localHost.setAgentId(localHost.toCloudIp());
                 }
                 ExecuteTargetDTO fileSourceExecuteObjects = new ExecuteTargetDTO();
                 fileSourceExecuteObjects.setStaticIpList(Collections.singletonList(localHost));
                 fileSourceExecuteObjects.buildMergedExecuteObjects(stepInstance.isSupportExecuteObjectFeature());
                 fileSourceDTO.setServers(fileSourceExecuteObjects);
-                log.info("FillLocalFileSourceHost -> stepInstanceId: {}, isGseV2Task: {}, localFileSource: {}",
-                    stepInstance.getId(), isGseV2Task, fileSourceDTO);
+                log.info("FillLocalFileSourceHost -> stepInstanceId: {}, localFileSource: {}",
+                    stepInstance.getId(), fileSourceDTO);
             }
         });
         // 更新本地文件任务内容

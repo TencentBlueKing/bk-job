@@ -26,10 +26,12 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.ExecuteBasePerAppStatisticsTask;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.execute.api.inner.ServiceMetricsResource;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
@@ -50,13 +52,22 @@ public class FastExecuteScriptPerAppStatisticsTask extends ExecuteBasePerAppStat
     @Autowired
     public FastExecuteScriptPerAppStatisticsTask(ServiceMetricsResource executeMetricsResource,
                                                  BasicServiceManager basicServiceManager,
-                                                 StatisticsDAO statisticsDAO,
-                                                 @Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
-        super(executeMetricsResource, basicServiceManager, statisticsDAO, dslContext);
+                                                 CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                                 NoTenantStatisticsDAO noTenantStatisticsDAO,
+                                                 @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
+                                                 TenantService tenantService) {
+        super(
+            executeMetricsResource,
+            basicServiceManager,
+            currentTenantStatisticsDAO,
+            noTenantStatisticsDAO,
+            dslContext,
+            tenantService
+        );
     }
 
     private StatisticsDTO getRunStatusBaseStatisticsDTO(ServiceApplicationDTO app, String timeTag) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(app.getId());
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(timeTag);
@@ -66,7 +77,7 @@ public class FastExecuteScriptPerAppStatisticsTask extends ExecuteBasePerAppStat
     }
 
     private StatisticsDTO getScriptTypeBaseStatisticsDTO(ServiceApplicationDTO app, String timeTag) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(app.getId());
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(timeTag);
@@ -112,11 +123,11 @@ public class FastExecuteScriptPerAppStatisticsTask extends ExecuteBasePerAppStat
     }
 
     public void aggAllAppScriptType(String dayTimeStr, String scriptTypeDimensionValue) {
-        Long totalValue = statisticsDAO.getTotalValueOfStatisticsList(null,
+        Long totalValue = currentTenantStatisticsDAO.getTotalValueOfStatisticsList(null,
             Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
             StatisticsConstants.RESOURCE_EXECUTED_FAST_SCRIPT, StatisticsConstants.DIMENSION_SCRIPT_TYPE,
             scriptTypeDimensionValue, dayTimeStr);
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(StatisticsConstants.DEFAULT_APP_ID);
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(dayTimeStr);
@@ -124,15 +135,15 @@ public class FastExecuteScriptPerAppStatisticsTask extends ExecuteBasePerAppStat
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_FAST_SCRIPT_OF_ALL_APP);
         statisticsDTO.setDimension(StatisticsConstants.DIMENSION_SCRIPT_TYPE);
         statisticsDTO.setDimensionValue(scriptTypeDimensionValue);
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
     }
 
     public void aggAllAppStepRunStatus(String dayTimeStr, String stepRunStatusDimensionValue) {
-        Long totalValue = statisticsDAO.getTotalValueOfStatisticsList(null,
+        Long totalValue = currentTenantStatisticsDAO.getTotalValueOfStatisticsList(null,
             Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
             StatisticsConstants.RESOURCE_EXECUTED_FAST_SCRIPT, StatisticsConstants.DIMENSION_STEP_RUN_STATUS,
             stepRunStatusDimensionValue, dayTimeStr);
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(StatisticsConstants.DEFAULT_APP_ID);
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(dayTimeStr);
@@ -140,7 +151,7 @@ public class FastExecuteScriptPerAppStatisticsTask extends ExecuteBasePerAppStat
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_FAST_SCRIPT_OF_ALL_APP);
         statisticsDTO.setDimension(StatisticsConstants.DIMENSION_STEP_RUN_STATUS);
         statisticsDTO.setDimensionValue(stepRunStatusDimensionValue);
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
     }
 
     @Override
@@ -153,7 +164,7 @@ public class FastExecuteScriptPerAppStatisticsTask extends ExecuteBasePerAppStat
 
     @Override
     public boolean isDataComplete(String targetDateStr) {
-        boolean executedFastScriptByScriptTypeDataExists = statisticsDAO.existsStatistics(
+        boolean executedFastScriptByScriptTypeDataExists = noTenantStatisticsDAO.existsStatistics(
             null,
             null,
             StatisticsConstants.RESOURCE_EXECUTED_FAST_SCRIPT,
@@ -161,7 +172,7 @@ public class FastExecuteScriptPerAppStatisticsTask extends ExecuteBasePerAppStat
             null,
             targetDateStr
         );
-        boolean executedFastScriptByStepRunStatusDataExists = statisticsDAO.existsStatistics(
+        boolean executedFastScriptByStepRunStatusDataExists = noTenantStatisticsDAO.existsStatistics(
             null,
             null,
             StatisticsConstants.RESOURCE_EXECUTED_FAST_SCRIPT,
@@ -169,7 +180,7 @@ public class FastExecuteScriptPerAppStatisticsTask extends ExecuteBasePerAppStat
             null,
             targetDateStr
         );
-        boolean allAppExecutedFastScriptByScriptTypeDataExists = statisticsDAO.existsStatistics(
+        boolean allAppExecutedFastScriptByScriptTypeDataExists = noTenantStatisticsDAO.existsStatistics(
             null,
             null,
             StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_FAST_SCRIPT_OF_ALL_APP,
@@ -177,7 +188,7 @@ public class FastExecuteScriptPerAppStatisticsTask extends ExecuteBasePerAppStat
             null,
             targetDateStr
         );
-        boolean allAppExecutedFastScriptByStepRunStatusDataExists = statisticsDAO.existsStatistics(
+        boolean allAppExecutedFastScriptByStepRunStatusDataExists = noTenantStatisticsDAO.existsStatistics(
             null,
             null,
             StatisticsConstants.RESOURCE_ONE_DAY_EXECUTED_FAST_SCRIPT_OF_ALL_APP,

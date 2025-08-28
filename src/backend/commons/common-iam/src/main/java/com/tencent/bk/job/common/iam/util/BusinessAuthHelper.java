@@ -57,7 +57,7 @@ public class BusinessAuthHelper extends AuthHelper {
         ResourceTypeEnum resourceType = IamUtil.getIamResourceTypeForResourceScope(appResourceScope);
         if (resourceType == ResourceTypeEnum.BUSINESS) {
             instance.setId(appResourceScope.getId());
-        } else if (resourceType == ResourceTypeEnum.BUSINESS_SET) {
+        } else if (resourceType == ResourceTypeEnum.BUSINESS_SET || resourceType == ResourceTypeEnum.TENANT_SET) {
             instance.setPath(PathBuilder.newBuilder(resourceType.getId(), appResourceScope.getId()).build());
         }
         instance.setSystem(resourceType.getSystemId());

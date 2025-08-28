@@ -129,11 +129,9 @@ data:
     job:
       crontab:
         notification-policy:
-          failed:
-            start:
-              begin: {{ .Values.crontabConfig.notificationPolicy.failed.start.begin | default 1 }}
-              frequency: {{ .Values.crontabConfig.notificationPolicy.failed.start.frequency | default 5 }}
-              total: {{ .Values.crontabConfig.notificationPolicy.failed.start.total | default -1 }}
+          {{- toYaml .Values.crontabConfig.notificationPolicy | nindent 10 }}
+        disableCronJobOfArchivedScope:
+          {{- toYaml .Values.crontabConfig.disableCronJobOfArchivedScope | nindent 10 }}
     mysql:
       {{- toYaml .Values.crontabConfig.mysql | nindent 6 }}
     server:
