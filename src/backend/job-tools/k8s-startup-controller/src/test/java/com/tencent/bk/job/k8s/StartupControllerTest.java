@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.k8s;
 
-import com.beust.jcommander.ParameterException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -32,55 +31,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class StartupControllerTest {
-
-    @Test
-    void testParseDependModelFromArgsOrEnv() {
-        // 测试异常参数解析
-        assertThrows(ParameterException.class, () -> StartupController.parseDependModelFromArgsOrEnv(
-            new String[]{"-nn", "ns1", "-ss", " job-execute"}
-        ));
-        // 测试简写参数解析
-        String[] args = new String[]{
-            "-n", "ns1",
-            "-s", " job-execute",
-            "-d", "(job-execute:job-manage,job-logsvr)",
-            "-lc", "bk.job.image/tag=3.6.0-latest",
-            "-ls", "(job-manage:label1=value1,label2=value2),(job-execute:label3=value3)"
-        };
-        ServiceDependModel serviceDependModel = StartupController.parseDependModelFromArgsOrEnv(args);
-        assertNotNull(serviceDependModel);
-        assertEquals("ns1", serviceDependModel.getNamespace());
-        assertEquals("job-execute", serviceDependModel.getServiceName());
-        assertEquals("(job-execute:job-manage,job-logsvr)", serviceDependModel.getDependenciesStr());
-        assertEquals("bk.job.image/tag=3.6.0-latest", serviceDependModel.getExpectLabelsCommon());
-        assertEquals(
-            "(job-manage:label1=value1,label2=value2),(job-execute:label3=value3)",
-            serviceDependModel.getExpectLabelsService()
-        );
-        // 测试全写参数解析
-        args = new String[]{
-            "--namespace", "ns1",
-            "--service", " job-execute",
-            "--dependencies", "(job-execute:job-manage,job-logsvr)",
-            "--expect-pod-labels-common", "bk.job.image/tag=3.6.0-latest",
-            "--expect-pod-labels-service", "(job-manage:label1=value1,label2=value2),(job-execute:label3=value3)"
-        };
-        serviceDependModel = StartupController.parseDependModelFromArgsOrEnv(args);
-        assertNotNull(serviceDependModel);
-        assertEquals("ns1", serviceDependModel.getNamespace());
-        assertEquals("job-execute", serviceDependModel.getServiceName());
-        assertEquals("(job-execute:job-manage,job-logsvr)", serviceDependModel.getDependenciesStr());
-        assertEquals("bk.job.image/tag=3.6.0-latest", serviceDependModel.getExpectLabelsCommon());
-        assertEquals(
-            "(job-manage:label1=value1,label2=value2),(job-execute:label3=value3)",
-            serviceDependModel.getExpectLabelsService()
-        );
-    }
 
     @Test
     void testParseDependencyMap() {

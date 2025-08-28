@@ -24,11 +24,15 @@
 
 package com.tencent.bk.job.manage;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.BasicApp;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -41,9 +45,12 @@ import org.apache.commons.lang3.StringUtils;
 public class CommonAppServiceImpl extends AbstractLocalCacheCommonAppService {
 
     private final ServiceApplicationResource applicationResource;
+    private final TenantEnvService tenantEnvService;
 
-    public CommonAppServiceImpl(ServiceApplicationResource applicationResource) {
+    public CommonAppServiceImpl(ServiceApplicationResource applicationResource,
+                                TenantEnvService tenantEnvService) {
         this.applicationResource = applicationResource;
+        this.tenantEnvService = tenantEnvService;
         GlobalAppScopeMappingService.register(this);
     }
 
@@ -60,7 +67,22 @@ public class CommonAppServiceImpl extends AbstractLocalCacheCommonAppService {
             log.error("Empty appId for application, reject cache! query scope: {}", resourceScope);
             throw new InternalException("Empty appId for application", ErrorCode.INTERNAL_ERROR);
         }
+        fillTenantIdWithDefault(app);
         return convertToBasicApp(app);
+    }
+
+    @Deprecated
+    @CompatibleImplementation(
+        name = "tenant",
+        explain = "兼容发布过程中老的调用，发布完成后删除",
+        deprecatedVersion = "3.12.x",
+        type = CompatibleType.DEPLOY
+    )
+    private void fillTenantIdWithDefault(ServiceApplicationDTO app) {
+        if (!tenantEnvService.isTenantEnabled() && app.getTenantId() == null) {
+            log.warn("CompatibleImplementation: fill default tenantId for application: {}", app);
+            app.setTenantId(TenantIdConstants.DEFAULT_TENANT_ID);
+        }
     }
 
     @Override
@@ -75,6 +97,7 @@ public class CommonAppServiceImpl extends AbstractLocalCacheCommonAppService {
             log.error("Empty scopeType|scopeId for application, reject cache! query appId: {}", appId);
             throw new InternalException("Empty scopeType|scopeId for application", ErrorCode.INTERNAL_ERROR);
         }
+        fillTenantIdWithDefault(app);
         return convertToBasicApp(app);
     }
 

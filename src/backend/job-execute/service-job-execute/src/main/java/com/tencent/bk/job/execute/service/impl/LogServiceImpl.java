@@ -453,6 +453,9 @@ public class LogServiceImpl implements LogService {
     ) {
         ExecuteObjectTask executeObjectTask = fileExecuteObjectTaskService.getTaskByExecuteObjectCompositeKey(
             stepInstance, executeCount, batch, FileTaskModeEnum.getFileTaskMode(mode), executeObjectCompositeKey);
+        if (executeObjectTask == null) {
+            return null;
+        }
         return getFileExecuteObjectLogContent(stepInstance, executeCount, batch, executeObjectTask);
     }
 

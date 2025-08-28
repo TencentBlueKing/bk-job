@@ -22,34 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.config;
+package com.tencent.bk.job.k8s.external;
 
-import com.tencent.bk.job.common.service.CommonAppService;
-import com.tencent.bk.job.common.tenant.TenantEnvService;
-import com.tencent.bk.job.common.tenant.TenantService;
-import com.tencent.bk.job.common.web.interceptor.BasicAppInterceptor;
-import com.tencent.bk.job.manage.CommonAppServiceImpl;
-import com.tencent.bk.job.manage.CachedTenantServiceImpl;
-import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
-import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.Data;
 
-@Configuration
-public class JobFileGatewayConfiguration {
-    @Bean
-    TenantService cachedTenantService(ServiceTenantResource serviceTenantResource) {
-        return new CachedTenantServiceImpl(serviceTenantResource);
-    }
-
-    @Bean
-    CommonAppService appService(ServiceApplicationResource applicationResource,
-                                TenantEnvService tenantEnvService) {
-        return new CommonAppServiceImpl(applicationResource, tenantEnvService);
-    }
-
-    @Bean
-    public BasicAppInterceptor basicAppInterceptor(CommonAppService appService) {
-        return new BasicAppInterceptor(appService);
-    }
+@Data
+public class CheckStatusResp {
+    /**
+     * 服务的外部依赖是否准备就绪
+     */
+    private boolean ready;
 }

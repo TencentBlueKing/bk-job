@@ -22,34 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.config;
+package com.tencent.bk.job.k8s.external;
 
-import com.tencent.bk.job.common.service.CommonAppService;
-import com.tencent.bk.job.common.tenant.TenantEnvService;
-import com.tencent.bk.job.common.tenant.TenantService;
-import com.tencent.bk.job.common.web.interceptor.BasicAppInterceptor;
-import com.tencent.bk.job.manage.CommonAppServiceImpl;
-import com.tencent.bk.job.manage.CachedTenantServiceImpl;
-import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
-import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+/**
+ * 服务外部依赖检查接口
+ */
+public interface IServiceExternalDependencyCheck {
 
-@Configuration
-public class JobFileGatewayConfiguration {
-    @Bean
-    TenantService cachedTenantService(ServiceTenantResource serviceTenantResource) {
-        return new CachedTenantServiceImpl(serviceTenantResource);
-    }
-
-    @Bean
-    CommonAppService appService(ServiceApplicationResource applicationResource,
-                                TenantEnvService tenantEnvService) {
-        return new CommonAppServiceImpl(applicationResource, tenantEnvService);
-    }
-
-    @Bean
-    public BasicAppInterceptor basicAppInterceptor(CommonAppService appService) {
-        return new BasicAppInterceptor(appService);
-    }
+    /**
+     * 检查服务的外部依赖是否已经准备就绪
+     *
+     * @param namespace   服务所在命名空间
+     * @param serviceName 服务名称
+     * @return 布尔值，依赖是否准备就绪
+     */
+    boolean isReady(String namespace, String serviceName);
 }

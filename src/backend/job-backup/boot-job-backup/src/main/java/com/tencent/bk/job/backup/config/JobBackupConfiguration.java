@@ -25,6 +25,7 @@
 package com.tencent.bk.job.backup.config;
 
 import com.tencent.bk.job.common.service.CommonAppService;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.web.interceptor.BasicAppInterceptor;
 import com.tencent.bk.job.manage.CommonAppServiceImpl;
@@ -43,8 +44,9 @@ public class JobBackupConfiguration {
     }
 
     @Bean
-    CommonAppService appService(ServiceApplicationResource applicationResource) {
-        return new CommonAppServiceImpl(applicationResource);
+    CommonAppService appService(ServiceApplicationResource applicationResource,
+                                TenantEnvService tenantEnvService) {
+        return new CommonAppServiceImpl(applicationResource, tenantEnvService);
     }
 
     @Bean
