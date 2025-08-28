@@ -1018,26 +1018,41 @@ public class TaskResultServiceImpl implements TaskResultService {
             record.setCreateTime(stepInstance.getCreateTime());
             return Collections.singletonList(record);
         }
-
         List<StepExecutionRecordDTO> records;
+        if (!stepInstance.isRollingStep()) {
+            // 非滚动步骤，获取步骤维度的全部重试记录
+            records = queryStepRetryRecords(stepInstance);
+        } else {
+            // 滚动步骤
+            records = queryExecutionRecordsForRollingStep(stepInstance, batch);
+        }
+        records.sort(Comparator.comparingInt(StepExecutionRecordDTO::getRetryCount).reversed());
+        return records;
+    }
+
+    /**
+     * 获取滚动步骤的重试记录
+     *
+     * @param stepInstance 步骤实例
+     * @param batch        滚动批次，0表示获取所有批次的数据，null表示获取当前批次数据
+     * @return 滚动步骤的重试记录列表
+     */
+    private List<StepExecutionRecordDTO> queryExecutionRecordsForRollingStep(StepInstanceBaseDTO stepInstance,
+                                                                             Integer batch) {
         if (batch == null) {
             // 获取滚动任务当前滚动批次的重试记录
-            records = queryStepRollingTaskRetryRecords(
+            return queryStepRollingTaskRetryRecords(
                 stepInstance.getTaskInstanceId(),
-                stepInstanceId,
+                stepInstance.getId(),
                 stepInstance.getBatch()
             );
         } else if (batch == 0) {
             // 获取步骤维度的全部重试记录
-            records = queryStepRetryRecords(stepInstance);
+            return queryStepRetryRecords(stepInstance);
         } else {
             // 获取滚动任务特定批次的重试记录
-            records = queryStepRollingTaskRetryRecords(stepInstance.getTaskInstanceId(), stepInstanceId, batch);
+            return queryStepRollingTaskRetryRecords(stepInstance.getTaskInstanceId(), stepInstance.getId(), batch);
         }
-
-        records.sort(Comparator.comparingInt(StepExecutionRecordDTO::getRetryCount).reversed());
-
-        return records;
     }
 
     private List<StepExecutionRecordDTO> queryStepRetryRecords(StepInstanceBaseDTO stepInstance) {
