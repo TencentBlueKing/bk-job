@@ -126,14 +126,15 @@ public class TaskTargetDTO {
         // 主机对象
         taskTargetDTO.setHostNodeList(TaskHostNodeDTO.fromVO(taskTargetVO.getExecuteObjectsInfoCompatibly()));
         // 容器对象
-        taskTargetDTO.setContainerList(
-            CollectionUtils.isNotEmpty(taskTargetVO.getExecuteObjectsInfo().getContainerList())
-                ? taskTargetVO.getExecuteObjectsInfo().getContainerList()
+        if (taskTargetVO.getExecuteObjectsInfo() != null
+            && CollectionUtils.isNotEmpty(taskTargetVO.getExecuteObjectsInfo().getContainerList())) {
+            taskTargetDTO.setContainerList(
+                taskTargetVO.getExecuteObjectsInfo().getContainerList()
                     .stream()
                     .map(TaskTargetContainerDTO::fromContainerVO)
                     .collect(Collectors.toList())
-                : null
-        );
+            );
+        }
         fillHostDetail(taskTargetDTO);
         return taskTargetDTO;
     }
