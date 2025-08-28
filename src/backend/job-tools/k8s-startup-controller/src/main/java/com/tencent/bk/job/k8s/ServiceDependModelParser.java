@@ -46,22 +46,22 @@ public class ServiceDependModelParser {
             .addObject(serviceDependModel)
             .build()
             .parse(args);
-        updateNamespaceWithEnvVariable(serviceDependModel);
-        updateServiceNameWithEnvVariable(serviceDependModel);
-        updateDependenciesStrWithEnvVariable(serviceDependModel);
-        updateExpectLabelsCommonStrWithEnvVariable(serviceDependModel);
-        updateExpectLabelsServiceStrWithEnvVariable(serviceDependModel);
-        updateExternalDependencyCheckEnabledWithEnvVariable(serviceDependModel);
-        updateExternalDependencyCheckUrlWithEnvVariable(serviceDependModel);
+        fillNamespaceWithEnvVariableIfAbsent(serviceDependModel);
+        fillServiceNameWithEnvVariableIfAbsent(serviceDependModel);
+        fillDependenciesStrWithEnvVariableIfAbsent(serviceDependModel);
+        fillExpectLabelsCommonStrWithEnvVariableIfAbsent(serviceDependModel);
+        fillExpectLabelsServiceStrWithEnvVariableIfAbsent(serviceDependModel);
+        fillExternalDependencyCheckEnabledWithEnvVariableIfAbsent(serviceDependModel);
+        fillExternalDependencyCheckUrlWithEnvVariableIfAbsent(serviceDependModel);
         return serviceDependModel;
     }
 
     /**
-     * 结合环境变量更新服务依赖模型中的命名空间取值
+     * 使用环境变量填充服务依赖模型中的命名空间取值
      *
      * @param serviceDependModel 服务依赖模型
      */
-    private void updateNamespaceWithEnvVariable(ServiceDependModel serviceDependModel) {
+    private void fillNamespaceWithEnvVariableIfAbsent(ServiceDependModel serviceDependModel) {
         String namespace = serviceDependModel.getNamespace();
         if (StringUtils.isNotBlank(namespace)) {
             return;
@@ -80,11 +80,11 @@ public class ServiceDependModelParser {
     }
 
     /**
-     * 结合环境变量更新服务依赖模型中的服务名称取值
+     * 使用环境变量填充服务依赖模型中的服务名称取值
      *
      * @param serviceDependModel 服务依赖模型
      */
-    private void updateServiceNameWithEnvVariable(ServiceDependModel serviceDependModel) {
+    private void fillServiceNameWithEnvVariableIfAbsent(ServiceDependModel serviceDependModel) {
         String serviceName = serviceDependModel.getServiceName();
         if (StringUtils.isNotBlank(serviceName)) {
             return;
@@ -99,11 +99,11 @@ public class ServiceDependModelParser {
     }
 
     /**
-     * 结合环境变量更新服务依赖模型中的依赖关系取值
+     * 使用环境变量填充服务依赖模型中的依赖关系取值
      *
      * @param serviceDependModel 服务依赖模型
      */
-    private void updateDependenciesStrWithEnvVariable(ServiceDependModel serviceDependModel) {
+    private void fillDependenciesStrWithEnvVariableIfAbsent(ServiceDependModel serviceDependModel) {
         String dependenciesStr = serviceDependModel.getDependenciesStr();
         if (StringUtils.isNotBlank(dependenciesStr)) {
             return;
@@ -118,11 +118,11 @@ public class ServiceDependModelParser {
     }
 
     /**
-     * 结合环境变量更新服务依赖模型中的期望Pod公共标签取值
+     * 使用环境变量填充服务依赖模型中的期望Pod公共标签取值
      *
      * @param serviceDependModel 服务依赖模型
      */
-    private void updateExpectLabelsCommonStrWithEnvVariable(ServiceDependModel serviceDependModel) {
+    private void fillExpectLabelsCommonStrWithEnvVariableIfAbsent(ServiceDependModel serviceDependModel) {
         String expectLabelsCommonStr = serviceDependModel.getExpectLabelsCommon();
         if (StringUtils.isNotBlank(expectLabelsCommonStr)) {
             return;
@@ -137,11 +137,11 @@ public class ServiceDependModelParser {
     }
 
     /**
-     * 结合环境变量更新服务依赖模型中的期望Pod服务标签取值
+     * 使用环境变量填充服务依赖模型中的期望Pod服务标签取值
      *
      * @param serviceDependModel 服务依赖模型
      */
-    private void updateExpectLabelsServiceStrWithEnvVariable(ServiceDependModel serviceDependModel) {
+    private void fillExpectLabelsServiceStrWithEnvVariableIfAbsent(ServiceDependModel serviceDependModel) {
         String expectLabelsServiceStr = serviceDependModel.getExpectLabelsService();
         if (StringUtils.isNotBlank(expectLabelsServiceStr)) {
             return;
@@ -156,11 +156,11 @@ public class ServiceDependModelParser {
     }
 
     /**
-     * 结合环境变量更新服务依赖模型中的外部依赖检查开启状态
+     * 使用环境变量填充服务依赖模型中的外部依赖检查开启状态
      *
      * @param serviceDependModel 服务依赖模型
      */
-    private void updateExternalDependencyCheckEnabledWithEnvVariable(ServiceDependModel serviceDependModel) {
+    private void fillExternalDependencyCheckEnabledWithEnvVariableIfAbsent(ServiceDependModel serviceDependModel) {
         Boolean externalDependencyCheckEnabled = serviceDependModel.getExternalDependencyCheckEnabled();
         if (externalDependencyCheckEnabled!=null) {
             return;
@@ -179,11 +179,11 @@ public class ServiceDependModelParser {
     }
 
     /**
-     * 结合环境变量更新服务依赖模型中的外部依赖检查URL
+     * 使用环境变量填充服务依赖模型中的外部依赖检查URL
      *
      * @param serviceDependModel 服务依赖模型
      */
-    private void updateExternalDependencyCheckUrlWithEnvVariable(ServiceDependModel serviceDependModel) {
+    private void fillExternalDependencyCheckUrlWithEnvVariableIfAbsent(ServiceDependModel serviceDependModel) {
         String externalDependencyCheckUrl = serviceDependModel.getExternalDependencyCheckUrl();
         if (StringUtils.isNotBlank(externalDependencyCheckUrl)) {
             return;
