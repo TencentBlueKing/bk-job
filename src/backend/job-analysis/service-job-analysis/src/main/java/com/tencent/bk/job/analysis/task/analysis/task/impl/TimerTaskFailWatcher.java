@@ -36,12 +36,11 @@ import com.tencent.bk.job.analysis.task.analysis.enums.AnalysisResourceEnum;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultData;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultItem;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultVO;
-import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.crontab.api.inner.ServiceCronJobResource;
 import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
 import com.tencent.bk.job.execute.api.inner.ServiceTaskExecuteResultResource;
-import com.tencent.bk.job.execute.model.inner.ServiceTaskInstanceDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -85,24 +84,28 @@ public class TimerTaskFailWatcher extends AbstractTimerTaskWatcher {
         //2.遍历定时任务
         cronJobVOList.forEach(it -> {
             //3.拿到每一个定时任务在指定时间段内的执行结果并找出失败的
-            log.info("begin to find fail result of task:" + it.getId() + "," + it.getName());
-            PageData<ServiceTaskInstanceDTO> failResults = getFailResults(taskExecuteResultResource, it);
-            if (failResults.getTotal() > 0) {
+            log.info("begin to find fail result of task: {}, {}", it.getId(), it.getName());
+            int failCnt = getFailCount(taskExecuteResultResource, it);
+            if (failCnt > 0) {
                 failCronJobBaseInfoList.add(
                     new FailCronJobBaseInfo(
                         AnalysisResourceEnum.TIMER_TASK,
                         new AnalysisTaskResultItemLocation(
-                            "${job.analysis.analysistask.result.ItemLocation"
-                                + ".description.TimerTaskName}",
-                            it.getName()),
+                            I18nUtil.getI18nMessage(
+                                "job.analysis.analysistask.result.ItemLocation.description.TimerTaskName"),
+                            it.getName()
+                        ),
                         it.getName()
                     )
                 );
             }
         });
         //结果入库
-        log.info(String.format("%d failResults are recorded:%s", failCronJobBaseInfoList.size(),
-            JsonUtils.toJson(failCronJobBaseInfoList)));
+        log.info(
+            "{} fail tasks are recorded: {}",
+            failCronJobBaseInfoList.size(),
+            JsonUtils.toJson(failCronJobBaseInfoList)
+        );
         analysisTaskInstanceDTO.setResultData(
             JsonUtils.toJson(
                 new AnalysisTaskResultData<>(

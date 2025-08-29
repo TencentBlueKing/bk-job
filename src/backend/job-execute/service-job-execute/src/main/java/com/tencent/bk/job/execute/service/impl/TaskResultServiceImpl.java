@@ -162,6 +162,11 @@ public class TaskResultServiceImpl implements TaskResultService {
         return CollectionUtils.isEmpty(taskInstanceList) ? Collections.emptyList() : taskInstanceList;
     }
 
+    @Override
+    public int countTaskInstance(TaskInstanceQuery taskQuery) {
+        return taskInstanceDAO.getTaskInstanceCountWithCondition(taskQuery);
+    }
+
     private void computeTotalTime(List<TaskInstanceDTO> pageData) {
         if (CollectionUtils.isNotEmpty(pageData)) {
             pageData.forEach(taskInstanceDTO -> {
