@@ -60,6 +60,7 @@ import org.springframework.stereotype.Repository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -356,7 +357,10 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
             .map(record -> record.get(TASK_INSTANCE.ID))
             .collect(Collectors.toList());
 
-        return selectByIdsInBatch(taskInstanceIds);
+        List<TaskInstanceDTO> taskInstanceDTOList = selectByIdsInBatch(taskInstanceIds);
+        // 分批查出来的结果，不同批次间无序，需要排序
+        taskInstanceDTOList.sort(Comparator.comparing(TaskInstanceDTO::getCreateTime).reversed());
+        return taskInstanceDTOList;
     }
 
     /**
