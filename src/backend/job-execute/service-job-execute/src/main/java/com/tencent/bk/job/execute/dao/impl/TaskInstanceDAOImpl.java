@@ -62,7 +62,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -300,16 +299,15 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
             .limit(start, length)
             .fetch();
         // 根据ID查出完整任务实例信息
-        Set<Long> taskInstanceIds = idResult.stream()
+        List<Long> taskInstanceIds = idResult.stream()
             .map(record -> record.get(TASK_INSTANCE.ID))
-            .collect(Collectors.toSet());
-        Result<? extends Record> result = dsl().select(ALL_FIELDS)
-            .from(TaskInstanceDAOImpl.TASK_INSTANCE)
-            .where(TASK_INSTANCE.ID.in(taskInstanceIds))
-            .orderBy(orderFields)
-            .fetch();
+            .collect(Collectors.toList());
 
-        return result.stream().map(this::extractInfo).collect(Collectors.toList());
+        List<TaskInstanceDTO> taskInstanceDTOList = selectByIdsInBatch(taskInstanceIds);
+        // 分批查出来的结果，不同批次间无序，需要排序
+        taskInstanceDTOList.sort(Comparator.comparing(TaskInstanceDTO::getCreateTime).reversed());
+
+        return taskInstanceDTOList;
     }
 
     private PageData<TaskInstanceDTO> listPageTaskInstanceByIp(TaskInstanceQuery taskQuery,
