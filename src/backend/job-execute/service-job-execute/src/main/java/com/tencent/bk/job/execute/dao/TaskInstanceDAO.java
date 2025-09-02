@@ -72,6 +72,11 @@ public interface TaskInstanceDAO {
                                                          SimplePaginationCondition condition);
 
     /**
+     * 根据条件查总数
+     */
+    int getTaskInstanceCountWithCondition(TaskInstanceQuery taskQuery);
+
+    /**
      * 获取定时作业执行情况
      *
      * @param appId               业务ID
