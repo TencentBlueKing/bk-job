@@ -105,8 +105,7 @@ public class TimerTaskFailRateWatcher extends AbstractTimerTaskWatcher {
                     new HighFailRateCronJobBaseInfo(
                         AnalysisResourceEnum.TIMER_TASK,
                         new AnalysisTaskResultItemLocation(
-                            I18nUtil.getI18nMessage(
-                                "job.analysis.analysistask.result.ItemLocation.description.TimerTaskName"),
+                            "${job.analysis.analysistask.result.ItemLocation.description.TimerTaskName}",
                             it.getName()),
                         it.getName()
                     )
