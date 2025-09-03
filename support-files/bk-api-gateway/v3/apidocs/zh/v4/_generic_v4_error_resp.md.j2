@@ -1,0 +1,47 @@
+```json
+# http status: 400
+{
+    "error": {
+        "code": "INVALID_ARGUMENT",
+        "message": "请求参数[bk_scope_type]不合法"
+    }
+}
+```
+
+```json
+# http status: 403
+{
+    "error": {
+        "code": "NO_PERMISSION",
+        "message": "用户(张三)权限不足，请前往权限中心确认并申请补充后重试",
+        "data": {
+            "system_id": "bk_job",
+            "system_name": "作业平台",
+            "actions": [
+                {
+                    "id": "access_business",
+                    "name": "业务访问",
+                    "related_resource_types": [
+                        {
+                            "type": "biz",
+                            "system_id": "bk_cmdb",
+                            "system_name": "配置平台",
+                            "type_name": "业务",
+                            "instances": [
+                                [
+                                    {
+                                        "id": "1",
+                                        "type": "business",
+                                        "name": "blueking",
+                                        "type_name": "业务"
+                                    }
+                                ]
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
+```

@@ -149,6 +149,9 @@ public class FileExecuteObjectTaskServiceImpl
             executeObjectTask = fileAgentTaskDAO.getAgentTaskByHostId(stepInstance.getTaskInstanceId(),
                 stepInstanceId, executeCount, batch, fileTaskMode, hostId);
         }
+        if (executeObjectTask == null) {
+            return null;
+        }
         executeObjectTask.setExecuteObject(executeObject);
         return executeObjectTask;
     }

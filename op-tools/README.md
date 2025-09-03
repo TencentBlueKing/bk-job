@@ -24,3 +24,31 @@ batch-invoke
 #### 适用场景   
 - 强制终止一批异常作业
 - 批量开启/关闭一批定时任务
+
+### 2.单接口压测
+
+#### 代码位置
+
+api_stress_testing
+
+#### 功能简介
+
+给定一个BKAPIGW上的接口，并发调用以测试其qps，观察接口性能。
+
+> python环境: python3.6
+
+#### 执行
+
+```shell
+python request_api.py \
+--app_code={appCode} \
+--app_secret={appSecret} \
+--username={用户名} \
+--url={接口url} \
+--process_cnt={进程数} \
+--concurrent_cnt={单个进程内并发数}
+```
+
+#### 输出
+
+report.md: 统计了 平均响应耗时、最大响应耗时、最小响应耗时、错误率、所有请求发送时间 的表格

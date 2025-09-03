@@ -1,0 +1,115 @@
+### Function Description
+
+list task history
+
+### Request Parameters
+
+#### Query parameters
+
+| Fields            | Type   | Required | Description                                                                                 |
+|-------------------|--------|----------|---------------------------------------------------------------------------------------------|
+| bk_scope_type     | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id       | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| create_time_start | long   | yes      | Creation time start, Unix timestamp, in milliseconds                                        |
+| create_time_end   | long   | yes      | Creation time end, Unix timestamp, in milliseconds                                          |
+| job_instance_id   | long   | no       | Task instance ID. If job_instance_id is in or out, other query criteria are ignored         |
+| job_cron_id       | long   | no       | Cron Job ID                                                                                 |
+| operator          | string | no       | Executor, accurate match                                                                    |
+| name              | string | no       | Task name, fuzzy match                                                                      |
+| launch_mode       | int    | no       | Launch mode. 1 - Web UI, 2 - API, 3 - Cron Job                                              |
+| type              | int    | no       | Task type. 0 - Job Execution, 1 - Script Execution, 2 - File Transfer                       |
+| status            | int    | no       | Job status code. Please see task_status description in the bottom                           |
+| ip                | string | no       | Execute target server IP for accurate matching                                              |
+| offset            | int    | no       | Start position of paging record, default 0. It should be less than 10000                    |
+| length            | int    | no       | The maximum number of records returned in a single time is 200 at most, default 10          |
+
+### Example of request
+
+- GET
+
+```json
+/api/v4/system/get_job_instance_list?bk_scope_type=biz&bk_scope_id=1&type=0&launch_mode=1&status=3&operator=admin&name=test&create_time_start=1546272000000&create_time_end=1577807999999&offset=40&length=20
+```
+
+### Example of responses
+
+#### fail
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### success
+
+```json
+# http status=200
+{
+  "data": {
+    "job_instance_list": [
+      {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "1",
+        "id": 102,
+        "job_template_id": 1,
+        "job_plan_id": 1,
+        "name": "test",
+        "operator": "admin",
+        "create_time": 1546272000000,
+        "start_time": 1546272000000,
+        "end_time": 1546272001000,
+        "total_time": 1000,
+        "launch_mode": 1,
+        "task_status": 3,
+        "task_type": 0
+      },
+      {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "1",
+        "id": 101,
+        "job_template_id": 1,
+        "job_plan_id": 1,
+        "name": "test",
+        "operator": "admin",
+        "create_time": 1546272000000,
+        "start_time": 1546272000000,
+        "end_time": 1546272001000,
+        "total_time": 1000,
+        "launch_mode": 1,
+        "task_status": 3,
+        "task_type": 0
+      }
+    ]
+  }
+}
+```
+
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| field                      | type  | always_exist | description                                      |
+|----------------------------|-------|--------------|--------------------------------------------------|
+| job_instance_list          | array | Yes          | Task History List, sort in order from new to old |
+
+#### job_instance
+
+| Fields          | Type   | always_exist | Description                                                                                 |
+|-----------------|--------|--------------|---------------------------------------------------------------------------------------------|
+| bk_scope_type   | string | Yes          | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id     | string | Yes          | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| id              | long   | Yes          | Job Plan ID                                                                                 |
+| job_template_id | long   | No           | Job Template ID, which has a value when the task is Job Plan                                |
+| job_plan_id     | long   | No           | Job Plan ID, which has a value when the task is a Job Plan                                  |
+| name            | string | Yes          | Task name                                                                                   |
+| operator        | string | Yes          | Operator                                                                                    |
+| create_time     | long   | Yes          | Creation time, Unix timestamp, in milliseconds                                              |
+| status          | int    | Yes          | Job status code. Please see task_status description in the bottom                           |
+| type            | int    | Yes          | Task type. 0 - Plan execution, 1 - Script execution, 2 - File distribution                  |
+| launch_mode     | int    | Yes          | Launch mode. 1 - Web UI, 2 - API, 3 - Cron Job                                              |
+| start_time      | long   | Yes          | Task start time, Unix timestamp, in milliseconds                                            |
+| end_time        | long   | Yes          | Task end time, Unix timestamp, in milliseconds                                              |
+| total_time      | long   | Yes          | Task execution time, Unix timestamp, in milliseconds                                        |
+
+
+#### task_status
+
+{% include '_generic_task_status.md.j2' %}

@@ -26,6 +26,7 @@ package com.tencent.bk.job.file_gateway.dao.filesource.impl;
 
 import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerTagDAO;
 import com.tencent.bk.job.file_gateway.model.dto.WorkerTagDTO;
+import com.tencent.bk.job.file_gateway.model.tables.FileWorker;
 import com.tencent.bk.job.file_gateway.model.tables.FileWorkerTag;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -44,6 +45,7 @@ import java.util.List;
 @Slf4j
 public class FileWorkerTagDAOImpl implements FileWorkerTagDAO {
 
+    private static final FileWorker tableFileWorker = FileWorker.FILE_WORKER;
     private static final FileWorkerTag defaultTable = FileWorkerTag.FILE_WORKER_TAG;
     private final DSLContext defaultContext;
 
@@ -95,10 +97,10 @@ public class FileWorkerTagDAOImpl implements FileWorkerTagDAO {
     @Override
     public List<WorkerTagDTO> listTagByWorkerId(Long workerId) {
         val records = defaultContext.select(
-            defaultTable.ID,
-            defaultTable.WORKER_ID,
-            defaultTable.TAG
-        ).from(defaultTable)
+                defaultTable.ID,
+                defaultTable.WORKER_ID,
+                defaultTable.TAG
+            ).from(defaultTable)
             .where(defaultTable.WORKER_ID.eq(workerId))
             .fetch();
         return records.map(this::convert);
@@ -107,9 +109,22 @@ public class FileWorkerTagDAOImpl implements FileWorkerTagDAO {
     @Override
     public List<Long> listWorkerIdByTag(Collection<String> tags) {
         val records = defaultContext.select(
-            defaultTable.WORKER_ID
-        ).from(defaultTable)
+                defaultTable.WORKER_ID
+            ).from(defaultTable)
             .where(defaultTable.TAG.in(tags))
+            .fetch();
+        return records.map(record -> record.get(defaultTable.WORKER_ID));
+    }
+
+    @Override
+    public List<Long> listWorkerIdByClusterNameAndTag(String clusterName, Collection<String> tags) {
+        val records = defaultContext.selectDistinct(
+                defaultTable.WORKER_ID
+            ).from(defaultTable)
+            .join(tableFileWorker)
+            .on(defaultTable.WORKER_ID.eq(tableFileWorker.ID))
+            .where(defaultTable.TAG.in(tags))
+            .and(tableFileWorker.CLUSTER_NAME.eq(clusterName))
             .fetch();
         return records.map(record -> record.get(defaultTable.WORKER_ID));
     }

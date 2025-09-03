@@ -65,22 +65,28 @@ public class ReDispatchServiceImpl implements ReDispatchService {
 
     @Override
     public List<String> reDispatchByWorker(
+        String clusterName,
         String accessHost,
         Integer accessPort,
         List<String> taskIdList,
         Long initDelayMills,
         Long intervalMills
     ) {
-        FileWorkerDTO fileWorkerDTO = fileWorkerService.getFileWorker(accessHost, accessPort);
+        FileWorkerDTO fileWorkerDTO = fileWorkerService.getFileWorker(clusterName, accessHost, accessPort);
         if (fileWorkerDTO == null) {
-            FormattingTuple msg = MessageFormatter.format(
-                "Fail to find file-worker by accessHost:{} accessPort:{}", accessHost, accessPort
-            );
-            log.warn(msg.getMessage());
+            String msg = MessageFormatter.arrayFormat(
+                "Fail to find file-worker by clusterName:{} accessHost:{} accessPort:{}",
+                new Object[]{
+                    clusterName,
+                    accessHost,
+                    accessPort
+                }
+            ).getMessage();
+            log.warn(msg);
             throw new InternalException(
                 ErrorCode.FILE_WORKER_NOT_FOUND,
                 new String[]{
-                    "accessHost:" + accessHost + ",accessPort:" + accessPort,
+                    "clusterName:" + clusterName + ",accessHost:" + accessHost + ",accessPort:" + accessPort
                 }
             );
         }

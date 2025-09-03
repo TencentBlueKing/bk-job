@@ -24,18 +24,24 @@
 
 package com.tencent.bk.job.file_gateway.model.req.inner;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.util.json.SkipLogFields;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+@Slf4j
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 public class OffLineAndReDispatchReq {
+    @ApiModelProperty(value = "worker所在的集群", required = true)
+    String clusterName;
     @ApiModelProperty(value = "访问worker使用的host", required = true)
     String accessHost;
     @ApiModelProperty(value = "访问worker使用的port", required = true)
@@ -51,4 +57,17 @@ public class OffLineAndReDispatchReq {
     Long initDelayMills = 0L;
     @ApiModelProperty(value = "重调度间隔时间/ms，默认3000ms")
     Long intervalMills = 3000L;
+
+    @CompatibleImplementation(
+        name = "multi_cluster_deploy",
+        deprecatedVersion = "3.12.x",
+        type = CompatibleType.DEPLOY,
+        explain = "兼容发布过程中老版本File-Worker调用，发布完成后可删除")
+    public String getClusterName() {
+        if (clusterName == null) {
+            log.warn("CompatibleImplementation: clusterName is null, use default");
+            return "default";
+        }
+        return clusterName;
+    }
 }

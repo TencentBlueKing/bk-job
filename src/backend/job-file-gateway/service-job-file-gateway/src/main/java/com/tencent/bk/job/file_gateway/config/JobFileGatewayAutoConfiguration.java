@@ -24,13 +24,16 @@
 
 package com.tencent.bk.job.file_gateway.config;
 
+import com.tencent.bk.job.common.config.ClusterProperties;
 import com.tencent.bk.job.common.util.http.JobHttpClient;
 import com.tencent.bk.job.common.util.http.JobHttpClientImpl;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
+@EnableConfigurationProperties(ClusterProperties.class)
 public class JobFileGatewayAutoConfiguration {
 
     @Bean

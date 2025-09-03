@@ -23,6 +23,21 @@
  * IN THE SOFTWARE.
 */
 
+import Cookie from 'js-cookie';
+
+const CRRF_TOKEN_KEY = 'job_csrf_key';
+
 export default (interceptors) => {
-  interceptors.use(request => request, undefined);
+  interceptors.use((request) => {
+    const CSRFToken = Cookie.get(CRRF_TOKEN_KEY);
+    if (CSRFToken !== undefined) {
+      Object.assign(request.headers, {
+        'X-CSRF-Token': CSRFToken || '',
+      });
+    } else {
+      console.warn('Can not find csrftoken in document.cookie');
+    }
+
+    return request;
+  }, undefined);
 };

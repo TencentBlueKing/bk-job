@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.SimplePaginationCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
@@ -52,6 +53,19 @@ public interface TaskResultService {
     PageData<TaskInstanceDTO> listPageTaskInstance(TaskInstanceQuery taskQuery,
                                                    BaseSearchCondition baseSearchCondition);
 
+    /**
+     * 根据偏移量和长度获取作业实例列表
+     * @param taskQuery 任务实例查询条件
+     * @param condition 分页条件
+     * @return 作业实例列表
+     */
+    List<TaskInstanceDTO> listJobInstance(TaskInstanceQuery taskQuery,
+                                          SimplePaginationCondition condition);
+
+    /**
+     * 根据条件查找符合的总数
+     */
+    int countTaskInstance(TaskInstanceQuery taskQuery);
 
     /**
      * 获取作业执行结果
@@ -115,7 +129,7 @@ public interface TaskResultService {
      * @param appId          业务ID
      * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
-     * @param batch          滚动执行批次，0表示获取所有批次的数据，null表示获取当前批次数据
+     * @param batch          滚动执行批次，非滚动步骤不需要传入，0表示获取所有批次的数据，null表示获取当前批次数据
      * @return 执行历史
      */
     List<StepExecutionRecordDTO> listStepExecutionHistory(String username,

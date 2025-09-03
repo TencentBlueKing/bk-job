@@ -24,6 +24,11 @@ deploy:
   ## 部署方式。支持标准(standard) 和 轻量化部署(lite)方式
   mode: standard
 
+# 部署集群配置，单集群部署时无需修改，多集群部署且共享DB时需要分别指定不同的集群名称，用于避免资源冲突
+cluster:
+  ## 集群名称
+  name: default
+
 ## @section Common parameters
 
 ## @param nameOverride String to partially override common.names.fullname
@@ -1151,6 +1156,14 @@ executeConfig:
         enabled: true
         # 过期时间（s）
         expireSeconds: 10
+  # OpenAPI相关配置
+  openapi:
+    # v3_get_job_instance_list接口
+    v3GetJobInstanceList:
+      # 是否开启start参数限制，默认不限制
+      startLimitEnabled : false
+      # start参数最大值，用于避免深度分页导致的DB慢查询
+      maxStart : 1000
 
   mysql:
     # 数据源模式。 standalone: 单 DB; vertical_sharding: 垂直分库; horizontal_sharding: 水平分库

@@ -189,6 +189,56 @@ data:
                 - RecordEsbAccessLog
                 - AddEsbLangHeader
 
+            - id: job-execute-esb-v4
+              uri: lb://job-execute
+              predicates:
+                - JobEsbV2Path=/api/job/v4/job-execute/{api_name}
+              filters:
+                - CheckOpenApiJwt
+                - SetPath=/esb/api/v4/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-manage-esb-v4
+              uri: lb://job-manage
+              predicates:
+                - JobEsbV2Path=/api/job/v4/job-manage/{api_name}
+              filters:
+                - CheckOpenApiJwt
+                - SetPath=/esb/api/v4/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-file-gateway-esb-v4
+              uri: lb://job-file-gateway
+              predicates:
+                - JobEsbV2Path=/api/job/v4/job-file-gateway/{api_name}
+              filters:
+                - CheckOpenApiJwt
+                - SetPath=/esb/api/v4/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-crontab-esb-v4
+              uri: lb://job-crontab
+              predicates:
+                - JobEsbV2Path=/api/job/v4/job-crontab/{api_name}
+              filters:
+                - CheckOpenApiJwt
+                - SetPath=/esb/api/v4/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-esb-v4
+              uri: lb://job-assemble
+              predicates:
+                - Path=/api/job/v4/{module}/{api_name}
+              filters:
+                - CheckOpenApiJwt
+                - SetPath=/esb/api/v4/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
             - id: job-file-gateway-iam
               uri: lb://job-file-gateway
               predicates:
