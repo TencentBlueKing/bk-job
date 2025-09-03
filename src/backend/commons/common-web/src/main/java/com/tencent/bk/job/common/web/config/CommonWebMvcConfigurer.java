@@ -40,16 +40,16 @@ import java.util.Map;
 
 
 /**
- * 拦截器自动注册
+ * 通用web配置, 拦截器自动注册、自定义消息转换器等
  */
 @Slf4j
-public class WebInterceptorAutoRegister implements WebMvcConfigurer {
+public class CommonWebMvcConfigurer implements WebMvcConfigurer {
 
     private final ApplicationContext applicationContext;
     private final Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder;
 
-    public WebInterceptorAutoRegister(ApplicationContext applicationContext,
-                                      Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
+    public CommonWebMvcConfigurer(ApplicationContext applicationContext,
+                                  Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
         this.applicationContext = applicationContext;
         this.jackson2ObjectMapperBuilder = jackson2ObjectMapperBuilder;
     }

@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.web.converter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.annotation.EsbV4API;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.AnnotatedElementUtils;
@@ -56,7 +57,7 @@ public class EsbJackson2HttpMessageConverter extends MappingJackson2HttpMessageC
     }
 
     /**
-     * 被@EsbAPI注解标记的controller，采用自定义序列化
+     * 被@EsbAPI、@EsbV4API注解标记的controller，采用自定义序列化
      */
     @Override
     public boolean canWrite(Class<?> clazz, MediaType mediaType) {
@@ -66,7 +67,8 @@ public class EsbJackson2HttpMessageConverter extends MappingJackson2HttpMessageC
             if (handler instanceof HandlerMethod) {
                 HandlerMethod hm = (HandlerMethod) handler;
                 Class<?> controllerClass = hm.getBeanType();
-                if (AnnotatedElementUtils.hasAnnotation(controllerClass, EsbAPI.class)) {
+                if (AnnotatedElementUtils.hasAnnotation(controllerClass, EsbAPI.class)
+                    || AnnotatedElementUtils.hasAnnotation(controllerClass, EsbV4API.class)) {
                     return super.canWrite(clazz, mediaType);
                 }
             }

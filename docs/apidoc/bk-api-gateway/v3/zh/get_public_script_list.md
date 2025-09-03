@@ -67,7 +67,7 @@
 | code           | int    | 是      | 错误编码。 0表示success，>0表示失败错误  |
 | message        | string | 否      | 请求失败返回的错误信息                |
 | data           | object | 否      | 请求返回的数据，删除操作可能没有值          |
-| job_request_id | string | 是      | 请求ID，请求唯一标识                |
+| job_request_id | string | 否      | 请求ID，请求唯一标识                |
 | permission     | object | 否      | 无权限返回的权限信息                 |
 
 #### data

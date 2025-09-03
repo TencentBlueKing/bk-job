@@ -35,11 +35,11 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
  */
 @Configuration(proxyBeanMethods = false)
 @AutoConfigureAfter(WebInterceptorAutoConfiguration.class)
-public class WebInterceptorRegisterAutoConfiguration {
+public class CommonWebMvcAutoConfiguration {
 
     @Bean
-    WebInterceptorAutoRegister webInterceptorAutoRegister(ApplicationContext applicationContext,
-                                                          Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
-        return new WebInterceptorAutoRegister(applicationContext, jackson2ObjectMapperBuilder);
+    CommonWebMvcConfigurer webInterceptorAutoRegister(ApplicationContext applicationContext,
+                                                      Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
+        return new CommonWebMvcConfigurer(applicationContext, jackson2ObjectMapperBuilder);
     }
 }
