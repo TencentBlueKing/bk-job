@@ -56,8 +56,8 @@ public interface ServiceTaskExecuteResultResource {
     InternalResponse<Map<Long, ServiceCronTaskExecuteResultStatistics>> getCronTaskExecuteResultStatistics(
         @ApiParam("获取定时作业执行结果统计") @RequestBody ServiceGetCronTaskExecuteStatisticsRequest request);
 
-    @ApiOperation(value = "获取作业执行历史列表", produces = "application/json")
-    @GetMapping("/service/execution/app/{appId}/task-execution-history/list")
+    @ApiOperation(value = "获取作业执行历史条数", produces = "application/json")
+    @GetMapping("/service/execution/app/{appId}/task-execution-history/count")
     InternalResponse<Integer> getTaskExecuteCount(
         @ApiParam(value = "业务ID", required = true, example = "1")
         @PathVariable("appId")
