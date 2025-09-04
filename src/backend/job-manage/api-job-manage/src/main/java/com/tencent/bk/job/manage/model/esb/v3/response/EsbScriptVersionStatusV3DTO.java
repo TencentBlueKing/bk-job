@@ -22,23 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.web.config;
+package com.tencent.bk.job.manage.model.esb.v3.response;
 
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
- * 拦截器注册 AutoConfiguration
+ * 脚本版本状态
  */
-@Configuration(proxyBeanMethods = false)
-@AutoConfigureAfter(WebInterceptorAutoConfiguration.class)
-public class WebInterceptorRegisterAutoConfiguration {
+@Getter
+@Setter
+@ToString
+public class EsbScriptVersionStatusV3DTO {
+    /**
+     * 脚本版本ID
+     */
+    @JsonPropertyDescription("Script version ID")
+    private Long id;
 
-    @Bean
-    WebInterceptorAutoRegister webInterceptorAutoRegister(ApplicationContext applicationContext) {
-        return new WebInterceptorAutoRegister(applicationContext);
-    }
+    @JsonProperty("script_id")
+    @JsonPropertyDescription("Script ID")
+    private String scriptId;
+
+    // 脚本版本状态（0：未上线，1：已上线，2：已下线，3：已禁用）
+    @JsonPropertyDescription("Script status")
+    private Integer status;
 }
