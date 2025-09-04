@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -33,6 +33,7 @@ import java.util.Locale;
 
 /**
  * 服务异常
+ * 若是非服务端的自定义异常继承于ServiceException，确保能被更具体的异常处理器处理，否则将会被统一处理为服务器异常
  */
 @Getter
 @ToString

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -66,6 +66,7 @@ public class JobExecuteVerticalShardingDSLContextProvider extends VerticalShardi
         tableNameAndDslContextMap.put("step_instance", dslContextC);
         tableNameAndDslContextMap.put("step_instance_confirm", dslContextC);
         tableNameAndDslContextMap.put("step_instance_file", dslContextC);
+        tableNameAndDslContextMap.put("step_instance_file_batch", dslContextC);
         tableNameAndDslContextMap.put("step_instance_rolling_task", dslContextC);
         tableNameAndDslContextMap.put("step_instance_script", dslContextC);
         tableNameAndDslContextMap.put("step_instance_variable", dslContextC);

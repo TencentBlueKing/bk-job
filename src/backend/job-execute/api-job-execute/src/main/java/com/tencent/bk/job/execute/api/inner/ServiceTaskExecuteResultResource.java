@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -26,9 +26,7 @@ package com.tencent.bk.job.execute.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
-import com.tencent.bk.job.execute.model.inner.ServiceTaskInstanceDTO;
 import com.tencent.bk.job.execute.model.inner.request.ServiceGetCronTaskExecuteStatisticsRequest;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
@@ -58,29 +56,38 @@ public interface ServiceTaskExecuteResultResource {
     InternalResponse<Map<Long, ServiceCronTaskExecuteResultStatistics>> getCronTaskExecuteResultStatistics(
         @ApiParam("获取定时作业执行结果统计") @RequestBody ServiceGetCronTaskExecuteStatisticsRequest request);
 
-    @ApiOperation(value = "获取作业执行历史列表", produces = "application/json")
-    @GetMapping("/service/execution/app/{appId}/task-execution-history/list")
-    InternalResponse<PageData<ServiceTaskInstanceDTO>> getTaskExecuteResult(
-        @ApiParam(value = "业务ID", required = true, example = "1") @PathVariable("appId") Long appId,
-        @ApiParam(value = "任务名称", name = "taskName", required = false) @RequestParam(value = "taskName",
-            required = false) String taskName,
-        @ApiParam(value = "任务ID", name = "taskInstanceId", required = false) @RequestParam(value = "taskInstanceId",
-            required = false) Long taskInstanceId,
-        @ApiParam(value = "任务状态", name = "status", required = false) @RequestParam(value = "status",
-            required = false) Integer status,
-        @ApiParam(value = "执行人", name = "operator", required = false) @RequestParam(value = "operator",
-            required = false) String operator,
-        @ApiParam(value = "执行方式", name = "startupMode", required = false) @RequestParam(value = "startupMode",
-            required = false) Integer startupMode,
-        @ApiParam(value = "任务类型", name = "taskType", required = false) @RequestParam(value = "taskType",
-            required = false) Integer taskType,
-        @ApiParam(value = "开始时间", name = "startTime", required = false) @RequestParam(value = "startTime",
-            required = false) String startTime,
-        @ApiParam(value = "结束时间", name = "endTime", required = false) @RequestParam(value = "endTime",
-            required = false) String endTime,
-        @ApiParam(value = "分页-开始", required = false) @RequestParam(value = "start", required = false) Integer start,
-        @ApiParam(value = "分页-每页大小", required = false) @RequestParam(value = "pageSize",
-            required = false) Integer pageSize,
-        @ApiParam(value = "定时任务ID", required = false) @RequestParam(value = "cronTaskId",
-            required = false) Long cronTaskId);
+    @ApiOperation(value = "获取作业执行历史条数", produces = "application/json")
+    @GetMapping("/service/execution/app/{appId}/task-execution-history/count")
+    InternalResponse<Integer> getTaskExecuteCount(
+        @ApiParam(value = "业务ID", required = true, example = "1")
+        @PathVariable("appId")
+        Long appId,
+        @ApiParam(value = "任务名称", name = "taskName", required = false)
+        @RequestParam(value = "taskName", required = false)
+        String taskName,
+        @ApiParam(value = "任务ID", name = "taskInstanceId", required = false)
+        @RequestParam(value = "taskInstanceId", required = false)
+        Long taskInstanceId,
+        @ApiParam(value = "任务状态", name = "status", required = false)
+        @RequestParam(value = "status", required = false)
+        Integer status,
+        @ApiParam(value = "执行人", name = "operator", required = false)
+        @RequestParam(value = "operator", required = false)
+        String operator,
+        @ApiParam(value = "执行方式", name = "startupMode", required = false)
+        @RequestParam(value = "startupMode", required = false)
+        Integer startupMode,
+        @ApiParam(value = "任务类型", name = "taskType", required = false)
+        @RequestParam(value = "taskType", required = false)
+        Integer taskType,
+        @ApiParam(value = "开始时间", name = "startTime", required = false)
+        @RequestParam(value = "startTime", required = false)
+        String startTime,
+        @ApiParam(value = "结束时间", name = "endTime", required = false)
+        @RequestParam(value = "endTime", required = false)
+        String endTime,
+        @ApiParam(value = "定时任务ID", required = false)
+        @RequestParam(value = "cronTaskId", required = false)
+        Long cronTaskId
+    );
 }

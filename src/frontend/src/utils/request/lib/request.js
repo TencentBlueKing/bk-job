@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,7 +24,6 @@
 */
 
 import axios from 'axios'
-import Cookie from 'js-cookie'
 import {
     paramsSerializer,
 } from './utils'
@@ -32,15 +31,7 @@ import requestMiddleware from '../middleware/request'
 import responseMiddleware from '../middleware/response'
 
 const CancelToken = axios.CancelToken
-const CRRF_TOKEN_KEY = 'job_csrf_key'
 
-const csrfHashCode = key => {
-    let hashCode = 5381
-    for (let i = 0; i < key.length; i++) {
-        hashCode += (hashCode << 5) + key.charCodeAt(i)
-    }
-    return hashCode & 0x7fffffff
-}
 const defaultConfig = {
     timeout: 60000,
     headers: {},
@@ -71,7 +62,6 @@ export default class Request {
     constructor (cache) {
         this.cache = cache
         this.init()
-        this.injectCSRFTokenToHeaders()
     }
     _url = ''
     config = {}
@@ -136,17 +126,6 @@ export default class Request {
     init () {
         requestMiddleware(axios.interceptors.request)
         responseMiddleware(axios.interceptors.response)
-    }
-    /**
-    * @desc 向 http header 注入 CSRFToken，CSRFToken key 值与后端一起协商制定
-    */
-    injectCSRFTokenToHeaders () {
-        const CSRFToken = Cookie.get(CRRF_TOKEN_KEY)
-        if (CSRFToken !== undefined) {
-            axios.defaults.headers.common['X-CSRF-Token'] = csrfHashCode(CSRFToken)
-        } else {
-            console.warn('Can not find csrftoken in document.cookie')
-        }
     }
     checkCache () {
         return this.isCanBeCached && this.cache.has(this.name)

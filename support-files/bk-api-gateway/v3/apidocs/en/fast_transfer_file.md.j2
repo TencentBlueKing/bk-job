@@ -10,6 +10,7 @@ Quick File transfer
 |----------------------|--------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | bk_scope_type        | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                                                                                                  |
 | bk_scope_id          | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                                                                                                  |
+| task_name          | string | no       | Custom job name, length cannot exceed 512 characters     |
 | account_alias        | string | no       | Target execution account alias, available from the account page, recommended. When both account_alias and account_id exist, account_id takes precedence.                                     |
 | account_id           | long   | no       | Target execution account ID, available from the get_account_List api. When both account_alias and account_id exist, account_id takes precedence.                                             |
 | file_target_path     | string | yes      | File transfer destination path                                                                                                                                                               |
@@ -34,7 +35,7 @@ Quick File transfer
 ### Example of responses
 
 - POST
-
+#### 普通任务示例
 ```json
 {
   "bk_scope_type": "biz",
@@ -107,6 +108,49 @@ Quick File transfer
     ]
   },
   "account_id": 101
+}
+```
+#### 按源文件滚动任务示例
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "1",
+    "file_target_path": "/tmp/",
+    "transfer_mode": 1,
+    "file_source_list": [
+        {
+            "file_list": [
+                "/tmp/1.txt",
+                "/tmp/2.txt",
+                "/tmp/3.txt"
+            ],
+            "account": {
+                "id": 100
+            },
+            "server": {
+                "host_id_list": [
+                    101,
+                    102
+                ]
+            },
+            "file_type": 1
+        }
+    ],
+    "target_server": {
+        "host_id_list": [
+            103,
+            104
+        ]
+    },
+    "account_id": 101,
+    "rolling_config": {
+        "type": 2,
+        "mode": 1,
+        "file_source": {
+            "max_execute_object_num_in_batch": 1,
+            "max_file_num_of_single_execute_object": 1
+        }
+    }
 }
 ```
 

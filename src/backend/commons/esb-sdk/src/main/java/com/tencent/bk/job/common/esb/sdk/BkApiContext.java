@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -42,6 +42,7 @@ public class BkApiContext<T, R> {
     private String method;
     private String uri;
     private T req;
+    private String queryParams;
     /**
      * 原始的 API 响应
      */
@@ -75,6 +76,7 @@ public class BkApiContext<T, R> {
     public BkApiContext(String method,
                         String uri,
                         T req,
+                        String queryParams,
                         String originResp,
                         EsbResp<R> resp,
                         long costTime,
@@ -82,6 +84,7 @@ public class BkApiContext<T, R> {
         this.method = method;
         this.uri = uri;
         this.req = req;
+        this.queryParams = queryParams;
         this.originResp = originResp;
         this.resp = resp;
         this.costTime = costTime;

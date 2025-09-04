@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -54,6 +54,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.redis.util.LockUtils;
+import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -296,7 +297,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
             throw new InternalException("No File", ErrorCode.INTERNAL_ERROR);
         }
         Long appId = appResourceScope.getAppId();
-        String originalFileName = uploadFile.getOriginalFilename();
+        String originalFileName = FilePathUtils.getPureFileName(uploadFile.getOriginalFilename());
         if (originalFileName != null && originalFileName.endsWith(Constant.JOB_EXPORT_FILE_SUFFIX)) {
             String id = UUID.randomUUID().toString();
             String fileName = importJobService.saveFile(username, appId, id, uploadFile);

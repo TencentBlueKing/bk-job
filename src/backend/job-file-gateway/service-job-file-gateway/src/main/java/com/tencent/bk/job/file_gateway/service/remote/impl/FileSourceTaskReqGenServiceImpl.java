@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.service.remote.impl;
 
+import com.tencent.bk.job.common.jwt.JwtManager;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.JobUUID;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -50,8 +51,8 @@ public class FileSourceTaskReqGenServiceImpl
     extends BaseRemoteFileReqGenServiceImpl implements FileSourceTaskReqGenService {
 
     @Autowired
-    public FileSourceTaskReqGenServiceImpl(CredentialService credentialService) {
-        super(credentialService);
+    public FileSourceTaskReqGenServiceImpl(CredentialService credentialService, JwtManager jwtManager) {
+        super(credentialService, jwtManager);
     }
 
     @Override

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,12 +25,14 @@
 package com.tencent.bk.job.gateway;
 
 import com.tencent.bk.job.common.service.boot.JobBootApplication;
+import com.tencent.bk.job.gateway.config.CsrfCheckProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import org.springframework.boot.web.server.WebServer;
 import org.springframework.cloud.openfeign.EnableFeignClients;
@@ -46,6 +48,7 @@ import javax.annotation.PreDestroy;
     exclude = {ApplicationAvailabilityAutoConfiguration.class},
     excludeName = {"org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration"})
 @Slf4j
+@EnableConfigurationProperties(CsrfCheckProperties.class)
 @EnableFeignClients
 public class JobGatewayBootApplication {
     private final HttpHandler httpHandler;

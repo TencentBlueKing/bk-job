@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.validation.EndWith;
 import com.tencent.bk.job.common.validation.MaxLength;
 import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
+import com.tencent.bk.job.common.validation.ValidSensitiveParamLength;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -46,6 +47,7 @@ import javax.validation.constraints.NotNull;
  */
 @Data
 @ApiModel("快速执行脚本请求报文")
+@ValidSensitiveParamLength(sensitiveFlag = "secureParam", usedBase64 = false)
 public class WebFastExecuteScriptRequest {
     /**
      * 脚本执行任务名称
@@ -91,11 +93,6 @@ public class WebFastExecuteScriptRequest {
      * 脚本参数
      */
     @ApiModelProperty(value = "脚本参数")
-    @NotExceedMySQLTextFieldLength(
-        fieldName = "scriptParam",
-        fieldType = MySQLTextDataType.TEXT,
-        base64 = false
-    )
     private String scriptParam;
 
     /**

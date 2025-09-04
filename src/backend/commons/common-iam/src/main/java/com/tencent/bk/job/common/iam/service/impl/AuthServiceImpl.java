@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -313,11 +313,22 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     @Override
     public <T> EsbResp<T> buildEsbAuthFailResp(List<PermissionActionResource> permissionActionResources) {
         List<ActionDTO> actions = buildApplyActions(permissionActionResources);
+        EsbApplyPermissionDTO applyPermission = buildPermissionApplyDTO(actions);
+        return EsbResp.buildAuthFailResult(applyPermission);
+    }
+
+    @Override
+    public EsbApplyPermissionDTO buildPermissionDetailByPermissionApplyDTO(PermissionDeniedException exception) {
+        List<ActionDTO> actions = buildApplyActions(exception.getAuthResult().getRequiredActionResources());
+        return buildPermissionApplyDTO(actions);
+    }
+
+    private EsbApplyPermissionDTO buildPermissionApplyDTO(List<ActionDTO> actions) {
         EsbApplyPermissionDTO applyPermission = new EsbApplyPermissionDTO();
         applyPermission.setSystemId(SystemId.JOB);
         applyPermission.setSystemName(i18nService.getI18n("system.bk_job"));
         applyPermission.setActions(actions.stream().map(this::convertToEsbAction).collect(Collectors.toList()));
-        return EsbResp.buildAuthFailResult(applyPermission);
+        return applyPermission;
     }
 
     private EsbActionDTO convertToEsbAction(ActionDTO action) {

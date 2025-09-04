@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -29,6 +29,13 @@ package com.tencent.bk.job.common.constant;
  * <p>
  * 错误码分类： 文件磁盘系统 59 MySQL系统 52 Redis系统 50 MQ 55 GSE 10 CMDB 11 作业平台 12 PAAS 13
  * </p>
+ *
+ * @since 2025-08-14
+ * 在蓝鲸新版 HTTP API 协议中：
+ *   错误码不应用于返回展示给用户，响应使用标准 HTTP 状态码
+ *   错误码应仅用于系统内部错误处理，可用于平台开发排查问题
+ *   错误码可用于上下文传递，获取对应描述
+ *
  */
 public class ErrorCode {
 
@@ -175,6 +182,26 @@ public class ErrorCode {
     public static final int INVALID_IPV6_ADDRESS = 1241014;
     // 不支持的操作，请勿重复启动作业：{0}
     public static final int UNSUPPORTED_OPERATION_REPEAT_START_JOB = 1241015;
+    // 非法文件
+    public static final int ILLEGAL_FILE = 1241016;
+    // 不支持的Http方法
+    public static final int NOT_SUPPORTED_HTTP_REQUEST_METHOD = 1241017;
+    // 不支持的MediaType
+    public static final int NOT_SUPPORTED_MEDIA_TYPE = 1241018;
+    // 缺少路径参数
+    public static final int MISSING_PATH_VARIABLE = 1241019;
+    // 请求参数[{0}]类型错误
+    public static final int PARAMETER_TYPE_ERROR = 1241020;
+    // ACCEPT头中指定了服务器不提供的Content-Type
+    public static final int NOT_ACCEPTABLE_MEDIA_TYPE = 1241021;
+    // HTTP请求体格式不正确
+    public static final int HTTP_REQUEST_BODY_FORMAT_ERROR = 1241022;
+    // 缺少请求部分[{0}]
+    public static final int MISSING_SERVLET_REQUEST_PART = 1241023;
+    // {0}请求的URL[{1}]没有对应的Handler
+    public static final int REQUEST_DOES_NOT_HAS_HANDLER = 1241024;
+    // 字段[{0}]绑定失败
+    public static final int FIELD_BIND_FAILED = 1241025;
     // 业务通用 end
 
     // 配置服务 start
@@ -357,6 +384,8 @@ public class ErrorCode {
     public static final int RUNNING_JOB_EXCEED_APP_QUOTA_LIMIT = 1244033;
     // 当前执行的作业总量超过系统配额限制
     public static final int RUNNING_JOB_EXCEED_SYSTEM_QUOTA_LIMIT = 1244034;
+    // 按源文件滚动策略仅支持服务器文件
+    public static final int FILE_SOURCE_ROLLING_ONLY_SUPPORT_SERVER_FILE = 1244035;
     // 作业执行 end
 
     // 定时作业 start
@@ -449,6 +478,10 @@ public class ErrorCode {
     public static final int FAIL_TO_REQUEST_FILE_WORKER_WITH_REASON = 1260018;
     // 文件源code不可为空
     public static final int FILE_SOURCE_CODE_CAN_NOT_BE_EMPTY = 1260019;
+    // 制品库根地址不在允许范围内（默认仅支持当前环境蓝鲸制品库），如需对接其他环境请联系平台管理员添加白名单
+    public static final int BK_ARTIFACTORY_BASE_URL_INVALID = 1260020;
+    // 白名单记录已存在，请删除旧数据后再添加
+    public static final int FILE_SOURCE_WHITE_INFO_ALREADY_EXISTS = 1260021;
 
     // 文件网关 end
     // 文件代理 start

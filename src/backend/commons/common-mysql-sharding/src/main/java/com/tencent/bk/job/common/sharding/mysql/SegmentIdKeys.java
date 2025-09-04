@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -42,4 +42,5 @@ public class SegmentIdKeys {
         "job_execute.step_instance_rolling_task";
     public static final String KEY_JOB_EXECUTE_STEP_INSTANCE_VARIABLE = "job_execute.step_instance_variable";
     public static final String KEY_JOB_EXECUTE_TASK_INSTANCE_VARIABLE = "job_execute.task_instance_variable";
+    public static final String KEY_JOB_EXECUTE_STEP_INSTANCE_FILE_BATCH = "job_execute.step_instance_file_batch";
 }

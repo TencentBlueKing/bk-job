@@ -100,11 +100,16 @@ data:
         {{- else }}
         url: {{ .Values.bkLoginUrl }}
         {{- end }}
+    cmsi:
+      voice:
+        uri: {{ .Values.cmsi.voice.uri }}
+      useStandaloneVoiceAPI: {{ .Values.cmsi.useStandaloneVoiceAPI }}
     bkNotice:
       enabled: {{ .Values.bkNotice.enabled }}
     job:
       security:
         service:
+          enabled: {{ .Values.job.security.enabled }}
           private-key-base64: {{ .Values.job.security.privateKeyBase64 }}
           public-key-base64: {{ .Values.job.security.publicKeyBase64 }}
       edition: {{ .Values.job.edition }}
@@ -181,3 +186,9 @@ data:
         enabled: {{ .Values.jvmDiagnosticFile.clearByLastModifyTime.enabled }}
         # JVM诊断文件保留的小时数，默认168小时（7天）
         keep-hours: {{ .Values.jvmDiagnosticFile.clearByLastModifyTime.keepHours }}
+    # 服务启动时 依赖组件的健康检查
+    healthCheck:
+      {{- toYaml .Values.healthCheck | nindent 6 }}
+    # 部署集群配置
+    cluster:
+      {{- toYaml .Values.cluster | nindent 6 }}

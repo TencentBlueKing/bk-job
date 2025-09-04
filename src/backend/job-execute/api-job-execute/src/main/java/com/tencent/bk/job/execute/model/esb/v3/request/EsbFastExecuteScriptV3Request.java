@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -33,6 +33,8 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.validation.EndWith;
 import com.tencent.bk.job.common.validation.MaxLength;
 import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
+import com.tencent.bk.job.common.validation.ValidSensitiveParamLength;
+import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import lombok.Getter;
 import lombok.Setter;
@@ -46,6 +48,7 @@ import java.util.List;
  */
 @Getter
 @Setter
+@ValidSensitiveParamLength
 public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
 
     /**
@@ -87,11 +90,6 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
      * 脚本参数， BASE64编码
      */
     @JsonProperty("script_param")
-    @NotExceedMySQLTextFieldLength(
-        fieldName = "script_param",
-        fieldType = MySQLTextDataType.TEXT,
-        base64 = true
-    )
     private String scriptParam;
 
     /**
@@ -143,6 +141,7 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
      * 滚动配置
      */
     @JsonProperty("rolling_config")
+    @Valid
     private EsbRollingConfigDTO rollingConfig;
 
     /**
@@ -150,6 +149,13 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
      */
     @JsonProperty("start_task")
     private Boolean startTask = true;
+
+    /**
+     * 目标主机密码
+     */
+    @JsonProperty("host_password_list")
+    @Valid
+    private List<EsbCustomHostPasswordDTO> hostPasswordList;
 
     public void trimIps() {
         if (this.targetServer != null) {

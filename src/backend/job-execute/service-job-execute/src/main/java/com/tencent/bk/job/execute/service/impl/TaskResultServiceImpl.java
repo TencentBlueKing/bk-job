@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.SimplePaginationCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -65,7 +66,7 @@ import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatis
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.FileSourceTaskLogService;
 import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.RollingConfigService;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceRollingTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -145,6 +146,25 @@ public class TaskResultServiceImpl implements TaskResultService {
         PageData<TaskInstanceDTO> pageData = taskInstanceDAO.listPageTaskInstance(taskQuery, baseSearchCondition);
         computeTotalTime(pageData.getData());
         return pageData;
+    }
+
+    @Override
+    public List<TaskInstanceDTO> listJobInstance(TaskInstanceQuery taskQuery,
+                                                 SimplePaginationCondition condition) {
+        List<TaskInstanceDTO> taskInstanceList;
+        if (StringUtils.isNotEmpty(taskQuery.getIp()) || StringUtils.isNotEmpty(taskQuery.getIpv6())) {
+            taskInstanceList = taskInstanceDAO.listJobInstanceWithIpCondition(taskQuery, condition);
+        } else {
+            taskInstanceList = taskInstanceDAO.listJobInstance(taskQuery, condition);
+        }
+        computeTotalTime(taskInstanceList);
+
+        return CollectionUtils.isEmpty(taskInstanceList) ? Collections.emptyList() : taskInstanceList;
+    }
+
+    @Override
+    public int countTaskInstance(TaskInstanceQuery taskQuery) {
+        return taskInstanceDAO.getTaskInstanceCountWithCondition(taskQuery);
     }
 
     private void computeTotalTime(List<TaskInstanceDTO> pageData) {
@@ -788,7 +808,11 @@ public class TaskResultServiceImpl implements TaskResultService {
                     stepInstanceRollingTask -> stepInstanceRollingTask, (oldValue, newValue) -> newValue));
 
         // 如果滚动任务还未调度，那么需要在结果中补充
-        int totalBatch = rollingConfig.getConfigDetail().getTotalBatch();
+        int totalBatch = rollingConfigService.getTotalBatch(
+            stepInstance.getTaskInstanceId(),
+            stepInstance.getId(),
+            stepInstance.getRollingConfigId()
+        );
         List<StepInstanceRollingTaskDTO> stepInstanceRollingTasks = new ArrayList<>();
         for (int batch = 1; batch <= totalBatch; batch++) {
             StepInstanceRollingTaskDTO stepInstanceRollingTask = latestStepInstanceRollingTasks.get(batch);
@@ -811,7 +835,7 @@ public class TaskResultServiceImpl implements TaskResultService {
 
         stepExecutionDetail.setRollingTasks(stepInstanceRollingTasks);
         stepExecutionDetail.setLatestBatch(stepInstance.getBatch());
-        stepExecutionDetail.setRunMode(rollingConfig.isBatchRollingStep(stepInstance.getId()) ?
+        stepExecutionDetail.setRunMode(rollingConfig.isExecuteObjectBatchRollingStep(stepInstance.getId()) ?
             StepRunModeEnum.ROLLING_IN_BATCH : StepRunModeEnum.ROLLING_ALL);
     }
 
@@ -999,19 +1023,41 @@ public class TaskResultServiceImpl implements TaskResultService {
             record.setCreateTime(stepInstance.getCreateTime());
             return Collections.singletonList(record);
         }
-
         List<StepExecutionRecordDTO> records;
-        if (batch == null || batch == 0) {
-            // 获取步骤维度的重试记录
+        if (!stepInstance.isRollingStep()) {
+            // 非滚动步骤，获取步骤维度的全部重试记录
             records = queryStepRetryRecords(stepInstance);
         } else {
-            // 获取滚动任务维度的重试记录
-            records = queryStepRollingTaskRetryRecords(stepInstance.getTaskInstanceId(), stepInstanceId, batch);
+            // 滚动步骤
+            records = queryExecutionRecordsForRollingStep(stepInstance, batch);
         }
-
         records.sort(Comparator.comparingInt(StepExecutionRecordDTO::getRetryCount).reversed());
-
         return records;
+    }
+
+    /**
+     * 获取滚动步骤的重试记录
+     *
+     * @param stepInstance 步骤实例
+     * @param batch        滚动批次，0表示获取所有批次的数据，null表示获取当前批次数据
+     * @return 滚动步骤的重试记录列表
+     */
+    private List<StepExecutionRecordDTO> queryExecutionRecordsForRollingStep(StepInstanceBaseDTO stepInstance,
+                                                                             Integer batch) {
+        if (batch == null) {
+            // 获取滚动任务当前滚动批次的重试记录
+            return queryStepRollingTaskRetryRecords(
+                stepInstance.getTaskInstanceId(),
+                stepInstance.getId(),
+                stepInstance.getBatch()
+            );
+        } else if (batch == 0) {
+            // 获取步骤维度的全部重试记录
+            return queryStepRetryRecords(stepInstance);
+        } else {
+            // 获取滚动任务特定批次的重试记录
+            return queryStepRollingTaskRetryRecords(stepInstance.getTaskInstanceId(), stepInstance.getId(), batch);
+        }
     }
 
     private List<StepExecutionRecordDTO> queryStepRetryRecords(StepInstanceBaseDTO stepInstance) {

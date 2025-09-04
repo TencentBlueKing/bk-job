@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,6 +25,7 @@
 package com.tencent.bk.job.gateway.filter;
 
 import com.tencent.bk.job.common.service.config.JobCommonConfig;
+import com.tencent.bk.job.gateway.config.CsrfCheckProperties;
 import com.tencent.bk.job.gateway.filter.web.CsrfCheckGatewayFilterFactory;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import org.junit.jupiter.api.AfterEach;
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -60,7 +62,9 @@ public class CsrfCheckGatewayFilterFactoryTest {
         JobCommonConfig jobCommonConfig = mock(JobCommonConfig.class);
         when(jobCommonConfig.getJobWebUrl()).thenReturn("http://jobv3.com");
         LoginService loginService = mock(LoginService.class);
-        factory = new CsrfCheckGatewayFilterFactory(jobCommonConfig, loginService);
+        CsrfCheckProperties csrfCheckProperties = new CsrfCheckProperties();
+        csrfCheckProperties.setEnabled(true);
+        factory = new CsrfCheckGatewayFilterFactory(jobCommonConfig, loginService, csrfCheckProperties);
     }
 
     @AfterEach
@@ -102,6 +106,7 @@ public class CsrfCheckGatewayFilterFactoryTest {
         when(mockExchange.getResponse()).thenReturn(mockResponse);
         when(mockExchange.getRequest()).thenReturn(mockRequest);
 
+        when(mockRequest.getMethod()).thenReturn(HttpMethod.POST);
         HttpHeaders emptyHttpHeaders = new HttpHeaders();
         when(mockRequest.getHeaders()).thenReturn(emptyHttpHeaders);
 
@@ -130,6 +135,7 @@ public class CsrfCheckGatewayFilterFactoryTest {
         when(mockExchange.getResponse()).thenReturn(mockResponse);
         when(mockExchange.getRequest()).thenReturn(mockRequest);
 
+        when(mockRequest.getMethod()).thenReturn(HttpMethod.POST);
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(HEADER_CSRF_TOKEN_NAME, "1864608314");
         when(mockRequest.getHeaders()).thenReturn(httpHeaders);
@@ -157,6 +163,7 @@ public class CsrfCheckGatewayFilterFactoryTest {
         when(mockExchange.getResponse()).thenReturn(mockResponse);
         when(mockExchange.getRequest()).thenReturn(mockRequest);
 
+        when(mockRequest.getMethod()).thenReturn(HttpMethod.POST);
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add(HEADER_CSRF_TOKEN_NAME, "1864608314");
         when(mockRequest.getHeaders()).thenReturn(httpHeaders);

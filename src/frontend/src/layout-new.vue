@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -30,6 +30,7 @@
     <notice-component
       v-if="isEnableBKNotice"
       :api-url="noticApiUrl"
+      :headers-fn="genNoticeHeader"
       @show-alert-change="showNoticChange" />
     <site-frame
       :side-fixed="isFrameSideFixed"
@@ -282,6 +283,7 @@
   </div>
 </template>
 <script setup>
+  import Cookie from 'js-cookie';
   import {
     computed,
     ref,
@@ -323,6 +325,10 @@
   const { locale } = useI18n();
 
   const noticApiUrl = `${window.PROJECT_CONFIG.AJAX_URL_PREFIX}/job-manage/web/notice/announcement/currentAnnouncements`;
+
+  const genNoticeHeader = () => ({
+    ['X-CSRF-Token']: Cookie.get('job_csrf_key') || '',
+  });
 
   const productName = computed(() => (locale === 'en-US' ? store.state.platformConfig.productNameEn : store.state.platformConfig.productName));
 

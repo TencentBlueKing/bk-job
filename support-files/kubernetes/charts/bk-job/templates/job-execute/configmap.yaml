@@ -239,8 +239,15 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
+        {{- if .Values.executeConfig.result.pollingStrategy }}
+        result:
+          polling-strategy:
+            {{- toYaml .Values.executeConfig.result.pollingStrategy | nindent 12 }}
+        {{- end }}
         iam:
           {{- toYaml .Values.executeConfig.iam | nindent 10 }}
+        openapi:
+          {{- toYaml .Values.executeConfig.openapi | nindent 10 }}
     mysql:
       {{- toYaml .Values.executeConfig.mysql | nindent 6 }}
     idGen:

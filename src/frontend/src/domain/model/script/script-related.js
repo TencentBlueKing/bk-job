@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -22,6 +22,8 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
 */
+
+import DOMPurify from 'dompurify';
 
 import BaseModel from './base';
 
@@ -56,10 +58,10 @@ export default class ScriptRelated extends BaseModel {
       default:
         styles += 'background: #F0F1F5; color: #979BA5';
     }
-    return [
+    return DOMPurify.sanitize([
       `<span style="${styles}" data-script-status="${this.scriptStatus}">`,
       ScriptRelated.STATUS_TEXT_MAP[this.scriptStatus],
       '</span>',
-    ].join('');
+    ].join(''));
   }
 }

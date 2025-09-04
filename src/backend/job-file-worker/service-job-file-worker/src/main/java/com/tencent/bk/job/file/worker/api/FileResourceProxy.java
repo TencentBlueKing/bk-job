@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -27,7 +27,7 @@ package com.tencent.bk.job.file.worker.api;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.file.worker.consts.FileSourceTypeEnum;
+import com.tencent.bk.job.file_gateway.consts.FileSourceTypeEnum;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
 import com.tencent.bk.job.file.worker.model.req.ExecuteActionReq;
 import com.tencent.bk.job.file.worker.model.req.ListFileNodeReq;

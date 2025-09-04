@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,12 +24,22 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
+import com.tencent.bk.job.common.constant.RollingModeEnum;
+import com.tencent.bk.job.common.constant.RollingTypeEnum;
+import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.execute.validation.RollingConfigVOGroupSequenceProvider;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.hibernate.validator.group.GroupSequenceProvider;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @ApiModel("滚动执行配置")
 @Data
+@GroupSequenceProvider(RollingConfigVOGroupSequenceProvider.class)
 public class RollingConfigVO {
     /**
      * 滚动配置名称
@@ -37,10 +47,26 @@ public class RollingConfigVO {
     @ApiModelProperty(value = "滚动配置名称")
     private String name;
 
-    @ApiModelProperty(value = "滚动分批策略表达式")
+    @ApiModelProperty(value = "滚动对象：1-传输目标，2-源文件，不传默认为1")
+    @CheckEnum(enumClass = RollingTypeEnum.class, message = "{validation.constraints.RollingType_illegal.message}")
+    private Integer type = RollingTypeEnum.TARGET_EXECUTE_OBJECT.getValue();
+
+    @ApiModelProperty(value = "滚动机制：1-执行失败则暂停，2-忽略失败，自动滚动下一批，3-人工确认，不传默认为1")
+    @CheckEnum(enumClass = RollingModeEnum.class, message = "{validation.constraints.RollingMode_illegal.message}")
+    private Integer mode = RollingModeEnum.PAUSE_IF_FAIL.getValue();
+
+    @ApiModelProperty(value = "滚动对象为【传输目标】时的滚动分批策略表达式")
+    @NotBlank(
+        groups = ValidationGroups.RollingType.TargetExecuteObject.class,
+        message = "{validation.constraints.RollingExpression_NotBlank.message}"
+    )
     private String expr;
 
-    @ApiModelProperty(value = "滚动机制,1-执行失败则暂停；2-忽略失败，自动滚动下一批；3-人工确认")
-    private Integer mode;
+    @ApiModelProperty(value = "滚动对象为【源文件】时的源文件滚动配置")
+    @NotNull(
+        groups = ValidationGroups.RollingType.FileSource.class,
+        message = "{validation.constraints.RollingFileSource_NotNull.message}"
+    )
+    private FileSourceRollingConfigVO fileSource;
 
 }

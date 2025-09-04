@@ -1,0 +1,76 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 Tencent.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+package com.tencent.bk.job.execute.service.rolling;
+
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.execute.model.FastTaskDTO;
+import com.tencent.bk.job.execute.model.RollingConfigDTO;
+import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
+
+import java.util.List;
+
+/**
+ * 滚动配置服务
+ */
+public interface RollingConfigService {
+    /**
+     * 根据滚动批次获取执行对象
+     *
+     * @param stepInstance 步骤实例
+     * @param batch        滚动执行批次
+     * @return 主机列表
+     */
+    List<ExecuteObject> getRollingServers(StepInstanceBaseDTO stepInstance, Integer batch);
+
+    /**
+     * 保存快速执行作业滚动配置
+     *
+     * @param fastTask 快速执行作业
+     * @return 保存之后的滚动配置
+     */
+    RollingConfigDTO saveRollingConfigForFastJob(FastTaskDTO fastTask);
+
+    RollingConfigDTO getRollingConfig(Long taskInstanceId, long rollingConfigId);
+
+    /**
+     * 任务是否启用了滚动执行
+     *
+     * @param taskInstanceId 任务id
+     * @return boolean true启用，false未启用
+     */
+    boolean isTaskRollingEnabled(long taskInstanceId);
+
+    long addRollingConfig(RollingConfigDTO rollingConfig);
+
+    /**
+     * 获取滚动配置的总批次
+     *
+     * @param taskInstanceId 任务实例ID
+     * @param stepInstanceId 步骤实例ID
+     * @param rollingConfigId 滚动配置ID
+     * @return 总批次
+     */
+    int getTotalBatch(long taskInstanceId, long stepInstanceId, Long rollingConfigId);
+}

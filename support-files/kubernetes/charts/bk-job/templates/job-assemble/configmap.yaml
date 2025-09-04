@@ -363,6 +363,11 @@ data:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
         iam:
           {{- toYaml .Values.executeConfig.iam | nindent 10 }}
+        {{- if .Values.executeConfig.result.pollingStrategy }}
+        result:
+          polling-strategy:
+            {{- toYaml .Values.executeConfig.result.pollingStrategy | nindent 12 }}
+        {{- end }}
       crontab:
         notification-policy:
           failed:

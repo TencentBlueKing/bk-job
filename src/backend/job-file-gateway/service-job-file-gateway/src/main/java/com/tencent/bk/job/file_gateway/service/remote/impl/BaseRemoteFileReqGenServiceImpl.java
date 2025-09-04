@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.file_gateway.service.remote.impl;
 
+import com.tencent.bk.job.common.jwt.JwtManager;
 import com.tencent.bk.job.common.model.dto.CommonCredential;
 import com.tencent.bk.job.common.model.http.HttpReq;
+import com.tencent.bk.job.common.security.consts.JwtConsts;
 import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
 import com.tencent.bk.job.file.worker.model.req.BaseReq;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
@@ -33,16 +35,23 @@ import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.service.CredentialService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Service
 public class BaseRemoteFileReqGenServiceImpl {
 
     protected final CredentialService credentialService;
+    private final JwtManager jwtManager;
 
-    public BaseRemoteFileReqGenServiceImpl(CredentialService credentialService) {
+    public BaseRemoteFileReqGenServiceImpl(CredentialService credentialService, JwtManager jwtManager) {
         this.credentialService = credentialService;
+        this.jwtManager = jwtManager;
     }
 
     protected String getCompleteUrl(FileWorkerDTO fileWorkerDTO, String url) {
@@ -51,8 +60,10 @@ public class BaseRemoteFileReqGenServiceImpl {
         return "http://" + host + ":" + port.toString() + "/worker/api" + url;
     }
 
-    protected String fillBaseReqGetUrl(BaseReq req, FileWorkerDTO fileWorkerDTO,
-                                       FileSourceDTO fileSourceDTO, String url) {
+    protected String fillBaseReqGetUrl(BaseReq req,
+                                       FileWorkerDTO fileWorkerDTO,
+                                       FileSourceDTO fileSourceDTO,
+                                       String url) {
         String completeUrl = getCompleteUrl(fileWorkerDTO, url);
         String credentialId = fileSourceDTO.getCredentialId();
         CommonCredential commonCredential = null;
@@ -72,6 +83,9 @@ public class BaseRemoteFileReqGenServiceImpl {
     }
 
     protected HttpReq genRemoteFileReq(String url, Object body) {
-        return HttpReqGenUtil.genSimpleJsonReq(url, body);
+        String token = jwtManager.getToken();
+        List<Header> headerList = new ArrayList<>();
+        headerList.add(new BasicHeader(JwtConsts.HEADER_KEY_SERVICE_JWT_TOKEN, token));
+        return HttpReqGenUtil.genSimpleJsonReq(url, headerList, body);
     }
 }

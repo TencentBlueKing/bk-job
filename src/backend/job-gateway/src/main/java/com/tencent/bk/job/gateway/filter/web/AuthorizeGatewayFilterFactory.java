@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.exception.AppPermissionDeniedException;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.gateway.common.consts.HeaderConsts;
 import com.tencent.bk.job.gateway.config.LoginExemptionConfig;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
@@ -103,7 +104,7 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             if (CollectionUtils.isEmpty(bkTokenList)) {
                 log.warn("Cookie {} is empty,illegal request!", tokenCookieName);
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
-                response.getHeaders().add("x-login-url", loginService.getLoginRedirectUrl());
+                response.getHeaders().add(HeaderConsts.KEY_LOGIN_URL, loginService.getLoginRedirectUrl());
                 return response.setComplete();
             }
             BkUserDTO user;
@@ -120,7 +121,7 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             if (user == null) {
                 log.warn("Invalid user token");
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
-                response.getHeaders().add("x-login-url", loginService.getLoginRedirectUrl());
+                response.getHeaders().add(HeaderConsts.KEY_LOGIN_URL, loginService.getLoginRedirectUrl());
                 return response.setComplete();
             }
             String username = user.getUsername();

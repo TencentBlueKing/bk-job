@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -34,6 +34,7 @@ import com.tencent.bk.job.file_gateway.model.resp.web.FileSourceVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -93,6 +94,7 @@ public interface WebFileSourceResource {
         @PathVariable(value = "scopeId")
             String scopeId,
         @ApiParam(value = "创建文件源请求")
+        @Validated
         @RequestBody
             FileSourceCreateUpdateReq fileSourceCreateUpdateReq
     );
@@ -116,6 +118,7 @@ public interface WebFileSourceResource {
         @PathVariable("id")
             Integer id,
         @ApiParam(value = "更新文件源请求")
+        @Validated
         @RequestBody
             FileSourceCreateUpdateReq fileSourceCreateUpdateReq
     );

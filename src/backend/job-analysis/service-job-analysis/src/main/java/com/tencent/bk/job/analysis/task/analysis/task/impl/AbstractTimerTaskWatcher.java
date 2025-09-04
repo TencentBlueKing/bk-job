@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -31,7 +31,6 @@ import com.tencent.bk.job.analysis.model.dto.AnalysisTaskInstanceDTO;
 import com.tencent.bk.job.analysis.service.ApplicationService;
 import com.tencent.bk.job.analysis.task.analysis.AnalysisTaskStatusEnum;
 import com.tencent.bk.job.analysis.task.analysis.BaseAnalysisTask;
-import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.Counter;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -39,7 +38,6 @@ import com.tencent.bk.job.crontab.api.inner.ServiceCronJobResource;
 import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
 import com.tencent.bk.job.execute.api.inner.ServiceTaskExecuteResultResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.inner.ServiceTaskInstanceDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -74,11 +72,11 @@ public abstract class AbstractTimerTaskWatcher extends BaseAnalysisTask {
         List<ServiceCronJobDTO> cronJobVOList
     );
 
-    PageData<ServiceTaskInstanceDTO> getFailResults(
+    int getFailCount(
         ServiceTaskExecuteResultResource taskExecuteResultResource,
         ServiceCronJobDTO cronJobDTO
     ) {
-        PageData<ServiceTaskInstanceDTO> failResults = taskExecuteResultResource.getTaskExecuteResult(
+        Integer failCount = taskExecuteResultResource.getTaskExecuteCount(
             cronJobDTO.getAppId(),
             null,
             null,
@@ -88,16 +86,10 @@ public abstract class AbstractTimerTaskWatcher extends BaseAnalysisTask {
             null,
             null,
             null,
-            0,
-            Integer.MAX_VALUE,
             cronJobDTO.getId()
         ).getData();
-        log.info("" + failResults.getTotal()
-            + " fail results found of cronJobId:"
-            + cronJobDTO.getId()
-            + "," + cronJobDTO.getName()
-        );
-        return failResults;
+        log.info("{} fail results found of cronJobId:{}", failCount, cronJobDTO.getId());
+        return failCount;
     }
 
     @Override

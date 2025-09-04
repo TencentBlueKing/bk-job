@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.EsbServerDTO;
 import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
+import com.tencent.bk.job.common.validation.ValidSensitiveParamLength;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
@@ -42,6 +43,7 @@ import java.util.List;
  */
 @Getter
 @Setter
+@ValidSensitiveParamLength
 public class EsbFastExecuteScriptRequest extends EsbAppScopeReq {
 
     /**
@@ -76,11 +78,6 @@ public class EsbFastExecuteScriptRequest extends EsbAppScopeReq {
      * 脚本参数， BASE64编码
      */
     @JsonProperty("script_param")
-    @NotExceedMySQLTextFieldLength(
-        fieldName = "script_param",
-        fieldType = MySQLTextDataType.TEXT,
-        base64 = true
-    )
     private String scriptParam;
 
     /**

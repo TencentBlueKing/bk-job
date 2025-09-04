@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,6 +25,7 @@
 package com.tencent.bk.job.gateway.filter;
 
 import com.tencent.bk.job.common.util.RequestUtil;
+import com.tencent.bk.job.gateway.common.consts.HeaderConsts;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +66,7 @@ public class LogoutGatewayFilterFactory extends AbstractGatewayFilterFactory<Log
             }
             // 跳转至登录页
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            response.getHeaders().add("x-login-url", loginService.getLoginRedirectUrl());
+            response.getHeaders().add(HeaderConsts.KEY_LOGIN_URL, loginService.getLoginRedirectUrl());
             return response.setComplete();
         };
     }

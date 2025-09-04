@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,12 +25,14 @@
 package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.SimplePaginationCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.common.util.BatchUtil;
+import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
@@ -58,7 +60,9 @@ import org.springframework.stereotype.Repository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 作业执行实例DAO
@@ -220,26 +224,90 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
         }
     }
 
+    @Override
+    public List<TaskInstanceDTO> listJobInstance(TaskInstanceQuery taskQuery,
+                                                 SimplePaginationCondition simplePaginationCondition) {
+        List<Condition> conditions = buildSearchCondition(taskQuery);
+        List<TaskInstanceDTO> result = stepwiseSelectTaskInstance(conditions,
+            simplePaginationCondition.getOffset(),
+            simplePaginationCondition.getLength()
+        );
+
+        return result;
+    }
+
+    @Override
+    public List<TaskInstanceDTO> listJobInstanceWithIpCondition(TaskInstanceQuery taskQuery,
+                                                                SimplePaginationCondition simplePaginationCondition) {
+        List<Condition> conditions = buildSearchCondition(taskQuery);
+        if (StringUtils.isNotEmpty(taskQuery.getIp())) {
+            conditions.add(TASK_INSTANCE_HOST.IP.eq(taskQuery.getIp()));
+        } else {
+            conditions.add(TASK_INSTANCE_HOST.IPV6.eq(taskQuery.getIpv6()));
+        }
+
+        List<TaskInstanceDTO> result = stepwiseSelectTaskInstanceByIpCondition(
+            conditions,
+            simplePaginationCondition.getOffset(),
+            simplePaginationCondition.getLength()
+        );
+        return result;
+    }
+
+    @SuppressWarnings("all")
+    @Override
+    public int getTaskInstanceCountWithCondition(TaskInstanceQuery taskQuery) {
+        List<Condition> conditions = buildSearchCondition(taskQuery);
+        return dsl().selectCount().from(TASK_INSTANCE).where(conditions).fetchOne(0,
+            Integer.class);
+    }
+
+
     private PageData<TaskInstanceDTO> listPageTaskInstanceByBasicInfo(TaskInstanceQuery taskQuery,
                                                                       BaseSearchCondition baseSearchCondition) {
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
-
-        Collection<SortField<?>> orderFields = new ArrayList<>();
-        orderFields.add(TASK_INSTANCE.CREATE_TIME.desc());
-        Result<?> result = dsl().select(ALL_FIELDS)
-            .from(TaskInstanceDAOImpl.TASK_INSTANCE)
-            .where(buildSearchCondition(taskQuery))
-            .orderBy(orderFields)
-            .limit(start, length)
-            .fetch();
+        List<Condition> conditions = buildSearchCondition(taskQuery);
+        List<TaskInstanceDTO> result = stepwiseSelectTaskInstance(conditions, start, length);
 
         int count = 0;
         if (baseSearchCondition.isCountPageTotal()) {
-            count = getPageTaskInstanceCount(taskQuery);
+            count = getTaskInstanceCountWithCondition(taskQuery);
         }
 
         return buildTaskInstancePageData(start, length, count, result);
+    }
+
+    /**
+     * 分步查询任务实例，先查ID，再根据ID查结果集
+     *
+     * @param conditions 查询条件
+     * @param start 起始位置
+     * @param length 查询长度
+     * @return 查询结果
+     */
+    private List<TaskInstanceDTO> stepwiseSelectTaskInstance(List<Condition> conditions,
+                                                                int start,
+                                                                int length) {
+        Collection<SortField<?>> orderFields = new ArrayList<>();
+        orderFields.add(TASK_INSTANCE.CREATE_TIME.desc());
+        // 先查ID，避免回表，再根据ID走主键索引查出所有字段
+        Result<?> idResult = dsl().select(TASK_INSTANCE.ID)
+            .from(TaskInstanceDAOImpl.TASK_INSTANCE)
+            .where(conditions)
+            .orderBy(orderFields)
+            .limit(start, length)
+            .fetch();
+        // 根据ID查出完整任务实例信息
+        List<Long> taskInstanceIds = idResult.stream()
+            .map(record -> record.get(TASK_INSTANCE.ID))
+            .collect(Collectors.toList());
+
+        List<TaskInstanceDTO> taskInstanceDTOList = selectByIdsInBatch(taskInstanceIds);
+        // 分批查出来的结果，不同批次间无序，需要排序
+        taskInstanceDTOList.sort(Comparator.comparing(TaskInstanceDTO::getCreateTime).reversed());
+
+        return taskInstanceDTOList;
     }
 
     private PageData<TaskInstanceDTO> listPageTaskInstanceByIp(TaskInstanceQuery taskQuery,
@@ -252,6 +320,8 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
         }
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
+        List<TaskInstanceDTO> result = stepwiseSelectTaskInstanceByIpCondition(conditions, start, length);
+
         Integer count = 0;
         if (baseSearchCondition.isCountPageTotal()) {
             count = dsl().selectCount().from(TaskInstance.TASK_INSTANCE)
@@ -262,9 +332,17 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
                 return PageData.emptyPageData(start, length);
             }
         }
+
+        return buildTaskInstancePageData(start, length, count, result);
+    }
+
+    private List<TaskInstanceDTO> stepwiseSelectTaskInstanceByIpCondition(List<Condition> conditions,
+                                                                          int start,
+                                                                          int length) {
         Collection<SortField<?>> orderFields = new ArrayList<>();
-        orderFields.add(TASK_INSTANCE.ID.desc());
-        Result<? extends Record> result = dsl().select(ALL_FIELDS)
+        orderFields.add(TASK_INSTANCE.CREATE_TIME.desc());
+        // 条件中包含IP需要连表查询，只查出ID，根据ID走主键索引，避免回表
+        Result<? extends Record> result = dsl().select(TASK_INSTANCE.ID)
             .from(TaskInstanceDAOImpl.TASK_INSTANCE)
             .leftJoin(TASK_INSTANCE_HOST).on(TaskInstance.TASK_INSTANCE.ID.eq(TASK_INSTANCE_HOST.TASK_INSTANCE_ID))
             .where(conditions)
@@ -272,36 +350,60 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
             .orderBy(orderFields)
             .limit(start, length)
             .fetch();
+        // 根据ID查询完整任务实例信息
+        List<Long> taskInstanceIds = result.stream()
+            .map(record -> record.get(TASK_INSTANCE.ID))
+            .collect(Collectors.toList());
 
-        return buildTaskInstancePageData(start, length, count, result);
+        List<TaskInstanceDTO> taskInstanceDTOList = selectByIdsInBatch(taskInstanceIds);
+        // 分批查出来的结果，不同批次间无序，需要排序
+        taskInstanceDTOList.sort(Comparator.comparing(TaskInstanceDTO::getCreateTime).reversed());
+        return taskInstanceDTOList;
+    }
+
+    /**
+     * 防止id in 一个大列表导致全表扫描，当id列表过大时，分批查询
+     */
+    private List<TaskInstanceDTO> selectByIdsInBatch(List<Long> ids) {
+        // 先让id有序再去查DB性能更好，能减少数据页的换入换出
+        // 防止大列表直接排序，经过测试50w数据量排序性价比最高
+        List<List<Long>> sortBatches = CollectionUtil.partitionList(ids, 500000);
+        sortBatches.forEach(batch -> batch.sort(Long::compareTo));
+
+        List<List<Long>> batchIds = new ArrayList<>();
+        sortBatches.forEach(sortedList -> {
+            // 大表中，in 2000-5000大小的列表 对于存储引擎友好
+            List<List<Long>> subBatch = CollectionUtil.partitionList(sortedList, 2000);
+            batchIds.addAll(subBatch);
+        });
+
+        List<TaskInstanceDTO> result = new ArrayList<>();
+        for (int i = 0; i < batchIds.size(); i++) {
+            Result<? extends Record> allFieldResult = dsl().select(ALL_FIELDS)
+                .from(TASK_INSTANCE)
+                .where(TASK_INSTANCE.ID.in(batchIds.get(i)))
+                .fetch();
+            result.addAll(allFieldResult.stream().map(this::extractInfo).collect(Collectors.toList()));
+        }
+        return result;
     }
 
     private PageData<TaskInstanceDTO> buildTaskInstancePageData(int start,
                                                                 int length,
                                                                 int count,
-                                                                Result<? extends Record> result) {
-        List<TaskInstanceDTO> taskInstances = new ArrayList<>();
-        if (result != null && !result.isEmpty()) {
-            result.forEach(record -> taskInstances.add(extractInfo(record)));
-        }
+                                                                List<TaskInstanceDTO> result) {
         PageData<TaskInstanceDTO> pageData = new PageData<>();
-        pageData.setData(taskInstances);
+        pageData.setData(result);
         pageData.setStart(start);
         pageData.setPageSize(length);
         pageData.setTotal(Long.valueOf(String.valueOf(count)));
         return pageData;
     }
 
-    @SuppressWarnings("all")
-    private int getPageTaskInstanceCount(TaskInstanceQuery taskQuery) {
-        List<Condition> conditions = buildSearchCondition(taskQuery);
-        return dsl().selectCount().from(TASK_INSTANCE).where(conditions).fetchOne(0,
-            Integer.class);
-    }
-
     private List<Condition> buildSearchCondition(TaskInstanceQuery taskQuery) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TASK_INSTANCE.APP_ID.eq(taskQuery.getAppId()));
+
         if (taskQuery.getTaskInstanceId() != null && taskQuery.getTaskInstanceId() > 0) {
             conditions.add(TASK_INSTANCE.ID.eq(taskQuery.getTaskInstanceId()));
             return conditions;

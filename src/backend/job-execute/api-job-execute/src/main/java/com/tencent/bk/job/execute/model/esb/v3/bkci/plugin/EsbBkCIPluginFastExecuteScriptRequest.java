@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.EndWith;
 import com.tencent.bk.job.common.validation.MaxLength;
 import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
+import com.tencent.bk.job.common.validation.ValidSensitiveParamLength;
 import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.validator.EsbBkCIPluginFastExecuteScriptRequestGroupSequenceProvider;
@@ -52,6 +53,7 @@ import javax.validation.constraints.NotNull;
 @Getter
 @Setter
 @GroupSequenceProvider(EsbBkCIPluginFastExecuteScriptRequestGroupSequenceProvider.class)
+@ValidSensitiveParamLength
 public class EsbBkCIPluginFastExecuteScriptRequest extends EsbAppScopeReq {
 
     /**
@@ -100,11 +102,6 @@ public class EsbBkCIPluginFastExecuteScriptRequest extends EsbAppScopeReq {
      * 脚本参数， BASE64编码
      */
     @JsonProperty("script_param")
-    @NotExceedMySQLTextFieldLength(
-        fieldName = "script_param",
-        fieldType = MySQLTextDataType.TEXT,
-        base64 = true
-    )
     private String scriptParam;
 
     /**
@@ -156,6 +153,7 @@ public class EsbBkCIPluginFastExecuteScriptRequest extends EsbAppScopeReq {
      * 滚动配置
      */
     @JsonProperty("rolling_config")
+    @Valid
     private EsbRollingConfigDTO rollingConfig;
 
     /**

@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -121,7 +121,6 @@
             :is-file="isFile"
             :is-task="isTask"
             :log-filter="params.keyword"
-            :name="`${params.id}_${params.executeCount}_${dispalyGroup.groupName}_${currentResultTask.key}_${params.keyword}`"
             :step-instance-id="data.stepInstanceId"
             :task-execute-detail="currentResultTask"
             :task-instance-id="taskInstanceId" />

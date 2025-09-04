@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.engine.executor;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.redis.util.LockUtils;
+import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.exception.MessageHandlerUnavailableException;
@@ -49,6 +50,7 @@ import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.rolling.StepInstanceFileBatchService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,12 +73,14 @@ public class GseTaskManager implements SmartLifecycle {
     private final GseTaskService gseTaskService;
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
+    private final StepInstanceFileBatchService stepInstanceFileBatchService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final ExecuteMonitor executeMonitor;
     private final FileDistributeConfig fileDistributeConfig;
     private final JobExecuteConfig jobExecuteConfig;
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     private final StepInstanceService stepInstanceService;
+    private final CustomPasswordCache customPasswordCache;
 
     private final Object lifecycleMonitor = new Object();
     private final RunningTaskCounter<String> counter = new RunningTaskCounter<>("GseTask-Counter");
@@ -111,6 +115,7 @@ public class GseTaskManager implements SmartLifecycle {
     public GseTaskManager(EngineDependentServiceHolder engineDependentServiceHolder,
                           TaskInstanceService taskInstanceService,
                           GseTaskService gseTaskService,
+                          StepInstanceFileBatchService stepInstanceFileBatchService,
                           TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                           FileDistributeConfig fileDistributeConfig,
                           ExecuteMonitor executeMonitor,
@@ -118,10 +123,12 @@ public class GseTaskManager implements SmartLifecycle {
                           TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                           ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                           FileExecuteObjectTaskService fileExecuteObjectTaskService,
-                          StepInstanceService stepInstanceService) {
+                          StepInstanceService stepInstanceService,
+                          CustomPasswordCache customPasswordCache) {
         this.engineDependentServiceHolder = engineDependentServiceHolder;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
+        this.stepInstanceFileBatchService = stepInstanceFileBatchService;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -130,6 +137,7 @@ public class GseTaskManager implements SmartLifecycle {
         this.jobExecuteConfig = jobExecuteConfig;
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.stepInstanceService = stepInstanceService;
+        this.customPasswordCache = customPasswordCache;
     }
 
     /**
@@ -296,7 +304,8 @@ public class GseTaskManager implements SmartLifecycle {
                 requestId,
                 taskInstance,
                 stepInstance,
-                gseTask
+                gseTask,
+                customPasswordCache
             );
             scriptTaskCounter.incrementAndGet();
         } else if (executeType == StepExecuteTypeEnum.EXECUTE_SQL) {
@@ -307,19 +316,22 @@ public class GseTaskManager implements SmartLifecycle {
                 requestId,
                 taskInstance,
                 stepInstance,
-                gseTask
+                gseTask,
+                customPasswordCache
             );
             scriptTaskCounter.incrementAndGet();
         } else if (executeType == StepExecuteTypeEnum.SEND_FILE) {
             gseTaskStartCommand = new FileGseTaskStartCommand(
                 engineDependentServiceHolder,
                 fileExecuteObjectTaskService,
+                stepInstanceFileBatchService,
                 jobExecuteConfig,
                 requestId,
                 taskInstance,
                 stepInstance,
                 gseTask,
-                fileDistributeConfig.getJobDistributeRootPath()
+                fileDistributeConfig.getJobDistributeRootPath(),
+                customPasswordCache
             );
             fileTaskCounter.incrementAndGet();
         }

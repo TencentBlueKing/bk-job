@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -38,16 +38,20 @@ import com.tencent.bk.job.common.esb.sdk.BkApiClient;
 import com.tencent.bk.job.common.exception.InternalCmsiException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.error.ErrorType;
+import com.tencent.bk.job.common.paas.config.CmsiApiProperties;
 import com.tencent.bk.job.common.paas.exception.PaasException;
 import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.paas.model.PostSendMsgReq;
+import com.tencent.bk.job.common.paas.model.SendVoiceReq;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -62,11 +66,16 @@ public class CmsiApiClient extends BkApiClient {
     private static final String API_GET_NOTIFY_CHANNEL_LIST = "/api/c/compapi/cmsi/get_msg_type/";
     private static final String API_POST_SEND_MSG = "/api/c/compapi/cmsi/send_msg/";
 
+    // 语音发送接口，环境不同URI不同，通过配置获取
+    private final String uriSendVoice;
+    // 使用语音发送的独立接口发送语音通知
+    private final Boolean useStandaloneVoiceAPI;
     private final BkApiAuthorization authorization;
 
     public CmsiApiClient(EsbProperties esbProperties,
                          AppProperties appProperties,
-                         MeterRegistry meterRegistry) {
+                         MeterRegistry meterRegistry,
+                         CmsiApiProperties cmsiApiProperties) {
         super(
             meterRegistry,
             ESB_CMSI_API,
@@ -75,6 +84,9 @@ public class CmsiApiClient extends BkApiClient {
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
             )
         );
+        this.uriSendVoice = cmsiApiProperties.getVoice().getUri();
+        this.useStandaloneVoiceAPI = cmsiApiProperties.getUseStandaloneVoiceAPI()
+            && StringUtils.isNotEmpty(this.uriSendVoice);
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
             appProperties.getSecret(), "admin");
     }
@@ -125,15 +137,7 @@ public class CmsiApiClient extends BkApiClient {
                 }
             );
 
-            if (esbResp.getResult() == null || !esbResp.getResult() || esbResp.getCode() != 0) {
-                throw new PaasException(
-                    ErrorType.INTERNAL,
-                    ErrorCode.CMSI_FAIL_TO_SEND_MSG,
-                    new Object[]{
-                        esbResp.getCode().toString(),
-                        esbResp.getMessage()
-                    });
-            }
+            handleResultOrThrow(esbResp, ErrorType.INTERNAL, ErrorCode.CMSI_FAIL_TO_SEND_MSG);
         } catch (PaasException e) {
             throw e;
         } catch (Exception e) {
@@ -145,6 +149,57 @@ public class CmsiApiClient extends BkApiClient {
             throw new PaasException(e, ErrorType.INTERNAL, ErrorCode.CMSI_API_ACCESS_ERROR, new Object[]{});
         } finally {
             HttpMetricUtil.clearHttpMetric();
+        }
+    }
+
+    public void sendVoiceMsg(String content,
+                             Collection<String> receivers) {
+        String uri = this.uriSendVoice;
+        SendVoiceReq req = new SendVoiceReq();
+        req.setMessage(content);
+        req.setReceivers(String.join(",", receivers));
+        try {
+            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_CMSI_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of(EsbMetricTags.KEY_API_NAME, uri));
+            EsbResp<Object> esbResp = doRequest(
+                OpenApiRequestInfo.builder()
+                    .method(HttpMethodEnum.POST)
+                    .uri(uri)
+                    .body(req)
+                    .authorization(authorization)
+                    .build(),
+                new TypeReference<EsbResp<Object>>() {
+                }
+            );
+
+            handleResultOrThrow(esbResp, ErrorType.INTERNAL, ErrorCode.CMSI_FAIL_TO_SEND_MSG);
+        } catch (PaasException e) {
+            throw e;
+        } catch (Exception e) {
+            String msg = MessageFormatter.format(
+                "Fail to request {}",
+                uri
+            ).getMessage();
+            log.error(msg, e);
+            throw new PaasException(e, ErrorType.INTERNAL, ErrorCode.CMSI_API_ACCESS_ERROR, new Object[]{});
+        } finally {
+            HttpMetricUtil.clearHttpMetric();
+        }
+    }
+
+    public Boolean canUseStandaloneVoiceAPI() {
+        return this.useStandaloneVoiceAPI;
+    }
+
+    private void handleResultOrThrow(EsbResp<Object> esbResp, ErrorType errorType, int errorCode) {
+        if (esbResp.getResult() == null || !esbResp.getResult() || esbResp.getCode() != 0) {
+            throw new PaasException(
+                errorType,
+                errorCode,
+                new Object[]{
+                    esbResp.getCode().toString(),
+                    esbResp.getMessage()
+                });
         }
     }
 

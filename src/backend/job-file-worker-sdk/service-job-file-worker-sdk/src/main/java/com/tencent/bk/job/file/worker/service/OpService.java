@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file.worker.service;
 
+import com.tencent.bk.job.common.config.ClusterProperties;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.http.HttpHelper;
@@ -49,26 +50,32 @@ import java.util.List;
 public class OpService {
 
     private final HttpHelper httpHelper = HttpHelperFactory.getDefaultHttpHelper();
+    private final ClusterProperties clusterProperties;
     private final WorkerConfig workerConfig;
     private final FileTaskService fileTaskService;
     private final GatewayInfoService gatewayInfoService;
     private final EnvironmentService environmentService;
     private final TaskReporter taskReporter;
     private final WorkerEventService workerEventService;
+    private final JwtTokenService jwtTokenService;
 
     @Autowired
-    public OpService(WorkerConfig workerConfig,
+    public OpService(ClusterProperties clusterProperties,
+                     WorkerConfig workerConfig,
                      FileTaskService fileTaskService,
                      GatewayInfoService gatewayInfoService,
                      EnvironmentService environmentService,
                      TaskReporter taskReporter,
-                     WorkerEventService workerEventService) {
+                     WorkerEventService workerEventService,
+                     JwtTokenService jwtTokenService) {
+        this.clusterProperties = clusterProperties;
         this.workerConfig = workerConfig;
         this.fileTaskService = fileTaskService;
         this.gatewayInfoService = gatewayInfoService;
         this.environmentService = environmentService;
         this.taskReporter = taskReporter;
         this.workerEventService = workerEventService;
+        this.jwtTokenService = jwtTokenService;
     }
 
     public List<String> offLine() {
@@ -81,16 +88,13 @@ public class OpService {
         List<String> runningTaskIdList = fileTaskService.getAllTaskIdList();
         // 调网关接口下线自己
         String url = gatewayInfoService.getWorkerOffLineUrl();
-        OffLineAndReDispatchReq offLineReq = new OffLineAndReDispatchReq();
-        offLineReq.setAccessHost(environmentService.getAccessHost());
-        offLineReq.setAccessPort(workerConfig.getAccessPort());
-        offLineReq.setAppId(workerConfig.getAppId());
-        offLineReq.setToken(workerConfig.getToken());
-        offLineReq.setTaskIdList(runningTaskIdList);
-        offLineReq.setInitDelayMills(3000L);
-        offLineReq.setIntervalMills(3000L);
+        OffLineAndReDispatchReq offLineReq = buildOffLineReq(runningTaskIdList);
         log.info("offLine: url={},body={}", url, JsonUtils.toJsonWithoutSkippedFields(offLineReq));
-        HttpReq req = HttpReqGenUtil.genSimpleJsonReq(url, offLineReq);
+        HttpReq req = HttpReqGenUtil.genSimpleJsonReq(
+            url,
+            jwtTokenService.getJwtTokenHeaders(),
+            offLineReq
+        );
         String respStr;
         try {
             respStr = httpHelper.requestForSuccessResp(
@@ -117,6 +121,19 @@ public class OpService {
             log.error(msg.getMessage(), e);
         }
         return runningTaskIdList;
+    }
+
+    private OffLineAndReDispatchReq buildOffLineReq(List<String> runningTaskIdList) {
+        OffLineAndReDispatchReq offLineReq = new OffLineAndReDispatchReq();
+        offLineReq.setClusterName(clusterProperties.getName());
+        offLineReq.setAccessHost(environmentService.getAccessHost());
+        offLineReq.setAccessPort(workerConfig.getAccessPort());
+        offLineReq.setAppId(workerConfig.getAppId());
+        offLineReq.setToken(workerConfig.getToken());
+        offLineReq.setTaskIdList(runningTaskIdList);
+        offLineReq.setInitDelayMills(3000L);
+        offLineReq.setIntervalMills(3000L);
+        return offLineReq;
     }
 
     public List<String> taskList() {

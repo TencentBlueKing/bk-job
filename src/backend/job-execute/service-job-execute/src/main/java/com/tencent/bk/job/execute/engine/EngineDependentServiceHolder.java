@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited; a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine;
 
 import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.execute.config.PollingStrategyProperties;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
@@ -41,6 +42,7 @@ import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import lombok.Getter;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.stereotype.Component;
@@ -69,6 +71,8 @@ public class EngineDependentServiceHolder {
     private final GseClient gseClient;
     private final RunningJobKeepaliveManager runningJobKeepaliveManager;
     private final JobBuildInVariableResolver jobBuildInVariableResolver;
+    private final RollingConfigService rollingConfigService;
+    private final PollingStrategyProperties pollingStrategyProperties;
 
     public EngineDependentServiceHolder(ResultHandleManager resultHandleManager,
                                         TaskInstanceService taskInstanceService,
@@ -87,7 +91,9 @@ public class EngineDependentServiceHolder {
                                         Tracer tracer,
                                         GseClient gseClient,
                                         RunningJobKeepaliveManager runningJobKeepaliveManager,
-                                        JobBuildInVariableResolver jobBuildInVariableResolver) {
+                                        JobBuildInVariableResolver jobBuildInVariableResolver,
+                                        RollingConfigService rollingConfigService,
+                                        PollingStrategyProperties pollingStrategyProperties) {
         this.resultHandleManager = resultHandleManager;
         this.taskInstanceService = taskInstanceService;
         this.gseTaskService = gseTaskService;
@@ -106,5 +112,7 @@ public class EngineDependentServiceHolder {
         this.gseClient = gseClient;
         this.runningJobKeepaliveManager = runningJobKeepaliveManager;
         this.jobBuildInVariableResolver = jobBuildInVariableResolver;
+        this.rollingConfigService = rollingConfigService;
+        this.pollingStrategyProperties = pollingStrategyProperties;
     }
 }
