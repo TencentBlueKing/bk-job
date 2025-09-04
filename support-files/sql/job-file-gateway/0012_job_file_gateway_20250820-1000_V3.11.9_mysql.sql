@@ -1,5 +1,4 @@
 SET NAMES utf8mb4;
-CREATE DATABASE IF NOT EXISTS job_file_gateway DEFAULT CHARACTER SET utf8mb4;
 USE job_file_gateway;
 
 DROP PROCEDURE IF EXISTS job_schema_update;
