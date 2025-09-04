@@ -38,8 +38,8 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 public class CommonWebMvcAutoConfiguration {
 
     @Bean
-    CommonWebMvcConfigurer webInterceptorAutoRegister(ApplicationContext applicationContext,
-                                                      Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
+    CommonWebMvcConfigurer commonWebMvcConfigurer(ApplicationContext applicationContext,
+                                                  Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
         return new CommonWebMvcConfigurer(applicationContext, jackson2ObjectMapperBuilder);
     }
 }
