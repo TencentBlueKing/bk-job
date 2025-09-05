@@ -62,7 +62,7 @@ public class ScriptLogicChecker extends DefaultChecker {
         ArrayList<ScriptCheckResultItemDTO> checkResults = Lists.newArrayList();
         String[] lines = param.getLines();
         try {
-            if (!shellDefine.matcher(lines[0]).matches()) {
+            if (!shellDefine.matcher(lines[0].replaceAll("\\s+$", "")).matches()) {
                 checkResults.add(createResult(1, LOGIC_NEED_SHEBANG, null, lines[0], lines[0]));
             }
 
