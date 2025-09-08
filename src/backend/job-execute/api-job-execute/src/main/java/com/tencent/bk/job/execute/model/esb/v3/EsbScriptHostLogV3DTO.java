@@ -36,7 +36,7 @@ public class EsbScriptHostLogV3DTO {
     /**
      * 主机ID
      */
-    @JsonProperty("host_id")
+    @JsonProperty("bk_host_id")
     private Long hostId;
 
     /**

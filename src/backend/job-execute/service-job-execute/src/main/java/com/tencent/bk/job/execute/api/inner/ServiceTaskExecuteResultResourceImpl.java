@@ -27,18 +27,13 @@ package com.tencent.bk.job.execute.api.inner;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
-import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
-import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
-import com.tencent.bk.job.execute.model.converter.TaskInstanceConverter;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
-import com.tencent.bk.job.execute.model.inner.ServiceTaskInstanceDTO;
 import com.tencent.bk.job.execute.model.inner.request.ServiceGetCronTaskExecuteStatisticsRequest;
 import com.tencent.bk.job.execute.service.TaskResultService;
 import lombok.extern.slf4j.Slf4j;
@@ -47,9 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -80,23 +73,30 @@ public class ServiceTaskExecuteResultResourceImpl implements ServiceTaskExecuteR
     }
 
     @Override
-    public InternalResponse<PageData<ServiceTaskInstanceDTO>> getTaskExecuteResult(Long appId, String taskName,
-                                                                              Long taskInstanceId, Integer status
-        , String operator, Integer startupMode, Integer taskType, String startTime,
-                                                                              String endTime, Integer start,
-                                                                              Integer pageSize, Long cronTaskId) {
+    public InternalResponse<Integer> getTaskExecuteCount(Long appId,
+                                                         String taskName,
+                                                         Long taskInstanceId,
+                                                         Integer status,
+                                                         String operator,
+                                                         Integer startupMode,
+                                                         Integer taskType,
+                                                         String startTime,
+                                                         String endTime,
+                                                         Long cronTaskId) {
         TaskInstanceQuery taskQuery = new TaskInstanceQuery();
         taskQuery.setTaskInstanceId(taskInstanceId);
         taskQuery.setAppId(appId);
         taskQuery.setTaskName(taskName);
         taskQuery.setCronTaskId(cronTaskId);
         if (StringUtils.isNotBlank(startTime)) {
-            taskQuery.setStartTime(DateUtils.convertUnixTimestampFromDateTimeStr(startTime, "yyyy-MM-dd HH:mm:ss",
-                ChronoUnit.MILLIS, ZoneId.of("UTC")));
+            taskQuery.setStartTime(
+                DateUtils.convertUnixTimestampFromDateTimeStr(
+                    startTime, "yyyy-MM-dd HH:mm:ss", ChronoUnit.MILLIS, ZoneId.of("UTC")));
         }
         if (StringUtils.isNotBlank(endTime)) {
-            taskQuery.setEndTime(DateUtils.convertUnixTimestampFromDateTimeStr(endTime, "yyyy-MM-dd HH:mm:ss",
-                ChronoUnit.MILLIS, ZoneId.of("UTC")));
+            taskQuery.setEndTime(
+                DateUtils.convertUnixTimestampFromDateTimeStr(
+                    endTime, "yyyy-MM-dd HH:mm:ss", ChronoUnit.MILLIS, ZoneId.of("UTC")));
         }
         taskQuery.setOperator(operator);
         if (startupMode != null) {
@@ -108,23 +108,8 @@ public class ServiceTaskExecuteResultResourceImpl implements ServiceTaskExecuteR
         if (status != null) {
             taskQuery.setStatus(RunStatusEnum.valueOf(status));
         }
-        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
-        baseSearchCondition.setStart(start);
-        baseSearchCondition.setLength(pageSize);
 
-        PageData<TaskInstanceDTO> pageData = taskResultService.listPageTaskInstance(taskQuery, baseSearchCondition);
-
-        PageData<ServiceTaskInstanceDTO> pageDataVO = new PageData<>();
-        pageDataVO.setTotal(pageData.getTotal());
-        pageDataVO.setStart(pageData.getStart());
-        pageDataVO.setPageSize(pageData.getPageSize());
-
-        List<ServiceTaskInstanceDTO> serviceTaskInstanceDTOS = new ArrayList<>();
-        if (pageData.getData() != null) {
-            pageData.getData().forEach(taskInstanceDTO -> serviceTaskInstanceDTOS
-                .add(TaskInstanceConverter.convertToServiceTaskInstanceDTO(taskInstanceDTO, i18nService)));
-        }
-        pageDataVO.setData(serviceTaskInstanceDTOS);
-        return InternalResponse.buildSuccessResp(pageDataVO);
+        int count = taskResultService.countTaskInstance(taskQuery);
+        return InternalResponse.buildSuccessResp(count);
     }
 }

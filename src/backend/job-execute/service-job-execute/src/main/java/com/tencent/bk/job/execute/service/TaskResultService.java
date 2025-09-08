@@ -64,6 +64,11 @@ public interface TaskResultService {
                                           SimplePaginationCondition condition);
 
     /**
+     * 根据条件查找符合的总数
+     */
+    int countTaskInstance(TaskInstanceQuery taskQuery);
+
+    /**
      * 获取作业执行结果
      *
      * @param user           用户

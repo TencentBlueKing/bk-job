@@ -7,17 +7,13 @@ Delete dangerous rule
 #### Interface parameters
 
 | Fields | Type | Required | Description |
-| ------ | ---- | -------- | ----------- |
+|--------|------|----------|-------------|
 | id     | long | yes      | Rule id     |
-
 
 ### Example of request
 
 ```json
 {
-    "bk_app_code": "esb_test",
-    "bk_app_secret": "xxx",
-    "bk_token": "xxx",
     "id": 1
 }
 ```
@@ -27,7 +23,8 @@ Delete dangerous rule
 ```json
 {
     "code": 0,
-    "result": true
+    "result": true,
+    "job_request_id": "xxx"
 }
 ```
 

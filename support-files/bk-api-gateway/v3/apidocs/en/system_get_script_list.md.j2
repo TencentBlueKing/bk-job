@@ -6,14 +6,15 @@ Query business script list
 
 #### Interface parameters
 
-| Fields          | Type   | Required | Description                                                                                               |
-|-----------------|--------|----------|-----------------------------------------------------------------------------------------------------------|
-| bk_scope_type   | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                               |
-| bk_scope_id     | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID               |
-| name            | string | no       | Script name, supports fuzzy query                                                                         |
-| script_language | int    | no       | Scripting language. 0: all script types, 1: shell, 2: bat，3：perl，4： python，5：powershell，6： sql. Default 0 |
-| start           | int    | no       | Start position of paging record, default 0                                                                |
-| length          | int    | no       | The maximum number of records returned in a single time is 1000 at most, default 20                       |
+| Fields          | Type   | Required | Description                                                                                                 |
+|-----------------|--------|----------|-------------------------------------------------------------------------------------------------------------|
+| bk_scope_type   | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                 |
+| bk_scope_id     | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                 |
+| bk_biz_id       | long   | yes      | Deprecated. Business ID. This field has been deprecated and replaced by the field bk_scope_type+bk_scope_id |
+| name            | string | no       | Script name, supports fuzzy query                                                                           |
+| script_language | int    | no       | Scripting language. 0: all script types, 1: shell, 2: bat，3：perl，4： python，5：powershell，6： sql. Default 0   |
+| start           | int    | no       | Start position of paging record, default 0                                                                  |
+| length          | int    | no       | The maximum number of records returned in a single time is 1000 at most, default 20                         |
 
 ### Example of request
 
@@ -27,28 +28,28 @@ Query business script list
 
 ```json
 {
-  "result": true,
-  "code": 0,
-  "message": "success",
-  "data": {
-    "data": [
-      {
-        "id": "000dbdddc06c453baf1f2decddf00c69",
-        "bk_scope_type": "biz",
-        "bk_scope_id": "1",
-        "name": "a.sh",
-        "script_language": 1,
-        "online_script_version_id": 100,
-        "creator": "admin",
-        "create_time": 1600746078520,
-        "last_modify_user": "admin",
-        "last_modify_time": 1600746078520
-      }
-    ],
-    "start": 0,
-    "length": 10,
-    "total": 1
-  }
+    "result": true,
+    "code": 0,
+    "data": {
+        "data": [
+            {
+                "id": "000dbdddc06c453baf1f2decddf00c69",
+                "bk_scope_type": "biz",
+                "bk_scope_id": "1",
+                "name": "a.sh",
+                "script_language": 1,
+                "online_script_version_id": 100,
+                "creator": "admin",
+                "create_time": 1600746078520,
+                "last_modify_user": "admin",
+                "last_modify_time": 1600746078520
+            }
+        ],
+        "start": 0,
+        "length": 10,
+        "total": 1
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -58,15 +59,20 @@ Query business script list
 
 #### data
 
-| Fields                   | Type   | Description                                                                                 |
-|--------------------------|--------|---------------------------------------------------------------------------------------------|
-| id                       | string | Script ID                                                                                   |
-| bk_scope_type            | string | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
-| bk_scope_id              | string | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| name                     | string | Script name                                                                                 |
-| script_language          | int    | Scripting language. 1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - SQL       |
-| online_script_version_id | long   | Online script version ID; null if the script does not have an online version                |
-| creator                  | string | Creator                                                                                     |
-| create_time              | long   | Creation time Unix timestamp (ms)                                                           |
-| last_modify_user         | string | Last modify user                                                                            |
-| last_modify_time         | long   | Last modified time Unix timestamp (ms)                                                      |
+{% include '_generic_response_page_data.md.j2' %}
+
+##### data.data
+
+| Fields                   | Type   | Whether it must exist | Description                                                                                 |
+|--------------------------|--------|-----------------------|---------------------------------------------------------------------------------------------|
+| id                       | string | yes                   | Script ID                                                                                   |
+| bk_scope_type            | string | yes                   | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id              | string | yes                   | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| name                     | string | yes                   | Script name                                                                                 |
+| script_language          | int    | yes                   | Scripting language. 1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - SQL       |
+| online_script_version_id | long   | yes                   | Online script version ID; null if the script does not have an online version                |
+| creator                  | string | yes                   | Creator                                                                                     |
+| create_time              | long   | yes                   | Creation time Unix timestamp (ms)                                                           |
+| last_modify_user         | string | yes                   | Last modify user                                                                            |
+| last_modify_time         | long   | yes                   | Last modified time Unix timestamp (ms)                                                      |
+| description              | string | no                    | Script description                                                                          |

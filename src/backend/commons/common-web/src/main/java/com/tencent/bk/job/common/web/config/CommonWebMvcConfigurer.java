@@ -25,25 +25,33 @@
 package com.tencent.bk.job.common.web.config;
 
 import com.tencent.bk.job.common.annotation.JobInterceptor;
+import com.tencent.bk.job.common.web.converter.EsbJackson2HttpMessageConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.util.List;
 import java.util.Map;
 
 
 /**
- * 拦截器自动注册
+ * 通用web配置, 拦截器自动注册、自定义消息转换器等
  */
 @Slf4j
-public class WebInterceptorAutoRegister implements WebMvcConfigurer {
+public class CommonWebMvcConfigurer implements WebMvcConfigurer {
 
     private final ApplicationContext applicationContext;
+    private final Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder;
 
-    public WebInterceptorAutoRegister(ApplicationContext applicationContext) {
+    public CommonWebMvcConfigurer(ApplicationContext applicationContext,
+                                  Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
         this.applicationContext = applicationContext;
+        this.jackson2ObjectMapperBuilder = jackson2ObjectMapperBuilder;
     }
 
     @Override
@@ -61,5 +69,18 @@ public class WebInterceptorAutoRegister implements WebMvcConfigurer {
                     .order(jobInterceptor.order());
             }
         });
+    }
+
+    @Override
+    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        int index = 0;
+        for (int i = 0; i < converters.size(); i++) {
+            if (converters.get(i) instanceof MappingJackson2HttpMessageConverter) {
+                index = i;
+                break;
+            }
+        }
+        // 在默认Jackson Converter之前
+        converters.add(index, new EsbJackson2HttpMessageConverter(jackson2ObjectMapperBuilder));
     }
 }
