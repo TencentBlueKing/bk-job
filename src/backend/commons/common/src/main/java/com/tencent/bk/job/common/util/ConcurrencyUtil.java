@@ -128,27 +128,30 @@ public class ConcurrencyUtil {
         //结果队列
         LinkedBlockingQueue<Output> resultQueue;
         Input input;
-        JobContext context;
+        JobContext jobContext;
         Handler<Input, Output> handler;
 
         InnerTask(LinkedBlockingQueue<Output> resultQueue,
                   Input input,
-                  JobContext context,
+                  JobContext jobContext,
                   Handler<Input, Output> handler) {
             this.resultQueue = resultQueue;
             this.input = input;
-            this.context = context;
+            this.jobContext = jobContext;
             this.handler = handler;
         }
 
         @Override
         public void run() {
-            JobContextUtil.setRequestId(context.getRequestId());
-            JobContextUtil.setUser(context.getUser());
+            if (jobContext != null) {
+                JobContextUtil.setContext(jobContext);
+            }
             try {
                 resultQueue.addAll(handler.handle(input));
             } catch (Exception e) {
                 log.error("InnerTask fail:", e);
+            } finally {
+                JobContextUtil.unsetContext();
             }
         }
     }
