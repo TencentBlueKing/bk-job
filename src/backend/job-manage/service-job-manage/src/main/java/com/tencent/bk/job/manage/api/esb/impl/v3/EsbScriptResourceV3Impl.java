@@ -66,6 +66,7 @@ import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateScriptVersionV3Re
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbCheckScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionStatusV3DTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.service.ScriptCheckService;
 import com.tencent.bk.job.manage.service.ScriptService;
@@ -398,7 +399,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_disable_script_version"})
     @AuditEntry(actionId = ActionId.MANAGE_SCRIPT)
-    public EsbResp<EsbScriptVersionDetailV3DTO> disableScriptVersion(
+    public EsbResp<EsbScriptVersionStatusV3DTO> disableScriptVersion(
         String username,
         String appCode,
         @AuditRequestBody EsbManageScriptVersionV3Req request) {
@@ -406,13 +407,13 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         scriptService.disableScript(request.getAppResourceScope().getAppId(), user,
             request.getScriptId(), request.getScriptVersionId());
         ScriptDTO scriptVersion = scriptService.getScriptVersion(request.getScriptVersionId());
-        return EsbResp.buildSuccessResp(scriptVersion.toEsbManageScriptV3DTO());
+        return EsbResp.buildSuccessResp(scriptVersion.toEsbScriptVersionStatusV3DTO());
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_publish_script_version"})
     @AuditEntry(actionId = ActionId.MANAGE_SCRIPT)
-    public EsbResp<EsbScriptVersionDetailV3DTO> publishScriptVersion(
+    public EsbResp<EsbScriptVersionStatusV3DTO> publishScriptVersion(
         String username,
         String appCode,
         @AuditRequestBody EsbManageScriptVersionV3Req request) {
@@ -420,7 +421,7 @@ public class EsbScriptResourceV3Impl implements EsbScriptV3Resource {
         scriptService.publishScript(request.getAppResourceScope().getAppId(), user,
             request.getScriptId(), request.getScriptVersionId());
         ScriptDTO scriptVersion = scriptService.getScriptVersion(request.getScriptVersionId());
-        return EsbResp.buildSuccessResp(scriptVersion.toEsbManageScriptV3DTO());
+        return EsbResp.buildSuccessResp(scriptVersion.toEsbScriptVersionStatusV3DTO());
     }
 
     @Override

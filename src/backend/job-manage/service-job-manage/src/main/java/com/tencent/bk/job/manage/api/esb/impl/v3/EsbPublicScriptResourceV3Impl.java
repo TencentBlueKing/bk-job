@@ -55,6 +55,7 @@ import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdatePublicScriptBasic
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdatePublicScriptVersionV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionStatusV3DTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.service.PublicScriptService;
 import com.tencent.bk.job.manage.util.AssertUtil;
@@ -293,27 +294,27 @@ public class EsbPublicScriptResourceV3Impl implements EsbPublicScriptV3Resource 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_disable_public_script_version"})
     @AuditEntry(actionId = ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE)
-    public EsbResp<EsbScriptVersionDetailV3DTO> disablePublicScriptVersion(
+    public EsbResp<EsbScriptVersionStatusV3DTO> disablePublicScriptVersion(
         String username,
         String appCode,
         @AuditRequestBody EsbManagePublicScriptVersionV3Req request) {
         User user = JobContextUtil.getUser();
         publicScriptService.disableScript(user, request.getScriptId(), request.getScriptVersionId());
         ScriptDTO scriptVersion = publicScriptService.getScriptVersion(request.getScriptVersionId());
-        return EsbResp.buildSuccessResp(scriptVersion.toEsbManageScriptV3DTO());
+        return EsbResp.buildSuccessResp(scriptVersion.toEsbScriptVersionStatusV3DTO());
     }
 
     @Override
     @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v3_publish_public_script_version"})
     @AuditEntry(actionId = ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE)
-    public EsbResp<EsbScriptVersionDetailV3DTO> publishPublicScriptVersion(
+    public EsbResp<EsbScriptVersionStatusV3DTO> publishPublicScriptVersion(
         String username,
         String appCode,
         @AuditRequestBody EsbManagePublicScriptVersionV3Req request) {
         User user = JobContextUtil.getUser();
         publicScriptService.publishScript(user, request.getScriptId(), request.getScriptVersionId());
         ScriptDTO scriptVersion = publicScriptService.getScriptVersion(request.getScriptVersionId());
-        return EsbResp.buildSuccessResp(scriptVersion.toEsbManageScriptV3DTO());
+        return EsbResp.buildSuccessResp(scriptVersion.toEsbScriptVersionStatusV3DTO());
     }
 
     @Override

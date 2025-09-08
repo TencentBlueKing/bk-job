@@ -1,5 +1,4 @@
 SET NAMES utf8mb4;
-CREATE DATABASE IF NOT EXISTS job_execute DEFAULT CHARACTER SET utf8mb4;
 USE job_execute;
 
 CREATE TABLE IF NOT EXISTS `gse_script_execute_obj_task` (

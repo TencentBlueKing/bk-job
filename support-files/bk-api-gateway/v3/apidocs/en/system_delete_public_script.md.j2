@@ -1,23 +1,19 @@
 ### Function Description
 
-Delete  public script will also delete all script versions under that script.
+Delete public script will also delete all script versions under that script.
 
 ### Request Parameters
 
 #### Interface parameters
 
 | Fields    | Type   | Required | Description      |
-| --------- | ------ | -------- | ---------------- |
+|-----------|--------|----------|------------------|
 | script_id | string | yes      | Public script id |
-
 
 ### Example of request
 
 ```json
 {
-    "bk_app_code": "esb_test",
-    "bk_app_secret": "xxx",
-    "bk_token": "xxx",
     "script_id": "4537fb49ec0840a1b91cef4179c99f9c"
 }
 ```
@@ -27,7 +23,8 @@ Delete  public script will also delete all script versions under that script.
 ```json
 {
     "code": 0,
-    "result": true
+    "result": true,
+    "job_request_id": "xxx"
 }
 ```
 
