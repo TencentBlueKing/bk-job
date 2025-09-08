@@ -44,7 +44,9 @@ public class RetryUtils {
      * @param interval    重试间隔
      * @param <T>         返回值类型
      * @return 执行结果
-     * @throws RetryAbortedException 不满足重试条件时（重试条件判定失败、超出最大重试次数）抛出
+     * @throws Error                 待执行任务抛出Error时原样抛出
+     * @throws RuntimeException      待执行任务抛出RuntimeException时原样抛出
+     * @throws RetryAbortedException 重试参数不正确、重试被中断、待执行任务抛出受检异常时抛出
      */
     public static <T> T executeWithRetry(Callable<T> task,
                                          int maxAttempts,
@@ -61,7 +63,9 @@ public class RetryUtils {
      * @param retryCondition 重试条件
      * @param <T>            返回值类型
      * @return 执行结果
-     * @throws RetryAbortedException 不满足重试条件时（重试条件判定失败、超出最大重试次数）抛出
+     * @throws Error                 待执行任务抛出Error时原样抛出
+     * @throws RuntimeException      待执行任务抛出RuntimeException时原样抛出
+     * @throws RetryAbortedException 重试参数不正确、重试被中断、待执行任务抛出受检异常时抛出
      */
     public static <T> T executeWithRetry(Callable<T> task,
                                          int maxAttempts,
@@ -80,7 +84,7 @@ public class RetryUtils {
                 }
 
                 if (!retryCondition.test(e)) {
-                    throw new RetryAbortedException("Abort retry due to non-retryable exception", e);
+                    wrapAndThrowIfNecessary(e);
                 }
                 String message = MessageFormatter.format(
                     "Retry {} after {}s, cause:",
@@ -91,7 +95,12 @@ public class RetryUtils {
                 sleepSafely(interval);
             }
         }
-        throw new RetryAbortedException("Exceeded max attempts: " + maxAttempts, lastException);
+        if (lastException != null) {
+            wrapAndThrowIfNecessary(lastException);
+            return null;
+        } else {
+            throw new RetryAbortedException("maxAttempts is invalid: " + maxAttempts);
+        }
     }
 
     /**
@@ -106,5 +115,20 @@ public class RetryUtils {
             Thread.currentThread().interrupt();
             throw new RetryAbortedException("Retry interrupted", e);
         }
+    }
+
+    /**
+     * 对异常进行包装并抛出
+     *
+     * @param t 原始异常
+     */
+    private static void wrapAndThrowIfNecessary(Throwable t) {
+        if (t instanceof Error) {
+            throw (Error) t;
+        }
+        if (t instanceof RuntimeException) {
+            throw (RuntimeException) t;
+        }
+        throw new RetryAbortedException("Retry failed", t);
     }
 }

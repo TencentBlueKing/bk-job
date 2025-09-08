@@ -68,7 +68,7 @@ public class RetryUtilsTest {
         };
 
         Predicate<Exception> retryCondition = e -> !e.getMessage().contains("Permanent");
-        assertThrows(RetryAbortedException.class, () ->
+        assertThrows(RuntimeException.class, () ->
             RetryUtils.executeWithRetry(task, 3, Duration.ofSeconds(1), retryCondition));
     }
 
@@ -78,7 +78,7 @@ public class RetryUtilsTest {
             throw new RuntimeException("Temporary failure");
         };
 
-        assertThrows(RetryAbortedException.class, () ->
+        assertThrows(RuntimeException.class, () ->
             RetryUtils.executeWithRetry(task, 3, Duration.ofSeconds(1)));
     }
 

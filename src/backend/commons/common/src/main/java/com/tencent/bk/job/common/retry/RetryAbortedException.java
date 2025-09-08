@@ -28,6 +28,10 @@ package com.tencent.bk.job.common.retry;
  * 重试退出异常
  */
 public class RetryAbortedException extends RuntimeException {
+    public RetryAbortedException(String message) {
+        super(message, null);
+    }
+
     public RetryAbortedException(String message, Throwable cause) {
         super(message, cause);
     }
