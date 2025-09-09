@@ -104,7 +104,6 @@ public @interface ValidTimeoutLimit {
                 hibernateContext
                     .buildConstraintViolationWithTemplate(
                         "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
-                    .addPropertyNode("timeout")
                     .addConstraintViolation();
                 return false;
             }
