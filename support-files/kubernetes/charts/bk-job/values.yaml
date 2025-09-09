@@ -1164,6 +1164,10 @@ executeConfig:
       startLimitEnabled : false
       # start参数最大值，用于避免深度分页导致的DB慢查询
       maxStart : 1000
+  # 任务超时配置，resourceScope粒度，用yaml列表的方式配置，单个元素包含scopeType、scopeId、maxTimeout
+  # 目前全平台默认的单个步骤超时时间不能超过3天(259200s)
+  taskTimeout:
+    custom: []
 
   mysql:
     # 数据源模式。 standalone: 单 DB; vertical_sharding: 垂直分库; horizontal_sharding: 水平分库

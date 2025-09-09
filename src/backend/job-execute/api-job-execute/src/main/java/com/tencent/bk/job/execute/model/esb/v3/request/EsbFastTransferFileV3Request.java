@@ -26,15 +26,14 @@ package com.tencent.bk.job.execute.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbFileSourceV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
+import com.tencent.bk.job.execute.validation.ValidTimeoutLimit;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.validator.constraints.Range;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -106,8 +105,7 @@ public class EsbFastTransferFileV3Request extends EsbAppScopeReq {
      * 超时时间，单位秒
      */
     @JsonProperty("timeout")
-    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max= JobConstants.MAX_JOB_TIMEOUT_SECONDS,
-        message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
+    @ValidTimeoutLimit
     private Integer timeout;
 
     /**
