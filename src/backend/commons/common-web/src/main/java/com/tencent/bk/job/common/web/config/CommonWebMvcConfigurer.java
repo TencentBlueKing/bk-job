@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.web.config;
 
 import com.tencent.bk.job.common.annotation.JobInterceptor;
-import com.tencent.bk.job.common.web.converter.EsbJackson2HttpMessageConverter;
+import com.tencent.bk.job.common.web.converter.EsbV4Jackson2HttpMessageConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -81,6 +81,6 @@ public class CommonWebMvcConfigurer implements WebMvcConfigurer {
             }
         }
         // 在默认Jackson Converter之前
-        converters.add(index, new EsbJackson2HttpMessageConverter(jackson2ObjectMapperBuilder));
+        converters.add(index, new EsbV4Jackson2HttpMessageConverter(jackson2ObjectMapperBuilder));
     }
 }

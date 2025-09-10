@@ -73,25 +73,25 @@ Gets the value of the job instance global variable
 
 #### data
 
-| Fields                 | Type  | Whether it must exist | Description                                                                    |
-|------------------------|-------|-----------------------|--------------------------------------------------------------------------------|
-| job_instance_id        | long  | yes                   | Job instance ID                                                                |
-| step_instance_var_list | array | no                    | Job step instance global variable value. See step_instance_var for definitions |
+| Fields                 | Type  | Never null | Description                                                                    |
+|------------------------|-------|------------|--------------------------------------------------------------------------------|
+| job_instance_id        | long  | yes        | Job instance ID                                                                |
+| step_instance_var_list | array | no         | Job step instance global variable value. See step_instance_var for definitions |
 
 #### step_instance_var
 
-| Fields           | Type  | Whether it must exist | Description                                                   |
-|------------------|-------|-----------------------|---------------------------------------------------------------|
-| step_instance_id | long  | yes                   | Step instance ID                                              |
-| global_var_list  | array | no                    | For global variable value list, see global_var for definition |
+| Fields           | Type  | Never null | Description                                                   |
+|------------------|-------|------------|---------------------------------------------------------------|
+| step_instance_id | long  | yes        | Step instance ID                                              |
+| global_var_list  | array | no         | For global variable value list, see global_var for definition |
 
 #### global_var
 
-| Fields | Type   | Whether it must exist | Description                                                                                                   |
-|--------|--------|-----------------------|---------------------------------------------------------------------------------------------------------------|
-| id     | long   | yes                   | Global variable id, unique identification. If the id is empty, then name is used as the unique identification |
-| name   | string | yes                   | Global variable name                                                                                          |
-| value  | string | no                    | Values of global variables of String, Ciphertext, Namespace, and Array types                                  |
-| server | object | no                    | For the value of the host type global variable, see server definition                                         |
+| Fields | Type   | Never null | Description                                                                                                   |
+|--------|--------|------------|---------------------------------------------------------------------------------------------------------------|
+| id     | long   | yes        | Global variable id, unique identification. If the id is empty, then name is used as the unique identification |
+| name   | string | yes        | Global variable name                                                                                          |
+| value  | string | no         | Values of global variables of String, Ciphertext, Namespace, and Array types                                  |
+| server | object | no         | For the value of the host type global variable, see server definition                                         |
 
 {% include '_generic_server.md.j2' %}

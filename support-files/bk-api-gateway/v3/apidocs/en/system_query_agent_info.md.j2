@@ -63,14 +63,14 @@ Query the information of the host agent in the job platform (executable status, 
 
 #### data
 
-| Fields          | Type         | Whether it must exist | Description                                                                                                                                                                  |
-|-----------------|--------------|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| agent_info_list | list<object> | yes                   | Agent info, see agent_info definition，If the passed host_id does not exist in the returned result list, it means that the agent information of the host has not been queried |
+| Fields          | Type         | Never null | Description                                                                                                                                                                  |
+|-----------------|--------------|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| agent_info_list | list<object> | yes        | Agent info, see agent_info definition，If the passed host_id does not exist in the returned result list, it means that the agent information of the host has not been queried |
 
 ##### agent_info
 
-| Fields     | Type   | Whether it must exist | Description                       |
-|------------|--------|-----------------------|-----------------------------------|
-| bk_host_id | long   | yes                   | Host ID                           |
-| status     | int    | yes                   | Agent status：0-Abnormal, 1-Normal |
-| version    | string | yes                   | Agent version                     |
+| Fields     | Type   | Never null | Description                       |
+|------------|--------|------------|-----------------------------------|
+| bk_host_id | long   | yes        | Host ID                           |
+| status     | int    | yes        | Agent status：0-Abnormal, 1-Normal |
+| version    | string | yes        | Agent version                     |

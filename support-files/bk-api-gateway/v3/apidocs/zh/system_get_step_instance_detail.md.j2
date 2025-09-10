@@ -6,13 +6,13 @@
 
 #### Query参数
 
-| 字段               | 类型     | 必选  | 描述                                                |
-|------------------|--------|-----|---------------------------------------------------|
-| bk_scope_type    | string | 是   | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                |
-| bk_scope_id      | string | 是   | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID           |
-| bk_biz_id        | long   | 是   | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
-| job_instance_id  | long   | 是   | 作业实例ID                                            |
-| step_instance_id | long   | 是   | 步骤实例ID                                            |
+| 字段               | 类型     | 必选 | 描述                                                |
+|------------------|--------|----|---------------------------------------------------|
+| bk_scope_type    | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                |
+| bk_scope_id      | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID           |
+| bk_biz_id        | long   | 是  | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
+| job_instance_id  | long   | 是  | 作业实例ID                                            |
+| step_instance_id | long   | 是  | 步骤实例ID                                            |
 
 ### 请求参数示例
 
@@ -166,104 +166,104 @@
 
 ##### data
 
-| 字段            | 类型     | 是否一定存在 | 描述                    |
-|---------------|--------|--------|-----------------------|
-| id            | long   | 是      | 作业步骤ID                |
-| name          | string | 是      | 步骤名称                  |
-| type          | int    | 是      | 步骤类型：1-脚本，2-文件，3-人工确认 |
-| script_info   | object | 否      | 脚本步骤信息                |
-| file_info     | object | 否      | 文件步骤信息                |
-| approval_info | object | 否      | 审批步骤信息                |
+| 字段            | 类型     | 是否一定不为null | 描述                    |
+|---------------|--------|------------|-----------------------|
+| id            | long   | 是          | 作业步骤ID                |
+| name          | string | 是          | 步骤名称                  |
+| type          | int    | 是          | 步骤类型：1-脚本，2-文件，3-人工确认 |
+| script_info   | object | 否          | 脚本步骤信息                |
+| file_info     | object | 否          | 文件步骤信息                |
+| approval_info | object | 否          | 审批步骤信息                |
 
 ##### script_info
 
-| 字段                 | 类型     | 是否一定存在 | 描述                                                    |
-|--------------------|--------|--------|-------------------------------------------------------|
-| script_type        | int    | 是      | 脚本类型：1-本地脚本，2-引用业务脚本，3-引用公共脚本                         |
-| script_id          | string | 否      | 脚本ID                                                  |
-| script_version_id  | long   | 否      | 脚本版本ID                                                |
-| script_content     | string | 否      | 脚本内容                                                  |
-| script_language    | int    | 是      | 脚本语言：1-shell，2-bat，3-perl，4-python，5-powershell，6-sql |
-| script_param       | string | 是      | 脚本参数                                                  |
-| script_timeout     | int    | 是      | 脚本超时时间，单位为秒                                           |
-| account            | object | 是      | 执行账号，详情见account对象定义                                   |
-| server             | object | 是      | 执行目标机器，详情见server对象定义                                  |
-| is_param_sensitive | int    | 是      | 参数是否为敏感参数：0-不敏感，1-敏感                                  |
-| is_ignore_error    | int    | 是      | 是否忽略错误：0-不忽略，1-忽略                                     |
+| 字段                 | 类型     | 是否一定不为null | 描述                                                    |
+|--------------------|--------|------------|-------------------------------------------------------|
+| script_type        | int    | 是          | 脚本类型：1-本地脚本，2-引用业务脚本，3-引用公共脚本                         |
+| script_id          | string | 否          | 脚本ID                                                  |
+| script_version_id  | long   | 否          | 脚本版本ID                                                |
+| script_content     | string | 否          | 脚本内容                                                  |
+| script_language    | int    | 是          | 脚本语言：1-shell，2-bat，3-perl，4-python，5-powershell，6-sql |
+| script_param       | string | 是          | 脚本参数                                                  |
+| script_timeout     | int    | 是          | 脚本超时时间，单位为秒                                           |
+| account            | object | 是          | 执行账号，详情见account对象定义                                   |
+| server             | object | 是          | 执行目标机器，详情见server对象定义                                  |
+| is_param_sensitive | int    | 是          | 参数是否为敏感参数：0-不敏感，1-敏感                                  |
+| is_ignore_error    | int    | 是          | 是否忽略错误：0-不忽略，1-忽略                                     |
 
 ##### account
 
-| 字段   | 类型     | 是否一定存在 | 描述   |
-|------|--------|--------|------|
-| id   | long   | 是      | 账号ID |
-| name | string | 否      | 账号名称 |
+| 字段   | 类型     | 是否一定不为null | 描述   |
+|------|--------|------------|------|
+| id   | long   | 是          | 账号ID |
+| name | string | 否          | 账号名称 |
 
 ##### server
 
-| 字段                 | 类型                  | 是否一定存在 | 描述                            |
-|--------------------|---------------------|--------|-------------------------------|
-| variable           | string              | 否      | 引用的全局变量名称                     |
-| ip_list            | list<host>          | 否      | 主机列表，元素详情见host对象定义            |
-| topo_node_list     | list<topo_node>     | 否      | 拓扑节点列表，元素详情见topo_node对象定义     |
-| dynamic_group_list | list<dynamic_group> | 否      | 动态分组列表，元素详情见dynamic_group对象定义 |
+| 字段                 | 类型                  | 是否一定不为null | 描述                            |
+|--------------------|---------------------|------------|-------------------------------|
+| variable           | string              | 否          | 引用的全局变量名称                     |
+| ip_list            | list<host>          | 否          | 主机列表，元素详情见host对象定义            |
+| topo_node_list     | list<topo_node>     | 否          | 拓扑节点列表，元素详情见topo_node对象定义     |
+| dynamic_group_list | list<dynamic_group> | 否          | 动态分组列表，元素详情见dynamic_group对象定义 |
 
 ##### host
 
-| 字段            | 类型     | 是否一定存在 | 描述                      |
-|---------------|--------|--------|-------------------------|
-| bk_host_id    | long   | 是      | 主机ID                    |
-| bk_cloud_id   | long   | 否      | 管控区域ID                  |
-| bk_cloud_name | string | 否      | 管控区域名称                  |
-| ip            | string | 否      | IP                      |
-| ipv6          | string | 否      | IPv6                    |
-| bk_agent_id   | string | 否      | Agent ID                |
-| alive         | int    | 否      | Agent是否正常，取值为：1-正常，0-异常 |
+| 字段            | 类型     | 是否一定不为null | 描述                      |
+|---------------|--------|------------|-------------------------|
+| bk_host_id    | long   | 是          | 主机ID                    |
+| bk_cloud_id   | long   | 否          | 管控区域ID                  |
+| bk_cloud_name | string | 否          | 管控区域名称                  |
+| ip            | string | 否          | IP                      |
+| ipv6          | string | 否          | IPv6                    |
+| bk_agent_id   | string | 否          | Agent ID                |
+| alive         | int    | 否          | Agent是否正常，取值为：1-正常，0-异常 |
 
 ##### topo_node
 
-| 字段        | 类型     | 是否一定存在 | 描述                                              |
-|-----------|--------|--------|-------------------------------------------------|
-| node_type | string | 是      | 动态topo节点类型，对应CMDB API中的 bk_obj_id，例如module、set等 |
-| id        | int    | 是      | 动态topo节点ID，对应CMDB API中的 bk_inst_id              |
+| 字段        | 类型     | 是否一定不为null | 描述                                              |
+|-----------|--------|------------|-------------------------------------------------|
+| node_type | string | 是          | 动态topo节点类型，对应CMDB API中的 bk_obj_id，例如module、set等 |
+| id        | int    | 是          | 动态topo节点ID，对应CMDB API中的 bk_inst_id              |
 
 ##### dynamic_group
 
-| 字段  | 类型     | 是否一定存在 | 描述         |
-|-----|--------|--------|------------|
-| id  | string | 是      | CMDB动态分组ID |
+| 字段 | 类型     | 是否一定不为null | 描述         |
+|----|--------|------------|------------|
+| id | string | 是          | CMDB动态分组ID |
 
 ##### file_info
 
-| 字段                      | 类型                | 是否一定存在 | 描述                           |
-|-------------------------|-------------------|--------|------------------------------|
-| file_source_list        | list<file_source> | 是      | 源文件列表，元素详情见file_source对象定义   |
-| file_destination        | object            | 是      | 目标信息，详情见file_destination对象定义 |
-| timeout                 | int               | 是      | 超时，单位为秒                      |
-| source_speed_limit      | int               | 否      | 上传文件限速，单位为MB/s，没有值表示不限速      |
-| destination_speed_limit | int               | 否      | 下载文件限速，单位为MB/s，没有值表示不限速      |
-| transfer_mode           | int               | 是      | 传输模式： 1-严谨模式，2-强制模式，3-安全模式   |
-| is_ignore_error         | int               | 是      | 是否忽略错误：0-不忽略，1-忽略            |
+| 字段                      | 类型                | 是否一定不为null | 描述                           |
+|-------------------------|-------------------|------------|------------------------------|
+| file_source_list        | list<file_source> | 是          | 源文件列表，元素详情见file_source对象定义   |
+| file_destination        | object            | 是          | 目标信息，详情见file_destination对象定义 |
+| timeout                 | int               | 是          | 超时，单位为秒                      |
+| source_speed_limit      | int               | 否          | 上传文件限速，单位为MB/s，没有值表示不限速      |
+| destination_speed_limit | int               | 否          | 下载文件限速，单位为MB/s，没有值表示不限速      |
+| transfer_mode           | int               | 是          | 传输模式： 1-严谨模式，2-强制模式，3-安全模式   |
+| is_ignore_error         | int               | 是          | 是否忽略错误：0-不忽略，1-忽略            |
 
 ##### file_source
 
-| 字段             | 类型           | 是否一定存在 | 描述                          |
-|----------------|--------------|--------|-----------------------------|
-| file_type      | int          | 是      | 文件类型：1-服务器文件，2-本地文件，3-文件源文件 |
-| file_list      | list<string> | 是      | 文件路径列表                      |
-| server         | object       | 否      | 源文件所在机器，详情见server对象定义       |
-| account        | object       | 是      | 执行账号，详情见account对象定义         |
-| file_source_id | long         | 否      | 第三方文件源ID                    |
+| 字段             | 类型           | 是否一定不为null | 描述                          |
+|----------------|--------------|------------|-----------------------------|
+| file_type      | int          | 是          | 文件类型：1-服务器文件，2-本地文件，3-文件源文件 |
+| file_list      | list<string> | 是          | 文件路径列表                      |
+| server         | object       | 否          | 源文件所在机器，详情见server对象定义       |
+| account        | object       | 是          | 执行账号，详情见account对象定义         |
+| file_source_id | long         | 否          | 第三方文件源ID                    |
 
 ##### file_destination
 
-| 字段      | 类型     | 是否一定存在 | 描述                   |
-|---------|--------|--------|----------------------|
-| path    | string | 是      | 目标路径                 |
-| account | object | 是      | 执行账号，详情见account对象定义  |
-| server  | object | 是      | 分发目标机器，详情见server对象定义 |
+| 字段      | 类型     | 是否一定不为null | 描述                   |
+|---------|--------|------------|----------------------|
+| path    | string | 是          | 目标路径                 |
+| account | object | 是          | 执行账号，详情见account对象定义  |
+| server  | object | 是          | 分发目标机器，详情见server对象定义 |
 
 ##### approval_info
 
-| 字段               | 类型     | 是否一定存在 | 描述   |
-|------------------|--------|--------|------|
-| approval_message | string | 是      | 确认消息 |
+| 字段               | 类型     | 是否一定不为null | 描述   |
+|------------------|--------|------------|------|
+| approval_message | string | 是          | 确认消息 |

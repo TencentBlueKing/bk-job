@@ -7,11 +7,10 @@ Update basic information of public scripts
 #### Interface parameters
 
 | Fields      | Type   | Required | Description        |
-| ----------- | ------ | -------- | ------------------ |
+|-------------|--------|----------|--------------------|
 | script_id   | string | yes      | Script id          |
 | name        | string | yes      | Script name        |
 | description | string | no       | Script description |
-
 
 ### Example of request
 
@@ -49,13 +48,13 @@ Update basic information of public scripts
 
 #### data
 
-| Fields           | Type   | Whether it must exist | Description                                                  |
-| ---------------- | ------ |-----------------------| ------------------------------------------------------------ |
-| id               | string | yes                   | Script id                                                    |
-| name             | string | yes                   | Script name                                                  |
-| script_language  | int    | yes                   | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
-| creator          | string | yes                   | Creator                                                      |
-| create_time      | long   | yes                   | Created time, Unix timestamp                                 |
-| last_modify_user | string | yes                   | Last modify user                                             |
-| last_modify_time | long   | yes                   | Last modified time, Unix timestamp                           |
-| description      | string | no                    | Description                                                  |
+| Fields           | Type   | Never null | Description                                                                       |
+|------------------|--------|------------|-----------------------------------------------------------------------------------|
+| id               | string | yes        | Script id                                                                         |
+| name             | string | yes        | Script name                                                                       |
+| script_language  | int    | yes        | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
+| creator          | string | yes        | Creator                                                                           |
+| create_time      | long   | yes        | Created time, Unix timestamp                                                      |
+| last_modify_user | string | yes        | Last modify user                                                                  |
+| last_modify_time | long   | yes        | Last modified time, Unix timestamp                                                |
+| description      | string | no         | Description                                                                       |

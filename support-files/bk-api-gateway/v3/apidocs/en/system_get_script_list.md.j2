@@ -63,16 +63,16 @@ Query business script list
 
 ##### data.data
 
-| Fields                   | Type   | Whether it must exist | Description                                                                                 |
-|--------------------------|--------|-----------------------|---------------------------------------------------------------------------------------------|
-| id                       | string | yes                   | Script ID                                                                                   |
-| bk_scope_type            | string | yes                   | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
-| bk_scope_id              | string | yes                   | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| name                     | string | yes                   | Script name                                                                                 |
-| script_language          | int    | yes                   | Scripting language. 1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - SQL       |
-| online_script_version_id | long   | yes                   | Online script version ID; null if the script does not have an online version                |
-| creator                  | string | yes                   | Creator                                                                                     |
-| create_time              | long   | yes                   | Creation time Unix timestamp (ms)                                                           |
-| last_modify_user         | string | yes                   | Last modify user                                                                            |
-| last_modify_time         | long   | yes                   | Last modified time Unix timestamp (ms)                                                      |
-| description              | string | no                    | Script description                                                                          |
+| Fields                   | Type   | Never null | Description                                                                                 |
+|--------------------------|--------|------------|---------------------------------------------------------------------------------------------|
+| id                       | string | yes        | Script ID                                                                                   |
+| bk_scope_type            | string | yes        | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id              | string | yes        | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| name                     | string | yes        | Script name                                                                                 |
+| script_language          | int    | yes        | Scripting language. 1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - SQL       |
+| online_script_version_id | long   | yes        | Online script version ID; null if the script does not have an online version                |
+| creator                  | string | yes        | Creator                                                                                     |
+| create_time              | long   | yes        | Creation time Unix timestamp (ms)                                                           |
+| last_modify_user         | string | yes        | Last modify user                                                                            |
+| last_modify_time         | long   | yes        | Last modified time Unix timestamp (ms)                                                      |
+| description              | string | no         | Script description                                                                          |

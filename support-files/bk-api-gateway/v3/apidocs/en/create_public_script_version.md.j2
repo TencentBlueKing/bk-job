@@ -55,18 +55,18 @@ Create Public Script Version
 
 #### data
 
-| Fields           | Type   | Whether it must exist | Description                                                                       |
-|------------------|--------|-----------------------|-----------------------------------------------------------------------------------|
-| id               | long   | yes                   | Script version id                                                                 |
-| script_id        | string | yes                   | Script id                                                                         |
-| name             | string | yes                   | Script name                                                                       |
-| script_language  | int    | yes                   | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
-| content          | string | yes                   | Script content                                                                    |
-| creator          | string | yes                   | Creator                                                                           |
-| create_time      | long   | yes                   | Created time, Unix timestamp                                                      |
-| last_modify_user | string | yes                   | Last modify user                                                                  |
-| last_modify_time | long   | yes                   | Last modified time, Unix timestamp                                                |
-| version          | string | yes                   | Script version                                                                    |
-| version_desc     | string | no                    | Version description                                                               |
-| status           | int    | yes                   | Script version status (0: Not online, 1: Online, 2: Offline, 3: Disabled)         |
-| description      | string | no                    | Description                                                                       |
+| Fields           | Type   | Never null | Description                                                                       |
+|------------------|--------|------------|-----------------------------------------------------------------------------------|
+| id               | long   | yes        | Script version id                                                                 |
+| script_id        | string | yes        | Script id                                                                         |
+| name             | string | yes        | Script name                                                                       |
+| script_language  | int    | yes        | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
+| content          | string | yes        | Script content                                                                    |
+| creator          | string | yes        | Creator                                                                           |
+| create_time      | long   | yes        | Created time, Unix timestamp                                                      |
+| last_modify_user | string | yes        | Last modify user                                                                  |
+| last_modify_time | long   | yes        | Last modified time, Unix timestamp                                                |
+| version          | string | yes        | Script version                                                                    |
+| version_desc     | string | no         | Version description                                                               |
+| status           | int    | yes        | Script version status (0: Not online, 1: Online, 2: Offline, 3: Disabled)         |
+| description      | string | no         | Description                                                                       |
