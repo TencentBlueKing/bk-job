@@ -100,30 +100,30 @@ Query job execution log by host
 
 #### data
 
-| Fields      | Type   | Whether it must exist | Description                                                             |
-|-------------|--------|-----------------------|-------------------------------------------------------------------------|
-| bk_cloud_id | int    | yes                   | Target server cloud area ID                                             |
-| ip          | string | yes                   | Destination server IP address                                           |
-| log_type    | int    | yes                   | Log type. 1 - Script execution task log; 2 - File distribution task log |
-| log_content | string | no                    | Log content of job script output                                        |
-| file_logs   | array  | no                    | File distribution task log. See file_log for definition                 |
+| Fields      | Type   | Never null | Description                                                             |
+|-------------|--------|------------|-------------------------------------------------------------------------|
+| bk_cloud_id | int    | yes        | Target server cloud area ID                                             |
+| ip          | string | yes        | Destination server IP address                                           |
+| log_type    | int    | yes        | Log type. 1 - Script execution task log; 2 - File distribution task log |
+| log_content | string | no         | Log content of job script output                                        |
+| file_logs   | array  | no         | File distribution task log. See file_log for definition                 |
 
 #### file_log
 
-| Fields      | Type   | Whether it must exist | Description                                                                  |
-|-------------|--------|-----------------------|------------------------------------------------------------------------------|
-| mode        | int    | yes                   | Distribution mode. 0: Upload; 1: Download                                    |
-| src_ip      | object | yes                   | File source host IP. see ip for definition                                   |
-| src_path    | string | yes                   | Source file paths                                                            |
-| dest_ip     | object | yes                   | Distribute the target host IP, with value for mode=1. See ip for definition. |
-| dest_path   | string | yes                   | Target path, with value for mode=1                                           |
-| status      | int    | yes                   | Task status. 1-Waiting; 2-Uploading; 3-Downloading; 4- Success; 5- Failure   |
-| log_content | string | yes                   | File distribution log contents                                               |
+| Fields      | Type   | Never null | Description                                                                  |
+|-------------|--------|------------|------------------------------------------------------------------------------|
+| mode        | int    | yes        | Distribution mode. 0: Upload; 1: Download                                    |
+| src_ip      | object | yes        | File source host IP. see ip for definition                                   |
+| src_path    | string | yes        | Source file paths                                                            |
+| dest_ip     | object | yes        | Distribute the target host IP, with value for mode=1. See ip for definition. |
+| dest_path   | string | yes        | Target path, with value for mode=1                                           |
+| status      | int    | yes        | Task status. 1-Waiting; 2-Uploading; 3-Downloading; 4- Success; 5- Failure   |
+| log_content | string | yes        | File distribution log contents                                               |
 
 #### ip
 
-| Fields      | Type   | Whether it must exist | Description |
-|-------------|--------|-----------------------|-------------|
-| bk_cloud_id | long   | yes                   | BK-Net ID   |
-| ip          | string | yes                   | IP Address  |
-| bk_host_id  | long   | yes                   | Host ID     |
+| Fields      | Type   | Never null | Description |
+|-------------|--------|------------|-------------|
+| bk_cloud_id | long   | yes        | BK-Net ID   |
+| ip          | string | yes        | IP Address  |
+| bk_host_id  | long   | yes        | Host ID     |

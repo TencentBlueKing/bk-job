@@ -159,104 +159,104 @@ Query step instance details by instance ID
 
 ##### data
 
-| Fields        | Type   | Whether it must exist | Description                          |
-|---------------|--------|-----------------------|--------------------------------------|
-| id            | long   | yes                   | Step ID                              |
-| name          | string | yes                   | Step name                            |
-| type          | int    | yes                   | Step type：1-script，2-file，3-approval |
-| script_info   | object | no                    | Script info                          |
-| file_info     | object | no                    | Fine info                            |
-| approval_info | object | no                    | Approval info                        |
+| Fields        | Type   | Never null | Description                          |
+|---------------|--------|------------|--------------------------------------|
+| id            | long   | yes        | Step ID                              |
+| name          | string | yes        | Step name                            |
+| type          | int    | yes        | Step type：1-script，2-file，3-approval |
+| script_info   | object | no         | Script info                          |
+| file_info     | object | no         | Fine info                            |
+| approval_info | object | no         | Approval info                        |
 
 ##### script_info
 
-| Fields             | Type   | Whether it must exist | Description                                                                        |
-|--------------------|--------|-----------------------|------------------------------------------------------------------------------------|
-| script_type        | int    | yes                   | Script type：1-Local script, 2-Reference business script, 3-Reference public script |
-| script_id          | string | no                    | Script ID                                                                          |
-| script_version_id  | long   | no                    | Script version ID                                                                  |
-| script_content     | string | no                    | Script content                                                                     |
-| script_language    | int    | yes                   | Script language：1-shell，2-bat，3-perl，4-python，5-powershell，6-sql                   |
-| script_param       | string | yes                   | Script param                                                                       |
-| script_timeout     | int    | yes                   | Script timeout，Unit in seconds                                                     |
-| account            | object | yes                   | Account，see account definition                                                     |
-| server             | object | yes                   | Server，see server definition                                                       |
-| is_param_sensitive | int    | yes                   | Is the parameter sensitive? Parameters: 0- insensitive, 1- sensitive               |
-| is_ignore_error    | int    | yes                   | Is ignore error：0- Do not ignore, 1- Ignore                                        |
+| Fields             | Type   | Never null | Description                                                                        |
+|--------------------|--------|------------|------------------------------------------------------------------------------------|
+| script_type        | int    | yes        | Script type：1-Local script, 2-Reference business script, 3-Reference public script |
+| script_id          | string | no         | Script ID                                                                          |
+| script_version_id  | long   | no         | Script version ID                                                                  |
+| script_content     | string | no         | Script content                                                                     |
+| script_language    | int    | yes        | Script language：1-shell，2-bat，3-perl，4-python，5-powershell，6-sql                   |
+| script_param       | string | yes        | Script param                                                                       |
+| script_timeout     | int    | yes        | Script timeout，Unit in seconds                                                     |
+| account            | object | yes        | Account，see account definition                                                     |
+| server             | object | yes        | Server，see server definition                                                       |
+| is_param_sensitive | int    | yes        | Is the parameter sensitive? Parameters: 0- insensitive, 1- sensitive               |
+| is_ignore_error    | int    | yes        | Is ignore error：0- Do not ignore, 1- Ignore                                        |
 
 ##### account
 
-| Fields | Type   | Whether it must exist | Description                                                                                                                                                                |
-|--------|--------|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| id     | long   | yes                   | The source execution account ID can be obtained from the get-account list interface. There must be one with alias. When both alias and id exist, id takes priority.        |
-| alias  | string | no                    | Source execution account alias, can be obtained from the account page, recommended for use. There must be one with alias. When both alias and id exist, id takes priority. |
+| Fields | Type   | Never null | Description                                                                                                                                                                |
+|--------|--------|------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| id     | long   | yes        | The source execution account ID can be obtained from the get-account list interface. There must be one with alias. When both alias and id exist, id takes priority.        |
+| alias  | string | no         | Source execution account alias, can be obtained from the account page, recommended for use. There must be one with alias. When both alias and id exist, id takes priority. |
 
 ##### server
 
-| Fields             | Type  | Whether it must exist | Description                                                                                                                                                                                              |
-|--------------------|-------|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| host_id_list       | array | no                    | Host ID list                                                                                                                                                                                             |
-| ip_list            | array | no                    | Static IP list, see ip for definition. ***Deprecated, it is recommended to use the host_id_list parameter***; if host_id_list and ip_list exist at the same time, the ip_list parameter will be ignored. |
-| dynamic_group_list | array | no                    | Dynamic grouping list, see dynamic_group for definition                                                                                                                                                  |
-| topo_node_list     | array | no                    | Dynamic topo node list, see topo_node for definition                                                                                                                                                     |
+| Fields             | Type  | Never null | Description                                                                                                                                                                                              |
+|--------------------|-------|------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| host_id_list       | array | no         | Host ID list                                                                                                                                                                                             |
+| ip_list            | array | no         | Static IP list, see ip for definition. ***Deprecated, it is recommended to use the host_id_list parameter***; if host_id_list and ip_list exist at the same time, the ip_list parameter will be ignored. |
+| dynamic_group_list | array | no         | Dynamic grouping list, see dynamic_group for definition                                                                                                                                                  |
+| topo_node_list     | array | no         | Dynamic topo node list, see topo_node for definition                                                                                                                                                     |
 
 ##### host
 
-| Fields        | Type   | Whether it must exist | Description                                                 |
-|---------------|--------|-----------------------|-------------------------------------------------------------|
-| bk_host_id    | long   | yes                   | Host ID                                                     |
-| bk_cloud_id   | long   | no                    | Area ID                                                     |
-| bk_cloud_name | string | no                    | Area name                                                   |
-| ip            | string | no                    | IP                                                          |
-| ipv6          | string | no                    | IPv6                                                        |
-| bk_agent_id   | string | no                    | Agent ID                                                    |
-| alive         | int    | no                    | Is the agent normal? The values are: 1- normal, 0- abnormal |
+| Fields        | Type   | Never null | Description                                                 |
+|---------------|--------|------------|-------------------------------------------------------------|
+| bk_host_id    | long   | yes        | Host ID                                                     |
+| bk_cloud_id   | long   | no         | Area ID                                                     |
+| bk_cloud_name | string | no         | Area name                                                   |
+| ip            | string | no         | IP                                                          |
+| ipv6          | string | no         | IPv6                                                        |
+| bk_agent_id   | string | no         | Agent ID                                                    |
+| alive         | int    | no         | Is the agent normal? The values are: 1- normal, 0- abnormal |
 
 ##### topo_node
 
-| Fields    | Type   | Whether it must exist | Description                                                                                |
-|-----------|--------|-----------------------|--------------------------------------------------------------------------------------------|
-| id        | long   | yes                   | Dynamic topo node ID, corresponding to bk_inst_id in CMDB API                              |
-| node_type | string | yes                   | Dynamic topo node type, corresponding to bk_obj_id in CMDB API, such as "module" and "set" |
+| Fields    | Type   | Never null | Description                                                                                |
+|-----------|--------|------------|--------------------------------------------------------------------------------------------|
+| id        | long   | yes        | Dynamic topo node ID, corresponding to bk_inst_id in CMDB API                              |
+| node_type | string | yes        | Dynamic topo node type, corresponding to bk_obj_id in CMDB API, such as "module" and "set" |
 
 ##### dynamic_group
 
-| Fields | Type   | Whether it must exist | Description              |
-|--------|--------|-----------------------|--------------------------|
-| id     | string | yes                   | CMDB dynamic grouping ID |
+| Fields | Type   | Never null | Description              |
+|--------|--------|------------|--------------------------|
+| id     | string | yes        | CMDB dynamic grouping ID |
 
 ##### file_info
 
-| Fields                  | Type              | Whether it must exist | Description                                                              |
-|-------------------------|-------------------|-----------------------|--------------------------------------------------------------------------|
-| file_source_list        | list<file_source> | yes                   | File source list，see file source definition                              |
-| file_destination        | object            | yes                   | File destincation，see file destination definition                        |
-| timeout                 | int               | yes                   | Timeout，Unit in seconds                                                  |
-| source_speed_limit      | int               | no                    | Upload speed limit，The unit is MB/s, no value indicates no speed limit   |
-| destination_speed_limit | int               | no                    | Download speed limit，The unit is MB/s, no value indicates no speed limit |
-| transfer_mode           | int               | yes                   | Transfer mode： 1- Strict mode, 2- Mandatory mode, 3- Safe mode           |
-| is_ignore_error         | int               | yes                   | Is ignore error：0- Do not ignore, 1- Ignore                              |
+| Fields                  | Type              | Never null | Description                                                              |
+|-------------------------|-------------------|------------|--------------------------------------------------------------------------|
+| file_source_list        | list<file_source> | yes        | File source list，see file source definition                              |
+| file_destination        | object            | yes        | File destincation，see file destination definition                        |
+| timeout                 | int               | yes        | Timeout，Unit in seconds                                                  |
+| source_speed_limit      | int               | no         | Upload speed limit，The unit is MB/s, no value indicates no speed limit   |
+| destination_speed_limit | int               | no         | Download speed limit，The unit is MB/s, no value indicates no speed limit |
+| transfer_mode           | int               | yes        | Transfer mode： 1- Strict mode, 2- Mandatory mode, 3- Safe mode           |
+| is_ignore_error         | int               | yes        | Is ignore error：0- Do not ignore, 1- Ignore                              |
 
 ##### file_source
 
-| Fields         | Type   | Whether it must exist | Description                                                                                                                                                                                                                                                                                         |
-|----------------|--------|-----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| file_list      | array  | yes                   | Support multiple files. If the file source type is a server file, fill in the absolute path array of the source file; If the file source type is a third-party file source, the path filled in for the COS file source is "bucket name/file path", for example: testbucket/test.txt                 |
-| account        | object | yes                   | The file source account, as defined in the account, is required when the file source type is server file source, and does not need to be filled in when the file source type is third-party file source                                                                                             |
-| server         | object | no                    | Source server，see server definition                                                                                                                                                                                                                                                                 |
-| file_type      | int    | yes                   | File source type, 1: server file, 3: third-party file source file, default is 1 if not transmitted                                                                                                                                                                                                  |
-| file_source_id | int    | no                    | When file_date is 3, choose one of file_stource_id and file_stource_comde to fill in. If both are filled in, priority should be given to using file_stource_id and the third-party file source ID. You can obtain the details of the steps in the returned result from the get-job_detail interface |
+| Fields         | Type   | Never null | Description                                                                                                                                                                                                                                                                                         |
+|----------------|--------|------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| file_list      | array  | yes        | Support multiple files. If the file source type is a server file, fill in the absolute path array of the source file; If the file source type is a third-party file source, the path filled in for the COS file source is "bucket name/file path", for example: testbucket/test.txt                 |
+| account        | object | yes        | The file source account, as defined in the account, is required when the file source type is server file source, and does not need to be filled in when the file source type is third-party file source                                                                                             |
+| server         | object | no         | Source server，see server definition                                                                                                                                                                                                                                                                 |
+| file_type      | int    | yes        | File source type, 1: server file, 3: third-party file source file, default is 1 if not transmitted                                                                                                                                                                                                  |
+| file_source_id | int    | no         | When file_date is 3, choose one of file_stource_id and file_stource_comde to fill in. If both are filled in, priority should be given to using file_stource_id and the third-party file source ID. You can obtain the details of the steps in the returned result from the get-job_detail interface |
 
 ##### file_destination
 
-| Fields  | Type   | Whether it must exist | Description                    |
-|---------|--------|-----------------------|--------------------------------|
-| path    | string | yes                   | Target path                    |
-| account | object | yes                   | Account，see account definition |
-| server  | object | yes                   | Server，see server definition   |
+| Fields  | Type   | Never null | Description                    |
+|---------|--------|------------|--------------------------------|
+| path    | string | yes        | Target path                    |
+| account | object | yes        | Account，see account definition |
+| server  | object | yes        | Server，see server definition   |
 
 ##### approval_info
 
-| Fields           | Type   | Whether it must exist | Description     |
-|------------------|--------|-----------------------|-----------------|
-| approval_message | string | yes                   | Approve Message |
+| Fields           | Type   | Never null | Description     |
+|------------------|--------|------------|-----------------|
+| approval_message | string | yes        | Approve Message |

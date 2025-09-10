@@ -89,48 +89,48 @@ Query Cron job details
 
 #### data
 
-| Fields           | Type   | Whether it must exist | Description                                                                                                                                                                                            |
-|------------------|--------|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| bk_scope_type    | string | yes                   | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                                                                                                            |
-| bk_scope_id      | string | yes                   | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                                                                                                            |
-| job_plan_id      | long   | yes                   | Job Plan ID                                                                                                                                                                                            |
-| id               | long   | yes                   | Cron job ID                                                                                                                                                                                            |
-| name             | string | yes                   | Cron job name                                                                                                                                                                                          |
-| status           | int    | yes                   | Cron job status: 1. Started, 2. Paused                                                                                                                                                                 |
-| expression       | string | no                    | Timing rules for Cron Job crontab, required when creating, optional when modifying. The meaning of each field is: minute hour day month week, for example: 0/5 * * * * ? means execute every 5 minutes |
-| global_var_list  | array  | no                    | Global variable information                                                                                                                                                                            |
-| creator          | string | yes                   | Cron job creator                                                                                                                                                                                       |
-| create_time      | long   | yes                   | Creation time, Unix timestamp                                                                                                                                                                          |
-| last_modify_user | string | yes                   | Cron job modifier                                                                                                                                                                                      |
-| last_modify_time | long   | yes                   | Last modified time, Unix timestamp                                                                                                                                                                     |
+| Fields           | Type   | Never null | Description                                                                                                                                                                                            |
+|------------------|--------|------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| bk_scope_type    | string | yes        | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                                                                                                            |
+| bk_scope_id      | string | yes        | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                                                                                                            |
+| job_plan_id      | long   | yes        | Job Plan ID                                                                                                                                                                                            |
+| id               | long   | yes        | Cron job ID                                                                                                                                                                                            |
+| name             | string | yes        | Cron job name                                                                                                                                                                                          |
+| status           | int    | yes        | Cron job status: 1. Started, 2. Paused                                                                                                                                                                 |
+| expression       | string | no         | Timing rules for Cron Job crontab, required when creating, optional when modifying. The meaning of each field is: minute hour day month week, for example: 0/5 * * * * ? means execute every 5 minutes |
+| global_var_list  | array  | no         | Global variable information                                                                                                                                                                            |
+| creator          | string | yes        | Cron job creator                                                                                                                                                                                       |
+| create_time      | long   | yes        | Creation time, Unix timestamp                                                                                                                                                                          |
+| last_modify_user | string | yes        | Cron job modifier                                                                                                                                                                                      |
+| last_modify_time | long   | yes        | Last modified time, Unix timestamp                                                                                                                                                                     |
 
 #### global_var
 
-| Fields | Type   | Whether it must exist | Description                                                                                                   |
-|--------|--------|-----------------------|---------------------------------------------------------------------------------------------------------------|
-| id     | long   | yes                   | Global variable id, unique identification. If the id is empty, then name is used as the unique identification |
-| name   | string | yes                   | Global variable name                                                                                          |
-| value  | string | no                    | Character, password, value of global variable of array type                                                   |
-| server | object | no                    | Host type global variable value                                                                               |
+| Fields | Type   | Never null | Description                                                                                                   |
+|--------|--------|------------|---------------------------------------------------------------------------------------------------------------|
+| id     | long   | yes        | Global variable id, unique identification. If the id is empty, then name is used as the unique identification |
+| name   | string | yes        | Global variable name                                                                                          |
+| value  | string | no         | Character, password, value of global variable of array type                                                   |
+| server | object | no         | Host type global variable value                                                                               |
 
 #### server
 
-| Fields             | Type  | Whether it must exist | Description            |
-|--------------------|-------|-----------------------|------------------------|
-| ip_list            | array | no                    | Static IP list         |
-| dynamic_group_list | array | no                    | Dynamic grouping list  |
-| topo_node_list     | array | no                    | Dynamic topo node list |
+| Fields             | Type  | Never null | Description            |
+|--------------------|-------|------------|------------------------|
+| ip_list            | array | no         | Static IP list         |
+| dynamic_group_list | array | no         | Dynamic grouping list  |
+| topo_node_list     | array | no         | Dynamic topo node list |
 
 #### ip
 
-| Fields      | Type   | Whether it must exist | Description |
-|-------------|--------|-----------------------|-------------|
-| bk_cloud_id | int    | yes                   | BK-Net ID   |
-| ip          | string | yes                   | IP Address  |
+| Fields      | Type   | Never null | Description |
+|-------------|--------|------------|-------------|
+| bk_cloud_id | int    | yes        | BK-Net ID   |
+| ip          | string | yes        | IP Address  |
 
 #### topo_node
 
-| Fields    | Type   | Whether it must exist | Description                                                                                |
-|-----------|--------|-----------------------|--------------------------------------------------------------------------------------------|
-| id        | long   | yes                   | Dynamic topo node ID, corresponding to bk_inst_id in CMDB API                              |
-| node_type | string | yes                   | Dynamic topo node type, corresponding to bk_obj_id in CMDB API, such as "module" and "set" |
+| Fields    | Type   | Never null | Description                                                                                |
+|-----------|--------|------------|--------------------------------------------------------------------------------------------|
+| id        | long   | yes        | Dynamic topo node ID, corresponding to bk_inst_id in CMDB API                              |
+| node_type | string | yes        | Dynamic topo node type, corresponding to bk_obj_id in CMDB API, such as "module" and "set" |

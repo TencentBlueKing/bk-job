@@ -190,116 +190,116 @@ Check Job Plan details by Job Plan ID
 
 #### data
 
-| Fields           | Type   | Whether it must exist | Description                                                                                 |
-|------------------|--------|-----------------------|---------------------------------------------------------------------------------------------|
-| bk_scope_type    | string | yes                   | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
-| bk_scope_id      | string | yes                   | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| job_plan_id      | long   | yes                   | Job Plan ID                                                                                 |
-| name             | string | yes                   | Job name                                                                                    |
-| creator          | string | yes                   | Job creator account number                                                                  |
-| create_time      | long   | yes                   | Creation time, Unix timestamp                                                               |
-| last_modify_user | string | yes                   | Job latest modifier                                                                         |
-| last_modify_time | long   | yes                   | Last modified time, Unix timestamp                                                          |
-| step_list        | array  | yes                   | Step object                                                                                 |
-| global_var_list  | array  | no                    | Global variable information                                                                 |
+| Fields           | Type   | Never null | Description                                                                                 |
+|------------------|--------|------------|---------------------------------------------------------------------------------------------|
+| bk_scope_type    | string | yes        | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id      | string | yes        | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| job_plan_id      | long   | yes        | Job Plan ID                                                                                 |
+| name             | string | yes        | Job name                                                                                    |
+| creator          | string | yes        | Job creator account number                                                                  |
+| create_time      | long   | yes        | Creation time, Unix timestamp                                                               |
+| last_modify_user | string | yes        | Job latest modifier                                                                         |
+| last_modify_time | long   | yes        | Last modified time, Unix timestamp                                                          |
+| step_list        | array  | yes        | Step object                                                                                 |
+| global_var_list  | array  | no         | Global variable information                                                                 |
 
 #### step
 
-| Fields      | Type   | Whether it must exist | Description                                                              |
-|-------------|--------|-----------------------|--------------------------------------------------------------------------|
-| id          | long   | yes                   | Job step ID                                                              |
-| name        | string | yes                   | Job step name                                                            |
-| type        | int    | yes                   | Step Type: 1. Script step; Manual confirmation step                      |
-| script_info | object | no                    | Script information. This field is only available when type=1.            |
-| file_info   | object | no                    | File transfer step information. This field is only available when type=2 |
+| Fields      | Type   | Never null | Description                                                              |
+|-------------|--------|------------|--------------------------------------------------------------------------|
+| id          | long   | yes        | Job step ID                                                              |
+| name        | string | yes        | Job step name                                                            |
+| type        | int    | yes        | Step Type: 1. Script step; Manual confirmation step                      |
+| script_info | object | no         | Script information. This field is only available when type=1.            |
+| file_info   | object | no         | File transfer step information. This field is only available when type=2 |
 
 #### script_info
 
-| Fields             | Type   | Whether it must exist | Description                                                                                              |
-|--------------------|--------|-----------------------|----------------------------------------------------------------------------------------------------------|
-| script_type        | int    | yes                   | Script Type: 1 local Script 2 reference Script 3 public script                                           |
-| script_id          | string | no                    | Script id. This field is only available when script_type=2,3.                                            |
-| script_version_id  | long   | no                    | Script version ID. This field is only available when script_type=2,3.                                    |
-| script_content     | string | no                    | Script content. This field is only available when type=1.                                                |
-| script_language    | int    | yes                   | Scripting languages: 1 byte shell, 2 byte bat, 3 byte Perl, 4 byte Python, 5 byte PowerShell, 6 byte SQL |
-| script_param       | string | no                    | Script parameter                                                                                         |
-| script_timeout     | int    | yes                   | Script timeout in seconds. Default 3600, value range 60-86400                                            |
-| is_param_sensitive | int    | yes                   | Sensitive parameter, 0. Not (default), 1. Yes.                                                           |
-| account            | object | yes                   | Execution account name/alias                                                                             |
+| Fields             | Type   | Never null | Description                                                                                              |
+|--------------------|--------|------------|----------------------------------------------------------------------------------------------------------|
+| script_type        | int    | yes        | Script Type: 1 local Script 2 reference Script 3 public script                                           |
+| script_id          | string | no         | Script id. This field is only available when script_type=2,3.                                            |
+| script_version_id  | long   | no         | Script version ID. This field is only available when script_type=2,3.                                    |
+| script_content     | string | no         | Script content. This field is only available when type=1.                                                |
+| script_language    | int    | yes        | Scripting languages: 1 byte shell, 2 byte bat, 3 byte Perl, 4 byte Python, 5 byte PowerShell, 6 byte SQL |
+| script_param       | string | no         | Script parameter                                                                                         |
+| script_timeout     | int    | yes        | Script timeout in seconds. Default 3600, value range 60-86400                                            |
+| is_param_sensitive | int    | yes        | Sensitive parameter, 0. Not (default), 1. Yes.                                                           |
+| account            | object | yes        | Execution account name/alias                                                                             |
 
 #### file_info
 
-| Fields               | Type   | Whether it must exist | Description                    |
-|----------------------|--------|-----------------------|--------------------------------|
-| file_source_list     | array  | yes                   | Source file information        |
-| file_destination     | object | yes                   | Target information             |
-| timeout              | int    | yes                   | File transfer timeout settings |
-| transfer_mode        | int    | yes                   | File transfer mode             |
-| upload_speed_limit   | int    | no                    | Upload speed limit             |
-| download_speed_limit | int    | no                    | Download speed limit           |
+| Fields               | Type   | Never null | Description                    |
+|----------------------|--------|------------|--------------------------------|
+| file_source_list     | array  | yes        | Source file information        |
+| file_destination     | object | yes        | Target information             |
+| timeout              | int    | yes        | File transfer timeout settings |
+| transfer_mode        | int    | yes        | File transfer mode             |
+| upload_speed_limit   | int    | no         | Upload speed limit             |
+| download_speed_limit | int    | no         | Download speed limit           |
 
 #### global_var
 
-| Fields      | Type   | Whether it must exist | Description                                                                            |
-|-------------|--------|-----------------------|----------------------------------------------------------------------------------------|
-| id          | long   | yes                   | Global variable id. If the id is empty, then name is used as the unique identification |
-| name        | string | yes                   | Global variable name                                                                   |
-| description | string | no                    | Global variable description                                                            |
-| type        | int    | yes                   | Global variable type                                                                   |
-| required    | int    | yes                   | Is this variable required                                                              |
-| value       | string | no                    | Values of global variables of String, Ciphertext, Namespace, and Array types           |
-| server      | object | no                    | Value of global variable of Host type                                                  |
+| Fields      | Type   | Never null | Description                                                                            |
+|-------------|--------|------------|----------------------------------------------------------------------------------------|
+| id          | long   | yes        | Global variable id. If the id is empty, then name is used as the unique identification |
+| name        | string | yes        | Global variable name                                                                   |
+| description | string | no         | Global variable description                                                            |
+| type        | int    | yes        | Global variable type                                                                   |
+| required    | int    | yes        | Is this variable required                                                              |
+| value       | string | no         | Values of global variables of String, Ciphertext, Namespace, and Array types           |
+| server      | object | no         | Value of global variable of Host type                                                  |
 
 #### server
 
-| Fields             | Type   | Whether it must exist | Description              |
-|--------------------|--------|-----------------------|--------------------------|
-| variable           | string | no                    | Referenced variable name |
-| ip_list            | array  | no                    | Static IP list           |
-| dynamic_group_list | array  | no                    | Dynamic group ID list    |
-| topo_node_list     | array  | no                    | Dynamic topo node list   |
+| Fields             | Type   | Never null | Description              |
+|--------------------|--------|------------|--------------------------|
+| variable           | string | no         | Referenced variable name |
+| ip_list            | array  | no         | Static IP list           |
+| dynamic_group_list | array  | no         | Dynamic group ID list    |
+| topo_node_list     | array  | no         | Dynamic topo node list   |
 
 #### ip
 
-| Fields      | Type   | Whether it must exist | Description |
-|-------------|--------|-----------------------|-------------|
-| bk_host_id  | long   | yes                   | Host ID     |
-| bk_cloud_id | int    | yes                   | BK-Net ID   |
-| ip          | string | yes                   | IP Address  |
+| Fields      | Type   | Never null | Description |
+|-------------|--------|------------|-------------|
+| bk_host_id  | long   | yes        | Host ID     |
+| bk_cloud_id | int    | yes        | BK-Net ID   |
+| ip          | string | yes        | IP Address  |
 
 #### dynamic_group
 
-| Fields | Type   | Whether it must exist | Description      |
-|--------|--------|-----------------------|------------------|
-| id     | string | yes                   | Dynamic Group ID |
+| Fields | Type   | Never null | Description      |
+|--------|--------|------------|------------------|
+| id     | string | yes        | Dynamic Group ID |
 
 #### topo_node
 
-| Fields    | Type   | Whether it must exist                                                                      | Description                                                   |
+| Fields    | Type   | Never null                                                                                 | Description                                                   |
 |-----------|--------|--------------------------------------------------------------------------------------------|---------------------------------------------------------------|
 | id        | long   | yes                                                                                        | Dynamic topo node ID, corresponding to bk_inst_id in CMDB API |
 | node_type | string | Dynamic topo node type, corresponding to bk_obj_id in CMDB API, such as "module" and "set" |
 
 #### account
 
-| Fields | Type | Whether it must exist | Description |
-|--------|------|-----------------------|-------------|
-| id     | long | yes                   | Account ID  |
+| Fields | Type | Never null | Description |
+|--------|------|------------|-------------|
+| id     | long | yes        | Account ID  |
 
 #### file_source
 
-| Fields         | Type   | Whether it must exist | Description                                                                        |
-|----------------|--------|-----------------------|------------------------------------------------------------------------------------|
-| file_list      | array  | yes                   | Absolute path array of source file, supporting multiple files                      |
-| account        | object | yes                   | Execution account name/alias                                                       |
-| server         | object | no                    | Target server                                                                      |
-| file_type      | int    | yes                   | File source type, 1: server file, 2: Local files, 3: third-party file source files |
-| file_source_id | int    | no                    | Third-party file source Id when file source type is third-party file source file   |
+| Fields         | Type   | Never null | Description                                                                        |
+|----------------|--------|------------|------------------------------------------------------------------------------------|
+| file_list      | array  | yes        | Absolute path array of source file, supporting multiple files                      |
+| account        | object | yes        | Execution account name/alias                                                       |
+| server         | object | no         | Target server                                                                      |
+| file_type      | int    | yes        | File source type, 1: server file, 2: Local files, 3: third-party file source files |
+| file_source_id | int    | no         | Third-party file source Id when file source type is third-party file source file   |
 
 #### file_destination
 
-| Fields  | Type   | Whether it must exist | Description                          |
-|---------|--------|-----------------------|--------------------------------------|
-| path    | string | yes                   | Path where the target file is stored |
-| account | object | yes                   | Execution account name/alias         |
-| server  | object | yes                   | Target server                        |
+| Fields  | Type   | Never null | Description                          |
+|---------|--------|------------|--------------------------------------|
+| path    | string | yes        | Path where the target file is stored |
+| account | object | yes        | Execution account name/alias         |
+| server  | object | yes        | Target server                        |

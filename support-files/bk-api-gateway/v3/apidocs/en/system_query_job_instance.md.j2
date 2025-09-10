@@ -46,13 +46,13 @@ query job link by gse task id
 
 ##### data
 
-| Fields           | Type     | Whether it must exist | Description                                                                                 |
-|------------------|----------|-----------------------|---------------------------------------------------------------------------------------------|
-| bk_scope_type    | string   | yes                   | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
-| bk_scope_id      | string   | yes                   | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| job_instance_id  | long     | yes                   | Job instance ID                                                                             |
-| step_instance_id | long     | yes                   | Step instance ID                                                                            |
-| retry_count      | int      | yes                   | Step retry count                                                                            |
-| batch            | int      | yes                   | Batch No. Not set to 0 when rolling                                                         |
-| gse_task_id      | string   | yes                   | Gse task id                                                                                 |
-| link             | string[] | yes                   | Gse task id corresponding job links                                                         |
+| Fields           | Type     | Never null | Description                                                                                 |
+|------------------|----------|------------|---------------------------------------------------------------------------------------------|
+| bk_scope_type    | string   | yes        | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id      | string   | yes        | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| job_instance_id  | long     | yes        | Job instance ID                                                                             |
+| step_instance_id | long     | yes        | Step instance ID                                                                            |
+| retry_count      | int      | yes        | Step retry count                                                                            |
+| batch            | int      | yes        | Batch No. Not set to 0 when rolling                                                         |
+| gse_task_id      | string   | yes        | Gse task id                                                                                 |
+| link             | string[] | yes        | Gse task id corresponding job links                                                         |

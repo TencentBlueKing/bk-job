@@ -56,15 +56,15 @@ Get dangerous rule list
 
 #### data
 
-| Fields               | Type   | Whether it must exist | Description                                                                       |
-|----------------------|--------|-----------------------|-----------------------------------------------------------------------------------|
-| id                   | long   | yes                   | Rule id                                                                           |
-| expression           | string | yes                   | expression                                                                        |
-| script_language_list | array  | yes                   | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
-| description          | string | no                    | Description                                                                       |
-| action               | int    | yes                   | Processing actions: 1- Scan, 2- Intercept                                         |
-| status               | int    | yes                   | Enabling status: 0- disabled, 1- enabled                                          |
-| creator              | string | yes                   | Creator                                                                           |
-| create_time          | long   | yes                   | Created time, Unix timestamp                                                      |
-| last_modify_user     | string | yes                   | Last modify user                                                                  |
-| last_modify_time     | long   | yes                   | Last modified time, Unix timestamp                                                |
+| Fields               | Type   | Never null | Description                                                                       |
+|----------------------|--------|------------|-----------------------------------------------------------------------------------|
+| id                   | long   | yes        | Rule id                                                                           |
+| expression           | string | yes        | expression                                                                        |
+| script_language_list | array  | yes        | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
+| description          | string | no         | Description                                                                       |
+| action               | int    | yes        | Processing actions: 1- Scan, 2- Intercept                                         |
+| status               | int    | yes        | Enabling status: 0- disabled, 1- enabled                                          |
+| creator              | string | yes        | Creator                                                                           |
+| create_time          | long   | yes        | Created time, Unix timestamp                                                      |
+| last_modify_user     | string | yes        | Last modify user                                                                  |
+| last_modify_time     | long   | yes        | Last modified time, Unix timestamp                                                |

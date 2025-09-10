@@ -64,19 +64,19 @@ Query business script version list
 
 #### data
 
-| Fields           | Type   | Whether it must exist | Description                                                                                 |
-|------------------|--------|-----------------------|---------------------------------------------------------------------------------------------|
-| id               | long   | yes                   | Script version ID                                                                           |
-| bk_scope_type    | string | yes                   | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
-| bk_scope_id      | string | yes                   | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| script_id        | string | yes                   | Script ID to which the script version belongs                                               |
-| version          | string | yes                   | Version                                                                                     |
-| content          | string | no                    | Script content                                                                              |
-| status           | int    | yes                   | Script version status (0: not online, 1: Online, 2: offline, 3: Disabled)                   |
-| version_desc     | string | no                    | Version description                                                                         |
-| creator          | string | yes                   | Creator                                                                                     |
-| create_time      | long   | yes                   | Creation time Unix timestamp (ms)                                                           |
-| last_modify_user | string | yes                   | Last modify user                                                                            |
-| last_modify_time | long   | yes                   | Last modified time Unix timestamp (ms)                                                      |
-| script_language  | int    | yes                   | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql           |
-| description      | string | no                    | Description                                                                                 |
+| Fields           | Type   | Never null | Description                                                                                 |
+|------------------|--------|------------|---------------------------------------------------------------------------------------------|
+| id               | long   | yes        | Script version ID                                                                           |
+| bk_scope_type    | string | yes        | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id      | string | yes        | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| script_id        | string | yes        | Script ID to which the script version belongs                                               |
+| version          | string | yes        | Version                                                                                     |
+| content          | string | no         | Script content                                                                              |
+| status           | int    | yes        | Script version status (0: not online, 1: Online, 2: offline, 3: Disabled)                   |
+| version_desc     | string | no         | Version description                                                                         |
+| creator          | string | yes        | Creator                                                                                     |
+| create_time      | long   | yes        | Creation time Unix timestamp (ms)                                                           |
+| last_modify_user | string | yes        | Last modify user                                                                            |
+| last_modify_time | long   | yes        | Last modified time Unix timestamp (ms)                                                      |
+| script_language  | int    | yes        | Script language:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql           |
+| description      | string | no         | Description                                                                                 |

@@ -66,19 +66,19 @@ Create an account (currently only system accounts are supported)
 
 #### data
 
-| Fields               | Type   | Whether it must exist | Description                                                                                               |
-|----------------------|--------|-----------------------|-----------------------------------------------------------------------------------------------------------|
-| id                   | long   | yes                   | Account ID                                                                                                |
-| bk_scope_type        | string | yes                   | Resource scope type. Optional values: biz - Business，biz_set - Business Set                               |
-| bk_scope_id          | string | yes                   | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID               |
-| account              | string | yes                   | Account name                                                                                              |
-| alias                | string | yes                   | Account alias                                                                                             |
-| category             | int    | yes                   | Account usage (1: system account, 2: DB account)                                                          |
-| type                 | int    | yes                   | Account type (1: Linux, 2: Windows，9：MySQL，10： Oracle，11：DB2）                                             |
-| os                   | string | no                    | This field takes effect when the account is used as a system account. The OS corresponding to the account |
-| description          | string | no                    | Account description                                                                                       |
-| db_system_account_id | long   | no                    | If the account is used as a DB account, this field takes effect and the corresponding system account ID   |
-| creator              | string | yes                   | creator                                                                                                   |
-| create_time          | long   | yes                   | Creation time Unix timestamp (ms)                                                                         |
-| last_modify_user     | string | yes                   | Last modify user                                                                                          |
-| last_modify_time     | long   | yes                   | Last modified time Unix timestamp (ms)                                                                    |
+| Fields               | Type   | Never null | Description                                                                                               |
+|----------------------|--------|------------|-----------------------------------------------------------------------------------------------------------|
+| id                   | long   | yes        | Account ID                                                                                                |
+| bk_scope_type        | string | yes        | Resource scope type. Optional values: biz - Business，biz_set - Business Set                               |
+| bk_scope_id          | string | yes        | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID               |
+| account              | string | yes        | Account name                                                                                              |
+| alias                | string | yes        | Account alias                                                                                             |
+| category             | int    | yes        | Account usage (1: system account, 2: DB account)                                                          |
+| type                 | int    | yes        | Account type (1: Linux, 2: Windows，9：MySQL，10： Oracle，11：DB2）                                             |
+| os                   | string | no         | This field takes effect when the account is used as a system account. The OS corresponding to the account |
+| description          | string | no         | Account description                                                                                       |
+| db_system_account_id | long   | no         | If the account is used as a DB account, this field takes effect and the corresponding system account ID   |
+| creator              | string | yes        | creator                                                                                                   |
+| create_time          | long   | yes        | Creation time Unix timestamp (ms)                                                                         |
+| last_modify_user     | string | yes        | Last modify user                                                                                          |
+| last_modify_time     | long   | yes        | Last modified time Unix timestamp (ms)                                                                    |
