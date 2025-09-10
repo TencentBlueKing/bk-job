@@ -1,7 +1,7 @@
-FROM centos:7
+FROM tencentos/tencentos4-minimal
 
 LABEL maintainer="Tencent BlueKing Job"
-LABEL dockerfile.version="0.0.2"
+LABEL dockerfile.version="0.0.3"
 
 ENV LANG="en_US.UTF-8"
 
@@ -12,9 +12,11 @@ RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &&\
     echo 'alias tailf="tail -f"' >> ~/.bashrc
 
 # 安装软件
-RUN yum install -y vim && \
-    yum install -y less && \
-    yum install -y wget && \
-    yum install -y lrzsz && \
-    yum install -y net-tools.x86_64 && \
-    yum install -y bind-utils
+RUN dnf install -y \
+        vim \
+        less \
+        wget \
+        lrzsz \
+        net-tools \
+        bind-utils && \
+    dnf clean all
