@@ -609,6 +609,19 @@ gse:
     # 单次向GSE查询状态的Agent数量
     batchSize: 5000
 
+## 蓝鲸GSE V2参数配置
+gseV2:
+  # 是否初始化 GSE2.0 Client
+  enabled: true
+  # 重试策略
+  retry:
+    # 是否开启重试
+    enabled: false
+    # 含重试的最大执行次数
+    maxAttempts: 3
+    # 重试间隔（单位：秒）
+    intervalSeconds: 5
+
 ## 对接蓝鲸CMDB参数配置
 cmdb:
   # 供应商，默认为0
