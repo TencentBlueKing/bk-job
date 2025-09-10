@@ -66,6 +66,8 @@ data:
         {{- toYaml .Values.gse.query | nindent 8 }}
       script:
         rootPath: {{ .Values.gse.script.rootPath }}
+    gseV2:
+      {{- toYaml .Values.gseV2 | nindent 6 }}
     iam:
       web-url: {{ .Values.bkIamUrl }}
       system-id: {{ .Values.iam.systemId }}
