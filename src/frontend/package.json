@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo test",
     "dev": "webpack serve --hot --env development --env mode=development --config ./webpack.config.js",
-    "dev-external": "webpack serve --server-type https --hot --env development --env mode=external --config ./webpack.config.js",
+    "dev-https": "webpack serve --server-type https --hot --env development --env mode=https --config ./webpack.config.js",
     "build": "webpack --env --config ./webpack.config.js",
     "lint:js": "eslint ./src --fix --ext .js --ext .vue",
     "lint:style": "stylelint --fix ./src/**/*.{vue,css} --custom-syntax"
@@ -17,6 +17,8 @@
     "@babel/runtime": "7.27.1",
     "@blueking/ai-blueking": "0.2.11",
     "@blueking/ip-selector": "1.0.1-beta.10",
+    "@blueking/bk-user-display-name": "1.0.1",
+    "@blueking/bk-user-selector": "0.0.29-beta.8",
     "@blueking/login-modal": "1.0.6",
     "@blueking/notice-component-vue2": "2.0.6-beta.5",
     "@blueking/paas-login": "0.0.11",
@@ -24,7 +26,8 @@
     "@blueking/sub-saas": "0.0.0-beta.6",
     "@blueking/user-selector": "1.0.14",
     "@vue/babel-preset-jsx": "1.4.0",
-    "ace-builds": "^1.39.0",
+    "@vue/composition-api": "1.7.2",
+    "ace-builds": "1.39.0",
     "axios": "1.9.0",
     "bk-magic-vue": "2.5.9-beta.35",
     "core-js": "3.41.0",

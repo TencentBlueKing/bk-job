@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.web.config;
 
 import com.tencent.bk.job.common.jwt.JwtManager;
+import com.tencent.bk.job.common.paas.user.IUserApiClient;
 import com.tencent.bk.job.common.security.annotation.ConditionalOnSecurityEnabled;
 import com.tencent.bk.job.common.service.SpringProfile;
 import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
@@ -43,8 +44,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 public class WebInterceptorAutoConfiguration {
     @Bean
-    public JobCommonInterceptor jobCommonInterceptor(Tracer tracer) {
-        return new JobCommonInterceptor(tracer);
+    public JobCommonInterceptor jobCommonInterceptor(Tracer tracer, IUserApiClient userApiClient) {
+        return new JobCommonInterceptor(tracer, userApiClient);
     }
 
     @Bean

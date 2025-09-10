@@ -30,6 +30,8 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.constants.TaskOperationEnum;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
@@ -53,11 +55,12 @@ public class EsbOperateJobInstanceV3ResourceImpl implements EsbOperateJobInstanc
                                                           String appCode,
                                                           @AuditRequestBody EsbOperateJobInstanceV3Request request) {
         log.info("Operate task instance, request={}", JsonUtils.toJson(request));
+        User user = JobContextUtil.getUser();
         if (!checkRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         TaskOperationEnum taskOperation = TaskOperationEnum.getTaskOperation(request.getOperationCode());
-        taskExecuteService.doTaskOperation(request.getAppId(), username,
+        taskExecuteService.doTaskOperation(request.getAppId(), user,
             request.getTaskInstanceId(), taskOperation);
         EsbJobExecuteV3DTO result = new EsbJobExecuteV3DTO();
         result.setTaskInstanceId(request.getTaskInstanceId());

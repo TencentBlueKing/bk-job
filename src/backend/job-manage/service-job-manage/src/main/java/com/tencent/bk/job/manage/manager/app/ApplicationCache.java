@@ -25,9 +25,13 @@
 package com.tencent.bk.job.manage.manager.app;
 
 import com.google.common.collect.Sets;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.redis.util.LockUtils;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.model.db.CacheAppDO;
@@ -58,14 +62,31 @@ public class ApplicationCache {
 
     private final ApplicationDAO applicationDAO;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final TenantEnvService tenantEnvService;
     private final String APP_HASH_KEY = "job:manage:apps";
     private final String SCOPE_HASH_KEY = "job:manage:scopes";
 
     @Autowired
     public ApplicationCache(ApplicationDAO applicationDAO,
-                            @Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate) {
+                            @Qualifier("jsonRedisTemplate") RedisTemplate<String, Object> redisTemplate,
+                            TenantEnvService tenantEnvService) {
         this.applicationDAO = applicationDAO;
         this.redisTemplate = redisTemplate;
+        this.tenantEnvService = tenantEnvService;
+    }
+
+    @Deprecated
+    @CompatibleImplementation(
+        name = "tenant",
+        explain = "兼容发布过程中老的调用，发布完成后删除",
+        deprecatedVersion = "3.12.x",
+        type = CompatibleType.DEPLOY
+    )
+    private void fillTenantIdWithDefault(ApplicationDTO app) {
+        if (app != null && !tenantEnvService.isTenantEnabled() && app.getTenantId() == null) {
+            log.warn("CompatibleImplementation: fill default tenantId for application: {}", app);
+            app.setTenantId(TenantIdConstants.DEFAULT_TENANT_ID);
+        }
     }
 
     /**
@@ -80,6 +101,7 @@ public class ApplicationCache {
         if (appObj != null) {
             application = CacheAppDO.toApplicationDTO((CacheAppDO) appObj);
         }
+        fillTenantIdWithDefault(application);
         return application;
     }
 
@@ -97,6 +119,7 @@ public class ApplicationCache {
         if (appObj != null) {
             application = CacheAppDO.toApplicationDTO((CacheAppDO) appObj);
         }
+        fillTenantIdWithDefault(application);
         return application;
     }
 
@@ -107,7 +130,9 @@ public class ApplicationCache {
      * @return 业务
      */
     public ApplicationDTO getApplication(ResourceScope scope) {
-        return getApplication(scope.getType().getValue(), scope.getId());
+        ApplicationDTO application = getApplication(scope.getType().getValue(), scope.getId());
+        fillTenantIdWithDefault(application);
+        return application;
     }
 
     /**
@@ -125,6 +150,9 @@ public class ApplicationCache {
             // appIds中某些值可能在缓存中不存在，批量操作取到的空值需要过滤
             applicationList = cacheApps.stream().filter(Objects::nonNull).map(CacheAppDO::toApplicationDTO)
                 .collect(Collectors.toList());
+        }
+        for (ApplicationDTO application : applicationList) {
+            fillTenantIdWithDefault(application);
         }
         return applicationList;
     }

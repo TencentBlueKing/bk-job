@@ -44,7 +44,7 @@
     </appender>
 
     <springProfile name="dev &amp; !kubernetes">
-        <logger name="com.tencent.bk.job.manage.service.impl.sync" level="DEBUG" additivity="false">
+        <logger name="com.tencent.bk.job.manage.background" level="DEBUG" additivity="false">
             <appender-ref ref="sync-app-host-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="DEBUG" additivity="false">
@@ -54,7 +54,7 @@
     </springProfile>
 
     <springProfile name="prod &amp; !kubernetes">
-        <logger name="com.tencent.bk.job.manage.service.impl.sync" level="INFO" additivity="false">
+        <logger name="com.tencent.bk.job.manage.background" level="INFO" additivity="false">
             <appender-ref ref="sync-app-host-appender"/>
         </logger>
         <logger name="com.tencent.bk.job.common.notice.impl.BkNoticeClient" level="INFO" additivity="false">
@@ -64,7 +64,7 @@
     </springProfile>
 
     <springProfile name="dev &amp; kubernetes">
-        <logger name="com.tencent.bk.job.manage.service.impl.sync" level="DEBUG" additivity="false">
+        <logger name="com.tencent.bk.job.manage.background" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="sync-app-host-appender"/>
         </logger>
@@ -76,7 +76,7 @@
     </springProfile>
 
     <springProfile name="prod &amp; kubernetes">
-        <logger name="com.tencent.bk.job.manage.service.impl.sync" level="INFO" additivity="false">
+        <logger name="com.tencent.bk.job.manage.background" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="sync-app-host-appender"/>
         </logger>

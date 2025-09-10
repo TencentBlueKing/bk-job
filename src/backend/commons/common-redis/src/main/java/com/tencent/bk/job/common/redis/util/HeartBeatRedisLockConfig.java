@@ -50,10 +50,8 @@ public class HeartBeatRedisLockConfig {
      */
     private String heartBeatThreadName = "redisKeyHeartBeatThread-" + JobUUID.getUUID().substring(0, 8);
 
-    public static final HeartBeatRedisLockConfig INSTANCE = new HeartBeatRedisLockConfig();
-
     public static HeartBeatRedisLockConfig getDefault() {
-        return INSTANCE;
+        return new HeartBeatRedisLockConfig();
     }
 
     public HeartBeatRedisLockConfig(String heartBeatThreadName, long expireTimeMillis, long periodMillis) {

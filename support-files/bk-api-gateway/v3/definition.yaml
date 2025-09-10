@@ -77,6 +77,89 @@ stages:
     #         max_age: 86400
     #         allow_credential: false
 
+# 主动授权，网关主动给应用，添加访问网关所有资源或者具体某个资源的权限；
+# 用于命令 `grant_apigw_permissions`
+grant_permissions:
+  # 标准运维
+  - bk_app_code: "{{ environ.BK_SOPS_APP_CODE }}"
+    # 授权维度，可选值：
+    # gateway: 按网关授权，包括网关下所有资源，以及未来新创建的资源
+    # resource: 按资源维度授权
+    grant_dimension: "resource"
+    # 如果是按照 resource 维度授权，需要提供如下的具体 resource_name
+    resource_names:
+      - system_execute_job_plan
+      - system_fast_execute_script
+      - system_fast_transfer_file
+      - system_get_account_list
+      - system_get_job_instance_global_var_value
+      - system_get_job_instance_ip_log
+      - system_get_job_instance_list
+      - system_get_job_instance_status
+      - system_get_job_plan_detail
+      - system_get_job_plan_list
+      - system_get_job_template_list
+      - system_get_public_script_list
+      - system_get_script_list
+      - system_get_script_version_detail
+      - system_get_script_version_list
+      - system_push_config_file
+      - system_save_cron
+      - system_update_cron_status
+      - system_generate_local_file_upload_url
+  # 节点管理
+  - bk_app_code: "{{ environ.BK_NODEMAN_APP_CODE }}"
+    grant_dimension: "resource"
+    resource_names:
+      - system_fast_execute_script
+      - system_fast_transfer_file
+      - system_push_config_file
+      - system_get_job_instance_status
+      - system_get_job_instance_ip_log
+      - system_create_credential
+      - system_create_file_source
+      - system_batch_get_job_instance_ip_log
+  # DBM
+  - bk_app_code: "{{ environ.BK_DBM_APP_CODE }}"
+    grant_dimension: "resource"
+    resource_names:
+      - system_fast_execute_script
+      - system_fast_transfer_file
+      - system_push_config_file
+      - system_get_job_instance_status
+      - system_get_job_instance_ip_log
+      - system_batch_get_job_instance_ip_log
+      - system_create_credential
+      - system_create_file_source
+      - system_create_account
+      - system_get_account_list
+  # 监控平台
+  - bk_app_code: "{{ environ.BK_MONITOR_APP_CODE }}"
+    grant_dimension: "resource"
+    resource_names:
+      - system_get_job_plan_detail
+      - system_get_job_plan_list
+      - system_execute_job_plan
+      - system_get_job_instance_status
+      - system_fast_execute_script
+      - system_batch_get_job_instance_ip_log
+  # 日志平台
+  - bk_app_code: "{{ environ.BK_LOG_SEARCH_APP_CODE }}"
+    grant_dimension: "resource"
+    resource_names:
+      - system_get_public_script_list
+      - system_fast_execute_script
+      - system_fast_transfer_file
+      - system_get_job_instance_ip_log
+      - system_get_job_instance_status
+      - system_batch_get_job_instance_ip_log
+  # 容器管理平台
+  - bk_app_code: "{{ environ.BK_BCS_APP_CODE }}"
+    grant_dimension: "resource"
+    resource_names:
+      - system_fast_execute_script
+      - system_get_job_instance_status
+
 # 资源文档
 # 资源文档的目录格式样例如下，en 为英文文档，zh 为中文文档：
 # ./

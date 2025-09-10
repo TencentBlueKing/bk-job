@@ -25,115 +25,172 @@
 package com.tencent.bk.job.common.paas.user;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.esb.config.AppProperties;
-import com.tencent.bk.job.common.esb.config.EsbProperties;
-import com.tencent.bk.job.common.esb.constants.EsbLang;
-import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
-import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
-import com.tencent.bk.job.common.esb.sdk.BkApiClient;
-import com.tencent.bk.job.common.exception.InternalUserManageException;
-import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.esb.model.OpenApiResponse;
+import com.tencent.bk.job.common.esb.sdk.BkApiV2Client;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
-import com.tencent.bk.job.common.paas.model.EsbListUsersResult;
-import com.tencent.bk.job.common.paas.model.GetUserListReq;
+import com.tencent.bk.job.common.paas.model.OpenApiTenant;
+import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.http.HttpMetricUtil;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.CollectionUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.http.message.BasicHeader;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
-import static com.tencent.bk.job.common.metrics.CommonMetricNames.ESB_USER_MANAGE_API;
+import static com.tencent.bk.job.common.metrics.CommonMetricNames.USER_MANAGE_API;
+import static com.tencent.bk.job.common.metrics.CommonMetricNames.USER_MANAGE_API_HTTP;
 
 /**
  * 用户管理 API 客户端
  */
 @Slf4j
-public class UserMgrApiClient extends BkApiClient {
+public class UserMgrApiClient extends BkApiV2Client implements IUserApiClient {
 
-    private static final String API_GET_USER_LIST = "/api/c/compapi/v2/usermanage/list_users/";
+    private static final String API_BATCH_LOOKUP_VIRTUAL_USER = "/api/v3/open/tenant/virtual-users/-/lookup/";
+    private static final String API_BATCH_QUERY_USER_DISPLAY_INFO = "/api/v3/open/tenant/users/-/display_info/";
+    private static final Integer MAX_QUERY_BATCH_SIZE = 100;
 
     private final BkApiAuthorization authorization;
 
-    public UserMgrApiClient(EsbProperties esbProperties,
+    public UserMgrApiClient(BkApiGatewayProperties bkApiGatewayProperties,
                             AppProperties appProperties,
-                            MeterRegistry meterRegistry) {
+                            MeterRegistry meterRegistry,
+                            TenantEnvService tenantEnvService) {
         super(meterRegistry,
-            ESB_USER_MANAGE_API,
-            esbProperties.getService().getUrl(),
+            USER_MANAGE_API,
+            bkApiGatewayProperties.getBkUser().getUrl(),
             HttpHelperFactory.getRetryableHttpHelper(),
-            EsbLang.EN
+            tenantEnvService
         );
         this.authorization = BkApiAuthorization.appAuthorization(appProperties.getCode(),
-            appProperties.getSecret(), "admin");
+            appProperties.getSecret());
     }
 
-    public List<BkUserDTO> getAllUserList() {
-        String fields = "id,username,display_name,logo";
-        List<EsbListUsersResult> esbUserList;
-        try {
-            GetUserListReq req = buildGetUserListReq(fields);
+    /**
+     * 获取全量租户
+     */
+    @Override
+    public List<OpenApiTenant> listAllTenant() {
+        OpenApiResponse<List<OpenApiTenant>> response = requestBkUserApi(
+            "list_tenant",
+            OpenApiRequestInfo
+                .builder()
+                .method(HttpMethodEnum.GET)
+                .uri("/api/v3/open/tenants")
+                .addHeader(new BasicHeader(JobCommonHeaders.BK_TENANT_ID, TenantIdConstants.SYSTEM_TENANT_ID))
+                .authorization(authorization)
+                .build(),
+            request -> doRequest(request, new TypeReference<OpenApiResponse<List<OpenApiTenant>>>() {
+            })
+        );
 
-            HttpMetricUtil.setHttpMetricName(CommonMetricNames.ESB_USER_MANAGE_API_HTTP);
-            HttpMetricUtil.addTagForCurrentMetric(
-                Tag.of(EsbMetricTags.KEY_API_NAME, API_GET_USER_LIST)
-            );
-            EsbResp<List<EsbListUsersResult>> esbResp = doRequest(
-                OpenApiRequestInfo.builder()
-                    .method(HttpMethodEnum.GET)
-                    .uri(API_GET_USER_LIST)
-                    .queryParams(req.toUrlParams())
-                    .authorization(authorization)
-                    .build(),
-                new TypeReference<EsbResp<List<EsbListUsersResult>>>() {
-                }
-            );
-            esbUserList = esbResp.getData();
-        } catch (Exception e) {
-            String errorMsg = "Get " + API_GET_USER_LIST + " error";
+        return response.getData();
+    }
+
+    /**
+     * 获取指定租户下的虚拟账号（admin）的bk_username
+     */
+    @Override
+    public List<SimpleUserInfo> batchGetVirtualUserByLoginName(String tenantId, String loginName) {
+        OpenApiResponse<List<SimpleUserInfo>> resp = requestBkUserApi(
+            "batch_lookup_virtual_user",
+            OpenApiRequestInfo
+                .builder()
+                .method(HttpMethodEnum.GET)
+                .uri(API_BATCH_LOOKUP_VIRTUAL_USER)
+                .addHeader(buildTenantHeader(tenantId))
+                .addQueryParam("lookups", loginName)
+                .addQueryParam("lookup_field", "login_name")
+                .authorization(authorization)
+                .build(),
+            req -> doRequest(req, new TypeReference<OpenApiResponse<List<SimpleUserInfo>>>() {
+            })
+        );
+        return resp.getData();
+    }
+
+    protected <T, R> OpenApiResponse<R> requestBkUserApi(
+        String apiName,
+        OpenApiRequestInfo<T> request,
+        Function<OpenApiRequestInfo<T>, OpenApiResponse<R>> requestHandler) {
+
+        try {
+            HttpMetricUtil.setHttpMetricName(USER_MANAGE_API_HTTP);
+            HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", apiName));
+            return requestHandler.apply(request);
+        } catch (Throwable e) {
+            String errorMsg = "Fail to request bk-user api|method=" + request.getMethod()
+                + "|uri=" + request.getUri() + "|queryParams="
+                + request.getQueryParams() + "|body="
+                + JsonUtils.toJsonWithoutSkippedFields(JsonUtils.toJsonWithoutSkippedFields(request.getBody()));
             log.error(errorMsg, e);
-            throw new InternalUserManageException(errorMsg, e, ErrorCode.USER_MANAGE_API_ACCESS_ERROR);
+            throw new InternalException(e.getMessage(), e, ErrorCode.BK_USER_MANAGE_API_ERROR);
         } finally {
             HttpMetricUtil.clearHttpMetric();
         }
-        return convert(esbUserList);
     }
 
-    private GetUserListReq buildGetUserListReq(String fields) {
-        GetUserListReq req = new GetUserListReq();
-        if (StringUtils.isNotBlank(fields)) {
-            req.setFields(fields);
+    @Override
+    public SimpleUserInfo getUserByUsername(String tenantId, String username) {
+        List<SimpleUserInfo> users = listUsersByUsernames(tenantId, Collections.singletonList(username));
+        if (CollectionUtils.isEmpty(users)) {
+            return null;
         }
-        req.setPage(0L);
-        req.setPageSize(0L);
-        req.setNoPage(true);
-        return req;
+        return users.get(0);
     }
 
-    private List<BkUserDTO> convert(List<EsbListUsersResult> esbUserList) {
-        if (CollectionUtils.isEmpty(esbUserList)) {
-            return Collections.emptyList();
+    /**
+     * 通过指定的username查出对应的用户信息
+     */
+    @Override
+    public List<SimpleUserInfo> listUsersByUsernames(String tenantId, Collection<String> usernames) {
+        List<SimpleUserInfo> userResult = new ArrayList<>();
+        List<String> usernameList = new ArrayList<>(usernames);
+        List<List<String>> userPages = Lists.partition(usernameList, MAX_QUERY_BATCH_SIZE);
+        for (List<String> userPage : userPages) {
+            List<SimpleUserInfo> userInfos = listUsersByPages(tenantId, userPage);
+            if (CollectionUtils.isNotEmpty(userInfos)) {
+                userResult.addAll(userInfos);
+            }
         }
-        List<BkUserDTO> userList = new ArrayList<>();
-        for (EsbListUsersResult esbUser : esbUserList) {
-            BkUserDTO user = new BkUserDTO();
-            user.setId(esbUser.getId());
-            user.setUsername(esbUser.getUsername());
-            user.setDisplayName(esbUser.getDisplayName());
-            user.setLogo(esbUser.getLogo());
-            user.setUid(esbUser.getUid());
-            userList.add(user);
-        }
-        return userList;
+        return userResult;
+    }
+
+    private List<SimpleUserInfo> listUsersByPages(String tenantId, List<String> usernames) {
+        OpenApiResponse<List<SimpleUserInfo>> resp = requestBkUserApi(
+            "batch_query_user",
+            OpenApiRequestInfo
+                .builder()
+                .method(HttpMethodEnum.GET)
+                .uri(API_BATCH_QUERY_USER_DISPLAY_INFO)
+                .addHeader(buildTenantHeader(tenantId))
+                .addQueryParam("bk_usernames", String.join(",", usernames))
+                .authorization(authorization)
+                .build(),
+            req -> doRequest(req, new TypeReference<OpenApiResponse<List<SimpleUserInfo>>>() {})
+        );
+        return resp.getData();
     }
 
 }

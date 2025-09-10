@@ -134,9 +134,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
         builder.addScriptTask(agentList, scriptFilePath, publicScriptName, buildRunSqlShellParams(sqlScriptFileName),
             timeout);
 
-        ExecuteScriptRequest request = builder.build();
-        request.setGseV2Task(gseV2Task);
-        return request;
+        return builder.build();
     }
 
     private String buildRunSqlShellParams(String sqlScriptFileName) {

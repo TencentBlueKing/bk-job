@@ -29,19 +29,20 @@ import com.tencent.bk.job.analysis.dao.AnalysisTaskDAO;
 import com.tencent.bk.job.analysis.dao.AnalysisTaskInstanceDAO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskInstanceDTO;
 import com.tencent.bk.job.analysis.model.inner.AnalysisTaskResultItemLocation;
-import com.tencent.bk.job.analysis.service.ApplicationService;
 import com.tencent.bk.job.analysis.task.analysis.AnalysisTaskStatusEnum;
 import com.tencent.bk.job.analysis.task.analysis.anotation.AnalysisTask;
 import com.tencent.bk.job.analysis.task.analysis.enums.AnalysisResourceEnum;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultData;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultItem;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultVO;
-import com.tencent.bk.job.common.util.I18nUtil;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.crontab.api.inner.ServiceCronJobResource;
 import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
 import com.tencent.bk.job.execute.api.inner.ServiceTaskExecuteResultResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.model.inner.ServiceTaskInstanceDTO;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -67,10 +68,10 @@ public class TimerTaskFailRateWatcher extends AbstractTimerTaskWatcher {
     @Autowired
     public TimerTaskFailRateWatcher(AnalysisTaskDAO analysisTaskDAO,
                                     AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
-                                    ApplicationService applicationService,
+                                    RemoteAppService remoteAppService,
                                     ServiceCronJobResource cronJobResource,
                                     ServiceTaskExecuteResultResource taskExecuteResultResource) {
-        super(analysisTaskDAO, analysisTaskInstanceDAO, applicationService, cronJobResource);
+        super(analysisTaskDAO, analysisTaskInstanceDAO, remoteAppService, cronJobResource);
         this.taskExecuteResultResource = taskExecuteResultResource;
     }
 

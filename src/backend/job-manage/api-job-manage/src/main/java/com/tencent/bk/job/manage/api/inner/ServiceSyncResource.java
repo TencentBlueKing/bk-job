@@ -25,16 +25,9 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -49,122 +42,9 @@ public interface ServiceSyncResource {
     /**
      * 查询所有业务
      *
-     * @return
+     * @return 业务列表
      */
     @RequestMapping("/service/sync/app/list")
     List<ServiceApplicationDTO> listAllApps();
 
-    /**
-     * 根据账号id获取账号信息
-     *
-     * @param appId 业务ID
-     * @return
-     */
-    @GetMapping("/service/sync/host/app/{appId}")
-    @ApiOperation(value = "根据业务ID获取主机", produces = "application/json")
-    InternalResponse<List<ServiceHostInfoDTO>> getHostByAppId(
-        @ApiParam(value = "业务ID", required = true)
-        @PathVariable("appId") Long appId);
-
-    /**
-     * 同步某业务的主机
-     *
-     * @param bizId 业务ID
-     * @return
-     */
-    @PutMapping("/service/sync/syncHost/biz/{bizId}")
-    @ApiOperation(value = "根据业务ID同步主机", produces = "application/json")
-    InternalResponse<Boolean> syncHostByBizId(
-        @ApiParam(value = "业务ID", required = true)
-        @PathVariable("bizId") Long bizId);
-
-    /**
-     * 开启业务事件监听
-     *
-     * @return
-     */
-    @PutMapping("/service/sync/bizWatch/enable")
-    @ApiOperation(value = "开启业务事件监听", produces = "application/json")
-    InternalResponse<Boolean> enableBizWatch();
-
-    /**
-     * 关闭业务事件监听
-     *
-     * @return
-     */
-    @PutMapping("/service/sync/bizWatch/disable")
-    @ApiOperation(value = "关闭业务事件监听", produces = "application/json")
-    InternalResponse<Boolean> disableBizWatch();
-
-    /**
-     * 开启主机事件监听
-     *
-     * @return
-     */
-    @PutMapping("/service/sync/hostWatch/enable")
-    @ApiOperation(value = "开启主机事件监听", produces = "application/json")
-    InternalResponse<Boolean> enableHostWatch();
-
-    /**
-     * 关闭主机事件监听
-     *
-     * @return
-     */
-    @PutMapping("/service/sync/hostWatch/disable")
-    @ApiOperation(value = "关闭主机事件监听", produces = "application/json")
-    InternalResponse<Boolean> disableHostWatch();
-
-    /**
-     * 开启业务（集）同步
-     *
-     * @return
-     */
-    @PutMapping("/service/sync/syncApp/enable")
-    @ApiOperation(value = "开启业务同步", produces = "application/json")
-    InternalResponse<Boolean> enableSyncApp();
-
-    /**
-     * 关闭业务（集）同步
-     *
-     * @return
-     */
-    @PutMapping("/service/sync/syncApp/disable")
-    @ApiOperation(value = "关闭业务同步", produces = "application/json")
-    InternalResponse<Boolean> disableSyncApp();
-
-    /**
-     * 开启主机同步
-     *
-     * @return
-     */
-    @PutMapping("/service/sync/syncHost/enable")
-    @ApiOperation(value = "开启主机同步", produces = "application/json")
-    InternalResponse<Boolean> enableSyncHost();
-
-    /**
-     * 关闭主机同步
-     *
-     * @return
-     */
-    @PutMapping("/service/sync/syncHost/disable")
-    @ApiOperation(value = "关闭主机同步", produces = "application/json")
-    InternalResponse<Boolean> disableSyncHost();
-
-    /**
-     * 开启主机状态同步
-     *
-     * @return
-     */
-    @PutMapping("/service/sync/syncAgentStatus/enable")
-    @ApiOperation(value = "开启主机状态同步", produces = "application/json")
-    InternalResponse<Boolean> enableSyncAgentStatus();
-
-    /**
-     * 关闭主机状态同步
-     *
-     * @return
-     */
-    @PutMapping("/service/sync/syncAgentStatus/disable")
-    @ApiOperation(value = "关闭主机状态同步", produces = "application/json")
-    InternalResponse<Boolean> disableSyncAgentStatus();
 }

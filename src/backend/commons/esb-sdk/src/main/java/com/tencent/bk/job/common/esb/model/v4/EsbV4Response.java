@@ -27,7 +27,7 @@ package com.tencent.bk.job.common.esb.model.v4;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.esb.model.iam.EsbApplyPermissionDTO;
+import com.tencent.bk.job.common.esb.model.iam.OpenApiApplyPermissionDTO;
 import com.tencent.bk.job.common.model.error.ErrorDetailDTO;
 import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -81,7 +81,7 @@ public class EsbV4Response<T> {
         return buildFailedResponse(v4ErrorCodeEnum, errorCode, new Object[]{});
     }
 
-    public static <T> EsbV4Response<T> buildPermissionDeniedResponse(EsbApplyPermissionDTO permissionDetail) {
+    public static <T> EsbV4Response<T> buildPermissionDeniedResponse(OpenApiApplyPermissionDTO permissionDetail) {
         EsbV4RespError error = EsbV4RespError.buildPermissionDeniedError(permissionDetail);
         EsbV4Response<T> resp = new EsbV4Response<>();
         resp.setError(error);

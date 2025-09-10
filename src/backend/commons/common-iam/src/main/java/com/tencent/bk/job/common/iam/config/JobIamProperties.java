@@ -43,10 +43,6 @@ public class JobIamProperties {
      */
     private String systemId;
     /**
-     * 权限中心的后台接口访问地址
-     */
-    private String baseUrl;
-    /**
      * 权限中心的页面访问地址
      */
     private String webUrl;
