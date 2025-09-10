@@ -8,30 +8,30 @@
 
 #### Header参数
 
-| 字段                    | 类型     | 必选  | 描述                                                                                                                               |
-|-----------------------|--------|-----|----------------------------------------------------------------------------------------------------------------------------------|
-| X-Bkapi-Authorization | string | 是   | 认证信息。详情参考[调用网关 API](https://github.com/TencentBlueKing/BKDocs/blob/master/ZH/7.0/APIGateway/apigateway/use-api/use-apigw-api.md) |
-| Accept                | string | 是   | 固定值。application/json                                                                                                             |
-| Content-Type          | string | 是   | 固定值。application/json                                                                                                             |
+| 字段                    | 类型     | 必选 | 描述                                                                                                                               |
+|-----------------------|--------|----|----------------------------------------------------------------------------------------------------------------------------------|
+| X-Bkapi-Authorization | string | 是  | 认证信息。详情参考[调用网关 API](https://github.com/TencentBlueKing/BKDocs/blob/master/ZH/7.0/APIGateway/apigateway/use-api/use-apigw-api.md) |
+| Accept                | string | 是  | 固定值。application/json                                                                                                             |
+| Content-Type          | string | 是  | 固定值。application/json                                                                                                             |
 
 #### Body参数
 
-| 字段               | 类型     | 必选  | 描述                                                                                   |
-|------------------|--------|-----|--------------------------------------------------------------------------------------|
-| bk_scope_type    | string | 是   | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                                   |
-| bk_scope_id      | string | 是   | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                              |
-| bk_biz_id        | long   | 是   | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换                                    |
-| job_instance_id  | long   | 是   | 作业实例ID                                                                               |
-| step_instance_id | long   | 是   | 步骤实例ID                                                                               |
-| host_id_list     | array  | 否   | 主机ID列表                                                                               |
-| ip_list          | array  | 否   | ***不推荐使用，建议使用host_id_list参数***;如果host_id_list与ip_list同时存在，将忽略ip_list参数。主机IP 列表，定义见ip |
+| 字段               | 类型     | 必选 | 描述                                                                                   |
+|------------------|--------|----|--------------------------------------------------------------------------------------|
+| bk_scope_type    | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                                   |
+| bk_scope_id      | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                              |
+| bk_biz_id        | long   | 是  | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换                                    |
+| job_instance_id  | long   | 是  | 作业实例ID                                                                               |
+| step_instance_id | long   | 是  | 步骤实例ID                                                                               |
+| host_id_list     | array  | 否  | 主机ID列表                                                                               |
+| ip_list          | array  | 否  | ***不推荐使用，建议使用host_id_list参数***;如果host_id_list与ip_list同时存在，将忽略ip_list参数。主机IP 列表，定义见ip |
 
 ##### ip
 
-| 字段          | 类型     | 必选  | 描述     |
-|-------------|--------|-----|--------|
-| bk_cloud_id | int    | 是   | 管控区域ID |
-| ip          | string | 是   | IP地址   |
+| 字段          | 类型     | 必选 | 描述     |
+|-------------|--------|----|--------|
+| bk_cloud_id | int    | 是  | 管控区域ID |
+| ip          | string | 是  | IP地址   |
 
 ### 请求参数示例
 
@@ -153,63 +153,63 @@
 
 #### response
 
-| 字段             | 类型     | 是否一定存在 | 描述                         |
-|----------------|--------|--------|----------------------------|
-| result         | bool   | 是      | 请求成功与否。true:请求成功；false请求失败 |
-| code           | int    | 是      | 错误编码。 0表示success，>0表示失败错误  |
-| message        | string | 否      | 请求失败返回的错误信息                |
-| data           | object | 否      | 请求返回的数据，删除操作可能没有值          |
-| job_request_id | string | 否      | 请求ID，请求唯一标识                |
-| permission     | object | 否      | 无权限返回的权限信息                 |
+| 字段             | 类型     | 是否一定不为null | 描述                         |
+|----------------|--------|------------|----------------------------|
+| result         | bool   | 是          | 请求成功与否。true:请求成功；false请求失败 |
+| code           | int    | 是          | 错误编码。 0表示success，>0表示失败错误  |
+| message        | string | 否          | 请求失败返回的错误信息                |
+| data           | object | 否          | 请求返回的数据，删除操作可能没有值          |
+| job_request_id | string | 否          | 请求ID，请求唯一标识                |
+| permission     | object | 否          | 无权限返回的权限信息                 |
 
 ##### data
 
-| 字段               | 类型    | 是否一定存在 | 描述                          |
-|------------------|-------|--------|-----------------------------|
-| job_instance_id  | long  | 是      | 作业实例ID                      |
-| step_instance_id | int   | 是      | 作业步骤ID                      |
-| log_type         | int   | 是      | 日志类型。1-脚本执行任务日志;2-文件分发任务日志  |
-| script_task_logs | array | 否      | 脚本执行任务日志。定义见script_task_log |
-| file_task_logs   | array | 否      | 文件分发任务日志。定义见file_task_log   |
+| 字段               | 类型    | 是否一定不为null | 描述                          |
+|------------------|-------|------------|-----------------------------|
+| job_instance_id  | long  | 是          | 作业实例ID                      |
+| step_instance_id | int   | 是          | 作业步骤ID                      |
+| log_type         | int   | 是          | 日志类型。1-脚本执行任务日志;2-文件分发任务日志  |
+| script_task_logs | array | 否          | 脚本执行任务日志。定义见script_task_log |
+| file_task_logs   | array | 否          | 文件分发任务日志。定义见file_task_log   |
 
 ##### script_task_log
 
-| 字段          | 类型     | 是否一定存在 | 描述       |
-|-------------|--------|--------|----------|
-| bk_host_id  | long   | 是      | 主机ID     |
-| bk_cloud_id | long   | 是      | 管控区域ID   |
-| ip          | string | 是      | 目标IP地址   |
-| ipv6        | string | 否      | 目标ipv6地址 |
-| log_content | string | 是      | 脚本执行日志内容 |
+| 字段          | 类型     | 是否一定不为null | 描述       |
+|-------------|--------|------------|----------|
+| bk_host_id  | long   | 是          | 主机ID     |
+| bk_cloud_id | long   | 是          | 管控区域ID   |
+| ip          | string | 是          | 目标IP地址   |
+| ipv6        | string | 否          | 目标ipv6地址 |
+| log_content | string | 是          | 脚本执行日志内容 |
 
 ##### file_task_log
 
-| 字段          | 类型     | 是否一定存在 | 描述                   |
-|-------------|--------|--------|----------------------|
-| bk_host_id  | long   | 是      | 主机ID                 |
-| bk_cloud_id | long   | 是      | 管控区域ID               |
-| ip          | string | 是      | 源/目标IP地址             |
-| file_logs   | array  | 是      | 文件分发日志内容。定义见file_log |
+| 字段          | 类型     | 是否一定不为null | 描述                   |
+|-------------|--------|------------|----------------------|
+| bk_host_id  | long   | 是          | 主机ID                 |
+| bk_cloud_id | long   | 是          | 管控区域ID               |
+| ip          | string | 是          | 源/目标IP地址             |
+| file_logs   | array  | 是          | 文件分发日志内容。定义见file_log |
 
 ##### file_log
 
-| 字段          | 类型     | 是否一定存在 | 描述                                |
-|-------------|--------|--------|-----------------------------------|
-| mode        | int    | 是      | 分发模式，0:上传;1:下载                    |
-| src_ip      | object | 是      | 文件源主机IP。定义见ip                     |
-| src_path    | string | 是      | 源文件路径                             |
-| dest_ip     | object | 否      | 分发目标主机IP，mode=1时有值。定义见ip          |
-| dest_path   | string | 否      | 目标路径，mode=1时有值                    |
-| status      | int    | 是      | 任务状态。1-等待开始;2-上传中;3-下载中;4-成功;5-失败 |
-| log_content | string | 是      | 文件分发日志内容                          |
-| size        | string | 是      | 文件大小                              |
-| speed       | string | 是      | 文件传输速率                            |
-| process     | string | 是      | 文件传输进度                            |
+| 字段          | 类型     | 是否一定不为null | 描述                                |
+|-------------|--------|------------|-----------------------------------|
+| mode        | int    | 是          | 分发模式，0:上传;1:下载                    |
+| src_ip      | object | 是          | 文件源主机IP。定义见ip                     |
+| src_path    | string | 是          | 源文件路径                             |
+| dest_ip     | object | 否          | 分发目标主机IP，mode=1时有值。定义见ip          |
+| dest_path   | string | 否          | 目标路径，mode=1时有值                    |
+| status      | int    | 是          | 任务状态。1-等待开始;2-上传中;3-下载中;4-成功;5-失败 |
+| log_content | string | 是          | 文件分发日志内容                          |
+| size        | string | 是          | 文件大小                              |
+| speed       | string | 是          | 文件传输速率                            |
+| process     | string | 是          | 文件传输进度                            |
 
 ##### ip
 
-| 字段          | 类型     | 是否一定存在 | 描述     |
-|-------------|--------|--------|--------|
-| bk_host_id  | long   | 是      | 主机ID   |
-| bk_cloud_id | long   | 是      | 管控区域ID |
-| ip          | string | 是      | IP地址   |
+| 字段          | 类型     | 是否一定不为null | 描述     |
+|-------------|--------|------------|--------|
+| bk_host_id  | long   | 是          | 主机ID   |
+| bk_cloud_id | long   | 是          | 管控区域ID |
+| ip          | string | 是          | IP地址   |

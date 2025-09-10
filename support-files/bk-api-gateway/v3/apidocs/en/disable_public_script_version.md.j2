@@ -42,8 +42,8 @@ this version online will not be able to be executed, please be cautious when ope
 
 #### data
 
-| Fields    | Type   | Whether it must exist | Description                                                               |
-|-----------|--------|-----------------------|---------------------------------------------------------------------------|
-| script_id | string | yes                   | Script id                                                                 |
-| id        | long   | yes                   | Script version id                                                         |
-| status    | int    | yes                   | Script version status (0: Not online, 1: Online, 2: Offline, 3: Disabled) |
+| Fields    | Type   | Never null | Description                                                               |
+|-----------|--------|------------|---------------------------------------------------------------------------|
+| script_id | string | yes        | Script id                                                                 |
+| id        | long   | yes        | Script version id                                                         |
+| status    | int    | yes        | Script version status (0: Not online, 1: Online, 2: Offline, 3: Disabled) |

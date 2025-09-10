@@ -68,14 +68,14 @@ Search Job Plan list
 
 ##### data.data
 
-| Fields           | Type   | Whether it must exist | Description                                                                                 |
-|------------------|--------|-----------------------|---------------------------------------------------------------------------------------------|
-| bk_scope_type    | string | yes                   | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
-| bk_scope_id      | string | yes                   | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| id               | long   | yes                   | Job Plan ID                                                                                 |
-| job_template_id  | long   | yes                   | Job Template ID                                                                             |
-| name             | string | yes                   | Job Plan name                                                                               |
-| creator          | string | yes                   | Creator account number                                                                      |
-| create_time      | long   | yes                   | Creation time, Unix timestamp                                                               |
-| last_modify_user | string | yes                   | Modified by acct No.                                                                        |
-| last_modify_time | long   | yes                   | Last modified time, Unix timestamp                                                          |
+| Fields           | Type   | Never null | Description                                                                                 |
+|------------------|--------|------------|---------------------------------------------------------------------------------------------|
+| bk_scope_type    | string | yes        | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id      | string | yes        | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| id               | long   | yes        | Job Plan ID                                                                                 |
+| job_template_id  | long   | yes        | Job Template ID                                                                             |
+| name             | string | yes        | Job Plan name                                                                               |
+| creator          | string | yes        | Creator account number                                                                      |
+| create_time      | long   | yes        | Creation time, Unix timestamp                                                               |
+| last_modify_user | string | yes        | Modified by acct No.                                                                        |
+| last_modify_time | long   | yes        | Last modified time, Unix timestamp                                                          |

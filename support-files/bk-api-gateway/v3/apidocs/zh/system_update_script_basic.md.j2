@@ -6,14 +6,14 @@
 
 #### 接口参数
 
-| 字段            | 类型     | 必选  | 描述                                                |
-|---------------|--------|-----|---------------------------------------------------|
-| bk_scope_type | string | 是   | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                |
-| bk_scope_id   | string | 是   | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID           |
-| bk_biz_id     | long   | 是   | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
-| script_id     | string | 是   | 脚本ID                                              |
-| name          | string | 是   | 脚本名称                                              |
-| description   | string | 否   | 脚本描述                                              |
+| 字段            | 类型     | 必选 | 描述                                                |
+|---------------|--------|----|---------------------------------------------------|
+| bk_scope_type | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                |
+| bk_scope_id   | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID           |
+| bk_biz_id     | long   | 是  | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
+| script_id     | string | 是  | 脚本ID                                              |
+| name          | string | 是  | 脚本名称                                              |
+| description   | string | 否  | 脚本描述                                              |
 
 ### 请求参数示例
 
@@ -54,17 +54,17 @@
 
 #### data
 
-| 字段                       | 类型     | 是否一定存在 | 描述                                                                     |
-|--------------------------|--------|--------|------------------------------------------------------------------------|
-| id                       | string | 是      | 脚本ID                                                                   |
-| bk_scope_type            | string | 是      | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                     |
-| bk_scope_id              | string | 是      | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                |
-| name                     | string | 是      | 脚本名称                                                                   |
-| script_language          | int    | 是      | 脚本语言。1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - SQL |
-| online_script_version_id | long   | 否      | 已上线脚本版本ID;如果脚本没有已上线版本，该值为空                                             |
-| creator                  | string | 是      | 创建人                                                                    |
-| create_time              | long   | 是      | 创建时间Unix时间戳（ms）                                                        |
-| last_modify_user         | string | 是      | 最近一次修改人                                                                |
-| last_modify_time         | long   | 是      | 最近一次修改时间Unix时间戳（ms）                                                    |
-| description              | string | 否      | 脚本描述                                                                   |
+| 字段                       | 类型     | 是否一定不为null | 描述                                                                     |
+|--------------------------|--------|------------|------------------------------------------------------------------------|
+| id                       | string | 是          | 脚本ID                                                                   |
+| bk_scope_type            | string | 是          | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                     |
+| bk_scope_id              | string | 是          | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                |
+| name                     | string | 是          | 脚本名称                                                                   |
+| script_language          | int    | 是          | 脚本语言。1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - SQL |
+| online_script_version_id | long   | 否          | 已上线脚本版本ID;如果脚本没有已上线版本，该值为空                                             |
+| creator                  | string | 是          | 创建人                                                                    |
+| create_time              | long   | 是          | 创建时间Unix时间戳（ms）                                                        |
+| last_modify_user         | string | 是          | 最近一次修改人                                                                |
+| last_modify_time         | long   | 是          | 最近一次修改时间Unix时间戳（ms）                                                    |
+| description              | string | 否          | 脚本描述                                                                   |
 

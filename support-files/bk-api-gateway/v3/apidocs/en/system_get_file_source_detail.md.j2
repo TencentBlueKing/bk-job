@@ -53,19 +53,19 @@ Query file source details
 
 ##### data
 
-| Fields                | Type   | Whether it must exist | Description                                                                                 |
-|-----------------------|--------|-----------------------|---------------------------------------------------------------------------------------------|
-| bk_scope_type         | string | yes                   | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
-| bk_scope_id           | string | yes                   | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| id                    | int    | yes                   | File Source ID                                                                              |
-| code                  | string | yes                   | File Source code                                                                            |
-| alias                 | string | yes                   | File Source alias                                                                           |
-| status                | int    | yes                   | Status                                                                                      |
-| file_source_type_code | string | yes                   | File Source code。optional value：BLUEKING_ARTIFACTORY                                        |
-| is_public             | bool   | yes                   | Is public                                                                                   |
-| credential_id         | string | yes                   | Credential ID                                                                               |
-| enable                | bool   | yes                   | Enable                                                                                      |
-| creator               | string | yes                   | Job creator                                                                                 |
-| create_time           | long   | yes                   | Created time, Unix timestamp                                                                |
-| last_modify_user      | string | yes                   | Job modifier                                                                                |
-| last_modify_time      | long   | yes                   | Last modified time, Unix timestamp                                                          |
+| Fields                | Type   | Never null | Description                                                                                 |
+|-----------------------|--------|------------|---------------------------------------------------------------------------------------------|
+| bk_scope_type         | string | yes        | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id           | string | yes        | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| id                    | int    | yes        | File Source ID                                                                              |
+| code                  | string | yes        | File Source code                                                                            |
+| alias                 | string | yes        | File Source alias                                                                           |
+| status                | int    | yes        | Status                                                                                      |
+| file_source_type_code | string | yes        | File Source code。optional value：BLUEKING_ARTIFACTORY                                        |
+| is_public             | bool   | yes        | Is public                                                                                   |
+| credential_id         | string | yes        | Credential ID                                                                               |
+| enable                | bool   | yes        | Enable                                                                                      |
+| creator               | string | yes        | Job creator                                                                                 |
+| create_time           | long   | yes        | Created time, Unix timestamp                                                                |
+| last_modify_user      | string | yes        | Job modifier                                                                                |
+| last_modify_time      | long   | yes        | Last modified time, Unix timestamp                                                          |

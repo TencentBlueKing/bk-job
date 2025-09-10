@@ -183,64 +183,64 @@ informally publicly available API)
 
 ##### data
 
-| Fields                          | Type  | Whether it must exist | Description                                                           |
-|---------------------------------|-------|-----------------------|-----------------------------------------------------------------------|
-| job_instance_id                 | long  | yes                   | Job instance ID                                                       |
-| step_instance_id                | long  | yes                   | Step instance ID                                                      |
-| log_type                        | int   | yes                   | Log type. 1. Script execution task log; 2- File distribution task log |
-| script_execute_object_task_logs | array | no                    | Script execution task log. see script_execute_object_task_log         |
-| file_execute_object_task_logs   | array | no                    | File distribution task log. see file_execute_object_task_log          |
+| Fields                          | Type  | Never null | Description                                                           |
+|---------------------------------|-------|------------|-----------------------------------------------------------------------|
+| job_instance_id                 | long  | yes        | Job instance ID                                                       |
+| step_instance_id                | long  | yes        | Step instance ID                                                      |
+| log_type                        | int   | yes        | Log type. 1. Script execution task log; 2- File distribution task log |
+| script_execute_object_task_logs | array | no         | Script execution task log. see script_execute_object_task_log         |
+| file_execute_object_task_logs   | array | no         | File distribution task log. see file_execute_object_task_log          |
 
 ##### script_execute_object_task_log
 
-| Fields         | Type   | Whether it must exist | Description                                  |
-|----------------|--------|-----------------------|----------------------------------------------|
-| execute_object | object | yes                   | Execute object,see execute_object definition |
-| log_content    | string | yes                   | Script execute log content                   |
+| Fields         | Type   | Never null | Description                                  |
+|----------------|--------|------------|----------------------------------------------|
+| execute_object | object | yes        | Execute object,see execute_object definition |
+| log_content    | string | yes        | Script execute log content                   |
 
 ##### file_execute_object_task_log
 
-| Fields                | Type   | Whether it must exist | Description                                                                                                                                                             |
-|-----------------------|--------|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| execute_object        | object | yes                   | Execute object,see execute_object definition                                                                                                                            |
-| file_atomic_task_logs | array  | yes                   | File distribution atomic task refers to the task of distributing a file from a source execution object to a target execution object.see file_atomic_task_log definition |
+| Fields                | Type   | Never null | Description                                                                                                                                                             |
+|-----------------------|--------|------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| execute_object        | object | yes        | Execute object,see execute_object definition                                                                                                                            |
+| file_atomic_task_logs | array  | yes        | File distribution atomic task refers to the task of distributing a file from a source execution object to a target execution object.see file_atomic_task_log definition |
 
 ##### file_atomic_task_log
 
-| Fields              | Type   | Whether it must exist | Description                                                                                     |
-|---------------------|--------|-----------------------|-------------------------------------------------------------------------------------------------|
-| mode                | int    | yes                   | Mode. 0:upload;1:download                                                                       |
-| src_execute_object  | object | yes                   | File source execute object。see execute_object definition                                        |
-| src_path            | string | yes                   | Source file path                                                                                |
-| dest_execute_object | object | yes                   | File distribution target execution object.see execute_object definition                         |
-| dest_path           | string | yes                   | Target Path,There is a value when mode=1                                                        |
-| status              | int    | yes                   | status. 1. Wait for the start; 2. Uploading in progress; 3- Downloading; 4- Success; 5- Failure |
-| log_content         | string | yes                   | File distribution log content                                                                   |
-| size                | string | yes                   | File size                                                                                       |
-| speed               | string | yes                   | File transfer rate                                                                              |
-| process             | string | yes                   | File transfer progress                                                                          |
+| Fields              | Type   | Never null | Description                                                                                     |
+|---------------------|--------|------------|-------------------------------------------------------------------------------------------------|
+| mode                | int    | yes        | Mode. 0:upload;1:download                                                                       |
+| src_execute_object  | object | yes        | File source execute object。see execute_object definition                                        |
+| src_path            | string | yes        | Source file path                                                                                |
+| dest_execute_object | object | yes        | File distribution target execution object.see execute_object definition                         |
+| dest_path           | string | yes        | Target Path,There is a value when mode=1                                                        |
+| status              | int    | yes        | status. 1. Wait for the start; 2. Uploading in progress; 3- Downloading; 4- Success; 5- Failure |
+| log_content         | string | yes        | File distribution log content                                                                   |
+| size                | string | yes        | File size                                                                                       |
+| speed               | string | yes        | File transfer rate                                                                              |
+| process             | string | yes        | File transfer progress                                                                          |
 
 ##### execute_object
 
-| Fields      | Type   | Whether it must exist | Description                                                                               |
-|-------------|--------|-----------------------|-------------------------------------------------------------------------------------------|
-| type        | int    | yes                   | type,1- Host, 2- Container                                                                |
-| resource_id | string | yes                   | Execute object resource ID (e.g. the resource ID corresponding to the host is bk_host_id) |
-| host        | object | no                    | Host detail, see host definition                                                          |
-| container   | object | no                    | Container detail, see container definition                                                |
+| Fields      | Type   | Never null | Description                                                                               |
+|-------------|--------|------------|-------------------------------------------------------------------------------------------|
+| type        | int    | yes        | type,1- Host, 2- Container                                                                |
+| resource_id | string | yes        | Execute object resource ID (e.g. the resource ID corresponding to the host is bk_host_id) |
+| host        | object | no         | Host detail, see host definition                                                          |
+| container   | object | no         | Container detail, see container definition                                                |
 
 ##### host
 
-| Fields      | Type   | Whether it must exist | Description    |
-|-------------|--------|-----------------------|----------------|
-| bk_host_id  | long   | yes                   | Host ID (cmdb) |
-| bk_cloud_id | long   | yes                   | Cloud ID       |
-| ip          | string | yes                   | Ipv4           |
+| Fields      | Type   | Never null | Description    |
+|-------------|--------|------------|----------------|
+| bk_host_id  | long   | yes        | Host ID (cmdb) |
+| bk_cloud_id | long   | yes        | Cloud ID       |
+| ip          | string | yes        | Ipv4           |
 
 ##### container
 
-| Fields        | Type   | Whether it must exist | Description                                     |
-|---------------|--------|-----------------------|-------------------------------------------------|
-| id            | long   | yes                   | Container ID (cmdb)                             |
-| container_uid | string | yes                   | Unique ID (UID) of the container in the cluster |
-| name          | string | yes                   | Container name                                  |
+| Fields        | Type   | Never null | Description                                     |
+|---------------|--------|------------|-------------------------------------------------|
+| id            | long   | yes        | Container ID (cmdb)                             |
+| container_uid | string | yes        | Unique ID (UID) of the container in the cluster |
+| name          | string | yes        | Container name                                  |

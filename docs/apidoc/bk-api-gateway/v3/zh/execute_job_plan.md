@@ -8,60 +8,60 @@
 
 #### Header参数
 
-| 字段                    | 类型     | 必选  | 描述                                                                                                                               |
-|-----------------------|--------|-----|----------------------------------------------------------------------------------------------------------------------------------|
-| X-Bkapi-Authorization | string | 是   | 认证信息。详情参考[调用网关 API](https://github.com/TencentBlueKing/BKDocs/blob/master/ZH/7.0/APIGateway/apigateway/use-api/use-apigw-api.md) |
-| Accept                | string | 是   | 固定值。application/json                                                                                                             |
-| Content-Type          | string | 是   | 固定值。application/json                                                                                                             |
+| 字段                    | 类型     | 必选 | 描述                                                                                                                               |
+|-----------------------|--------|----|----------------------------------------------------------------------------------------------------------------------------------|
+| X-Bkapi-Authorization | string | 是  | 认证信息。详情参考[调用网关 API](https://github.com/TencentBlueKing/BKDocs/blob/master/ZH/7.0/APIGateway/apigateway/use-api/use-apigw-api.md) |
+| Accept                | string | 是  | 固定值。application/json                                                                                                             |
+| Content-Type          | string | 是  | 固定值。application/json                                                                                                             |
 
 #### Body参数
 
-| 字段              | 类型     | 必选  | 描述                                                                          |
-|-----------------|--------|-----|-----------------------------------------------------------------------------|
-| bk_scope_type   | string | 是   | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                          |
-| bk_scope_id     | string | 是   | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                     |
-| bk_biz_id       | long   | 是   | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换                           |
-| job_plan_id     | long   | 是   | 作业执行方案ID                                                                    |
-| global_var_list | array  | 否   | 全局变量。对于作业执行方案中的全局变量值，如果请求参数中包含该变量，则使用传入的变量值；否则使用执行方案当前已配置的默认值。定义见global_var |
-| callback_url    | string | 否   | 回调URL，当任务执行完成后，JOB会调用该URL告知任务执行结果。回调协议参考callback_protocol组件文档               |
+| 字段              | 类型     | 必选 | 描述                                                                          |
+|-----------------|--------|----|-----------------------------------------------------------------------------|
+| bk_scope_type   | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                          |
+| bk_scope_id     | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                     |
+| bk_biz_id       | long   | 是  | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换                           |
+| job_plan_id     | long   | 是  | 作业执行方案ID                                                                    |
+| global_var_list | array  | 否  | 全局变量。对于作业执行方案中的全局变量值，如果请求参数中包含该变量，则使用传入的变量值；否则使用执行方案当前已配置的默认值。定义见global_var |
+| callback_url    | string | 否  | 回调URL，当任务执行完成后，JOB会调用该URL告知任务执行结果。回调协议参考callback_protocol组件文档               |
 
 ##### global_var
 
-| 字段     | 类型     | 必选  | 描述                                |
-|--------|--------|-----|-----------------------------------|
-| id     | long   | 否   | 全局变量id，唯一标识。如果id为空，那么使用name作为唯一标识 |
-| name   | string | 否   | 全局变量name                          |
-| value  | string | 否   | 字符、密码、数组、命名空间类型的全局变量的值            |
-| server | object | 否   | 主机类型全局变量的值，见server定义              |
+| 字段     | 类型     | 必选 | 描述                                |
+|--------|--------|----|-----------------------------------|
+| id     | long   | 否  | 全局变量id，唯一标识。如果id为空，那么使用name作为唯一标识 |
+| name   | string | 否  | 全局变量name                          |
+| value  | string | 否  | 字符、密码、数组、命名空间类型的全局变量的值            |
+| server | object | 否  | 主机类型全局变量的值，见server定义              |
 
 ##### server
 
-| 字段                 | 类型    | 必选  | 描述                        |
-|--------------------|-------|-----|---------------------------|
-| host_id_list       | array | 否   | 主机ID列表                    |
-| ip_list            | array | 否   | 静态 IP 列表，定义见ip            |
-| dynamic_group_list | array | 否   | 动态分组列表，定义见dynamic_group   |
-| topo_node_list     | array | 否   | 动态 topo 节点列表，定义见topo_node |
+| 字段                 | 类型    | 必选 | 描述                        |
+|--------------------|-------|----|---------------------------|
+| host_id_list       | array | 否  | 主机ID列表                    |
+| ip_list            | array | 否  | 静态 IP 列表，定义见ip            |
+| dynamic_group_list | array | 否  | 动态分组列表，定义见dynamic_group   |
+| topo_node_list     | array | 否  | 动态 topo 节点列表，定义见topo_node |
 
 ##### ip
 
-| 字段          | 类型     | 必选  | 描述     |
-|-------------|--------|-----|--------|
-| bk_cloud_id | int    | 是   | 管控区域ID |
-| ip          | string | 是   | IP地址   |
+| 字段          | 类型     | 必选 | 描述     |
+|-------------|--------|----|--------|
+| bk_cloud_id | int    | 是  | 管控区域ID |
+| ip          | string | 是  | IP地址   |
 
 ##### dynamic_group
 
-| 字段  | 类型     | 必选  | 描述         |
-|-----|--------|-----|------------|
-| id  | string | 是   | CMDB动态分组ID |
+| 字段 | 类型     | 必选 | 描述         |
+|----|--------|----|------------|
+| id | string | 是  | CMDB动态分组ID |
 
 ##### topo_node
 
-| 字段        | 类型     | 必选  | 描述                                                  |
-|-----------|--------|-----|-----------------------------------------------------|
-| id        | long   | 是   | 动态topo节点ID，对应CMDB API 中的 bk_inst_id                 |
-| node_type | string | 是   | 动态topo节点类型，对应CMDB API 中的 bk_obj_id,比如"module","set" |
+| 字段        | 类型     | 必选 | 描述                                                  |
+|-----------|--------|----|-----------------------------------------------------|
+| id        | long   | 是  | 动态topo节点ID，对应CMDB API 中的 bk_inst_id                 |
+| node_type | string | 是  | 动态topo节点类型，对应CMDB API 中的 bk_obj_id,比如"module","set" |
 
 ### 请求参数示例
 
@@ -117,19 +117,19 @@
 
 ### 返回结果参数说明
 
-| 字段             | 类型     | 是否一定存在 | 描述                         |
-|----------------|--------|--------|----------------------------|
-| result         | bool   | 是      | 请求成功与否。true:请求成功；false请求失败 |
-| code           | int    | 是      | 错误编码。 0表示success，>0表示失败错误  |
-| message        | string | 否      | 请求失败返回的错误信息                |
-| data           | object | 否      | 请求返回的数据，删除操作可能没有值          |
-| job_request_id | string | 否      | 请求ID，请求唯一标识                |
-| permission     | object | 否      | 无权限返回的权限信息                 |
+| 字段             | 类型     | 是否一定不为null | 描述                         |
+|----------------|--------|------------|----------------------------|
+| result         | bool   | 是          | 请求成功与否。true:请求成功；false请求失败 |
+| code           | int    | 是          | 错误编码。 0表示success，>0表示失败错误  |
+| message        | string | 否          | 请求失败返回的错误信息                |
+| data           | object | 否          | 请求返回的数据，删除操作可能没有值          |
+| job_request_id | string | 否          | 请求ID，请求唯一标识                |
+| permission     | object | 否          | 无权限返回的权限信息                 |
 
 ##### data
 
-| 字段                | 类型   | 是否一定存在 | 描述     |
-|-------------------|------|--------|--------|
-| job_instance_id   | long | 是      | 作业实例ID |
-| job_instance_name | long | 是      | 作业实例名称 |
+| 字段                | 类型   | 是否一定不为null | 描述     |
+|-------------------|------|------------|--------|
+| job_instance_id   | long | 是          | 作业实例ID |
+| job_instance_name | long | 是          | 作业实例名称 |
 

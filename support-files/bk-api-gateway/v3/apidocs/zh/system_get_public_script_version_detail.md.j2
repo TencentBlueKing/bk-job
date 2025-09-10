@@ -6,11 +6,11 @@
 
 #### Query参数
 
-| 字段        | 类型     | 必选  | 描述                                       |
-|-----------|--------|-----|------------------------------------------|
-| id        | long   | 否   | 脚本版本ID（与脚本ID二选一，不能同时为空），若传入则以此条件为准屏蔽其他条件 |
-| script_id | string | 否   | 脚本ID（可与version一起传入定位某个脚本版本）              |
-| version   | string | 否   | 脚本版本（可与script_id一起传入定位某个脚本版本）            |
+| 字段        | 类型     | 必选 | 描述                                       |
+|-----------|--------|----|------------------------------------------|
+| id        | long   | 否  | 脚本版本ID（与脚本ID二选一，不能同时为空），若传入则以此条件为准屏蔽其他条件 |
+| script_id | string | 否  | 脚本ID（可与version一起传入定位某个脚本版本）              |
+| version   | string | 否  | 脚本版本（可与script_id一起传入定位某个脚本版本）            |
 
 ### 请求参数示例
 
@@ -51,17 +51,17 @@
 
 ##### data
 
-| 字段               | 类型     | 是否一定存在 | 描述                                                            |
-|------------------|--------|--------|---------------------------------------------------------------|
-| id               | long   | 是      | 脚本版本ID                                                        |
-| script_id        | string | 是      | 脚本版本所属的脚本ID                                                   |
-| version          | string | 是      | 版本号                                                           |
-| content          | string | 是      | 脚本内容                                                          |
-| status           | int    | 是      | 脚本版本状态（0：未上线，1：已上线，2：已下线，3：已禁用）                               |
-| version_desc     | string | 否      | 版本描述                                                          |
-| creator          | string | 是      | 创建人                                                           |
-| create_time      | long   | 是      | 创建时间Unix时间戳（ms）                                               |
-| last_modify_user | string | 是      | 最近一次修改人                                                       |
-| last_modify_time | long   | 是      | 最近一次修改时间Unix时间戳（ms）                                           |
-| script_language  | int    | 是      | 脚本语言:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell |
-| description      | string | 否      | 脚本描述                                                          |
+| 字段               | 类型     | 是否一定不为null | 描述                                                            |
+|------------------|--------|------------|---------------------------------------------------------------|
+| id               | long   | 是          | 脚本版本ID                                                        |
+| script_id        | string | 是          | 脚本版本所属的脚本ID                                                   |
+| version          | string | 是          | 版本号                                                           |
+| content          | string | 是          | 脚本内容                                                          |
+| status           | int    | 是          | 脚本版本状态（0：未上线，1：已上线，2：已下线，3：已禁用）                               |
+| version_desc     | string | 否          | 版本描述                                                          |
+| creator          | string | 是          | 创建人                                                           |
+| create_time      | long   | 是          | 创建时间Unix时间戳（ms）                                               |
+| last_modify_user | string | 是          | 最近一次修改人                                                       |
+| last_modify_time | long   | 是          | 最近一次修改时间Unix时间戳（ms）                                           |
+| script_language  | int    | 是          | 脚本语言:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell |
+| description      | string | 否          | 脚本描述                                                          |

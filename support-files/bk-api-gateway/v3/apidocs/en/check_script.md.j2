@@ -52,10 +52,10 @@ High risk script detection
 
 #### data
 
-| Fields        | Type   | Whether it must exist | Description                                         |
-|---------------|--------|-----------------------|-----------------------------------------------------|
-| line          | int    | yes                   | Number of rows where the error occurred             |
-| line_content  | string | yes                   | The content of the line where the script is located |
-| match_content | string | yes                   | Matching Content                                    |
-| level         | int    | yes                   | Error level: 1- Warning, 2- Error, 3- Fatal         |
-| description   | string | yes                   | Description                                         |
+| Fields        | Type   | Never null | Description                                         |
+|---------------|--------|------------|-----------------------------------------------------|
+| line          | int    | yes        | Number of rows where the error occurred             |
+| line_content  | string | yes        | The content of the line where the script is located |
+| match_content | string | yes        | Matching Content                                    |
+| level         | int    | yes        | Error level: 1- Warning, 2- Error, 3- Fatal         |
+| description   | string | yes        | Description                                         |

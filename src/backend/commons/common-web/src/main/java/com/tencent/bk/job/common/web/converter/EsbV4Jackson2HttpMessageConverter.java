@@ -26,7 +26,6 @@ package com.tencent.bk.job.common.web.converter;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tencent.bk.job.common.annotation.EsbAPI;
 import com.tencent.bk.job.common.annotation.EsbV4API;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -43,9 +42,9 @@ import javax.servlet.http.HttpServletRequest;
  * 自定义HttpMessageConverter，返回时过滤一些不必要的属性，比如null
  */
 @Slf4j
-public class EsbJackson2HttpMessageConverter extends MappingJackson2HttpMessageConverter {
+public class EsbV4Jackson2HttpMessageConverter extends MappingJackson2HttpMessageConverter {
 
-    public EsbJackson2HttpMessageConverter(Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
+    public EsbV4Jackson2HttpMessageConverter(Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
         super(buildObjectMapper(jackson2ObjectMapperBuilder));
     }
 
@@ -57,7 +56,7 @@ public class EsbJackson2HttpMessageConverter extends MappingJackson2HttpMessageC
     }
 
     /**
-     * 被@EsbAPI、@EsbV4API注解标记的controller，采用自定义序列化
+     * 被@EsbV4API注解标记的controller，采用自定义序列化
      */
     @Override
     public boolean canWrite(Class<?> clazz, MediaType mediaType) {
@@ -67,8 +66,7 @@ public class EsbJackson2HttpMessageConverter extends MappingJackson2HttpMessageC
             if (handler instanceof HandlerMethod) {
                 HandlerMethod hm = (HandlerMethod) handler;
                 Class<?> controllerClass = hm.getBeanType();
-                if (AnnotatedElementUtils.hasAnnotation(controllerClass, EsbAPI.class)
-                    || AnnotatedElementUtils.hasAnnotation(controllerClass, EsbV4API.class)) {
+                if (AnnotatedElementUtils.hasAnnotation(controllerClass, EsbV4API.class)) {
                     return super.canWrite(clazz, mediaType);
                 }
             }

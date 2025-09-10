@@ -8,20 +8,20 @@
 
 #### Header参数
 
-| 字段                    | 类型     | 必选  | 描述                                                                                                                               |
-|-----------------------|--------|-----|----------------------------------------------------------------------------------------------------------------------------------|
-| X-Bkapi-Authorization | string | 是   | 认证信息。详情参考[调用网关 API](https://github.com/TencentBlueKing/BKDocs/blob/master/ZH/7.0/APIGateway/apigateway/use-api/use-apigw-api.md) |
-| Accept                | string | 是   | 固定值。application/json                                                                                                             |
-| Content-Type          | string | 是   | 固定值。application/json                                                                                                             |
+| 字段                    | 类型     | 必选 | 描述                                                                                                                               |
+|-----------------------|--------|----|----------------------------------------------------------------------------------------------------------------------------------|
+| X-Bkapi-Authorization | string | 是  | 认证信息。详情参考[调用网关 API](https://github.com/TencentBlueKing/BKDocs/blob/master/ZH/7.0/APIGateway/apigateway/use-api/use-apigw-api.md) |
+| Accept                | string | 是  | 固定值。application/json                                                                                                             |
+| Content-Type          | string | 是  | 固定值。application/json                                                                                                             |
 
 #### Body参数
 
-| 字段            | 类型         | 必选  | 描述                                                |
-|---------------|------------|-----|---------------------------------------------------|
-| bk_scope_type | string     | 是   | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                |
-| bk_scope_id   | string     | 是   | 资源范围ID，与bk_scope_type对应, 表示业务ID或者业务集ID            |
-| bk_biz_id     | long       | 是   | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
-| host_id_list  | list<long> | 是   | 主机ID数组，单次查询主机数量不可超过5000                           |
+| 字段            | 类型         | 必选 | 描述                                                |
+|---------------|------------|----|---------------------------------------------------|
+| bk_scope_type | string     | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                |
+| bk_scope_id   | string     | 是  | 资源范围ID，与bk_scope_type对应, 表示业务ID或者业务集ID            |
+| bk_biz_id     | long       | 是  | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
+| host_id_list  | list<long> | 是  | 主机ID数组，单次查询主机数量不可超过5000                           |
 
 ### 请求参数示例
 
@@ -70,25 +70,25 @@
 
 ### 返回结果说明
 
-| 字段             | 类型     | 是否一定存在 | 描述                         |
-|----------------|--------|--------|----------------------------|
-| result         | bool   | 是      | 请求成功与否。true:请求成功；false请求失败 |
-| code           | int    | 是      | 错误编码。 0表示success，>0表示失败错误  |
-| message        | string | 否      | 请求失败返回的错误信息                |
-| data           | object | 否      | 请求返回的数据，删除操作可能没有值          |
-| job_request_id | string | 否      | 请求ID，请求唯一标识                |
-| permission     | object | 否      | 无权限返回的权限信息                 |
+| 字段             | 类型     | 是否一定不为null | 描述                         |
+|----------------|--------|------------|----------------------------|
+| result         | bool   | 是          | 请求成功与否。true:请求成功；false请求失败 |
+| code           | int    | 是          | 错误编码。 0表示success，>0表示失败错误  |
+| message        | string | 否          | 请求失败返回的错误信息                |
+| data           | object | 否          | 请求返回的数据，删除操作可能没有值          |
+| job_request_id | string | 否          | 请求ID，请求唯一标识                |
+| permission     | object | 否          | 无权限返回的权限信息                 |
 
 ##### data
 
-| 字段              | 类型           | 是否一定存在 | 描述                                                                      |
-|-----------------|--------------|--------|-------------------------------------------------------------------------|
-| agent_info_list | list<object> | 是      | 元素为Agent信息，详情见agent_info对象定义，若传入的host_id在返回结果的列表中不存在，则表示未查询到该主机的agent信息 |
+| 字段              | 类型           | 是否一定不为null | 描述                                                                      |
+|-----------------|--------------|------------|-------------------------------------------------------------------------|
+| agent_info_list | list<object> | 是          | 元素为Agent信息，详情见agent_info对象定义，若传入的host_id在返回结果的列表中不存在，则表示未查询到该主机的agent信息 |
 
 ##### agent_info
 
-| 字段         | 类型     | 是否一定存在 | 描述                |
-|------------|--------|--------|-------------------|
-| bk_host_id | long   | 是      | 主机ID              |
-| status     | int    | 是      | Agent状态：0-异常，1-正常 |
-| version    | string | 是      | Agent的版本          |
+| 字段         | 类型     | 是否一定不为null | 描述                |
+|------------|--------|------------|-------------------|
+| bk_host_id | long   | 是          | 主机ID              |
+| status     | int    | 是          | Agent状态：0-异常，1-正常 |
+| version    | string | 是          | Agent的版本          |
