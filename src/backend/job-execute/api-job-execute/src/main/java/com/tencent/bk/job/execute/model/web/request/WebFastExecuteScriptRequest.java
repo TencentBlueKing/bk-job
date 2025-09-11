@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.model.web.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.MySQLTextDataType;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.validation.EndWith;
@@ -35,10 +34,10 @@ import com.tencent.bk.job.common.validation.MaxLength;
 import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
 import com.tencent.bk.job.common.validation.ValidSensitiveParamLength;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
+import com.tencent.bk.job.execute.validation.ValidTimeoutLimit;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.NotNull;
 
@@ -110,11 +109,7 @@ public class WebFastExecuteScriptRequest {
      */
     @ApiModelProperty(value = "执行超时时间，单位秒", required = true)
     @NotNull(message = "{validation.constraints.InvalidJobTimeout_empty.message}")
-    @Range(
-        min = JobConstants.MIN_JOB_TIMEOUT_SECONDS,
-        max = JobConstants.MAX_JOB_TIMEOUT_SECONDS,
-        message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}"
-    )
+    @ValidTimeoutLimit
     private Integer timeout;
 
     /**

@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.MySQLTextDataType;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteTargetDTO;
@@ -37,11 +36,11 @@ import com.tencent.bk.job.common.validation.ValidSensitiveParamLength;
 import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.validator.EsbBkCIPluginFastExecuteScriptRequestGroupSequenceProvider;
+import com.tencent.bk.job.execute.validation.ValidTimeoutLimit;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.Range;
 import org.hibernate.validator.group.GroupSequenceProvider;
 
 import javax.validation.Valid;
@@ -135,8 +134,7 @@ public class EsbBkCIPluginFastExecuteScriptRequest extends EsbAppScopeReq {
      * 执行超时时间,单位秒
      */
     @JsonProperty("timeout")
-    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max = JobConstants.MAX_JOB_TIMEOUT_SECONDS,
-        message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
+    @ValidTimeoutLimit
     private Integer timeout;
 
     @JsonProperty("execute_target")

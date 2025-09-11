@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.model.esb.v3.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.MySQLTextDataType;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
@@ -36,9 +35,9 @@ import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
 import com.tencent.bk.job.common.validation.ValidSensitiveParamLength;
 import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
+import com.tencent.bk.job.execute.validation.ValidTimeoutLimit;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.validator.constraints.Range;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -123,8 +122,7 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
      * 执行超时时间,单位秒
      */
     @JsonProperty("timeout")
-    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max = JobConstants.MAX_JOB_TIMEOUT_SECONDS,
-        message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
+    @ValidTimeoutLimit
     private Integer timeout;
 
     @JsonProperty("target_server")

@@ -22,36 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.util;
+package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.common.util.ApplicationContextRegister;
-import com.tencent.bk.job.execute.config.ResourceScopeTaskTimeoutParser;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-import static com.tencent.bk.job.common.constant.JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS;
-import static com.tencent.bk.job.common.constant.JobConstants.MAX_JOB_TIMEOUT_SECONDS;
+@Slf4j
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(ResourceScopeTaskTimeoutProperties.class)
+public class ResourceScopeTaskTimeoutConfiguration {
 
-public class TimeoutUtils {
-
-    /**
-     * 调整任务超时时间
-     *
-     * @param timeout 超时时间
-     * @param appId   业务ID
-     * @return 超时时间
-     */
-    public static Integer adjustTaskTimeout(Long appId, Integer timeout) {
-        if (timeout == null) {
-            return DEFAULT_JOB_TIMEOUT_SECONDS;
-        }
-
-        ResourceScopeTaskTimeoutParser resourceScopeTaskTimeoutParser = ApplicationContextRegister.getBean(
-            ResourceScopeTaskTimeoutParser.class);
-        int maxTimeout = resourceScopeTaskTimeoutParser.getMaxTimeoutOrDefault(appId, MAX_JOB_TIMEOUT_SECONDS);
-
-        Integer finalTimeout = timeout;
-        if (timeout <= 0 || timeout > maxTimeout) {
-            finalTimeout = maxTimeout;
-        }
-        return finalTimeout;
+    @Bean
+    public ResourceScopeTaskTimeoutParser resourceScopeTaskTimeoutParser(
+        ResourceScopeTaskTimeoutProperties properties,
+        AppScopeMappingService appScopeMappingService
+    ) {
+        log.info("Init ResourceScopeTaskTimeoutParser");
+        return new ResourceScopeTaskTimeoutParser(properties, appScopeMappingService);
     }
 }

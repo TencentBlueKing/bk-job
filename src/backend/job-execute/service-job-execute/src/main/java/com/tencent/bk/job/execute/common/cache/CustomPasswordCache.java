@@ -25,7 +25,9 @@
 package com.tencent.bk.job.execute.common.cache;
 
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.execute.config.ResourceScopeTaskTimeoutParser;
 import com.tencent.bk.job.execute.model.AgentCustomPasswordDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -43,6 +45,8 @@ import java.util.concurrent.TimeUnit;
 public class CustomPasswordCache {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    
+    private final ResourceScopeTaskTimeoutParser resourceScopeTaskTimeoutParser;
 
     private static final String KEY_TARGET_AGENT_PWD_CACHE_PREFIX = "job:execute:agent:pwd:";
 
@@ -56,16 +60,25 @@ public class CustomPasswordCache {
      */
     private static final int MAX_EXPIRE_TIME_SECONDS = JobConstants.MAX_JOB_TIMEOUT_SECONDS;
 
-    public CustomPasswordCache(RedisTemplate<String, Object> redisTemplate) {
+    public CustomPasswordCache(RedisTemplate<String, Object> redisTemplate,
+                               ResourceScopeTaskTimeoutParser resourceScopeTaskTimeoutParser) {
         this.redisTemplate = redisTemplate;
+        this.resourceScopeTaskTimeoutParser = resourceScopeTaskTimeoutParser;
     }
 
-    public void addCache(List<AgentCustomPasswordDTO> passwordList, Long taskInstanceId) {
+    public void addCache(List<AgentCustomPasswordDTO> passwordList, TaskInstanceDTO taskInstance) {
         if (CollectionUtils.isEmpty(passwordList)) {
             return;
         }
+        Long taskInstanceId = taskInstance.getId();
         String key = buildCacheKey(taskInstanceId);
-        redisTemplate.opsForValue().set(key, passwordList, MAX_EXPIRE_TIME_SECONDS, TimeUnit.SECONDS);
+        // 业务可能自定义了三天以上的超时时间，这里需要保证密码缓存的时间不小于作业超时时间
+        Long appId = taskInstance.getAppId();
+        int actualExpireTime = resourceScopeTaskTimeoutParser.getMaxTimeoutOrDefault(
+            appId,
+            MAX_EXPIRE_TIME_SECONDS
+        );
+        redisTemplate.opsForValue().set(key, passwordList, actualExpireTime, TimeUnit.SECONDS);
     }
 
     public void deleteCache(Long taskInstanceId) {
