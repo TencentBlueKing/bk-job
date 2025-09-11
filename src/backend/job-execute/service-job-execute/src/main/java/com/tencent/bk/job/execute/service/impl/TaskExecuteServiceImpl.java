@@ -438,7 +438,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         Collection<ServiceHostDTO> serviceHostDTOs = getRealHostsByCustomPwdList(customHostPasswordDTOList);
         List<AgentCustomPasswordDTO> agentCustomPasswordDTOList = setAgentCustomPwd(customHostPasswordDTOList,
             serviceHostDTOs);
-        customPasswordCache.addCache(agentCustomPasswordDTOList, taskInstance.getId());
+        customPasswordCache.addCache(agentCustomPasswordDTOList, taskInstance);
         watch.stop();
     }
 

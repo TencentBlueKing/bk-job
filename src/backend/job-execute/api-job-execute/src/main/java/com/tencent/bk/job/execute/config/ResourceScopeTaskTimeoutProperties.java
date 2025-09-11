@@ -35,14 +35,29 @@ import java.util.List;
 @Data
 @ConfigurationProperties(prefix = "job.execute.task-timeout")
 public class ResourceScopeTaskTimeoutProperties {
+    /**
+     * 业务维度自定义，可接受的最大作业超时时间
+     */
     private List<TimeoutConfig> custom = new ArrayList<>();
 
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
     public static class TimeoutConfig {
+        /**
+         * 资源范围类型，biz/biz_set
+         * @see com.tencent.bk.job.common.constant.ResourceScopeTypeEnum
+         */
         private String scopeType;
+
+        /**
+         * 业务(集)ID
+         */
         private String scopeId;
+
+        /**
+         * 最大超时时间，单位: 秒
+         */
         private int maxTimeout;
     }
 }

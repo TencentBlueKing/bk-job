@@ -52,19 +52,6 @@ public class ResourceScopeTaskTimeoutParser {
     }
 
     /**
-     * 根据资源获取最大超时时间
-     *
-     * @param scopeType 资源类型
-     * @param scopeId 资源ID
-     * @param defaultMaxTimeout 平台默认最大超时时间
-     * @return 最大超时时间
-     */
-    public int getMaxTimeoutOrDefault(String scopeType, String scopeId, int defaultMaxTimeout) {
-        Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
-        return appTimeoutMap.getOrDefault(appId, defaultMaxTimeout);
-    }
-
-    /**
      * 根据appID获取最大超时时间
      *
      * @param appId appID
