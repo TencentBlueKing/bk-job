@@ -1,4 +1,4 @@
-FROM blueking/jdk:0.0.1
+FROM bkjob/jdk:0.0.5
 
 LABEL maintainer="Tencent BlueKing Job"
 
@@ -10,9 +10,9 @@ RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo 'Asia/Shanghai' > /etc/timezone && \
     chmod +x /data/job/exec/startup.sh
 
-ENV LANG en_US.utf8
-ENV LANGUAGE en_US.utf8
-ENV LC_ALL en_US.utf8
+ENV LANG en_US.utf8 && \
+    LANGUAGE en_US.utf8 && \
+    LC_ALL en_US.utf8
 
 WORKDIR /data/job/exec
 CMD /data/job/exec/startup.sh
