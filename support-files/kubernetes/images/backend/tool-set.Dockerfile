@@ -1,4 +1,4 @@
-FROM bkjob/jdk:0.0.5
+FROM bkjob/jdk:3.10.0
 
 LABEL maintainer="Tencent BlueKing Job"
 LABEL dockerfile.version="0.0.2"
