@@ -1771,8 +1771,8 @@ k8sConfigWatcherConfig:
   enabled: true
   image:
     registry: docker.io
-    repository: springcloud/spring-cloud-kubernetes-configuration-watcher
-    tag: "3.0.0"
+    repository: "bkjob/job-config-watcher"
+    tag: "0.0.1"
     pullPolicy: IfNotPresent
     pullSecrets: []
   hostAliases: []

@@ -1,4 +1,4 @@
-FROM tencentos/tencentos4-minimal
+FROM tencentos/tencentos4-minimal:4.4-v20250805
 
 LABEL maintainer="Tencent BlueKing Job"
 
