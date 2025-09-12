@@ -564,7 +564,7 @@ public class LogServiceImpl implements LogService {
             query.addCriteria(Criteria.where(ScriptTaskLogDocField.BATCH).is(batch));
         }
         keyword = StringUtil.escape(keyword, SPECIAL_CHAR, ESCAPE_CHAR);
-        Pattern pattern = Pattern.compile(keyword, Pattern.LITERAL | Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile(keyword, Pattern.CASE_INSENSITIVE);
         query.addCriteria(Criteria.where("content").regex(pattern));
         return query;
     }
