@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateAccountV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbDeleteAccountV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetAccountListV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateAccountV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbAccountV3DTO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -95,4 +96,12 @@ public interface EsbAccountV3Resource {
             EsbDeleteAccountV3Req req
     );
 
+    @PostMapping("/update_account")
+    EsbResp<EsbAccountV3DTO> updateAccount(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestBody
+        @Validated
+            EsbUpdateAccountV3Req req
+    );
 }
