@@ -25,16 +25,15 @@
 package com.tencent.bk.job.execute.model.web.request;
 
 import com.tencent.bk.job.common.constant.DuplicateHandlerEnum;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
+import com.tencent.bk.job.execute.validation.ValidTimeoutLimit;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -78,8 +77,7 @@ public class WebFastPushFileRequest {
      */
     @ApiModelProperty(value = "超时时间，单位秒", required = true)
     @NotNull(message = "{validation.constraints.InvalidJobTimeout_empty.message}")
-    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max= JobConstants.MAX_JOB_TIMEOUT_SECONDS,
-        message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
+    @ValidTimeoutLimit
     private Integer timeout;
 
     @ApiModelProperty(value = "是否启用滚动执行")

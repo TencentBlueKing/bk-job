@@ -22,36 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.util;
+package com.tencent.bk.job.execute.config;
 
-import com.tencent.bk.job.common.util.ApplicationContextRegister;
-import com.tencent.bk.job.execute.config.ResourceScopeTaskTimeoutParser;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import static com.tencent.bk.job.common.constant.JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS;
-import static com.tencent.bk.job.common.constant.JobConstants.MAX_JOB_TIMEOUT_SECONDS;
+import java.util.ArrayList;
+import java.util.List;
 
-public class TimeoutUtils {
-
+@Data
+@ConfigurationProperties(prefix = "job.execute.task-timeout")
+public class ResourceScopeTaskTimeoutProperties {
     /**
-     * 调整任务超时时间
-     *
-     * @param timeout 超时时间
-     * @param appId   业务ID
-     * @return 超时时间
+     * 业务维度自定义，可接受的最大作业超时时间
      */
-    public static Integer adjustTaskTimeout(Long appId, Integer timeout) {
-        if (timeout == null) {
-            return DEFAULT_JOB_TIMEOUT_SECONDS;
-        }
+    private List<TimeoutConfig> custom = new ArrayList<>();
 
-        ResourceScopeTaskTimeoutParser resourceScopeTaskTimeoutParser = ApplicationContextRegister.getBean(
-            ResourceScopeTaskTimeoutParser.class);
-        int maxTimeout = resourceScopeTaskTimeoutParser.getMaxTimeoutOrDefault(appId, MAX_JOB_TIMEOUT_SECONDS);
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class TimeoutConfig {
+        /**
+         * 资源范围类型，biz/biz_set/tenant_set
+         * @see com.tencent.bk.job.common.constant.ResourceScopeTypeEnum
+         */
+        private String scopeType;
 
-        Integer finalTimeout = timeout;
-        if (timeout <= 0 || timeout > maxTimeout) {
-            finalTimeout = maxTimeout;
-        }
-        return finalTimeout;
+        /**
+         * 业务(集)/租户集ID
+         */
+        private String scopeId;
+
+        /**
+         * 最大超时时间，单位: 秒
+         */
+        private int maxTimeout;
     }
 }
