@@ -73,6 +73,8 @@ spec:
             - name: BK_JOB_MYSQL_EXTRA_OPTIONS
               value: {{ .Values.job.migration.mysqlSchema.extraOptions | quote }}
             {{- end }}
+            - name: BK_JOB_TENANT_ENABLED
+              value: {{ .Values.tenant.enabled | quote }}
       {{- if and (not .Values.mariadb.enabled) (.Values.job.migration.mysqlSchema.tls.enabled) }}
             - name: BK_JOB_TLS_OPTIONS
               value: {{ include "job.migration.mysqlSchema.tlsOptions" . | quote }}
