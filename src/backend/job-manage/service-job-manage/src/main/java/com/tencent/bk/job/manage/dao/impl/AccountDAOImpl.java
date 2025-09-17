@@ -351,7 +351,14 @@ public class AccountDAOImpl implements AccountDAO {
             orderFields.add(TB_ACCOUNT.LAST_MODIFY_TIME.desc());
         } else {
             String orderField = baseSearchCondition.getOrderField();
-            if ("alias".equals(orderField)) {
+            if ("id".equals(orderField)) {
+                //升序
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(TB_ACCOUNT.ID.asc());
+                } else {
+                    orderFields.add(TB_ACCOUNT.ID.desc());
+                }
+            } else if ("alias".equals(orderField)) {
                 //升序
                 if (baseSearchCondition.getOrder() == 1) {
                     orderFields.add(TB_ACCOUNT.ALIAS.asc());
@@ -363,6 +370,18 @@ public class AccountDAOImpl implements AccountDAO {
                     orderFields.add(TB_ACCOUNT.ACCOUNT_.asc());
                 } else {
                     orderFields.add(TB_ACCOUNT.ACCOUNT_.desc());
+                }
+            } else if ("category".equals(orderField) || "categoryName".equals(orderField)) {
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(TB_ACCOUNT.CATEGORY.asc());
+                } else {
+                    orderFields.add(TB_ACCOUNT.CATEGORY.desc());
+                }
+            } else if ("type".equals(orderField) || "typeName".equals(orderField)) {
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(TB_ACCOUNT.TYPE.asc());
+                } else {
+                    orderFields.add(TB_ACCOUNT.TYPE.desc());
                 }
             } else if ("lastModifyTime".equals(orderField)) {
                 if (baseSearchCondition.getOrder() == 1) {
