@@ -25,17 +25,18 @@
 
 export default class User {
   constructor(payload) {
-    this.displayName = payload.displayName || '';
-    this.email = payload.email || '';
-    this.fullName = payload.fullName || '';
     this.id = payload.id;
-    this.language = payload.language || '';
+    this.username = payload.username;
+    this.displayName = payload.displayName || '';
     this.logo = payload.logo || '';
     this.phone = payload.phone || '';
+    this.email = payload.email || '';
+    this.timeZone = payload.timeZone || '';
+    this.wxUserId = payload.wxUserId || '';
+    this.language = payload.language || '';
+    this.tenantEnabled = Boolean(payload.tenantEnabled);
     this.systemTenant = Boolean(payload.systemTenant);
     this.tenantId = payload.tenantId || '';
-    this.timeZone = payload.timeZone || '';
-    this.username = payload.username;
-    this.wxUserId = payload.wxUserId || '';
+    this.fullName = payload.fullName || '';
   }
 }
