@@ -345,7 +345,6 @@ public class AccountDAOImpl implements AccountDAO {
 
     public PageData<AccountDTO> listPageAccountByConditions(BaseSearchCondition baseSearchCondition,
                                                             List<Condition> conditions, long count) {
-
         Collection<SortField<?>> orderFields = new ArrayList<>();
         if (StringUtils.isBlank(baseSearchCondition.getOrderField())) {
             orderFields.add(TB_ACCOUNT.LAST_MODIFY_TIME.desc());
@@ -389,6 +388,8 @@ public class AccountDAOImpl implements AccountDAO {
                 } else {
                     orderFields.add(TB_ACCOUNT.LAST_MODIFY_TIME.desc());
                 }
+            } else {
+                orderFields.add(TB_ACCOUNT.LAST_MODIFY_TIME.desc());
             }
         }
 
@@ -401,7 +402,7 @@ public class AccountDAOImpl implements AccountDAO {
                 .orderBy(orderFields)
                 .limit(start, length).fetch();
         List<AccountDTO> accounts = new ArrayList<>();
-        if (result.size() != 0) {
+        if (!result.isEmpty()) {
             result.map(record -> {
                 accounts.add(extract(record));
                 return null;
