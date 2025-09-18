@@ -49,6 +49,12 @@ function migrateMySQL(){
 function migrateIamModel(){
   echo "begin to migrate iam model"
   echo "BK_JOB_API_URL=${BK_JOB_API_URL}"
+  echo "BK_JOB_TENANT_ENABLED=${BK_JOB_TENANT_ENABLED}"
+  if [[ "${BK_JOB_TENANT_ENABLED}" == "true" ]]; then
+      echo "Add iam model for tenant-enabled environment:"
+      echo ./bkiam/tenant/*.json
+      cp ./bkiam/tenant/*.json ./bkiam/
+  fi
   ALL_IAM_MODEL=($(echo ./bkiam/*.json))
   for iam_model in "${ALL_IAM_MODEL[@]}"; do
     sed -i "s,https://job-gateway.service.consul:10503,${BK_JOB_API_URL}," $iam_model
