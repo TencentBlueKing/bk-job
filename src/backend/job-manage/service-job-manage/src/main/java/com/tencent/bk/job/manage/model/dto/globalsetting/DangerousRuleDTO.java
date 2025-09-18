@@ -99,9 +99,17 @@ public class DangerousRuleDTO {
      */
     private Integer status;
 
-    public DangerousRuleDTO(Long id, String expression, String description, Integer priority, Integer scriptType,
-                            String creator, Long createTime, String lastModifier, Long lastModifyTime,
-                            Integer action, Integer status) {
+    public DangerousRuleDTO(Long id,
+                            String expression,
+                            String description,
+                            Integer priority,
+                            Integer scriptType,
+                            String creator,
+                            Long createTime,
+                            String lastModifier,
+                            Long lastModifyTime,
+                            Integer action,
+                            Integer status) {
         this.id = id;
         this.expression = expression;
         this.description = description;

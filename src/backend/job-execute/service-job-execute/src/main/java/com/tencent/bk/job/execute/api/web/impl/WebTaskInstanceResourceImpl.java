@@ -37,9 +37,11 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.api.web.WebTaskInstanceResource;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
@@ -143,7 +145,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                                                            Long stepInstanceId) {
         StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(taskInstanceId, stepInstanceId);
 
-        taskInstanceAccessProcessor.processBeforeAccess(username,
+        taskInstanceAccessProcessor.processBeforeAccess(JobContextUtil.getUser(),
             appResourceScope.getAppId(), stepInstance.getTaskInstanceId());
 
         ExecuteStepVO stepVO = convertToStepVO(stepInstance);
@@ -317,7 +319,8 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                                                                       String scopeId,
                                                                       Long taskInstanceId) {
 
-        taskInstanceAccessProcessor.processBeforeAccess(username, appResourceScope.getAppId(), taskInstanceId);
+        taskInstanceAccessProcessor.processBeforeAccess(JobContextUtil.getUser(),
+            appResourceScope.getAppId(), taskInstanceId);
 
         List<TaskVariableDTO> taskVariables = taskInstanceVariableService.getByTaskInstanceId(taskInstanceId);
         List<ExecuteVariableVO> variableVOS = new ArrayList<>();
@@ -358,7 +361,8 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                                                                           String scopeId,
                                                                           Long taskInstanceId) {
 
-        taskInstanceAccessProcessor.processBeforeAccess(username, appResourceScope.getAppId(), taskInstanceId);
+        taskInstanceAccessProcessor.processBeforeAccess(JobContextUtil.getUser(),
+            appResourceScope.getAppId(), taskInstanceId);
 
         List<OperationLogDTO> operationLogs = taskOperationLogService.listOperationLog(taskInstanceId);
         if (operationLogs == null || operationLogs.isEmpty()) {
@@ -426,7 +430,8 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                                                                 String scopeId,
                                                                 Long taskInstanceId) {
 
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstanceDetail(username,
+        User user = JobContextUtil.getUser();
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstanceDetail(user,
             appResourceScope.getAppId(), taskInstanceId);
 
         return Response.buildSuccessResp(convertToTaskInstanceDetailVO(taskInstance));
@@ -459,6 +464,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
 
     @Override
     public Response<TaskInstanceVO> getTaskInstanceBasic(String username, Long taskInstanceId) {
+        User user = JobContextUtil.getUser();
         if (taskInstanceId == null || taskInstanceId <= 0) {
             log.warn("Get task instance basic, task instance id is null or empty!");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
@@ -468,7 +474,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
         AuthResult authResult = businessAuthService.authAccessBusiness(
-            username, new AppResourceScope(taskInstance.getAppId())
+            user, new AppResourceScope(taskInstance.getAppId())
         );
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);

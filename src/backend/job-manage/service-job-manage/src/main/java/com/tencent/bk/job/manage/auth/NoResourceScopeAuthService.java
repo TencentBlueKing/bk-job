@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.auth;
 
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.User;
 
 import java.util.List;
 
@@ -35,102 +36,102 @@ public interface NoResourceScopeAuthService {
     /**
      * 创建IP白名单鉴权
      *
-     * @param username 用户名
+     * @param user 用户
      * @return 鉴权结果
      */
-    AuthResult authCreateWhiteList(String username);
+    AuthResult authCreateWhiteList(User user);
 
     /**
      * 管理IP白名单鉴权
      *
-     * @param username 用户名
+     * @param user 用户
      * @return 鉴权结果
      */
-    AuthResult authManageWhiteList(String username);
+    AuthResult authManageWhiteList(User user);
 
     /**
      * 创建公共脚本鉴权
      *
-     * @param username 用户名
+     * @param user 用户
      * @return 鉴权结果
      */
-    AuthResult authCreatePublicScript(String username);
+    AuthResult authCreatePublicScript(User user);
 
     /**
      * 管理公共脚本鉴权
      *
-     * @param username 用户名
+     * @param user     用户
      * @param scriptId 公共脚本ID
      * @return 鉴权结果
      */
-    AuthResult authManagePublicScript(String username, String scriptId);
+    AuthResult authManagePublicScript(User user, String scriptId);
 
     /**
      * 管理公共脚本批量鉴权
      *
-     * @param username     用户名
+     * @param user         用户
      * @param scriptIdList 公共脚本ID列表
      * @return 有权限的公共脚本ID
      */
-    List<String> batchAuthManagePublicScript(String username, List<String> scriptIdList);
+    List<String> batchAuthManagePublicScript(User user, List<String> scriptIdList);
 
     /**
      * 管理公共脚本批量鉴权并返回鉴权结果
      *
-     * @param username     用户名
+     * @param user         用户
      * @param scriptIdList 公共脚本ID列表
      * @return 鉴权结果
      */
-    AuthResult batchAuthResultManagePublicScript(String username, List<String> scriptIdList);
+    AuthResult batchAuthResultManagePublicScript(User user, List<String> scriptIdList);
 
     /**
      * 全局设置鉴权
      *
-     * @param username 用户名
+     * @param user 用户
      * @return 鉴权结果
      */
-    AuthResult authGlobalSetting(String username);
+    AuthResult authGlobalSetting(User user);
 
     /**
      * 运营视图查看鉴权
      *
-     * @param username    用户名
+     * @param user        用户
      * @param dashBoardId 运营视图ID
      * @return 鉴权结果
      */
-    AuthResult authViewDashBoard(String username, String dashBoardId);
+    AuthResult authViewDashBoard(User user, String dashBoardId);
 
     /**
      * 服务状态查看鉴权
      *
-     * @param username 用户名
+     * @param user 用户
      * @return 鉴权结果
      */
-    AuthResult authViewServiceState(String username);
+    AuthResult authViewServiceState(User user);
 
     /**
      * 高危语句规则管理鉴权
      *
-     * @param username 用户名
+     * @param user 用户
      * @return 鉴权结果
      */
-    AuthResult authHighRiskDetectRule(String username);
+    AuthResult authHighRiskDetectRule(User user);
 
     /**
      * 高危语句拦截记录查看鉴权
      *
-     * @param username 用户名
+     * @param user 用户
      * @return 鉴权结果
      */
-    AuthResult authHighRiskDetectRecord(String username);
+    AuthResult authHighRiskDetectRecord(User user);
 
     /**
      * 注册公共脚本实例
      *
+     * @param creator 资源实例创建者
      * @param id      资源实例 ID
      * @param name    资源实例名称
-     * @param creator 资源实例创建者
      * @return 是否注册成功
      */
-    boolean registerPublicScript(String id, String name, String creator);
+    boolean registerPublicScript(User creator, String id, String name);
 }

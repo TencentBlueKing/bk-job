@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.retry.RetryUtils;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,8 +59,9 @@ public class RetryableGseV2ApiClient extends GseV2ApiClient {
     public RetryableGseV2ApiClient(MeterRegistry meterRegistry,
                                    AppProperties appProperties,
                                    BkApiGatewayProperties bkApiGatewayProperties,
-                                   GseV2Properties gseV2Properties) {
-        super(meterRegistry, appProperties, bkApiGatewayProperties);
+                                   GseV2Properties gseV2Properties,
+                                   TenantEnvService tenantEnvService) {
+        super(meterRegistry, appProperties, bkApiGatewayProperties, tenantEnvService);
         this.maxAttempts = gseV2Properties.getRetry().getMaxAttempts();
         this.intervalSeconds = gseV2Properties.getRetry().getIntervalSeconds();
     }

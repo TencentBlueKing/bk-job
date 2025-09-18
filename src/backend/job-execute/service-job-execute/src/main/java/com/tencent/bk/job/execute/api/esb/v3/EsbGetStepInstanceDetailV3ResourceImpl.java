@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbScriptStepV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbStepV3DTO;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -82,7 +83,8 @@ public class EsbGetStepInstanceDetailV3ResourceImpl implements EsbGetStepInstanc
 
         StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(taskInstanceId, stepInstanceId);
 
-        taskInstanceAccessProcessor.processBeforeAccess(username, appId, stepInstance.getTaskInstanceId());
+        taskInstanceAccessProcessor.processBeforeAccess(JobContextUtil.getUser(),
+            appId, stepInstance.getTaskInstanceId());
 
         EsbStepV3DTO esbStepV3DTO = convertToEsbStepV3DTO(stepInstance);
         return EsbResp.buildSuccessResp(esbStepV3DTO);

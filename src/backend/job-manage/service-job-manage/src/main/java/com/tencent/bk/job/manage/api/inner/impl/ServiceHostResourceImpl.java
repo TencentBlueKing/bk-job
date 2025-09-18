@@ -24,7 +24,10 @@
 
 package com.tencent.bk.job.manage.api.inner.impl;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
@@ -32,6 +35,8 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.common.util.StackTraceUtil;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
@@ -50,10 +55,13 @@ import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.host.BizTopoHostService;
 import com.tencent.bk.job.manage.service.host.HostDetailService;
-import com.tencent.bk.job.manage.service.host.HostService;
-import com.tencent.bk.job.manage.service.host.impl.BizDynamicGroupHostService;
+import com.tencent.bk.job.manage.service.host.NoTenantHostService;
+import com.tencent.bk.job.manage.service.host.ScopeCachedHostService;
+import com.tencent.bk.job.manage.service.host.ScopeDynamicGroupHostService;
+import com.tencent.bk.job.manage.service.host.TenantHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -69,25 +77,34 @@ import java.util.stream.Collectors;
 public class ServiceHostResourceImpl implements ServiceHostResource {
     private final AppScopeMappingService appScopeMappingService;
     private final ApplicationService applicationService;
-    private final HostService hostService;
+    private final TenantService tenantService;
+    private final TenantHostService tenantHostService;
+    private final ScopeCachedHostService scopeCachedHostService;
+    private final NoTenantHostService noTenantHostService;
     private final BizTopoHostService bizTopoHostService;
-    private final BizDynamicGroupHostService bizDynamicGroupHostService;
+    private final ScopeDynamicGroupHostService scopeDynamicGroupHostService;
     private final HostDetailService hostDetailService;
     private final HostTopoDAO hostTopoDAO;
 
     @Autowired
     public ServiceHostResourceImpl(AppScopeMappingService appScopeMappingService,
                                    ApplicationService applicationService,
-                                   HostService hostService,
+                                   TenantService tenantService,
+                                   TenantHostService tenantHostService,
+                                   ScopeCachedHostService scopeCachedHostService,
+                                   NoTenantHostService noTenantHostService,
                                    BizTopoHostService bizTopoHostService,
-                                   BizDynamicGroupHostService bizDynamicGroupHostService,
+                                   ScopeDynamicGroupHostService scopeDynamicGroupHostService,
                                    HostDetailService hostDetailService,
                                    HostTopoDAO hostTopoDAO) {
         this.appScopeMappingService = appScopeMappingService;
         this.applicationService = applicationService;
-        this.hostService = hostService;
+        this.tenantService = tenantService;
+        this.tenantHostService = tenantHostService;
+        this.scopeCachedHostService = scopeCachedHostService;
+        this.noTenantHostService = noTenantHostService;
         this.bizTopoHostService = bizTopoHostService;
-        this.bizDynamicGroupHostService = bizDynamicGroupHostService;
+        this.scopeDynamicGroupHostService = scopeDynamicGroupHostService;
         this.hostDetailService = hostDetailService;
         this.hostTopoDAO = hostTopoDAO;
     }
@@ -125,7 +142,8 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
         List<String> dynamicGroupIdList = req.getDynamicGroupIdList();
         AppResourceScope appResourceScope = new AppResourceScope(appId);
         appScopeMappingService.fillAppResourceScope(appResourceScope);
-        List<ApplicationHostDTO> hostList = bizDynamicGroupHostService.listHostByDynamicGroups(
+        List<ApplicationHostDTO> hostList = scopeDynamicGroupHostService.listHostByDynamicGroups(
+            appDTO.getTenantId(),
             appResourceScope,
             dynamicGroupIdList
         );
@@ -142,7 +160,8 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     @Override
     public InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByHost(Long appId,
                                                                             ServiceGetHostStatusByHostReq req) {
-        List<ApplicationHostDTO> hostDTOList = hostService.listHosts(req.getHostList());
+        String tenantId = tenantService.getTenantIdByAppId(appId);
+        List<ApplicationHostDTO> hostDTOList = tenantHostService.listHosts(tenantId, req.getHostList());
         List<ServiceHostStatusDTO> hostStatusDTOList = new ArrayList<>();
         hostDTOList.forEach(host -> {
             ServiceHostStatusDTO hostStatusDTO = new ServiceHostStatusDTO();
@@ -159,22 +178,24 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
     public InternalResponse<ServiceListAppHostResultDTO> batchGetAppHosts(Long appId,
                                                                           ServiceBatchGetAppHostsReq req) {
         req.validate();
-        ServiceListAppHostResultDTO result =
-            hostService.listAppHostsPreferCache(appId, req.getHosts(), req.isRefreshAgentId());
-        if (CollectionUtils.isNotEmpty(result.getValidHosts())) {
-            hostDetailService.fillDetailForHosts(result.getValidHosts());
-        }
+        AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId);
+        ServiceListAppHostResultDTO result = scopeCachedHostService.listAppHostsPreferCache(
+            appResourceScope,
+            req.getHosts(),
+            req.isRefreshAgentId()
+        );
         return InternalResponse.buildSuccessResp(result);
     }
 
     @Override
-    public InternalResponse<List<ServiceHostDTO>> batchGetHosts(ServiceBatchGetHostsReq req) {
+    public InternalResponse<List<ServiceHostDTO>> batchGetHostsFromCacheOrDB(ServiceBatchGetHostsReq req) {
         List<HostDTO> queryHosts = req.getHosts();
-        List<ApplicationHostDTO> hosts = hostService.listHosts(queryHosts);
+        List<ApplicationHostDTO> hosts = noTenantHostService.listHostsFromCacheOrDB(queryHosts);
         if (CollectionUtils.isEmpty(hosts)) {
             return InternalResponse.buildSuccessResp(Collections.emptyList());
         }
-        hostDetailService.fillDetailForApplicationHosts(hosts);
+        String tenantId = getTenantIdWithDefault(req, hosts);
+        hostDetailService.fillDetailForApplicationHosts(tenantId, hosts);
 
         return InternalResponse.buildSuccessResp(
             hosts.stream()
@@ -182,17 +203,65 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
                 .collect(Collectors.toList()));
     }
 
+    @Deprecated
+    @CompatibleImplementation(
+        name = "tenant",
+        explain = "兼容发布过程中老的调用，发布完成后删除",
+        deprecatedVersion = "3.12.x",
+        type = CompatibleType.DEPLOY
+    )
+    private String getTenantIdWithDefault(ServiceBatchGetHostsReq req, List<ApplicationHostDTO> hosts) {
+        if (req.getTenantId() != null) {
+            return req.getTenantId();
+        }
+        if (CollectionUtils.isNotEmpty(hosts)) {
+            log.warn(
+                "CompatibleImplementation: getTenantIdWithDefault is still work with hosts, please check stack:{}",
+                StackTraceUtil.getCurrentStackTrace()
+            );
+            String tenantId = hosts.get(0).getTenantId();
+            if (StringUtils.isNotBlank(tenantId)) {
+                return tenantId;
+            }
+        }
+        log.warn(
+            "CompatibleImplementation: getTenantIdWithDefault is still work with default, please check stack:{}",
+            StackTraceUtil.getCurrentStackTrace()
+        );
+        return TenantIdConstants.DEFAULT_TENANT_ID;
+    }
+
     @Override
     public InternalResponse<List<ServiceHostDTO>> getHostsByCloudIpv6(ServiceGetHostsByCloudIpv6Req req) {
-        List<ApplicationHostDTO> hosts = hostService.listHostsByCloudIpv6(req.getCloudAreaId(), req.getIpv6());
+        addDefaultTenant(req);
+        List<ApplicationHostDTO> hosts = tenantHostService.listHostsByCloudIpv6(
+            req.getTenantId(),
+            req.getCloudAreaId(),
+            req.getIpv6()
+        );
         if (CollectionUtils.isEmpty(hosts)) {
             return InternalResponse.buildSuccessResp(Collections.emptyList());
         }
-        hostDetailService.fillDetailForApplicationHosts(hosts);
+        hostDetailService.fillDetailForApplicationHosts(req.getTenantId(), hosts);
         return InternalResponse.buildSuccessResp(
             hosts.stream()
                 .map(ServiceHostDTO::fromApplicationHostDTO)
                 .collect(Collectors.toList()));
+    }
+
+    @Deprecated
+    @CompatibleImplementation(
+        name = "tenant",
+        explain = "兼容发布过程中老的调用，发布完成后删除",
+        deprecatedVersion = "3.12.x",
+        type = CompatibleType.DEPLOY
+    )
+    private void addDefaultTenant(ServiceGetHostsByCloudIpv6Req req) {
+        if (req.getTenantId() != null) {
+            return;
+        }
+        log.warn("CompatibleImplementation: addDefaultTenant is still work with default, please check");
+        req.setTenantId(TenantIdConstants.DEFAULT_TENANT_ID);
     }
 
     @Override
