@@ -67,8 +67,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class LogServiceImpl implements LogService {
     private static final int BATCH_SIZE = 100;
-    private static final char[] SPECIAL_CHAR = {'*', '(', ')', '+', '?', '\\', '$', '^', '>', '.'};
-    private static final String[] ESCAPE_CHAR = {"\\*", "\\(", "\\)", "\\+", "\\?", "\\\\", "\\$", "\\^", "\\>", "\\."};
+    private static final char[] SPECIAL_CHAR = {'*', '(', ')', '+', '?', '\\', '$', '^', '>', '.', '[', ']', '|', '{'
+        , '}'};
+    private static final String[] ESCAPE_CHAR = {"\\*", "\\(", "\\)", "\\+", "\\?", "\\\\", "\\$", "\\^", "\\>", "\\" +
+        ".", "\\[", "\\]", "\\|", "\\{", "\\}"};
     private final MongoTemplate mongoTemplate;
     private final LogCollectionFactory logCollectionFactory;
 
@@ -564,7 +566,7 @@ public class LogServiceImpl implements LogService {
             query.addCriteria(Criteria.where(ScriptTaskLogDocField.BATCH).is(batch));
         }
         keyword = StringUtil.escape(keyword, SPECIAL_CHAR, ESCAPE_CHAR);
-        Pattern pattern = Pattern.compile(keyword, Pattern.LITERAL | Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile(keyword, Pattern.CASE_INSENSITIVE);
         query.addCriteria(Criteria.where("content").regex(pattern));
         return query;
     }

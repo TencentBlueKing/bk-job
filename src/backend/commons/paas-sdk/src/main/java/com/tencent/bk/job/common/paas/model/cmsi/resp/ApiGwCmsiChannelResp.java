@@ -47,7 +47,7 @@ public class ApiGwCmsiChannelResp {
     /**
      * 该租户内是否支持
      */
-    @JsonProperty("enable")
+    @JsonProperty("enabled")
     private boolean enable;
 
     /**
