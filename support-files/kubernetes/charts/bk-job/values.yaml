@@ -971,7 +971,7 @@ gatewayConfig:
       http: 80
   ingress:
     # 是否开启ingress
-    enabled: true
+    enabled: false
     path: "/"
     pathType: ImplementationSpecific
     annotations:
@@ -1840,6 +1840,19 @@ apiConfig:
       nginx.ingress.kubernetes.io/use-regex: "true"
       # 请求包大小限制
       nginx.ingress.kubernetes.io/proxy-body-size: "10240m"
+
+## 腾讯云CLB相关配置
+tencentCloudClbConfig:
+  ingress:
+    # 对接腾讯云CLB的Ingress是否启用，默认不启用
+    enabled: false
+    annotations:
+      kubernetes.io/ingress.class: qcloud
+      # 子网ID，若是创建CLB类型内网ingress需指定该条annotation
+      # kubernetes.io/ingress.subnetId: "subnet-xxx"
+      # 如果启用CLB直通Pod模式需指定该条annotation
+      # ingress.cloud.tencent.com/direct-access: "true"
+    tls: []
 
 ## migration迁移任务配置
 migration:
