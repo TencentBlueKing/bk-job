@@ -233,13 +233,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         analysisTaskInstance.setId(id);
         List<AbnormalTargetPlanInfo> abnormalPlanList = new ArrayList<>();
         //1.拿到所有作业模板
-        ServiceTaskTemplateDTO taskTemplateCondition = new ServiceTaskTemplateDTO();
-        taskTemplateCondition.setAppId(appId);
-        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
-        baseSearchCondition.setStart(0);
-        baseSearchCondition.setLength(Integer.MAX_VALUE);
-        PageData<ServiceTaskTemplateDTO> taskTemplateInfoDTOPageData =
-            templateService.listPageTaskTemplates(appId, baseSearchCondition);
+        PageData<ServiceTaskTemplateDTO> taskTemplateInfoDTOPageData = templateService.batchGetTaskTemplateList(appId);
         List<ServiceTaskTemplateDTO> templateList = taskTemplateInfoDTOPageData.getData();
         //2.遍历所有作业模板
         Counter templateCounter = new Counter();
