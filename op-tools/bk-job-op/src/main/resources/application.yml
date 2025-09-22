@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: bk-job-op
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: password
+      database: 0
+      lettuce:
+        pool:
+          min-idle: 5
+          max-idle: 10
+          max-active: 8
+          max-wait: 1ms
+        shutdown-timeout: 100ms
