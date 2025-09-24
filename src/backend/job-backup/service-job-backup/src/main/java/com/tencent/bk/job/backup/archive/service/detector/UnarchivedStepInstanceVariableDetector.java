@@ -22,22 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.metrics;
+package com.tencent.bk.job.backup.archive.service.detector;
 
-public class MetricConstants {
-    /**
-     * Job 执行历史归档异常任务总数
-     */
-    public static final String METRIC_NAME_ARCHIVE_ERROR_TASK_TOTAL = "job.history.archive.error.task.total";
+import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
+import com.tencent.bk.job.backup.archive.dao.impl.StepInstanceVariableRecordDAO;
+import com.tencent.bk.job.backup.config.ArchiveProperties;
+import io.micrometer.core.instrument.MeterRegistry;
 
-    /**
-     * 该指标反应热库中是否存在未归档数据，1表示存在
-     */
-    public static final String METRIC_NAME_UNARCHIVED_DATA_COUNT = "job.history.unarchived.data";
+public class UnarchivedStepInstanceVariableDetector extends UnarchivedDataDetector {
 
-    /**
-     * 存在未归档数据的表名
-     */
-    public static final String TAG_KEY_UNARCHIVED_TABLE_NAME = "table";
+    private final String tableName = "job_execute.step_instance_variable";
 
+    public UnarchivedStepInstanceVariableDetector(MeterRegistry meterRegistry,
+                                                  ArchiveTaskDAO archiveTaskDAO,
+                                                  StepInstanceVariableRecordDAO stepInstanceVariableRecordDAO,
+                                                  ArchiveProperties archiveProperties) {
+        super(meterRegistry, archiveTaskDAO, archiveProperties, stepInstanceVariableRecordDAO);
+    }
+
+    @Override
+    protected String getTableName() {
+        return tableName;
+    }
 }

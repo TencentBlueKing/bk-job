@@ -81,6 +81,11 @@ public class ArchiveProperties {
      */
     private int readRowLimit = 1000;
 
+    /**
+     * 检查归档结果
+     */
+    private CheckArchiveResultConfig check;
+
     private Map<String, TableConfig> tableConfigs;
 
     /**
@@ -150,5 +155,29 @@ public class ArchiveProperties {
         private Integer tableCount;
     }
 
+    /**
+     * 检查归档结果
+     * 1. 检查是否有超出保留天数的数据
+     * 2. 检查这个时间的归档任务是否完成
+     * 若是有超出保留天数的数据，且归档任务完成，则视为归档异常
+     */
+    @Data
+    public static class CheckArchiveResultConfig {
+
+        /**
+         * 是否开启
+         */
+        private boolean enabled;
+
+        /**
+         * 检查cron表达式
+         */
+        private String cron;
+
+        /**
+         * 当发现有归档不完全时，是否重调度这个时间点的归档任务
+         */
+        private boolean rescheduleEnabled;
+    }
 
 }

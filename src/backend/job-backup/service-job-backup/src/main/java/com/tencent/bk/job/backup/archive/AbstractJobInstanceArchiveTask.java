@@ -55,6 +55,9 @@ import java.util.stream.Collectors;
 public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>>
     extends AbstractHistoricalDataArchiveTask {
 
+    // 特殊读取记录数，若是遇到只读取一条记录，要警惕是否是真的只有一条数据，还是mysql的bug
+    private static final int SPECIAL_READ_RECORD_SIZE = 1;
+
     /**
      * 作业实例主表 DAO
      */
@@ -104,6 +107,13 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>>
                 }
 
                 jobInstanceRecords = readJobInstanceRecords(readLimit);
+                // 如果查到只有一条记录，需要考虑是否是mysql的bug，保险起见再次查一遍
+                // 背景：遇到过 当表里还有不止一条数据的时候，select语句只返回一条记录，这会导致归档不完全，且难以排查，问题为偶现
+                // 类似issue：https://github.com/TencentBlueKing/bk-job/issues/3182
+                if (jobInstanceRecords.size() == SPECIAL_READ_RECORD_SIZE) {
+                    log.info("select job instance from mysql has only one record, check again");
+                    jobInstanceRecords = readJobInstanceRecords(readLimit);
+                }
                 if (CollectionUtils.isEmpty(jobInstanceRecords)) {
                     long archiveCost = System.currentTimeMillis() - startTime;
                     setArchiveTaskExecutionDetail(archivedJobInstanceCount, archiveCost, null);

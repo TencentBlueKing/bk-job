@@ -22,22 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.metrics;
+package com.tencent.bk.job.backup.config;
 
-public class MetricConstants {
-    /**
-     * Job 执行历史归档异常任务总数
-     */
-    public static final String METRIC_NAME_ARCHIVE_ERROR_TASK_TOTAL = "job.history.archive.error.task.total";
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
-    /**
-     * 该指标反应热库中是否存在未归档数据，1表示存在
-     */
-    public static final String METRIC_NAME_UNARCHIVED_DATA_COUNT = "job.history.unarchived.data";
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    /**
-     * 存在未归档数据的表名
-     */
-    public static final String TAG_KEY_UNARCHIVED_TABLE_NAME = "table";
-
+/**
+ * 条件注解：是否启用检查任务
+ */
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@ConditionalOnExpression("${job.backup.archive.execute.enabled:false}")
+@ConditionalOnProperty(value = "job.backup.archive.execute.check.enabled", havingValue = "true")
+public @interface ConditionalOnArchiveCheckEnabled {
 }

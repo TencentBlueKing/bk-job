@@ -51,13 +51,16 @@ public class ArchiveCronJobs {
 
     private final AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler;
 
+    private final HistoricalDataCheckTaskLauncher historicalDataCheckTaskLauncher;
+
     public ArchiveCronJobs(JobInstanceArchiveTaskGenerator jobInstanceArchiveTaskGenerator,
                            JobLogArchiveTaskGenerator jobLogArchiveTaskGenerator,
                            JobInstanceArchiveTaskScheduler jobInstanceArchiveTaskScheduler,
                            JobLogArchiveTaskScheduler jobLogArchiveTaskScheduler,
                            ArchiveProperties archiveProperties,
                            JobLogArchiveProperties jobLogArchiveProperties,
-                           AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler) {
+                           AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler,
+                           HistoricalDataCheckTaskLauncher historicalDataCheckTaskLauncherObjectProvider) {
         this.jobInstanceArchiveTaskGenerator = jobInstanceArchiveTaskGenerator;
         this.jobLogArchiveTaskGenerator = jobLogArchiveTaskGenerator;
         this.jobInstanceArchiveTaskScheduler = jobInstanceArchiveTaskScheduler;
@@ -65,6 +68,7 @@ public class ArchiveCronJobs {
         this.archiveProperties = archiveProperties;
         this.jobLogArchiveProperties = jobLogArchiveProperties;
         this.abnormalArchiveTaskReScheduler = abnormalArchiveTaskReScheduler;
+        this.historicalDataCheckTaskLauncher = historicalDataCheckTaskLauncherObjectProvider;
     }
 
     /**
@@ -120,5 +124,18 @@ public class ArchiveCronJobs {
         log.info("ReSchedule fail/timout/dryrun archive task start...");
         abnormalArchiveTaskReScheduler.rescheduleFailedArchiveTasks();
         log.info("ReSchedule fail/timeout/dryrun archive task done");
+    }
+
+    /**
+     * 定时查看是否有归档完成但实际还在热库中的任务，默认每天10:30触发
+     */
+    @Scheduled(cron = "${job.backup.archive.check.cron: 0 30 10 * * ?}")
+    public void checkArchiveTaskStatus() {
+        if (!archiveProperties.isEnabled() || !archiveProperties.getCheck().isEnabled()) {
+            return;
+        }
+        log.info("Check archive task status start...");
+        historicalDataCheckTaskLauncher.launchCheckTask();
+        log.info("Check archive task status done");
     }
 }

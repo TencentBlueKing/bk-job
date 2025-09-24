@@ -22,22 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.metrics;
+package com.tencent.bk.job.backup.archive.util.lock;
 
-public class MetricConstants {
-    /**
-     * Job 执行历史归档异常任务总数
-     */
-    public static final String METRIC_NAME_ARCHIVE_ERROR_TASK_TOTAL = "job.history.archive.error.task.total";
+import com.tencent.bk.job.backup.archive.consts.DistributeLockKey;
+import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
-    /**
-     * 该指标反应热库中是否存在未归档数据，1表示存在
-     */
-    public static final String METRIC_NAME_UNARCHIVED_DATA_COUNT = "job.history.unarchived.data";
+public class CheckTaskLaunchLock extends PreemptiveDistributeLock{
 
-    /**
-     * 存在未归档数据的表名
-     */
-    public static final String TAG_KEY_UNARCHIVED_TABLE_NAME = "table";
-
+    public CheckTaskLaunchLock(StringRedisTemplate stringRedisTemplate) {
+        super(
+            stringRedisTemplate,
+            DistributeLockKey.EXECUTE_DATA_CHECK_TASK_LOCK,
+            new HeartBeatRedisLockConfig(
+                "RedisKeyHeartBeatThread-" + DistributeLockKey.EXECUTE_DATA_CHECK_TASK_LOCK,
+                600 * 1000L, // 10min 超时时间
+                60 * 1000L // 1min 续期一次
+            )
+        );
+    }
 }
