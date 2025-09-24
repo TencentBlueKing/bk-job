@@ -28,7 +28,7 @@ import com.tencent.bk.job.backup.archive.consts.DistributeLockKey;
 import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
-public class CheckTaskLaunchLock extends PreemptiveDistributeLock{
+public class CheckTaskLaunchLock extends PreemptiveDistributeLock {
 
     public CheckTaskLaunchLock(StringRedisTemplate stringRedisTemplate) {
         super(

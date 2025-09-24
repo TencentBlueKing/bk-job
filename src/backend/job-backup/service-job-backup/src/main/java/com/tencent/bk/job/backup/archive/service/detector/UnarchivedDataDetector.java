@@ -77,7 +77,7 @@ public abstract class UnarchivedDataDetector {
 
         // 重调度这种未完成的任务
         recordIfUnarchived();
-        if(archiveProperties.getCheck().isRescheduleEnabled()) {
+        if (archiveProperties.getCheck().isRescheduleEnabled()) {
             reschedule(detectResult);
         }
     }
