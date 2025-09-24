@@ -47,7 +47,7 @@ import java.util.stream.IntStream;
 @Slf4j
 @Service("jobAnalysisTaskTemplateServiceImpl")
 public class TaskTemplateServiceImpl implements TaskTemplateService {
-    private static final int DEFAULT_PAGE_SIZE = 2;
+    private static final int DEFAULT_PAGE_SIZE = 50;
 
     private final ServiceTaskTemplateResource taskTemplateResource;
     private final ThreadPoolExecutor threadPoolExecutor;
