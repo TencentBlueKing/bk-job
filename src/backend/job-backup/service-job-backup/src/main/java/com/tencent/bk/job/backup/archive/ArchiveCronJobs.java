@@ -129,7 +129,7 @@ public class ArchiveCronJobs {
     /**
      * 定时查看是否有归档完成但实际还在热库中的任务，默认每天10:30触发
      */
-    @Scheduled(cron = "${job.backup.archive.check.cron: 0 30 10 * * ?}")
+    @Scheduled(cron = "${job.backup.archive.execute.check.cron: 0 30 10 * * ?}")
     public void checkArchiveTaskStatus() {
         if (!archiveProperties.isEnabled() || !archiveProperties.getCheck().isEnabled()) {
             return;
