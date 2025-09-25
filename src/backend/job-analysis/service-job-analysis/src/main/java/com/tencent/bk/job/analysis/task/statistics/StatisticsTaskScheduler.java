@@ -86,6 +86,7 @@ public class StatisticsTaskScheduler {
     public static final int defaultMaximumPoolSize = 10;
     public static final int currentStatisticsTaskQueueSize = 2000;
     public static final int pastStatisticsTaskQueueSize = 200000;
+    public static final int jobTemplateFetchTaskQueueSize = 10000;
 
     public static List<IStatisticsTask> statisticsTaskList = new ArrayList<>();
     public static Map<String, IStatisticsTask> statisticsTaskMap = new ConcurrentHashMap<>();

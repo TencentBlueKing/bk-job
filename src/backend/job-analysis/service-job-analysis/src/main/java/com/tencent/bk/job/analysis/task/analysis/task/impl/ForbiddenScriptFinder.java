@@ -290,14 +290,8 @@ public class ForbiddenScriptFinder extends BaseAnalysisTask {
                     log.info("taskId:" + id);
                     analysisTaskInstanceDTO.setId(id);
                     List<BadTplPlanInfo> badTplPlanInfoList = new ArrayList<>();
-                    BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
-                    baseSearchCondition.setStart(0);
-                    baseSearchCondition.setLength(Integer.MAX_VALUE);
-
-                    ServiceTaskTemplateDTO templateCondition = new ServiceTaskTemplateDTO();
-                    templateCondition.setAppId(appId);
                     PageData<ServiceTaskTemplateDTO> taskTemplateInfoDTOPageData =
-                        templateService.listPageTaskTemplates(appId, baseSearchCondition);
+                        templateService.batchGetTaskTemplateList(appId);
                     List<ServiceTaskTemplateDTO> taskTemplateInfoDTOList = taskTemplateInfoDTOPageData.getData();
                     for (ServiceTaskTemplateDTO taskTemplateInfoDTO : taskTemplateInfoDTOList) {
                         findForbiddenScriptFromTemplatePlans(taskTemplateInfoDTO, badTplPlanInfoList);

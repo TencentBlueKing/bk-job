@@ -33,4 +33,9 @@ public interface TaskTemplateService {
     PageData<ServiceTaskTemplateDTO> listPageTaskTemplates(Long appId,
                                                            BaseSearchCondition baseSearchCondition);
 
+    /**
+     * 分页、并发获取业务下的所有作业模版
+     */
+    PageData<ServiceTaskTemplateDTO> batchGetTaskTemplateList(Long appId);
+
 }
