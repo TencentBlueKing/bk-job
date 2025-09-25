@@ -54,6 +54,7 @@ public class EsbFastTransferFileV3Request extends EsbAppScopeReq {
      * 源文件
      */
     @JsonProperty("file_source_list")
+    @Valid
     private List<EsbFileSourceV3DTO> fileSources;
 
     /**
@@ -81,6 +82,7 @@ public class EsbFastTransferFileV3Request extends EsbAppScopeReq {
     private Long accountId;
 
     @JsonProperty("target_server")
+    @Valid
     private EsbServerV3DTO targetServer;
 
     /**
