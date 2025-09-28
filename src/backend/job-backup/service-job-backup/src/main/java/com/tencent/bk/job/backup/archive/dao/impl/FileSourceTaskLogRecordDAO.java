@@ -34,6 +34,7 @@ import org.jooq.Condition;
 import org.jooq.OrderField;
 import org.jooq.TableField;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -62,6 +63,11 @@ public class FileSourceTaskLogRecordDAO extends AbstractJobInstanceHotRecordDAO<
     @Override
     public TableField<FileSourceTaskLogRecord, Long> getJobInstanceIdField() {
         return TABLE.TASK_INSTANCE_ID;
+    }
+
+    @Override
+    public TableField<FileSourceTaskLogRecord, LocalDateTime> getTableCreateTimeField() {
+        return TABLE.ROW_CREATE_TIME;
     }
 
     @Override

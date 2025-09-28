@@ -32,6 +32,7 @@ import com.tencent.bk.job.execute.model.tables.records.RollingConfigRecord;
 import org.jooq.OrderField;
 import org.jooq.TableField;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -61,6 +62,11 @@ public class RollingConfigRecordDAO extends AbstractJobInstanceHotRecordDAO<Roll
     @Override
     public TableField<RollingConfigRecord, Long> getJobInstanceIdField() {
         return TABLE.TASK_INSTANCE_ID;
+    }
+
+    @Override
+    protected TableField<RollingConfigRecord, LocalDateTime> getTableCreateTimeField() {
+        return TABLE.ROW_CREATE_TIME;
     }
 
     public RecordResultSet<RollingConfigRecord> executeQuery(Collection<Long> jobInstanceIds,

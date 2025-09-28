@@ -33,6 +33,7 @@ import org.jooq.Condition;
 import org.jooq.OrderField;
 import org.jooq.TableField;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -62,6 +63,11 @@ public class OperationLogRecordDAO extends AbstractJobInstanceHotRecordDAO<Opera
     @Override
     public TableField<OperationLogRecord, Long> getJobInstanceIdField() {
         return TABLE.TASK_INSTANCE_ID;
+    }
+
+    @Override
+    protected TableField<OperationLogRecord, LocalDateTime> getTableCreateTimeField() {
+        return TABLE.ROW_CREATE_TIME;
     }
 
     @Override

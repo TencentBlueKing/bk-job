@@ -30,6 +30,7 @@ import com.tencent.bk.job.execute.model.tables.records.TaskInstanceRecord;
 import org.jooq.OrderField;
 import org.jooq.TableField;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -54,6 +55,11 @@ public class JobInstanceHotRecordDAO extends AbstractJobInstanceMainHotRecordDAO
     @Override
     public TableField<TaskInstanceRecord, Long> getJobInstanceIdField() {
         return TABLE.ID;
+    }
+
+    @Override
+    protected TableField<TaskInstanceRecord, LocalDateTime> getTableCreateTimeField() {
+        return TABLE.ROW_CREATE_TIME;
     }
 
     @Override

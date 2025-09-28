@@ -25,7 +25,6 @@
 package com.tencent.bk.job.backup.archive.dao.impl;
 
 import com.tencent.bk.job.backup.archive.dao.JobInstanceHotRecordDAO;
-import com.tencent.bk.job.backup.archive.util.ArchiveDateTimeUtil;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Condition;
@@ -36,6 +35,7 @@ import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.SelectConditionStep;
 import org.jooq.Table;
+import org.jooq.TableField;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -140,17 +140,16 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
             return null;
         }
         Long jobInstanceId = (Long) record.get(0);
-        Record1<Long> createTimeRecord = dsl()
-            .select(getJobInstanceCreateTimeField())
+        Record1<LocalDateTime> createTimeRecord = dsl()
+            .select(getTableCreateTimeField())
             .from(getTable())
             .where(getJobInstanceIdField().eq(jobInstanceId))
             .fetchOne();
         if (createTimeRecord != null) {
-            Long createTime = (Long) createTimeRecord.get(0);
-            if (createTime != null) {
-                return ArchiveDateTimeUtil.unixTimestampMillToZoneDateTime(createTime, zoneId);
-            }
+            return (LocalDateTime) createTimeRecord.get(0);
         }
         return null;
     }
+
+    protected abstract TableField<T, LocalDateTime> getTableCreateTimeField();
 }

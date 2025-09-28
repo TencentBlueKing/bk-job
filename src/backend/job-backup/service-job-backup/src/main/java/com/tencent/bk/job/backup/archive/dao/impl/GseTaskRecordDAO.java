@@ -33,6 +33,7 @@ import org.jooq.Condition;
 import org.jooq.OrderField;
 import org.jooq.TableField;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -58,6 +59,11 @@ public class GseTaskRecordDAO extends AbstractJobInstanceHotRecordDAO<GseTaskRec
     @Override
     public TableField<GseTaskRecord, Long> getJobInstanceIdField() {
         return TABLE.TASK_INSTANCE_ID;
+    }
+
+    @Override
+    protected TableField<GseTaskRecord, LocalDateTime> getTableCreateTimeField() {
+        return TABLE.ROW_CREATE_TIME;
     }
 
     @Override
