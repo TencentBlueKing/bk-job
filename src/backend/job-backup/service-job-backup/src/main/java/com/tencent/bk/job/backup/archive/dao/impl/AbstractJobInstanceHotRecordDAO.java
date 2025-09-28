@@ -140,12 +140,14 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
             return null;
         }
         Long jobInstanceId = (Long) record.get(0);
-        Record1<LocalDateTime> createTimeRecord = dsl()
+        Result<Record1<LocalDateTime>> result = dsl()
             .select(getTableCreateTimeField())
             .from(getTable())
             .where(getJobInstanceIdField().eq(jobInstanceId))
-            .fetchOne();
-        if (createTimeRecord != null) {
+            .limit(1)
+            .fetch();
+        if (result.isNotEmpty()) {
+            Record1<LocalDateTime> createTimeRecord = result.get(0);
             return (LocalDateTime) createTimeRecord.get(0);
         }
         return null;
