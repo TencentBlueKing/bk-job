@@ -128,10 +128,9 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
     /**
      * 获取表（主表/子表）中最小的作业实例ID创建时间
      *
-     * @param zoneId 时区
      * @return 最小作业实例ID对应的创建时间
      */
-    public LocalDateTime getTimeWithMinJobInstanceId(ZoneId zoneId) {
+    public LocalDateTime getTimeWithMinJobInstanceId() {
         Record1<Long> record = dsl()
             .select(min(getJobInstanceIdField()))
             .from(getTable())

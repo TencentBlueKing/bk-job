@@ -39,7 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.jooq.TableRecord;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 /**
  * 未归档数据检测，用于检测热库中是否存在未归档的数据
@@ -54,7 +53,6 @@ public abstract class UnarchivedDataDetector {
     private final Counter counter;
     private final ArchiveProperties archiveProperties;
     private final AbstractJobInstanceHotRecordDAO<? extends TableRecord<?>> hotRecordDAO;
-    private final ZoneId archiveZoneId;
 
     public UnarchivedDataDetector(MeterRegistry meterRegistry,
                                   ArchiveTaskDAO archiveTaskDAO,
@@ -65,7 +63,6 @@ public abstract class UnarchivedDataDetector {
             MetricConstants.METRIC_NAME_UNARCHIVED_DATA_COUNT,
             MetricConstants.TAG_KEY_UNARCHIVED_TABLE_NAME, getTableName());
         this.archiveProperties = archiveProperties;
-        this.archiveZoneId = ArchiveDateTimeUtil.getArchiveBasedTimeZone(archiveProperties.getTimeZone());
         this.hotRecordDAO = hotRecordDAO;
     }
 
@@ -87,7 +84,7 @@ public abstract class UnarchivedDataDetector {
     }
 
     private void reschedule(DetectResult detectResult) {
-        log.info("reschedule archive task: {} ", getTableName());
+        log.info("reschedule archive task: {} with detect result[{}]", getTableName(), detectResult);
         int day = detectResult.getDay();
         int hour = detectResult.getHour();
         ArchiveTaskInfo taskInfo = archiveTaskDAO.getTaskByDayHour(ArchiveTaskTypeEnum.JOB_INSTANCE, day, hour);
@@ -105,11 +102,13 @@ public abstract class UnarchivedDataDetector {
      * @return 是否存在未归档数据
      */
     protected DetectResult doDetect() {
-        log.info("doDetect table: {} and check if has unarchived data", getTableName());
+        log.info("doDetect table: {} and check if there is unarchived data", getTableName());
         LocalDateTime time = getTimeWithMinJobInstanceId();
         // 允许存在的记录的最早时间
-        LocalDateTime expectedEarliestTime = LocalDateTime.now().minusDays(archiveProperties.getKeepDays() + 1);
+        LocalDateTime expectedEarliestTime = LocalDateTime.now().minusDays(archiveProperties.getKeepDays() + 3);
+        log.debug("expectedEarliestTime: {}", expectedEarliestTime);
         if (time == null || time.isAfter(expectedEarliestTime)) {
+            log.info("table [{}] no unarchived data", getTableName());
             return DetectResult.notHasUnarchivedData();
         }
         // 存在最大保留时间以外的数据，判断归档任务是否已完成，如果已完成则视为归档失败
@@ -127,7 +126,7 @@ public abstract class UnarchivedDataDetector {
     }
 
     protected LocalDateTime getTimeWithMinJobInstanceId() {
-        return hotRecordDAO.getTimeWithMinJobInstanceId(archiveZoneId);
+        return hotRecordDAO.getTimeWithMinJobInstanceId();
     }
 
     protected abstract String getTableName();
@@ -148,8 +147,8 @@ public abstract class UnarchivedDataDetector {
             DetectResult detectResult = new DetectResult();
             detectResult.setHasUnarchivedData(existsUnarchivedData);
             LocalDateTime timeOfHourStart = ArchiveDateTimeUtil.toHourlyRoundDown(time);
-            detectResult.setDay(timeOfHourStart.getDayOfYear());
-            detectResult.setHour(time.getHour());
+            detectResult.setDay(ArchiveDateTimeUtil.computeDay(timeOfHourStart));
+            detectResult.setHour(ArchiveDateTimeUtil.computeHour(timeOfHourStart));
             return detectResult;
         }
     }
