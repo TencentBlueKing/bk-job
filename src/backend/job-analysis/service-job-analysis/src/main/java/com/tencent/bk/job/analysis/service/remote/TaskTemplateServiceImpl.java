@@ -28,35 +28,21 @@ import com.tencent.bk.job.analysis.service.TaskTemplateService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.util.ConcurrencyUtil;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Slf4j
 @Service("jobAnalysisTaskTemplateServiceImpl")
 public class TaskTemplateServiceImpl implements TaskTemplateService {
-    private static final int DEFAULT_PAGE_SIZE = 50;
-
     private final ServiceTaskTemplateResource taskTemplateResource;
-    private final ThreadPoolExecutor threadPoolExecutor;
 
     @Autowired
-    public TaskTemplateServiceImpl(ServiceTaskTemplateResource taskTemplateResource,
-                                   @Qualifier("jobTemplateFetchTaskExecutor") ThreadPoolExecutor threadPoolExecutor) {
+    public TaskTemplateServiceImpl(ServiceTaskTemplateResource taskTemplateResource) {
         this.taskTemplateResource = taskTemplateResource;
-        this.threadPoolExecutor = threadPoolExecutor;
     }
 
     @Override
@@ -74,49 +60,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     @Override
-    public PageData<ServiceTaskTemplateDTO> batchGetTaskTemplateList(Long appId) {
-        InternalResponse<Integer> resp = taskTemplateResource.countTemplates(appId);
-        if (resp.getData() == 0) {
-            log.info("Job templates is empty, appId:{}", appId);
-            return PageData.emptyPageData(0, 0);
-        }
-
-        Integer templateCount = resp.getData();
-        int totalPage = (templateCount + DEFAULT_PAGE_SIZE - 1) / DEFAULT_PAGE_SIZE;
-        List<Integer> pageList = IntStream.range(0, totalPage).boxed().collect(Collectors.toList());
-
-        log.info("Starting batch fetch job templates, appId={}, totalTemplates={}, totalPage={}, pageSize={}",appId,
-            templateCount, totalPage, DEFAULT_PAGE_SIZE);
-
-        List<ServiceTaskTemplateDTO> result = ConcurrencyUtil.getResultWithThreads(
-            pageList,
-            threadPoolExecutor,
-            page -> {
-                try {
-                    int start = page * DEFAULT_PAGE_SIZE;
-                    log.debug("Fetching templates page {}, start={}, pageSize={}", page, start,
-                        DEFAULT_PAGE_SIZE);
-                    InternalResponse<PageData<ServiceTaskTemplateDTO>> pageResp =
-                        taskTemplateResource.listPageTaskTemplates(appId, start, DEFAULT_PAGE_SIZE);
-                    if (CollectionUtils.isEmpty(pageResp.getData().getData())) {
-                        log.warn("No templates returned for page {}, appId={}", page, appId);
-                        return Collections.emptyList();
-                    }
-                    return pageResp.getData().getData();
-                } catch (Exception e) {
-                    log.error("Error fetching page {}, appId={}", page, appId, e);
-                    return Collections.emptyList();
-                }
-            }
-        );
-
-        log.info("Completed batch fetch, appId={}, totalFetchedTemplates={}", appId, result.size());
-
-        PageData<ServiceTaskTemplateDTO> resultData = new PageData<>();
-        resultData.setData(result);
-        resultData.setTotal(Long.valueOf(templateCount));
-        resultData.setStart(0);
-        resultData.setPageSize(DEFAULT_PAGE_SIZE);
-        return resultData;
+    public InternalResponse<Integer> countTemplates(Long appId) {
+        return taskTemplateResource.countTemplates(appId);
     }
 }

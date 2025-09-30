@@ -25,6 +25,7 @@
 package com.tencent.bk.job.analysis.service;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 
@@ -33,9 +34,5 @@ public interface TaskTemplateService {
     PageData<ServiceTaskTemplateDTO> listPageTaskTemplates(Long appId,
                                                            BaseSearchCondition baseSearchCondition);
 
-    /**
-     * 分页、并发获取业务下的所有作业模版
-     */
-    PageData<ServiceTaskTemplateDTO> batchGetTaskTemplateList(Long appId);
-
+    InternalResponse<Integer> countTemplates(Long appId);
 }
