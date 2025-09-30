@@ -81,6 +81,7 @@ public abstract class AbstractTemplateAnalysisTask extends BaseAnalysisTask {
      */
     protected void runAnalysisForApp(Long appId,
                                      Consumer<List<ServiceTaskTemplateDTO>> consumer) throws InterruptedException {
+        long start = System.currentTimeMillis();
         BlockingQueue<List<ServiceTaskTemplateDTO>> queue = new LinkedBlockingQueue<>(QUEUE_CAPACITY);
         // 消费者，多线程分析
         CountDownLatch countDownLatch = new CountDownLatch(ANALYSIS_THREAD_COUNT);
@@ -91,18 +92,23 @@ public abstract class AbstractTemplateAnalysisTask extends BaseAnalysisTask {
                         List<ServiceTaskTemplateDTO> templateList = queue.poll(10, TimeUnit.SECONDS);
                         if (templateList == null) continue;
                         if (templateList.isEmpty()) break;
-                        log.debug("Consumer start analysis templates, className={}, thread={}, size={}",
-                            this.getClass().getSimpleName(), Thread.currentThread().getName(), templateList.size());
-                        consumer.accept(templateList);
+                        log.debug("Consumer start analysis templates, className: {}, thread: {}, size: {}",
+                            getClassName(), Thread.currentThread().getName(), templateList.size());
+                        try {
+                            consumer.accept(templateList);
+                        } catch (Exception e) {
+                            log.error("Error analyzing templates in class {}, thread: {}",
+                                getClassName(), Thread.currentThread().getName(), e);
+                        }
                     }
                 } catch (InterruptedException e) {
-                    log.warn("Consumer analysis templates interrupted, className={}, thread={}",
-                        this.getClass().getSimpleName(), Thread.currentThread().getName());
+                    log.warn("Consumer analysis templates interrupted, className: {}, thread: {}",
+                        getClassName(), Thread.currentThread().getName());
                     Thread.currentThread().interrupt();
                 } finally {
                     countDownLatch.countDown();
-                    log.debug("Consumer analysis templates finished", Thread.currentThread().getName(),
-                        this.getClass().getSimpleName(), Thread.currentThread().getName());
+                    log.debug("Consumer analysis templates finished, className: {}, thread: {}",
+                        getClassName(), Thread.currentThread().getName());
                 }
             });
         }
@@ -111,25 +117,32 @@ public abstract class AbstractTemplateAnalysisTask extends BaseAnalysisTask {
         try {
             int total = getTemplateTotal(appId);
             int totalPages = (total + PAGE_SIZE - 1) / PAGE_SIZE;
-            log.info("App {} template total: {}, pages: {}", appId, total, totalPages);
+            log.info("App {} template total: {}, pages: {}, class: {}",
+                appId, total, totalPages, getClassName());
             for (int i = 0; i < totalPages; i++) {
                 List<ServiceTaskTemplateDTO> templateList = listTaskTemplates(appId, i);
                 if (!CollectionUtils.isEmpty(templateList)) {
-                    log.debug("Fetched {} templates for app {} page {}/{}", templateList.size(), appId, i, totalPages);
+                    log.debug("Fetched {} templates for app {} page {}/{}, class: {}",
+                        templateList.size(), appId, i + 1, totalPages, getClassName());
                     queue.put(templateList);
                 }
             }
         } catch (Exception e) {
-            log.error("App {} Get templateList error: ", appId, e);
+            log.error("App {} Get templateList error, class: {}", appId, getClassName(), e);
         } finally {
             // 空列表结束标识，通知所有消费者结束
             for (int i = 0; i < ANALYSIS_THREAD_COUNT; i++) {
                 queue.put(Collections.emptyList());
             }
-            log.debug("Producer finished, sent end signals.");
+            log.debug("Producer finished, class: {}, sent end signals.", getClassName());
         }
         countDownLatch.await();
-        log.debug("Template analysis finished for app {}", appId);
+        log.debug("Template analysis finished for app {},class: {}, total cost: {} ms",
+            appId, getClassName(), System.currentTimeMillis() - start);
+    }
+
+    private String getClassName() {
+        return this.getClass().getSimpleName();
     }
 
     protected int getTemplateTotal(Long appId) {
