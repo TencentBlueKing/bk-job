@@ -45,7 +45,6 @@ apply plugin: "application"
 mainClassName = "com.tencent.bk.job.k8s.StartupController"
 
 shadowJar {
-    classifier = null
     zip64 true
 }
 task copyToRelease(type: Copy) {

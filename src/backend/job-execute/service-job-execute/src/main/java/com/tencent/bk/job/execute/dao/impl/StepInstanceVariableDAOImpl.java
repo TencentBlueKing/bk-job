@@ -134,7 +134,7 @@ public class StepInstanceVariableDAOImpl extends BaseDAO implements StepInstance
 
         List<StepInstanceVariableValuesDTO> varList = new ArrayList<>();
         if (!result.isEmpty()) {
-            result.into(record -> varList.add(extract(record)));
+            result.forEach(record -> varList.add(extract((Record) record)));
         }
         return varList;
     }
