@@ -9,21 +9,8 @@ RUN curl -o mysql-8.4.6-linux-glibc2.17-x86_64-minimal.tar.xz https://cdn.mysql.
     && mv mysql-8.4.6-linux-glibc2.17-x86_64-minimal /usr/local/mysql \
     && ln -s /usr/local/mysql/bin/mysql /usr/bin/mysql
 
-# 软件与镜像源准备
-# 备份原有仓库配置
-RUN mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
-# 下载腾讯云镜像源
-RUN curl -o /etc/yum.repos.d/CentOS-Base.repo https://mirrors.tencent.com/repo/centos7_base.repo
-# 安装epel并更新epel源为腾讯云源
-RUN yum install -y epel-release \
-    && sed -i 's|^#baseurl=|baseurl=|' /etc/yum.repos.d/epel.repo \
-    && sed -i 's|^metalink=|#metalink=|' /etc/yum.repos.d/epel.repo \
-    && sed -i 's|^baseurl=.*epel.*|baseurl=http://mirrors.tencentyun.com/epel/$releasever/$basearch/|' /etc/yum.repos.d/epel.repo
-# 清理缓存
-RUN yum clean all
-
-## 安装Python
-RUN yum install -y python36
+## 安装pip与requests库
+RUN yum install -y python-pip
 RUN mkdir -p /root/.pip
 RUN echo -e "[global]\nindex-url = https://mirrors.tencent.com/pypi/simple\n[install]\ntrusted-host=mirrors.tencent.com" > /root/.pip/pip.conf
 RUN pip3 install requests==2.27.1
