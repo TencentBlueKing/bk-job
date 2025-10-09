@@ -71,5 +71,6 @@ task copyToRelease(type: Copy) {
     outputs.upToDateWhen { false }
 }
 
+copyToRelease.dependsOn jar
 copyToRelease.dependsOn shadowJar
 build.dependsOn copyToRelease
