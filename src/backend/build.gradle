@@ -73,6 +73,12 @@ plugins {
     id 'nu.studer.jooq' version '9.0'
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
 ext {
     // 是否容器化部署
     def assemblyMode = System.getProperty("assemblyMode")
