@@ -52,6 +52,4 @@ public interface EsbExecuteJobPlanV3Resource {
         @Validated
             EsbExecuteJobV3Request request
     );
-
-
 }

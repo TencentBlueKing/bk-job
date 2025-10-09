@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Data;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
 /**
@@ -57,6 +58,7 @@ public class EsbGlobalVarV3DTO {
 
     @JsonProperty("server")
     @JsonPropertyDescription("Value for host variable")
+    @Valid
     private EsbServerV3DTO server;
 
     /**
