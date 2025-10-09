@@ -1,23 +1,13 @@
-FROM bkjob/os:0.0.2
+FROM bkjob/jdk17:3.13.0
 
 LABEL maintainer="Tencent BlueKing Job"
-LABEL dockerfile.version="3.11.0"
+LABEL dockerfile.version="3.13.0"
 
 ## 安装MySQL
 RUN curl -o mysql-8.4.6-linux-glibc2.17-x86_64-minimal.tar.xz https://cdn.mysql.com//Downloads/MySQL-8.4/mysql-8.4.6-linux-glibc2.17-x86_64-minimal.tar.xz \
     && tar -xvf mysql-8.4.6-linux-glibc2.17-x86_64-minimal.tar.xz \
     && mv mysql-8.4.6-linux-glibc2.17-x86_64-minimal /usr/local/mysql \
     && ln -s /usr/local/mysql/bin/mysql /usr/bin/mysql
-
-## 安装JDK
-RUN mkdir -p /data && \
-    cd /data/ &&\
-    curl -OL https://github.com/Tencent/TencentKona-8/releases/download/8.0.21-GA/TencentKona8.0.21.b1_jdk_linux-x86_64_8u442.tar.gz &&\
-    tar -xzf TencentKona8.0.21.b1_jdk_linux-x86_64_8u442.tar.gz &&\
-    rm -f TencentKona8.0.21.b1_jdk_linux-x86_64_8u442.tar.gz
-ENV JAVA_HOME=/data/TencentKona-8.0.21-442
-ENV PATH=${JAVA_HOME}/bin:$PATH
-ENV CLASSPATH=.:${JAVA_HOME}/lib
 
 # 软件与镜像源准备
 # 备份原有仓库配置
