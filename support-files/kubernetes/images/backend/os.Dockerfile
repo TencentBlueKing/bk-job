@@ -13,6 +13,7 @@ RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &&\
 
 # 安装软件
 RUN dnf install -y \
+        xz \
         vim \
         less \
         wget \
