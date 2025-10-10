@@ -133,7 +133,7 @@ ext {
     // Fix CVE-2023-2976 CVE-2020-8908 28.2-jre->32.0.0-android
     set('guavaVersion', "32.0.0-android")
     set('caffeineVersion', "2.9.3")
-    set('jjwtVersion', "0.9.1")
+    set('jjwtVersion', "0.13.0")
     set('hibernateValidatorVersion', "6.1.4.Final")
     set('flapdoodleEmbeddedMongdbDBVersion', "4.4.0")
     set('jodaTimeVersion', "2.10.5")
@@ -344,7 +344,11 @@ subprojects {
             dependency group: 'org.apache.thrift', name: 'libthrift', version: "$apacheThriftVersion"
             dependency group: 'com.google.guava', name: 'guava', version: "$guavaVersion"
             dependency "com.github.ben-manes.caffeine:caffeine:$caffeineVersion"
-            dependency group: 'io.jsonwebtoken', name: 'jjwt', version: "$jjwtVersion"
+            dependencySet(group: "io.jsonwebtoken", version: "$jjwtVersion") {
+                entry "jjwt-api"
+                entry "jjwt-impl"
+                entry "jjwt-jackson"
+            }
             dependency "net.sourceforge.jchardet:jchardet:1.0"
             dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring26x:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo:$flapdoodleEmbeddedMongdbDBVersion"

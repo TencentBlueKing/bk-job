@@ -101,11 +101,12 @@ public class BasicJwtManager implements JwtManager {
 
         try {
             Claims claims = Jwts.parser()
-                .setSigningKey(publicKey)
-                .parseClaimsJws(token)
-                .getBody();
+                .verifyWith(publicKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
 
-            Date expireAt = claims.get("exp", Date.class);
+            Date expireAt = claims.getExpiration();
             if (expireAt != null) {
                 tokenCache.put(token, expireAt.getTime());
             }
