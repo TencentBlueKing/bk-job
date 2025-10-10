@@ -125,6 +125,12 @@ public abstract class UnarchivedDataDetector {
         return DetectResult.build(hasUnarchivedData, time);
     }
 
+    /**
+     * 获取表（主表/子表）中最小的作业实例ID创建时间
+     * 出于性能考虑，这里查询的是最小ID对应的创建时间，而不是最早的创建时间，是为了充分利用jobInstanceId上的(主键)索引
+     * 分布式ID场景下，jobInstanceId不是严格有序的，但时间误差在10min左右，最差情况下第二天也会调度到，在可以接受的范围内
+     * @return 最小作业实例ID创建时间
+     */
     protected LocalDateTime getTimeWithMinJobInstanceId() {
         return hotRecordDAO.getTimeWithMinJobInstanceId();
     }
