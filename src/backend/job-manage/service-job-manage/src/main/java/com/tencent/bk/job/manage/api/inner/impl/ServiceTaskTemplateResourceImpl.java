@@ -325,4 +325,9 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
             .collect(Collectors.toList()));
         return InternalResponse.buildSuccessResp(resultData);
     }
+
+    @Override
+    public InternalResponse<Integer> countTemplates(Long appId) {
+        return InternalResponse.buildSuccessResp(templateService.countTemplates(appId));
+    }
 }
