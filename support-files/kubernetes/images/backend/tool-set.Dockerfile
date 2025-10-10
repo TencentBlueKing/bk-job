@@ -3,11 +3,13 @@ FROM bkjob/jdk17:3.13.0
 LABEL maintainer="Tencent BlueKing Job"
 LABEL dockerfile.version="3.13.0"
 
-## 安装MySQL
+## 安装MySQL与兼容库
 RUN curl -o mysql-8.4.6-linux-glibc2.17-x86_64-minimal.tar.xz https://cdn.mysql.com//Downloads/MySQL-8.4/mysql-8.4.6-linux-glibc2.17-x86_64-minimal.tar.xz \
     && tar -xvf mysql-8.4.6-linux-glibc2.17-x86_64-minimal.tar.xz \
     && mv mysql-8.4.6-linux-glibc2.17-x86_64-minimal /usr/local/mysql \
-    && ln -s /usr/local/mysql/bin/mysql /usr/bin/mysql
+    && ln -s /usr/local/mysql/bin/mysql /usr/bin/mysql \
+    && dnf install -y ncurses-compat-libs \
+    && dnf clean all
 
 ## 安装pip与requests库
 RUN yum install -y python-pip
