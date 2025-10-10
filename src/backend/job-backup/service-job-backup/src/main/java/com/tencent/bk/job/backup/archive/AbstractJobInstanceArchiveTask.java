@@ -113,6 +113,11 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>>
                 if (jobInstanceRecords.size() == SPECIAL_READ_RECORD_SIZE) {
                     log.info("select job instance from mysql has only one record, check again");
                     jobInstanceRecords = readJobInstanceRecords(readLimit);
+                    if (jobInstanceRecords.size() != SPECIAL_READ_RECORD_SIZE) {
+                        // 两次查询结果不一致
+                        log.warn("read jobInstanceRecords size twice not equal, first: {}, second: {}",
+                            SPECIAL_READ_RECORD_SIZE, jobInstanceRecords.size());
+                    }
                 }
                 if (CollectionUtils.isEmpty(jobInstanceRecords)) {
                     long archiveCost = System.currentTimeMillis() - startTime;

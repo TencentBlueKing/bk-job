@@ -31,19 +31,13 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Record;
-import org.jooq.Record1;
 import org.jooq.Result;
 import org.jooq.SelectConditionStep;
 import org.jooq.Table;
-import org.jooq.TableField;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import static org.jooq.impl.DSL.min;
 
 /**
  * 作业实例热数据查询 DAO 基础抽象实现
@@ -125,32 +119,4 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
         return this.dslContextProvider.get(table.getName());
     }
 
-    /**
-     * 获取表（主表/子表）中最小的作业实例ID创建时间
-     *
-     * @return 最小作业实例ID对应的创建时间
-     */
-    public LocalDateTime getTimeWithMinJobInstanceId() {
-        Record1<Long> record = dsl()
-            .select(min(getJobInstanceIdField()))
-            .from(getTable())
-            .fetchOne();
-        if (record == null) {
-            return null;
-        }
-        Long jobInstanceId = (Long) record.get(0);
-        Result<Record1<LocalDateTime>> result = dsl()
-            .select(getTableCreateTimeField())
-            .from(getTable())
-            .where(getJobInstanceIdField().eq(jobInstanceId))
-            .limit(1)
-            .fetch();
-        if (result.isNotEmpty()) {
-            Record1<LocalDateTime> createTimeRecord = result.get(0);
-            return (LocalDateTime) createTimeRecord.get(0);
-        }
-        return null;
-    }
-
-    protected abstract TableField<T, LocalDateTime> getTableCreateTimeField();
 }

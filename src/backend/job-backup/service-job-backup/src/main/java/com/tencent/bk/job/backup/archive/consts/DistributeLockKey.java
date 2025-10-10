@@ -26,5 +26,12 @@ package com.tencent.bk.job.backup.archive.consts;
 
 public class DistributeLockKey {
 
+    // 归档情况检查任务所持有的锁
     public static final String EXECUTE_DATA_CHECK_TASK_LOCK = "job:instance:archive:execute:check";
+
+    // 生成归档任务时所持有的分布式锁
+    public static final String ARCHIVE_TASK_GENERATE_LOCK = "job:instance:archive:task:generate";
+
+    // 归档任务启动时所持有的分布式锁
+    public static final String ARCHIVE_TASK_SCHEDULE_LOCK = "job:instance:archive:task:schedule";
 }

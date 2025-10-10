@@ -26,24 +26,141 @@ package com.tencent.bk.job.backup.archive.service.detector;
 
 import com.tencent.bk.job.backup.archive.dao.ArchiveTaskDAO;
 import com.tencent.bk.job.backup.archive.dao.impl.JobInstanceHotRecordDAO;
+import com.tencent.bk.job.backup.archive.model.ArchiveTaskInfo;
+import com.tencent.bk.job.backup.archive.util.ArchiveDateTimeUtil;
 import com.tencent.bk.job.backup.config.ArchiveProperties;
+import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
+import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
+import com.tencent.bk.job.backup.metrics.MetricConstants;
+import com.tencent.bk.job.common.util.TimeUtil;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
-public class UnarchivedTaskInstanceDetector extends UnarchivedDataDetector {
+import java.time.LocalDateTime;
 
-    private final String tableName = "job_execute.task_instance";
+/**
+ * 未归档数据检测，用于检测热库中是否存在未归档的数据
+ * 检测标准：
+ * 1. 是否存在归档时间以前的数据
+ * 2. 这个时间内对应的归档任务状态为已完成
+ */
+@Slf4j
+public class UnarchivedTaskInstanceDetector {
+
+    private static final String TABLE_NAME = "job_execute.task_instance";
+
+    private final ArchiveTaskDAO archiveTaskDAO;
+    private final Counter counter;
+    private final ArchiveProperties archiveProperties;
+    private final JobInstanceHotRecordDAO jobInstanceHotRecordDAO;
 
     public UnarchivedTaskInstanceDetector(MeterRegistry meterRegistry,
                                           ArchiveTaskDAO archiveTaskDAO,
                                           JobInstanceHotRecordDAO jobInstanceHotRecordDAO,
                                           ArchiveProperties archiveProperties) {
-        super(meterRegistry, archiveTaskDAO, archiveProperties, jobInstanceHotRecordDAO);
-
+        this.archiveTaskDAO = archiveTaskDAO;
+        this.counter = meterRegistry.counter(
+            MetricConstants.METRIC_NAME_UNARCHIVED_DATA_COUNT,
+            MetricConstants.TAG_KEY_UNARCHIVED_TABLE_NAME, TABLE_NAME);
+        this.archiveProperties = archiveProperties;
+        this.jobInstanceHotRecordDAO = jobInstanceHotRecordDAO;
     }
 
+    public void detect() {
+        DetectResult detectResult = doDetect();
+        if (!detectResult.isHasUnarchivedData()) {
+            return;
+        }
 
-    @Override
-    protected String getTableName() {
-        return tableName;
+        // 重调度这种未完成的任务
+        recordIfUnarchived();
+        if (archiveProperties.getCheck().isRescheduleEnabled()) {
+            reschedule(detectResult);
+        }
+    }
+
+    private void recordIfUnarchived() {
+        counter.increment();
+    }
+
+    private void reschedule(DetectResult detectResult) {
+        log.info("reschedule archive task: {} with detect result[{}]", TABLE_NAME, detectResult);
+        int day = detectResult.getDay();
+        int hour = detectResult.getHour();
+        ArchiveTaskInfo taskInfo = archiveTaskDAO.getTaskByDayHour(ArchiveTaskTypeEnum.JOB_INSTANCE, day, hour);
+        // 状态设置为PENDING，下次归档任务会自动重新执行归档任务
+        archiveTaskDAO.updateArchiveTaskStatus(
+            ArchiveTaskTypeEnum.JOB_INSTANCE,
+            taskInfo.getDbDataNode(),
+            day,
+            hour,
+            ArchiveTaskStatusEnum.PENDING);
+    }
+
+    /**
+     * 检查主表是否存在未归档的数据
+     * @return 是否存在未归档数据
+     */
+    protected DetectResult doDetect() {
+        log.info("doDetect table: {} and check if there is unarchived data", TABLE_NAME);
+        LocalDateTime time = getTimeWithMinJobInstanceId();
+        // 允许存在的记录的最早时间
+        int dayBeforeNow = archiveProperties.getKeepDays() + archiveProperties.getCheck().getAllowExtraDays();
+        LocalDateTime expectedEarliestTime = LocalDateTime.now().minusDays(dayBeforeNow);
+        log.debug("expectedEarliestTime: {}", expectedEarliestTime);
+        if (time == null || time.isAfter(expectedEarliestTime)) {
+            log.info("table [{}] no unarchived data", TABLE_NAME);
+            return DetectResult.notHasUnarchivedData();
+        }
+        // 存在最大保留时间以外的数据，判断归档任务是否已完成，如果已完成则视为归档失败
+        int day = ArchiveDateTimeUtil.computeDay(time);
+        int hour = ArchiveDateTimeUtil.computeHour(time);
+        ArchiveTaskInfo taskInfo = archiveTaskDAO.getTaskByDayHour(ArchiveTaskTypeEnum.JOB_INSTANCE, day, hour);
+        ArchiveTaskStatusEnum status = taskInfo == null ? null : taskInfo.getStatus();
+        // 归档任务已完成，但存在未归档数据，视为归档异常
+        // 若是归档任务正在执行中，不视为归档异常
+        boolean hasUnarchivedData = status == null || status == ArchiveTaskStatusEnum.SUCCESS;
+        if (hasUnarchivedData) {
+            log.warn("[{}] has unarchived data, time is {}-{}", TABLE_NAME, day, hour);
+        }
+        return DetectResult.build(hasUnarchivedData, time);
+    }
+
+    /**
+     * 获取表中最小的作业实例ID创建时间
+     * 出于性能考虑，这里查询的是最小ID对应的创建时间，而不是最早的创建时间，是为了充分利用jobInstanceId上的(主键)索引
+     * 分布式ID场景下，jobInstanceId不是严格有序的，但时间误差在10min左右，最差情况下第二天也会调度到，在可以接受的范围内
+     * @return 最小作业实例ID创建时间
+     */
+    protected LocalDateTime getTimeWithMinJobInstanceId() {
+        Long timestamp = jobInstanceHotRecordDAO.getTimeWithMinJobInstanceId();
+        if (timestamp == null) {
+            return null;
+        }
+        return TimeUtil.long2LocalDateTime(timestamp);
+    }
+
+    @Data
+    public static class DetectResult {
+        private boolean hasUnarchivedData;
+        private int day;
+        private int hour;
+
+        public static DetectResult notHasUnarchivedData() {
+            DetectResult detectResult = new DetectResult();
+            detectResult.setHasUnarchivedData(false);
+            return detectResult;
+        }
+
+        public static DetectResult build(boolean existsUnarchivedData, LocalDateTime time) {
+            DetectResult detectResult = new DetectResult();
+            detectResult.setHasUnarchivedData(existsUnarchivedData);
+            LocalDateTime timeOfHourStart = ArchiveDateTimeUtil.toHourlyRoundDown(time);
+            detectResult.setDay(ArchiveDateTimeUtil.computeDay(timeOfHourStart));
+            detectResult.setHour(ArchiveDateTimeUtil.computeHour(timeOfHourStart));
+            return detectResult;
+        }
     }
 }

@@ -1464,6 +1464,8 @@ backupConfig:
         enabled: true
         # 检查cron表达式，默认每天10:30
         cron: 0 30 10 * * *
+        # 允许存在的超出保留天数的天数
+        allowExtraDays: 3
         # 当发现有归档不完全时，重调度这个时间点的归档任务，默认开启重调度
         rescheduleEnabled: true
       tasks:

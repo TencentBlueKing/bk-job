@@ -24,67 +24,25 @@
 
 package com.tencent.bk.job.backup.archive;
 
-import com.tencent.bk.job.backup.archive.service.detector.UnarchivedDataDetector;
-import com.tencent.bk.job.backup.archive.service.detector.UnarchivedFileSourceTaskLogDetector;
-import com.tencent.bk.job.backup.archive.service.detector.UnarchivedGseFileExecuteObjectTaskDetector;
-import com.tencent.bk.job.backup.archive.service.detector.UnarchivedGseScriptExecuteObjTaskDetector;
-import com.tencent.bk.job.backup.archive.service.detector.UnarchivedGseTaskDetector;
-import com.tencent.bk.job.backup.archive.service.detector.UnarchivedOperationLogDetector;
-import com.tencent.bk.job.backup.archive.service.detector.UnarchivedRollingConfigDetector;
-import com.tencent.bk.job.backup.archive.service.detector.UnarchivedStepInstanceConfirmDetector;
-import com.tencent.bk.job.backup.archive.service.detector.UnarchivedStepInstanceDetector;
-import com.tencent.bk.job.backup.archive.service.detector.UnarchivedStepInstanceFileDetector;
-import com.tencent.bk.job.backup.archive.service.detector.UnarchivedStepInstanceScriptDetector;
-import com.tencent.bk.job.backup.archive.service.detector.UnarchivedStepInstanceVariableDetector;
 import com.tencent.bk.job.backup.archive.service.detector.UnarchivedTaskInstanceDetector;
-import com.tencent.bk.job.backup.archive.service.detector.UnarchivedTaskInstanceHostDetector;
-import com.tencent.bk.job.backup.archive.service.detector.UnarchivedTaskInstanceVariableDetector;
 import com.tencent.bk.job.backup.archive.util.lock.CheckTaskLaunchLock;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
-import java.util.List;
-
+/**
+ * 检查历史数据归档情况的任务启动器，查看是否存在未归档完全的数据
+ */
 @Slf4j
 public class HistoricalDataCheckTaskLauncher {
 
     private final CheckTaskLaunchLock checkTaskLaunchLock;
-    private final List<UnarchivedDataDetector> unarchivedDataDetectors;
+    private final UnarchivedTaskInstanceDetector unarchivedTaskInstanceDetector;
 
     public HistoricalDataCheckTaskLauncher(
         CheckTaskLaunchLock checkTaskLaunchLock,
-        UnarchivedFileSourceTaskLogDetector unarchivedFileSourceTaskLogDetector,
-        UnarchivedGseFileExecuteObjectTaskDetector unarchivedGseFileExecuteObjectTaskDetector,
-        UnarchivedGseScriptExecuteObjTaskDetector unarchivedGseScriptExecuteObjTaskDetector,
-        UnarchivedGseTaskDetector unarchivedGseTaskDetector,
-        UnarchivedOperationLogDetector unarchivedOperationLogDetector,
-        UnarchivedRollingConfigDetector unarchivedRollingConfigDetector,
-        UnarchivedStepInstanceConfirmDetector unarchivedStepInstanceConfirmDetector,
-        UnarchivedStepInstanceDetector unarchivedStepInstanceDetector,
-        UnarchivedStepInstanceFileDetector unarchivedStepInstanceFileDetector,
-        UnarchivedStepInstanceScriptDetector unarchivedStepInstanceScriptDetector,
-        UnarchivedStepInstanceVariableDetector unarchivedStepInstanceVariableDetector,
-        UnarchivedTaskInstanceDetector unarchivedTaskInstanceDetector,
-        UnarchivedTaskInstanceHostDetector unarchivedTaskInstanceHostDetector,
-        UnarchivedTaskInstanceVariableDetector unarchivedTaskInstanceVariableDetector
+        UnarchivedTaskInstanceDetector unarchivedTaskInstanceDetector
     ) {
         this.checkTaskLaunchLock = checkTaskLaunchLock;
-        this.unarchivedDataDetectors = Arrays.asList(
-            unarchivedFileSourceTaskLogDetector,
-            unarchivedGseFileExecuteObjectTaskDetector,
-            unarchivedGseScriptExecuteObjTaskDetector,
-            unarchivedGseTaskDetector,
-            unarchivedOperationLogDetector,
-            unarchivedRollingConfigDetector,
-            unarchivedStepInstanceConfirmDetector,
-            unarchivedStepInstanceDetector,
-            unarchivedStepInstanceFileDetector,
-            unarchivedStepInstanceScriptDetector,
-            unarchivedStepInstanceVariableDetector,
-            unarchivedTaskInstanceDetector,
-            unarchivedTaskInstanceHostDetector,
-            unarchivedTaskInstanceVariableDetector
-        );
+        this.unarchivedTaskInstanceDetector = unarchivedTaskInstanceDetector;
     }
 
     public void launchCheckTask() {
@@ -97,7 +55,7 @@ public class HistoricalDataCheckTaskLauncher {
             }
 
             log.info("Launching check task");
-            DetectTask task = new DetectTask(unarchivedDataDetectors);
+            DetectTask task = new DetectTask(unarchivedTaskInstanceDetector);
             task.run();
         } finally {
             if (locked) {
@@ -108,16 +66,14 @@ public class HistoricalDataCheckTaskLauncher {
     }
 
     public static class DetectTask {
-        private List<UnarchivedDataDetector> unarchivedDataDetectors;
+        private final UnarchivedTaskInstanceDetector unarchivedTaskInstanceDetector;
 
-        public DetectTask(List<UnarchivedDataDetector> unarchivedDataDetectors) {
-            this.unarchivedDataDetectors = unarchivedDataDetectors;
+        public DetectTask(UnarchivedTaskInstanceDetector unarchivedDataDetector) {
+            this.unarchivedTaskInstanceDetector = unarchivedDataDetector;
         }
 
         public void run() {
-            for (UnarchivedDataDetector unarchivedDataDetector : unarchivedDataDetectors) {
-                unarchivedDataDetector.detect();
-            }
+            unarchivedTaskInstanceDetector.detect();
         }
     }
 

@@ -28,13 +28,11 @@ import com.tencent.bk.job.backup.archive.dao.resultset.JobInstanceRecordResultSe
 import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.GseFileExecuteObjTask;
-import com.tencent.bk.job.execute.model.tables.GseScriptExecuteObjTask;
 import com.tencent.bk.job.execute.model.tables.records.GseFileExecuteObjTaskRecord;
 import org.jooq.Condition;
 import org.jooq.OrderField;
 import org.jooq.TableField;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -63,11 +61,6 @@ public class GseFileExecuteObjTaskRecordDAO extends AbstractJobInstanceHotRecord
     @Override
     public TableField<GseFileExecuteObjTaskRecord, Long> getJobInstanceIdField() {
         return TABLE.TASK_INSTANCE_ID;
-    }
-
-    @Override
-    protected TableField<GseFileExecuteObjTaskRecord, LocalDateTime> getTableCreateTimeField() {
-        return TABLE.ROW_CREATE_TIME;
     }
 
     public RecordResultSet<GseFileExecuteObjTaskRecord> executeQuery(Collection<Long> jobInstanceIds,

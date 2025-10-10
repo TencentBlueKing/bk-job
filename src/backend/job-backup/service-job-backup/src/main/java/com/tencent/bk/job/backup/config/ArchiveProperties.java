@@ -175,6 +175,11 @@ public class ArchiveProperties {
         private String cron;
 
         /**
+         * 允许存在的超出保留天数的天数
+         */
+        private int allowExtraDays;
+
+        /**
          * 当发现有归档不完全时，是否重调度这个时间点的归档任务
          */
         private boolean rescheduleEnabled;
