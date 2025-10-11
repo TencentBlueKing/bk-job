@@ -27,6 +27,7 @@ package com.tencent.bk.job.backup.config;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.tencent.bk.job.backup.archive.AbnormalArchiveTaskReScheduler;
 import com.tencent.bk.job.backup.archive.ArchiveTablePropsStorage;
+import com.tencent.bk.job.backup.archive.HistoricalDataCheckTaskLauncher;
 import com.tencent.bk.job.backup.archive.JobLogArchiveTaskGenerator;
 import com.tencent.bk.job.backup.archive.JobLogArchiveTaskScheduler;
 import com.tencent.bk.job.backup.archive.JobLogArchivers;
@@ -249,7 +250,8 @@ public class ArchiveConfiguration {
         @Nullable JobLogArchiveTaskScheduler jobLogArchiveTaskScheduler,
         ArchiveProperties archiveProperties,
         JobLogArchiveProperties jobLogArchiveProperties,
-        AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler) {
+        AbnormalArchiveTaskReScheduler abnormalArchiveTaskReScheduler,
+        ObjectProvider<HistoricalDataCheckTaskLauncher> historicalDataCheckTaskLauncherObjectProvider) {
         log.info("Init ArchiveCronJobs");
         return new ArchiveCronJobs(
             jobInstanceArchiveTaskGenerator,
@@ -258,7 +260,8 @@ public class ArchiveConfiguration {
             jobLogArchiveTaskScheduler,
             archiveProperties,
             jobLogArchiveProperties,
-            abnormalArchiveTaskReScheduler
+            abnormalArchiveTaskReScheduler,
+            historicalDataCheckTaskLauncherObjectProvider.getIfAvailable()
         );
     }
 

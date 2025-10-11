@@ -138,6 +138,8 @@ public interface ArchiveTaskDAO {
 
     ArchiveTaskInfo getFirstScheduleArchiveTask(ArchiveTaskTypeEnum taskType);
 
+    ArchiveTaskInfo getTaskByDayHour(ArchiveTaskTypeEnum taskType, Integer day, Integer hour);
+
     void updateArchiveTaskStatus(ArchiveTaskTypeEnum taskType,
                                  DbDataNode dataNode,
                                  Integer day,
