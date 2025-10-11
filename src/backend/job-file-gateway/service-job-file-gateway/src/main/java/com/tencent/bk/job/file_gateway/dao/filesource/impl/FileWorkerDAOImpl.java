@@ -462,6 +462,9 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
             conditions = new ArrayList<>();
         }
         Result<Record> records = null;
+        // 保存group_concat_max_len原参数值并设置目标值
+        defaultContext.execute("SET @t = @@group_concat_max_len");
+        defaultContext.execute("SET @@group_concat_max_len = 10240");
         val query = defaultContext.select(
                 defaultTable.ID,
                 defaultTable.APP_ID,
@@ -500,6 +503,9 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
             records = query.fetch();
         } catch (Exception e) {
             log.error(String.format("Fail to execute SQL:%s", query.getSQL(ParamType.INLINED)), e);
+        } finally {
+            // 恢复group_concat_max_len原参数值
+            defaultContext.execute("SET @@group_concat_max_len = @t");
         }
         if (records == null || records.isEmpty()) {
             return Collections.emptyList();
