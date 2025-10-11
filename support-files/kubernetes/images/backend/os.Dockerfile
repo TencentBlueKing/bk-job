@@ -1,7 +1,7 @@
 FROM tencentos/tencentos4-minimal:4.4-v20250805
 
 LABEL maintainer="Tencent BlueKing Job"
-LABEL dockerfile.version="3.13.0"
+LABEL dockerfile.version="3.11.11"
 
 ENV LANG="en_US.UTF-8"
 
