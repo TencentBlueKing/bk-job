@@ -13,11 +13,14 @@ RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &&\
 
 # 安装软件
 RUN dnf install -y \
+        procps \
         xz \
         vim \
         less \
         wget \
         lrzsz \
+        iputils \
+        telnet \
         net-tools \
         bind-utils && \
     dnf clean all
