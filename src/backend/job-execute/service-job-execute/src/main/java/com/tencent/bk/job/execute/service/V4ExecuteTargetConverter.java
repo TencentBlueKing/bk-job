@@ -70,8 +70,9 @@ public class V4ExecuteTargetConverter {
         // 静态拓扑节点
         if (CollectionUtils.isNotEmpty(v4ExecuteTargetDTO.getTopoNodes())) {
             List<DynamicServerTopoNodeDTO> topoNodes = new ArrayList<>();
-            v4ExecuteTargetDTO.getTopoNodes().forEach(topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getId(),
-                topoNode.getNodeType())));
+            v4ExecuteTargetDTO.getTopoNodes().forEach(topoNode ->
+                topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getId(), topoNode.getNodeType()))
+            );
             target.setTopoNodes(topoNodes);
         }
 

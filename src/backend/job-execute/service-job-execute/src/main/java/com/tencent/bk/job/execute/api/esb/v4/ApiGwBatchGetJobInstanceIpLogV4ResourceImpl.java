@@ -117,7 +117,8 @@ public class ApiGwBatchGetJobInstanceIpLogV4ResourceImpl implements ApiGwBatchGe
         return EsbV4Response.success(resp);
     }
 
-    private List<V4ScriptStepIpLogDTO> queryScriptLogs(StepInstanceBaseDTO stepInstance, List<ExecuteObjectCompositeKey> hostKeys) {
+    private List<V4ScriptStepIpLogDTO> queryScriptLogs(StepInstanceBaseDTO stepInstance,
+                                                       List<ExecuteObjectCompositeKey> hostKeys) {
         List<ScriptExecuteObjectLogContent> scriptLogContents = logService.batchGetScriptExecuteObjectLogContent(
             LogFieldUtil.buildJobCreateDate(stepInstance.getCreateTime()),
             stepInstance,
@@ -128,7 +129,8 @@ public class ApiGwBatchGetJobInstanceIpLogV4ResourceImpl implements ApiGwBatchGe
         return scriptLogContents.stream().map(this::convertToScriptIpLogDTO).collect(Collectors.toList());
     }
 
-    private List<V4FileStepIpLogDTO> queryFileLogs(StepInstanceBaseDTO stepInstance, List<ExecuteObjectCompositeKey> hostKeys) {
+    private List<V4FileStepIpLogDTO> queryFileLogs(StepInstanceBaseDTO stepInstance,
+                                                   List<ExecuteObjectCompositeKey> hostKeys) {
         List<FileExecuteObjectLogContent> fileLogContents = logService.batchGetFileExecuteObjectLogContent(
             stepInstance.getTaskInstanceId(),
             stepInstance.getId(),
