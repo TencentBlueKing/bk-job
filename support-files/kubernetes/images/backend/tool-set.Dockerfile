@@ -12,7 +12,7 @@ RUN curl -o mysql-8.4.6-linux-glibc2.17-x86_64-minimal.tar.xz https://cdn.mysql.
     && dnf clean all
 
 ## 安装pip与requests库
-RUN yum install -y python-pip
+RUN dnf install -y python-pip
 RUN mkdir -p /root/.pip
 RUN echo -e "[global]\nindex-url = https://mirrors.tencent.com/pypi/simple\n[install]\ntrusted-host=mirrors.tencent.com" > /root/.pip/pip.conf
 RUN pip3 install requests==2.27.1

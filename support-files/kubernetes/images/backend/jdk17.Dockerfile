@@ -16,7 +16,7 @@ ENV CLASSPATH=.:${JAVA_HOME}/lib
 RUN mkdir -p /data/tools && \
     cd /data/tools && \
     curl -OL https://github.com/alibaba/arthas/releases/download/arthas-all-4.0.5/arthas-bin.zip && \
-    yum install -y unzip && \
+    dnf install -y unzip && \
     unzip arthas-bin.zip arthas-boot.jar && \
     rm -rf arthas-bin* && \
     echo 'alias arthas="java -jar /data/tools/arthas-boot.jar"' >> ~/.bashrc
