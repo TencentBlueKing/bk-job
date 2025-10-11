@@ -22,63 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.validation;
+package com.tencent.bk.job.execute.model.esb.v4.req.validator;
+
+import com.tencent.bk.job.execute.model.esb.v4.req.V4ExecuteTargetDTO;
+
+import javax.validation.Constraint;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
+import javax.validation.Payload;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * 联合校验分组
+ * 校验执行目标非空
  */
-public interface ValidationGroups {
-    interface Script {
-        interface ScriptVersionId {
-        }
+@Target({ElementType.TYPE})
+@Documented
+@Retention(RUNTIME)
+@Constraint(validatedBy = V4ExecuteTargetNotEmpty.Validator.class)
+public @interface V4ExecuteTargetNotEmpty {
+    String message() default "{validation.constraints.ExecuteTarget_empty.message}";
 
-        interface ScriptContent {
-        }
+    Class<?>[] groups() default {};
 
-        interface ScriptId {
-        }
-    }
+    Class<? extends Payload>[] payload() default {};
 
-    interface Account {
-        interface AccountId {
-        }
+    class Validator implements ConstraintValidator<V4ExecuteTargetNotEmpty, V4ExecuteTargetDTO> {
 
-        interface AccountAlias {
-        }
-    }
-
-    /**
-     * 滚动类型
-     */
-    interface RollingType {
-        /**
-         * 按目标执行对象滚动
-         */
-        interface TargetExecuteObject {
-        }
-
-        /**
-         * 按源文件滚动
-         */
-        interface FileSource {
+        @Override
+        public boolean isValid(V4ExecuteTargetDTO v4ExecuteTargetDTO,
+                               ConstraintValidatorContext constraintValidatorContext) {
+            return v4ExecuteTargetDTO != null && !v4ExecuteTargetDTO.isTargetEmpty();
         }
     }
-
-    /**
-     * 主机类型（hostId or cloudId+ip）
-     */
-    interface HostType {
-        /**
-         * 用hostId表示主机
-         */
-        interface HostId {
-        }
-
-        /**
-         * 用cloudId+ip表示主机
-         */
-        interface CloudIdIp {
-        }
-    }
-
 }

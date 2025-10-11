@@ -22,63 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.validation;
+package com.tencent.bk.job.execute.model.esb.v4.req;
 
-/**
- * 联合校验分组
- */
-public interface ValidationGroups {
-    interface Script {
-        interface ScriptVersionId {
-        }
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import lombok.Getter;
+import lombok.Setter;
 
-        interface ScriptContent {
-        }
+import javax.validation.Valid;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.util.List;
 
-        interface ScriptId {
-        }
-    }
+@Getter
+@Setter
+public class V4BatchGetJobInstanceIpLogRequest extends EsbAppScopeReq {
 
-    interface Account {
-        interface AccountId {
-        }
+    @JsonProperty("job_instance_id")
+    @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
+    @Min(value = 1L, message = "{validation.constraints.InvalidJobInstanceId.message}")
+    private Long jobInstanceId;
 
-        interface AccountAlias {
-        }
-    }
-
-    /**
-     * 滚动类型
-     */
-    interface RollingType {
-        /**
-         * 按目标执行对象滚动
-         */
-        interface TargetExecuteObject {
-        }
-
-        /**
-         * 按源文件滚动
-         */
-        interface FileSource {
-        }
-    }
+    @JsonProperty("step_instance_id")
+    @NotNull(message = "{validation.constraints.InvalidStepInstanceId.message}")
+    @Min(value = 1L, message = "{validation.constraints.InvalidStepInstanceId.message}")
+    private Long stepInstanceId;
 
     /**
-     * 主机类型（hostId or cloudId+ip）
+     * 要拉取作业日志的主机列表
      */
-    interface HostType {
-        /**
-         * 用hostId表示主机
-         */
-        interface HostId {
-        }
-
-        /**
-         * 用cloudId+ip表示主机
-         */
-        interface CloudIdIp {
-        }
-    }
-
+    @JsonProperty("host_list")
+    @Valid
+    @Size(min = 1, max = 500, message = "{validation.constraints.InvalidHostListSize.message}")
+    private List<ApiGwV4HostDTO> hostList;
 }
