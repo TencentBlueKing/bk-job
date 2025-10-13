@@ -35,7 +35,6 @@ import com.tencent.bk.job.analysis.service.ScriptService;
 import com.tencent.bk.job.analysis.service.TaskPlanService;
 import com.tencent.bk.job.analysis.service.TaskTemplateService;
 import com.tencent.bk.job.analysis.task.analysis.AnalysisTaskStatusEnum;
-import com.tencent.bk.job.analysis.task.analysis.BaseAnalysisTask;
 import com.tencent.bk.job.analysis.task.analysis.anotation.AnalysisTask;
 import com.tencent.bk.job.analysis.task.analysis.enums.AnalysisResourceEnum;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultData;
@@ -43,8 +42,6 @@ import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultIte
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultVO;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.util.Counter;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
@@ -61,10 +58,13 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @Description 寻找在作业模板/执行方案中使用的禁用脚本
@@ -74,10 +74,9 @@ import java.util.List;
 @Component
 @AnalysisTask("ForbiddenScriptFinder")
 @Slf4j
-public class ForbiddenScriptFinder extends BaseAnalysisTask {
+public class ForbiddenScriptFinder extends AbstractTemplateAnalysisTask {
 
     private final TaskPlanService taskPlanService;
-    private final TaskTemplateService templateService;
     private final ScriptService scriptService;
 
     @Autowired
@@ -87,11 +86,16 @@ public class ForbiddenScriptFinder extends BaseAnalysisTask {
         ApplicationService applicationService,
         TaskPlanService taskPlanService,
         TaskTemplateService templateService,
-        ScriptService scriptService
+        ScriptService scriptService,
+        @Qualifier("templateAnalysisTaskExecutor") ThreadPoolExecutor threadPoolExecutor
     ) {
-        super(analysisTaskDAO, analysisTaskInstanceDAO, applicationService);
+        super(analysisTaskDAO,
+            analysisTaskInstanceDAO,
+            applicationService,
+            templateService,
+            threadPoolExecutor
+        );
         this.taskPlanService = taskPlanService;
-        this.templateService = templateService;
         this.scriptService = scriptService;
     }
 
@@ -289,19 +293,14 @@ public class ForbiddenScriptFinder extends BaseAnalysisTask {
                     Long id = insertAnalysisTaskInstance(analysisTaskInstanceDTO);
                     log.info("taskId:" + id);
                     analysisTaskInstanceDTO.setId(id);
-                    List<BadTplPlanInfo> badTplPlanInfoList = new ArrayList<>();
-                    BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
-                    baseSearchCondition.setStart(0);
-                    baseSearchCondition.setLength(Integer.MAX_VALUE);
-
-                    ServiceTaskTemplateDTO templateCondition = new ServiceTaskTemplateDTO();
-                    templateCondition.setAppId(appId);
-                    PageData<ServiceTaskTemplateDTO> taskTemplateInfoDTOPageData =
-                        templateService.listPageTaskTemplates(appId, baseSearchCondition);
-                    List<ServiceTaskTemplateDTO> taskTemplateInfoDTOList = taskTemplateInfoDTOPageData.getData();
-                    for (ServiceTaskTemplateDTO taskTemplateInfoDTO : taskTemplateInfoDTOList) {
-                        findForbiddenScriptFromTemplatePlans(taskTemplateInfoDTO, badTplPlanInfoList);
-                    }
+                    List<BadTplPlanInfo> badTplPlanInfoList = Collections.synchronizedList(new ArrayList<>());
+                    // 分析作业，找出禁用的脚本
+                    runAnalysisForApp(appId,
+                        templates -> {
+                            for (ServiceTaskTemplateDTO template : templates) {
+                                findForbiddenScriptFromTemplatePlans(template, badTplPlanInfoList);
+                            }
+                        });
                     //结果入库
                     analysisTaskInstanceDTO.setResultData(
                         JsonUtils.toJson(new AnalysisTaskResultData<>((long) badTplPlanInfoList.size(),

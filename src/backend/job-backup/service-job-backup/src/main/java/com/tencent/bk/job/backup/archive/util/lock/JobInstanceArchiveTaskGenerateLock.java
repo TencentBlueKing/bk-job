@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.backup.archive.util.lock;
 
+import com.tencent.bk.job.backup.archive.consts.DistributeLockKey;
 import com.tencent.bk.job.common.redis.util.HeartBeatRedisLockConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -37,9 +38,9 @@ public class JobInstanceArchiveTaskGenerateLock extends PreemptiveDistributeLock
 
     public JobInstanceArchiveTaskGenerateLock(StringRedisTemplate redisTemplate) {
         super(redisTemplate,
-            "job:instance:archive:task:generate",
+            DistributeLockKey.ARCHIVE_TASK_GENERATE_LOCK,
             new HeartBeatRedisLockConfig(
-                "RedisKeyHeartBeatThread-job:instance:archive:task:generate",
+                "RedisKeyHeartBeatThread-" + DistributeLockKey.ARCHIVE_TASK_GENERATE_LOCK,
                 60 * 1000L, // 60s 超时时间
                 10 * 1000L // 10s 续期一次
             ));

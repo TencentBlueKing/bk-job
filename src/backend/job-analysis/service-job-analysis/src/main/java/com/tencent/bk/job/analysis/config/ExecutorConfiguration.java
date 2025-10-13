@@ -92,4 +92,18 @@ public class ExecutorConfiguration {
             (r, executor) -> log.error("pastStatisticsTaskExecutor runnable rejected! num:{}",
                 StatisticsTaskScheduler.rejectedStatisticsTaskNum.incrementAndGet()));
     }
+
+    @Bean("templateAnalysisTaskExecutor")
+    public ThreadPoolExecutor templateAnalysisTaskExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "templateAnalysisTaskExecutor",
+            StatisticsTaskScheduler.defaultCorePoolSize,
+            StatisticsTaskScheduler.defaultMaximumPoolSize,
+            StatisticsTaskScheduler.defaultKeepAliveTime,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(StatisticsTaskScheduler.templateAnalysisTaskQueueSize),
+            (r, executor) -> log.error("templateAnalysisTaskExecutor runnable rejected! num:{}",
+                StatisticsTaskScheduler.rejectedStatisticsTaskNum.incrementAndGet()));
+    }
 }
