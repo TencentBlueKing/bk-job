@@ -33,6 +33,9 @@ spec:
     timeout: '5s'
   extMeta:
     logSourceType: "file"
+    {{- if and .Values.bkLogConfig.customMetadata .Values.bkLogConfig.customMetadata.enabled .Values.bkLogConfig.customMetadata.metadata }}
+    {{- toYaml .Values.bkLogConfig.customMetadata.metadata | nindent 4 }}
+    {{- end }}
 {{- end }}
 {{- if and (.Values.bkLogConfig.enabled) (.Values.bkLogConfig.file.accessLog.dataId) }}
 ---
@@ -71,6 +74,9 @@ spec:
     timeout: '5s'
   extMeta:
     logSourceType: "file"
+    {{- if and .Values.bkLogConfig.customMetadata .Values.bkLogConfig.customMetadata.enabled .Values.bkLogConfig.customMetadata.metadata }}
+    {{- toYaml .Values.bkLogConfig.customMetadata.metadata | nindent 4 }}
+    {{- end }}
 {{- end }}
 {{- if and (.Values.bkLogConfig.enabled) (.Values.bkLogConfig.std.dataId) }}
 ---
@@ -102,4 +108,7 @@ spec:
       {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
   extMeta:
     logSourceType: "std"
+    {{- if and .Values.bkLogConfig.customMetadata .Values.bkLogConfig.customMetadata.enabled .Values.bkLogConfig.customMetadata.metadata }}
+    {{- toYaml .Values.bkLogConfig.customMetadata.metadata | nindent 4 }}
+    {{- end }}
 {{- end }}

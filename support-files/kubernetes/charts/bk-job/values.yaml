@@ -900,6 +900,16 @@ bkLogConfig:
     # 容器标准输出日志采集到的dataId
     # e.g: dataId: 3
     dataId: ""
+  # 自定义日志采集元数据配置，用于多集群部署场景
+  customMetadata:
+    # 是否启用自定义元数据
+    enabled: false
+    # 自定义元数据键值对，支持多个键值对
+    # 例如：clusterId: "bcs-cluster-001", region: "beijing"
+    metadata: {}
+    # 示例配置（注释掉，实际使用时取消注释并修改值）
+    # metadata:
+    #   clusterId: "bcs-cluster-001"
 
 ## job-gateway网关配置
 gatewayConfig:
