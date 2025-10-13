@@ -53,7 +53,8 @@ public class V4BatchGetJobInstanceIpLogRequest extends EsbAppScopeReq {
      * 要拉取作业日志的主机列表
      */
     @JsonProperty("host_list")
-    @Valid
+    @NotNull( message = "{validation.constraints.ExecuteTarget_empty.message}")
     @Size(min = 1, max = 500, message = "{validation.constraints.InvalidHostListSize.message}")
+    @Valid
     private List<ApiGwV4HostDTO> hostList;
 }

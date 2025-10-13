@@ -3462,7 +3462,7 @@ paths:
           timeout: 0
           upstreams: { }
           transformHeaders: { }
-        authConfig :
+        authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
           resourcePermissionRequired: true
@@ -3484,168 +3484,168 @@ paths:
           type: HTTP
           method: get
           path: /api/job/v4/job-execute/get_job_instance_list
-          matchSubpath : false
+          matchSubpath: false
           timeout: 0
           upstreams: { }
           transformHeaders: { }
-        authConfig :
+        authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: false
           resourcePermissionRequired: true
         descriptionEn: Get job instance list
-  /api/v4/fast_execute_script :
-    post :
-      operationId : v4_fast_execute_script
-      description : 快速执行脚本
-      tags : [ 'v4' ]
-      responses :
-        default :
-          description : ''
-      x-bk-apigateway-resource :
-        isPublic : true
-        allowApplyPermission : true
-        matchSubpath : false
-        backend :
+  /api/v4/fast_execute_script:
+    post:
+      operationId: v4_fast_execute_script
+      description: 快速执行脚本
+      tags: [ 'v4' ]
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
-          type : HTTP
-          method : post
-          path : /api/job/v4/job-execute/fast_execute_script
-          matchSubpath : false
-          timeout : 0
-          upstreams : { }
-          transformHeaders : { }
-        authConfig :
-          appVerifiedRequired : true
-          userVerifiedRequired : true
-          resourcePermissionRequired : true
-        descriptionEn : Fast execute script
-  /api/v4/system/fast_execute_script :
-    post :
-      operationId : v4_system_fast_execute_script
-      description : 快速执行脚本
-      tags : [ 'system' ]
-      responses :
-        default :
-          description : ''
-      x-bk-apigateway-resource :
-        isPublic : false
-        allowApplyPermission : false
-        matchSubpath : false
-        backend :
+          type: HTTP
+          method: post
+          path: /api/job/v4/job-execute/fast_execute_script
+          matchSubpath: false
+          timeout: 0
+          upstreams: { }
+          transformHeaders: { }
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Fast execute script
+  /api/v4/system/fast_execute_script:
+    post:
+      operationId: v4_system_fast_execute_script
+      description: 快速执行脚本
+      tags: [ 'system' ]
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
-          type : HTTP
-          method : post
-          path : /api/job/v4/job-execute/fast_execute_script
-          matchSubpath : false
-          timeout : 0
-          upstreams : { }
-          transformHeaders : { }
-        authConfig :
-          appVerifiedRequired : true
-          userVerifiedRequired : false
-          resourcePermissionRequired : true
-        descriptionEn : Fast execute script
-  /api/v4/batch_get_job_instance_ip_log :
-    post :
-      operationId : v4_batch_get_job_instance_ip_log
-      description : 根据ip列表批量查询作业执行日志
-      tags : [ 'v4' ]
-      responses :
-        default :
-          description : ''
-      x-bk-apigateway-resource :
-        isPublic : true
-        allowApplyPermission : true
-        matchSubpath : false
-        backend :
+          type: HTTP
+          method: post
+          path: /api/job/v4/job-execute/fast_execute_script
+          matchSubpath: false
+          timeout: 0
+          upstreams: { }
+          transformHeaders: { }
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: false
+          resourcePermissionRequired: true
+        descriptionEn: Fast execute script
+  /api/v4/batch_get_job_instance_ip_log:
+    post:
+      operationId: v4_batch_get_job_instance_ip_log
+      description: 根据ip列表批量查询作业执行日志
+      tags: [ 'v4' ]
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
-          type : HTTP
-          method : post
-          path : /api/job/v4/job-execute/batch_get_job_instance_ip_log
-          matchSubpath : false
-          timeout : 0
-          upstreams : { }
-          transformHeaders : { }
-        authConfig :
-          appVerifiedRequired : true
-          userVerifiedRequired : true
-          resourcePermissionRequired : true
-        descriptionEn : Batch get job instance ip log
-  /api/v4/system/batch_get_job_instance_ip_log :
-    post :
-      operationId : v4_system_batch_get_job_instance_ip_log
-      description : 根据ip列表批量查询作业执行日志
-      tags : [ 'system' ]
-      responses :
-        default :
-          description : ''
-      x-bk-apigateway-resource :
-        isPublic : false
-        allowApplyPermission : false
-        matchSubpath : false
-        backend :
+          type: HTTP
+          method: post
+          path: /api/job/v4/job-execute/batch_get_job_instance_ip_log
+          matchSubpath: false
+          timeout: 0
+          upstreams: { }
+          transformHeaders: { }
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Batch get job instance ip log
+  /api/v4/system/batch_get_job_instance_ip_log:
+    post:
+      operationId: v4_system_batch_get_job_instance_ip_log
+      description: 根据ip列表批量查询作业执行日志
+      tags: [ 'system' ]
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
-          type : HTTP
-          method : post
-          path : /api/job/v4/job-execute/batch_get_job_instance_ip_log
-          matchSubpath : false
-          timeout : 0
-          upstreams : { }
-          transformHeaders : { }
-        authConfig :
-          appVerifiedRequired : true
-          userVerifiedRequired : false
-          resourcePermissionRequired : true
-        descriptionEn : Batch get job instance ip log
-  /api/v4/get_job_instance_status :
-    get :
-      operationId : v4_get_job_instance_status
-      description : 根据作业实例 ID 查询作业执行状态
-      tags : [ 'v4' ]
-      responses :
-        default :
-          description : ''
-      x-bk-apigateway-resource :
-        isPublic : true
-        allowApplyPermission : true
-        matchSubpath : false
-        backend :
+          type: HTTP
+          method: post
+          path: /api/job/v4/job-execute/batch_get_job_instance_ip_log
+          matchSubpath: false
+          timeout: 0
+          upstreams: { }
+          transformHeaders: { }
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: false
+          resourcePermissionRequired: true
+        descriptionEn: Batch get job instance ip log
+  /api/v4/get_job_instance_status:
+    get:
+      operationId: v4_get_job_instance_status
+      description: 根据作业实例 ID 查询作业执行状态
+      tags: [ 'v4' ]
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
-          type : HTTP
-          method : get
-          path : /api/job/v4/job-execute/get_job_instance_status
-          matchSubpath : false
-          timeout : 0
-          upstreams : { }
-          transformHeaders : { }
-        authConfig :
-          appVerifiedRequired : true
-          userVerifiedRequired : true
-          resourcePermissionRequired : true
-        descriptionEn : Get job instance status
-  /api/v4/system/get_job_instance_status :
-    get :
-      operationId : v4_system_get_job_instance_status
-      description : 根据作业实例 ID 查询作业执行状态
-      tags : [ 'system' ]
-      responses :
-        default :
-          description : ''
-      x-bk-apigateway-resource :
-        isPublic : false
-        allowApplyPermission : false
-        matchSubpath : false
-        backend :
+          type: HTTP
+          method: get
+          path: /api/job/v4/job-execute/get_job_instance_status
+          matchSubpath: false
+          timeout: 0
+          upstreams: { }
+          transformHeaders: { }
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Get job instance status
+  /api/v4/system/get_job_instance_status:
+    get:
+      operationId: v4_system_get_job_instance_status
+      description: 根据作业实例 ID 查询作业执行状态
+      tags: [ 'system' ]
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
-          type : HTTP
-          method : get
-          path : /api/job/v4/job-execute/get_job_instance_status
-          matchSubpath : false
-          timeout : 0
-          upstreams : { }
-          transformHeaders : { }
-        authConfig :
-          appVerifiedRequired : true
-          userVerifiedRequired : false
-          resourcePermissionRequired : true
-        descriptionEn : Get job instance status
+          type: HTTP
+          method: get
+          path: /api/job/v4/job-execute/get_job_instance_status
+          matchSubpath: false
+          timeout: 0
+          upstreams: { }
+          transformHeaders: { }
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: false
+          resourcePermissionRequired: true
+        descriptionEn: Get job instance status
