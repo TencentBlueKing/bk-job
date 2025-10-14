@@ -22,39 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v4.req;
+package com.tencent.bk.job.execute.model.esb.v4.req.validator;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import lombok.Getter;
-import lombok.Setter;
+import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.execute.model.esb.v4.req.ApiGwV4HostDTO;
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
-public class V4BatchGetJobInstanceIpLogRequest extends EsbAppScopeReq {
+public class V4HostGroupSequenceProvider implements DefaultGroupSequenceProvider<ApiGwV4HostDTO> {
 
-    @JsonProperty("job_instance_id")
-    @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
-    @Min(value = 1L, message = "{validation.constraints.InvalidJobInstanceId.message}")
-    private Long jobInstanceId;
-
-    @JsonProperty("step_instance_id")
-    @NotNull(message = "{validation.constraints.InvalidStepInstanceId.message}")
-    @Min(value = 1L, message = "{validation.constraints.InvalidStepInstanceId.message}")
-    private Long stepInstanceId;
-
-    /**
-     * 要拉取作业日志的主机列表
-     */
-    @JsonProperty("host_list")
-    @NotNull(message = "{validation.constraints.ExecuteTarget_empty.message}")
-    @Size(min = 1, max = 500, message = "{validation.constraints.InvalidHostListSize.message}")
-    @Valid
-    private List<ApiGwV4HostDTO> hostList;
+    @Override
+    public List<Class<?>> getValidationGroups(ApiGwV4HostDTO hostDTO) {
+        List<Class<?>> groups = new ArrayList<>();
+        groups.add(ApiGwV4HostDTO.class);
+        if (hostDTO != null) {
+            // 优先级：bk_host_id > (bk_cloud_id + ip)
+            if (hostDTO.getBkHostId() != null) {
+                groups.add(ValidationGroups.HostType.HostId.class);
+            } else if (hostDTO.getIp() != null || hostDTO.getBkCloudId() != null) {
+                groups.add(ValidationGroups.HostType.CloudIdIp.class);
+            } else {
+                groups.add(ValidationGroups.HostType.HostId.class);
+            }
+        }
+        return groups;
+    }
 }
+

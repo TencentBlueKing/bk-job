@@ -27,23 +27,21 @@ package com.tencent.bk.job.execute.model.esb.v4.req;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.execute.model.esb.v4.req.validator.V4HostGroupSequenceProvider;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.group.GroupSequenceProvider;
-import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import java.util.ArrayList;
-import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@GroupSequenceProvider(ApiGwV4HostDTO.GroupValidateProvider.class)
+@GroupSequenceProvider(V4HostGroupSequenceProvider.class)
 public class ApiGwV4HostDTO {
 
     @JsonProperty("bk_cloud_id")
@@ -77,25 +75,5 @@ public class ApiGwV4HostDTO {
         this.bkHostId = hostDTO.getHostId();
         this.bkCloudId = hostDTO.getBkCloudId();
         this.ip = hostDTO.getIp();
-    }
-
-    public static class GroupValidateProvider implements DefaultGroupSequenceProvider<ApiGwV4HostDTO> {
-
-        @Override
-        public List<Class<?>> getValidationGroups(ApiGwV4HostDTO hostDTO) {
-            List<Class<?>> groups = new ArrayList<>();
-            groups.add(V4ExecuteTargetDTO.class);
-            if (hostDTO != null) {
-                // 优先级：bk_host_id > (bk_cloud_id + ip)
-                if (hostDTO.getBkHostId() != null) {
-                    groups.add(ValidationGroups.HostType.HostId.class);
-                } else if (hostDTO.getIp() != null || hostDTO.getBkCloudId() != null) {
-                    groups.add(ValidationGroups.HostType.CloudIdIp.class);
-                } else {
-                    groups.add(ValidationGroups.HostType.HostId.class);
-                }
-            }
-            return groups;
-        }
     }
 }
