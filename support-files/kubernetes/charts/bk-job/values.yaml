@@ -910,7 +910,7 @@ bkLogConfig:
     # 示例配置（注释掉，实际使用时取消注释并修改值）
     # metadata:
     #   clusterId: "bcs-cluster-001"
-  # 自定义BkLogConfig资源label配置，用于多集群部署场景
+  # 自定义BkLogConfig资源label配置
   customLabels:
     # 是否启用自定义label
     enabled: false
