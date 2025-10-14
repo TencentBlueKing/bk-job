@@ -85,13 +85,15 @@ public class ApiGwV4HostDTO {
         public List<Class<?>> getValidationGroups(ApiGwV4HostDTO hostDTO) {
             List<Class<?>> groups = new ArrayList<>();
             groups.add(V4ExecuteTargetDTO.class);
-            // 优先级：bk_host_id > (bk_cloud_id + ip)
-            if (hostDTO.getBkHostId() != null) {
-                groups.add(ValidationGroups.HostType.HostId.class);
-            } else if (hostDTO.getIp() != null || hostDTO.getBkCloudId() != null) {
-                groups.add(ValidationGroups.HostType.CloudIdIp.class);
-            } else {
-                groups.add(ValidationGroups.HostType.HostId.class);
+            if (hostDTO != null) {
+                // 优先级：bk_host_id > (bk_cloud_id + ip)
+                if (hostDTO.getBkHostId() != null) {
+                    groups.add(ValidationGroups.HostType.HostId.class);
+                } else if (hostDTO.getIp() != null || hostDTO.getBkCloudId() != null) {
+                    groups.add(ValidationGroups.HostType.CloudIdIp.class);
+                } else {
+                    groups.add(ValidationGroups.HostType.HostId.class);
+                }
             }
             return groups;
         }
