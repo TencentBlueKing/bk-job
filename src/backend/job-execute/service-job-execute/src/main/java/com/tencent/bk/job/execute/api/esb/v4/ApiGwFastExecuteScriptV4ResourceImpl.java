@@ -154,6 +154,7 @@ public class ApiGwFastExecuteScriptV4ResourceImpl implements ApiGwFastExecuteScr
         }
 
         stepInstance.setAppId(request.getAppId());
+        stepInstance.setStepId(-1L);
         stepInstance.setSecureParam(request.isParamSensitive());
         stepInstance.setWindowsInterpreter(request.getTrimmedWindowsInterpreter());
         stepInstance.setTimeout(

@@ -1,0 +1,24 @@
+| Field               | Type  | Required | Description                                                                 |
+|---------------------|-------|----------|-----------------------------------------------------------------------------|
+| host_list           | array | No       | Static host list. See host definition.                                      |
+| dynamic_group_list  | array | No       | Dynamic group ID list. See dynamic_group definition.                        |
+| topo_node_list      | array | No       | Distributed topology node list. See topo_node definition.                   |
+
+Note: host_list, dynamic_group_list, and topo_node_list cannot be all empty at the same time.
+
+##### host
+
+{% include '_generic_v4_host.md.j2' %}
+
+##### dynamic_group
+
+| Field | Type   | Required | Description        |
+|-------|--------|----------|--------------------|
+| id    | string | Yes      | Dynamic group ID   |
+
+##### topo_node
+
+| Field     | Type   | Required | Description                                     |
+|-----------|--------|----------|-------------------------------------------------|
+| id        | long   | Yes      | Topology node ID                                |
+| node_type | string | Yes      | Topology node type. Allowed values: module, set |

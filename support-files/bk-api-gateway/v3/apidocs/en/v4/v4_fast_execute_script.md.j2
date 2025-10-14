@@ -1,0 +1,104 @@
+### Description
+
+Fast execute script
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field               | Type    | Required | Description                                                                                                                                                                                                                                                    |
+|---------------------|---------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| bk_scope_type       | string  | Yes      | Resource scope type. Allowed values: biz - Business, biz_set - Business Set                                                                                                                                                                                    |
+| bk_scope_id         | string  | Yes      | Resource scope ID, corresponding to bk_scope_type. Indicates Biz ID or Biz Set ID                                                                                                                                                                              |
+| script_version_id   | long    | No       | Script version ID. When provided, the specified script version is used                                                                                                                                                                                         |
+| script_id           | string  | No       | Script ID. When provided and script_version_id is empty, the released version of the script is used                                                                                                                                                            |
+| script_content      | string  | No       | Script content (Base64). When neither script_version_id nor script_id is provided, script_content will be used. Priority: script_version_id > script_id > script_content                                                                                       |
+| task_name           | string  | No       | Custom job name. Max length: 512 characters                                                                                                                                                                                                                    |
+| script_param        | string  | No       | Script parameters (Base64). Notes: 1) If there are multiple parameters like "param1 param2", encode the whole string as Base64, not each parameter separately. 2) Non-sensitive params max length 64K before encoding; sensitive params 47K                    |
+| timeout             | int     | No       | Script timeout in seconds. Default 7200. Range 1-259200                                                                                                                                                                                                        |
+| account_alias       | string  | No       | Account alias. One of account_alias or account_id must be provided. When both are provided, account_id takes precedence                                                                                                                                        |
+| account_id          | long    | No       | Account ID. One of account_alias or account_id must be provided. When both are provided, account_id takes precedence                                                                                                                                           |
+| param_sensitive     | boolean | No       | Whether to hide parameters in execution details. Default false                                                                                                                                                                                                 |
+| script_language     | int     | No       | Script language: 1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell. Required when using script_content to pass a custom script                                                                                                                          |
+| windows_interpreter | string  | No       | Custom Windows interpreter path. Must end with .exe. Max length 260 characters                                                                                                                                                                                 |
+| execute_target      | object  | No       | Execution target. See execute_target definition                                                                                                                                                                                                                |
+| callback_url        | string  | No       | Callback URL. JOB will call this URL when the task finishes. Refer to the callback_protocol component document                                                                                                                                                 |
+| rolling_config      | object  | No       | Rolling execution configuration. See rolling_config definition                                                                                                                                                                                                 |
+| start_task          | boolean | No       | Whether to start the task immediately. Default true. If false, you can start via the operate_job_instance API                                                                                                                                                  |
+| host_password_list  | array   | No       | Windows host passwords. See host_password_list definition. Normally not required. By default, the password configured for the specified account in the platform is used. Provide only when different hosts share the same account but with different passwords |
+
+##### execute_target
+
+{% include '_generic_execute_target.md.j2' %}
+
+{% include '../_generic_rolling_config.md.j2' %}
+
+{% include '../_generic_host_password_list.md.j2' %}
+
+### Request Example
+
+- POST
+
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "1",
+    "script_version_id": 1,
+    "script_content": "ZWNobyAkMQ==",
+    "script_param": "aGVsbG8=",
+    "timeout": 1000,
+    "account_id": 1000,
+    "param_sensitive": false,
+    "script_language": 1,
+    "execute_target": {
+        "dynamic_group_list": [
+             {
+                "id": "abcdefa"
+             }
+        ],
+        "host_list": [
+            {
+                "ip": "10.0.0.1",
+                "bk_cloud_id": 0
+            },
+            {
+                "ip": "10.0.0.2",
+                "bk_cloud_id": 0
+            }
+        ],
+        "topo_node_list": [
+            {
+                "id": 1000,
+                "node_type": "module"
+            }
+        ]
+    }
+}
+```
+
+### Response Examples
+
+#### Failure
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success
+
+```json
+# http status=200
+{
+    "data": {
+        "job_instance_name": "API Quick execution script1",
+        "job_instance_id": 10000,
+        "step_instance_id": 10001
+    }
+}
+```
+
+### Response Schema
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+{% include '../_generic_response_job_instance.md.j2' %}

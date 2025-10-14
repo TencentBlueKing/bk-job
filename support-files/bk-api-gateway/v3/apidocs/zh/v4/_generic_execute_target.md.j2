@@ -1,26 +1,22 @@
-| 字段                 | 类型    | 必选 | 描述                                            |
-|--------------------|-------|----|-----------------------------------------------|
-| host_list          | array | 否  | 静态主机列表，见execute_target.host_list定义            |
-| dynamic_group_list | array | 否  | 动态分组ID列表，见execute_target.dynamic_group_list定义 |
-| topo_node_list     | array | 否  | 分布式拓扑节点列表，见execute_target.topo_node_list定义    |
+| 字段                 | 类型    | 必选 | 描述                        |
+|--------------------|-------|----|---------------------------|
+| host_list          | array | 否  | 静态主机列表，见host定义            |
+| dynamic_group_list | array | 否  | 动态分组ID列表，见dynamic_group定义 |
+| topo_node_list     | array | 否  | 分布式拓扑节点列表，见topo_node定义    |
 
 **说明：** host_list、dynamic_group_list、topo_node_list不能同时为空
 
-##### execute_target.host_list
+##### host
 
-| 字段          | 类型     | 必选 | 描述                                                                      |
-|-------------|--------|----|-------------------------------------------------------------------------|
-| bk_host_id  | long   | 否  | 主机ID。与ip+bk_cloud_id必须存在一个。当同时存在bk_host_id和ip+bk_cloud_id时，bk_host_id优先 |
-| bk_cloud_id | long   | 否  | 云区域ID。与bk_host_id必须存在一个。当同时存在bk_host_id和ip+bk_cloud_id时，bk_host_id优先    |
-| ip          | string | 否  | IP地址。与bk_host_id必须存在一个。当同时存在bk_host_id和ip+bk_cloud_id时，bk_host_id优先     |
+{% include '_generic_v4_host.md.j2' %}
 
-##### execute_target.dynamic_group_list
+##### dynamic_group
 
 | 字段 | 类型     | 必选 | 描述     |
 |----|--------|----|--------|
 | id | string | 是  | 动态分组ID |
 
-##### execute_target.topo_node_list
+##### topo_node
 
 | 字段        | 类型     | 必选 | 描述                            |
 |-----------|--------|----|-------------------------------|
