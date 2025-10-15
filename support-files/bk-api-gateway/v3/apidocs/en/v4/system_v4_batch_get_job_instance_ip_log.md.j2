@@ -6,17 +6,21 @@ Batch query execution logs of a job step on multiple hosts by Job Instance ID
 
 #### Body Parameters
 
-| Field            | Type   | Required | Description                                                                     |
-|------------------|--------|----------|---------------------------------------------------------------------------------|
-| bk_scope_type    | string | Yes      | Resource scope type. Allowed values: biz - Business, biz_set - Business Set     |
-| bk_scope_id      | string | Yes      | Resource scope ID. Corresponds to bk_scope_type. Indicates Biz ID or Biz Set ID |
-| job_instance_id  | long   | Yes      | Job instance ID                                                                 |
-| step_instance_id | long   | Yes      | Step instance ID                                                                |
-| host_list        | array  | Yes      | Host list. Minimum 1, maximum 500. Array element definition: host               |
+| Field            | Type   | Required | Description                                                                                                           |
+|------------------|--------|----------|-----------------------------------------------------------------------------------------------------------------------|
+| bk_scope_type    | string | Yes      | Resource scope type. Allowed values: biz - Business, biz_set - Business Set                                           |
+| bk_scope_id      | string | Yes      | Resource scope ID. Corresponds to bk_scope_type. Indicates Biz ID or Biz Set ID                                       |
+| job_instance_id  | long   | Yes      | Job instance ID                                                                                                       |
+| step_instance_id | long   | Yes      | Step instance ID                                                                                                      |
+| host_id_list     | array  | No       | Host id list. maximum 500. Array element is long. When host_id_list and ip_list are both given, use host_id_list      |
+| ip_list          | array  | No       | IP list. maximum 500. Array element definition see ip. When host_id_list and ip_list are both given, use host_id_list |
 
-#### host
+#### ip
 
-{% include '_generic_v4_host.md.j2' %}
+| Field       | Type   | Required | Description   |
+|-------------|--------|----------|---------------|
+| bk_cloud_id | long   | Yes      | Cloud area ID |
+| ip          | string | Yes      | Host IP       |
 
 ### Request Example
 
@@ -28,13 +32,8 @@ Batch query execution logs of a job step on multiple hosts by Job Instance ID
     "bk_scope_id": "1",
     "job_instance_id": 100,
     "step_instance_id": 200,
-    "host_list": [
-        {
-          "bk_host_id": 1
-        },
-        {
-          "bk_host_id": 2
-        }
+    "host_id_list": [
+        1, 2
     ]
 }
 ```

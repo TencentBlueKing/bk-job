@@ -49,11 +49,13 @@ import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.util.ExecuteObjectCompositeKeyUtils;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import com.tencent.bk.job.logsvr.util.LogFieldUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
@@ -99,10 +101,20 @@ public class ApiGwBatchGetJobInstanceIpLogV4ResourceImpl implements ApiGwBatchGe
         resp.setJobInstanceId(request.getJobInstanceId());
         resp.setStepInstanceId(request.getStepInstanceId());
         List<ExecuteObjectCompositeKey> hostKeys = new ArrayList<>();
-        for (ApiGwV4HostDTO host : request.getHostList()) {
-            hostKeys.add(
-                ExecuteObjectCompositeKeyUtils.fromHostParam(host.getBkHostId(), host.getBkCloudId(), host.getIp())
+        // 优先使用hostIdList
+        if (CollectionUtils.isNotEmpty(request.getHostIdList())) {
+            hostKeys.addAll(
+                request.getHostIdList().stream()
+                    .filter(Objects::nonNull)
+                    .map(ExecuteObjectCompositeKey::ofHostId)
+                    .collect(Collectors.toList())
             );
+        } else {
+            for (ApiGwV4HostDTO host : request.getIpList()) {
+                hostKeys.add(
+                    ExecuteObjectCompositeKeyUtils.fromHostParam(null, host.getBkCloudId(), host.getIp())
+                );
+            }
         }
         if (stepInstance.isScriptStep()) {
             resp.setLogType(LogTypeEnum.SCRIPT.getValue());
