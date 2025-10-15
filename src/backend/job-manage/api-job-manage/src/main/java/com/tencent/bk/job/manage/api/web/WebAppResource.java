@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.web.request.app.FavorAppReq;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
 import com.tencent.bk.job.manage.model.web.vo.PageDataWithAvailableIdList;
+import com.tencent.bk.job.manage.model.web.vo.ScopeGroupWithAvailableScopeIdList;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -43,6 +44,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
+
+import java.util.List;
 
 /**
  * 业务管理 WEB API
@@ -65,6 +68,14 @@ public interface WebAppResource {
         @ApiParam(value = "分页-每页大小")
         @RequestParam(value = "pageSize", required = false)
             Integer pageSize
+    );
+
+    @ApiOperation(value = "获取用户的资源范围分组列表（带收藏标识、权限标识）", produces = "application/json")
+    @GetMapping(value = {"/scope/listGroup/favor"})
+    Response<List<ScopeGroupWithAvailableScopeIdList>> listGroupedScopeWithFavor(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+        String username
     );
 
     @ApiOperation(value = "收藏业务", produces = "application/json")

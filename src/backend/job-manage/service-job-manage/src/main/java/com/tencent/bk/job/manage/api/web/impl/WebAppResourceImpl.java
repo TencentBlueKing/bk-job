@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
@@ -34,11 +35,14 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.CompareUtil;
 import com.tencent.bk.job.common.util.PageUtil;
+import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.manage.api.web.WebAppResource;
 import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
 import com.tencent.bk.job.manage.model.web.request.app.FavorAppReq;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
 import com.tencent.bk.job.manage.model.web.vo.PageDataWithAvailableIdList;
+import com.tencent.bk.job.manage.model.web.vo.ScopeGroupWithAvailableScopeIdList;
+import com.tencent.bk.job.manage.model.web.vo.ScopeVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.ApplicationFavorService;
 import lombok.extern.slf4j.Slf4j;
@@ -152,6 +156,82 @@ public class WebAppResourceImpl implements WebAppResource {
         PageDataWithAvailableIdList<AppVO, Long> pageDataWithAvailableIdList =
             new PageDataWithAvailableIdList<>(pageData, availableAppIds);
         return Response.buildSuccessResp(pageDataWithAvailableIdList);
+    }
+
+    @Override
+    public Response<List<ScopeGroupWithAvailableScopeIdList>> listGroupedScopeWithFavor(String username) {
+        // Mock数据
+        List<ScopeGroupWithAvailableScopeIdList> list = new ArrayList<>();
+        ScopeGroupWithAvailableScopeIdList group1 = new ScopeGroupWithAvailableScopeIdList();
+        group1.setId(ResourceScopeTypeEnum.BIZ.getValue());
+        group1.setName("业务");
+        List<ScopeVO> children = new ArrayList<>();
+        ScopeVO scopeVO = new ScopeVO();
+        scopeVO.setId("1");
+        scopeVO.setName("Mock业务1");
+        scopeVO.setHasPermission(true);
+        scopeVO.setFavor(true);
+        scopeVO.setFavorTime(TimeUtil.parseIsoZonedTimeToMillis("2025-10-15T10:00:00.000+08:00"));
+        children.add(scopeVO);
+        scopeVO = new ScopeVO();
+        scopeVO.setId("2");
+        scopeVO.setName("Mock业务2");
+        scopeVO.setHasPermission(true);
+        scopeVO.setFavor(false);
+        scopeVO.setFavorTime(null);
+        children.add(scopeVO);
+        scopeVO = new ScopeVO();
+        scopeVO.setId("3");
+        scopeVO.setName("Mock业务3");
+        scopeVO.setHasPermission(false);
+        scopeVO.setFavor(true);
+        scopeVO.setFavorTime(TimeUtil.parseIsoZonedTimeToMillis("2025-10-15T12:00:00.000+08:00"));
+        children.add(scopeVO);
+        group1.setChildren(children);
+        list.add(group1);
+
+        ScopeGroupWithAvailableScopeIdList group2 = new ScopeGroupWithAvailableScopeIdList();
+        group2.setId(ResourceScopeTypeEnum.BIZ_SET.getValue());
+        group2.setName("业务集");
+        children = new ArrayList<>();
+        scopeVO = new ScopeVO();
+        scopeVO.setId("1");
+        scopeVO.setName("Mock业务集1");
+        scopeVO.setHasPermission(true);
+        scopeVO.setFavor(true);
+        scopeVO.setFavorTime(TimeUtil.parseIsoZonedTimeToMillis("2025-10-15T09:00:00.000+08:00"));
+        children.add(scopeVO);
+        scopeVO = new ScopeVO();
+        scopeVO.setId("2");
+        scopeVO.setName("Mock业务集2");
+        scopeVO.setHasPermission(true);
+        scopeVO.setFavor(false);
+        scopeVO.setFavorTime(null);
+        children.add(scopeVO);
+        scopeVO = new ScopeVO();
+        scopeVO.setId("3");
+        scopeVO.setName("Mock业务集3");
+        scopeVO.setHasPermission(false);
+        scopeVO.setFavor(true);
+        scopeVO.setFavorTime(TimeUtil.parseIsoZonedTimeToMillis("2025-10-15T13:00:00.000+08:00"));
+        children.add(scopeVO);
+        group2.setChildren(children);
+        list.add(group2);
+
+        ScopeGroupWithAvailableScopeIdList group3 = new ScopeGroupWithAvailableScopeIdList();
+        group3.setId("tenant_set");
+        group3.setName("租户集");
+        children = new ArrayList<>();
+        scopeVO = new ScopeVO();
+        scopeVO.setId("1");
+        scopeVO.setName("Mock租户集1");
+        scopeVO.setHasPermission(true);
+        scopeVO.setFavor(false);
+        scopeVO.setFavorTime(TimeUtil.parseIsoZonedTimeToMillis("2025-10-15T15:00:00.000+08:00"));
+        children.add(scopeVO);
+        group3.setChildren(children);
+        list.add(group3);
+        return Response.buildSuccessResp(list);
     }
 
     /**
