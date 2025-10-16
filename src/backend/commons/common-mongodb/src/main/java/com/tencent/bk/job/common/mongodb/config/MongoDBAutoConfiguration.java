@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @Slf4j
 @EnableConfigurationProperties({JobMongoSslProperties.class})
-public class MongoDBConfig {
+public class MongoDBAutoConfiguration {
     @Bean
     public MongoClientSettingsBuilderCustomizer mongoClientCustomizer(JobMongoSslProperties mongoSslProperties) {
         log.info("Init MongoClientSettingsBuilderCustomizer");
