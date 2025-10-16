@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.tencent.bk.job.common.mongodb.config.MongoDBConfig
+com.tencent.bk.job.common.mongodb.config.MongoDBAutoConfiguration
