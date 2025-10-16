@@ -29,8 +29,7 @@ import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.validation.CheckEnum;
-import com.tencent.bk.job.execute.model.esb.v4.resp.V4GetJobInstanceListResult;
-import org.hibernate.validator.constraints.Range;
+import com.tencent.bk.job.execute.model.esb.v4.resp.V4JobInstanceStatusResp;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -38,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -45,14 +45,12 @@ import javax.validation.constraints.NotNull;
 @EsbV4API
 @RestController
 @Validated
-public interface EsbGetJobInstanceListV4Resource {
+public interface ApiGwGetJobInstanceStatusV4Resource {
 
-    @GetMapping("/get_job_instance_list")
-    EsbV4Response<V4GetJobInstanceListResult> getJobInstanceList(
-        @RequestHeader(value = JobCommonHeaders.USERNAME)
-            String username,
-        @RequestHeader(value = JobCommonHeaders.APP_CODE)
-            String appCode,
+    @GetMapping("/get_job_instance_status")
+    EsbV4Response<V4JobInstanceStatusResp> getJobInstanceStatus(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestParam(value = "bk_scope_type")
         @NotNull(message = "{validation.constraints.EmptyScopeType.message}")
         @CheckEnum(
@@ -63,25 +61,12 @@ public interface EsbGetJobInstanceListV4Resource {
         @RequestParam(value = "bk_scope_id")
         @NotBlank(message = "{validation.constraints.EmptyScopeId.message}")
             String scopeId,
-        @RequestParam(value = "create_time_start")
-        @NotNull(message = "{validation.constraints.EmptyJobInstanceTimeStart.message}")
-            Long createTimeStart,
-        @RequestParam(value = "create_time_end")
-        @NotNull(message = "{validation.constraints.EmptyJobInstanceTimeEnd.message}")
-            Long createTimeEnd,
-        @RequestParam(value = "job_instance_id", required = false) Long jobInstanceId,
-        @RequestParam(value = "operator", required = false) String operator,
-        @RequestParam(value = "name", required = false) String taskName,
-        @RequestParam(value = "launch_mode", required = false) Integer startupMode,
-        @RequestParam(value = "type", required = false) Integer taskType,
-        @RequestParam(value = "status", required = false) Integer taskStatus,
-        @RequestParam(value = "ip", required = false) String ip,
-        @RequestParam(value = "job_cron_id", required = false) Long cronId,
-        @RequestParam(value = "offset", required = false, defaultValue = "0")
-        @Range(min = 0L, max = 10000L, message = "{validation.constraints.InvalidJobInstanceOffset.message}")
-            Integer offset,
-        @RequestParam(value = "length", required = false, defaultValue = "10")
-        @Range(min = 1L, max = 200L, message = "{validation.constraints.InvalidJobInstanceLength.message}")
-            Integer length
+        @RequestParam(value = "job_instance_id")
+        @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
+        @Min(value = 1L, message = "{validation.constraints.InvalidJobInstanceId.message}")
+            Long taskInstanceId,
+        @RequestParam(value = "return_ip_result", required = false, defaultValue = "false")
+            boolean returnIpResult
     );
+
 }
