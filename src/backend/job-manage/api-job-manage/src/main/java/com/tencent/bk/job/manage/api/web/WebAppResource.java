@@ -69,7 +69,7 @@ public interface WebAppResource {
     );
 
     @ApiOperation(value = "获取用户的资源范围分组面板数据（含分组列表（带收藏标识、权限标识）、申请按钮状态等数据）", produces = "application/json")
-    @GetMapping(value = {"/scope/groupPanel"})
+    @GetMapping(value = {"/scopeGroupPanel"})
     Response<ScopeGroupPanel> getScopeGroupPanel(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
