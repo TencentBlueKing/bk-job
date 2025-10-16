@@ -91,9 +91,9 @@ public class OperationLogDAOImpl extends BaseDAO implements OperationLogDAO {
             .orderBy(TABLE.CREATE_TIME.desc())
             .fetch();
         List<OperationLogDTO> opLogs = new ArrayList<>();
-        if (result.size() > 0) {
-            result.into(record -> {
-                opLogs.add(extractInfo(record));
+        if (!result.isEmpty()) {
+            result.forEach(record -> {
+                opLogs.add(extractInfo((Record) record));
             });
         }
         return opLogs;

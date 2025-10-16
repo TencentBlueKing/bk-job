@@ -128,8 +128,8 @@ public class DangerousRecordDAOImpl extends BaseDAO implements DangerousRecordDA
 
     private PageData<DangerousRecordDTO> buildDangerousRecordPageData(int start, int length, int count, Result result) {
         List<DangerousRecordDTO> records = new ArrayList<>();
-        if (result != null && result.size() > 0) {
-            result.into(record -> records.add(extractInfo(record)));
+        if (result != null && !result.isEmpty()) {
+            result.forEach(record -> records.add(extractInfo((Record) record)));
         }
         PageData<DangerousRecordDTO> pageData = new PageData<>();
         pageData.setData(records);

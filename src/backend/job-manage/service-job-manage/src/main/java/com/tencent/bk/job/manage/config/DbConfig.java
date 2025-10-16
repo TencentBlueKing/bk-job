@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.mysql.util.JooqConfigurationUtil;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
+import org.jooq.conf.Settings;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
@@ -71,7 +72,9 @@ public class DbConfig {
     @Qualifier("job-manage-dsl-context")
     @Bean(name = "job-manage-dsl-context")
     public DSLContext dslContext(@Qualifier("job-manage-jooq-conf") org.jooq.Configuration configuration) {
-        return new DefaultDSLContext(configuration);
+        return configuration
+            .derive(new Settings().withRenderGroupConcatMaxLenSessionVariable(false))
+            .dsl();
     }
 
     @Qualifier("job-manage-jooq-conf")

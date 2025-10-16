@@ -577,7 +577,7 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
             .orderBy(T_STEP_INSTANCE.STEP_ORDER.asc())
             .fetch();
         List<StepInstanceBaseDTO> stepInstanceList = new ArrayList<>();
-        result.into(record -> stepInstanceList.add(extractBaseInfo(record)));
+        result.forEach(record -> stepInstanceList.add(extractBaseInfo(record)));
         return stepInstanceList;
     }
 
@@ -899,8 +899,8 @@ public class StepInstanceDAOImpl extends BaseDAO implements StepInstanceDAO {
                 .orderBy(StepInstance.STEP_INSTANCE.ID.asc())
                 .fetch();
         List<Long> stepInstanceIdList = new ArrayList<>();
-        result.into(record -> {
-            Long stepInstanceId = record.getValue(StepInstance.STEP_INSTANCE.ID);
+        result.forEach(record -> {
+            Long stepInstanceId = ((Record) record).getValue(StepInstance.STEP_INSTANCE.ID);
             if (stepInstanceId != null) {
                 stepInstanceIdList.add(stepInstanceId);
             }

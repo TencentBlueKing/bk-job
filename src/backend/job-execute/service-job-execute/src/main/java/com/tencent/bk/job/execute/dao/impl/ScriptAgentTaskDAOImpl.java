@@ -288,7 +288,7 @@ public class ScriptAgentTaskDAOImpl extends BaseDAO implements ScriptAgentTaskDA
         }
 
         if (!result.isEmpty()) {
-            result.into(record -> agentTasks.add(extract(record)));
+            result.forEach(record -> agentTasks.add(extract(record)));
         }
         return agentTasks;
     }

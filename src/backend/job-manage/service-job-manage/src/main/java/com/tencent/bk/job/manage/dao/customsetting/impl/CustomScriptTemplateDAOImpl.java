@@ -57,10 +57,9 @@ public class CustomScriptTemplateDAOImpl implements CustomScriptTemplateDAO {
             .where(TB.USERNAME.eq(username))
             .fetch();
         List<ScriptTemplateDTO> scriptTemplates = new ArrayList<>();
-        if (result.size() != 0) {
-            result.map(record -> {
-                scriptTemplates.add(extractScriptTemplate(record));
-                return null;
+        if (!result.isEmpty()) {
+            result.forEach(record -> {
+                scriptTemplates.add(extractScriptTemplate((Record) record));
             });
         }
         return scriptTemplates;

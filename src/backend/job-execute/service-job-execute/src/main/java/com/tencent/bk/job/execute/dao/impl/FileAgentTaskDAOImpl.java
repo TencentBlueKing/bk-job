@@ -282,7 +282,7 @@ public class FileAgentTaskDAOImpl extends BaseDAO implements FileAgentTaskDAO {
         }
 
         if (result.size() > 0) {
-            result.into(record -> agentTasks.add(extract(record)));
+            result.forEach(record -> agentTasks.add(extract(record)));
         }
         return agentTasks;
     }

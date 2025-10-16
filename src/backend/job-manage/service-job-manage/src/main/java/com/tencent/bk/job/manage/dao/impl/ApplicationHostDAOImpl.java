@@ -56,6 +56,7 @@ import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
+import org.jooq.InsertValuesStep18;
 import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.Record1;
@@ -743,7 +744,7 @@ public class ApplicationHostDAOImpl implements ApplicationHostDAO {
         String cloudIp = applicationHostDTO.getCloudIp();
         String cloudVendor = applicationHostDTO.getCloudVendorId();
         Long lastTime = applicationHostDTO.getLastTime();
-        var query = defaultContext.insertInto(TABLE,
+        InsertValuesStep18 query = defaultContext.insertInto(TABLE,
             TABLE.HOST_ID,
             TABLE.APP_ID,
             TABLE.IP,
