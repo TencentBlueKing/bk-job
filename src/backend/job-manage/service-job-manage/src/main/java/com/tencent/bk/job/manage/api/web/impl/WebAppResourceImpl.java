@@ -41,6 +41,7 @@ import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
 import com.tencent.bk.job.manage.model.web.request.app.FavorAppReq;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
 import com.tencent.bk.job.manage.model.web.vo.PageDataWithAvailableIdList;
+import com.tencent.bk.job.manage.model.web.vo.ScopeGroupPanel;
 import com.tencent.bk.job.manage.model.web.vo.ScopeGroupWithAvailableScopeIdList;
 import com.tencent.bk.job.manage.model.web.vo.ScopeVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
@@ -159,7 +160,7 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<List<ScopeGroupWithAvailableScopeIdList>> listGroupedScopeWithFavor(String username) {
+    public Response<ScopeGroupPanel> getScopeGroupPanel(String username) {
         // Mock数据
         List<ScopeGroupWithAvailableScopeIdList> list = new ArrayList<>();
         ScopeGroupWithAvailableScopeIdList group1 = new ScopeGroupWithAvailableScopeIdList();
@@ -231,7 +232,10 @@ public class WebAppResourceImpl implements WebAppResource {
         children.add(scopeVO);
         group3.setChildren(children);
         list.add(group3);
-        return Response.buildSuccessResp(list);
+        ScopeGroupPanel scopeGroupPanel = new ScopeGroupPanel();
+        scopeGroupPanel.setScopeGroupList(list);
+        scopeGroupPanel.setCanApply(false);
+        return Response.buildSuccessResp(scopeGroupPanel);
     }
 
     /**
