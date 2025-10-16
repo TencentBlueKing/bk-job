@@ -63,6 +63,7 @@ public class EsbServerV3DTO {
      */
     @JsonProperty("dynamic_group_list")
     @JsonPropertyDescription("Cmdb dynamic groups")
+    @Valid
     private List<EsbDynamicGroupDTO> dynamicGroups;
 
     /**
@@ -70,6 +71,7 @@ public class EsbServerV3DTO {
      */
     @JsonProperty("topo_node_list")
     @JsonPropertyDescription("Cmdb topo nodes")
+    @Valid
     private List<EsbCmdbTopoNodeDTO> topoNodes;
 
     /**

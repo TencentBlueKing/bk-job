@@ -59,6 +59,13 @@ public class ArchiveDateTimeUtil {
         return dateTime.getHour();
     }
 
+    /**
+     * 获取当天的开始时刻，即 00:00:00
+     *
+     * @param now 当前日期+时间
+     * @param beforeDays 往前回溯的天数
+     * @return 当前的 00:00:00
+     */
     public static LocalDateTime computeStartOfDayBeforeDays(LocalDateTime now, int beforeDays) {
         // 当前日期的最早时间
         LocalDateTime startOfDay = now.toLocalDate().atStartOfDay();

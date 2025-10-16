@@ -92,6 +92,21 @@ public class ArchiveTaskDAOImpl implements ArchiveTaskDAO {
         return extract(record);
     }
 
+    @Override
+    public ArchiveTaskInfo getTaskByDayHour(ArchiveTaskTypeEnum taskType, Integer day, Integer hour) {
+        Record record = ctx.select(ALL_FIELDS)
+            .from(T)
+            .where(T.TASK_TYPE.eq(JooqDataTypeUtil.toByte(taskType.getType())))
+            .and(T.DAY.eq(day))
+            .and(T.HOUR.eq(hour.byteValue()))
+            .fetchOne();
+
+        if (record == null) {
+            return null;
+        }
+        return extract(record);
+    }
+
     private ArchiveTaskInfo extract(Record record) {
         if (record == null) {
             return null;

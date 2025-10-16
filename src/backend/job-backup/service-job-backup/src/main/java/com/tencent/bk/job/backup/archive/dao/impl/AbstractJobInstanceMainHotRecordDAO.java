@@ -102,6 +102,32 @@ public abstract class AbstractJobInstanceMainHotRecordDAO<T extends Record> exte
         return result.into(getTable());
     }
 
+    /**
+     * 获取表中最小的作业实例ID创建时间
+     *
+     * @return 最小作业实例ID对应的创建Unix时间戳，单位ms
+     */
+    public Long getTimeWithMinJobInstanceId() {
+        Record1<Long> record = dsl()
+            .select(min(getJobInstanceIdField()))
+            .from(getTable())
+            .fetchOne();
+        if (record == null) {
+            return null;
+        }
+        Long jobInstanceId = (Long) record.get(0);
+        Result<Record1<Long>> result = dsl()
+            .select(getJobInstanceCreateTimeField())
+            .from(getTable())
+            .where(getJobInstanceIdField().eq(jobInstanceId))
+            .limit(1)
+            .fetch();
+        if (result.isNotEmpty()) {
+            Record1<Long> createTimeRecord = result.get(0);
+            return (Long) createTimeRecord.get(0);
+        }
+        return null;
+    }
 
     @Override
     public RecordResultSet<T> executeQuery(Collection<Long> jobInstanceIds,

@@ -118,4 +118,5 @@ public abstract class AbstractJobInstanceHotRecordDAO<T extends Record> implemen
     protected DSLContext dsl() {
         return this.dslContextProvider.get(table.getName());
     }
+
 }
