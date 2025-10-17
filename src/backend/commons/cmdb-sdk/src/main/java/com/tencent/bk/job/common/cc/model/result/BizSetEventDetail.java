@@ -72,15 +72,22 @@ public class BizSetEventDetail {
      */
     @JsonProperty("language")
     private String language;
+    /**
+     * 资源类型
+     */
+    @JsonProperty("default")
+    private Integer deFault = 0;
 
-    public ApplicationDTO toApplicationDTO() {
+    public ApplicationDTO toApplicationDTO(String tenantId) {
         ApplicationDTO applicationDTO = new ApplicationDTO();
+        applicationDTO.setTenantId(tenantId);
         ResourceScope resourceScope = new ResourceScope(ResourceScopeTypeEnum.BIZ_SET, String.valueOf(bizSetId));
         applicationDTO.setScope(resourceScope);
         applicationDTO.setName(bizSetName);
         applicationDTO.setBkSupplierAccount(supplierAccount);
         applicationDTO.setTimeZone(timezone);
         applicationDTO.setLanguage(language);
+        applicationDTO.setDeFault(deFault);
         return applicationDTO;
     }
 }

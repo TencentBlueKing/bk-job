@@ -58,6 +58,8 @@ public class IamUtil {
                 return ResourceTypeEnum.BUSINESS;
             case BIZ_SET:
                 return ResourceTypeEnum.BUSINESS_SET;
+            case TENANT_SET:
+                return ResourceTypeEnum.TENANT_SET;
             default:
                 throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
@@ -76,6 +78,8 @@ public class IamUtil {
             resourceScopeType = ResourceScopeTypeEnum.BIZ;
         } else if (resourceType == ResourceTypeEnum.BUSINESS_SET) {
             resourceScopeType = ResourceScopeTypeEnum.BIZ_SET;
+        } else if (resourceType == ResourceTypeEnum.TENANT_SET) {
+            resourceScopeType = ResourceScopeTypeEnum.TENANT_SET;
         } else {
             log.error("Invalid iam resource type: {}", resourceType);
             throw new InternalException(ErrorCode.INTERNAL_ERROR);

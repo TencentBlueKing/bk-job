@@ -571,5 +571,6 @@
   "输入目标机器上的自定义解释器软件路径，如：D:\\Software\\python3\\python.exe。请勿指定命令行选项。": "Enter the path of the custom interpreter software on the target machine, such as: D:\\Software\\python3\\python.exe",
   "解释器路径有误，需为合法的文件路径、且以 .exe 结尾。": "Interpreter path is invalid; it must be a valid file path ending with .exe.",
   "执行目标包含 Linux 服务器，但自定义解释器仅对 Windows 有效，请知悉。": "Please note: The execution targets include Linux hosts, but the interpreter is only supported on Windows.",
-  "未分配管控区，请到节点管理重装 Agent": "Unassigned control area. Please reinstall the Agent in the Node Management interface."
+  "未分配管控区，请到节点管理重装 Agent": "Unassigned control area. Please reinstall the Agent in the Node Management interface.",
+  "语言切换失败，请稍后重试": "Language switch failed, please try again later."
 }

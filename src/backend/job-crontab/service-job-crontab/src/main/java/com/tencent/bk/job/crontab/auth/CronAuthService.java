@@ -26,6 +26,7 @@ package com.tencent.bk.job.crontab.auth;
 
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 import java.util.List;
@@ -37,22 +38,22 @@ public interface CronAuthService {
     /**
      * 资源范围下创建定时任务鉴权
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateCron(String username, AppResourceScope appResourceScope);
+    AuthResult authCreateCron(User user, AppResourceScope appResourceScope);
 
     /**
      * 资源范围下管理定时任务鉴权
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
      * @param cronId           定时任务ID
      * @param cronName         定时任务名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @return 鉴权结果
      */
-    AuthResult authManageCron(String username,
+    AuthResult authManageCron(User user,
                               AppResourceScope appResourceScope,
                               Long cronId,
                               String cronName);
@@ -60,34 +61,34 @@ public interface CronAuthService {
     /**
      * 资源范围下管理定时任务批量鉴权
      *
-     * @param username         用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
      * @param cronIdList       定时任务ID列表
      * @return 有权限的定时任务ID
      */
-    List<Long> getPermissionAllowedCronIds(String username,
+    List<Long> getPermissionAllowedCronIds(User user,
                                            AppResourceScope appResourceScope,
                                            List<Long> cronIdList);
 
     /**
      * 定时任务管理批量鉴权
      *
-     * @param username         用户账号
+     * @param user             用户
      * @param appResourceScope 资源范围
      * @param cronIdList       定时任务ID列表
      * @throws PermissionDeniedException 鉴权未通过
      */
-    void batchAuthManageCron(String username,
+    void batchAuthManageCron(User user,
                              AppResourceScope appResourceScope,
                              List<Long> cronIdList) throws PermissionDeniedException;
 
     /**
      * 注册定时任务实例
      *
+     * @param creator 资源实例创建者
      * @param id      资源实例 ID
      * @param name    资源实例名称
-     * @param creator 资源实例创建者
      * @return 是否注册成功
      */
-    boolean registerCron(Long id, String name, String creator);
+    boolean registerCron(User creator, Long id, String name);
 }

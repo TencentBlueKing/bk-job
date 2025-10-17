@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.auth;
 
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 import java.util.List;
@@ -37,104 +38,104 @@ public interface TemplateAuthService {
     /**
      * 资源范围下创建作业模板鉴权
      *
-     * @param username      用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateJobTemplate(String username,
-                                   AppResourceScope appResourceScope);
+    AuthResult authCreateJobTemplate(User user,
+                                     AppResourceScope appResourceScope);
 
     /**
      * 资源范围下查看作业模板鉴权
      *
-     * @param username      用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
-     * @param jobTemplateId 作业模板ID
+     * @param jobTemplateId    作业模板ID
      * @return 鉴权结果
      */
-    AuthResult authViewJobTemplate(String username,
+    AuthResult authViewJobTemplate(User user,
                                    AppResourceScope appResourceScope,
                                    Long jobTemplateId);
 
     /**
      * 资源范围下编辑作业模板鉴权
      *
-     * @param username      用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
-     * @param jobTemplateId 作业模板ID
+     * @param jobTemplateId    作业模板ID
      * @return 鉴权结果
      */
-    AuthResult authEditJobTemplate(String username,
+    AuthResult authEditJobTemplate(User user,
                                    AppResourceScope appResourceScope,
                                    Long jobTemplateId);
 
     /**
      * 资源范围下删除作业模板鉴权
      *
-     * @param username      用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
-     * @param jobTemplateId 作业模板ID
+     * @param jobTemplateId    作业模板ID
      * @return 鉴权结果
      */
-    AuthResult authDeleteJobTemplate(String username,
+    AuthResult authDeleteJobTemplate(User user,
                                      AppResourceScope appResourceScope,
                                      Long jobTemplateId);
 
     /**
      * 资源范围下查看作业模板批量鉴权
      *
-     * @param username          用户名
-     * @param appResourceScope     资源范围
+     * @param user              用户
+     * @param appResourceScope  资源范围
      * @param jobTemplateIdList 作业模板ID列表
      * @return 有权限的作业模板ID
      */
-    List<Long> batchAuthViewJobTemplate(String username,
+    List<Long> batchAuthViewJobTemplate(User user,
                                         AppResourceScope appResourceScope,
                                         List<Long> jobTemplateIdList);
 
     /**
      * 资源范围下编辑作业模板批量鉴权
      *
-     * @param username          用户名
-     * @param appResourceScope     资源范围
+     * @param user              用户
+     * @param appResourceScope  资源范围
      * @param jobTemplateIdList 作业模板ID列表
      * @return 有权限的作业模板ID
      */
-    List<Long> batchAuthEditJobTemplate(String username,
+    List<Long> batchAuthEditJobTemplate(User user,
                                         AppResourceScope appResourceScope,
                                         List<Long> jobTemplateIdList);
 
     /**
      * 资源范围下编辑作业模板批量鉴权并返回鉴权结果
      *
-     * @param username          用户名
-     * @param appResourceScope     资源范围
+     * @param user              用户
+     * @param appResourceScope  资源范围
      * @param jobTemplateIdList 作业模板ID列表
      * @return 鉴权结果
      */
-    AuthResult batchAuthResultEditJobTemplate(String username,
-                                        AppResourceScope appResourceScope,
-                                        List<Long> jobTemplateIdList);
+    AuthResult batchAuthResultEditJobTemplate(User user,
+                                              AppResourceScope appResourceScope,
+                                              List<Long> jobTemplateIdList);
 
     /**
      * 资源范围下删除作业模板批量鉴权
      *
-     * @param username          用户名
-     * @param appResourceScope     资源范围
+     * @param user              用户
+     * @param appResourceScope  资源范围
      * @param jobTemplateIdList 作业模板ID列表
      * @return 有权限的作业模板ID
      */
-    List<Long> batchAuthDeleteJobTemplate(String username,
+    List<Long> batchAuthDeleteJobTemplate(User user,
                                           AppResourceScope appResourceScope,
                                           List<Long> jobTemplateIdList);
 
     /**
      * 注册作业模板实例
      *
+     * @param creator 资源实例创建者
      * @param id      资源实例 ID
      * @param name    资源实例名称
-     * @param creator 资源实例创建者
      * @return 是否注册成功
      */
-    boolean registerTemplate(Long id, String name, String creator);
+    boolean registerTemplate(User creator, Long id, String name);
 }

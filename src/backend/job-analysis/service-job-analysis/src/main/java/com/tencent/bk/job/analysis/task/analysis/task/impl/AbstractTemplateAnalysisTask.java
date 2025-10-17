@@ -26,12 +26,12 @@ package com.tencent.bk.job.analysis.task.analysis.task.impl;
 
 import com.tencent.bk.job.analysis.dao.AnalysisTaskDAO;
 import com.tencent.bk.job.analysis.dao.AnalysisTaskInstanceDAO;
-import com.tencent.bk.job.analysis.service.ApplicationService;
 import com.tencent.bk.job.analysis.service.TaskTemplateService;
 import com.tencent.bk.job.analysis.task.analysis.BaseAnalysisTask;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
@@ -62,13 +62,13 @@ public abstract class AbstractTemplateAnalysisTask extends BaseAnalysisTask {
     public AbstractTemplateAnalysisTask(
         AnalysisTaskDAO analysisTaskDAO,
         AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
-        ApplicationService applicationService,
+        RemoteAppService remoteAppService,
         TaskTemplateService templateService,
         ThreadPoolExecutor threadPoolExecutor
     ) {
         super(analysisTaskDAO,
             analysisTaskInstanceDAO,
-            applicationService
+            remoteAppService
         );
         this.templateService = templateService;
         this.threadPoolExecutor = threadPoolExecutor;

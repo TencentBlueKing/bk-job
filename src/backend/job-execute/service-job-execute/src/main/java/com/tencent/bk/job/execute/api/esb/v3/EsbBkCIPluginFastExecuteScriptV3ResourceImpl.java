@@ -31,7 +31,9 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -83,6 +85,7 @@ public class EsbBkCIPluginFastExecuteScriptV3ResourceImpl extends JobExecuteComm
         String appCode,
         @AuditRequestBody EsbBkCIPluginFastExecuteScriptRequest request) {
 
+        User user = JobContextUtil.getUser();
         TaskInstanceDTO taskInstance = buildFastScriptTaskInstance(username, appCode, request);
         StepInstanceDTO stepInstance = buildFastScriptStepInstance(username, request);
         StepRollingConfigDTO rollingConfig = null;
@@ -94,6 +97,7 @@ public class EsbBkCIPluginFastExecuteScriptV3ResourceImpl extends JobExecuteComm
                 .taskInstance(taskInstance)
                 .stepInstance(stepInstance)
                 .rollingConfig(rollingConfig)
+                .operator(user)
                 .build()
         );
 

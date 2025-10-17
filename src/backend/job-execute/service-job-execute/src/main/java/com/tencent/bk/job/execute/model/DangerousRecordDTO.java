@@ -98,6 +98,10 @@ public class DangerousRecordDTO {
      * 扩展数据
      */
     private Map<String, String> extData;
+    /**
+     * 租户 ID
+     */
+    private String tenantId;
 
     public DangerousRecordVO toDangerousRecordVO() {
         DangerousRecordVO recordVO = new DangerousRecordVO();

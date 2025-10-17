@@ -25,6 +25,8 @@
 package com.tencent.bk.job.gateway.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
@@ -108,6 +110,7 @@ public class OpenApiJwtPublicKeyServiceImpl implements OpenApiJwtPublicKeyServic
         authInfo.put("bk_app_secret", appProperties.getSecret());
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-Bkapi-Authorization", JsonUtils.toJson(authInfo));
+        headers.add(JobCommonHeaders.BK_TENANT_ID, TenantIdConstants.DEFAULT_TENANT_ID);
         EsbResp<EsbPublicKeyDTO> resp = restTemplate.exchange(
             url,
             HttpMethod.GET,

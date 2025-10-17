@@ -30,7 +30,6 @@ import com.tencent.bk.job.analysis.dao.AnalysisTaskInstanceDAO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskDTO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskInstanceDTO;
 import com.tencent.bk.job.analysis.model.inner.AnalysisTaskResultItemLocation;
-import com.tencent.bk.job.analysis.service.ApplicationService;
 import com.tencent.bk.job.analysis.service.ScriptService;
 import com.tencent.bk.job.analysis.service.TaskPlanService;
 import com.tencent.bk.job.analysis.service.TaskTemplateService;
@@ -52,6 +51,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskStepDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -67,9 +67,7 @@ import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- * @Description 寻找在作业模板/执行方案中使用的禁用脚本
- * @Date 2020/3/6
- * @Version 1.0
+ * 寻找在作业模板/执行方案中使用的禁用脚本
  */
 @Component
 @AnalysisTask("ForbiddenScriptFinder")
@@ -83,7 +81,7 @@ public class ForbiddenScriptFinder extends AbstractTemplateAnalysisTask {
     public ForbiddenScriptFinder(
         AnalysisTaskDAO analysisTaskDAO,
         AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
-        ApplicationService applicationService,
+        RemoteAppService remoteAppService,
         TaskPlanService taskPlanService,
         TaskTemplateService templateService,
         ScriptService scriptService,
@@ -91,7 +89,7 @@ public class ForbiddenScriptFinder extends AbstractTemplateAnalysisTask {
     ) {
         super(analysisTaskDAO,
             analysisTaskInstanceDAO,
-            applicationService,
+            remoteAppService,
             templateService,
             threadPoolExecutor
         );
