@@ -35,14 +35,11 @@ import com.tencent.bk.job.analysis.service.HostService;
 import com.tencent.bk.job.analysis.service.TaskPlanService;
 import com.tencent.bk.job.analysis.service.TaskTemplateService;
 import com.tencent.bk.job.analysis.task.analysis.AnalysisTaskStatusEnum;
-import com.tencent.bk.job.analysis.task.analysis.BaseAnalysisTask;
 import com.tencent.bk.job.analysis.task.analysis.anotation.AnalysisTask;
 import com.tencent.bk.job.analysis.task.analysis.enums.AnalysisResourceEnum;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultData;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultItem;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultVO;
-import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.Counter;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -66,26 +63,27 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
- * @Description 寻找执行方案中是否有无效IP/Agent异常/Agent未安装的情况
- * @Date 2020/3/6
- * @Version 1.0
+ * 寻找执行方案中是否有无效IP/Agent异常/Agent未安装的情况
  */
 @Component
 @AnalysisTask("TaskPlanTargetChecker")
 @Slf4j
-public class TaskPlanTargetChecker extends BaseAnalysisTask {
+public class TaskPlanTargetChecker extends AbstractTemplateAnalysisTask {
 
     private final TaskPlanService taskPlanService;
-    private final TaskTemplateService templateService;
     private final HostService hostService;
 
     @Autowired
@@ -95,10 +93,15 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         TaskTemplateService templateService,
         TaskPlanService taskPlanService,
         RemoteAppService remoteAppService,
-        HostService hostService
+        HostService hostService,
+        @Qualifier("templateAnalysisTaskExecutor") ThreadPoolExecutor threadPoolExecutor
     ) {
-        super(analysisTaskDAO, analysisTaskInstanceDAO, remoteAppService);
-        this.templateService = templateService;
+        super(analysisTaskDAO,
+            analysisTaskInstanceDAO,
+            remoteAppService,
+            templateService,
+            threadPoolExecutor
+        );
         this.taskPlanService = taskPlanService;
         this.hostService = hostService;
     }
@@ -226,32 +229,20 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
      * @param analysisTaskInstance 分析任务实例
      */
     private void analysisOneApp(ServiceApplicationDTO application,
-                                AnalysisTaskInstanceDTO analysisTaskInstance) {
+                                AnalysisTaskInstanceDTO analysisTaskInstance) throws InterruptedException {
         Long appId = application.getId();
         Long id = insertAnalysisTaskInstance(analysisTaskInstance);
         log.info("taskId:{}", id);
         analysisTaskInstance.setId(id);
-        List<AbnormalTargetPlanInfo> abnormalPlanList = new ArrayList<>();
-        //1.拿到所有作业模板
-        ServiceTaskTemplateDTO taskTemplateCondition = new ServiceTaskTemplateDTO();
-        taskTemplateCondition.setAppId(appId);
-        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
-        baseSearchCondition.setStart(0);
-        baseSearchCondition.setLength(Integer.MAX_VALUE);
-        PageData<ServiceTaskTemplateDTO> taskTemplateInfoDTOPageData =
-            templateService.listPageTaskTemplates(appId, baseSearchCondition);
-        List<ServiceTaskTemplateDTO> templateList = taskTemplateInfoDTOPageData.getData();
-        //2.遍历所有作业模板
-        Counter templateCounter = new Counter();
-        for (ServiceTaskTemplateDTO templateBasicInfo : templateList) {
-            tryToAnalysisOneTemplate(
-                appId,
-                templateBasicInfo,
-                abnormalPlanList,
-                templateCounter,
-                templateList.size()
-            );
-        }
+        List<AbnormalTargetPlanInfo> abnormalPlanList = Collections.synchronizedList(new ArrayList<>());
+        AtomicInteger templateCounter = new AtomicInteger();
+        // 分析作业，找出无效的执行信息
+        runAnalysisForApp(appId,
+            templates -> {
+                for (ServiceTaskTemplateDTO template : templates) {
+                    tryToAnalysisOneTemplate(appId, template, abnormalPlanList, templateCounter, templates.size());
+                }
+            });
         //结果入库
         analysisTaskInstance.setResultData(
             JsonUtils.toJson(
@@ -279,7 +270,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
     private void tryToAnalysisOneTemplate(Long appId,
                                           ServiceTaskTemplateDTO templateBasicInfo,
                                           List<AbnormalTargetPlanInfo> abnormalPlanList,
-                                          Counter templateCounter,
+                                          AtomicInteger templateCounter,
                                           int allTemplateNum) {
         try {
             analysisOneTemplate(appId, templateBasicInfo, abnormalPlanList, templateCounter, allTemplateNum);
@@ -305,12 +296,12 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
     private void analysisOneTemplate(Long appId,
                                      ServiceTaskTemplateDTO templateBasicInfo,
                                      List<AbnormalTargetPlanInfo> abnormalPlanList,
-                                     Counter templateCounter,
+                                     AtomicInteger templateCounter,
                                      int allTemplateNum) {
-        templateCounter.addOne();
+        templateCounter.incrementAndGet();
         log.info(
             "begin to analysis taskTemplate:{}/{},{},{}",
-            templateCounter.getValue(),
+            templateCounter.get(),
             allTemplateNum,
             templateBasicInfo.getId(),
             templateBasicInfo.getName()

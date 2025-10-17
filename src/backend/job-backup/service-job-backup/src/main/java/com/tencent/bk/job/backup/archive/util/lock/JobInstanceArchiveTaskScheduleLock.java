@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.backup.archive.util.lock;
 
+import com.tencent.bk.job.backup.archive.consts.DistributeLockKey;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -34,8 +35,8 @@ public class JobInstanceArchiveTaskScheduleLock extends FairDistributeLock {
 
     public JobInstanceArchiveTaskScheduleLock() {
         super(
-            "job:instance:archive:task:schedule:lock",
-            "job:instance:archive:task:schedule",
+            DistributeLockKey.ARCHIVE_TASK_SCHEDULE_LOCK + ":lock",
+            DistributeLockKey.ARCHIVE_TASK_SCHEDULE_LOCK,
             60 * 1000L
         );
     }

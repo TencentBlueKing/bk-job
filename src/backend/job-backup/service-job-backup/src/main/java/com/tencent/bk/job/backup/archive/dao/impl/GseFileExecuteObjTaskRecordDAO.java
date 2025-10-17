@@ -28,7 +28,6 @@ import com.tencent.bk.job.backup.archive.dao.resultset.JobInstanceRecordResultSe
 import com.tencent.bk.job.backup.archive.dao.resultset.RecordResultSet;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DSLContextProvider;
 import com.tencent.bk.job.execute.model.tables.GseFileExecuteObjTask;
-import com.tencent.bk.job.execute.model.tables.GseScriptExecuteObjTask;
 import com.tencent.bk.job.execute.model.tables.records.GseFileExecuteObjTaskRecord;
 import org.jooq.Condition;
 import org.jooq.OrderField;

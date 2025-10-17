@@ -107,4 +107,11 @@ public interface ServiceTaskTemplateResource {
         @ApiParam("分页-每页大小")
         @RequestParam(value = "pageSize", required = false)
             Integer pageSize);
+
+    @ApiOperation(value = "获取作业模版数量", produces = "application/json")
+    @GetMapping("/service/app/{appId}/template/count")
+    InternalResponse<Integer> countTemplates(
+        @ApiParam(value = "业务Id", required = true, example = "2")
+        @PathVariable("appId")
+        Long appId);
 }

@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.util.ListUtil;
 import lombok.Data;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -48,6 +49,7 @@ public class EsbFileSourceV3DTO {
     private EsbAccountV3BasicDTO account;
 
     @JsonProperty("server")
+    @Valid
     private EsbServerV3DTO server;
 
     /**

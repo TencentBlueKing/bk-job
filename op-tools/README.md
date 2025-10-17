@@ -52,3 +52,22 @@ python request_api.py \
 #### 输出
 
 report.md: 统计了 平均响应耗时、最大响应耗时、最小响应耗时、错误率、所有请求发送时间 的表格
+
+
+### 3.作业平台OP系统
+
+#### 代码位置
+bk-job-op
+
+#### 功能简介
+该系统为基于SpringBoot搭建的一套作业平台OP系统，承担系统管控、日志分析、辅助运维等功能，不断向自动化、智能化的方向迭代。
+
+> 运行环境要求：JDK 17
+
+> 构件出可执行Jar包，指定外部配置文件，运行：  
+> cd bk-job-op/
+> ./gradlew clean build
+> java -Dspring.config.additional-location=file:/xxx/application.yml -jar build/libs/bk-job-op-0.0.1-SNAPSHOT.jar
+
+> 在浏览器访问OP系统接口：
+> http://127.0.0.1:8080/checkServiceDependency?namespace=blueking&serviceName=bk-job-gateway
