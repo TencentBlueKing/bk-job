@@ -279,4 +279,12 @@ public class HostServiceImpl implements HostService {
             }
         }
     }
+
+    @Override
+    public List<HostDTO> extractNotExistHosts(Long appId,
+                                              List<HostDTO> hosts) {
+        InternalResponse<ServiceListAppHostResultDTO> response = hostResource.batchGetAppHosts(appId,
+            new ServiceBatchGetAppHostsReq(new ArrayList<>(hosts), false));
+        return response.getData().getNotExistHosts();
+    }
 }
