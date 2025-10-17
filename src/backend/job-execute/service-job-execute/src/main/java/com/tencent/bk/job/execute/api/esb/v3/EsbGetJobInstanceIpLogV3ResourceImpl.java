@@ -125,7 +125,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
 
     private ValidateResult checkRequest(EsbGetJobInstanceIpLogV3Request request) {
         if (request.getHostId() == null
-            || (request.getCloudAreaId() == null && StringUtils.isEmpty(request.getIp()))) {
+            && (request.getCloudAreaId() == null || StringUtils.isEmpty(request.getIp()))) {
             log.warn("At least one of host_id or bk_cloud_id + ip must be provided");
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "host_id/(bk_cloud_id+ip)");
         }

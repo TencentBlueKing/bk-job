@@ -138,11 +138,13 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
             request.getHostIdList());
         if (!validateResult.isPass()) return validateResult;
 
-        validateResult = hostValidationService.validateHostIpsExist(request.getAppId(),
-            request.getIpList().stream()
-                .map(ip -> new HostDTO(ip.getBkCloudId(), ip.getIp()))
-                .collect(Collectors.toList()));
-        if (!validateResult.isPass()) return validateResult;
+        if (CollectionUtils.isNotEmpty(request.getIpList())) {
+            validateResult = hostValidationService.validateHostIpsExist(request.getAppId(),
+                request.getIpList().stream()
+                    .map(ip -> new HostDTO(ip.getBkCloudId(), ip.getIp()))
+                    .collect(Collectors.toList()));
+            if (!validateResult.isPass()) return validateResult;
+        }
 
         return ValidateResult.pass();
     }
