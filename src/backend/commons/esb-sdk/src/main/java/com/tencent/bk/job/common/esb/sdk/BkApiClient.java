@@ -182,7 +182,9 @@ public class BkApiClient {
             log.info("[AbstractBkApiClient] Request|method={}|uri={}|reqStr={}",
                 requestInfo.getMethod().name(),
                 requestInfo.buildFinalUri(),
-                requestInfo.getBody() != null ? JsonUtils.toJsonWithoutSkippedFields(requestInfo.getBody()) : null
+                requestInfo.getBody() != null
+                    ? JsonUtils.toJsonWithoutSkippedFieldsRecursively(requestInfo.getBody())
+                    : null
             );
         }
     }
