@@ -70,10 +70,11 @@ public class JsonUtilsTest {
     @DisplayName("序列化时，跳过bean中被SkipLogFields标记的字段（包括嵌套类）")
     void testSkipLogFieldsRecursively() {
         InnerInnerClass iic = new InnerInnerClass(1, 2);
-        InnerClass b = new InnerClass(10, iic);
+        InnerClass b = new InnerClass(10, 20, iic);
         OuterClass c = new OuterClass(100, 200, b);
 
-        String json = JsonUtils.toJsonWithoutSkippedFieldsRecursively(c);
+//        String json = JsonUtils.toJsonWithoutSkippedFieldsRecursively(c);
+        String json = JsonUtils.toJsonWithoutSkippedFields(c);
         System.out.println("序列化后的嵌套类:" + json);
         
         OuterClass c2 = JsonUtils.fromJson(json, OuterClass.class);
@@ -106,12 +107,11 @@ public class JsonUtilsTest {
         UserContainer container = new UserContainer("container1", userList, userMap);
 
         String json = JsonUtils.toJsonWithoutSkippedFieldsRecursively(container);
+//        String json = JsonUtils.toJsonWithoutSkippedFields(container);
         System.out.println("序列化后的集合和Map:" + json);
-        
-        // 验证序列化结果
+
         assertThat(json).contains("container1");
         assertThat(json).contains("user1", "user2", "admin", "guest");
-        // 验证password和token字段被跳过
         assertThat(json).doesNotContain("password1", "password2", "adminPass", "guestPass");
         assertThat(json).doesNotContain("token1", "token2", "adminToken", "guestToken");
         assertThat(json).doesNotContain("secret_key");
@@ -198,8 +198,9 @@ public class JsonUtilsTest {
         @SkipLogFields
         private Integer i2;
 
-        public InnerClass(Integer i1, InnerInnerClass innerInnerClass) {
+        public InnerClass(Integer i1, Integer i2, InnerInnerClass innerInnerClass) {
             this.i1 = i1;
+            this.i2 = i2;
             this.innerInnerClass = innerInnerClass;
         }
 
