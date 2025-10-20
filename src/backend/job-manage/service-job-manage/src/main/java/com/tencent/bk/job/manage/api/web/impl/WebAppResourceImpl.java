@@ -234,7 +234,8 @@ public class WebAppResourceImpl implements WebAppResource {
         list.add(group3);
         ScopeGroupPanel scopeGroupPanel = new ScopeGroupPanel();
         scopeGroupPanel.setScopeGroupList(list);
-        scopeGroupPanel.setCanApply(false);
+        scopeGroupPanel.setCanApply(true);
+        scopeGroupPanel.setApplyUrl("https://xxx.com");
         return Response.buildSuccessResp(scopeGroupPanel);
     }
 

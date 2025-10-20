@@ -41,4 +41,6 @@ public class ScopeGroupPanel {
     private List<ScopeGroupWithAvailableScopeIdList> scopeGroupList;
     @ApiModelProperty(value = "是否展示申请资源范围权限的按钮")
     private boolean canApply = true;
+    @ApiModelProperty(value = "申请资源范围权限的跳转链接地址")
+    private String applyUrl;
 }
