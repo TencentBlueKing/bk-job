@@ -97,7 +97,7 @@ public class JsonUtils {
 
     /**
      * 序列化时忽略bean中的某些字段,字段需要使用SkipLogFields注解
-     * 支持递归处理嵌套对象中的@SkipLogFields注解
+     * 支持处理嵌套对象中的@SkipLogFields注解
      *
      * @param bean 待序列化的对象
      * @param <T>  对象类型

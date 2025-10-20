@@ -73,8 +73,7 @@ public class JsonUtilsTest {
         InnerClass b = new InnerClass(10, 20, iic);
         OuterClass c = new OuterClass(100, 200, b);
 
-//        String json = JsonUtils.toJsonWithoutSkippedFieldsRecursively(c);
-        String json = JsonUtils.toJsonWithoutSkippedFields(c);
+        String json = JsonUtils.toJsonWithoutSkippedFieldsRecursively(c);
         System.out.println("序列化后的嵌套类:" + json);
         
         OuterClass c2 = JsonUtils.fromJson(json, OuterClass.class);
@@ -107,7 +106,6 @@ public class JsonUtilsTest {
         UserContainer container = new UserContainer("container1", userList, userMap);
 
         String json = JsonUtils.toJsonWithoutSkippedFieldsRecursively(container);
-//        String json = JsonUtils.toJsonWithoutSkippedFields(container);
         System.out.println("序列化后的集合和Map:" + json);
 
         assertThat(json).contains("container1");
