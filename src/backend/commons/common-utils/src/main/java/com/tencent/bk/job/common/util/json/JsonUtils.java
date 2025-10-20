@@ -27,13 +27,21 @@ package com.tencent.bk.job.common.util.json;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -85,6 +93,140 @@ public class JsonUtils {
             }
             return nonEmptyMapper;
         }).toJson(bean);
+    }
+
+    /**
+     * 序列化时忽略bean中的某些字段,字段需要使用SkipLogFields注解
+     * 支持递归处理嵌套对象中的@SkipLogFields注解
+     *
+     * @param bean 待序列化的对象
+     * @param <T>  对象类型
+     * @return Json字符串
+     * @see SkipLogFields
+     */
+    public static <T> String toJsonWithoutSkippedFieldsRecursively(T bean) {
+        if (bean == null) {
+            return "null";
+        }
+
+        String cacheKey = "__skipLogFieldsRecursive__" + bean.getClass().getName();
+        
+        return JSON_MAPPERS.computeIfAbsent(cacheKey, (String s) -> {
+            JsonMapper nonEmptyMapper = JsonMapper.nonEmptyMapper();
+
+            Map<Class<?>, Set<String>> classSkipFieldsMap = new HashMap<>();
+            Set<Class<?>> visitedClasses = new HashSet<>();
+            collectSkipFieldsRecursively(bean.getClass(), classSkipFieldsMap, visitedClasses);
+            
+            if (!classSkipFieldsMap.isEmpty()) {
+                for (Class<?> clazz : classSkipFieldsMap.keySet()) {
+                    nonEmptyMapper.getMapper().addMixIn(clazz, SkipLogFields.class);
+                }
+                SimpleBeanPropertyFilter customFilter = new SimpleBeanPropertyFilter() {
+                    @Override
+                    protected boolean include(BeanPropertyWriter writer) {
+                        return includeProperty(writer);
+                    }
+
+                    @Override
+                    protected boolean include(PropertyWriter writer) {
+                        return includeProperty(writer);
+                    }
+
+                    private boolean includeProperty(PropertyWriter writer) {
+                        Class<?> declaringClass = writer.getMember().getDeclaringClass();
+                        String fieldName = writer.getName();
+
+                        Set<String> skipFields = classSkipFieldsMap.get(declaringClass);
+                        if (skipFields != null && skipFields.contains(fieldName)) {
+                            return false;
+                        }
+                        return true;
+                    }
+                };
+                
+                FilterProvider filterProvider = new SimpleFilterProvider()
+                    .addFilter(SkipLogFields.class.getAnnotation(JsonFilter.class).value(), customFilter);
+                nonEmptyMapper.getMapper().setFilterProvider(filterProvider);
+            }
+            
+            return nonEmptyMapper;
+        }).toJson(bean);
+    }
+
+    /**
+     * 循环收集类及其嵌套类中标记了@SkipLogFields的字段，避免递归
+     *
+     * @param clazz              当前处理的类
+     * @param classSkipFieldsMap 存储每个类需要跳过的字段
+     * @param visitedClasses     已访问的类
+     */
+    private static void collectSkipFieldsRecursively(Class<?> clazz, 
+                                                     Map<Class<?>, Set<String>> classSkipFieldsMap,
+                                                     Set<Class<?>> visitedClasses) {
+        if (clazz == null) {
+            return;
+        }
+
+        Deque<Class<?>> classQueue = new ArrayDeque<>();
+        classQueue.add(clazz);
+        while (!classQueue.isEmpty()) {
+            Class<?> currentTopClass = classQueue.poll();
+            if (visitedClasses.contains(currentTopClass)) {
+                continue;
+            }
+
+            // 基本类型已是最小单位，跳过
+            if (currentTopClass.isPrimitive() 
+                || currentTopClass.getName().startsWith("java.") 
+                || currentTopClass.getName().startsWith("javax.")) {
+                continue;
+            }
+            visitedClasses.add(currentTopClass);
+            // 遍历当前类和父类
+            Class<?> currentClass = currentTopClass;
+            while (currentClass != null && currentClass != Object.class) {
+                Field[] fields = currentClass.getDeclaredFields();
+                for (Field field : fields) {
+                    if (Modifier.isStatic(field.getModifiers()) || field.isSynthetic()) {
+                        continue;
+                    }
+                    SkipLogFields fieldAnnotation = field.getAnnotation(SkipLogFields.class);
+                    if (fieldAnnotation != null) {
+                        Set<String> skipFields = classSkipFieldsMap.computeIfAbsent(currentClass, k -> new HashSet<>());
+                        if (fieldAnnotation.value().trim().length() > 0) {
+                            skipFields.add(fieldAnnotation.value());
+                        } else {
+                            skipFields.add(field.getName());
+                        }
+                    }
+
+                    Class<?> fieldType = field.getType();
+                    // 集合和map类型需处理泛型
+                    if (Collection.class.isAssignableFrom(fieldType) || Map.class.isAssignableFrom(fieldType)) {
+                        Type genericType = field.getGenericType();
+                        if (genericType instanceof ParameterizedType) {
+                            ParameterizedType parameterizedType = (ParameterizedType) genericType;
+                            Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                            for (Type typeArg : actualTypeArguments) {
+                                if (typeArg instanceof Class) {
+                                    Class<?> typeArgClass = (Class<?>) typeArg;
+                                    if (!visitedClasses.contains(typeArgClass)) {
+                                        classQueue.add(typeArgClass);
+                                    }
+                                }
+                            }
+                        }
+                    } else if (!fieldType.isPrimitive() && !fieldType.isEnum() && !fieldType.isArray()) {
+                        if (!visitedClasses.contains(fieldType)) {
+                            classQueue.add(fieldType);
+                        }
+                    }
+                }
+                
+                currentClass = currentClass.getSuperclass();
+            }
+        }
     }
 
     /**
