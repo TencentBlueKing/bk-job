@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * JSON工具
@@ -53,7 +54,7 @@ import java.util.Set;
 @Slf4j
 public class JsonUtils {
 
-    private static final Map<String, JsonMapper> JSON_MAPPERS = new HashMap<>();
+    private static final Map<String, JsonMapper> JSON_MAPPERS = new ConcurrentHashMap<>();
 
     /**
      * 序列化时忽略bean中的某些字段,字段需要使用SkipLogFields注解
