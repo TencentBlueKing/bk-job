@@ -22,25 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo;
+package com.tencent.bk.job.manage.config;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
-import java.util.List;
-
-@ApiModel("资源范围分组面板")
 @Data
+@EnableConfigurationProperties(ScopePanelProperties.class)
+@ConfigurationProperties(prefix = "job.manage.scope-panel")
 @NoArgsConstructor
-@AllArgsConstructor
-public class ScopeGroupPanel {
-    @ApiModelProperty(value = "资源范围分组列表")
-    private List<ScopeGroup> scopeGroupList;
-    @ApiModelProperty(value = "是否展示申请资源范围权限的按钮")
-    private boolean canApply = true;
-    @ApiModelProperty(value = "申请资源范围权限的跳转链接地址")
-    private String applyUrl;
+public class ScopePanelProperties {
+
+    /**
+     * 是否展示当前用户没有权限的资源范围（业务/业务集）
+     */
+    private Boolean showNoPermissionScopes = true;
+
 }

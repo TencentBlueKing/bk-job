@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.manage.api.web;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.WebAPI;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.web.request.app.FavorAppReq;
@@ -54,6 +56,8 @@ import springfox.documentation.annotations.ApiIgnore;
 @WebAPI
 public interface WebAppResource {
 
+    @CompatibleImplementation(name = "scope_group_panel", deprecatedVersion = "3.12.x", type = CompatibleType.DEPLOY,
+        explain = "兼容 API， 发布完成后，该接口可删除")
     @ApiOperation(value = "获取用户的业务列表（带收藏标识、分页）", produces = "application/json")
     @GetMapping(value = {"/app/list/favor", "/scope/list/favor"})
     Response<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(

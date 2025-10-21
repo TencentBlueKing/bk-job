@@ -36,7 +36,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ScopeGroupWithAvailableScopeIdList {
+public class ScopeGroup {
     @ApiModelProperty(value = "资源范围组ID")
     private String id;
     @ApiModelProperty(value = "资源范围组名称")

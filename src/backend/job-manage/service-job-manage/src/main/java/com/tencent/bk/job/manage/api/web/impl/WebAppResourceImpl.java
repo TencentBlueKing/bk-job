@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.dto.AppResourceScopeResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
@@ -35,17 +34,15 @@ import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.CompareUtil;
 import com.tencent.bk.job.common.util.PageUtil;
-import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.manage.api.web.WebAppResource;
 import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
 import com.tencent.bk.job.manage.model.web.request.app.FavorAppReq;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
 import com.tencent.bk.job.manage.model.web.vo.PageDataWithAvailableIdList;
 import com.tencent.bk.job.manage.model.web.vo.ScopeGroupPanel;
-import com.tencent.bk.job.manage.model.web.vo.ScopeGroupWithAvailableScopeIdList;
-import com.tencent.bk.job.manage.model.web.vo.ScopeVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.ApplicationFavorService;
+import com.tencent.bk.job.manage.service.scope.ScopePanelService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -65,16 +62,19 @@ public class WebAppResourceImpl implements WebAppResource {
     private final ApplicationFavorService applicationFavorService;
     private final AppAuthService appAuthService;
     private final AppScopeMappingService appScopeMappingService;
+    private final ScopePanelService scopePanelService;
 
     @Autowired
     public WebAppResourceImpl(ApplicationService applicationService,
                               ApplicationFavorService applicationFavorService,
                               AppAuthService appAuthService,
-                              AppScopeMappingService appScopeMappingService) {
+                              AppScopeMappingService appScopeMappingService,
+                              ScopePanelService scopePanelService) {
         this.applicationService = applicationService;
         this.applicationFavorService = applicationFavorService;
         this.appAuthService = appAuthService;
         this.appScopeMappingService = appScopeMappingService;
+        this.scopePanelService = scopePanelService;
     }
 
     private List<Long> extractAuthorizedAppIdList(AppResourceScopeResult appResourceScopeResult) {
@@ -159,83 +159,44 @@ public class WebAppResourceImpl implements WebAppResource {
         return Response.buildSuccessResp(pageDataWithAvailableIdList);
     }
 
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public Response<ScopeGroupPanel> getScopeGroupPanel(String username) {
-        // Mock数据
-        List<ScopeGroupWithAvailableScopeIdList> list = new ArrayList<>();
-        ScopeGroupWithAvailableScopeIdList group1 = new ScopeGroupWithAvailableScopeIdList();
-        group1.setId(ResourceScopeTypeEnum.BIZ.getValue());
-        group1.setName("业务");
-        List<ScopeVO> children = new ArrayList<>();
-        ScopeVO scopeVO = new ScopeVO();
-        scopeVO.setId("1");
-        scopeVO.setName("Mock业务1");
-        scopeVO.setHasPermission(true);
-        scopeVO.setFavor(true);
-        scopeVO.setFavorTime(TimeUtil.parseIsoZonedTimeToMillis("2025-10-15T10:00:00.000+08:00"));
-        children.add(scopeVO);
-        scopeVO = new ScopeVO();
-        scopeVO.setId("2");
-        scopeVO.setName("Mock业务2");
-        scopeVO.setHasPermission(true);
-        scopeVO.setFavor(false);
-        scopeVO.setFavorTime(null);
-        children.add(scopeVO);
-        scopeVO = new ScopeVO();
-        scopeVO.setId("3");
-        scopeVO.setName("Mock业务3");
-        scopeVO.setHasPermission(false);
-        scopeVO.setFavor(true);
-        scopeVO.setFavorTime(TimeUtil.parseIsoZonedTimeToMillis("2025-10-15T12:00:00.000+08:00"));
-        children.add(scopeVO);
-        group1.setChildren(children);
-        list.add(group1);
+        List<ApplicationDTO> appList = applicationService.listAllApps();
+        List<AppResourceScope> appResourceScopeList =
+            appList.stream()
+                .map(app -> new AppResourceScope(app.getId(), app.getScope()))
+                .collect(Collectors.toList());
 
-        ScopeGroupWithAvailableScopeIdList group2 = new ScopeGroupWithAvailableScopeIdList();
-        group2.setId(ResourceScopeTypeEnum.BIZ_SET.getValue());
-        group2.setName("业务集");
-        children = new ArrayList<>();
-        scopeVO = new ScopeVO();
-        scopeVO.setId("1");
-        scopeVO.setName("Mock业务集1");
-        scopeVO.setHasPermission(true);
-        scopeVO.setFavor(true);
-        scopeVO.setFavorTime(TimeUtil.parseIsoZonedTimeToMillis("2025-10-15T09:00:00.000+08:00"));
-        children.add(scopeVO);
-        scopeVO = new ScopeVO();
-        scopeVO.setId("2");
-        scopeVO.setName("Mock业务集2");
-        scopeVO.setHasPermission(true);
-        scopeVO.setFavor(false);
-        scopeVO.setFavorTime(null);
-        children.add(scopeVO);
-        scopeVO = new ScopeVO();
-        scopeVO.setId("3");
-        scopeVO.setName("Mock业务集3");
-        scopeVO.setHasPermission(false);
-        scopeVO.setFavor(true);
-        scopeVO.setFavorTime(TimeUtil.parseIsoZonedTimeToMillis("2025-10-15T13:00:00.000+08:00"));
-        children.add(scopeVO);
-        group2.setChildren(children);
-        list.add(group2);
+        // IAM鉴权
+        AppResourceScopeResult appResourceScopeResult =
+            appAuthService.getAppResourceScopeList(username, appResourceScopeList);
 
-        ScopeGroupWithAvailableScopeIdList group3 = new ScopeGroupWithAvailableScopeIdList();
-        group3.setId("tenant_set");
-        group3.setName("租户集");
-        children = new ArrayList<>();
-        scopeVO = new ScopeVO();
-        scopeVO.setId("1");
-        scopeVO.setName("Mock租户集1");
-        scopeVO.setHasPermission(true);
-        scopeVO.setFavor(false);
-        scopeVO.setFavorTime(TimeUtil.parseIsoZonedTimeToMillis("2025-10-15T15:00:00.000+08:00"));
-        children.add(scopeVO);
-        group3.setChildren(children);
-        list.add(group3);
-        ScopeGroupPanel scopeGroupPanel = new ScopeGroupPanel();
-        scopeGroupPanel.setScopeGroupList(list);
-        scopeGroupPanel.setCanApply(true);
-        scopeGroupPanel.setApplyUrl("https://xxx.com");
+        // 可用的普通业务
+        List<Long> authorizedAppIdList = extractAuthorizedAppIdList(appResourceScopeResult);
+
+        List<AppVO> finalAppList = new ArrayList<>();
+        if (appResourceScopeResult.getAny()) {
+            for (ApplicationDTO app : appList) {
+                AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
+                    app.getScope().getId(), app.getName(), true, null, null);
+                finalAppList.add(appVO);
+            }
+        } else {
+            // 根据权限中心结果鉴权
+            for (ApplicationDTO app : appList) {
+                AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
+                    app.getScope().getId(), app.getName(), true, null, null);
+                appVO.setHasPermission(authorizedAppIdList.contains(app.getId()));
+                finalAppList.add(appVO);
+            }
+        }
+        // 设置收藏状态
+        setFavorState(username, finalAppList);
+        // 排序
+        sortApps(finalAppList);
+        // 分组
+        ScopeGroupPanel scopeGroupPanel = scopePanelService.buildScopeGroupPanel(username, finalAppList);
         return Response.buildSuccessResp(scopeGroupPanel);
     }
 
