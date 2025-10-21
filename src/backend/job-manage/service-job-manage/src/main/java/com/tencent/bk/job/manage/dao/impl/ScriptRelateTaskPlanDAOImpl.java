@@ -138,7 +138,7 @@ public class ScriptRelateTaskPlanDAOImpl implements ScriptRelateTaskPlanDAO {
             .fetch();
         List<ScriptRelatedTaskPlanDTO> relatedPlans = new ArrayList<>();
         if (result.size() > 0) {
-            result.into(record -> relatedPlans.add(extract(record)));
+            result.forEach(record -> relatedPlans.add(extract((Record) record)));
         }
         return getDistinctRelatedPlans(relatedPlans);
     }
@@ -178,7 +178,7 @@ public class ScriptRelateTaskPlanDAOImpl implements ScriptRelateTaskPlanDAO {
             .fetch();
         List<ScriptRelatedTaskPlanDTO> relatedPlans = new ArrayList<>();
         if (result.size() > 0) {
-            result.into(record -> relatedPlans.add(extract(record)));
+            result.forEach(record -> relatedPlans.add(extract((Record) record)));
         }
         return getDistinctRelatedPlans(relatedPlans);
     }

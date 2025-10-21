@@ -75,7 +75,7 @@ public class TaskInstanceVariableDAOImpl extends BaseDAO implements TaskInstance
             .fetch();
         List<TaskVariableDTO> taskVariables = new ArrayList<>();
         if (!result.isEmpty()) {
-            result.into(record -> taskVariables.add(extract((record))));
+            result.forEach(record -> taskVariables.add(extract((record))));
         }
         return taskVariables;
     }
