@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.service.scope;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.manage.config.ScopePanelProperties;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
@@ -78,7 +79,7 @@ public class ScopePanelService {
         scopeGroupPanel.setScopeGroupList(scopeGroupList);
         scopeGroupPanel.setCanApply(decideIfUserCanApply(username));
         if (scopeGroupPanel.isCanApply()) {
-            scopeGroupPanel.setApplyUrl(authService.getApplyUrl(ActionId.ACCESS_BUSINESS));
+            scopeGroupPanel.setApplyUrl(authService.getApplyUrl(ActionId.ACCESS_BUSINESS, ResourceTypeEnum.BUSINESS));
         }
         return scopeGroupPanel;
     }
