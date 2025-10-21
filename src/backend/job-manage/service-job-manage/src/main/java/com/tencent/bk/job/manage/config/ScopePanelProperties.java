@@ -27,10 +27,8 @@ package com.tencent.bk.job.manage.config;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @Data
-@EnableConfigurationProperties(ScopePanelProperties.class)
 @ConfigurationProperties(prefix = "job.manage.scope-panel")
 @NoArgsConstructor
 public class ScopePanelProperties {
