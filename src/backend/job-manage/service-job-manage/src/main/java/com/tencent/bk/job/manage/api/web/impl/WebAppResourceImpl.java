@@ -113,91 +113,64 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(String username,
-                                                                               Integer start,
-                                                                               Integer pageSize) {
-        List<ApplicationDTO> appList = applicationService.listAllApps();
-        List<AppResourceScope> appResourceScopeList =
-            appList.stream()
-                .map(app -> new AppResourceScope(app.getId(), app.getScope()))
-                .collect(Collectors.toList());
-
-        // IAM鉴权
-        AppResourceScopeResult appResourceScopeResult =
-            appAuthService.getAppResourceScopeList(username, appResourceScopeList);
-
-        // 可用的普通业务
-        List<Long> authorizedAppIdList = extractAuthorizedAppIdList(appResourceScopeResult);
-
-        List<AppVO> finalAppList = new ArrayList<>();
-        // 所有可用的AppId
-        List<Long> availableAppIds = new ArrayList<>();
-        if (appResourceScopeResult.getAny()) {
-            for (ApplicationDTO app : appList) {
-                AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
-                    app.getScope().getId(), app.getName(), true, null, null);
-                finalAppList.add(appVO);
-                availableAppIds.add(app.getId());
-            }
-        } else {
-            // 根据权限中心结果鉴权
-            for (ApplicationDTO app : appList) {
-                AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
-                    app.getScope().getId(), app.getName(), true, null, null);
-                appVO.setHasPermission(authorizedAppIdList.contains(app.getId()));
-                finalAppList.add(appVO);
-            }
-        }
-        // 设置收藏状态
-        setFavorState(username, finalAppList);
-        // 排序
-        sortApps(finalAppList);
+    public Response<PageData<AppVO>> listAppWithFavor(String username,
+                                                      Integer start,
+                                                      Integer pageSize) {
+        List<AppVO> finalAppList = listSortedAppWithFavor(username);
         // 分页
         PageData<AppVO> pageData = PageUtil.pageInMem(finalAppList, start, pageSize);
-        PageDataWithAvailableIdList<AppVO, Long> pageDataWithAvailableIdList =
-            new PageDataWithAvailableIdList<>(pageData, availableAppIds);
-        return Response.buildSuccessResp(pageDataWithAvailableIdList);
+        return Response.buildSuccessResp(pageData);
     }
 
-    @SuppressWarnings("DuplicatedCode")
     @Override
     public Response<ScopeGroupPanel> getScopeGroupPanel(String username) {
-        List<ApplicationDTO> appList = applicationService.listAllApps();
-        List<AppResourceScope> appResourceScopeList =
-            appList.stream()
-                .map(app -> new AppResourceScope(app.getId(), app.getScope()))
-                .collect(Collectors.toList());
-
-        // IAM鉴权
-        AppResourceScopeResult appResourceScopeResult =
-            appAuthService.getAppResourceScopeList(username, appResourceScopeList);
-
-        // 可用的普通业务
-        List<Long> authorizedAppIdList = extractAuthorizedAppIdList(appResourceScopeResult);
-
-        List<AppVO> finalAppList = new ArrayList<>();
-        if (appResourceScopeResult.getAny()) {
-            for (ApplicationDTO app : appList) {
-                AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
-                    app.getScope().getId(), app.getName(), true, null, null);
-                finalAppList.add(appVO);
-            }
-        } else {
-            // 根据权限中心结果鉴权
-            for (ApplicationDTO app : appList) {
-                AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
-                    app.getScope().getId(), app.getName(), true, null, null);
-                appVO.setHasPermission(authorizedAppIdList.contains(app.getId()));
-                finalAppList.add(appVO);
-            }
-        }
-        // 设置收藏状态
-        setFavorState(username, finalAppList);
-        // 排序
-        sortApps(finalAppList);
+        List<AppVO> finalAppList = listSortedAppWithFavor(username);
         // 分组
         ScopeGroupPanel scopeGroupPanel = scopePanelService.buildScopeGroupPanel(username, finalAppList);
         return Response.buildSuccessResp(scopeGroupPanel);
+    }
+
+    /**
+     * 获取当前用户所见的已排序的带收藏信息的所有Job业务列表数据
+     *
+     * @param username 当前用户名
+     * @return Job业务列表
+     */
+    private List<AppVO> listSortedAppWithFavor(String username) {
+        List<ApplicationDTO> appList = applicationService.listAllApps();
+        List<AppResourceScope> appResourceScopeList =
+            appList.stream()
+                .map(app -> new AppResourceScope(app.getId(), app.getScope()))
+                .collect(Collectors.toList());
+
+        // IAM鉴权
+        AppResourceScopeResult appResourceScopeResult =
+            appAuthService.getAppResourceScopeList(username, appResourceScopeList);
+
+        // 可用的普通业务
+        List<Long> authorizedAppIdList = extractAuthorizedAppIdList(appResourceScopeResult);
+
+        List<AppVO> finalAppList = new ArrayList<>();
+        if (appResourceScopeResult.getAny()) {
+            for (ApplicationDTO app : appList) {
+                AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
+                    app.getScope().getId(), app.getName(), true, null, null);
+                finalAppList.add(appVO);
+            }
+        } else {
+            // 根据权限中心结果鉴权
+            for (ApplicationDTO app : appList) {
+                AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
+                    app.getScope().getId(), app.getName(), true, null, null);
+                appVO.setHasPermission(authorizedAppIdList.contains(app.getId()));
+                finalAppList.add(appVO);
+            }
+        }
+        // 设置收藏状态
+        setFavorState(username, finalAppList);
+        // 排序
+        sortApps(finalAppList);
+        return finalAppList;
     }
 
     /**

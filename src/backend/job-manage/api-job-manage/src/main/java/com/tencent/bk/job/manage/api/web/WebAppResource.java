@@ -24,14 +24,12 @@
 
 package com.tencent.bk.job.manage.api.web;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.WebAPI;
-import com.tencent.bk.job.common.constant.CompatibleType;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.web.request.app.FavorAppReq;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
-import com.tencent.bk.job.manage.model.web.vo.PageDataWithAvailableIdList;
 import com.tencent.bk.job.manage.model.web.vo.ScopeGroupPanel;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -56,11 +54,9 @@ import springfox.documentation.annotations.ApiIgnore;
 @WebAPI
 public interface WebAppResource {
 
-    @CompatibleImplementation(name = "scope_group_panel", deprecatedVersion = "3.12.x", type = CompatibleType.DEPLOY,
-        explain = "兼容 API， 发布完成后，该接口可删除")
-    @ApiOperation(value = "获取用户的业务列表（带收藏标识、分页）", produces = "application/json")
+    @ApiOperation(value = "获取用户的业务列表（带收藏标识、分页），IP白名单相关场景选择业务使用", produces = "application/json")
     @GetMapping(value = {"/app/list/favor", "/scope/list/favor"})
-    Response<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(
+    Response<PageData<AppVO>> listAppWithFavor(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
