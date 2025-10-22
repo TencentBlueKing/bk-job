@@ -153,6 +153,7 @@ public abstract class AbstractJobInstanceArchiveTask<T extends TableRecord<?>>
                 T lastRecord = jobInstanceRecords.get(jobInstanceRecords.size() - 1);
                 Long lastJobInstanceId = extractJobInstanceId(lastRecord);
                 IdBasedArchiveProcess progress = new IdBasedArchiveProcess(lastJobInstanceId);
+                this.progress = progress;
                 boolean isFinished = jobInstanceRecords.size() < readLimit;
                 if (isFinished) {
                     // 更新任务结束信息

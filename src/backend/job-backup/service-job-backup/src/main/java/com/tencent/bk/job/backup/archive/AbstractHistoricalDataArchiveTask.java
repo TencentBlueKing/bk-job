@@ -53,7 +53,7 @@ public abstract class AbstractHistoricalDataArchiveTask implements JobHistorical
     /**
      * 归档进度
      */
-    protected final IdBasedArchiveProcess progress;
+    protected IdBasedArchiveProcess progress;
 
     protected boolean isAcquireLock;
     /**
@@ -242,7 +242,7 @@ public abstract class AbstractHistoricalDataArchiveTask implements JobHistorical
         // 进度清空，防止因异常跳过的作业实例ID没法被重调度
         if (archiveTaskInfo.getProcess() != null) {
             archiveTaskInfo.setProcess(null);
-            this.progress.setId(0L);
+            this.progress = null;
         }
     }
 
