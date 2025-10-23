@@ -398,7 +398,8 @@ public class ThirdFilePrepareService {
                 new RecordableThirdFilePrepareTaskResultHandler(stepInstance, resultHandler));
         batchResultHandleTask.initDependentService(
             fileSourceTaskResource, stepInstanceService, accountService,
-            fileWorkerHostService, logService, taskExecuteMQEventDispatcher, fileSourceTaskLogDAO
+            fileWorkerHostService, logService, taskExecuteMQEventDispatcher,
+            fileSourceTaskLogDAO, thirdFileDistributeSourceHostProvisioner
         );
         resultHandleManager.handleDeliveredTask(batchResultHandleTask);
         return batchResultHandleTask;
