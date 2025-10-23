@@ -74,9 +74,10 @@ public class EsbPushConfigFileResourceV3Impl
     private final LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner;
 
     @Autowired
-    public EsbPushConfigFileResourceV3Impl(TaskExecuteService taskExecuteService,
-                                           FileDistributeConfig fileDistributeConfig,
-                                           LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner) {
+    public EsbPushConfigFileResourceV3Impl(
+        TaskExecuteService taskExecuteService,
+        FileDistributeConfig fileDistributeConfig,
+        LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner) {
         this.taskExecuteService = taskExecuteService;
         this.fileDistributeConfig = fileDistributeConfig;
         this.localFileDistributeSourceHostProvisioner = localFileDistributeSourceHostProvisioner;
