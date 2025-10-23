@@ -13,12 +13,7 @@ echo "logLevel=$logLevel"
 exec java \
      -Dfile.encoding=UTF-8 \
      -Dlog.level=${logLevel} \
-     -XX:+UseGCLogFileRotation \
-     -XX:NumberOfGCLogFiles=12 \
-     -XX:GCLogFileSize=1G \
-     -XX:+PrintTenuringDistribution \
-     -XX:+PrintGCDetails \
-     -XX:+PrintGCDateStamps \
+     -Xlog:gc*,gc+age=trace:file=/data/logs/controller/gc.log:time,uptime,level,tags:filecount=12,filesize=1g \
      -XX:+HeapDumpOnOutOfMemoryError \
      -XX:HeapDumpPath=heap.hprof \
      -jar /data/job/exec/k8s-startup-controller.jar \
