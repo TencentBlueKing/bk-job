@@ -82,6 +82,8 @@ data:
           default:
             channels:
               available: mail
+        scope-panel:
+          showNoPermissionScopes: {{ .Values.manageConfig.scopePanel.showNoPermissionScopes }}
     mysql:
       {{- toYaml .Values.manageConfig.mysql | nindent 6 }}
     server:

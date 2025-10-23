@@ -26,10 +26,12 @@ package com.tencent.bk.job.common.constant;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
 
 /**
  * 资源范围类型
  */
+@Getter
 public enum ResourceScopeTypeEnum {
     /**
      * CMDB业务
@@ -46,8 +48,11 @@ public enum ResourceScopeTypeEnum {
     @JsonValue
     private final String value;
 
+    private final String i18nKey;
+
     ResourceScopeTypeEnum(String value) {
         this.value = value;
+        this.i18nKey = "cmdb.object.name." + value;
     }
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
@@ -58,10 +63,6 @@ public enum ResourceScopeTypeEnum {
             }
         }
         throw new IllegalArgumentException("No ResourceScopeTypeEnum constant: " + type);
-    }
-
-    public String getValue() {
-        return value;
     }
 
     public static boolean isValid(String type) {

@@ -38,9 +38,10 @@ import com.tencent.bk.job.manage.api.web.WebAppResource;
 import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
 import com.tencent.bk.job.manage.model.web.request.app.FavorAppReq;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
-import com.tencent.bk.job.manage.model.web.vo.PageDataWithAvailableIdList;
+import com.tencent.bk.job.manage.model.web.vo.ScopeGroupPanel;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.ApplicationFavorService;
+import com.tencent.bk.job.manage.service.scope.ScopePanelService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -60,16 +61,19 @@ public class WebAppResourceImpl implements WebAppResource {
     private final ApplicationFavorService applicationFavorService;
     private final AppAuthService appAuthService;
     private final AppScopeMappingService appScopeMappingService;
+    private final ScopePanelService scopePanelService;
 
     @Autowired
     public WebAppResourceImpl(ApplicationService applicationService,
                               ApplicationFavorService applicationFavorService,
                               AppAuthService appAuthService,
-                              AppScopeMappingService appScopeMappingService) {
+                              AppScopeMappingService appScopeMappingService,
+                              ScopePanelService scopePanelService) {
         this.applicationService = applicationService;
         this.applicationFavorService = applicationFavorService;
         this.appAuthService = appAuthService;
         this.appScopeMappingService = appScopeMappingService;
+        this.scopePanelService = scopePanelService;
     }
 
     private List<Long> extractAuthorizedAppIdList(AppResourceScopeResult appResourceScopeResult) {
@@ -108,9 +112,30 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(String username,
-                                                                               Integer start,
-                                                                               Integer pageSize) {
+    public Response<PageData<AppVO>> listPagedAppWithFavor(String username,
+                                                           Integer start,
+                                                           Integer pageSize) {
+        List<AppVO> finalAppList = listSortedAppWithFavor(username);
+        // 分页
+        PageData<AppVO> pageData = PageUtil.pageInMem(finalAppList, start, pageSize);
+        return Response.buildSuccessResp(pageData);
+    }
+
+    @Override
+    public Response<ScopeGroupPanel> getScopeGroupPanel(String username) {
+        List<AppVO> finalAppList = listSortedAppWithFavor(username);
+        // 分组
+        ScopeGroupPanel scopeGroupPanel = scopePanelService.buildScopeGroupPanel(username, finalAppList);
+        return Response.buildSuccessResp(scopeGroupPanel);
+    }
+
+    /**
+     * 获取当前用户所见的已排序的带收藏信息的所有Job业务列表数据
+     *
+     * @param username 当前用户名
+     * @return Job业务列表
+     */
+    private List<AppVO> listSortedAppWithFavor(String username) {
         List<ApplicationDTO> appList = applicationService.listAllApps();
         List<AppResourceScope> appResourceScopeList =
             appList.stream()
@@ -125,14 +150,11 @@ public class WebAppResourceImpl implements WebAppResource {
         List<Long> authorizedAppIdList = extractAuthorizedAppIdList(appResourceScopeResult);
 
         List<AppVO> finalAppList = new ArrayList<>();
-        // 所有可用的AppId
-        List<Long> availableAppIds = new ArrayList<>();
         if (appResourceScopeResult.getAny()) {
             for (ApplicationDTO app : appList) {
                 AppVO appVO = new AppVO(app.getId(), app.getScope().getType().getValue(),
                     app.getScope().getId(), app.getName(), true, null, null);
                 finalAppList.add(appVO);
-                availableAppIds.add(app.getId());
             }
         } else {
             // 根据权限中心结果鉴权
@@ -147,11 +169,7 @@ public class WebAppResourceImpl implements WebAppResource {
         setFavorState(username, finalAppList);
         // 排序
         sortApps(finalAppList);
-        // 分页
-        PageData<AppVO> pageData = PageUtil.pageInMem(finalAppList, start, pageSize);
-        PageDataWithAvailableIdList<AppVO, Long> pageDataWithAvailableIdList =
-            new PageDataWithAvailableIdList<>(pageData, availableAppIds);
-        return Response.buildSuccessResp(pageDataWithAvailableIdList);
+        return finalAppList;
     }
 
     /**
