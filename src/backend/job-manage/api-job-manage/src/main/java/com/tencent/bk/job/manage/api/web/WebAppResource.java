@@ -56,7 +56,7 @@ public interface WebAppResource {
 
     @ApiOperation(value = "获取用户的业务列表（带收藏标识、分页），IP白名单相关场景选择业务使用", produces = "application/json")
     @GetMapping(value = {"/app/list/favor", "/scope/list/favor"})
-    Response<PageData<AppVO>> listAppWithFavor(
+    Response<PageData<AppVO>> listPagedAppWithFavor(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,

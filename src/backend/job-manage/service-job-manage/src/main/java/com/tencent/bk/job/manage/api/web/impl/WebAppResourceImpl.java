@@ -38,7 +38,6 @@ import com.tencent.bk.job.manage.api.web.WebAppResource;
 import com.tencent.bk.job.manage.model.dto.ApplicationFavorDTO;
 import com.tencent.bk.job.manage.model.web.request.app.FavorAppReq;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
-import com.tencent.bk.job.manage.model.web.vo.PageDataWithAvailableIdList;
 import com.tencent.bk.job.manage.model.web.vo.ScopeGroupPanel;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.impl.ApplicationFavorService;
@@ -113,9 +112,9 @@ public class WebAppResourceImpl implements WebAppResource {
     }
 
     @Override
-    public Response<PageData<AppVO>> listAppWithFavor(String username,
-                                                      Integer start,
-                                                      Integer pageSize) {
+    public Response<PageData<AppVO>> listPagedAppWithFavor(String username,
+                                                           Integer start,
+                                                           Integer pageSize) {
         List<AppVO> finalAppList = listSortedAppWithFavor(username);
         // 分页
         PageData<AppVO> pageData = PageUtil.pageInMem(finalAppList, start, pageSize);
