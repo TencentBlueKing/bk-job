@@ -3,3 +3,6 @@ spring:
     name: job-assemble
   profiles:
     active: test
+  cloud:
+    kubernetes:
+      enabled: false
