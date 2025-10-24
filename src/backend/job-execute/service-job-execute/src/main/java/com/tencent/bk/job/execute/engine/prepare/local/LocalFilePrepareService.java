@@ -35,7 +35,7 @@ import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
-import com.tencent.bk.job.execute.service.AgentService;
+import com.tencent.bk.job.execute.service.LocalFileDistributeSourceHostProvisioner;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +56,7 @@ public class LocalFilePrepareService {
     private final FileDistributeConfig fileDistributeConfig;
     private final ArtifactoryConfig artifactoryConfig;
     private final LocalFileConfigForExecute localFileConfigForExecute;
-    private final AgentService agentService;
+    private final LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner;
     private final StepInstanceService stepInstanceService;
     private final ArtifactoryClient artifactoryClient;
     private final Map<String, ArtifactoryLocalFilePrepareTask> taskMap = new ConcurrentHashMap<>();
@@ -67,7 +67,7 @@ public class LocalFilePrepareService {
     public LocalFilePrepareService(FileDistributeConfig fileDistributeConfig,
                                    ArtifactoryConfig artifactoryConfig,
                                    LocalFileConfigForExecute localFileConfigForExecute,
-                                   AgentService agentService,
+                                   LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner,
                                    StepInstanceService stepInstanceService,
                                    @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
                                    @Qualifier("localFileDownloadExecutor") ThreadPoolExecutor localFileDownloadExecutor,
@@ -75,7 +75,7 @@ public class LocalFilePrepareService {
         this.fileDistributeConfig = fileDistributeConfig;
         this.artifactoryConfig = artifactoryConfig;
         this.localFileConfigForExecute = localFileConfigForExecute;
-        this.agentService = agentService;
+        this.localFileDistributeSourceHostProvisioner = localFileDistributeSourceHostProvisioner;
         this.stepInstanceService = stepInstanceService;
         this.artifactoryClient = artifactoryClient;
         this.localFileDownloadExecutor = localFileDownloadExecutor;
@@ -125,7 +125,7 @@ public class LocalFilePrepareService {
         boolean isGseV2Task = stepInstance.isTargetGseV2Agent();
         fileSourceList.forEach(fileSourceDTO -> {
             if (fileSourceDTO.getFileType() == TaskFileTypeEnum.LOCAL.getType() || fileSourceDTO.isLocalUpload()) {
-                HostDTO localHost = agentService.getLocalAgentHost().clone();
+                HostDTO localHost = localFileDistributeSourceHostProvisioner.getLocalFileDistributeSourceHost().clone();
                 if (!isGseV2Task) {
                     // 如果目标Agent是GSE V1, 那么源Agent也必须要GSE1.0 Agent，设置agentId={云区域:ip}
                     localHost.setAgentId(localHost.toCloudIp());

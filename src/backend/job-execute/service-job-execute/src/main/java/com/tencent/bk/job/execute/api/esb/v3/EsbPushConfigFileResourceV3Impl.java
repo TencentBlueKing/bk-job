@@ -52,7 +52,7 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbPushConfigFileV3Request;
-import com.tencent.bk.job.execute.service.AgentService;
+import com.tencent.bk.job.execute.service.LocalFileDistributeSourceHostProvisioner;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -71,15 +71,16 @@ public class EsbPushConfigFileResourceV3Impl
     implements EsbPushConfigFileV3Resource {
     private final TaskExecuteService taskExecuteService;
     private final FileDistributeConfig fileDistributeConfig;
-    private final AgentService agentService;
+    private final LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner;
 
     @Autowired
-    public EsbPushConfigFileResourceV3Impl(TaskExecuteService taskExecuteService,
-                                           FileDistributeConfig fileDistributeConfig,
-                                           AgentService agentService) {
+    public EsbPushConfigFileResourceV3Impl(
+        TaskExecuteService taskExecuteService,
+        FileDistributeConfig fileDistributeConfig,
+        LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner) {
         this.taskExecuteService = taskExecuteService;
         this.fileDistributeConfig = fileDistributeConfig;
-        this.agentService = agentService;
+        this.localFileDistributeSourceHostProvisioner = localFileDistributeSourceHostProvisioner;
     }
 
     @Override
@@ -188,7 +189,9 @@ public class EsbPushConfigFileResourceV3Impl
             fileSourceDTO.setFiles(files);
             // 设置配置文件所在主机信息
             ExecuteTargetDTO fileSourceExecuteObjects = new ExecuteTargetDTO();
-            fileSourceExecuteObjects.setStaticIpList(Collections.singletonList(agentService.getLocalAgentHost()));
+            fileSourceExecuteObjects.setStaticIpList(Collections.singletonList(
+                localFileDistributeSourceHostProvisioner.getLocalFileDistributeSourceHost()
+            ));
             fileSourceDTO.setServers(fileSourceExecuteObjects);
             fileSourceDTOS.add(fileSourceDTO);
         });
