@@ -129,6 +129,7 @@
             <i class="bk-icon icon-plus-circle mr10" />{{ $t('去新建') }}
           </div>
           <div
+            v-if="canApply"
             class="operation-item"
             @click="handleGoApplyApp">
             <i class="bk-icon icon-plus-circle mr10" />{{ $t('去申请') }}
@@ -228,6 +229,7 @@
   const currentScopeType = window.PROJECT_CONFIG.SCOPE_TYPE;
   const currentScopeId = window.PROJECT_CONFIG.SCOPE_ID;
   const currentScopeName = ref('');
+  const canApply = ref(false);
   const applyUrl = ref('/');
   const keyword = ref('');
   const relatedSystemUrls = ref({
@@ -281,6 +283,7 @@
     AppManageService.fetchGroupPanel()
       .then((data) => {
         applyUrl.value = data.applyUrl;
+        canApply.value = data.canApply;
 
         const result = data.scopeGroupList.map(item => ({
           ...item,
@@ -360,8 +363,8 @@
 
   const handleAppChange = (appInfo) => {
     const {
-      scopeType,
-      scopeId,
+      groupId: scopeType,
+      id: scopeId,
     } = appInfo;
 
     const pathRoot = `/${scopeType}/${scopeId}`;
