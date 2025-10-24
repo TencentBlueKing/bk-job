@@ -22,63 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.validation;
+package com.tencent.bk.job.execute.model.esb.v4.resp;
 
-/**
- * 联合校验分组
- */
-public interface ValidationGroups {
-    interface Script {
-        interface ScriptVersionId {
-        }
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
-        interface ScriptContent {
-        }
-
-        interface ScriptId {
-        }
-    }
-
-    interface Account {
-        interface AccountId {
-        }
-
-        interface AccountAlias {
-        }
-    }
+@Data
+public class V4ScriptStepIpLogDTO {
 
     /**
-     * 滚动类型
+     * 主机ID
      */
-    interface RollingType {
-        /**
-         * 按目标执行对象滚动
-         */
-        interface TargetExecuteObject {
-        }
-
-        /**
-         * 按源文件滚动
-         */
-        interface FileSource {
-        }
-    }
+    @JsonProperty("bk_host_id")
+    private Long bkHostId;
 
     /**
-     * 主机类型（hostId or cloudId+ip）
+     * 管控区域ID
      */
-    interface HostType {
-        /**
-         * 用hostId表示主机
-         */
-        interface HostId {
-        }
+    @JsonProperty("bk_cloud_id")
+    private Long bkCloudId;
 
-        /**
-         * 用cloudId+ip表示主机
-         */
-        interface CloudIdIp {
-        }
-    }
+    /**
+     * 主机IP
+     */
+    @JsonProperty("ip")
+    private String ip;
 
+    /**
+     * 日志内容
+     */
+    @JsonProperty("log_content")
+    private String logContent;
 }
