@@ -202,6 +202,7 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
         result.setLastModifyUser(taskPlan.getLastModifyUser());
         result.setCreateTime(taskPlan.getCreateTime());
         result.setLastModifyTime(taskPlan.getLastModifyTime());
+        result.setNeedUpdate(taskPlan.getNeedUpdate());
         return result;
     }
 }

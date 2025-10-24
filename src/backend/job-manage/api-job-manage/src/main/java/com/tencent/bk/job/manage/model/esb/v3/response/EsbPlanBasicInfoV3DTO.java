@@ -84,4 +84,11 @@ public class EsbPlanBasicInfoV3DTO extends EsbAppScopeDTO {
     @JsonPropertyDescription("Last modify time")
     private Long lastModifyTime;
 
+    /**
+     * 是否需要从作业模版同步
+     */
+    @JsonProperty("need_update")
+    @JsonPropertyDescription("Need update")
+    private Boolean needUpdate;
+
 }

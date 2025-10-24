@@ -57,7 +57,8 @@
                 "creator": "admin",
                 "create_time": 1546272000000,
                 "last_modify_user": "admin",
-                "last_modify_time": 1546272000000
+                "last_modify_time": 1546272000000,
+                "need_update": true
             }
         ],
         "start": 0,
@@ -101,3 +102,4 @@
 | create_time      | long   | 是          | 创建时间，Unix 时间戳                           |
 | last_modify_user | string | 是          | 修改人账号                                   |
 | last_modify_time | long   | 是          | 最后修改时间，Unix 时间戳                         |
+| need_update      | bool   | 是          | 是否需要从作业模版同步                             |
