@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
+import com.tencent.bk.job.manage.model.dto.notify.TriggerPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
 import com.tencent.bk.job.manage.model.inner.ServiceSpecificResourceNotifyPolicyDTO;
@@ -40,7 +41,6 @@ import com.tencent.bk.job.manage.model.web.vo.notify.ExecuteStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.PageTemplateVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ResourceTypeVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.RoleVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerTypeVO;
 
 import java.util.List;
@@ -52,7 +52,7 @@ import java.util.Set;
  */
 public interface NotifyService {
 
-    List<TriggerPolicyVO> listAppDefaultNotifyPolicies(String username, Long appId);
+    List<TriggerPolicyDTO> listAppDefaultNotifyPolicies(String username, Long appId);
 
     CustomNotifyDTO getSpecificResourceNotifyPolicy(Long appId,
                                                     Integer resourceType,

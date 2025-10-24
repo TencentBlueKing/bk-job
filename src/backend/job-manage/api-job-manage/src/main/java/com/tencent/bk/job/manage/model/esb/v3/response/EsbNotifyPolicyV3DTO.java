@@ -22,34 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.notify;
+package com.tencent.bk.job.manage.model.esb.v3.response;
 
-import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
-import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
-import com.tencent.bk.job.manage.model.dto.notify.TriggerPolicyDTO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
-public interface NotifyTriggerPolicyDAO {
-    Long insertNotifyTriggerPolicy(NotifyTriggerPolicyDTO notifyTriggerPolicyDTO);
+/**
+ * ESB业务通知策略DTO
+ */
+@Data
+public class EsbNotifyPolicyV3DTO {
 
-    int deleteAppNotifyPolicies(Long appId, String triggerUser);
+    @JsonProperty("trigger_type")
+    @JsonPropertyDescription("触发方式")
+    private String triggerType;
 
-    int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId);
+    @JsonProperty("resource_type_list")
+    @JsonPropertyDescription("操作（任务）类型列表")
+    private List<String> resourceTypeList;
 
-    CustomNotifyDTO getSpecificResourceNotifyPolicy(Long appId,
-                                                    Integer resourceType,
-                                                    String resourceId,
-                                                    Integer triggerType);
+    @JsonProperty("role_list")
+    @JsonPropertyDescription("任务角色（通知对象）列表")
+    private List<String> roleList;
 
-    List<TriggerPolicyDTO> listAppDefault(String triggerUser, Long appId, String resourceId);
+    @JsonProperty("extra_observer_list")
+    @JsonPropertyDescription("额外通知人列表")
+    private List<String> extraObserverList;
 
-    List<NotifyTriggerPolicyDTO> list(String triggerUser,
-                                      Long appId,
-                                      String resourceId,
-                                      Integer resourceType,
-                                      Integer triggerType,
-                                      Integer executeStatus);
+    @JsonProperty("resource_status_channel_map")
+    @JsonPropertyDescription("状态通知渠道列表，key:执行状态(SUCCESS,FAIL,READY),value:通知渠道列表")
+    private Map<String, List<String>> resourceStatusChannelMap;
 
-    int countDefaultPolicies();
 }
