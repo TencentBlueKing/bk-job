@@ -54,7 +54,7 @@ public class EsbNotifyPolicyV3DTO {
     private List<String> extraObserverList;
 
     @JsonProperty("resource_status_channel_map")
-    @JsonPropertyDescription("状态通知渠道列表，key:执行状态(SUCCESS,FAIL,READY),value:通知渠道列表")
-    private Map<String, List<String>> resourceStatusChannelMap;
+    @JsonPropertyDescription("状态通知渠道映射，第一层key:执行状态(SUCCESS,FAIL,READY)，第二层key:渠道类型，value:是否启用")
+    private Map<String, Map<String, Boolean>> resourceStatusChannelMap;
 
 }

@@ -28,16 +28,23 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
 import com.tencent.bk.job.manage.api.esb.v3.EsbNotifyConfigV3Resource;
+import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.TriggerPolicyDTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbNotifyPolicyV3DTO;
 import com.tencent.bk.job.manage.service.NotifyService;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 public class EsbNotifyConfigV3ResourceImpl implements EsbNotifyConfigV3Resource {
 
@@ -58,21 +65,63 @@ public class EsbNotifyConfigV3ResourceImpl implements EsbNotifyConfigV3Resource 
                                                                 String scopeType,
                                                                 String scopeId) {
         Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
+        
+        // 平台配置的可用通知渠道列表
+        List<NotifyEsbChannelDTO> availableChannels = notifyService.listAllNotifyChannel();
+        List<String> availableChannelTypes = availableChannels.stream()
+            .map(NotifyEsbChannelDTO::getType)
+            .collect(Collectors.toList());
         List<TriggerPolicyDTO> notifyPolicies = notifyService.listAppDefaultNotifyPolicies(username, appId);
         List<EsbNotifyPolicyV3DTO> esbNotifyPolicies = notifyPolicies.stream()
-            .map(this::convert)
+            .map(policy -> convert(policy, availableChannelTypes))
             .collect(Collectors.toList());
         
         return EsbResp.buildSuccessResp(esbNotifyPolicies);
     }
 
-    private EsbNotifyPolicyV3DTO convert(TriggerPolicyDTO triggerPolicyDTO) {
+    /**
+     * 关联平台可用消息通知渠道
+     *
+     * @param triggerPolicyDTO 消息通知策略
+     * @param availableChannelTypes 平台可用的通知渠道类型列表
+     * @return 消息通知配置
+     */
+    private EsbNotifyPolicyV3DTO convert(TriggerPolicyDTO triggerPolicyDTO, List<String> availableChannelTypes) {
         EsbNotifyPolicyV3DTO esbNotifyPolicy = new EsbNotifyPolicyV3DTO();
         esbNotifyPolicy.setTriggerType(triggerPolicyDTO.getTriggerType());
         esbNotifyPolicy.setResourceTypeList(triggerPolicyDTO.getResourceTypeList());
         esbNotifyPolicy.setRoleList(triggerPolicyDTO.getRoleList());
         esbNotifyPolicy.setExtraObserverList(triggerPolicyDTO.getExtraObserverList());
-        esbNotifyPolicy.setResourceStatusChannelMap(triggerPolicyDTO.getResourceStatusChannelMap());
+
+        Map<String, Map<String, Boolean>> convertedChannelMap = new HashMap<>();
+        
+        // 填充 SUCCESS、FAIL、READY
+        Map<String, List<String>> sourceChannelMap = triggerPolicyDTO.getResourceStatusChannelMap();
+        for (ExecuteStatusEnum status : ExecuteStatusEnum.values()) {
+            List<String> enabledChannels = (sourceChannelMap != null) 
+                ? sourceChannelMap.get(status.name())
+                : null;
+            Map<String, Boolean> channelEnabledMap = new HashMap<>();
+            // 若是某状态没有启动任何通知渠道，则也要填充为{"SUCCESS": {"channel1": false"}}
+            if (CollectionUtils.isEmpty(enabledChannels)) {
+                channelEnabledMap = getAllFalseChannelMap(availableChannelTypes);
+            } else {
+                for (String channelType : availableChannelTypes) {
+                    channelEnabledMap.put(channelType, enabledChannels.contains(channelType));
+                }
+            }
+            convertedChannelMap.put(status.name(), channelEnabledMap);
+        }
+        esbNotifyPolicy.setResourceStatusChannelMap(convertedChannelMap);
+
         return esbNotifyPolicy;
+    }
+
+    private Map<String, Boolean> getAllFalseChannelMap(List<String> availableChannelTypes) {
+        Map<String, Boolean> channelEnabledMap = new HashMap<>();
+        for (String channelType : availableChannelTypes) {
+            channelEnabledMap.put(channelType, false);
+        }
+        return channelEnabledMap;
     }
 }
