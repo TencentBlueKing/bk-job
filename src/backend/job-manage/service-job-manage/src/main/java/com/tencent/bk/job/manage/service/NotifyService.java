@@ -100,6 +100,12 @@ public interface NotifyService {
      */
     List<NotifyEsbChannelDTO> listAllNotifyChannel();
 
+    /**
+     * 获取当前平台启用的消息通知渠道
+     * @return 已启用的消息通知渠道列表
+     */
+    List<String> getAvailableChannelTypeList();
+
     List<NotifyChannelVO> listAvailableNotifyChannel(String username);
 
     Integer setAvailableNotifyChannel(String username, SetAvailableNotifyChannelReq req);

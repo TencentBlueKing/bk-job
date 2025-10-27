@@ -65,15 +65,18 @@ public class EsbNotifyConfigV3ResourceImpl implements EsbNotifyConfigV3Resource 
                                                                 String scopeType,
                                                                 String scopeId) {
         Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
-        
-        // 平台配置的可用通知渠道列表
-        List<NotifyEsbChannelDTO> availableChannels = notifyService.listAllNotifyChannel();
-        List<String> availableChannelTypes = availableChannels.stream()
+
+        // 所有的通知渠道
+        List<String> allNotifyChannelTypes = notifyService.listAllNotifyChannel().stream()
             .map(NotifyEsbChannelDTO::getType)
+            .collect(Collectors.toList());
+        // 平台配置的可用通知渠道列表
+        List<String> availableChannels = notifyService.getAvailableChannelTypeList().stream()
+            .filter(allNotifyChannelTypes::contains)
             .collect(Collectors.toList());
         List<TriggerPolicyDTO> notifyPolicies = notifyService.listAppDefaultNotifyPolicies(username, appId);
         List<EsbNotifyPolicyV3DTO> esbNotifyPolicies = notifyPolicies.stream()
-            .map(policy -> convert(policy, availableChannelTypes))
+            .map(policy -> convert(policy, availableChannels))
             .collect(Collectors.toList());
         
         return EsbResp.buildSuccessResp(esbNotifyPolicies);

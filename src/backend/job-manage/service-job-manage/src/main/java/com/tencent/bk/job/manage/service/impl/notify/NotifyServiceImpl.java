@@ -470,7 +470,8 @@ public class NotifyServiceImpl implements NotifyService {
             ).collect(Collectors.toList());
     }
 
-    private List<String> getAvailableChannelTypeList() {
+    @Override
+    public List<String> getAvailableChannelTypeList() {
         List<AvailableEsbChannelDTO> availableEsbChannelDTOList =
             availableEsbChannelDAO.listAvailableEsbChannel();
         return availableEsbChannelDTOList.stream().map(AvailableEsbChannelDTO::getType).collect(Collectors.toList());
