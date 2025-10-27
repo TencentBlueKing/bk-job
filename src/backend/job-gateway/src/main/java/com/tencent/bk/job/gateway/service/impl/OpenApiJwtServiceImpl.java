@@ -182,9 +182,10 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
         EsbJwtInfo esbJwtInfo;
         try {
             Claims claims = Jwts.parser()
-                .setSigningKey(publicKey)
-                .parseClaimsJws(token)
-                .getBody();
+                .verifyWith(publicKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
             String appCode = "";
             if (claims.get("app") != null) {
                 LinkedHashMap appProps = claims.get("app", LinkedHashMap.class);

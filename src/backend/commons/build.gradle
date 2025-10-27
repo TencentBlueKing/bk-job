@@ -35,7 +35,7 @@ version "${jobCommonVersion}"
 subprojects {
     version "${jobCommonVersion}"
     dependencies {
-        compileOnly 'javax.servlet:javax.servlet-api:3.1.0'
+        compileOnly 'jakarta.servlet:jakarta.servlet-api'
         compileOnly 'ch.qos.logback:logback-classic'
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
