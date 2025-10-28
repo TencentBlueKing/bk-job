@@ -22,34 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.dao.notify;
+package com.tencent.bk.job.manage.model.dto.notify;
 
-import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
-import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
-import com.tencent.bk.job.manage.model.dto.notify.TriggerPolicyDTO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
-public interface NotifyTriggerPolicyDAO {
-    Long insertNotifyTriggerPolicy(NotifyTriggerPolicyDTO notifyTriggerPolicyDTO);
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TriggerPolicyDTO {
 
-    int deleteAppNotifyPolicies(Long appId, String triggerUser);
+    /**
+     * 触发方式
+     */
+    private String triggerType;
 
-    int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId);
+    /**
+     * 操作（任务）类型列表
+     */
+    private List<String> resourceTypeList;
 
-    CustomNotifyDTO getSpecificResourceNotifyPolicy(Long appId,
-                                                    Integer resourceType,
-                                                    String resourceId,
-                                                    Integer triggerType);
+    /**
+     * 任务角色（通知对象）列表
+     */
+    private List<String> roleList;
 
-    List<TriggerPolicyDTO> listAppDefault(String triggerUser, Long appId, String resourceId);
+    /**
+     * 额外通知人列表
+     */
+    private List<String> extraObserverList;
 
-    List<NotifyTriggerPolicyDTO> list(String triggerUser,
-                                      Long appId,
-                                      String resourceId,
-                                      Integer resourceType,
-                                      Integer triggerType,
-                                      Integer executeStatus);
-
-    int countDefaultPolicies();
+    /**
+     * 状态通知渠道列表
+     */
+    private Map<String, List<String>> resourceStatusChannelMap;
 }
