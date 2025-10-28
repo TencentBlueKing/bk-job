@@ -37,9 +37,9 @@ import com.tencent.bk.job.manage.dao.notify.NotifyTriggerPolicyDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyPolicyRoleTargetDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyRoleTargetChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
+import com.tencent.bk.job.manage.model.dto.notify.TriggerPolicyDTO;
 import com.tencent.bk.job.manage.model.tables.NotifyTriggerPolicy;
 import com.tencent.bk.job.manage.model.tables.records.NotifyTriggerPolicyRecord;
-import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import lombok.var;
@@ -171,25 +171,25 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
         if (records.isEmpty()) {
             return null;
         }
-        return extractCustomNotifyDTOFromTriggerPolicyVO(
-            getTriggerPolicyVO(records, TriggerTypeEnum.get(triggerType))
+        return extractCustomNotifyDTOFromTriggerPolicyDTO(
+            getTriggerPolicyDTO(records, TriggerTypeEnum.get(triggerType))
         );
     }
 
-    private CustomNotifyDTO extractCustomNotifyDTOFromTriggerPolicyVO(TriggerPolicyVO triggerPolicyVO) {
-        if (triggerPolicyVO == null) {
+    private CustomNotifyDTO extractCustomNotifyDTOFromTriggerPolicyDTO(TriggerPolicyDTO triggerPolicyDTO) {
+        if (triggerPolicyDTO == null) {
             return null;
         }
         CustomNotifyDTO notifyDTO = new CustomNotifyDTO();
-        notifyDTO.setRoleList(triggerPolicyVO.getRoleList());
-        notifyDTO.setExtraObserverList(triggerPolicyVO.getExtraObserverList());
-        notifyDTO.buildCustomNotifyChannel(triggerPolicyVO.getResourceStatusChannelMap());
+        notifyDTO.setRoleList(triggerPolicyDTO.getRoleList());
+        notifyDTO.setExtraObserverList(triggerPolicyDTO.getExtraObserverList());
+        notifyDTO.buildCustomNotifyChannel(triggerPolicyDTO.getResourceStatusChannelMap());
         return notifyDTO;
     }
 
     @Override
-    public List<TriggerPolicyVO> listAppDefault(String triggerUser, Long appId, String resourceId) {
-        val resultList = new ArrayList<TriggerPolicyVO>();
+    public List<TriggerPolicyDTO> listAppDefault(String triggerUser, Long appId, String resourceId) {
+        val resultList = new ArrayList<TriggerPolicyDTO>();
         var records = dslContext.selectFrom(defaultTable)
             .where(defaultTable.TRIGGER_USER.eq(triggerUser))
             .and(defaultTable.APP_ID.eq(appId))
@@ -217,7 +217,7 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
         }
         val triggerTypes = TriggerTypeEnum.values();
         for (TriggerTypeEnum triggerType : triggerTypes) {
-            resultList.add(getTriggerPolicyVO(records, triggerType));
+            resultList.add(getTriggerPolicyDTO(records, triggerType));
         }
         return resultList;
     }
@@ -282,14 +282,14 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
         return count;
     }
 
-    private TriggerPolicyVO getEmptyTriggerPolicyVO(TriggerTypeEnum triggerType) {
+    private TriggerPolicyDTO getEmptyTriggerPolicyVO(TriggerTypeEnum triggerType) {
         Map<String, List<String>> resourceStatusChannelMap = new HashMap<>();
         resourceStatusChannelMap.put(ExecuteStatusEnum.SUCCESS.name(), new ArrayList<>());
         resourceStatusChannelMap.put(ExecuteStatusEnum.FAIL.name(),
             new ArrayList<>());
         resourceStatusChannelMap.put(ExecuteStatusEnum.READY.name(),
             new ArrayList<>());
-        return new TriggerPolicyVO(
+        return new TriggerPolicyDTO(
             triggerType.name(),
             new ArrayList<>(),
             new ArrayList<>(),
@@ -298,8 +298,8 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
         );
     }
 
-    private TriggerPolicyVO getTriggerPolicyVO(List<NotifyTriggerPolicyRecord> records,
-                                               TriggerTypeEnum triggerType) {
+    private TriggerPolicyDTO getTriggerPolicyDTO(List<NotifyTriggerPolicyRecord> records,
+                                                 TriggerTypeEnum triggerType) {
         List<NotifyTriggerPolicyRecord> currentTriggerTypeRecords = new ArrayList<>();
         //1.过滤出当前触发类型对应的记录
         records.forEach(record -> {
@@ -359,7 +359,7 @@ public class NotifyTriggerPolicyDAOImpl implements NotifyTriggerPolicyDAO {
                 );
             }
         });
-        return new TriggerPolicyVO(
+        return new TriggerPolicyDTO(
             triggerType.name(),
             resourceTypeList,
             appRoleList,
