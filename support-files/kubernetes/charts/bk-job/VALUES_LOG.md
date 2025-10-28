@@ -1,4 +1,21 @@
 # chart values 更新日志
+## 0.8.11
+1. 支持针对任务历史查询配置复杂查询限制
+```yaml
+## job-execute执行引擎配置
+executeConfig:
+  # 任务历史查询配置
+  taskHistoryQuery:
+    # 复杂查询限制，用于阻止大业务下大时间范围的复杂查询导致慢查询影响整个系统
+    complexQueryLimit:
+      # 是否开启，默认开启
+      enabled: true
+      # 允许查询扫描的最大数据量，默认2000万
+      maxQueryDataNum: 20000000
+      # 样本天数，用于估算平均每天任务量，默认7天
+      sampleDays: 7
+```
+
 ## 0.8.9
 1. 支持多集群部署（共享MySQL、MongoDB、Redis、周边系统等基础组件）
 ```yaml
