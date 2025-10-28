@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.esb.v3.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
@@ -86,9 +87,11 @@ public class EsbPlanBasicInfoV3DTO extends EsbAppScopeDTO {
 
     /**
      * 是否需要从作业模版同步
+     * 该字段仅在/get_job_plan_list接口返回，因此为null时不会序列化
      */
     @JsonProperty("need_update")
     @JsonPropertyDescription("Need update")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Boolean needUpdate;
 
 }
