@@ -1209,6 +1209,16 @@ executeConfig:
 #      - scopeType: biz
 #        scopeId: 1
 #        maxTimeout: 259200
+  # 任务历史查询配置
+  taskHistoryQuery:
+    # 复杂查询限制，用于阻止大业务下大时间范围的复杂查询导致慢查询影响整个系统
+    complexQueryLimit:
+      # 是否开启，默认开启
+      enabled: true
+      # 允许查询扫描的最大数据量，默认2000万
+      maxQueryDataNum: 20000000
+      # 样本天数，用于估算平均每天任务量，默认7天
+      sampleDays: 7
 
   mysql:
     # 数据源模式。 standalone: 单 DB; vertical_sharding: 垂直分库; horizontal_sharding: 水平分库
