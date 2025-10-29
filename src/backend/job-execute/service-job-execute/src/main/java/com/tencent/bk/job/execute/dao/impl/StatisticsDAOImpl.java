@@ -145,6 +145,15 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
         return listStatisticsWithConditions(dsl(), conditions);
     }
 
+    /**
+     * 根据参数直接构建等值条件（空值不忽略）
+     *
+     * @param appId          Job业务ID
+     * @param resource       资源
+     * @param dimension      维度
+     * @param dimensionValue 维度取值
+     * @return 条件列表
+     */
     private List<Condition> buildBaseEqConditions(Long appId,
                                                   String resource,
                                                   String dimension,
