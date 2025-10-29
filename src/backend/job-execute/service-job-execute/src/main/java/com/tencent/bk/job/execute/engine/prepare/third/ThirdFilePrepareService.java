@@ -119,7 +119,7 @@ public class ThirdFilePrepareService {
             fileSourceDTO.setServers(new ExecuteTargetDTO());
         }
         List<HostDTO> hostDTOList = new ArrayList<>();
-        HostDTO hostDTO = fileWorkerHostService.parseFileWorkerHostWithCache(
+        HostDTO hostDTO = thirdFileDistributeSourceHostProvisioner.getThirdFileDistributeSourceHost(
             taskInfoDTO.getCloudId(),
             taskInfoDTO.getIpProtocol(),
             taskInfoDTO.getIp()

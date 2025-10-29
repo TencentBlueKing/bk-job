@@ -446,7 +446,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                            List<ThirdFileSourceTaskLogDTO> logDTOList) {
         List<ServiceExecuteObjectLogDTO> serviceExecuteObjectLogDTOList = new ArrayList<>();
         for (ThirdFileSourceTaskLogDTO logDTO : logDTOList) {
-            HostDTO host = fileWorkerHostService.parseFileWorkerHostWithCache(
+            HostDTO host = thirdFileDistributeSourceHostProvisioner.getThirdFileDistributeSourceHost(
                 fileSourceTaskStatusDTO.getCloudId(),
                 fileSourceTaskStatusDTO.getIpProtocol(),
                 fileSourceTaskStatusDTO.getIp()
