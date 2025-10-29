@@ -45,7 +45,7 @@ import javax.validation.constraints.NotNull;
 @EsbV4API
 @RestController
 @Validated
-public interface ApiGwGetJobInstanceStatusV4Resource {
+public interface OpenApiGetJobInstanceStatusV4Resource {
 
     @GetMapping("/get_job_instance_status")
     EsbV4Response<V4JobInstanceStatusResp> getJobInstanceStatus(

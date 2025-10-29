@@ -33,7 +33,6 @@ import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Data
@@ -45,7 +44,7 @@ public class V4ExecuteTargetDTO {
      */
     @JsonProperty("host_list")
     @Valid
-    private List<ApiGwV4HostDTO> hostList;
+    private List<OpenApiV4HostDTO> hostList;
 
     /**
      * 动态分组ID列表

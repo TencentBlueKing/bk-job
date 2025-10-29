@@ -58,7 +58,7 @@ public class V4BatchGetJobInstanceIpLogRequest extends EsbAppScopeReq {
     @JsonProperty("host_id_list")
     @NotNull(message = "{validation.constraints.Host_empty.message}", groups = ValidateGroup.HostIdList.class)
     @Size(
-        min = 1, max = 500,
+        min = 1, max = 100,
         message = "{validation.constraints.InvalidHostListSize.message}",
         groups = ValidateGroup.HostIdList.class
     )
@@ -75,7 +75,7 @@ public class V4BatchGetJobInstanceIpLogRequest extends EsbAppScopeReq {
         groups = ValidateGroup.IpList.class
     )
     @Valid
-    private List<ApiGwV4HostDTO> ipList;
+    private List<OpenApiV4HostDTO> ipList;
 
     public interface ValidateGroup {
         interface HostIdList {

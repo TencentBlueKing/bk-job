@@ -20,8 +20,8 @@
 | bk_scope_id      | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                             |
 | job_instance_id  | long   | 是  | 作业实例ID                                                              |
 | step_instance_id | long   | 是  | 步骤实例ID                                                              |
-| host_id_list     | array  | 否  | 主机ID列表，最多500个。每个元素为long。host_id_list和ip_list同时存在时，优先使用host_id_list  |
-| ip_list          | array  | 否  | 主机IP列表，最多500个。每个元素定义详见ip。host_id_list和ip_list同时存在时，优先使用host_id_list |
+| host_id_list     | array  | 否  | 主机ID列表，最多100个。每个元素为long。host_id_list和ip_list同时存在时，优先使用host_id_list  |
+| ip_list          | array  | 否  | 主机IP列表，最多100个。每个元素定义详见ip。host_id_list和ip_list同时存在时，优先使用host_id_list |
 
 #### ip
 

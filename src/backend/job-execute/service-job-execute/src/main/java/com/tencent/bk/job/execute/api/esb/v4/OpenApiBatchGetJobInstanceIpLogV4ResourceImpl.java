@@ -37,7 +37,7 @@ import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.ScriptExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
-import com.tencent.bk.job.execute.model.esb.v4.req.ApiGwV4HostDTO;
+import com.tencent.bk.job.execute.model.esb.v4.req.OpenApiV4HostDTO;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4BatchGetJobInstanceIpLogRequest;
 import com.tencent.bk.job.execute.model.esb.v4.resp.V4BatchIpLogResp;
 import com.tencent.bk.job.execute.model.esb.v4.resp.V4FileLogDTO;
@@ -59,16 +59,16 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
-public class ApiGwBatchGetJobInstanceIpLogV4ResourceImpl implements ApiGwBatchGetJobInstanceIpLogV4Resource {
+public class OpenApiBatchGetJobInstanceIpLogV4ResourceImpl implements OpenApiBatchGetJobInstanceIpLogV4Resource {
 
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final StepInstanceService stepInstanceService;
     private final LogService logService;
 
     @Autowired
-    public ApiGwBatchGetJobInstanceIpLogV4ResourceImpl(TaskInstanceAccessProcessor taskInstanceAccessProcessor,
-                                                       StepInstanceService stepInstanceService,
-                                                       LogService logService) {
+    public OpenApiBatchGetJobInstanceIpLogV4ResourceImpl(TaskInstanceAccessProcessor taskInstanceAccessProcessor,
+                                                         StepInstanceService stepInstanceService,
+                                                         LogService logService) {
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
         this.stepInstanceService = stepInstanceService;
         this.logService = logService;
@@ -110,7 +110,7 @@ public class ApiGwBatchGetJobInstanceIpLogV4ResourceImpl implements ApiGwBatchGe
                     .collect(Collectors.toList())
             );
         } else {
-            for (ApiGwV4HostDTO host : request.getIpList()) {
+            for (OpenApiV4HostDTO host : request.getIpList()) {
                 hostKeys.add(
                     ExecuteObjectCompositeKeyUtils.fromHostParam(null, host.getBkCloudId(), host.getIp())
                 );
@@ -177,10 +177,10 @@ public class ApiGwBatchGetJobInstanceIpLogV4ResourceImpl implements ApiGwBatchGe
     private V4FileLogDTO fromFileAtomicTaskLog(AtomicFileTaskLog fileTaskLog) {
         V4FileLogDTO v4FileLogDTO = new V4FileLogDTO();
         if (fileTaskLog.getSrcExecuteObject() != null) {
-            v4FileLogDTO.setSrcHost(new ApiGwV4HostDTO(fileTaskLog.getSrcExecuteObject().getHost()));
+            v4FileLogDTO.setSrcHost(new OpenApiV4HostDTO(fileTaskLog.getSrcExecuteObject().getHost()));
         }
         if (fileTaskLog.getDestExecuteObject() != null) {
-            v4FileLogDTO.setDestHost(new ApiGwV4HostDTO(fileTaskLog.getDestExecuteObject().getHost()));
+            v4FileLogDTO.setDestHost(new OpenApiV4HostDTO(fileTaskLog.getDestExecuteObject().getHost()));
         }
 
         v4FileLogDTO.setMode(fileTaskLog.getMode());

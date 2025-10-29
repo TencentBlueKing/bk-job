@@ -27,8 +27,8 @@ package com.tencent.bk.job.execute.api.esb.v4;
 import com.tencent.bk.job.common.annotation.EsbV4API;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
-import com.tencent.bk.job.execute.model.esb.v4.req.V4BatchGetJobInstanceIpLogRequest;
-import com.tencent.bk.job.execute.model.esb.v4.resp.V4BatchIpLogResp;
+import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
+import com.tencent.bk.job.execute.model.esb.v4.resp.V4JobExecuteDTO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,16 +40,14 @@ import org.springframework.web.bind.annotation.RestController;
 @EsbV4API
 @RestController
 @Validated
-public interface ApiGwBatchGetJobInstanceIpLogV4Resource {
+public interface OpenApiFastExecuteScriptV4Resource {
 
-    @PostMapping("/batch_get_job_instance_ip_log")
-    EsbV4Response<V4BatchIpLogResp> batchGetJobInstanceIpLog(
+    @PostMapping("/fast_execute_script")
+    EsbV4Response<V4JobExecuteDTO> fastExecuteScript(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
         @Validated
-            V4BatchGetJobInstanceIpLogRequest request
+            V4FastExecuteScriptRequest request
     );
-
-
 }

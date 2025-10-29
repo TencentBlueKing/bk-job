@@ -55,12 +55,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Slf4j
-public class ApiGwFastExecuteScriptV4ResourceImpl implements ApiGwFastExecuteScriptV4Resource {
+public class OpenApiFastExecuteScriptV4ResourceImpl implements OpenApiFastExecuteScriptV4Resource {
 
     private final TaskExecuteService taskExecuteService;
 
     @Autowired
-    public ApiGwFastExecuteScriptV4ResourceImpl(TaskExecuteService taskExecuteService) {
+    public OpenApiFastExecuteScriptV4ResourceImpl(TaskExecuteService taskExecuteService) {
         this.taskExecuteService = taskExecuteService;
     }
 

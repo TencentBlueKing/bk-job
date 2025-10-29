@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
-public class ApiGwGetJobInstanceStatusV4ResourceImpl implements ApiGwGetJobInstanceStatusV4Resource {
+public class OpenApiGetJobInstanceStatusV4ResourceImpl implements OpenApiGetJobInstanceStatusV4Resource {
 
     private final TaskInstanceService taskInstanceService;
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
@@ -61,11 +61,11 @@ public class ApiGwGetJobInstanceStatusV4ResourceImpl implements ApiGwGetJobInsta
     private final StepInstanceService stepInstanceService;
     private final AppScopeMappingService appScopeMappingService;
 
-    public ApiGwGetJobInstanceStatusV4ResourceImpl(TaskInstanceService taskInstanceService,
-                                                   ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
-                                                   FileExecuteObjectTaskService fileExecuteObjectTaskService,
-                                                   StepInstanceService stepInstanceService,
-                                                   AppScopeMappingService appScopeMappingService) {
+    public OpenApiGetJobInstanceStatusV4ResourceImpl(TaskInstanceService taskInstanceService,
+                                                     ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
+                                                     FileExecuteObjectTaskService fileExecuteObjectTaskService,
+                                                     StepInstanceService stepInstanceService,
+                                                     AppScopeMappingService appScopeMappingService) {
         this.taskInstanceService = taskInstanceService;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;

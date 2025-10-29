@@ -12,8 +12,8 @@ Batch query execution logs of a job step on multiple hosts by Job Instance ID
 | bk_scope_id      | string | Yes      | Resource scope ID. Corresponds to bk_scope_type. Indicates Biz ID or Biz Set ID                                       |
 | job_instance_id  | long   | Yes      | Job instance ID                                                                                                       |
 | step_instance_id | long   | Yes      | Step instance ID                                                                                                      |
-| host_id_list     | array  | No       | Host id list. maximum 500. Array element is long. When host_id_list and ip_list are both given, use host_id_list      |
-| ip_list          | array  | No       | IP list. maximum 500. Array element definition see ip. When host_id_list and ip_list are both given, use host_id_list |
+| host_id_list     | array  | No       | Host id list. maximum 100. Array element is long. When host_id_list and ip_list are both given, use host_id_list      |
+| ip_list          | array  | No       | IP list. maximum 100. Array element definition see ip. When host_id_list and ip_list are both given, use host_id_list |
 
 #### ip
 

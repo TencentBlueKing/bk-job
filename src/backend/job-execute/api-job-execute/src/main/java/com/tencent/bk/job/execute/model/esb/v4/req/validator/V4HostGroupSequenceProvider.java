@@ -25,18 +25,18 @@
 package com.tencent.bk.job.execute.model.esb.v4.req.validator;
 
 import com.tencent.bk.job.common.validation.ValidationGroups;
-import com.tencent.bk.job.execute.model.esb.v4.req.ApiGwV4HostDTO;
+import com.tencent.bk.job.execute.model.esb.v4.req.OpenApiV4HostDTO;
 import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class V4HostGroupSequenceProvider implements DefaultGroupSequenceProvider<ApiGwV4HostDTO> {
+public class V4HostGroupSequenceProvider implements DefaultGroupSequenceProvider<OpenApiV4HostDTO> {
 
     @Override
-    public List<Class<?>> getValidationGroups(ApiGwV4HostDTO hostDTO) {
+    public List<Class<?>> getValidationGroups(OpenApiV4HostDTO hostDTO) {
         List<Class<?>> groups = new ArrayList<>();
-        groups.add(ApiGwV4HostDTO.class);
+        groups.add(OpenApiV4HostDTO.class);
         if (hostDTO != null) {
             // 优先级：bk_host_id > (bk_cloud_id + ip)
             if (hostDTO.getBkHostId() != null) {

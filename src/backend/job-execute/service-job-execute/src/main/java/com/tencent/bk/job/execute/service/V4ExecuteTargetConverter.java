@@ -28,10 +28,9 @@ import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
-import com.tencent.bk.job.execute.model.esb.v4.req.ApiGwV4HostDTO;
+import com.tencent.bk.job.execute.model.esb.v4.req.OpenApiV4HostDTO;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4ExecuteTargetDTO;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +47,7 @@ public class V4ExecuteTargetConverter {
         // 主机列表
         if (CollectionUtils.isNotEmpty(v4ExecuteTargetDTO.getHostList())) {
             List<HostDTO> staticHostList = new ArrayList<>();
-            for (ApiGwV4HostDTO host : v4ExecuteTargetDTO.getHostList()) {
+            for (OpenApiV4HostDTO host : v4ExecuteTargetDTO.getHostList()) {
                 // 优先使用hostId
                 if (host.getBkHostId() != null) {
                     staticHostList.add(HostDTO.fromHostId(host.getBkHostId()));

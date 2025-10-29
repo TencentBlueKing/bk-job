@@ -42,7 +42,7 @@ import javax.validation.constraints.Pattern;
 @Getter
 @Setter
 @GroupSequenceProvider(V4HostGroupSequenceProvider.class)
-public class ApiGwV4HostDTO {
+public class OpenApiV4HostDTO {
 
     @JsonProperty("bk_cloud_id")
     @NotNull(
@@ -71,7 +71,7 @@ public class ApiGwV4HostDTO {
     )
     private Long bkHostId;
 
-    public ApiGwV4HostDTO(HostDTO hostDTO) {
+    public OpenApiV4HostDTO(HostDTO hostDTO) {
         this.bkHostId = hostDTO.getHostId();
         this.bkCloudId = hostDTO.getBkCloudId();
         this.ip = hostDTO.getIp();
