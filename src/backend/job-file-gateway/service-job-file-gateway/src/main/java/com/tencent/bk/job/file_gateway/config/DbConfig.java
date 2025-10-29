@@ -24,14 +24,12 @@
 
 package com.tencent.bk.job.file_gateway.config;
 
+import com.tencent.bk.job.common.mysql.listener.ConnectionLoggingListener;
 import com.tencent.bk.job.common.mysql.util.JooqConfigurationUtil;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
-import org.jooq.SQLDialect;
 import org.jooq.conf.Settings;
 import org.jooq.impl.DataSourceConnectionProvider;
-import org.jooq.impl.DefaultConfiguration;
-import org.jooq.impl.DefaultDSLContext;
 import org.jooq.impl.DefaultExecuteListenerProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -86,7 +84,11 @@ public class DbConfig {
         @Qualifier("job-file-gateway-conn-provider") ConnectionProvider connectionProvider,
         DefaultExecuteListenerProvider jooqExecuteListenerProvider
     ) {
-        return JooqConfigurationUtil.getConfiguration(connectionProvider, jooqExecuteListenerProvider);
+        return JooqConfigurationUtil.getConfiguration(
+            connectionProvider,
+            jooqExecuteListenerProvider,
+            new DefaultExecuteListenerProvider(new ConnectionLoggingListener())
+        );
     }
 
     @Qualifier("job-file-gateway-conn-provider")

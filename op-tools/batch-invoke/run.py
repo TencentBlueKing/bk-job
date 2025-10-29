@@ -83,7 +83,7 @@ def main():
         if plan == "exit":
             break
         elif os.path.exists(plan):
-            initial_cmd = "./" + plan
+            initial_cmd = "bash ./" + plan
         else:
             print("输入的脚本不存在，请重新输入")
             continue

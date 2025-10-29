@@ -26,7 +26,7 @@ apply plugin: 'nu.studer.jooq'
 dependencies {
     api "org.jooq:jooq"
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api'
-    jooqGenerator 'mysql:mysql-connector-java'
+    jooqGenerator 'com.mysql:mysql-connector-j'
 }
 
 def nameArr = name.split('-')

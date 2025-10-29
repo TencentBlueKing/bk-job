@@ -400,7 +400,7 @@ subprojects {
             dependency "com.squareup.okhttp3:okhttp:$okHttpVersion"
             dependency "com.rabbitmq:amqp-client:$amqpClientVersion"
             dependency "org.eclipse.jgit:org.eclipse.jgit:$jgitVersion"
-            dependency "mysql:mysql-connector-java:$mysqlConnectorVersion"
+            dependency "com.mysql:mysql-connector-j:$mysqlConnectorVersion"
         }
     }
     dependencies {

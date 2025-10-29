@@ -74,7 +74,7 @@ public abstract class AbstractStepEventHandler implements StepEventHandler {
     protected void finishStep(StepInstanceDTO stepInstance, RunStatusEnum status) {
         long endTime = System.currentTimeMillis();
         if (!RunStatusEnum.isFinishedStatus(stepInstance.getStatus())) {
-            long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
+            Long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());
             stepInstanceService.updateStepExecutionInfo(
                 stepInstance.getTaskInstanceId(),
