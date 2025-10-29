@@ -28,7 +28,7 @@ public class AverageTaskNumQueryService {
     }
 
     /**
-     * 计算过去7天内指定业务的平均每天任务执行量
+     * 计算过去一定时间范围内指定业务的平均每天任务执行量
      *
      * @param appId      业务ID
      * @param sampleDays 用于估算每日任务量的样本天数

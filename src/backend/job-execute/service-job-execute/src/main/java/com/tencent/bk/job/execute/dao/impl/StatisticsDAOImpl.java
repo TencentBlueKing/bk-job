@@ -139,16 +139,22 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
                                                             String dimensionValue,
                                                             String startDate,
                                                             String endDate) {
-        val records = dsl().select(ALL_FIELDS)
-            .from(defaultTable)
-            .where(defaultTable.APP_ID.eq(appId))
-            .and(defaultTable.RESOURCE.eq(resource))
-            .and(defaultTable.DIMENSION.eq(dimension))
-            .and(defaultTable.DIMENSION_VALUE.eq(dimensionValue))
-            .and(defaultTable.DATE.greaterOrEqual(startDate))
-            .and(defaultTable.DATE.lessOrEqual(endDate))
-            .fetch();
-        return records.map(this::convert);
+        List<Condition> conditions = buildBaseEqConditions(appId, resource, dimension, dimensionValue);
+        conditions.add(defaultTable.DATE.greaterOrEqual(startDate));
+        conditions.add(defaultTable.DATE.lessOrEqual(endDate));
+        return listStatisticsWithConditions(dsl(), conditions);
+    }
+
+    private List<Condition> buildBaseEqConditions(Long appId,
+                                                  String resource,
+                                                  String dimension,
+                                                  String dimensionValue) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.APP_ID.eq(appId));
+        conditions.add(defaultTable.RESOURCE.eq(resource));
+        conditions.add(defaultTable.DIMENSION.eq(dimension));
+        conditions.add(defaultTable.DIMENSION_VALUE.eq(dimensionValue));
+        return conditions;
     }
 
     @Override
@@ -225,11 +231,7 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
         AtomicInteger affectedRows = new AtomicInteger(0);
         dsl().transaction(configuration -> {
             DSLContext context = DSL.using(configuration);
-            List<Condition> conditions = new ArrayList<>();
-            conditions.add(defaultTable.APP_ID.eq(appId));
-            conditions.add(defaultTable.RESOURCE.eq(resource));
-            conditions.add(defaultTable.DIMENSION.eq(dimension));
-            conditions.add(defaultTable.DIMENSION_VALUE.eq(dimensionValue));
+            List<Condition> conditions = buildBaseEqConditions(appId, resource, dimension, dimensionValue);
             conditions.add(defaultTable.DATE.eq(date));
             try {
                 Long oldValue = 0L;

@@ -38,7 +38,7 @@ public interface StatisticsDAO {
     StatisticsDTO getStatistics(Long appId, String resource, String dimension, String dimensionValue, String date);
 
     /**
-     * 获取一段时间范围内
+     * 根据条件获取一段时间范围内的统计数据
      *
      * @param appId          Job业务ID
      * @param resource       资源
