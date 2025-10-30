@@ -79,8 +79,8 @@ public class ScriptRelateJobTemplateDAOImpl implements ScriptRelateJobTemplateDA
             .fetch();
 
         List<ScriptSyncTemplateStepDTO> templateSteps = new ArrayList<>();
-        result.into(record -> {
-            ScriptSyncTemplateStepDTO templateStep = extract(record);
+        result.forEach(record -> {
+            ScriptSyncTemplateStepDTO templateStep = extract((Record) record);
             if (templateStep != null) {
                 templateSteps.add(templateStep);
             }

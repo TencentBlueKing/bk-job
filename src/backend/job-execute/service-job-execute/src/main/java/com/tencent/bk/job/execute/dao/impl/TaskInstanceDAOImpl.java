@@ -618,7 +618,7 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
             .limit(offset, limit)
             .fetch();
         List<Long> taskInstanceIdList = new ArrayList<>();
-        result.into(record -> {
+        result.forEach(record -> {
             taskInstanceIdList.add(record.get(TASK_INSTANCE.ID));
         });
         return taskInstanceIdList;

@@ -59,7 +59,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
 
     private static final Statistics defaultTable = Statistics.STATISTICS;
-
     private static final TableField<?, ?>[] ALL_FIELDS = {
         defaultTable.ID,
         defaultTable.APP_ID,
@@ -117,8 +116,7 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
     @MySQLOperation(table = "statistics", op = DbOperationEnum.READ)
     public StatisticsDTO getStatistics(Long appId, String resource, String dimension, String dimensionValue,
                                        String date) {
-        val record = dsl()
-            .select(ALL_FIELDS)
+        val record = dsl().select(ALL_FIELDS)
             .from(defaultTable)
             .where(defaultTable.APP_ID.eq(appId))
             .and(defaultTable.RESOURCE.eq(resource))
@@ -131,6 +129,41 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
         } else {
             return convert(record);
         }
+    }
+
+    @Override
+    @MySQLOperation(table = "statistics", op = DbOperationEnum.READ)
+    public List<StatisticsDTO> getStatisticsListBetweenDate(Long appId,
+                                                            String resource,
+                                                            String dimension,
+                                                            String dimensionValue,
+                                                            String startDate,
+                                                            String endDate) {
+        List<Condition> conditions = buildBaseEqConditions(appId, resource, dimension, dimensionValue);
+        conditions.add(defaultTable.DATE.greaterOrEqual(startDate));
+        conditions.add(defaultTable.DATE.lessOrEqual(endDate));
+        return listStatisticsWithConditions(dsl(), conditions);
+    }
+
+    /**
+     * 根据参数直接构建等值条件（空值不忽略）
+     *
+     * @param appId          Job业务ID
+     * @param resource       资源
+     * @param dimension      维度
+     * @param dimensionValue 维度取值
+     * @return 条件列表
+     */
+    private List<Condition> buildBaseEqConditions(Long appId,
+                                                  String resource,
+                                                  String dimension,
+                                                  String dimensionValue) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.APP_ID.eq(appId));
+        conditions.add(defaultTable.RESOURCE.eq(resource));
+        conditions.add(defaultTable.DIMENSION.eq(dimension));
+        conditions.add(defaultTable.DIMENSION_VALUE.eq(dimensionValue));
+        return conditions;
     }
 
     @Override
@@ -166,8 +199,7 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
     }
 
     private List<StatisticsDTO> listStatisticsWithConditions(DSLContext dslContext, Collection<Condition> conditions) {
-        var query = dslContext
-            .select(ALL_FIELDS)
+        var query = dslContext.select(ALL_FIELDS)
             .from(defaultTable)
             .where(conditions);
         Result<Record> records;
@@ -210,11 +242,7 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
         AtomicInteger affectedRows = new AtomicInteger(0);
         dsl().transaction(configuration -> {
             DSLContext context = DSL.using(configuration);
-            List<Condition> conditions = new ArrayList<>();
-            conditions.add(defaultTable.APP_ID.eq(appId));
-            conditions.add(defaultTable.RESOURCE.eq(resource));
-            conditions.add(defaultTable.DIMENSION.eq(dimension));
-            conditions.add(defaultTable.DIMENSION_VALUE.eq(dimensionValue));
+            List<Condition> conditions = buildBaseEqConditions(appId, resource, dimension, dimensionValue);
             conditions.add(defaultTable.DATE.eq(date));
             try {
                 Long oldValue = 0L;

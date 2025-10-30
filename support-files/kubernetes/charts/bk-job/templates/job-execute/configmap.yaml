@@ -239,17 +239,21 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
-        {{- if .Values.executeConfig.result.pollingStrategy }}
         result:
+          handle:
+            {{- toYaml .Values.executeConfig.result.handle | nindent 12 }}
+          {{- if .Values.executeConfig.result.pollingStrategy }}
           polling-strategy:
             {{- toYaml .Values.executeConfig.result.pollingStrategy | nindent 12 }}
-        {{- end }}
+          {{- end }}
         iam:
           {{- toYaml .Values.executeConfig.iam | nindent 10 }}
         openapi:
           {{- toYaml .Values.executeConfig.openapi | nindent 10 }}
         taskTimeout:
           {{- toYaml .Values.executeConfig.taskTimeout | nindent 10}}
+        taskHistoryQuery:
+          {{- toYaml .Values.executeConfig.taskHistoryQuery | nindent 10}}
     mysql:
       {{- toYaml .Values.executeConfig.mysql | nindent 6 }}
     idGen:

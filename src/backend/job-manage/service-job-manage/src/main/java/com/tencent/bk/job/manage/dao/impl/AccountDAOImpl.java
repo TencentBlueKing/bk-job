@@ -560,7 +560,7 @@ public class AccountDAOImpl implements AccountDAO {
         }
         List<AccountDTO> accountDTOS = new ArrayList<>();
         if (result.size() != 0) {
-            result.into(record -> accountDTOS.add(extract(record)));
+            result.forEach(record -> accountDTOS.add(extract(record)));
         }
         return accountDTOS;
     }

@@ -272,7 +272,7 @@ build_startup_controller_image(){
     TOOL_NAME="k8s-startup-controller"
     $BACKEND_DIR/gradlew -p $BACKEND_DIR/job-tools clean :job-tools:$TOOL_NAME:build -DmavenRepoUrl=$MAVEN_REPO_URL -DbkjobVersion=$VERSION
     rm -rf tmp/startup_controller/*
-    cp $BACKEND_DIR/release/$TOOL_NAME-$VERSION.jar tmp/startup_controller/$TOOL_NAME.jar
+    cp $BACKEND_DIR/release/$TOOL_NAME-$VERSION-all.jar tmp/startup_controller/$TOOL_NAME.jar
     cp startup-controller/startup.sh tmp/startup_controller/
     docker build -f startup-controller/startupController.Dockerfile -t $REGISTRY/job-tools-$TOOL_NAME:$VERSION tmp/startup_controller --network=host
     if [[ $PUSH -eq 1 ]] ; then

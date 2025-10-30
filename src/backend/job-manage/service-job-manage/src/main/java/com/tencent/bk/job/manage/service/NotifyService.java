@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
+import com.tencent.bk.job.manage.model.dto.notify.TriggerPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceSpecificResourceNotifyPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
@@ -38,7 +39,6 @@ import com.tencent.bk.job.manage.model.web.vo.notify.ExecuteStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.PageTemplateVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ResourceTypeVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.RoleVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerTypeVO;
 
 import java.util.List;
@@ -50,7 +50,7 @@ import java.util.Set;
  */
 public interface NotifyService {
 
-    List<TriggerPolicyVO> listAppDefaultNotifyPolicies(String username, Long appId);
+    List<TriggerPolicyDTO> listAppDefaultNotifyPolicies(String username, Long appId);
 
     CustomNotifyDTO getSpecificResourceNotifyPolicy(Long appId,
                                                     Integer resourceType,
@@ -97,6 +97,12 @@ public interface NotifyService {
      * 获取所有的通知渠道
      */
     List<NotifyEsbChannelDTO> listAllNotifyChannel(String tenantId);
+
+    /**
+     * 获取当前平台启用的消息通知渠道
+     * @return 已启用的消息通知渠道列表
+     */
+    List<String> getAvailableChannelTypeList(String tenantId);
 
     List<NotifyChannelVO> listAvailableNotifyChannel(String username);
 

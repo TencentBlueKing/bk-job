@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.web.WebNotifyResource;
 import com.tencent.bk.job.manage.auth.NotificationAuthService;
+import com.tencent.bk.job.manage.model.dto.notify.TriggerPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.notify.PageTemplateVO;
@@ -47,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.common.constant.ErrorCode.PERMISSION_DENIED;
 
@@ -75,8 +77,22 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
                                                                         AppResourceScope appResourceScope,
                                                                         String scopeType,
                                                                         String scopeId) {
-        return Response.buildSuccessResp(notifyService.listAppDefaultNotifyPolicies(username,
-            appResourceScope.getAppId()));
+        List<TriggerPolicyDTO> triggerPolicyDTOList = notifyService.listAppDefaultNotifyPolicies(
+            username, appResourceScope.getAppId());
+        List<TriggerPolicyVO> resultList = triggerPolicyDTOList.stream()
+            .map(this::convertToTriggerPolicyVO)
+            .collect(Collectors.toList());
+        return Response.buildSuccessResp(resultList);
+    }
+
+    private TriggerPolicyVO convertToTriggerPolicyVO(TriggerPolicyDTO triggerPolicyDTO) {
+        TriggerPolicyVO triggerPolicyVO = new TriggerPolicyVO();
+        triggerPolicyVO.setTriggerType(triggerPolicyDTO.getTriggerType());
+        triggerPolicyVO.setResourceTypeList(triggerPolicyDTO.getResourceTypeList());
+        triggerPolicyVO.setRoleList(triggerPolicyDTO.getRoleList());
+        triggerPolicyVO.setExtraObserverList(triggerPolicyDTO.getExtraObserverList());
+        triggerPolicyVO.setResourceStatusChannelMap(triggerPolicyDTO.getResourceStatusChannelMap());
+        return triggerPolicyVO;
     }
 
     @Override

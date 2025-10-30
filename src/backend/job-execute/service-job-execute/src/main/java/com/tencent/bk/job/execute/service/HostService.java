@@ -119,4 +119,13 @@ public interface HostService {
         long appId,
         Collection<DynamicServerTopoNodeDTO> topoNodes
     );
+
+    /**
+     * 在给定的主机列表中提取出不存在的主机
+     *
+     * @param hosts 主机列表
+     * @return 不存在的主机列表
+     */
+    List<HostDTO> extractNotExistHosts(Long appId,
+                                       List<HostDTO> hosts);
 }
