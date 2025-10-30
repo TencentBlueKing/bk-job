@@ -32,17 +32,18 @@ import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.AtomicFileTaskLog;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.ScriptExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.esb.v4.req.OpenApiV4HostDTO;
-import com.tencent.bk.job.execute.model.esb.v4.req.V4BatchGetJobInstanceIpLogRequest;
-import com.tencent.bk.job.execute.model.esb.v4.resp.V4BatchIpLogResp;
+import com.tencent.bk.job.execute.model.esb.v4.req.V4BatchGetJobInstanceExecuteObjectLogRequest;
+import com.tencent.bk.job.execute.model.esb.v4.resp.V4BatchExecuteObjectLogResp;
 import com.tencent.bk.job.execute.model.esb.v4.resp.V4FileLogDTO;
-import com.tencent.bk.job.execute.model.esb.v4.resp.V4FileStepIpLogDTO;
-import com.tencent.bk.job.execute.model.esb.v4.resp.V4ScriptStepIpLogDTO;
+import com.tencent.bk.job.execute.model.esb.v4.resp.V4FileStepExecuteObjectLogDTO;
+import com.tencent.bk.job.execute.model.esb.v4.resp.V4ScriptStepExecuteObjectLogDTO;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
@@ -59,16 +60,19 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
-public class OpenApiBatchGetJobInstanceIpLogV4ResourceImpl implements OpenApiBatchGetJobInstanceIpLogV4Resource {
+public class OpenApiBatchGetJobInstanceExecuteObjectLogV4ResourceImpl
+    implements OpenApiBatchGetJobInstanceExecuteObjectLogV4Resource {
 
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final StepInstanceService stepInstanceService;
     private final LogService logService;
 
     @Autowired
-    public OpenApiBatchGetJobInstanceIpLogV4ResourceImpl(TaskInstanceAccessProcessor taskInstanceAccessProcessor,
-                                                         StepInstanceService stepInstanceService,
-                                                         LogService logService) {
+    public OpenApiBatchGetJobInstanceExecuteObjectLogV4ResourceImpl(
+        TaskInstanceAccessProcessor taskInstanceAccessProcessor,
+        StepInstanceService stepInstanceService,
+        LogService logService
+    ) {
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
         this.stepInstanceService = stepInstanceService;
         this.logService = logService;
@@ -76,11 +80,16 @@ public class OpenApiBatchGetJobInstanceIpLogV4ResourceImpl implements OpenApiBat
 
     @Override
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
-    @EsbApiTimed(value = CommonMetricNames.ESB_API, extraTags = {"api_name", "v4_batch_get_job_instance_ip_log"})
-    public EsbV4Response<V4BatchIpLogResp> batchGetJobInstanceIpLog(String username,
-                                                                    String appCode,
-                                                                    @AuditRequestBody
-                                                                        V4BatchGetJobInstanceIpLogRequest request) {
+    @EsbApiTimed(
+        value = CommonMetricNames.ESB_API,
+        extraTags = {"api_name", "v4_batch_get_job_instance_execute_object_log"}
+    )
+    public EsbV4Response<V4BatchExecuteObjectLogResp> batchGetJobInstanceExecuteObjectLog(
+        String username,
+        String appCode,
+        @AuditRequestBody
+        V4BatchGetJobInstanceExecuteObjectLogRequest request
+    ) {
         long jobInstanceId = request.getJobInstanceId();
         // 触发【查看执行历史】审计
         taskInstanceAccessProcessor.processBeforeAccess(
@@ -97,40 +106,50 @@ public class OpenApiBatchGetJobInstanceIpLogV4ResourceImpl implements OpenApiBat
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
 
-        V4BatchIpLogResp resp = new V4BatchIpLogResp();
+        V4BatchExecuteObjectLogResp resp = new V4BatchExecuteObjectLogResp();
         resp.setJobInstanceId(request.getJobInstanceId());
         resp.setStepInstanceId(request.getStepInstanceId());
-        List<ExecuteObjectCompositeKey> hostKeys = new ArrayList<>();
+        List<ExecuteObjectCompositeKey> executeObjectKeys = new ArrayList<>();
+
         // 优先使用hostIdList
         if (CollectionUtils.isNotEmpty(request.getHostIdList())) {
-            hostKeys.addAll(
+            executeObjectKeys.addAll(
                 request.getHostIdList().stream()
                     .filter(Objects::nonNull)
                     .map(ExecuteObjectCompositeKey::ofHostId)
                     .collect(Collectors.toList())
             );
-        } else {
+        } else if (CollectionUtils.isNotEmpty(request.getIpList())) {
+            // 使用ipList
             for (OpenApiV4HostDTO host : request.getIpList()) {
-                hostKeys.add(
+                executeObjectKeys.add(
                     ExecuteObjectCompositeKeyUtils.fromHostParam(null, host.getBkCloudId(), host.getIp())
                 );
             }
+        } else if (CollectionUtils.isNotEmpty(request.getContainerIdList())) {
+            executeObjectKeys.addAll(
+                request.getContainerIdList().stream()
+                    .filter(Objects::nonNull)
+                    .map(ExecuteObjectCompositeKey::ofContainerId)
+                    .collect(Collectors.toList())
+            );
         }
+
         if (stepInstance.isScriptStep()) {
             resp.setLogType(LogTypeEnum.SCRIPT.getValue());
-            List<V4ScriptStepIpLogDTO> logs = queryScriptLogs(stepInstance, hostKeys);
-            resp.setScriptStepIpLogs(logs);
+            List<V4ScriptStepExecuteObjectLogDTO> logs = queryScriptLogs(stepInstance, executeObjectKeys);
+            resp.setScriptStepExecuteObjectLogs(logs);
         } else if (stepInstance.isFileStep()) {
             resp.setLogType(LogTypeEnum.FILE.getValue());
-            List<V4FileStepIpLogDTO> logs = queryFileLogs(stepInstance, hostKeys);
-            resp.setFileStepIpLogs(logs);
+            List<V4FileStepExecuteObjectLogDTO> logs = queryFileLogs(stepInstance, executeObjectKeys);
+            resp.setFileStepExecuteObjectLogs(logs);
         }
 
         return EsbV4Response.success(resp);
     }
 
-    private List<V4ScriptStepIpLogDTO> queryScriptLogs(StepInstanceBaseDTO stepInstance,
-                                                       List<ExecuteObjectCompositeKey> hostKeys) {
+    private List<V4ScriptStepExecuteObjectLogDTO> queryScriptLogs(StepInstanceBaseDTO stepInstance,
+                                                                  List<ExecuteObjectCompositeKey> hostKeys) {
         List<ScriptExecuteObjectLogContent> scriptLogContents = logService.batchGetScriptExecuteObjectLogContent(
             LogFieldUtil.buildJobCreateDate(stepInstance.getCreateTime()),
             stepInstance,
@@ -138,42 +157,78 @@ public class OpenApiBatchGetJobInstanceIpLogV4ResourceImpl implements OpenApiBat
             null,
             hostKeys
         );
-        return scriptLogContents.stream().map(this::convertToScriptIpLogDTO).collect(Collectors.toList());
+        return scriptLogContents.stream().map(this::convertToScriptExecuteObjLogDTO).collect(Collectors.toList());
     }
 
-    private List<V4FileStepIpLogDTO> queryFileLogs(StepInstanceBaseDTO stepInstance,
-                                                   List<ExecuteObjectCompositeKey> hostKeys) {
+    private List<V4FileStepExecuteObjectLogDTO> queryFileLogs(StepInstanceBaseDTO stepInstance,
+                                                              List<ExecuteObjectCompositeKey> executeObjKeys) {
         List<FileExecuteObjectLogContent> fileLogContents = logService.batchGetFileExecuteObjectLogContent(
             stepInstance.getTaskInstanceId(),
             stepInstance.getId(),
             stepInstance.getExecuteCount(),
             null,
             null,
-            hostKeys
+            executeObjKeys
         );
-        return fileLogContents.stream().map(this::convertToFileIpLogDTO).collect(Collectors.toList());
+        return fileLogContents.stream().map(this::convertToFileExecuteObjLogDTO).collect(Collectors.toList());
     }
 
-    private V4ScriptStepIpLogDTO convertToScriptIpLogDTO(ScriptExecuteObjectLogContent scriptLogContent) {
-        V4ScriptStepIpLogDTO v4ScriptStepIpLogDTO = new V4ScriptStepIpLogDTO();
-        v4ScriptStepIpLogDTO.setBkHostId(scriptLogContent.getExecuteObject().getHost().getHostId());
-        v4ScriptStepIpLogDTO.setBkCloudId(scriptLogContent.getExecuteObject().getHost().getBkCloudId());
-        v4ScriptStepIpLogDTO.setIp(scriptLogContent.getExecuteObject().getHost().getIp());
-        v4ScriptStepIpLogDTO.setLogContent(scriptLogContent.getContent());
-        return v4ScriptStepIpLogDTO;
+    private V4ScriptStepExecuteObjectLogDTO convertToScriptExecuteObjLogDTO(
+        ScriptExecuteObjectLogContent scriptLogContent
+    ) {
+        V4ScriptStepExecuteObjectLogDTO v4ScriptStepExecuteObjectLogDTO = new V4ScriptStepExecuteObjectLogDTO();
+        v4ScriptStepExecuteObjectLogDTO.setExecuteObject(
+            scriptLogContent.getExecuteObject().toOpenApiExecuteObjectDTO());
+        v4ScriptStepExecuteObjectLogDTO.setLogContent(scriptLogContent.getContent());
+        return v4ScriptStepExecuteObjectLogDTO;
     }
 
-    private V4FileStepIpLogDTO convertToFileIpLogDTO(FileExecuteObjectLogContent fileLogContent) {
-        V4FileStepIpLogDTO v4FileStepIpLogDTO = new V4FileStepIpLogDTO();
-        v4FileStepIpLogDTO.setBkHostId(fileLogContent.getExecuteObject().getHost().getHostId());
-        v4FileStepIpLogDTO.setBkCloudId(fileLogContent.getExecuteObject().getHost().getBkCloudId());
-        v4FileStepIpLogDTO.setIp(fileLogContent.getExecuteObject().getHost().getIp());
-        v4FileStepIpLogDTO.setFileLogs(fileLogContent.getFileTaskLogs().stream()
-            .map(this::fromFileAtomicTaskLog)
-            .collect(Collectors.toList()));
-        return v4FileStepIpLogDTO;
+    private V4FileStepExecuteObjectLogDTO convertToFileExecuteObjLogDTO(FileExecuteObjectLogContent fileLogContent) {
+        V4FileStepExecuteObjectLogDTO v4FileStepExecuteObjectLogDTO = new V4FileStepExecuteObjectLogDTO();
+        v4FileStepExecuteObjectLogDTO.setExecuteObject(fileLogContent.getExecuteObject().toOpenApiExecuteObjectDTO());
+        
+        ExecuteObject currentExecuteObject = fileLogContent.getExecuteObject();
+        List<AtomicFileTaskLog> fileTaskLogs = fileLogContent.getFileTaskLogs();
+        
+        // 区分上传日志和下载日志
+        List<V4FileLogDTO> uploadLogs = new ArrayList<>();
+        List<V4FileLogDTO> downloadLogs = new ArrayList<>();
+        
+        for (AtomicFileTaskLog fileTaskLog : fileTaskLogs) {
+            V4FileLogDTO v4FileLogDTO = fromFileAtomicTaskLog(fileTaskLog);
+            
+            // 判断当前执行对象是源还是目标
+            boolean isSource = isExecuteObjectMatch(currentExecuteObject, fileTaskLog.getSrcExecuteObject());
+            boolean isDestination = isExecuteObjectMatch(currentExecuteObject, fileTaskLog.getDestExecuteObject());
+            
+            if (isSource) {
+                uploadLogs.add(v4FileLogDTO);
+            }
+            if (isDestination) {
+                downloadLogs.add(v4FileLogDTO);
+            }
+        }
+
+        if (!uploadLogs.isEmpty()) {
+            v4FileStepExecuteObjectLogDTO.setUploadLogList(uploadLogs);
+        }
+        if (!downloadLogs.isEmpty()) {
+            v4FileStepExecuteObjectLogDTO.setDownloadLogList(downloadLogs);
+        }
+        
+        return v4FileStepExecuteObjectLogDTO;
     }
     
+    /**
+     * 判断两个执行对象是否是同一个
+     */
+    private boolean isExecuteObjectMatch(ExecuteObject obj1, ExecuteObject obj2) {
+        if (obj1 == null || obj2 == null) {
+            return false;
+        }
+        return obj1.equals(obj2);
+    }
+
     private V4FileLogDTO fromFileAtomicTaskLog(AtomicFileTaskLog fileTaskLog) {
         V4FileLogDTO v4FileLogDTO = new V4FileLogDTO();
         if (fileTaskLog.getSrcExecuteObject() != null) {

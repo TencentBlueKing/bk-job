@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.model.esb.v4.resp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeDTO;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteObjectDTO;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -144,20 +145,18 @@ public class V4JobInstanceStatusResp {
         @JsonProperty("create_time")
         private Long createTime;
 
-        @JsonProperty("step_ip_result_list")
-        private List<IpResult> stepIpResult;
+        @JsonProperty("step_execute_object_result_list")
+        private List<ExecuteObjectResult> stepExecuteObjectResult;
     }
 
     @Setter
     @Getter
-    public static class IpResult {
-        @JsonProperty("bk_host_id")
-        private Long hostId;
-
-        private String ip;
-
-        @JsonProperty("bk_cloud_id")
-        private Long cloudAreaId;
+    public static class ExecuteObjectResult {
+        /**
+         * 执行对象
+         */
+        @JsonProperty("execute_object")
+        private OpenApiExecuteObjectDTO executeObject;
 
         /**
          * 作业执行状态
@@ -171,7 +170,7 @@ public class V4JobInstanceStatusResp {
         private String tag;
 
         /**
-         * 脚本在目标机器上的exit code。仅脚本任务存在该参数
+         * 脚本在目标上的exit code。仅脚本任务存在该参数
          */
         @JsonProperty("exit_code")
         private Integer exitCode;

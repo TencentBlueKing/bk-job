@@ -24,36 +24,31 @@
 
 package com.tencent.bk.job.execute.model.esb.v4.resp;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteObjectDTO;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-public class V4FileStepIpLogDTO {
+public class V4FileStepExecuteObjectLogDTO {
+
+    @JsonProperty("execute_object")
+    private OpenApiExecuteObjectDTO executeObject;
 
     /**
-     * 主机ID
+     * 当 executeObject 是分发任务的目标时，下载的日志
      */
-    @JsonProperty("bk_host_id")
-    private Long bkHostId;
+    @JsonProperty("download_log")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<V4FileLogDTO> downloadLogList;
 
     /**
-     * 管控区域ID
+     * 当 executeObject 是分发任务的源时，上传的日志
      */
-    @JsonProperty("bk_cloud_id")
-    private Long bkCloudId;
-
-    /**
-     * 主机IP
-     */
-    @JsonProperty("ip")
-    private String ip;
-
-    /**
-     * 日志内容
-     */
-    @JsonProperty("log_content")
-    private List<V4FileLogDTO> fileLogs;
+    @JsonProperty("upload_log")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<V4FileLogDTO> uploadLogList;
 
 }

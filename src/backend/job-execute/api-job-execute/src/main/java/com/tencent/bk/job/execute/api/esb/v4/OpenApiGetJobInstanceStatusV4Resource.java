@@ -65,8 +65,8 @@ public interface OpenApiGetJobInstanceStatusV4Resource {
         @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
         @Min(value = 1L, message = "{validation.constraints.InvalidJobInstanceId.message}")
             Long taskInstanceId,
-        @RequestParam(value = "return_ip_result", required = false, defaultValue = "false")
-            boolean returnIpResult
+        @RequestParam(value = "return_execute_object_result", required = false, defaultValue = "false")
+            boolean returnExecuteObjectResult
     );
 
 }

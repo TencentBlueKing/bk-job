@@ -22,33 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.api.esb.v4;
+package com.tencent.bk.job.execute.model.esb.v4.resp;
 
-import com.tencent.bk.job.common.annotation.EsbV4API;
-import com.tencent.bk.job.common.constant.JobCommonHeaders;
-import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
-import com.tencent.bk.job.execute.model.esb.v4.req.V4BatchGetJobInstanceIpLogRequest;
-import com.tencent.bk.job.execute.model.esb.v4.resp.V4BatchIpLogResp;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteObjectDTO;
+import lombok.Data;
 
-@RequestMapping("/esb/api/v4")
-@EsbV4API
-@RestController
-@Validated
-public interface OpenApiBatchGetJobInstanceIpLogV4Resource {
+@Data
+public class V4ScriptStepExecuteObjectLogDTO {
 
-    @PostMapping("/batch_get_job_instance_ip_log")
-    EsbV4Response<V4BatchIpLogResp> batchGetJobInstanceIpLog(
-        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
-        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
-        @RequestBody
-        @Validated
-            V4BatchGetJobInstanceIpLogRequest request
-    );
+    @JsonProperty("execute_object")
+    private OpenApiExecuteObjectDTO executeObject;
 
+    /**
+     * 日志内容
+     */
+    @JsonProperty("log_content")
+    private String logContent;
 }

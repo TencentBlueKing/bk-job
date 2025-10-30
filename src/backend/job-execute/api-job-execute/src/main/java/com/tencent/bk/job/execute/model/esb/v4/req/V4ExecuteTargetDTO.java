@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiKubeContainerFilterDTO;
 import com.tencent.bk.job.execute.model.esb.v4.req.validator.V4ExecuteTargetNotEmpty;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
@@ -60,11 +61,19 @@ public class V4ExecuteTargetDTO {
     @Valid
     private List<EsbCmdbTopoNodeDTO> topoNodes;
 
+    /**
+     * k8s 容器过滤器列表
+     */
+    @JsonProperty("kube_container_filters")
+    @Valid
+    private List<OpenApiKubeContainerFilterDTO> kubeContainerFilters;
+
     @JsonIgnore
     public boolean isTargetEmpty() {
         return CollectionUtils.isEmpty(hostList)
             && CollectionUtils.isEmpty(dynamicGroups)
-            && CollectionUtils.isEmpty(topoNodes);
+            && CollectionUtils.isEmpty(topoNodes)
+            && CollectionUtils.isEmpty(kubeContainerFilters);
     }
 
 }

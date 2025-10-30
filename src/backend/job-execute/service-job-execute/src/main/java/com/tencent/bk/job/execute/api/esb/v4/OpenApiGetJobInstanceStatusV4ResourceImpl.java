@@ -81,7 +81,7 @@ public class OpenApiGetJobInstanceStatusV4ResourceImpl implements OpenApiGetJobI
                                                                        String scopeType,
                                                                        String scopeId,
                                                                        Long taskInstanceId,
-                                                                       boolean returnIpResult) {
+                                                                       boolean returnExecuteObjectResult) {
         AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(
@@ -100,21 +100,21 @@ public class OpenApiGetJobInstanceStatusV4ResourceImpl implements OpenApiGetJobI
         V4JobInstanceStatusResp jobInstanceStatus = buildV4JobInstanceStatusResp(
             taskInstance,
             stepInstances,
-            returnIpResult
+            returnExecuteObjectResult
         );
         return EsbV4Response.success(jobInstanceStatus);
     }
 
     private V4JobInstanceStatusResp buildV4JobInstanceStatusResp(TaskInstanceDTO taskInstance,
                                                                  List<StepInstanceBaseDTO> stepInstances,
-                                                                 boolean returnIpResult) {
+                                                                 boolean returnExecuteObjectResult) {
         V4JobInstanceStatusResp jobInstanceStatus = new V4JobInstanceStatusResp();
         jobInstanceStatus.setFinished(RunStatusEnum.isFinishedStatus(taskInstance.getStatus()));
 
         jobInstanceStatus.setJobInstance(buildJobInstance(taskInstance));
         jobInstanceStatus.setStepInstances(
             stepInstances.stream().map(stepInstance ->
-                buildStepInstance(stepInstance, returnIpResult))
+                buildStepInstance(stepInstance, returnExecuteObjectResult))
                 .collect(Collectors.toList())
         );
         return jobInstanceStatus;
@@ -134,7 +134,7 @@ public class OpenApiGetJobInstanceStatusV4ResourceImpl implements OpenApiGetJobI
     }
 
     private V4JobInstanceStatusResp.StepInstance buildStepInstance(StepInstanceBaseDTO stepInstance,
-                                                                   boolean returnIpResult) {
+                                                                   boolean returnExecuteObjResult) {
         V4JobInstanceStatusResp.StepInstance stepInstanceResp = new V4JobInstanceStatusResp.StepInstance();
         stepInstanceResp.setId(stepInstance.getId());
         stepInstanceResp.setName(stepInstance.getName());
@@ -146,7 +146,7 @@ public class OpenApiGetJobInstanceStatusV4ResourceImpl implements OpenApiGetJobI
         stepInstanceResp.setTotalTime(stepInstance.getTotalTime());
         stepInstanceResp.setCreateTime(stepInstance.getCreateTime());
 
-        if (returnIpResult) {
+        if (returnExecuteObjResult) {
             List<ExecuteObjectTask> executeObjectTaskList = null;
             if (stepInstance.isScriptStep()) {
                 executeObjectTaskList = scriptExecuteObjectTaskService.listTasks(
@@ -169,26 +169,27 @@ public class OpenApiGetJobInstanceStatusV4ResourceImpl implements OpenApiGetJobI
                 }
             }
             if (CollectionUtils.isNotEmpty(executeObjectTaskList)) {
-                List<V4JobInstanceStatusResp.IpResult> ipResults = executeObjectTaskList.stream()
-                    .map(this::convertToIpResult)
+                List<V4JobInstanceStatusResp.ExecuteObjectResult> executeObjectResults = executeObjectTaskList.stream()
+                    .map(this::convertToExecuteObjectResult)
                     .collect(Collectors.toList());
-                stepInstanceResp.setStepIpResult(ipResults);
+                stepInstanceResp.setStepExecuteObjectResult(executeObjectResults);
             }
         }
         return stepInstanceResp;
     }
 
-    private V4JobInstanceStatusResp.IpResult convertToIpResult(ExecuteObjectTask executeObjectTask) {
-        V4JobInstanceStatusResp.IpResult ipResult = new V4JobInstanceStatusResp.IpResult();
-        ipResult.setHostId(executeObjectTask.getExecuteObject().getHost().getHostId());
-        ipResult.setCloudAreaId(executeObjectTask.getExecuteObject().getHost().getBkCloudId());
-        ipResult.setIp(executeObjectTask.getExecuteObject().getHost().getIp());
-        ipResult.setStatus(executeObjectTask.getStatus().getValue());
-        ipResult.setTag(executeObjectTask.getTag());
-        ipResult.setExitCode(executeObjectTask.getExitCode());
-        ipResult.setStartTime(executeObjectTask.getStartTime());
-        ipResult.setEndTime(executeObjectTask.getEndTime());
-        ipResult.setTotalTime(executeObjectTask.getTotalTime());
-        return ipResult;
+    private V4JobInstanceStatusResp.ExecuteObjectResult convertToExecuteObjectResult(
+        ExecuteObjectTask executeObjectTask
+    ) {
+        V4JobInstanceStatusResp.ExecuteObjectResult executeObjectResult =
+            new V4JobInstanceStatusResp.ExecuteObjectResult();
+        executeObjectResult.setExecuteObject(executeObjectTask.getExecuteObject().toOpenApiExecuteObjectDTO());
+        executeObjectResult.setStatus(executeObjectTask.getStatus().getValue());
+        executeObjectResult.setTag(executeObjectTask.getTag());
+        executeObjectResult.setExitCode(executeObjectTask.getExitCode());
+        executeObjectResult.setStartTime(executeObjectTask.getStartTime());
+        executeObjectResult.setEndTime(executeObjectTask.getEndTime());
+        executeObjectResult.setTotalTime(executeObjectTask.getTotalTime());
+        return executeObjectResult;
     }
 }

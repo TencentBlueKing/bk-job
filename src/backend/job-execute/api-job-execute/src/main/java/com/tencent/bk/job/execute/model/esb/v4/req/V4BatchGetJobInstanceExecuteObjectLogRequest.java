@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.model.esb.v4.req;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.execute.model.esb.v4.req.validator.IpsLogGroupSequenceProvider;
+import com.tencent.bk.job.execute.model.esb.v4.req.validator.ExecuteObjectsLogGroupSequenceProvider;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.group.GroupSequenceProvider;
@@ -39,8 +39,8 @@ import java.util.List;
 
 @Getter
 @Setter
-@GroupSequenceProvider(IpsLogGroupSequenceProvider.class)
-public class V4BatchGetJobInstanceIpLogRequest extends EsbAppScopeReq {
+@GroupSequenceProvider(ExecuteObjectsLogGroupSequenceProvider.class)
+public class V4BatchGetJobInstanceExecuteObjectLogRequest extends EsbAppScopeReq {
 
     @JsonProperty("job_instance_id")
     @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
@@ -70,18 +70,32 @@ public class V4BatchGetJobInstanceIpLogRequest extends EsbAppScopeReq {
     @JsonProperty("ip_list")
     @NotNull(message = "{validation.constraints.Host_empty.message}", groups = ValidateGroup.IpList.class)
     @Size(
-        min = 1, max = 500,
+        min = 1, max = 100,
         message = "{validation.constraints.InvalidHostListSize.message}",
         groups = ValidateGroup.IpList.class
     )
     @Valid
     private List<OpenApiV4HostDTO> ipList;
 
+    /**
+     * 要拉取作业日志的容器ID列表
+     */
+    @JsonProperty("container_id_list")
+    @Size(
+        min = 1, max = 100,
+        message = "{validation.constraints.InvalidContainerListSize.message}",
+        groups = ValidateGroup.ContainerIdList.class
+    )
+    private List<Long> containerIdList;
+
     public interface ValidateGroup {
         interface HostIdList {
         }
 
         interface IpList {
+        }
+
+        interface ContainerIdList {
         }
     }
 }

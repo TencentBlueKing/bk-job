@@ -22,38 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v4.resp;
+package com.tencent.bk.job.execute.api.esb.v4;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
+import com.tencent.bk.job.common.annotation.EsbV4API;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
+import com.tencent.bk.job.execute.model.esb.v4.req.V4BatchGetJobInstanceExecuteObjectLogRequest;
+import com.tencent.bk.job.execute.model.esb.v4.resp.V4BatchExecuteObjectLogResp;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+@RequestMapping("/esb/api/v4")
+@EsbV4API
+@RestController
+@Validated
+public interface OpenApiBatchGetJobInstanceExecuteObjectLogV4Resource {
 
-@Data
-public class V4BatchIpLogResp {
+    @PostMapping("/batch_get_job_instance_execute_object_log")
+    EsbV4Response<V4BatchExecuteObjectLogResp> batchGetJobInstanceExecuteObjectLog(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestBody
+        @Validated
+            V4BatchGetJobInstanceExecuteObjectLogRequest request
+    );
 
-    @JsonProperty("job_instance_id")
-    private Long jobInstanceId;
-
-    @JsonProperty("step_instance_id")
-    private Long stepInstanceId;
-
-    /**
-     * 日志类型，1-脚本执行，2-文件传输
-     * @see com.tencent.bk.job.logsvr.consts.LogTypeEnum
-     */
-    @JsonProperty("log_type")
-    private Integer logType;
-
-    /**
-     * 当步骤为脚本执行时，步骤日志
-     */
-    @JsonProperty("script_logs")
-    private List<V4ScriptStepIpLogDTO> scriptStepIpLogs;
-
-    /**
-     * 当步骤为文件传输时，步骤日志
-     */
-    @JsonProperty("file_logs")
-    private List<V4FileStepIpLogDTO> fileStepIpLogs;
 }

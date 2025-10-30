@@ -27,30 +27,34 @@ package com.tencent.bk.job.execute.model.esb.v4.resp;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
-public class V4ScriptStepIpLogDTO {
+public class V4BatchExecuteObjectLogResp {
+
+    @JsonProperty("job_instance_id")
+    private Long jobInstanceId;
+
+    @JsonProperty("step_instance_id")
+    private Long stepInstanceId;
 
     /**
-     * 主机ID
+     * 日志类型，1-脚本执行，2-文件传输
+     * @see com.tencent.bk.job.logsvr.consts.LogTypeEnum
      */
-    @JsonProperty("bk_host_id")
-    private Long bkHostId;
+    @JsonProperty("log_type")
+    private Integer logType;
 
     /**
-     * 管控区域ID
+     * 当步骤为脚本执行时，步骤日志
      */
-    @JsonProperty("bk_cloud_id")
-    private Long bkCloudId;
+    @JsonProperty("script_step_execute_object_logs")
+    private List<V4ScriptStepExecuteObjectLogDTO> scriptStepExecuteObjectLogs;
 
     /**
-     * 主机IP
+     * 当步骤为文件传输时，传输日志
      */
-    @JsonProperty("ip")
-    private String ip;
+    @JsonProperty("file_step_execute_object_logs")
+    private List<V4FileStepExecuteObjectLogDTO> fileStepExecuteObjectLogs;
 
-    /**
-     * 日志内容
-     */
-    @JsonProperty("log_content")
-    private String logContent;
 }
