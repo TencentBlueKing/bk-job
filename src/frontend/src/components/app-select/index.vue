@@ -59,7 +59,10 @@
         </div>
         <div
           ref="listRef"
-          class="app-list">
+          class="app-list"
+          :style="{
+            'max-height': `${238 + scopeGroupData.length * 32}px`
+          }">
           <template v-for="(app, index) in renderPaginationData">
             <div
               v-if="!app.groupId"
@@ -68,7 +71,7 @@
               :class="{
                 'is-expanded': expandScopeGroupMap[app.id]
               }"
-              @click="handleExpandGroup(app.id)">
+              @click="() => handleExpandGroup(app.id)">
               <icon type="arrow-full-right" />
               <span style="margin-left: 8px">{{ app.name }}</span>
             </div>
@@ -129,7 +132,10 @@
             <i class="bk-icon icon-plus-circle mr10" />{{ $t('去新建') }}
           </div>
           <div
-            v-if="canApply"
+            v-bk-tooltips="{
+              content: $t('请联系业务运维加入业务'),
+              disabled: canApply,
+            }"
             class="operation-item"
             @click="handleGoApplyApp">
             <i class="bk-icon icon-plus-circle mr10" />{{ $t('去申请') }}
@@ -160,6 +166,7 @@
     scopeCache,
   } from '@/utils/cache-helper';
 
+  import useGroup from './useGroup';
   import usePagination from './usePagination';
 
   defineProps({
@@ -225,6 +232,7 @@
   const searchRef = ref();
   const loadingPlaceholderRef = ref();
   const isFocus = ref(false);
+  const isShowSelectPanel = ref(false);
   const scopeGroupData = shallowRef([]);
   const currentScopeType = window.PROJECT_CONFIG.SCOPE_TYPE;
   const currentScopeId = window.PROJECT_CONFIG.SCOPE_ID;
@@ -273,6 +281,7 @@
   });
 
   const { data: renderPaginationData } = usePagination(listRef, loadingPlaceholderRef, filterList);
+  useGroup(listRef, expandScopeGroupMap, filterList, isShowSelectPanel);
 
   QueryGlobalSettingService.fetchRelatedSystemUrls()
     .then((data) => {
@@ -283,7 +292,7 @@
     AppManageService.fetchGroupPanel()
       .then((data) => {
         applyUrl.value = data.applyUrl;
-        canApply.value = data.canApply;
+        canApply.value = false;
 
         const result = data.scopeGroupList.map(item => ({
           ...item,
@@ -334,6 +343,9 @@
   };
 
   const handleGoApplyApp = () => {
+    if (!canApply.value) {
+      return;
+    }
     window.open(applyUrl.value);
   };
 
@@ -444,11 +456,13 @@
           isFocus.value = true;
           setTimeout(() => {
             searchRef.value.focus();
+            isShowSelectPanel.value = true;
           }, 100);
         },
         onHidden: () => {
           isFocus.value = false;
           keyword.value = '';
+          isShowSelectPanel.value = false;
           list = sortAPPList(list);
         },
       });
@@ -564,7 +578,6 @@
 
     .app-list {
       position: relative;
-      max-height: 238px;
       margin-top: 8px;
       margin-bottom: 8px;
       overflow-y: auto;
@@ -590,6 +603,7 @@
       padding: 0 16px 0 10px;
       line-height: 32px;
       cursor: pointer;
+      background: #182233;
       transition: all 0.1s;
       align-items: center;
     }
@@ -666,6 +680,7 @@
       color: #c4c6cc;
       background: #28354d;
       border-radius: 0 0 1px 1px;
+      user-select: none;
 
       .operation-item{
         position: relative;
