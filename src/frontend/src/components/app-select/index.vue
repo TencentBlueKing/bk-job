@@ -292,7 +292,7 @@
     AppManageService.fetchGroupPanel()
       .then((data) => {
         applyUrl.value = data.applyUrl;
-        canApply.value = false;
+        canApply.value = data.canApply;
 
         const result = data.scopeGroupList.map(item => ({
           ...item,
