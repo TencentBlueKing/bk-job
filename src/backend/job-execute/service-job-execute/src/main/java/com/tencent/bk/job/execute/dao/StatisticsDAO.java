@@ -35,9 +35,25 @@ public interface StatisticsDAO {
 
     int deleteOneDayStatistics(Long appId, String date);
 
-
     StatisticsDTO getStatistics(Long appId, String resource, String dimension, String dimensionValue, String date);
 
+    /**
+     * 根据条件获取一段时间范围内的统计数据
+     *
+     * @param appId          Job业务ID
+     * @param resource       资源
+     * @param dimension      维度
+     * @param dimensionValue 维度取值
+     * @param startDate      开始日期（含）
+     * @param endDate        结束日期（含）
+     * @return 统计数据列表
+     */
+    List<StatisticsDTO> getStatisticsListBetweenDate(Long appId,
+                                                     String resource,
+                                                     String dimension,
+                                                     String dimensionValue,
+                                                     String startDate,
+                                                     String endDate);
 
     List<StatisticsDTO> getStatisticsList(List<Long> inAppIdList, List<Long> notInAppIdList, String resource,
                                           String dimension, String dimensionValue, String date);

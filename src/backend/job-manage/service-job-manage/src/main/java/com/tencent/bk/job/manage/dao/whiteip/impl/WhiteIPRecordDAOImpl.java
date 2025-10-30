@@ -57,6 +57,7 @@ import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
+import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.OrderField;
 import org.jooq.Record;
@@ -80,6 +81,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.manage.api.common.constants.whiteip.Keys.KEY_ACTION_SCOPE_ID_LIST;
@@ -326,40 +328,46 @@ public class WhiteIPRecordDAOImpl implements WhiteIPRecordDAO {
         }
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
-        // 保存group_concat_max_len原参数值并设置目标值
-        dslContext.execute("SET @t = @@group_concat_max_len");
-        dslContext.execute("SET @@group_concat_max_len = 102400");
-        val query = dslContext.select(
-                tWhiteIPRecord.ID.as(KEY_ID),
-                DSL.max(tApplication.APP_NAME).as(KEY_APP_NAME),
-                DSL.max(tApplication.APP_TYPE).as(KEY_APP_TYPE),
-                DSL.max(tWhiteIPRecord.REMARK).as(KEY_REMARK),
-                DSL.max(tWhiteIPRecord.CREATOR).as(KEY_CREATOR),
-                DSL.max(tWhiteIPRecord.CREATE_TIME).as(KEY_CREATE_TIME),
-                DSL.max(tWhiteIPRecord.LAST_MODIFY_USER).as(KEY_LAST_MODIFY_USER),
-                DSL.max(tWhiteIPRecord.LAST_MODIFY_TIME).as(KEY_LAST_MODIFY_TIME),
-                DSL.max(tWhiteIPIP.CLOUD_AREA_ID).as(KEY_CLOUD_AREA_ID),
-                DSL.groupConcat(tWhiteIPAppRel.APP_ID).as(KEY_APP_ID_LIST),
-                DSL.groupConcat(tWhiteIPIP.IP).as(KEY_IP_LIST),
-                DSL.groupConcat(tActionScope.ID).as(KEY_ACTION_SCOPE_ID_LIST)
-            ).from(tWhiteIPRecord)
-            .join(tWhiteIPIP).on(tWhiteIPRecord.ID.eq(tWhiteIPIP.RECORD_ID))
-            .leftJoin(tWhiteIPActionScope).on(tWhiteIPRecord.ID.eq(tWhiteIPActionScope.RECORD_ID))
-            .leftJoin(tActionScope).on(tWhiteIPActionScope.ACTION_SCOPE_ID.eq(tActionScope.ID))
-            .join(tWhiteIPAppRel).on(tWhiteIPRecord.ID.eq(tWhiteIPAppRel.RECORD_ID))
-            .leftJoin(tApplication).on(tWhiteIPAppRel.APP_ID.eq(tApplication.APP_ID.cast(Long.class)))
-            .where(conditions)
-            .groupBy(tWhiteIPRecord.ID)
-            .orderBy(orderFields)
-            .limit(start, length);
-        LOG.info(query.getSQL(ParamType.INLINED));
-        try {
-            val records = query.fetch();
-            return convertRecords(records);
-        } finally {
-            // 恢复group_concat_max_len原参数值
-            dslContext.execute("SET @@group_concat_max_len = @t");
-        }
+        AtomicReference<List<WhiteIPRecordVO>> resultListWrapper = new AtomicReference<>();
+        // 在同一事务中执行多个SQL语句，确保使用同一连接避免暂存变量无效
+        dslContext.transaction((Configuration trx) -> {
+            DSLContext ctx = trx.dsl();
+            // 保存group_concat_max_len原参数值并设置目标值
+            ctx.execute("SET @t = @@group_concat_max_len");
+            ctx.execute("SET @@group_concat_max_len = 102400");
+            val query = ctx.select(
+                    tWhiteIPRecord.ID.as(KEY_ID),
+                    DSL.max(tApplication.APP_NAME).as(KEY_APP_NAME),
+                    DSL.max(tApplication.APP_TYPE).as(KEY_APP_TYPE),
+                    DSL.max(tWhiteIPRecord.REMARK).as(KEY_REMARK),
+                    DSL.max(tWhiteIPRecord.CREATOR).as(KEY_CREATOR),
+                    DSL.max(tWhiteIPRecord.CREATE_TIME).as(KEY_CREATE_TIME),
+                    DSL.max(tWhiteIPRecord.LAST_MODIFY_USER).as(KEY_LAST_MODIFY_USER),
+                    DSL.max(tWhiteIPRecord.LAST_MODIFY_TIME).as(KEY_LAST_MODIFY_TIME),
+                    DSL.max(tWhiteIPIP.CLOUD_AREA_ID).as(KEY_CLOUD_AREA_ID),
+                    DSL.groupConcat(tWhiteIPAppRel.APP_ID).as(KEY_APP_ID_LIST),
+                    DSL.groupConcat(tWhiteIPIP.IP).as(KEY_IP_LIST),
+                    DSL.groupConcat(tActionScope.ID).as(KEY_ACTION_SCOPE_ID_LIST)
+                ).from(tWhiteIPRecord)
+                .join(tWhiteIPIP).on(tWhiteIPRecord.ID.eq(tWhiteIPIP.RECORD_ID))
+                .leftJoin(tWhiteIPActionScope).on(tWhiteIPRecord.ID.eq(tWhiteIPActionScope.RECORD_ID))
+                .leftJoin(tActionScope).on(tWhiteIPActionScope.ACTION_SCOPE_ID.eq(tActionScope.ID))
+                .join(tWhiteIPAppRel).on(tWhiteIPRecord.ID.eq(tWhiteIPAppRel.RECORD_ID))
+                .leftJoin(tApplication).on(tWhiteIPAppRel.APP_ID.eq(tApplication.APP_ID.cast(Long.class)))
+                .where(conditions)
+                .groupBy(tWhiteIPRecord.ID)
+                .orderBy(orderFields)
+                .limit(start, length);
+            LOG.info(query.getSQL(ParamType.INLINED));
+            try {
+                val records = query.fetch();
+                resultListWrapper.set(convertRecords(records));
+            } finally {
+                // 恢复group_concat_max_len原参数值
+                ctx.execute("SET @@group_concat_max_len = @t");
+            }
+        });
+        return resultListWrapper.get();
     }
 
     private List<WhiteIPRecordVO> convertRecords(

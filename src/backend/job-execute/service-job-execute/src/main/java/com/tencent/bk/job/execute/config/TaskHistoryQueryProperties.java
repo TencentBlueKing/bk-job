@@ -22,31 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.mysql.util;
+package com.tencent.bk.job.execute.config;
 
-import org.jooq.ConnectionProvider;
-import org.jooq.SQLDialect;
-import org.jooq.impl.DefaultConfiguration;
-import org.jooq.impl.DefaultExecuteListenerProvider;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 /**
- * jOOQ 配置工具类
+ * 任务历史查询配置
  */
-public class JooqConfigurationUtil {
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "job.execute.task-history-query")
+@Component
+public class TaskHistoryQueryProperties {
 
     /**
-     * 获取jOOQ配置
-     *
-     * @param connectionProvider       连接提供者
-     * @param executeListenerProviders 执行监听器提供者数组
-     * @return jOOQ配置
+     * 复杂查询限制，用于阻止大业务下大时间范围的复杂查询导致慢查询影响整个系统
      */
-    public static org.jooq.Configuration getConfiguration(ConnectionProvider connectionProvider,
-                                                          DefaultExecuteListenerProvider... executeListenerProviders) {
-        org.jooq.Configuration configuration = new DefaultConfiguration()
-            .derive(connectionProvider)
-            .derive(SQLDialect.MYSQL);
-        configuration.set(executeListenerProviders);
-        return configuration;
+    private ComplexQueryLimitConfig complexQueryLimit = new ComplexQueryLimitConfig();
+
+    @Getter
+    @Setter
+    @ToString
+    public static class ComplexQueryLimitConfig {
+        /**
+         * 是否启用复杂查询限制，默认启用
+         */
+        private boolean enabled = true;
+
+        /**
+         * 允许查询扫描的最大数据量，默认2000万
+         */
+        private long maxQueryDataNum = 2000_0000L;
+
+        /**
+         * 样本天数，用于估算平均每天任务量，默认7天
+         */
+        private int sampleDays = 7;
     }
 }

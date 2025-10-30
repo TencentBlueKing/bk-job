@@ -22,31 +22,49 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.mysql.util;
+package com.tencent.bk.job.common.mysql.listener;
 
-import org.jooq.ConnectionProvider;
-import org.jooq.SQLDialect;
-import org.jooq.impl.DefaultConfiguration;
-import org.jooq.impl.DefaultExecuteListenerProvider;
+import lombok.extern.slf4j.Slf4j;
+import org.jooq.ExecuteContext;
+import org.jooq.ExecuteListener;
+
+import java.sql.Connection;
 
 /**
- * jOOQ 配置工具类
+ * 打印SQL连接信息的监听器，用于排查某些连接相关的问题
  */
-public class JooqConfigurationUtil {
+@Slf4j
+public class ConnectionLoggingListener implements ExecuteListener {
+    @Override
+    public void prepareStart(ExecuteContext ctx) {
+        try {
+            logConnectionInfo(ctx);
+        } catch (Throwable t) {
+            log.warn("Fail to logConnectionInfo", t);
+        }
+    }
 
     /**
-     * 获取jOOQ配置
+     * 打印SQL连接信息
      *
-     * @param connectionProvider       连接提供者
-     * @param executeListenerProviders 执行监听器提供者数组
-     * @return jOOQ配置
+     * @param ctx SQL执行上下文
      */
-    public static org.jooq.Configuration getConfiguration(ConnectionProvider connectionProvider,
-                                                          DefaultExecuteListenerProvider... executeListenerProviders) {
-        org.jooq.Configuration configuration = new DefaultConfiguration()
-            .derive(connectionProvider)
-            .derive(SQLDialect.MYSQL);
-        configuration.set(executeListenerProviders);
-        return configuration;
+    private void logConnectionInfo(ExecuteContext ctx) {
+        Connection connection = ctx.connection();
+        int connectionHashId = connection != null ? System.identityHashCode(connection) : -1;
+        if (connection == null) {
+            log.warn("connection is null");
+            return;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("connectionHashId=" + connectionHashId);
+        }
+    }
+
+    @Override
+    public void renderEnd(ExecuteContext ctx) {
+        if (log.isDebugEnabled()) {
+            log.debug("SQL=" + ctx.sql());
+        }
     }
 }

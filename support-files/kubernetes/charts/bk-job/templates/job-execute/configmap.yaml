@@ -250,6 +250,8 @@ data:
           {{- toYaml .Values.executeConfig.openapi | nindent 10 }}
         taskTimeout:
           {{- toYaml .Values.executeConfig.taskTimeout | nindent 10}}
+        taskHistoryQuery:
+          {{- toYaml .Values.executeConfig.taskHistoryQuery | nindent 10}}
     mysql:
       {{- toYaml .Values.executeConfig.mysql | nindent 6 }}
     idGen:
