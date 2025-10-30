@@ -239,11 +239,13 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
-        {{- if .Values.executeConfig.result.pollingStrategy }}
         result:
+          handle:
+            {{- toYaml .Values.executeConfig.result.handle | nindent 12 }}
+          {{- if .Values.executeConfig.result.pollingStrategy }}
           polling-strategy:
             {{- toYaml .Values.executeConfig.result.pollingStrategy | nindent 12 }}
-        {{- end }}
+          {{- end }}
         iam:
           {{- toYaml .Values.executeConfig.iam | nindent 10 }}
         openapi:
