@@ -241,6 +241,8 @@ data:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
         {{- if .Values.executeConfig.result.pollingStrategy }}
         result:
+          handle:
+            {{- toYaml .Values.executeConfig.result.handle | nindent 12 }}
           polling-strategy:
             {{- toYaml .Values.executeConfig.result.pollingStrategy | nindent 12 }}
         {{- end }}
