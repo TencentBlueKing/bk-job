@@ -80,7 +80,6 @@ public class ThirdFilePrepareService {
     private final StepInstanceService stepInstanceService;
     private final FileSourceTaskLogService fileSourceTaskLogService;
     private final AccountService accountService;
-    private final FileWorkerHostService fileWorkerHostService;
     private final ThirdFileDistributeSourceHostProvisioner thirdFileDistributeSourceHostProvisioner;
     private final LogService logService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
@@ -94,7 +93,6 @@ public class ThirdFilePrepareService {
                                    StepInstanceService stepInstanceService,
                                    FileSourceTaskLogService fileSourceTaskLogService,
                                    AccountService accountService,
-                                   FileWorkerHostService fileWorkerHostService,
                                    LogService logService,
                                    TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                    ThirdFileDistributeSourceHostProvisioner thirdFileDistributeSourceHostProvisioner) {
@@ -104,7 +102,6 @@ public class ThirdFilePrepareService {
         this.stepInstanceService = stepInstanceService;
         this.fileSourceTaskLogService = fileSourceTaskLogService;
         this.accountService = accountService;
-        this.fileWorkerHostService = fileWorkerHostService;
         this.logService = logService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.thirdFileDistributeSourceHostProvisioner = thirdFileDistributeSourceHostProvisioner;
@@ -124,7 +121,7 @@ public class ThirdFilePrepareService {
             fileSourceDTO.setServers(new ExecuteTargetDTO());
         }
         List<HostDTO> hostDTOList = new ArrayList<>();
-        HostDTO hostDTO = fileWorkerHostService.parseFileWorkerHostWithCache(
+        HostDTO hostDTO = thirdFileDistributeSourceHostProvisioner.getThirdFileDistributeSourceHost(
             taskInfoDTO.getCloudId(),
             taskInfoDTO.getIpProtocol(),
             taskInfoDTO.getIp()
@@ -410,7 +407,6 @@ public class ThirdFilePrepareService {
             fileSourceTaskResource,
             stepInstanceService,
             accountService,
-            fileWorkerHostService,
             logService,
             taskExecuteMQEventDispatcher,
             fileSourceTaskLogService,
