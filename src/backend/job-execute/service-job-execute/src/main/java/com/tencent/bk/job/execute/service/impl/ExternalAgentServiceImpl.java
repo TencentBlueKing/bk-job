@@ -29,12 +29,14 @@ import com.tencent.bk.job.common.exception.DistributeFileFromExternalAgentExcept
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.config.NFSExternalAgentHostConfig;
 import com.tencent.bk.job.execute.model.ExternalHostDTO;
 import com.tencent.bk.job.execute.service.ExternalAgentService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +79,6 @@ public class ExternalAgentServiceImpl implements ExternalAgentService {
     }
 
     private ServiceHostDTO getOneAliveAgentHost(List<ServiceHostDTO> hosts) {
-        int hostCnt = hosts.size();
         List<HostAgentStateQuery> agentStateQueries = new ArrayList<>();
         hosts.forEach(host -> {
             HostAgentStateQuery query = new HostAgentStateQuery();
@@ -88,18 +89,13 @@ public class ExternalAgentServiceImpl implements ExternalAgentService {
             agentStateQueries.add(query);
         });
         Map<String, Boolean> hostIpAliveStatusMap = agentStateClient.batchGetAgentAliveStatus(agentStateQueries);
-        ServiceHostDTO sourceHost = null;
-        // 同一个服务实例内通过RR获取分发的源主机，遍历配置的主机池直至找到一个 agent 状态正常的主机
-        for (int i = 0; i < hostCnt; i++) {
-            // 从上次使用的主机的下一个开始获取
-            int idx = (i + (int) roundRobinCnt.get()) % hostCnt;
-            ServiceHostDTO serviceHostDTO = hosts.get(idx);
-            if (Boolean.TRUE.equals(hostIpAliveStatusMap.get(serviceHostDTO.getAgentId()))) {
-                // 下一次获取，计数器从下一个开始
-                roundRobinCnt.accumulateAndGet(i + 1, Long::sum);
-                sourceHost = serviceHostDTO;
-                break;
-            }
+        ServiceHostDTO sourceHost;
+
+        String requestId = JobContextUtil.getRequestId();
+        if (StringUtils.isNoneEmpty(requestId)) {
+            sourceHost = getAliveHostByRequestId(hosts, hostIpAliveStatusMap, requestId);
+        } else {
+            sourceHost = getAliveHostByRoundRobin(hosts, hostIpAliveStatusMap);
         }
 
         if (sourceHost == null) {
@@ -115,6 +111,39 @@ public class ExternalAgentServiceImpl implements ExternalAgentService {
             sourceHost.getAgentId()
         );
         return sourceHost;
+    }
+
+    // 通过requestId的hash值选择一个存活的主机
+    private ServiceHostDTO getAliveHostByRequestId(List<ServiceHostDTO> hosts,
+                                                   Map<String, Boolean> hostIpAliveStatusMap,
+                                                   String requestId) {
+        int hostCnt = hosts.size();
+        int idx = Math.abs(requestId.hashCode()) % hostCnt;
+        for (int i = 0; i < hostCnt; i++) {
+            ServiceHostDTO host = hosts.get((idx + i) % hostCnt);
+            if (Boolean.TRUE.equals(hostIpAliveStatusMap.get(host.getAgentId()))) {
+                return host;
+            }
+        }
+        return null;
+    }
+
+    // 通过轮询算法选择一个存活的主机
+    private ServiceHostDTO getAliveHostByRoundRobin(List<ServiceHostDTO> hosts,
+                                                    Map<String, Boolean> hostIpAliveStatusMap) {
+        int hostCnt = hosts.size();
+        // 同一个服务实例内通过RR获取分发的源主机，遍历配置的主机池直至找到一个 agent 状态正常的主机
+        for (int i = 0; i < hostCnt; i++) {
+            // 从上次使用的主机的下一个开始获取
+            int idx = (i + (int) roundRobinCnt.get()) % hostCnt;
+            ServiceHostDTO serviceHostDTO = hosts.get(idx);
+            if (Boolean.TRUE.equals(hostIpAliveStatusMap.get(serviceHostDTO.getAgentId()))) {
+                // 下一次获取，计数器从下一个开始
+                roundRobinCnt.accumulateAndGet(i + 1, Long::sum);
+                return serviceHostDTO;
+            }
+        }
+        return null;
     }
 
     private void initExternalHostsPool(NFSExternalAgentHostConfig configFromDeployment) {
