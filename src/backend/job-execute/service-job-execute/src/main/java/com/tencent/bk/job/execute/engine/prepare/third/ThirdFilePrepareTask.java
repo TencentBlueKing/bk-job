@@ -93,7 +93,6 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     volatile AtomicBoolean isDoneWrapper = new AtomicBoolean(false);
     private ServiceFileSourceTaskResource fileSourceTaskResource;
     private AccountService accountService;
-    private FileWorkerHostService fileWorkerHostService;
     private LogService logService;
     private TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private FileSourceTaskLogDAO fileSourceTaskLogDAO;
@@ -128,7 +127,6 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         ServiceFileSourceTaskResource fileSourceTaskResource,
         StepInstanceService stepInstanceService,
         AccountService accountService,
-        FileWorkerHostService fileWorkerHostService,
         LogService logService,
         TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
         FileSourceTaskLogDAO fileSourceTaskLogDAO,
@@ -136,7 +134,6 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
     ) {
         this.fileSourceTaskResource = fileSourceTaskResource;
         this.accountService = accountService;
-        this.fileWorkerHostService = fileWorkerHostService;
         this.logService = logService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.fileSourceTaskLogDAO = fileSourceTaskLogDAO;
