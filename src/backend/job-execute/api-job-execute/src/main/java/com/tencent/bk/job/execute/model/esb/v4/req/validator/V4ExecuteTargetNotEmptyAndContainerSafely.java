@@ -90,8 +90,8 @@ public @interface V4ExecuteTargetNotEmptyAndContainerSafely {
                     }
 
                     // 未设置整个集群执行，但是只给了集群过滤器
-                    if (containerFilter.isAllCluster() &&
-                        (containerFilter.getExecuteInWholeCluster() == null
+                    if (containerFilter.isAllCluster()
+                        && (containerFilter.getExecuteInWholeCluster() == null
                             || !containerFilter.getExecuteInWholeCluster())) {
                         hibernateContext.disableDefaultConstraintViolation();
                         hibernateContext
