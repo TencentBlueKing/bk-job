@@ -60,6 +60,11 @@ class AppManage extends ModuleBase {
       params,
     });
   }
+  getGroupPanel() {
+    return Request.get(`${this.module}/scopeGroupPanel`, {
+      cache: 1000,
+    });
+  }
 }
 
 export default new AppManage();

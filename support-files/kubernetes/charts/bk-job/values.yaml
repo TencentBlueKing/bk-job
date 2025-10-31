@@ -1114,6 +1114,10 @@ manageConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 资源范围（业务/业务集）选择面板相关配置
+  scopePanel:
+    # 是否展示当前用户无权限的资源范围，默认展示
+    showNoPermissionScopes: true
   # 后台任务（CMDB资源同步、事件监听等）相关配置
   backGroundTask:
     # 后台任务负载均衡器
