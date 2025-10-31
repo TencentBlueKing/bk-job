@@ -22,25 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service.impl;
+package com.tencent.bk.job.manage.model.web.vo;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.execute.service.ExternalAgentService;
-import com.tencent.bk.job.execute.service.LocalFileDistributeSourceHostProvisioner;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-/**
- * 分发本地文件时，使用集群外机器作为源分发
- */
-public class LocalFileExternalAgentHostProvisioner implements LocalFileDistributeSourceHostProvisioner {
+import java.util.List;
 
-    private final ExternalAgentService externalAgentService;
-
-    public LocalFileExternalAgentHostProvisioner(ExternalAgentService externalAgentService) {
-        this.externalAgentService = externalAgentService;
-    }
-
-    @Override
-    public HostDTO getLocalFileDistributeSourceHost() {
-        return externalAgentService.getDistributeSourceHost();
-    }
+@ApiModel("资源范围分组")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ScopeGroup {
+    @ApiModelProperty(value = "资源范围组ID")
+    private String id;
+    @ApiModelProperty(value = "资源范围组名称")
+    private String name;
+    @ApiModelProperty(value = "资源范围组内元素")
+    private List<ScopeVO> children;
 }

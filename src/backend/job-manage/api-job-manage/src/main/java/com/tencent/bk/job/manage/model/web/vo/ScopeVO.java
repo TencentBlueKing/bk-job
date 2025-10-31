@@ -22,25 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service.impl;
+package com.tencent.bk.job.manage.model.web.vo;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.execute.service.ExternalAgentService;
-import com.tencent.bk.job.execute.service.LocalFileDistributeSourceHostProvisioner;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * 分发本地文件时，使用集群外机器作为源分发
+ * 资源范围VO
  */
-public class LocalFileExternalAgentHostProvisioner implements LocalFileDistributeSourceHostProvisioner {
+@NoArgsConstructor
+@ApiModel("资源范围")
+@Data
+public class ScopeVO {
+    @ApiModelProperty(value = "ID")
+    private String id;
+    @ApiModelProperty("业务名称")
+    private String name;
+    @ApiModelProperty("是否有权限")
+    private Boolean hasPermission;
+    @ApiModelProperty("是否收藏")
+    private Boolean favor;
+    @ApiModelProperty("收藏时间")
+    @JsonSerialize(using = LongTimestampSerializer.class)
+    private Long favorTime;
 
-    private final ExternalAgentService externalAgentService;
-
-    public LocalFileExternalAgentHostProvisioner(ExternalAgentService externalAgentService) {
-        this.externalAgentService = externalAgentService;
-    }
-
-    @Override
-    public HostDTO getLocalFileDistributeSourceHost() {
-        return externalAgentService.getDistributeSourceHost();
+    public ScopeVO(String id,
+                   String name,
+                   Boolean hasPermission,
+                   Boolean favor,
+                   Long favorTime) {
+        this.id = id;
+        this.name = name;
+        this.hasPermission = hasPermission;
+        this.favor = favor;
+        this.favorTime = favorTime;
     }
 }

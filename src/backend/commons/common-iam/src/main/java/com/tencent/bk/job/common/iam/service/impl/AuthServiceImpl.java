@@ -325,6 +325,19 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
     }
 
     @Override
+    public String getApplyUrl(String actionId, ResourceTypeEnum resourceType) {
+        RelatedResourceTypeDTO relatedResourceType = new RelatedResourceTypeDTO();
+        relatedResourceType.setSystemId(resourceType.getSystemId());
+        relatedResourceType.setType(resourceType.getId());
+        relatedResourceType.setInstance(Collections.emptyList());
+
+        ActionDTO action = new ActionDTO();
+        action.setId(actionId);
+        action.setRelatedResourceTypes(Collections.singletonList(relatedResourceType));
+        return iamClient.getApplyUrl(Collections.singletonList(action));
+    }
+
+    @Override
     public boolean registerResource(User user,
                                     String id,
                                     String name,

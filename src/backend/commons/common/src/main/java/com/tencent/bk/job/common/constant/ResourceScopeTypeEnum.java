@@ -52,8 +52,11 @@ public enum ResourceScopeTypeEnum {
     @JsonValue
     private final String value;
 
+    private final String i18nKey;
+
     ResourceScopeTypeEnum(String value) {
         this.value = value;
+        this.i18nKey = "cmdb.object.name." + value;
     }
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)

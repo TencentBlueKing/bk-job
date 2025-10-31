@@ -99,6 +99,15 @@ public interface AuthService {
     /**
      * 获取权限申请URL
      *
+     * @param actionId     操作ID
+     * @param resourceType 资源类型
+     * @return 权限申请URL
+     */
+    String getApplyUrl(String actionId, ResourceTypeEnum resourceType);
+
+    /**
+     * 获取权限申请URL
+     *
      * @param tenantId                  租户 ID
      * @param permissionActionResources 依赖的权限
      * @return 权限申请URL

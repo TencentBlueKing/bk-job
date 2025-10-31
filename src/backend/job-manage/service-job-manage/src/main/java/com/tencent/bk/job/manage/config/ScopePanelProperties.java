@@ -22,25 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.service.impl;
+package com.tencent.bk.job.manage.config;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.execute.service.ExternalAgentService;
-import com.tencent.bk.job.execute.service.LocalFileDistributeSourceHostProvisioner;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-/**
- * 分发本地文件时，使用集群外机器作为源分发
- */
-public class LocalFileExternalAgentHostProvisioner implements LocalFileDistributeSourceHostProvisioner {
+@Data
+@ConfigurationProperties(prefix = "job.manage.scope-panel")
+@NoArgsConstructor
+public class ScopePanelProperties {
 
-    private final ExternalAgentService externalAgentService;
+    /**
+     * 是否展示当前用户没有权限的资源范围（业务/业务集）
+     */
+    private Boolean showNoPermissionScopes = true;
 
-    public LocalFileExternalAgentHostProvisioner(ExternalAgentService externalAgentService) {
-        this.externalAgentService = externalAgentService;
-    }
-
-    @Override
-    public HostDTO getLocalFileDistributeSourceHost() {
-        return externalAgentService.getDistributeSourceHost();
-    }
 }
