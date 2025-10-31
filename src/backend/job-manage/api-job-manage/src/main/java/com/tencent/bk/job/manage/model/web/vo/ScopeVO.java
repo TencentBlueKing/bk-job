@@ -22,30 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage;
+package com.tencent.bk.job.manage.model.web.vo;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.manage.config.ScopePanelProperties;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@EnableConfigurationProperties(ScopePanelProperties.class)
-@JobBootApplication(
-    scanBasePackages = "com.tencent.bk.job.manage",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class},
-    excludeName = {"org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration"})
-@EnableCaching
-@EnableFeignClients(basePackages = "com.tencent.bk.job")
-@EnableScheduling
-public class JobManageBootApplication {
+/**
+ * 资源范围VO
+ */
+@NoArgsConstructor
+@ApiModel("资源范围")
+@Data
+public class ScopeVO {
+    @ApiModelProperty(value = "ID")
+    private String id;
+    @ApiModelProperty("业务名称")
+    private String name;
+    @ApiModelProperty("是否有权限")
+    private Boolean hasPermission;
+    @ApiModelProperty("是否收藏")
+    private Boolean favor;
+    @ApiModelProperty("收藏时间")
+    @JsonSerialize(using = LongTimestampSerializer.class)
+    private Long favorTime;
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobManageBootApplication.class, args);
+    public ScopeVO(String id,
+                   String name,
+                   Boolean hasPermission,
+                   Boolean favor,
+                   Long favorTime) {
+        this.id = id;
+        this.name = name;
+        this.hasPermission = hasPermission;
+        this.favor = favor;
+        this.favorTime = favorTime;
     }
-
 }

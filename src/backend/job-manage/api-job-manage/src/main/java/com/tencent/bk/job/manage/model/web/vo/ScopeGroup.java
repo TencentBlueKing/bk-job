@@ -22,30 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage;
+package com.tencent.bk.job.manage.model.web.vo;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.manage.config.ScopePanelProperties;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@EnableConfigurationProperties(ScopePanelProperties.class)
-@JobBootApplication(
-    scanBasePackages = "com.tencent.bk.job.manage",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class},
-    excludeName = {"org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration"})
-@EnableCaching
-@EnableFeignClients(basePackages = "com.tencent.bk.job")
-@EnableScheduling
-public class JobManageBootApplication {
+import java.util.List;
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobManageBootApplication.class, args);
-    }
-
+@ApiModel("资源范围分组")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ScopeGroup {
+    @ApiModelProperty(value = "资源范围组ID")
+    private String id;
+    @ApiModelProperty(value = "资源范围组名称")
+    private String name;
+    @ApiModelProperty(value = "资源范围组内元素")
+    private List<ScopeVO> children;
 }

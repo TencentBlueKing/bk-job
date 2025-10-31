@@ -24,30 +24,23 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import com.tencent.bk.job.common.model.PageData;
+import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+@ApiModel("资源范围分组面板")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class PageDataWithAvailableIdList<DataType, IdType> extends PageData<DataType> {
-    @ApiModelProperty(value = "可用的资源Id列表")
-    private List<IdType> availableIdList;
-
-    public PageDataWithAvailableIdList(PageData<DataType> pageData, List<IdType> availableIdList) {
-        this.setStart(pageData.getStart());
-        this.setPageSize(pageData.getPageSize());
-        this.setTotal(pageData.getTotal());
-        this.setData(pageData.getData());
-        this.setCanCreate(pageData.getCanCreate());
-        this.setExistAny(pageData.getExistAny());
-        this.availableIdList = availableIdList;
-    }
+public class ScopeGroupPanel {
+    @ApiModelProperty(value = "资源范围分组列表")
+    private List<ScopeGroup> scopeGroupList;
+    @ApiModelProperty(value = "是否展示申请资源范围权限的按钮")
+    private boolean canApply = true;
+    @ApiModelProperty(value = "申请资源范围权限的跳转链接地址")
+    private String applyUrl;
 }

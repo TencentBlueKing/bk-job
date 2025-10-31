@@ -22,30 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage;
+package com.tencent.bk.job.manage.config;
 
-import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.manage.config.ScopePanelProperties;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@EnableConfigurationProperties(ScopePanelProperties.class)
-@JobBootApplication(
-    scanBasePackages = "com.tencent.bk.job.manage",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class},
-    excludeName = {"org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration"})
-@EnableCaching
-@EnableFeignClients(basePackages = "com.tencent.bk.job")
-@EnableScheduling
-public class JobManageBootApplication {
+@Data
+@ConfigurationProperties(prefix = "job.manage.scope-panel")
+@NoArgsConstructor
+public class ScopePanelProperties {
 
-    public static void main(String[] args) {
-        SpringApplication.run(JobManageBootApplication.class, args);
-    }
+    /**
+     * 是否展示当前用户没有权限的资源范围（业务/业务集）
+     */
+    private Boolean showNoPermissionScopes = true;
 
 }
