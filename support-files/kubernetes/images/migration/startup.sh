@@ -8,7 +8,7 @@ echo "===========ENV========="
 env
 echo "===========EXEC========"
 MYSQL_CMD_OPTIONS="mysql $BK_JOB_TLS_OPTIONS $BK_JOB_MYSQL_EXTRA_OPTIONS"
-echo "MYSQL_CMD_OPTIONS=MYSQL_CMD_OPTIONS"
+echo "MYSQL_CMD_OPTIONS=$MYSQL_CMD_OPTIONS"
 echo "Whether to enable incremental migration of mysql: $BK_JOB_INCREMENTAL_MIGRATION_ENABLED"
 echo "sleep ${BK_JOB_SLEEP_SECONDS_BEFORE_MIGRATION}s before migration"
 sleep ${BK_JOB_SLEEP_SECONDS_BEFORE_MIGRATION}
@@ -80,7 +80,7 @@ function migrateMySQL(){
       nameInfo=$(parseNameFromPath "$sql")
       dbName=$(echo "$nameInfo" | cut -d'|' -f1)
       scriptName=$(echo "$nameInfo" | cut -d'|' -f2)
-      executed=$($MYSQL_CMD -e "SELECT 1 FROM job_manage.db_migration_history WHERE db_name='$dbName' AND script_name='$scriptName' LIMIT 1;")
+      executed=$($MYSQL_CMD -N -e "SELECT 1 FROM job_manage.db_migration_history WHERE db_name='$dbName' AND script_name='$scriptName' LIMIT 1;")
       if [[ "$executed" == "1" ]]; then
         echo "Skip $sql, already executed."
         continue
