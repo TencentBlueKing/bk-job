@@ -24,55 +24,55 @@
 
 package com.tencent.bk.job.execute.model.esb.v4.req;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
-import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
-import com.tencent.bk.job.execute.model.esb.v4.req.validator.V4ExecuteTargetNotEmptyAndContainerSafely;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiKubeClusterFilterDTO;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiKubeContainerPropFilterDTO;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiKubeNamespaceFilterDTO;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiKubePodFilterDTO;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiKubeWorkloadFilterDTO;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 
-import javax.validation.Valid;
-import java.util.List;
-
 @Data
-@V4ExecuteTargetNotEmptyAndContainerSafely
-public class V4ExecuteTargetDTO {
+public class V4ContainerFilter {
 
     /**
-     * 静态主机列表
+     * 集群过滤器
      */
-    @JsonProperty("host_list")
-    @Valid
-    private List<OpenApiV4HostDTO> hostList;
+    @JsonProperty("kube_cluster_filter")
+    private OpenApiKubeClusterFilterDTO clusterFilter;
 
     /**
-     * 动态分组ID列表
+     * namespace 过滤器
      */
-    @JsonProperty("dynamic_group_list")
-    @Valid
-    private List<EsbDynamicGroupDTO> dynamicGroups;
+    @JsonProperty("kube_namespace_filter")
+    private OpenApiKubeNamespaceFilterDTO namespaceFilter;
 
     /**
-     * 分布式拓扑节点列表
+     * workload 过滤器
      */
-    @JsonProperty("topo_node_list")
-    @Valid
-    private List<EsbCmdbTopoNodeDTO> topoNodes;
+    @JsonProperty("kube_workload_filter")
+    private OpenApiKubeWorkloadFilterDTO workloadFilter;
 
     /**
-     * k8s 容器过滤器列表
+     * pod 属性过滤器
      */
-    @JsonProperty("kube_container_filters")
-    @Valid
-    private List<V4ContainerFilter> kubeContainerFilters;
+    @JsonProperty("kube_pod_filter")
+    private OpenApiKubePodFilterDTO podFilter;
 
-    @JsonIgnore
-    public boolean isTargetEmpty() {
-        return CollectionUtils.isEmpty(hostList)
-            && CollectionUtils.isEmpty(dynamicGroups)
-            && CollectionUtils.isEmpty(topoNodes)
-            && CollectionUtils.isEmpty(kubeContainerFilters);
+    /**
+     * 容器属性过滤器
+     */
+    @JsonProperty("kube_container_prop_filter")
+    private OpenApiKubeContainerPropFilterDTO containerPropFilter;
+
+    public boolean isAllCluster() {
+        return clusterFilter != null
+            && (namespaceFilter == null || CollectionUtils.isEmpty(namespaceFilter.getNamespaces()))
+            && (workloadFilter == null || CollectionUtils.isEmpty(workloadFilter.getWorkloadNames()))
+            && (podFilter == null || CollectionUtils.isEmpty(podFilter.getPodNames()))
+            && (podFilter == null || podFilter.isEmpty())
+            && (containerPropFilter == null || CollectionUtils.isEmpty(containerPropFilter.getContainerNames()));
+
     }
-
 }

@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.model.openapi.v4.OpenApiKubeContainerFilterDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
@@ -38,6 +37,7 @@ import com.tencent.bk.job.execute.model.KubePodFilter;
 import com.tencent.bk.job.execute.model.KubeWorkloadFilter;
 import com.tencent.bk.job.execute.model.LabelSelectExprDTO;
 import com.tencent.bk.job.execute.model.esb.v4.req.OpenApiV4HostDTO;
+import com.tencent.bk.job.execute.model.esb.v4.req.V4ContainerFilter;
 import com.tencent.bk.job.execute.model.esb.v4.req.V4ExecuteTargetDTO;
 import com.tencent.bk.job.execute.util.label.selector.LabelSelectorParse;
 import lombok.extern.slf4j.Slf4j;
@@ -98,7 +98,8 @@ public class V4ExecuteTargetConverter {
     }
 
     private static List<KubeContainerFilter> convertToKubeContainerFilter(
-        List<OpenApiKubeContainerFilterDTO> originContainerFilters) {
+        List<V4ContainerFilter> originContainerFilters
+    ) {
         List<KubeContainerFilter> kubeContainerFilters = new ArrayList<>();
 
         originContainerFilters.forEach(originContainerFilter -> {
@@ -150,8 +151,8 @@ public class V4ExecuteTargetConverter {
                     originContainerFilter.getContainerPropFilter().getContainerNames());
                 containerFilter.setContainerPropFilter(containerPropFilter);
             }
-            containerFilter.setEmptyFilter(originContainerFilter.isEmptyFilter());
-            containerFilter.setFetchAnyOneContainer(originContainerFilter.isFetchAnyOneContainer());
+            containerFilter.setEmptyFilter(false);
+            containerFilter.setFetchAnyOneContainer(false);
 
             kubeContainerFilters.add(containerFilter);
         });

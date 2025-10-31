@@ -76,8 +76,6 @@
 | kube_workload_filter       | object  | 否  | workload过滤器，见kube_workload_filter定义   |
 | kube_pod_filter            | object  | 否  | pod属性过滤器，见kube_pod_filter定义           |
 | kube_container_prop_filter | object  | 否  | 容器属性过滤器，见kube_container_prop_filter定义 |
-| is_empty_filter            | boolean | 否  | 是否为空过滤器，默认false                       |
-| fetch_any_one_container    | boolean | 否  | 是否只获取任意一个容器，默认false                   |
 
 ###### kube_cluster_filter
 
@@ -254,9 +252,7 @@ max_file_num_of_single_execute_object=4
                 },
                 "kube_container_prop_filter": {
                     "container_name_list": ["job-execute"]
-                },
-                "is_empty_filter": false,
-                "fetch_any_one_container": false
+                }
             }
         ]
     }
