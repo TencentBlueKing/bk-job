@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiKubeWorkloadFilterDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
@@ -103,6 +104,9 @@ public class V4ExecuteTargetConverter {
         List<KubeContainerFilter> kubeContainerFilters = new ArrayList<>();
 
         originContainerFilters.forEach(originContainerFilter -> {
+            // 设置了目标为整个集群
+            processIfExecuteInWholeCluster(originContainerFilter);
+
             KubeContainerFilter containerFilter = new KubeContainerFilter();
             if (originContainerFilter.getClusterFilter() != null) {
                 KubeClusterFilter clusterFilter = new KubeClusterFilter();
@@ -158,5 +162,18 @@ public class V4ExecuteTargetConverter {
         });
 
         return kubeContainerFilters;
+    }
+
+    private static void processIfExecuteInWholeCluster(V4ContainerFilter containerFilter) {
+        if (containerFilter == null) {
+            return;
+        }
+
+        if (containerFilter.getExecuteInWholeCluster() != null && containerFilter.getExecuteInWholeCluster()) {
+            containerFilter.setWorkloadFilter(null);
+            containerFilter.setNamespaceFilter(null);
+            containerFilter.setPodFilter(null);
+            containerFilter.setContainerPropFilter(null);
+        }
     }
 }

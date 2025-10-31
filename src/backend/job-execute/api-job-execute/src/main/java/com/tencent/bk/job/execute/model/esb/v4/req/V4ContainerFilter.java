@@ -66,6 +66,12 @@ public class V4ContainerFilter {
     @JsonProperty("kube_container_prop_filter")
     private OpenApiKubeContainerPropFilterDTO containerPropFilter;
 
+    /**
+     * 是否是整个集群一起执行
+     */
+    @JsonProperty("execute_in_whole_cluster")
+    private Boolean executeInWholeCluster = false;
+
     public boolean isAllCluster() {
         return clusterFilter != null
             && (namespaceFilter == null || CollectionUtils.isEmpty(namespaceFilter.getNamespaces()))

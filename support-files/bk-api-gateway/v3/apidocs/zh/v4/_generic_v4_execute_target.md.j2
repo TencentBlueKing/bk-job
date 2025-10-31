@@ -26,13 +26,14 @@
 
 ##### kube_container_filter
 
-| 字段                         | 类型      | 必选 | 描述                                    |
-|----------------------------|---------|----|---------------------------------------|
-| kube_cluster_filter        | object  | 否  | 集群过滤器，见kube_cluster_filter定义          |
-| kube_namespace_filter      | object  | 否  | namespace过滤器，见kube_namespace_filter定义 |
-| kube_workload_filter       | object  | 否  | workload过滤器，见kube_workload_filter定义   |
-| kube_pod_filter            | object  | 否  | pod属性过滤器，见kube_pod_filter定义           |
-| kube_container_prop_filter | object  | 否  | 容器属性过滤器，见kube_container_prop_filter定义 |
+| 字段                         | 类型     | 必选 | 描述                                                                                                                  |
+|----------------------------|--------|----|---------------------------------------------------------------------------------------------------------------------|
+| kube_cluster_filter        | object | 是  | 集群过滤器，见kube_cluster_filter定义                                                                                        |
+| kube_namespace_filter      | object | 否  | namespace过滤器，见kube_namespace_filter定义                                                                               |
+| kube_workload_filter       | object | 否  | workload过滤器，见kube_workload_filter定义                                                                                 |
+| kube_pod_filter            | object | 否  | pod属性过滤器，见kube_pod_filter定义                                                                                         |
+| kube_container_prop_filter | object | 否  | 容器属性过滤器，见kube_container_prop_filter定义                                                                               |
+| execute_in_whole_cluster   | bool   | 否  | 是否在整个集群内执行，默认为false。设置为true则忽略kube_namespace_filter、kube_workload_filter、kube_pod_filter、kube_container_prop_filter |
 
 ###### kube_cluster_filter
 
