@@ -24,18 +24,18 @@
 */
 
 import Cookie from 'js-cookie';
+import _ from 'lodash';
+
 
 const CRRF_TOKEN_KEY = 'job_csrf_key';
 
 export default (interceptors) => {
   interceptors.use((request) => {
     const CSRFToken = Cookie.get(CRRF_TOKEN_KEY);
-    if (CSRFToken !== undefined) {
+    if (CSRFToken && _.trim(request.baseURL) === _.trim(window.PROJECT_CONFIG.AJAX_URL_PREFIX)) {
       Object.assign(request.headers, {
         'X-CSRF-Token': CSRFToken || '',
       });
-    } else {
-      console.warn('Can not find csrftoken in document.cookie');
     }
 
     return request;
