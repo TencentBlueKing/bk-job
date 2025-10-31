@@ -22,63 +22,75 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.validation;
+package com.tencent.bk.job.execute.model.esb.v4.resp;
 
-/**
- * 联合校验分组
- */
-public interface ValidationGroups {
-    interface Script {
-        interface ScriptVersionId {
-        }
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.execute.model.esb.v4.req.ApiGwV4HostDTO;
+import lombok.Data;
 
-        interface ScriptContent {
-        }
-
-        interface ScriptId {
-        }
-    }
-
-    interface Account {
-        interface AccountId {
-        }
-
-        interface AccountAlias {
-        }
-    }
+@Data
+public class V4FileLogDTO {
 
     /**
-     * 滚动类型
+     * 文件分发模式
+     * @see com.tencent.bk.job.common.gse.constants.FileDistModeEnum
      */
-    interface RollingType {
-        /**
-         * 按目标执行对象滚动
-         */
-        interface TargetExecuteObject {
-        }
-
-        /**
-         * 按源文件滚动
-         */
-        interface FileSource {
-        }
-    }
+    @JsonProperty("mode")
+    private Integer mode;
 
     /**
-     * 主机类型（hostId or cloudId+ip）
+     * 源IP
      */
-    interface HostType {
-        /**
-         * 用hostId表示主机
-         */
-        interface HostId {
-        }
+    @JsonProperty("src_host")
+    private ApiGwV4HostDTO srcHost;
 
-        /**
-         * 用cloudId+ip表示主机
-         */
-        interface CloudIdIp {
-        }
-    }
+    /**
+     * 文件源路径
+     */
+    @JsonProperty("src_path")
+    private String srcPath;
+
+    /**
+     * 目标IP
+     */
+    @JsonProperty("dest_host")
+    private ApiGwV4HostDTO destHost;
+
+    /**
+     * 文件目标路径
+     */
+    @JsonProperty("dest_path")
+    private String destPath;
+
+    /**
+     * 文件传输任务状态
+     * @see com.tencent.bk.job.execute.common.constants.FileDistStatusEnum
+     */
+    @JsonProperty("status")
+    private Integer status;
+
+    /**
+     * 文件传输日志内容
+     */
+    @JsonProperty("log_content")
+    private String logContent;
+
+    /**
+     * 文件大小
+     */
+    @JsonProperty("size")
+    private String size;
+
+    /**
+     * 上传/下载 速度
+     */
+    @JsonProperty("speed")
+    private String speed;
+
+    /**
+     * 上传/下载 进度
+     */
+    @JsonProperty("process")
+    private String process;
 
 }
