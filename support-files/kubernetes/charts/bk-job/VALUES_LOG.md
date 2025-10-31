@@ -1,4 +1,14 @@
 # chart values 更新日志
+## 0.8.10
+1. 升级过程中的SQL更新支持增量更新
+```yaml
+job:
+  migration:
+    mysqlSchema:
+      # 是否开启增量更新模式，默认开启
+      incrementalEnabled: true
+```
+
 ## 0.8.9
 1. 支持多集群部署（共享MySQL、MongoDB、Redis、周边系统等基础组件）
 ```yaml

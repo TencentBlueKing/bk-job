@@ -76,6 +76,7 @@ jooq {
                     database {
                         name = 'org.jooq.meta.mysql.MySQLDatabase'
                         inputSchema = "${databaseName}"
+                        excludes = "db_migration_history"
                     }
 
                     generate {
