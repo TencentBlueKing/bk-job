@@ -1,0 +1,19 @@
+| Field       | Type   | Non-null | Description                                                                |
+|-------------|--------|----------|----------------------------------------------------------------------------|
+| type        | int    | Yes      | Execute object type, 1 - Host, 2 - Container                               |
+| resource_id | string | Yes      | Execute object resource ID (e.g., bk_host_id for host)                     |
+| host        | object | No       | Host details, present when execute object is host. See host                |
+| container   | object | No       | Container details, present when execute object is container. See container |
+
+#### host
+
+{% include '_generic_v4_host.md.j2' %}
+
+#### container
+
+| Field        | Type   | Non-null | Description                                       |
+|--------------|--------|----------|---------------------------------------------------|
+| id           | long   | Yes      | Container ID in cmdb                              |
+| container_id | string | Yes      | Container ID (e.g., Docker container ID)          |
+| name         | string | Yes      | Container name                                    |
+| node_host_id | long   | No       | Host ID of the node where the container is located |

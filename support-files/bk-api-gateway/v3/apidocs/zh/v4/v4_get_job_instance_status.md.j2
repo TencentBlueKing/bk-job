@@ -6,12 +6,12 @@
 
 #### Query参数
 
-| 字段               | 类型      | 必选 | 描述                                                   |
-|------------------|---------|----|------------------------------------------------------|
-| bk_scope_type    | string  | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                   |
-| bk_scope_id      | string  | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID              |
-| job_instance_id  | long    | 是  | 作业实例ID                                               |
-| return_ip_result | boolean | 否  | 是否返回每个ip上的任务详情，对应返回结果中的step_ip_result_list。默认为false。 |
+| 字段                           | 类型      | 必选 | 描述                                                                        |
+|------------------------------|---------|----|---------------------------------------------------------------------------|
+| bk_scope_type                | string  | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                        |
+| bk_scope_id                  | string  | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                   |
+| job_instance_id              | long    | 是  | 作业实例ID                                                                    |
+| return_execute_object_result | boolean | 否  | 是否返回每个执行对象（主机/容器）上的任务详情，对应返回结果中的step_execute_object_result_list。默认为false。 |
 
 ### 请求参数示例
 
@@ -32,48 +32,53 @@
 ```json
 # http status=200
 {
-"data": {
-"finished": true,
-"job_instance": {
-"job_instance_id": 100,
-"bk_scope_type": "biz",
-"bk_scope_id": "1",
-"name": "API Quick execution script1",
-"create_time": 1605064271000,
-"status": 4,
-"start_time": 1605064271000,
-"end_time": 1605064272000,
-"total_time": 1000
-},
-"step_instance_list": [
-{
-"status": 4,
-"total_time": 1000,
-"name": "API Quick execution script1",
-"step_instance_id": 75,
-"execute_count": 0,
-"create_time": 1605064271000,
-"end_time": 1605064272000,
-"type": 1,
-"start_time": 1605064271000,
-"step_ip_result_list": [
-{
-"bk_host_id": 101,
-"ip": "127.0.0.1",
-"bk_cloud_id": 0,
-"status": 9,
-"tag": "",
-"exit_code": 0,
-"error_code": 0,
-"start_time": 1605064271000,
-"end_time": 1605064272000,
-"total_time": 1000
-}
-]
-}
-]
-},
-"job_request_id": "xxx"
+  "data": {
+    "finished": true,
+    "job_instance": {
+      "job_instance_id": 100,
+      "bk_scope_type": "biz",
+      "bk_scope_id": "1",
+      "name": "API Quick execution script1",
+      "create_time": 1605064271000,
+      "status": 4,
+      "start_time": 1605064271000,
+      "end_time": 1605064272000,
+      "total_time": 1000
+    },
+    "step_instance_list": [
+      {
+        "status": 4,
+        "total_time": 1000,
+        "name": "API Quick execution script1",
+        "step_instance_id": 75,
+        "execute_count": 0,
+        "create_time": 1605064271000,
+        "end_time": 1605064272000,
+        "type": 1,
+        "start_time": 1605064271000,
+        "step_execute_object_result_list": [
+          {
+            "execute_object": {
+              "type": 1,
+              "resource_id": "101",
+              "host": {
+                "bk_host_id": 101,
+                "ip": "127.0.0.1",
+                "bk_cloud_id": 0
+              }
+            },
+            "status": 9,
+            "tag": "",
+            "exit_code": 0,
+            "error_code": 0,
+            "start_time": 1605064271000,
+            "end_time": 1605064272000,
+            "total_time": 1000
+          }
+        ]
+      }
+    ]
+  }
 }
 ```
 
@@ -83,54 +88,56 @@
 
 #### data
 
-| 字段                 | 类型     | 是否一定不为null | 描述                       |
-|--------------------|--------|------------|--------------------------|
-| finished           | bool   | 是          | 作业是否结束                   |
-| job_instance       | object | 是          | 作业实例基本信息。见job_instance定义 |
-| step_instance_list | array  | 是          | 作业步骤列表。见step_instance定义  |
+| 字段                 | 类型     | 是否一定存在 | 描述                       |
+|--------------------|--------|--------|--------------------------|
+| finished           | bool   | 是      | 作业是否结束                   |
+| job_instance       | object | 是      | 作业实例基本信息。见job_instance定义 |
+| step_instance_list | array  | 是      | 作业步骤列表。见step_instance定义  |
 
 #### job_instance
 
-| 字段              | 类型     | 是否一定不为null | 描述                                      |
-|-----------------|--------|------------|-----------------------------------------|
-| name            | string | 是          | 作业实例名称                                  |
-| status          | int    | 是          | 作业状态码，见 run_status 定义                   |
-| create_time     | long   | 是          | 作业创建时间，Unix时间戳，单位毫秒                     |
-| start_time      | long   | 否          | 开始执行时间，Unix时间戳，单位毫秒                     |
-| end_time        | long   | 否          | 执行结束时间，Unix时间戳，单位毫秒                     |
-| total_time      | int    | 否          | 总耗时，单位毫秒                                |
-| bk_scope_type   | string | 是          | 资源范围类型。可选值: biz - 业务，biz_set - 业务集      |
-| bk_scope_id     | string | 是          | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
-| job_instance_id | long   | 是          | 作业实例ID                                  |
+| 字段              | 类型     | 是否一定存在 | 描述                                      |
+|-----------------|--------|--------|-----------------------------------------|
+| name            | string | 是      | 作业实例名称                                  |
+| status          | int    | 是      | 作业状态码，见 run_status 定义                   |
+| create_time     | long   | 是      | 作业创建时间，Unix时间戳，单位毫秒                     |
+| start_time      | long   | 否      | 开始执行时间，Unix时间戳，单位毫秒                     |
+| end_time        | long   | 否      | 执行结束时间，Unix时间戳，单位毫秒                     |
+| total_time      | int    | 否      | 总耗时，单位毫秒                                |
+| bk_scope_type   | string | 是      | 资源范围类型。可选值: biz - 业务，biz_set - 业务集      |
+| bk_scope_id     | string | 是      | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
+| job_instance_id | long   | 是      | 作业实例ID                                  |
 
 #### step_instance
 
-| 字段                  | 类型     | 是否一定不为null | 描述                                                          |
-|---------------------|--------|------------|-------------------------------------------------------------|
-| step_instance_id    | long   | 是          | 作业步骤实例ID                                                    |
-| type                | int    | 是          | 步骤类型：1.脚本步骤; 2.文件步骤; 3.人工确认步骤; 4.SQL步骤                      |
-| name                | string | 是          | 步骤名称                                                        |
-| status              | int    | 是          | 作业步骤状态码，见 run_status 定义                                     |
-| create_time         | long   | 是          | 作业步骤实例创建时间，Unix时间戳，单位毫秒                                     |
-| start_time          | long   | 是          | 开始执行时间，Unix时间戳，单位毫秒                                         |
-| end_time            | long   | 是          | 执行结束时间，Unix时间戳，单位毫秒                                         |
-| total_time          | int    | 是          | 总耗时，单位毫秒                                                    |
-| execute_count       | int    | 是          | 步骤重试次数                                                      |
-| step_ip_result_list | array  | 否          | 每个主机的任务执行结果，return_ip_result参数为true时才可能存在，定义见step_ip_result |
+| 字段                              | 类型     | 是否一定存在 | 描述                                                                                           |
+|---------------------------------|--------|--------|----------------------------------------------------------------------------------------------|
+| step_instance_id                | long   | 是      | 作业步骤实例ID                                                                                     |
+| type                            | int    | 是      | 步骤类型：1.脚本步骤; 2.文件步骤; 3.人工确认步骤; 4.SQL步骤                                                       |
+| name                            | string | 是      | 步骤名称                                                                                         |
+| status                          | int    | 是      | 作业步骤状态码，见 run_status 定义                                                                      |
+| create_time                     | long   | 是      | 作业步骤实例创建时间，Unix时间戳，单位毫秒                                                                      |
+| start_time                      | long   | 是      | 开始执行时间，Unix时间戳，单位毫秒                                                                          |
+| end_time                        | long   | 是      | 执行结束时间，Unix时间戳，单位毫秒                                                                          |
+| total_time                      | int    | 是      | 总耗时，单位毫秒                                                                                     |
+| execute_count                   | int    | 是      | 步骤重试次数                                                                                       |
+| step_execute_object_result_list | array  | 否      | 每个执行对象（主机/容器）的任务执行结果，return_execute_object_result参数为true时才可能存在，定义见step_execute_object_result |
 
-#### step_ip_result
+#### step_execute_object_result
 
-| 字段          | 类型     | 是否一定不为null | 描述                                              |
-|-------------|--------|------------|-------------------------------------------------|
-| bk_host_id  | long   | 是          | 主机ID                                            |
-| ip          | string | 是          | IP                                              |
-| bk_cloud_id | long   | 是          | 管控区域ID                                          |
-| status      | int    | 是          | 该主机上任务状态，见target_object_status定义                |
-| tag         | string | 否          | 用户通过job_success/job_fail函数模板自定义输出的结果。仅脚本任务存在该参数 |
-| exit_code   | int    | 否          | 脚本任务exit code，脚本任务时非空                           |
-| start_time  | long   | 是          | 开始执行时间，Unix时间戳，单位毫秒                             |
-| end_time    | long   | 是          | 执行结束时间，Unix时间戳，单位毫秒                             |
-| total_time  | int    | 是          | 总耗时，单位毫秒                                        |
+| 字段             | 类型     | 是否一定存在 | 描述                                              |
+|----------------|--------|--------|-------------------------------------------------|
+| execute_object | object | 是      | 执行对象，见execute_object定义                          |
+| status         | int    | 是      | 该执行对象上任务状态，见target_object_status定义              |
+| tag            | string | 否      | 用户通过job_success/job_fail函数模板自定义输出的结果。仅脚本任务存在该参数 |
+| exit_code      | int    | 否      | 脚本任务exit code，脚本任务时非空                           |
+| start_time     | long   | 是      | 开始执行时间，Unix时间戳，单位毫秒                             |
+| end_time       | long   | 是      | 执行结束时间，Unix时间戳，单位毫秒                             |
+| total_time     | int    | 是      | 总耗时，单位毫秒                                        |
+
+#### execute_object
+
+{% include '_generic_execute_object.md.j2' %}
 
 #### run_status
 

@@ -37,17 +37,22 @@
 
 ##### execute_target
 
-| 字段                 | 类型    | 必选 | 描述                        |
-|--------------------|-------|----|---------------------------|
-| host_list          | array | 否  | 静态主机列表，见host定义            |
-| dynamic_group_list | array | 否  | 动态分组ID列表，见dynamic_group定义 |
-| topo_node_list     | array | 否  | 分布式拓扑节点列表，见topo_node定义    |
+| 字段                     | 类型    | 必选 | 描述                               |
+|------------------------|-------|----|----------------------------------|
+| host_list              | array | 否  | 静态主机列表，见host定义                   |
+| dynamic_group_list     | array | 否  | 动态分组ID列表，见dynamic_group定义        |
+| topo_node_list         | array | 否  | 分布式拓扑节点列表，见topo_node定义           |
+| kube_container_filters | array | 否  | 容器过滤器列表，见kube_container_filter定义 |
 
-**说明：** host_list、dynamic_group_list、topo_node_list不能同时为空
+**说明：** host_list、dynamic_group_list、topo_node_list、kube_container_filters不能同时为空。主机和容器不能混合执行
 
 ##### host
 
-{% include '_generic_v4_host.md.j2' %}
+| 字段          | 类型     | 必选 | 描述                                                                      |
+|-------------|--------|----|-------------------------------------------------------------------------|
+| bk_host_id  | long   | 否  | 主机ID。与ip+bk_cloud_id必须存在一个。当同时存在bk_host_id和ip+bk_cloud_id时，bk_host_id优先 |
+| bk_cloud_id | long   | 否  | 云区域ID。与bk_host_id必须存在一个。当同时存在bk_host_id和ip+bk_cloud_id时，bk_host_id优先    |
+| ip          | string | 否  | IP地址。与bk_host_id必须存在一个。当同时存在bk_host_id和ip+bk_cloud_id时，bk_host_id优先     |
 
 ##### dynamic_group
 
@@ -61,6 +66,59 @@
 |-----------|--------|----|-------------------------------|
 | id        | long   | 是  | 拓扑节点ID                        |
 | node_type | string | 是  | 拓扑节点类型，可选值：module(模块)、set(集群) |
+
+##### kube_container_filter
+
+| 字段                         | 类型      | 必选 | 描述                                    |
+|----------------------------|---------|----|---------------------------------------|
+| kube_cluster_filter        | object  | 否  | 集群过滤器，见kube_cluster_filter定义          |
+| kube_namespace_filter      | object  | 否  | namespace过滤器，见kube_namespace_filter定义 |
+| kube_workload_filter       | object  | 否  | workload过滤器，见kube_workload_filter定义   |
+| kube_pod_filter            | object  | 否  | pod属性过滤器，见kube_pod_filter定义           |
+| kube_container_prop_filter | object  | 否  | 容器属性过滤器，见kube_container_prop_filter定义 |
+| is_empty_filter            | boolean | 否  | 是否为空过滤器，默认false                       |
+| fetch_any_one_container    | boolean | 否  | 是否只获取任意一个容器，默认false                   |
+
+###### kube_cluster_filter
+
+| 字段               | 类型    | 必选 | 描述      |
+|------------------|-------|----|---------|
+| cluster_uid_list | array | 是  | 集群UID列表 |
+
+###### kube_namespace_filter
+
+| 字段                  | 类型    | 必选 | 描述            |
+|---------------------|-------|----|---------------|
+| namespace_name_list | array | 是  | namespace名称列表 |
+
+###### kube_workload_filter
+
+| 字段                 | 类型     | 必选 | 描述                                            |
+|--------------------|--------|----|-----------------------------------------------|
+| kind               | string | 是  | workload类型，如deployment、statefulset、daemonset等 |
+| workload_name_list | array  | 是  | workload名称列表                                  |
+
+###### kube_pod_filter
+
+| 字段                  | 类型    | 必选 | 描述                        |
+|---------------------|-------|----|---------------------------|
+| pod_name_list       | array | 否  | pod名称列表                   |
+| label_selector      | array | 否  | 标签选择器列表，见label_selector定义 |
+| label_selector_expr | array | 否  | label selector表达式         |
+
+###### label_selector
+
+| 字段       | 类型     | 必选 | 描述                                                                                                                                   |
+|----------|--------|----|--------------------------------------------------------------------------------------------------------------------------------------|
+| key      | string | 是  | label key                                                                                                                            |
+| operator | string | 是  | 操作符，可选值：`not_exists`-标签不存在、`equals`-标签值等于、`in`-标签值在指定列表中、`not_equals`-标签值不等于、`not_in`-标签值不在指定列表中、`exists`-标签存在、`gt`-标签值大于、`lt`-标签值小于 |
+| values   | array  | 否  | label value列表，当operator为in或not_in时必填                                                                                                 |
+
+###### kube_container_prop_filter
+
+| 字段                  | 类型    | 必选 | 描述     |
+|---------------------|-------|----|--------|
+| container_name_list | array | 是  | 容器名称列表 |
 
 ##### rolling_config
 
@@ -132,6 +190,7 @@ max_file_num_of_single_execute_object=4
 
 - POST
 
+在主机上执行脚本：
 ```json
 {
     "bk_scope_type": "biz",
@@ -146,7 +205,7 @@ max_file_num_of_single_execute_object=4
     "execute_target": {
         "dynamic_group_list": [
             {
-                "id": "blo8gojho0skft7pr5q0"
+                "id": "asdo8gojhasdfskft7pr5"
             }
         ],
         "host_list": [
@@ -163,6 +222,41 @@ max_file_num_of_single_execute_object=4
             {
                 "id": 1000,
                 "node_type": "module"
+            }
+        ]
+    }
+}
+```
+
+在容器上执行脚本：
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "1",
+    "script_content": "ZWNobyAkMQ==",
+    "script_param": "aGVsbG8=",
+    "timeout": 1000,
+    "account_id": 1000,
+    "param_sensitive": false,
+    "script_language": 1,
+    "execute_target": {
+        "kube_container_filters": [
+            {
+                "kube_cluster_filter": {
+                    "cluster_uid_list": ["BCS-K8S-00001"]
+                },
+                "kube_namespace_filter": {
+                    "namespace_name_list": ["bkjob"]
+                },
+                "kube_workload_filter": {
+                    "kind": "deployment",
+                    "workload_name_list": ["bk-job-execute"]
+                },
+                "kube_container_prop_filter": {
+                    "container_name_list": ["job-execute"]
+                },
+                "is_empty_filter": false,
+                "fetch_any_one_container": false
             }
         ]
     }

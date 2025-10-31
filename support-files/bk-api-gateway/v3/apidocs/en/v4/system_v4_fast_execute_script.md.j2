@@ -29,7 +29,9 @@ Fast execute script
 
 ##### execute_target
 
-{% include '_generic_execute_target.md.j2' %}
+{% include '_generic_v4_execute_target.md.j2' %}
+
+**Note:** Hosts and containers cannot be executed together.
 
 {% include '../_generic_rolling_config.md.j2' %}
 
@@ -39,6 +41,7 @@ Fast execute script
 
 - POST
 
+Execute script on hosts:
 ```json
 {
     "bk_scope_type": "biz",
@@ -51,12 +54,62 @@ Fast execute script
     "param_sensitive": false,
     "script_language": 1,
     "execute_target": {
-        "dynamic_group_list": [ { "id": "blo8gojho0skft7pr5q0" } ],
-        "host_list": [
-            { "ip": "10.0.0.1", "bk_cloud_id": 0 },
-            { "ip": "10.0.0.2", "bk_cloud_id": 0 }
+        "dynamic_group_list": [
+            {
+                "id": "asdo8gojhasdfskft7pr5"
+            }
         ],
-        "topo_node_list": [ { "id": 1000, "node_type": "module" } ]
+        "host_list": [
+            {
+                "ip": "10.0.0.1",
+                "bk_cloud_id": 0
+            },
+            {
+                "ip": "10.0.0.2",
+                "bk_cloud_id": 0
+            }
+        ],
+        "topo_node_list": [
+            {
+                "id": 1000,
+                "node_type": "module"
+            }
+        ]
+    }
+}
+```
+
+Execute script on containers:
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "1",
+    "script_content": "ZWNobyAkMQ==",
+    "script_param": "aGVsbG8=",
+    "timeout": 1000,
+    "account_id": 1000,
+    "param_sensitive": false,
+    "script_language": 1,
+    "execute_target": {
+        "kube_container_filters": [
+            {
+                "kube_cluster_filter": {
+                    "cluster_uid_list": ["BCS-K8S-00001"]
+                },
+                "kube_namespace_filter": {
+                    "namespace_name_list": ["bkjob"]
+                },
+                "kube_workload_filter": {
+                    "kind": "deployment",
+                    "workload_name_list": ["bk-job-execute"]
+                },
+                "kube_container_prop_filter": {
+                    "container_name_list": ["job-execute"]
+                },
+                "is_empty_filter": false,
+                "fetch_any_one_container": false
+            }
+        ]
     }
 }
 ```

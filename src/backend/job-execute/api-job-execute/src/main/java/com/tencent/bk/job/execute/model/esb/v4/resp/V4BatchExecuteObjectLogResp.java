@@ -46,7 +46,7 @@ public class V4BatchExecuteObjectLogResp {
     private Integer logType;
 
     /**
-     * 当步骤为脚本执行时，步骤日志
+     * 当步骤为脚本执行时的日志
      */
     @JsonProperty("script_step_execute_object_logs")
     private List<V4ScriptStepExecuteObjectLogDTO> scriptStepExecuteObjectLogs;

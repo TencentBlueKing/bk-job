@@ -28,6 +28,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.execute.model.esb.v4.req.OpenApiV4HostDTO;
 import lombok.Data;
 
+/**
+ * 单个源执行对象+单个目标执行对象+单个文件对应的一条传输日志
+ */
 @Data
 public class V4FileLogDTO {
 

@@ -31,6 +31,9 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * 单个执行对象的日志，包含多个文件的日志
+ */
 @Data
 public class V4FileStepExecuteObjectLogDTO {
 

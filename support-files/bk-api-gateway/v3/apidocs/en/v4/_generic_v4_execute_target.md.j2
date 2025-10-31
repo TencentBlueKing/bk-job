@@ -1,0 +1,78 @@
+| Field                  | Type  | Required | Description                                                                 |
+|------------------------|-------|----------|-----------------------------------------------------------------------------|
+| host_list              | array | No       | Static host list. See host definition.                                      |
+| dynamic_group_list     | array | No       | Dynamic group ID list. See dynamic_group definition.                        |
+| topo_node_list         | array | No       | Distributed topology node list. See topo_node definition.                   |
+| kube_container_filters | array | No       | Container filter list. See kube_container_filter definition.                |
+
+**Note:** host_list, dynamic_group_list, topo_node_list, and kube_container_filters cannot be all empty at the same time.
+
+##### host
+
+{% include '_generic_v4_host.md.j2' %}
+
+##### dynamic_group
+
+| Field | Type   | Required | Description        |
+|-------|--------|----------|--------------------|
+| id    | string | Yes      | Dynamic group ID   |
+
+##### topo_node
+
+| Field     | Type   | Required | Description                                     |
+|-----------|--------|----------|-------------------------------------------------|
+| id        | long   | Yes      | Topology node ID                                |
+| node_type | string | Yes      | Topology node type. Allowed values: module, set |
+
+##### kube_container_filter
+
+| Field                      | Type    | Required | Description                                                           |
+|----------------------------|---------|----------|-----------------------------------------------------------------------|
+| kube_cluster_filter        | object  | No       | Cluster filter. See kube_cluster_filter definition.                   |
+| kube_namespace_filter      | object  | No       | Namespace filter. See kube_namespace_filter definition.               |
+| kube_workload_filter       | object  | No       | Workload filter. See kube_workload_filter definition.                 |
+| kube_pod_filter            | object  | No       | Pod property filter. See kube_pod_filter definition.                  |
+| kube_container_prop_filter | object  | No       | Container property filter. See kube_container_prop_filter definition. |
+| is_empty_filter            | boolean | No       | Whether it is an empty filter. Default false.                         |
+| fetch_any_one_container    | boolean | No       | Whether to fetch only any one container. Default false.               |
+
+###### kube_cluster_filter
+
+| Field            | Type  | Required | Description        |
+|------------------|-------|----------|--------------------|
+| cluster_uid_list | array | Yes      | Cluster UID list   |
+
+###### kube_namespace_filter
+
+| Field               | Type  | Required | Description         |
+|---------------------|-------|----------|---------------------|
+| namespace_name_list | array | Yes      | Namespace name list |
+
+###### kube_workload_filter
+
+| Field              | Type   | Required | Description                                                |
+|--------------------|--------|----------|------------------------------------------------------------|
+| kind               | string | Yes      | Workload type, e.g., deployment, statefulset, daemonset    |
+| workload_name_list | array  | Yes      | Workload name list                                         |
+
+###### kube_pod_filter
+
+| Field               | Type  | Required | Description                                         |
+|---------------------|-------|----------|-----------------------------------------------------|
+| pod_name_list       | array | No       | Pod name list                                       |
+| label_selector      | array | No       | Label selector list. See label_selector definition. |
+| label_selector_expr | array | No       | Label selector expression                           |
+
+###### label_selector
+
+| Field    | Type   | Required | Description                                                                                                                                                                                                                                                                                                     |
+|----------|--------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| key      | string | Yes      | Label key                                                                                                                                                                                                                                                                                                       |
+| operator | string | Yes      | Operator. Allowed values: `not_exists` - label does not exist, `equals` - label value equals, `in` - label value in specified list, `not_equals` - label value not equals, `not_in` - label value not in specified list, `exists` - label exists, `gt` - label value greater than, `lt` - label value less than |
+| values   | array  | No       | Label value list. Required when operator is in or not_in                                                                                                                                                                                                                                                        |
+
+###### kube_container_prop_filter
+
+| Field               | Type  | Required | Description         |
+|---------------------|-------|----------|---------------------|
+| container_name_list | array | Yes      | Container name list |
