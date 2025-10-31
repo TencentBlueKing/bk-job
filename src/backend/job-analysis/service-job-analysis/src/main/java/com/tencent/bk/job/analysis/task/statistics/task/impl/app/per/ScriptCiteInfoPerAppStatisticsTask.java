@@ -26,11 +26,13 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.api.inner.ServiceMetricsResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -53,15 +55,17 @@ public class ScriptCiteInfoPerAppStatisticsTask extends BasePerAppStatisticsTask
     private final ServiceMetricsResource manageMetricsResource;
 
     protected ScriptCiteInfoPerAppStatisticsTask(BasicServiceManager basicServiceManager,
-                                                 StatisticsDAO statisticsDAO,
+                                                 CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                                 NoTenantStatisticsDAO noTenantStatisticsDAO,
                                                  @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
-                                                 ServiceMetricsResource manageMetricsResource) {
-        super(basicServiceManager, statisticsDAO, dslContext);
+                                                 ServiceMetricsResource manageMetricsResource,
+                                                 TenantService tenantService) {
+        super(basicServiceManager, currentTenantStatisticsDAO, noTenantStatisticsDAO, dslContext, tenantService);
         this.manageMetricsResource = manageMetricsResource;
     }
 
     private StatisticsDTO genScriptCountStatisticsDTO(String dateStr, Long appId, String value) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(appId);
         statisticsDTO.setDate(dateStr);
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_SCRIPT_CITE_INFO);
@@ -72,7 +76,7 @@ public class ScriptCiteInfoPerAppStatisticsTask extends BasePerAppStatisticsTask
     }
 
     private StatisticsDTO genCitedScriptCountDTO(String dateStr, Long appId, String value) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(appId);
         statisticsDTO.setDate(dateStr);
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_SCRIPT_CITE_INFO);
@@ -85,7 +89,7 @@ public class ScriptCiteInfoPerAppStatisticsTask extends BasePerAppStatisticsTask
     }
 
     private StatisticsDTO genCitedScriptStepCountDTO(String dateStr, Long appId, String value) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(appId);
         statisticsDTO.setDate(dateStr);
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_SCRIPT_CITE_INFO);
@@ -134,7 +138,7 @@ public class ScriptCiteInfoPerAppStatisticsTask extends BasePerAppStatisticsTask
     @Override
     public void afterDailyStatisticsUpdated(String dayTimeStr) {
         // 1.统计脚本总数
-        List<StatisticsDTO> statisticsDTOList = statisticsDAO.getStatisticsList(
+        List<StatisticsDTO> statisticsDTOList = currentTenantStatisticsDAO.getStatisticsList(
             null,
             Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
             StatisticsConstants.RESOURCE_SCRIPT_CITE_INFO,
@@ -145,7 +149,7 @@ public class ScriptCiteInfoPerAppStatisticsTask extends BasePerAppStatisticsTask
         for (StatisticsDTO dto : statisticsDTOList) {
             totalValue += Long.parseLong(dto.getValue());
         }
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(StatisticsConstants.DEFAULT_APP_ID);
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(dayTimeStr);
@@ -153,9 +157,9 @@ public class ScriptCiteInfoPerAppStatisticsTask extends BasePerAppStatisticsTask
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_GLOBAL);
         statisticsDTO.setDimension(StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE);
         statisticsDTO.setDimensionValue(StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_SCRIPT_COUNT);
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
         // 2.统计被引用的脚本总数
-        statisticsDTOList = statisticsDAO.getStatisticsList(
+        statisticsDTOList = currentTenantStatisticsDAO.getStatisticsList(
             null,
             Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
             StatisticsConstants.RESOURCE_SCRIPT_CITE_INFO,
@@ -169,9 +173,9 @@ public class ScriptCiteInfoPerAppStatisticsTask extends BasePerAppStatisticsTask
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setValue(Long.toString(totalValue));
         statisticsDTO.setDimensionValue(StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_CITED_SCRIPT_COUNT);
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
         // 3.统计引用脚本的步骤总数
-        statisticsDTOList = statisticsDAO.getStatisticsList(
+        statisticsDTOList = currentTenantStatisticsDAO.getStatisticsList(
             null,
             Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
             StatisticsConstants.RESOURCE_SCRIPT_CITE_INFO,
@@ -185,7 +189,7 @@ public class ScriptCiteInfoPerAppStatisticsTask extends BasePerAppStatisticsTask
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setValue(Long.toString(totalValue));
         statisticsDTO.setDimensionValue(StatisticsConstants.DIMENSION_VALUE_SCRIPT_CITE_INFO_METRIC_CITED_SCRIPT_STEP_COUNT);
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
     }
 
     @Override

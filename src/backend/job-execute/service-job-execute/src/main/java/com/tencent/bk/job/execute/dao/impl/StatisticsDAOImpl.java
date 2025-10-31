@@ -220,17 +220,19 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
     private StatisticsDTO convert(Record record) {
         return new StatisticsDTO(
             record.get(defaultTable.ID),
+            null,
             record.get(defaultTable.APP_ID),
             record.get(defaultTable.RESOURCE),
             record.get(defaultTable.DIMENSION),
             record.get(defaultTable.DIMENSION_VALUE),
             record.get(defaultTable.DATE),
-            record.get(defaultTable.VALUE),
+            record.getValue(defaultTable.VALUE),
             record.get(defaultTable.CREATE_TIME).longValue(),
             record.get(defaultTable.LAST_MODIFY_TIME).longValue()
         );
     }
 
+    @SuppressWarnings("StatementWithEmptyBody")
     @MySQLOperation(table = "statistics", op = DbOperationEnum.WRITE)
     public int increaseStatisticValue(String date, StatisticsKey statisticsKey, Integer incrementValue) {
         Long appId = statisticsKey.getAppId();
@@ -275,7 +277,9 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
                         ULong.valueOf(System.currentTimeMillis()),
                         ULong.valueOf(System.currentTimeMillis())
                     ).returning(defaultTable.ID);
-                    id = query.fetchOne().getId();
+                    val record = query.fetchOne();
+                    assert record != null;
+                    id = record.getId();
                 } else {
                     if (records.size() > 1) {
                         log.warn("more than 1 records, statisticsKey:{}", statisticsKey);

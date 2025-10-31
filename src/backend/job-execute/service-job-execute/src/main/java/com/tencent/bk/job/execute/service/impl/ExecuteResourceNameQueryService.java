@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.TaskPlanService;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
@@ -45,7 +45,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service("jobExecuteResourceNameQueryService")
 public class ExecuteResourceNameQueryService implements ResourceNameQueryService {
-    private final ApplicationService applicationService;
+    private final RemoteAppService remoteAppService;
     private final ScriptService scriptService;
     private final TaskPlanService taskPlanService;
     private final ServiceTaskTemplateResource taskTemplateResource;
@@ -54,13 +54,13 @@ public class ExecuteResourceNameQueryService implements ResourceNameQueryService
 
 
     @Autowired
-    public ExecuteResourceNameQueryService(ApplicationService applicationService,
+    public ExecuteResourceNameQueryService(RemoteAppService remoteAppService,
                                            ScriptService scriptService,
                                            TaskPlanService taskPlanService,
                                            ServiceTaskTemplateResource taskTemplateResource,
                                            AccountService accountService,
                                            AppScopeMappingService appScopeMappingService) {
-        this.applicationService = applicationService;
+        this.remoteAppService = remoteAppService;
         this.scriptService = scriptService;
         this.taskPlanService = taskPlanService;
         this.taskTemplateResource = taskTemplateResource;
@@ -76,6 +76,7 @@ public class ExecuteResourceNameQueryService implements ResourceNameQueryService
                 return script == null ? null : script.getName();
             case BUSINESS:
             case BUSINESS_SET:
+            case TENANT_SET:
                 Long appId = appScopeMappingService.getAppIdByScope(
                     IamUtil.getResourceScopeFromIamResource(resourceType, resourceId));
                 if (appId != null && appId > 0) {
@@ -112,7 +113,7 @@ public class ExecuteResourceNameQueryService implements ResourceNameQueryService
     }
 
     private String getAppName(Long appId) {
-        ServiceApplicationDTO applicationInfo = applicationService.getAppById(appId);
+        ServiceApplicationDTO applicationInfo = remoteAppService.getAppById(appId);
         if (applicationInfo != null) {
             if (StringUtils.isNotBlank(applicationInfo.getName())) {
                 return applicationInfo.getName();

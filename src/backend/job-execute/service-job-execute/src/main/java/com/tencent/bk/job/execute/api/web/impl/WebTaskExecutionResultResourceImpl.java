@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
@@ -110,11 +111,14 @@ import com.tencent.bk.job.manage.model.inner.ServiceNotifyChannelDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -137,41 +141,50 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final StepInstanceService stepInstanceService;
 
-    private final LoadingCache<String, Map<String, String>> roleCache = CacheBuilder.newBuilder()
-        .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
-        build(new CacheLoader<String, Map<String, String>>() {
-                  @Override
-                  public Map<String, String> load(String lang) {
-                      InternalResponse<List<ServiceAppRoleDTO>> resp = notifyResource.getNotifyRoles(lang);
-                      log.info("Get notify roles, resp={}", resp);
-                      if (!resp.isSuccess() || resp.getData() == null) {
-                          return new HashMap<>();
-                      } else {
-                          List<ServiceAppRoleDTO> appRoles = resp.getData();
-                          Map<String, String> codeNameMap = new HashMap<>();
-                          if (appRoles != null) {
-                              appRoles.forEach(role -> codeNameMap.put(role.getCode(), role.getName()));
-                          }
-                          return codeNameMap;
-                      }
-                  }
-              }
+    private static final int CHANNEL_CACHE_INDEX_TENANT_ID = 0;
+    private static final int CHANNEL_CACHE_INDEX_LANG = 1;
+    private static final String CHANNEL_CACHE_DELIMITER = ":";
+
+    private final LoadingCache<Pair<String, String>, Map<String, String>> roleCache = CacheBuilder.newBuilder()
+        .maximumSize(10)
+        .expireAfterWrite(10, TimeUnit.MINUTES)
+        .build(new CacheLoader<Pair<String, String>, Map<String, String>>() {
+                   @NotNull
+                   @Override
+                   public Map<String, String> load(@NotNull Pair<String, String> langTenantIdPair) {
+                       String lang = langTenantIdPair.getLeft();
+                       String tenantId = langTenantIdPair.getRight();
+                       InternalResponse<List<ServiceAppRoleDTO>> resp = notifyResource.getNotifyRoles(tenantId, lang);
+                       log.info("Get notify roles, resp={}", resp);
+                       if (!resp.isSuccess() || resp.getData() == null) {
+                           return new HashMap<>();
+                       } else {
+                           List<ServiceAppRoleDTO> appRoles = resp.getData();
+                           Map<String, String> codeNameMap = new HashMap<>();
+                           appRoles.forEach(role -> codeNameMap.put(role.getCode(), role.getName()));
+                           return codeNameMap;
+                       }
+                   }
+               }
         );
     private final LoadingCache<String, Map<String, String>> channelCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
         build(new CacheLoader<String, Map<String, String>>() {
+                  @NotNull
                   @Override
-                  public Map<String, String> load(String lang) {
-                      InternalResponse<List<ServiceNotifyChannelDTO>> resp = notifyResource.getNotifyChannels(lang);
+                  public Map<String, String> load(@NotNull String key) {
+                      List<String> l = Arrays.asList(key.split(CHANNEL_CACHE_DELIMITER));
+                      String tenantId = l.get(CHANNEL_CACHE_INDEX_TENANT_ID);
+                      String lang = l.get(CHANNEL_CACHE_INDEX_LANG);
+                      InternalResponse<List<ServiceNotifyChannelDTO>> resp = notifyResource.getNotifyChannels(lang,
+                          tenantId);
                       log.info("Get notify channels, resp={}", resp);
                       if (!resp.isSuccess() || resp.getData() == null) {
                           return new HashMap<>();
                       } else {
                           List<ServiceNotifyChannelDTO> channels = resp.getData();
                           Map<String, String> typeNameMap = new HashMap<>();
-                          if (channels != null) {
-                              channels.forEach(channel -> typeNameMap.put(channel.getType(), channel.getName()));
-                          }
+                          channels.forEach(channel -> typeNameMap.put(channel.getType(), channel.getName()));
                           return typeNameMap;
                       }
                   }
@@ -221,10 +234,14 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                  Long cronTaskId,
                                                                  String startupModes,
                                                                  String ip) {
+        User user = JobContextUtil.getUser();
         TaskInstanceQuery taskQuery = buildListTaskInstanceQuery(appResourceScope, taskName, taskInstanceId,
             status, operator, taskType, startTime, endTime, timeRange, totalTimeType, cronTaskId, startupModes, ip);
-        BaseSearchCondition baseSearchCondition = BaseSearchCondition.pageCondition(start, pageSize,
-            countPageTotal == null ? true : countPageTotal);
+        BaseSearchCondition baseSearchCondition = BaseSearchCondition.pageCondition(
+            start,
+            pageSize,
+            countPageTotal == null || countPageTotal
+        );
 
         PageData<TaskInstanceDTO> pageData = taskResultService.listPageTaskInstance(taskQuery, baseSearchCondition);
         if (pageData == null) {
@@ -242,7 +259,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 .convertToTaskInstanceVO(taskInstanceDTO)));
         }
         pageDataVO.setData(taskInstanceVOS);
-        batchSetPermissionsForTaskInstance(username, appResourceScope, taskInstanceVOS);
+        batchSetPermissionsForTaskInstance(user, appResourceScope, taskInstanceVOS);
         return Response.buildSuccessResp(pageDataVO);
     }
 
@@ -313,13 +330,14 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         }
     }
 
-    private void batchSetPermissionsForTaskInstance(String username, AppResourceScope appResourceScope,
+    private void batchSetPermissionsForTaskInstance(User user,
+                                                    AppResourceScope appResourceScope,
                                                     List<TaskInstanceVO> taskInstances) {
         if (CustomCollectionUtils.isEmptyCollection(taskInstances)) {
             return;
         }
         boolean hasViewAllPermission = executeAuthService.authViewAllTaskInstance(
-            username, appResourceScope).isPass();
+            user, appResourceScope).isPass();
         if (hasViewAllPermission) {
             taskInstances.forEach(taskInstance -> {
                 taskInstance.setCanView(true);
@@ -327,8 +345,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             });
         } else {
             taskInstances.forEach(taskInstance -> {
-                taskInstance.setCanView(taskInstance.getOperator().equals(username));
-                taskInstance.setCanExecute(taskInstance.getOperator().equals(username));
+                taskInstance.setCanView(taskInstance.getOperator().equals(user.getUsername()));
+                taskInstance.setCanExecute(taskInstance.getOperator().equals(user.getUsername()));
             });
         }
     }
@@ -341,7 +359,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                 String scopeType,
                                                                 String scopeId,
                                                                 Long taskInstanceId) {
-        TaskExecuteResultDTO taskExecuteResult = taskResultService.getTaskExecutionResult(username,
+        User user = JobContextUtil.getUser();
+        TaskExecuteResultDTO taskExecuteResult = taskResultService.getTaskExecutionResult(user,
             appResourceScope.getAppId(), taskInstanceId);
         TaskExecuteResultVO taskExecuteResultVO = convertToTaskExecuteResultVO(taskExecuteResult);
         return Response.buildSuccessResp(taskExecuteResultVO);
@@ -404,7 +423,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 List<String> roleNames = new ArrayList<>();
                 Map<String, String> roleCodeAndName;
                 try {
-                    roleCodeAndName = roleCache.get(JobContextUtil.getUserLang());
+                    roleCodeAndName = roleCache.get(
+                        Pair.of(JobContextUtil.getUserLang(), JobContextUtil.getTenantId())
+                    );
                 } catch (Exception e) {
                     log.warn("Get role from cache fail", e);
                     roleCodeAndName = new HashMap<>();
@@ -423,7 +444,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                 && !stepExecutionDTO.getConfirmNotifyChannels().isEmpty()) {
                 Map<String, String> channelTypeAndName;
                 try {
-                    channelTypeAndName = channelCache.get(JobContextUtil.getUserLang());
+                    String key = JobContextUtil.getTenantId() + CHANNEL_CACHE_DELIMITER + JobContextUtil.getUserLang();
+                    channelTypeAndName = channelCache.get(key);
                 } catch (Exception e) {
                     log.warn("Get channel from cache fail", e);
                     channelTypeAndName = new HashMap<>();
@@ -459,6 +481,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                   String searchIp,
                                                                   String orderField,
                                                                   Integer order) {
+        User user = JobContextUtil.getUser();
         StepExecutionResultQuery query = StepExecutionResultQuery.builder()
             .stepInstanceId(stepInstanceId)
             .executeCount(executeCount)
@@ -473,7 +496,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             .order(Order.valueOf(order))
             .build();
 
-        StepExecutionDetailDTO executionResult = taskResultService.getStepExecutionResult(username,
+        StepExecutionDetailDTO executionResult = taskResultService.getStepExecutionResult(user,
             appResourceScope.getAppId(), query);
         return Response.buildSuccessResp(convertToStepInstanceExecutionDetailVO(executionResult));
     }
@@ -622,7 +645,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                     Long hostId,
                                                                     Integer batch) {
         StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstanceById(stepInstanceId);
-        auditAndAuthViewStepInstance(username, appResourceScope, stepInstance);
+        auditAndAuthViewStepInstance(JobContextUtil.getUser(), appResourceScope, stepInstance);
 
         ScriptExecuteObjectLogContent scriptExecuteObjectLogContent =
             logService.getScriptExecuteObjectLogContent(stepInstance, executeCount,
@@ -644,13 +667,14 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                    Long stepInstanceId,
                                                                    Long hostId,
                                                                    String ip) {
+        User user = JobContextUtil.getUser();
         StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
             null, stepInstanceId);
         if (!stepInstance.isScriptStep() || stepInstance.getScriptType() != ScriptTypeEnum.SHELL) {
             return Response.buildSuccessResp(Collections.emptyList());
         }
 
-        taskInstanceAccessProcessor.processBeforeAccess(username,
+        taskInstanceAccessProcessor.processBeforeAccess(user,
             appResourceScope.getAppId(), stepInstance.getTaskInstanceId());
 
         List<ExecuteVariableVO> taskVariableVOS = getStepVariableByExecuteObject(stepInstance,
@@ -885,10 +909,10 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         return fileDistDetailVO;
     }
 
-    private void auditAndAuthViewStepInstance(String username,
+    private void auditAndAuthViewStepInstance(User user,
                                               AppResourceScope appResourceScope,
                                               StepInstanceBaseDTO stepInstance) {
-        taskInstanceAccessProcessor.processBeforeAccess(username,
+        taskInstanceAccessProcessor.processBeforeAccess(user,
             appResourceScope.getAppId(), stepInstance.getTaskInstanceId());
     }
 
@@ -904,8 +928,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                         Integer resultType,
                                                         String tag,
                                                         String keyword) {
+        User user = JobContextUtil.getUser();
         List<ExecuteObject> executeObjects = taskResultService.getExecuteObjectsByResultType(
-            username,
+            user,
             appResourceScope.getAppId(),
             null,
             stepInstanceId,
@@ -947,8 +972,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                             Long taskInstanceId,
                                                                             Long stepInstanceId,
                                                                             Integer batch) {
-        List<StepExecutionRecordDTO> stepExecutionRecords = taskResultService.listStepExecutionHistory(username,
-            appResourceScope.getAppId(), taskInstanceId, stepInstanceId, batch);
+        List<StepExecutionRecordDTO> stepExecutionRecords = taskResultService.listStepExecutionHistory(
+            JobContextUtil.getUser(), appResourceScope.getAppId(), taskInstanceId, stepInstanceId, batch);
 
         return Response.buildSuccessResp(stepExecutionRecords.stream().map(stepExecutionRecord -> {
             StepExecutionRecordVO vo = new StepExecutionRecordVO();
@@ -993,7 +1018,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             .order(Order.valueOf(order))
             .build();
 
-        StepExecutionDetailDTO executionResult = taskResultService.getStepExecutionResult(username,
+        StepExecutionDetailDTO executionResult = taskResultService.getStepExecutionResult(JobContextUtil.getUser(),
             appResourceScope.getAppId(), query);
         return Response.buildSuccessResp(convertToStepInstanceExecutionDetailV2VO(executionResult));
     }
@@ -1012,7 +1037,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                                  Integer batch) {
         StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(
             appResourceScope.getAppId(), taskInstanceId, stepInstanceId);
-        auditAndAuthViewStepInstance(username, appResourceScope, stepInstance);
+        auditAndAuthViewStepInstance(JobContextUtil.getUser(), appResourceScope, stepInstance);
 
         int actualExecuteCount = computeActualExecuteCount(stepInstance, executeCount);
         ScriptExecuteObjectLogContent scriptExecuteObjectLogContent =
@@ -1048,7 +1073,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                              Integer mode) {
         StepInstanceDTO stepInstance =
             stepInstanceService.getStepInstanceDetail(taskInstanceId, stepInstanceId);
-        auditAndAuthViewStepInstance(username, appResourceScope, stepInstance);
+        auditAndAuthViewStepInstance(JobContextUtil.getUser(), appResourceScope, stepInstance);
 
         ExecuteObjectFileLogVO result = new ExecuteObjectFileLogVO();
         List<FileDistributionDetailV2VO> fileDistDetailVOS = new ArrayList<>();
@@ -1120,7 +1145,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                                      List<String> taskIds) {
         StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(
             taskInstanceId, stepInstanceId);
-        auditAndAuthViewStepInstance(username, appResourceScope, stepInstance);
+        auditAndAuthViewStepInstance(JobContextUtil.getUser(), appResourceScope, stepInstance);
 
         int actualExecuteCount = computeActualExecuteCount(stepInstance, executeCount);
         List<AtomicFileTaskLog> fileTaskLogs = logService.getAtomicFileTaskLogByTaskIds(taskInstanceId, stepInstanceId,
@@ -1149,7 +1174,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             return Response.buildSuccessResp(Collections.emptyList());
         }
 
-        taskInstanceAccessProcessor.processBeforeAccess(username,
+        taskInstanceAccessProcessor.processBeforeAccess(JobContextUtil.getUser(),
             appResourceScope.getAppId(), stepInstance.getTaskInstanceId());
 
         List<ExecuteVariableVO> taskVariableVOS = getStepVariableByExecuteObject(stepInstance,
@@ -1170,9 +1195,10 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                          Integer resultType,
                                                                          String tag,
                                                                          String keyword) {
+        User user = JobContextUtil.getUser();
         List<ExecuteObject> executeObjects =
             taskResultService.getExecuteObjectsByResultType(
-                username,
+                user,
                 appResourceScope.getAppId(),
                 taskInstanceId,
                 stepInstanceId,

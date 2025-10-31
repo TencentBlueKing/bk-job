@@ -27,9 +27,14 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.tencent.bk.audit.annotations.ActionAuditRecord;
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ProfileEnum;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.web.WebServiceInfoResource;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInfoVO;
 import com.tencent.bk.job.manage.service.impl.ServiceInfoService;
@@ -46,10 +51,12 @@ import java.util.List;
 public class WebServiceInfoResourceImpl implements WebServiceInfoResource {
 
     private final ServiceInfoService serviceInfoService;
+    private final TenantEnvService tenantEnvService;
 
     @Autowired
-    public WebServiceInfoResourceImpl(ServiceInfoService serviceInfoService) {
+    public WebServiceInfoResourceImpl(ServiceInfoService serviceInfoService, TenantEnvService tenantEnvService) {
         this.serviceInfoService = serviceInfoService;
+        this.tenantEnvService = tenantEnvService;
     }
 
     @Override
@@ -59,6 +66,12 @@ public class WebServiceInfoResourceImpl implements WebServiceInfoResource {
         content = EventContentConstants.VIEW_PLATFORM_SERVICE_STAT
     )
     public Response<List<ServiceInfoVO>> listServiceInfo(String username) {
+        if (tenantEnvService.isTenantEnabled()) {
+            String tenantId = JobContextUtil.getTenantId();
+            if (!TenantIdConstants.SYSTEM_TENANT_ID.equals(tenantId)) {
+                throw new NotFoundException(ErrorCode.NOT_SUPPORT_FEATURE);
+            }
+        }
         return Response.buildSuccessResp(serviceInfoService.listServiceInfo());
     }
 }

@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.AtomicFileTaskLog;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
@@ -99,7 +100,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
         }
 
         long taskInstanceId = request.getTaskInstanceId();
-        taskInstanceAccessProcessor.processBeforeAccess(username,
+        taskInstanceAccessProcessor.processBeforeAccess(JobContextUtil.getUser(),
             request.getAppResourceScope().getAppId(), taskInstanceId);
 
         StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(

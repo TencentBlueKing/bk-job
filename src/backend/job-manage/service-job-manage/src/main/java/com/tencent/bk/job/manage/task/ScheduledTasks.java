@@ -24,8 +24,12 @@
 
 package com.tencent.bk.job.manage.task;
 
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskBalancer;
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskDaemon;
+import com.tencent.bk.job.manage.background.sync.AgentStatusSyncService;
+import com.tencent.bk.job.manage.background.sync.AllTenantHostSyncService;
+import com.tencent.bk.job.manage.background.sync.AppSyncService;
 import com.tencent.bk.job.manage.manager.app.ApplicationCache;
-import com.tencent.bk.job.manage.service.SyncService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -37,36 +41,30 @@ import org.springframework.stereotype.Component;
 @EnableScheduling
 public class ScheduledTasks {
 
-    private final EsbUserInfoUpdateTask esbUserInfoUpdateTask;
-    private final SyncService syncService;
+    private final AppSyncService appSyncService;
+    private final AllTenantHostSyncService allTenantHostSyncService;
+    private final AgentStatusSyncService agentStatusSyncService;
     private final UserUploadFileCleanTask userUploadFileCleanTask;
-    private final ClearDeletedHostsTask clearDeletedHostsTask;
     private final ApplicationCache applicationCache;
+    private final BackGroundTaskBalancer backGroundTaskBalancer;
+    private final BackGroundTaskDaemon backGroundTaskDaemon;
 
     @Autowired
     public ScheduledTasks(
-        EsbUserInfoUpdateTask esbUserInfoUpdateTask,
-        SyncService syncService,
+        AppSyncService appSyncService,
+        AllTenantHostSyncService allTenantHostSyncService,
+        AgentStatusSyncService agentStatusSyncService,
         UserUploadFileCleanTask userUploadFileCleanTask,
-        ClearDeletedHostsTask clearDeletedHostsTask, ApplicationCache applicationCache) {
-        this.esbUserInfoUpdateTask = esbUserInfoUpdateTask;
-        this.syncService = syncService;
+        ApplicationCache applicationCache,
+        BackGroundTaskBalancer backGroundTaskBalancer,
+        BackGroundTaskDaemon backGroundTaskDaemon) {
+        this.appSyncService = appSyncService;
+        this.allTenantHostSyncService = allTenantHostSyncService;
+        this.agentStatusSyncService = agentStatusSyncService;
         this.userUploadFileCleanTask = userUploadFileCleanTask;
-        this.clearDeletedHostsTask = clearDeletedHostsTask;
         this.applicationCache = applicationCache;
-    }
-
-    /**
-     * 每间隔1h更新一次人员数据
-     */
-    @Scheduled(initialDelay = 2 * 1000, fixedDelay = 60 * 60 * 1000)
-    public void updateEsbUserInfo() {
-        log.info("updateEsbUserInfo");
-        try {
-            esbUserInfoUpdateTask.execute();
-        } catch (Exception e) {
-            log.error("updateEsbUserInfo fail", e);
-        }
+        this.backGroundTaskBalancer = backGroundTaskBalancer;
+        this.backGroundTaskDaemon = backGroundTaskDaemon;
     }
 
     /**
@@ -76,7 +74,7 @@ public class ScheduledTasks {
     public void appSyncTask() {
         log.info(Thread.currentThread().getId() + ":appSyncTask start");
         try {
-            syncService.syncApp();
+            appSyncService.syncApp();
         } catch (Exception e) {
             log.error("testAppSyncTask fail", e);
         }
@@ -102,7 +100,7 @@ public class ScheduledTasks {
     public void hostSyncTask() {
         log.info(Thread.currentThread().getId() + ":hostSyncTask start");
         try {
-            syncService.syncHost();
+            allTenantHostSyncService.syncHost();
         } catch (Exception e) {
             log.error("hostSyncTask fail", e);
         }
@@ -115,7 +113,7 @@ public class ScheduledTasks {
     public void agentStatusSyncTask() {
         log.info(Thread.currentThread().getId() + ":agentStatusSyncTask start");
         try {
-            syncService.syncAgentStatus();
+            agentStatusSyncService.syncAgentStatus();
         } catch (Exception e) {
             log.error("agentStatusSyncTask fail", e);
         }
@@ -132,14 +130,29 @@ public class ScheduledTasks {
         log.info("Clean user upload file task finished");
     }
 
-
-    @Scheduled(cron = "0 10 * * * ?")
-    public void clearDeletedHosts() {
-        log.info("Clear deleted hosts task begin");
+    /**
+     * 每分钟均衡一次分布在多个实例上的后台任务
+     */
+    @Scheduled(cron = "0 * * * * ?")
+    public void balanceBackGroundTask() {
+        log.info("balanceBackGroundTask begin");
         try {
-            log.info("Clear deleted hosts task finished:{}", clearDeletedHostsTask.execute());
+            log.info("balanceBackGroundTask finished:{}", backGroundTaskBalancer.balance());
         } catch (Exception e) {
-            log.error("Clear deleted hosts failed!", e);
+            log.error("balanceBackGroundTask failed!", e);
+        }
+    }
+
+    /**
+     * 每分钟检查并恢复一次异常终止的后台任务
+     */
+    @Scheduled(cron = "0 * * * * ?")
+    public void runBackGroundTaskDaemon() {
+        log.info("balanceBackGroundTask begin");
+        try {
+            backGroundTaskDaemon.checkAndResumeTaskForAllTenant(false);
+        } catch (Exception e) {
+            log.error("balanceBackGroundTask failed!", e);
         }
     }
 }

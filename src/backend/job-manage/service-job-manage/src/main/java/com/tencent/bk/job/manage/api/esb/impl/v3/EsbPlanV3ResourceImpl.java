@@ -34,8 +34,10 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.esb.v3.EsbPlanV3Resource;
 import com.tencent.bk.job.manage.manager.variable.StepRefVariableParser;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
@@ -174,7 +176,8 @@ public class EsbPlanV3ResourceImpl implements EsbPlanV3Resource {
                                                             @AuditRequestBody EsbGetPlanDetailV3Request request) {
         request.validate();
 
-        TaskPlanInfoDTO taskPlanInfo = taskPlanService.getTaskPlan(username,
+        User user = JobContextUtil.getUser();
+        TaskPlanInfoDTO taskPlanInfo = taskPlanService.getTaskPlan(user,
             request.getAppId(), request.getPlanId());
 
         List<TaskStepDTO> enabledTaskStepList = taskPlanInfo.getStepList()

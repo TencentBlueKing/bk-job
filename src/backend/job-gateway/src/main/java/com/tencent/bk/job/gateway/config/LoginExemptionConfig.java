@@ -19,4 +19,9 @@ public class LoginExemptionConfig {
      */
     @Value("${job.gateway.login-exemption.default-user:admin}")
     private String defaultUser;
+    /**
+     * 开启登录豁免后的默认用户所在租户ID
+     */
+    @Value("${job.gateway.login-exemption.default-user-tenant-id:default}")
+    private String defaultUserTenantId;
 }

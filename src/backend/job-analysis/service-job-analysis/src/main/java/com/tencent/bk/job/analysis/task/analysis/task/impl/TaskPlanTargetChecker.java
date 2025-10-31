@@ -31,7 +31,6 @@ import com.tencent.bk.job.analysis.dao.AnalysisTaskInstanceDAO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskDTO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskInstanceDTO;
 import com.tencent.bk.job.analysis.model.inner.AnalysisTaskResultItemLocation;
-import com.tencent.bk.job.analysis.service.ApplicationService;
 import com.tencent.bk.job.analysis.service.HostService;
 import com.tencent.bk.job.analysis.service.TaskPlanService;
 import com.tencent.bk.job.analysis.service.TaskTemplateService;
@@ -54,6 +53,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceTaskStepDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -76,9 +76,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
- * @Description 寻找执行方案中是否有无效IP/Agent异常/Agent未安装的情况
- * @Date 2020/3/6
- * @Version 1.0
+ * 寻找执行方案中是否有无效IP/Agent异常/Agent未安装的情况
  */
 @Component
 @AnalysisTask("TaskPlanTargetChecker")
@@ -94,13 +92,13 @@ public class TaskPlanTargetChecker extends AbstractTemplateAnalysisTask {
         AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
         TaskTemplateService templateService,
         TaskPlanService taskPlanService,
-        ApplicationService applicationService,
+        RemoteAppService remoteAppService,
         HostService hostService,
         @Qualifier("templateAnalysisTaskExecutor") ThreadPoolExecutor threadPoolExecutor
     ) {
         super(analysisTaskDAO,
             analysisTaskInstanceDAO,
-            applicationService,
+            remoteAppService,
             templateService,
             threadPoolExecutor
         );
