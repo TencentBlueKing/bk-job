@@ -190,10 +190,11 @@ public class OpenApiJwtServiceImpl implements OpenApiJwtService {
         BkGwJwtInfo bkGwJwtInfo;
         try {
             Claims claims = Jwts.parser()
-                .setSigningKey(publicKey)
-                .parseClaimsJws(token)
-                .getBody();
-            String appCode = null;
+                .verifyWith(publicKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+            String appCode = "";
             String username = null;
             if (claims.get("app") != null) {
                 LinkedHashMap appProps = claims.get("app", LinkedHashMap.class);

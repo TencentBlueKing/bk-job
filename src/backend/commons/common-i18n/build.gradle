@@ -25,6 +25,7 @@
 dependencies {
     api 'org.springframework:spring-context'
     api 'org.springframework:spring-core'
+    api 'jakarta.servlet:jakarta.servlet-api'
     implementation 'org.apache.commons:commons-lang3'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'

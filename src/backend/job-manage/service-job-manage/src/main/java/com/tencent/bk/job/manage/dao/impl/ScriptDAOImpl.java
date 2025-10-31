@@ -177,12 +177,13 @@ public class ScriptDAOImpl implements ScriptDAO {
 
     private int getPageScriptCountWithScriptVersionQueryCondition(ScriptQuery scriptQuery,
                                                                   BaseSearchCondition baseSearchCondition) {
-        return dslContext.fetchCount(
-            dslContext.selectDistinct(TB_SCRIPT.ID)
-                .from(TB_SCRIPT)
-                .leftJoin(TB_SCRIPT_VERSION)
-                .on(TB_SCRIPT.ID.eq(TB_SCRIPT_VERSION.SCRIPT_ID))
-                .where(buildScriptConditionList(scriptQuery, baseSearchCondition)));
+        return dslContext.selectCount().from(
+                dslContext.selectDistinct(TB_SCRIPT.ID)
+                    .from(TB_SCRIPT)
+                    .leftJoin(TB_SCRIPT_VERSION)
+                    .on(TB_SCRIPT.ID.eq(TB_SCRIPT_VERSION.SCRIPT_ID))
+                    .where(buildScriptConditionList(scriptQuery, baseSearchCondition))
+            ).fetchOne(0, Integer.class);
     }
 
     private List<SortField<?>> buildOrderFields(BaseSearchCondition baseSearchCondition) {
@@ -662,8 +663,8 @@ public class ScriptDAOImpl implements ScriptDAO {
                 .orderBy(TB_SCRIPT.NAME.asc())
                 .fetch();
         List<String> scriptNames = new ArrayList<>();
-        result.into(record -> {
-            String scriptName = record.get(TB_SCRIPT.NAME);
+        result.forEach(record -> {
+            String scriptName = ((Record) record).get(TB_SCRIPT.NAME);
             scriptNames.add(scriptName);
         });
         return scriptNames;
@@ -721,8 +722,8 @@ public class ScriptDAOImpl implements ScriptDAO {
             .orderBy(TB_SCRIPT_VERSION.LAST_MODIFY_TIME.desc())
             .fetch();
         List<ScriptDTO> scriptVersions = new ArrayList<>();
-        result.into(record -> {
-            ScriptDTO scriptVersion = extractScriptVersionData(record);
+        result.forEach(record -> {
+            ScriptDTO scriptVersion = extractScriptVersionData((Record) record);
             if (scriptVersion != null) {
                 scriptVersions.add(scriptVersion);
             }
@@ -754,8 +755,8 @@ public class ScriptDAOImpl implements ScriptDAO {
             .orderBy(tbScriptVersion.LAST_MODIFY_TIME.desc())
             .fetch();
         List<ScriptDTO> scriptVersions = new ArrayList<>();
-        result.into(record -> {
-            ScriptDTO scriptVersion = extractScriptVersionData(record);
+        result.forEach(record -> {
+            ScriptDTO scriptVersion = extractScriptVersionData((Record) record);
             if (scriptVersion != null) {
                 scriptVersions.add(scriptVersion);
             }
@@ -786,8 +787,8 @@ public class ScriptDAOImpl implements ScriptDAO {
             .limit(start, length)
             .fetch();
         List<ScriptDTO> scriptVersions = new ArrayList<>();
-        result.into(record -> {
-            ScriptDTO scriptVersion = extractScriptVersionData(record);
+        result.forEach(record -> {
+            ScriptDTO scriptVersion = extractScriptVersionData((Record) record);
             if (scriptVersion != null) {
                 scriptVersions.add(scriptVersion);
             }
@@ -961,8 +962,8 @@ public class ScriptDAOImpl implements ScriptDAO {
             .where(conditions)
             .fetch();
         List<String> scriptIdList = new ArrayList<>();
-        result.into(record -> {
-            String scriptId = record.get(TB_SCRIPT.ID);
+        result.forEach(record -> {
+            String scriptId = ((Record)record).get(TB_SCRIPT.ID);
             scriptIdList.add(scriptId);
         });
         return scriptIdList;

@@ -190,8 +190,12 @@ public class GseStepEventHandler extends AbstractStepEventHandler {
             Long gseTaskId = saveInitialGseTask(stepInstance);
             saveExecuteObjectTasksForStartStep(gseTaskId, stepInstance, rollingConfig);
 
+            // 设置步骤开始时间
+            if (stepInstance.getStartTime() == null) {
+                stepInstance.setStartTime(DateUtils.currentTimeMillis());
+            }
             stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId, RunStatusEnum.RUNNING,
-                stepInstance.getStartTime() == null ? DateUtils.currentTimeMillis() : null, null, null);
+                stepInstance.getStartTime(), null, null);
             if (isRollingStep) {
                 stepInstanceRollingTaskService.updateRollingTask(
                     taskInstanceId,

@@ -52,6 +52,7 @@ import com.tencent.bk.job.execute.model.esb.v3.request.EsbBatchGetJobInstanceIpL
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
+import com.tencent.bk.job.execute.service.impl.HostValidationService;
 import com.tencent.bk.job.execute.util.ExecuteObjectCompositeKeyUtils;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import com.tencent.bk.job.logsvr.util.LogFieldUtil;
@@ -70,13 +71,16 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
     private final StepInstanceService stepInstanceService;
     private final LogService logService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
+    private final HostValidationService hostValidationService;
 
     public EsbBatchGetJobInstanceIpLogV3ResourceImpl(LogService logService,
                                                      StepInstanceService stepInstanceService,
-                                                     TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
+                                                     TaskInstanceAccessProcessor taskInstanceAccessProcessor,
+                                                     HostValidationService hostValidationService) {
         this.logService = logService;
         this.stepInstanceService = stepInstanceService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
+        this.hostValidationService = hostValidationService;
     }
 
     @Override
@@ -129,6 +133,18 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
             log.warn("Host size is gt 500, stepInstanceId={}, size: {}", request.getStepInstanceId(), queryHostSize);
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME,
                 "host_id_list/ip_list");
+        }
+
+        ValidateResult validateResult = hostValidationService.validateHostIdsExist(request.getAppId(),
+            request.getHostIdList());
+        if (!validateResult.isPass()) return validateResult;
+
+        if (CollectionUtils.isNotEmpty(request.getIpList())) {
+            validateResult = hostValidationService.validateHostIpsExist(request.getAppId(),
+                request.getIpList().stream()
+                    .map(ip -> new HostDTO(ip.getBkCloudId(), ip.getIp()))
+                    .collect(Collectors.toList()));
+            if (!validateResult.isPass()) return validateResult;
         }
 
         return ValidateResult.pass();

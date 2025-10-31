@@ -280,7 +280,7 @@ public class FileExecuteObjectTaskDAOImpl extends BaseDAO implements FileExecute
         }
 
         if (result.size() > 0) {
-            result.into(record -> tasks.add(extract(record)));
+            result.forEach(record -> tasks.add(extract(record)));
         }
         return tasks;
     }

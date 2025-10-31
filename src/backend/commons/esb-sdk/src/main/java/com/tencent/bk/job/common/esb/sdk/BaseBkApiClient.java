@@ -161,7 +161,7 @@ public class BaseBkApiClient {
                     httpMethod.name(),
                     requestInfo.buildFinalUri(),
                     requestInfo.getBody() != null ?
-                        JsonUtils.toJsonWithoutSkippedFields(requestInfo.getBody()) : null
+                        JsonUtils.toJsonWithoutSkippedFieldsRecursively(requestInfo.getBody()) : null
                 );
             }
         }

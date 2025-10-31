@@ -25,7 +25,8 @@ apply plugin: 'nu.studer.jooq'
 
 dependencies {
     api "org.jooq:jooq"
-    jooqRuntime "com.mysql:mysql-connector-j"
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api'
+    jooqGenerator 'com.mysql:mysql-connector-j'
 }
 
 def nameArr = name.split('-')
@@ -47,46 +48,49 @@ def databaseName = moduleName
 def targetPackageName = "com.tencent.bk.job." + simpleModuleName + ".model"
 
 jooq {
-    genenrate(sourceSets.main) {
+    configurations {
+        main {
+            generationTool {
+                jdbc {
+                    driver = 'com.mysql.cj.jdbc.Driver'
+                    def mysqlURL = System.getProperty("mysqlURL")
+                    def mysqlUser = System.getProperty("mysqlUser")
+                    def mysqlPasswd = System.getProperty("mysqlPasswd")
 
-        jdbc {
-            driver = 'com.mysql.cj.jdbc.Driver'
-            def mysqlURL = System.getProperty("mysqlURL")
-            def mysqlUser = System.getProperty("mysqlUser")
-            def mysqlPasswd = System.getProperty("mysqlPasswd")
+                    if (mysqlURL == null) {
+                        // gradle.properties 中的 Jooq DB 配置
+                        mysqlURL = project.findProperty("DB_HOST")
+                        mysqlUser = project.findProperty("DB_USERNAME")
+                        mysqlPasswd = project.findProperty("DB_PASSWORD")
+                    }
 
-            if (mysqlURL == null) {
-                // gradle.properties 中的 Jooq DB 配置
-                mysqlURL = project.findProperty("DB_HOST")
-                mysqlUser = project.findProperty("DB_USERNAME")
-                mysqlPasswd = project.findProperty("DB_PASSWORD")
-            }
+                    println("mysqlURL=" + mysqlURL)
+                    println("mysqlUser=" + mysqlUser)
+                    url = "jdbc:mysql://${mysqlURL}/${databaseName}?useSSL=false&serverTimezone=UTC"
+                    user = mysqlUser
+                    password = mysqlPasswd
+                }
 
-            println("mysqlURL=" + mysqlURL)
-            println("mysqlUser=" + mysqlUser)
-            url = "jdbc:mysql://${mysqlURL}/${databaseName}?useSSL=false&serverTimezone=UTC"
-            user = mysqlUser
-            password = mysqlPasswd
-        }
+                generator {
+                    name = 'org.jooq.codegen.DefaultGenerator'
+                    database {
+                        name = 'org.jooq.meta.mysql.MySQLDatabase'
+                        inputSchema = "${databaseName}"
+                    }
 
-        generator {
-            name = 'org.jooq.codegen.DefaultGenerator'
-            database {
-                name = 'org.jooq.meta.mysql.MySQLDatabase'
-                inputSchema = "${databaseName}"
-            }
+                    generate {
+                        relations = false
+                        deprecated = false
+                        fluentSetters = true
+                        generatedAnnotation = false
+                        javaTimeTypes = true
+                    }
 
-            generate {
-                relations = false
-                deprecated = false
-                fluentSetters = true
-                generatedAnnotation = false
-                javaTimeTypes = true
-            }
-
-            target {
-                packageName = "${targetPackageName}"
-                encoding = 'UTF-8'
+                    target {
+                        packageName = "${targetPackageName}"
+                        encoding = 'UTF-8'
+                    }
+                }
             }
         }
     }

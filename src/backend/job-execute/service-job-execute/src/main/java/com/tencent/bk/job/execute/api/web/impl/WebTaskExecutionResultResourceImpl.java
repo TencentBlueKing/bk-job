@@ -29,12 +29,9 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.common.constant.Bool;
-import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.exception.FailedPreconditionException;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
@@ -48,7 +45,6 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.CustomCollectionUtils;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.api.web.WebTaskExecutionResultResource;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
@@ -105,6 +101,7 @@ import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskResultService;
+import com.tencent.bk.job.execute.validation.TaskInstanceQueryValidator;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
@@ -120,8 +117,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.charset.StandardCharsets;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -131,8 +126,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.tencent.bk.job.execute.constants.Consts.MAX_SEARCH_TASK_HISTORY_RANGE_MILLS;
-
 @SuppressWarnings("Duplicates")
 @RestController
 @Slf4j
@@ -141,6 +134,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     private final MessageI18nService i18nService;
     private final LogService logService;
     private final StepInstanceVariableValueService stepInstanceVariableValueService;
+    private final TaskInstanceQueryValidator taskInstanceQueryValidator;
     private final TaskInstanceVariableService taskInstanceVariableService;
     private final ServiceNotificationResource notifyResource;
     private final ExecuteAuthService executeAuthService;
@@ -202,6 +196,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                               MessageI18nService i18nService,
                                               LogService logService,
                                               StepInstanceVariableValueService stepInstanceVariableValueService,
+                                              TaskInstanceQueryValidator taskInstanceQueryValidator,
                                               TaskInstanceVariableService taskInstanceVariableService,
                                               ServiceNotificationResource notifyResource,
                                               ExecuteAuthService executeAuthService,
@@ -211,6 +206,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         this.i18nService = i18nService;
         this.logService = logService;
         this.stepInstanceVariableValueService = stepInstanceVariableValueService;
+        this.taskInstanceQueryValidator = taskInstanceQueryValidator;
         this.taskInstanceVariableService = taskInstanceVariableService;
         this.notifyResource = notifyResource;
         this.executeAuthService = executeAuthService;
@@ -285,9 +281,6 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         taskQuery.setAppId(appResourceScope.getAppId());
         taskQuery.setTaskName(taskName);
         taskQuery.setCronTaskId(cronTaskId);
-
-        validateAndSetQueryTimeRange(taskQuery, startTime, endTime, timeRange);
-
         setTotalTimeCondition(taskQuery, totalTimeType);
         taskQuery.setOperator(operator);
         setStartupModeCondition(taskQuery, startupModes);
@@ -307,52 +300,8 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             }
         }
         taskQuery.setIp(ip);
-
+        taskInstanceQueryValidator.validateAndSetQueryTimeRange(taskQuery, startTime, endTime, timeRange);
         return taskQuery;
-    }
-
-    private void validateAndSetQueryTimeRange(TaskInstanceQuery taskInstanceQuery,
-                                              String startTime,
-                                              String endTime,
-                                              Integer timeRange) {
-        Long start = null;
-        Long end = null;
-        if (timeRange != null) {
-            if (timeRange < 1) {
-                log.warn("Param timeRange should greater than 0");
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-            }
-            if (timeRange > 30) {
-                log.warn("Param timeRange should less then 30");
-                throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS);
-            }
-            // 当天结束时间 - 往前的天数
-            start = DateUtils.getUTCCurrentDayEndTimestamp() - timeRange * 24 * 3600 * 1000L;
-        } else {
-            if (StringUtils.isNotBlank(startTime)) {
-                start = DateUtils.convertUnixTimestampFromDateTimeStr(startTime, "yyyy-MM-dd HH:mm:ss",
-                    ChronoUnit.MILLIS, ZoneId.systemDefault());
-            }
-            if (StringUtils.isNotBlank(endTime)) {
-                end = DateUtils.convertUnixTimestampFromDateTimeStr(endTime, "yyyy-MM-dd HH:mm:ss",
-                    ChronoUnit.MILLIS, ZoneId.systemDefault());
-            }
-
-            if (start == null) {
-                log.info("StartTime should not be empty!");
-                throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
-            }
-            if (end == null) {
-                end = System.currentTimeMillis();
-            }
-            if (end - start > MAX_SEARCH_TASK_HISTORY_RANGE_MILLS) {
-                log.info("Query task instance history time span must be less than 30 days");
-                throw new FailedPreconditionException(ErrorCode.TASK_INSTANCE_QUERY_TIME_SPAN_MORE_THAN_30_DAYS);
-            }
-        }
-
-        taskInstanceQuery.setStartTime(start);
-        taskInstanceQuery.setEndTime(end);
     }
 
     private void setTotalTimeCondition(TaskInstanceQuery taskQuery, TaskTotalTimeTypeEnum totalTimeType) {

@@ -1,6 +1,7 @@
 package com.tencent.bk.job.common.gse.v2.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.util.json.SkipLogFields;
 import lombok.Data;
 
 /**
@@ -28,5 +29,6 @@ public class Agent {
     /**
      * 与user 用户名对应的密码
      */
+    @SkipLogFields
     private String pwd;
 }
