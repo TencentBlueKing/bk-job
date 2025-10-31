@@ -32,6 +32,8 @@ import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.ExecuteContext;
+import org.jooq.Query;
+import org.jooq.conf.ParamType;
 import org.jooq.impl.DefaultExecuteListener;
 
 import java.time.Duration;
@@ -75,14 +77,14 @@ public class JooqExecuteListener extends DefaultExecuteListener {
         try {
             Long startTimeMillis = (Long) ctx.data(KEY_START_TIME);
             long costTimeMillis = System.currentTimeMillis() - startTimeMillis;
-            String sql = parseSql(ctx);
-            recordSqlExecuteTimeConsuming(sql, costTimeMillis);
+            recordSqlExecuteTimeConsuming(ctx.sql(), costTimeMillis);
             if (shouldLogSlowSql(costTimeMillis)) {
+                String realSql = parseRealSql(ctx);
                 // 打印慢SQL日志
                 log.warn(
                     "SlowSQL cost {}ms. SQL=[{}]",
                     costTimeMillis,
-                    sql
+                    realSql
                 );
             }
         } catch (Exception e) {
@@ -107,7 +109,11 @@ public class JooqExecuteListener extends DefaultExecuteListener {
      * @param ctx 执行上下文
      * @return 真实执行的SQL
      */
-    private String parseSql(ExecuteContext ctx) {
+    private String parseRealSql(ExecuteContext ctx) {
+        Query query = ctx.query();
+        if (query != null) {
+            return query.getSQL(ParamType.INLINED);
+        }
         return ctx.sql();
     }
 

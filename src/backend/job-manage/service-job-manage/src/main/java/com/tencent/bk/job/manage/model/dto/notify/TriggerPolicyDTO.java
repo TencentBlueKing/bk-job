@@ -22,32 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo;
+package com.tencent.bk.job.manage.model.dto.notify;
 
-import com.tencent.bk.job.common.model.PageData;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class PageDataWithAvailableIdList<DataType, IdType> extends PageData<DataType> {
-    @ApiModelProperty(value = "可用的资源Id列表")
-    private List<IdType> availableIdList;
+public class TriggerPolicyDTO {
 
-    public PageDataWithAvailableIdList(PageData<DataType> pageData, List<IdType> availableIdList) {
-        this.setStart(pageData.getStart());
-        this.setPageSize(pageData.getPageSize());
-        this.setTotal(pageData.getTotal());
-        this.setData(pageData.getData());
-        this.setCanCreate(pageData.getCanCreate());
-        this.setExistAny(pageData.getExistAny());
-        this.availableIdList = availableIdList;
-    }
+    /**
+     * 触发方式
+     */
+    private String triggerType;
+
+    /**
+     * 操作（任务）类型列表
+     */
+    private List<String> resourceTypeList;
+
+    /**
+     * 任务角色（通知对象）列表
+     */
+    private List<String> roleList;
+
+    /**
+     * 额外通知人列表
+     */
+    private List<String> extraObserverList;
+
+    /**
+     * 状态通知渠道列表
+     */
+    private Map<String, List<String>> resourceStatusChannelMap;
 }

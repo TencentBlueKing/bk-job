@@ -134,7 +134,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             taskInstance,
             stepInstance,
             gseTask,
-                customPasswordCache);
+            customPasswordCache);
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.stepInstanceFileBatchService = stepInstanceFileBatchService;
         this.fileStorageRootPath = fileStorageRootPath;
@@ -580,7 +580,6 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 CollectionUtil.mergeToArrayList(targetExecuteObjectTasks, sourceExecuteObjectTasks));
         resultHandleManager.handleDeliveredTask(fileResultHandleTask);
     }
-
 
     @Override
     protected boolean checkGseTaskExecutable() {

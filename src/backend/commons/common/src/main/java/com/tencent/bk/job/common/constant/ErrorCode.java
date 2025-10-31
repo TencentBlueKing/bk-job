@@ -386,6 +386,8 @@ public class ErrorCode {
     public static final int RUNNING_JOB_EXCEED_SYSTEM_QUOTA_LIMIT = 1244034;
     // 按源文件滚动策略仅支持服务器文件
     public static final int FILE_SOURCE_ROLLING_ONLY_SUPPORT_SERVER_FILE = 1244035;
+    // 当前业务下任务量较大，允许的复杂查询（按名称搜索、2个及以上条件组合搜索等）最大时间范围为：{0}天
+    public static final int TASK_HISTORY_QUERY_RANGE_TOO_LARGE = 1244036;
     // 作业执行 end
 
     // 定时作业 start

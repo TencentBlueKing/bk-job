@@ -40,10 +40,7 @@
         <input
           class="app-name"
           readonly
-          :value="currentScopeId ? `${currentScopeName} (${currentScopeId})` : ''"
-          @keydown.down.prevent="handleStep('next')"
-          @keydown.enter.prevent="handleSelect"
-          @keydown.up.prevent="handleStep('prev')">
+          :value="currentScopeId ? `${currentScopeName} (${currentScopeId})` : ''">
         <i class="bk-icon icon-angle-down panel-arrow" />
       </template>
     </div>
@@ -54,72 +51,95 @@
         <div class="app-search">
           <input
             ref="searchRef"
-            v-model="keyword"
             :placeholder="$t('关键字')"
             spellcheck="false"
-            @input="handleInputChange"
-            @keydown.down.prevent="handleStep('next')"
-            @keydown.enter.prevent="handleSelect"
-            @keydown.up.prevent="handleStep('prev')">
+            :value="keyword"
+            @input="handleInputChange">
           <i class="bk-icon icon-search app-search-flag" />
         </div>
         <div
           ref="listRef"
-          class="app-list">
-          <auth-component
-            v-for="(app, index) in renderPaginationData"
-            :key="app.id"
-            auth="biz/access_business"
-            class="app-item"
-            :class="{
-              active: app.scopeType === currentScopeType && app.scopeId === currentScopeId,
-              hover: index === activeIndex,
-            }"
-            :permission="app.hasPermission"
-            :resource-id="app.scopeId"
-            :scope-id="app.scopeId"
-            :scope-type="app.scopeType">
+          class="app-list"
+          :style="{
+            'max-height': `${238 + scopeGroupData.length * 32}px`
+          }">
+          <template v-for="(app, index) in renderPaginationData">
             <div
-              @click="handleAppChange(app)"
-              @mouseenter.self="handleMouseenter(index)">
-              <div class="app-wrapper">
+              v-if="!app.groupId"
+              :key="index"
+              class="group-item"
+              :class="{
+                'is-expanded': expandScopeGroupMap[app.id]
+              }"
+              @click="() => handleExpandGroup(app.id)">
+              <icon type="arrow-full-right" />
+              <span style="margin-left: 8px">{{ app.name }}</span>
+            </div>
+            <auth-component
+              v-else
+              :key="index"
+              auth="biz/access_business"
+              class="app-item is-scope"
+              :class="{
+                active: app.groupId === currentScopeType && app.id === currentScopeId,
+              }"
+              :permission="app.data.hasPermission"
+              :resource-id="app.id"
+              :scope-id="app.id"
+              :scope-type="app.groupId">
+              <div
+                @click="handleAppChange(app)">
+                <div class="app-wrapper">
+                  <span class="app-name">{{ app.name }}</span>
+                  <span class="app-id">({{ app.id }})</span>
+                </div>
+                <div class="app-collection">
+                  <icon
+                    v-if="app.data.favor"
+                    class="favor"
+                    svg
+                    type="collection"
+                    @click.stop="handleFavor(app.groupId, app.id, false)" />
+                  <icon
+                    v-else
+                    class="unfavor"
+                    svg
+                    type="star-line"
+                    @click.stop="handleFavor(app.groupId, app.id, true)" />
+                </div>
+              </div>
+              <div
+                slot="forbid"
+                class="app-wrapper">
                 <span class="app-name">{{ app.name }}</span>
-                <span class="app-id">({{ app.scopeId }})</span>
+                <span class="app-id">(#{{ app.id }})</span>
               </div>
-              <div class="app-collection">
-                <icon
-                  v-if="app.favor"
-                  class="favor"
-                  svg
-                  type="collection"
-                  @click.stop="handleFavor(app.scopeType, app.scopeId, false)" />
-                <icon
-                  v-else
-                  class="unfavor"
-                  svg
-                  type="star-line"
-                  @click.stop="handleFavor(app.scopeType, app.scopeId, true)" />
-              </div>
-            </div>
-            <div
-              slot="forbid"
-              class="app-wrapper">
-              <span class="app-name">{{ app.name }}</span>
-              <span class="app-id">(#{{ app.scopeId }})</span>
-            </div>
-          </auth-component>
+            </auth-component>
+          </template>
           <div ref="loadingPlaceholderRef" />
           <div
-            v-if="renderList.length < 1"
+            v-if="filterList.length < 1"
             class="app-list-empty">
             {{ $t('无匹配数据') }}
           </div>
         </div>
         <div
-          key="create"
-          class="app-create"
-          @click="handleGoCreateApp">
-          <i class="bk-icon icon-plus-circle mr10" />{{ $t('新建业务') }}
+          key="operation"
+          class="footer-operation">
+          <div
+            class="operation-item"
+            @click="handleGoCreateApp">
+            <i class="bk-icon icon-plus-circle mr10" />{{ $t('去新建') }}
+          </div>
+          <div
+            v-bk-tooltips="{
+              content: $t('请联系业务运维加入业务'),
+              disabled: canApply,
+            }"
+            class="operation-item"
+            @click="handleGoApplyApp">
+            <i class="bk-icon icon-plus-circle mr10" />{{ $t('去申请') }}
+          </div>
         </div>
       </div>
     </div>
@@ -129,7 +149,7 @@
   import pinyin from 'bk-magic-vue/lib/utils/pinyin';
   import Tippy from 'bk-magic-vue/lib/utils/tippy';
   import _ from 'lodash';
-  import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
+  import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
 
   import { useRoute, useRouter } from '@router';
 
@@ -141,12 +161,12 @@
   import I18n from '@/i18n';
   import {
     encodeRegexp,
-    prettyDateTimeFormat,
   } from '@/utils/assist';
   import {
     scopeCache,
   } from '@/utils/cache-helper';
 
+  import useGroup from './useGroup';
   import usePagination from './usePagination';
 
   defineProps({
@@ -212,48 +232,108 @@
   const searchRef = ref();
   const loadingPlaceholderRef = ref();
   const isFocus = ref(false);
-  const renderList = shallowRef([]);
+  const isShowSelectPanel = ref(false);
+  const scopeGroupData = shallowRef([]);
   const currentScopeType = window.PROJECT_CONFIG.SCOPE_TYPE;
   const currentScopeId = window.PROJECT_CONFIG.SCOPE_ID;
   const currentScopeName = ref('');
-  const activeIndex = ref(-1);
+  const canApply = ref(false);
+  const applyUrl = ref('/');
   const keyword = ref('');
   const relatedSystemUrls = ref({
     BK_CMDB_ROOT_URL: '',
   });
-
-  const { data: renderPaginationData } = usePagination(listRef, loadingPlaceholderRef, renderList);
+  const expandScopeGroupMap = shallowRef({});
 
   const valueIcon = computed(() => currentScopeName.value.slice(0, 1));
+  const filterList = computed(() => {
+    const keywordStr = _.trim(keyword.value);
+    const rule = new RegExp(encodeRegexp(keywordStr), 'i');
+    const isExactMatch = /[\u4e00-\u9fa5]/.test(keywordStr);
+    return scopeGroupData.value.reduce((result, groupItem) => {
+      result.push({
+        id: groupItem.id,
+        name: groupItem.name,
+        groupId: undefined,
+        data: undefined,
+      });
+      if (expandScopeGroupMap.value[groupItem.id]) {
+        groupItem.children.forEach((item) => {
+          if (
+            (!keywordStr)
+            || (isExactMatch && rule.test(item.name))
+            || rule.test(item.headLetter)
+            || rule.test(item.sentence)
+            || rule.test(`${item.id}`)
+          ) {
+            result.push({
+              id: item.id,
+              name: item.name,
+              groupId: groupItem.id,
+              data: item,
+            });
+          }
+        });
+      }
+
+      return result;
+    }, []);
+  });
+
+  const { data: renderPaginationData } = usePagination(listRef, loadingPlaceholderRef, filterList);
+  useGroup(listRef, expandScopeGroupMap, filterList, isShowSelectPanel);
 
   QueryGlobalSettingService.fetchRelatedSystemUrls()
     .then((data) => {
       relatedSystemUrls.value = data;
     });
 
-  AppManageService.fetchWholeAppList()
-    .then((data) => {
-      list = data.data.map(item => ({
-        ...item,
-        ...getTransformInfo(item.name),
-      }));
+  const fetchGroupPanel = () => {
+    AppManageService.fetchGroupPanel()
+      .then((data) => {
+        applyUrl.value = data.applyUrl;
+        canApply.value = data.canApply;
 
-      renderList.value = [...list];
-      // eslint-disable-next-line no-plusplus
-      for (let i = 0; i < list.length; i++) {
-        const {
-          scopeType,
-          scopeId,
-          name,
-        } = list[i];
-        if (scopeType === currentScopeType && scopeId === currentScopeId) {
-          activeIndex.value = i;
-          currentScopeName.value = name;
-          break;
+        const result = data.scopeGroupList.map(item => ({
+          ...item,
+          children: item.children.map(item => ({
+            ...item,
+            ...getTransformInfo(item.name),
+          })),
+        }));
+        scopeGroupData.value = result;
+        if (result.length > 0) {
+          if (Object.keys(expandScopeGroupMap.value).length < 1) {
+            expandScopeGroupMap.value = {
+              [result[0].id]: true,
+            };
+          }
+          for (const groupItem of result) {
+            if (groupItem.id === currentScopeType) {
+              for (const scopeItem of groupItem.children) {
+                if (scopeItem.id === currentScopeId) {
+                  currentScopeName.value = scopeItem.name;
+                  break;
+                }
+              }
+            }
+          }
         }
-      }
-    });
+      });
+  };
 
+  fetchGroupPanel();
+
+
+  const handleExpandGroup = (groupId) => {
+    const latestScopeExpandGroup = { ...expandScopeGroupMap.value };
+    if (latestScopeExpandGroup[groupId]) {
+      delete latestScopeExpandGroup[groupId];
+    } else {
+      latestScopeExpandGroup[groupId] = true;
+    }
+    expandScopeGroupMap.value = latestScopeExpandGroup;
+  };
   const handleGoCreateApp = () => {
     if (!relatedSystemUrls.value.BK_CMDB_ROOT_URL) {
       alert(I18n.t('网络错误，请刷新页面重试'));
@@ -262,67 +342,24 @@
     window.open(`${relatedSystemUrls.value.BK_CMDB_ROOT_URL}/#/resource/business`);
   };
 
-  const handleStep = (step) => {
-    if (step === 'next') {
-      activeIndex.value += 1;
-      if (activeIndex.value === renderList.value.length) {
-        activeIndex.value = 0;
-      }
-    } else if (step === 'prev') {
-      activeIndex.value -= 1;
-      if (activeIndex.value < 0) {
-        activeIndex.value = renderList.value.length - 1;
-      }
+  const handleGoApplyApp = () => {
+    if (!canApply.value) {
+      return;
     }
-    nextTick(() => {
-      const wraperHeight = listRef.value.getBoundingClientRect().height;
-      const activeOffsetTop = listRef.value.querySelector('.hover').offsetTop + 32;
-
-      if (activeOffsetTop > wraperHeight) {
-        listRef.value.scrollTop = activeOffsetTop - wraperHeight + 10;
-      } else if (activeOffsetTop <= 42) {
-        listRef.value.scrollTop = 0;
-      }
-    });
+    window.open(applyUrl.value);
   };
 
-  const handleMouseenter = (index) => {
-    activeIndex.value = index;
-  };
-
-  const handleSelect = () => {
-    listRef.value.querySelector('.hover').click();
-  };
-
-  const handleInputChange = _.debounce(() => {
-    const query = _.trim(keyword.value);
-    let nextRenderList = [];
-    if (!query) {
-      nextRenderList = [...list];
-    } else {
-      const rule = new RegExp(encodeRegexp(query), 'i');
-      if (/[\u4e00-\u9fa5]/.test(query)) {
-        nextRenderList = _.filter(list, _ => rule.test(_.name));
-      } else {
-        nextRenderList = _.filter(list, _ => rule.test(_.head)
-          || rule.test(_.sentence)
-          || rule.test(_.scopeId));
-      }
-    }
-    renderList.value = nextRenderList;
-    activeIndex.value = 0;
+  const handleInputChange = _.debounce((event) => {
+    keyword.value = _.trim(event.target.value);
   }, 100);
 
   const handleFavor = (scopeType, scopeId, favor) => {
-    const app = _.find(list, _ => _.scopeType === scopeType && _.scopeId === scopeId);
     if (favor) {
       AppManageService.favorApp({
         scopeType,
         scopeId,
       }).then(() => {
-        app.favor = true;
-        app.favorTime = prettyDateTimeFormat(Date.now());
-        renderList.value = [...renderList.value];
+        fetchGroupPanel();
         messageSuccess(I18n.t('收藏成功'));
       });
     } else {
@@ -330,8 +367,7 @@
         scopeType,
         scopeId,
       }).then(() => {
-        app.favor = false;
-        renderList.value = [...renderList.value];
+        fetchGroupPanel();
         messageSuccess(I18n.t('取消收藏成功'));
       });
     }
@@ -339,8 +375,8 @@
 
   const handleAppChange = (appInfo) => {
     const {
-      scopeType,
-      scopeId,
+      groupId: scopeType,
+      id: scopeId,
     } = appInfo;
 
     const pathRoot = `/${scopeType}/${scopeId}`;
@@ -420,13 +456,14 @@
           isFocus.value = true;
           setTimeout(() => {
             searchRef.value.focus();
-          });
+            isShowSelectPanel.value = true;
+          }, 100);
         },
         onHidden: () => {
           isFocus.value = false;
           keyword.value = '';
+          isShowSelectPanel.value = false;
           list = sortAPPList(list);
-          handleInputChange();
         },
       });
     }
@@ -524,6 +561,10 @@
         &::placeholder {
           color: #747e94;
         }
+
+        &:focus{
+          border-color: #3a84ff;
+        }
       }
 
       .app-search-flag {
@@ -537,7 +578,6 @@
 
     .app-list {
       position: relative;
-      max-height: 238px;
       margin-top: 8px;
       margin-bottom: 8px;
       overflow-y: auto;
@@ -556,15 +596,28 @@
       text-align: center;
     }
 
+    .group-item,
     .app-item {
       display: flex;
       height: 32px;
       padding: 0 16px 0 10px;
       line-height: 32px;
       cursor: pointer;
+      background: #182233;
       transition: all 0.1s;
       align-items: center;
+    }
 
+    .group-item{
+      &.is-expanded{
+        .job-icon-arrow-full-right{
+          transform: rotateZ(90deg);
+          transition: all .15s;
+        }
+      }
+    }
+
+    .app-item{
       &:hover,
       &.hover {
         color: #f0f1f5;
@@ -583,6 +636,7 @@
         color: #f0f1f5;
         background-color: #2d3542;
       }
+
 
       .app-wrapper {
         display: flex;
@@ -620,15 +674,33 @@
       }
     }
 
-    .app-create {
+    .footer-operation {
       display: flex;
       height: 33px;
-      padding: 0 10px;
       color: #c4c6cc;
-      cursor: pointer;
       background: #28354d;
       border-radius: 0 0 1px 1px;
-      align-items: center;
+      user-select: none;
+
+      .operation-item{
+        position: relative;
+        display: flex;
+        cursor: pointer;
+        flex: 1;
+        align-items: center;
+        justify-content: center;
+
+        & ~ .operation-item{
+          &::before{
+            position: absolute;
+            left: 1px;
+            width: 1px;
+            height: 16px;
+            background: #C4C6CC;
+            content: '';
+          }
+        }
+      }
     }
   }
 </style>

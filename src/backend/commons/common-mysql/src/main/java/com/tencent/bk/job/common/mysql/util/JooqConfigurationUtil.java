@@ -37,16 +37,16 @@ public class JooqConfigurationUtil {
     /**
      * 获取jOOQ配置
      *
-     * @param connectionProvider      连接提供者
-     * @param executeListenerProvider 执行监听器提供者
+     * @param connectionProvider       连接提供者
+     * @param executeListenerProviders 执行监听器提供者数组
      * @return jOOQ配置
      */
     public static org.jooq.Configuration getConfiguration(ConnectionProvider connectionProvider,
-                                                          DefaultExecuteListenerProvider executeListenerProvider) {
+                                                          DefaultExecuteListenerProvider... executeListenerProviders) {
         org.jooq.Configuration configuration = new DefaultConfiguration()
             .derive(connectionProvider)
             .derive(SQLDialect.MYSQL);
-        configuration.set(executeListenerProvider);
+        configuration.set(executeListenerProviders);
         return configuration;
     }
 }

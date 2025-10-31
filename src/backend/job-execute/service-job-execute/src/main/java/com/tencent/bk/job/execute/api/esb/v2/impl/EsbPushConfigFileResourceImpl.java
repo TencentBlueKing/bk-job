@@ -80,10 +80,12 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
     private final LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner;
 
     @Autowired
-    public EsbPushConfigFileResourceImpl(TaskExecuteService taskExecuteService,
-                                         AccountService accountService,
-                                         FileDistributeConfig fileDistributeConfig,
-                                         LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner) {
+    public EsbPushConfigFileResourceImpl(
+        TaskExecuteService taskExecuteService,
+        AccountService accountService,
+        FileDistributeConfig fileDistributeConfig,
+        LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner
+    ) {
         this.taskExecuteService = taskExecuteService;
         this.accountService = accountService;
         this.fileDistributeConfig = fileDistributeConfig;
