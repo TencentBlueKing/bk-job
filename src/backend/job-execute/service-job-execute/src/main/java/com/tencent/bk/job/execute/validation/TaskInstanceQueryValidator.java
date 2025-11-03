@@ -151,7 +151,13 @@ public class TaskInstanceQueryValidator {
             long maxAllowedDays = maxQueryDataNum / averageDailyTaskNum;
 
             // 计算查询时间范围（天）
-            double queryTimeRangeDays = (end - start) / (24 * 60 * 60 * 1000.0);
+            long deltaMills;
+            if (end == null) {
+                deltaMills = System.currentTimeMillis() - start;
+            } else {
+                deltaMills = end - start;
+            }
+            double queryTimeRangeDays = deltaMills / (24 * 60 * 60 * 1000.0);
 
             log.debug("Complex query validation for appId={}: averageDailyTaskNum={}, maxQueryDataNum={}, " +
                     "maxAllowedDays={}, queryTimeRangeDays={}",
