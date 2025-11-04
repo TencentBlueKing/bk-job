@@ -74,6 +74,18 @@ public @interface V4ExecuteTargetNotEmptyAndContainerSafely {
                 return false;
             }
 
+            // 不允许主机和容器混合执行
+            boolean hasHostTarget = hasHostTarget(v4ExecuteTargetDTO);
+            boolean hasContainerTarget = CollectionUtils.isNotEmpty(v4ExecuteTargetDTO.getKubeContainerFilters());
+            if (hasHostTarget && hasContainerTarget) {
+                hibernateContext.disableDefaultConstraintViolation();
+                hibernateContext
+                    .buildConstraintViolationWithTemplate(
+                        "{validation.constraints.ExecuteTarget_MixHostAndContainer.message}")
+                    .addConstraintViolation();
+                return false;
+            }
+
             // 执行目标存在容器
             List<V4ContainerFilter> containerFilters = v4ExecuteTargetDTO.getKubeContainerFilters();
             if (CollectionUtils.isNotEmpty(containerFilters)) {
@@ -104,6 +116,12 @@ public @interface V4ExecuteTargetNotEmptyAndContainerSafely {
             }
 
             return true;
+        }
+
+        private boolean hasHostTarget(V4ExecuteTargetDTO v4ExecuteTargetDTO) {
+            return CollectionUtils.isNotEmpty(v4ExecuteTargetDTO.getHostList())
+                || CollectionUtils.isNotEmpty(v4ExecuteTargetDTO.getDynamicGroups())
+                || CollectionUtils.isNotEmpty(v4ExecuteTargetDTO.getTopoNodes());
         }
     }
 }

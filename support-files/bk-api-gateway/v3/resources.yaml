@@ -3597,9 +3597,9 @@ paths:
           userVerifiedRequired: false
           resourcePermissionRequired: true
         descriptionEn: Fast execute script
-  /api/v4/batch_get_job_instance_ip_log:
+  /api/v4/batch_get_job_instance_execute_object_log:
     post:
-      operationId: v4_batch_get_job_instance_ip_log
+      operationId: v4_batch_get_job_instance_execute_object_log
       description: 根据ip列表批量查询作业执行日志
       tags: [ 'v4' ]
       responses:
@@ -3613,7 +3613,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v4/job-execute/batch_get_job_instance_ip_log
+          path: /api/job/v4/job-execute/batch_get_job_instance_execute_object_log
           matchSubpath: false
           timeout: 0
           upstreams: { }
@@ -3622,10 +3622,10 @@ paths:
           appVerifiedRequired: true
           userVerifiedRequired: true
           resourcePermissionRequired: true
-        descriptionEn: Batch get job instance ip log
-  /api/v4/system/batch_get_job_instance_ip_log:
+        descriptionEn: Batch get job instance execute object log
+  /api/v4/system/batch_get_job_instance_execute_object_log:
     post:
-      operationId: v4_system_batch_get_job_instance_ip_log
+      operationId: v4_system_batch_get_job_instance_execute_object_log
       description: 根据ip列表批量查询作业执行日志
       tags: [ 'system' ]
       responses:
@@ -3639,7 +3639,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v4/job-execute/batch_get_job_instance_ip_log
+          path: /api/job/v4/job-execute/batch_get_job_instance_execute_object_log
           matchSubpath: false
           timeout: 0
           upstreams: { }
@@ -3648,7 +3648,7 @@ paths:
           appVerifiedRequired: true
           userVerifiedRequired: false
           resourcePermissionRequired: true
-        descriptionEn: Batch get job instance ip log
+        descriptionEn: Batch get job instance execute object log
   /api/v4/get_job_instance_status:
     get:
       operationId: v4_get_job_instance_status
