@@ -151,16 +151,24 @@ Step type: File distribution
                 "download_log": [
                     {
                         "mode": 1,
-                        "src_host": {
-                            "bk_host_id": 2,
-                            "bk_cloud_id": 0,
-                            "ip": "127.0.0.2"
+                        "src_execute_object": {
+                            "type": 1,
+                            "resource_id": "2",
+                            "host": {
+                                "bk_host_id": 2,
+                                "bk_cloud_id": 0,
+                                "ip": "127.0.0.2"
+                            }
                         },
                         "src_path": "/data/1.log",
-                        "dest_host": {
-                            "bk_host_id": 1,
-                            "bk_cloud_id": 0,
-                            "ip": "127.0.0.1"
+                        "dest_execute_object": {
+                            "type": 1,
+                            "resource_id": "1",
+                            "host": {
+                                "bk_host_id": 1,
+                                "bk_cloud_id": 0,
+                                "ip": "127.0.0.1"
+                            }
                         },
                         "dest_path": "/tmp/1.log",
                         "status": 4,
@@ -184,10 +192,14 @@ Step type: File distribution
                 "upload_log": [
                     {
                         "mode": 0,
-                        "src_host": {
-                            "bk_host_id": 2,
-                            "bk_cloud_id": 0,
-                            "ip": "127.0.0.2"
+                        "src_execute_object": {
+                            "type": 1,
+                            "resource_id": "2",
+                            "host": {
+                                "bk_host_id": 2,
+                                "bk_cloud_id": 0,
+                                "ip": "127.0.0.2"
+                            }
                         },
                         "src_path": "/data/1.log",
                         "status": 4,
@@ -234,18 +246,18 @@ Step type: File distribution
 
 #### file_task_log
 
-| Field       | Type   | Non-null | Description                                                                                                           |
-|-------------|--------|----------|-----------------------------------------------------------------------------------------------------------------------|
-| mode        | int    | Yes      | File transfer mode. 0 - Upload, 1 - Download                                                                          |
-| src_host    | object | Yes      | Source host info. See host                                                                                            |
-| src_path    | string | Yes      | Source file path                                                                                                      |
-| dest_host   | object | Yes      | Destination host info. See host                                                                                       |
-| dest_path   | string | Yes      | Destination file path                                                                                                 |
-| status      | int    | Yes      | File transfer task status. 0 - Pulling from source, 1 - Pending, 2 - Uploading, 3 - Downloading, 4 - Done, 5 - Failed |
-| log_content | string | Yes      | File transfer log content                                                                                             |
-| size        | string | Yes      | File size                                                                                                             |
-| speed       | string | Yes      | Upload/Download speed                                                                                                 |
-| process     | string | Yes      | Upload/Download progress                                                                                              |
+| Field               | Type   | Non-null | Description                                                                                                           |
+|---------------------|--------|----------|-----------------------------------------------------------------------------------------------------------------------|
+| mode                | int    | Yes      | File transfer mode. 0 - Upload, 1 - Download                                                                          |
+| src_execute_object  | object | Yes      | Source execute object (host/container). See execute_object definition                                                 |
+| src_path            | string | Yes      | Source file path                                                                                                      |
+| dest_execute_object | object | No       | Destination execute object (host/container). See execute_object definition. Only exists when mode=1                   |
+| dest_path           | string | No       | Destination file path. Only exists when mode=1                                                                        |
+| status              | int    | Yes      | File transfer task status. 0 - Pulling from source, 1 - Pending, 2 - Uploading, 3 - Downloading, 4 - Done, 5 - Failed |
+| log_content         | string | Yes      | File transfer log content                                                                                             |
+| size                | string | Yes      | File size                                                                                                             |
+| speed               | string | Yes      | Upload/Download speed                                                                                                 |
+| process             | string | Yes      | Upload/Download progress                                                                                              |
 
 #### execute_object
 

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.model.esb.v4.resp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.execute.model.esb.v4.req.OpenApiV4HostDTO;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteObjectDTO;
 import lombok.Data;
 
 /**
@@ -42,10 +42,10 @@ public class V4FileLogDTO {
     private Integer mode;
 
     /**
-     * 源IP
+     * 源执行对象（主机或容器）
      */
-    @JsonProperty("src_host")
-    private OpenApiV4HostDTO srcHost;
+    @JsonProperty("src_execute_object")
+    private OpenApiExecuteObjectDTO srcExecuteObject;
 
     /**
      * 文件源路径
@@ -54,10 +54,10 @@ public class V4FileLogDTO {
     private String srcPath;
 
     /**
-     * 目标IP
+     * 目标执行对象（主机或容器）
      */
-    @JsonProperty("dest_host")
-    private OpenApiV4HostDTO destHost;
+    @JsonProperty("dest_execute_object")
+    private OpenApiExecuteObjectDTO destExecuteObject;
 
     /**
      * 文件目标路径

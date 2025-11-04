@@ -232,10 +232,10 @@ public class OpenApiBatchGetJobInstanceExecuteObjectLogV4ResourceImpl
     private V4FileLogDTO fromFileAtomicTaskLog(AtomicFileTaskLog fileTaskLog) {
         V4FileLogDTO v4FileLogDTO = new V4FileLogDTO();
         if (fileTaskLog.getSrcExecuteObject() != null) {
-            v4FileLogDTO.setSrcHost(new OpenApiV4HostDTO(fileTaskLog.getSrcExecuteObject().getHost()));
+            v4FileLogDTO.setSrcExecuteObject(fileTaskLog.getSrcExecuteObject().toOpenApiExecuteObjectDTO());
         }
         if (fileTaskLog.getDestExecuteObject() != null) {
-            v4FileLogDTO.setDestHost(new OpenApiV4HostDTO(fileTaskLog.getDestExecuteObject().getHost()));
+            v4FileLogDTO.setDestExecuteObject(fileTaskLog.getDestExecuteObject().toOpenApiExecuteObjectDTO());
         }
 
         v4FileLogDTO.setMode(fileTaskLog.getMode());

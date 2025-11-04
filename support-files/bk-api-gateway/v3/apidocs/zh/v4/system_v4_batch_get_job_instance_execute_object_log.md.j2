@@ -151,16 +151,24 @@
                 "download_log": [
                     {
                         "mode": 1,
-                        "src_host": {
-                            "bk_host_id": 2,
-                            "bk_cloud_id": 0,
-                            "ip": "127.0.0.2"
+                        "src_execute_object": {
+                            "type": 1,
+                            "resource_id": "2",
+                            "host": {
+                                "bk_host_id": 2,
+                                "bk_cloud_id": 0,
+                                "ip": "127.0.0.2"
+                            }
                         },
                         "src_path": "/data/1.log",
-                        "dest_host": {
-                            "bk_host_id": 1,
-                            "bk_cloud_id": 0,
-                            "ip": "127.0.0.1"
+                        "dest_execute_object": {
+                            "type": 1,
+                            "resource_id": "1",
+                            "host": {
+                                "bk_host_id": 1,
+                                "bk_cloud_id": 0,
+                                "ip": "127.0.0.1"
+                            }
                         },
                         "dest_path": "/tmp/1.log",
                         "status": 4,
@@ -184,10 +192,14 @@
                 "upload_log": [
                     {
                         "mode": 0,
-                        "src_host": {
-                            "bk_host_id": 2,
-                            "bk_cloud_id": 0,
-                            "ip": "127.0.0.2"
+                        "src_execute_object": {
+                            "type": 1,
+                            "resource_id": "2",
+                            "host": {
+                                "bk_host_id": 2,
+                                "bk_cloud_id": 0,
+                                "ip": "127.0.0.2"
+                            }
                         },
                         "src_path": "/data/1.log",
                         "status": 4,
@@ -234,18 +246,18 @@
 
 #### file_task_log
 
-| 字段          | 类型     | 是否一定存在 | 描述                                              |
-|-------------|--------|--------|-------------------------------------------------|
-| mode        | int    | 是      | 文件分发模式。0-上传，1-下载                                |
-| src_host    | object | 是      | 源主机信息。定义见host                                   |
-| src_path    | string | 是      | 文件源路径                                           |
-| dest_host   | object | 是      | 目标主机信息。定义见host                                  |
-| dest_path   | string | 是      | 文件目标路径                                          |
-| status      | int    | 是      | 文件传输任务状态。0-从文件源拉取中，1-等待开始，2-上传中，3-下载中，4-完成，5-失败 |
-| log_content | string | 是      | 文件传输日志内容                                        |
-| size        | string | 是      | 文件大小                                            |
-| speed       | string | 是      | 上传/下载速度                                         |
-| process     | string | 是      | 上传/下载进度                                         |
+| 字段                  | 类型     | 是否一定存在 | 描述                                              |
+|---------------------|--------|--------|-------------------------------------------------|
+| mode                | int    | 是      | 文件分发模式。0-上传，1-下载                                |
+| src_execute_object  | object | 是      | 源执行对象（主机/容器）。定义见execute_object                  |
+| src_path            | string | 是      | 文件源路径                                           |
+| dest_execute_object | object | 否      | 目标执行对象（主机/容器）。定义见execute_object。仅在mode=1时存在     |
+| dest_path           | string | 否      | 文件目标路径。仅在mode=1时存在                              |
+| status              | int    | 是      | 文件传输任务状态。0-从文件源拉取中，1-等待开始，2-上传中，3-下载中，4-完成，5-失败 |
+| log_content         | string | 是      | 文件传输日志内容                                        |
+| size                | string | 是      | 文件大小                                            |
+| speed               | string | 是      | 上传/下载速度                                         |
+| process             | string | 是      | 上传/下载进度                                         |
 
 #### execute_object
 
