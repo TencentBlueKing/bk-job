@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
@@ -196,15 +197,10 @@ public class OpenApiBatchGetJobInstanceExecuteObjectLogV4ResourceImpl
         
         for (AtomicFileTaskLog fileTaskLog : fileTaskLogs) {
             V4FileLogDTO v4FileLogDTO = fromFileAtomicTaskLog(fileTaskLog);
-            
-            // 判断当前执行对象是源还是目标
-            boolean isSource = isExecuteObjectMatch(currentExecuteObject, fileTaskLog.getSrcExecuteObject());
-            boolean isDestination = isExecuteObjectMatch(currentExecuteObject, fileTaskLog.getDestExecuteObject());
-            
-            if (isSource) {
+
+            if (Objects.equals(fileTaskLog.getMode(), FileDistModeEnum.UPLOAD.getValue())) {
                 uploadLogs.add(v4FileLogDTO);
-            }
-            if (isDestination) {
+            } else if (Objects.equals(fileTaskLog.getMode(), FileDistModeEnum.DOWNLOAD.getValue())) {
                 downloadLogs.add(v4FileLogDTO);
             }
         }
