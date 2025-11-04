@@ -352,9 +352,9 @@ max_file_num_of_single_execute_object=4
 
 #### data
 
-| 字段                | 类型     | 是否一定不为null | 描述     |
-|-------------------|--------|------------|--------|
-| job_instance_id   | long   | 是          | 作业实例ID |
-| job_instance_name | string | 否          | 作业实例名称 |
-| step_instance_id  | long   | 否          | 步骤实例ID |
+| 字段                | 类型     | 是否一定存在 | 描述     |
+|-------------------|--------|--------|--------|
+| job_instance_id   | long   | 是      | 作业实例ID |
+| job_instance_name | string | 否      | 作业实例名称 |
+| step_instance_id  | long   | 否      | 步骤实例ID |
 
