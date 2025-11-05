@@ -2072,8 +2072,8 @@ waitForDependServices:
 k8sConfigWatcherConfig:
   enabled: true
   image:
-    registry: docker.io
-    repository: bkjob/job-config-watcher
+    registry: hub.bktencent.com
+    repository: blueking/job-config-watcher
     tag: "3.11.11"
     pullPolicy: IfNotPresent
     pullSecrets: []
