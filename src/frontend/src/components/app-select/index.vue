@@ -74,6 +74,7 @@
               @click="() => handleExpandGroup(app.id)">
               <icon type="arrow-full-right" />
               <span style="margin-left: 8px">{{ app.name }}</span>
+              <span class="group-children-count">{{ groupChildrenCountMap[app.id] || 0 }}</span>
             </div>
             <auth-component
               v-else
@@ -149,7 +150,7 @@
   import pinyin from 'bk-magic-vue/lib/utils/pinyin';
   import Tippy from 'bk-magic-vue/lib/utils/tippy';
   import _ from 'lodash';
-  import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
+  import { computed, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
 
   import { useRoute, useRouter } from '@router';
 
@@ -244,40 +245,82 @@
     BK_CMDB_ROOT_URL: '',
   });
   const expandScopeGroupMap = shallowRef({});
+  const groupChildrenCountMap = shallowRef({});
+  const filterList = shallowRef([]);
 
   const valueIcon = computed(() => currentScopeName.value.slice(0, 1));
-  const filterList = computed(() => {
+  // const filterList = computed(() => {
+  //   const keywordStr = _.trim(keyword.value);
+  //   const rule = new RegExp(encodeRegexp(keywordStr), 'i');
+  //   const isExactMatch = /[\u4e00-\u9fa5]/.test(keywordStr);
+  //   return scopeGroupData.value.reduce((result, groupItem) => {
+  //     result.push({
+  //       id: groupItem.id,
+  //       name: groupItem.name,
+  //       groupId: undefined,
+  //       data: undefined,
+  //     });
+  //     if (expandScopeGroupMap.value[groupItem.id]) {
+  //       groupItem.children.forEach((item) => {
+  //         if (
+  //           (!keywordStr)
+  //           || (isExactMatch && rule.test(item.name))
+  //           || rule.test(item.headLetter)
+  //           || rule.test(item.sentence)
+  //           || rule.test(`${item.id}`)
+  //         ) {
+  //           result.push({
+  //             id: item.id,
+  //             name: item.name,
+  //             groupId: groupItem.id,
+  //             data: item,
+  //           });
+  //         }
+  //       });
+  //     }
+
+  //     return result;
+  //   }, []);
+  // });
+
+  watch([keyword, scopeGroupData, expandScopeGroupMap], () => {
     const keywordStr = _.trim(keyword.value);
     const rule = new RegExp(encodeRegexp(keywordStr), 'i');
     const isExactMatch = /[\u4e00-\u9fa5]/.test(keywordStr);
-    return scopeGroupData.value.reduce((result, groupItem) => {
-      result.push({
+    const filterListResult = [];
+    const childrenCountMap = {};
+    scopeGroupData.value.forEach((groupItem) => {
+      filterListResult.push({
         id: groupItem.id,
         name: groupItem.name,
         groupId: undefined,
         data: undefined,
       });
-      if (expandScopeGroupMap.value[groupItem.id]) {
-        groupItem.children.forEach((item) => {
-          if (
-            (!keywordStr)
-            || (isExactMatch && rule.test(item.name))
-            || rule.test(item.headLetter)
-            || rule.test(item.sentence)
-            || rule.test(`${item.id}`)
-          ) {
-            result.push({
+      childrenCountMap[groupItem.id] = 0;
+      groupItem.children.forEach((item) => {
+        if (
+          (!keywordStr)
+          || (isExactMatch && rule.test(item.name))
+          || rule.test(item.headLetter)
+          || rule.test(item.sentence)
+          || rule.test(`${item.id}`)
+        ) {
+          if (expandScopeGroupMap.value[groupItem.id]) {
+            filterListResult.push({
               id: item.id,
               name: item.name,
               groupId: groupItem.id,
               data: item,
             });
           }
-        });
-      }
-
-      return result;
-    }, []);
+          childrenCountMap[groupItem.id] += 1;
+        }
+      });
+    });
+    filterList.value = filterListResult;
+    groupChildrenCountMap.value = childrenCountMap;
+  }, {
+    immediate: true,
   });
 
   const { data: renderPaginationData } = usePagination(listRef, loadingPlaceholderRef, filterList);
@@ -303,11 +346,6 @@
         }));
         scopeGroupData.value = result;
         if (result.length > 0) {
-          if (Object.keys(expandScopeGroupMap.value).length < 1) {
-            expandScopeGroupMap.value = {
-              [result[0].id]: true,
-            };
-          }
           for (const groupItem of result) {
             if (groupItem.id === currentScopeType) {
               for (const scopeItem of groupItem.children) {
@@ -318,12 +356,41 @@
               }
             }
           }
+          // 默认展开有权限的第一个业务组
+          if (Object.keys(expandScopeGroupMap.value).length < 1) {
+            // 业务有权限——优先展开业务组
+            const bizGroup = result.find(item => item.id === 'biz');
+            if (bizGroup && _.some(bizGroup?.children || [], item => item.hasPermission)) {
+              expandScopeGroupMap.value = {
+                [bizGroup.id]: true,
+              };
+              return;
+            }
+            // 业务没有权限，业务级有权限——其次展开业务集
+            const bizSetGroup = result.find(item => item.id === 'biz_set');
+            if (bizSetGroup && _.some(bizSetGroup?.children || [], item => item.hasPermission)) {
+              expandScopeGroupMap.value = {
+                [bizSetGroup.id]: true,
+              };
+              return;
+            }
+            // 业务级也没有权限——默认展开第一个业务组
+            expandScopeGroupMap.value = {
+              [bizGroup ? bizGroup.id : result[0].id]: true,
+            };
+          }
         }
+      });
+  };
+  const fetchGroupApply = () => {
+    AppManageService.fetchGroupPanel()
+      .then((data) => {
+        applyUrl.value = data.applyUrl;
+        canApply.value = data.canApply;
       });
   };
 
   fetchGroupPanel();
-
 
   const handleExpandGroup = (groupId) => {
     const latestScopeExpandGroup = { ...expandScopeGroupMap.value };
@@ -454,6 +521,7 @@
         zIndex: window.__bk_zIndex_manager.nextZIndex(), // eslint-disable-line no-underscore-dangle
         onShow: () => {
           isFocus.value = true;
+          fetchGroupApply();
           setTimeout(() => {
             searchRef.value.focus();
             isShowSelectPanel.value = true;
@@ -601,7 +669,6 @@
       display: flex;
       height: 32px;
       padding: 0 16px 0 10px;
-      line-height: 32px;
       cursor: pointer;
       background: #182233;
       transition: all 0.1s;
@@ -609,11 +676,22 @@
     }
 
     .group-item{
+      user-select: none;
+
       &.is-expanded{
         .job-icon-arrow-full-right{
           transform: rotateZ(90deg);
           transition: all .15s;
         }
+      }
+
+      .group-children-count{
+        height: 20px;
+        padding: 0 8px;
+        margin-left: 4px;
+        line-height: 20px;
+        background: #294066;
+        border-radius: 2px;
       }
     }
 

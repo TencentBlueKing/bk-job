@@ -43,6 +43,10 @@
             {{ $t('新建业务') }}
           </bk-button>
           <bk-button
+            v-bk-tooltips="{
+              content: $t('请联系业务运维加入业务'),
+              disabled: canApply,
+            }"
             :loading="isApplyLoading"
             theme="primary"
             @click="handleGoApplyPermission">
@@ -65,7 +69,12 @@
             </div>
             <div>
               {{ $t('不同团队在作业平台上的资源以“业务”分隔，而“业务”是统一由配置平台进行创建和管理的，你可以选择') }}
-              <a @click="handleGoApplyPermission">
+              <a
+                v-bk-tooltips="{
+                  content: $t('请联系业务运维加入业务'),
+                  disabled: canApply,
+                }"
+                @click="handleGoApplyPermission">
                 {{ $t('申请已有业务的权限') }}
               </a>
               {{ $t('，亦或是') }}
@@ -132,6 +141,7 @@
   </div>
 </template>
 <script>
+  import AppManageService from '@service/app-manage';
   import QueryGlobalSettingService from '@service/query-global-setting';
 
   import I18n from '@/i18n';
@@ -140,6 +150,7 @@
     data() {
       return {
         isApplyLoading: false,
+        canApply: false,
         relatedSystemUrls: {
           BK_CMDB_ROOT_URL: '',
           BK_DOC_JOB_ROOT_URL: '',
@@ -148,9 +159,16 @@
     },
     created() {
       this.fetchRelatedSystemUrls();
+      this.fetchGroupPanel();
       document.title = I18n.t('无业务权限');
     },
     methods: {
+      fetchGroupPanel() {
+        AppManageService.fetchGroupPanel()
+          .then((data) => {
+            this.canApply = data.can_apply;
+          });
+      },
       fetchRelatedSystemUrls() {
         QueryGlobalSettingService.fetchRelatedSystemUrls()
           .then((data) => {

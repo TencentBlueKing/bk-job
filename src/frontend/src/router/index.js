@@ -150,6 +150,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
 
   if (noScope || !hasScopePermission) {
     renderPageWithComponent(routes[1], BusinessPermission);
+    document.body.classList.add('no-business-permission');
   } else if (!isValidScope) {
     renderPageWithComponent(routes[1], NotFound);
   }
