@@ -49,5 +49,17 @@ spec:
           value: {{ .Values.bkApiGatewayConfig.maintainers }}
         - name: BK_APIGW_AUTO_PUBLISH
           value: {{.Values.bkApiGatewayConfig.autoPublish | quote }}
+        - name: BK_SOPS_APP_CODE
+          value: {{ .Values.bkSopsAppCode }}
+        - name: BK_NODEMAN_APP_CODE
+          value: {{ .Values.bkNodemanAppCode }}
+        - name: BK_DBM_APP_CODE
+          value: {{ .Values.bkDbmAppCode }}
+        - name: BK_MONITOR_APP_CODE
+          value: {{ .Values.bkMonitorAppCode }}
+        - name: BK_LOG_SEARCH_APP_CODE
+          value: {{ .Values.bkLogSearchAppCode }}
+        - name: BK_BCS_APP_CODE
+          value: {{ .Values.bkBcsAppCode }}
       restartPolicy: Never
 {{- end }}

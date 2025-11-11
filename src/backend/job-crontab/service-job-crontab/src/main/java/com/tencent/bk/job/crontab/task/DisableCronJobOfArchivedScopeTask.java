@@ -26,113 +26,111 @@
 
 package com.tencent.bk.job.crontab.task;
 
-import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
-import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
-import com.tencent.bk.job.common.redis.util.LockUtils;
-import com.tencent.bk.job.common.redis.util.RedisKeyHeartBeatThread;
+import com.tencent.bk.job.common.redis.util.DistributedUniqueTask;
 import com.tencent.bk.job.common.util.ip.IpUtils;
-import com.tencent.bk.job.crontab.service.CronJobService;
+import com.tencent.bk.job.crontab.config.JobCrontabProperties;
+import com.tencent.bk.job.crontab.dao.CronJobDAO;
+import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
+import com.tencent.bk.job.crontab.service.QuartzService;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 业务(集)被归档了，禁用其关联的定时任务
+ * 业务(集)被归档了，禁用其关联的定时任务，避免消耗调度资源/产生错误日志
  */
 @Slf4j
 @Component
 public class DisableCronJobOfArchivedScopeTask {
-    private static final String DISABLE_CRON_JOB_TASK_RUNNING_MACHINE = "disable:appId-not-exist:cron";
+    private static final String DISABLE_CRON_JOB_TASK_RUNNING_MACHINE = "DisableCronOfArchivedApp";
 
     private final RedisTemplate<String, String> redisTemplate;
-    private final IBizCmdbClient bizCmdbClient;
-    private final IBizSetCmdbClient bizSetCmdbClient;
-    private final CronJobService cronJobService;
     private final ServiceApplicationResource serviceApplicationResource;
+    private final CronJobDAO cronJobDAO;
+    private final QuartzService quartzService;
+    private final JobCrontabProperties jobCrontabProperties;
 
-    @Value("${job.crontab.autoDisableCronOfArchivedScope.enabled:true}")
-    private Boolean enabled;
-
+    @Autowired
     public DisableCronJobOfArchivedScopeTask(RedisTemplate<String, String> redisTemplate,
-                                             IBizCmdbClient bizCmdbClient,
-                                             IBizSetCmdbClient bizSetCmdbClient,
-                                             CronJobService cronJobService,
-                                             ServiceApplicationResource serviceApplicationResource){
+                                             ServiceApplicationResource serviceApplicationResource,
+                                             CronJobDAO cronJobDAO,
+                                             QuartzService quartzService,
+                                             JobCrontabProperties jobCrontabProperties) {
         this.redisTemplate = redisTemplate;
-        this.bizCmdbClient = bizCmdbClient;
-        this.bizSetCmdbClient = bizSetCmdbClient;
-        this.cronJobService = cronJobService;
         this.serviceApplicationResource = serviceApplicationResource;
+        this.cronJobDAO = cronJobDAO;
+        this.quartzService = quartzService;
+        this.jobCrontabProperties = jobCrontabProperties;
     }
 
     public boolean execute() {
-        if (!enabled) {
+        if (!jobCrontabProperties.getDisableCronJobOfArchivedScope().getEnabled()) {
             log.info("disableCronJobOfArchivedScopeTask not enabled, skip, you can enable it in config file");
             return false;
         }
         log.info("disableCronJobOfArchivedScopeTask arranged");
         String machineIp = IpUtils.getFirstMachineIP();
-        boolean lockGotten = LockUtils.tryGetDistributedLock(
-            DISABLE_CRON_JOB_TASK_RUNNING_MACHINE,
-            machineIp,
-            5000
-        );
-        if (!lockGotten) {
-            String runningMachine = redisTemplate.opsForValue().get(DISABLE_CRON_JOB_TASK_RUNNING_MACHINE);
-            if (StringUtils.isNotBlank(runningMachine)) {
-                //已有线程在跑
-                log.warn("disable cron job thread already running on {}", runningMachine);
-            } else {
-                log.info("disable cron job lock not gotten, return");
-            }
-            return false;
-        }
-
-        // 开一个心跳子线程，维护当前机器的状态
-        RedisKeyHeartBeatThread disableCronJobRedisKeyHeartBeatThread = new RedisKeyHeartBeatThread(
-            redisTemplate,
-            DISABLE_CRON_JOB_TASK_RUNNING_MACHINE,
-            machineIp,
-            5000L,
-            4000L
-        );
-        disableCronJobRedisKeyHeartBeatThread.setName("disableCronJobRedisKeyHeartBeatThread");
-        disableCronJobRedisKeyHeartBeatThread.start();
+        Integer taskResult;
         try {
-            disableCronJobOfArchivedScope();
+            // 分布式唯一性保证
+            taskResult = new DistributedUniqueTask<>(
+                redisTemplate,
+                this.getClass().getSimpleName(),
+                DISABLE_CRON_JOB_TASK_RUNNING_MACHINE,
+                machineIp,
+                this::disableCronJobOfArchivedScope
+            ).execute();
+            if (taskResult == null) {
+                // 任务已在其他实例执行
+                log.info("disableCronJobTask already executed by another instance");
+                return false;
+            }
             return true;
         } catch (Throwable t) {
             log.warn("Fail to disableCronJob", t);
             return false;
-        } finally {
-            disableCronJobRedisKeyHeartBeatThread.stopAtOnce();
         }
     }
 
     /**
-     * 禁用条件：1. 业务在作业平台中是软删除状态， 2. 查询配置平台业务接口，业务不在返回列表中
+     * 禁用已归档业务下的定时任务，禁用条件（且）：
+     * 1. 业务在作业平台中是软删除状态；
+     * 2. 查询配置平台业务接口，业务不在返回列表中。
      */
-    private void disableCronJobOfArchivedScope() {
+    private int disableCronJobOfArchivedScope() {
         List<Long> archivedAppIds = serviceApplicationResource.listAllAppIdOfArchivedScope().getData();
         log.info("finally find archived appIds={}", archivedAppIds);
-        List<Long> failedAppIds = new ArrayList<>();
+        int disabledNum = 0;
         for (Long appId : archivedAppIds) {
-            boolean result = cronJobService.disableCronJobByAppId(appId);
-            if (!result) {
-                failedAppIds.add(appId);
-            }
+            disabledNum += disableCronJobByAppId(appId);
         }
-        if (failedAppIds.isEmpty()) {
-            log.info("all cron jobs with archived apps have been successfully disabled.");
-        } else {
-            log.warn("failed to disable cron jobs for the following archived appIds: {}}", failedAppIds);
+        if (disabledNum > 0) {
+            log.info("{} cronJob disabled", disabledNum);
         }
+        return disabledNum;
     }
 
+    /**
+     * 通过Job业务ID禁用定时任务
+     */
+    private int disableCronJobByAppId(Long appId) {
+        CronJobInfoDTO cronJobInfoDTO = new CronJobInfoDTO();
+        cronJobInfoDTO.setAppId(appId);
+        cronJobInfoDTO.setEnable(true);
+        List<Long> cronJobIdList = cronJobDAO.listCronJobIds(cronJobInfoDTO);
+        if (CollectionUtils.isEmpty(cronJobIdList)) {
+            return 0;
+        }
+        int affectedNum = cronJobDAO.disableCronJob(appId, cronJobIdList);
+        for (Long cronJobId : cronJobIdList) {
+            quartzService.deleteJobFromQuartz(appId, cronJobId);
+        }
+        log.info("appId={}, {} cronJob disabled, cronJobIdList={}", appId, affectedNum, cronJobIdList);
+        return affectedNum;
+    }
 }

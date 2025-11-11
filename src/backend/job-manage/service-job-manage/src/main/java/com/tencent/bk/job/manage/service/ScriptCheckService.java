@@ -36,18 +36,22 @@ public interface ScriptCheckService {
     /**
      * 检查脚本
      *
+     * @param tenantId   租户 ID
      * @param scriptType 脚本类型
      * @param content    脚本内容
      * @return 脚本检查结果
      */
-    List<ScriptCheckResultItemDTO> check(ScriptTypeEnum scriptType, String content);
+    List<ScriptCheckResultItemDTO> check(String tenantId, ScriptTypeEnum scriptType, String content);
 
     /**
      * 检查高危脚本
      *
+     * @param tenantId   租户 ID
      * @param scriptType 脚本类型
      * @param content    脚本内容
      * @return 脚本检查结果
      */
-    List<ScriptCheckResultItemDTO> checkScriptWithDangerousRule(ScriptTypeEnum scriptType, String content);
+    List<ScriptCheckResultItemDTO> checkScriptWithDangerousRule(String tenantId,
+                                                                ScriptTypeEnum scriptType,
+                                                                String content);
 }

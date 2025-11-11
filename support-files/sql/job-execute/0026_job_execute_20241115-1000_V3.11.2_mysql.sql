@@ -29,7 +29,6 @@ BEGIN
                   AND INDEX_NAME = 'idx_app_id_task_instance_id') THEN
       ALTER TABLE task_instance_host ADD INDEX `idx_app_id_task_instance_id` (`app_id`,`task_instance_id`);
   END IF;
-
   -- step_instance_script
   IF NOT EXISTS(SELECT 1
                   FROM information_schema.COLUMNS

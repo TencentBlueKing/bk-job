@@ -69,7 +69,7 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
     }
 
     @Override
-    public List<ScriptCheckResultItemDTO> check(ScriptTypeEnum scriptType, String content) {
+    public List<ScriptCheckResultItemDTO> check(String tenantId, ScriptTypeEnum scriptType, String content) {
         List<ScriptCheckResultItemDTO> checkResultList = new ArrayList<>();
         if (StringUtils.isBlank(content)) {
             return checkResultList;
@@ -77,7 +77,7 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
 
         try {
             List<DangerousRuleDTO> dangerousRules =
-                dangerousRuleCache.listDangerousRuleFromCache(scriptType.getValue());
+                dangerousRuleCache.listDangerousRuleFromCache(tenantId, scriptType.getValue());
             int timeout = 5;
             ScriptCheckParam scriptCheckParam = new ScriptCheckParam(scriptType, content);
             Future<List<ScriptCheckResultItemDTO>> dangerousRuleCheckResultItems =
@@ -119,7 +119,9 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
     }
 
     @Override
-    public List<ScriptCheckResultItemDTO> checkScriptWithDangerousRule(ScriptTypeEnum scriptType, String content) {
+    public List<ScriptCheckResultItemDTO> checkScriptWithDangerousRule(String tenantId,
+                                                                       ScriptTypeEnum scriptType,
+                                                                       String content) {
         List<ScriptCheckResultItemDTO> checkResultList = new ArrayList<>();
 
         if (StringUtils.isBlank(content)) {
@@ -130,7 +132,7 @@ public class ScriptCheckServiceImpl implements ScriptCheckService {
             int timeout = 5;
             ScriptCheckParam scriptCheckParam = new ScriptCheckParam(scriptType, content);
             List<DangerousRuleDTO> dangerousRules =
-                dangerousRuleCache.listDangerousRuleFromCache(scriptType.getValue());
+                dangerousRuleCache.listDangerousRuleFromCache(tenantId, scriptType.getValue());
             if (CollectionUtils.isEmpty(dangerousRules)) {
                 return Collections.emptyList();
             }

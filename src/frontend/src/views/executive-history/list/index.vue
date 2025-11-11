@@ -119,7 +119,11 @@
         align="left"
         :label="$t('history.执行人_colHead')"
         prop="operator"
-        width="140" />
+        width="140">
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.operator" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.createTime"
         key="createTime"
@@ -360,8 +364,12 @@
         {
           name: I18n.t('history.执行人_colHead'),
           id: 'operator',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
       ];
       this.shortcuts = [
