@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.dao.template.impl;
 
 import com.tencent.bk.job.common.crypto.scenario.SensitiveParamCryptoService;
 import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
+import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateScriptStepDAO;
@@ -37,6 +38,7 @@ import com.tencent.bk.job.manage.model.tables.TaskTemplateStep;
 import com.tencent.bk.job.manage.model.tables.TaskTemplateStepScript;
 import com.tencent.bk.job.manage.model.tables.records.TaskTemplateStepScriptRecord;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -44,8 +46,11 @@ import org.jooq.Record1;
 import org.jooq.Record15;
 import org.jooq.Record16;
 import org.jooq.Record3;
+import org.jooq.Record5;
 import org.jooq.Result;
 import org.jooq.Select;
+import org.jooq.SelectConditionStep;
+import org.jooq.conf.ParamType;
 import org.jooq.impl.DSL;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
@@ -411,38 +416,40 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
             .where(TABLE.SCRIPT_ID.eq(scriptId))
             .and(TABLE.SCRIPT_VERSION_ID.eq(ULong.valueOf(scriptVersionId)));
 
-        Result<?> result = context
+        val query = context
             .select(TABLE.STEP_ID, TABLE.TEMPLATE_ID, TABLE.SCRIPT_ID, TABLE.SCRIPT_VERSION_ID, TABLE.STATUS)
             .from(TABLE)
-            .where(TABLE.TEMPLATE_ID.in(templateIdSubQuery))
-            .fetch();
-        if (result.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<TemplateStepScriptStatusInfo> stepScriptStatusInfos = new ArrayList<>(result.size());
-        result.forEach(record -> stepScriptStatusInfos.add(convertToTemplateStepScriptStatusInfo(record)));
-
-        return stepScriptStatusInfos;
+            .where(TABLE.TEMPLATE_ID.in(templateIdSubQuery));
+        return tryToExecuteQueryAndReturnResult(query);
     }
 
     @Override
     public List<TemplateStepScriptStatusInfo> listStepsScriptStatusInfoByTemplateId(Long templateId) {
-        Result<?> result = context
+        SelectConditionStep<Record5<ULong, ULong, String, ULong, UByte>> query = context
             .select(TABLE.STEP_ID, TABLE.TEMPLATE_ID, TABLE.SCRIPT_ID, TABLE.SCRIPT_VERSION_ID, TABLE.STATUS)
             .from(TABLE)
             .where(TABLE.TEMPLATE_ID.eq(ULong.valueOf(templateId)))
             .and(TABLE.SCRIPT_ID.isNotNull())
-            .and(TABLE.SCRIPT_VERSION_ID.isNotNull())
-            .fetch();
-        if (result.isEmpty()) {
-            return Collections.emptyList();
+            .and(TABLE.SCRIPT_VERSION_ID.isNotNull());
+        return tryToExecuteQueryAndReturnResult(query);
+    }
+
+    private List<TemplateStepScriptStatusInfo> tryToExecuteQueryAndReturnResult(
+        SelectConditionStep<Record5<ULong, ULong, String, ULong, UByte>> query
+    ) {
+        String sql = query.getSQL(ParamType.INLINED);
+        try {
+            Result<?> result = query.fetch();
+            if (result.isEmpty()) {
+                return Collections.emptyList();
+            }
+            List<TemplateStepScriptStatusInfo> stepScriptStatusInfos = new ArrayList<>(result.size());
+            result.forEach(record -> stepScriptStatusInfos.add(convertToTemplateStepScriptStatusInfo(record)));
+            return stepScriptStatusInfos;
+        } catch (Throwable t) {
+            log.warn("Fail to executeQueryAndReturnResult, sql={}", sql);
+            throw t;
         }
-
-        List<TemplateStepScriptStatusInfo> stepScriptStatusInfos = new ArrayList<>(result.size());
-        result.forEach(record -> stepScriptStatusInfos.add(convertToTemplateStepScriptStatusInfo(record)));
-
-        return stepScriptStatusInfos;
     }
 
     private TemplateStepScriptStatusInfo convertToTemplateStepScriptStatusInfo(Record record) {
@@ -451,7 +458,11 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
         stepScriptStatusInfo.setStepId(record.get(TABLE.STEP_ID).longValue());
         stepScriptStatusInfo.setScriptStatusFlags(record.get(TABLE.STATUS).intValue());
         stepScriptStatusInfo.setScriptId(record.get(TABLE.SCRIPT_ID));
-        stepScriptStatusInfo.setScriptVersionId(record.get(TABLE.SCRIPT_VERSION_ID).longValue());
+        ULong scriptVersionIdULong=record.get(TABLE.SCRIPT_VERSION_ID);
+        if (scriptVersionIdULong == null) {
+            log.warn("scriptVersionIdULong is null, stepScriptStatusInfo={}", JsonUtils.toJson(stepScriptStatusInfo));
+        }
+        stepScriptStatusInfo.setScriptVersionId(scriptVersionIdULong.longValue());
         return stepScriptStatusInfo;
     }
 
