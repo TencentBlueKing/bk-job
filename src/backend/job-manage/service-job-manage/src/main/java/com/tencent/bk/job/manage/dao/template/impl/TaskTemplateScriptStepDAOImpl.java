@@ -410,16 +410,11 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
 
     public List<TemplateStepScriptStatusInfo> listAllRelatedTemplateStepsScriptStatusInfo(String scriptId,
                                                                                           Long scriptVersionId) {
-        Select<Record1<ULong>> templateIdSubQuery = context
-            .selectDistinct(TABLE.TEMPLATE_ID)
-            .from(TABLE)
-            .where(TABLE.SCRIPT_ID.eq(scriptId))
-            .and(TABLE.SCRIPT_VERSION_ID.eq(ULong.valueOf(scriptVersionId)));
-
         val query = context
             .select(TABLE.STEP_ID, TABLE.TEMPLATE_ID, TABLE.SCRIPT_ID, TABLE.SCRIPT_VERSION_ID, TABLE.STATUS)
             .from(TABLE)
-            .where(TABLE.TEMPLATE_ID.in(templateIdSubQuery));
+            .where(TABLE.SCRIPT_ID.eq(scriptId))
+            .and(TABLE.SCRIPT_VERSION_ID.eq(ULong.valueOf(scriptVersionId)));
         return tryToExecuteQueryAndReturnResult(query);
     }
 
@@ -458,7 +453,7 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
         stepScriptStatusInfo.setStepId(record.get(TABLE.STEP_ID).longValue());
         stepScriptStatusInfo.setScriptStatusFlags(record.get(TABLE.STATUS).intValue());
         stepScriptStatusInfo.setScriptId(record.get(TABLE.SCRIPT_ID));
-        ULong scriptVersionIdULong=record.get(TABLE.SCRIPT_VERSION_ID);
+        ULong scriptVersionIdULong = record.get(TABLE.SCRIPT_VERSION_ID);
         if (scriptVersionIdULong == null) {
             log.warn("scriptVersionIdULong is null, stepScriptStatusInfo={}", JsonUtils.toJson(stepScriptStatusInfo));
         }
