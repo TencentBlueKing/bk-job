@@ -408,8 +408,8 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
         return record.value1();
     }
 
-    public List<TemplateStepScriptStatusInfo> listAllRelatedTemplateStepsScriptStatusInfo(String scriptId,
-                                                                                          Long scriptVersionId) {
+    public List<TemplateStepScriptStatusInfo> listRelatedTemplateStepsScriptStatusInfo(String scriptId,
+                                                                                       Long scriptVersionId) {
         val query = context
             .select(TABLE.STEP_ID, TABLE.TEMPLATE_ID, TABLE.SCRIPT_ID, TABLE.SCRIPT_VERSION_ID, TABLE.STATUS)
             .from(TABLE)
@@ -457,7 +457,7 @@ public class TaskTemplateScriptStepDAOImpl implements TaskTemplateScriptStepDAO 
         if (scriptVersionIdULong == null) {
             log.warn("scriptVersionIdULong is null, stepScriptStatusInfo={}", JsonUtils.toJson(stepScriptStatusInfo));
         }
-        stepScriptStatusInfo.setScriptVersionId(scriptVersionIdULong.longValue());
+        stepScriptStatusInfo.setScriptVersionId(scriptVersionIdULong == null ? null : scriptVersionIdULong.longValue());
         return stepScriptStatusInfo;
     }
 
