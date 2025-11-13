@@ -47,6 +47,7 @@
               content: $t('请联系业务运维加入业务'),
               disabled: canApply,
             }"
+            :disabled="!canApply"
             :loading="isApplyLoading"
             theme="primary"
             @click="handleGoApplyPermission">
@@ -74,6 +75,7 @@
                   content: $t('请联系业务运维加入业务'),
                   disabled: canApply,
                 }"
+                :disabled="!canApply"
                 @click="handleGoApplyPermission">
                 {{ $t('申请已有业务的权限') }}
               </a>
@@ -183,6 +185,9 @@
         window.open(`${this.relatedSystemUrls.BK_CMDB_ROOT_URL}/#/resource/business`);
       },
       handleGoApplyPermission() {
+        if (!this.canApply) {
+          return;
+        }
         this.isApplyLoading = true;
         QueryGlobalSettingService.fetchApplyBusinessUrl({
           scopeType: window.PROJECT_CONFIG.SCOPE_TYPE,
