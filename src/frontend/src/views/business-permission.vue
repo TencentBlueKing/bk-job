@@ -42,17 +42,19 @@
             @click="handleGoCreateApp">
             {{ $t('新建业务') }}
           </bk-button>
-          <bk-button
+          <span
             v-bk-tooltips="{
               content: $t('请联系业务运维加入业务'),
               disabled: canApply,
-            }"
-            :disabled="!canApply"
-            :loading="isApplyLoading"
-            theme="primary"
-            @click="handleGoApplyPermission">
-            {{ $t('申请业务权限') }}
-          </bk-button>
+            }">
+            <bk-button
+              :disabled="!canApply"
+              :loading="isApplyLoading"
+              theme="primary"
+              @click="handleGoApplyPermission">
+              {{ $t('申请业务权限') }}
+            </bk-button>
+          </span>
         </div>
       </div>
     </div>
@@ -75,7 +77,6 @@
                   content: $t('请联系业务运维加入业务'),
                   disabled: canApply,
                 }"
-                :disabled="!canApply"
                 @click="handleGoApplyPermission">
                 {{ $t('申请已有业务的权限') }}
               </a>
