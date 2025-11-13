@@ -88,15 +88,18 @@ function migrateMySQL(){
     fi
 
     echo "migrate $sql"
-    if $MYSQL_CMD < $sql; then
+    if $MYSQL_CMD < "$sql" 2>&1; then
       echo "Migrate $sql success"
       if [[ "$BK_JOB_INCREMENTAL_MIGRATION_ENABLED" == "true" ]]; then
         $MYSQL_CMD -e "INSERT INTO job_manage.db_migration_history(db_name, script_name) VALUES('$dbName','$scriptName');"
       fi
     else
-      echo "Migrate $sql failed"
+      exitCode=$?
+      echo "Migrate $sql failed, exitCode=$exitCode"
+      exit $exitCode
     fi
   done
+  echo "All migration scripts executed successfully."
 }
 
 function migrateIamModel(){
