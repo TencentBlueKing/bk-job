@@ -25,7 +25,7 @@ apply plugin: 'nu.studer.jooq'
 
 dependencies {
     api "org.jooq:jooq"
-    jooqGenerator 'mysql:mysql-connector-java'
+    jooqGenerator 'com.mysql:mysql-connector-j'
 }
 
 def databaseName = "job_leaf"

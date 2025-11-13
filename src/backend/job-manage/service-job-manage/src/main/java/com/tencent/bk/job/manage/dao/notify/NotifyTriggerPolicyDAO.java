@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.dao.notify;
 
 import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
-import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
+import com.tencent.bk.job.manage.model.dto.notify.TriggerPolicyDTO;
 
 import java.util.List;
 
@@ -42,7 +42,7 @@ public interface NotifyTriggerPolicyDAO {
                                                     String resourceId,
                                                     Integer triggerType);
 
-    List<TriggerPolicyVO> listAppDefault(String triggerUser, Long appId, String resourceId);
+    List<TriggerPolicyDTO> listAppDefault(String triggerUser, Long appId, String resourceId);
 
     List<NotifyTriggerPolicyDTO> list(String triggerUser,
                                       Long appId,

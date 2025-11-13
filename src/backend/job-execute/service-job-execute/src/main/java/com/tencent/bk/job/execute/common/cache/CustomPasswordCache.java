@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 public class CustomPasswordCache {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    
+
     private final ResourceScopeTaskTimeoutParser resourceScopeTaskTimeoutParser;
 
     private static final String KEY_TARGET_AGENT_PWD_CACHE_PREFIX = "job:execute:agent:pwd:";

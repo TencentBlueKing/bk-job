@@ -29,6 +29,7 @@ import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -60,5 +61,45 @@ public class TaskInstanceQuery {
         } else {
             return Collections.emptyList();
         }
+    }
+
+    /**
+     * 判断当前查询是否为复杂查询
+     * 判断依据：
+     * 1. 含有tasKName条件的模糊查询；
+     * 2. 含有>=2个appId、taskInstanceId及时间范围以外的其他条件（无法使用覆盖索引）。
+     *
+     * @return 布尔值
+     */
+    public boolean isComplexQuery() {
+        if (StringUtils.isNotEmpty(taskName)) {
+            return true;
+        }
+        int conditionNum = 0;
+        if (StringUtils.isNotEmpty(operator)) {
+            conditionNum++;
+        }
+        if (cronTaskId != null) {
+            conditionNum++;
+        }
+        if (status != null) {
+            conditionNum++;
+        }
+        if (CollectionUtils.isNotEmpty(startupModes)) {
+            conditionNum++;
+        }
+        if (taskType != null) {
+            conditionNum++;
+        }
+        if (minTotalTimeMills != null || maxTotalTimeMills != null) {
+            conditionNum++;
+        }
+        if (StringUtils.isNotEmpty(ip)) {
+            conditionNum++;
+        }
+        if (StringUtils.isNotEmpty(ipv6)) {
+            conditionNum++;
+        }
+        return conditionNum >= 2;
     }
 }

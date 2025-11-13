@@ -130,8 +130,12 @@ public class SimpleJobExecutor extends AbstractQuartzJobBean {
         if (log.isDebugEnabled()) {
             log.debug("Get cronjob info return|{}", cronJobInfo);
         }
+        if (cronJobInfo == null) {
+            log.warn("cronJob(appId={}, id={}) already deleted, do not execute", appId, cronJobId);
+            return;
+        }
         if (!cronJobInfo.getEnable()) {
-            log.error("cronJob {} scheduled unexpectedly, do not execute", cronJobInfo);
+            log.warn("cronJob {} scheduled unexpectedly, do not execute", cronJobInfo);
             return;
         }
 
