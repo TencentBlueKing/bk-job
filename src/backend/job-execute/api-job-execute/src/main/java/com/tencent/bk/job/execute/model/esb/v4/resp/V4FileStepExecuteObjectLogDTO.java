@@ -22,63 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.validation;
+package com.tencent.bk.job.execute.model.esb.v4.resp;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteObjectDTO;
+import lombok.Data;
+
+import java.util.List;
 
 /**
- * 联合校验分组
+ * 单个执行对象的日志，包含多个文件的日志
  */
-public interface ValidationGroups {
-    interface Script {
-        interface ScriptVersionId {
-        }
+@Data
+public class V4FileStepExecuteObjectLogDTO {
 
-        interface ScriptContent {
-        }
-
-        interface ScriptId {
-        }
-    }
-
-    interface Account {
-        interface AccountId {
-        }
-
-        interface AccountAlias {
-        }
-    }
+    @JsonProperty("execute_object")
+    private OpenApiExecuteObjectDTO executeObject;
 
     /**
-     * 滚动类型
+     * 当 executeObject 是分发任务的目标时，下载的日志
      */
-    interface RollingType {
-        /**
-         * 按目标执行对象滚动
-         */
-        interface TargetExecuteObject {
-        }
-
-        /**
-         * 按源文件滚动
-         */
-        interface FileSource {
-        }
-    }
+    @JsonProperty("download_log")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<V4FileLogDTO> downloadLogList;
 
     /**
-     * 主机类型（hostId or cloudId+ip）
+     * 当 executeObject 是分发任务的源时，上传的日志
      */
-    interface HostType {
-        /**
-         * 用hostId表示主机
-         */
-        interface HostId {
-        }
-
-        /**
-         * 用cloudId+ip表示主机
-         */
-        interface CloudIdIp {
-        }
-    }
+    @JsonProperty("upload_log")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<V4FileLogDTO> uploadLogList;
 
 }

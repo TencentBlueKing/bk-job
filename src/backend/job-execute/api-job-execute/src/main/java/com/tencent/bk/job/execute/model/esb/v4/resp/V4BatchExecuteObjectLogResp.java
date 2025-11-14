@@ -22,63 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.validation;
+package com.tencent.bk.job.execute.model.esb.v4.resp;
 
-/**
- * 联合校验分组
- */
-public interface ValidationGroups {
-    interface Script {
-        interface ScriptVersionId {
-        }
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
-        interface ScriptContent {
-        }
+import java.util.List;
 
-        interface ScriptId {
-        }
-    }
+@Data
+public class V4BatchExecuteObjectLogResp {
 
-    interface Account {
-        interface AccountId {
-        }
+    @JsonProperty("job_instance_id")
+    private Long jobInstanceId;
 
-        interface AccountAlias {
-        }
-    }
+    @JsonProperty("step_instance_id")
+    private Long stepInstanceId;
 
     /**
-     * 滚动类型
+     * 日志类型，1-脚本执行，2-文件传输
+     * @see com.tencent.bk.job.logsvr.consts.LogTypeEnum
      */
-    interface RollingType {
-        /**
-         * 按目标执行对象滚动
-         */
-        interface TargetExecuteObject {
-        }
-
-        /**
-         * 按源文件滚动
-         */
-        interface FileSource {
-        }
-    }
+    @JsonProperty("log_type")
+    private Integer logType;
 
     /**
-     * 主机类型（hostId or cloudId+ip）
+     * 当步骤为脚本执行时的日志
      */
-    interface HostType {
-        /**
-         * 用hostId表示主机
-         */
-        interface HostId {
-        }
+    @JsonProperty("script_step_execute_object_logs")
+    private List<V4ScriptStepExecuteObjectLogDTO> scriptStepExecuteObjectLogs;
 
-        /**
-         * 用cloudId+ip表示主机
-         */
-        interface CloudIdIp {
-        }
-    }
+    /**
+     * 当步骤为文件传输时，传输日志
+     */
+    @JsonProperty("file_step_execute_object_logs")
+    private List<V4FileStepExecuteObjectLogDTO> fileStepExecuteObjectLogs;
 
 }

@@ -22,63 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.validation;
+package com.tencent.bk.job.execute.model.esb.v4.req.validator;
 
-/**
- * 联合校验分组
- */
-public interface ValidationGroups {
-    interface Script {
-        interface ScriptVersionId {
-        }
+import com.tencent.bk.job.execute.model.esb.v4.req.V4BatchGetJobInstanceExecuteObjectLogRequest;
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
 
-        interface ScriptContent {
-        }
+import java.util.ArrayList;
+import java.util.List;
 
-        interface ScriptId {
+public class ExecuteObjectsLogGroupSequenceProvider
+    implements DefaultGroupSequenceProvider<V4BatchGetJobInstanceExecuteObjectLogRequest> {
+    
+    @Override
+    public List<Class<?>> getValidationGroups(V4BatchGetJobInstanceExecuteObjectLogRequest request) {
+        List<Class<?>> groups = new ArrayList<>();
+        groups.add(V4BatchGetJobInstanceExecuteObjectLogRequest.class);
+        if (request != null) {
+            if (request.getHostIdList() != null) {
+                groups.add(V4BatchGetJobInstanceExecuteObjectLogRequest.ValidateGroup.HostIdList.class);
+            } else if (request.getIpList() != null) {
+                groups.add(V4BatchGetJobInstanceExecuteObjectLogRequest.ValidateGroup.IpList.class);
+            } else if (request.getContainerIdList() != null) {
+                groups.add(V4BatchGetJobInstanceExecuteObjectLogRequest.ValidateGroup.ContainerIdList.class);
+            } else {
+                groups.add(V4BatchGetJobInstanceExecuteObjectLogRequest.ValidateGroup.HostIdList.class);
+            }
         }
+        return groups;
     }
-
-    interface Account {
-        interface AccountId {
-        }
-
-        interface AccountAlias {
-        }
-    }
-
-    /**
-     * 滚动类型
-     */
-    interface RollingType {
-        /**
-         * 按目标执行对象滚动
-         */
-        interface TargetExecuteObject {
-        }
-
-        /**
-         * 按源文件滚动
-         */
-        interface FileSource {
-        }
-    }
-
-    /**
-     * 主机类型（hostId or cloudId+ip）
-     */
-    interface HostType {
-        /**
-         * 用hostId表示主机
-         */
-        interface HostId {
-        }
-
-        /**
-         * 用cloudId+ip表示主机
-         */
-        interface CloudIdIp {
-        }
-    }
-
 }

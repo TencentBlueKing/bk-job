@@ -22,63 +22,57 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.validation;
+package com.tencent.bk.job.execute.model.esb.v4.req;
 
-/**
- * 联合校验分组
- */
-public interface ValidationGroups {
-    interface Script {
-        interface ScriptVersionId {
-        }
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
+import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
+import com.tencent.bk.job.execute.model.esb.v4.req.validator.V4ExecuteTargetNotEmptyAndContainerSafely;
+import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
 
-        interface ScriptContent {
-        }
+import javax.validation.Valid;
+import java.util.List;
 
-        interface ScriptId {
-        }
-    }
-
-    interface Account {
-        interface AccountId {
-        }
-
-        interface AccountAlias {
-        }
-    }
+@Data
+@V4ExecuteTargetNotEmptyAndContainerSafely
+public class V4ExecuteTargetDTO {
 
     /**
-     * 滚动类型
+     * 静态主机列表
      */
-    interface RollingType {
-        /**
-         * 按目标执行对象滚动
-         */
-        interface TargetExecuteObject {
-        }
-
-        /**
-         * 按源文件滚动
-         */
-        interface FileSource {
-        }
-    }
+    @JsonProperty("host_list")
+    @Valid
+    private List<OpenApiV4HostDTO> hostList;
 
     /**
-     * 主机类型（hostId or cloudId+ip）
+     * 动态分组ID列表
      */
-    interface HostType {
-        /**
-         * 用hostId表示主机
-         */
-        interface HostId {
-        }
+    @JsonProperty("dynamic_group_list")
+    @Valid
+    private List<EsbDynamicGroupDTO> dynamicGroups;
 
-        /**
-         * 用cloudId+ip表示主机
-         */
-        interface CloudIdIp {
-        }
+    /**
+     * 分布式拓扑节点列表
+     */
+    @JsonProperty("topo_node_list")
+    @Valid
+    private List<EsbCmdbTopoNodeDTO> topoNodes;
+
+    /**
+     * k8s 容器过滤器列表
+     */
+    @JsonProperty("kube_container_filters")
+    @Valid
+    private List<V4ContainerFilter> kubeContainerFilters;
+
+    @JsonIgnore
+    public boolean isTargetEmpty() {
+        return CollectionUtils.isEmpty(hostList)
+            && CollectionUtils.isEmpty(dynamicGroups)
+            && CollectionUtils.isEmpty(topoNodes)
+            && CollectionUtils.isEmpty(kubeContainerFilters);
     }
 
 }

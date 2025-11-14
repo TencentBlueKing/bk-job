@@ -1,0 +1,19 @@
+| 字段          | 类型     | 是否一定存在 | 描述                                   |
+|-------------|--------|--------|--------------------------------------|
+| type        | int    | 是      | 执行对象类型, 1 - 主机，2 - 容器                |
+| resource_id | string | 是      | 执行对象资源 ID（比如主机对应的资源 ID 为 bk_host_id) |
+| host        | object | 否      | 主机详情，执行对象是主机时存在，定义见 host             |
+| container   | object | 否      | 容器详情，执行对象是容器时存在，定义见 container        |
+
+#### host
+
+{% include '_generic_v4_host.md.j2' %}
+
+#### container
+
+| 字段           | 类型     | 是否一定存在 | 描述                |
+|--------------|--------|--------|-------------------|
+| id           | long   | 是      | 容器 ID (cmdb)      |
+| container_id | string | 是      | 容器ID（如docker容器ID） |
+| name         | string | 是      | 容器名称              |
+| node_host_id | long   | 否      | 容器所在节点主机ID        |

@@ -22,63 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.validation;
+package com.tencent.bk.job.execute.api.esb.v4;
 
-/**
- * 联合校验分组
- */
-public interface ValidationGroups {
-    interface Script {
-        interface ScriptVersionId {
-        }
+import com.tencent.bk.job.common.annotation.EsbV4API;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
+import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
+import com.tencent.bk.job.execute.model.esb.v4.resp.V4JobExecuteDTO;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-        interface ScriptContent {
-        }
+@RequestMapping("/esb/api/v4")
+@EsbV4API
+@RestController
+@Validated
+public interface OpenApiFastExecuteScriptV4Resource {
 
-        interface ScriptId {
-        }
-    }
-
-    interface Account {
-        interface AccountId {
-        }
-
-        interface AccountAlias {
-        }
-    }
-
-    /**
-     * 滚动类型
-     */
-    interface RollingType {
-        /**
-         * 按目标执行对象滚动
-         */
-        interface TargetExecuteObject {
-        }
-
-        /**
-         * 按源文件滚动
-         */
-        interface FileSource {
-        }
-    }
-
-    /**
-     * 主机类型（hostId or cloudId+ip）
-     */
-    interface HostType {
-        /**
-         * 用hostId表示主机
-         */
-        interface HostId {
-        }
-
-        /**
-         * 用cloudId+ip表示主机
-         */
-        interface CloudIdIp {
-        }
-    }
-
+    @PostMapping("/fast_execute_script")
+    EsbV4Response<V4JobExecuteDTO> fastExecuteScript(
+        @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
+        @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
+        @RequestBody
+        @Validated
+            V4FastExecuteScriptRequest request
+    );
 }

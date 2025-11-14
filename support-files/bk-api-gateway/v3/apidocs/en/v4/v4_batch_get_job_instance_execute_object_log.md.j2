@@ -1,0 +1,264 @@
+### Description
+
+Batch query execution logs of a job step on execute objects (hosts/containers) by Job Instance ID
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field             | Type   | Required | Description                                                                                                                       |
+|-------------------|--------|----------|-----------------------------------------------------------------------------------------------------------------------------------|
+| bk_scope_type     | string | Yes      | Resource scope type. Allowed values: biz - Business, biz_set - Business Set                                                       |
+| bk_scope_id       | string | Yes      | Resource scope ID. Corresponds to bk_scope_type. Indicates Biz ID or Biz Set ID                                                   |
+| job_instance_id   | long   | Yes      | Job instance ID                                                                                                                   |
+| step_instance_id  | long   | Yes      | Step instance ID                                                                                                                  |
+| host_id_list      | array  | No       | Host ID list, maximum 100. Each element is long. Priority: host_id_list > ip_list > container_id_list                             |
+| ip_list           | array  | No       | Host IP list, maximum 100. Each element definition see cloud_ip. Priority: host_id_list > ip_list > container_id_list             |
+| container_id_list | array  | No       | Container ID list(container UID in CMDB), maximum 100. Each element is long. Priority: host_id_list > ip_list > container_id_list |
+
+#### cloud_ip
+
+| Field       | Type   | Required | Description   |
+|-------------|--------|----------|---------------|
+| bk_cloud_id | long   | Yes      | Cloud area ID |
+| ip          | string | Yes      | Host IP       |
+
+### Request Example
+
+- POST
+
+Query host logs:
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "1",
+    "job_instance_id": 100,
+    "step_instance_id": 200,
+    "host_id_list": [
+        1, 2
+    ]
+}
+```
+
+Query container logs:
+```json
+{
+    "bk_scope_type": "biz",
+    "bk_scope_id": "1",
+    "job_instance_id": 100,
+    "step_instance_id": 200,
+    "container_id_list": [
+        1001, 1002
+    ]
+}
+```
+
+### Response Examples
+
+#### Failure
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success
+
+Step type: Script execution (host)
+
+```json
+# http status=200
+{
+    "data": {
+        "job_instance_id": 100,
+        "step_instance_id": 200,
+        "log_type": 1,
+        "script_step_execute_object_logs": [
+            {
+                "execute_object": {
+                    "type": 1,
+                    "resource_id": "1",
+                    "host": {
+                        "bk_host_id": 1,
+                        "ip": "127.0.0.1",
+                        "bk_cloud_id": 0
+                    }
+                },
+                "log_content": "[2018-03-15 14:39:30][PID:56875] job_start\n"
+            },
+            {
+                "execute_object": {
+                    "type": 1,
+                    "resource_id": "2",
+                    "host": {
+                        "bk_host_id": 2,
+                        "ip": "127.0.0.2",
+                        "bk_cloud_id": 0
+                    }
+                },
+                "log_content": "[2018-03-15 14:39:30][PID:16789] job_start\n"
+            }
+        ]
+    }
+}
+```
+
+Step type: Script execution (container)
+
+```json
+# http status=200
+{
+    "data": {
+        "job_instance_id": 100,
+        "step_instance_id": 200,
+        "log_type": 1,
+        "script_step_execute_object_logs": [
+            {
+                "execute_object": {
+                    "type": 2,
+                    "resource_id": "1001",
+                    "container": {
+                        "id": 1001,
+                        "container_id": "abc123def456",
+                        "name": "nginx-container",
+                        "node_host_id": 10
+                    }
+                },
+                "log_content": "[2018-03-15 14:39:30][PID:56875] job_start\n"
+            }
+        ]
+    }
+}
+```
+
+Step type: File distribution
+
+```json
+# http status=200
+{
+    "data": {
+        "job_instance_id": 100,
+        "step_instance_id": 200,
+        "log_type": 2,
+        "file_step_execute_object_logs": [
+            {
+                "execute_object": {
+                    "type": 1,
+                    "resource_id": "1",
+                    "host": {
+                        "bk_host_id": 1,
+                        "ip": "127.0.0.1",
+                        "bk_cloud_id": 0
+                    }
+                },
+                "download_log": [
+                    {
+                        "mode": 1,
+                        "src_execute_object": {
+                            "type": 1,
+                            "resource_id": "2",
+                            "host": {
+                                "bk_host_id": 2,
+                                "bk_cloud_id": 0,
+                                "ip": "127.0.0.2"
+                            }
+                        },
+                        "src_path": "/data/1.log",
+                        "dest_execute_object": {
+                            "type": 1,
+                            "resource_id": "1",
+                            "host": {
+                                "bk_host_id": 1,
+                                "bk_cloud_id": 0,
+                                "ip": "127.0.0.1"
+                            }
+                        },
+                        "dest_path": "/tmp/1.log",
+                        "status": 4,
+                        "log_content": "[2021-06-28 11:32:16] FileName: /tmp/1.log FileSize: 9.0 Bytes State: dest agent success download file Speed: 1 KB/s Progress: 100% StatusDesc: dest agent success download file Detail: success",
+                        "size": "1.0 Bytes",
+                        "speed": "0 KB/s",
+                        "process": "100%"
+                    }
+                ]
+            },
+            {
+                "execute_object": {
+                    "type": 1,
+                    "resource_id": "2",
+                    "host": {
+                        "bk_host_id": 2,
+                        "ip": "127.0.0.2",
+                        "bk_cloud_id": 0
+                    }
+                },
+                "upload_log": [
+                    {
+                        "mode": 0,
+                        "src_execute_object": {
+                            "type": 1,
+                            "resource_id": "2",
+                            "host": {
+                                "bk_host_id": 2,
+                                "bk_cloud_id": 0,
+                                "ip": "127.0.0.2"
+                            }
+                        },
+                        "src_path": "/data/1.log",
+                        "status": 4,
+                        "log_content": "[2021-06-28 11:32:16] FileName: /data/1.log FileSize: 9.0 Bytes State: source agent success upload file Speed: 1 KB/s Progress: 100% StatusDesc: source agent success upload file Detail: success upload",
+                        "size": "1.0 Bytes",
+                        "speed": "0 KB/s",
+                        "process": "100%"
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
+### Response Schema
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field                           | Type  | Non-null | Description                                                                                |
+|---------------------------------|-------|----------|--------------------------------------------------------------------------------------------|
+| job_instance_id                 | long  | Yes      | Job instance ID                                                                            |
+| step_instance_id                | long  | Yes      | Step instance ID                                                                           |
+| log_type                        | int   | Yes      | Log type. 1 - Script execution task log; 2 - File distribution task log                    |
+| script_step_execute_object_logs | array | No       | Script execution task logs. See script_step_execute_object_log                             |
+| file_step_execute_object_logs   | array | No       | File distribution task logs. See file_step_execute_object_log                              |
+
+#### script_step_execute_object_log
+
+| Field          | Type   | Non-null | Description                                   |
+|----------------|--------|----------|-----------------------------------------------|
+| execute_object | object | Yes      | Execute object. See execute_object definition |
+| log_content    | string | Yes      | Log content                                   |
+
+#### file_step_execute_object_log
+
+| Field          | Type   | Non-null | Description                                                                        |
+|----------------|--------|----------|------------------------------------------------------------------------------------|
+| execute_object | object | Yes      | Execute object. See execute_object definition                                      |
+| upload_log     | array  | No       | Upload logs when execute object is the source of distribution. See file_task_log   |
+| download_log   | array  | No       | Download logs when execute object is the target of distribution. See file_task_log |
+
+#### file_task_log
+
+| Field               | Type   | Non-null | Description                                                                                                           |
+|---------------------|--------|----------|-----------------------------------------------------------------------------------------------------------------------|
+| mode                | int    | Yes      | File transfer mode. 0 - Upload, 1 - Download                                                                          |
+| src_execute_object  | object | Yes      | Source execute object (host/container). See execute_object definition                                                 |
+| src_path            | string | Yes      | Source file path                                                                                                      |
+| dest_execute_object | object | No       | Destination execute object (host/container). See execute_object definition. Only exists when mode=1                   |
+| dest_path           | string | No       | Destination file path. Only exists when mode=1                                                                        |
+| status              | int    | Yes      | File transfer task status. 0 - Pulling from source, 1 - Pending, 2 - Uploading, 3 - Downloading, 4 - Done, 5 - Failed |
+| log_content         | string | Yes      | File transfer log content                                                                                             |
+| size                | string | Yes      | File size                                                                                                             |
+| speed               | string | Yes      | Upload/Download speed                                                                                                 |
+| process             | string | Yes      | Upload/Download progress                                                                                              |
+
+#### execute_object
+
+{% include '_generic_execute_object.md.j2' %}
