@@ -14,3 +14,31 @@ spring:
           max-active: 8
           max-wait: 1ms
         shutdown-timeout: 100ms
+  ai:
+    mcp:
+      server:
+        name: bk-job-op    # MCP服务器名称
+        version: 1.0.0                # 服务器版本号
+        type: ASYNC #异步
+        stdio: false
+
+bkApiGateway:
+  bkLog:
+    url: bklog.com
+
+bk:
+  api:
+    op:
+      bkAppCode: "bk-job-op"
+      bkAppSecret: "bk-job-op-secret"
+    prod:
+      bkAppCode: "bk-job-prod"
+      bkAppSecret: "bk-job-prod-secret"
+  # BK-Log配置
+  log:
+    # 日志索引名称
+    indices: ""
+    # 索引集ID
+    indexSetId: 100
+    # 日志保存时间
+    expireTime: 7
