@@ -187,8 +187,7 @@ public class OpenApiBatchGetJobInstanceExecuteObjectLogV4ResourceImpl
     private V4FileStepExecuteObjectLogDTO convertToFileExecuteObjLogDTO(FileExecuteObjectLogContent fileLogContent) {
         V4FileStepExecuteObjectLogDTO v4FileStepExecuteObjectLogDTO = new V4FileStepExecuteObjectLogDTO();
         v4FileStepExecuteObjectLogDTO.setExecuteObject(fileLogContent.getExecuteObject().toOpenApiExecuteObjectDTO());
-        
-        ExecuteObject currentExecuteObject = fileLogContent.getExecuteObject();
+
         List<AtomicFileTaskLog> fileTaskLogs = fileLogContent.getFileTaskLogs();
         
         // 区分上传日志和下载日志
@@ -213,16 +212,6 @@ public class OpenApiBatchGetJobInstanceExecuteObjectLogV4ResourceImpl
         }
         
         return v4FileStepExecuteObjectLogDTO;
-    }
-    
-    /**
-     * 判断两个执行对象是否是同一个
-     */
-    private boolean isExecuteObjectMatch(ExecuteObject obj1, ExecuteObject obj2) {
-        if (obj1 == null || obj2 == null) {
-            return false;
-        }
-        return obj1.equals(obj2);
     }
 
     private V4FileLogDTO fromFileAtomicTaskLog(AtomicFileTaskLog fileTaskLog) {

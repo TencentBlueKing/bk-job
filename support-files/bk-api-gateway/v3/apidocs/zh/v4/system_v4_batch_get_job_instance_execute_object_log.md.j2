@@ -13,10 +13,10 @@
 | job_instance_id   | long   | 是  | 作业实例ID                                                                             |
 | step_instance_id  | long   | 是  | 步骤实例ID                                                                             |
 | host_id_list      | array  | 否  | 主机ID列表，最多100个。每个元素为long。优先级host_id_list > ip_list > container_id_list              |
-| ip_list           | array  | 否  | 主机IP列表，最多100个。每个元素定义详见ip。优先级host_id_list > ip_list > container_id_list             |
+| ip_list           | array  | 否  | 主机IP列表，最多100个。每个元素定义详见cloud_ip。优先级host_id_list > ip_list > container_id_list       |
 | container_id_list | array  | 否  | 容器ID列表(BKCC中的容器UID)，最多100个。每个元素为long。优先级host_id_list > ip_list > container_id_list |
 
-#### ip
+#### cloud_ip
 
 | 字段          | 类型     | 必选 | 描述     |
 |-------------|--------|----|--------|
