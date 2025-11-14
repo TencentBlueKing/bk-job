@@ -86,8 +86,9 @@ public class LogSearchMCPServer {
         
         if (logs != null && logs.getData() != null && !logs.getData().isEmpty()) {
             // 返回第一个匹配日志的requestId
-            SimpleLogDTO log = logs.getData().get(0);
-            return log.getRequestId() != null ? log.getRequestId() : "未找到requestId";
+            SimpleLogDTO simpleLog = logs.getData().get(0);
+            log.debug("SimpleLogDTO: {}", simpleLog);
+            return simpleLog.getRequestId() != null ? simpleLog.getRequestId() : "未找到requestId";
         }
         
         return "未找到包含stepInstanceId: " + stepInstanceId + " 的日志";

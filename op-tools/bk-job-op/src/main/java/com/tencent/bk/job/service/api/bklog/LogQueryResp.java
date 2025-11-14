@@ -161,11 +161,12 @@ public class LogQueryResp {
         /**
          * GSE索引
          */
-        private Integer gseIndex;
+        private Long gseIndex;
 
         /**
          * 请求requestId
          */
+        @JsonProperty("request_id")
         private String requestId;
 
         /**
@@ -196,6 +197,6 @@ public class LogQueryResp {
         /**
          * 时间（单位毫秒）
          */
-        private String time;
+        private Long time;
     }
 }

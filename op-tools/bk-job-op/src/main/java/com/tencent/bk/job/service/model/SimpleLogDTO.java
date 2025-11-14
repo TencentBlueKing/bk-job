@@ -75,5 +75,5 @@ public class SimpleLogDTO {
     /**
      * 时间（单位毫秒）
      */
-    private String time;
+    private Long time;
 }
