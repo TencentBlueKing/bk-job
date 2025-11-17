@@ -22,63 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.validation;
+package com.tencent.bk.job.execute.util;
 
-/**
- * 联合校验分组
- */
-public interface ValidationGroups {
-    interface Script {
-        interface ScriptVersionId {
-        }
+import com.tencent.bk.job.common.util.I18nUtil;
+import com.tencent.bk.job.common.util.date.DateUtils;
 
-        interface ScriptContent {
-        }
+import java.time.LocalDateTime;
 
-        interface ScriptId {
-        }
-    }
-
-    interface Account {
-        interface AccountId {
-        }
-
-        interface AccountAlias {
-        }
-    }
+public class FastTaskUtil {
 
     /**
-     * 滚动类型
+     * 获取快速执行脚本名称
+     * @return 快速执行脚本名称
      */
-    interface RollingType {
-        /**
-         * 按目标执行对象滚动
-         */
-        interface TargetExecuteObject {
-        }
-
-        /**
-         * 按源文件滚动
-         */
-        interface FileSource {
-        }
+    public static String getFastScriptTaskName() {
+        return I18nUtil.getI18nMessage("task.type.name.fast_execute_script")
+            + "_" + DateUtils.formatLocalDateTime(LocalDateTime.now(), "yyyyMMddHHmmssSSS");
     }
-
-    /**
-     * 主机类型（hostId or cloudId+ip）
-     */
-    interface HostType {
-        /**
-         * 用hostId表示主机
-         */
-        interface HostId {
-        }
-
-        /**
-         * 用cloudId+ip表示主机
-         */
-        interface CloudIdIp {
-        }
-    }
-
 }

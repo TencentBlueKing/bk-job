@@ -22,63 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.validation;
+package com.tencent.bk.job.execute.model.esb.v4.req.validator;
 
-/**
- * 联合校验分组
- */
-public interface ValidationGroups {
-    interface Script {
-        interface ScriptVersionId {
+import com.tencent.bk.job.common.validation.ValidationGroups;
+import com.tencent.bk.job.execute.model.esb.v4.req.V4FastExecuteScriptRequest;
+import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class V4ExecScriptReqGroupSequenceProvider implements DefaultGroupSequenceProvider<V4FastExecuteScriptRequest> {
+    @Override
+    public List<Class<?>> getValidationGroups(V4FastExecuteScriptRequest request) {
+        List<Class<?>> groups = new ArrayList<>();
+        groups.add(V4FastExecuteScriptRequest.class);
+
+        if (request == null) {
+            return groups;
         }
 
-        interface ScriptContent {
+        // 校验账号
+        // 优先级 accountId > accountAlias
+        if (request.getAccountId() != null) {
+            groups.add(ValidationGroups.Account.AccountId.class);
+        } else if (request.getAccountAlias() != null) {
+            groups.add(ValidationGroups.Account.AccountAlias.class);
+        } else {
+            groups.add(ValidationGroups.Account.AccountId.class);
         }
 
-        interface ScriptId {
+        // 校验脚本
+        // 脚本优先级 scriptVersionId > scriptId > scriptContent
+        // 不填 scriptVersionId 和 scriptId 时，就必须填 scriptContent
+        if (request.getScriptVersionId() == null && request.getScriptId() == null) {
+            groups.add(ValidationGroups.Script.ScriptContent.class);
         }
+
+        return groups;
     }
-
-    interface Account {
-        interface AccountId {
-        }
-
-        interface AccountAlias {
-        }
-    }
-
-    /**
-     * 滚动类型
-     */
-    interface RollingType {
-        /**
-         * 按目标执行对象滚动
-         */
-        interface TargetExecuteObject {
-        }
-
-        /**
-         * 按源文件滚动
-         */
-        interface FileSource {
-        }
-    }
-
-    /**
-     * 主机类型（hostId or cloudId+ip）
-     */
-    interface HostType {
-        /**
-         * 用hostId表示主机
-         */
-        interface HostId {
-        }
-
-        /**
-         * 用cloudId+ip表示主机
-         */
-        interface CloudIdIp {
-        }
-    }
-
 }

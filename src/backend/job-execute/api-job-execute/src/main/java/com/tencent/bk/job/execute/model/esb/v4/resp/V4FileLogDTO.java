@@ -22,43 +22,78 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.model.openapi.v4;
+package com.tencent.bk.job.execute.model.esb.v4.resp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteObjectDTO;
 import lombok.Data;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.List;
 
 /**
- * 执行目标-容器选择过滤器-按 POD 过滤
+ * 单个源执行对象+单个目标执行对象+单个文件对应的一条传输日志
  */
 @Data
-public class OpenApiKubePodFilterDTO {
+public class V4FileLogDTO {
 
     /**
-     * k8s pod 名称列表
+     * 文件分发模式
+     * @see com.tencent.bk.job.common.gse.constants.FileDistModeEnum
      */
-    @JsonProperty("pod_name_list")
-    private List<String> podNames;
+    @JsonProperty("mode")
+    private Integer mode;
 
     /**
-     * k8s pod label selector
+     * 源执行对象（主机或容器）
      */
-    @JsonProperty("label_selector")
-    private List<OpenApiLabelSelectExprDTO> labelSelector;
+    @JsonProperty("src_execute_object")
+    private OpenApiExecuteObjectDTO srcExecuteObject;
 
     /**
-     * k8s pod label selector 表达式
+     * 文件源路径
      */
-    @JsonProperty("label_selector_expr")
-    private String labelSelectorExpr;
+    @JsonProperty("src_path")
+    private String srcPath;
 
-    public boolean isEmpty() {
-        return CollectionUtils.isEmpty(podNames)
-            && CollectionUtils.isEmpty(labelSelector)
-            && StringUtils.isBlank(labelSelectorExpr);
-    }
+    /**
+     * 目标执行对象（主机或容器）
+     */
+    @JsonProperty("dest_execute_object")
+    private OpenApiExecuteObjectDTO destExecuteObject;
+
+    /**
+     * 文件目标路径
+     */
+    @JsonProperty("dest_path")
+    private String destPath;
+
+    /**
+     * 文件传输任务状态
+     * @see com.tencent.bk.job.execute.common.constants.FileDistStatusEnum
+     */
+    @JsonProperty("status")
+    private Integer status;
+
+    /**
+     * 文件传输日志内容
+     */
+    @JsonProperty("log_content")
+    private String logContent;
+
+    /**
+     * 文件大小
+     */
+    @JsonProperty("size")
+    private String size;
+
+    /**
+     * 上传/下载 速度
+     */
+    @JsonProperty("speed")
+    private String speed;
+
+    /**
+     * 上传/下载 进度
+     */
+    @JsonProperty("process")
+    private String process;
 
 }
