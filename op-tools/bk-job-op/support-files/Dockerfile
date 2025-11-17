@@ -5,9 +5,9 @@ LABEL dockerfile.version="1.0.0"
 
 ARG MODULE=bk-job-op
 
-ENV BK_JOB_HOME=/data/job/exec
-ENV BK_JOB_APP_NAME=${MODULE}
-ENV BK_JOB_JAR=${MODULE}.jar
+ENV JOB_OP_HOME=/data/job/exec
+ENV JOB_OP_APP_NAME=${MODULE}
+ENV JOB_OP_JAR=${MODULE}.jar
 
 COPY ./ /data/job/exec/
 
