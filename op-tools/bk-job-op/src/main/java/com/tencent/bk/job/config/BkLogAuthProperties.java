@@ -29,10 +29,10 @@ import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * 运维环境的蓝鲸API配置
+ * BK-Log API认证配置
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@ConfigurationProperties(prefix = "bk.api.op")
-public class ApiAuthOpProperties extends BkApiAuthProperties {
+@ConfigurationProperties(prefix = "bk.api.bklog")
+public class BkLogAuthProperties extends BkApiAuthProperties {
 }

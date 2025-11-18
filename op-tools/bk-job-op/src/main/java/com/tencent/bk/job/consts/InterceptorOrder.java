@@ -22,17 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.config;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+package com.tencent.bk.job.consts;
 
 /**
- * prod环境的蓝鲸API配置
+ * 拦截器优先级顺序
  */
-@EqualsAndHashCode(callSuper = true)
-@Data
-@ConfigurationProperties("bk.api.prod")
-public class ApiAuthProdProperties extends BkApiAuthProperties {
+public class InterceptorOrder {
+
+    /**
+     * 认证相关
+     */
+    public static class Auth {
+        /**
+         * MCP认证 Key（最高优先级）
+         */
+        public static final int MCP_AUTH = 1;
+    }
 }

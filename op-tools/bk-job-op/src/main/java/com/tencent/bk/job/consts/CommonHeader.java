@@ -22,22 +22,9 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.config;
+package com.tencent.bk.job.consts;
 
-import com.tencent.bk.job.service.api.bklog.BkLogApi;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
+public class CommonHeader {
 
-@Configuration
-@EnableConfigurationProperties({BkLogAuthProperties.class, BkApiGwProperties.class})
-public class BkApiConfig {
-
-    @Bean
-    public BkLogApi bkLogApi(RestTemplate restTemplate,
-                             BkLogAuthProperties bkLogAuthProperties,
-                             BkApiGwProperties bkApiGwProperties) {
-        return new BkLogApi(restTemplate, bkLogAuthProperties, bkApiGwProperties);
-    }
+    public static final String MCP_AUTH_HEADER_KEY = "X-JOB-OP-KEY";
 }

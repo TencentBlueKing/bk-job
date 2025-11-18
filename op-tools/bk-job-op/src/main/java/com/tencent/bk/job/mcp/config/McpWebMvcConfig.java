@@ -22,22 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.config;
+package com.tencent.bk.job.mcp.config;
 
-import com.tencent.bk.job.service.api.bklog.BkLogApi;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
+import com.tencent.bk.job.consts.InterceptorOrder;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * Web MVC配置 - MCP认证
+ */
+@Slf4j
 @Configuration
-@EnableConfigurationProperties({BkLogAuthProperties.class, BkApiGwProperties.class})
-public class BkApiConfig {
+public class McpWebMvcConfig implements WebMvcConfigurer {
+    
+    private final McpAuthProperties mcpAuthProperties;
+    
+    @Autowired
+    public McpWebMvcConfig(McpAuthProperties mcpAuthProperties) {
+        this.mcpAuthProperties = mcpAuthProperties;
+    }
+    
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        log.info("Registering MCP authentication interceptor, enabled={}", mcpAuthProperties.isEnabled());
 
-    @Bean
-    public BkLogApi bkLogApi(RestTemplate restTemplate,
-                             BkLogAuthProperties bkLogAuthProperties,
-                             BkApiGwProperties bkApiGwProperties) {
-        return new BkLogApi(restTemplate, bkLogAuthProperties, bkApiGwProperties);
+        // Spring AI MCP Server 使用 SSE (Server-Sent Events) 协议，默认端点为 /sse
+        registry.addInterceptor(new McpAuthInterceptor(mcpAuthProperties))
+                .addPathPatterns("/sse", "/sse/**")
+                .order(InterceptorOrder.Auth.MCP_AUTH);
+        
+        log.info("MCP authentication interceptor registered successfully");
     }
 }

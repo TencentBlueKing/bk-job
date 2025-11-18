@@ -22,18 +22,23 @@ spring:
         type: ASYNC #异步
         stdio: false
 
+# MCP认证配置
+mcp:
+  # 认证token
+  auth:
+    enabled: true
+    apiKey: "api-key"
+
 bkApiGateway:
   bkLog:
     url: bklog.com
 
 bk:
   api:
-    op:
+    # BKLog 应用认证
+    bklog:
       bkAppCode: "bk-job-op"
       bkAppSecret: "bk-job-op-secret"
-    prod:
-      bkAppCode: "bk-job-prod"
-      bkAppSecret: "bk-job-prod-secret"
   # BK-Log配置
   log:
     # 日志索引名称

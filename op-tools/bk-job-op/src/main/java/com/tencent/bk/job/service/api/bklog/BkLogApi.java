@@ -25,7 +25,7 @@
 package com.tencent.bk.job.service.api.bklog;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.config.ApiAuthOpProperties;
+import com.tencent.bk.job.config.BkLogAuthProperties;
 import com.tencent.bk.job.config.BkApiGwProperties;
 import com.tencent.bk.job.utils.http.HttpMethodEnum;
 import com.tencent.bk.job.utils.http.bkapigw.v1.ApiGwResp;
@@ -40,9 +40,9 @@ public class BkLogApi extends BkApiGwV1Api {
     private static final String API_LOG_SEARCH = "/esquery_search/";
 
     public BkLogApi(RestTemplate restTemplate,
-                    ApiAuthOpProperties apiAuthOpProperties,
+                    BkLogAuthProperties bkLogAuthProperties,
                     BkApiGwProperties bkApiGwProperties) {
-        super(restTemplate, apiAuthOpProperties, bkApiGwProperties.getBkLog().getUrl());
+        super(restTemplate, bkLogAuthProperties, bkApiGwProperties.getBkLog().getUrl());
     }
 
     public LogQueryResp logSearch(LogQueryReq logQueryReq) {
