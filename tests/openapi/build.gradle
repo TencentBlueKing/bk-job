@@ -20,6 +20,8 @@ ext {
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
     set('jacksonVersion', "2.15.4")
     set('jwtVersion', "0.13.0")
+    set('guavaVersion', "32.0.0-android")
+    set('okHttpVersion', "4.12.0")
 }
 apply plugin: "io.freefair.lombok"
 group 'org.tencent.bk.job'
@@ -49,8 +51,8 @@ dependencies {
     testImplementation "com.fasterxml.jackson.datatype:jackson-datatype-joda:$jacksonVersion"
     testImplementation "io.jsonwebtoken:jjwt-impl: $jwtVersion"
     testImplementation "io.jsonwebtoken:jjwt-jackson: $jwtVersion"
-    testImplementation 'com.google.guava:guava:28.2-jre'
-    testImplementation 'com.squareup.okhttp3:okhttp:3.10.0'
+    testImplementation "com.google.guava:guava:$guavaVersion"
+    testImplementation "com.squareup.okhttp3:okhttp:$okHttpVersion"
     testImplementation 'ch.qos.logback:logback-core:1.2.13'
     testImplementation 'ch.qos.logback:logback-classic:1.2.13'
     testImplementation 'org.slf4j:slf4j-api:1.7.30'

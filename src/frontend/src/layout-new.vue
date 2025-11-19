@@ -351,6 +351,16 @@
     immediate: true,
   });
 
+  watch(routerGroup, () => {
+    if (['operation', 'personal', 'manage'].includes(routerGroup.value)) {
+      document.body.classList.add('admin-permission');
+    } else {
+      document.body.classList.remove('admin-permission');
+    }
+  }, {
+    immediate: true,
+  });
+
   /**
    * @desc 获取是否是admin用户
    */
@@ -411,46 +421,64 @@
 
 </script>
 <style lang="postcss">
-    #app {
-      .site-title {
-        padding-left: 16px;
-        font-size: 18px;
-        color: #96a2b9;
+  body.no-business-permission:not(.admin-permission) {
+    .jb-navigation-side{
+      display: none !important;
+    }
+
+    .jb-navigation-main{
+      margin-left: 0 !important;
+
+      & > .scroll-faker{
+        width: unset !important;
       }
+    }
 
-      .top-menu-box {
-        display: flex;
-        padding: 0 4px;
+    .jb-navigation-content{
+      width: 100% !important;
+    }
+  }
 
-        .top-menu-item {
-          padding: 0 20px;
-          cursor: pointer;
-          transition: all 0.15s;
+  #app {
+    .site-title {
+      padding-left: 16px;
+      font-size: 18px;
+      color: #96a2b9;
+    }
 
-          &.active {
-            color: #fff;
-          }
+    .top-menu-box {
+      display: flex;
+      padding: 0 4px;
 
-          &:hover {
-            color: #d3d9e4;
-          }
+      .top-menu-item {
+        padding: 0 20px;
+        cursor: pointer;
+        transition: all 0.15s;
+
+        &.active {
+          color: #fff;
+        }
+
+        &:hover {
+          color: #d3d9e4;
         }
       }
-
-      .app-select-box {
-        padding: 0 12px 10px;
-        margin-bottom: 10px;
-        border-bottom: 1px solid #2f3847;
-      }
-
-      .page-title {
-        display: flex;
-        flex: 1;
-        align-items: center;
-      }
     }
 
-    #siteHeaderStatusBar {
+    .app-select-box {
+      padding: 0 12px 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #2f3847;
+    }
+
+    .page-title {
+      display: flex;
       flex: 1;
+      align-items: center;
     }
+  }
+
+  #siteHeaderStatusBar {
+    flex: 1;
+  }
 </style>

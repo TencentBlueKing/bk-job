@@ -73,6 +73,16 @@ gse:
 bkIamApiUrl: "http://bkiam-api.example.com"
 ```
 
+## 0.8.12
+1. 升级过程中的SQL更新支持增量更新
+```yaml
+job:
+  migration:
+    mysqlSchema:
+      # 是否开启增量更新模式，默认开启
+      incrementalEnabled: true
+```
+
 ## 0.8.11
 1. 支持针对任务历史查询配置复杂查询限制
 ```yaml

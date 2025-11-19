@@ -33,13 +33,13 @@ import com.tencent.bk.job.execute.model.tables.Statistics;
 import com.tencent.bk.job.execute.statistics.StatisticsKey;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record2;
 import org.jooq.Result;
+import org.jooq.SelectConditionStep;
 import org.jooq.TableField;
 import org.jooq.conf.ParamType;
 import org.jooq.exception.DataAccessException;
@@ -199,11 +199,11 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
     }
 
     private List<StatisticsDTO> listStatisticsWithConditions(DSLContext dslContext, Collection<Condition> conditions) {
-        var query = dslContext.select(ALL_FIELDS)
+        SelectConditionStep<Record> query = dslContext.select(ALL_FIELDS)
             .from(defaultTable)
             .where(conditions);
         Result<Record> records;
-        val sql = query.getSQL(ParamType.INLINED);
+        String sql = query.getSQL(ParamType.INLINED);
         try {
             records = query.fetch();
         } catch (Exception e) {
