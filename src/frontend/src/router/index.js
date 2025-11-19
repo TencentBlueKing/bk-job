@@ -148,9 +148,14 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
     },
   ];
 
+  if (appList.every(item => !item.hasPermission)) {
+    document.body.classList.add('no-business-permission');
+  }
+
+  window.BUSINESS_PERMISSION = true;
   if (noScope || !hasScopePermission) {
     renderPageWithComponent(routes[1], BusinessPermission);
-    document.body.classList.add('no-business-permission');
+    window.BUSINESS_PERMISSION = false;
   } else if (!isValidScope) {
     renderPageWithComponent(routes[1], NotFound);
   }
