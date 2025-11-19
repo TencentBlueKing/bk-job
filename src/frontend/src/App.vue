@@ -117,7 +117,7 @@
     </template>
     <router-view />
     <system-log v-model="showSystemLog" />
-    <jb-ai v-if="isAiEnable" />
+    <jb-ai v-if="isAiEnable && businessPermission" />
   </layout>
 </template>
 <script>
@@ -184,6 +184,7 @@
       this.fetchRelatedSystemUrls();
       this.fetchEnv();
       this.fetchAiConfig();
+      this.businessPermission = window.BUSINESS_PERMISSION;
     },
     /**
      * @desc 页面渲染完成
