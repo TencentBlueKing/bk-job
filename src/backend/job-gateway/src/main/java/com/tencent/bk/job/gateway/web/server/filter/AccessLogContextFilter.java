@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.gateway.web.server.filter;
 
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
 import com.tencent.bk.job.gateway.web.server.AccessLogEnabled;
 import com.tencent.bk.job.gateway.web.server.RouteServerInfo;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -36,6 +36,7 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -48,28 +49,29 @@ import java.net.URI;
 @Component
 @Slf4j
 @AccessLogEnabled
-public class RouteServerContextFilter implements GlobalFilter, Ordered {
+public class AccessLogContextFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        ServerHttpRequest request = exchange.getRequest();
         Response<ServiceInstance> resp =
             exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_LOADBALANCER_RESPONSE_ATTR);
-        if (resp == null) {
-            log.debug("instance is null, No backend selected.");
-            return chain.filter(exchange);
-        }
-
         RouteServerInfo rs = buildRouteInfo(exchange, resp.getServer());
-        MDC.put(AccessLogConstants.KEY_BACKEND_RS, rs.toString());
-
-        return chain.filter(exchange)
-                .doFinally(signalType -> MDC.remove(AccessLogConstants.KEY_BACKEND_RS));
+        request.mutate().header(AccessLogConstants.KEY_BACKEND_RS, rs != null ? rs.toString() :
+                AccessLogConstants.VAL_MISSING)
+            .header(AccessLogConstants.KEY_USER_NAME, JobContextUtil.getUsername())
+            .build();
+        return chain.filter(exchange.mutate().request(request).build());
     }
 
     private RouteServerInfo buildRouteInfo(ServerWebExchange exchange, ServiceInstance instance) {
+        if (instance == null) {
+            log.debug("instance is null, No backend selected.");
+            return null;
+        }
         RouteServerInfo info = new RouteServerInfo();
         info.setServiceId(instance.getServiceId());
-        log.info("Instance metadata: {}", instance.getMetadata());
+        log.info("ServiceId:{}, Instance info: {}", instance.getServiceId(), instance.getMetadata());
         String podName = instance.getMetadata().getOrDefault("instance-id",
             instance.getMetadata().getOrDefault("podName", instance.getInstanceId()));
         info.setPodName(podName);
