@@ -22,19 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.gateway.web.server;
 
 /**
- * @since 11/11/2019 15:30
+ * Access log相关常量
  */
-public class HttpHeader {
-    /**
-     * HTTP 头
-     **/
-    public static final String HDR_BK_LANG = "blueking-language";
-    public static final String HDR_REQ_ID = "request-id";
-    public static final String HDR_REQ_SAPN_ID = "span-id";
-    public static final String HDR_CONTENT_TYPE = "Content-Type";
-    public static final String S_CURRENT_PAGE = "currentPage";
-    public static final String HDR_UER_AGENT = "User-Agent";
+public class AccessLogConstants {
+    public static final String KEY_USER_NAME = "userName";
+    public static final String KEY_METHOD = "method";
+    public static final String KEY_URI = "uri";
+    public static final String KEY_STATUS = "status";
+    public static final String KEY_START_TIME = "startTime";
+    public static final String KEY_END_TIME = "endTime";
+    public static final String KEY_DURATION = "duration";
+    public static final String KEY_PROTOCOL = "protocol";
+    public static final String KEY_REMOTE_ADDRESS = "remoteAddress";
+    public static final String KEY_USER_AGENT = "userAgent";
+    public static final String KEY_BACKEND_RS = "backendRS";
+    public static final String KEY_CONTENT_LENGTH = "contentLength";
+
+    public static final String FMT_DEFAULT_TIME = "yyyy-MM-dd HH:mm:ss.SSS";
+    public static final String FMT_DEFAULT_LOG = "{} - {} [{}] \"{} {} {}\" {} {} {} ms";
+
+    public static final String VAL_MISSING = "-";
 }

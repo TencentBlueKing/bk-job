@@ -22,19 +22,48 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.gateway.web.server;
+
+import lombok.Data;
 
 /**
- * @since 11/11/2019 15:30
+ * 请求路由信息
  */
-public class HttpHeader {
+@Data
+public class RouteServerInfo {
+
     /**
-     * HTTP 头
-     **/
-    public static final String HDR_BK_LANG = "blueking-language";
-    public static final String HDR_REQ_ID = "request-id";
-    public static final String HDR_REQ_SAPN_ID = "span-id";
-    public static final String HDR_CONTENT_TYPE = "Content-Type";
-    public static final String S_CURRENT_PAGE = "currentPage";
-    public static final String HDR_UER_AGENT = "User-Agent";
+     * 服务id
+     */
+    private String serviceId;
+
+    /**
+     * Pod名称
+     */
+    private String podName;
+
+    /**
+     * 主机
+     */
+    private String host;
+
+    /**
+     * 请求端口
+     */
+    private int port;
+
+    /**
+     * 请求uri
+     */
+    private String uri;
+
+    @Override
+    public String toString() {
+        return String.format("%s(%s:%d) uri=%s", 
+            podName != null ? podName : serviceId,
+            host,
+            port,
+            uri
+        );
+    }
 }

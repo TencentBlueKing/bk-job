@@ -22,19 +22,42 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.gateway.web.server;
+
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @since 11/11/2019 15:30
+ * AccessLog输出字段注册器
  */
-public class HttpHeader {
-    /**
-     * HTTP 头
-     **/
-    public static final String HDR_BK_LANG = "blueking-language";
-    public static final String HDR_REQ_ID = "request-id";
-    public static final String HDR_REQ_SAPN_ID = "span-id";
-    public static final String HDR_CONTENT_TYPE = "Content-Type";
-    public static final String S_CURRENT_PAGE = "currentPage";
-    public static final String HDR_UER_AGENT = "User-Agent";
+@Component
+@AccessLogEnabled
+public class AccessLogFieldRegistry {
+    private final List<String> fields = new ArrayList<>();
+
+    public AccessLogFieldRegistry() {
+        // AccessLog按此注册顺序输出
+        register(AccessLogConstants.KEY_USER_NAME);
+        register(AccessLogConstants.KEY_METHOD);
+        register(AccessLogConstants.KEY_URI);
+        register(AccessLogConstants.KEY_STATUS);
+        register(AccessLogConstants.KEY_BACKEND_RS);
+        register(AccessLogConstants.KEY_CONTENT_LENGTH);
+        register(AccessLogConstants.KEY_START_TIME);
+        register(AccessLogConstants.KEY_END_TIME);
+        register(AccessLogConstants.KEY_DURATION);
+        register(AccessLogConstants.KEY_PROTOCOL);
+        register(AccessLogConstants.KEY_REMOTE_ADDRESS);
+        register(AccessLogConstants.KEY_USER_AGENT);
+    }
+
+    public void register(String key) {
+        fields.add(key);
+    }
+
+    public List<String> getFields() {
+        return fields;
+    }
 }

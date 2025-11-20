@@ -26,6 +26,7 @@ package com.tencent.bk.job.gateway;
 
 import com.tencent.bk.job.common.service.boot.JobBootApplication;
 import com.tencent.bk.job.gateway.config.CsrfCheckProperties;
+import com.tencent.bk.job.gateway.web.server.NettyFactoryCustomizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +41,7 @@ import org.springframework.http.server.reactive.HttpHandler;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.List;
 
 /**
  * Job Gateway Spring Boot Application
@@ -56,6 +58,7 @@ public class JobGatewayBootApplication {
     private WebServer httpWebServer;
 
     private final NettyWebServerFactoryCustomizer nettyWebServerFactoryCustomizer;
+    private final List<NettyFactoryCustomizer> nettyFactoryCustomizers;
 
     @Value("${server.http.enabled}")
     private Boolean httpEnabled;
@@ -66,9 +69,12 @@ public class JobGatewayBootApplication {
     public JobGatewayBootApplication(@Autowired
                                          HttpHandler httpHandler,
                                      @Autowired(required = false)
-                                         NettyWebServerFactoryCustomizer nettyWebServerFactoryCustomizer) {
+                                         NettyWebServerFactoryCustomizer nettyWebServerFactoryCustomizer,
+                                     @Autowired(required= false)
+                                         List<NettyFactoryCustomizer> nettyFactoryCustomizers) {
         this.httpHandler = httpHandler;
         this.nettyWebServerFactoryCustomizer = nettyWebServerFactoryCustomizer;
+        this.nettyFactoryCustomizers = nettyFactoryCustomizers;
     }
 
     public static void main(String[] args) {
@@ -82,6 +88,11 @@ public class JobGatewayBootApplication {
             if (nettyWebServerFactoryCustomizer != null) {
                 nettyWebServerFactoryCustomizer.customize(factory);
             }
+
+            if (nettyFactoryCustomizers != null) {
+                nettyFactoryCustomizers.forEach(customizer -> customizer.customize(factory));
+            }
+
             this.httpWebServer = factory.getWebServer(this.httpHandler);
             this.httpWebServer.start();
         }

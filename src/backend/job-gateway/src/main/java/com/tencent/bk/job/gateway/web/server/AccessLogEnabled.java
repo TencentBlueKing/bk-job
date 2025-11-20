@@ -22,19 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.gateway.web.server;
 
-/**
- * @since 11/11/2019 15:30
- */
-public class HttpHeader {
-    /**
-     * HTTP 头
-     **/
-    public static final String HDR_BK_LANG = "blueking-language";
-    public static final String HDR_REQ_ID = "request-id";
-    public static final String HDR_REQ_SAPN_ID = "span-id";
-    public static final String HDR_CONTENT_TYPE = "Content-Type";
-    public static final String S_CURRENT_PAGE = "currentPage";
-    public static final String HDR_UER_AGENT = "User-Agent";
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@ConditionalOnProperty(
+        value = "reactor.netty.http.server.accessLogEnabled",
+        havingValue = "true",
+        matchIfMissing = false
+)
+public @interface AccessLogEnabled {
 }

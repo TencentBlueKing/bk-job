@@ -22,19 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.gateway.web.server.provider;
+
+import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
+import com.tencent.bk.job.gateway.web.server.AccessLogEnabled;
+import org.springframework.stereotype.Component;
+import reactor.netty.http.server.logging.AccessLogArgProvider;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
- * @since 11/11/2019 15:30
+ * 从作业平台上下文提取日志元数据
  */
-public class HttpHeader {
-    /**
-     * HTTP 头
-     **/
-    public static final String HDR_BK_LANG = "blueking-language";
-    public static final String HDR_REQ_ID = "request-id";
-    public static final String HDR_REQ_SAPN_ID = "span-id";
-    public static final String HDR_CONTENT_TYPE = "Content-Type";
-    public static final String S_CURRENT_PAGE = "currentPage";
-    public static final String HDR_UER_AGENT = "User-Agent";
+@Component
+@AccessLogEnabled
+public class JobContextMetadataProvider implements AccessLogMetadataProvider {
+
+    @Override
+    public Map<String, Object> extract(AccessLogArgProvider provider) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put(AccessLogConstants.KEY_USER_NAME, JobContextUtil.getUsername());
+        return map;
+    }
 }
