@@ -1,0 +1,121 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 Tencent.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+package com.tencent.bk.job.manage.service.impl.sync;
+
+import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+
+/**
+ * CMDB事件游标管理器的Redis实现，将游标数据存储于Redis中
+ */
+@Slf4j
+@Service
+public class CmdbEventCursorManagerRedisImpl implements CmdbEventCursorManager {
+
+    private static final String REDIS_KEY_CMDB_EVENT_LATEST_CURSOR_PREFIX = "job:manage:cmdbEventLatestCursor:";
+    private final RedisTemplate<String, String> redisTemplate;
+
+    @Autowired
+    public CmdbEventCursorManagerRedisImpl(RedisTemplate<String, String> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
+
+    /**
+     * 尝试从Redis加载最近的已处理事件的游标
+     *
+     * @param watcherResourceName 监听的资源名称
+     * @return 游标
+     */
+    @Override
+    public String tryToLoadLatestCursor(String watcherResourceName) {
+        try {
+            return loadLatestCursor(watcherResourceName);
+        } catch (Throwable t) {
+            log.error("Fail to loadLatestCursor", t);
+            return null;
+        }
+    }
+
+    /**
+     * 从Redis加载最近的已处理事件的游标
+     *
+     * @param watcherResourceName 监听的资源名称
+     * @return 游标
+     */
+    private String loadLatestCursor(String watcherResourceName) {
+        String redisKey = buildRedisKey(watcherResourceName);
+        String latestCursor = redisTemplate.opsForValue().get(redisKey);
+        log.info("Loaded latestCursor from redis: {}", latestCursor);
+        if (StringUtils.isBlank(latestCursor)) {
+            return null;
+        }
+        return latestCursor;
+    }
+
+    /**
+     * 尝试将最近的已处理事件的游标保存到Redis
+     *
+     * @param watcherResourceName 监听的资源名称
+     * @param latestCursor        最近的已处理过的事件的游标
+     */
+    @Override
+    public void tryToSaveLatestCursor(String watcherResourceName, String latestCursor) {
+        try {
+            saveLatestCursor(watcherResourceName, latestCursor);
+            if (log.isDebugEnabled()) {
+                log.debug(
+                    "Saved latestCursor to redis: watcherResourceName={}, cursor={}",
+                    watcherResourceName,
+                    latestCursor
+                );
+            }
+        } catch (Throwable t) {
+            log.error("Fail to saveLatestCursor", t);
+        }
+    }
+
+    /**
+     * 保存最近的已处理事件的游标到Redis
+     *
+     * @param watcherResourceName 监听的资源名称
+     * @param latestCursor        最近的已处理过的事件的游标
+     */
+    private void saveLatestCursor(String watcherResourceName, String latestCursor) {
+        if (StringUtils.isBlank(latestCursor)) {
+            log.warn("Do not save blank cursor:{}, ignore", latestCursor);
+            return;
+        }
+        String redisKey = buildRedisKey(watcherResourceName);
+        redisTemplate.opsForValue().set(redisKey, latestCursor);
+    }
+
+    private String buildRedisKey(String watcherResourceName) {
+        return REDIS_KEY_CMDB_EVENT_LATEST_CURSOR_PREFIX + watcherResourceName;
+    }
+}
