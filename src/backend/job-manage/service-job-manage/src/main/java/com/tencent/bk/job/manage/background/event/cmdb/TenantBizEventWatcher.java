@@ -38,6 +38,7 @@ import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.Tracer;
@@ -59,8 +60,9 @@ public class TenantBizEventWatcher extends AbstractCmdbResourceEventWatcher<BizE
                                  IBizCmdbClient bizCmdbClient,
                                  ApplicationService applicationService,
                                  TenantService tenantService,
+                                 CmdbEventCursorManager cmdbEventCursorManager,
                                  String tenantId) {
-        super(tenantId, "biz", redisTemplate, tenantService, tracer, cmdbEventSampler);
+        super(tenantId, "biz", redisTemplate, tenantService, tracer, cmdbEventSampler, cmdbEventCursorManager);
         this.bizCmdbClient = bizCmdbClient;
         this.applicationService = applicationService;
     }

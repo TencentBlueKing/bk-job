@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.background.ha.AbstractBackGroundTask;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
+import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -65,6 +66,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
     private final TenantService tenantService;
     private final Tracer tracer;
     private final CmdbEventSampler cmdbEventSampler;
+    private final CmdbEventCursorManager cmdbEventCursorManager;
 
     /**
      * 监听的资源名称
@@ -84,11 +86,13 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
                                             RedisTemplate<String, String> redisTemplate,
                                             TenantService tenantService,
                                             Tracer tracer,
-                                            CmdbEventSampler cmdbEventSampler) {
+                                            CmdbEventSampler cmdbEventSampler,
+                                            CmdbEventCursorManager cmdbEventCursorManager) {
         this.tenantId = tenantId;
         this.tenantService = tenantService;
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
+        this.cmdbEventCursorManager = cmdbEventCursorManager;
         this.watcherResourceName = watcherResourceName;
         this.setName(getUniqueCode());
         this.redisLock = new HeartBeatRedisLock(redisTemplate, getUniqueCode(), IpUtils.getFirstMachineIP());
@@ -197,7 +201,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
             TimeUtil.getCurrentTimeStr("HH:mm:ss"),
             System.currentTimeMillis()
         );
-        String cursor = null;
+        String cursor = cmdbEventCursorManager.tryToLoadLatestCursor(tenantId, watcherResourceName);
         while (checkActive() && isWatchingEnabled()) {
             Span span = SpanUtil.buildNewSpan(
                 this.tracer,
@@ -216,6 +220,8 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
                 }
                 log.info("WatchResult[{}]: {}", this.watcherResourceName, JsonUtils.toJson(watchResult));
                 cursor = handleWatchResult(watchResult, cursor);
+                // 保存游标
+                cmdbEventCursorManager.tryToSaveLatestCursor(tenantId, watcherResourceName, cursor);
                 // 1s/watch一次
                 Thread.sleep(1_000);
             } catch (InterruptedException e) {
