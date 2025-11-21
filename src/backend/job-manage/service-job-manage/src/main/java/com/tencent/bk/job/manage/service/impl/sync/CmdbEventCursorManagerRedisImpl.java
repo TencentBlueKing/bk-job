@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.service.impl.sync;
 import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -57,7 +58,11 @@ public class CmdbEventCursorManagerRedisImpl implements CmdbEventCursorManager {
         try {
             return loadLatestCursor(watcherResourceName);
         } catch (Throwable t) {
-            log.error("Fail to loadLatestCursor", t);
+            String message = MessageFormatter.format(
+                "Fail to loadLatestCursor for {}",
+                watcherResourceName
+            ).getMessage();
+            log.error(message, t);
             return null;
         }
     }
@@ -71,7 +76,7 @@ public class CmdbEventCursorManagerRedisImpl implements CmdbEventCursorManager {
     private String loadLatestCursor(String watcherResourceName) {
         String redisKey = buildRedisKey(watcherResourceName);
         String latestCursor = redisTemplate.opsForValue().get(redisKey);
-        log.info("Loaded latestCursor from redis: {}", latestCursor);
+        log.info("Loaded latestCursor({}) from redis: {}", watcherResourceName, latestCursor);
         if (StringUtils.isBlank(latestCursor)) {
             return null;
         }
@@ -96,7 +101,11 @@ public class CmdbEventCursorManagerRedisImpl implements CmdbEventCursorManager {
                 );
             }
         } catch (Throwable t) {
-            log.error("Fail to saveLatestCursor", t);
+            String message = MessageFormatter.format(
+                "Fail to saveLatestCursor for {}",
+                watcherResourceName
+            ).getMessage();
+            log.error(message, t);
         }
     }
 
@@ -108,7 +117,7 @@ public class CmdbEventCursorManagerRedisImpl implements CmdbEventCursorManager {
      */
     private void saveLatestCursor(String watcherResourceName, String latestCursor) {
         if (StringUtils.isBlank(latestCursor)) {
-            log.warn("Do not save blank cursor:{}, ignore", latestCursor);
+            log.warn("Do not save blank {} cursor:{}, ignore", watcherResourceName, latestCursor);
             return;
         }
         String redisKey = buildRedisKey(watcherResourceName);
