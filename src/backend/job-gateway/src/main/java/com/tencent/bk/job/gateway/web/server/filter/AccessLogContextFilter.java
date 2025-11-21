@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.gateway.web.server.filter;
 
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
 import com.tencent.bk.job.gateway.web.server.AccessLogEnabled;
 import com.tencent.bk.job.gateway.web.server.RouteServerInfo;
@@ -57,9 +56,8 @@ public class AccessLogContextFilter implements GlobalFilter, Ordered {
         Response<ServiceInstance> resp =
             exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_LOADBALANCER_RESPONSE_ATTR);
         RouteServerInfo rs = buildRouteInfo(exchange, resp.getServer());
-        request.mutate().header(AccessLogConstants.KEY_BACKEND_RS, rs != null ? rs.toString() :
-                AccessLogConstants.VAL_MISSING)
-            .header(AccessLogConstants.KEY_USER_NAME, JobContextUtil.getUsername())
+        request.mutate().header(AccessLogConstants.KEY_BACKEND_RS,
+                rs != null ? rs.toString() : AccessLogConstants.VAL_MISSING)
             .build();
         return chain.filter(exchange.mutate().request(request).build());
     }
@@ -71,7 +69,8 @@ public class AccessLogContextFilter implements GlobalFilter, Ordered {
         }
         RouteServerInfo info = new RouteServerInfo();
         info.setServiceId(instance.getServiceId());
-        log.info("ServiceId:{}, Instance info: {}", instance.getServiceId(), instance.getMetadata());
+        log.info("ServiceId:{}, Instance info: {}, className: {}",
+            instance.getServiceId(), instance.getMetadata(), instance.getClass().getName());
         String podName = instance.getMetadata().getOrDefault("instance-id",
             instance.getMetadata().getOrDefault("podName", instance.getInstanceId()));
         info.setPodName(podName);

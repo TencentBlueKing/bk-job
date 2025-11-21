@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.gateway.web.server.provider;
 
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
 import com.tencent.bk.job.gateway.web.server.AccessLogEnabled;
 import org.springframework.stereotype.Component;
@@ -43,7 +44,9 @@ public class JobContextMetadataProvider implements AccessLogMetadataProvider {
     public Map<String, Object> extract(AccessLogArgProvider provider) {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put(AccessLogConstants.KEY_BACKEND_RS, provider.requestHeader(AccessLogConstants.KEY_BACKEND_RS));
-        map.put(AccessLogConstants.KEY_USER_NAME, provider.requestHeader(AccessLogConstants.KEY_USER_NAME));
+        map.put(AccessLogConstants.KEY_USER_NAME,
+            provider.requestHeader(JobCommonHeaders.USERNAME) != null ?
+                provider.requestHeader(JobCommonHeaders.USERNAME) : provider.requestHeader("username"));
         return map;
     }
 }
