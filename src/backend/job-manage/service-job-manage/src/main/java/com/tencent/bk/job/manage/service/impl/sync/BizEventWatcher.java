@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,8 +59,9 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
                            Tracer tracer,
                            CmdbEventSampler cmdbEventSampler,
                            BizCmdbClient bizCmdbClient,
-                           ApplicationService applicationService) {
-        super("biz", redisTemplate, tracer, cmdbEventSampler);
+                           ApplicationService applicationService,
+                           CmdbEventCursorManager cmdbEventCursorManager) {
+        super("biz", redisTemplate, tracer, cmdbEventSampler, cmdbEventCursorManager);
         this.bizCmdbClient = bizCmdbClient;
         this.applicationService = applicationService;
     }

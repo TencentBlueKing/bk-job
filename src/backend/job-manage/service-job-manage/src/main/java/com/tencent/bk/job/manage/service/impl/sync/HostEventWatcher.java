@@ -33,6 +33,7 @@ import com.tencent.bk.job.manage.config.GseConfig;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
+import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
 import com.tencent.bk.job.manage.service.host.HostService;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -75,8 +76,9 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
                             HostService hostService,
                             @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
                                 AgentStateClient agentStateClient,
-                            JobManageConfig jobManageConfig) {
-        super("host", redisTemplate, tracer, cmdbEventSampler);
+                            JobManageConfig jobManageConfig,
+                            CmdbEventCursorManager cmdbEventCursorManager) {
+        super("host", redisTemplate, tracer, cmdbEventSampler, cmdbEventCursorManager);
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.bizCmdbClient = bizCmdbClient;
