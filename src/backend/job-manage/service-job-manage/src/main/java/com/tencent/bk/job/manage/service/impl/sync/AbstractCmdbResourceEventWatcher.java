@@ -148,7 +148,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                 log.info("WatchResult[{}]: {}", this.watcherResourceName, JsonUtils.toJson(watchResult));
                 cursor = handleWatchResult(watchResult, cursor);
                 // 保存游标
-                cmdbEventCursorManager.tryToSaveLatestCursor(watcherResourceName,cursor);
+                cmdbEventCursorManager.tryToSaveLatestCursor(watcherResourceName, cursor);
                 // 1s/watch一次
                 ThreadUtils.sleep(1_000);
             } catch (Throwable t) {
