@@ -1,6 +1,8 @@
 spring:
   application:
     name: bk-job-op
+  profiles:
+    active: dev
   data:
     redis:
       host: 127.0.0.1
