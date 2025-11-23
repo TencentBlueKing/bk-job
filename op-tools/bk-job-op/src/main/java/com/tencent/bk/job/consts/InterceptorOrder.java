@@ -38,4 +38,14 @@ public class InterceptorOrder {
          */
         public static final int MCP_AUTH = 1;
     }
+
+    /**
+     * 日志相关
+     */
+    public static class Logging {
+        /**
+         * 日志拦截器
+         */
+        public static final int MCP_LOGGING = 2;
+    }
 }

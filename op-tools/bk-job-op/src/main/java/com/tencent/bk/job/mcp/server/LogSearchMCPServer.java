@@ -69,42 +69,65 @@ public class LogSearchMCPServer {
             Integer start,
             @JsonPropertyDescription("每页返回的日志条数，默认10，建议不超过100") 
             Integer size) {
-        log.info("searchLogsByCondition with pagination, queryString={}, " +
+        log.info("[MCP Tool Call] searchLogsByCondition - Input: queryString={}, " +
                 "timeRange={}, startTime={}, endTime={}, start={}, size={}",
                 queryString, timeRange, startTime, endTime, start, size);
         
-        // 时间校验
-        validateTimeParameters(timeRange, startTime, endTime);
-        
-        // 分页参数校验
-        if (start == null || start < 0) {
-            start = 0;
+        try {
+            // 时间校验
+            validateTimeParameters(timeRange, startTime, endTime);
+            
+            // 分页参数校验
+            if (start == null || start < 0) {
+                start = 0;
+            }
+            if (size == null || size <= 0) {
+                size = 10; // 默认每页10条
+            }
+            
+            PageData<SimpleLogDTO> result = jobLogQueryService.queryLogs(queryString, timeRange, startTime, endTime, start, size);
+            
+            log.info("[MCP Tool Call] searchLogsByCondition - Output: total={}, pageSize={}, dataCount={}", 
+                    result != null ? result.getTotal() : 0,
+                    result != null ? result.getSize() : 0,
+                    result != null && result.getData() != null ? result.getData().size() : 0);
+            
+            return result;
+        } catch (Exception e) {
+            log.error("[MCP Tool Call] searchLogsByCondition - Error: {}", e.getMessage(), e);
+            throw e;
         }
-        if (size == null || size <= 0) {
-            size = 10; // 默认每页10条
-        }
-        
-        return jobLogQueryService.queryLogs(queryString, timeRange, startTime, endTime, start, size);
     }
 
     @Tool(description = "通过step_instance_id 搜索该任务的 request_id")
     public String searchRequestIdByStepInstanceId(
             @JsonPropertyDescription("作业步骤实例ID")
             String stepInstanceId) {
-        // 构建特征查询条件：查找包含stepInstanceId且与MQ消费/生产相关的日志
-        String queryString = String.format(MAIN_PROCESS_QUERY_TEMPLATE, stepInstanceId);
+        log.info("[MCP Tool Call] searchRequestIdByStepInstanceId - Input: stepInstanceId={}", stepInstanceId);
         
-        // 查询最近1天的日志，使用分页查询，只取第一条
-        PageData<SimpleLogDTO> logs = jobLogQueryService.queryLogs(queryString, "1d", null, null, 0, 1);
-        
-        if (logs != null && logs.getData() != null && !logs.getData().isEmpty()) {
-            // 返回第一个匹配日志的requestId
-            SimpleLogDTO simpleLog = logs.getData().get(0);
-            log.debug("SimpleLogDTO: {}", simpleLog);
-            return simpleLog.getRequestId() != null ? simpleLog.getRequestId() : "未找到requestId";
+        try {
+            // 构建特征查询条件：查找包含stepInstanceId且与MQ消费/生产相关的日志
+            String queryString = String.format(MAIN_PROCESS_QUERY_TEMPLATE, stepInstanceId);
+            
+            // 查询最近1天的日志，使用分页查询，只取第一条
+            PageData<SimpleLogDTO> logs = jobLogQueryService.queryLogs(queryString, "1d", null, null, 0, 1);
+            
+            String result;
+            if (logs != null && logs.getData() != null && !logs.getData().isEmpty()) {
+                // 返回第一个匹配日志的requestId
+                SimpleLogDTO simpleLog = logs.getData().get(0);
+                log.debug("SimpleLogDTO: {}", simpleLog);
+                result = simpleLog.getRequestId() != null ? simpleLog.getRequestId() : "未找到requestId";
+            } else {
+                result = "未找到包含stepInstanceId: " + stepInstanceId + " 的日志";
+            }
+            
+            log.info("[MCP Tool Call] searchRequestIdByStepInstanceId - Output: {}", result);
+            return result;
+        } catch (Exception e) {
+            log.error("[MCP Tool Call] searchRequestIdByStepInstanceId - Error: {}", e.getMessage(), e);
+            throw e;
         }
-        
-        return "未找到包含stepInstanceId: " + stepInstanceId + " 的日志";
     }
 
     /**
