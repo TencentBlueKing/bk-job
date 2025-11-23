@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.mcp.server;
 
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.service.JobLogQueryService;
 import com.tencent.bk.job.service.model.PageData;
 import com.tencent.bk.job.service.model.SimpleLogDTO;
@@ -53,13 +54,23 @@ public class LogSearchMCPServer {
     }
 
     @Tool(description = "通过时间、符合KQL语法的查询语句 搜索日志（支持分页）")
-    public PageData<SimpleLogDTO> searchLogsByCondition(String queryString,
-                                                       String timeRange,
-                                                       String startTime,
-                                                       String endTime,
-                                                       Integer start,
-                                                       Integer size) {
-        log.info("searchLogsByCondition with pagination, queryString={}, timeRange={}, startTime={}, endTime={}, start={}, size={}",
+    public PageData<SimpleLogDTO> searchLogsByCondition(
+            @JsonPropertyDescription("KQL语法的查询语句")
+            String queryString,
+            @JsonPropertyDescription("预定义时间范围，支持格式：1d、1h、15m，最大7天。使用了startTime和endTime时忽略。")
+            String timeRange,
+            @JsonPropertyDescription("自定义开始时间，格式：yyyy-MM-dd HH:mm:ss，与endTime同时使用，" +
+                "优先级比timeRange高，使用timeRange的话不要传这个参数。")
+            String startTime,
+            @JsonPropertyDescription("自定义结束时间，格式：yyyy-MM-dd HH:mm:ss，与startTime同时使用，" +
+                "优先级比timeRange高，使用timeRange的话不要传这个参数。")
+            String endTime,
+            @JsonPropertyDescription("分页起始位置，从0开始，默认0")
+            Integer start,
+            @JsonPropertyDescription("每页返回的日志条数，默认10，建议不超过100") 
+            Integer size) {
+        log.info("searchLogsByCondition with pagination, queryString={}, " +
+                "timeRange={}, startTime={}, endTime={}, start={}, size={}",
                 queryString, timeRange, startTime, endTime, start, size);
         
         // 时间校验
@@ -77,7 +88,9 @@ public class LogSearchMCPServer {
     }
 
     @Tool(description = "通过step_instance_id 搜索该任务的 request_id")
-    public String searchRequestIdByStepInstanceId(String stepInstanceId) {
+    public String searchRequestIdByStepInstanceId(
+            @JsonPropertyDescription("作业步骤实例ID")
+            String stepInstanceId) {
         // 构建特征查询条件：查找包含stepInstanceId且与MQ消费/生产相关的日志
         String queryString = String.format(MAIN_PROCESS_QUERY_TEMPLATE, stepInstanceId);
         

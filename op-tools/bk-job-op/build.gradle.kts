@@ -27,6 +27,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.apache.commons:commons-lang3:$commonsLang3Version")
     implementation("com.squareup.okhttp3:okhttp:$okhttpVersion")
     compileOnly("org.projectlombok:lombok:1.18.24")

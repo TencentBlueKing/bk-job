@@ -24,6 +24,20 @@ spring:
         type: ASYNC #异步
         stdio: false
 
+# Spring Boot Actuator 配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,env,metrics,beans,configprops
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+  info:
+    env:
+      enabled: true
+
 # MCP认证配置
 mcp:
   # 认证token
