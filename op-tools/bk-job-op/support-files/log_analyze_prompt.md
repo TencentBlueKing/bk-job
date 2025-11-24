@@ -182,69 +182,37 @@ GseStepEventHandler 更新步骤状态
 
 #### KQL 查询示例
 
-**1. 基础查询**
+**基础查询**
 ```
 # 查询特定 request_id 的所有日志
-request_id:614fe728ac03837358e6f338a771be79
+request_id:abc123456asd
 
 ```
 
 **2. 组合查询（使用 AND/OR）**
 ```
 # 查询特定 request_id 的错误日志
-request_id:614fe728ac03837358e6f338a771be79 AND level:ERROR
-
-# 查询包含异常或错误的日志
-log:*exception* OR log:*error*
-
-# 查询特定 request_id 且包含 GSE 相关的日志
-request_id:614fe728ac03837358e6f338a771be79 AND log:*GSE*
+request_id:abc123456asd AND level:ERROR
 ```
 
-**3. 通配符查询**
-```
-# 查询日志内容包含 "timeout" 的记录
-log:*timeout*
-
-# 查询日志内容包含 "failed" 或 "failure" 的记录
-log:*fail*
-```
-
-**4. 排除查询（使用 NOT）**
+**3. 排除查询（使用 NOT）**
 ```
 # 查询非 INFO 级别的日志
-request_id:614fe728ac03837358e6f338a771be79 AND NOT level:INFO
-
-# 排除包含特定关键词的日志
-request_id:614fe728ac03837358e6f338a771be79 AND NOT log:*heartbeat*
+request_id:abc123456asd AND NOT level:INFO
 ```
 
-**5. 字段存在性查询**
-```
-# 查询存在 request_id 字段的日志
-request_id:*
-
-# 查询特定 serverIp 的日志
-serverIp:192.168.1.100
-```
 
 #### 常见查询场景
 
-| 场景 | KQL 查询语句 |
-|------|-------------|
-| 查询完整执行链路 | `request_id:${request_id}` |
+| 场景         | KQL 查询语句                                   |
+|------------|--------------------------------------------|
+| 查询完整执行链路   | `request_id:${request_id}`                 |
 | 查询执行链路中的错误 | `request_id:${request_id} AND level:ERROR` |
-| 查询 GSE 相关日志 | `request_id:${request_id} AND log:*GSE*` |
-| 查询异常堆栈 | `request_id:${request_id} AND log:*exception*` |
-| 查询步骤执行日志 | `log:*stepInstanceId* AND log:*${stepInstanceId}*` |
-| 查询任务下发日志 | `request_id:${request_id} AND log:*START_GSE_TASK*` |
-| 查询状态轮询日志 | `request_id:${request_id} AND log:*ResultHandleTask*` |
 
 #### 注意事项
 1. **字段名区分大小写**：使用 `request_id` 而不是 `requestId` 或 `REQUEST_ID`
-2. **通配符使用**：`*` 表示任意字符，如 `log:*exception*` 匹配包含 "exception" 的日志
-3. **精确匹配**：不使用通配符时为精确匹配，如 `level:ERROR` 只匹配 ERROR 级别
-4. **逻辑运算符**：AND、OR、NOT 必须大写
-5. **括号分组**：复杂查询可使用括号，如 `(log:*error* OR log:*exception*) AND level:ERROR`
+2. **精确匹配**：不使用通配符时为精确匹配，如 `level:ERROR` 只匹配 ERROR 级别
+3. **逻辑运算符**：AND、OR、NOT 必须大写
+4. **括号分组**：复杂查询可使用括号，如 `(log:*error* OR log:*exception*) AND level:ERROR`
 
 记住：你的目标是帮助用户快速定位问题、理解原因、并提供可行的解决方案。充分利用 MCP 工具能大幅提升排查效率。
