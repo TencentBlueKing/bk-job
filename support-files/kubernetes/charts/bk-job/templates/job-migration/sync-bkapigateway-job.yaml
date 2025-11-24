@@ -18,6 +18,7 @@ spec:
       labels: {{- include "common.labels.matchLabels" . | nindent 8 }}
         app.kubernetes.io/component : "job-sync-bk-api-gateway"
     spec:
+      {{- include "job.imagePullSecrets" . | nindent 6 }}
       containers:
       - command:
         - bash

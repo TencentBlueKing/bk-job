@@ -796,6 +796,8 @@ job:
     mysqlSchema:
       # 是否开启Mysql数据库结构migration
       enabled: true
+      # 是否开启增量migration
+      incrementalEnabled: true
       # mysql数据库migrate时使用的管理员用户名，不填默认是root
       adminUsername: ""
       # mysql数据库migrate时使用的管理员密码，不填使用mariadb/externalMariaDB的root密码
@@ -2111,8 +2113,8 @@ waitForDependServices:
 k8sConfigWatcherConfig:
   enabled: true
   image:
-    registry: docker.io
-    repository: bkjob/job-config-watcher
+    registry: hub.bktencent.com
+    repository: blueking/job-config-watcher
     tag: "3.11.11"
     pullPolicy: IfNotPresent
     pullSecrets: []

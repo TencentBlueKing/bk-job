@@ -39,6 +39,7 @@ import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
@@ -63,8 +64,10 @@ public class TenantBizSetRelationEventWatcher extends AbstractCmdbResourceEventW
                                             BizSetService bizSetService,
                                             IBizSetCmdbClient bizSetCmdbClient,
                                             TenantService tenantService,
+                                            CmdbEventCursorManager cmdbEventCursorManager,
                                             String tenantId) {
-        super(tenantId, "bizSetRelation", redisTemplate, tenantService, tracer, cmdbEventSampler);
+        super(tenantId, "bizSetRelation", redisTemplate,
+            tenantService, tracer, cmdbEventSampler, cmdbEventCursorManager);
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
         this.bizSetCmdbClient = bizSetCmdbClient;

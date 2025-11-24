@@ -154,7 +154,7 @@ Return the proper job-sync-bk-api-gateway image name
 Return the proper Docker Image Registry Secret Names
 */}}
 {{- define "job.imagePullSecrets" -}}
-{{ include "common.images.pullSecrets" (dict "images" (list .Values.gatewayConfig.image .Values.manageConfig.image .Values.executeConfig.image .Values.crontabConfig.image .Values.logsvrConfig.image .Values.backupConfig.image .Values.analysisConfig.image .Values.fileGatewayConfig.image .Values.fileWorkerConfig.image) "global" .Values.global) }}
+{{ include "common.images.pullSecrets" (dict "images" (list .Values.k8sConfigWatcherConfig.image .Values.assembleConfig.image .Values.frontendConfig.image .Values.bkApiGatewayConfig.image .Values.migration.image .Values.gatewayConfig.image .Values.manageConfig.image .Values.executeConfig.image .Values.crontabConfig.image .Values.logsvrConfig.image .Values.backupConfig.image .Values.analysisConfig.image .Values.fileGatewayConfig.image .Values.fileWorkerConfig.image) "global" .Values.global) }}
 {{- end -}}
 
 

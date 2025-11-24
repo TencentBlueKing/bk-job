@@ -42,6 +42,7 @@ import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
 import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
@@ -86,6 +87,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
     private final BackGroundTaskDispatcher backGroundTaskDispatcher;
     private final BackGroundTaskListenerController backGroundTaskListenerController;
     private final BackGroundTaskRegistry backGroundTaskRegistry;
+    private final CmdbEventCursorManager cmdbEventCursorManager;
 
     @Autowired
     public CmdbEventManagerImpl(IBizCmdbClient bizCmdbClient,
@@ -107,7 +109,8 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
                                 ThreadPoolExecutor shutdownEventWatchExecutor,
                                 BackGroundTaskDispatcher backGroundTaskDispatcher,
                                 BackGroundTaskListenerController backGroundTaskListenerController,
-                                BackGroundTaskRegistry backGroundTaskRegistry) {
+                                BackGroundTaskRegistry backGroundTaskRegistry,
+                                CmdbEventCursorManager cmdbEventCursorManager) {
         this.bizCmdbClient = bizCmdbClient;
         this.bizSetCmdbClient = bizSetCmdbClient;
         this.userApiClient = userApiClient;
@@ -127,6 +130,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
         this.backGroundTaskDispatcher = backGroundTaskDispatcher;
         this.backGroundTaskListenerController = backGroundTaskListenerController;
         this.backGroundTaskRegistry = backGroundTaskRegistry;
+        this.cmdbEventCursorManager = cmdbEventCursorManager;
     }
 
     @Override
@@ -165,6 +169,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
             bizCmdbClient,
             applicationService,
             tenantService,
+            cmdbEventCursorManager,
             tenantId
         );
         return tenantBizEventWatcher.hasRunningInstance();
@@ -186,6 +191,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
             bizSetService,
             bizSetCmdbClient,
             tenantService,
+            cmdbEventCursorManager,
             tenantId
         );
         return bizSetEventWatcher.hasRunningInstance();
@@ -207,6 +213,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
             bizSetService,
             bizSetCmdbClient,
             tenantService,
+            cmdbEventCursorManager,
             tenantId
         );
         return bizSetRelationEventWatcher.hasRunningInstance();
@@ -229,6 +236,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
             agentStateClient,
             jobManageConfig,
             tenantService,
+            cmdbEventCursorManager,
             tenantId
         );
         return tenantHostEventWatcher.hasRunningInstance();
@@ -252,6 +260,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
             hostTopoDAO,
             hostCache,
             tenantService,
+            cmdbEventCursorManager,
             tenantId
         );
         return hostRelationEventWatcher.hasRunningInstance();
@@ -269,6 +278,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
             bizCmdbClient,
             applicationService,
             tenantService,
+            cmdbEventCursorManager,
             tenantId
         );
         if (tenantBizEventWatcher.hasRunningInstance()) {
@@ -291,6 +301,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
             bizSetService,
             bizSetCmdbClient,
             tenantService,
+            cmdbEventCursorManager,
             tenantId
         );
         if (bizSetEventWatcher.hasRunningInstance()) {
@@ -313,6 +324,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
             bizSetService,
             bizSetCmdbClient,
             tenantService,
+            cmdbEventCursorManager,
             tenantId
         );
         if (bizSetRelationEventWatcher.hasRunningInstance()) {
@@ -336,6 +348,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
             agentStateClient,
             jobManageConfig,
             tenantService,
+            cmdbEventCursorManager,
             tenantId
         );
         if (tenantHostEventWatcher.hasRunningInstance()) {
@@ -360,6 +373,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
             hostTopoDAO,
             hostCache,
             tenantService,
+            cmdbEventCursorManager,
             tenantId
         );
         if (hostRelationEventWatcher.hasRunningInstance()) {

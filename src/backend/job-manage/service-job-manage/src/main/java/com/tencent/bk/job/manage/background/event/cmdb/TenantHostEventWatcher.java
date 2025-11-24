@@ -35,6 +35,7 @@ import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
+import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
 import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -72,8 +73,10 @@ public class TenantHostEventWatcher extends AbstractCmdbResourceEventWatcher<Hos
                                   AgentStateClient agentStateClient,
                                   JobManageConfig jobManageConfig,
                                   TenantService tenantService,
+                                  CmdbEventCursorManager cmdbEventCursorManager,
                                   String tenantId) {
-        super(tenantId, "host", redisTemplate, tenantService, tracer, cmdbEventSampler);
+        super(tenantId, "host", redisTemplate,
+            tenantService, tracer, cmdbEventSampler, cmdbEventCursorManager);
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.bizCmdbClient = bizCmdbClient;

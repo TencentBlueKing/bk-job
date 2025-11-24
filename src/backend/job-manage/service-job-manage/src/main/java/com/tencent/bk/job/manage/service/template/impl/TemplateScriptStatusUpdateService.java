@@ -133,7 +133,7 @@ public class TemplateScriptStatusUpdateService {
 
     private List<TemplateStepScriptStatusInfo> getTemplateStepScriptStatusInfos(String scriptId,
                                                                                 long scriptVersionId) {
-        return taskTemplateScriptStepDAO.listAllRelatedTemplateStepsScriptStatusInfo(scriptId, scriptVersionId);
+        return taskTemplateScriptStepDAO.listRelatedTemplateStepsScriptStatusInfo(scriptId, scriptVersionId);
     }
 
     private List<TemplateStepScriptStatusInfo> getTemplateStepScriptStatusInfos(long templateId) {
