@@ -52,8 +52,12 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
     }
 
     @Override
-    public PageData<SimpleLogDTO> queryLogs(String queryString, String timeRange, String startTime, String endTime, 
-                                           Integer start, Integer size) {
+    public PageData<SimpleLogDTO> queryLogs(String queryString,
+                                            String timeRange,
+                                            String startTime,
+                                            String endTime,
+                                            Integer start,
+                                            Integer size) {
         try {
             LogQueryReq logQueryReq = buildLogQueryReq(queryString, timeRange, startTime, endTime, start, size);
             // 按照时间升序

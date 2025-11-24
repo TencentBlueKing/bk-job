@@ -65,7 +65,11 @@ public class BaseApi {
 
             log.info("POST request: url={}, params={}, body={}", fullUrl, params, JsonUtils.toJson(body));
 
-            ResponseEntity<String> response = restTemplate.exchange(fullUrl, HttpMethod.POST, requestEntity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(
+                fullUrl,
+                HttpMethod.POST,
+                requestEntity,
+                String.class);
 
             String respStr = response.getBody();
             log.info("POST response: url={}, response={}", fullUrl, respStr);
@@ -90,7 +94,11 @@ public class BaseApi {
             HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
 
 
-            ResponseEntity<String> response = restTemplate.exchange(fullUrl, HttpMethod.GET, requestEntity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(
+                fullUrl,
+                HttpMethod.GET,
+                requestEntity,
+                String.class);
 
             String respStr = response.getBody();
             log.info("GET response: url={}, response={}", fullUrl, respStr);

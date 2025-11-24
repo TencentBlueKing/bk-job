@@ -85,7 +85,13 @@ public class LogSearchMCPServer {
                 size = 10; // 默认每页10条
             }
             
-            PageData<SimpleLogDTO> result = jobLogQueryService.queryLogs(queryString, timeRange, startTime, endTime, start, size);
+            PageData<SimpleLogDTO> result = jobLogQueryService.queryLogs(
+                queryString,
+                timeRange,
+                startTime,
+                endTime,
+                start,
+                size);
             
             log.info("[MCP Tool Call] searchLogsByCondition - Output: total={}, pageSize={}, dataCount={}", 
                     result != null ? result.getTotal() : 0,

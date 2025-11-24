@@ -53,7 +53,9 @@ public class McpAuthInterceptor implements HandlerInterceptor {
     }
     
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request,
+                             HttpServletResponse response,
+                             Object handler) throws Exception {
         // 如果未启用认证，直接放行
         if (!mcpAuthProperties.isEnabled()) {
             log.debug("MCP authentication is disabled, skip validation");

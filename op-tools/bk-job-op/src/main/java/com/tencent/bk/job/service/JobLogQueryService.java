@@ -39,7 +39,11 @@ public interface JobLogQueryService {
      * @param size 每页大小
      * @return 分页的日志数据
      */
-    PageData<SimpleLogDTO> queryLogs(String queryString, String timeRange, String startTime, String endTime, 
-                                    Integer start, Integer size);
+    PageData<SimpleLogDTO> queryLogs(String queryString,
+                                     String timeRange,
+                                     String startTime,
+                                     String endTime,
+                                     Integer start,
+                                     Integer size);
 
 }
