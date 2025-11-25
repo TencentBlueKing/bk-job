@@ -22,31 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.config;
+package com.tencent.bk.job.service.api.bklog;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import com.tencent.bk.job.config.BkApiGwProperties;
+import com.tencent.bk.job.config.BkLogAuthProperties;
+import com.tencent.bk.job.utils.RetryUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
 
-@Configuration
-public class RestTemplateConfig {
+public class RetryableBklogApi extends BkLogApi {
 
-    @Value("${http.client.connect-timeout:10}")
-    private int connectTimeout;
+    private final int retryCnt;
+    private final int retryInterval;
 
-    @Value("${http.client.read-timeout:60}")
-    private int readTimeout;
+    public RetryableBklogApi(RestTemplate restTemplate,
+                             BkLogAuthProperties bkLogAuthProperties,
+                             BkApiGwProperties bkApiGwProperties) {
+        super(restTemplate, bkLogAuthProperties, bkApiGwProperties);
+        this.retryCnt = bkApiGwProperties.getBkLog().getRetryCount();
+        this.retryInterval = bkApiGwProperties.getBkLog().getRetryInterval();
+    }
 
-    @Bean
-    public RestTemplate restTemplate() {
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(Duration.ofSeconds(connectTimeout));
-        requestFactory.setReadTimeout(Duration.ofSeconds(readTimeout)); // 日志查询耗时较长，这里给个大一点的readTimeout
-        
-        return new RestTemplate(requestFactory);
+    @Override
+    public LogQueryResp logSearch(LogQueryReq logQueryReq) {
+        return RetryUtils.executeWithRetry(
+            () -> super.logSearch(logQueryReq),
+            retryCnt,
+            Duration.ofSeconds(retryInterval)
+        );
     }
 }

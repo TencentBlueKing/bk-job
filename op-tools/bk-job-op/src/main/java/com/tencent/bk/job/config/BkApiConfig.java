@@ -25,6 +25,7 @@
 package com.tencent.bk.job.config;
 
 import com.tencent.bk.job.service.api.bklog.BkLogApi;
+import com.tencent.bk.job.service.api.bklog.RetryableBklogApi;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,6 +39,6 @@ public class BkApiConfig {
     public BkLogApi bkLogApi(RestTemplate restTemplate,
                              BkLogAuthProperties bkLogAuthProperties,
                              BkApiGwProperties bkApiGwProperties) {
-        return new BkLogApi(restTemplate, bkLogAuthProperties, bkApiGwProperties);
+        return new RetryableBklogApi(restTemplate, bkLogAuthProperties, bkApiGwProperties);
     }
 }

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.utils.http.api;
 
 import com.tencent.bk.job.utils.json.JsonUtils;
+import com.tencent.bk.job.utils.log.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -72,7 +73,7 @@ public class BaseApi {
                 String.class);
 
             String respStr = response.getBody();
-            log.info("POST response: url={}, response={}", fullUrl, respStr);
+            log.info("POST response: url={}, response={}", fullUrl, LogUtils.truncate(respStr));
             return respStr;
         } catch (Exception e) {
             log.error("POST request failed: url={}, params={}, error={}", url, params, e.getMessage(), e);
@@ -101,7 +102,7 @@ public class BaseApi {
                 String.class);
 
             String respStr = response.getBody();
-            log.info("GET response: url={}, response={}", fullUrl, respStr);
+            log.info("GET response: url={}, response={}", fullUrl, LogUtils.truncate(respStr));
             return respStr;
         } catch (Exception e) {
             log.error("GET request failed: url={}, params={}, error={}", url, params, e.getMessage(), e);

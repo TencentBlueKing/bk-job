@@ -25,6 +25,7 @@
 package com.tencent.bk.job.mcp.server;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.tencent.bk.job.config.BkLogProperties;
 import com.tencent.bk.job.service.JobLogQueryService;
 import com.tencent.bk.job.service.model.PageData;
 import com.tencent.bk.job.service.model.SimpleLogDTO;
@@ -43,6 +44,7 @@ import java.time.format.DateTimeParseException;
 public class LogSearchMCPServer {
 
     private final JobLogQueryService jobLogQueryService;
+    private final BkLogProperties bkLogProperties;
 
     /**
      * 通过stepInstance查询主流程日志的 查询语句模板
@@ -50,8 +52,9 @@ public class LogSearchMCPServer {
     private static final String MAIN_PROCESS_QUERY_TEMPLATE = "log:%s AND log: \"Handle job event, event\"";
 
     @Autowired
-    public LogSearchMCPServer(JobLogQueryService jobLogQueryService) {
+    public LogSearchMCPServer(JobLogQueryService jobLogQueryService, BkLogProperties bkLogProperties) {
         this.jobLogQueryService = jobLogQueryService;
+        this.bkLogProperties = bkLogProperties;
     }
 
     @Tool(description = "通过时间、符合KQL语法的查询语句 搜索日志（支持分页）")
@@ -80,15 +83,12 @@ public class LogSearchMCPServer {
                 queryString, timeRange, startTime, endTime, start, size);
         
         try {
-            // 时间范围默认值处理
             if (timeRange == null && startTime == null && endTime == null) {
                 timeRange = "1d"; // 默认查询最近1天
             }
-            
-            // 时间校验
+
             validateTimeParameters(timeRange, startTime, endTime);
-            
-            // 分页参数校验
+
             if (start == null || start < 0) {
                 start = 0;
             }
@@ -166,19 +166,20 @@ public class LogSearchMCPServer {
                     throw new IllegalArgumentException("开始时间不能晚于结束时间");
                 }
                 
-                // 校验时间范围不超过7天
-                if (java.time.Duration.between(start, end).toDays() > 7) {
-                    throw new IllegalArgumentException("查询时间范围不能超过7天");
+                // 校验开始时间不能早于配置的天数前
+                LocalDateTime expireDaysAgo = LocalDateTime.now().minusDays(bkLogProperties.getExpireTime());
+                if (start.isBefore(expireDaysAgo)) {
+                    throw new IllegalArgumentException("开始时间不能早于" + bkLogProperties.getExpireTime() + "天前");
                 }
-                
+
             } catch (DateTimeParseException e) {
                 throw new IllegalArgumentException("时间格式不正确，必须为yyyy-MM-dd HH:mm:ss格式");
             }
         } else if (timeRange != null) {
-            // 校验预定义时间范围不超过7天
+            // 校验预定义时间天数范围超限
             long days = parseTimeRange(timeRange);
-            if (days > 7) {
-                throw new IllegalArgumentException("查询时间范围不能超过7天");
+            if (days > bkLogProperties.getExpireTime()) {
+                throw new IllegalArgumentException("查询时间范围不能超过" + bkLogProperties.getExpireTime() + "天");
             }
         }
     }
@@ -188,16 +189,17 @@ public class LogSearchMCPServer {
      */
     private long parseTimeRange(String timeRange) {
         if (timeRange == null) return 1; // 默认1天
-        
+
+        long time = Long.parseLong(timeRange.substring(0, timeRange.length() - 1));
         try {
             if (timeRange.endsWith("d")) {
-                return Long.parseLong(timeRange.substring(0, timeRange.length() - 1));
+                return time;
             } else if (timeRange.endsWith("h")) {
-                return Long.parseLong(timeRange.substring(0, timeRange.length() - 1)) / 24L;
+                return time / 24L;
             } else if (timeRange.endsWith("m")) {
-                return Long.parseLong(timeRange.substring(0, timeRange.length() - 1)) / (24L * 60L);
+                return time / (24L * 60L);
             } else {
-                return Long.parseLong(timeRange); // 默认为天数
+                return Long.parseLong(timeRange);
             }
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("时间范围格式不正确，支持格式如：1d、24h、60m");

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.mcp.config;
 
+import com.tencent.bk.job.utils.log.LogUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -65,12 +66,14 @@ public class McpLoggingFilter extends OncePerRequestFilter {
         ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 
         try {
-            // 继续执行过滤链（Controller会读取请求体，此时才会被缓存）
             filterChain.doFilter(requestWrapper, responseWrapper);
 
-            // 过滤链执行完毕后，记录请求和响应日志
             logRequest(requestWrapper);
             logResponse(requestWrapper, responseWrapper);
+        } catch (Exception e) {
+            log.error("[MCP Filter Exception] uri: {}, error: {}", uri, e.getMessage(), e);
+            logRequest(requestWrapper);
+            throw e;
         } finally {
             // 将缓存的响应内容写回到原始响应中
             responseWrapper.copyBodyToResponse();
@@ -138,9 +141,9 @@ public class McpLoggingFilter extends OncePerRequestFilter {
         byte[] buf = request.getContentAsByteArray();
         if (buf.length > 0) {
             try {
-                String body = new String(buf, 0, buf.length, request.getCharacterEncoding());
+                String body = new String(buf, request.getCharacterEncoding());
                 // 限制body长度，避免日志过长
-                return body.length() > 1000 ? body.substring(0, 1000) + "..." : body;
+                return LogUtils.truncate(body, 1000);
             } catch (UnsupportedEncodingException e) {
                 return "[Unable to parse body]";
             }
@@ -155,9 +158,9 @@ public class McpLoggingFilter extends OncePerRequestFilter {
         byte[] buf = response.getContentAsByteArray();
         if (buf.length > 0) {
             try {
-                String body = new String(buf, 0, buf.length, response.getCharacterEncoding());
+                String body = new String(buf, response.getCharacterEncoding());
                 // 限制body长度，避免日志过长
-                return body.length() > 1000 ? body.substring(0, 1000) + "..." : body;
+                return LogUtils.truncate(body, 1000);
             } catch (UnsupportedEncodingException e) {
                 return "[Unable to parse body]";
             }

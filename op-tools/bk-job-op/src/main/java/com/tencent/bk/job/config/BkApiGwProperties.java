@@ -41,6 +41,19 @@ public class BkApiGwProperties {
     @ToString
     public static class ApiGwConfig {
 
+        /**
+         * url
+         */
         private String url;
+
+        /**
+         * 重试次数
+         */
+        private Integer retryCount = 1;
+
+        /**
+         * 重试间隔，单位：秒
+         */
+        private Integer retryInterval = 5;
     }
 }

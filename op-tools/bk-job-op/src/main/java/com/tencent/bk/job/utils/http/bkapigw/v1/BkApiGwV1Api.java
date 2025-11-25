@@ -29,6 +29,7 @@ import com.tencent.bk.job.config.BkApiAuthProperties;
 import com.tencent.bk.job.utils.http.HttpMethodEnum;
 import com.tencent.bk.job.utils.http.api.BaseApi;
 import com.tencent.bk.job.utils.json.JsonUtils;
+import com.tencent.bk.job.utils.log.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.client.RestTemplate;
@@ -99,12 +100,13 @@ public class BkApiGwV1Api extends BaseApi {
                                             String uri,
                                             Map<String, String> params,
                                             Object body) {
+        String bodyJson = body == null ? "null" : JsonUtils.toJson(body);
         log.info(
             "[BkApiGwV1Api]do request, method={}, uri={}, params={}, body={}",
             method,
             uri,
             params,
-            body == null ? "null" : JsonUtils.toJson(body));
+            LogUtils.truncate(bodyJson));
         String respStr = null;
         String url = buildUrl(uri);
         switch (method) {
@@ -119,7 +121,7 @@ public class BkApiGwV1Api extends BaseApi {
                 log.error("[BkApiGwV1Api]do request error, unsupported method={}", method);
                 throw new IllegalArgumentException("Unsupported http method: " + method);
         }
-        log.info("[BkApiGwV1Api]response, method={}, uri={}, respStr={}", method, uri, respStr);
+        log.info("[BkApiGwV1Api]response, method={}, uri={}, respStr={}", method, uri, LogUtils.truncate(respStr));
         return respStr;
     }
 

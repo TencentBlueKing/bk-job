@@ -24,6 +24,14 @@ spring:
         type: ASYNC #异步
         stdio: false
 
+# HTTP客户端配置
+http:
+  client:
+    # 连接超时时间（秒）
+    connect-timeout: 10
+    # 读取超时时间（秒）
+    read-timeout: 60
+
 # Spring Boot Actuator 配置
 management:
   endpoints:
@@ -48,6 +56,8 @@ mcp:
 bkApiGateway:
   bkLog:
     url: bklog.com
+    retry-count: 3
+    retry-interval: 3
 
 bk:
   api:

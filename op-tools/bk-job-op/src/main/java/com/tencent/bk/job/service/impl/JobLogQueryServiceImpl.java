@@ -76,7 +76,7 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
             return new PageData<>(total, start, size, data);
         } catch (Exception e) {
             log.error("query job log with pagination fail ", e);
-            throw new RuntimeException("query job log with pagination fail: " + e.getMessage(), e);
+            throw new RuntimeException("query job log with pagination fail", e);
         }
     }
 
