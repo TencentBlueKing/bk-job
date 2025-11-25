@@ -854,20 +854,6 @@ tls:
 {{- end -}}
 {{- end -}}
 
-{{/*
-Return the Job Ingress Gateway TLS Config
-*/}}
-{{- define "job.ingress.gateway.tls" -}}
-{{- if .Values.gatewayConfig.ingress.tls -}}
-tls: {{- include "common.tplvalues.render" ( dict "value" .Values.gatewayConfig.ingress.tls "context" $) | nindent 0 -}}
-{{- else -}}
-tls:
-- hosts:
-    - {{ .Values.job.web.apiDomain }}
-  secretName: {{ include "common.names.fullname" . }}-ingress-tls
-{{- end -}}
-{{- end -}}
-
 
 {{/*
 Return the Job Service Probes Config

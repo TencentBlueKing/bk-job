@@ -825,8 +825,6 @@ job:
   web:
     # 作业平台主站域名（被前端与Web API使用）
     domain: "job.example.com"
-    # 作业平台API域名（被上层系统ESB、ApiGW使用）
-    apiDomain: "jobapi.example.com"
   ingress:
     https:
       # ingress是否开启HTTPS
@@ -1009,19 +1007,6 @@ gatewayConfig:
       https: 443
       # http端口号
       http: 80
-  ingress:
-    # 是否开启ingress
-    enabled: false
-    path: "/"
-    pathType: ImplementationSpecific
-    annotations:
-      kubernetes.io/ingress.class: nginx
-      # 开启ingress后的最大请求体大小
-      nginx.ingress.kubernetes.io/proxy-body-size: "10240m"
-    extraHosts: []
-    tls: []
-    extraTls: []
-    secrets: []
   server:
     ssl:
       p12:
