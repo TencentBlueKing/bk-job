@@ -83,8 +83,12 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
     /**
      * 构建LogQueryReq对象
      */
-    private LogQueryReq buildLogQueryReq(String queryString, String timeRange, String startTime, String endTime, 
-                                        Integer start, Integer size) {
+    private LogQueryReq buildLogQueryReq(String queryString,
+                                         String timeRange,
+                                         String startTime,
+                                         String endTime,
+                                         Integer start,
+                                         Integer size) {
         LogQueryReq logQueryReq = new LogQueryReq();
         
         // 查job的日志，从配置文件读取索引相关信息

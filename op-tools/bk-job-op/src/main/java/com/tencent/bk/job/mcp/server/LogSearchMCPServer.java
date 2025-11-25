@@ -31,6 +31,7 @@ import com.tencent.bk.job.service.model.SimpleLogDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -57,16 +58,21 @@ public class LogSearchMCPServer {
     public PageData<SimpleLogDTO> searchLogsByCondition(
             @JsonPropertyDescription("KQL语法的查询语句")
             String queryString,
-            @JsonPropertyDescription("预定义时间范围，支持格式：1d、1h、15m，最大7天。使用了startTime和endTime时忽略。")
+            @Nullable
+            @JsonPropertyDescription("预定义时间范围，支持格式：1d、1h、15m，最大7天。使用了startTime和endTime时忽略。不传默认1d")
             String timeRange,
+            @Nullable
             @JsonPropertyDescription("自定义开始时间，格式：yyyy-MM-dd HH:mm:ss，与endTime同时使用，" +
                 "优先级比timeRange高，使用timeRange的话不要传这个参数。")
             String startTime,
+            @Nullable
             @JsonPropertyDescription("自定义结束时间，格式：yyyy-MM-dd HH:mm:ss，与startTime同时使用，" +
                 "优先级比timeRange高，使用timeRange的话不要传这个参数。")
             String endTime,
+            @Nullable
             @JsonPropertyDescription("分页起始位置，从0开始，默认0")
             Integer start,
+            @Nullable
             @JsonPropertyDescription("每页返回的日志条数，默认10，建议不超过100") 
             Integer size) {
         log.info("[MCP Tool Call] searchLogsByCondition - Input: queryString={}, " +
@@ -74,6 +80,11 @@ public class LogSearchMCPServer {
                 queryString, timeRange, startTime, endTime, start, size);
         
         try {
+            // 时间范围默认值处理
+            if (timeRange == null && startTime == null && endTime == null) {
+                timeRange = "1d"; // 默认查询最近1天
+            }
+            
             // 时间校验
             validateTimeParameters(timeRange, startTime, endTime);
             
