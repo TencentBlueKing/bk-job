@@ -136,4 +136,15 @@ public class TaskFileInfoDTO {
         serviceFileInfo.getAccount().setId(taskFileInfo.getHostAccount());
         return serviceFileInfo;
     }
+
+    @Override
+    public String toString() {
+        String fileTypeStr = fileType == null ? "null" : fileType.name();
+        return "TaskFileInfoDTO{" +
+            "id=" + id +
+            ", fileType=" + fileTypeStr +
+            ", fileLocation=" + fileLocation +
+            ", fileSize=" + fileSize +
+            '}';
+    }
 }

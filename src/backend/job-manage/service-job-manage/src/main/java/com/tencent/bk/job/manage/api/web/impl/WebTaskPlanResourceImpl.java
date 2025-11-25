@@ -558,6 +558,13 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
+        log.info(
+            "SyncPlan: username={}, templateId={}, templateVersion={}, planId={}",
+            username,
+            templateId,
+            templateVersion,
+            planId
+        );
         return Response.buildSuccessResp(planService.sync(appResourceScope.getAppId(), templateId, planId,
             templateVersion));
     }
