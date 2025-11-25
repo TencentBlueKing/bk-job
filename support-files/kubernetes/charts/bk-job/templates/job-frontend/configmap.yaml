@@ -29,7 +29,7 @@ data:
       server {
         listen                  80;
         listen                  [::]:80;
-        server_name             {{ .Values.job.web.domain }};
+        server_name             {{ include "job.web.domain" . }};
         gzip on;
         gzip_min_length  1k;
         gzip_buffers     4 16k;
@@ -42,11 +42,25 @@ data:
         root /data/job/job-frontend;
         index index.html;
 
+        {{ if eq "subpath" .Values.bkWebSiteAccess.mode -}}
+        # 去掉 /job 前缀后再匹配文件
+        location ^~ /job/ {
+          add_header Cache-Control no-cache;
+          expires 0;
+
+          # 把 /job/xxx 改写为 /xxx（仅在本地内部生效，地址栏不变）
+          rewrite ^/job/(.*)$ /$1 break;
+
+          # 用去前缀后的 URI 依次尝试文件/目录
+          try_files $uri $uri/ @rewrites;
+        }
+        {{ else -}}
         location / {
           add_header Cache-Control no-cache;
           expires 0;
           try_files $uri $uri/ @rewrites;
         }
+        {{ end -}}
 
         location @rewrites {
           rewrite ^(.+)$ /index.html last;

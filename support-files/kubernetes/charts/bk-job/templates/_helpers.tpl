@@ -752,13 +752,37 @@ Return the Job Web Scheme
 {{- end -}}
 
 {{/*
+Return the Job Web Domain
+*/}}
+{{- define "job.web.domain" -}}
+{{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
+{{ .Values.global.bkDomain }}
+{{- else -}}
+{{ .Values.job.web.domain }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Job URL Base
+SubPath: http(s)://example.com/job
+SubDomain: http(s)://job.example.com
+*/}}
+{{- define "job.url.base" -}}
+{{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
+{{ printf "%s://%s%s" (include "job.web.scheme" .) (include "job.web.domain" .) .Values.bkWebSiteAccess.subpath.rootPrefix }}
+{{- else -}}
+{{ printf "%s://%s" (include "job.web.scheme" .) (include "job.web.domain" .) }}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the Job Web URL
 */}}
 {{- define "job.web.url" -}}
 {{- if .Values.job.web.extraWebUrls -}}
-{{ printf "%s://%s" (include "job.web.scheme" .) .Values.job.web.domain }}{{ printf ",%s" .Values.job.web.extraWebUrls }}
+{{ printf "%s,%s" (include "job.url.base" .) .Values.job.web.extraWebUrls }}
 {{- else -}}
-{{ printf "%s://%s" (include "job.web.scheme" .) .Values.job.web.domain }}
+{{ printf "%s" (include "job.url.base" .) }}
 {{- end -}}
 {{- end -}}
 
@@ -766,7 +790,25 @@ Return the Job Web URL
 Return the Job Web API URL
 */}}
 {{- define "job.web.api.url" -}}
-{{ printf "%s://%s" (include "job.web.scheme" .) .Values.job.web.domain }}
+{{ printf "%s" (include "job.url.base" .) }}
+{{- end -}}
+
+{{/*
+Return the Job Frontend Ingress Path
+*/}}
+{{- define "job.url.pathRootPrefix" -}}
+{{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
+{{ printf "%s" .Values.bkWebSiteAccess.subpath.rootPrefix }}
+{{- else -}}
+{{ printf "" }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Job Frontend Ingress Path
+*/}}
+{{- define "job.frontend.ingress.path" -}}
+{{ printf "%s/" (include "job.url.pathRootPrefix" .) }}
 {{- end -}}
 
 {{/*
@@ -849,7 +891,7 @@ tls: {{- include "common.tplvalues.render" ( dict "value" .Values.frontendConfig
 {{- else -}}
 tls:
 - hosts:
-    - {{ .Values.job.web.domain }}
+    - {{ include "job.web.domain" . }}
   secretName: {{ include "common.names.fullname" . }}-ingress-tls
 {{- end -}}
 {{- end -}}
