@@ -190,4 +190,15 @@ public class TaskScriptStepDTO {
         serviceScriptStep.setIgnoreError(scriptStepInfo.getIgnoreError());
         return serviceScriptStep;
     }
+
+    @Override
+    public String toString() {
+        int contentLength = content == null ? 0 : content.length();
+        return "TaskScriptStepDTO{" +
+            "id=" + id +
+            ", scriptId=" + scriptId +
+            ", scriptVersionId=" + scriptVersionId +
+            ", content.length=" + contentLength +
+            '}';
+    }
 }
