@@ -27,7 +27,6 @@ package com.tencent.bk.job.gateway.web.server;
 import com.tencent.bk.job.gateway.web.server.provider.AccessLogMetadataProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import reactor.netty.http.server.logging.AccessLogArgProvider;
 
 import java.util.LinkedHashMap;
@@ -37,9 +36,7 @@ import java.util.Map;
 /**
  * Access Log元数据收集器，汇总所有已注册的AccessLogMetadataProvider提供的元数据
  */
-@Component
 @Slf4j
-@AccessLogEnabled
 public class AccessLogMetadataCollector {
 
     private final List<AccessLogMetadataProvider> providers;

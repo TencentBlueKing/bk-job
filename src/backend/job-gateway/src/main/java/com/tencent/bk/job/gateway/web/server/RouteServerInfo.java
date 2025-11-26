@@ -33,14 +33,14 @@ import lombok.Data;
 public class RouteServerInfo {
 
     /**
-     * 服务id
+     * 服务名
      */
-    private String serviceId;
+    private String serviceName;
 
     /**
-     * Pod名称
+     * 名称空间
      */
-    private String podName;
+    private String nameSpace;
 
     /**
      * 主机
@@ -53,17 +53,18 @@ public class RouteServerInfo {
     private int port;
 
     /**
-     * 请求uri
+     * 请求path
      */
-    private String uri;
+    private String path;
 
     @Override
     public String toString() {
-        return String.format("%s(%s:%d) uri=%s", 
-            podName != null ? podName : serviceId,
+        return String.format("%s/%s(%s:%d)%s",
+            nameSpace,
+            serviceName,
             host,
             port,
-            uri
+            path
         );
     }
 }

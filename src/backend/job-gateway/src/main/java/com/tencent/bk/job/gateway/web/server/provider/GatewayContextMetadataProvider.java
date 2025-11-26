@@ -26,25 +26,22 @@ package com.tencent.bk.job.gateway.web.server.provider;
 
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
-import com.tencent.bk.job.gateway.web.server.AccessLogEnabled;
-import org.springframework.stereotype.Component;
 import reactor.netty.http.server.logging.AccessLogArgProvider;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * 从作业平台上下文提取元数据
+ * 从网关上下文提取元数据
  */
-@Component
-@AccessLogEnabled
-public class JobContextMetadataProvider implements AccessLogMetadataProvider {
+public class GatewayContextMetadataProvider implements AccessLogMetadataProvider {
 
     @Override
     public Map<String, Object> extract(AccessLogArgProvider provider) {
         Map<String, Object> map = new LinkedHashMap<>();
-        map.put(AccessLogConstants.KEY_BACKEND_RS, provider.requestHeader(AccessLogConstants.KEY_BACKEND_RS));
-        map.put(AccessLogConstants.KEY_USER_NAME,
+        map.put(AccessLogConstants.LogField.LOG_UPSTREAM,
+            provider.requestHeader(AccessLogConstants.Header.GATEWAY_UPSTREAM));
+        map.put(AccessLogConstants.LogField.LOG_USER_NAME,
             provider.requestHeader(JobCommonHeaders.USERNAME) != null ?
                 provider.requestHeader(JobCommonHeaders.USERNAME) : provider.requestHeader("username"));
         return map;

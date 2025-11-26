@@ -24,33 +24,29 @@
 
 package com.tencent.bk.job.gateway.web.server;
 
-import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * AccessLog输出字段注册器
  */
-@Component
-@AccessLogEnabled
 public class AccessLogFieldRegistry {
     private final List<String> fields = new ArrayList<>();
 
     public AccessLogFieldRegistry() {
         // AccessLog按此注册顺序输出
-        register(AccessLogConstants.KEY_USER_NAME);
-        register(AccessLogConstants.KEY_METHOD);
-        register(AccessLogConstants.KEY_URI);
-        register(AccessLogConstants.KEY_STATUS);
-        register(AccessLogConstants.KEY_BACKEND_RS);
-        register(AccessLogConstants.KEY_CONTENT_LENGTH);
-        register(AccessLogConstants.KEY_START_TIME);
-        register(AccessLogConstants.KEY_END_TIME);
-        register(AccessLogConstants.KEY_DURATION);
-        register(AccessLogConstants.KEY_PROTOCOL);
-        register(AccessLogConstants.KEY_REMOTE_ADDRESS);
-        register(AccessLogConstants.KEY_USER_AGENT);
+        register(AccessLogConstants.LogField.LOG_USER_NAME);
+        register(AccessLogConstants.LogField.LOG_METHOD);
+        register(AccessLogConstants.LogField.LOG_PATH);
+        register(AccessLogConstants.LogField.LOG_STATUS);
+        register(AccessLogConstants.LogField.LOG_RESPONSE_SIZE);
+        register(AccessLogConstants.LogField.LOG_DURATION);
+        register(AccessLogConstants.LogField.LOG_UPSTREAM);
+        register(AccessLogConstants.LogField.LOG_START_TIME);
+        register(AccessLogConstants.LogField.LOG_END_TIME);
+        register(AccessLogConstants.LogField.LOG_PROTOCOL);
+        register(AccessLogConstants.LogField.LOG_CLIENT_IP);
+        register(AccessLogConstants.LogField.LOG_USER_AGENT);
     }
 
     public void register(String key) {

@@ -26,9 +26,7 @@ package com.tencent.bk.job.gateway.web.server.provider;
 
 import com.tencent.bk.job.common.constant.HttpHeader;
 import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
-import com.tencent.bk.job.gateway.web.server.AccessLogEnabled;
 import com.tencent.bk.job.gateway.web.server.utils.AccessLogNetUtils;
-import org.springframework.stereotype.Component;
 import reactor.netty.http.server.logging.AccessLogArgProvider;
 
 import java.time.ZonedDateTime;
@@ -39,26 +37,24 @@ import java.util.Map;
 /**
  * 默认从netty的AccessLogArgProvider提取元数据
  */
-@Component
-@AccessLogEnabled
 public class DefaultMetadataProvider implements AccessLogMetadataProvider {
 
     @Override
     public Map<String, Object> extract(AccessLogArgProvider provider) {
         Map<String, Object> map = new LinkedHashMap<>();
-        map.put(AccessLogConstants.KEY_METHOD, provider.method());
-        map.put(AccessLogConstants.KEY_URI, provider.uri());
-        map.put(AccessLogConstants.KEY_STATUS, provider.status());
-        map.put(AccessLogConstants.KEY_DURATION, provider.duration() + "ms");
-        map.put(AccessLogConstants.KEY_PROTOCOL, provider.protocol());
-        map.put(AccessLogConstants.KEY_REMOTE_ADDRESS,
+        map.put(AccessLogConstants.LogField.LOG_METHOD, provider.method());
+        map.put(AccessLogConstants.LogField.LOG_PATH, provider.uri());
+        map.put(AccessLogConstants.LogField.LOG_STATUS, provider.status());
+        map.put(AccessLogConstants.LogField.LOG_DURATION, provider.duration() + "ms");
+        map.put(AccessLogConstants.LogField.LOG_PROTOCOL, provider.protocol());
+        map.put(AccessLogConstants.LogField.LOG_CLIENT_IP,
             AccessLogNetUtils.formatSocketAddress(provider.remoteAddress()));
-        map.put(AccessLogConstants.KEY_USER_AGENT, provider.requestHeader(HttpHeader.HDR_UER_AGENT));
-        map.put(AccessLogConstants.KEY_CONTENT_LENGTH, provider.contentLength());
-        map.put(AccessLogConstants.KEY_START_TIME,
-            provider.accessDateTime().format(DateTimeFormatter.ofPattern(AccessLogConstants.FMT_DEFAULT_TIME)));
-        map.put(AccessLogConstants.KEY_END_TIME,
-            ZonedDateTime.now().format(DateTimeFormatter.ofPattern(AccessLogConstants.FMT_DEFAULT_TIME)));
+        map.put(AccessLogConstants.LogField.LOG_USER_AGENT, provider.requestHeader(HttpHeader.HDR_UER_AGENT));
+        map.put(AccessLogConstants.LogField.LOG_RESPONSE_SIZE, provider.contentLength());
+        map.put(AccessLogConstants.LogField.LOG_START_TIME,
+            provider.accessDateTime().format(DateTimeFormatter.ofPattern(AccessLogConstants.Format.FMT_DEFAULT_TIME)));
+        map.put(AccessLogConstants.LogField.LOG_END_TIME,
+            ZonedDateTime.now().format(DateTimeFormatter.ofPattern(AccessLogConstants.Format.FMT_DEFAULT_TIME)));
         return map;
     }
 }

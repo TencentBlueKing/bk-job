@@ -24,22 +24,22 @@
 
 package com.tencent.bk.job.gateway.web.server;
 
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.gateway.web.server.utils.AccessLogNetUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
-import org.springframework.stereotype.Component;
 import reactor.netty.http.server.logging.AccessLog;
+import reactor.netty.http.server.logging.AccessLogArgProvider;
 import reactor.netty.http.server.logging.AccessLogFactory;
 
 import java.util.Map;
 
 /**
- * 自定义主业务Netty服务的访AccessLog
+ * 自定义Netty服务的访问日志
  */
 @Slf4j
-@Component
-@AccessLogEnabled
 public class NettyAccessLogCustomizer implements NettyFactoryCustomizer {
     private final AccessLogMetadataCollector collector;
     private final AccessLogFormatter formatter;
@@ -55,30 +55,35 @@ public class NettyAccessLogCustomizer implements NettyFactoryCustomizer {
     public void customize(NettyReactiveWebServerFactory factory) {
         log.info("Registering Netty AccessLog customizer.");
         factory.addServerCustomizers(httpServer -> {
-            httpServer = httpServer.wiretap(true);
+            httpServer = httpServer.wiretap(false);
             return httpServer.accessLog(true,
                 AccessLogFactory.createFilter(provider -> true,
                     provider -> {
                         try {
+                            // AccessLog与Reactor之间可能存在上下文切换，丢失traceId，手动从响应头获取并放入MDC供日志使用
+                            String traceId = (String) provider.responseHeader(JobCommonHeaders.REQUEST_ID);
+                            MDC.put(AccessLogConstants.Default.KEY_TRACE_ID, traceId);
                             Map<String, Object> metadata = collector.collect(provider);
                             return AccessLog.create(formatter.format(metadata));
                         } catch (Exception e) {
                             log.error("Failed to build AccessLog.", e);
-                            //返回null会被框架忽略没有日志，回退到默认AccessLog
-                            return AccessLog.create(AccessLogConstants.FMT_DEFAULT_LOG,
-                                AccessLogNetUtils.formatSocketAddress(provider.remoteAddress()),
-                                provider.user(),
-                                provider.zonedDateTime(),
-                                provider.method(),
-                                provider.uri(),
-                                provider.protocol(),
-                                provider.status(),
-                                provider.contentLength() > -1 ? provider.contentLength() :
-                                    AccessLogConstants.VAL_MISSING,
-                                provider.duration()
-                            );
+                            //默认AccessLog,如果返回null会被框架忽略没有日志
+                            return createDefaultAccessLog(provider);
                         }
                     }));
         });
+    }
+
+    private AccessLog createDefaultAccessLog(AccessLogArgProvider provider) {
+        return AccessLog.create(AccessLogConstants.Format.FMT_DEFAULT_LOG,
+            AccessLogNetUtils.formatSocketAddress(provider.remoteAddress()),
+            provider.method(),
+            provider.uri(),
+            provider.protocol(),
+            provider.status(),
+            provider.contentLength() > 0 ? provider.contentLength() :
+                AccessLogConstants.Default.MISSING,
+            provider.duration()
+        );
     }
 }

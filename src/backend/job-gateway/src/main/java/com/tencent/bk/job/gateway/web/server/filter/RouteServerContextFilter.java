@@ -25,7 +25,6 @@
 package com.tencent.bk.job.gateway.web.server.filter;
 
 import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
-import com.tencent.bk.job.gateway.web.server.AccessLogEnabled;
 import com.tencent.bk.job.gateway.web.server.RouteServerInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.ServiceInstance;
@@ -43,12 +42,11 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 
 /**
- * 后端服务信息过滤器，记录路由信息到MDC中，供日志使用
+ * 后端服务信息过滤器，获取后端路由信息供日志使用
  */
 @Component
 @Slf4j
-@AccessLogEnabled
-public class AccessLogContextFilter implements GlobalFilter, Ordered {
+public class RouteServerContextFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -56,28 +54,25 @@ public class AccessLogContextFilter implements GlobalFilter, Ordered {
         Response<ServiceInstance> resp =
             exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_LOADBALANCER_RESPONSE_ATTR);
         RouteServerInfo rs = buildRouteInfo(exchange, resp.getServer());
-        request.mutate().header(AccessLogConstants.KEY_BACKEND_RS,
-                rs != null ? rs.toString() : AccessLogConstants.VAL_MISSING)
+        request.mutate().header(AccessLogConstants.Header.GATEWAY_UPSTREAM,
+                rs != null ? rs.toString() : AccessLogConstants.Default.MISSING)
             .build();
         return chain.filter(exchange.mutate().request(request).build());
     }
 
-    private RouteServerInfo buildRouteInfo(ServerWebExchange exchange, ServiceInstance instance) {
-        if (instance == null) {
+    private RouteServerInfo buildRouteInfo(ServerWebExchange exchange, ServiceInstance serviceInstance) {
+        if (serviceInstance == null) {
             log.debug("instance is null, No backend selected.");
             return null;
         }
         RouteServerInfo info = new RouteServerInfo();
-        info.setServiceId(instance.getServiceId());
-        log.info("ServiceId:{}, Instance info: {}, className: {}",
-            instance.getServiceId(), instance.getMetadata(), instance.getClass().getName());
-        String podName = instance.getMetadata().getOrDefault("instance-id",
-            instance.getMetadata().getOrDefault("podName", instance.getInstanceId()));
-        info.setPodName(podName);
-        info.setHost(instance.getHost());
-        info.setPort(instance.getPort());
+        info.setServiceName(serviceInstance.getServiceId());
+        info.setNameSpace(serviceInstance.getMetadata().getOrDefault(AccessLogConstants.Default.KEY_META_NAMESPACE,
+            AccessLogConstants.Default.MISSING));
+        info.setHost(serviceInstance.getHost());
+        info.setPort(serviceInstance.getPort());
         URI uri = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
-        info.setUri(uri.getPath());
+        info.setPath(uri.getPath());
         return info;
     }
 

@@ -25,7 +25,6 @@
 package com.tencent.bk.job.gateway.web.server;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,8 +32,6 @@ import java.util.stream.Collectors;
 /**
  * 访问日志格式化器，将元数据格式化为key-value字符串
  */
-@Component
-@AccessLogEnabled
 public class AccessLogFormatter {
 
     private final AccessLogFieldRegistry registry;
@@ -46,7 +43,7 @@ public class AccessLogFormatter {
 
     public String format(Map<String, Object> metadata) {
         return registry.getFields().stream()
-                .map(key -> key + "=" + metadata.getOrDefault(key, AccessLogConstants.VAL_MISSING))
+                .map(key -> key + "=" + metadata.getOrDefault(key, AccessLogConstants.Default.MISSING))
                 .collect(Collectors.joining(" "));
     }
 }

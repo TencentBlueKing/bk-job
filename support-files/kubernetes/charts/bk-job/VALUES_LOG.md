@@ -1,4 +1,13 @@
 # chart values 更新日志
+## 0.8.13
+1. job-gateway访问日志优化
+```yaml
+gatewayConfig:
+  customAccessLog:
+    # 是否开启自定义访问日志，默认开启
+    enabled: true
+```
+
 ## 0.8.11
 1. 支持针对任务历史查询配置复杂查询限制
 ```yaml

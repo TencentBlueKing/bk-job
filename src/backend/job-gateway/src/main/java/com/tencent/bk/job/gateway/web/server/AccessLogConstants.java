@@ -28,21 +28,43 @@ package com.tencent.bk.job.gateway.web.server;
  * Access log相关常量
  */
 public class AccessLogConstants {
-    public static final String KEY_USER_NAME = "userName";
-    public static final String KEY_METHOD = "method";
-    public static final String KEY_URI = "uri";
-    public static final String KEY_STATUS = "status";
-    public static final String KEY_START_TIME = "startTime";
-    public static final String KEY_END_TIME = "endTime";
-    public static final String KEY_DURATION = "duration";
-    public static final String KEY_PROTOCOL = "protocol";
-    public static final String KEY_REMOTE_ADDRESS = "remoteAddress";
-    public static final String KEY_USER_AGENT = "userAgent";
-    public static final String KEY_BACKEND_RS = "backendRS";
-    public static final String KEY_CONTENT_LENGTH = "contentLength";
 
-    public static final String FMT_DEFAULT_TIME = "yyyy-MM-dd HH:mm:ss.SSS";
-    public static final String FMT_DEFAULT_LOG = "{} - {} [{}] \"{} {} {}\" {} {} {} ms";
+    /**
+     * accessLog属性，会在日志中输出
+     */
+    public static final class LogField {
+        public static final String LOG_STATUS = "status";
+        public static final String LOG_USER_NAME = "userName";
+        public static final String LOG_METHOD = "method";
+        public static final String LOG_PATH = "path";
+        public static final String LOG_START_TIME = "startTime";
+        public static final String LOG_END_TIME = "endTime";
+        public static final String LOG_DURATION = "duration";
+        public static final String LOG_PROTOCOL = "protocol";
+        public static final String LOG_CLIENT_IP = "clientIp";
+        public static final String LOG_USER_AGENT = "userAgent";
+        public static final String LOG_UPSTREAM = "upstream";
+        public static final String LOG_RESPONSE_SIZE = "responseSize";
+    }
 
-    public static final String VAL_MISSING = "-";
+    /**
+     * 用于上下文传递
+     */
+    public static final class Header {
+        public static final String GATEWAY_UPSTREAM = "Job-Upstream-Server";
+    }
+
+    /**
+     * 格式化常量
+     */
+    public static final class Format {
+        public static final String FMT_DEFAULT_TIME = "yyyy-MM-dd HH:mm:ss.SSS";
+        public static final String FMT_DEFAULT_LOG = "{} \"{} {} {}\" {} {} {}ms";
+    }
+
+    public static final class Default {
+        public static final String MISSING = "-";
+        public static final String KEY_TRACE_ID = "traceId";
+        public static final String KEY_META_NAMESPACE = "meta.helm.sh/release-namespace";
+    }
 }
