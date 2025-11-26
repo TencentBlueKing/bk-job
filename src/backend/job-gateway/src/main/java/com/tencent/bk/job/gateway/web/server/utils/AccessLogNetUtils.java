@@ -45,7 +45,7 @@ public class AccessLogNetUtils {
             return inetSocketAddress.getHostString() + ":" + inetSocketAddress.getPort();
         }
         else {
-            return AccessLogConstants.VAL_MISSING;
+            return AccessLogConstants.Default.MISSING;
         }
     }
 }
