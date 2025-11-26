@@ -43,7 +43,6 @@ public class DefaultMetadataProvider implements AccessLogMetadataProvider {
     public Map<String, Object> extract(AccessLogArgProvider provider) {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put(AccessLogConstants.LogField.LOG_METHOD, provider.method());
-        map.put(AccessLogConstants.LogField.LOG_PATH, provider.uri());
         map.put(AccessLogConstants.LogField.LOG_STATUS, provider.status());
         map.put(AccessLogConstants.LogField.LOG_DURATION, provider.duration() + "ms");
         map.put(AccessLogConstants.LogField.LOG_PROTOCOL, provider.protocol());
@@ -55,6 +54,8 @@ public class DefaultMetadataProvider implements AccessLogMetadataProvider {
             provider.accessDateTime().format(DateTimeFormatter.ofPattern(AccessLogConstants.Format.FMT_DEFAULT_TIME)));
         map.put(AccessLogConstants.LogField.LOG_END_TIME,
             ZonedDateTime.now().format(DateTimeFormatter.ofPattern(AccessLogConstants.Format.FMT_DEFAULT_TIME)));
+        String uri = provider.uri().toString();
+        map.put(AccessLogConstants.LogField.LOG_PATH, uri.contains("?") ? uri.substring(0, uri.indexOf("?")) : uri);
         return map;
     }
 }

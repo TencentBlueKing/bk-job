@@ -69,6 +69,8 @@ public class NettyAccessLogCustomizer implements NettyFactoryCustomizer {
                             log.error("Failed to build AccessLog.", e);
                             //默认AccessLog,如果返回null会被框架忽略没有日志
                             return createDefaultAccessLog(provider);
+                        } finally {
+                            MDC.remove(AccessLogConstants.Default.KEY_TRACE_ID);
                         }
                     }));
         });
