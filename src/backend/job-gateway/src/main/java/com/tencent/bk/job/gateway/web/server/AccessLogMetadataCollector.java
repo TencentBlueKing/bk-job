@@ -46,14 +46,15 @@ public class AccessLogMetadataCollector {
         this.providers = providers;
     }
 
-    public Map<String, Object> collect(AccessLogArgProvider provider) {
+    public Map<String, Object> collect(AccessLogArgProvider accessLogArgProvider) {
         Map<String, Object> result = new LinkedHashMap<>();
 
-        for (AccessLogMetadataProvider p : providers) {
+        for (AccessLogMetadataProvider provider : providers) {
             try {
-                result.putAll(p.extract(provider));
+                result.putAll(provider.extract(accessLogArgProvider));
             } catch (Exception e) {
-                log.warn("AccessLog provider {} collect failed: {}", p.getClass().getSimpleName(), e.getMessage());
+                log.warn("AccessLog provider {} collect failed: {}",
+                    provider.getClass().getSimpleName(), e.getMessage());
             }
         }
         return result;

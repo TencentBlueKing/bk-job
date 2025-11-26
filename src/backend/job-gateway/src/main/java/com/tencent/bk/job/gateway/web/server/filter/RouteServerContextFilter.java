@@ -65,15 +65,15 @@ public class RouteServerContextFilter implements GlobalFilter, Ordered {
             log.debug("instance is null, No backend selected.");
             return null;
         }
-        RouteServerInfo info = new RouteServerInfo();
-        info.setServiceName(serviceInstance.getServiceId());
-        info.setNameSpace(serviceInstance.getMetadata().getOrDefault(AccessLogConstants.Default.KEY_META_NAMESPACE,
-            AccessLogConstants.Default.MISSING));
-        info.setHost(serviceInstance.getHost());
-        info.setPort(serviceInstance.getPort());
+        RouteServerInfo serverInfo = new RouteServerInfo();
+        serverInfo.setServiceName(serviceInstance.getServiceId());
+        serverInfo.setNameSpace(serviceInstance.getMetadata()
+            .getOrDefault(AccessLogConstants.Default.KEY_META_NAMESPACE, AccessLogConstants.Default.MISSING));
+        serverInfo.setHost(serviceInstance.getHost());
+        serverInfo.setPort(serviceInstance.getPort());
         URI uri = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
-        info.setPath(uri.getPath());
-        return info;
+        serverInfo.setPath(uri.getPath());
+        return serverInfo;
     }
 
     @Override

@@ -48,7 +48,7 @@ public class AccessLogConstants {
     }
 
     /**
-     * 用于上下文传递
+     * 请求头，用于上下文传递信息
      */
     public static final class Header {
         public static final String GATEWAY_UPSTREAM = "Job-Upstream-Server";
