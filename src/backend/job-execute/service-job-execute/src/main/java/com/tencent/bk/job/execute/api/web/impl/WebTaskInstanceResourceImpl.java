@@ -226,7 +226,10 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                 });
                 fileSourceVO.setFileLocation(files);
             }
-            fileSourceVO.setHost(fileSource.getServers().convertToTaskTargetVO());
+            ExecuteTargetDTO servers = fileSource.getServers();
+            if (servers != null) {
+                fileSourceVO.setHost(servers.convertToTaskTargetVO());
+            }
             fileSources.add(fileSourceVO);
         }
         fileStepVO.setFileSourceList(fileSources);
