@@ -24,10 +24,6 @@
 
 package com.tencent.bk.job.common.model.vo;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampDeserializer;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -51,8 +47,6 @@ public class BasicVO {
      * 创建时间
      */
     @ApiModelProperty(value = "创建时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
-    @JsonDeserialize(using = LongTimestampDeserializer.class)
     private Long createTime;
 
     /**
@@ -65,7 +59,5 @@ public class BasicVO {
      * 最后修改时间
      */
     @ApiModelProperty(value = "最后更新时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
-    @JsonDeserialize(using = LongTimestampDeserializer.class)
     private Long lastModifyTime;
 }

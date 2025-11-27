@@ -102,6 +102,12 @@ public class CronJobCreateUpdateReq {
     private Long executeTime;
 
     /**
+     * 定时任务触发时间、结束时间是哪个时区下的时间
+     */
+    @ApiModelProperty("定时任务触发时间、结束时间是哪个时区下的时间")
+    private String executeTimeZone;
+
+    /**
      * 变量信息
      */
     @ApiModelProperty("变量信息")

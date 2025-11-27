@@ -122,6 +122,11 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
     private Long executeTime;
 
     /**
+     * 定时任务触发时间、结束时间是哪个时区下的时间
+     */
+    private String executeTimeZone;
+
+    /**
      * 上次执行状态
      */
     private Integer lastExecuteStatus;
@@ -218,6 +223,7 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
             cronJobVO.setCronExpression(null);
         }
         cronJobVO.setExecuteTime(cronJobInfo.getExecuteTime());
+        cronJobVO.setExecuteTimeZone(cronJobInfo.getExecuteTimeZone());
         if (cronJobInfo.getVariableValue() != null) {
             cronJobVO.setVariableValue(cronJobInfo.getVariableValue().stream().map(CronJobVariableDTO::toVO)
                 .collect(Collectors.toList()));
@@ -304,6 +310,7 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
             cronJobInfo.setCustomCronJobNotifyDTO(extractCustomNotifyDTOFromReq(cronJobCreateUpdateReq));
         }
         cronJobInfo.setEndTime(cronJobCreateUpdateReq.getEndTime());
+        cronJobInfo.setExecuteTimeZone(cronJobCreateUpdateReq.getExecuteTimeZone());
         return cronJobInfo;
     }
 

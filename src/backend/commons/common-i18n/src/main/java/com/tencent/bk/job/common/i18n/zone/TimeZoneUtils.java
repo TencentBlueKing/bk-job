@@ -22,39 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo.notify;
+package com.tencent.bk.job.common.i18n.zone;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import java.time.ZoneId;
 
-/**
- * 通知黑名单用户信息VO
- */
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-@ToString
-public class NotifyBlackUserInfoVO {
-    private Long id;
-    /**
-     * 用户uuid（不可读）
-     */
-    private String username;
-    /**
-     * 用户名（可读）
-     */
-    private String displayName;
-    /**
-     * 创建者
-     */
-    private String creator;
-    /**
-     * 更新时间
-     */
-    private Long lastModifyTime;
+public class TimeZoneUtils {
 
+    /**
+     * 检查时区非空，是否是存在的IANA时区
+     * 如果无效抛出 InvalidTimeZoneException 异常
+     * @param zoneStr 时区字符串
+     */
+    public static void checkTimeZoneValid(String zoneStr) {
+        if (zoneStr == null) {
+            throw new InvalidTimeZoneException("Time zone is null");
+        }
+        try {
+            ZoneId.of(zoneStr);
+        } catch (Exception e) {
+            throw new InvalidTimeZoneException("Invalid time zone: " + zoneStr, e);
+        }
+    }
 }

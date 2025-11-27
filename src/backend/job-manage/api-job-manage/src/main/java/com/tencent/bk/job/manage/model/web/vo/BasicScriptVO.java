@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -126,7 +124,6 @@ public class BasicScriptVO {
      * 创建时间
      */
     @ApiModelProperty(value = "创建时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
     protected Long createTime;
 
     /**
@@ -139,7 +136,6 @@ public class BasicScriptVO {
      * 最后修改时间
      */
     @ApiModelProperty(value = "最后更新时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
     protected Long lastModifyTime;
 
     /**
