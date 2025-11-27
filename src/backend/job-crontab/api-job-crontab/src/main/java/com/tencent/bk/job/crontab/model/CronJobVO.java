@@ -24,10 +24,8 @@
 
 package com.tencent.bk.job.crontab.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.model.dto.notify.CustomNotifyVO;
 import com.tencent.bk.job.common.model.vo.UserRoleInfoVO;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -75,7 +73,6 @@ public class CronJobVO {
      * 定时任务创建时间
      */
     @ApiModelProperty("创建时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
     private Long createTime;
 
     /**
@@ -112,8 +109,13 @@ public class CronJobVO {
      * 单次执行的指定执行时间戳
      */
     @ApiModelProperty("单次执行的指定执行时间戳")
-    @JsonSerialize(using = LongTimestampSerializer.class)
     private Long executeTime;
+
+    /**
+     * 定时任务触发时间、结束时间是哪个时区下的时间
+     */
+    @ApiModelProperty("定时任务触发时间、结束时间是哪个时区下的时间")
+    private String executeTimeZone;
 
     /**
      * 变量信息
@@ -155,7 +157,6 @@ public class CronJobVO {
      * 最后修改时间戳
      */
     @ApiModelProperty("最后修改时间戳")
-    @JsonSerialize(using = LongTimestampSerializer.class)
     private Long lastModifyTime;
 
     /**
@@ -174,7 +175,6 @@ public class CronJobVO {
      * 最近 5 次执行失败时间戳
      */
     @ApiModelProperty("最近 5 次执行失败时间戳")
-    @JsonSerialize(using = LongTimestampSerializer.class)
     private List<Long> lastFailRecord;
 
     /**

@@ -24,10 +24,6 @@
 
 package com.tencent.bk.job.manage.model.web.vo.task;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampDeserializer;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -76,8 +72,6 @@ public class TaskTemplateVO {
      * 创建时间
      */
     @ApiModelProperty(value = "创建时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
-    @JsonDeserialize(using = LongTimestampDeserializer.class)
     private Long createTime;
 
     /**
@@ -90,8 +84,6 @@ public class TaskTemplateVO {
      * 最后修改时间
      */
     @ApiModelProperty(value = "最后更新时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
-    @JsonDeserialize(using = LongTimestampDeserializer.class)
     private Long lastModifyTime;
 
     /**

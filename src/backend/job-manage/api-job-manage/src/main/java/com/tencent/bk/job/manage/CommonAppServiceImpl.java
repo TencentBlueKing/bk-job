@@ -101,6 +101,16 @@ public class CommonAppServiceImpl extends AbstractLocalCacheCommonAppService {
         return convertToBasicApp(app);
     }
 
+    @Override
+    protected String queryAppTimeZoneFromDB(Long appId) {
+        ServiceApplicationDTO applicationDTO = applicationResource.queryAppById(appId);
+        if (applicationDTO == null) {
+            log.error("App with time zone not found, query appId: {}", appId);
+            throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
+        }
+        return applicationDTO.getTimeZone();
+    }
+
     private BasicApp convertToBasicApp(ServiceApplicationDTO app) {
         BasicApp basicApp = new BasicApp();
         basicApp.setId(app.getId());

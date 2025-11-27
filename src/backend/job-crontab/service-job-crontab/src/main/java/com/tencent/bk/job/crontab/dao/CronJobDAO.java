@@ -151,17 +151,6 @@ public interface CronJobDAO {
     long insertCronJob(CronJobInfoDTO cronJob);
 
     /**
-     * 保留 ID 插入定时任务
-     *
-     * @param cronJob 定时任务信息
-     * @return 是否插入成功
-     */
-    boolean insertCronJobWithId(CronJobInfoDTO cronJob);
-
-
-    // 修改
-
-    /**
      * 根据 ID 和定时任务 ID 更新定时任务
      *
      * @param cronJob 定时任务信息

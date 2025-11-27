@@ -26,7 +26,6 @@ package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.DecimalFormatJsonSerializer;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -116,14 +115,12 @@ public class TaskInstanceVO {
      * 开始时间
      */
     @ApiModelProperty("开始时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
     private Long startTime;
 
     /**
      * 结束时间
      */
     @ApiModelProperty("结束时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
     private Long endTime;
 
     /**
@@ -137,7 +134,6 @@ public class TaskInstanceVO {
      * 创建时间
      */
     @ApiModelProperty("创建时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
     private Long createTime;
 
     /**

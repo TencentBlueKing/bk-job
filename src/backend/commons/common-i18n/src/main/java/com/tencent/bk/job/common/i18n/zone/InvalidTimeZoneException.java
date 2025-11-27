@@ -22,39 +22,18 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo.notify;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+package com.tencent.bk.job.common.i18n.zone;
 
 /**
- * 通知黑名单用户信息VO
+ * 用户传入的时区字符串是无效的时区时的异常
  */
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
-@ToString
-public class NotifyBlackUserInfoVO {
-    private Long id;
-    /**
-     * 用户uuid（不可读）
-     */
-    private String username;
-    /**
-     * 用户名（可读）
-     */
-    private String displayName;
-    /**
-     * 创建者
-     */
-    private String creator;
-    /**
-     * 更新时间
-     */
-    private Long lastModifyTime;
+public class InvalidTimeZoneException extends IllegalArgumentException {
 
+    public InvalidTimeZoneException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
+
+    public InvalidTimeZoneException(String msg) {
+        super(msg);
+    }
 }

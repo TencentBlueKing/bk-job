@@ -66,6 +66,9 @@ public interface WebDangerousRecordResource {
         @ApiParam(value = "规则表达式", name = "ruleExpression")
         @RequestParam(value = "ruleExpression", required = false)
             String ruleExpression,
+        @ApiParam(value = "时区, 配合startTime和endTime使用", name = "timezone")
+        @RequestParam(value = "timezone", required = false)
+            String timezone,
         @ApiParam(value = "时间范围-开始时间", name = "startTime", required = true)
         @RequestParam(value = "startTime")
             String startTime,

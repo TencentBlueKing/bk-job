@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.CommonAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -74,10 +75,22 @@ public abstract class AbstractLocalCacheCommonAppService implements CommonAppSer
                    }
             );
 
+    private final LoadingCache<Long, String> appIdTimeZoneCache =
+        CacheBuilder.newBuilder().maximumSize(100_000).expireAfterWrite(1, TimeUnit.HOURS)
+            .build(new CacheLoader<Long, String>() {
+                       @Nonnull
+                       @Override
+                       public String load(@Nonnull Long appId) {
+                           return queryAppTimeZoneFromDB(appId);
+                       }
+                   }
+            );
+
 
     public AbstractLocalCacheCommonAppService() {
     }
 
+    @Override
     public Long getAppIdByScope(ResourceScope resourceScope) {
         BasicApp app = getApp(resourceScope);
         return app == null ? null : app.getId();
@@ -88,6 +101,7 @@ public abstract class AbstractLocalCacheCommonAppService implements CommonAppSer
         return getAppIdByScope(new ResourceScope(scopeType, scopeId));
     }
 
+    @Override
     public ResourceScope getScopeByAppId(Long appId) {
         BasicApp app = queryAppByAppId(appId);
         return app == null ? null : app.getScope();
@@ -155,6 +169,13 @@ public abstract class AbstractLocalCacheCommonAppService implements CommonAppSer
      */
     protected abstract BasicApp queryAppByAppId(Long appId) throws NotFoundException;
 
+    /**
+     * 根据 appId 查询 业务时区
+     * @param appId Job业务ID
+     * @return 业务时区
+     */
+    protected abstract String queryAppTimeZoneFromDB(Long appId);
+
     @Override
     public BasicApp getApp(ResourceScope resourceScope) {
         return queryCache(() -> scopeAndAppCache.get(resourceScope));
@@ -163,6 +184,28 @@ public abstract class AbstractLocalCacheCommonAppService implements CommonAppSer
     @Override
     public BasicApp getApp(Long appId) {
         return queryCache(() -> appIdAndAppCache.get(appId));
+    }
+
+    @Override
+    public String getAppTimeZoneById(Long appId) {
+        try {
+            return appIdTimeZoneCache.get(appId);
+        } catch (ExecutionException e) {
+            String msg = MessageFormatter.format(
+                "Get app timezone by appId: {}, error: ", appId).getMessage();
+            log.error(msg, e);
+            throw new InternalException(msg, e, ErrorCode.INTERNAL_ERROR);
+        } catch (UncheckedExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof ServiceException) {
+                throw (ServiceException) cause;
+            } else {
+                String msg = MessageFormatter.format(
+                    "Get app timezone by appId: {}, error: ", appId).getMessage();
+                log.error(msg, e);
+                throw new InternalException(msg, e, ErrorCode.INTERNAL_ERROR);
+            }
+        }
     }
 
     @FunctionalInterface

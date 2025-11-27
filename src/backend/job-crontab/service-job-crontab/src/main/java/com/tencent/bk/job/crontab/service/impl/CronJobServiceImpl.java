@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.CronJobNotifyType;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -665,7 +664,7 @@ public class CronJobServiceImpl implements CronJobService {
     public Boolean batchUpdateCronJob(User user,
                                       Long appId,
                                       BatchUpdateCronJobReq batchUpdateCronJobReq) {
-        // 更新DB中的数据
+        // 更新DB中的数据，只更新 变量 和 启用 字段
         NeedScheduleCronInfo needScheduleCronInfo = batchCronJobService.batchUpdateCronJob(
             user,
             appId,
@@ -681,20 +680,6 @@ public class CronJobServiceImpl implements CronJobService {
             needDeleteCronIdList.forEach(cronId -> informAllToDeleteJobFromQuartz(appId, cronId));
         }
         return true;
-    }
-
-    @Override
-    public Long insertCronJobInfoWithId(CronJobInfoDTO cronJobInfo) {
-        checkCronJobPlanOrScript(cronJobInfo);
-        CronJobInfoDTO cronJobById = cronJobDAO.getCronJobById(cronJobInfo.getAppId(), cronJobInfo.getId());
-        if (cronJobById != null) {
-            throw new AlreadyExistsException(ErrorCode.CRON_JOB_ALREADY_EXIST);
-        }
-        if (cronJobDAO.insertCronJobWithId(cronJobInfo)) {
-            return cronJobInfo.getId();
-        } else {
-            throw new InternalException(ErrorCode.INSERT_CRON_JOB_FAILED);
-        }
     }
 
     @Override
