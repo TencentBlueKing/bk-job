@@ -364,4 +364,14 @@ public class TaskPlanInfoDTO {
         return esbPlanInfo;
     }
 
+    @Override
+    public String toString() {
+        return "TaskPlanInfoDTO{" +
+            "id=" + id +
+            ", version=" + version +
+            ", templateId=" + templateId +
+            ", templateVersion=" + templateVersion +
+            ", stepList=" + stepList +
+            "}";
+    }
 }
