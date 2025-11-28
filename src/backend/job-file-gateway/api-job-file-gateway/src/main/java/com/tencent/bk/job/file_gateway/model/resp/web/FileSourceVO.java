@@ -135,7 +135,7 @@ public class FileSourceVO {
     /**
      * 创建时间
      */
-    @ApiModelProperty("创建时间")
+    @ApiModelProperty("创建时间，单位毫秒")
     private Long createTime;
     /**
      * 更新人
@@ -143,7 +143,7 @@ public class FileSourceVO {
     @ApiModelProperty("更新人")
     private String lastModifyUser;
 
-    @ApiModelProperty("更新时间")
+    @ApiModelProperty("更新时间，单位毫秒")
     private Long lastModifyTime;
 
     @ApiModelProperty("是否可以管理")

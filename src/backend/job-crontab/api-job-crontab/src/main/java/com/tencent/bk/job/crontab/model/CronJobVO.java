@@ -72,7 +72,7 @@ public class CronJobVO {
     /**
      * 定时任务创建时间
      */
-    @ApiModelProperty("创建时间")
+    @ApiModelProperty("创建时间，单位秒")
     private Long createTime;
 
     /**
@@ -108,7 +108,7 @@ public class CronJobVO {
     /**
      * 单次执行的指定执行时间戳
      */
-    @ApiModelProperty("单次执行的指定执行时间戳")
+    @ApiModelProperty("单次执行的指定执行时间戳，单位秒")
     private Long executeTime;
 
     /**
@@ -156,7 +156,7 @@ public class CronJobVO {
     /**
      * 最后修改时间戳
      */
-    @ApiModelProperty("最后修改时间戳")
+    @ApiModelProperty("最后修改时间戳，单位秒")
     private Long lastModifyTime;
 
     /**
@@ -208,7 +208,7 @@ public class CronJobVO {
     /**
      * 周期执行的结束时间
      */
-    @ApiModelProperty("周期执行的结束时间")
+    @ApiModelProperty("周期执行的结束时间，单位秒")
     private Long endTime;
 
     /**

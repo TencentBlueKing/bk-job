@@ -74,7 +74,7 @@ public class CredentialVO {
     /**
      * 创建时间
      */
-    @ApiModelProperty("创建时间")
+    @ApiModelProperty("创建时间，单位毫秒")
     private Long createTime;
     /**
      * 最后修改人
@@ -84,7 +84,7 @@ public class CredentialVO {
     /**
      * 最后修改时间
      */
-    @ApiModelProperty("最后修改时间")
+    @ApiModelProperty("最后修改时间，单位毫秒")
     private Long lastModifyTime;
 
     @ApiModelProperty("是否可以管理")

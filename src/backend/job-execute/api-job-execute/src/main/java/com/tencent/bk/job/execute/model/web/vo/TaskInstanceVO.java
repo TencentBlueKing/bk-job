@@ -114,13 +114,13 @@ public class TaskInstanceVO {
     /**
      * 开始时间
      */
-    @ApiModelProperty("开始时间")
+    @ApiModelProperty("开始时间，单位毫秒")
     private Long startTime;
 
     /**
      * 结束时间
      */
-    @ApiModelProperty("结束时间")
+    @ApiModelProperty("结束时间，单位毫秒")
     private Long endTime;
 
     /**
@@ -133,7 +133,7 @@ public class TaskInstanceVO {
     /**
      * 创建时间
      */
-    @ApiModelProperty("创建时间")
+    @ApiModelProperty("创建时间，单位毫秒")
     private Long createTime;
 
     /**

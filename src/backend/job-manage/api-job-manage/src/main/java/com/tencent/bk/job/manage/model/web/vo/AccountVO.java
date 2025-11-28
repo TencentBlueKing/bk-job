@@ -116,7 +116,7 @@ public class AccountVO {
     /**
      * 最后修改时间
      */
-    @ApiModelProperty("最后修改时间")
+    @ApiModelProperty("最后修改时间，单位毫秒")
     private Long lastModifyTime;
 
     /**
@@ -128,7 +128,7 @@ public class AccountVO {
     /**
      * 创建时间
      */
-    @ApiModelProperty("创建时间")
+    @ApiModelProperty("创建时间，单位毫秒")
     private Long createTime;
 
     @ApiModelProperty("是否可以管理")

@@ -42,15 +42,13 @@ public class CronJobLaunchHistoryVO {
     /**
      * 任务调度时间
      */
-    @ApiModelProperty("调度时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
+    @ApiModelProperty("调度时间，单位毫秒")
     private Long scheduledTime;
 
     /**
      * 任务执行时间
      */
-    @ApiModelProperty("执行时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
+    @ApiModelProperty("执行时间，单位毫秒")
     private Long executeTime;
 
     /**
