@@ -42,7 +42,7 @@ public class EsbCmsiChannelResp {
     /**
      * 渠道名称
      */
-    private String name;
+    private String label;
 
     /**
      * 该租户内是否支持
@@ -59,7 +59,7 @@ public class EsbCmsiChannelResp {
     public NotifyChannelDTO toNotifyChannelDTO() {
         NotifyChannelDTO notifyChannelDTO = new NotifyChannelDTO();
         notifyChannelDTO.setType(type);
-        notifyChannelDTO.setName(name);
+        notifyChannelDTO.setName(label);
         notifyChannelDTO.setIcon(icon);
         notifyChannelDTO.setEnabled(isActive);
         return notifyChannelDTO;
