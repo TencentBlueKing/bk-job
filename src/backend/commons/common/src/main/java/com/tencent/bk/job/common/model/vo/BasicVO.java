@@ -46,7 +46,7 @@ public class BasicVO {
     /**
      * 创建时间
      */
-    @ApiModelProperty(value = "创建时间")
+    @ApiModelProperty(value = "创建时间，单位秒")
     private Long createTime;
 
     /**
@@ -58,6 +58,6 @@ public class BasicVO {
     /**
      * 最后修改时间
      */
-    @ApiModelProperty(value = "最后更新时间")
+    @ApiModelProperty(value = "最后更新时间，单位秒")
     private Long lastModifyTime;
 }

@@ -60,10 +60,10 @@ public class WhiteIPRecordVO {
     private String remark;
     @ApiModelProperty("创建人")
     private String creator;
-    @ApiModelProperty("创建时间")
+    @ApiModelProperty("创建时间，单位毫秒")
     private Long createTime;
     @ApiModelProperty("最后一次更新人")
     private String lastModifier;
-    @ApiModelProperty("最后一次更新时间")
+    @ApiModelProperty("最后一次更新时间，单位毫秒")
     private Long lastModifyTime;
 }

@@ -49,7 +49,7 @@ public class TaskOperationLogVO {
     private Integer batch;
     @ApiModelProperty("步骤名称")
     private String stepName;
-    @ApiModelProperty("操作时间")
+    @ApiModelProperty("操作时间，单位毫秒")
     private Long createTime;
     @ApiModelProperty("详情-文本")
     private String detail;

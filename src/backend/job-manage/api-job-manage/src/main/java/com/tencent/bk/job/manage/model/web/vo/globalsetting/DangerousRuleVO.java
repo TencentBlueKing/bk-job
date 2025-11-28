@@ -54,11 +54,11 @@ public class DangerousRuleVO {
     private Integer status;
     @ApiModelProperty("创建人")
     private String creator;
-    @ApiModelProperty("创建时间")
+    @ApiModelProperty("创建时间，单位毫秒")
     private Long createTime;
     @ApiModelProperty("最近更新人")
     private String lastModifier;
-    @ApiModelProperty("最近更新时间")
+    @ApiModelProperty("最近更新时间，单位毫秒")
     private Long lastModifyTime;
 
     public EsbDangerousRuleV3DTO toEsbDangerousRuleV3DTO() {
