@@ -69,4 +69,9 @@ public class JobContext {
     private String httpMetricName;
 
     private AbstractList<Tag> httpMetricTags;
+
+    /**
+     * 控制器类名，用于缓存控制器信息，避免在序列化阶段访问被回收的请求对象
+     */
+    private String controllerClassName;
 }
