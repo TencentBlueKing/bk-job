@@ -72,8 +72,12 @@
         </bk-table-column>
         <bk-table-column
           :label="$t('home.更新时间')"
-          prop="lastModifyTime"
-          width="180" />
+          prop="lastModifyTimeText"
+          width="180">
+          <template slot-scope="{ row }">
+            <span v-bk-tooltips="row.lastModifyTimeTooltipsText">{{ row.lastModifyTimeText }}</span>
+          </template>
+        </bk-table-column>
         <bk-table-column
           class-name="task-action"
           :label="$t('home.操作')"

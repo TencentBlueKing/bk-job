@@ -96,9 +96,9 @@
           </div>
           <div class="item-value">
             <div
-              v-bk-overflow-tips
+              v-bk-tooltips="data.lastModifyTimeTooltipsText"
               class="text-box">
-              {{ data.lastModifyTime }}
+              {{ data.lastModifyTimeText }}
             </div>
           </div>
         </div>
@@ -107,10 +107,10 @@
             {{ $t('script.创建时间') }}:
           </div>
           <div
-            v-bk-overflow-tips
+            v-bk-tooltips="data.createTimeTooltipsText"
             class="item-value">
             <div class="text-box">
-              {{ data.createTime }}
+              {{ data.createTimeText }}
             </div>
           </div>
         </div>
