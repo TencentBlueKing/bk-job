@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.task;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -33,6 +34,7 @@ import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
+import com.tencent.bk.job.common.util.json.SecondToMillisSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
@@ -100,6 +102,7 @@ public class TaskPlanVO {
      * 创建时间
      */
     @ApiModelProperty(value = "创建时间，单位秒")
+    @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long createTime;
 
     /**
@@ -112,6 +115,7 @@ public class TaskPlanVO {
      * 最后修改时间
      */
     @ApiModelProperty(value = "最后更新时间，单位秒")
+    @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long lastModifyTime;
 
     /**

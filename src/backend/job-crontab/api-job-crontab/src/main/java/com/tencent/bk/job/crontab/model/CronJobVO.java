@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.crontab.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.model.dto.notify.CustomNotifyVO;
 import com.tencent.bk.job.common.model.vo.UserRoleInfoVO;
+import com.tencent.bk.job.common.util.json.SecondToMillisSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -73,6 +75,7 @@ public class CronJobVO {
      * 定时任务创建时间
      */
     @ApiModelProperty("创建时间，单位秒")
+    @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long createTime;
 
     /**
@@ -109,6 +112,7 @@ public class CronJobVO {
      * 单次执行的指定执行时间戳
      */
     @ApiModelProperty("单次执行的指定执行时间戳，单位秒")
+    @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long executeTime;
 
     /**
@@ -157,6 +161,7 @@ public class CronJobVO {
      * 最后修改时间戳
      */
     @ApiModelProperty("最后修改时间戳，单位秒")
+    @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long lastModifyTime;
 
     /**
@@ -209,6 +214,7 @@ public class CronJobVO {
      * 周期执行的结束时间
      */
     @ApiModelProperty("周期执行的结束时间，单位秒")
+    @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long endTime;
 
     /**
