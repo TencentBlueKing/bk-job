@@ -98,7 +98,7 @@
             <div
               v-bk-overflow-tips
               class="text-box">
-              {{ data.lastModifyTime }}
+              {{ data.lastModifyTimeText }}
             </div>
           </div>
         </div>
@@ -110,7 +110,7 @@
             v-bk-overflow-tips
             class="item-value">
             <div class="text-box">
-              {{ data.createTime }}
+              {{ data.createTimeText }}
             </div>
           </div>
         </div>

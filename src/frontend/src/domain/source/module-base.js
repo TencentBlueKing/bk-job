@@ -45,4 +45,9 @@ export default class ModuleBase {
     }
     return `/${moduleName}/scope/${SCOPE_TYPE}/${SCOPE_ID}`;
   }
+
+  get timezone() {
+    const { USER_TIME_ZONE, BUSINESS_TIME_ZONE, DEFAULT_DISPLAY_TIME_ZONE } = window.PROJECT_CONFIG;
+    return USER_TIME_ZONE || BUSINESS_TIME_ZONE || DEFAULT_DISPLAY_TIME_ZONE;
+  }
 }

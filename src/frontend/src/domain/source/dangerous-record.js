@@ -34,6 +34,7 @@ class DangerousRecord extends ModuleBase {
   }
 
   getDangerousRecordList(params, payload = {}) {
+    params.timezone = this.timezone;
     return Request.get(`${this.module}/list`, {
       params,
       payload,

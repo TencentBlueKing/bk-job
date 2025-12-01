@@ -125,9 +125,9 @@
       </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyTime"
-        key="lastModifyTime"
+        key="lastModifyTimeText"
         :label="$t('file.更新时间')"
-        prop="lastModifyTime" />
+        prop="lastModifyTimeText" />
       <bk-table-column
         key="action"
         :label="$t('file.操作')"

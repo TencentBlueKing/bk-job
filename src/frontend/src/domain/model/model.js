@@ -22,9 +22,39 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
 */
+import dayjs from 'dayjs';
+
+const timezone = require('dayjs/plugin/timezone');
+const utc = require('dayjs/plugin/utc');
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default class Model {
   getDefaultValue(value) {
     return value || '--';
+  }
+
+  getTimeZone() {
+    const { USER_TIME_ZONE, BUSINESS_TIME_ZONE, DEFAULT_DISPLAY_TIME_ZONE } = window.PROJECT_CONFIG;
+    return USER_TIME_ZONE || BUSINESS_TIME_ZONE || DEFAULT_DISPLAY_TIME_ZONE;
+  }
+
+  getTime(options) {
+    const {
+      timestamp,
+      timezone,
+      format = 'YYYY-MM-DD HH:mm:ss',
+    } = options;
+    return dayjs.tz(timestamp, timezone || this.getTimeZone())
+      .format(format);
+  }
+
+  get createTimeText() {
+    return this.getTime({ timestamp: this.createTime });
+  }
+
+  get lastModifyTimeText() {
+    return this.getTime({ timestamp: this.lastModifyTime });
   }
 }
