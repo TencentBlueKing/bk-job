@@ -137,7 +137,7 @@ ext {
     set('hibernateValidatorVersion', "6.1.4.Final")
     set('flapdoodleEmbeddedMongdbDBVersion', "4.4.0")
     set('jodaTimeVersion', "2.10.5")
-    set('bcprovVersion', "1.70")
+    set('bcprovVersion', "1.78.1")
     set('reflectionsVersion', "0.10.2")
     set('cronUtilsVersion', "9.1.6")
     set('otelJdbcVersion', "1.24.0-alpha")
@@ -173,8 +173,6 @@ ext {
     set('nettyCodecHttp2Version', "4.1.100.Final")
     // Fix CVE-2024-38809 CVE-2024-22262 CVE-2024-22259 CVE-2024-22243 5.3.23->5.3.39
     set('springWebVersion', "5.3.39")
-    // Fix CVE-2021-0341 4.9.1->4.9.2
-    set('okHttpVersion', "4.9.2")
     // Fix CVE-2023-46120 5.13.1->5.18.0
     set('amqpClientVersion', "5.18.0")
     // Fix CVE-2023-4759 5.13.1.202206130422-r->6.6.1.202309021850-r
@@ -353,7 +351,7 @@ subprojects {
             dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring26x:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "joda-time:joda-time:$jodaTimeVersion"
-            dependency "org.bouncycastle:bcprov-jdk15on:$bcprovVersion"
+            dependency "org.bouncycastle:bcprov-jdk18on:$bcprovVersion"
             // https://github.com/ronmamo/reflections
             dependency "org.reflections:reflections:$reflectionsVersion"
             dependency "com.cronutils:cron-utils:$cronUtilsVersion"
@@ -397,7 +395,6 @@ subprojects {
             dependency "io.projectreactor.netty:reactor-netty-core:$reactorNettyCoreVersion"
             dependency "io.netty:netty-codec-http2:$nettyCodecHttp2Version"
             dependency "org.springframework:spring-web:$springWebVersion"
-            dependency "com.squareup.okhttp3:okhttp:$okHttpVersion"
             dependency "com.rabbitmq:amqp-client:$amqpClientVersion"
             dependency "org.eclipse.jgit:org.eclipse.jgit:$jgitVersion"
             dependency "com.mysql:mysql-connector-j:$mysqlConnectorVersion"

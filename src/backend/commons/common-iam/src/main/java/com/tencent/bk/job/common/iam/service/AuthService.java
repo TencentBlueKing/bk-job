@@ -106,10 +106,11 @@ public interface AuthService {
     /**
      * 获取权限申请URL
      *
-     * @param actionId 操作ID
+     * @param actionId     操作ID
+     * @param resourceType 资源类型
      * @return 权限申请URL
      */
-    String getApplyUrl(String actionId);
+    String getApplyUrl(String actionId, ResourceTypeEnum resourceType);
 
     /**
      * 获取权限申请URL

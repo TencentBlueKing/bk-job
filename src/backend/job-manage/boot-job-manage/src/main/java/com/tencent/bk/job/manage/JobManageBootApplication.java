@@ -25,13 +25,16 @@
 package com.tencent.bk.job.manage;
 
 import com.tencent.bk.job.common.service.boot.JobBootApplication;
+import com.tencent.bk.job.manage.config.ScopePanelProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+@EnableConfigurationProperties(ScopePanelProperties.class)
 @JobBootApplication(
     scanBasePackages = "com.tencent.bk.job.manage",
     exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class},

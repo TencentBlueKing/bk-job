@@ -54,14 +54,14 @@ public interface EsbGetJobInstanceListV4Resource {
         @RequestHeader(value = JobCommonHeaders.APP_CODE)
             String appCode,
         @RequestParam(value = "bk_scope_type")
-        @NotNull(message = "{validation.constraints.EmptyJobInstanceScopeType.message}")
+        @NotNull(message = "{validation.constraints.EmptyScopeType.message}")
         @CheckEnum(
             enumClass = ResourceScopeTypeEnum.class,
-            message = "{validation.constraints.InvalidJobInstanceScopeType.message}"
+            message = "{validation.constraints.InvalidValueScopeType.message}"
         )
             String scopeType,
         @RequestParam(value = "bk_scope_id")
-        @NotBlank(message = "{validation.constraints.EmptyJobInstanceScopeId.message}")
+        @NotBlank(message = "{validation.constraints.EmptyScopeId.message}")
             String scopeId,
         @RequestParam(value = "create_time_start")
         @NotNull(message = "{validation.constraints.EmptyJobInstanceTimeStart.message}")

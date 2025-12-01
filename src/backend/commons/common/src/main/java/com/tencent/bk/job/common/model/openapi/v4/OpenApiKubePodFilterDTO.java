@@ -26,6 +26,8 @@ package com.tencent.bk.job.common.model.openapi.v4;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -52,5 +54,11 @@ public class OpenApiKubePodFilterDTO {
      */
     @JsonProperty("label_selector_expr")
     private String labelSelectorExpr;
+
+    public boolean isEmpty() {
+        return CollectionUtils.isEmpty(podNames)
+            && CollectionUtils.isEmpty(labelSelector)
+            && StringUtils.isBlank(labelSelectorExpr);
+    }
 
 }

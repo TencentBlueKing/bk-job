@@ -22,32 +22,57 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.web.vo;
+package com.tencent.bk.job.execute.model.esb.v4.req;
 
-import com.tencent.bk.job.common.model.PageData;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
+import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
+import com.tencent.bk.job.execute.model.esb.v4.req.validator.V4ExecuteTargetNotEmptyAndContainerSafely;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class PageDataWithAvailableIdList<DataType, IdType> extends PageData<DataType> {
-    @ApiModelProperty(value = "可用的资源Id列表")
-    private List<IdType> availableIdList;
+@V4ExecuteTargetNotEmptyAndContainerSafely
+public class V4ExecuteTargetDTO {
 
-    public PageDataWithAvailableIdList(PageData<DataType> pageData, List<IdType> availableIdList) {
-        this.setStart(pageData.getStart());
-        this.setPageSize(pageData.getPageSize());
-        this.setTotal(pageData.getTotal());
-        this.setData(pageData.getData());
-        this.setCanCreate(pageData.getCanCreate());
-        this.setExistAny(pageData.getExistAny());
-        this.availableIdList = availableIdList;
+    /**
+     * 静态主机列表
+     */
+    @JsonProperty("host_list")
+    @Valid
+    private List<OpenApiV4HostDTO> hostList;
+
+    /**
+     * 动态分组ID列表
+     */
+    @JsonProperty("dynamic_group_list")
+    @Valid
+    private List<EsbDynamicGroupDTO> dynamicGroups;
+
+    /**
+     * 分布式拓扑节点列表
+     */
+    @JsonProperty("topo_node_list")
+    @Valid
+    private List<EsbCmdbTopoNodeDTO> topoNodes;
+
+    /**
+     * k8s 容器过滤器列表
+     */
+    @JsonProperty("kube_container_filters")
+    @Valid
+    private List<V4ContainerFilter> kubeContainerFilters;
+
+    @JsonIgnore
+    public boolean isTargetEmpty() {
+        return CollectionUtils.isEmpty(hostList)
+            && CollectionUtils.isEmpty(dynamicGroups)
+            && CollectionUtils.isEmpty(topoNodes)
+            && CollectionUtils.isEmpty(kubeContainerFilters);
     }
+
 }

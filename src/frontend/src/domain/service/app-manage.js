@@ -44,4 +44,8 @@ export default {
     return AppManageSource.updateCancelFavorApp(params)
       .then(({ data }) => data);
   },
+  fetchGroupPanel() {
+    return AppManageSource.getGroupPanel()
+      .then(({ data }) => data);
+  },
 };

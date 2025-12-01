@@ -35,6 +35,7 @@ import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
+import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -60,6 +61,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
     private final RedisTemplate<String, String> redisTemplate;
     private final Tracer tracer;
     private final CmdbEventSampler cmdbEventSampler;
+    private final CmdbEventCursorManager cmdbEventCursorManager;
     /**
      * 事件监听任务分布式锁KEY
      */
@@ -78,11 +80,13 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
     public AbstractCmdbResourceEventWatcher(String watcherResourceName,
                                             RedisTemplate<String, String> redisTemplate,
                                             Tracer tracer,
-                                            CmdbEventSampler cmdbEventSampler) {
+                                            CmdbEventSampler cmdbEventSampler,
+                                            CmdbEventCursorManager cmdbEventCursorManager) {
         this.machineIp = IpUtils.getFirstMachineIP();
         this.redisTemplate = redisTemplate;
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
+        this.cmdbEventCursorManager = cmdbEventCursorManager;
         this.watcherResourceName = watcherResourceName;
         this.setName(watcherResourceName);
         this.redisLockKey = "watch-cmdb-" + this.watcherResourceName + "-lock";
@@ -127,7 +131,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
     private void watchAndHandleEvent() {
         log.info("Start watch {} resource at {},{}", watcherResourceName, TimeUtil.getCurrentTimeStr("HH:mm:ss"),
             System.currentTimeMillis());
-        String cursor = null;
+        String cursor = cmdbEventCursorManager.tryToLoadLatestCursor(watcherResourceName);
         while (isWatchingEnabled()) {
             Span span = SpanUtil.buildNewSpan(this.tracer, "watchAndHandle-" + this.watcherResourceName + "Events");
             try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
@@ -143,6 +147,8 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends Thread {
                 }
                 log.info("WatchResult[{}]: {}", this.watcherResourceName, JsonUtils.toJson(watchResult));
                 cursor = handleWatchResult(watchResult, cursor);
+                // 保存游标
+                cmdbEventCursorManager.tryToSaveLatestCursor(watcherResourceName, cursor);
                 // 1s/watch一次
                 ThreadUtils.sleep(1_000);
             } catch (Throwable t) {
