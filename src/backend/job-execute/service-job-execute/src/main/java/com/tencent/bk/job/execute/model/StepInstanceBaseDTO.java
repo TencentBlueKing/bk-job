@@ -179,6 +179,9 @@ public class StepInstanceBaseDTO {
     }
 
     public int getTargetExecuteObjectCount() {
+        if (targetExecuteObjects == null) {
+            return 0;
+        }
         return targetExecuteObjects.getExecuteObjectsCountCompatibly();
     }
 
