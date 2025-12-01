@@ -53,4 +53,12 @@ export default class Tag extends Model {
   get isEditRelateDisabled() {
     return this.relatedScriptNum < 1 && this.relatedTaskTemplateNum < 1;
   }
+
+  get createTimeText() {
+    return this.getTime({ timestamp: this.createTime });
+  }
+
+  get lastModifyTimeText() {
+    return this.getTime({ timestamp: this.lastModifyTime });
+  }
 }

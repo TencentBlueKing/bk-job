@@ -204,6 +204,7 @@
         UserService.fetchUserInfo()
           .then((data) => {
             this.currentUser = Object.freeze(data);
+            window.PROJECT_CONFIG.USER_TIME_ZONE = data.timeZone;
           });
       },
       /**

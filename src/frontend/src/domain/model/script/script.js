@@ -202,4 +202,12 @@ export default class Script extends BaseModel {
     }
     return versions.map(item => new Script(item));
   }
+
+  get createTimeText() {
+    return this.getTime({ timestamp: this.createTime });
+  }
+
+  get lastModifyTimeText() {
+    return this.getTime({ timestamp: this.lastModifyTime });
+  }
 }

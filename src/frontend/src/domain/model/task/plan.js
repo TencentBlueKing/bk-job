@@ -25,11 +25,13 @@
 
 import _ from 'lodash';
 
+import Model from '@model/model';
 import GlobalVariableModel from '@model/task/global-variable';
 import PlanStepModel from '@model/task/plan-step';
 
-export default class Plan {
+export default class Plan extends Model {
   constructor(payload) {
+    super();
     this.id = payload.id;
     this.name = payload.name;
     this.scopeType = payload.scopeType;
@@ -98,5 +100,13 @@ export default class Plan {
       return [];
     }
     return payload.map(item => new GlobalVariableModel(item));
+  }
+
+  get createTimeText() {
+    return this.getTime({ timestamp: this.createTime });
+  }
+
+  get lastModifyTimeText() {
+    return this.getTime({ timestamp: this.lastModifyTime });
   }
 }
