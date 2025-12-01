@@ -47,18 +47,7 @@ public class ScopeVO {
     @ApiModelProperty("是否收藏")
     private Boolean favor;
     @ApiModelProperty("收藏时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
     private Long favorTime;
-
-    public ScopeVO(String id,
-                   String name,
-                   Boolean hasPermission,
-                   Boolean favor,
-                   Long favorTime) {
-        this.id = id;
-        this.name = name;
-        this.hasPermission = hasPermission;
-        this.favor = favor;
-        this.favorTime = favorTime;
-    }
+    @ApiModelProperty("业务时区")
+    private String timeZone;
 }
