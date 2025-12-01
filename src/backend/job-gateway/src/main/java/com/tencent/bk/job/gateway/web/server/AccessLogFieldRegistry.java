@@ -35,18 +35,20 @@ public class AccessLogFieldRegistry {
 
     public AccessLogFieldRegistry() {
         // AccessLog按此注册顺序输出
+        register(AccessLogConstants.LogField.LOG_START_TIME);
+        register(AccessLogConstants.LogField.LOG_TRACE_ID);
+        register(AccessLogConstants.LogField.LOG_SPAN_ID);
         register(AccessLogConstants.LogField.LOG_USER_NAME);
         register(AccessLogConstants.LogField.LOG_METHOD);
         register(AccessLogConstants.LogField.LOG_PATH);
         register(AccessLogConstants.LogField.LOG_STATUS);
-        register(AccessLogConstants.LogField.LOG_RESPONSE_SIZE);
         register(AccessLogConstants.LogField.LOG_DURATION);
         register(AccessLogConstants.LogField.LOG_UPSTREAM);
-        register(AccessLogConstants.LogField.LOG_START_TIME);
-        register(AccessLogConstants.LogField.LOG_END_TIME);
+        register(AccessLogConstants.LogField.LOG_RESPONSE_SIZE);
         register(AccessLogConstants.LogField.LOG_PROTOCOL);
         register(AccessLogConstants.LogField.LOG_CLIENT_IP);
         register(AccessLogConstants.LogField.LOG_USER_AGENT);
+        register(AccessLogConstants.LogField.LOG_END_TIME);
     }
 
     public void register(String key) {

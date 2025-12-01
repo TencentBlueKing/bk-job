@@ -28,11 +28,12 @@ import com.tencent.bk.job.gateway.web.server.AccessLogFieldRegistry;
 import com.tencent.bk.job.gateway.web.server.AccessLogFormatter;
 import com.tencent.bk.job.gateway.web.server.AccessLogMetadataCollector;
 import com.tencent.bk.job.gateway.web.server.NettyAccessLogCustomizer;
-import com.tencent.bk.job.gateway.web.server.filter.RouteServerContextFilter;
+import com.tencent.bk.job.gateway.web.server.filter.AccessLogEnricherFilter;
 import com.tencent.bk.job.gateway.web.server.provider.AccessLogMetadataProvider;
 import com.tencent.bk.job.gateway.web.server.provider.DefaultMetadataProvider;
-import com.tencent.bk.job.gateway.web.server.provider.GatewayContextMetadataProvider;
+import com.tencent.bk.job.gateway.web.server.provider.RequestContextMetadataProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -46,8 +47,8 @@ import java.util.List;
 )
 public class CustomAccessLogConfig {
     @Bean
-    public RouteServerContextFilter routeServerContextFilter() {
-        return new RouteServerContextFilter();
+    public AccessLogEnricherFilter accessLogEnricherFilter(Tracer tracer) {
+        return new AccessLogEnricherFilter(tracer);
     }
 
     @Bean
@@ -56,8 +57,8 @@ public class CustomAccessLogConfig {
     }
 
     @Bean
-    public GatewayContextMetadataProvider jobContextMetadataProvider() {
-        return new GatewayContextMetadataProvider();
+    public RequestContextMetadataProvider requestContextMetadataProvider() {
+        return new RequestContextMetadataProvider();
     }
 
     @Bean

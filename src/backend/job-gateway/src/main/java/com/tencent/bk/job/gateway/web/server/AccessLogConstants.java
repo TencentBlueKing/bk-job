@@ -45,13 +45,17 @@ public class AccessLogConstants {
         public static final String LOG_USER_AGENT = "userAgent";
         public static final String LOG_UPSTREAM = "upstream";
         public static final String LOG_RESPONSE_SIZE = "responseSize";
+        public static final String LOG_TRACE_ID = "traceId";
+        public static final String LOG_SPAN_ID = "spanId";
     }
 
     /**
      * 请求头，用于上下文传递信息
      */
     public static final class Header {
-        public static final String GATEWAY_UPSTREAM = "Job-Upstream-Server";
+        public static final String HEAD_GATEWAY_UPSTREAM = "Job-Upstream-Server";
+        public static final String HEAD_TRACE_ID = "Job-Trace-Id";
+        public static final String HEAD_SPAN_ID = "Job-Span-Id";
     }
 
     /**
@@ -64,7 +68,6 @@ public class AccessLogConstants {
 
     public static final class Default {
         public static final String MISSING = "-";
-        public static final String KEY_TRACE_ID = "traceId";
         public static final String KEY_META_NAMESPACE = "meta.helm.sh/release-namespace";
     }
 }

@@ -22,7 +22,7 @@
             <cleanHistoryOnStart>${CLEAN_HISTORY_ON_START}</cleanHistoryOnStart>
         </rollingPolicy>
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{traceId}|%X{spanId}] %msg%n</pattern>
+            <pattern>%msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>

@@ -24,10 +24,8 @@
 
 package com.tencent.bk.job.gateway.web.server;
 
-import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.gateway.web.server.utils.AccessLogNetUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import reactor.netty.http.server.logging.AccessLog;
@@ -60,17 +58,12 @@ public class NettyAccessLogCustomizer implements NettyFactoryCustomizer {
                 AccessLogFactory.createFilter(provider -> true,
                     provider -> {
                         try {
-                            // AccessLog与Reactor之间可能存在上下文切换，丢失traceId，手动从响应头获取并放入MDC供日志使用
-                            String traceId = (String) provider.responseHeader(JobCommonHeaders.REQUEST_ID);
-                            MDC.put(AccessLogConstants.Default.KEY_TRACE_ID, traceId);
                             Map<String, Object> metadata = collector.collect(provider);
                             return AccessLog.create(formatter.format(metadata));
                         } catch (Exception e) {
                             log.error("Failed to build AccessLog.", e);
                             //默认AccessLog,如果返回null会被框架忽略没有日志
                             return createDefaultAccessLog(provider);
-                        } finally {
-                            MDC.remove(AccessLogConstants.Default.KEY_TRACE_ID);
                         }
                     }));
         });

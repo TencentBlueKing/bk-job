@@ -32,18 +32,23 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * 从网关上下文提取元数据
+ * 从上下文获取访问日志数据
  */
-public class GatewayContextMetadataProvider implements AccessLogMetadataProvider {
+public class RequestContextMetadataProvider implements AccessLogMetadataProvider {
 
     @Override
     public Map<String, Object> extract(AccessLogArgProvider provider) {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put(AccessLogConstants.LogField.LOG_UPSTREAM,
-            provider.requestHeader(AccessLogConstants.Header.GATEWAY_UPSTREAM));
-        map.put(AccessLogConstants.LogField.LOG_USER_NAME,
-            provider.requestHeader(JobCommonHeaders.USERNAME) != null ?
-                provider.requestHeader(JobCommonHeaders.USERNAME) : provider.requestHeader("username"));
+            provider.requestHeader(AccessLogConstants.Header.HEAD_GATEWAY_UPSTREAM));
+        map.put(AccessLogConstants.LogField.LOG_USER_NAME, provider.requestHeader(JobCommonHeaders.USERNAME) != null ?
+            provider.requestHeader(JobCommonHeaders.USERNAME) : provider.requestHeader("username"));
+        map.put(AccessLogConstants.LogField.LOG_TRACE_ID,
+            provider.requestHeader(AccessLogConstants.Header.HEAD_TRACE_ID) != null ?
+                provider.requestHeader(AccessLogConstants.Header.HEAD_TRACE_ID) :
+                provider.responseHeader(JobCommonHeaders.REQUEST_ID));
+        map.put(AccessLogConstants.LogField.LOG_SPAN_ID,
+            provider.requestHeader(AccessLogConstants.Header.HEAD_SPAN_ID));
         return map;
     }
 }

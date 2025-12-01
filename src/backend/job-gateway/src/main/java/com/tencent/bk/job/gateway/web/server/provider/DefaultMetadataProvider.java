@@ -35,7 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * 默认从netty的AccessLogArgProvider提取元数据
+ * 从netty默认的AccessLogArgProvider获取日志数据
  */
 public class DefaultMetadataProvider implements AccessLogMetadataProvider {
 

@@ -33,6 +33,8 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.cloud.sleuth.Span;
+import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -42,20 +44,38 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 
 /**
- * 后端服务信息过滤器，获取后端路由信息供日志使用
+ * 访问日志增强过滤器，获取后端路由、trace等信息并写入请求头，供访问日志使用
  */
 @Component
 @Slf4j
-public class RouteServerContextFilter implements GlobalFilter, Ordered {
+public class AccessLogEnricherFilter implements GlobalFilter, Ordered {
+    private final Tracer tracer;
+
+    public AccessLogEnricherFilter(Tracer tracer) {
+        this.tracer = tracer;
+    }
 
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+    public Mono<Void> filter(ServerWebExchange exchange,
+                             GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
+
+        // 获取负载均衡选择的后端实例
         Response<ServiceInstance> resp =
             exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_LOADBALANCER_RESPONSE_ATTR);
-        RouteServerInfo rs = buildRouteInfo(exchange, resp.getServer());
-        request.mutate().header(AccessLogConstants.Header.GATEWAY_UPSTREAM,
-                rs != null ? rs.toString() : AccessLogConstants.Default.MISSING)
+
+        RouteServerInfo routeServerInfo = buildRouteInfo(exchange, resp.getServer());
+        // 由于Reactor Netty异步模型存在线程切换，traceId可能无法正确传播,将traceId写入请求头确保访问日志能稳定获取链路信息
+        Span currentSpan = tracer.currentSpan();
+        request.mutate()
+            .header(AccessLogConstants.Header.HEAD_GATEWAY_UPSTREAM,
+                routeServerInfo != null ? routeServerInfo.toString() : AccessLogConstants.Default.MISSING)
+            .headers(headers -> {
+                if (currentSpan != null) {
+                    headers.add(AccessLogConstants.Header.HEAD_TRACE_ID, currentSpan.context().traceId());
+                    headers.add(AccessLogConstants.Header.HEAD_SPAN_ID, currentSpan.context().spanId());
+                }
+            })
             .build();
         return chain.filter(exchange.mutate().request(request).build());
     }
@@ -72,12 +92,13 @@ public class RouteServerContextFilter implements GlobalFilter, Ordered {
         serverInfo.setHost(serviceInstance.getHost());
         serverInfo.setPort(serviceInstance.getPort());
         URI uri = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
-        serverInfo.setPath(uri.getPath());
+        serverInfo.setPath(uri != null ? uri.getPath() : AccessLogConstants.Default.MISSING);
         return serverInfo;
     }
 
     @Override
     public int getOrder() {
+        // 确保在LoadBalancer过滤器之后执行,才能拿到后端实例信息
         return ReactiveLoadBalancerClientFilter.LOAD_BALANCER_CLIENT_FILTER_ORDER + 1;
     }
 }
