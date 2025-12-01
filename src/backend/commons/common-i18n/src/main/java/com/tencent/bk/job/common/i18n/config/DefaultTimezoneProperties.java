@@ -22,15 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api 'org.springframework:spring-context'
-    api 'org.springframework:spring-core'
-    api 'org.springframework.boot:spring-boot'
-    api 'jakarta.servlet:jakarta.servlet-api'
-    implementation 'org.apache.commons:commons-lang3'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.i18n.config;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * 默认时区配置属性
+ */
+@Getter
+@Setter
+@ToString
+@ConfigurationProperties(prefix = "timezone.default")
+@Configuration
+public class DefaultTimezoneProperties {
+
+    /**
+     * 默认展示时区（前端使用，当业务和个人都没有配置时区时使用）
+     */
+    private String display = "Asia/Shanghai";
+
+    /**
+     * 运营时区
+     */
+    private String operation = "Asia/Shanghai";
 }

@@ -121,6 +121,7 @@ public class ScopePanelService {
             scopeVO.setFavor(appVO.getFavor());
             scopeVO.setFavorTime(appVO.getFavorTime());
             scopeVO.setHasPermission(appVO.getHasPermission());
+            scopeVO.setTimeZone(appVO.getTimeZone());
             mappedScopeList.add(scopeVO);
         }
         return scopeGroupList;

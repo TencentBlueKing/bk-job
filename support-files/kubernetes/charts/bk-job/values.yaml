@@ -595,6 +595,14 @@ mockApi:
     # 是否启用CMSI Mock API
     enabled: false
 
+# 时区配置
+timezone:
+  default:
+    # 默认展示时区（前端使用，当业务和个人都没有配置时区时使用）
+    display: "Asia/Shanghai"
+    # 运营时区
+    operation: "Asia/Shanghai"
+
 ## 蓝鲸GSE参数配置
 gse:
   script:

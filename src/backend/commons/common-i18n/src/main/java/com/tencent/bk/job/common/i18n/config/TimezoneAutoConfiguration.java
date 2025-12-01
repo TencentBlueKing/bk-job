@@ -22,15 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api 'org.springframework:spring-context'
-    api 'org.springframework:spring-core'
-    api 'org.springframework.boot:spring-boot'
-    api 'jakarta.servlet:jakarta.servlet-api'
-    implementation 'org.apache.commons:commons-lang3'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.i18n.config;
+
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@EnableConfigurationProperties({DefaultTimezoneProperties.class})
+public class TimezoneAutoConfiguration {
 }
