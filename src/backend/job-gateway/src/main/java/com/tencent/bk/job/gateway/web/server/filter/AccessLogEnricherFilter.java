@@ -33,8 +33,6 @@ import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
@@ -44,16 +42,11 @@ import reactor.core.publisher.Mono;
 import java.net.URI;
 
 /**
- * 访问日志增强过滤器，获取后端路由、trace等信息并写入请求头，供访问日志使用
+ * 访问日志增强过滤器，获取后端路由信息并写入请求头，供访问日志使用
  */
 @Component
 @Slf4j
 public class AccessLogEnricherFilter implements GlobalFilter, Ordered {
-    private final Tracer tracer;
-
-    public AccessLogEnricherFilter(Tracer tracer) {
-        this.tracer = tracer;
-    }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange,
@@ -65,17 +58,9 @@ public class AccessLogEnricherFilter implements GlobalFilter, Ordered {
             exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_LOADBALANCER_RESPONSE_ATTR);
 
         RouteServerInfo routeServerInfo = buildRouteInfo(exchange, resp.getServer());
-        // 由于Reactor Netty异步模型存在线程切换，traceId可能无法正确传播,将traceId写入请求头确保访问日志能稳定获取链路信息
-        Span currentSpan = tracer.currentSpan();
         request.mutate()
             .header(AccessLogConstants.Header.HEAD_GATEWAY_UPSTREAM,
                 routeServerInfo != null ? routeServerInfo.toString() : AccessLogConstants.Default.MISSING)
-            .headers(headers -> {
-                if (currentSpan != null) {
-                    headers.add(AccessLogConstants.Header.HEAD_TRACE_ID, currentSpan.context().traceId());
-                    headers.add(AccessLogConstants.Header.HEAD_SPAN_ID, currentSpan.context().spanId());
-                }
-            })
             .build();
         return chain.filter(exchange.mutate().request(request).build());
     }

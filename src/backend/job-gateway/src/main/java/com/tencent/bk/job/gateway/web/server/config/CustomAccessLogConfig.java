@@ -33,7 +33,6 @@ import com.tencent.bk.job.gateway.web.server.provider.AccessLogMetadataProvider;
 import com.tencent.bk.job.gateway.web.server.provider.DefaultMetadataProvider;
 import com.tencent.bk.job.gateway.web.server.provider.RequestContextMetadataProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -47,8 +46,8 @@ import java.util.List;
 )
 public class CustomAccessLogConfig {
     @Bean
-    public AccessLogEnricherFilter accessLogEnricherFilter(Tracer tracer) {
-        return new AccessLogEnricherFilter(tracer);
+    public AccessLogEnricherFilter accessLogEnricherFilter() {
+        return new AccessLogEnricherFilter();
     }
 
     @Bean

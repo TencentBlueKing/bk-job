@@ -43,7 +43,10 @@ public class AccessLogFormatter {
 
     public String format(Map<String, Object> metadata) {
         return registry.getFields().stream()
-                .map(key -> key + "=" + metadata.getOrDefault(key, AccessLogConstants.Default.MISSING))
-                .collect(Collectors.joining(" "));
+            .map(key -> {
+                Object val = metadata.get(key);
+                return key + "=" + (val != null ? val : AccessLogConstants.Default.MISSING);
+            })
+            .collect(Collectors.joining("|"));
     }
 }

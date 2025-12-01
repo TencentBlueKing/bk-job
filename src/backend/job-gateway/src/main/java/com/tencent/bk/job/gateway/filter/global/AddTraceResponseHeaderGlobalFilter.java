@@ -25,6 +25,7 @@
 package com.tencent.bk.job.gateway.filter.global;
 
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -60,6 +61,8 @@ public class AddTraceResponseHeaderGlobalFilter implements GlobalFilter, Ordered
             ServerHttpRequest request = exchange.getRequest();
             ServerHttpResponse response = exchange.getResponse();
             response.getHeaders().add(JobCommonHeaders.REQUEST_ID, traceId);
+            // 由于Reactor Netty异步模型存在线程切换，trace可能无法正确传播,将trace写入请求头确保访问日志能稳定获取链路信息
+            request.mutate().header(AccessLogConstants.Header.HEAD_SPAN_ID, span.context().spanId());
             return chain.filter(exchange.mutate().request(request).build());
         } catch (Exception e) {
             span.error(e);
