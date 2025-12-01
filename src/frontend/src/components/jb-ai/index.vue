@@ -28,7 +28,6 @@
   </div>
 </template>
 <script setup>
-  import dayjs from 'dayjs';
   import { nextTick, ref } from 'vue';
 
   import AiService from '@service/ai';
@@ -36,6 +35,8 @@
   import eventBus from '@utils/event-bus';
 
   import AiBlueking from '@blueking/ai-blueking/vue2';
+
+  import Model from '@/domain/model/model';
 
   import useChatHistory from './use-chat-history';
   import useCloseAnimate from './use-close-animate';
@@ -45,6 +46,7 @@
 
   let currentRecordId = 0;
   const bluekingImage = window.__loadAssetsUrl__('/static/images/blueking.png');
+  const model = new Model();
 
   const handleRef = ref();
   const aiRef = ref();
@@ -59,6 +61,8 @@
     right: 0,
   };
 
+  const getTime = timestamp => model.getTime({ timestamp });
+
   const {
     messageList,
     loading: isChatHistoryLoading,
@@ -70,7 +74,7 @@
   const {
     loading: isContentLoading,
     fetchContent,
-  } = useStreamContent(messageList);
+  } = useStreamContent(messageList, getTime);
 
   const runCloseAnimate = useCloseAnimate(aiRef, handleRef, () => {
     isHandleShow.value = true;
@@ -94,7 +98,7 @@
           role: 'user',
           content: data.userInput.content,
           status: '',
-          time: data.userInput.time,
+          time: getTime(data.userInput.time),
         });
         currentRecordId = data.id;
         fetchContent(currentRecordId);
@@ -109,7 +113,7 @@
           role: 'user',
           content: data.userInput.content,
           status: '',
-          time: data.userInput.time,
+          time: getTime(data.userInput.time),
         });
         currentRecordId = data.id;
         fetchContent(currentRecordId);
@@ -122,7 +126,7 @@
       role: 'user',
       content,
       status: '',
-      time: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+      time: getTime(new Date().valueOf()),
     });
     AiService.fetchGeneraChat({
       content,
