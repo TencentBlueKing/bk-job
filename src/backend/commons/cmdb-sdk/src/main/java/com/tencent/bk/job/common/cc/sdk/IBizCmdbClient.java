@@ -142,11 +142,12 @@ public interface IBizCmdbClient {
     /**
      * 获取动态分组下面的主机
      *
-     * @param bizId   cmdb业务ID
-     * @param groupId 动态分组ID
+     * @param tenantId 租户ID
+     * @param bizId    cmdb业务ID
+     * @param groupId  动态分组ID
      * @return 动态分组下的主机
      */
-    List<DynamicGroupHostPropDTO> getDynamicGroupIp(long bizId, String groupId);
+    List<DynamicGroupHostPropDTO> getDynamicGroupIp(String tenantId, long bizId, String groupId);
 
     /**
      * 获取云区域

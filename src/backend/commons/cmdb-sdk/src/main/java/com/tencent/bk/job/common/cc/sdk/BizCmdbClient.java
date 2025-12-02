@@ -852,7 +852,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public List<DynamicGroupHostPropDTO> getDynamicGroupIp(long bizId, String groupId) {
+    public List<DynamicGroupHostPropDTO> getDynamicGroupIp(String tenantId, long bizId, String groupId) {
         ExecuteDynamicGroupReq req = makeCmdbBaseReq(ExecuteDynamicGroupReq.class);
         req.setBizId(bizId);
         req.setGroupId(groupId);
@@ -866,7 +866,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             req.getPage().setStart(start);
             String uri = EXECUTE_DYNAMIC_GROUP.replace("{bk_biz_id}", String.valueOf(bizId));
             uri = uri.replace("{id}", groupId);
-            EsbResp<ExecuteDynamicGroupHostResult> esbResp = requestCmdbApiUseContextTenantId(
+            EsbResp<ExecuteDynamicGroupHostResult> esbResp = requestCmdbApi(
+                tenantId,
                 HttpMethodEnum.POST,
                 uri,
                 null,
