@@ -32,12 +32,14 @@ import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.NotEmpty;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @ApiModel("账号创建请求")
 @ToString(exclude = {"password"})
 public class EsbCreateAccountV3Req extends EsbAppScopeReq {
