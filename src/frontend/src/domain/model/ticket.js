@@ -60,12 +60,4 @@ export default class Ticket extends Model {
     // 异步获取引用数量
     this.isRelatedLoading = true;
   }
-
-  get createTimeText() {
-    return this.getTime({ timestamp: this.createTime });
-  }
-
-  get lastModifyTimeText() {
-    return this.getTime({ timestamp: this.lastModifyTime });
-  }
 }

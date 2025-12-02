@@ -126,10 +126,10 @@
       </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.createTime"
-        key="createTime"
+        key="createTimeText"
         align="left"
         :label="$t('history.开始时间_colHead')"
-        prop="createTime"
+        prop="createTimeText"
         width="180" />
       <bk-table-column
         v-if="allRenderColumnMap.totalTimeText"

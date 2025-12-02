@@ -149,12 +149,4 @@ export default class Task extends Model {
     }
     return payload.map(item => new GlobalVariableModel(item, isClone));
   }
-
-  get createTimeText() {
-    return this.getTime({ timestamp: this.createTime });
-  }
-
-  get lastModifyTimeText() {
-    return this.getTime({ timestamp: this.lastModifyTime });
-  }
 }

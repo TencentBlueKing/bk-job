@@ -90,10 +90,10 @@
         </template>
       </bk-table-column>
       <bk-table-column
-        key="createTime"
+        key="createTimeText"
         align="left"
         :label="$t('cron.开始时间_colHead')"
-        prop="createTime"
+        prop="createTimeText"
         width="180" />
       <bk-table-column
         key="totalTimeText"
@@ -215,12 +215,8 @@
         {
           name: I18n.t('cron.执行人_colHead'),
           id: 'operator',
-          remoteMethod: (keyword, isExact) => {
-            if (keyword && isExact) {
-              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
-            }
-            return NotifyService.fetchUsersOfSearch(keyword);
-          },
+          remoteMethod: NotifyService.fetchUsersOfSearch,
+          inputInclude: true,
         },
       ];
 

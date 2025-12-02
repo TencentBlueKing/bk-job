@@ -101,12 +101,4 @@ export default class Plan extends Model {
     }
     return payload.map(item => new GlobalVariableModel(item));
   }
-
-  get createTimeText() {
-    return this.getTime({ timestamp: this.createTime });
-  }
-
-  get lastModifyTimeText() {
-    return this.getTime({ timestamp: this.lastModifyTime });
-  }
 }

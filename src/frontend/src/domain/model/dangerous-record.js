@@ -23,13 +23,15 @@
  * IN THE SOFTWARE.
 */
 
+import Model from '@model/model';
+
 import {
   prettyDateTimeFormat,
 } from '@utils/assist';
 
 import I18n from '@/i18n';
 
-export default class DangerousRecord {
+export default class DangerousRecord extends Model {
   static scriptTypeMap = {
     1: 'Shell',
     2: 'Bat',
@@ -51,6 +53,7 @@ export default class DangerousRecord {
   };
 
   constructor(payload) {
+    super();
     this.action = payload.action;
     this.scopeType = payload.scopeType;
     this.scopeId = payload.scopeId;

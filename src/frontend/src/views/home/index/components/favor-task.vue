@@ -72,7 +72,7 @@
         </bk-table-column>
         <bk-table-column
           :label="$t('home.更新时间')"
-          prop="lastModifyTime"
+          prop="lastModifyTimeText"
           width="180" />
         <bk-table-column
           class-name="task-action"

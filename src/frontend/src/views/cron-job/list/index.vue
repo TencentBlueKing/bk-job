@@ -170,10 +170,10 @@
       </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.createTime"
-        key="createTime"
+        key="createTimeText"
         align="left"
         :label="$t('cron.创建时间')"
-        prop="createTime"
+        prop="createTimeText"
         width="180" />
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyUser"
@@ -189,10 +189,10 @@
       </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyTime"
-        key="lastModifyTime"
+        key="lastModifyTimeText"
         align="left"
         :label="$t('cron.更新时间')"
-        prop="lastModifyTime"
+        prop="lastModifyTimeText"
         width="180" />
       <bk-table-column
         v-if="allRenderColumnMap.lastExecuteStatus"
