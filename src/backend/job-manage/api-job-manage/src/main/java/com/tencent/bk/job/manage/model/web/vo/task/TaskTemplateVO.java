@@ -73,7 +73,7 @@ public class TaskTemplateVO {
     /**
      * 创建时间
      */
-    @ApiModelProperty(value = "创建时间，单位秒")
+    @ApiModelProperty(value = "创建时间，单位毫秒")
     @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long createTime;
 
@@ -86,7 +86,7 @@ public class TaskTemplateVO {
     /**
      * 最后修改时间
      */
-    @ApiModelProperty(value = "最后更新时间，单位秒")
+    @ApiModelProperty(value = "最后更新时间，单位毫秒")
     @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long lastModifyTime;
 

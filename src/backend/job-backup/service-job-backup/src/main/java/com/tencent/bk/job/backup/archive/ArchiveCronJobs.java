@@ -92,7 +92,10 @@ public class ArchiveCronJobs {
     /**
      * 定时调度并执行历史数据归档任务，默认每小时第 1 分钟触发一次
      */
-    @Scheduled(cron = "${job.backup.archive.execute.cron: 0 1 * * * *}")
+    @Scheduled(
+        cron = "${job.backup.archive.execute.cron: 0 1 * * * *}",
+        zone = "${timezone.default.operation:Asia/Shanghai}"
+    )
     public void runHistoricalDataArchive() {
         if (archiveProperties.isEnabled()) {
             log.info("Schedule and execute historical data archive task start...");
@@ -104,7 +107,10 @@ public class ArchiveCronJobs {
     /**
      * 定时调度并执行执行日志归档任务，默认每小时第 1 分钟触发一次
      */
-    @Scheduled(cron = "${job.backup.archive.execute-log.cron: 0 1 * * * *}")
+    @Scheduled(
+        cron = "${job.backup.archive.execute-log.cron: 0 1 * * * *}",
+        zone = "${timezone.default.operation:Asia/Shanghai}"
+    )
     public void runJobLogArchive() {
         if (jobLogArchiveProperties.isEnabled()) {
             log.info("Schedule and execute historical log archive task start...");
@@ -116,7 +122,10 @@ public class ArchiveCronJobs {
     /**
      * 失败归档任务重调度，每小时触发一次
      */
-    @Scheduled(cron = "0 59 * * * *")
+    @Scheduled(
+        cron = "0 59 * * * *",
+        zone = "${timezone.default.operation:Asia/Shanghai}"
+    )
     public void scheduleFailedTasks() {
         if (!archiveProperties.isEnabled() && !jobLogArchiveProperties.isEnabled()) {
             return;
@@ -129,9 +138,13 @@ public class ArchiveCronJobs {
     /**
      * 定时查看是否有归档完成但实际还在热库中的任务，默认每天10:30触发
      */
-    @Scheduled(cron = "${job.backup.archive.execute.check.cron: 0 30 10 * * ?}")
+    @Scheduled(
+        cron = "${job.backup.archive.execute.check.cron: 0 30 10 * * ?}",
+        zone = "${timezone.default.operation:Asia/Shanghai}"
+    )
     public void checkArchiveTaskStatus() {
         if (!archiveProperties.isEnabled() || !archiveProperties.getCheck().isEnabled()) {
+            log.debug("checkArchiveTaskStatus not enable, skip");
             return;
         }
         log.info("Check archive task status start...");

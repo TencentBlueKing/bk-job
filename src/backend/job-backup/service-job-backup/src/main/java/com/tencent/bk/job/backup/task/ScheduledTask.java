@@ -59,7 +59,7 @@ public class ScheduledTask {
     /**
      * 定期清理导入导出产生的临时文件
      */
-    @Scheduled(cron = "${job.backup.clean.cron:0 0 * * * ?}")
+    @Scheduled(cron = "${job.backup.clean.cron:0 0 * * * ?}", zone = "${timezone.default.operation:Asia/Shanghai}")
     public void cleanFileTask() {
         try {
             JobContextUtil.setRequestId(UUID.randomUUID().toString());

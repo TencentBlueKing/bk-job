@@ -50,7 +50,7 @@ public class ScheduledTasks {
     /**
      * 每天早上9:30更新一次定时任务数据到Quartz内存
      */
-    @Scheduled(cron = "0 30 9 * * *")
+    @Scheduled(cron = "0 30 9 * * *", zone = "${timezone.default.operation:Asia/Shanghai}")
     public void loadCronToQuartzPeriodically() {
         log.info("loadCronToQuartzPeriodically");
         cronJobLoadingService.loadAllCronJob();
@@ -59,7 +59,7 @@ public class ScheduledTasks {
     /**
      * 每上午10点把已归档业务(集)的定时任务禁用
      */
-    @Scheduled(cron = "0 0 10 * * ?")
+    @Scheduled(cron = "0 0 10 * * ?", zone = "${timezone.default.operation:Asia/Shanghai}")
     public void disableCronJobOfArchivedScopeTask() {
         log.info(Thread.currentThread().getId() + ":disableCronJobOfArchivedScopeTask start");
         long start = System.currentTimeMillis();
