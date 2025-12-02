@@ -45,4 +45,12 @@ export default class Model {
     return dayjs.tz(timestamp, timezone || USER_TIME_ZONE || BUSINESS_TIME_ZONE)
       .format(format);
   }
+
+  get createTimeText() {
+    return this.getTime({ timestamp: this.createTime });
+  }
+
+  get lastModifyTimeText() {
+    return this.getTime({ timestamp: this.lastModifyTime });
+  }
 }

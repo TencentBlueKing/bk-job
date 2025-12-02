@@ -94,10 +94,10 @@
       </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.createTime"
-        key="createTime"
+        key="createTimeText"
         align="left"
         :label="$t('whiteIP.创建时间')"
-        prop="createTime"
+        prop="createTimeText"
         show-overflow-tooltip />
       <bk-table-column
         v-if="allRenderColumnMap.lastModifier"
@@ -112,10 +112,10 @@
       </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyTime"
-        key="lastModifyTime"
+        key="lastModifyTimeText"
         align="left"
         :label="$t('whiteIP.更新时间')"
-        prop="lastModifyTime"
+        prop="lastModifyTimeText"
         show-overflow-tooltip />
       <bk-table-column
         key="action"

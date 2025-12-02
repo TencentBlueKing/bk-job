@@ -23,6 +23,8 @@
  * IN THE SOFTWARE.
 */
 
+import Model from '@model/model';
+
 import {
   transformTimeFriendly,
 } from '@utils/assist';
@@ -99,12 +101,13 @@ const calcStatusGroup = (status) => {
 
 // 执行历史列表
 // 任务实例信息
-export default class TaskInstance {
+export default class TaskInstance extends Model {
   static STATUS_ICON_TYPE = {
 
   };
 
   constructor(payload) {
+    super();
     this.id = payload.id;
     this.taskId = payload.taskId;
     this.cronTaskId = payload.cronTaskId;

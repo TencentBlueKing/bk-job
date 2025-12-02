@@ -80,12 +80,4 @@ export default class Account extends Model {
   get isSystem() {
     return this.category === 1;
   }
-
-  get createTimeText() {
-    return this.getTime({ timestamp: this.createTime });
-  }
-
-  get lastModifyTimeText() {
-    return this.getTime({ timestamp: this.lastModifyTime });
-  }
 }

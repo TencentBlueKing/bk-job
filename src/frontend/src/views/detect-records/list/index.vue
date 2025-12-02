@@ -96,10 +96,10 @@
       </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.statusDesc"
-        key="createTime"
+        key="createTimeText"
         align="left"
         :label="$t('detectRecords.执行时间')"
-        prop="createTime"
+        prop="createTimeText"
         width="200">
         <template slot-scope="{ row }">
           {{ row.getCreatTimes }}
