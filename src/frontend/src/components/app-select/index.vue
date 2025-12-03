@@ -351,6 +351,7 @@
               for (const scopeItem of groupItem.children) {
                 if (scopeItem.id === currentScopeId) {
                   currentScopeName.value = scopeItem.name;
+                  window.PROJECT_CONFIG.BUSINESS_TIME_ZONE = scopeItem.timeZone;
                   break;
                 }
               }

@@ -35,14 +35,18 @@ export default class Model {
     return value || '--';
   }
 
+  getTimeZone() {
+    const { USER_TIME_ZONE, BUSINESS_TIME_ZONE, DEFAULT_DISPLAY_TIME_ZONE } = window.PROJECT_CONFIG;
+    return USER_TIME_ZONE || BUSINESS_TIME_ZONE || DEFAULT_DISPLAY_TIME_ZONE;
+  }
+
   getTime(options) {
-    const { USER_TIME_ZONE, BUSINESS_TIME_ZONE } = window.PROJECT_CONFIG;
     const {
       timestamp,
       timezone,
       format = 'YYYY-MM-DD HH:mm:ss',
     } = options;
-    return dayjs.tz(timestamp, timezone || USER_TIME_ZONE || BUSINESS_TIME_ZONE)
+    return dayjs.tz(timestamp, timezone || this.getTimeZone())
       .format(format);
   }
 
