@@ -156,7 +156,7 @@ ext {
         set('bkjobVersion', "1.0.0")
         println "bkjobVersion:" + bkjobVersion
     }
-    set('bkAuditJavaSdkVersion', "1.0.8")
+    set('bkAuditJavaSdkVersion', "1.0.9")
     set('mockitoVersion', "4.0.0")
     set('embeddedRedisVersion', "0.6")
     set('openai4jVersion', "0.18.0")
