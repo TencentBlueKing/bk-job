@@ -134,10 +134,10 @@
             </bk-table-column>
             <bk-table-column
               v-if="allColumnMap.lastModifyTime"
-              key="lastModifyTime"
+              key="lastModifyTimeText"
               align="left"
               :label="$t('script.更新时间_colHead')"
-              prop="lastModifyTime"
+              prop="lastModifyTimeText"
               sortable
               width="200" />
             <bk-table-column

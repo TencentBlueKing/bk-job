@@ -36,6 +36,7 @@ class TaskExecute extends ModuleBase {
 
   // 获取作业执行历史列表
   getAll(params = {}) {
+    params.timezone = this.timezone;
     return Request.get(`${this.path}/task-execution-history/list`, {
       params,
     });

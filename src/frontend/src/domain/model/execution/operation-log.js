@@ -22,13 +22,15 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
 */
+import Model from '@model/model';
 
 const STATUS_FAIL_RETRY = 1;
 const STATUS_ALL_RETRY = 5;
 
 // 步骤执行过程中的操作记录
-export default class OperationLog {
+export default class OperationLog extends Model {
   constructor(payload) {
+    super();
     this.id = payload.id;
     this.batch = payload.batch;
     this.taskInstanceId = payload.taskInstanceId;
