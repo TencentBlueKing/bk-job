@@ -91,6 +91,13 @@ class QueryGlobalSetting extends ModuleBase {
       cache: 3000,
     });
   }
+
+  getDefaultDisplayTimeZone(params = {}) {
+    return Request.get(`${this.module}/defaultDisplayTimezone`, {
+      params,
+      cache: true,
+    });
+  }
 }
 
 export default new QueryGlobalSetting();
