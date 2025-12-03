@@ -32,7 +32,7 @@ const CRRF_TOKEN_KEY = 'job_csrf_key';
 export default (interceptors) => {
   interceptors.use((request) => {
     const CSRFToken = Cookie.get(CRRF_TOKEN_KEY);
-    if (CSRFToken && request.baseURL && _.startsWith(request.baseURL, _.trim(window.PROJECT_CONFIG.AJAX_URL_PREFIX))) {
+    if (CSRFToken && !/^http/.test(request.url)) {
       Object.assign(request.headers, {
         'X-CSRF-Token': CSRFToken || '',
       });
