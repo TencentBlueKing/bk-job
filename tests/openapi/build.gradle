@@ -50,8 +50,8 @@ dependencies {
     testImplementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
     testImplementation "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
     testImplementation "com.fasterxml.jackson.datatype:jackson-datatype-joda:$jacksonVersion"
-    testImplementation "io.jsonwebtoken:jjwt-impl: $jwtVersion"
-    testImplementation "io.jsonwebtoken:jjwt-jackson: $jwtVersion"
+    testImplementation "io.jsonwebtoken:jjwt-impl:$jwtVersion"
+    testImplementation "io.jsonwebtoken:jjwt-jackson:$jwtVersion"
     testImplementation "com.google.guava:guava:$guavaVersion"
     testImplementation "com.squareup.okhttp3:okhttp:$okHttpVersion"
     testImplementation 'ch.qos.logback:logback-core:1.2.13'
