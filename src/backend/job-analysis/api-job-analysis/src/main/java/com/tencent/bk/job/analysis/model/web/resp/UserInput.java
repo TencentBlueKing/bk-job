@@ -25,7 +25,7 @@
 package com.tencent.bk.job.analysis.model.web.resp;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
+import com.tencent.bk.job.common.util.json.SecondToMillisSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -46,7 +46,7 @@ public class UserInput {
     /**
      * 提问时间
      */
-    @ApiModelProperty("提问时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
+    @ApiModelProperty("提问时间，单位毫秒")
+    @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long time;
 }

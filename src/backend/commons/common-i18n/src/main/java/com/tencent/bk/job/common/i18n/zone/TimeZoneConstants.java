@@ -22,50 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.i18n.config;
-
-import com.tencent.bk.job.common.i18n.zone.TimeZoneConstants;
-import com.tencent.bk.job.common.i18n.zone.TimeZoneUtils;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+package com.tencent.bk.job.common.i18n.zone;
 
 import java.time.ZoneId;
 
 /**
- * 默认时区配置属性
+ * 时区常量
  */
-@Getter
-@Setter
-@ToString
-@ConfigurationProperties(prefix = "timezone.default")
-@Configuration
-public class DefaultTimezoneProperties {
+public class TimeZoneConstants {
 
     /**
-     * 默认展示时区（前端使用，当业务和个人都没有配置时区时使用）
+     * 默认时区：东八区
      */
-    private String display = TimeZoneConstants.DEFAULT_ZONE_NAME_CN;
+    public static final String DEFAULT_ZONE_NAME_CN = "Asia/Shanghai";
 
     /**
-     * 运营时区
+     * 默认时区：东八区 的zoneId
      */
-    private String operation = TimeZoneConstants.DEFAULT_ZONE_NAME_CN;
+    public static final ZoneId DEFAULT_ZONE_ID_CN = ZoneId.of(DEFAULT_ZONE_NAME_CN);
 
-    /**
-     * 安全地获取运营时区的 ZoneId 对象
-     * 如果配置的时区不合法，则返回默认时区 Asia/Shanghai
-     *
-     * @return 运营时区的 ZoneId
-     */
-    public ZoneId safelyGetOperationZoneId() {
-        try {
-            TimeZoneUtils.checkTimeZoneValid(operation);
-            return ZoneId.of(operation);
-        } catch (Exception e) {
-            return ZoneId.of(TimeZoneConstants.DEFAULT_ZONE_NAME_CN);
-        }
-    }
+
+
 }

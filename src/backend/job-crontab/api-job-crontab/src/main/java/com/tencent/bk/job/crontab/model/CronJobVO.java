@@ -111,7 +111,8 @@ public class CronJobVO {
     /**
      * 单次执行的指定执行时间戳
      */
-    @ApiModelProperty("单次执行的指定执行时间戳，单位秒")
+    @ApiModelProperty("单次执行的指定执行时间戳，单位毫秒")
+    @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long executeTime;
 
     /**
@@ -212,7 +213,8 @@ public class CronJobVO {
     /**
      * 周期执行的结束时间
      */
-    @ApiModelProperty("周期执行的结束时间，单位秒")
+    @ApiModelProperty("周期执行的结束时间，单位毫秒")
+    @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long endTime;
 
     /**
