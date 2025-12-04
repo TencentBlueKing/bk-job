@@ -736,19 +736,13 @@ Return the Job InitContainer WaitForDependServices Content
       value: {{ .context.Values.waitForDependServices.expectPodLabels.common }}
     - name: BK_JOB_EXPECT_POD_LABELS_SERVICE
       value: {{ .context.Values.waitForDependServices.expectPodLabels.service }}
+    - name: BK_JOB_EXTERNAL_DEPENDENCY_CHECK_ENABLED
+      value: {{ .context.Values.waitForDependServices.externalDependencyCheck.enabled | quote }}
+    - name: BK_JOB_EXTERNAL_DEPENDENCY_CHECK_URL
+      value: {{ .context.Values.waitForDependServices.externalDependencyCheck.url }}
 {{- end -}}
 {{- end -}}
 
-{{/*
-Return the gse secret
-*/}}
-{{- define "gse.secretName" -}}
-{{- if .Values.gse.existingTlsSecret -}}
-    {{- printf "%s" .Values.gse.existingTlsSecret -}}
-{{- else -}}
-    {{ printf "%s-gse-%s" (include "common.names.fullname" .) "tls-cert" }}
-{{- end -}}
-{{- end -}}
 
 {{/*
 Return the Job Web Scheme

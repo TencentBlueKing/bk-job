@@ -210,9 +210,9 @@ public class GseTaskDAOImpl extends BaseDAO implements GseTaskDAO {
             .fetch();
         List<GseTaskSimpleDTO> results = new ArrayList<>();
         if (records.isNotEmpty()) {
-            records.into(record -> {
+            for (Record record : records) {
                 results.add(extractSimpleInfo(record));
-            });
+            }
         }
         return results;
     }

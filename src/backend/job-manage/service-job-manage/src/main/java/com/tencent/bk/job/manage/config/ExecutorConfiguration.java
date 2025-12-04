@@ -142,6 +142,19 @@ public class ExecutorConfiguration {
         );
     }
 
+    @Bean("shutdownEventWatchExecutor")
+    public ThreadPoolExecutor shutdownEventWatchExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "shutdownEventWatchExecutor",
+            0,
+            50,
+            1,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>()
+        );
+    }
+
     private ThreadFactory getThreadFactoryByNameAndSeq(String namePrefix, AtomicInteger seq) {
         return r -> {
             Thread t = new Thread(Thread.currentThread().getThreadGroup(), r,

@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.validation;
 
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.BasicApp;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.config.ResourceScopeTaskTimeoutParser;
@@ -92,9 +92,9 @@ public @interface ValidTimeoutLimit {
                 return false;
             }
 
-            AppResourceScope appResourceScope = JobContextUtil.getAppResourceScope();
+            BasicApp app = JobContextUtil.getApp();
             int maxTimeoutInConfiguration = resourceScopeTaskTimeoutParser.getMaxTimeoutOrDefault(
-                appResourceScope.getAppId(),
+                app.getId(),
                 JobConstants.MAX_JOB_TIMEOUT_SECONDS);
             // 超时时间超过配置或默认的最大值
             if (target > maxTimeoutInConfiguration) {

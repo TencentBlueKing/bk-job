@@ -25,7 +25,11 @@
 package com.tencent.bk.job.manage.service.host;
 
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
+
+import java.util.List;
 
 /**
  * 主机、topo相关服务
@@ -41,4 +45,12 @@ public interface ScopeTopoHostService {
      */
     CcTopologyNodeVO listAppTopologyHostCountTree(String username, AppResourceScope appResourceScope);
 
+    /**
+     * 根据拓扑节点列表查询所有节点下的主机
+     *
+     * @param appResourceScope 资源范围
+     * @param nodeList         拓扑节点列表
+     * @return 节点下的主机列表
+     */
+    List<ApplicationHostDTO> listHostByNodes(AppResourceScope appResourceScope, List<BizTopoNode> nodeList);
 }

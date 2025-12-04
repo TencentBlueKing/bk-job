@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
@@ -69,29 +70,32 @@ public class HostServiceImpl implements HostService {
     private final ServiceHostResource hostResource;
     private final AppScopeMappingService appScopeMappingService;
     private final ExecutorService getHostsByTopoExecutor;
+    private final RemoteAppService remoteAppService;
 
     @Autowired
     public HostServiceImpl(ServiceHostResource hostResource,
                            AppScopeMappingService appScopeMappingService,
-                           @Qualifier("getHostsByTopoExecutor") ExecutorService getHostsByTopoExecutor) {
+                           @Qualifier("getHostsByTopoExecutor") ExecutorService getHostsByTopoExecutor,
+                           RemoteAppService remoteAppService) {
         this.hostResource = hostResource;
         this.appScopeMappingService = appScopeMappingService;
         this.getHostsByTopoExecutor = getHostsByTopoExecutor;
+        this.remoteAppService = remoteAppService;
     }
 
     @Override
-    public Map<HostDTO, ServiceHostDTO> batchGetHosts(List<HostDTO> hostIps) {
-        List<ServiceHostDTO> hosts = hostResource.batchGetHosts(
-            new ServiceBatchGetHostsReq(hostIps)).getData();
+    public Map<HostDTO, ServiceHostDTO> batchGetHostsFromCacheOrDB(String tenantId, List<HostDTO> hostIps) {
+        List<ServiceHostDTO> hosts = hostResource.batchGetHostsFromCacheOrDB(
+            new ServiceBatchGetHostsReq(tenantId, hostIps)).getData();
         Map<HostDTO, ServiceHostDTO> hostMap = new HashMap<>();
         hosts.forEach(host -> hostMap.put(new HostDTO(host.getCloudAreaId(), host.getIp()), host));
         return hostMap;
     }
 
     @Override
-    public ServiceHostDTO getHost(HostDTO host) {
-        List<ServiceHostDTO> hosts = hostResource.batchGetHosts(
-            new ServiceBatchGetHostsReq(Collections.singletonList(host))).getData();
+    public ServiceHostDTO getHostFromCacheOrDB(String tenantId, HostDTO host) {
+        List<ServiceHostDTO> hosts = hostResource.batchGetHostsFromCacheOrDB(
+            new ServiceBatchGetHostsReq(tenantId, Collections.singletonList(host))).getData();
         if (CollectionUtils.isEmpty(hosts)) {
             return null;
         }
@@ -99,9 +103,9 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public ServiceHostDTO getHostByCloudIpv6(long cloudAreaId, String ipv6) {
+    public ServiceHostDTO getHostByCloudIpv6(String tenantId, long cloudAreaId, String ipv6) {
         List<ServiceHostDTO> hosts = hostResource.getHostsByCloudIpv6(
-            new ServiceGetHostsByCloudIpv6Req(cloudAreaId, ipv6)
+            new ServiceGetHostsByCloudIpv6Req(tenantId, cloudAreaId, ipv6)
         ).getData();
         if (CollectionUtils.isEmpty(hosts)) {
             log.warn("Cannot find host by (cloudAreaId={}, ipv6={})", cloudAreaId, ipv6);
@@ -129,11 +133,11 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<HostDTO> getHostsByDynamicGroupId(long appId, String groupId) {
+    public List<HostDTO> getHostsByDynamicGroupId(String tenantId, long appId, String groupId) {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         List<DynamicGroupHostPropDTO> cmdbGroupHostList =
-            bizCmdbClient.getDynamicGroupIp(Long.parseLong(resourceScope.getId()), groupId);
+            bizCmdbClient.getDynamicGroupIp(tenantId, Long.parseLong(resourceScope.getId()), groupId);
         List<HostDTO> hostList = new ArrayList<>();
         if (cmdbGroupHostList == null || cmdbGroupHostList.isEmpty()) {
             return hostList;
@@ -167,14 +171,16 @@ public class HostServiceImpl implements HostService {
 
     @Override
     public Map<DynamicServerGroupDTO, List<HostDTO>> batchGetAndGroupHostsByDynamicGroup(
+        String tenantId,
         long appId,
-        Collection<DynamicServerGroupDTO> groups) {
+        Collection<DynamicServerGroupDTO> groups
+    ) {
         if (CollectionUtils.isEmpty(groups)) {
             return new HashMap<>();
         }
 
         Map<DynamicServerGroupDTO, List<HostDTO>> result = new HashMap<>();
-        groups.forEach(group -> result.put(group, getHostsByDynamicGroupId(appId, group.getGroupId())));
+        groups.forEach(group -> result.put(group, getHostsByDynamicGroupId(tenantId, appId, group.getGroupId())));
         return result;
     }
 
@@ -183,7 +189,8 @@ public class HostServiceImpl implements HostService {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         long bizId = Long.parseLong(resourceScope.getId());
-        List<ApplicationHostDTO> appHosts = bizCmdbClient.getHosts(bizId, ccInstances);
+        String tenantId = remoteAppService.getTenantIdByAppId(appId);
+        List<ApplicationHostDTO> appHosts = bizCmdbClient.getHosts(tenantId, bizId, ccInstances);
         List<HostDTO> ips = new ArrayList<>();
         if (appHosts == null || appHosts.isEmpty()) {
             return ips;

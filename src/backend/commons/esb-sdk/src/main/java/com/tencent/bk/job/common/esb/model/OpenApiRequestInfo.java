@@ -28,10 +28,13 @@ import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.util.http.RetryModeEnum;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -62,6 +65,8 @@ public class OpenApiRequestInfo<T> {
      */
     private final Boolean idempotent;
 
+    private final List<Header> headers;
+
     public OpenApiRequestInfo(Builder<T> builder) {
         this.method = builder.method;
         this.uri = builder.uri;
@@ -71,6 +76,7 @@ public class OpenApiRequestInfo<T> {
         this.authorization = builder.authorization;
         this.retryMode = builder.retryMode;
         this.idempotent = builder.idempotent;
+        this.headers = builder.headers;
     }
 
     public static <T> Builder<T> builder() {
@@ -86,6 +92,7 @@ public class OpenApiRequestInfo<T> {
         private BkApiAuthorization authorization;
         private RetryModeEnum retryMode = RetryModeEnum.SAFE_GUARANTEED;
         private Boolean idempotent;
+        private List<Header> headers;
 
         public Builder<T> method(HttpMethodEnum method) {
             this.method = method;
@@ -142,6 +149,19 @@ public class OpenApiRequestInfo<T> {
 
         public Builder<T> setIdempotent(Boolean idempotent) {
             this.idempotent = idempotent;
+            return this;
+        }
+
+        public Builder<T> setHeaders(List<Header> headers) {
+            this.headers = headers;
+            return this;
+        }
+
+        public Builder<T> addHeader(Header header) {
+            if (headers == null) {
+                headers = new ArrayList<>();
+            }
+            headers.add(header);
             return this;
         }
 

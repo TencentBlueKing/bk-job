@@ -24,9 +24,14 @@
 
 package com.tencent.bk.job.common.model.dto;
 
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Objects;
 
 /**
  * 作业平台通用的用户DTO
@@ -34,17 +39,14 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
+@Slf4j
 public class BkUserDTO {
     /**
      * 用户ID
      */
     private Long id;
     /**
-     * 用户 UID
-     */
-    private String uid;
-    /**
-     * 用户名
+     * 用户 id
      */
     private String username;
     /**
@@ -72,4 +74,62 @@ public class BkUserDTO {
      * 用户微信
      */
     private String wxUserId;
+
+    /**
+     * 用户语言，枚举值：zh-cn / en
+     */
+    private String language;
+
+    /**
+     * 当前所在环境是否开启了多租户
+     */
+    private Boolean tenantEnabled;
+
+    /**
+     * 用户所属租户 ID
+     */
+    private String tenantId;
+
+    /**
+     * 是否为系统租户
+     */
+    private Boolean systemTenant;
+
+    /**
+     * 获取用户的完整账号名称
+     */
+    public String getFullName() {
+        return displayName + ":" + username + "@" + tenantId;
+    }
+
+    public void setTenantInfo(boolean tenantEnabled, String tenantId) {
+        this.tenantEnabled = tenantEnabled;
+        this.tenantId = tenantId;
+        this.systemTenant = TenantIdConstants.SYSTEM_TENANT_ID.equals(tenantId);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BkUserDTO bkUserDTO = (BkUserDTO) o;
+        return Objects.equals(username, bkUserDTO.username);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(username);
+    }
+
+    public boolean validate() {
+        if (StringUtils.isEmpty(username)) {
+            log.warn("Empty username");
+            return false;
+        }
+        if (StringUtils.isEmpty(tenantId)) {
+            log.warn("Empty tenantId");
+            return false;
+        }
+        return true;
+    }
 }

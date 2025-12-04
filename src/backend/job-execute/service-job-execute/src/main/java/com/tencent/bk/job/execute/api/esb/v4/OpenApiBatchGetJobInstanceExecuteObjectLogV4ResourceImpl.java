@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.AtomicFileTaskLog;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
@@ -94,7 +95,7 @@ public class OpenApiBatchGetJobInstanceExecuteObjectLogV4ResourceImpl
         long jobInstanceId = request.getJobInstanceId();
         // 触发【查看执行历史】审计
         taskInstanceAccessProcessor.processBeforeAccess(
-            username,
+            JobContextUtil.getUser(),
             request.getAppResourceScope().getAppId(),
             jobInstanceId
         );

@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.service.SpringProfile;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
+import com.tencent.bk.job.gateway.model.esb.BkGwJwtInfo;
 import com.tencent.bk.job.gateway.service.OpenApiJwtService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -60,6 +60,7 @@ public class CheckOpenApiJwtGatewayFilterFactory
     private final SpringProfile springProfile;
     private final ServiceSecurityProperties securityProperties;
 
+
     @Autowired
     public CheckOpenApiJwtGatewayFilterFactory(OpenApiJwtService openApiJwtService,
                                                SpringProfile springProfile,
@@ -70,6 +71,7 @@ public class CheckOpenApiJwtGatewayFilterFactory
         this.securityProperties = securityProperties;
     }
 
+    @SuppressWarnings("ClassEscapesDefinedScope")
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
@@ -89,7 +91,7 @@ public class CheckOpenApiJwtGatewayFilterFactory
                 return response.setComplete();
             }
 
-            EsbJwtInfo authInfo;
+            BkGwJwtInfo authInfo;
             if (isOpenApiTestActive(request)) {
                 // 如果是 OpenApi 测试请求，使用 Job 的 JWT 认证方式，不使用 ESB JWT（避免依赖 ESB)
                 authInfo = openApiJwtService.extractFromJwt(token,
@@ -98,12 +100,8 @@ public class CheckOpenApiJwtGatewayFilterFactory
                 authInfo = openApiJwtService.extractFromJwt(token);
             }
 
-            if (authInfo == null) {
-                log.warn("Untrusted esb request, request-id:{}", RequestUtil.getHeaderValue(request,
-                    JobCommonHeaders.BK_GATEWAY_REQUEST_ID));
-                response.setStatusCode(HttpStatus.UNAUTHORIZED);
-                return response.setComplete();
-            }
+            // 对于应用态接口，优先使用从Header中传入的用户名
+            tryToUpdateUserByHeaderValueOnAppTypeApi(request, authInfo);
 
             // 缺少用户信息
             if (StringUtils.isEmpty(authInfo.getUsername())) {
@@ -117,14 +115,59 @@ public class CheckOpenApiJwtGatewayFilterFactory
                 return buildResponse(response, ErrorCode.MISSING_APP_CODE);
             }
 
-            // set app code header
-            request.mutate().header(JobCommonHeaders.APP_CODE, new String[]{authInfo.getAppCode()}).build();
-            request.mutate().header(JobCommonHeaders.USERNAME, new String[]{authInfo.getUsername()}).build();
+            // set header
+            request = request.mutate()
+                .header(JobCommonHeaders.APP_CODE, authInfo.getAppCode())
+                .header(JobCommonHeaders.USERNAME, authInfo.getUsername())
+                .build();
             return chain.filter(exchange.mutate().request(request).build());
         };
     }
 
-    private void logAuthInfo(ServerHttpRequest request, EsbJwtInfo authInfo) {
+    /**
+     * 对于应用态接口，尝试优先使用从Header中传入的用户名
+     *
+     * @param request  请求
+     * @param authInfo 认证信息
+     */
+    private void tryToUpdateUserByHeaderValueOnAppTypeApi(ServerHttpRequest request, BkGwJwtInfo authInfo) {
+        try {
+            updateUserByHeaderValueOnAppTypeApi(request, authInfo);
+        } catch (Exception e) {
+            log.error("Fail to updateUserByHeaderValueOnAppTypeApi", e);
+        }
+    }
+
+    /**
+     * 优先使用从Header中传入的用户名更新认证信息
+     *
+     * @param request  请求
+     * @param authInfo 认证信息
+     */
+    private void updateUserByHeaderValueOnAppTypeApi(ServerHttpRequest request, BkGwJwtInfo authInfo) {
+        String apiType = RequestUtil.getHeaderValue(request, JobCommonHeaders.KEY_BK_JOB_API_TYPE);
+        if (!JobCommonHeaders.VALUE_BK_JOB_API_TYPE_APP.equals(apiType)) {
+            return;
+        }
+        String userNameFromHeader = RequestUtil.getHeaderValue(request, JobCommonHeaders.KEY_BK_USERNAME);
+        if (StringUtils.isBlank(userNameFromHeader)) {
+            return;
+        }
+        String userNameFromJwt = authInfo.getUsername();
+        if (userNameFromHeader.equals(userNameFromJwt)) {
+            return;
+        }
+        authInfo.setUsername(userNameFromHeader);
+        if (StringUtils.isNotBlank(userNameFromJwt)) {
+            log.info(
+                "userNameFromHeader({}) is different from userNameFromJwt({}), use header value",
+                userNameFromHeader,
+                userNameFromJwt
+            );
+        }
+    }
+
+    private void logAuthInfo(ServerHttpRequest request, BkGwJwtInfo authInfo) {
         log.warn(
             "Untrusted open api request, request-id:{}, authInfo: {}",
             RequestUtil.getHeaderValue(request, JobCommonHeaders.BK_GATEWAY_REQUEST_ID),

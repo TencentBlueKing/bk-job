@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -85,7 +86,7 @@ public class OpenApiGetJobInstanceStatusV4ResourceImpl implements OpenApiGetJobI
         AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(scopeType, scopeId);
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(
-            username,
+            JobContextUtil.getUser(),
             appResourceScope.getAppId(),
             taskInstanceId
         );

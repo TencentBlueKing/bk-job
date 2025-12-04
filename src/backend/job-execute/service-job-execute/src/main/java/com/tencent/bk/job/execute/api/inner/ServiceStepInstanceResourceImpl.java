@@ -29,10 +29,12 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.iam.AuthResultDTO;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceStepInstanceDTO;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,12 +45,19 @@ public class ServiceStepInstanceResourceImpl implements ServiceStepInstanceResou
 
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final StepInstanceService stepInstanceService;
+    private final RemoteAppService remoteAppService;
+
+    private final UserLocalCache userCache;
 
     @Autowired
     public ServiceStepInstanceResourceImpl(TaskInstanceAccessProcessor taskInstanceAccessProcessor,
-                                           StepInstanceService stepInstanceService) {
+                                           StepInstanceService stepInstanceService,
+                                           UserLocalCache userCache,
+                                           RemoteAppService remoteAppService) {
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
         this.stepInstanceService = stepInstanceService;
+        this.userCache = userCache;
+        this.remoteAppService = remoteAppService;
     }
 
     @Override
@@ -59,7 +68,11 @@ public class ServiceStepInstanceResourceImpl implements ServiceStepInstanceResou
         try {
             StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(appId,
                 taskInstanceId, stepInstanceId);
-            taskInstanceAccessProcessor.processBeforeAccess(username, appId, stepInstance.getTaskInstanceId());
+
+            taskInstanceAccessProcessor.processBeforeAccess(
+                userCache.getUser(remoteAppService.getTenantIdByAppId(appId), username),
+                appId,
+                stepInstance.getTaskInstanceId());
             return InternalResponse.buildSuccessResp(stepInstance.toServiceStepInstanceDTO());
         } catch (NotFoundException e) {
             return InternalResponse.buildCommonFailResp(e);

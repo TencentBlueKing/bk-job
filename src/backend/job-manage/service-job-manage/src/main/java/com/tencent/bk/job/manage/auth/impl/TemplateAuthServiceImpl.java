@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -64,16 +65,16 @@ public class TemplateAuthServiceImpl implements TemplateAuthService {
     }
 
     @Override
-    public AuthResult authCreateJobTemplate(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(username, ActionId.CREATE_JOB_TEMPLATE, appResourceScope);
+    public AuthResult authCreateJobTemplate(User user, AppResourceScope appResourceScope) {
+        return appAuthService.auth(user, ActionId.CREATE_JOB_TEMPLATE, appResourceScope);
     }
 
     @Override
-    public AuthResult authViewJobTemplate(String username,
+    public AuthResult authViewJobTemplate(User user,
                                           AppResourceScope appResourceScope,
                                           Long jobTemplateId) {
         return authService.auth(
-            username,
+            user,
             ActionId.VIEW_JOB_TEMPLATE,
             ResourceTypeEnum.TEMPLATE,
             jobTemplateId.toString(),
@@ -82,11 +83,11 @@ public class TemplateAuthServiceImpl implements TemplateAuthService {
     }
 
     @Override
-    public AuthResult authEditJobTemplate(String username,
+    public AuthResult authEditJobTemplate(User user,
                                           AppResourceScope appResourceScope,
                                           Long jobTemplateId) {
         return authService.auth(
-            username,
+            user,
             ActionId.EDIT_JOB_TEMPLATE,
             ResourceTypeEnum.TEMPLATE,
             jobTemplateId.toString(),
@@ -95,11 +96,11 @@ public class TemplateAuthServiceImpl implements TemplateAuthService {
     }
 
     @Override
-    public AuthResult authDeleteJobTemplate(String username,
+    public AuthResult authDeleteJobTemplate(User user,
                                             AppResourceScope appResourceScope,
                                             Long jobTemplateId) {
         return authService.auth(
-            username,
+            user,
             ActionId.DELETE_JOB_TEMPLATE,
             ResourceTypeEnum.TEMPLATE,
             jobTemplateId.toString(),
@@ -108,27 +109,32 @@ public class TemplateAuthServiceImpl implements TemplateAuthService {
     }
 
     @Override
-    public List<Long> batchAuthViewJobTemplate(String username,
+    public List<Long> batchAuthViewJobTemplate(User user,
                                                AppResourceScope appResourceScope,
                                                List<Long> jobTemplateIdList) {
-        List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.VIEW_JOB_TEMPLATE,
+        List<String> allowedIdList = appAuthService.batchAuth(user, ActionId.VIEW_JOB_TEMPLATE,
             appResourceScope, ResourceTypeEnum.TEMPLATE,
             jobTemplateIdList.stream().map(Object::toString).collect(Collectors.toList()));
         return allowedIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
-    public List<Long> batchAuthEditJobTemplate(String username,
+    public List<Long> batchAuthEditJobTemplate(User user,
                                                AppResourceScope appResourceScope,
                                                List<Long> jobTemplateIdList) {
-        List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.EDIT_JOB_TEMPLATE,
-            appResourceScope, ResourceTypeEnum.TEMPLATE,
-            jobTemplateIdList.stream().map(Object::toString).collect(Collectors.toList()));
+        List<String> allowedIdList = appAuthService.batchAuth(
+            user,
+            ActionId.EDIT_JOB_TEMPLATE,
+            appResourceScope,
+            ResourceTypeEnum.TEMPLATE,
+            jobTemplateIdList.stream().map(Object::toString).collect(Collectors.toList())
+        );
         return allowedIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
-    public AuthResult batchAuthResultEditJobTemplate(String username, AppResourceScope appResourceScope,
+    public AuthResult batchAuthResultEditJobTemplate(User user,
+                                                     AppResourceScope appResourceScope,
                                                      List<Long> jobTemplateIdList) {
         List<PermissionResource> resources = jobTemplateIdList.stream().map(templateId -> {
             PermissionResource resource = new PermissionResource();
@@ -137,21 +143,21 @@ public class TemplateAuthServiceImpl implements TemplateAuthService {
             resource.setPathInfo(buildAppScopePath(appResourceScope));
             return resource;
         }).collect(Collectors.toList());
-        return appAuthService.batchAuthResources(username, ActionId.EDIT_JOB_TEMPLATE, appResourceScope, resources);
+        return appAuthService.batchAuthResources(user, ActionId.EDIT_JOB_TEMPLATE, appResourceScope, resources);
     }
 
     @Override
-    public List<Long> batchAuthDeleteJobTemplate(String username,
+    public List<Long> batchAuthDeleteJobTemplate(User user,
                                                  AppResourceScope appResourceScope,
                                                  List<Long> jobTemplateIdList) {
-        List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.DELETE_JOB_TEMPLATE,
+        List<String> allowedIdList = appAuthService.batchAuth(user, ActionId.DELETE_JOB_TEMPLATE,
             appResourceScope, ResourceTypeEnum.TEMPLATE,
             jobTemplateIdList.stream().map(Object::toString).collect(Collectors.toList()));
         return allowedIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
-    public boolean registerTemplate(Long id, String name, String creator) {
-        return authService.registerResource(id.toString(), name, ResourceTypeId.TEMPLATE, creator, null);
+    public boolean registerTemplate(User creator, Long id, String name) {
+        return authService.registerResource(creator, id.toString(), name, ResourceTypeId.TEMPLATE, null);
     }
 }

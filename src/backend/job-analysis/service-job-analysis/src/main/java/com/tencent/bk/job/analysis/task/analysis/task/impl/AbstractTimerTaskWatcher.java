@@ -28,7 +28,6 @@ import com.tencent.bk.job.analysis.dao.AnalysisTaskDAO;
 import com.tencent.bk.job.analysis.dao.AnalysisTaskInstanceDAO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskDTO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskInstanceDTO;
-import com.tencent.bk.job.analysis.service.ApplicationService;
 import com.tencent.bk.job.analysis.task.analysis.AnalysisTaskStatusEnum;
 import com.tencent.bk.job.analysis.task.analysis.BaseAnalysisTask;
 import com.tencent.bk.job.common.util.Counter;
@@ -39,6 +38,7 @@ import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
 import com.tencent.bk.job.execute.api.inner.ServiceTaskExecuteResultResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,9 +61,9 @@ public abstract class AbstractTimerTaskWatcher extends BaseAnalysisTask {
     @Autowired
     public AbstractTimerTaskWatcher(AnalysisTaskDAO analysisTaskDAO,
                                     AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
-                                    ApplicationService applicationService,
+                                    RemoteAppService remoteAppService,
                                     ServiceCronJobResource cronJobResource) {
-        super(analysisTaskDAO, analysisTaskInstanceDAO, applicationService);
+        super(analysisTaskDAO, analysisTaskInstanceDAO, remoteAppService);
         this.cronJobResource = cronJobResource;
     }
 

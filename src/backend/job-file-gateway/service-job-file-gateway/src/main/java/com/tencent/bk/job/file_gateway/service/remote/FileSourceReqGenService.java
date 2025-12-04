@@ -38,7 +38,7 @@ public interface FileSourceReqGenService {
     /**
      * 生成FileAvailable请求
      */
-    HttpReq genFileAvailableReq(Long appId, FileWorkerDTO fileWorkerDTO, FileSourceDTO fileSourceDTO);
+    HttpReq genFileAvailableReq(FileWorkerDTO fileWorkerDTO, FileSourceDTO fileSourceDTO);
 
     /**
      * 生成ListFileNode请求
