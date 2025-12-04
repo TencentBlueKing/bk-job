@@ -1,13 +1,13 @@
-FROM bkjob/jdk17:3.11.11
+FROM bkjob/jdk17:3.12.1
 
 LABEL maintainer="Tencent BlueKing Job"
-LABEL dockerfile.version="3.11.11"
+LABEL dockerfile.version="3.12.1"
 
 ENV BK_JOB_HOME=/data/job/exec
 
 COPY ./ /data/job/exec/
-RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    echo 'Asia/Shanghai' > /etc/timezone && \
+RUN ln -snf /usr/share/zoneinfo/UTC /etc/localtime && \
+    echo 'UTC' > /etc/timezone && \
     chmod +x /data/job/exec/startup.sh && \
     chmod +x /data/job/exec/tini
 
