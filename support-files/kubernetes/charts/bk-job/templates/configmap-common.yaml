@@ -181,7 +181,7 @@ data:
       {{- toYaml .Values.mockApi | nindent 6 }}
     # 平台级别时区配置
     timezone:
-      {{- toYaml .Values.timezone | nindent 6 }}}}
+      {{- toYaml .Values.timezone | nindent 6 }}
     # # 调用蓝鲸系统时，使用虚拟账号 bk_admin 的 username
     virtualAccount:
       queryAdminUsername: {{ .Values.virtualAccount.queryAdminUsername }}
