@@ -67,10 +67,16 @@ spec:
             - -c
             - |
               sed -i "s|{{`{{JOB_API_GATEWAY_URL}}`}}|${JOB_API_GATEWAY_URL}|" /data/job/job-frontend/index.html
+              sed -i "s|{{`{{BK_STATIC_URL}}`}}|${BK_STATIC_URL}|" /data/job/job-frontend/index.html
+              sed -i "s|{{`{{BK_SITE_PATH}}`}}|${BK_SITE_PATH}|" /data/job/job-frontend/index.html
               nginx -g 'daemon off;'
           env:
             - name: JOB_API_GATEWAY_URL
               value: {{ include "job.web.api.url" . }}
+            - name: BK_STATIC_URL
+              value: {{ include "job.frontend.bk.static.url" . }}
+            - name: BK_SITE_PATH
+              value: {{ include "job.frontend.bk.site.path" . }}
           volumeMounts:
             - name: web-nginx-config
               mountPath: /etc/nginx/

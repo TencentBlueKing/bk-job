@@ -794,6 +794,28 @@ Return the Job Web API URL
 {{- end -}}
 
 {{/*
+Return the Job Frontend BK Static URL
+*/}}
+{{- define "job.frontend.bk.static.url" -}}
+{{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
+{{ printf "%s/" .Values.bkWebSiteAccess.subpath.rootPrefix }}
+{{- else -}}
+{{ printf "/" }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Job Frontend BK Site Path
+*/}}
+{{- define "job.frontend.bk.site.path" -}}
+{{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
+{{ printf "%s/" .Values.bkWebSiteAccess.subpath.rootPrefix }}
+{{- else -}}
+{{ printf "/" }}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the Job Frontend Ingress Path
 */}}
 {{- define "job.url.pathRootPrefix" -}}
