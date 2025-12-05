@@ -22,19 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.gateway.web.server.provider;
+
+import reactor.netty.http.server.logging.AccessLogArgProvider;
+
+import java.util.Map;
 
 /**
- * @since 11/11/2019 15:30
+ * Access Log元数据接口，可以从不同来源提取元数据，最终由AccessLogMetadataCollector汇总
  */
-public class HttpHeader {
+public interface AccessLogMetadataProvider {
+
     /**
-     * HTTP 头
-     **/
-    public static final String HDR_BK_LANG = "blueking-language";
-    public static final String HDR_REQ_ID = "request-id";
-    public static final String HDR_REQ_SAPN_ID = "span-id";
-    public static final String HDR_CONTENT_TYPE = "Content-Type";
-    public static final String S_CURRENT_PAGE = "currentPage";
-    public static final String HDR_UER_AGENT = "User-Agent";
+     * 提取元数据
+     */
+    Map<String, Object> extract(AccessLogArgProvider provider);
 }

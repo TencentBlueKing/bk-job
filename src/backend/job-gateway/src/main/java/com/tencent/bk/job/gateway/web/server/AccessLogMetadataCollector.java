@@ -22,19 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.gateway.web.server;
+
+import com.tencent.bk.job.gateway.web.server.provider.AccessLogMetadataProvider;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import reactor.netty.http.server.logging.AccessLogArgProvider;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * @since 11/11/2019 15:30
+ * Access Log元数据收集器，汇总所有已注册的AccessLogMetadataProvider提供的元数据
  */
-public class HttpHeader {
-    /**
-     * HTTP 头
-     **/
-    public static final String HDR_BK_LANG = "blueking-language";
-    public static final String HDR_REQ_ID = "request-id";
-    public static final String HDR_REQ_SAPN_ID = "span-id";
-    public static final String HDR_CONTENT_TYPE = "Content-Type";
-    public static final String S_CURRENT_PAGE = "currentPage";
-    public static final String HDR_UER_AGENT = "User-Agent";
+@Slf4j
+public class AccessLogMetadataCollector {
+
+    private final List<AccessLogMetadataProvider> providers;
+
+    @Autowired
+    public AccessLogMetadataCollector(List<AccessLogMetadataProvider> providers) {
+        this.providers = providers;
+    }
+
+    public Map<String, Object> collect(AccessLogArgProvider accessLogArgProvider) {
+        Map<String, Object> result = new LinkedHashMap<>();
+
+        for (AccessLogMetadataProvider provider : providers) {
+            try {
+                result.putAll(provider.extract(accessLogArgProvider));
+            } catch (Exception e) {
+                log.warn("AccessLog provider {} collect failed: {}",
+                    provider.getClass().getSimpleName(), e.getMessage());
+            }
+        }
+        return result;
+    }
 }
