@@ -24,6 +24,7 @@
 */
 
 import _ from 'lodash';
+import path from 'path-browserify';
 import Vue, {
   customRef,
 } from 'vue';
@@ -79,6 +80,7 @@ const renderPageWithComponent = (route, component) => {
   }
 };
 
+
 export default ({ appList, isAdmin, scopeType, scopeId }) => {
   // scope 是否有效
   let isValidScope = false;
@@ -102,10 +104,11 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
     ScriptTemplate,
   ];
 
+  const realRootPath = path.join(window.PROJECT_CONFIG.BK_SITE_PATH, rootPath);
   // 生成路由配置
   const routes = [
     {
-      path: rootPath,
+      path: realRootPath,
       component: Entry,
       redirect: {
         name: 'home',
@@ -113,7 +116,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
       children: systemManageRoute,
     },
     {
-      path: noScope ? rootPath : `${rootPath}${scopeType}/${scopeId}`,
+      path: noScope ? realRootPath : `${realRootPath}${scopeType}/${scopeId}`,
       component: Entry,
       redirect: {
         name: 'home',
@@ -134,7 +137,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
       ],
     },
     {
-      path: '/api_(execute|execute_step|plan)/:id+',
+      path: `${realRootPath}api_(execute|execute_step|plan)/:id+`,
       component: {
         render() {
           return this._e(); // eslint-disable-line no-underscore-dangle

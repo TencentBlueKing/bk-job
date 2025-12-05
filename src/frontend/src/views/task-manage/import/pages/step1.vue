@@ -30,7 +30,7 @@
     <div
       v-once
       class="flag">
-      <img src="/static/images/notice.svg">
+      <img :src="noticImage">
       <div class="title">
         {{ $t('template.用户须知_title') }}
       </div>
@@ -70,6 +70,9 @@
     name: '',
     components: {
       ActionBar,
+    },
+    created() {
+      this.noticImage = window.__loadAssetsUrl__('/static/images/notice.svg');
     },
     methods: {
       handleCancel() {

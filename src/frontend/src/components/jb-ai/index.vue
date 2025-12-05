@@ -6,7 +6,7 @@
       ref="handleRef"
       class="hander-btn"
       :class="{ active: !isBluekingShow && isHandleShow }"
-      src="/static/images/blueking.png"
+      :src="bluekingImage"
       style="width: 64px; height: 64px"
       @click="handleShow">
     <ai-blueking
@@ -44,6 +44,7 @@
   import '@blueking/ai-blueking/dist/vue2/style.css';
 
   let currentRecordId = 0;
+  const bluekingImage = window.__loadAssetsUrl__('/static/images/blueking.png');
 
   const handleRef = ref();
   const aiRef = ref();
