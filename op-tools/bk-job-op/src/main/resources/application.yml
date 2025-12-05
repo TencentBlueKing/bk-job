@@ -1,6 +1,8 @@
 spring:
   application:
     name: bk-job-op
+  profiles:
+    active: dev
   data:
     redis:
       host: 127.0.0.1
@@ -14,3 +16,60 @@ spring:
           max-active: 8
           max-wait: 1ms
         shutdown-timeout: 100ms
+  ai:
+    mcp:
+      server:
+        name: bk-job-op    # MCP服务器名称
+        version: 1.0.0                # 服务器版本号
+        type: ASYNC #异步
+        stdio: false
+
+# HTTP客户端配置
+http:
+  client:
+    # 连接超时时间（秒）
+    connect-timeout: 10
+    # 读取超时时间（秒）
+    read-timeout: 60
+
+# Spring Boot Actuator 配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,env,metrics,beans,configprops
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+  info:
+    env:
+      enabled: true
+
+# MCP认证配置
+mcp:
+  # 认证token
+  auth:
+    enabled: true
+    apiKey: "api-key"
+
+bkApiGateway:
+  bkLog:
+    url: bklog.com
+    retry-count: 3
+    retry-interval: 3
+
+bk:
+  api:
+    # BKLog 应用认证
+    bklog:
+      bkAppCode: "bk-job-op"
+      bkAppSecret: "bk-job-op-secret"
+  # BK-Log配置
+  log:
+    # 日志索引名称
+    indices: ""
+    # 索引集ID
+    indexSetId: 100
+    # 日志保存时间
+    expireTime: 7
