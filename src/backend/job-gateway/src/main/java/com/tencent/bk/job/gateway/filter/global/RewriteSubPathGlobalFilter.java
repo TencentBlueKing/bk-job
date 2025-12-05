@@ -24,54 +24,56 @@
 
 package com.tencent.bk.job.gateway.filter.global;
 
-import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.gateway.config.SubPathProperties;
 import com.tencent.bk.job.gateway.consts.GlobalFilterOrder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.addOriginalRequestUrl;
+
 @Component
 @Slf4j
-public class AddTraceResponseHeaderGlobalFilter implements GlobalFilter, Ordered {
-    private final Tracer tracer;
+public class RewriteSubPathGlobalFilter implements GlobalFilter, Ordered {
+
+    private final SubPathProperties subPathProperties;
 
     @Autowired
-    public AddTraceResponseHeaderGlobalFilter(Tracer tracer) {
-        this.tracer = tracer;
+    public RewriteSubPathGlobalFilter(SubPathProperties subPathProperties) {
+        this.subPathProperties = subPathProperties;
+        log.debug("init, subPathProperties={}", subPathProperties);
     }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        Span span = tracer.currentSpan();
-        if (span == null) {
-            span = tracer.nextSpan();
-            span.start();
+        if (!subPathProperties.isEnabled()) {
+            return chain.filter(exchange);
         }
-        try (Tracer.SpanInScope ignore = tracer.withSpan(span)) {
-            String traceId = span.context().traceId();
-            ServerHttpRequest request = exchange.getRequest();
-            ServerHttpResponse response = exchange.getResponse();
-            response.getHeaders().add(JobCommonHeaders.REQUEST_ID, traceId);
-            return chain.filter(exchange.mutate().request(request).build());
-        } catch (Exception e) {
-            span.error(e);
-            throw e;
-        } finally {
-            span.end();
+        ServerHttpRequest req = exchange.getRequest();
+        addOriginalRequestUrl(exchange, req.getURI());
+        String path = req.getURI().getRawPath();
+        String prefixWithBackSlash = subPathProperties.getRootPrefix() + "/";
+        if (!path.startsWith(prefixWithBackSlash)) {
+            log.info("SubPath prefix not found, path={}, ignore", path);
+            return chain.filter(exchange);
         }
+        String newPath = "/" + StringUtil.removePrefix(path, prefixWithBackSlash);
+        log.debug("originalPath={}, newPath={}", path, newPath);
+        ServerHttpRequest request = req.mutate().path(newPath).build();
+        exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, request.getURI());
+        return chain.filter(exchange.mutate().request(request).build());
     }
 
     @Override
     public int getOrder() {
-        return GlobalFilterOrder.ADD_TRACE_RESPONSE_HEADER;
+        return GlobalFilterOrder.REWRITE_SUB_PATH;
     }
 }

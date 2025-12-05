@@ -22,42 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.gateway.filter.global;
+package com.tencent.bk.job.gateway.consts;
 
-import com.tencent.bk.job.common.jwt.JwtManager;
-import com.tencent.bk.job.common.security.consts.JwtConsts;
-import com.tencent.bk.job.gateway.consts.GlobalFilterOrder;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.stereotype.Component;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 
-@Component
-@Slf4j
-public class AddJwtHeaderGlobalFilter implements GlobalFilter, Ordered {
+public class GlobalFilterOrder {
 
-    private JwtManager jwtManager;
-
-    @Autowired
-    public AddJwtHeaderGlobalFilter(JwtManager jwtManager) {
-        this.jwtManager = jwtManager;
-    }
-
-    @Override
-    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        String jwt = jwtManager.getToken();
-        ServerHttpRequest request = exchange.getRequest();
-        request = request.mutate().header(JwtConsts.HEADER_KEY_SERVICE_JWT_TOKEN, jwt).build();
-        return chain.filter(exchange.mutate().request(request).build());
-    }
-
-    @Override
-    public int getOrder() {
-        return GlobalFilterOrder.ADD_JWT_HEADER;
-    }
+    // 重写请求URL中的子路径前缀部分
+    public static int REWRITE_SUB_PATH = Ordered.HIGHEST_PRECEDENCE;
+    // 添加Trace数据响应头
+    public static int ADD_TRACE_RESPONSE_HEADER = Ordered.HIGHEST_PRECEDENCE + 10;
+    // 添加JWT认证请求头
+    public static int ADD_JWT_HEADER = Ordered.HIGHEST_PRECEDENCE + 20;
 }
