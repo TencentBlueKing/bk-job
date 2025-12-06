@@ -27,12 +27,10 @@ package com.tencent.bk.job.gateway.consts;
 import org.springframework.core.Ordered;
 
 /**
- * Spring Cloud Gateway的GlobalFilter优先级
+ * Spring Web的WebFilter优先级
  */
-public class GlobalFilterOrder {
+public class WebFilterOrder {
 
-    // 添加Trace数据响应头
-    public static int ADD_TRACE_RESPONSE_HEADER = Ordered.HIGHEST_PRECEDENCE;
-    // 添加JWT认证请求头
-    public static int ADD_JWT_HEADER = Ordered.HIGHEST_PRECEDENCE + 10;
+    // 重写请求URL中的子路径前缀部分
+    public static int REWRITE_SUB_PATH = Ordered.HIGHEST_PRECEDENCE;
 }

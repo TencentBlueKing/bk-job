@@ -22,19 +22,20 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.gateway.filter.global;
+package com.tencent.bk.job.gateway.web.filter;
 
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.gateway.config.SubPathProperties;
-import com.tencent.bk.job.gateway.consts.GlobalFilterOrder;
+import com.tencent.bk.job.gateway.consts.WebFilterOrder;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.gateway.filter.GatewayFilterChain;
-import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
+import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
@@ -42,18 +43,18 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.a
 
 @Component
 @Slf4j
-public class RewriteSubPathGlobalFilter implements GlobalFilter, Ordered {
+public class RewriteSubPathWebFilter implements WebFilter, Ordered {
 
     private final SubPathProperties subPathProperties;
 
     @Autowired
-    public RewriteSubPathGlobalFilter(SubPathProperties subPathProperties) {
+    public RewriteSubPathWebFilter(SubPathProperties subPathProperties) {
         this.subPathProperties = subPathProperties;
         log.debug("init, subPathProperties={}", subPathProperties);
     }
 
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+    public Mono<Void> filter(@NotNull ServerWebExchange exchange, @NotNull WebFilterChain chain) {
         if (!subPathProperties.isEnabled()) {
             return chain.filter(exchange);
         }
@@ -74,6 +75,6 @@ public class RewriteSubPathGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return GlobalFilterOrder.REWRITE_SUB_PATH;
+        return WebFilterOrder.REWRITE_SUB_PATH;
     }
 }
