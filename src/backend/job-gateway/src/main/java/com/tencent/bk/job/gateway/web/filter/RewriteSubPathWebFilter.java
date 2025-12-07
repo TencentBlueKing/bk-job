@@ -61,6 +61,9 @@ public class RewriteSubPathWebFilter implements WebFilter, Ordered {
         ServerHttpRequest req = exchange.getRequest();
         addOriginalRequestUrl(exchange, req.getURI());
         String path = req.getURI().getRawPath();
+        if (path.startsWith("/actuator/")) {
+            return chain.filter(exchange);
+        }
         String prefixWithBackSlash = subPathProperties.getRootPrefix() + "/";
         if (!path.startsWith(prefixWithBackSlash)) {
             log.info("SubPath prefix not found, path={}, ignore", path);
