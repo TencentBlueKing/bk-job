@@ -841,7 +841,11 @@ Return the Job Frontend Ingress Path
 Return the Job Frontend Ingress Path
 */}}
 {{- define "job.frontend.ingress.path" -}}
-{{ printf "%s/" (include "job.url.pathRootPrefix" .) }}
+{{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
+{{ printf "%s(/|$)(.*)" .Values.bkWebSiteAccess.subpath.rootPrefix }}
+{{- else -}}
+{{ printf "/" }}
+{{- end -}}
 {{- end -}}
 
 {{/*

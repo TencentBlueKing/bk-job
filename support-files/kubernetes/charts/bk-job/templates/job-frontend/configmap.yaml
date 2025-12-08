@@ -44,12 +44,12 @@ data:
 
         {{ if eq "subpath" .Values.bkWebSiteAccess.mode -}}
         # 去掉子路径前缀（例如：/job）后再匹配文件
-        location ^~ {{ .Values.bkWebSiteAccess.subpath.rootPrefix }}/ {
+        location ^~ {{ .Values.bkWebSiteAccess.subpath.rootPrefix }} {
           add_header Cache-Control no-cache;
           expires 0;
 
           # 把 /job/xxx 改写为 /xxx（仅在本地内部生效，地址栏不变）
-          rewrite ^{{ .Values.bkWebSiteAccess.subpath.rootPrefix }}/(.*)$ /$1 break;
+          rewrite ^{{ .Values.bkWebSiteAccess.subpath.rootPrefix }}(/.*)?$ $1 break;
 
           # 用去前缀后的 URI 依次尝试文件/目录
           try_files $uri $uri/ @rewrites;
