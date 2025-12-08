@@ -763,6 +763,28 @@ Return the Job Web Domain
 {{- end -}}
 
 {{/*
+Return the Job Web Host
+SubPath: http(s)://example.com
+SubDomain: http(s)://job.example.com
+*/}}
+{{- define "job.web.host" -}}
+{{ printf "%s://%s" (include "job.web.scheme" .) (include "job.web.domain" .) }}
+{{- end -}}
+
+{{/*
+Return the Job API Path Prefix
+SubPath: "/job"
+SubDomain: ""
+*/}}
+{{- define "job.api.path.prefix" -}}
+{{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
+{{ .Values.bkWebSiteAccess.subpath.rootPrefix }}
+{{- else -}}
+{{ printf "" }}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the Job URL Base
 SubPath: http(s)://example.com/job
 SubDomain: http(s)://job.example.com
