@@ -184,7 +184,6 @@
       this.fetchRelatedSystemUrls();
       this.fetchEnv();
       this.fetchAiConfig();
-      this.fetchDefaultDisplayTimeZone();
       this.businessPermission = window.BUSINESS_PERMISSION;
     },
     /**
@@ -198,10 +197,6 @@
       }, 100);
     },
     methods: {
-      fetchDefaultDisplayTimeZone() {
-        QueryGlobalSettingService.fetchConfigTimeZone().then(data => window.PROJECT_CONFIG.DEFAULT_DISPLAY_TIME_ZONE = data);
-      },
-
       /**
        * @desc 获取登录用户信息
        */

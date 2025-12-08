@@ -215,8 +215,12 @@
         {
           name: I18n.t('cron.执行人_colHead'),
           id: 'operator',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
       ];
 
