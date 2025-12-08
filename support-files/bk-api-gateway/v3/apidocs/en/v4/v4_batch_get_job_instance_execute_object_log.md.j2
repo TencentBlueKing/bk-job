@@ -6,15 +6,15 @@ Batch query execution logs of a job step on execute objects (hosts/containers) b
 
 #### Body Parameters
 
-| Field             | Type   | Required | Description                                                                                                                       |
-|-------------------|--------|----------|-----------------------------------------------------------------------------------------------------------------------------------|
-| bk_scope_type     | string | Yes      | Resource scope type. Allowed values: biz - Business, biz_set - Business Set                                                       |
-| bk_scope_id       | string | Yes      | Resource scope ID. Corresponds to bk_scope_type. Indicates Biz ID or Biz Set ID                                                   |
-| job_instance_id   | long   | Yes      | Job instance ID                                                                                                                   |
-| step_instance_id  | long   | Yes      | Step instance ID                                                                                                                  |
-| host_id_list      | array  | No       | Host ID list, maximum 100. Each element is long. Priority: host_id_list > ip_list > container_id_list                             |
-| ip_list           | array  | No       | Host IP list, maximum 100. Each element definition see cloud_ip. Priority: host_id_list > ip_list > container_id_list             |
-| container_id_list | array  | No       | Container ID list(container UID in CMDB), maximum 100. Each element is long. Priority: host_id_list > ip_list > container_id_list |
+| Field             | Type   | Required | Description                                                                                                                      |
+|-------------------|--------|----------|----------------------------------------------------------------------------------------------------------------------------------|
+| bk_scope_type     | string | Yes      | Resource scope type. Allowed values: biz - Business, biz_set - Business Set                                                      |
+| bk_scope_id       | string | Yes      | Resource scope ID. Corresponds to bk_scope_type. Indicates Biz ID or Biz Set ID                                                  |
+| job_instance_id   | long   | Yes      | Job instance ID                                                                                                                  |
+| step_instance_id  | long   | Yes      | Step instance ID                                                                                                                 |
+| host_id_list      | array  | No       | Host ID list, maximum 50. Each element is long. Priority: host_id_list > ip_list > container_id_list                             |
+| ip_list           | array  | No       | Host IP list, maximum 50. Each element definition see cloud_ip. Priority: host_id_list > ip_list > container_id_list             |
+| container_id_list | array  | No       | Container ID list(container UID in CMDB), maximum 50. Each element is long. Priority: host_id_list > ip_list > container_id_list |
 
 #### cloud_ip
 
