@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.DistributeFileSourceHostException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.engine.prepare.third.FileWorkerHostService;
 import com.tencent.bk.job.execute.service.ThirdFileDistributeSourceHostProvisioner;
@@ -45,6 +47,11 @@ public class FileWorkerHostProvisioner implements ThirdFileDistributeSourceHostP
     @Override
     public HostDTO getThirdFileDistributeSourceHost(Long cloudId, String protocol, String ip) {
         log.debug("distribute third file from file worker host");
-        return fileWorkerHostService.parseFileWorkerHostWithCache(cloudId, protocol, ip);
+        HostDTO hostDTO = fileWorkerHostService.parseFileWorkerHostWithCache(cloudId, protocol, ip);
+        if (hostDTO == null) {
+            throw new DistributeFileSourceHostException("File worker source host not found.",
+                ErrorCode.INTERNAL_ERROR);
+        }
+        return hostDTO;
     }
 }

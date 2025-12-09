@@ -89,7 +89,7 @@ public class AgentServiceImpl implements AgentService {
             String CACHE_KEY_AGENT_HOST = "agentHost";
             HostDTO host = agentHostCache.get(CACHE_KEY_AGENT_HOST);
             return host == null ? null : host.clone();
-        } catch (ExecutionException e) {
+        } catch (ExecutionException | CacheLoader.InvalidCacheLoadException e) {
             log.warn("Fail to load agentHost from cache, try to load directly", e);
             return getAgentBindHost();
         }

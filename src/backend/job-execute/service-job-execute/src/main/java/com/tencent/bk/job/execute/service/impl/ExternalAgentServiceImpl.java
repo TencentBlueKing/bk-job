@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.DistributeFileFromExternalAgentException;
+import com.tencent.bk.job.common.exception.DistributeFileSourceHostException;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -68,6 +68,10 @@ public class ExternalAgentServiceImpl implements ExternalAgentService {
     @Override
     public HostDTO getDistributeSourceHost() {
         Map<HostDTO, ServiceHostDTO> cmdbHostMap = hostService.batchGetHosts(externalAgentHostPool);
+        if (cmdbHostMap.isEmpty()) {
+            log.error("External file source hosts not found from CMDB, hosts: {}", externalAgentHostPool);
+            return null;
+        }
         List<ServiceHostDTO> cmdbHostList = new ArrayList<>();
         externalAgentHostPool.forEach(hostDTO -> {
             ServiceHostDTO serviceHostDTO = cmdbHostMap.get(hostDTO);
@@ -99,9 +103,9 @@ public class ExternalAgentServiceImpl implements ExternalAgentService {
         }
 
         if (sourceHost == null) {
-            String msg = "Distribute file use external agent, but no available host found, please check configuration";
-            log.error(msg);
-            throw new DistributeFileFromExternalAgentException(msg, ErrorCode.INTERNAL_ERROR);
+            log.error("External file source hosts not available, hosts: {}", hosts);
+            throw new DistributeFileSourceHostException("External source host no available",
+                ErrorCode.INTERNAL_ERROR);
         }
 
         log.info(

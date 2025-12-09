@@ -71,8 +71,9 @@ public class FileWorkerHostService {
     public HostDTO parseFileWorkerHostWithCache(Long cloudAreaId, String ipProtocol, String ip) {
         try {
             return fileWorkerHostCache.get(buildCacheKey(cloudAreaId, ipProtocol, ip));
-        } catch (ExecutionException e) {
-            log.error("Fail to parseFileWorkerHostWithCache", e);
+        } catch (ExecutionException | CacheLoader.InvalidCacheLoadException e) {
+            log.error("Fail to parseFileWorkerHostWithCache. cloudAreaId: {}, ipProtocol: {}, ip: {}.",
+                cloudAreaId, ipProtocol, ip, e);
             return null;
         }
     }
