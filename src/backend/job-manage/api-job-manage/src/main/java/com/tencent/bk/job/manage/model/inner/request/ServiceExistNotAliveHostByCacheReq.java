@@ -22,24 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service;
+package com.tencent.bk.job.manage.model.inner.request;
 
-import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
-import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-public interface HostService {
-
-    List<ServiceHostStatusDTO> getHostStatusByNode(Long appId, List<BizTopoNode> treeNodeList);
-
-    List<ServiceHostStatusDTO> getHostStatusByDynamicGroup(Long appId, List<String> dynamicGroupIdList);
-
-    /**
-     * 通过缓存数据（非接口实时数据）判断是否存在Agent状态不正常的主机
-     *
-     * @param hostIdList 主机ID列表
-     * @return 布尔值
-     */
-    boolean existNotAliveHostByCache(List<Long> hostIdList);
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class ServiceExistNotAliveHostByCacheReq {
+    List<Long> hostIdList;
 }

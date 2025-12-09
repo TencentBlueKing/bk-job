@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.common.util.LogUtil;
 import com.tencent.bk.job.common.util.StackTraceUtil;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
@@ -46,6 +47,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostToposReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
+import com.tencent.bk.job.manage.model.inner.request.ServiceExistNotAliveHostByCacheReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByHostReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
@@ -172,6 +174,35 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             }
         });
         return InternalResponse.buildSuccessResp(hostStatusDTOList);
+    }
+
+    @Override
+    public InternalResponse<Boolean> existNotAliveHostByCache(ServiceExistNotAliveHostByCacheReq req) {
+        List<Long> hostIdList = req.getHostIdList();
+        if (CollectionUtils.isEmpty(hostIdList)) {
+            return InternalResponse.buildSuccessResp(false);
+        }
+        Set<Long> existHostIds = new HashSet<>(noTenantHostService.listHostIdsFromDB(hostIdList));
+        List<Long> notExistHostIdList = hostIdList.stream()
+            .filter(hostId -> !existHostIds.contains(hostId))
+            .collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(notExistHostIdList)) {
+            // 不存在的主机状态视为Agent异常
+            log.info(
+                "notExistHostIdList={}",
+                LogUtil.buildListLog(notExistHostIdList, 100)
+            );
+            return InternalResponse.buildSuccessResp(true);
+        }
+        List<Long> notAliveHostIdList = noTenantHostService.listHostIdOfNotAliveHostInDB(hostIdList);
+        boolean result = CollectionUtils.isNotEmpty(notAliveHostIdList);
+        if (result) {
+            log.info(
+                "notAliveHostIdList={}",
+                LogUtil.buildListLog(notAliveHostIdList, 100)
+            );
+        }
+        return InternalResponse.buildSuccessResp(result);
     }
 
     @Override

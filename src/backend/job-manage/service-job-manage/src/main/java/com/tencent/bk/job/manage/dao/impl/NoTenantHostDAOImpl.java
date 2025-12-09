@@ -238,6 +238,21 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
     }
 
     @Override
+    public List<Long> listHostId(Collection<Long> hostIds) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.HOST_ID.in(hostIds));
+        return listHostIdByConditions(conditions);
+    }
+
+    @Override
+    public List<Long> listHostIdOfStatus(Collection<Long> hostIds, int isAgentAlive) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.HOST_ID.in(hostIds));
+        conditions.add(TABLE.IS_AGENT_ALIVE.eq(JooqDataTypeUtil.buildUByte(isAgentAlive)));
+        return listHostIdByConditions(conditions);
+    }
+
+    @Override
     public List<ApplicationHostDTO> listHostInfoByBizId(long bizId) {
         List<Condition> conditions = buildBizIdCondition(bizId);
         return listHostInfoByConditions(conditions);

@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.manage.api.inner;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.InternalAPI;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
@@ -32,6 +34,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostToposReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
+import com.tencent.bk.job.manage.model.inner.request.ServiceExistNotAliveHostByCacheReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByDynamicGroupReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByHostReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostStatusByNodeReq;
@@ -65,11 +68,24 @@ public interface ServiceHostResource {
         @RequestBody ServiceGetHostStatusByDynamicGroupReq req
     );
 
+    @Deprecated
+    @CompatibleImplementation(
+        name = "tenant",
+        explain = "兼容发布过程中老的调用，发布完成后删除",
+        deprecatedVersion = "3.12.x",
+        type = CompatibleType.DEPLOY
+    )
     @ApiOperation(value = "查询主机对应的主机状态", produces = "application/json")
     @PostMapping("/service/app/{appId}/host/status/hosts")
     InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByHost(
         @PathVariable("appId") Long appId,
         @RequestBody ServiceGetHostStatusByHostReq req
+    );
+
+    @ApiOperation(value = "通过缓存数据（非接口实时数据）判断是否存在Agent状态不正常的主机", produces = "application/json")
+    @PostMapping("/service/existNotAliveHostByCache")
+    InternalResponse<Boolean> existNotAliveHostByCache(
+        @RequestBody ServiceExistNotAliveHostByCacheReq req
     );
 
     /**
