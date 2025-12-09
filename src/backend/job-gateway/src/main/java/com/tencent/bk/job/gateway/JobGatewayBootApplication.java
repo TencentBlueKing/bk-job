@@ -26,7 +26,6 @@ package com.tencent.bk.job.gateway;
 
 import com.tencent.bk.job.common.service.boot.JobBootApplication;
 import com.tencent.bk.job.gateway.config.CsrfCheckProperties;
-import com.tencent.bk.job.gateway.config.SubPathProperties;
 import com.tencent.bk.job.gateway.config.UserMapProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +50,7 @@ import javax.annotation.PreDestroy;
     excludeName = {"org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration"})
 @Slf4j
 @EnableFeignClients
-@EnableConfigurationProperties({SubPathProperties.class, UserMapProperties.class, CsrfCheckProperties.class})
+@EnableConfigurationProperties({UserMapProperties.class, CsrfCheckProperties.class})
 public class JobGatewayBootApplication {
     private final HttpHandler httpHandler;
 

@@ -13,6 +13,10 @@ metadata:
     {{- if .Values.frontendConfig.ingress.certManager }}
     kubernetes.io/tls-acme: "true"
     {{- end }}
+    {{- if eq "subpath" .Values.bkWebSiteAccess.mode }}
+    nginx.ingress.kubernetes.io/enable-rewrite-log: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    {{- end }}
     {{- if .Values.frontendConfig.ingress.annotations }}
     {{- include "common.tplvalues.render" (dict "value" .Values.frontendConfig.ingress.annotations "context" $) | nindent 4 }}
     {{- end }}
