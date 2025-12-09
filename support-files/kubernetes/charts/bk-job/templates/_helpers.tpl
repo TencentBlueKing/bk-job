@@ -773,12 +773,14 @@ SubDomain: http(s)://job.example.com
 
 {{/*
 Return the Job API Path Prefix
-SubPath: "/job"
+SubPath: "job/"
 SubDomain: ""
 */}}
 {{- define "job.api.path.prefix" -}}
 {{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
-{{ .Values.bkWebSiteAccess.subpath.rootPrefix }}
+{{- $rootPrefix := .Values.bkWebSiteAccess.subpath.rootPrefix | trimPrefix "/" -}}
+{{- $finalPath := printf "%s/" $rootPrefix -}}
+{{ $finalPath }}
 {{- else -}}
 {{ printf "" }}
 {{- end -}}
