@@ -35,7 +35,7 @@
         :data="data">
         <bk-table-column
           :label="$t('history.时间')"
-          prop="createTime"
+          prop="createTimeText"
           width="180" />
         <bk-table-column
           :label="$t('history.操作人')"

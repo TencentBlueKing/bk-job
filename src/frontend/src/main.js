@@ -338,5 +338,7 @@ UserService.fetchUserInfo()
       expires: 365,
     });
     entryTask.start();
-})
+  });
+
+QueryGlobalSettingService.fetchConfigTimeZone().then(data => window.PROJECT_CONFIG.DEFAULT_DISPLAY_TIME_ZONE = data);
 

@@ -27,6 +27,7 @@
 import _ from 'lodash';
 
 import CrontabVariableModel from '@model/crontab/variable';
+import Model from '@model/model';
 
 import {
   prettyDateTimeFormat,
@@ -39,7 +40,7 @@ const STATUS_NOTSTARTED = 0;
 const STATUS_SUCCESS = 1;
 const STATUS_FAILURE = 2;
 
-export default class Crontab {
+export default class Crontab extends Model {
   static STATUS_MAP = {
     [STATUS_NOTSTARTED]: I18n.t('未开始'),
     [STATUS_SUCCESS]: I18n.t('成功'),
@@ -55,6 +56,7 @@ export default class Crontab {
   };
 
   constructor(payload) {
+    super();
     this.scopeType = payload.scopeType;
     this.scopeId = payload.scopeId;
     this.creator = payload.creator;
@@ -166,7 +168,9 @@ export default class Crontab {
       text += minute;
       return text;
     }
-    return this.executeTime;
+    return this.getTime({
+      timestamp: this.executeTime,
+    });
   }
 
   /**
@@ -193,7 +197,9 @@ export default class Crontab {
     if (this.cronExpression) {
       return this.cronExpression;
     }
-    return this.executeTime.slice(0, 19);
+    return this.getTime({
+      timestamp: this.executeTime,
+    });
   }
 
   /**
