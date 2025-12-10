@@ -70,7 +70,10 @@ public class ExternalAgentServiceImpl implements ExternalAgentService {
         Map<HostDTO, ServiceHostDTO> cmdbHostMap = hostService.batchGetHosts(externalAgentHostPool);
         if (cmdbHostMap.isEmpty()) {
             log.error("External file source hosts not found from CMDB, hosts: {}", externalAgentHostPool);
-            return null;
+            throw new DistributeFileSourceHostException(
+                ErrorCode.TASK_FILE_SOURCE_HOST_NOT_EXIST,
+                new Object[]{externalAgentHostPool}
+            );
         }
         List<ServiceHostDTO> cmdbHostList = new ArrayList<>();
         externalAgentHostPool.forEach(hostDTO -> {

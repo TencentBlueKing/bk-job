@@ -27,6 +27,8 @@ package com.tencent.bk.job.execute.service.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.DistributeFileSourceHostException;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -123,7 +125,10 @@ public class AgentServiceImpl implements AgentService {
             }
             if (host == null) {
                 log.error("Invalid host for ip: {}", physicalMachineMultiIp);
-                return null;
+                throw new DistributeFileSourceHostException(
+                    ErrorCode.TASK_FILE_SOURCE_HOST_NOT_EXIST,
+                    new Object[]{physicalMachineMultiIp}
+                );
             }
             return ServiceHostDTO.toHostDTO(host);
         }

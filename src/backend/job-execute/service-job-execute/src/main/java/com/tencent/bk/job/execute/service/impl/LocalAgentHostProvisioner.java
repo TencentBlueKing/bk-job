@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.DistributeFileSourceHostException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.LocalFileDistributeSourceHostProvisioner;
@@ -44,11 +42,6 @@ public class LocalAgentHostProvisioner implements LocalFileDistributeSourceHostP
 
     @Override
     public HostDTO getLocalFileDistributeSourceHost() {
-        HostDTO hostDTO = agentService.getLocalAgentHost();
-        if (hostDTO == null) {
-            throw new DistributeFileSourceHostException("Local file source host not found.",
-                ErrorCode.INTERNAL_ERROR);
-        }
-        return hostDTO;
+        return agentService.getLocalAgentHost();
     }
 }

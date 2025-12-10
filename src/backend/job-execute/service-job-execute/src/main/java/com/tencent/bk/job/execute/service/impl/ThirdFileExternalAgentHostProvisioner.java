@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.exception.DistributeFileSourceHostException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.service.ExternalAgentService;
 import com.tencent.bk.job.execute.service.ThirdFileDistributeSourceHostProvisioner;
@@ -46,11 +44,6 @@ public class ThirdFileExternalAgentHostProvisioner implements ThirdFileDistribut
     @Override
     public HostDTO getThirdFileDistributeSourceHost(Long cloudId, String protocol, String ip) {
         log.debug("distribute third file from external agent host");
-        HostDTO hostDTO = externalAgentService.getDistributeSourceHost();
-        if (hostDTO == null) {
-            throw new DistributeFileSourceHostException("External source host not found.",
-                ErrorCode.INTERNAL_ERROR);
-        }
-        return hostDTO;
+        return externalAgentService.getDistributeSourceHost();
     }
 }

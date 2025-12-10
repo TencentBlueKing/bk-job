@@ -39,4 +39,8 @@ public class DistributeFileSourceHostException extends ServiceException {
     public DistributeFileSourceHostException(String message, Integer errorCode) {
         super(message, ErrorType.INTERNAL, errorCode);
     }
+
+    public DistributeFileSourceHostException(Integer errorCode, Object[] errorParams) {
+        super(ErrorType.INTERNAL, errorCode, errorParams);
+    }
 }
