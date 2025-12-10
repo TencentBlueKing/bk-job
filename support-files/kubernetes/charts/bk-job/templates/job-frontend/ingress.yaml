@@ -31,6 +31,13 @@ spec:
     - host: {{ include "job.web.domain" . }}
       http:
         paths:
+          {{- if eq "subpath" .Values.bkWebSiteAccess.mode }}
+          - path: {{ .Values.bkWebSiteAccess.subpath.rootPrefix }}()$
+            {{- if eq "true" (include "common.ingress.supportsPathType" .) }}
+            pathType: {{ .Values.frontendConfig.ingress.pathType }}
+            {{- end }}
+            backend: {{- include "common.ingress.backend" (dict "serviceName" "bk-job-frontend" "servicePort" .Values.frontendConfig.service.port "context" $)  | nindent 14 }}
+          {{- end }}
           - path: {{ include "job.frontend.ingress.path" . }}
             {{- if eq "true" (include "common.ingress.supportsPathType" .) }}
             pathType: {{ .Values.frontendConfig.ingress.pathType }}
