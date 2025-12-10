@@ -104,8 +104,8 @@ public class ExternalAgentServiceImpl implements ExternalAgentService {
 
         if (sourceHost == null) {
             log.error("External file source hosts not available, hosts: {}", hosts);
-            throw new DistributeFileSourceHostException("External source host no available",
-                ErrorCode.INTERNAL_ERROR);
+            // agent不可用，由执行引擎初始化时统一检查，若检查不通过，执行详情有具体日志输出
+            sourceHost = hosts.get(0);
         }
 
         log.info(

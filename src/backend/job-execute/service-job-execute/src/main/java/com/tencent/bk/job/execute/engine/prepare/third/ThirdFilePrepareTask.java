@@ -416,8 +416,8 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
         HostDTO sourceHost = hostDTO.clone();
         if (isGseV2Task) {
             if (StringUtils.isBlank(sourceHost.getAgentId())) {
-                log.error("Using gseV2, source host agent id is empty! host: {}", sourceHost);
-                throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
+                // 文件源主机没有agentId，不抛异常，由执行引擎初始化时统一检查，若检查不通过，执行详情有具体日志输出
+                log.warn("Using gseV2, source host agent id is empty! host: {}", sourceHost);
             }
         } else {
             sourceHost.setAgentId(sourceHost.toCloudIp());
