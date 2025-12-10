@@ -30,12 +30,14 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.LogUtil;
 import com.tencent.bk.job.common.util.StackTraceUtil;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
@@ -119,6 +121,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             String msg = "topo node of bizset not supported yet";
             throw new NotImplementedException(msg, ErrorCode.NOT_SUPPORT_FEATURE);
         }
+        JobContextUtil.setUser(new User(appDTO.getTenantId(), null, null));
         List<BizTopoNode> treeNodeList = req.getTreeNodeList();
         List<ApplicationHostDTO> hostList = bizTopoHostService.listHostByNodes(appDTO.getBizIdIfBizApp(), treeNodeList);
         Set<ServiceHostStatusDTO> hostStatusDTOSet = new HashSet<>();
@@ -141,6 +144,7 @@ public class ServiceHostResourceImpl implements ServiceHostResource {
             String msg = "dynamic group of bizset not supported yet";
             throw new NotImplementedException(msg, ErrorCode.NOT_SUPPORT_FEATURE);
         }
+        JobContextUtil.setUser(new User(appDTO.getTenantId(), null, null));
         List<String> dynamicGroupIdList = req.getDynamicGroupIdList();
         AppResourceScope appResourceScope = new AppResourceScope(appId);
         appScopeMappingService.fillAppResourceScope(appResourceScope);
