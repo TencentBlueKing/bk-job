@@ -92,6 +92,7 @@ public class TenantSetCmdbClient extends BaseCmdbClient implements ITenantSetCmd
                 TenantIdConstants.SYSTEM_TENANT_ID,
                 HttpMethodEnum.POST,
                 LIST_TENANT_SET,
+                LIST_TENANT_SET,
                 null,
                 req,
                 new TypeReference<EsbResp<CountInfo<TenantSetInfo>>>() {
@@ -145,6 +146,7 @@ public class TenantSetCmdbClient extends BaseCmdbClient implements ITenantSetCmd
             EsbResp<CountInfo<TenantSetInfo>> resp = requestCmdbApi(
                 TenantIdConstants.SYSTEM_TENANT_ID,
                 HttpMethodEnum.POST,
+                LIST_TENANT_SET,
                 LIST_TENANT_SET,
                 null,
                 req,

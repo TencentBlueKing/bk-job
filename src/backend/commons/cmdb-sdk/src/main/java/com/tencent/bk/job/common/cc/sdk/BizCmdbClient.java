@@ -280,6 +280,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         EsbResp<BriefTopologyDTO> esbResp = requestCmdbApi(
             tenantId,
             HttpMethodEnum.GET,
+            GET_BIZ_BRIEF_CACHE_TOPO,
             uri,
             req.toUrlParams(),
             null,
@@ -295,6 +296,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         EsbResp<List<InstanceTopologyDTO>> esbResp = requestCmdbApi(
             tenantId,
             HttpMethodEnum.GET,
+            SEARCH_BIZ_INST_TOPO,
             uri,
             req.toUrlParams(),
             null,
@@ -351,6 +353,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         EsbResp<GetBizInternalModuleResult> esbResp = requestCmdbApi(
             tenantId,
             HttpMethodEnum.GET,
+            GET_BIZ_INTERNAL_MODULE,
             uri,
             req.toUrlParams(),
             null,
@@ -468,6 +471,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         EsbResp<FindModuleHostRelationResult> esbResp = requestCmdbApi(
             tenantId,
             HttpMethodEnum.POST,
+            FIND_MODULE_HOST_RELATION,
             uri,
             null,
             req,
@@ -697,6 +701,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             EsbResp<SearchAppResult> esbResp = requestCmdbApi(
                 tenantId,
                 HttpMethodEnum.POST,
+                SEARCH_BUSINESS,
                 uri,
                 null,
                 req,
@@ -774,6 +779,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         EsbResp<SearchAppResult> esbResp = requestCmdbApi(
             tenantId,
             HttpMethodEnum.POST,
+            SEARCH_BUSINESS,
             uri,
             null,
             req,
@@ -806,6 +812,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             String uri = SEARCH_DYNAMIC_GROUP.replace("{bk_biz_id}", String.valueOf(bizId));
             EsbResp<SearchDynamicGroupResult> esbResp = requestCmdbApiUseContextTenantId(
                 HttpMethodEnum.POST,
+                SEARCH_DYNAMIC_GROUP,
                 uri,
                 null,
                 req,
@@ -869,6 +876,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             EsbResp<ExecuteDynamicGroupHostResult> esbResp = requestCmdbApi(
                 tenantId,
                 HttpMethodEnum.POST,
+                EXECUTE_DYNAMIC_GROUP,
                 uri,
                 null,
                 req,
@@ -936,6 +944,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
                 tenantId,
                 HttpMethodEnum.POST,
                 GET_CLOUD_AREAS,
+                GET_CLOUD_AREAS,
                 null,
                 req,
                 new TypeReference<EsbResp<SearchCloudAreaResult>>() {
@@ -987,6 +996,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             tenantId,
             HttpMethodEnum.POST,
             FIND_HOST_BIZ_RELATIONS,
+            FIND_HOST_BIZ_RELATIONS,
             null,
             req,
             new TypeReference<EsbResp<List<HostBizRelationDTO>>>() {
@@ -1018,6 +1028,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             req.setPage(page);
             EsbResp<ListBizHostResult> esbResp = requestCmdbApiUseContextTenantId(
                 HttpMethodEnum.POST,
+                LIST_BIZ_HOSTS,
                 uri,
                 null,
                 req,
@@ -1106,6 +1117,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
                 tenantId,
                 HttpMethodEnum.POST,
                 LIST_HOSTS_WITHOUT_BIZ,
+                LIST_HOSTS_WITHOUT_BIZ,
                 null,
                 req,
                 new TypeReference<EsbResp<ListHostsWithoutBizResult>>() {
@@ -1187,6 +1199,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             tenantId,
             HttpMethodEnum.POST,
             GET_OBJ_ATTRIBUTES,
+            GET_OBJ_ATTRIBUTES,
             null,
             req,
             new TypeReference<EsbResp<List<CcObjAttributeDTO>>>() {
@@ -1205,6 +1218,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         String uri = SEARCH_BUSINESS.replace("{bk_supplier_account}", req.getBkSupplierAccount());
         EsbResp<CountInfo<Map<String, Object>>> esbResp = requestCmdbApiUseContextTenantId(
             HttpMethodEnum.POST,
+            SEARCH_BUSINESS,
             uri,
             null,
             req,
@@ -1320,6 +1334,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             );
             EsbResp<List<TopoNodePathDTO>> esbResp = requestCmdbApiUseContextTenantId(
                 HttpMethodEnum.POST,
+                GET_TOPO_NODE_PATHS,
                 uri,
                 null,
                 req,
@@ -1368,6 +1383,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         EsbResp<ResourceWatchResult<HostEventDetail>> esbResp = requestCmdbApi(
             tenantId,
             HttpMethodEnum.POST,
+            RESOURCE_WATCH,
             uri,
             null,
             req,
@@ -1390,6 +1406,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         EsbResp<ResourceWatchResult<HostRelationEventDetail>> esbResp = requestCmdbApi(
             tenantId,
             HttpMethodEnum.POST,
+            RESOURCE_WATCH,
             uri,
             null,
             req,
@@ -1411,6 +1428,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         EsbResp<ResourceWatchResult<BizEventDetail>> esbResp = requestCmdbApi(
             tenantId,
             HttpMethodEnum.POST,
+            RESOURCE_WATCH,
             uri,
             null,
             req,
@@ -1463,6 +1481,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         EsbResp<KubeTopologyDTO> esbResp = requestCmdbApiUseContextTenantId(
             HttpMethodEnum.POST,
             GET_BIZ_KUBE_CACHE_TOPO,
+            GET_BIZ_KUBE_CACHE_TOPO,
             null,
             req,
             new TypeReference<EsbResp<KubeTopologyDTO>>() {
@@ -1492,6 +1511,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             withCount,
             cmdbPageReq -> requestCmdbApiUseContextTenantId(
                 HttpMethodEnum.POST,
+                LIST_KUBE_CONTAINER_BY_TOPO,
                 LIST_KUBE_CONTAINER_BY_TOPO,
                 null,
                 cmdbPageReq,
@@ -1694,6 +1714,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             cmdbPageReq -> requestCmdbApiUseContextTenantId(
                 HttpMethodEnum.POST,
                 LIST_KUBE_CLUSTER,
+                LIST_KUBE_CLUSTER,
                 null,
                 cmdbPageReq,
                 new TypeReference<EsbResp<BaseCcSearchResult<KubeClusterDTO>>>() {
@@ -1783,6 +1804,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             cmdbPageReq -> requestCmdbApiUseContextTenantId(
                 HttpMethodEnum.POST,
                 LIST_KUBE_NAMESPACE,
+                LIST_KUBE_NAMESPACE,
                 null,
                 cmdbPageReq,
                 new TypeReference<EsbResp<BaseCcSearchResult<KubeNamespaceDTO>>>() {
@@ -1855,6 +1877,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             },
             cmdbPageReq -> requestCmdbApiUseContextTenantId(
                 HttpMethodEnum.POST,
+                LIST_KUBE_WORKLOAD,
                 requestUrl,
                 null,
                 cmdbPageReq,

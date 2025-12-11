@@ -169,14 +169,24 @@ public class BaseCmdbClient extends BkApiV1Client {
     }
 
     protected <R> EsbResp<R> requestCmdbApiUseContextTenantId(HttpMethodEnum method,
+                                                              String uriTpl,
                                                               String uri,
                                                               String queryParams,
                                                               EsbReq reqBody,
                                                               TypeReference<EsbResp<R>> typeReference) {
-        return requestCmdbApiUseContextTenantId(method, uri, queryParams, reqBody, typeReference, cmdbHttpHelper);
+        return requestCmdbApiUseContextTenantId(
+            method,
+            uriTpl,
+            uri,
+            queryParams,
+            reqBody,
+            typeReference,
+            cmdbHttpHelper
+        );
     }
 
     protected <R> EsbResp<R> requestCmdbApiUseContextTenantId(HttpMethodEnum method,
+                                                              String uriTpl,
                                                               String uri,
                                                               String queryParams,
                                                               EsbReq reqBody,
@@ -184,7 +194,7 @@ public class BaseCmdbClient extends BkApiV1Client {
                                                               HttpHelper httpHelper) {
         String tenantId = JobContextUtil.getTenantId();
         if (StringUtils.isNotBlank(tenantId)) {
-            return requestCmdbApi(tenantId, method, uri, queryParams, reqBody, typeReference, httpHelper);
+            return requestCmdbApi(tenantId, method, uriTpl, uri, queryParams, reqBody, typeReference, httpHelper);
         } else {
             throw new InternalException("tenantId is blank", ErrorCode.INTERNAL_ERROR);
         }
@@ -192,21 +202,23 @@ public class BaseCmdbClient extends BkApiV1Client {
 
     protected <R> EsbResp<R> requestCmdbApi(String tenantId,
                                             HttpMethodEnum method,
+                                            String uriTpl,
                                             String uri,
                                             String queryParams,
                                             EsbReq reqBody,
                                             TypeReference<EsbResp<R>> typeReference) {
-        return requestCmdbApi(tenantId, method, uri, queryParams, reqBody, typeReference, cmdbHttpHelper);
+        return requestCmdbApi(tenantId, method, uriTpl, uri, queryParams, reqBody, typeReference, cmdbHttpHelper);
     }
 
     protected <R> EsbResp<R> requestCmdbApi(String tenantId,
                                             HttpMethodEnum method,
+                                            String uriTpl,
                                             String uri,
                                             String queryParams,
                                             EsbReq reqBody,
                                             TypeReference<EsbResp<R>> typeReference,
                                             HttpHelper httpHelper) {
-        String apiName = ApiUtil.getApiNameByUri(interfaceNameMap, uri);
+        String apiName = ApiUtil.getApiNameByUri(interfaceNameMap, uriTpl);
         if (cmdbConfig != null && cmdbConfig.getEnableFlowControl()) {
             if (globalFlowController != null && globalFlowController.isReady()) {
                 log.debug("Flow control apiName={}", apiName);
@@ -246,6 +258,4 @@ public class BaseCmdbClient extends BkApiV1Client {
             HttpMetricUtil.clearHttpMetric();
         }
     }
-
-
 }
