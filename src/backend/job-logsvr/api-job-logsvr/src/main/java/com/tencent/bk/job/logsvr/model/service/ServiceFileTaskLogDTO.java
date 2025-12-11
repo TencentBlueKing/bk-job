@@ -28,9 +28,16 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
+import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.date.DateUtils;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
+
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 /**
  * 文件分发执行日志
@@ -169,8 +176,20 @@ public class ServiceFileTaskLogDTO {
     /**
      * 日志内容
      */
+    @CompatibleImplementation(
+        deprecatedVersion = "3.12.1",
+        explain = "兼容获取文件分发日志内容，content字段为老用法，新版本使用contentList，发布完成后重构代码移除对此字段使用",
+        type = CompatibleType.HISTORY_LOGIC
+    )
     @JsonProperty("content")
     private String content;
+
+    /**
+     * 新版本使用，时区改造时添加
+     * 日志内容列表（包含时间戳和原始日志）
+     */
+    @JsonProperty("contentList")
+    private List<FileTaskTimeAndRawLogDTO> contentList;
 
     public ServiceFileTaskLogDTO(Integer mode,
                                  String destExecuteObjectId,
@@ -184,7 +203,7 @@ public class ServiceFileTaskLogDTO {
                                  String statusDesc,
                                  String speed,
                                  String process,
-                                 String content) {
+                                 List<FileTaskTimeAndRawLogDTO> contentList) {
         this.mode = mode;
         this.destExecuteObjectId = destExecuteObjectId;
         this.destFile = destFile;
@@ -197,7 +216,7 @@ public class ServiceFileTaskLogDTO {
         this.statusDesc = statusDesc;
         this.speed = speed;
         this.process = process;
-        this.content = content;
+        this.contentList = contentList;
     }
 
     @Deprecated
@@ -218,7 +237,7 @@ public class ServiceFileTaskLogDTO {
                                  String statusDesc,
                                  String speed,
                                  String process,
-                                 String content) {
+                                 List<FileTaskTimeAndRawLogDTO> contentList) {
         this.mode = mode;
         this.destHostId = destHostId;
         this.destIp = destIp;
@@ -235,7 +254,32 @@ public class ServiceFileTaskLogDTO {
         this.statusDesc = statusDesc;
         this.speed = speed;
         this.process = process;
-        this.content = content;
+        this.contentList = contentList;
+    }
+
+    /**
+     * 从contentList中获取完整的日志内容，包括时间和原始日志
+     * @return 日志内容
+     */
+    public String getFullContentWithTime() {
+        // 优先使用contentList（新版本）
+        if (CollectionUtils.isNotEmpty(contentList)) {
+            StringBuilder sb = new StringBuilder();
+            for (FileTaskTimeAndRawLogDTO timeAndRawLog : contentList) {
+                ZoneId zoneId =
+                    JobContextUtil.getTimeZone() != null ? JobContextUtil.getTimeZone() : ZoneId.systemDefault();
+                String timeStr = DateUtils.formatUnixTimestamp(
+                    timeAndRawLog.getTime(),
+                    ChronoUnit.MILLIS,
+                    DateUtils.FILE_TASK_LOG_FORMAT,
+                    zoneId
+                );
+
+                sb.append("[").append(timeStr).append("] ").append(timeAndRawLog.getRawLog()).append("\n");
+            }
+            return sb.toString();
+        }
+        return "";
     }
 }
 

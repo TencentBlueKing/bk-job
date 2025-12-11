@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceBatchSaveLogRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
-import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogsDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileLogQueryRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogQueryRequest;
@@ -158,47 +157,6 @@ public interface ServiceLogResource {
         @RequestParam(value = "batch", required = false) Integer batch);
 
 
-    @Deprecated
-    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
-        explain = "使用 listFileExecuteObjectLogs() 替换，发布完成后可删除")
-    @ApiOperation("获取文件任务对应的执行日志")
-    @GetMapping("/service/log/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}")
-    InternalResponse<List<ServiceFileTaskLogDTO>> listFileHostLogs(
-        @ApiParam("作业创建时间")
-        @PathVariable("jobCreateDate") String jobCreateDate,
-        @ApiParam("步骤实例ID")
-        @PathVariable("stepInstanceId") Long stepInstanceId,
-        @ApiParam("执行次数")
-        @PathVariable("executeCount") Integer executeCount,
-        @ApiParam("滚动执行批次，非滚动任务传入null")
-        @RequestParam(value = "batch", required = false) Integer batch,
-        @ApiParam("分发模式,0:upload,1:download")
-        @RequestParam(value = "mode", required = false) Integer mode,
-        @ApiParam("ip")
-        @RequestParam(value = "ip", required = false) String ip,
-        @ApiParam("hostId")
-        @RequestParam(value = "hostId", required = false) Long hostId
-    );
-
-    @ApiOperation("获取文件任务对应的执行日志")
-    @PostMapping(
-        "/service/log/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}/queryByTaskIds")
-    @Deprecated
-    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
-        explain = "返回的协议内容有问题，发布完成后可删除")
-    InternalResponse<ServiceExecuteObjectLogDTO> listFileLogsByTaskIds(
-        @ApiParam("作业创建时间")
-        @PathVariable("jobCreateDate") String jobCreateDate,
-        @ApiParam("步骤实例ID")
-        @PathVariable("stepInstanceId") Long stepInstanceId,
-        @ApiParam("执行次数")
-        @PathVariable("executeCount") Integer executeCount,
-        @ApiParam("滚动执行批次，非滚动任务传入null")
-        @RequestParam(value = "batch", required = false) Integer batch,
-        @ApiParam("文件任务ID列表")
-        @RequestBody List<String> taskIds
-    );
-
     @ApiOperation("根据任务 ID 批量获取文件任务对应的执行日志")
     @PostMapping(
         "/service/log/file/jobCreateDate/{jobCreateDate}/step/{stepInstanceId}/retry/{executeCount}" +
@@ -215,13 +173,6 @@ public interface ServiceLogResource {
         @ApiParam("文件任务ID列表")
         @RequestBody List<String> taskIds
     );
-
-    @ApiOperation("获取文件任务对应的执行日志")
-    @PostMapping("/file")
-    @Deprecated
-    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
-        explain = "发布之后不再被使用，可删除")
-    InternalResponse<ServiceExecuteObjectLogsDTO> listFileHostLogs(@RequestBody ServiceFileLogQueryRequest request);
 
     @ApiOperation("批量获取文件任务对应的执行日志")
     @PostMapping(

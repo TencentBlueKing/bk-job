@@ -26,7 +26,9 @@ package com.tencent.bk.job.logsvr.model;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
+import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
+import com.tencent.bk.job.logsvr.model.service.FileTaskTimeAndRawLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
@@ -34,7 +36,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 文件任务执行日志 - MongoDB Doc
@@ -42,6 +48,30 @@ import java.util.List;
 @Data
 @Document
 public class FileTaskLogDoc {
+
+    /**
+     * 日志条目 - 用于新版本日志存储
+     * MongoDB中存储为：{logTime: 1733616182000, content: "FileName: ..."}
+     */
+    @Data
+    public static class LogEntry {
+        /**
+         * 日志时间戳（毫秒）
+         */
+        private Long logTime;
+        /**
+         * 日志内容（不包含时间戳前缀）
+         */
+        private String content;
+
+        public LogEntry() {
+        }
+
+        public LogEntry(Long logTime, String content) {
+            this.logTime = logTime;
+            this.content = content;
+        }
+    }
     /**
      * 步骤实例ID
      */
@@ -206,18 +236,31 @@ public class FileTaskLogDoc {
 
     /**
      * 日志内容在mongodb中按照list的方式存储
+     * 支持两种格式：
+     * 1. 老格式：String - "[2025-12-08 08:03:02] FileName: ..."
+     * 2. 新格式：Object - {logTime: 1733616182000, content: "FileName: ..."}
      */
     @Field(FileTaskLogDocField.CONTENT_LIST)
-    private List<String> contentList;
+    private List<Object> contentList;
+
+    /**
+     * 时区改造时添加，包含原始的日志内容和时间戳
+     * 仅在写入的时候使用，读取的时候会读到contentList中
+     */
+    private List<LogEntry> writeContentList;
 
     /**
      * 拼接处理后的日志的内容。该字段不会写入到db
      */
+    @CompatibleImplementation(
+        deprecatedVersion = "3.12.1",
+        type = CompatibleType.HISTORY_LOGIC,
+        explain = "时区改造后将不再使用，新版本使用contentList，为了发布过程中兼容不删，发布完成后，重构代码移除对content字段的使用"
+    )
     private String content;
 
     public static FileTaskLogDoc convert(ServiceFileTaskLogDTO serviceFileLog) {
         FileTaskLogDoc fileLog = new FileTaskLogDoc();
-        fileLog.setContent(serviceFileLog.getContent());
         fileLog.setMode(serviceFileLog.getMode());
         if (FileTaskModeEnum.UPLOAD.getValue().equals(serviceFileLog.getMode())) {
             fileLog.setHostId(serviceFileLog.getSrcHostId());
@@ -247,18 +290,78 @@ public class FileTaskLogDoc {
         fileLog.setStatusDesc(serviceFileLog.getStatusDesc());
         fileLog.setStatus(serviceFileLog.getStatus());
         fileLog.setTaskId(fileLog.buildTaskId());
+
+        // 兼容老版本，老的上层服务(job-execute)传来的 老版本content内包含时间字符串和日志
+        // 版本发布后可删除
+        fileLog.setContent(serviceFileLog.getContent());
+        // 新版本：如果有contentList，则构建writeContentList（包含LogEntry对象）
+        if (CollectionUtils.isNotEmpty(serviceFileLog.getContentList())) {
+            List<LogEntry> writeContentList = new ArrayList<>();
+            serviceFileLog.getContentList().forEach(timeAndRawContent -> {
+                writeContentList.add(new LogEntry(timeAndRawContent.getTime(), timeAndRawContent.getRawLog()));
+            });
+            fileLog.setWriteContentList(writeContentList);
+        }
+        
         return fileLog;
+    }
+
+    /**
+     * 将新老格式的单个日志对象转换为FileTaskTimeAndRawLogDTO
+     * mongodb中有存量老数据，兼容读取部分代码短时间内不可删除
+     * @param contentDocObj 老格式：字符串 或 新格式：LogEntry对象
+     * @return FileTaskTimeAndRawLogDTO
+     */
+    private FileTaskTimeAndRawLogDTO compatiblyBuildContentFromDoc(Object contentDocObj) {
+        FileTaskTimeAndRawLogDTO timeAndRawLog = new FileTaskTimeAndRawLogDTO();
+
+        if (contentDocObj instanceof String) {
+            // 老格式：字符串，已包含时间戳，time字段为null
+            timeAndRawLog.setTime(null);
+            timeAndRawLog.setRawLog((String) contentDocObj);
+        } else if (contentDocObj instanceof Map) {
+            // 新格式：LogEntry对象，提取logTime和content
+            @SuppressWarnings("unchecked")
+            Map<String, Object> logEntry = (Map<String, Object>) contentDocObj;
+            Object logTimeObj = logEntry.get(FileTaskLogDocField.FILE_TASK_LOG_TIME);
+            Object logContentObj = logEntry.get(FileTaskLogDocField.FILE_TASK_CONTENT);
+
+            // 提取时间戳
+            if (logTimeObj != null) {
+                if (logTimeObj instanceof Long) {
+                    timeAndRawLog.setTime((Long) logTimeObj);
+                } else if (logTimeObj instanceof Integer) {
+                    timeAndRawLog.setTime(((Integer) logTimeObj).longValue());
+                }
+            }
+
+            // 提取原始日志内容
+            if (logContentObj != null) {
+                timeAndRawLog.setRawLog(logContentObj.toString());
+            }
+        }
+
+        return timeAndRawLog;
     }
 
     public ServiceFileTaskLogDTO toServiceFileTaskLogDTO() {
         ServiceFileTaskLogDTO fileLog = new ServiceFileTaskLogDTO();
         fileLog.setTaskId(getTaskId());
-        if (StringUtils.isNotEmpty(content)) {
-            fileLog.setContent(content);
-        } else if (CollectionUtils.isNotEmpty(contentList)) {
-            content = StringUtils.join(contentList, null);
-            fileLog.setContent(content);
+        
+        // 填充contentList字段，包含时间戳和原始日志
+        if (CollectionUtils.isNotEmpty(contentList)) {
+            List<FileTaskTimeAndRawLogDTO> timeAndRawLogList =
+                new ArrayList<>();
+            for (Object item : contentList) {
+                FileTaskTimeAndRawLogDTO timeAndRawLog = compatiblyBuildContentFromDoc(item);
+                timeAndRawLogList.add(timeAndRawLog);
+            }
+            fileLog.setContentList(timeAndRawLogList);
         }
+        
+        // 兼容旧逻辑：使用contentList填充content字段，将时间戳转化为系统时区的时间字符串
+        fillContentCompatibly(fileLog);
+        
         fileLog.setMode(mode);
         fileLog.setSrcExecuteObjectId(srcExecuteObjectId);
         fileLog.setSrcHostId(srcHostId);
@@ -307,5 +410,39 @@ public class FileTaskLogDoc {
 
     public String getTaskId() {
         return this.taskId == null ? buildTaskId() : this.taskId;
+    }
+
+    /**
+     * 为了发布时上层服务兼容，仍填充content字段，从mongodb读出时使用
+     * @param serviceFileTaskLogDTO 返回上层的文件任务日志
+     */
+    @CompatibleImplementation(
+        name = "fill_content",
+        deprecatedVersion = "3.12.1",
+        type = CompatibleType.HISTORY_LOGIC,
+        explain = "为了发布时上层服务(job-execute)兼容，仍填充content字段，新版本都使用contentList，" +
+            "发布后可重构代码移除对content字段的使用"
+    )
+    private void fillContentCompatibly(ServiceFileTaskLogDTO serviceFileTaskLogDTO) {
+        if (CollectionUtils.isNotEmpty(serviceFileTaskLogDTO.getContentList())) {
+            List<String> logWithTimeStrList = new ArrayList<>();
+            for (FileTaskTimeAndRawLogDTO timeAndRawLog : serviceFileTaskLogDTO.getContentList()) {
+                if (timeAndRawLog.getTime() == null) {
+                    logWithTimeStrList.add(timeAndRawLog.getRawLog());
+                } else {
+                    String contentWithTime = "[" +
+                        DateUtils.formatUnixTimestamp(
+                            timeAndRawLog.getTime(),
+                            ChronoUnit.MILLIS,
+                            DateUtils.FILE_TASK_LOG_FORMAT,
+                            ZoneId.systemDefault()) +
+                        "] " + timeAndRawLog.getRawLog() + "\n";
+                    logWithTimeStrList.add(contentWithTime);
+                }
+            }
+            serviceFileTaskLogDTO.setContent(StringUtils.join(logWithTimeStrList, null));
+        } else {
+            serviceFileTaskLogDTO.setContent("");
+        }
     }
 }
