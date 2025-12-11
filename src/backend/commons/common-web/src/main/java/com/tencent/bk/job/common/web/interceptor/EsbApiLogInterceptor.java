@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.annotation.JobInterceptor;
 import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletResponse;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
@@ -140,8 +141,8 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
             String requestId = request.getHeader(JobCommonHeaders.BK_GATEWAY_REQUEST_ID);
             int respStatus = response.getStatus();
             long cost = System.currentTimeMillis() - startTimeInMills;
-            String costTag = genCostTag(cost);
-            log.info("request-id: {}|API: {}|uri: {}|appCode: {}|username: {}|status: {}|resp: {}|costTag:{}|cost: {}",
+            String costTag = TimeUtil.genCostTimeTag(cost);
+            log.info("request-id: {}|OpenAPI: {}|uri: {}|appCode: {}|username: {}|status: {}|resp: {}|costTag:{}|cost: {}",
                 requestId,
                 apiName,
                 request.getRequestURI(),
@@ -159,25 +160,4 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
         }
     }
 
-    /**
-     * 为不同阶梯的请求耗时生成标签
-     *
-     * @param cost 耗时（ms）
-     * @return 耗时标签
-     */
-    private String genCostTag(long cost) {
-        if (cost < 1000) {
-            return "lessThan1s";
-        } else if (cost <= 5000) {
-            return "1sTo5s";
-        } else if (cost <= 15000) {
-            return "5sTo15s";
-        } else if (cost <= 30000) {
-            return "15sTo30s";
-        } else if (cost <= 60000) {
-            return "30sTo1min";
-        } else {
-            return "moreThan1min";
-        }
-    }
 }
