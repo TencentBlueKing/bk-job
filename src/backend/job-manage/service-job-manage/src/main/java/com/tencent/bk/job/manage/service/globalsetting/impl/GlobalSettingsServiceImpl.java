@@ -658,6 +658,10 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         return bkApiGatewayProperties.getBkUserWeb().getUrl();
     }
 
+    private String getBkUserSaasWebRootUrl() {
+        return jobManageConfig.getBkUserSaasUrl();
+    }
+
     private String getNodemanRootUrl() {
         String url = jobManageConfig.getNodemanServerUrl();
         if (StringUtils.isBlank(url)) {
@@ -683,6 +687,7 @@ public class GlobalSettingsServiceImpl implements GlobalSettingsService {
         urlMap.put(RelatedUrlKeys.KEY_BK_SHARED_RES_BASE_JS_URL, getBkSharedResBaseJsUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_USER_WEB_API_ROOT_URL, getBkUserWebApiRootUrl());
         urlMap.put(RelatedUrlKeys.KEY_BK_LOGIN_URL, getBkLoginUrl());
+        urlMap.put(RelatedUrlKeys.KEY_BK_USER_SAAS_WEB_ROOT_URL, getBkUserSaasWebRootUrl());
         return urlMap;
     }
 

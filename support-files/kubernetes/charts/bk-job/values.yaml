@@ -535,6 +535,8 @@ bkPaasUrl: "http://paas.example.com"
 bkLoginUrl: "http://paas.example.com/login/"
 ## 蓝鲸 cmdb url
 bkCmdbUrl: "http://cmdb.example.com"
+# 用户管理SaaS web页面url
+bkUserSaasWebUrl: "http://bk-user.example.com"
 # 蓝鲸 IAM url
 bkIamUrl: "http://bkiam.example.com"
 # 蓝鲸制品库 url
