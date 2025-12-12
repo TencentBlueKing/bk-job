@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.logsvr.model.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
@@ -261,21 +262,26 @@ public class ServiceFileTaskLogDTO {
      * 从contentList中获取完整的日志内容，包括时间和原始日志
      * @return 日志内容
      */
+    @JsonIgnore
     public String getFullContentWithTime() {
         // 优先使用contentList（新版本）
         if (CollectionUtils.isNotEmpty(contentList)) {
             StringBuilder sb = new StringBuilder();
             for (FileTaskTimeAndRawLogDTO timeAndRawLog : contentList) {
-                ZoneId zoneId =
-                    JobContextUtil.getTimeZone() != null ? JobContextUtil.getTimeZone() : ZoneId.systemDefault();
-                String timeStr = DateUtils.formatUnixTimestamp(
-                    timeAndRawLog.getTime(),
-                    ChronoUnit.MILLIS,
-                    DateUtils.FILE_TASK_LOG_FORMAT,
-                    zoneId
-                );
-
-                sb.append("[").append(timeStr).append("] ").append(timeAndRawLog.getRawLog()).append("\n");
+                // mongodb中，同一个文件分发任务，新老结构日志共存的情况
+                if (timeAndRawLog.getTime() == null) {
+                    sb.append(timeAndRawLog.getRawLog());
+                } else {
+                    ZoneId zoneId =
+                        JobContextUtil.getTimeZone() != null ? JobContextUtil.getTimeZone() : ZoneId.systemDefault();
+                    String timeStr = DateUtils.formatUnixTimestamp(
+                        timeAndRawLog.getTime(),
+                        ChronoUnit.MILLIS,
+                        DateUtils.FILE_TASK_LOG_FORMAT,
+                        zoneId
+                    );
+                    sb.append("[").append(timeStr).append("] ").append(timeAndRawLog.getRawLog());
+                }
             }
             return sb.toString();
         }
