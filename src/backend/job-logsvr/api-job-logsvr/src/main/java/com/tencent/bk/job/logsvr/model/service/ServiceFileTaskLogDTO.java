@@ -268,16 +268,20 @@ public class ServiceFileTaskLogDTO {
         if (CollectionUtils.isNotEmpty(contentList)) {
             StringBuilder sb = new StringBuilder();
             for (FileTaskTimeAndRawLogDTO timeAndRawLog : contentList) {
-                ZoneId zoneId =
-                    JobContextUtil.getTimeZone() != null ? JobContextUtil.getTimeZone() : ZoneId.systemDefault();
-                String timeStr = DateUtils.formatUnixTimestamp(
-                    timeAndRawLog.getTime(),
-                    ChronoUnit.MILLIS,
-                    DateUtils.FILE_TASK_LOG_FORMAT,
-                    zoneId
-                );
-
-                sb.append("[").append(timeStr).append("] ").append(timeAndRawLog.getRawLog()).append("\n");
+                // mongodb中，同一个文件分发任务，新老结构日志共存的情况
+                if (timeAndRawLog.getTime() == null) {
+                    sb.append(timeAndRawLog.getRawLog());
+                } else {
+                    ZoneId zoneId =
+                        JobContextUtil.getTimeZone() != null ? JobContextUtil.getTimeZone() : ZoneId.systemDefault();
+                    String timeStr = DateUtils.formatUnixTimestamp(
+                        timeAndRawLog.getTime(),
+                        ChronoUnit.MILLIS,
+                        DateUtils.FILE_TASK_LOG_FORMAT,
+                        zoneId
+                    );
+                    sb.append("[").append(timeStr).append("] ").append(timeAndRawLog.getRawLog());
+                }
             }
             return sb.toString();
         }
