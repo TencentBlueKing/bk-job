@@ -22,40 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.gateway.web.server;
+package com.tencent.bk.job.gateway.web.server.utils;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
+import reactor.netty.http.server.ConnectionInformation;
+
+import javax.annotation.Nullable;
+import java.net.SocketAddress;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
- * AccessLog输出字段注册器
+ * Access Log安全工具类，消除null警告
  */
-public class AccessLogFieldRegistry {
-    private final List<String> fields = new ArrayList<>();
+public class AccessLogValueSafeUtil {
 
-    public AccessLogFieldRegistry() {
-        // AccessLog按此注册顺序输出
-        register(AccessLogConstants.LogField.START_TIME);
-        register(AccessLogConstants.LogField.TRACE_ID);
-        register(AccessLogConstants.LogField.SPAN_ID);
-        register(AccessLogConstants.LogField.USER_NAME);
-        register(AccessLogConstants.LogField.METHOD);
-        register(AccessLogConstants.LogField.PATH);
-        register(AccessLogConstants.LogField.PROTOCOL);
-        register(AccessLogConstants.LogField.CLIENT_IP);
-        register(AccessLogConstants.LogField.USER_AGENT);
-        register(AccessLogConstants.LogField.UPSTREAM);
-        register(AccessLogConstants.LogField.END_TIME);
-        register(AccessLogConstants.LogField.STATUS);
-        register(AccessLogConstants.LogField.RESPONSE_SIZE);
-        register(AccessLogConstants.LogField.DURATION);
+    public static String clientIP(@Nullable ConnectionInformation connectionInformation) {
+        if (connectionInformation == null) {
+            return AccessLogConstants.Default.MISSING;
+        }
+        SocketAddress socketAddress = connectionInformation.connectionRemoteAddress();
+        if (socketAddress == null) {
+            return AccessLogConstants.Default.MISSING;
+        }
+        return AccessLogNetUtil.formatSocketAddress(socketAddress);
     }
 
-    public void register(String key) {
-        fields.add(key);
+    public static String dateTime(@Nullable ZonedDateTime dateTime, String formatter) {
+        if (dateTime == null) {
+            return AccessLogConstants.Default.MISSING;
+        }
+        return dateTime.format(DateTimeFormatter.ofPattern(formatter));
     }
 
-    public List<String> getFields() {
-        return fields;
+    public static String uri(@Nullable CharSequence charSequence) {
+        if (charSequence == null) {
+            return AccessLogConstants.Default.MISSING;
+        }
+        return charSequence.toString();
     }
 }

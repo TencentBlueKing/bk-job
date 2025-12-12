@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.gateway.web.server;
 
-import com.tencent.bk.job.gateway.web.server.utils.AccessLogNetUtils;
+import com.tencent.bk.job.gateway.web.server.utils.AccessLogValueSafeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
@@ -70,14 +70,15 @@ public class NettyAccessLogCustomizer implements NettyFactoryCustomizer {
     }
 
     private AccessLog createDefaultAccessLog(AccessLogArgProvider provider) {
-        return AccessLog.create(AccessLogConstants.Format.FMT_DEFAULT_LOG,
-            AccessLogNetUtils.formatSocketAddress(provider.remoteAddress()),
+        return AccessLog.create(AccessLogConstants.Format.DEFAULT_LOG,
+            AccessLogValueSafeUtil.clientIP(provider.connectionInformation()),
+            provider.user(),
+            AccessLogValueSafeUtil.dateTime(provider.accessDateTime(), AccessLogConstants.Format.DEFAULT_TIME),
             provider.method(),
             provider.uri(),
             provider.protocol(),
             provider.status(),
-            provider.contentLength() > 0 ? provider.contentLength() :
-                AccessLogConstants.Default.MISSING,
+            provider.contentLength() > -1 ? provider.contentLength() : AccessLogConstants.Default.MISSING,
             provider.duration()
         );
     }

@@ -48,7 +48,7 @@ public class GatewayWebServerFactoryCustomizer extends NettyWebServerFactoryCust
                                              ServerProperties serverProperties,
                                              ObjectProvider<List<NettyFactoryCustomizer>> customizersProvider) {
         super(environment, serverProperties);
-        this.customizers = customizersProvider.getIfAvailable(Collections::emptyList);;
+        this.customizers = customizersProvider.getIfAvailable(Collections::emptyList);
     }
 
     @Override
@@ -60,8 +60,8 @@ public class GatewayWebServerFactoryCustomizer extends NettyWebServerFactoryCust
                     log.debug("Applying additional Netty customizers: {}", customizer.getClass().getSimpleName());
                     customizer.customize(factory);
                 } catch (Exception e) {
-                    log.warn("Applying additional Netty customizer {} failed: {}",
-                        customizer.getClass().getSimpleName(), e.getMessage());
+                    log.warn("Applying additional Netty customizer {} failed.",
+                        customizer.getClass().getSimpleName(), e);
                 }
             }
         }

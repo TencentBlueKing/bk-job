@@ -39,16 +39,14 @@ public class RequestContextMetadataProvider implements AccessLogMetadataProvider
     @Override
     public Map<String, Object> extract(AccessLogArgProvider provider) {
         Map<String, Object> map = new LinkedHashMap<>();
-        map.put(AccessLogConstants.LogField.LOG_UPSTREAM,
-            provider.requestHeader(AccessLogConstants.Header.HEAD_GATEWAY_UPSTREAM));
-        map.put(AccessLogConstants.LogField.LOG_USER_NAME, provider.requestHeader(JobCommonHeaders.USERNAME) != null ?
+        map.put(AccessLogConstants.LogField.UPSTREAM,
+            provider.requestHeader(AccessLogConstants.Header.UPSTREAM_SERVER));
+        map.put(AccessLogConstants.LogField.USER_NAME, provider.requestHeader(JobCommonHeaders.USERNAME) != null ?
             provider.requestHeader(JobCommonHeaders.USERNAME) : provider.requestHeader("username"));
-        map.put(AccessLogConstants.LogField.LOG_TRACE_ID,
-            provider.requestHeader(AccessLogConstants.Header.HEAD_TRACE_ID) != null ?
-                provider.requestHeader(AccessLogConstants.Header.HEAD_TRACE_ID) :
-                provider.responseHeader(JobCommonHeaders.REQUEST_ID));
-        map.put(AccessLogConstants.LogField.LOG_SPAN_ID,
-            provider.requestHeader(AccessLogConstants.Header.HEAD_SPAN_ID));
+        map.put(AccessLogConstants.LogField.TRACE_ID,
+            provider.responseHeader(JobCommonHeaders.REQUEST_ID));
+        map.put(AccessLogConstants.LogField.SPAN_ID,
+            provider.requestHeader(AccessLogConstants.Header.SPAN_ID));
         return map;
     }
 }

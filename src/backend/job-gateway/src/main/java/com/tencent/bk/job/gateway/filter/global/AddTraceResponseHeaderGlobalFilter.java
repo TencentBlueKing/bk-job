@@ -62,7 +62,7 @@ public class AddTraceResponseHeaderGlobalFilter implements GlobalFilter, Ordered
             ServerHttpResponse response = exchange.getResponse();
             response.getHeaders().add(JobCommonHeaders.REQUEST_ID, traceId);
             // 由于Reactor Netty异步模型存在线程切换，trace可能无法正确传播,将trace写入请求头确保访问日志能稳定获取链路信息
-            request.mutate().header(AccessLogConstants.Header.HEAD_SPAN_ID, span.context().spanId());
+            request.mutate().header(AccessLogConstants.Header.SPAN_ID, span.context().spanId());
             return chain.filter(exchange.mutate().request(request).build());
         } catch (Exception e) {
             span.error(e);

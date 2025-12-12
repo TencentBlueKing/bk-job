@@ -51,6 +51,15 @@ public class AccessLogEnricherFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange,
                              GatewayFilterChain chain) {
+        try {
+            return doFilter(exchange, chain);
+        } catch (Exception e) {
+            log.warn("Access log enricher filter error.", e);
+            return chain.filter(exchange);
+        }
+    }
+
+    private Mono<Void> doFilter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
 
         // 获取负载均衡选择的后端实例
@@ -59,7 +68,7 @@ public class AccessLogEnricherFilter implements GlobalFilter, Ordered {
 
         RouteServerInfo routeServerInfo = buildRouteInfo(exchange, resp.getServer());
         request.mutate()
-            .header(AccessLogConstants.Header.HEAD_GATEWAY_UPSTREAM,
+            .header(AccessLogConstants.Header.UPSTREAM_SERVER,
                 routeServerInfo != null ? routeServerInfo.toString() : AccessLogConstants.Default.MISSING)
             .build();
         return chain.filter(exchange.mutate().request(request).build());

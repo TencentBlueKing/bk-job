@@ -26,11 +26,10 @@ package com.tencent.bk.job.gateway.web.server.provider;
 
 import com.tencent.bk.job.common.constant.HttpHeader;
 import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
-import com.tencent.bk.job.gateway.web.server.utils.AccessLogNetUtils;
+import com.tencent.bk.job.gateway.web.server.utils.AccessLogValueSafeUtil;
 import reactor.netty.http.server.logging.AccessLogArgProvider;
 
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -42,20 +41,21 @@ public class DefaultMetadataProvider implements AccessLogMetadataProvider {
     @Override
     public Map<String, Object> extract(AccessLogArgProvider provider) {
         Map<String, Object> map = new LinkedHashMap<>();
-        map.put(AccessLogConstants.LogField.LOG_METHOD, provider.method());
-        map.put(AccessLogConstants.LogField.LOG_STATUS, provider.status());
-        map.put(AccessLogConstants.LogField.LOG_DURATION, provider.duration() + "ms");
-        map.put(AccessLogConstants.LogField.LOG_PROTOCOL, provider.protocol());
-        map.put(AccessLogConstants.LogField.LOG_CLIENT_IP,
-            AccessLogNetUtils.formatSocketAddress(provider.remoteAddress()));
-        map.put(AccessLogConstants.LogField.LOG_USER_AGENT, provider.requestHeader(HttpHeader.HDR_UER_AGENT));
-        map.put(AccessLogConstants.LogField.LOG_RESPONSE_SIZE, provider.contentLength());
-        map.put(AccessLogConstants.LogField.LOG_START_TIME,
-            provider.accessDateTime().format(DateTimeFormatter.ofPattern(AccessLogConstants.Format.FMT_DEFAULT_TIME)));
-        map.put(AccessLogConstants.LogField.LOG_END_TIME,
-            ZonedDateTime.now().format(DateTimeFormatter.ofPattern(AccessLogConstants.Format.FMT_DEFAULT_TIME)));
-        String uri = provider.uri().toString();
-        map.put(AccessLogConstants.LogField.LOG_PATH, uri.contains("?") ? uri.substring(0, uri.indexOf("?")) : uri);
+        map.put(AccessLogConstants.LogField.METHOD, provider.method());
+        map.put(AccessLogConstants.LogField.STATUS, provider.status());
+        map.put(AccessLogConstants.LogField.DURATION, provider.duration() + "ms");
+        map.put(AccessLogConstants.LogField.PROTOCOL, provider.protocol());
+        map.put(AccessLogConstants.LogField.CLIENT_IP,
+            AccessLogValueSafeUtil.clientIP(provider.connectionInformation()));
+        map.put(AccessLogConstants.LogField.USER_AGENT, provider.requestHeader(HttpHeader.HDR_UER_AGENT));
+        map.put(AccessLogConstants.LogField.RESPONSE_SIZE, provider.contentLength());
+        map.put(AccessLogConstants.LogField.START_TIME,
+            AccessLogValueSafeUtil.dateTime(provider.accessDateTime(), AccessLogConstants.Format.DEFAULT_TIME));
+        map.put(AccessLogConstants.LogField.END_TIME,
+            AccessLogValueSafeUtil.dateTime(ZonedDateTime.now(), AccessLogConstants.Format.DEFAULT_TIME));
+        String uri = AccessLogValueSafeUtil.uri(provider.uri());
+        map.put(AccessLogConstants.LogField.PATH,
+            uri.contains("?") ? uri.substring(0, uri.indexOf("?")) : uri);
         return map;
     }
 }

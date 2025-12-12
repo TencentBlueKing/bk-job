@@ -32,12 +32,17 @@ import reactor.netty.http.server.logging.AccessLogArgProvider;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Access Log元数据收集器，汇总所有已注册的AccessLogMetadataProvider提供的元数据
  */
 @Slf4j
 public class AccessLogMetadataCollector {
+    // 记录每provider上次打印报错堆栈的时间戳
+    private final Map<String, Long> lastErrorLogTimeByProvider = new ConcurrentHashMap<>();
+    // 两次打印报错堆栈的时间间隔(10s)，避免日志刷屏
+    private static final long ERROR_LOG_INTERVAL_MS = 10_000;
 
     private final List<AccessLogMetadataProvider> providers;
 
@@ -53,8 +58,15 @@ public class AccessLogMetadataCollector {
             try {
                 result.putAll(provider.extract(accessLogArgProvider));
             } catch (Exception e) {
-                log.warn("AccessLog provider {} collect failed: {}",
-                    provider.getClass().getSimpleName(), e.getMessage());
+                String providerName = provider.getClass().getSimpleName();
+                long now = System.currentTimeMillis();
+                long last = lastErrorLogTimeByProvider.getOrDefault(providerName, 0L);
+                if (now - last > ERROR_LOG_INTERVAL_MS) {
+                    lastErrorLogTimeByProvider.put(providerName, now);
+                    log.warn("AccessLog provider {} collect failed", providerName, e);
+                } else {
+                    log.warn("AccessLog provider {} collect failed: {}", providerName, e.getMessage());
+                }
             }
         }
         return result;

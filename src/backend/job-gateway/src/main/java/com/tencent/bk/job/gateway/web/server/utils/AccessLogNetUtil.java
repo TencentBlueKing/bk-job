@@ -33,7 +33,7 @@ import java.net.SocketAddress;
 /**
  * 网络地址相关格式化工具类
  */
-public class AccessLogNetUtils {
+public class AccessLogNetUtil {
 
     /**
      * 格式化SocketAddress，返回host:port格式的字符串

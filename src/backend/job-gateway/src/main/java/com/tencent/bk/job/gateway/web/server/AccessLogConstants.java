@@ -33,37 +33,36 @@ public class AccessLogConstants {
      * accessLog属性，会在日志中输出
      */
     public static final class LogField {
-        public static final String LOG_STATUS = "status";
-        public static final String LOG_USER_NAME = "userName";
-        public static final String LOG_METHOD = "method";
-        public static final String LOG_PATH = "path";
-        public static final String LOG_START_TIME = "startTime";
-        public static final String LOG_END_TIME = "endTime";
-        public static final String LOG_DURATION = "duration";
-        public static final String LOG_PROTOCOL = "protocol";
-        public static final String LOG_CLIENT_IP = "clientIp";
-        public static final String LOG_USER_AGENT = "userAgent";
-        public static final String LOG_UPSTREAM = "upstream";
-        public static final String LOG_RESPONSE_SIZE = "responseSize";
-        public static final String LOG_TRACE_ID = "traceId";
-        public static final String LOG_SPAN_ID = "spanId";
+        public static final String STATUS = "status";
+        public static final String USER_NAME = "userName";
+        public static final String METHOD = "method";
+        public static final String PATH = "path";
+        public static final String START_TIME = "startTime";
+        public static final String END_TIME = "endTime";
+        public static final String DURATION = "duration";
+        public static final String PROTOCOL = "protocol";
+        public static final String CLIENT_IP = "clientIp";
+        public static final String USER_AGENT = "userAgent";
+        public static final String UPSTREAM = "upstream";
+        public static final String RESPONSE_SIZE = "responseSize";
+        public static final String TRACE_ID = "traceId";
+        public static final String SPAN_ID = "spanId";
     }
 
     /**
      * 请求头，用于上下文传递信息
      */
     public static final class Header {
-        public static final String HEAD_GATEWAY_UPSTREAM = "Job-Upstream-Server";
-        public static final String HEAD_TRACE_ID = "Job-Trace-Id";
-        public static final String HEAD_SPAN_ID = "Job-Span-Id";
+        public static final String UPSTREAM_SERVER = "X-Bk-Job-Upstream-Server";
+        public static final String SPAN_ID = "X-Bk-Job-Span-Id";
     }
 
     /**
      * 格式化常量
      */
     public static final class Format {
-        public static final String FMT_DEFAULT_TIME = "yyyy-MM-dd HH:mm:ss.SSS";
-        public static final String FMT_DEFAULT_LOG = "{} \"{} {} {}\" {} {} {}ms";
+        public static final String DEFAULT_TIME = "yyyy-MM-dd HH:mm:ss.SSS";
+        public static final String DEFAULT_LOG = "{} - {} [{}] \"{} {} {}\" {} {} {}ms";
     }
 
     public static final class Default {
