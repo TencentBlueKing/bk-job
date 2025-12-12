@@ -74,6 +74,9 @@ data:
     audit:
       enabled: {{ .Values.audit.enabled }}
       system-id: {{ .Values.audit.systemId }}
+    bk-user:
+      saas:
+        url: {{ .Values.bkUserSaasWebUrl }}
     paas:
       server:
         url: {{ .Values.bkPaasUrl }}

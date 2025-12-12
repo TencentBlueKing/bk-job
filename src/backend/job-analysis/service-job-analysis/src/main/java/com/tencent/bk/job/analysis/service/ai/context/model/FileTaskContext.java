@@ -147,7 +147,7 @@ public class FileTaskContext {
                 uploadFileErrorInfo.setSourceContainerDescription(sourceContainerDescription);
             }
             // 填充错误日志信息
-            String lastLineLog = getLastLineLog(uploadFailLog.getContent());
+            String lastLineLog = getLastLineLog(uploadFailLog.getFullContentWithTime());
             uploadFileErrorInfo.setErrorLog(lastLineLog);
 
             uploadFileErrorInfoList.add(uploadFileErrorInfo);
@@ -201,7 +201,7 @@ public class FileTaskContext {
                 downloadFileErrorInfo.setTargetContainerDescription(targetContainerDescription);
             }
             // 填充错误日志信息
-            downloadFileErrorInfo.setErrorLog(getLastLineLog(downloadFailLog.getContent()));
+            downloadFileErrorInfo.setErrorLog(getLastLineLog(downloadFailLog.getFullContentWithTime()));
             downloadFileErrorInfoList.add(downloadFileErrorInfo);
         }
         return JsonUtils.toJson(downloadFileErrorInfoList);

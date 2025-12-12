@@ -22,60 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.backup.model.web;
+package com.tencent.bk.job.logsvr.model.service;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * @since 23/7/2020 15:57
+ * 文件任务的单条日志，包含时间戳和原始日志
+ * 时区改造后，mongodb文件分发日志的contentList字段中每个元素都是FileTaskTimeAndRawLogDTO
  */
 @Data
-@ApiModel("作业日志信息")
-public class LogEntityVO {
+@NoArgsConstructor
+@AllArgsConstructor
+public class FileTaskTimeAndRawLogDTO {
 
     /**
-     * 日志类型
-     *
-     * @see com.tencent.bk.job.backup.constant.LogEntityTypeEnum
+     * 日志产生的时间戳，单位:毫秒
+     * 当time字段为null，表示rawLog是老数据，格式为 [yyyy-MM-dd HH:mm:ss] file task log
      */
-    @ApiModelProperty("日志类型 1-普通文字 2-错误 3-普通链接 4-关联模版 5-关联执行方案 6-提示输入密码 7-提示重新输入密码")
-    private Integer type;
+    @JsonProperty("time")
+    private Long time;
 
     /**
-     * 日志产生时间
+     * 原始日志
      */
-    @ApiModelProperty("日志时间戳，单位毫秒")
-    private Long timestamp;
-
-    /**
-     * 日志内容
-     */
-    @ApiModelProperty("日志消息")
-    private String content;
-
-    /**
-     * 日志关联模版 ID
-     */
-    @ApiModelProperty("该行关联模版 ID")
-    private Long templateId;
-
-    /**
-     * 日志关联执行方案 ID
-     */
-    @ApiModelProperty("该行关联执行方案 ID")
-    private Long planId;
-
-    /**
-     * 链接文字
-     */
-    @ApiModelProperty("链接文字")
-    private String linkText;
-
-    /**
-     * 链接地址
-     */
-    @ApiModelProperty("链接地址")
-    private String linkUrl;
+    @JsonProperty("rawLog")
+    private String rawLog;
 }

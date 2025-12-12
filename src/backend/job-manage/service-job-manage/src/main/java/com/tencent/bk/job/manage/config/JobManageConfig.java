@@ -113,4 +113,12 @@ public class JobManageConfig {
      */
     @Value("${job.encrypt.password}")
     private String encryptPassword;
+
+    //------------------------------ BK-User ----------------------------------------------
+
+    /**
+     * bk-user saas web页面地址
+     */
+    @Value("${bkUser.saas.url:bk-user.example.com}")
+    private String bkUserSaasUrl;
 }
