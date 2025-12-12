@@ -45,6 +45,10 @@ import java.util.Map;
 @Data
 public class OpenApiRequestInfo<T> {
     private final HttpMethodEnum method;
+    /**
+     * API名称，用作指标数据维度取值
+     */
+    private final String apiName;
     private final String uri;
     /**
      * http url 格式 Query 参数，比如 ?name=admin&type=1
@@ -69,6 +73,12 @@ public class OpenApiRequestInfo<T> {
 
     public OpenApiRequestInfo(Builder<T> builder) {
         this.method = builder.method;
+        if (builder.apiName != null) {
+            this.apiName = builder.apiName;
+        } else {
+            // 未指定apiName，默认使用uri作为接口名称
+            this.apiName = builder.uri;
+        }
         this.uri = builder.uri;
         this.queryParams = builder.queryParams;
         this.queryParamsMap = builder.queryParamsMap;
@@ -85,6 +95,7 @@ public class OpenApiRequestInfo<T> {
 
     public static class Builder<T> {
         private HttpMethodEnum method;
+        private String apiName;
         private String uri;
         private String queryParams;
         private Map<String, String> queryParamsMap;
@@ -96,6 +107,11 @@ public class OpenApiRequestInfo<T> {
 
         public Builder<T> method(HttpMethodEnum method) {
             this.method = method;
+            return this;
+        }
+
+        public Builder<T> apiName(String apiName) {
+            this.apiName = apiName;
             return this;
         }
 

@@ -1,6 +1,7 @@
 package com.tencent.bk.job.common.iam.aspect;
 
 import com.tencent.bk.job.common.iam.metrics.MetricsConstants;
+import com.tencent.bk.job.common.util.TimeUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -27,8 +28,8 @@ public class IamMetricsAspect {
         this.meterRegistry = meterRegistry;
     }
 
-    @Pointcut("within(com.tencent.bk.sdk.iam.helper.AuthHelper) " +
-        "&& execution (* com.tencent.bk.sdk.iam.helper.AuthHelper.isAllowed(..))")
+    @Pointcut("within(com.tencent.bk.sdk.iam.helper.AuthHelper+) " +
+        "&& execution (* com.tencent.bk.sdk.iam.helper.AuthHelper+.isAllowed(..))")
     public void processIsAllowedAction() {
     }
 
@@ -70,12 +71,23 @@ public class IamMetricsAspect {
             Tag.of(MetricsConstants.TAG_KEY_ACTION, action),
             Tag.of(MetricsConstants.TAG_KEY_STATUS, status)
         );
+        long costTimeMillis = System.currentTimeMillis() - startTimeMills;
         Timer.builder(MetricsConstants.NAME_AUTH_HELPER_IS_ALLOW)
             .tags(tags)
             .publishPercentileHistogram(true)
             .minimumExpectedValue(Duration.ofMillis(10))
             .maximumExpectedValue(Duration.ofSeconds(30L))
             .register(meterRegistry)
-            .record(System.currentTimeMillis() - startTimeMills, TimeUnit.MILLISECONDS);
+            .record(costTimeMillis, TimeUnit.MILLISECONDS);
+        if (costTimeMillis > 1000) {
+            String costTag = TimeUtil.genCostTimeTag(costTimeMillis);
+            log.info(
+                "AuthSlow|action: {}|status: {}|costTag:{}|cost: {}",
+                action,
+                status,
+                costTag,
+                costTimeMillis
+            );
+        }
     }
 }

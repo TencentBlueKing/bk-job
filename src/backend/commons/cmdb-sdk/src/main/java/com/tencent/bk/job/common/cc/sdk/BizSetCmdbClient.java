@@ -109,6 +109,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
                 tenantId,
                 HttpMethodEnum.POST,
                 SEARCH_BUSINESS_SET,
+                SEARCH_BUSINESS_SET,
                 null,
                 req,
                 new TypeReference<EsbResp<SearchBizSetResp>>() {
@@ -195,6 +196,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
                 tenantId,
                 HttpMethodEnum.POST,
                 SEARCH_BUSINESS_SET,
+                SEARCH_BUSINESS_SET,
                 null,
                 req,
                 new TypeReference<EsbResp<SearchBizSetResp>>() {
@@ -227,6 +229,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
             EsbResp<SearchBizInBusinessSetResp> resp = requestCmdbApi(
                 tenantId,
                 HttpMethodEnum.POST,
+                SEARCH_BIZ_IN_BUSINESS_SET,
                 SEARCH_BIZ_IN_BUSINESS_SET,
                 null,
                 req,
@@ -275,6 +278,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
                 tenantId,
                 HttpMethodEnum.POST,
                 SEARCH_BIZ_IN_BUSINESS_SET,
+                SEARCH_BIZ_IN_BUSINESS_SET,
                 null,
                 req,
                 new TypeReference<EsbResp<SearchBizInBusinessSetResp>>() {
@@ -317,6 +321,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
             EsbResp<ResourceWatchResult<BizSetEventDetail>> resp = requestCmdbApi(
                 tenantId,
                 HttpMethodEnum.POST,
+                RESOURCE_WATCH,
                 uri,
                 null,
                 req,
@@ -346,6 +351,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
             EsbResp<ResourceWatchResult<BizSetRelationEventDetail>> resp = requestCmdbApi(
                 tenantId,
                 HttpMethodEnum.POST,
+                RESOURCE_WATCH,
                 uri,
                 null,
                 req,
