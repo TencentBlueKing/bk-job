@@ -127,6 +127,14 @@ public class UserUploadFileCleanTask {
     private Set<String> loadFileListFromDb() {
         Set<String> templateFile = taskTemplateService.listLocalFiles();
         Set<String> planFile = taskPlanService.listLocalFiles();
+        log.info("{} localFiles in templates to skip:", templateFile.size());
+        for (String file : templateFile) {
+            log.info("LocalFileInTemplate: {}", file);
+        }
+        log.info("{} localFiles in plans to skip:", planFile.size());
+        for (String file : planFile) {
+            log.info("LocalFileInPlan: {}", file);
+        }
         return Sets.union(templateFile, planFile);
     }
 

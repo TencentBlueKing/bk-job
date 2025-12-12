@@ -34,6 +34,7 @@ import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
@@ -78,8 +79,9 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
                                     ApplicationService applicationService,
                                     ApplicationHostDAO applicationHostDAO,
                                     HostTopoDAO hostTopoDAO,
-                                    HostCache hostCache) {
-        super("hostRelation", redisTemplate, tracer, cmdbEventSampler);
+                                    HostCache hostCache,
+                                    CmdbEventCursorManager cmdbEventCursorManager) {
+        super("hostRelation", redisTemplate, tracer, cmdbEventSampler, cmdbEventCursorManager);
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.bizCmdbClient = bizCmdbClient;

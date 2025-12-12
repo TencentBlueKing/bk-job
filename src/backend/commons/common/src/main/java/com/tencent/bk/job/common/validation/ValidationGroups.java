@@ -63,4 +63,22 @@ public interface ValidationGroups {
         interface FileSource {
         }
     }
+
+    /**
+     * 主机类型（hostId or cloudId+ip）
+     */
+    interface HostType {
+        /**
+         * 用hostId表示主机
+         */
+        interface HostId {
+        }
+
+        /**
+         * 用cloudId+ip表示主机
+         */
+        interface CloudIdIp {
+        }
+    }
+
 }

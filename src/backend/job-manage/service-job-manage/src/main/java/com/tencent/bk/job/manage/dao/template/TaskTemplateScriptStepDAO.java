@@ -33,13 +33,13 @@ import java.util.List;
 public interface TaskTemplateScriptStepDAO extends TaskScriptStepDAO {
 
     /**
-     * 获取引用该脚本的作业模版所有脚本步骤的脚本状态（包含其他脚本）
+     * 获取引用该脚本的作业模版脚本步骤的脚本状态
      *
      * @param scriptId        脚本 ID
      * @param scriptVersionId 脚本版本 ID
      */
-    List<TemplateStepScriptStatusInfo> listAllRelatedTemplateStepsScriptStatusInfo(String scriptId,
-                                                                                   Long scriptVersionId);
+    List<TemplateStepScriptStatusInfo> listRelatedTemplateStepsScriptStatusInfo(String scriptId,
+                                                                                Long scriptVersionId);
 
     /**
      * 获取作业模版包含的所有脚本步骤的脚本状态

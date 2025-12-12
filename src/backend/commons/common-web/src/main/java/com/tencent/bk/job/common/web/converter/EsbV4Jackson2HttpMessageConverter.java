@@ -29,14 +29,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tencent.bk.job.common.annotation.EsbV4API;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.HandlerMapping;
-
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * 自定义HttpMessageConverter，返回时过滤一些不必要的属性，比如null
@@ -60,15 +57,16 @@ public class EsbV4Jackson2HttpMessageConverter extends MappingJackson2HttpMessag
      */
     @Override
     public boolean canWrite(Class<?> clazz, MediaType mediaType) {
-        HttpServletRequest request = JobContextUtil.getRequest();
-        if (request != null) {
-            Object handler = request.getAttribute(HandlerMapping.BEST_MATCHING_HANDLER_ATTRIBUTE);
-            if (handler instanceof HandlerMethod) {
-                HandlerMethod hm = (HandlerMethod) handler;
-                Class<?> controllerClass = hm.getBeanType();
+        // 使用JobContext中缓存的控制器信息，避免访问可能被回收的请求对象
+        String controllerClassName = JobContextUtil.getControllerClassName();
+        if (StringUtils.isNotBlank(controllerClassName)) {
+            try {
+                Class<?> controllerClass = Class.forName(controllerClassName);
                 if (AnnotatedElementUtils.hasAnnotation(controllerClass, EsbV4API.class)) {
                     return super.canWrite(clazz, mediaType);
                 }
+            } catch (ClassNotFoundException e) {
+                log.warn("Failed to load controller class: {}", controllerClassName, e);
             }
         }
         return false;

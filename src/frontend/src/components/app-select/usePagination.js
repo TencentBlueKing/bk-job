@@ -34,7 +34,24 @@ export default (scrollEle, loadingEle, list) => {
   });
 
 
-  const renderData = computed(() => list.value.slice(0, pagination.current * pagination.pageSize));
+  const groupItemMap = computed(() => list.value.reduce((result, item) => {
+    if (!item.groupId) {
+      Object.assign(result, { [item.id]: item });
+    }
+    return result;
+  }, {}));
+
+  const renderData = computed(() => {
+    const renderList = list.value.slice(0, pagination.current * pagination.pageSize);
+
+    const appendGroupMap = { ...groupItemMap.value };
+    renderList.forEach((item) => {
+      if (!item.groupId && appendGroupMap[item.id]) {
+        delete appendGroupMap[item.id];
+      }
+    });
+    return renderList.concat(Object.values(appendGroupMap));
+  });
 
   const handleScroll = _.throttle(() => {
     if (pagination.current * pagination.pageSize >= pagination.total) {
