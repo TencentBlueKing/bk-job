@@ -28,7 +28,7 @@ public class IamMetricsAspect {
         this.meterRegistry = meterRegistry;
     }
 
-    @Pointcut("within(com.tencent.bk..*) " +
+    @Pointcut("within(com.tencent.bk.sdk.iam.helper.AuthHelper+) " +
         "&& execution (* com.tencent.bk.sdk.iam.helper.AuthHelper+.isAllowed(..))")
     public void processIsAllowedAction() {
     }

@@ -22,7 +22,7 @@ public class IamExceptionHandleAspect {
     public void processPolicyServiceAction() {
     }
 
-    @Pointcut("within(com.tencent.bk..*) " +
+    @Pointcut("within(com.tencent.bk.sdk.iam.helper.AuthHelper+) " +
         "&& execution (* com.tencent.bk.sdk.iam.helper.AuthHelper+.isAllowed(..))")
     public void processIsAllowedAction() {
     }
