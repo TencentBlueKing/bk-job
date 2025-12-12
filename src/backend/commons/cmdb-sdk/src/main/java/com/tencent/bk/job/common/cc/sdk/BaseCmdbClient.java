@@ -240,6 +240,7 @@ public class BaseCmdbClient extends BkApiV1Client {
             OpenApiRequestInfo<Object> requestInfo = OpenApiRequestInfo
                 .builder()
                 .method(method)
+                .apiName(uriTpl)
                 .uri(uri)
                 .addHeader(buildTenantHeader(tenantId))
                 .queryParams(queryParams)

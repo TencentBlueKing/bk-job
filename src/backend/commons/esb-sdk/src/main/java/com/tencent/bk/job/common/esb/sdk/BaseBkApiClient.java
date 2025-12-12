@@ -141,6 +141,7 @@ public class BaseBkApiClient {
         HttpMethodEnum httpMethod = requestInfo.getMethod();
         BkApiContext<T, R> apiContext = new BkApiContext<>(
             httpMethod.name(),
+            requestInfo.getApiName(),
             requestInfo.getUri(),
             requestInfo.getBody(),
             requestInfo.buildQueryParamUrl(),
@@ -253,7 +254,7 @@ public class BaseBkApiClient {
             long cost = System.currentTimeMillis() - startTimestamp;
             apiContext.setCostTime(cost);
             if (meterRegistry != null) {
-                meterRegistry.timer(metricName, buildMetricTags(uri, status))
+                meterRegistry.timer(metricName, buildMetricTags(apiContext.getApiName(), status))
                     .record(cost, TimeUnit.MILLISECONDS);
             }
         }
@@ -283,8 +284,8 @@ public class BaseBkApiClient {
         return "";
     }
 
-    private Iterable<Tag> buildMetricTags(String uri, String status) {
-        Tags tags = Tags.of(EsbMetricTags.KEY_API_NAME, uri).and(EsbMetricTags.KEY_STATUS, status);
+    private Iterable<Tag> buildMetricTags(String apiName, String status) {
+        Tags tags = Tags.of(EsbMetricTags.KEY_API_NAME, apiName).and(EsbMetricTags.KEY_STATUS, status);
         Collection<Tag> extraTags = getExtraMetricsTags();
         if (CollectionUtils.isNotEmpty(extraTags)) {
             extraTags.forEach(tags::and);
