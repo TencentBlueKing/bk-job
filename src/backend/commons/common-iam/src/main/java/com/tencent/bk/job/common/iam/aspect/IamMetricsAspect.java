@@ -1,7 +1,6 @@
 package com.tencent.bk.job.common.iam.aspect;
 
 import com.tencent.bk.job.common.iam.metrics.MetricsConstants;
-import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -29,8 +28,8 @@ public class IamMetricsAspect {
         this.meterRegistry = meterRegistry;
     }
 
-    @Pointcut("within(com.tencent.bk.job.common.iam.util.BusinessAuthHelper) " +
-        "&& execution (* com.tencent.bk.job.common.iam.util.BusinessAuthHelper.isAllowed(..))")
+    @Pointcut("within(com.tencent.bk..*) " +
+        "&& execution (* com.tencent.bk.sdk.iam.helper.AuthHelper+.isAllowed(..))")
     public void processIsAllowedAction() {
     }
 
