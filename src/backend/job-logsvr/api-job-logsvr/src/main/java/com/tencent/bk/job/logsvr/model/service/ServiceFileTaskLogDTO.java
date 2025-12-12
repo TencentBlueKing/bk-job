@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.logsvr.model.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
@@ -261,6 +262,7 @@ public class ServiceFileTaskLogDTO {
      * 从contentList中获取完整的日志内容，包括时间和原始日志
      * @return 日志内容
      */
+    @JsonIgnore
     public String getFullContentWithTime() {
         // 优先使用contentList（新版本）
         if (CollectionUtils.isNotEmpty(contentList)) {
