@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.event.cmdb;
+package com.tencent.bk.job.manage.background.event.cmdb.watcher;
 
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
@@ -30,12 +30,13 @@ import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.tenant.TenantService;
-import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
+import com.tencent.bk.job.manage.background.event.cmdb.handler.HostEventHandler;
+import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
-import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
+import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventCursorManager;
 import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -50,7 +51,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
-public class TenantHostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEventDetail> {
+public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEventDetail> {
 
     /**
      * 日志调用链tracer
@@ -60,21 +61,20 @@ public class TenantHostEventWatcher extends AbstractCmdbResourceEventWatcher<Hos
     private final IBizCmdbClient bizCmdbClient;
     private final NoTenantHostService noTenantHostService;
     private final AgentStateClient agentStateClient;
-    private final AtomicBoolean hostWatchFlag = new AtomicBoolean(true);
     private final int eventsHandlerNum;
     private final List<HostEventHandler> eventsHandlers = new ArrayList<>();
     private final List<BlockingQueue<ResourceEvent<HostEventDetail>>> hostEventQueues = new ArrayList<>();
 
-    public TenantHostEventWatcher(RedisTemplate<String, String> redisTemplate,
-                                  Tracer tracer,
-                                  CmdbEventSampler cmdbEventSampler,
-                                  IBizCmdbClient bizCmdbClient,
-                                  NoTenantHostService noTenantHostService,
-                                  AgentStateClient agentStateClient,
-                                  JobManageConfig jobManageConfig,
-                                  TenantService tenantService,
-                                  CmdbEventCursorManager cmdbEventCursorManager,
-                                  String tenantId) {
+    public HostEventWatcher(RedisTemplate<String, String> redisTemplate,
+                            Tracer tracer,
+                            CmdbEventSampler cmdbEventSampler,
+                            IBizCmdbClient bizCmdbClient,
+                            NoTenantHostService noTenantHostService,
+                            AgentStateClient agentStateClient,
+                            JobManageConfig jobManageConfig,
+                            TenantService tenantService,
+                            CmdbEventCursorManager cmdbEventCursorManager,
+                            String tenantId) {
         super(tenantId, "host", redisTemplate,
             tenantService, tracer, cmdbEventSampler, cmdbEventCursorManager);
         this.tracer = tracer;
@@ -92,13 +92,6 @@ public class TenantHostEventWatcher extends AbstractCmdbResourceEventWatcher<Hos
         for (HostEventHandler eventsHandler : eventsHandlers) {
             eventsHandler.start();
         }
-    }
-
-    /**
-     * 事件监听开关
-     */
-    protected boolean isWatchingEnabled() {
-        return hostWatchFlag.get();
     }
 
     @Override
@@ -119,10 +112,6 @@ public class TenantHostEventWatcher extends AbstractCmdbResourceEventWatcher<Hos
     @Override
     protected Tags getEventMetricTags() {
         return Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE, MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_HOST);
-    }
-
-    public void setWatchFlag(boolean value) {
-        hostWatchFlag.set(value);
     }
 
     private void initHostEventQueues() {
@@ -182,7 +171,7 @@ public class TenantHostEventWatcher extends AbstractCmdbResourceEventWatcher<Hos
 
     @Override
     public TaskEntity getTaskEntity() {
-        return new TaskEntity(BackGroundTaskCode.WATCH_HOST, getTenantId());
+        return new TaskEntity(EventWatchTaskTypeEnum.WATCH_HOST, getTenantId());
     }
 
     @Override

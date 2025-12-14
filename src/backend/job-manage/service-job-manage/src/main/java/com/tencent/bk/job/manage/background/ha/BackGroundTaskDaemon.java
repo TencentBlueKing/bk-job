@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.background.ha;
 
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
 import com.tencent.bk.job.common.paas.user.IUserApiClient;
+import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
 import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventManager;
 import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskDispatcher;
 import com.tencent.bk.job.manage.config.BackGroundTaskProperties;
@@ -106,27 +107,27 @@ public class BackGroundTaskDaemon {
     public int checkAndResumeTaskForTenant(String tenantId) {
         int resumedTaskCount = 0;
         if (!cmdbEventManager.isWatchBizEventRunning(tenantId)) {
-            backGroundTaskDispatcher.dispatch(new TaskEntity(BackGroundTaskCode.WATCH_BIZ, tenantId));
+            backGroundTaskDispatcher.dispatch(new TaskEntity(EventWatchTaskTypeEnum.WATCH_BIZ, tenantId));
             log.info("Resumed watchBiz:{}", tenantId);
             resumedTaskCount++;
         }
         if (!cmdbEventManager.isWatchBizSetEventRunning(tenantId)) {
-            backGroundTaskDispatcher.dispatch(new TaskEntity(BackGroundTaskCode.WATCH_BIZ_SET, tenantId));
+            backGroundTaskDispatcher.dispatch(new TaskEntity(EventWatchTaskTypeEnum.WATCH_BIZ_SET, tenantId));
             log.info("Resumed watchBizSet:{}", tenantId);
             resumedTaskCount++;
         }
         if (!cmdbEventManager.isWatchBizSetRelationEventRunning(tenantId)) {
-            backGroundTaskDispatcher.dispatch(new TaskEntity(BackGroundTaskCode.WATCH_BIZ_SET_RELATION, tenantId));
+            backGroundTaskDispatcher.dispatch(new TaskEntity(EventWatchTaskTypeEnum.WATCH_BIZ_SET_RELATION, tenantId));
             log.info("Resumed watchBizSetRelation:{}", tenantId);
             resumedTaskCount++;
         }
         if (!cmdbEventManager.isWatchHostEventRunning(tenantId)) {
-            backGroundTaskDispatcher.dispatch(new TaskEntity(BackGroundTaskCode.WATCH_HOST, tenantId));
+            backGroundTaskDispatcher.dispatch(new TaskEntity(EventWatchTaskTypeEnum.WATCH_HOST, tenantId));
             log.info("Resumed watchHost:{}", tenantId);
             resumedTaskCount++;
         }
         if (!cmdbEventManager.isWatchHostRelationEventRunning(tenantId)) {
-            backGroundTaskDispatcher.dispatch(new TaskEntity(BackGroundTaskCode.WATCH_HOST_RELATION, tenantId));
+            backGroundTaskDispatcher.dispatch(new TaskEntity(EventWatchTaskTypeEnum.WATCH_HOST_RELATION, tenantId));
             log.info("Resumed watchHostRelation:{}", tenantId);
             resumedTaskCount++;
         }

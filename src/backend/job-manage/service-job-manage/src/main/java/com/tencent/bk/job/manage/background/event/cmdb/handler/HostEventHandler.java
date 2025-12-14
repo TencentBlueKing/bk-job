@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.event.cmdb;
+package com.tencent.bk.job.manage.background.event.cmdb.handler;
 
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
@@ -33,6 +33,7 @@ import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.background.event.cmdb.handler.EventsHandler;
 import com.tencent.bk.job.manage.config.GseConfig;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
@@ -57,7 +58,7 @@ public class HostEventHandler extends EventsHandler<HostEventDetail> {
     private final AgentStateClient agentStateClient;
     private final IBizCmdbClient bizCmdbClient;
 
-    HostEventHandler(String tenantId,
+    public HostEventHandler(String tenantId,
                      Tracer tracer,
                      CmdbEventSampler cmdbEventSampler,
                      BlockingQueue<ResourceEvent<HostEventDetail>> queue,

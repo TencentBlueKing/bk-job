@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.event.cmdb;
+package com.tencent.bk.job.manage.background.event.cmdb.watcher;
 
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
@@ -34,9 +34,10 @@ import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.background.event.cmdb.ICmdbEventWatcher;
 import com.tencent.bk.job.manage.background.ha.AbstractBackGroundTask;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
-import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
+import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventCursorManager;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -48,6 +49,7 @@ import org.springframework.cloud.sleuth.annotation.NewSpan;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * cmdb 事件监听
@@ -55,7 +57,7 @@ import java.util.List;
  * @param <E> cmdb事件
  */
 @Slf4j
-public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGroundTask {
+public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGroundTask implements ICmdbEventWatcher {
 
     /**
      * 单个Watcher自身的线程资源成本（不含事件处理线程）
@@ -78,7 +80,17 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
      * 监听事件前是否已执行初始化操作
      */
     private boolean initedBeforeWatch = false;
+    /**
+     * 监听器是否开启，用于上层服务动态控制监听器启停
+     */
+    protected volatile boolean enabled = true;
+    /**
+     * 监听器是否活跃，关闭监听器时该值被置为false
+     */
     protected volatile boolean active = true;
+    /**
+     * 监听器是否优雅关闭完成
+     */
     protected volatile boolean finished = false;
 
     public AbstractCmdbResourceEventWatcher(String tenantId,
@@ -319,7 +331,12 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
      * 事件监听开关
      */
     protected boolean isWatchingEnabled() {
-        return true;
+        return enabled;
+    }
+
+    @Override
+    public void setWatchEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     private void onFinish() {

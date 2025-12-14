@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.background.ha;
 
 /**
- * 后台任务
+ * 后台任务（CMDB事件监听任务、CMDB资源同步任务等）
  */
 public interface IBackGroundTask extends IBackGroundTaskRegistryAware {
 

@@ -22,35 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.ha;
+package com.tencent.bk.job.manage.background.event.cmdb;
 
 /**
- * 后台任务代码
+ * CMDB事件监听器接口，定义监听器支持的操作
  */
-public class BackGroundTaskCode {
+public interface ICmdbEventWatcher {
 
     /**
-     * 监听业务事件
+     * 设置监听状态
+     *
+     * @param enabled 是否开启
      */
-    public static final String WATCH_BIZ = "watchBiz";
-
-    /**
-     * 监听业务集事件
-     */
-    public static final String WATCH_BIZ_SET = "watchBizSet";
-
-    /**
-     * 监听业务集关系事件
-     */
-    public static final String WATCH_BIZ_SET_RELATION = "watchBizSetRelation";
-
-    /**
-     * 监听主机事件
-     */
-    public static final String WATCH_HOST = "watchHost";
-
-    /**
-     * 监听主机关系事件
-     */
-    public static final String WATCH_HOST_RELATION = "watchHostRelation";
+    void setWatchEnabled(boolean enabled);
 }

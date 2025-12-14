@@ -22,33 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.ha;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
-import lombok.Data;
+package com.tencent.bk.job.manage.background.event.cmdb;
 
 /**
- * 任务实体
+ * CMDB事件游标管理器
  */
-@Data
-public class TaskEntity {
-    /**
-     * 任务类型
-     */
-    private EventWatchTaskTypeEnum taskType;
-    /**
-     * 租户ID
-     */
-    private String tenantId;
+public interface CmdbEventCursorManager {
 
-    @JsonIgnore
-    public String getUniqueCode() {
-        return taskType.getType() + ":" + tenantId;
-    }
+    /**
+     * 尝试加载最近的已处理过的事件的游标，若加载过程发生异常则返回null并记录错误日志
+     *
+     * @param tenantId            租户ID
+     * @param watcherResourceName 监听的资源名称
+     * @return 最近的已处理过的事件的游标
+     */
+    String tryToLoadLatestCursor(String tenantId, String watcherResourceName);
 
-    public TaskEntity(EventWatchTaskTypeEnum taskType, String tenantId) {
-        this.taskType = taskType;
-        this.tenantId = tenantId;
-    }
+    /**
+     * 尝试保存最近的已处理过的事件的游标，若保存过程发生异常则记录错误日志
+     *
+     * @param tenantId            租户ID
+     * @param watcherResourceName 监听的资源名称
+     * @param latestCursor        最近的已处理过的事件的游标
+     */
+    void tryToSaveLatestCursor(String tenantId, String watcherResourceName, String latestCursor);
 }

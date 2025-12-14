@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.event.cmdb;
+package com.tencent.bk.job.manage.background.event.cmdb.watcher;
 
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
@@ -33,49 +33,35 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
+import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
+import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventCursorManager;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 @Slf4j
-public class TenantBizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDetail> {
+public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDetail> {
 
     private final IBizCmdbClient bizCmdbClient;
     private final ApplicationService applicationService;
 
-    private final AtomicBoolean bizWatchFlag = new AtomicBoolean(true);
-
-    public TenantBizEventWatcher(RedisTemplate<String, String> redisTemplate,
-                                 Tracer tracer,
-                                 CmdbEventSampler cmdbEventSampler,
-                                 IBizCmdbClient bizCmdbClient,
-                                 ApplicationService applicationService,
-                                 TenantService tenantService,
-                                 CmdbEventCursorManager cmdbEventCursorManager,
-                                 String tenantId) {
-        super(tenantId, "biz", redisTemplate, tenantService, tracer, cmdbEventSampler, cmdbEventCursorManager);
+    public BizEventWatcher(RedisTemplate<String, String> redisTemplate,
+                           Tracer tracer,
+                           CmdbEventSampler cmdbEventSampler,
+                           IBizCmdbClient bizCmdbClient,
+                           ApplicationService applicationService,
+                           TenantService tenantService,
+                           CmdbEventCursorManager cmdbEventCursorManager,
+                           String tenantId) {
+        super(tenantId, "biz", redisTemplate, tenantService,
+            tracer, cmdbEventSampler, cmdbEventCursorManager);
         this.bizCmdbClient = bizCmdbClient;
         this.applicationService = applicationService;
-    }
-
-    public void setWatchFlag(boolean value) {
-        bizWatchFlag.set(value);
-    }
-
-    /**
-     * 事件监听开关
-     */
-    protected boolean isWatchingEnabled() {
-        return bizWatchFlag.get();
     }
 
     @Override
@@ -165,7 +151,7 @@ public class TenantBizEventWatcher extends AbstractCmdbResourceEventWatcher<BizE
 
     @Override
     public TaskEntity getTaskEntity() {
-        return new TaskEntity(BackGroundTaskCode.WATCH_BIZ, getTenantId());
+        return new TaskEntity(EventWatchTaskTypeEnum.WATCH_BIZ, getTenantId());
     }
 
     @Override

@@ -22,14 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.event.cmdb;
+package com.tencent.bk.job.manage.background.event.cmdb.watcher;
 
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.tenant.TenantService;
-import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
+import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
+import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventCursorManager;
+import com.tencent.bk.job.manage.background.event.cmdb.handler.HostRelationEventHandler;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
@@ -37,7 +39,6 @@ import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
@@ -46,10 +47,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
-public class TenantHostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<HostRelationEventDetail> {
+public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<HostRelationEventDetail> {
 
     /**
      * 日志调用链tracer
@@ -66,19 +66,17 @@ public class TenantHostRelationEventWatcher extends AbstractCmdbResourceEventWat
     private final BlockingQueue<ResourceEvent<HostRelationEventDetail>> eventQueue =
         new LinkedBlockingQueue<>(10000);
 
-    private final AtomicBoolean hostRelationWatchFlag = new AtomicBoolean(true);
-
-    public TenantHostRelationEventWatcher(RedisTemplate<String, String> redisTemplate,
-                                          Tracer tracer,
-                                          CmdbEventSampler cmdbEventSampler,
-                                          IBizCmdbClient bizCmdbClient,
-                                          ApplicationService applicationService,
-                                          NoTenantHostDAO noTenantHostDAO,
-                                          HostTopoDAO hostTopoDAO,
-                                          HostCache hostCache,
-                                          TenantService tenantService,
-                                          CmdbEventCursorManager cmdbEventCursorManager,
-                                          String tenantId) {
+    public HostRelationEventWatcher(RedisTemplate<String, String> redisTemplate,
+                                    Tracer tracer,
+                                    CmdbEventSampler cmdbEventSampler,
+                                    IBizCmdbClient bizCmdbClient,
+                                    ApplicationService applicationService,
+                                    NoTenantHostDAO noTenantHostDAO,
+                                    HostTopoDAO hostTopoDAO,
+                                    HostCache hostCache,
+                                    TenantService tenantService,
+                                    CmdbEventCursorManager cmdbEventCursorManager,
+                                    String tenantId) {
         super(tenantId, "hostRelation", redisTemplate,
             tenantService, tracer, cmdbEventSampler, cmdbEventCursorManager);
         this.tracer = tracer;
@@ -103,13 +101,6 @@ public class TenantHostRelationEventWatcher extends AbstractCmdbResourceEventWat
             hostCache,
             tenantId
         );
-    }
-
-    /**
-     * 事件监听开关
-     */
-    protected boolean isWatchingEnabled() {
-        return hostRelationWatchFlag.get();
     }
 
     @Override
@@ -150,10 +141,6 @@ public class TenantHostRelationEventWatcher extends AbstractCmdbResourceEventWat
         );
     }
 
-    public void setWatchFlag(boolean value) {
-        hostRelationWatchFlag.set(value);
-    }
-
     private void dispatchEventToHandler(ResourceEvent<HostRelationEventDetail> event) {
         eventsHandler.commitEvent(event);
     }
@@ -165,7 +152,7 @@ public class TenantHostRelationEventWatcher extends AbstractCmdbResourceEventWat
 
     @Override
     public TaskEntity getTaskEntity() {
-        return new TaskEntity(BackGroundTaskCode.WATCH_HOST_RELATION, getTenantId());
+        return new TaskEntity(EventWatchTaskTypeEnum.WATCH_HOST_RELATION, getTenantId());
     }
 
     @Override

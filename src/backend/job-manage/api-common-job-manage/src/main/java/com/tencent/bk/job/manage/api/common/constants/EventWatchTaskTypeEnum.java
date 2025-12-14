@@ -22,33 +22,62 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.ha;
+package com.tencent.bk.job.manage.api.common.constants;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
+import lombok.val;
 
 /**
- * 任务实体
+ * 事件监听后台任务类型枚举类
  */
-@Data
-public class TaskEntity {
-    /**
-     * 任务类型
-     */
-    private EventWatchTaskTypeEnum taskType;
-    /**
-     * 租户ID
-     */
-    private String tenantId;
+@Getter
+public enum EventWatchTaskTypeEnum {
 
-    @JsonIgnore
-    public String getUniqueCode() {
-        return taskType.getType() + ":" + tenantId;
+    /**
+     * 监听业务事件
+     */
+    WATCH_BIZ("watchBiz"),
+
+    /**
+     * 监听业务集事件
+     */
+    WATCH_BIZ_SET("watchBizSet"),
+
+    /**
+     * 监听业务集关系事件
+     */
+    WATCH_BIZ_SET_RELATION("watchBizSetRelation"),
+
+    /**
+     * 监听主机事件
+     */
+    WATCH_HOST("watchHost"),
+
+    /**
+     * 监听主机关系事件
+     */
+    WATCH_HOST_RELATION("watchHostRelation");
+
+    @JsonValue
+    private final String type;
+
+    EventWatchTaskTypeEnum(String type) {
+        this.type = type;
     }
 
-    public TaskEntity(EventWatchTaskTypeEnum taskType, String tenantId) {
-        this.taskType = taskType;
-        this.tenantId = tenantId;
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public static EventWatchTaskTypeEnum valOf(String type) {
+        if (type == null) {
+            return null;
+        }
+        val values = EventWatchTaskTypeEnum.values();
+        for (EventWatchTaskTypeEnum value : values) {
+            if (value.type.equals(type)) {
+                return value;
+            }
+        }
+        return null;
     }
 }

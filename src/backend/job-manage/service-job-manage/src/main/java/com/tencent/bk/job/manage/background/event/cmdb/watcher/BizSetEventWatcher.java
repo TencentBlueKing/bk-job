@@ -22,51 +22,49 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.event.cmdb;
+package com.tencent.bk.job.manage.background.event.cmdb.watcher;
 
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
-import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
+import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.tenant.TenantService;
-import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
+import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
+import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventCursorManager;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.exception.DataAccessException;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 业务集事件监听
  */
 @Slf4j
-public class TenantBizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetRelationEventDetail> {
+public class BizSetEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetEventDetail> {
     private final ApplicationService applicationService;
     private final BizSetService bizSetService;
     private final IBizSetCmdbClient bizSetCmdbClient;
 
-    public TenantBizSetRelationEventWatcher(RedisTemplate<String, String> redisTemplate,
-                                            Tracer tracer,
-                                            CmdbEventSampler cmdbEventSampler,
-                                            ApplicationService applicationService,
-                                            BizSetService bizSetService,
-                                            IBizSetCmdbClient bizSetCmdbClient,
-                                            TenantService tenantService,
-                                            CmdbEventCursorManager cmdbEventCursorManager,
-                                            String tenantId) {
-        super(tenantId, "bizSetRelation", redisTemplate,
+    public BizSetEventWatcher(RedisTemplate<String, String> redisTemplate,
+                              Tracer tracer,
+                              CmdbEventSampler cmdbEventSampler,
+                              ApplicationService applicationService,
+                              BizSetService bizSetService,
+                              IBizSetCmdbClient bizSetCmdbClient,
+                              TenantService tenantService,
+                              CmdbEventCursorManager cmdbEventCursorManager,
+                              String tenantId) {
+        super(tenantId, "bizSet", redisTemplate,
             tenantService, tracer, cmdbEventSampler, cmdbEventCursorManager);
         this.applicationService = applicationService;
         this.bizSetService = bizSetService;
@@ -74,38 +72,53 @@ public class TenantBizSetRelationEventWatcher extends AbstractCmdbResourceEventW
     }
 
     @Override
-    protected ResourceWatchResult<BizSetRelationEventDetail> fetchEventsByCursor(String startCursor) {
-        return bizSetCmdbClient.getBizSetRelationEvents(tenantId, null, startCursor);
+    protected ResourceWatchResult<BizSetEventDetail> fetchEventsByCursor(String startCursor) {
+        return bizSetCmdbClient.getBizSetEvents(tenantId, null, startCursor);
     }
 
     @Override
-    protected ResourceWatchResult<BizSetRelationEventDetail> fetchEventsByStartTime(Long startTime) {
-        return bizSetCmdbClient.getBizSetRelationEvents(tenantId, startTime, null);
+    protected ResourceWatchResult<BizSetEventDetail> fetchEventsByStartTime(Long startTime) {
+        return bizSetCmdbClient.getBizSetEvents(tenantId, startTime, null);
     }
 
-    @SuppressWarnings("SwitchStatementWithTooFewBranches")
     @Override
-    public void handleEvent(ResourceEvent<BizSetRelationEventDetail> event) {
+    public void handleEvent(ResourceEvent<BizSetEventDetail> event) {
+        ApplicationDTO latestApp = event.getDetail().toApplicationDTO(tenantId);
         String eventType = event.getEventType();
+        ApplicationDTO cachedApp =
+            applicationService.getAppByScopeIncludingDeleted(latestApp.getScope());
+
         switch (eventType) {
+            case ResourceWatchReq.EVENT_TYPE_CREATE:
             case ResourceWatchReq.EVENT_TYPE_UPDATE:
                 try {
-                    Long bizSetId = event.getDetail().getBizSetId();
-                    List<Long> latestSubBizIds = event.getDetail().getBizIds();
-                    ApplicationDTO cacheApplication =
-                        applicationService.getAppByScopeIncludingDeleted(
-                            new ResourceScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), String.valueOf(bizSetId))
-                        );
-                    if (cacheApplication == null || cacheApplication.isDeleted()) {
-                        return;
+                    if (cachedApp != null) {
+                        updateBizSetProps(cachedApp, latestApp);
+                        if (!cachedApp.isDeleted()) {
+                            log.info("Update app for bizSet, app: {}", cachedApp);
+                            applicationService.updateApp(cachedApp);
+                        } else {
+                            log.info("Restore deleted app for bizSet: {}", latestApp);
+                            applicationService.updateApp(latestApp);
+                            applicationService.restoreDeletedApp(latestApp.getId());
+                        }
+                    } else {
+                        try {
+                            log.info("Create app for bizSet, app: {}", latestApp);
+                            applicationService.createApp(latestApp);
+                        } catch (DataAccessException e) {
+                            // 若已存在则忽略
+                            log.error("Insert app fail", e);
+                        }
                     }
-                    ApplicationAttrsDO attrs = cacheApplication.getAttrs();
-                    if (attrs != null) {
-                        attrs.setSubBizIds(latestSubBizIds);
-                    }
-                    applicationService.updateApp(cacheApplication);
                 } catch (Throwable t) {
-                    log.error("Handle biz_set_relation event fail", t);
+                    log.error("Handle bizSet event fail", t);
+                }
+                break;
+            case ResourceWatchReq.EVENT_TYPE_DELETE:
+                if (cachedApp != null) {
+                    log.info("Delete app for bizSet, app: {}", cachedApp);
+                    applicationService.deleteApp(cachedApp.getId());
                 }
                 break;
             default:
@@ -116,15 +129,21 @@ public class TenantBizSetRelationEventWatcher extends AbstractCmdbResourceEventW
 
     @Override
     protected Tags getEventMetricTags() {
-        return Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE,
-            MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_BIZ_SET_RELATION);
+        return Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE, MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_BIZ_SET);
+    }
+
+    private void updateBizSetProps(ApplicationDTO originApp, ApplicationDTO updateApp) {
+        originApp.setName(updateApp.getName());
+        originApp.setBkSupplierAccount(updateApp.getBkSupplierAccount());
+        originApp.setLanguage(updateApp.getLanguage());
+        originApp.setTimeZone(updateApp.getTimeZone());
     }
 
     @Override
     protected boolean isWatchingEnabled() {
         boolean isBizSetMigratedToCMDB = bizSetService.isBizSetMigratedToCMDB();
         if (!isBizSetMigratedToCMDB) {
-            log.info("Watching biz set disabled, isBizSetMigratedToCMDB: {}", false);
+            log.info("Watching biz set disabled, isBizSetMigratedToCMDB: {}", isBizSetMigratedToCMDB);
         }
         return isBizSetMigratedToCMDB;
     }
@@ -136,7 +155,7 @@ public class TenantBizSetRelationEventWatcher extends AbstractCmdbResourceEventW
 
     @Override
     public TaskEntity getTaskEntity() {
-        return new TaskEntity(BackGroundTaskCode.WATCH_BIZ_SET_RELATION, getTenantId());
+        return new TaskEntity(EventWatchTaskTypeEnum.WATCH_BIZ_SET, getTenantId());
     }
 
     @Override

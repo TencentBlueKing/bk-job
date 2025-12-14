@@ -26,11 +26,11 @@ package com.tencent.bk.job.manage.background.ha;
 
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
 import com.tencent.bk.job.common.paas.user.IUserApiClient;
-import com.tencent.bk.job.manage.background.event.cmdb.TenantBizEventWatcher;
-import com.tencent.bk.job.manage.background.event.cmdb.TenantBizSetEventWatcher;
-import com.tencent.bk.job.manage.background.event.cmdb.TenantBizSetRelationEventWatcher;
-import com.tencent.bk.job.manage.background.event.cmdb.TenantHostEventWatcher;
-import com.tencent.bk.job.manage.background.event.cmdb.TenantHostRelationEventWatcher;
+import com.tencent.bk.job.manage.background.event.cmdb.watcher.BizEventWatcher;
+import com.tencent.bk.job.manage.background.event.cmdb.watcher.BizSetEventWatcher;
+import com.tencent.bk.job.manage.background.event.cmdb.watcher.BizSetRelationEventWatcher;
+import com.tencent.bk.job.manage.background.event.cmdb.watcher.HostEventWatcher;
+import com.tencent.bk.job.manage.background.event.cmdb.watcher.HostRelationEventWatcher;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,11 +100,11 @@ public class ResourceCostCalculator {
      */
     private int calcResourceCostForTasksOfOneTenant() {
         int resourceCost = 0;
-        resourceCost += TenantBizEventWatcher.resourceCostForWatcher();
-        resourceCost += TenantBizSetEventWatcher.resourceCostForWatcher();
-        resourceCost += TenantBizSetRelationEventWatcher.resourceCostForWatcher();
-        resourceCost += TenantHostEventWatcher.resourceCostForWatcher() + jobManageConfig.getHostEventHandlerNum();
-        resourceCost += TenantHostRelationEventWatcher.resourceCostForWatcherAndHandler();
+        resourceCost += BizEventWatcher.resourceCostForWatcher();
+        resourceCost += BizSetEventWatcher.resourceCostForWatcher();
+        resourceCost += BizSetRelationEventWatcher.resourceCostForWatcher();
+        resourceCost += HostEventWatcher.resourceCostForWatcher() + jobManageConfig.getHostEventHandlerNum();
+        resourceCost += HostRelationEventWatcher.resourceCostForWatcherAndHandler();
         return resourceCost;
     }
 }

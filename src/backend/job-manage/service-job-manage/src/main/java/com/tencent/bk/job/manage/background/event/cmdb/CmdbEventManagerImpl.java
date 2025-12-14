@@ -24,36 +24,23 @@
 
 package com.tencent.bk.job.manage.background.event.cmdb;
 
-import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
-import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
-import com.tencent.bk.job.common.gse.service.AgentStateClient;
-import com.tencent.bk.job.common.paas.model.OpenApiTenant;
-import com.tencent.bk.job.common.paas.user.IUserApiClient;
-import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
+import com.tencent.bk.job.manage.background.event.cmdb.watcher.BizEventWatcher;
+import com.tencent.bk.job.manage.background.event.cmdb.watcher.BizSetEventWatcher;
+import com.tencent.bk.job.manage.background.event.cmdb.watcher.BizSetRelationEventWatcher;
+import com.tencent.bk.job.manage.background.event.cmdb.watcher.HostEventWatcher;
+import com.tencent.bk.job.manage.background.event.cmdb.watcher.HostRelationEventWatcher;
+import com.tencent.bk.job.manage.background.event.cmdb.watcher.factory.EventWatcherFactory;
 import com.tencent.bk.job.manage.background.ha.BackGroundTaskRegistry;
 import com.tencent.bk.job.manage.background.ha.IBackGroundTask;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskDispatcher;
 import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskListenerController;
-import com.tencent.bk.job.manage.config.GseConfig;
-import com.tencent.bk.job.manage.config.JobManageConfig;
-import com.tencent.bk.job.manage.dao.HostTopoDAO;
-import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
-import com.tencent.bk.job.manage.manager.host.HostCache;
-import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
-import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
-import com.tencent.bk.job.manage.service.host.NoTenantHostService;
-import com.tencent.bk.job.manage.service.impl.BizSetService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cloud.sleuth.Tracer;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -64,94 +51,23 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Service
 public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
 
-    private final IBizCmdbClient bizCmdbClient;
-    private final IBizSetCmdbClient bizSetCmdbClient;
-    private final IUserApiClient userApiClient;
-    private final ApplicationService applicationService;
-    private final BizSetService bizSetService;
-    private final NoTenantHostService noTenantHostService;
-    private final NoTenantHostDAO noTenantHostDAO;
-    private final HostTopoDAO hostTopoDAO;
-    private final HostCache hostCache;
-    private final JobManageConfig jobManageConfig;
-    private final RedisTemplate<String, String> redisTemplate;
-    private final AgentStateClient agentStateClient;
-
-    private final TenantService tenantService;
-    /**
-     * 日志调用链tracer
-     */
-    private final Tracer tracer;
-    private final CmdbEventSampler cmdbEventSampler;
+    private final EventWatcherFactory eventWatcherFactory;
     private final ThreadPoolExecutor shutdownEventWatchExecutor;
     private final BackGroundTaskDispatcher backGroundTaskDispatcher;
     private final BackGroundTaskListenerController backGroundTaskListenerController;
     private final BackGroundTaskRegistry backGroundTaskRegistry;
-    private final CmdbEventCursorManager cmdbEventCursorManager;
 
     @Autowired
-    public CmdbEventManagerImpl(IBizCmdbClient bizCmdbClient,
-                                IBizSetCmdbClient bizSetCmdbClient,
-                                IUserApiClient userApiClient,
-                                ApplicationService applicationService,
-                                BizSetService bizSetService,
-                                NoTenantHostService noTenantHostService,
-                                NoTenantHostDAO noTenantHostDAO,
-                                HostTopoDAO hostTopoDAO,
-                                HostCache hostCache,
-                                JobManageConfig jobManageConfig,
-                                RedisTemplate<String, String> redisTemplate,
-                                @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
-                                AgentStateClient agentStateClient,
-                                TenantService tenantService,
-                                Tracer tracer,
-                                CmdbEventSampler cmdbEventSampler,
+    public CmdbEventManagerImpl(EventWatcherFactory eventWatcherFactory,
                                 ThreadPoolExecutor shutdownEventWatchExecutor,
                                 BackGroundTaskDispatcher backGroundTaskDispatcher,
                                 BackGroundTaskListenerController backGroundTaskListenerController,
-                                BackGroundTaskRegistry backGroundTaskRegistry,
-                                CmdbEventCursorManager cmdbEventCursorManager) {
-        this.bizCmdbClient = bizCmdbClient;
-        this.bizSetCmdbClient = bizSetCmdbClient;
-        this.userApiClient = userApiClient;
-        this.applicationService = applicationService;
-        this.bizSetService = bizSetService;
-        this.noTenantHostService = noTenantHostService;
-        this.noTenantHostDAO = noTenantHostDAO;
-        this.hostTopoDAO = hostTopoDAO;
-        this.hostCache = hostCache;
-        this.jobManageConfig = jobManageConfig;
-        this.redisTemplate = redisTemplate;
-        this.agentStateClient = agentStateClient;
-        this.tenantService = tenantService;
-        this.tracer = tracer;
-        this.cmdbEventSampler = cmdbEventSampler;
+                                BackGroundTaskRegistry backGroundTaskRegistry) {
+        this.eventWatcherFactory = eventWatcherFactory;
         this.shutdownEventWatchExecutor = shutdownEventWatchExecutor;
         this.backGroundTaskDispatcher = backGroundTaskDispatcher;
         this.backGroundTaskListenerController = backGroundTaskListenerController;
         this.backGroundTaskRegistry = backGroundTaskRegistry;
-        this.cmdbEventCursorManager = cmdbEventCursorManager;
-    }
-
-    @Override
-    public void init() {
-        List<OpenApiTenant> tenantList = userApiClient.listAllTenant();
-        // 遍历所有租户监听事件
-        for (OpenApiTenant openApiTenant : tenantList) {
-            initTenant(openApiTenant.getId());
-        }
-    }
-
-    private void initTenant(String tenantId) {
-        if (jobManageConfig.isEnableResourceWatch()) {
-            watchBizEvent(tenantId);
-            watchBizSetEvent(tenantId);
-            watchBizSetRelationEvent(tenantId);
-            watchHostEvent(tenantId);
-            watchHostRelationEvent(tenantId);
-        } else {
-            log.info("resourceWatch not enabled, you can enable it in config file");
-        }
     }
 
     /**
@@ -162,16 +78,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
      */
     @Override
     public boolean isWatchBizEventRunning(String tenantId) {
-        TenantBizEventWatcher tenantBizEventWatcher = new TenantBizEventWatcher(
-            redisTemplate,
-            tracer,
-            cmdbEventSampler,
-            bizCmdbClient,
-            applicationService,
-            tenantService,
-            cmdbEventCursorManager,
-            tenantId
-        );
+        BizEventWatcher tenantBizEventWatcher = eventWatcherFactory.getOrCreateBizEventWatcher(tenantId);
         return tenantBizEventWatcher.hasRunningInstance();
     }
 
@@ -183,17 +90,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
      */
     @Override
     public boolean isWatchBizSetEventRunning(String tenantId) {
-        TenantBizSetEventWatcher bizSetEventWatcher = new TenantBizSetEventWatcher(
-            redisTemplate,
-            tracer,
-            cmdbEventSampler,
-            applicationService,
-            bizSetService,
-            bizSetCmdbClient,
-            tenantService,
-            cmdbEventCursorManager,
-            tenantId
-        );
+        BizSetEventWatcher bizSetEventWatcher = eventWatcherFactory.getOrCreateBizSetEventWatcher(tenantId);
         return bizSetEventWatcher.hasRunningInstance();
     }
 
@@ -205,17 +102,8 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
      */
     @Override
     public boolean isWatchBizSetRelationEventRunning(String tenantId) {
-        TenantBizSetRelationEventWatcher bizSetRelationEventWatcher = new TenantBizSetRelationEventWatcher(
-            redisTemplate,
-            tracer,
-            cmdbEventSampler,
-            applicationService,
-            bizSetService,
-            bizSetCmdbClient,
-            tenantService,
-            cmdbEventCursorManager,
-            tenantId
-        );
+        BizSetRelationEventWatcher bizSetRelationEventWatcher =
+            eventWatcherFactory.getOrCreateBizSetRelationEventWatcher(tenantId);
         return bizSetRelationEventWatcher.hasRunningInstance();
     }
 
@@ -227,19 +115,8 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
      */
     @Override
     public boolean isWatchHostEventRunning(String tenantId) {
-        TenantHostEventWatcher tenantHostEventWatcher = new TenantHostEventWatcher(
-            redisTemplate,
-            tracer,
-            cmdbEventSampler,
-            bizCmdbClient,
-            noTenantHostService,
-            agentStateClient,
-            jobManageConfig,
-            tenantService,
-            cmdbEventCursorManager,
-            tenantId
-        );
-        return tenantHostEventWatcher.hasRunningInstance();
+        HostEventWatcher hostEventWatcher = eventWatcherFactory.getOrCreateHostEventWatcher(tenantId);
+        return hostEventWatcher.hasRunningInstance();
     }
 
     /**
@@ -250,19 +127,8 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
      */
     @Override
     public boolean isWatchHostRelationEventRunning(String tenantId) {
-        TenantHostRelationEventWatcher hostRelationEventWatcher = new TenantHostRelationEventWatcher(
-            redisTemplate,
-            tracer,
-            cmdbEventSampler,
-            bizCmdbClient,
-            applicationService,
-            noTenantHostDAO,
-            hostTopoDAO,
-            hostCache,
-            tenantService,
-            cmdbEventCursorManager,
-            tenantId
-        );
+        HostRelationEventWatcher hostRelationEventWatcher =
+            eventWatcherFactory.getOrCreateHostRelationEventWatcher(tenantId);
         return hostRelationEventWatcher.hasRunningInstance();
     }
 
@@ -270,40 +136,21 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
      * 监听业务相关的事件
      */
     @Override
-    public boolean watchBizEvent(String tenantId) {
-        TenantBizEventWatcher tenantBizEventWatcher = new TenantBizEventWatcher(
-            redisTemplate,
-            tracer,
-            cmdbEventSampler,
-            bizCmdbClient,
-            applicationService,
-            tenantService,
-            cmdbEventCursorManager,
-            tenantId
-        );
-        if (tenantBizEventWatcher.hasRunningInstance()) {
+    public boolean startWatchBizEvent(String tenantId) {
+        BizEventWatcher bizEventWatcher = eventWatcherFactory.getOrCreateBizEventWatcher(tenantId);
+        if (bizEventWatcher.hasRunningInstance()) {
             // 已经有在运行的实例就不再启动新的实例
             return false;
         }
-        return registerAndStartTask(tenantBizEventWatcher);
+        return registerAndStartTask(bizEventWatcher);
     }
 
     /**
      * 监听业务集相关的事件
      */
     @Override
-    public boolean watchBizSetEvent(String tenantId) {
-        TenantBizSetEventWatcher bizSetEventWatcher = new TenantBizSetEventWatcher(
-            redisTemplate,
-            tracer,
-            cmdbEventSampler,
-            applicationService,
-            bizSetService,
-            bizSetCmdbClient,
-            tenantService,
-            cmdbEventCursorManager,
-            tenantId
-        );
+    public boolean startWatchBizSetEvent(String tenantId) {
+        BizSetEventWatcher bizSetEventWatcher = eventWatcherFactory.getOrCreateBizSetEventWatcher(tenantId);
         if (bizSetEventWatcher.hasRunningInstance()) {
             // 已经有在运行的实例就不再启动新的实例
             return false;
@@ -315,18 +162,9 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
      * 监听业务集相关的事件
      */
     @Override
-    public boolean watchBizSetRelationEvent(String tenantId) {
-        TenantBizSetRelationEventWatcher bizSetRelationEventWatcher = new TenantBizSetRelationEventWatcher(
-            redisTemplate,
-            tracer,
-            cmdbEventSampler,
-            applicationService,
-            bizSetService,
-            bizSetCmdbClient,
-            tenantService,
-            cmdbEventCursorManager,
-            tenantId
-        );
+    public boolean startWatchBizSetRelationEvent(String tenantId) {
+        BizSetRelationEventWatcher bizSetRelationEventWatcher =
+            eventWatcherFactory.getOrCreateBizSetRelationEventWatcher(tenantId);
         if (bizSetRelationEventWatcher.hasRunningInstance()) {
             // 已经有在运行的实例就不再启动新的实例
             return false;
@@ -338,44 +176,22 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
      * 监听主机相关的事件
      */
     @Override
-    public boolean watchHostEvent(String tenantId) {
-        TenantHostEventWatcher tenantHostEventWatcher = new TenantHostEventWatcher(
-            redisTemplate,
-            tracer,
-            cmdbEventSampler,
-            bizCmdbClient,
-            noTenantHostService,
-            agentStateClient,
-            jobManageConfig,
-            tenantService,
-            cmdbEventCursorManager,
-            tenantId
-        );
-        if (tenantHostEventWatcher.hasRunningInstance()) {
+    public boolean startWatchHostEvent(String tenantId) {
+        HostEventWatcher hostEventWatcher = eventWatcherFactory.getOrCreateHostEventWatcher(tenantId);
+        if (hostEventWatcher.hasRunningInstance()) {
             // 已经有在运行的实例就不再启动新的实例
             return false;
         }
-        return registerAndStartTask(tenantHostEventWatcher);
+        return registerAndStartTask(hostEventWatcher);
     }
 
     /**
      * 监听主机关系相关的事件
      */
     @Override
-    public boolean watchHostRelationEvent(String tenantId) {
-        TenantHostRelationEventWatcher hostRelationEventWatcher = new TenantHostRelationEventWatcher(
-            redisTemplate,
-            tracer,
-            cmdbEventSampler,
-            bizCmdbClient,
-            applicationService,
-            noTenantHostDAO,
-            hostTopoDAO,
-            hostCache,
-            tenantService,
-            cmdbEventCursorManager,
-            tenantId
-        );
+    public boolean startWatchHostRelationEvent(String tenantId) {
+        HostRelationEventWatcher hostRelationEventWatcher =
+            eventWatcherFactory.getOrCreateHostRelationEventWatcher(tenantId);
         if (hostRelationEventWatcher.hasRunningInstance()) {
             // 已经有在运行的实例就不再启动新的实例
             return false;
@@ -405,74 +221,44 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
         }
     }
 
+    /**
+     * 从已注册的后台任务中找出所有指定类型的监听器并开启
+     *
+     * @param taskType 任务类型
+     * @return 开启的事件监听器数量
+     */
     @Override
-    public TenantHostEventWatcher getTenantHostEventWatcher(String tenantId) {
+    public Integer enableWatch(EventWatchTaskTypeEnum taskType) {
+        int watcherCount = 0;
         for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
-            if (task instanceof TenantHostEventWatcher && task.getTenantId().equals(tenantId)) {
-                return (TenantHostEventWatcher) task;
+            if (task instanceof ICmdbEventWatcher && task.getTaskEntity().getTaskType() == taskType) {
+                ICmdbEventWatcher watcherTask = (ICmdbEventWatcher) task;
+                watcherTask.setWatchEnabled(true);
+                watcherCount++;
             }
         }
-        return null;
+        log.info("Watchers of {} enabled, watcherCount={}", taskType, watcherCount);
+        return watcherCount;
     }
 
+    /**
+     * 从已注册的后台任务中找出所有指定类型的监听器并禁用
+     *
+     * @param taskType 任务类型
+     * @return 禁用的事件监听器数量
+     */
     @Override
-    public Boolean enableBizWatch() {
-        log.info("appWatch enabled by op");
+    public Integer disableWatch(EventWatchTaskTypeEnum taskType) {
+        int watcherCount = 0;
         for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
-            if (task instanceof TenantBizEventWatcher) {
-                TenantBizEventWatcher tenantBizEventWatcher = (TenantBizEventWatcher) task;
-                tenantBizEventWatcher.setWatchFlag(true);
+            if (task instanceof ICmdbEventWatcher && task.getTaskEntity().getTaskType() == taskType) {
+                ICmdbEventWatcher watcherTask = (ICmdbEventWatcher) task;
+                watcherTask.setWatchEnabled(false);
+                watcherCount++;
             }
         }
-        return true;
-    }
-
-    @Override
-    public Boolean disableBizWatch() {
-        log.info("appWatch disabled by op");
-        for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
-            if (task instanceof TenantBizEventWatcher) {
-                TenantBizEventWatcher tenantBizEventWatcher = (TenantBizEventWatcher) task;
-                tenantBizEventWatcher.setWatchFlag(false);
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public Boolean enableHostWatch() {
-        log.info("hostWatch enabled by op");
-        for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
-            if (task instanceof TenantHostEventWatcher) {
-                TenantHostEventWatcher tenantHostEventWatcher = (TenantHostEventWatcher) task;
-                tenantHostEventWatcher.setWatchFlag(true);
-            }
-        }
-        for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
-            if (task instanceof TenantHostRelationEventWatcher) {
-                TenantHostRelationEventWatcher tenantHostRelationEventWatcher = (TenantHostRelationEventWatcher) task;
-                tenantHostRelationEventWatcher.setWatchFlag(true);
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public Boolean disableHostWatch() {
-        log.info("hostWatch disabled by op");
-        for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
-            if (task instanceof TenantHostEventWatcher) {
-                TenantHostEventWatcher tenantHostEventWatcher = (TenantHostEventWatcher) task;
-                tenantHostEventWatcher.setWatchFlag(false);
-            }
-        }
-        for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
-            if (task instanceof TenantHostRelationEventWatcher) {
-                TenantHostRelationEventWatcher tenantHostRelationEventWatcher = (TenantHostRelationEventWatcher) task;
-                tenantHostRelationEventWatcher.setWatchFlag(false);
-            }
-        }
-        return true;
+        log.info("Watchers of {} disabled, watcherCount={}", taskType, watcherCount);
+        return watcherCount;
     }
 
     @Override

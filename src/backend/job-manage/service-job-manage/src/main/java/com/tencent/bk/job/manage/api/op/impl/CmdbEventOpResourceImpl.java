@@ -24,35 +24,31 @@
 
 package com.tencent.bk.job.manage.api.op.impl;
 
-import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
-import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
-import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.manage.api.op.EventReplayOpResource;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.manage.api.op.CmdbEventOpResource;
 import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventManager;
-import com.tencent.bk.job.manage.background.event.cmdb.TenantHostEventWatcher;
+import com.tencent.bk.job.manage.model.op.req.EventWatchOpReq;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-public class EventReplayOpResourceImpl implements EventReplayOpResource {
-
+public class CmdbEventOpResourceImpl implements CmdbEventOpResource {
     private final CmdbEventManager cmdbEventManager;
 
     @Autowired
-    public EventReplayOpResourceImpl(CmdbEventManager cmdbEventManager) {
+    public CmdbEventOpResourceImpl(CmdbEventManager cmdbEventManager) {
         this.cmdbEventManager = cmdbEventManager;
     }
 
     @Override
-    public Response<Boolean> replayHostEvent(String username, String tenantId, ResourceEvent<HostEventDetail> event) {
-        TenantHostEventWatcher tenantHostEventWatcher = cmdbEventManager.getTenantHostEventWatcher(tenantId);
-        if (tenantHostEventWatcher == null) {
-            return Response.buildSuccessResp(false);
-        }
-        tenantHostEventWatcher.handleEvent(event);
-        return Response.buildSuccessResp(true);
+    public InternalResponse<Integer> enableWatch(EventWatchOpReq req) {
+        return InternalResponse.buildSuccessResp(cmdbEventManager.enableWatch(req.getTaskType()));
     }
 
+    @Override
+    public InternalResponse<Integer> disableWatch(EventWatchOpReq req) {
+        return InternalResponse.buildSuccessResp(cmdbEventManager.disableWatch(req.getTaskType()));
+    }
 }

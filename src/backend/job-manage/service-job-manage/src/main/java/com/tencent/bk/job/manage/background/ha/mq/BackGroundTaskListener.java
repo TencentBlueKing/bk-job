@@ -26,7 +26,6 @@ package com.tencent.bk.job.manage.background.ha.mq;
 
 import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventManager;
 import com.tencent.bk.job.manage.background.ha.BackGroundTaskBalancer;
-import com.tencent.bk.job.manage.background.ha.BackGroundTaskCode;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +38,13 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class BackGroundTaskListener {
+    /**
+     * CMDB事件管理器
+     */
     private final CmdbEventManager cmdbEventManager;
+    /**
+     * 后台任务负载均衡器
+     */
     private final BackGroundTaskBalancer backGroundTaskBalancer;
 
     @Autowired
@@ -49,29 +54,37 @@ public class BackGroundTaskListener {
         this.backGroundTaskBalancer = backGroundTaskBalancer;
     }
 
+    /**
+     * 从MQ接收到事件监听任务消息后对其进行处理（启动事件监听）
+     *
+     * @param taskEntityMessage 任务实体MQ信息
+     */
     public void handleTask(Message<TaskEntity> taskEntityMessage) {
         TaskEntity taskEntity = taskEntityMessage.getPayload();
-        log.info("Received task from queue:{}", taskEntity);
-        switch (taskEntity.getTaskCode()) {
-            case BackGroundTaskCode.WATCH_BIZ:
-                cmdbEventManager.watchBizEvent(taskEntity.getTenantId());
+        log.info("Received task from queue: {}", taskEntity);
+        String tenantId = taskEntity.getTenantId();
+        Boolean watchResult = null;
+        switch (taskEntity.getTaskType()) {
+            case WATCH_BIZ:
+                watchResult = cmdbEventManager.startWatchBizEvent(tenantId);
                 break;
-            case BackGroundTaskCode.WATCH_BIZ_SET:
-                cmdbEventManager.watchBizSetEvent(taskEntity.getTenantId());
+            case WATCH_BIZ_SET:
+                watchResult = cmdbEventManager.startWatchBizSetEvent(tenantId);
                 break;
-            case BackGroundTaskCode.WATCH_BIZ_SET_RELATION:
-                cmdbEventManager.watchBizSetRelationEvent(taskEntity.getTenantId());
+            case WATCH_BIZ_SET_RELATION:
+                watchResult = cmdbEventManager.startWatchBizSetRelationEvent(tenantId);
                 break;
-            case BackGroundTaskCode.WATCH_HOST:
-                cmdbEventManager.watchHostEvent(taskEntity.getTenantId());
+            case WATCH_HOST:
+                watchResult = cmdbEventManager.startWatchHostEvent(tenantId);
                 break;
-            case BackGroundTaskCode.WATCH_HOST_RELATION:
-                cmdbEventManager.watchHostRelationEvent(taskEntity.getTenantId());
+            case WATCH_HOST_RELATION:
+                watchResult = cmdbEventManager.startWatchHostRelationEvent(tenantId);
                 break;
             default:
                 log.warn("task not supported: {}", taskEntity);
                 break;
         }
+        log.info("task={}, watchResult={}", taskEntity.getUniqueCode(), watchResult);
         // 处理完任务后，立即执行一次负载均衡，及时关闭任务监听，避免接收到过多的任务
         backGroundTaskBalancer.balance();
     }

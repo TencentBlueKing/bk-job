@@ -22,28 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.manage.api.op;
+
+import com.tencent.bk.job.common.annotation.InternalAPI;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.manage.model.op.req.EventWatchOpReq;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * CMDB事件游标管理器
+ * CMDB事件监听相关的OP接口
  */
-public interface CmdbEventCursorManager {
+@Api(tags = {"job-manage:api:CmdbEvent-OP"})
+@RequestMapping("/op/cmdbEvent")
+@InternalAPI
+public interface CmdbEventOpResource {
 
     /**
-     * 尝试加载最近的已处理过的事件的游标，若加载过程发生异常则返回null并记录错误日志
+     * 开启某一类事件监听
      *
-     * @param tenantId            租户ID
-     * @param watcherResourceName 监听的资源名称
-     * @return 最近的已处理过的事件的游标
+     * @return 开启的事件监听器数量
      */
-    String tryToLoadLatestCursor(String tenantId, String watcherResourceName);
+    @PutMapping("/enableWatch")
+    @ApiOperation(value = "开启某一类事件监听", produces = "application/json")
+    InternalResponse<Integer> enableWatch(
+        @ApiParam(value = "事件监听操作请求体", required = true) @RequestBody EventWatchOpReq req
+    );
 
     /**
-     * 尝试保存最近的已处理过的事件的游标，若保存过程发生异常则记录错误日志
+     * 关闭某一类事件监听
      *
-     * @param tenantId            租户ID
-     * @param watcherResourceName 监听的资源名称
-     * @param latestCursor        最近的已处理过的事件的游标
+     * @return 关闭的事件监听器数量
      */
-    void tryToSaveLatestCursor(String tenantId, String watcherResourceName, String latestCursor);
+    @PutMapping("/disableWatch")
+    @ApiOperation(value = "关闭某一类事件监听", produces = "application/json")
+    InternalResponse<Integer> disableWatch(
+        @ApiParam(value = "事件监听操作请求体", required = true) @RequestBody EventWatchOpReq req
+    );
 }

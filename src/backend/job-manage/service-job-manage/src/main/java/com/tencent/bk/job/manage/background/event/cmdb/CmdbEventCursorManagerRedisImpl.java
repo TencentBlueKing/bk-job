@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.manage.background.event.cmdb;
 
-import com.tencent.bk.job.manage.service.CmdbEventCursorManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;

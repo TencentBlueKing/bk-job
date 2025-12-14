@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.event.cmdb;
+package com.tencent.bk.job.manage.background.event.cmdb.handler;
 
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.tracing.util.SpanUtil;

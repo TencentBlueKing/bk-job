@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.event.cmdb;
+package com.tencent.bk.job.manage.background.event.cmdb.handler;
 
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.background.event.cmdb.handler.EventsHandler;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
