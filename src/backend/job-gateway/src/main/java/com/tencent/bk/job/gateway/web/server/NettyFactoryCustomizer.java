@@ -22,19 +22,13 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.gateway.web.server;
+
+import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 
 /**
- * @since 11/11/2019 15:30
+ * Netty工厂定制器，用于注册自定义行为，如AccessLog
  */
-public class HttpHeader {
-    /**
-     * HTTP 头
-     **/
-    public static final String HDR_BK_LANG = "blueking-language";
-    public static final String HDR_REQ_ID = "request-id";
-    public static final String HDR_REQ_SAPN_ID = "span-id";
-    public static final String HDR_CONTENT_TYPE = "Content-Type";
-    public static final String S_CURRENT_PAGE = "currentPage";
-    public static final String HDR_UER_AGENT = "User-Agent";
+public interface NettyFactoryCustomizer {
+    void customize(NettyReactiveWebServerFactory factory);
 }

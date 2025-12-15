@@ -22,19 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.gateway.web.server.utils;
+
+import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
+import reactor.util.annotation.Nullable;
+
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
 /**
- * @since 11/11/2019 15:30
+ * 网络地址相关格式化工具类
  */
-public class HttpHeader {
+public class AccessLogNetUtil {
+
     /**
-     * HTTP 头
-     **/
-    public static final String HDR_BK_LANG = "blueking-language";
-    public static final String HDR_REQ_ID = "request-id";
-    public static final String HDR_REQ_SAPN_ID = "span-id";
-    public static final String HDR_CONTENT_TYPE = "Content-Type";
-    public static final String S_CURRENT_PAGE = "currentPage";
-    public static final String HDR_UER_AGENT = "User-Agent";
+     * 格式化SocketAddress，返回host:port格式的字符串
+     * 如果地址不存在或无法解析，返回统一占位符-
+     */
+    public static String formatSocketAddress(@Nullable SocketAddress socketAddress) {
+        if (socketAddress instanceof InetSocketAddress) {
+            InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress;
+            return inetSocketAddress.getHostString() + ":" + inetSocketAddress.getPort();
+        }
+        else {
+            return AccessLogConstants.Default.MISSING;
+        }
+    }
 }

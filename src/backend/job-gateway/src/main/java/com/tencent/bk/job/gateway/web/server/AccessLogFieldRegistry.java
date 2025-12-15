@@ -22,19 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.gateway.web.server;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @since 11/11/2019 15:30
+ * AccessLog输出字段注册器
  */
-public class HttpHeader {
-    /**
-     * HTTP 头
-     **/
-    public static final String HDR_BK_LANG = "blueking-language";
-    public static final String HDR_REQ_ID = "request-id";
-    public static final String HDR_REQ_SAPN_ID = "span-id";
-    public static final String HDR_CONTENT_TYPE = "Content-Type";
-    public static final String S_CURRENT_PAGE = "currentPage";
-    public static final String HDR_UER_AGENT = "User-Agent";
+public class AccessLogFieldRegistry {
+    private final List<String> fields = new ArrayList<>();
+
+    public AccessLogFieldRegistry() {
+        // AccessLog按此注册顺序输出
+        register(AccessLogConstants.LogField.START_TIME);
+        register(AccessLogConstants.LogField.TRACE_ID);
+        register(AccessLogConstants.LogField.SPAN_ID);
+        register(AccessLogConstants.LogField.USER_NAME);
+        register(AccessLogConstants.LogField.METHOD);
+        register(AccessLogConstants.LogField.PATH);
+        register(AccessLogConstants.LogField.PROTOCOL);
+        register(AccessLogConstants.LogField.CLIENT_IP);
+        register(AccessLogConstants.LogField.USER_AGENT);
+        register(AccessLogConstants.LogField.UPSTREAM);
+        register(AccessLogConstants.LogField.END_TIME);
+        register(AccessLogConstants.LogField.STATUS);
+        register(AccessLogConstants.LogField.RESPONSE_SIZE);
+        register(AccessLogConstants.LogField.DURATION);
+    }
+
+    public void register(String key) {
+        fields.add(key);
+    }
+
+    public List<String> getFields() {
+        return fields;
+    }
 }
