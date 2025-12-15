@@ -22,19 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.gateway.web.server.utils;
+
+import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
+import reactor.netty.http.server.ConnectionInformation;
+
+import javax.annotation.Nullable;
+import java.net.SocketAddress;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
- * @since 11/11/2019 15:30
+ * Access Log安全工具类，消除null警告
  */
-public class HttpHeader {
-    /**
-     * HTTP 头
-     **/
-    public static final String HDR_BK_LANG = "blueking-language";
-    public static final String HDR_REQ_ID = "request-id";
-    public static final String HDR_REQ_SAPN_ID = "span-id";
-    public static final String HDR_CONTENT_TYPE = "Content-Type";
-    public static final String S_CURRENT_PAGE = "currentPage";
-    public static final String HDR_UER_AGENT = "User-Agent";
+public class AccessLogValueSafeUtil {
+
+    public static String clientIP(@Nullable ConnectionInformation connectionInformation) {
+        if (connectionInformation == null) {
+            return AccessLogConstants.Default.MISSING;
+        }
+        SocketAddress socketAddress = connectionInformation.connectionRemoteAddress();
+        if (socketAddress == null) {
+            return AccessLogConstants.Default.MISSING;
+        }
+        return AccessLogNetUtil.formatSocketAddress(socketAddress);
+    }
+
+    public static String dateTime(@Nullable ZonedDateTime dateTime, String formatter) {
+        if (dateTime == null) {
+            return AccessLogConstants.Default.MISSING;
+        }
+        return dateTime.format(DateTimeFormatter.ofPattern(formatter));
+    }
+
+    public static String uri(@Nullable CharSequence charSequence) {
+        if (charSequence == null) {
+            return AccessLogConstants.Default.MISSING;
+        }
+        return charSequence.toString();
+    }
 }

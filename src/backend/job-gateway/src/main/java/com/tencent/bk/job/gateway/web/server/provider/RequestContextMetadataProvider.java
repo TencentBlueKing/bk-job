@@ -22,19 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.gateway.web.server.provider;
+
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
+import reactor.netty.http.server.logging.AccessLogArgProvider;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
- * @since 11/11/2019 15:30
+ * 从上下文获取访问日志数据
  */
-public class HttpHeader {
-    /**
-     * HTTP 头
-     **/
-    public static final String HDR_BK_LANG = "blueking-language";
-    public static final String HDR_REQ_ID = "request-id";
-    public static final String HDR_REQ_SAPN_ID = "span-id";
-    public static final String HDR_CONTENT_TYPE = "Content-Type";
-    public static final String S_CURRENT_PAGE = "currentPage";
-    public static final String HDR_UER_AGENT = "User-Agent";
+public class RequestContextMetadataProvider implements AccessLogMetadataProvider {
+
+    @Override
+    public Map<String, Object> extract(AccessLogArgProvider provider) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put(AccessLogConstants.LogField.UPSTREAM,
+            provider.requestHeader(AccessLogConstants.Header.UPSTREAM_SERVER));
+        map.put(AccessLogConstants.LogField.USER_NAME, provider.requestHeader(JobCommonHeaders.USERNAME) != null ?
+            provider.requestHeader(JobCommonHeaders.USERNAME) : provider.requestHeader("username"));
+        map.put(AccessLogConstants.LogField.TRACE_ID,
+            provider.responseHeader(JobCommonHeaders.REQUEST_ID));
+        map.put(AccessLogConstants.LogField.SPAN_ID,
+            provider.requestHeader(AccessLogConstants.Header.SPAN_ID));
+        return map;
+    }
 }

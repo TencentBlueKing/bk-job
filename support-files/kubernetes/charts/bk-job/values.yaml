@@ -953,6 +953,9 @@ gatewayConfig:
   csrfCheck:
     # 是否开启CSRF校验，默认开启
     enabled: true
+  customAccessLog:
+    # 是否开启自定义访问日志
+    enabled: true
   image:
     registry: hub.bktencent.com
     repository: blueking/job-gateway
