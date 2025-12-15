@@ -28,15 +28,19 @@ import com.tencent.bk.job.common.model.error.ErrorType;
 
 
 /**
- * 当使用集群外部的机器作为文件的分发源时，不满足分发条件（没有可用的源机器/...）时抛出的异常
+ * 文件分发文件源主机异常，使用集群外部机器或默认宿主机作为文件的分发源时，不满足分发条件时抛出的异常
  */
-public class DistributeFileFromExternalAgentException extends ServiceException {
+public class DistributeFileSourceHostException extends ServiceException {
 
-    public DistributeFileFromExternalAgentException(Integer errorCode) {
+    public DistributeFileSourceHostException(Integer errorCode) {
         super(ErrorType.INTERNAL, errorCode);
     }
 
-    public DistributeFileFromExternalAgentException(String message, Integer errorCode) {
+    public DistributeFileSourceHostException(String message, Integer errorCode) {
         super(message, ErrorType.INTERNAL, errorCode);
+    }
+
+    public DistributeFileSourceHostException(Integer errorCode, Object[] errorParams) {
+        super(ErrorType.INTERNAL, errorCode, errorParams);
     }
 }
