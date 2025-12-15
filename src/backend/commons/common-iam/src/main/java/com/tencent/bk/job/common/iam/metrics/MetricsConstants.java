@@ -30,10 +30,12 @@ public class MetricsConstants {
     public static final String NAME_AUTH_HELPER_IS_ALLOW = "AuthHelper.isAllow";
 
     // tag
+    public static final String TAG_KEY_TENANT_ID = "tenantId";
     public static final String TAG_KEY_ACTION = "action";
     public static final String TAG_KEY_STATUS = "status";
 
     // value
+    public static final String TAG_VALUE_TENANT_ID_NONE = "none";
     public static final String TAG_VALUE_ACTION_NONE = "none";
     public static final String TAG_VALUE_RESULT_TRUE = "true";
     public static final String TAG_VALUE_RESULT_FALSE = "false";

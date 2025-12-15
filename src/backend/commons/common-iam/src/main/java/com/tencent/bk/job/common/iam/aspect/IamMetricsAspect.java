@@ -35,13 +35,15 @@ public class IamMetricsAspect {
 
     @Around("processIsAllowedAction()")
     public Object recordMetricsDuringAuth(ProceedingJoinPoint pjp) throws Throwable {
+        String tenantId = MetricsConstants.TAG_VALUE_TENANT_ID_NONE;
         String action = MetricsConstants.TAG_VALUE_ACTION_NONE;
         String result = MetricsConstants.TAG_VALUE_RESULT_TRUE;
         Long startTimeMills = System.currentTimeMillis();
         try {
             Object[] args = pjp.getArgs();
-            if (args.length >= 2 && args[1] instanceof String) {
-                action = (String) args[1];
+            if (args.length >= 3 && args[0] instanceof String && args[2] instanceof String) {
+                tenantId = (String) args[0];
+                action = (String) args[2];
             }
             Object methodResult = pjp.proceed();
             if (methodResult instanceof Boolean) {
@@ -54,20 +56,21 @@ public class IamMetricsAspect {
             result = MetricsConstants.TAG_VALUE_RESULT_ERROR;
             throw t;
         } finally {
-            tryToRecordMetrics(action, result, startTimeMills);
+            tryToRecordMetrics(tenantId, action, result, startTimeMills);
         }
     }
 
-    private void tryToRecordMetrics(String action, String status, Long startTimeMills) {
+    private void tryToRecordMetrics(String tenantId, String action, String status, Long startTimeMills) {
         try {
-            recordMetrics(action, status, startTimeMills);
+            recordMetrics(tenantId, action, status, startTimeMills);
         } catch (Throwable t) {
             log.warn("Fail to recordMetrics", t);
         }
     }
 
-    private void recordMetrics(String action, String status, Long startTimeMills) {
+    private void recordMetrics(String tenantId, String action, String status, Long startTimeMills) {
         Tags tags = Tags.of(
+            Tag.of(MetricsConstants.TAG_KEY_TENANT_ID, tenantId),
             Tag.of(MetricsConstants.TAG_KEY_ACTION, action),
             Tag.of(MetricsConstants.TAG_KEY_STATUS, status)
         );
@@ -82,7 +85,8 @@ public class IamMetricsAspect {
         if (costTimeMillis > 1000) {
             String costTag = TimeUtil.genCostTimeTag(costTimeMillis);
             log.info(
-                "AuthSlow|action: {}|status: {}|costTag:{}|cost: {}",
+                "AuthSlow|tenantId: {}|action: {}|status: {}|costTag:{}|cost: {}",
+                tenantId,
                 action,
                 status,
                 costTag,

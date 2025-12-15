@@ -58,7 +58,7 @@ public class V4BatchGetJobInstanceExecuteObjectLogRequest extends EsbAppScopeReq
     @JsonProperty("host_id_list")
     @NotNull(message = "{validation.constraints.Host_empty.message}", groups = ValidateGroup.HostIdList.class)
     @Size(
-        min = 1, max = 100,
+        min = 1, max = 50,
         message = "{validation.constraints.InvalidExecuteObjectsSize.message}",
         groups = ValidateGroup.HostIdList.class
     )
@@ -70,7 +70,7 @@ public class V4BatchGetJobInstanceExecuteObjectLogRequest extends EsbAppScopeReq
     @JsonProperty("ip_list")
     @NotNull(message = "{validation.constraints.Host_empty.message}", groups = ValidateGroup.IpList.class)
     @Size(
-        min = 1, max = 100,
+        min = 1, max = 50,
         message = "{validation.constraints.InvalidExecuteObjectsSize.message}",
         groups = ValidateGroup.IpList.class
     )
@@ -82,7 +82,7 @@ public class V4BatchGetJobInstanceExecuteObjectLogRequest extends EsbAppScopeReq
      */
     @JsonProperty("container_id_list")
     @Size(
-        min = 1, max = 100,
+        min = 1, max = 50,
         message = "{validation.constraints.InvalidExecuteObjectsSize.message}",
         groups = ValidateGroup.ContainerIdList.class
     )
