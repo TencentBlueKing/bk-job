@@ -15,7 +15,7 @@ metadata:
     {{- end }}
     {{- if eq "subpath" .Values.bkWebSiteAccess.mode }}
     nginx.ingress.kubernetes.io/enable-rewrite-log : "true"
-    nginx.ingress.kubernetes.io/rewrite-target : $1
+    nginx.ingress.kubernetes.io/rewrite-target : /$1
     {{- end }}
     {{- if .Values.apiConfig.ingress.annotations }}
     {{- include "common.tplvalues.render" (dict "value" .Values.apiConfig.ingress.annotations "context" $) | nindent 4 }}
@@ -28,19 +28,19 @@ spec:
     - host: {{ include "job.web.domain" . }}
       http:
         paths:
-          - path: "{{ include "job.url.pathRootPrefix" . }}(/api/.*)"
+          - path: "{{ include "job.url.pathRootPrefix" . }}/(api/.*)"
             pathType: ImplementationSpecific
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
-          - path: "{{ include "job.url.pathRootPrefix" . }}(/iam/.*)"
+          - path: "{{ include "job.url.pathRootPrefix" . }}/(iam/.*)"
             pathType: ImplementationSpecific
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
-          - path: "{{ include "job.url.pathRootPrefix" . }}(/job-.*)"
+          - path: "{{ include "job.url.pathRootPrefix" . }}/(job-.*)"
             pathType: ImplementationSpecific
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
-          - path: "{{ include "job.url.pathRootPrefix" . }}(/user/.*)"
+          - path: "{{ include "job.url.pathRootPrefix" . }}/(user/.*)"
             pathType: ImplementationSpecific
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
-          - path: "{{ include "job.url.pathRootPrefix" . }}(/logout)"
+          - path: "{{ include "job.url.pathRootPrefix" . }}/(logout)"
             pathType: ImplementationSpecific
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
 {{- end }}
