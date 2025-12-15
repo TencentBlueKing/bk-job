@@ -22,19 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.constant;
+package com.tencent.bk.job.gateway.web.server;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * @since 11/11/2019 15:30
+ * 访问日志格式化器，将元数据格式化为key-value字符串
  */
-public class HttpHeader {
-    /**
-     * HTTP 头
-     **/
-    public static final String HDR_BK_LANG = "blueking-language";
-    public static final String HDR_REQ_ID = "request-id";
-    public static final String HDR_REQ_SAPN_ID = "span-id";
-    public static final String HDR_CONTENT_TYPE = "Content-Type";
-    public static final String S_CURRENT_PAGE = "currentPage";
-    public static final String HDR_UER_AGENT = "User-Agent";
+public class AccessLogFormatter {
+
+    private final AccessLogFieldRegistry registry;
+
+    @Autowired
+    public AccessLogFormatter(AccessLogFieldRegistry registry) {
+        this.registry = registry;
+    }
+
+    public String format(Map<String, Object> metadata) {
+        return registry.getFields().stream()
+            .map(key -> {
+                Object val = metadata.get(key);
+                return key + "=" + (val != null ? val : AccessLogConstants.Default.MISSING);
+            })
+            .collect(Collectors.joining("|"));
+    }
 }
