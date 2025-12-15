@@ -142,7 +142,8 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
             int respStatus = response.getStatus();
             long cost = System.currentTimeMillis() - startTimeInMills;
             String costTag = TimeUtil.genCostTimeTag(cost);
-            log.info("request-id: {}|OpenAPI: {}|uri: {}|appCode: {}|username: {}|status: {}|resp: {}|costTag:{}|cost: {}",
+            log.info(
+                "request-id: {}|OpenAPI: {}|uri: {}|appCode: {}|username: {}|status: {}|resp: {}|costTag:{}|cost: {}",
                 requestId,
                 apiName,
                 request.getRequestURI(),
