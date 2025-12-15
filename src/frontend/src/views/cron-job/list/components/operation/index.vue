@@ -46,6 +46,26 @@
           :placeholder="$t('cron.推荐按照该定时执行的实际场景来取名')" />
       </jb-form-item>
       <jb-form-item
+        class="has-tips"
+        :desc="$t('cron.默认为业务所属时区')"
+        desc-type="icon"
+        :label="$t('cron.任务时区')"
+        :label-width="80"
+        property="executeTimeZone"
+        required>
+        <bk-select
+          v-model="formData.executeTimeZone"
+          :clearable="false"
+          :placeholder="$t('cron.选择任务时区')"
+          searchable>
+          <auth-option
+            v-for="option in timezonesList"
+            :id="option.timezone"
+            :key="option.timezone"
+            :name="option.timezone" />
+        </bk-select>
+      </jb-form-item>
+      <jb-form-item
         :label="$t('cron.执行策略_label')"
         :property="strategyField"
         required>
@@ -205,6 +225,7 @@
   import JbInput from '@components/jb-input';
 
   import I18n from '@/i18n';
+  import timezonesList from '@/utils/world-timezones.json';
 
   import RenderInfoDetail from '../render-info-detail';
 
@@ -370,6 +391,7 @@
       },
     },
     created() {
+      this.timezonesList = timezonesList;
       // 作业模板列表
       this.fetchTemplateList();
 
@@ -397,6 +419,8 @@
             this.fetchPlanDetailInfo();
           }
         }
+        // 默认为业务所属时区
+        this.formData.executeTimeZone = window.PROJECT_CONFIG.BUSINESS_TIME_ZONE;
       }
 
       this.rules = Object.assign({}, this.rules, {
@@ -467,7 +491,7 @@
             taskTemplateId,
             notifyType,
             cronJobCustomNotifyVO,
-
+            executeTimeZone,
           } = cronJob;
 
           if (executeTime) {
@@ -489,6 +513,7 @@
             taskTemplateId,
             variableValue: [],
             notifyType,
+            executeTimeZone,
             customNotifyUser: {
               roleList: cronJobCustomNotifyVO.roleList,
               userList: cronJobCustomNotifyVO.extraObserverList,
@@ -761,6 +786,12 @@
 
     .plan-variable-empty {
       color: #b2b5bd;
+    }
+
+    .has-tips {
+      :deep(.bk-label) {
+        white-space: nowrap;
+      }
     }
   }
 </style>

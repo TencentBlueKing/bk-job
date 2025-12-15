@@ -139,7 +139,11 @@
               :label="$t('script.更新时间_colHead')"
               prop="lastModifyTimeText"
               sortable
-              width="200" />
+              width="200">
+              <template slot-scope="{ row }">
+                <span v-bk-tooltips="row.lastModifyTimeTooltipsText">{{ row.lastModifyTimeText }}</span>
+              </template>
+            </bk-table-column>
             <bk-table-column
               v-if="allColumnMap.statusDesc"
               key="statusDesc"

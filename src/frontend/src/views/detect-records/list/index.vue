@@ -102,7 +102,7 @@
         prop="createTimeText"
         width="200">
         <template slot-scope="{ row }">
-          {{ row.getCreatTimes }}
+          <span v-bk-tooltips="row.createTimeTooltipsText">{{ row.createTimeText }}</span>
         </template>
       </bk-table-column>
       <bk-table-column

@@ -94,7 +94,11 @@
         align="left"
         :label="$t('cron.开始时间_colHead')"
         prop="createTimeText"
-        width="180" />
+        width="180">
+        <template slot-scope="{ row }">
+          <span v-bk-tooltips="row.createTimeTooltipsText">{{ row.createTimeText }}</span>
+        </template>
+      </bk-table-column>
       <bk-table-column
         key="totalTimeText"
         align="right"

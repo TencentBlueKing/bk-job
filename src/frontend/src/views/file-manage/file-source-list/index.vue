@@ -127,7 +127,11 @@
         v-if="allRenderColumnMap.lastModifyTime"
         key="lastModifyTimeText"
         :label="$t('file.更新时间')"
-        prop="lastModifyTimeText" />
+        prop="lastModifyTimeText">
+        <template slot-scope="{ row }">
+          <span v-bk-tooltips="row.lastModifyTimeTooltipsText">{{ row.lastModifyTimeText }}</span>
+        </template>
+      </bk-table-column>
       <bk-table-column
         key="action"
         :label="$t('file.操作')"
