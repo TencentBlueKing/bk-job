@@ -69,6 +69,15 @@ public class ResourceCostCalculator {
         int totalResourceCost = calcResourceCostForAllTenantTasks();
         // 2.统计所有实例数量
         int totalInstanceCount = getJobManageInstanceCount();
+        if (totalInstanceCount == 0) {
+            // 所有实例都不健康，使用默认值确保不接收过多任务，等待后续实例状态健康后再进行负载均衡
+            int defaultResourceCost = 200;
+            log.info(
+                "No healthy job-manage instance, use defaultResourceCost({}) for current instance",
+                defaultResourceCost
+            );
+            return defaultResourceCost;
+        }
         // 3.计算平均每个实例应当承担的资源消耗，向上取整
         return (int) Math.ceil((double) totalResourceCost / totalInstanceCount);
     }
@@ -103,7 +112,7 @@ public class ResourceCostCalculator {
         resourceCost += BizEventWatcher.resourceCostForWatcher();
         resourceCost += BizSetEventWatcher.resourceCostForWatcher();
         resourceCost += BizSetRelationEventWatcher.resourceCostForWatcher();
-        resourceCost += HostEventWatcher.resourceCostForWatcher() + jobManageConfig.getHostEventHandlerNum();
+        resourceCost += HostEventWatcher.resourceCostForWatcherAndHandler(jobManageConfig);
         resourceCost += HostRelationEventWatcher.resourceCostForWatcherAndHandler();
         return resourceCost;
     }

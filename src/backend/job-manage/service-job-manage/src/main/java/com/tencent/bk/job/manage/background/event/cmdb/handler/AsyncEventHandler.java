@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.tracing.util.SpanUtil;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
+import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.Span;
@@ -35,72 +36,76 @@ import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.concurrent.BlockingQueue;
 
+/**
+ * 在异步线程中处理事件的处理器
+ *
+ * @param <T> 事件类型
+ */
 @Slf4j
-public abstract class EventsHandler<T> extends Thread {
+public abstract class AsyncEventHandler<T> extends Thread implements CmdbEventHandler<T> {
 
-    BlockingQueue<ResourceEvent<T>> queue;
+    /**
+     * 事件队列
+     */
+    protected final BlockingQueue<ResourceEvent<T>> queue;
     /**
      * 日志调用链tracer
      */
     private final Tracer tracer;
+    /**
+     * CMDB事件指标数据采样器
+     */
     private final CmdbEventSampler cmdbEventSampler;
+    /**
+     * 租户ID
+     */
     protected final String tenantId;
+    /**
+     * 当前事件处理是否活跃
+     */
     protected boolean active = true;
 
-    public EventsHandler(BlockingQueue<ResourceEvent<T>> queue,
-                         Tracer tracer,
-                         CmdbEventSampler cmdbEventSampler,
-                         String tenantId) {
+    public AsyncEventHandler(BlockingQueue<ResourceEvent<T>> queue,
+                             Tracer tracer,
+                             CmdbEventSampler cmdbEventSampler,
+                             String tenantId) {
         this.queue = queue;
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.tenantId = tenantId;
     }
 
-    public void commitEvent(ResourceEvent<T> event) {
+    /**
+     * 实际处理事件
+     *
+     * @param event 事件
+     */
+    abstract void handleEventInternal(ResourceEvent<T> event);
+
+    /**
+     * 获取当前事件处理器在事件处理指标维度上的额外标签
+     *
+     * @return 维度标签
+     */
+    abstract Iterable<Tag> getEventHandleExtraTags();
+
+    @Override
+    public void handleEvent(ResourceEvent<T> event) {
+        addEventToQueue(event);
+    }
+
+    /**
+     * 将事件添加至队列等候处理
+     *
+     * @param event 事件
+     */
+    private void addEventToQueue(ResourceEvent<T> event) {
         try {
-            boolean result = this.queue.add(event);
-            if (!result) {
-                log.warn("Fail to commitEvent:{}", event);
-            }
+            this.queue.add(event);
         } catch (Exception e) {
-            log.warn("Fail to commitEvent:" + event, e);
+            // 如果队列已满或其他异常产生，则丢弃当前事件，避免大量事件持续阻塞
+            log.error("Fail to commitEvent:" + event, e);
         }
-    }
-
-    abstract void handleEvent(ResourceEvent<T> event);
-
-    abstract Tags getEventHandleExtraTags();
-
-    abstract String getSpanName();
-
-    void handleEventWithTrace(ResourceEvent<T> event) {
-        String eventHandleResult = MetricsConstants.TAG_VALUE_CMDB_EVENT_HANDLE_RESULT_SUCCESS;
-        Span span = buildSpan();
-        try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
-            handleEvent(event);
-        } catch (Throwable t) {
-            span.error(t);
-            eventHandleResult = MetricsConstants.TAG_VALUE_CMDB_EVENT_HANDLE_RESULT_FAILED;
-            log.warn("Fail to handleOneEvent:" + event, t);
-        } finally {
-            span.end();
-            long timeConsuming = System.currentTimeMillis() - event.getCreateTime();
-            cmdbEventSampler.recordEventHandleTimeConsuming(timeConsuming, buildEventHandleTimeTags(eventHandleResult));
-        }
-    }
-
-    private Span buildSpan() {
-        return SpanUtil.buildNewSpan(this.tracer, getSpanName());
-    }
-
-    private Tags buildEventHandleTimeTags(String eventHandleResult) {
-        Tags tags = Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_HANDLE_RESULT, eventHandleResult);
-        Tags extraTags = getEventHandleExtraTags();
-        if (extraTags != null) {
-            tags = Tags.concat(tags, extraTags);
-        }
-        return tags;
     }
 
     @Override
@@ -118,6 +123,46 @@ public abstract class EventsHandler<T> extends Thread {
         }
     }
 
+    /**
+     * 处理事件并记录耗时Trace数据
+     *
+     * @param event 事件
+     */
+    private void handleEventWithTrace(ResourceEvent<T> event) {
+        String eventHandleResult = MetricsConstants.TAG_VALUE_CMDB_EVENT_HANDLE_RESULT_SUCCESS;
+        Span span = SpanUtil.buildNewSpan(tracer, "handleEvent");
+        try (Tracer.SpanInScope ignored = tracer.withSpan(span.start())) {
+            handleEventInternal(event);
+        } catch (Throwable t) {
+            span.error(t);
+            eventHandleResult = MetricsConstants.TAG_VALUE_CMDB_EVENT_HANDLE_RESULT_FAILED;
+            log.warn("Fail to handleEvent:" + event, t);
+        } finally {
+            span.end();
+            long timeConsuming = System.currentTimeMillis() - event.getCreateTime();
+            cmdbEventSampler.recordEventHandleTimeConsuming(timeConsuming, buildEventHandleTimeTags(eventHandleResult));
+        }
+    }
+
+    /**
+     * 构建事件处理耗时指标数据维度标签
+     *
+     * @param eventHandleResult 事件处理结果
+     * @return 维度标签
+     */
+    private Tags buildEventHandleTimeTags(String eventHandleResult) {
+        Tags tags = Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_HANDLE_RESULT, eventHandleResult);
+        Iterable<Tag> extraTags = getEventHandleExtraTags();
+        if (extraTags != null) {
+            tags = Tags.concat(tags, extraTags);
+        }
+        return tags;
+    }
+
+    /**
+     * 关闭事件处理器
+     */
+    @Override
     public void close() {
         active = false;
         this.interrupt();

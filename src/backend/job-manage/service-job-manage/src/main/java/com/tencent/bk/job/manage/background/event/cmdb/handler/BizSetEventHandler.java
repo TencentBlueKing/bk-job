@@ -22,30 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.ha;
+package com.tencent.bk.job.manage.background.event.cmdb.handler;
 
+import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 抽象的后台任务，封装部分公共逻辑
+ * 业务集事件处理器（在调用线程中处理事件）
  */
 @Slf4j
-public abstract class AbstractBackGroundTask extends Thread implements BackGroundTask {
+public class BizSetEventHandler extends AbstractResourceScopeEventHandler<BizSetEventDetail> {
 
-    private BackGroundTaskRegistry registry;
-
-    @Override
-    public void setRegistry(BackGroundTaskRegistry registry) {
-        this.registry = registry;
-    }
-
-    public void deregister() {
-        BackGroundTask backGroundTask = registry.removeTask(getUniqueCode());
-        log.info("deregister backGroundTask({}), result={}", getUniqueCode(), backGroundTask != null);
+    public BizSetEventHandler(ApplicationService applicationService,
+                              String tenantId) {
+        super(applicationService, tenantId);
     }
 
     @Override
-    public void startTask() {
-        super.start();
+    ApplicationDTO buildApp(BizSetEventDetail eventDetail) {
+        return eventDetail.toApplicationDTO();
     }
 }

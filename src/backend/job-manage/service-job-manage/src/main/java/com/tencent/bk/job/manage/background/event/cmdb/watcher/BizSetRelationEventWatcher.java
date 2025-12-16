@@ -24,51 +24,41 @@
 
 package com.tencent.bk.job.manage.background.event.cmdb.watcher;
 
-import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
-import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
+import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventCursorManager;
+import com.tencent.bk.job.manage.background.event.cmdb.handler.CmdbEventHandler;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
-import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventCursorManager;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import java.util.List;
-
 /**
  * 业务集事件监听
  */
 @Slf4j
 public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher<BizSetRelationEventDetail> {
-    private final ApplicationService applicationService;
     private final BizSetService bizSetService;
     private final IBizSetCmdbClient bizSetCmdbClient;
 
     public BizSetRelationEventWatcher(RedisTemplate<String, String> redisTemplate,
                                       Tracer tracer,
                                       CmdbEventSampler cmdbEventSampler,
-                                      ApplicationService applicationService,
                                       BizSetService bizSetService,
                                       IBizSetCmdbClient bizSetCmdbClient,
                                       TenantService tenantService,
                                       CmdbEventCursorManager cmdbEventCursorManager,
+                                      CmdbEventHandler<BizSetRelationEventDetail> eventHandler,
                                       String tenantId) {
         super(tenantId, "bizSetRelation", redisTemplate,
-            tenantService, tracer, cmdbEventSampler, cmdbEventCursorManager);
-        this.applicationService = applicationService;
+            tenantService, tracer, cmdbEventSampler, cmdbEventCursorManager, eventHandler);
         this.bizSetService = bizSetService;
         this.bizSetCmdbClient = bizSetCmdbClient;
     }
@@ -81,37 +71,6 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
     @Override
     protected ResourceWatchResult<BizSetRelationEventDetail> fetchEventsByStartTime(Long startTime) {
         return bizSetCmdbClient.getBizSetRelationEvents(tenantId, startTime, null);
-    }
-
-    @SuppressWarnings("SwitchStatementWithTooFewBranches")
-    @Override
-    public void handleEvent(ResourceEvent<BizSetRelationEventDetail> event) {
-        String eventType = event.getEventType();
-        switch (eventType) {
-            case ResourceWatchReq.EVENT_TYPE_UPDATE:
-                try {
-                    Long bizSetId = event.getDetail().getBizSetId();
-                    List<Long> latestSubBizIds = event.getDetail().getBizIds();
-                    ApplicationDTO cacheApplication =
-                        applicationService.getAppByScopeIncludingDeleted(
-                            new ResourceScope(ResourceScopeTypeEnum.BIZ_SET.getValue(), String.valueOf(bizSetId))
-                        );
-                    if (cacheApplication == null || cacheApplication.isDeleted()) {
-                        return;
-                    }
-                    ApplicationAttrsDO attrs = cacheApplication.getAttrs();
-                    if (attrs != null) {
-                        attrs.setSubBizIds(latestSubBizIds);
-                    }
-                    applicationService.updateApp(cacheApplication);
-                } catch (Throwable t) {
-                    log.error("Handle biz_set_relation event fail", t);
-                }
-                break;
-            default:
-                log.info("No need to handle event: {}", event);
-                break;
-        }
     }
 
     @Override
@@ -160,7 +119,7 @@ public class BizSetRelationEventWatcher extends AbstractCmdbResourceEventWatcher
      * @return 资源消耗值
      */
     public static int resourceCostForWatcher() {
-        return SINGLE_WATCHER_THREAD_RESOURCE_COST;
+        return SINGLE_WATCHER_THREAD_NUM;
     }
 
     @Override

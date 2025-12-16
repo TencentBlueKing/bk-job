@@ -22,17 +22,48 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.event.cmdb;
+package com.tencent.bk.job.manage.background.ha;
 
 /**
- * CMDB事件监听器接口，定义监听器支持的操作
+ * 后台任务（CMDB事件监听任务、CMDB资源同步任务等）
  */
-public interface ICmdbEventWatcher {
+public interface BackGroundTask extends BackGroundTaskRegistryAware {
 
     /**
-     * 设置监听状态
+     * 获取任务唯一代码
      *
-     * @param enabled 是否开启
+     * @return 后台任务唯一代码，多个任务之间不重复
      */
-    void setWatchEnabled(boolean enabled);
+    String getUniqueCode();
+
+    /**
+     * 获取任务实体
+     *
+     * @return 后台任务实体
+     */
+    TaskEntity getTaskEntity();
+
+    /**
+     * 获取后台任务的租户ID
+     *
+     * @return 租户ID
+     */
+    String getTenantId();
+
+    /**
+     * 任务的资源消耗
+     *
+     * @return 资源消耗数值
+     */
+    int getResourceCost();
+
+    /**
+     * 启动任务
+     */
+    void startTask();
+
+    /**
+     * 优雅停止
+     */
+    void shutdownGracefully();
 }

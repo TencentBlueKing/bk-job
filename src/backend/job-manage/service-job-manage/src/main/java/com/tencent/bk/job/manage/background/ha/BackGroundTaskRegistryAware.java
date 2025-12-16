@@ -27,10 +27,10 @@ package com.tencent.bk.job.manage.background.ha;
 /**
  * 感知后台任务注册仓库
  */
-public interface IBackGroundTaskRegistryAware {
+public interface BackGroundTaskRegistryAware {
 
     /**
      * 设置后台任务仓库
      */
-    void setRegistry(IBackGroundTaskRegistry registry);
+    void setRegistry(BackGroundTaskRegistry registry);
 }

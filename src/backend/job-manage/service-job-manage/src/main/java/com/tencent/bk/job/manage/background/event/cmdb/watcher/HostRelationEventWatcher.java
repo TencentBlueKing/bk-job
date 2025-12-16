@@ -25,82 +25,37 @@
 package com.tencent.bk.job.manage.background.event.cmdb.watcher;
 
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
-import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
 import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventCursorManager;
+import com.tencent.bk.job.manage.background.event.cmdb.handler.CmdbEventHandler;
 import com.tencent.bk.job.manage.background.event.cmdb.handler.HostRelationEventHandler;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
-import com.tencent.bk.job.manage.dao.HostTopoDAO;
-import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
-import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
-import com.tencent.bk.job.manage.service.ApplicationService;
-import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
 @Slf4j
 public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<HostRelationEventDetail> {
 
-    /**
-     * 日志调用链tracer
-     */
-    private final Tracer tracer;
-    private final CmdbEventSampler cmdbEventSampler;
     private final IBizCmdbClient bizCmdbClient;
-    private final ApplicationService applicationService;
-    private final NoTenantHostDAO noTenantHostDAO;
-    private final HostTopoDAO hostTopoDAO;
-    private final HostCache hostCache;
-
-    private final HostRelationEventHandler eventsHandler;
-    private final BlockingQueue<ResourceEvent<HostRelationEventDetail>> eventQueue =
-        new LinkedBlockingQueue<>(10000);
 
     public HostRelationEventWatcher(RedisTemplate<String, String> redisTemplate,
                                     Tracer tracer,
                                     CmdbEventSampler cmdbEventSampler,
                                     IBizCmdbClient bizCmdbClient,
-                                    ApplicationService applicationService,
-                                    NoTenantHostDAO noTenantHostDAO,
-                                    HostTopoDAO hostTopoDAO,
-                                    HostCache hostCache,
                                     TenantService tenantService,
                                     CmdbEventCursorManager cmdbEventCursorManager,
+                                    CmdbEventHandler<HostRelationEventDetail> hostRelationEventHandler,
                                     String tenantId) {
         super(tenantId, "hostRelation", redisTemplate,
-            tenantService, tracer, cmdbEventSampler, cmdbEventCursorManager);
-        this.tracer = tracer;
-        this.cmdbEventSampler = cmdbEventSampler;
+            tenantService, tracer, cmdbEventSampler, cmdbEventCursorManager, hostRelationEventHandler);
         this.bizCmdbClient = bizCmdbClient;
-        this.applicationService = applicationService;
-        this.noTenantHostDAO = noTenantHostDAO;
-        this.hostTopoDAO = hostTopoDAO;
-        this.hostCache = hostCache;
-        this.eventsHandler = buildHostRelationEventHandler();
-        this.eventsHandler.setName(getName() + ":Handler");
-    }
-
-    private HostRelationEventHandler buildHostRelationEventHandler() {
-        return new HostRelationEventHandler(
-            tracer,
-            cmdbEventSampler,
-            eventQueue,
-            applicationService,
-            noTenantHostDAO,
-            hostTopoDAO,
-            hostCache,
-            tenantId
-        );
     }
 
     @Override
@@ -114,35 +69,9 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
     }
 
     @Override
-    public void handleEvent(ResourceEvent<HostRelationEventDetail> event) {
-        dispatchEventToHandler(event);
-    }
-
-    @Override
     protected Tags getEventMetricTags() {
         return Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE,
             MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_HOST_RELATION);
-    }
-
-    @Override
-    protected void initBeforeWatch() {
-        String handlerName = "HostRelationEventHandler";
-        cmdbEventSampler.registerEventQueueToGauge(
-            eventQueue,
-            buildHostRelationEventHandlerTags(handlerName)
-        );
-        eventsHandler.start();
-    }
-
-    private Iterable<Tag> buildHostRelationEventHandlerTags(String handlerName) {
-        return Tags.of(
-            MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE, MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_HOST_RELATION,
-            MetricsConstants.TAG_KEY_CMDB_HOST_EVENT_HANDLER_NAME, handlerName
-        );
-    }
-
-    private void dispatchEventToHandler(ResourceEvent<HostRelationEventDetail> event) {
-        eventsHandler.commitEvent(event);
     }
 
     @Override
@@ -172,7 +101,7 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
      * @return 资源消耗值
      */
     public static int resourceCostForWatcherAndHandler() {
-        return resourceCostForWatcher() + HostRelationEventHandler.SINGLE_HANDLER_THREAD_RESOURCE_COST;
+        return resourceCostForWatcher() + HostRelationEventHandler.SINGLE_HANDLER_EXTRA_THREAD_NUM;
     }
 
     /**
@@ -181,12 +110,11 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
      * @return 资源消耗值
      */
     public static int resourceCostForWatcher() {
-        return SINGLE_WATCHER_THREAD_RESOURCE_COST;
+        return SINGLE_WATCHER_THREAD_NUM;
     }
 
     @Override
     public void shutdownGracefully() {
         super.shutdownGracefully();
-        eventsHandler.close();
     }
 }

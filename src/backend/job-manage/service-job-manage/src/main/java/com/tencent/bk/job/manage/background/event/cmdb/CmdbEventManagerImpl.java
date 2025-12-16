@@ -31,8 +31,8 @@ import com.tencent.bk.job.manage.background.event.cmdb.watcher.BizSetRelationEve
 import com.tencent.bk.job.manage.background.event.cmdb.watcher.HostEventWatcher;
 import com.tencent.bk.job.manage.background.event.cmdb.watcher.HostRelationEventWatcher;
 import com.tencent.bk.job.manage.background.event.cmdb.watcher.factory.EventWatcherFactory;
-import com.tencent.bk.job.manage.background.ha.BackGroundTaskRegistry;
-import com.tencent.bk.job.manage.background.ha.IBackGroundTask;
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskRegistryImpl;
+import com.tencent.bk.job.manage.background.ha.BackGroundTask;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskDispatcher;
 import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskListenerController;
@@ -55,19 +55,19 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
     private final ThreadPoolExecutor shutdownEventWatchExecutor;
     private final BackGroundTaskDispatcher backGroundTaskDispatcher;
     private final BackGroundTaskListenerController backGroundTaskListenerController;
-    private final BackGroundTaskRegistry backGroundTaskRegistry;
+    private final BackGroundTaskRegistryImpl backGroundTaskRegistry;
 
     @Autowired
     public CmdbEventManagerImpl(EventWatcherFactory eventWatcherFactory,
                                 ThreadPoolExecutor shutdownEventWatchExecutor,
                                 BackGroundTaskDispatcher backGroundTaskDispatcher,
                                 BackGroundTaskListenerController backGroundTaskListenerController,
-                                BackGroundTaskRegistry backGroundTaskRegistry) {
+                                BackGroundTaskRegistryImpl backGroundTaskRegistryImpl) {
         this.eventWatcherFactory = eventWatcherFactory;
         this.shutdownEventWatchExecutor = shutdownEventWatchExecutor;
         this.backGroundTaskDispatcher = backGroundTaskDispatcher;
         this.backGroundTaskListenerController = backGroundTaskListenerController;
-        this.backGroundTaskRegistry = backGroundTaskRegistry;
+        this.backGroundTaskRegistry = backGroundTaskRegistryImpl;
     }
 
     /**
@@ -205,7 +205,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
      * @param task 后台任务
      * @return 是否启动成功
      */
-    private boolean registerAndStartTask(IBackGroundTask task) {
+    private boolean registerAndStartTask(BackGroundTask task) {
         String uniqueCode = task.getUniqueCode();
         if (backGroundTaskRegistry.existsTask(uniqueCode)) {
             log.warn("task {} already exists in registry, ignore", uniqueCode);
@@ -230,9 +230,9 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
     @Override
     public Integer enableWatch(EventWatchTaskTypeEnum taskType) {
         int watcherCount = 0;
-        for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
-            if (task instanceof ICmdbEventWatcher && task.getTaskEntity().getTaskType() == taskType) {
-                ICmdbEventWatcher watcherTask = (ICmdbEventWatcher) task;
+        for (BackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
+            if (task instanceof CmdbEventWatcher && task.getTaskEntity().getTaskType() == taskType) {
+                CmdbEventWatcher watcherTask = (CmdbEventWatcher) task;
                 watcherTask.setWatchEnabled(true);
                 watcherCount++;
             }
@@ -250,9 +250,9 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
     @Override
     public Integer disableWatch(EventWatchTaskTypeEnum taskType) {
         int watcherCount = 0;
-        for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
-            if (task instanceof ICmdbEventWatcher && task.getTaskEntity().getTaskType() == taskType) {
-                ICmdbEventWatcher watcherTask = (ICmdbEventWatcher) task;
+        for (BackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
+            if (task instanceof CmdbEventWatcher && task.getTaskEntity().getTaskType() == taskType) {
+                CmdbEventWatcher watcherTask = (CmdbEventWatcher) task;
                 watcherTask.setWatchEnabled(false);
                 watcherCount++;
             }
@@ -267,7 +267,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
         // 1.关闭任务接收通道
         backGroundTaskListenerController.stop();
         // 2.停止所有任务，并将其重新调度至其他实例
-        for (IBackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
+        for (BackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
             shutdownEventWatchExecutor.submit(() -> {
                 TaskEntity taskEntity = task.getTaskEntity();
                 task.shutdownGracefully();

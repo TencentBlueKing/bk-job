@@ -22,23 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.ha;
-
-import org.springframework.stereotype.Service;
-
-import java.util.Map;
+package com.tencent.bk.job.manage.background.event.cmdb;
 
 /**
- * 后台任务注册仓库接口
+ * CMDB事件监听器接口，定义监听器支持的操作
  */
-@Service
-public interface IBackGroundTaskRegistry {
+public interface CmdbEventWatcher {
 
-    boolean existsTask(String uniqueCode);
-
-    boolean registerTask(String uniqueCode, IBackGroundTask task);
-
-    IBackGroundTask removeTask(String uniqueCode);
-
-    Map<String, IBackGroundTask> getTaskMap();
+    /**
+     * 设置监听状态
+     *
+     * @param enabled 是否开启
+     */
+    void setWatchEnabled(boolean enabled);
 }

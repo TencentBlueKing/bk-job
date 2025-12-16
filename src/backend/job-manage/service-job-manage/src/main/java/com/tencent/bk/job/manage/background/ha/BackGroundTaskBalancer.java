@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 public class BackGroundTaskBalancer {
 
     private final ResourceCostCalculator resourceCostCalculator;
-    private final IBackGroundTaskRegistry backGroundTaskRegistry;
+    private final BackGroundTaskRegistry backGroundTaskRegistry;
     private final BackGroundTaskListenerController backGroundTaskListenerController;
     private final BackGroundTaskDispatcher backGroundTaskDispatcher;
     private final BackGroundTaskProperties backGroundTaskProperties;
@@ -57,7 +57,7 @@ public class BackGroundTaskBalancer {
 
     @Autowired
     public BackGroundTaskBalancer(ResourceCostCalculator resourceCostCalculator,
-                                  IBackGroundTaskRegistry backGroundTaskRegistry,
+                                  BackGroundTaskRegistry backGroundTaskRegistry,
                                   BackGroundTaskListenerController backGroundTaskListenerController,
                                   BackGroundTaskDispatcher backGroundTaskDispatcher,
                                   BackGroundTaskProperties backGroundTaskProperties) {
@@ -103,7 +103,7 @@ public class BackGroundTaskBalancer {
         int averageResourceCost = resourceCostCalculator.calcAverageResourceCostForOneInstance();
         // 2.计算当前实例资源占用值
         int currentResourceCost = calcCurrentResourceCost();
-        List<IBackGroundTask> sortedTaskList = getSortedByTenantTaskList();
+        List<BackGroundTask> sortedTaskList = getSortedByTenantTaskList();
         // 3.如果当前实例的资源占用高于平均值，则将任务均衡到其他实例
         if (needToBalance(averageResourceCost, currentResourceCost, sortedTaskList)) {
             log.info(
@@ -121,15 +121,15 @@ public class BackGroundTaskBalancer {
             // 选取一批任务优雅终止
             watch.start("chooseTask");
             int deltaResourceCost = currentResourceCost - averageResourceCost;
-            List<IBackGroundTask> choosedTaskList = chooseTaskForResourceCostFromTail(
+            List<BackGroundTask> choosedTaskList = chooseTaskForResourceCostFromTail(
                 sortedTaskList,
                 deltaResourceCost
             );
             watch.stop();
 
-            List<IBackGroundTask> successList = new ArrayList<>();
-            List<IBackGroundTask> failedList = new ArrayList<>();
-            for (IBackGroundTask taskToTransfer : choosedTaskList) {
+            List<BackGroundTask> successList = new ArrayList<>();
+            List<BackGroundTask> failedList = new ArrayList<>();
+            for (BackGroundTask taskToTransfer : choosedTaskList) {
                 watch.start("tryToTransferTask:" + taskToTransfer.getUniqueCode());
                 boolean success = tryToTransferTask(taskToTransfer);
                 if (success) {
@@ -169,14 +169,14 @@ public class BackGroundTaskBalancer {
      */
     private boolean needToBalance(int averageResourceCost,
                                   int currentResourceCost,
-                                  List<IBackGroundTask> sortedTaskList) {
+                                  List<BackGroundTask> sortedTaskList) {
         if (currentResourceCost <= averageResourceCost) {
             return false;
         }
         if (Collections.isEmpty(sortedTaskList)) {
             return false;
         }
-        IBackGroundTask lastTask = sortedTaskList.get(sortedTaskList.size() - 1);
+        BackGroundTask lastTask = sortedTaskList.get(sortedTaskList.size() - 1);
         // 如果当前资源消耗减去最后一个任务的资源消耗值后，依然高于平均值，则需要执行负载均衡
         return currentResourceCost - lastTask.getResourceCost() >= averageResourceCost;
     }
@@ -187,7 +187,7 @@ public class BackGroundTaskBalancer {
      * @param taskToTransfer 待转移的任务
      * @return 是否转移成功
      */
-    private boolean tryToTransferTask(IBackGroundTask taskToTransfer) {
+    private boolean tryToTransferTask(BackGroundTask taskToTransfer) {
         try {
             // 优雅停止
             taskToTransfer.shutdownGracefully();
@@ -212,13 +212,13 @@ public class BackGroundTaskBalancer {
      * @param targetResourceCost 目标资源消耗值
      * @return 选取的任务列表
      */
-    private List<IBackGroundTask> chooseTaskForResourceCostFromTail(List<IBackGroundTask> sortedTaskList,
-                                                                    int targetResourceCost) {
-        List<IBackGroundTask> choosedTaskList = new ArrayList<>();
+    private List<BackGroundTask> chooseTaskForResourceCostFromTail(List<BackGroundTask> sortedTaskList,
+                                                                   int targetResourceCost) {
+        List<BackGroundTask> choosedTaskList = new ArrayList<>();
         int accumulatedCost = 0;
         int size = sortedTaskList.size();
         for (int i = size - 1; i >= 0; i--) {
-            IBackGroundTask task = sortedTaskList.get(i);
+            BackGroundTask task = sortedTaskList.get(i);
             choosedTaskList.add(task);
             accumulatedCost += task.getResourceCost();
             if (accumulatedCost == targetResourceCost) {
@@ -237,9 +237,9 @@ public class BackGroundTaskBalancer {
      *
      * @return 有序任务列表
      */
-    private List<IBackGroundTask> getSortedByTenantTaskList() {
-        List<IBackGroundTask> sortedTaskList = new ArrayList<>(backGroundTaskRegistry.getTaskMap().values());
-        sortedTaskList.sort(Comparator.comparing(IBackGroundTask::getTenantId));
+    private List<BackGroundTask> getSortedByTenantTaskList() {
+        List<BackGroundTask> sortedTaskList = new ArrayList<>(backGroundTaskRegistry.getTaskMap().values());
+        sortedTaskList.sort(Comparator.comparing(BackGroundTask::getTenantId));
         return sortedTaskList;
     }
 
@@ -249,9 +249,9 @@ public class BackGroundTaskBalancer {
      * @return 当前实例的资源占用值
      */
     private int calcCurrentResourceCost() {
-        Map<String, IBackGroundTask> taskMap = backGroundTaskRegistry.getTaskMap();
+        Map<String, BackGroundTask> taskMap = backGroundTaskRegistry.getTaskMap();
         int resourceCost = 0;
-        for (IBackGroundTask task : taskMap.values()) {
+        for (BackGroundTask task : taskMap.values()) {
             resourceCost += task.getResourceCost();
         }
         return resourceCost;
@@ -264,8 +264,8 @@ public class BackGroundTaskBalancer {
      * @param failedList  失败的任务列表
      * @param watch       计时器
      */
-    private void logBalanceResult(List<IBackGroundTask> successList,
-                                  List<IBackGroundTask> failedList,
+    private void logBalanceResult(List<BackGroundTask> successList,
+                                  List<BackGroundTask> failedList,
                                   StopWatch watch) {
         if (watch.isRunning()) {
             watch.stop();
@@ -274,16 +274,16 @@ public class BackGroundTaskBalancer {
             log.info(
                 "Balance done, {} tasks hava been balanced: {}, timeConsuming: {}",
                 successList.size(),
-                successList.stream().map(IBackGroundTask::getUniqueCode).collect(Collectors.toList()),
+                successList.stream().map(BackGroundTask::getUniqueCode).collect(Collectors.toList()),
                 watch.prettyPrint()
             );
         } else {
             log.warn(
                 "Balance done, {} tasks hava been balanced: {}, {} tasks failed: {}, timeConsuming: {}",
                 successList.size(),
-                successList.stream().map(IBackGroundTask::getUniqueCode).collect(Collectors.toList()),
+                successList.stream().map(BackGroundTask::getUniqueCode).collect(Collectors.toList()),
                 failedList.size(),
-                failedList.stream().map(IBackGroundTask::getUniqueCode).collect(Collectors.toList()),
+                failedList.stream().map(BackGroundTask::getUniqueCode).collect(Collectors.toList()),
                 watch.prettyPrint()
             );
         }

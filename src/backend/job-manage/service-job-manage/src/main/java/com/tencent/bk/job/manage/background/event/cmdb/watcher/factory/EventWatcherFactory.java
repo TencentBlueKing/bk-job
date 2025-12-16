@@ -24,27 +24,25 @@
 
 package com.tencent.bk.job.manage.background.event.cmdb.watcher.factory;
 
+import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
+import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
+import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
+import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
+import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
-import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventCursorManager;
+import com.tencent.bk.job.manage.background.event.cmdb.handler.CmdbEventHandler;
+import com.tencent.bk.job.manage.background.event.cmdb.handler.factory.EventHandlerFactory;
 import com.tencent.bk.job.manage.background.event.cmdb.watcher.BizEventWatcher;
 import com.tencent.bk.job.manage.background.event.cmdb.watcher.BizSetEventWatcher;
 import com.tencent.bk.job.manage.background.event.cmdb.watcher.BizSetRelationEventWatcher;
 import com.tencent.bk.job.manage.background.event.cmdb.watcher.HostEventWatcher;
 import com.tencent.bk.job.manage.background.event.cmdb.watcher.HostRelationEventWatcher;
-import com.tencent.bk.job.manage.config.GseConfig;
-import com.tencent.bk.job.manage.config.JobManageConfig;
-import com.tencent.bk.job.manage.dao.HostTopoDAO;
-import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
-import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
-import com.tencent.bk.job.manage.service.ApplicationService;
-import com.tencent.bk.job.manage.service.host.NoTenantHostService;
 import com.tencent.bk.job.manage.service.impl.BizSetService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -63,25 +61,54 @@ public class EventWatcherFactory {
      * 日志调用链tracer
      */
     private final Tracer tracer;
+    /**
+     * CMDB事件指标数据采样器
+     */
     private final CmdbEventSampler cmdbEventSampler;
-
+    /**
+     * 业务相关的CMDB接口访问客户端
+     */
     private final IBizCmdbClient bizCmdbClient;
+    /**
+     * 业务集相关的CMDB接口访问客户端
+     */
     private final IBizSetCmdbClient bizSetCmdbClient;
-    private final ApplicationService applicationService;
+    /**
+     * 业务集服务
+     */
     private final BizSetService bizSetService;
+    /**
+     * 租户服务
+     */
     private final TenantService tenantService;
-    private final NoTenantHostService noTenantHostService;
-    private final NoTenantHostDAO noTenantHostDAO;
-    private final HostTopoDAO hostTopoDAO;
-    private final HostCache hostCache;
-    private final AgentStateClient agentStateClient;
-    private final JobManageConfig jobManageConfig;
+    /**
+     * CMDB事件游标管理器
+     */
     private final CmdbEventCursorManager cmdbEventCursorManager;
+    /**
+     * 事件处理器工厂
+     */
+    private final EventHandlerFactory eventHandlerFactory;
 
+    /**
+     * 缓存Map<租户ID，业务事件监听器>
+     */
     private final Map<String, BizEventWatcher> bizEventWatcherMap = new ConcurrentHashMap<>();
+    /**
+     * 缓存Map<租户ID，业务集事件监听器>
+     */
     private final Map<String, BizSetEventWatcher> bizSetEventWatcherMap = new ConcurrentHashMap<>();
+    /**
+     * 缓存Map<租户ID，业务集关系事件监听器>
+     */
     private final Map<String, BizSetRelationEventWatcher> bizSetRelationEventWatcherMap = new ConcurrentHashMap<>();
+    /**
+     * 缓存Map<租户ID，主机事件监听器>
+     */
     private final Map<String, HostEventWatcher> hostEventWatcherMap = new ConcurrentHashMap<>();
+    /**
+     * 缓存Map<租户ID，主机关系事件监听器>
+     */
     private final Map<String, HostRelationEventWatcher> hostRelationEventWatcherMap = new ConcurrentHashMap<>();
 
     @Autowired
@@ -90,32 +117,19 @@ public class EventWatcherFactory {
                                CmdbEventSampler cmdbEventSampler,
                                IBizCmdbClient bizCmdbClient,
                                IBizSetCmdbClient bizSetCmdbClient,
-                               ApplicationService applicationService,
                                BizSetService bizSetService,
                                TenantService tenantService,
-                               NoTenantHostService noTenantHostService,
-                               NoTenantHostDAO noTenantHostDAO,
-                               HostTopoDAO hostTopoDAO,
-                               HostCache hostCache,
-                               @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
-                               AgentStateClient agentStateClient,
-                               JobManageConfig jobManageConfig,
-                               CmdbEventCursorManager cmdbEventCursorManager) {
+                               CmdbEventCursorManager cmdbEventCursorManager,
+                               EventHandlerFactory eventHandlerFactory) {
         this.redisTemplate = redisTemplate;
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.bizCmdbClient = bizCmdbClient;
         this.bizSetCmdbClient = bizSetCmdbClient;
-        this.applicationService = applicationService;
         this.bizSetService = bizSetService;
         this.tenantService = tenantService;
-        this.noTenantHostService = noTenantHostService;
-        this.noTenantHostDAO = noTenantHostDAO;
-        this.hostTopoDAO = hostTopoDAO;
-        this.hostCache = hostCache;
-        this.agentStateClient = agentStateClient;
-        this.jobManageConfig = jobManageConfig;
         this.cmdbEventCursorManager = cmdbEventCursorManager;
+        this.eventHandlerFactory = eventHandlerFactory;
     }
 
     /**
@@ -127,16 +141,20 @@ public class EventWatcherFactory {
     public BizEventWatcher getOrCreateBizEventWatcher(String tenantId) {
         return bizEventWatcherMap.computeIfAbsent(
             tenantId,
-            (inputTenantId) -> new BizEventWatcher(
-                redisTemplate,
-                tracer,
-                cmdbEventSampler,
-                bizCmdbClient,
-                applicationService,
-                tenantService,
-                cmdbEventCursorManager,
-                inputTenantId
-            )
+            (inputTenantId) -> {
+                CmdbEventHandler<BizEventDetail> bizEventHandler =
+                    eventHandlerFactory.getOrCreateBizEventHandler(inputTenantId);
+                return new BizEventWatcher(
+                    redisTemplate,
+                    tracer,
+                    cmdbEventSampler,
+                    bizCmdbClient,
+                    tenantService,
+                    cmdbEventCursorManager,
+                    bizEventHandler,
+                    inputTenantId
+                );
+            }
         );
     }
 
@@ -149,17 +167,21 @@ public class EventWatcherFactory {
     public BizSetEventWatcher getOrCreateBizSetEventWatcher(String tenantId) {
         return bizSetEventWatcherMap.computeIfAbsent(
             tenantId,
-            (inputTenantId) -> new BizSetEventWatcher(
-                redisTemplate,
-                tracer,
-                cmdbEventSampler,
-                applicationService,
-                bizSetService,
-                bizSetCmdbClient,
-                tenantService,
-                cmdbEventCursorManager,
-                inputTenantId
-            )
+            (inputTenantId) -> {
+                CmdbEventHandler<BizSetEventDetail> bizSetEventHandler =
+                    eventHandlerFactory.getOrCreateBizSetEventHandler(inputTenantId);
+                return new BizSetEventWatcher(
+                    redisTemplate,
+                    tracer,
+                    cmdbEventSampler,
+                    bizSetService,
+                    bizSetCmdbClient,
+                    tenantService,
+                    cmdbEventCursorManager,
+                    bizSetEventHandler,
+                    inputTenantId
+                );
+            }
         );
     }
 
@@ -172,17 +194,21 @@ public class EventWatcherFactory {
     public BizSetRelationEventWatcher getOrCreateBizSetRelationEventWatcher(String tenantId) {
         return bizSetRelationEventWatcherMap.computeIfAbsent(
             tenantId,
-            (inputTenantId) -> new BizSetRelationEventWatcher(
-                redisTemplate,
-                tracer,
-                cmdbEventSampler,
-                applicationService,
-                bizSetService,
-                bizSetCmdbClient,
-                tenantService,
-                cmdbEventCursorManager,
-                inputTenantId
-            )
+            (inputTenantId) -> {
+                CmdbEventHandler<BizSetRelationEventDetail> bizSetRelationEventHandler =
+                    eventHandlerFactory.getOrCreateBizSetRelationEventHandler(inputTenantId);
+                return new BizSetRelationEventWatcher(
+                    redisTemplate,
+                    tracer,
+                    cmdbEventSampler,
+                    bizSetService,
+                    bizSetCmdbClient,
+                    tenantService,
+                    cmdbEventCursorManager,
+                    bizSetRelationEventHandler,
+                    inputTenantId
+                );
+            }
         );
     }
 
@@ -195,18 +221,20 @@ public class EventWatcherFactory {
     public HostEventWatcher getOrCreateHostEventWatcher(String tenantId) {
         return hostEventWatcherMap.computeIfAbsent(
             tenantId,
-            (inputTenantId) -> new HostEventWatcher(
-                redisTemplate,
-                tracer,
-                cmdbEventSampler,
-                bizCmdbClient,
-                noTenantHostService,
-                agentStateClient,
-                jobManageConfig,
-                tenantService,
-                cmdbEventCursorManager,
-                inputTenantId
-            )
+            (inputTenantId) -> {
+                CmdbEventHandler<HostEventDetail> hostEventHandler =
+                    eventHandlerFactory.getOrCreateConcurrentHostEventHandler(inputTenantId);
+                return new HostEventWatcher(
+                    redisTemplate,
+                    tracer,
+                    cmdbEventSampler,
+                    bizCmdbClient,
+                    tenantService,
+                    cmdbEventCursorManager,
+                    hostEventHandler,
+                    inputTenantId
+                );
+            }
         );
     }
 
@@ -219,19 +247,20 @@ public class EventWatcherFactory {
     public HostRelationEventWatcher getOrCreateHostRelationEventWatcher(String tenantId) {
         return hostRelationEventWatcherMap.computeIfAbsent(
             tenantId,
-            (inputTenantId) -> new HostRelationEventWatcher(
-                redisTemplate,
-                tracer,
-                cmdbEventSampler,
-                bizCmdbClient,
-                applicationService,
-                noTenantHostDAO,
-                hostTopoDAO,
-                hostCache,
-                tenantService,
-                cmdbEventCursorManager,
-                inputTenantId
-            )
+            (inputTenantId) -> {
+                CmdbEventHandler<HostRelationEventDetail> hostRelationEventHandler =
+                    eventHandlerFactory.getOrCreateHostRelationEventHandler(inputTenantId);
+                return new HostRelationEventWatcher(
+                    redisTemplate,
+                    tracer,
+                    cmdbEventSampler,
+                    bizCmdbClient,
+                    tenantService,
+                    cmdbEventCursorManager,
+                    hostRelationEventHandler,
+                    inputTenantId
+                );
+            }
         );
     }
 }

@@ -25,73 +25,42 @@
 package com.tencent.bk.job.manage.background.event.cmdb.watcher;
 
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
-import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
-import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.tenant.TenantService;
-import com.tencent.bk.job.manage.background.event.cmdb.handler.HostEventHandler;
 import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
+import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventCursorManager;
+import com.tencent.bk.job.manage.background.event.cmdb.handler.CmdbEventHandler;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
-import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventCursorManager;
-import com.tencent.bk.job.manage.service.host.NoTenantHostService;
-import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+/**
+ * 主机事件监听器
+ */
 @Slf4j
 public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEventDetail> {
 
-    /**
-     * 日志调用链tracer
-     */
-    private final Tracer tracer;
-    private final CmdbEventSampler cmdbEventSampler;
     private final IBizCmdbClient bizCmdbClient;
-    private final NoTenantHostService noTenantHostService;
-    private final AgentStateClient agentStateClient;
-    private final int eventsHandlerNum;
-    private final List<HostEventHandler> eventsHandlers = new ArrayList<>();
-    private final List<BlockingQueue<ResourceEvent<HostEventDetail>>> hostEventQueues = new ArrayList<>();
+    private final CmdbEventHandler<HostEventDetail> hostEventHandler;
 
     public HostEventWatcher(RedisTemplate<String, String> redisTemplate,
                             Tracer tracer,
                             CmdbEventSampler cmdbEventSampler,
                             IBizCmdbClient bizCmdbClient,
-                            NoTenantHostService noTenantHostService,
-                            AgentStateClient agentStateClient,
-                            JobManageConfig jobManageConfig,
                             TenantService tenantService,
                             CmdbEventCursorManager cmdbEventCursorManager,
+                            CmdbEventHandler<HostEventDetail> hostEventHandler,
                             String tenantId) {
         super(tenantId, "host", redisTemplate,
-            tenantService, tracer, cmdbEventSampler, cmdbEventCursorManager);
-        this.tracer = tracer;
-        this.cmdbEventSampler = cmdbEventSampler;
+            tenantService, tracer, cmdbEventSampler, cmdbEventCursorManager, hostEventHandler);
         this.bizCmdbClient = bizCmdbClient;
-        this.noTenantHostService = noTenantHostService;
-        this.agentStateClient = agentStateClient;
-        this.eventsHandlerNum = jobManageConfig.getHostEventHandlerNum();
-    }
-
-    @Override
-    protected void initBeforeWatch() {
-        initHostEventQueues();
-        initHostEventHandlers();
-        for (HostEventHandler eventsHandler : eventsHandlers) {
-            eventsHandler.start();
-        }
+        this.hostEventHandler = hostEventHandler;
     }
 
     @Override
@@ -105,63 +74,8 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
     }
 
     @Override
-    public void handleEvent(ResourceEvent<HostEventDetail> event) {
-        dispatchEventToHandler(event);
-    }
-
-    @Override
     protected Tags getEventMetricTags() {
         return Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE, MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_HOST);
-    }
-
-    private void initHostEventQueues() {
-        int hostEventQueueCapacity = 10000;
-        for (int i = 0; i < eventsHandlerNum; i++) {
-            BlockingQueue<ResourceEvent<HostEventDetail>> queue = new LinkedBlockingQueue<>(hostEventQueueCapacity);
-            hostEventQueues.add(queue);
-        }
-    }
-
-    private void initHostEventHandlers() {
-        for (int i = 0; i < eventsHandlerNum; i++) {
-            BlockingQueue<ResourceEvent<HostEventDetail>> eventQueue = hostEventQueues.get(i);
-            String handlerName = "HostEventHandler-" + i;
-            cmdbEventSampler.registerEventQueueToGauge(eventQueue, buildHostEventHandlerTags(handlerName));
-            HostEventHandler eventsHandler = buildHostEventHandler(eventQueue);
-            String threadName = "[" + eventsHandler.getId() + "]-" + handlerName;
-            eventsHandler.setName(threadName);
-            eventsHandlers.add(eventsHandler);
-        }
-    }
-
-    private Iterable<Tag> buildHostEventHandlerTags(String handlerName) {
-        return Tags.of(
-            MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE, MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_HOST,
-            MetricsConstants.TAG_KEY_CMDB_HOST_EVENT_HANDLER_NAME, handlerName
-        );
-    }
-
-    private HostEventHandler buildHostEventHandler(BlockingQueue<ResourceEvent<HostEventDetail>> hostEventQueue) {
-        return new HostEventHandler(
-            tenantId,
-            tracer,
-            cmdbEventSampler,
-            hostEventQueue,
-            noTenantHostService,
-            agentStateClient,
-            bizCmdbClient
-        );
-    }
-
-    private HostEventHandler chooseHandler(Long hostId) {
-        // 保证同一主机的多个事件被分配到同一个Handler
-        int index = (int) (hostId % eventsHandlerNum);
-        return eventsHandlers.get(index);
-    }
-
-    private void dispatchEventToHandler(ResourceEvent<HostEventDetail> event) {
-        HostEventHandler eventsHandler = chooseHandler(event.getDetail().getHostId());
-        eventsHandler.commitEvent(event);
     }
 
     @Override
@@ -180,13 +94,13 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
     }
 
     /**
-     * 计算Watcher与对应Handler的资源总消耗
+     * 计算当前Watcher与对应Handler的资源总消耗
      *
      * @return 资源消耗值
      */
     @Override
     public int getResourceCost() {
-        return resourceCostForWatcher() + eventsHandlerNum;
+        return resourceCostForWatcher() + hostEventHandler.getExtraThreadNum();
     }
 
     /**
@@ -195,18 +109,20 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
      * @return 资源消耗值
      */
     public static int resourceCostForWatcher() {
-        return SINGLE_WATCHER_THREAD_RESOURCE_COST;
+        return SINGLE_WATCHER_THREAD_NUM;
+    }
+
+    /**
+     * 从监听器类型层面计算一个Watcher与对应Handler的资源总消耗
+     *
+     * @return 资源消耗值
+     */
+    public static int resourceCostForWatcherAndHandler(JobManageConfig jobManageConfig) {
+        return resourceCostForWatcher() + jobManageConfig.getHostEventHandlerNum();
     }
 
     @Override
     public void shutdownGracefully() {
         super.shutdownGracefully();
-        closeAllHandlers();
-    }
-
-    private void closeAllHandlers() {
-        for (HostEventHandler handler : eventsHandlers) {
-            handler.close();
-        }
     }
 }

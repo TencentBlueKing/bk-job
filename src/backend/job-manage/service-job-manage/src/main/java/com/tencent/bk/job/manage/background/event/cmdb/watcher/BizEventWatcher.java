@@ -24,44 +24,40 @@
 
 package com.tencent.bk.job.manage.background.event.cmdb.watcher;
 
-import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
-import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
-import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.tenant.TenantService;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
 import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventCursorManager;
+import com.tencent.bk.job.manage.background.event.cmdb.handler.CmdbEventHandler;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
-import com.tencent.bk.job.manage.service.ApplicationService;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
 
+/**
+ * 业务事件监听器
+ */
 @Slf4j
 public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDetail> {
 
     private final IBizCmdbClient bizCmdbClient;
-    private final ApplicationService applicationService;
 
     public BizEventWatcher(RedisTemplate<String, String> redisTemplate,
                            Tracer tracer,
                            CmdbEventSampler cmdbEventSampler,
                            IBizCmdbClient bizCmdbClient,
-                           ApplicationService applicationService,
                            TenantService tenantService,
                            CmdbEventCursorManager cmdbEventCursorManager,
+                           CmdbEventHandler<BizEventDetail> cmdbEventHandler,
                            String tenantId) {
         super(tenantId, "biz", redisTemplate, tenantService,
-            tracer, cmdbEventSampler, cmdbEventCursorManager);
+            tracer, cmdbEventSampler, cmdbEventCursorManager, cmdbEventHandler);
         this.bizCmdbClient = bizCmdbClient;
-        this.applicationService = applicationService;
     }
 
     @Override
@@ -75,73 +71,8 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
     }
 
     @Override
-    public void handleEvent(ResourceEvent<BizEventDetail> event) {
-        ApplicationDTO newestApp = event.getDetail().toAppInfoDTO(tenantId);
-        ApplicationDTO cachedApp = null;
-        try {
-            cachedApp = applicationService.getAppByScope(newestApp.getScope());
-        } catch (NotFoundException e) {
-            log.debug("cannot find app by scope:{}, need to create", newestApp.getScope());
-        }
-        String eventType = event.getEventType();
-        switch (eventType) {
-            case ResourceWatchReq.EVENT_TYPE_CREATE:
-            case ResourceWatchReq.EVENT_TYPE_UPDATE:
-                handleCreateOrUpdateEvent(event, cachedApp, newestApp);
-                break;
-            case ResourceWatchReq.EVENT_TYPE_DELETE:
-                if (cachedApp != null) {
-                    applicationService.deleteApp(cachedApp.getId());
-                } else {
-                    log.info("ignore delete event of app not exist:{}", event);
-                }
-                break;
-            default:
-                break;
-        }
-    }
-
-    private void handleCreateOrUpdateEvent(ResourceEvent<BizEventDetail> event,
-                                           ApplicationDTO cachedApp,
-                                           ApplicationDTO newestApp) {
-        try {
-            if (cachedApp != null) {
-                updateBizProps(cachedApp, newestApp);
-                applicationService.updateApp(cachedApp);
-            } else {
-                if (ResourceWatchReq.EVENT_TYPE_CREATE.equals(event.getEventType())) {
-                    tryToCreateApp(newestApp);
-                } else {
-                    // 不存在的业务（已归档）的Update事件，忽略
-                    if (log.isDebugEnabled()) {
-                        log.debug("ignore update event of invalid app:{}", JsonUtils.toJson(event));
-                    }
-                }
-            }
-        } catch (Throwable t) {
-            log.error("handle app event fail", t);
-        }
-    }
-
-    @Override
     protected Tags getEventMetricTags() {
-        return Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE,
-            MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_BIZ);
-    }
-
-    private void tryToCreateApp(ApplicationDTO app) {
-        try {
-            applicationService.createApp(app);
-        } catch (Exception e) {
-            log.error("create app fail:appInfo=" + app, e);
-        }
-    }
-
-    private void updateBizProps(ApplicationDTO originApp, ApplicationDTO updateApp) {
-        originApp.setName(updateApp.getName());
-        originApp.setBkSupplierAccount(updateApp.getBkSupplierAccount());
-        originApp.setLanguage(updateApp.getLanguage());
-        originApp.setTimeZone(updateApp.getTimeZone());
+        return Tags.of(MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE, MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_BIZ);
     }
 
     @Override
@@ -175,7 +106,7 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
      * @return 资源消耗值
      */
     public static int resourceCostForWatcher() {
-        return SINGLE_WATCHER_THREAD_RESOURCE_COST;
+        return SINGLE_WATCHER_THREAD_NUM;
     }
 
     @Override

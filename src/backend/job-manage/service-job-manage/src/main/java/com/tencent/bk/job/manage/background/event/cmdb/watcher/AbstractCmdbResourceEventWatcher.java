@@ -34,10 +34,11 @@ import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.background.event.cmdb.ICmdbEventWatcher;
+import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventCursorManager;
+import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventWatcher;
+import com.tencent.bk.job.manage.background.event.cmdb.handler.CmdbEventHandler;
 import com.tencent.bk.job.manage.background.ha.AbstractBackGroundTask;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
-import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventCursorManager;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -49,37 +50,52 @@ import org.springframework.cloud.sleuth.annotation.NewSpan;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * cmdb 事件监听
+ * 抽象的CMDB资源事件监听器，封装事件监听核心循环等公共逻辑
  *
- * @param <E> cmdb事件
+ * @param <E> 具体某种类型资源的CMDB事件详情实体类
  */
 @Slf4j
-public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGroundTask implements ICmdbEventWatcher {
+public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGroundTask implements CmdbEventWatcher {
 
     /**
-     * 单个Watcher自身的线程资源成本（不含事件处理线程）
+     * 单个Watcher自身使用的线程数量（不含事件处理线程）
      */
-    public static final int SINGLE_WATCHER_THREAD_RESOURCE_COST = 1;
-
-    protected final String tenantId;
-    private final TenantService tenantService;
+    public static final int SINGLE_WATCHER_THREAD_NUM = 1;
+    /**
+     * 日志调用链tracer
+     */
     private final Tracer tracer;
+    /**
+     * CMDB事件指标数据采样器
+     */
     private final CmdbEventSampler cmdbEventSampler;
+    /**
+     * CMDB事件游标管理器
+     */
     private final CmdbEventCursorManager cmdbEventCursorManager;
-
+    /**
+     * CMDB事件处理器
+     */
+    private final CmdbEventHandler<E> cmdbEventHandler;
+    /**
+     * 租户服务
+     */
+    private final TenantService tenantService;
+    /**
+     * 租户ID
+     */
+    protected final String tenantId;
     /**
      * 监听的资源名称
      */
     protected final String watcherResourceName;
+    /**
+     * Redis心跳锁
+     */
     private final HeartBeatRedisLock redisLock;
 
-    /**
-     * 监听事件前是否已执行初始化操作
-     */
-    private boolean initedBeforeWatch = false;
     /**
      * 监听器是否开启，用于上层服务动态控制监听器启停
      */
@@ -99,15 +115,97 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
                                             TenantService tenantService,
                                             Tracer tracer,
                                             CmdbEventSampler cmdbEventSampler,
-                                            CmdbEventCursorManager cmdbEventCursorManager) {
+                                            CmdbEventCursorManager cmdbEventCursorManager,
+                                            CmdbEventHandler<E> cmdbEventHandler) {
         this.tenantId = tenantId;
         this.tenantService = tenantService;
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.cmdbEventCursorManager = cmdbEventCursorManager;
+        this.cmdbEventHandler = cmdbEventHandler;
         this.watcherResourceName = watcherResourceName;
         this.setName(getUniqueCode());
         this.redisLock = new HeartBeatRedisLock(redisTemplate, getUniqueCode(), IpUtils.getFirstMachineIP());
+    }
+
+    @NewSpan
+    @Override
+    public final void run() {
+        try {
+            mainActiveStatusCheckLoop();
+        } catch (Throwable t) {
+            log.error("Exception occurred during mainActiveStatusCheckLoop", t);
+        } finally {
+            onFinish();
+        }
+    }
+
+    /**
+     * 外层主循环，每间隔一定时间检查监听器活跃状态，只要状态活跃就尝试进入内层循环启动事件监听处理；
+     * 内层循环可在用户通过OP接口暂时关闭事件监听或抛出异常时退出，但外层循环只在进程结束主动关闭时才退出，确保事件监听机制可被动态启停。
+     */
+    private void mainActiveStatusCheckLoop() {
+        if (hasRunningInstance()) {
+            // 其他实例上已经有当前监听目标的实例在运行，直接退出
+            log.info("{} already running on {}, ignore", getUniqueCode(), redisLock.peekLockKeyValue());
+            return;
+        }
+        log.info("{} start", getUniqueCode());
+        boolean needToContinue = true;
+        while (checkActive() && needToContinue) {
+            needToContinue = startNewWatchLoopAndHandleResult();
+        }
+    }
+
+    /**
+     * 开启一次新的事件监听循环并处理结果（记录错误信息并等待一段时间，便于外层循环开启下一次）
+     *
+     * @return 是否需要继续开启监听
+     */
+    private boolean startNewWatchLoopAndHandleResult() {
+        LockResult lockResult = null;
+        Span span = SpanUtil.buildNewSpan(this.tracer, this.watcherResourceName + "WatchOuterLoop");
+        try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
+            // 尝试获取Redis心跳锁，确保当前实例正在监听目标租户事件的分布式唯一性
+            lockResult = redisLock.lock();
+            if (!lockResult.isLockGotten()) {
+                // 其他实例上已经有当前监听目标的实例在运行，无需再重试
+                return false;
+            }
+
+            // 监听并处理事件
+            watchAndHandleEvent();
+
+            // 监听被OP接口暂停，后续可能再开启，需要延时后继续检测
+            return true;
+        } catch (InterruptedException e) {
+            log.info("EventWatch thread interrupted");
+            return false;
+        } catch (Throwable t) {
+            log.error("Watching event caught exception", t);
+            span.error(t);
+            // 监听过程中发生异常，需要延时后继续检测
+            return true;
+        } finally {
+            span.end();
+            if (lockResult != null) {
+                lockResult.tryToRelease();
+            }
+            if (checkActive()) {
+                // 过5s后外层循环继续检测并决定是否继续开启监听
+                ThreadUtils.sleep(5000);
+            }
+        }
+    }
+
+    /**
+     * 判断是否有其他实例在运行
+     *
+     * @return 是否有其他实例在运行
+     */
+    public boolean hasRunningInstance() {
+        String lockKeyValue = redisLock.peekLockKeyValue();
+        return StringUtils.isNotBlank(lockKeyValue);
     }
 
     /**
@@ -141,118 +239,39 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
         }
     }
 
-    @NewSpan
-    @Override
-    public final void run() {
-        try {
-            doRun();
-        } catch (Throwable t) {
-            log.error("Exception occurred when running", t);
-        } finally {
-            onFinish();
+    @SuppressWarnings("BusyWait")
+    private void watchAndHandleEvent() throws InterruptedException {
+        log.info("Start watch {} resource", watcherResourceName);
+        String cursor = cmdbEventCursorManager.tryToLoadLatestCursor(tenantId, watcherResourceName);
+        while (checkActive() && isWatchingEnabled()) {
+            ResourceWatchResult<E> watchResult = fetchEventsFromCmdb(cursor);
+            log.info("WatchResult[{}]: {}", this.watcherResourceName, JsonUtils.toJson(watchResult));
+            cursor = handleWatchResult(watchResult, cursor);
+            // 保存游标用于下次watch时从断点恢复
+            cmdbEventCursorManager.tryToSaveLatestCursor(tenantId, watcherResourceName, cursor);
+            // 正常情况下1s/watch一次，保证性能的同时避免CMDB接口立即返回导致打印大量日志
+            Thread.sleep(1_000);
+        }
+        if (checkActive()) {
+            // 如果只是通过OP接口暂停了监听，但监听未主动结束，间隔5s重新判断是否开启
+            ThreadUtils.sleep(5_000L);
         }
     }
 
     /**
-     * 判断是否有其他实例在运行
+     * 从CMDB接口监听事件
      *
-     * @return 是否有其他实例在运行
+     * @param cursor 事件游标
+     * @return 监听结果
      */
-    public boolean hasRunningInstance() {
-        String lockKeyValue = redisLock.peekLockKeyValue();
-        return StringUtils.isNotBlank(lockKeyValue);
-    }
-
-    private void doRun() {
-        if (hasRunningInstance()) {
-            log.info(
-                "{} already running on {}, ignore",
-                getUniqueCode(),
-                redisLock.peekLockKeyValue()
-            );
-            return;
+    private ResourceWatchResult<E> fetchEventsFromCmdb(String cursor) {
+        if (cursor != null) {
+            return fetchEventsByCursor(cursor);
         }
-        log.info("{} start", getUniqueCode());
-        LockResult lockResult = null;
-        while (checkActive()) {
-            Span span = SpanUtil.buildNewSpan(this.tracer, this.watcherResourceName + "WatchOuterLoop");
-            try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
-                lockResult = redisLock.lock();
-                if (!lockResult.isLockGotten()) {
-                    // 5s之后重试
-                    ThreadUtils.sleep(5_000);
-                    continue;
-                }
-
-                // 事件处理前的初始化
-                tryToInitBeforeWatch();
-
-                // 监听并处理事件
-                watchAndHandleEvent();
-            } catch (Throwable t) {
-                log.error("Watching event caught exception", t);
-                span.error(t);
-            } finally {
-                span.end();
-                if (lockResult != null) {
-                    lockResult.tryToRelease();
-                }
-                if (checkActive()) {
-                    // 过5s后重新尝试监听事件
-                    ThreadUtils.sleep(5000);
-                }
-            }
-        }
-    }
-
-    @SuppressWarnings("BusyWait")
-    private void watchAndHandleEvent() {
-        log.info(
-            "Start watch {} resource at {},{}",
-            watcherResourceName,
-            TimeUtil.getCurrentTimeStr("HH:mm:ss"),
-            System.currentTimeMillis()
-        );
-        String cursor = cmdbEventCursorManager.tryToLoadLatestCursor(tenantId, watcherResourceName);
-        while (checkActive() && isWatchingEnabled()) {
-            Span span = SpanUtil.buildNewSpan(
-                this.tracer,
-                "watchAndHandle-" + this.watcherResourceName + "Events"
-            );
-            try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
-                ResourceWatchResult<E> watchResult;
-                if (cursor == null) {
-                    // 从10分钟前开始watch
-                    long startTime = System.currentTimeMillis() / 1000 - 10 * 60;
-                    log.info("Start watch {} from startTime:{}", this.watcherResourceName,
-                        TimeUtil.formatTime(startTime * 1000));
-                    watchResult = fetchEventsByStartTime(startTime);
-                } else {
-                    watchResult = fetchEventsByCursor(cursor);
-                }
-                log.info("WatchResult[{}]: {}", this.watcherResourceName, JsonUtils.toJson(watchResult));
-                cursor = handleWatchResult(watchResult, cursor);
-                // 保存游标
-                cmdbEventCursorManager.tryToSaveLatestCursor(tenantId, watcherResourceName, cursor);
-                // 1s/watch一次
-                Thread.sleep(1_000);
-            } catch (InterruptedException e) {
-                log.info("EventWatch thread interrupted");
-            } catch (Throwable t) {
-                span.error(t);
-                log.error("EventWatch thread fail", t);
-                // 如果处理事件过程中碰到异常，但监听未被主动关闭，等待5s重试
-                if (checkActive()) {
-                    ThreadUtils.sleep(5_000);
-                }
-            } finally {
-                span.end();
-            }
-        }
-        if (checkActive()) {
-            // 如果事件开关为disabled，但监听未被主动关闭，间隔30s重新判断是否开启
-            ThreadUtils.sleep(30_000L);
-        }
+        // 游标为空，则从1分钟前开始watch
+        long startTimeMillis = System.currentTimeMillis() - 60 * 1000;
+        log.info("Start watch {} from startTime:{}", this.watcherResourceName, TimeUtil.formatTime(startTimeMillis));
+        return fetchEventsByStartTime(startTimeMillis / 1000);
     }
 
     private String handleWatchResult(ResourceWatchResult<E> watchResult,
@@ -294,19 +313,6 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
         }
     }
 
-    private void tryToInitBeforeWatch() {
-        if (!initedBeforeWatch) {
-            initBeforeWatch();
-            initedBeforeWatch = true;
-        }
-    }
-
-    /**
-     * 线程启动后的初始化操作
-     */
-    protected void initBeforeWatch() {
-    }
-
     /**
      * 检查事件数据有效性并处理事件
      *
@@ -324,7 +330,15 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
             log.warn("Event detail is null, ignore");
             return;
         }
-        handleEvent(event);
+        try {
+            cmdbEventHandler.handleEvent(event);
+        } catch (Throwable t) {
+            String message = MessageFormatter.format(
+                "Fail to handle {} event",
+                watcherResourceName
+            ).getMessage();
+            log.error(message, t);
+        }
     }
 
     /**
@@ -379,13 +393,6 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
      * @return 监听事件结果
      */
     protected abstract ResourceWatchResult<E> fetchEventsByStartTime(Long startTime);
-
-    /**
-     * 处理cmdb事件
-     *
-     * @param event cmdb事件
-     */
-    public abstract void handleEvent(ResourceEvent<E> event);
 
     /**
      * 获取CMDB事件指标标签
