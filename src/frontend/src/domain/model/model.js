@@ -24,6 +24,8 @@
 */
 import dayjs from 'dayjs';
 
+import timezonesList from '@/utils/world-timezones.json';
+
 const timezone = require('dayjs/plugin/timezone');
 const utc = require('dayjs/plugin/utc');
 
@@ -40,14 +42,26 @@ export default class Model {
     return USER_TIME_ZONE || BUSINESS_TIME_ZONE || DEFAULT_DISPLAY_TIME_ZONE;
   }
 
+  getFullTimeZone(defaultTimezone) {
+    const timezone = defaultTimezone || this.getTimeZone();
+    const { country, offset } = timezonesList[timezone] || {};
+    return `${timezone} ${country} ${offset}`;
+  }
+
   getTime(options) {
     const {
       timestamp,
       timezone,
       format = 'YYYY-MM-DD HH:mm:ss',
     } = options;
+
+    if (!timestamp) return '--';
     return dayjs.tz(timestamp, timezone || this.getTimeZone())
       .format(format);
+  }
+
+  getTimeTooltip(time) {
+    return `${time} ${this.getFullTimeZone()}`;
   }
 
   get createTimeText() {
@@ -56,5 +70,29 @@ export default class Model {
 
   get lastModifyTimeText() {
     return this.getTime({ timestamp: this.lastModifyTime });
+  }
+
+  get startTimeText() {
+    return this.getTime({ timestamp: this.startTime });
+  }
+
+  get endTimeText() {
+    return this.getTime({ timestamp: this.endTime });
+  }
+
+  get createTimeTooltipsText() {
+    return this.getTimeTooltip(this.createTimeText);
+  }
+
+  get lastModifyTimeTooltipsText() {
+    return this.getTimeTooltip(this.lastModifyTimeText);
+  }
+
+  get startTimeTooltipsText() {
+    return this.getTimeTooltip(this.startTimeText);
+  }
+
+  get endTimeTooltipsText() {
+    return this.getTimeTooltip(this.endTimeText);
   }
 }

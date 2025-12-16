@@ -41,6 +41,9 @@ export const genDefaultName = (prefixStr = 'auto') => {
   };
   const d = new Date();
   const month = d.getMonth() + 1;
+  const timezoneOffset = d.getTimezoneOffset();
+  const offsetHours = Math.abs(Math.floor(timezoneOffset / 60));
+  const offsetMinutes = Math.abs(timezoneOffset % 60);
 
   const temp = [
     d.getFullYear(),
@@ -49,9 +52,10 @@ export const genDefaultName = (prefixStr = 'auto') => {
     formatStr(d.getHours()),
     formatStr(d.getMinutes()),
     formatStr(d.getSeconds()),
-    d.getMilliseconds(),
+    `${d.getMilliseconds()}${Math.floor(Math.random() * 900) + 100}`,
+    `${offsetHours.toString().padStart(2, '0')}${offsetMinutes.toString().padStart(2, '0')}`,
   ];
-  return `${prefixStr}_${temp.join('')}`;
+  return `${prefixStr}_${temp.join('_')}`;
 };
 
 /**
@@ -74,6 +78,9 @@ export const genDefaultScriptVersion = () => {
   const minutes = formatStr(d.getMinutes());
   const seconds = formatStr(d.getSeconds());
   const millSeconds = formatStr(d.getMilliseconds());
+  const timezoneOffset = d.getTimezoneOffset();
+  const offsetHours = Math.abs(Math.floor(timezoneOffset / 60));
+  const offsetMinutes = Math.abs(timezoneOffset % 60);
 
   const temp = [
     d.getFullYear(),
@@ -82,8 +89,9 @@ export const genDefaultScriptVersion = () => {
     hours,
     minutes,
     seconds,
-    millSeconds,
+    `${millSeconds}${Math.floor(Math.random() * 900) + 100}`,
+    `${offsetHours.toString().padStart(2, '0')}${offsetMinutes.toString().padStart(2, '0')}`,
   ];
 
-  return `${uid}.${temp.join('')}`.slice(0, 30);
+  return `${uid}.${temp.join('_')}`.slice(0, 60);
 };

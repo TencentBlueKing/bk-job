@@ -665,3 +665,6 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .job-icon-os-unix:before {
 	content: "\e21f";
 }
+.job-icon-deqiu:before {
+	content: "\e225";
+}

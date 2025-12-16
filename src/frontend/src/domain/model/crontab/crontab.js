@@ -81,6 +81,7 @@ export default class Crontab extends Model {
     this.totalCount = Number(payload.totalCount || 0);
     this.lastFailRecord = payload.lastFailRecord || [];
     this.notifyType = payload.notifyType || 1;
+    this.executeTimeZone = payload.executeTimeZone;
 
     this.variableValue = this.initVariableValue(payload.variableValue);
     this.notifyUser = this.initNotifyUser(payload.notifyUser);
@@ -120,6 +121,7 @@ export default class Crontab extends Model {
      * @returns { String }
      */
   get executeTimeTips() {
+    const fullTimezone = this.getFullTimeZone(this.executeTimeZone);
     if (this.cronExpression) {
       const [
         minute,
@@ -166,11 +168,11 @@ export default class Crontab extends Model {
         text += hour;
       }
       text += minute;
-      return text;
+      return `${text} ${fullTimezone}`;
     }
-    return this.getTime({
+    return `${this.getTime({
       timestamp: this.executeTime,
-    });
+    })} ${fullTimezone}`;
   }
 
   /**

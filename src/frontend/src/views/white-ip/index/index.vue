@@ -97,8 +97,11 @@
         key="createTimeText"
         align="left"
         :label="$t('whiteIP.创建时间')"
-        prop="createTimeText"
-        show-overflow-tooltip />
+        prop="createTimeText">
+        <template slot-scope="{ row }">
+          <span v-bk-tooltips="row.createTimeTooltipsText">{{ row.createTimeText }}</span>
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.lastModifier"
         key="lastModifier"
@@ -115,8 +118,11 @@
         key="lastModifyTimeText"
         align="left"
         :label="$t('whiteIP.更新时间')"
-        prop="lastModifyTimeText"
-        show-overflow-tooltip />
+        prop="lastModifyTimeText">
+        <template slot-scope="{ row }">
+          <span v-bk-tooltips="row.lastModifyTimeTooltipsText">{{ row.lastModifyTimeText }}</span>
+        </template>
+      </bk-table-column>
       <bk-table-column
         key="action"
         align="left"

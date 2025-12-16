@@ -122,5 +122,8 @@
   "自定义": "Custom Setup",
   "状态": "Status",
   "消息通知：": "Notifications:",
-  "通知时间必填": "Notify time is required"
+  "通知时间必填": "Notify time is required",
+  "任务时区": "Task Time Zone",
+  "选择任务时区": "Select the task time zone",
+  "默认为业务所属时区": "The default is the time zone to which the business belongs"
 }
