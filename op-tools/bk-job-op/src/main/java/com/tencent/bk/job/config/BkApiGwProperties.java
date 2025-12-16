@@ -30,10 +30,27 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/**
+ * BK API网关配置
+ * 支持默认认证配置和各平台独立配置覆盖
+ */
 @Data
 @ConfigurationProperties(prefix = "bk-api-gateway")
 public class BkApiGwProperties {
 
+    /**
+     * 默认应用Code，跟当前是一个环境的APP Code
+     */
+    private String bkAppCode;
+
+    /**
+     * 默认应用Secret，跟当前是一个环境的APP Secret
+     */
+    private String bkAppSecret;
+
+    /**
+     * BK-Log网关配置，跟当前不在同一个环境
+     */
     private ApiGwConfig bkLog;
 
     @Getter
@@ -42,9 +59,24 @@ public class BkApiGwProperties {
     public static class ApiGwConfig {
 
         /**
-         * url
+         * API网关地址
          */
         private String url;
+
+        /**
+         * appCode
+         */
+        private String bkAppCode;
+
+        /**
+         * appSecret
+         */
+        private String bkAppSecret;
+
+        /**
+         * 调用别的系统时使用的用户名
+         */
+        private String username = "admin";
 
         /**
          * 重试次数

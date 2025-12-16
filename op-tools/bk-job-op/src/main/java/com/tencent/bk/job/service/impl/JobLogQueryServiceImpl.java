@@ -60,8 +60,8 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
                                             Integer size) {
         try {
             LogQueryReq logQueryReq = buildLogQueryReq(queryString, timeRange, startTime, endTime, start, size);
-            // 按照时间升序
-            fillReqWithTimeSortAsc(logQueryReq);
+            // 按照时间降序
+            fillReqWithTimeSort(logQueryReq, false);
             
             LogQueryResp logQueryResp = bkLogApi.logSearch(logQueryReq);
 
@@ -108,10 +108,17 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
         return logQueryReq;
     }
 
-    private void fillReqWithTimeSortAsc(LogQueryReq logQueryReq) {
+    /**
+     * 添加排序字段，默认降序
+     * @param logQueryReq 请求
+     * @param orderByAsc 是否升序
+     */
+    private void fillReqWithTimeSort(LogQueryReq logQueryReq, Boolean orderByAsc) {
         List<List<String>> sorts = new ArrayList<>();
-        sorts.add(List.of("dtEventTimeStamp", "asc"));
+        String orderStr = Boolean.TRUE.equals(orderByAsc) ? "asc" : "desc";
+        sorts.add(List.of("log_time", orderStr));
         logQueryReq.setSortList(sorts);
+
     }
 
     /**

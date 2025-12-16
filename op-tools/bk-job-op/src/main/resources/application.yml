@@ -53,18 +53,19 @@ mcp:
     enabled: true
     apiKey: "api-key"
 
+# BK API网关统一配置
 bkApiGateway:
+  # 默认apigw认证信息（默认正式环境的，若是想调用个别别的环境的网关，使用子项覆盖）
+  bkAppCode: "bk-job-op"
+  bkAppSecret: "bk-job-op-secret"
+  
+  # 调用bklog网关的配置
   bkLog:
     url: bklog.com
     retry-count: 3
     retry-interval: 3
 
 bk:
-  api:
-    # BKLog 应用认证
-    bklog:
-      bkAppCode: "bk-job-op"
-      bkAppSecret: "bk-job-op-secret"
   # BK-Log配置
   log:
     # 日志索引名称

@@ -127,7 +127,7 @@ public class LogSearchMCPServer {
             String queryString = String.format(MAIN_PROCESS_QUERY_TEMPLATE, stepInstanceId);
             
             // 查询最近1天的日志，使用分页查询，只取第一条
-            PageData<SimpleLogDTO> logs = jobLogQueryService.queryLogs(queryString, "1d", null, null, 0, 1);
+            PageData<SimpleLogDTO> logs = jobLogQueryService.queryLogs(queryString, "7d", null, null, 0, 1);
             
             String result;
             if (logs != null && logs.getData() != null && !logs.getData().isEmpty()) {
@@ -185,7 +185,7 @@ public class LogSearchMCPServer {
     }
 
     /**
-     * 解析时间范围字符串，转换为天数
+     * 解析时间范围字符串，转换为天数（向上取整）
      */
     private long parseTimeRange(String timeRange) {
         if (timeRange == null) return 1; // 默认1天
@@ -195,9 +195,11 @@ public class LogSearchMCPServer {
             if (timeRange.endsWith("d")) {
                 return time;
             } else if (timeRange.endsWith("h")) {
-                return time / 24L;
+                // 向上取整：(time + 23) / 24，确保25h算作2天
+                return (time + 23) / 24L;
             } else if (timeRange.endsWith("m")) {
-                return time / (24L * 60L);
+                // 向上取整：(time + 1439) / 1440，确保1441m算作2天
+                return (time + 1439) / (24L * 60L);
             } else {
                 return Long.parseLong(timeRange);
             }

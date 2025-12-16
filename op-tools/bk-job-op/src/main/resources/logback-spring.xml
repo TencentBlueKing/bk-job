@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <!-- 定义日志文件的存储地址 -->
-    <property name="LOG_HOME" value="/Users/lorryyzwu/tmp"/>
+    <property name="LOG_HOME" value="${JOB_LOG_DIR:/data/logs}"/>
     <property name="APP_NAME" value="bk-job-op"/>
 
     <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>

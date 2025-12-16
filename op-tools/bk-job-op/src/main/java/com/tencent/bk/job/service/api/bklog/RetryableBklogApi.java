@@ -25,7 +25,6 @@
 package com.tencent.bk.job.service.api.bklog;
 
 import com.tencent.bk.job.config.BkApiGwProperties;
-import com.tencent.bk.job.config.BkLogAuthProperties;
 import com.tencent.bk.job.utils.RetryUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -37,9 +36,8 @@ public class RetryableBklogApi extends BkLogApi {
     private final int retryInterval;
 
     public RetryableBklogApi(RestTemplate restTemplate,
-                             BkLogAuthProperties bkLogAuthProperties,
                              BkApiGwProperties bkApiGwProperties) {
-        super(restTemplate, bkLogAuthProperties, bkApiGwProperties);
+        super(restTemplate, bkApiGwProperties);
         this.retryCnt = bkApiGwProperties.getBkLog().getRetryCount();
         this.retryInterval = bkApiGwProperties.getBkLog().getRetryInterval();
     }

@@ -25,7 +25,6 @@
 package com.tencent.bk.job.utils.http.bkapigw.v1;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.config.BkApiAuthProperties;
 import com.tencent.bk.job.utils.http.HttpMethodEnum;
 import com.tencent.bk.job.utils.http.api.BaseApi;
 import com.tencent.bk.job.utils.json.JsonUtils;
@@ -42,12 +41,16 @@ public class BkApiGwV1Api extends BaseApi {
     private final Authorization authorization;
     private final String baseUrl;
 
-    public BkApiGwV1Api(RestTemplate restTemplate, BkApiAuthProperties bkApiAuthProperties, String baseUrl) {
+    public BkApiGwV1Api(RestTemplate restTemplate,
+                        String bkAppCode,
+                        String bkAppSecret,
+                        String username,
+                        String baseUrl) {
         super(restTemplate);
         authorization = Authorization.build(
-            bkApiAuthProperties.getBkAppCode(),
-            bkApiAuthProperties.getBkAppSecret(),
-            "admin"
+            bkAppCode,
+            bkAppSecret,
+            username
         );
         this.baseUrl = baseUrl;
     }

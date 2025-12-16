@@ -32,13 +32,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
-@EnableConfigurationProperties({BkLogAuthProperties.class, BkApiGwProperties.class})
+@EnableConfigurationProperties({BkApiGwProperties.class})
 public class BkApiConfig {
 
     @Bean
     public BkLogApi bkLogApi(RestTemplate restTemplate,
-                             BkLogAuthProperties bkLogAuthProperties,
                              BkApiGwProperties bkApiGwProperties) {
-        return new RetryableBklogApi(restTemplate, bkLogAuthProperties, bkApiGwProperties);
+        return new RetryableBklogApi(restTemplate, bkApiGwProperties);
     }
 }
