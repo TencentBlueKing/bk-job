@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.background.event.cmdb;
 
+import com.tencent.bk.job.common.util.ThrowableUtil;
 import com.tencent.bk.job.manage.background.event.cmdb.consts.EventConsts;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -61,6 +62,10 @@ public class CmdbEventCursorManagerRedisImpl implements CmdbEventCursorManager {
         try {
             return loadLatestCursor(tenantId, watcherResourceName);
         } catch (Throwable t) {
+            if (ThrowableUtil.isCausedByInterrupted(t)) {
+                log.info("loadLatestCursor interrupted");
+                return null;
+            }
             String message = MessageFormatter.format(
                 "Fail to loadLatestCursor for (tenantId={}, watcherResourceName={})",
                 tenantId,
@@ -113,6 +118,10 @@ public class CmdbEventCursorManagerRedisImpl implements CmdbEventCursorManager {
                 );
             }
         } catch (Throwable t) {
+            if (ThrowableUtil.isCausedByInterrupted(t)) {
+                log.info("saveLatestCursor interrupted");
+                return;
+            }
             String message = MessageFormatter.format(
                 "Fail to saveLatestCursor for (tenantId={}, watcherResourceName={})",
                 tenantId,
