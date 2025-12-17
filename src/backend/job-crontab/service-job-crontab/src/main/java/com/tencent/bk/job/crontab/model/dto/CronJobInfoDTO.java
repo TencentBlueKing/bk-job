@@ -378,6 +378,7 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
         esbCronInfoV3DTO.setLastModifyUser(cronJobInfoDTO.getLastModifyUser());
         esbCronInfoV3DTO
             .setLastModifyTime(cronJobInfoDTO.getLastModifyTime());
+        esbCronInfoV3DTO.setExecuteTimeZone(cronJobInfoDTO.getExecuteTimeZone());
         return esbCronInfoV3DTO;
     }
 
@@ -528,6 +529,7 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
         esbCronInfoResponse.setCreateTime(cronJobInfoDTO.getCreateTime());
         esbCronInfoResponse.setLastModifyUser(cronJobInfoDTO.getLastModifyUser());
         esbCronInfoResponse.setLastModifyTime(cronJobInfoDTO.getLastModifyTime());
+        esbCronInfoResponse.setExecuteTimeZone(cronJobInfoDTO.getExecuteTimeZone());
         if (CollectionUtils.isNotEmpty(cronJobInfoDTO.getVariableValue())) {
             esbCronInfoResponse.setGlobalVarList(cronJobInfoDTO.getVariableValue().stream()
                 .map(CronJobVariableDTO::toEsbGlobalVarV3).collect(Collectors.toList()));
