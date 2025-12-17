@@ -78,8 +78,6 @@ public class BackGroundTaskBalancer implements SmartLifecycle {
     @Override
     public void stop() {
         log.debug("BackGroundTaskBalancer stop");
-        // 不再从队列接收任务消息
-        backGroundTaskListenerController.stop();
         isActive = false;
     }
 
@@ -206,7 +204,7 @@ public class BackGroundTaskBalancer implements SmartLifecycle {
             return false;
         }
         BackGroundTask lastTask = sortedTaskList.get(sortedTaskList.size() - 1);
-        // 如果当前线程消耗减去最后一个任务的线程消耗值后，依然高于平均值，则需要执行负载均衡
+        // 如果当前线程消耗减去最后一个任务的线程消耗值后，依然于大于等于平均值，则需要执行负载均衡
         return currentThreadCost - lastTask.getThreadCost() >= averageThreadCost;
     }
 
@@ -322,7 +320,11 @@ public class BackGroundTaskBalancer implements SmartLifecycle {
      * 开启任务监听器
      */
     private void startTaskListener() {
-        backGroundTaskListenerController.start();
+        if (isActive) {
+            backGroundTaskListenerController.start();
+        } else {
+            log.info("balancer is not active, ignore startTaskListener");
+        }
     }
 
     /**
