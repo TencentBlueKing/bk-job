@@ -117,7 +117,7 @@ public abstract class AsyncEventHandler<T> extends Thread implements CmdbEventHa
                 event = queue.take();
                 handleEventWithTrace(event);
             } catch (InterruptedException e) {
-                log.warn("queue.take interrupted", e);
+                log.info("queue.take interrupted");
             } catch (Throwable t) {
                 log.error("Fail to handleEventWithTrace", t);
             }

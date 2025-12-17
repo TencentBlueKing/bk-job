@@ -93,6 +93,12 @@ public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
         return running;
     }
 
+    @Override
+    public int getPhase() {
+        // 确保stop方法在Spring容器关闭时最早被调用
+        return Integer.MAX_VALUE;
+    }
+
     /**
      * 判断业务事件监听是否在运行
      *

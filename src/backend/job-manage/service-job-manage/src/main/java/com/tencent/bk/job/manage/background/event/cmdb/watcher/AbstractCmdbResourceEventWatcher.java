@@ -383,6 +383,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
     @Override
     public void shutdownGracefully() {
         this.active = false;
+        this.interrupt();
         waitUntilFinish();
     }
 
