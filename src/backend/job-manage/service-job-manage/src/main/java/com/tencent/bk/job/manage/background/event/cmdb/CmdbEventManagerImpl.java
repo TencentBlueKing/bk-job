@@ -37,11 +37,18 @@ import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskDispatcher;
 import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskListenerController;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * CMDB事件管理器，负责处理CMDB事件监听相关逻辑
@@ -267,13 +274,24 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
         // 1.关闭任务接收通道
         backGroundTaskListenerController.stop();
         // 2.停止所有任务，并将其重新调度至其他实例
+        List<Future<?>> futureList = new ArrayList<>(backGroundTaskRegistry.getTaskMap().size());
         for (BackGroundTask task : backGroundTaskRegistry.getTaskMap().values()) {
-            shutdownEventWatchExecutor.submit(() -> {
+            Future<?> future = shutdownEventWatchExecutor.submit(() -> {
                 TaskEntity taskEntity = task.getTaskEntity();
                 task.shutdownGracefully();
                 backGroundTaskDispatcher.dispatch(taskEntity);
                 log.info("task {} rescheduled", taskEntity.getUniqueCode());
             });
+            futureList.add(future);
         }
+        // 3.等待所有停止任务完成
+        for (Future<?> future : futureList) {
+            try {
+                future.get(30, TimeUnit.SECONDS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                log.warn("Fail to wait all stop tasks finish", e);
+            }
+        }
+        log.info("All stop tasks finished");
     }
 }

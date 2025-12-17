@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.background.event.cmdb.handler;
 
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.tracing.util.SpanUtil;
+import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import io.micrometer.core.instrument.Tag;
@@ -164,7 +165,27 @@ public abstract class AsyncEventHandler<T> extends Thread implements CmdbEventHa
      */
     @Override
     public void close() {
+        // 1.等待队列中事件处理完成
+        waitUntilQueueEmpty();
+        // 2.下一次循环直接退出，不再获取新的事件
         active = false;
+        // 3.将线程从等待队列事件的阻塞状态中唤醒
         this.interrupt();
+    }
+
+    /**
+     * 阻塞等待，直到队列中的事件处理完成
+     */
+    private void waitUntilQueueEmpty() {
+        int waitMills = 0;
+        while (!queue.isEmpty()) {
+            ThreadUtils.sleep(10);
+            waitMills += 10;
+            // 每5s打印一次等待时间
+            if (waitMills % 5000 == 0) {
+                log.info("waited {}s to handle events in queue", waitMills / 1000);
+            }
+        }
+        log.info("waited {}s to handle events in queue finished", waitMills / 1000.0);
     }
 }
