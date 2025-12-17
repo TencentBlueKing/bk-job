@@ -79,50 +79,36 @@ public class HostEventWatcher extends AbstractCmdbResourceEventWatcher<HostEvent
     }
 
     @Override
-    public String getUniqueCode() {
-        return getTaskEntity().getUniqueCode();
-    }
-
-    @Override
     public TaskEntity getTaskEntity() {
         return new TaskEntity(EventWatchTaskTypeEnum.WATCH_HOST, getTenantId());
     }
 
+    /**
+     * 计算当前Watcher与对应Handler的线程总消耗
+     *
+     * @return 线程消耗值
+     */
     @Override
-    public String getTenantId() {
-        return tenantId;
+    public int getThreadCost() {
+        return threadCostForWatcher() + hostEventHandler.getExtraThreadNum();
     }
 
     /**
-     * 计算当前Watcher与对应Handler的资源总消耗
+     * 计算Watcher自身的线程消耗
      *
-     * @return 资源消耗值
+     * @return 线程消耗值
      */
-    @Override
-    public int getResourceCost() {
-        return resourceCostForWatcher() + hostEventHandler.getExtraThreadNum();
-    }
-
-    /**
-     * 计算Watcher自身的资源消耗
-     *
-     * @return 资源消耗值
-     */
-    public static int resourceCostForWatcher() {
+    public static int threadCostForWatcher() {
         return SINGLE_WATCHER_THREAD_NUM;
     }
 
     /**
-     * 从监听器类型层面计算一个Watcher与对应Handler的资源总消耗
+     * 从监听器类型层面计算一个Watcher与对应Handler的线程总消耗
      *
-     * @return 资源消耗值
+     * @return 线程消耗值
      */
-    public static int resourceCostForWatcherAndHandler(JobManageConfig jobManageConfig) {
-        return resourceCostForWatcher() + jobManageConfig.getHostEventHandlerNum();
+    public static int threadCostForWatcherAndHandler(JobManageConfig jobManageConfig) {
+        return threadCostForWatcher() + jobManageConfig.getHostEventHandlerNum();
     }
 
-    @Override
-    public void shutdownGracefully() {
-        super.shutdownGracefully();
-    }
 }

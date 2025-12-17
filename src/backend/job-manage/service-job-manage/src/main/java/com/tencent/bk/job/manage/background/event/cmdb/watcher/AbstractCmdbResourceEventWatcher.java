@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventCursorManager;
 import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventWatcher;
+import com.tencent.bk.job.manage.background.event.cmdb.consts.EventConsts;
 import com.tencent.bk.job.manage.background.event.cmdb.handler.CmdbEventHandler;
 import com.tencent.bk.job.manage.background.ha.AbstractBackGroundTask;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
@@ -46,7 +47,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
-import org.springframework.cloud.sleuth.annotation.NewSpan;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.List;
@@ -128,7 +128,11 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
         this.redisLock = new HeartBeatRedisLock(redisTemplate, getUniqueCode(), IpUtils.getFirstMachineIP());
     }
 
-    @NewSpan
+    @Override
+    public String getTenantId() {
+        return tenantId;
+    }
+
     @Override
     public final void run() {
         try {
@@ -192,8 +196,8 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
                 lockResult.tryToRelease();
             }
             if (checkActive()) {
-                // 过5s后外层循环继续检测并决定是否继续开启监听
-                ThreadUtils.sleep(5000);
+                // 等待检测间隔后外层循环继续检测并决定是否继续开启监听
+                ThreadUtils.sleep(EventConsts.EVENT_ENABLED_CHECK_INTERVAL_MILLIS);
             }
         }
     }
@@ -239,22 +243,26 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
         }
     }
 
+    /**
+     * 事件监听处理内层循环，从上一次监听结束的游标位置开始监听并处理事件
+     *
+     * @throws InterruptedException Sleep被中断时抛出
+     */
     @SuppressWarnings("BusyWait")
     private void watchAndHandleEvent() throws InterruptedException {
         log.info("Start watch {} resource", watcherResourceName);
+        // 加载上一次监听结束时的事件游标
         String cursor = cmdbEventCursorManager.tryToLoadLatestCursor(tenantId, watcherResourceName);
         while (checkActive() && isWatchingEnabled()) {
             ResourceWatchResult<E> watchResult = fetchEventsFromCmdb(cursor);
             log.info("WatchResult[{}]: {}", this.watcherResourceName, JsonUtils.toJson(watchResult));
             cursor = handleWatchResult(watchResult, cursor);
-            // 保存游标用于下次watch时从断点恢复
+            // 保存游标用于下次监听时从断点恢复
             cmdbEventCursorManager.tryToSaveLatestCursor(tenantId, watcherResourceName, cursor);
-            // 正常情况下1s/watch一次，保证性能的同时避免CMDB接口立即返回导致打印大量日志
-            Thread.sleep(1_000);
-        }
-        if (checkActive()) {
-            // 如果只是通过OP接口暂停了监听，但监听未主动结束，间隔5s重新判断是否开启
-            ThreadUtils.sleep(5_000L);
+            if (watchResult.getWatched() == null || !watchResult.getWatched()) {
+                // 如果没有监听到事件，1s/watch一次，保证性能的同时避免CMDB接口立即返回导致打印大量日志
+                Thread.sleep(EventConsts.NO_EVENT_WATCHED_WAIT_INTERVAL_MILLIS);
+            }
         }
     }
 
@@ -268,8 +276,8 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
         if (cursor != null) {
             return fetchEventsByCursor(cursor);
         }
-        // 游标为空，则从1分钟前开始watch
-        long startTimeMillis = System.currentTimeMillis() - 60 * 1000;
+        // 游标为空，则从回溯时间前开始监听
+        long startTimeMillis = System.currentTimeMillis() - EventConsts.EVENT_BACK_TRACK_TIME_MILLIS;
         log.info("Start watch {} from startTime:{}", this.watcherResourceName, TimeUtil.formatTime(startTimeMillis));
         return fetchEventsByStartTime(startTimeMillis / 1000);
     }
@@ -283,7 +291,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
             if (isWatched) {
                 log.info("Handle {} watch events, events is empty", this.watcherResourceName);
             } else {
-                log.warn("CMDB event error:no refresh event data when watched==false");
+                log.warn("CMDB event error, no refresh event data when watched is false");
             }
             return latestCursor;
         }
@@ -296,7 +304,6 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
                 checkAndHandleEvent(event);
             }
             latestCursor = events.get(events.size() - 1).getCursor();
-            log.info("Handle {} watch events successfully! events.size: {}", this.watcherResourceName, events.size());
         } else {
             // 只有一个无实际意义的事件，用于换取bk_cursor
             latestCursor = events.get(0).getCursor();
@@ -305,6 +312,11 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
         return latestCursor;
     }
 
+    /**
+     * 尝试记录事件数量指标数据，异常时打印日志，不影响后续事件处理
+     *
+     * @param eventNum 事件数量
+     */
     private void tryToRecordEvents(int eventNum) {
         try {
             cmdbEventSampler.recordWatchedEvents(eventNum, getEventMetricTags());
@@ -314,7 +326,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
     }
 
     /**
-     * 检查事件数据有效性并处理事件
+     * 检查事件数据有效性并使用事件处理器处理事件
      *
      * @param event 事件数据
      */
@@ -353,24 +365,36 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
         this.enabled = enabled;
     }
 
+    /**
+     * 监听器正常关闭时的动作
+     */
     private void onFinish() {
+        // 取消后台任务注册
         deregister();
+        // 关闭事件处理器
+        cmdbEventHandler.close();
+        // 状态切换
         this.finished = true;
     }
 
     /**
      * 优雅关闭
      */
+    @Override
     public void shutdownGracefully() {
         this.active = false;
         waitUntilFinish();
     }
 
+    /**
+     * 阻塞等待，直到关闭完成
+     */
     private void waitUntilFinish() {
         int waitMills = 0;
         while (!finished) {
             ThreadUtils.sleep(10);
             waitMills += 10;
+            // 每5s打印一次等待时间
             if (waitMills % 5000 == 0) {
                 log.info("waited {}s to shutdown, still running", waitMills / 1000);
             }

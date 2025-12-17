@@ -1417,7 +1417,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public ResourceWatchResult<BizEventDetail> getAppEvents(String tenantId, Long startTime, String cursor) {
+    public ResourceWatchResult<BizEventDetail> getBizEvents(String tenantId, Long startTime, String cursor) {
         ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_biz_id", "bk_biz_name", "bk_supplier_account",
             "time_zone", "language", "default"));

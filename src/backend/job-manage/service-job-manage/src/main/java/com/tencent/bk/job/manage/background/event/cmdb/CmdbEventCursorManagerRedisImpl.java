@@ -24,12 +24,15 @@
 
 package com.tencent.bk.job.manage.background.event.cmdb;
 
+import com.tencent.bk.job.manage.background.event.cmdb.consts.EventConsts;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 
 /**
  * CMDB事件游标管理器的Redis实现，将游标数据存储于Redis中
@@ -137,7 +140,12 @@ public class CmdbEventCursorManagerRedisImpl implements CmdbEventCursorManager {
             return;
         }
         String redisKey = buildRedisKey(tenantId, watcherResourceName);
-        redisTemplate.opsForValue().set(redisKey, latestCursor);
+        // 长时间（取事件回溯时间）未被更新的游标自动过期失效，避免CMDB某些变更场景下错误游标数据长时间阻塞后续监听
+        redisTemplate.opsForValue().set(
+            redisKey,
+            latestCursor,
+            Duration.ofMillis(EventConsts.EVENT_BACK_TRACK_TIME_MILLIS)
+        );
     }
 
     private String buildRedisKey(String tenantId, String watcherResourceName) {

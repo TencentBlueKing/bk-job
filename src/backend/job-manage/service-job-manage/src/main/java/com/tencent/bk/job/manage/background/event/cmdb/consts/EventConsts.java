@@ -22,19 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.policy;
+package com.tencent.bk.job.manage.background.event.cmdb.consts;
 
 /**
- * 线程资源消费者
+ * 事件监听相关常量
  */
-public interface ThreadConsumer {
+public class EventConsts {
+
     /**
-     * 获取当前消费者使用的线程数
-     *
-     * @return 线程数
+     * 事件监听是否开启检测间隔：5s
      */
-    default int getUsedThreadCount() {
-        // 普通消费者默认使用单线程执行任务
-        return 1;
-    }
+    public static final int EVENT_ENABLED_CHECK_INTERVAL_MILLIS = 5 * 1000;
+
+    /**
+     * 没有任何事件被监听时的等待间隔：1s
+     */
+    public static final int NO_EVENT_WATCHED_WAIT_INTERVAL_MILLIS = 1000;
+
+    /**
+     * 事件回溯时间：5min
+     */
+    public static final int EVENT_BACK_TRACK_TIME_MILLIS = 5 * 60 * 1000;
 }

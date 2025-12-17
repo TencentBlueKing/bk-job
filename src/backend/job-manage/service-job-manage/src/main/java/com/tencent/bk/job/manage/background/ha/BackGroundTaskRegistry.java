@@ -34,11 +34,35 @@ import java.util.Map;
 @Service
 public interface BackGroundTaskRegistry {
 
+    /**
+     * 判断任务是否存在
+     *
+     * @param uniqueCode 任务编码
+     * @return 布尔值
+     */
     boolean existsTask(String uniqueCode);
 
+    /**
+     * 注册任务
+     *
+     * @param uniqueCode 任务编码
+     * @param task       后台任务
+     * @return 是否注册成功
+     */
     boolean registerTask(String uniqueCode, BackGroundTask task);
 
+    /**
+     * 移除任务
+     *
+     * @param uniqueCode 任务编码
+     * @return 被移除的任务
+     */
     BackGroundTask removeTask(String uniqueCode);
 
+    /**
+     * 获取所有任务Map
+     *
+     * @return Map<任务编码, 任务对象>
+     */
     Map<String, BackGroundTask> getTaskMap();
 }

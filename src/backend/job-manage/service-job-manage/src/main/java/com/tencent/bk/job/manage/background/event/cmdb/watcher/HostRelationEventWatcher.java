@@ -40,6 +40,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.data.redis.core.RedisTemplate;
 
+/**
+ * 主机关系事件监听器
+ */
 @Slf4j
 public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<HostRelationEventDetail> {
 
@@ -75,46 +78,31 @@ public class HostRelationEventWatcher extends AbstractCmdbResourceEventWatcher<H
     }
 
     @Override
-    public String getUniqueCode() {
-        return getTaskEntity().getUniqueCode();
-    }
-
-    @Override
     public TaskEntity getTaskEntity() {
         return new TaskEntity(EventWatchTaskTypeEnum.WATCH_HOST_RELATION, getTenantId());
     }
 
     @Override
-    public String getTenantId() {
-        return tenantId;
-    }
-
-
-    @Override
-    public int getResourceCost() {
-        return resourceCostForWatcherAndHandler();
+    public int getThreadCost() {
+        return threadCostForWatcherAndHandler();
     }
 
     /**
-     * 计算Watcher与对应Handler的资源总消耗
+     * 计算Watcher与对应Handler的线程总消耗
      *
-     * @return 资源消耗值
+     * @return 线程消耗值
      */
-    public static int resourceCostForWatcherAndHandler() {
-        return resourceCostForWatcher() + HostRelationEventHandler.SINGLE_HANDLER_EXTRA_THREAD_NUM;
+    public static int threadCostForWatcherAndHandler() {
+        return threadCostForWatcher() + HostRelationEventHandler.SINGLE_HANDLER_EXTRA_THREAD_NUM;
     }
 
     /**
-     * 计算Watcher自身的资源消耗
+     * 计算Watcher自身的线程消耗
      *
-     * @return 资源消耗值
+     * @return 线程消耗值
      */
-    public static int resourceCostForWatcher() {
+    public static int threadCostForWatcher() {
         return SINGLE_WATCHER_THREAD_NUM;
     }
 
-    @Override
-    public void shutdownGracefully() {
-        super.shutdownGracefully();
-    }
 }

@@ -264,7 +264,7 @@ public interface IBizCmdbClient {
     /**
      * 监听CMDB业务事件
      */
-    ResourceWatchResult<BizEventDetail> getAppEvents(String tenantId, Long startTime, String cursor);
+    ResourceWatchResult<BizEventDetail> getBizEvents(String tenantId, Long startTime, String cursor);
 
     List<ContainerDetailDTO> listKubeContainerByIds(long bizId, Collection<Long> containerIds);
 

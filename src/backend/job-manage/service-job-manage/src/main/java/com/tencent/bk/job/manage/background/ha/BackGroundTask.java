@@ -30,18 +30,20 @@ package com.tencent.bk.job.manage.background.ha;
 public interface BackGroundTask extends BackGroundTaskRegistryAware {
 
     /**
-     * 获取任务唯一代码
-     *
-     * @return 后台任务唯一代码，多个任务之间不重复
-     */
-    String getUniqueCode();
-
-    /**
      * 获取任务实体
      *
      * @return 后台任务实体
      */
     TaskEntity getTaskEntity();
+
+    /**
+     * 获取任务唯一代码
+     *
+     * @return 后台任务唯一代码，多个任务之间不重复
+     */
+    default String getUniqueCode(){
+        return getTaskEntity().getUniqueCode();
+    }
 
     /**
      * 获取后台任务的租户ID
@@ -51,11 +53,11 @@ public interface BackGroundTask extends BackGroundTaskRegistryAware {
     String getTenantId();
 
     /**
-     * 任务的资源消耗
+     * 任务的线程消耗
      *
-     * @return 资源消耗数值
+     * @return 线程消耗数值
      */
-    int getResourceCost();
+    int getThreadCost();
 
     /**
      * 启动任务

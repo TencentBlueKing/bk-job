@@ -26,6 +26,9 @@ package com.tencent.bk.job.manage.background.event.cmdb;
 
 import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
 
+/**
+ * CMDB事件管理器
+ */
 public interface CmdbEventManager {
 
     /**

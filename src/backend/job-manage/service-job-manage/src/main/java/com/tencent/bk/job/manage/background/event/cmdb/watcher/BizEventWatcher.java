@@ -62,12 +62,12 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
 
     @Override
     protected ResourceWatchResult<BizEventDetail> fetchEventsByCursor(String startCursor) {
-        return bizCmdbClient.getAppEvents(tenantId, null, startCursor);
+        return bizCmdbClient.getBizEvents(tenantId, null, startCursor);
     }
 
     @Override
     protected ResourceWatchResult<BizEventDetail> fetchEventsByStartTime(Long startTime) {
-        return bizCmdbClient.getAppEvents(tenantId, startTime, null);
+        return bizCmdbClient.getBizEvents(tenantId, startTime, null);
     }
 
     @Override
@@ -76,41 +76,26 @@ public class BizEventWatcher extends AbstractCmdbResourceEventWatcher<BizEventDe
     }
 
     @Override
-    public String getUniqueCode() {
-        return getTaskEntity().getUniqueCode();
-    }
-
-    @Override
     public TaskEntity getTaskEntity() {
         return new TaskEntity(EventWatchTaskTypeEnum.WATCH_BIZ, getTenantId());
     }
 
+    /**
+     * 计算线程总消耗，监听线程自己处理事件，线程消耗就是Watcher自身的线程消耗值
+     *
+     * @return 线程消耗值
+     */
     @Override
-    public String getTenantId() {
-        return tenantId;
+    public int getThreadCost() {
+        return threadCostForWatcher();
     }
 
     /**
-     * 计算资源总消耗，监听线程自己处理事件，资源消耗就是Watcher自身的资源消耗值
+     * 计算Watcher自身的线程消耗
      *
-     * @return 资源消耗值
+     * @return 线程消耗值
      */
-    @Override
-    public int getResourceCost() {
-        return resourceCostForWatcher();
-    }
-
-    /**
-     * 计算Watcher自身的资源消耗
-     *
-     * @return 资源消耗值
-     */
-    public static int resourceCostForWatcher() {
+    public static int threadCostForWatcher() {
         return SINGLE_WATCHER_THREAD_NUM;
-    }
-
-    @Override
-    public void shutdownGracefully() {
-        super.shutdownGracefully();
     }
 }

@@ -40,46 +40,46 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * 资源消耗计算器
+ * 线程消耗计算器
  */
 @Slf4j
 @Service
-public class ResourceCostCalculator {
+public class ThreadCostCalculator {
 
     private final JobManageConfig jobManageConfig;
     private final IUserApiClient userApiClient;
     private final DiscoveryClient discoveryClient;
 
     @Autowired
-    public ResourceCostCalculator(JobManageConfig jobManageConfig,
-                                  IUserApiClient userApiClient,
-                                  DiscoveryClient discoveryClient) {
+    public ThreadCostCalculator(JobManageConfig jobManageConfig,
+                                IUserApiClient userApiClient,
+                                DiscoveryClient discoveryClient) {
         this.jobManageConfig = jobManageConfig;
         this.userApiClient = userApiClient;
         this.discoveryClient = discoveryClient;
     }
 
     /**
-     * 计算平均每个实例应当承担的资源消耗，向上取整
+     * 计算平均每个实例应当承担的线程消耗，向上取整
      *
-     * @return 资源消耗值
+     * @return 线程消耗值
      */
-    public int calcAverageResourceCostForOneInstance() {
-        // 1.统计所有任务的占用资源（线程等）总数
-        int totalResourceCost = calcResourceCostForAllTenantTasks();
+    public int calcAverageThreadCostForOneInstance() {
+        // 1.统计所有任务的占用线程总数
+        int totalThreadCost = calcThreadCostForAllTenantTasks();
         // 2.统计所有实例数量
         int totalInstanceCount = getJobManageInstanceCount();
         if (totalInstanceCount == 0) {
             // 所有实例都不健康，使用默认值确保不接收过多任务，等待后续实例状态健康后再进行负载均衡
-            int defaultResourceCost = 200;
+            int defaultThreadCost = 200;
             log.info(
-                "No healthy job-manage instance, use defaultResourceCost({}) for current instance",
-                defaultResourceCost
+                "No healthy job-manage instance, use defaultThreadCost({}) for current instance",
+                defaultThreadCost
             );
-            return defaultResourceCost;
+            return defaultThreadCost;
         }
-        // 3.计算平均每个实例应当承担的资源消耗，向上取整
-        return (int) Math.ceil((double) totalResourceCost / totalInstanceCount);
+        // 3.计算平均每个实例应当承担的线程消耗，向上取整
+        return (int) Math.ceil((double) totalThreadCost / totalInstanceCount);
     }
 
     /**
@@ -93,27 +93,27 @@ public class ResourceCostCalculator {
     }
 
     /**
-     * 计算所有租户下所有任务的资源消耗
+     * 计算所有租户下所有任务的线程消耗
      *
-     * @return 资源消耗值
+     * @return 线程消耗值
      */
-    public int calcResourceCostForAllTenantTasks() {
+    public int calcThreadCostForAllTenantTasks() {
         List<OpenApiTenant> tenantList = userApiClient.listAllTenant();
-        return tenantList.size() * calcResourceCostForTasksOfOneTenant();
+        return tenantList.size() * calcThreadCostForTasksOfOneTenant();
     }
 
     /**
-     * 计算一个租户下所有任务的资源消耗
+     * 计算一个租户下所有任务的线程消耗
      *
-     * @return 资源消耗值
+     * @return 线程消耗值
      */
-    private int calcResourceCostForTasksOfOneTenant() {
-        int resourceCost = 0;
-        resourceCost += BizEventWatcher.resourceCostForWatcher();
-        resourceCost += BizSetEventWatcher.resourceCostForWatcher();
-        resourceCost += BizSetRelationEventWatcher.resourceCostForWatcher();
-        resourceCost += HostEventWatcher.resourceCostForWatcherAndHandler(jobManageConfig);
-        resourceCost += HostRelationEventWatcher.resourceCostForWatcherAndHandler();
-        return resourceCost;
+    private int calcThreadCostForTasksOfOneTenant() {
+        int threadCost = 0;
+        threadCost += BizEventWatcher.threadCostForWatcher();
+        threadCost += BizSetEventWatcher.threadCostForWatcher();
+        threadCost += BizSetRelationEventWatcher.threadCostForWatcher();
+        threadCost += HostEventWatcher.threadCostForWatcherAndHandler(jobManageConfig);
+        threadCost += HostRelationEventWatcher.threadCostForWatcherAndHandler();
+        return threadCost;
     }
 }
