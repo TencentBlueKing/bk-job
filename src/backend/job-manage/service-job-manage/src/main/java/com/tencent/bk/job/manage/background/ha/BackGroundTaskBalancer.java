@@ -26,11 +26,13 @@ package com.tencent.bk.job.manage.background.ha;
 
 import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskDispatcher;
 import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskListenerController;
+import com.tencent.bk.job.manage.common.constants.SmartLifecycleOrder;
 import com.tencent.bk.job.manage.config.BackGroundTaskProperties;
 import io.jsonwebtoken.lang.Collections;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
@@ -45,14 +47,14 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class BackGroundTaskBalancer {
+public class BackGroundTaskBalancer implements SmartLifecycle {
 
     private final ThreadCostCalculator threadCostCalculator;
     private final BackGroundTaskRegistry backGroundTaskRegistry;
     private final BackGroundTaskListenerController backGroundTaskListenerController;
     private final BackGroundTaskDispatcher backGroundTaskDispatcher;
     private final BackGroundTaskProperties backGroundTaskProperties;
-
+    private volatile boolean isActive = false;
     private volatile boolean isBalancerRunning = false;
 
     @Autowired
@@ -68,6 +70,29 @@ public class BackGroundTaskBalancer {
         this.backGroundTaskProperties = backGroundTaskProperties;
     }
 
+    @Override
+    public void start() {
+        isActive = true;
+    }
+
+    @Override
+    public void stop() {
+        log.debug("BackGroundTaskBalancer stop");
+        // 不再从队列接收任务消息
+        backGroundTaskListenerController.stop();
+        isActive = false;
+    }
+
+    @Override
+    public boolean isRunning() {
+        return isActive;
+    }
+
+    @Override
+    public int getPhase() {
+        return SmartLifecycleOrder.BACK_GROUND_TASK_BALANCER;
+    }
+
     /**
      * 对当前实例正在运行的后台任务做一次负载均衡
      *
@@ -76,6 +101,10 @@ public class BackGroundTaskBalancer {
     public boolean balance() {
         if (!backGroundTaskProperties.getBalancer().getEnabled()) {
             log.info("background-task balancer not enabled, you can enable it using config");
+            return false;
+        }
+        if (!isActive) {
+            log.info("balancer is not active, ignore");
             return false;
         }
         if (isBalancerRunning) {
@@ -164,7 +193,7 @@ public class BackGroundTaskBalancer {
      *
      * @param averageThreadCost 每个实例平均应承担的线程消耗
      * @param currentThreadCost 当前实例的线程消耗值
-     * @param sortedTaskList      已排序的当前任务列表
+     * @param sortedTaskList    已排序的当前任务列表
      * @return 是否需要执行负载均衡
      */
     private boolean needToBalance(int averageThreadCost,
@@ -208,12 +237,12 @@ public class BackGroundTaskBalancer {
     /**
      * 从列表尾部选取一些任务，使其总线程消耗值>=目标线程消耗值
      *
-     * @param sortedTaskList     有序任务列表
+     * @param sortedTaskList   有序任务列表
      * @param targetThreadCost 目标线程消耗值
      * @return 选取的任务列表
      */
     private List<BackGroundTask> chooseTaskForThreadCostFromTail(List<BackGroundTask> sortedTaskList,
-                                                                   int targetThreadCost) {
+                                                                 int targetThreadCost) {
         List<BackGroundTask> choosedTaskList = new ArrayList<>();
         int accumulatedCost = 0;
         int size = sortedTaskList.size();

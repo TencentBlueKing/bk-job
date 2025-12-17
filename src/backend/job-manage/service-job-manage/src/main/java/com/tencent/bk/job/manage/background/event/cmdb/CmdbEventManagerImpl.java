@@ -36,6 +36,7 @@ import com.tencent.bk.job.manage.background.ha.BackGroundTaskRegistryImpl;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskDispatcher;
 import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskListenerController;
+import com.tencent.bk.job.manage.common.constants.SmartLifecycleOrder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.SmartLifecycle;
@@ -84,6 +85,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
 
     @Override
     public void stop() {
+        log.debug("CmdbEventManager stop");
         running = false;
         gracefulShutdown();
     }
@@ -95,8 +97,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
 
     @Override
     public int getPhase() {
-        // 确保stop方法在Spring容器关闭时最早被调用
-        return Integer.MAX_VALUE;
+        return SmartLifecycleOrder.CMDB_EVENT_MANAGER;
     }
 
     /**
