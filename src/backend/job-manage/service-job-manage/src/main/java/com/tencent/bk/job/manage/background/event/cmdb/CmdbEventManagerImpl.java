@@ -31,15 +31,14 @@ import com.tencent.bk.job.manage.background.event.cmdb.watcher.BizSetRelationEve
 import com.tencent.bk.job.manage.background.event.cmdb.watcher.HostEventWatcher;
 import com.tencent.bk.job.manage.background.event.cmdb.watcher.HostRelationEventWatcher;
 import com.tencent.bk.job.manage.background.event.cmdb.watcher.factory.EventWatcherFactory;
-import com.tencent.bk.job.manage.background.ha.BackGroundTaskRegistryImpl;
 import com.tencent.bk.job.manage.background.ha.BackGroundTask;
+import com.tencent.bk.job.manage.background.ha.BackGroundTaskRegistryImpl;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskDispatcher;
 import com.tencent.bk.job.manage.background.ha.mq.BackGroundTaskListenerController;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.A;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -56,13 +55,14 @@ import java.util.concurrent.TimeoutException;
 @SuppressWarnings("FieldCanBeLocal")
 @Slf4j
 @Service
-public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
+public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
 
     private final EventWatcherFactory eventWatcherFactory;
     private final ThreadPoolExecutor shutdownEventWatchExecutor;
     private final BackGroundTaskDispatcher backGroundTaskDispatcher;
     private final BackGroundTaskListenerController backGroundTaskListenerController;
     private final BackGroundTaskRegistryImpl backGroundTaskRegistry;
+    private volatile boolean running = false;
 
     @Autowired
     public CmdbEventManagerImpl(EventWatcherFactory eventWatcherFactory,
@@ -75,6 +75,22 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
         this.backGroundTaskDispatcher = backGroundTaskDispatcher;
         this.backGroundTaskListenerController = backGroundTaskListenerController;
         this.backGroundTaskRegistry = backGroundTaskRegistryImpl;
+    }
+
+    @Override
+    public void start() {
+        running = true;
+    }
+
+    @Override
+    public void stop() {
+        running = false;
+        gracefulShutdown();
+    }
+
+    @Override
+    public boolean isRunning() {
+        return running;
     }
 
     /**
@@ -268,9 +284,11 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
         return watcherCount;
     }
 
-    @Override
-    public void destroy() {
-        log.info("On destroy, shutdown all tasks and re-schedule them");
+    /**
+     * 优雅关闭，停止所有已注册的后台任务并将其重调度到其他实例
+     */
+    private void gracefulShutdown() {
+        log.info("GracefulShutdown: shutdown all tasks and re-schedule them");
         // 1.关闭任务接收通道
         backGroundTaskListenerController.stop();
         // 2.停止所有任务，并将其重新调度至其他实例
@@ -294,4 +312,5 @@ public class CmdbEventManagerImpl implements CmdbEventManager, DisposableBean {
         }
         log.info("All stop tasks finished");
     }
+
 }

@@ -176,6 +176,7 @@ public class HostEventHandler extends AsyncEventHandler<HostEventDetail> {
             return;
         }
         hostInfoDTO = hostList.get(0);
+        hostInfoDTO.setTenantId(tenantId);
         hostInfoDTO.setGseAgentStatus(agentStatus);
         int affectedNum = noTenantHostService.updateHostAttrsByHostId(hostInfoDTO);
         log.info("update host attrs:{}, affectedNum={}", hostInfoDTO, affectedNum);
