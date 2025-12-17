@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.redis.util.LockResult;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.tracing.util.SpanUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
+import com.tencent.bk.job.common.util.ThrowableUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -186,6 +187,10 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
             log.info("EventWatch thread interrupted");
             return false;
         } catch (Throwable t) {
+            if (ThrowableUtil.isCausedByInterrupted(t)) {
+                log.info("EventWatch thread interrupted");
+                return false;
+            }
             log.error("Watching event caught exception", t);
             span.error(t);
             // 监听过程中发生异常，需要延时后继续检测
