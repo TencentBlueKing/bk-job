@@ -37,17 +37,13 @@
         style="width: 510px;"
         @on-change="handleSearch" />
       <template #right>
-        <bk-date-picker
-          ref="datePicker"
-          :clearable="false"
-          :placeholder="$t('cron.选择日期')"
-          shortcut-close
-          :shortcuts="shortcuts"
-          type="datetimerange"
-          up-to-now
-          use-shortcut-text
-          :value="defaultDateTime"
-          @change="handleDateChange" />
+        <jb-date-picker
+          :date="datePickerTime"
+          :day="29"
+          :timezone="searchParams.timezone"
+          @changeDate="handleDateChange"
+          @changeTimezone="handleChangeTimezone"
+          @setDate="handleSetDate" />
       </template>
     </list-action-layout>
     <render-list
@@ -112,8 +108,6 @@
   import NotifyService from '@service/notify';
   import TaskExecuteService from '@service/task-execute';
 
-  import { prettyDateTimeFormat } from '@utils/assist';
-
   import JbSearchSelect from '@components/jb-search-select';
   import ListActionLayout from '@components/list-action-layout';
   import RenderList from '@components/render-list';
@@ -140,9 +134,14 @@
     data() {
       return {
         searchParams: {},
-        defaultDateTime: [prettyDateTimeFormat(Date.now() - 29 * 86400000), ''],
         searchAppendValue: [],
       };
+    },
+    computed: {
+      datePickerTime() {
+        const { startTime, endTime } = this.searchParams;
+        return { startTime, endTime };
+      },
     },
     created() {
       this.fetchExecutionHistoryList = TaskExecuteService.fetchExecutionHistoryList;
@@ -159,9 +158,7 @@
           },
         ];
       }
-      const [startTime, endTime] = this.defaultDateTime;
-      this.searchParams.startTime = startTime;
-      this.searchParams.endTime = endTime;
+      this.searchParams.timezone = window.PROJECT_CONFIG.USER_TIME_ZONE;
 
       this.searchSelect = [
         {
@@ -269,9 +266,6 @@
     },
     mounted() {
       this.fetchData();
-      this.$refs.datePicker.shortcut = {
-        text: `${this.defaultDateTime[0]} ${I18n.t('cron.至今')}`,
-      };
     },
     methods: {
       fetchData() {
@@ -282,21 +276,34 @@
         this.$refs.list.$emit('onFetch', searchParams);
       },
       handleSearch(payload) {
-        const { startTime, endTime } = this.searchParams;
+        const { startTime, endTime, timezone } = this.searchParams;
         this.searchParams = {
           ...payload,
           startTime,
           endTime,
+          timezone,
         };
         this.fetchData();
       },
-      handleDateChange(date, type) {
-        if (type === 'upToNow') {
-          this.setToNowText(date);
-        }
-        this.searchParams.startTime = date[0];// eslint-disable-line prefer-destructuring
-        this.searchParams.endTime = type === 'upToNow' ? '' : date[1];
+      handleChangeTimezone(timezone) {
+        this.searchParams.timezone = timezone;
+      },
+      /**
+       * @desc 时间选择器改变时间并查询数据
+       * @param {Array} date 时间
+       */
+      /**
+       * @desc 筛选时间
+       * @param {Object} date 时间值 {startTime, endTime]
+       */
+      handleDateChange(date) {
+        this.handleSetDate(date);
         this.fetchData();
+      },
+      handleSetDate(date) {
+        const { startTime, endTime } = date;
+        this.searchParams.startTime = startTime;
+        this.searchParams.endTime = endTime;
       },
       handleGoDetail(taskInstance) {
         let router = null;

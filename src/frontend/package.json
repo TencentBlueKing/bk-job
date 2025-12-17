@@ -16,9 +16,10 @@
   "dependencies": {
     "@babel/runtime": "7.27.1",
     "@blueking/ai-blueking": "0.2.11",
-    "@blueking/ip-selector": "1.0.1-beta.16",
     "@blueking/bk-user-display-name": "1.0.1",
     "@blueking/bk-user-selector": "0.0.29-beta.8",
+    "@blueking/date-picker": "2.0.0-beta.48",
+    "@blueking/ip-selector": "1.0.1-beta.16",
     "@blueking/login-modal": "1.0.6",
     "@blueking/notice-component-vue2": "2.0.6-beta.5",
     "@blueking/paas-login": "0.0.11",

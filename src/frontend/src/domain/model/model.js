@@ -48,6 +48,7 @@ export default class Model {
     return `${timezone} ${country} ${offset}`;
   }
 
+  // 时间戳转换成日期格式
   getTime(options) {
     const {
       timestamp,
@@ -58,6 +59,18 @@ export default class Model {
     if (!timestamp) return '--';
     return dayjs.tz(timestamp, timezone || this.getTimeZone())
       .format(format);
+  }
+
+  // 日期格式转换成时间戳 转换的日期格式不能带时区
+  getTimestamp(options) {
+    const {
+      date,
+      timezone,
+    } = options;
+
+    if (!date) return;
+    return dayjs.tz(date, timezone || this.getTimeZone())
+      .valueOf();
   }
 
   getTimeTooltip(time) {
