@@ -6,23 +6,21 @@
 
 #### 接口参数
 
-| 字段                 | 类型   | 必选 | 描述                                                         |
-| -------------------- | ------ | ---- | ------------------------------------------------------------ |
-| expression           | string | 是   | 表达式                                                       |
-| script_language_list | array  | 是   | 脚本语言列表:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
-| description          | string | 是   | 规则描述                                                     |
-| action               | int    | 是   | 处理动作: 1 - 扫描, 2 - 拦截                                 |
-
+| 字段                   | 类型     | 必选 | 描述                                                                       |
+|----------------------|--------|----|--------------------------------------------------------------------------|
+| expression           | string | 是  | 表达式                                                                      |
+| script_language_list | array  | 是  | 脚本语言列表:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
+| description          | string | 否  | 规则描述                                                                     |
+| action               | int    | 是  | 处理动作: 1 - 扫描, 2 - 拦截                                                     |
 
 ### 请求参数示例
 
 ```json
 {
-    "bk_app_code": "esb_test",
-    "bk_app_secret": "xxx",
-    "bk_token": "xxx",
     "expression": "rm -rf",
-    "script_language_list": [1],
+    "script_language_list": [
+        1
+    ],
     "description": "drangerous!!!",
     "action": 2
 }
@@ -37,7 +35,9 @@
     "data": {
         "id": 1,
         "expression": "rm -rf",
-        "script_language_list": [1],
+        "script_language_list": [
+            1
+        ],
         "description": "drangerous!!!",
         "action": 2,
         "status": 0,
@@ -45,7 +45,8 @@
         "create_time": 1695193968000,
         "last_modify_user": "admin",
         "last_modify_time": 1695193968000
-    }
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -55,15 +56,15 @@
 
 #### data
 
-| 字段                 | 类型   | 描述                                                         |
-| -------------------- | ------ | ------------------------------------------------------------ |
-| id                   | long   | 高危语句规则ID                                               |
-| expression           | string | 表达式                                                       |
-| script_language_list | array  | 脚本语言列表:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
-| description          | string | 规则描述                                                     |
-| action               | int    | 处理动作: 1 - 扫描, 2 - 拦截                                 |
-| status               | int    | 启用状态: 0 - 停用, 1 - 启用                                 |
-| creator              | string | 创建人                                                       |
-| create_time          | long   | 创建时间Unix时间戳（ms）                                     |
-| last_modify_user     | string | 最近一次修改人                                               |
-| last_modify_time     | long   | 最近一次修改时间Unix时间戳（ms）                             |
+| 字段                   | 类型     | 是否一定不为null | 描述                                                                       |
+|----------------------|--------|------------|--------------------------------------------------------------------------|
+| id                   | long   | 是          | 高危语句规则ID                                                                 |
+| expression           | string | 是          | 表达式                                                                      |
+| script_language_list | array  | 是          | 脚本语言列表:1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell, 6 - sql |
+| description          | string | 否          | 规则描述                                                                     |
+| action               | int    | 是          | 处理动作: 1 - 扫描, 2 - 拦截                                                     |
+| status               | int    | 是          | 启用状态: 0 - 停用, 1 - 启用                                                     |
+| creator              | string | 是          | 创建人                                                                      |
+| create_time          | long   | 是          | 创建时间Unix时间戳（ms）                                                          |
+| last_modify_user     | string | 是          | 最近一次修改人                                                                  |
+| last_modify_time     | long   | 是          | 最近一次修改时间Unix时间戳（ms）                                                      |

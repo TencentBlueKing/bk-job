@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.Condition;
+import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
@@ -60,6 +61,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Repository
@@ -461,46 +463,61 @@ public class FileWorkerDAOImpl implements FileWorkerDAO {
         if (conditions == null) {
             conditions = new ArrayList<>();
         }
-        Result<Record> records = null;
-        val query = defaultContext.select(
-                defaultTable.ID,
-                defaultTable.APP_ID,
-                defaultTable.NAME,
-                defaultTable.DESCRIPTION,
-                defaultTable.TOKEN,
-                defaultTable.CLUSTER_NAME,
-                defaultTable.ACCESS_HOST,
-                defaultTable.ACCESS_PORT,
-                defaultTable.CLOUD_AREA_ID,
-                defaultTable.INNER_IP_PROTOCOL,
-                defaultTable.INNER_IP,
-                defaultTable.CPU_OVERLOAD,
-                defaultTable.MEM_RATE,
-                defaultTable.MEM_FREE_SPACE,
-                defaultTable.DISK_RATE,
-                defaultTable.DISK_FREE_SPACE,
-                defaultTable.VERSION,
-                defaultTable.ONLINE_STATUS,
-                defaultTable.LAST_HEART_BEAT,
-                defaultTable.CREATOR,
-                defaultTable.CREATE_TIME,
-                defaultTable.LAST_MODIFY_USER,
-                defaultTable.LAST_MODIFY_TIME,
-                DSL.groupConcat(tFileWorkerAbility.TAG).separator(GROUP_CONCAT_SEPARATOR).as(KEY_FILE_WORKER_ABILITY_TAGS)
-            )
-            .from(defaultTable)
-            .leftJoin(tFileWorkerAbility)
-            .on(defaultTable.ID.eq(tFileWorkerAbility.WORKER_ID))
-            .where(conditions)
-            .groupBy(defaultTable.ID)
-            .orderBy(defaultTable.LAST_HEART_BEAT.desc());
-        try {
-            String sql = query.getSQL(ParamType.INLINED);
-            log.debug("SQL=" + sql);
-            records = query.fetch();
-        } catch (Exception e) {
-            log.error(String.format("Fail to execute SQL:%s", query.getSQL(ParamType.INLINED)), e);
-        }
+        Collection<Condition> finalConditions = conditions;
+        AtomicReference<Result<Record>> recordsWrapper = new AtomicReference<>();
+        defaultContext.transaction((Configuration trx) -> {
+            DSLContext ctx = trx.dsl();
+            Result<Record> records;
+            // 保存group_concat_max_len原参数值并设置目标值
+            ctx.execute("SET @t = @@group_concat_max_len");
+            ctx.execute("SET @@group_concat_max_len = 10240");
+            val query = ctx.select(
+                    defaultTable.ID,
+                    defaultTable.APP_ID,
+                    defaultTable.NAME,
+                    defaultTable.DESCRIPTION,
+                    defaultTable.TOKEN,
+                    defaultTable.CLUSTER_NAME,
+                    defaultTable.ACCESS_HOST,
+                    defaultTable.ACCESS_PORT,
+                    defaultTable.CLOUD_AREA_ID,
+                    defaultTable.INNER_IP_PROTOCOL,
+                    defaultTable.INNER_IP,
+                    defaultTable.CPU_OVERLOAD,
+                    defaultTable.MEM_RATE,
+                    defaultTable.MEM_FREE_SPACE,
+                    defaultTable.DISK_RATE,
+                    defaultTable.DISK_FREE_SPACE,
+                    defaultTable.VERSION,
+                    defaultTable.ONLINE_STATUS,
+                    defaultTable.LAST_HEART_BEAT,
+                    defaultTable.CREATOR,
+                    defaultTable.CREATE_TIME,
+                    defaultTable.LAST_MODIFY_USER,
+                    defaultTable.LAST_MODIFY_TIME,
+                    DSL.groupConcat(tFileWorkerAbility.TAG)
+                        .separator(GROUP_CONCAT_SEPARATOR)
+                        .as(KEY_FILE_WORKER_ABILITY_TAGS)
+                )
+                .from(defaultTable)
+                .leftJoin(tFileWorkerAbility)
+                .on(defaultTable.ID.eq(tFileWorkerAbility.WORKER_ID))
+                .where(finalConditions)
+                .groupBy(defaultTable.ID)
+                .orderBy(defaultTable.LAST_HEART_BEAT.desc());
+            try {
+                String sql = query.getSQL(ParamType.INLINED);
+                log.debug("SQL=" + sql);
+                records = query.fetch();
+                recordsWrapper.set(records);
+            } catch (Exception e) {
+                log.error(String.format("Fail to execute SQL:%s", query.getSQL(ParamType.INLINED)), e);
+            } finally {
+                // 恢复group_concat_max_len原参数值
+                ctx.execute("SET @@group_concat_max_len = @t");
+            }
+        });
+        Result<Record> records = recordsWrapper.get();
         if (records == null || records.isEmpty()) {
             return Collections.emptyList();
         } else {

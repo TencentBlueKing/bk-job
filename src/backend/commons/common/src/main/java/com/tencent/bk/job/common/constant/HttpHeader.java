@@ -36,4 +36,5 @@ public class HttpHeader {
     public static final String HDR_REQ_SAPN_ID = "span-id";
     public static final String HDR_CONTENT_TYPE = "Content-Type";
     public static final String S_CURRENT_PAGE = "currentPage";
+    public static final String HDR_UER_AGENT = "User-Agent";
 }

@@ -45,6 +45,7 @@ import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateScriptVersionV3Re
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbCheckScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionDetailV3DTO;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptVersionStatusV3DTO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -164,7 +165,7 @@ public interface EsbScriptV3Resource {
     );
 
     @PostMapping("/disable_script_version")
-    EsbResp<EsbScriptVersionDetailV3DTO> disableScriptVersion(
+    EsbResp<EsbScriptVersionStatusV3DTO> disableScriptVersion(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
@@ -173,7 +174,7 @@ public interface EsbScriptV3Resource {
     );
 
     @PostMapping("/publish_script_version")
-    EsbResp<EsbScriptVersionDetailV3DTO> publishScriptVersion(
+    EsbResp<EsbScriptVersionStatusV3DTO> publishScriptVersion(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody

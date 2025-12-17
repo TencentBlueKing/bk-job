@@ -20,6 +20,7 @@ The created file source has the following default features:
 |---------------|----------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------|
 | bk_scope_type | string   | yes          | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                                                    |
 | bk_scope_id   | string   | yes          | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                                                    |
+| bk_biz_id     | long     | yes          | Deprecated. Business ID. This field has been deprecated and replaced by the field bk_scope_type+bk_scope_id                                    |
 | code          | string   | yes          | File source identification, beginning with English characters, 1-32 English characters, underscores, numbers, cannot be changed after creation |
 | alias         | string   | yes          | File source alias                                                                                                                              |
 | type          | string   | yes          | File Source Type, Currently only the BlueKing Repository is supported，BLUEKING_ARTIFACTORY                                                     |
@@ -39,19 +40,16 @@ Type is BLUEKING_ARTIFACTORY
 
 ```json
 {
-  "bk_app_code": "esb_test",
-  "bk_app_secret": "xxx",
-  "bk_token": "xxx",
-  "bk_scope_type": "biz",
-  "bk_scope_id": "1",
-  "code": "sopsArtifactory",
-  "alias": "SOPS BK-REPO File Source ",
-  "type": "BLUEKING_ARTIFACTORY",
-  "access_params": {
-    "base_url": "https://bkrepo.com"
-  },
-  "credential_id": "06644309e10e4068b3c7b32799668210",
-  "file_prefix": ""
+    "bk_scope_type": "biz",
+    "bk_scope_id": "1",
+    "code": "sopsArtifactory",
+    "alias": "SOPS BK-REPO File Source ",
+    "type": "BLUEKING_ARTIFACTORY",
+    "access_params": {
+        "base_url": "https://bkrepo.com"
+    },
+    "credential_id": "06644309e10e4068b3c7b32799668210",
+    "file_prefix": ""
 }
 ```
 
@@ -59,12 +57,12 @@ Type is BLUEKING_ARTIFACTORY
 
 ```json
 {
-  "result": true,
-  "code": 0,
-  "message": "success",
-  "data": {
-    "id": 1
-  }
+    "result": true,
+    "code": 0,
+    "data": {
+        "id": 1
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -74,6 +72,6 @@ Type is BLUEKING_ARTIFACTORY
 
 #### data
 
-| Fields | **Type** | Whether the field must exist | **Description** |
-|--------|----------|------------------------------|-----------------|
-| id     | int      | yes                          | File Source ID  |
+| Fields | **Type** | Never null | **Description** |
+|--------|----------|------------|-----------------|
+| id     | int      | yes        | File Source ID  |

@@ -36,13 +36,12 @@ import com.tencent.bk.job.analysis.task.analysis.enums.AnalysisResourceEnum;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultData;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultItem;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultVO;
-import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.crontab.api.inner.ServiceCronJobResource;
 import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
 import com.tencent.bk.job.execute.api.inner.ServiceTaskExecuteResultResource;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.model.inner.ServiceTaskInstanceDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -85,31 +84,23 @@ public class TimerTaskFailRateWatcher extends AbstractTimerTaskWatcher {
         //2.遍历定时任务
         cronJobVOList.forEach(it -> {
             //3.拿到每一个定时任务在指定时间段内的执行结果并找出失败的
-            log.info("begin to find fail result of task:" + it.getId() + "," + it.getName());
-            PageData<ServiceTaskInstanceDTO> failResult = getFailResults(taskExecuteResultResource, it);
-            log.info("begin to find success result of task:" + it.getId() + "," + it.getName());
-            PageData<ServiceTaskInstanceDTO> successResult =
-                taskExecuteResultResource.getTaskExecuteResult(
-                    appId,
-                    null,
-                    null,
-                    RunStatusEnum.SUCCESS.getValue(),
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    0,
-                    Integer.MAX_VALUE,
-                    it.getId()
-                ).getData();
-            log.info("" + successResult.getTotal()
-                + " success results found of cronJobId:"
-                + it.getId()
-                + "," + it.getName()
-            );
-            long executedNum = failResult.getTotal() + successResult.getTotal();
-            if (executedNum > 0 && (float) successResult.getTotal() / executedNum < 0.6) {
+            int failCnt = getFailCount(taskExecuteResultResource, it);
+            Integer successCnt = taskExecuteResultResource.getTaskExecuteCount(
+                appId,
+                null,
+                null,
+                RunStatusEnum.SUCCESS.getValue(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                it.getId()
+            ).getData();
+            log.info("{} success tasks found of cronJob(id={}, name={})", successCnt, it.getId(), it.getName());
+            // 计算错误率
+            long executedNum = failCnt + successCnt;
+            if (executedNum > 0 && (float) successCnt / executedNum < 0.6) {
                 highFailRateCronJobBaseInfoList.add(
                     new HighFailRateCronJobBaseInfo(
                         AnalysisResourceEnum.TIMER_TASK,
@@ -121,7 +112,7 @@ public class TimerTaskFailRateWatcher extends AbstractTimerTaskWatcher {
                 );
             }
         });
-        log.info("highFailRateCronJobBaseInfoList:" + JsonUtils.toJson(highFailRateCronJobBaseInfoList));
+        log.info("highFailRateCronJobBaseInfoList: {}", JsonUtils.toJson(highFailRateCronJobBaseInfoList));
         //结果入库
         analysisTaskInstanceDTO.setResultData(
             JsonUtils.toJson(

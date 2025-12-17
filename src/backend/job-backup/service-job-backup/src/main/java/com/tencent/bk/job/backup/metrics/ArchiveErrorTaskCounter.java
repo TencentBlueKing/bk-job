@@ -36,7 +36,7 @@ public class ArchiveErrorTaskCounter {
 
     @Autowired
     public ArchiveErrorTaskCounter(MeterRegistry meterRegistry) {
-        this.archiveErrorTaskCounter = meterRegistry.counter(MetricConstants.ARCHIVE_ERROR_TASK_TOTAL);
+        this.archiveErrorTaskCounter = meterRegistry.counter(MetricConstants.METRIC_NAME_ARCHIVE_ERROR_TASK_TOTAL);
     }
 
     /**

@@ -1,25 +1,22 @@
 ### Function Description
 
-Disable the public script version. Once disabled successfully, it cannot be restored! And any job steps that reference this version online will not be able to be executed, please be cautious when operating.
+Disable the public script version. Once disabled successfully, it cannot be restored! And any job steps that reference
+this version online will not be able to be executed, please be cautious when operating.
 
 ### Request Parameters
 
 #### Interface parameters
 
 | Fields            | Type   | Required | Description              |
-| ----------------- | ------ | -------- | ------------------------ |
+|-------------------|--------|----------|--------------------------|
 | script_id         | string | yes      | Public script id         |
 | script_version_id | long   | yes      | Public script version id |
-
 
 ### Example of request
 
 ```json
 {
-    "bk_app_code": "esb_test",
-    "bk_app_secret": "xxx",
-    "bk_token": "xxx",
-    "script_id":"4537fb49ec0840a1b91cef4179c99f9c",
+    "script_id": "4537fb49ec0840a1b91cef4179c99f9c",
     "script_version_id": 1000018
 }
 ```
@@ -34,7 +31,8 @@ Disable the public script version. Once disabled successfully, it cannot be rest
         "id": 1000018,
         "script_id": "4537fb49ec0840a1b91cef4179c99f9c",
         "status": 3
-    }
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -44,8 +42,8 @@ Disable the public script version. Once disabled successfully, it cannot be rest
 
 #### data
 
-| Fields            | Type   | Description                                                  |
-| ----------------- | ------ | ------------------------------------------------------------ |
-| script_id                | string | Script id                                                    |
-| id | long   | Script version id                                            |
-| status            | int    | Script version status (0: Not online, 1: Online, 2: Offline, 3: Disabled) |
+| Fields    | Type   | Never null | Description                                                               |
+|-----------|--------|------------|---------------------------------------------------------------------------|
+| script_id | string | yes        | Script id                                                                 |
+| id        | long   | yes        | Script version id                                                         |
+| status    | int    | yes        | Script version status (0: Not online, 1: Online, 2: Offline, 3: Disabled) |

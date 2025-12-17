@@ -263,4 +263,28 @@ public class JobContextUtil {
         JobContext jobContext = getOrInitContext();
         jobContext.setRequestFrom(requestFrom);
     }
+
+    /**
+     * 获取控制器类名
+     *
+     * @return 控制器类名
+     */
+    public static String getControllerClassName() {
+        JobContext jobContext = JobContextThreadLocal.get();
+        String controllerClassName = null;
+        if (jobContext != null) {
+            controllerClassName = jobContext.getControllerClassName();
+        }
+        return controllerClassName;
+    }
+
+    /**
+     * 设置控制器类名
+     *
+     * @param controllerClassName 控制器类名
+     */
+    public static void setControllerClassName(String controllerClassName) {
+        JobContext jobContext = getOrInitContext();
+        jobContext.setControllerClassName(controllerClassName);
+    }
 }

@@ -149,7 +149,7 @@ public class ScriptCitedTaskTemplateDAOImpl implements ScriptCitedTaskTemplateDA
             Result result = query.fetch();
             List<ScriptCitedTaskTemplateDTO> relatedTemplates = new ArrayList<>();
             if (result.size() > 0) {
-                result.into(record -> relatedTemplates.add(extract(record)));
+                result.forEach(record -> relatedTemplates.add(extract((Record) record)));
             }
             return getDistinctRelatedTemplates(relatedTemplates);
         } catch (Exception e) {
@@ -179,7 +179,7 @@ public class ScriptCitedTaskTemplateDAOImpl implements ScriptCitedTaskTemplateDA
             Result result = query.fetch();
             List<ScriptCitedTaskTemplateDTO> relatedTemplates = new ArrayList<>();
             if (result.size() > 0) {
-                result.into(record -> relatedTemplates.add(extract(record)));
+                result.forEach(record -> relatedTemplates.add(extract((Record) record)));
             }
             return getDistinctRelatedTemplates(relatedTemplates);
         } catch (Exception e) {

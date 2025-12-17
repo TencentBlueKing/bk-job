@@ -51,7 +51,6 @@ import com.tencent.bk.job.execute.engine.variable.VariableResolveContext;
 import com.tencent.bk.job.execute.engine.variable.VariableResolveResult;
 import com.tencent.bk.job.execute.engine.variable.VariableResolveUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
-import com.tencent.bk.job.execute.model.AgentCustomPasswordDTO;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -252,7 +251,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         String scriptParam = MacroUtil.resolveDateWithStrfTime(stepInstance.getScriptParam());
         String resolvedScriptParam = resolveScriptParamVariables(scriptParam);
-        int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout());
+        int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getAppId(), stepInstance.getTimeout());
 
         ScriptRequestBuilder builder = new ScriptRequestBuilder();
         builder.addScriptFile(scriptFilePath, scriptFileName, scriptContent);
@@ -308,7 +307,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         String scriptParam = MacroUtil.resolveDateWithStrfTime(stepInstance.getScriptParam());
         String resolvedScriptParam = resolveScriptParamVariables(scriptParam);
-        int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout());
+        int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getAppId(), stepInstance.getTimeout());
 
         List<Agent> agents = buildTargetAgents();
 
@@ -416,7 +415,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                                                  List<String> importVariables) {
         String scriptParam = MacroUtil.resolveDateWithStrfTime(stepInstance.getScriptParam());
         String resolvedScriptParam = resolveScriptParamVariables(scriptParam);
-        int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout());
+        int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getAppId(), stepInstance.getTimeout());
 
         List<Agent> agents = buildTargetAgents();
 

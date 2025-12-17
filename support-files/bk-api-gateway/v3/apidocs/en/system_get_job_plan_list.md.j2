@@ -6,20 +6,21 @@ Search Job Plan list
 
 #### Interface parameters
 
-| Fields                 | Type   | Required | Description                                                                                 |
-|------------------------|--------|----------|---------------------------------------------------------------------------------------------|
-| bk_scope_type          | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
-| bk_scope_id            | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| job_template_id        | long   | no       | Job template ID                                                                             |
-| creator                | string | no       | Job Plan creator                                                                            |
-| name                   | string | no       | Job Plan name, fuzzy match                                                                  |
-| create_time_start      | long   | no       | Creation time start, Unix timestamp                                                         |
-| create_time_end        | long   | no       | Creation time end, Unix timestamp                                                           |
-| last_modify_user       | string | no       | Last modify user                                                                            |
-| last_modify_time_start | long   | no       | Last modification time start, Unix timestamp                                                |
-| last_modify_time_end   | long   | no       | Last modification time end, Unix timestamp                                                  |
-| start                  | int    | no       | Start position of paging record, default 0                                                  |
-| length                 | int    | no       | The maximum number of records returned in a single time is 1000 at most, default 20         |
+| Fields                 | Type   | Required | Description                                                                                                 |
+|------------------------|--------|----------|-------------------------------------------------------------------------------------------------------------|
+| bk_scope_type          | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                 |
+| bk_scope_id            | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                 |
+| bk_biz_id              | long   | yes      | Deprecated. Business ID. This field has been deprecated and replaced by the field bk_scope_type+bk_scope_id |
+| job_template_id        | long   | no       | Job template ID                                                                                             |
+| creator                | string | no       | Job Plan creator                                                                                            |
+| name                   | string | no       | Job Plan name, fuzzy match                                                                                  |
+| create_time_start      | long   | no       | Creation time start, Unix timestamp                                                                         |
+| create_time_end        | long   | no       | Creation time end, Unix timestamp                                                                           |
+| last_modify_user       | string | no       | Last modify user                                                                                            |
+| last_modify_time_start | long   | no       | Last modification time start, Unix timestamp                                                                |
+| last_modify_time_end   | long   | no       | Last modification time end, Unix timestamp                                                                  |
+| start                  | int    | no       | Start position of paging record, default 0                                                                  |
+| length                 | int    | no       | The maximum number of records returned in a single time is 1000 at most, default 20                         |
 
 ### Example of request
 
@@ -33,27 +34,27 @@ Search Job Plan list
 
 ```json
 {
-  "result": true,
-  "code": 0,
-  "message": "success",
-  "data": {
-    "data": [
-      {
-        "bk_scope_type": "biz",
-        "bk_scope_id": "1",
-        "id": 100,
-        "job_template_id": 1,
-        "name": "test",
-        "creator": "admin",
-        "create_time": 1546272000000,
-        "last_modify_user": "admin",
-        "last_modify_time": 1546272000000
-      }
-    ],
-    "start": 0,
-    "length": 20,
-    "total": 1
-  }
+    "result": true,
+    "code": 0,
+    "data": {
+        "data": [
+            {
+                "bk_scope_type": "biz",
+                "bk_scope_id": "1",
+                "id": 100,
+                "job_template_id": 1,
+                "name": "test",
+                "creator": "admin",
+                "create_time": 1546272000000,
+                "last_modify_user": "admin",
+                "last_modify_time": 1546272000000
+            }
+        ],
+        "start": 0,
+        "length": 20,
+        "total": 1
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -63,14 +64,18 @@ Search Job Plan list
 
 #### data
 
-| Fields           | Type   | Description                                                                                 |
-|------------------|--------|---------------------------------------------------------------------------------------------|
-| bk_scope_type    | string | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
-| bk_scope_id      | string | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| id               | long   | Job Plan ID                                                                                 |
-| job_template_id  | long   | Job Template ID                                                                             |
-| name             | string | Job Plan name                                                                               |
-| creator          | string | Creator account number                                                                      |
-| create_time      | long   | Creation time, Unix timestamp                                                               |
-| last_modify_user | string | Modified by acct No.                                                                        |
-| last_modify_time | long   | Last modified time, Unix timestamp                                                          |
+{% include '_generic_response_page_data.md.j2' %}
+
+##### data.data
+
+| Fields           | Type   | Never null | Description                                                                                 |
+|------------------|--------|------------|---------------------------------------------------------------------------------------------|
+| bk_scope_type    | string | yes        | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id      | string | yes        | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| id               | long   | yes        | Job Plan ID                                                                                 |
+| job_template_id  | long   | yes        | Job Template ID                                                                             |
+| name             | string | yes        | Job Plan name                                                                               |
+| creator          | string | yes        | Creator account number                                                                      |
+| create_time      | long   | yes        | Creation time, Unix timestamp                                                               |
+| last_modify_user | string | yes        | Modified by acct No.                                                                        |
+| last_modify_time | long   | yes        | Last modified time, Unix timestamp                                                          |

@@ -58,6 +58,7 @@ import com.tencent.bk.job.manage.model.dto.notify.NotifyPolicyRoleTargetDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyRoleTargetChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTemplateDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
+import com.tencent.bk.job.manage.model.dto.notify.TriggerPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationTriggerDTO;
@@ -73,7 +74,6 @@ import com.tencent.bk.job.manage.model.web.vo.notify.ExecuteStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.PageTemplateVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ResourceTypeVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.RoleVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerTypeVO;
 import com.tencent.bk.job.manage.service.AppRoleService;
 import com.tencent.bk.job.manage.service.LocalPermissionService;
@@ -157,7 +157,7 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
-    public List<TriggerPolicyVO> listAppDefaultNotifyPolicies(String username, Long appId) {
+    public List<TriggerPolicyDTO> listAppDefaultNotifyPolicies(String username, Long appId) {
         return notifyTriggerPolicyDAO.listAppDefault(getDefaultTriggerUser(), appId, NotifyConsts.DEFAULT_RESOURCE_ID);
     }
 
@@ -470,7 +470,8 @@ public class NotifyServiceImpl implements NotifyService {
             ).collect(Collectors.toList());
     }
 
-    private List<String> getAvailableChannelTypeList() {
+    @Override
+    public List<String> getAvailableChannelTypeList() {
         List<AvailableEsbChannelDTO> availableEsbChannelDTOList =
             availableEsbChannelDAO.listAvailableEsbChannel();
         return availableEsbChannelDTOList.stream().map(AvailableEsbChannelDTO::getType).collect(Collectors.toList());

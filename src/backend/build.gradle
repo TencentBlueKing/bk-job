@@ -70,7 +70,13 @@ plugins {
     id "io.spring.dependency-management" version '1.0.11.RELEASE' apply false
     id 'org.springframework.boot' version '2.7.11' apply false
     id "idea"
-    id 'nu.studer.jooq' version '3.0.0'
+    id 'nu.studer.jooq' version '9.0'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
 }
 
 ext {
@@ -92,7 +98,7 @@ ext {
     set('lombokVersion', "1.18.24")
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
     set('jacksonVersion', "2.15.4")
-    set('jaxrsVersion', "2.0")
+    set('jaxrsVersion', "2.1.6")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-core
     // Fix CVE-2023-6378 1.2.11->1.2.13
     set('logbackVersion', "1.2.13")
@@ -113,7 +119,9 @@ ext {
     set('dozerVersion', "5.5.1")
     set('jedisVersion', "3.0.1")
     // https://mvnrepository.com/artifact/org.jooq/jooq
-    set('jooqVersion', "3.14.8")
+    set('jooqVersion', "3.19.1")
+    set('xmlBindVersion', "4.0.0")
+    set('annotationApiVersion', "2.1.1")
     set('h2Version', "1.4.199")
     set('gradleJooqVersion', "2.0.11")
     // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
@@ -121,15 +129,15 @@ ext {
     set('apacheThriftVersion', "0.15.0")
     // Fix CVE-2024-47554 CVE-2021-29425 2.6->2.14.0
     set('commonsIOVersion', "2.14.0")
-    set('javaxServletVersion', "4.0.1")
+    set('jakartaServletVersion', "4.0.4")
     // Fix CVE-2023-2976 CVE-2020-8908 28.2-jre->32.0.0-android
     set('guavaVersion', "32.0.0-android")
     set('caffeineVersion', "2.9.3")
-    set('jjwtVersion', "0.9.1")
+    set('jjwtVersion', "0.13.0")
     set('hibernateValidatorVersion', "6.1.4.Final")
     set('flapdoodleEmbeddedMongdbDBVersion', "4.4.0")
     set('jodaTimeVersion', "2.10.5")
-    set('bcprovVersion', "1.70")
+    set('bcprovVersion', "1.78.1")
     set('reflectionsVersion', "0.10.2")
     set('cronUtilsVersion', "9.1.6")
     set('otelJdbcVersion', "1.24.0-alpha")
@@ -148,7 +156,7 @@ ext {
         set('bkjobVersion', "1.0.0")
         println "bkjobVersion:" + bkjobVersion
     }
-    set('bkAuditJavaSdkVersion', "1.0.8")
+    set('bkAuditJavaSdkVersion', "1.0.9")
     set('mockitoVersion', "4.0.0")
     set('embeddedRedisVersion', "0.6")
     set('openai4jVersion', "0.18.0")
@@ -165,8 +173,6 @@ ext {
     set('nettyCodecHttp2Version', "4.1.100.Final")
     // Fix CVE-2024-38809 CVE-2024-22262 CVE-2024-22259 CVE-2024-22243 5.3.23->5.3.39
     set('springWebVersion', "5.3.39")
-    // Fix CVE-2021-0341 4.9.1->4.9.2
-    set('okHttpVersion', "4.9.2")
     // Fix CVE-2023-46120 5.13.1->5.18.0
     set('amqpClientVersion', "5.18.0")
     // Fix CVE-2023-4759 5.13.1.202206130422-r->6.6.1.202309021850-r
@@ -179,6 +185,7 @@ ext {
     set('tomcat.version', "9.0.96")
     // Fix CVE-2022-41854 CVE-2022-38752 CVE-2022-38751 CVE-2022-38749 CVE-2022-25857 CVE-2022-1471 1.29->1.33
     set('snakeyaml.version', "1.33")
+    set('mysqlConnectorVersion', "8.0.33")
 }
 
 group "com.tencent.bk.job"
@@ -309,7 +316,7 @@ subprojects {
             dependency "org.springframework:spring-jdbc:$springVersion"
             dependency "org.springframework:spring-webflux:$springVersion"
             dependency "org.projectlombok:lombok:$lombokVersion"
-            dependency "javax.ws.rs:javax.ws.rs-api:$jaxrsVersion"
+            dependency "jakarta.ws.rs:jakarta.ws.rs-api:$jaxrsVersion"
             dependency "org.slf4j:slf4j-api:$slf4jVersion"
             dependency "io.springfox:springfox-boot-starter:$swaggerVersion"
             // apache commons
@@ -325,7 +332,7 @@ subprojects {
             dependency "net.sf.dozer:dozer:$dozerVersion"
             dependency "org.jedis:jedis:$jedisVersion"
             dependency "com.h2database:h2:$h2Version"
-            dependency "javax.servlet:javax.servlet-api:$javaxServletVersion"
+            dependency "jakarta.servlet:jakarta.servlet-api:$jakartaServletVersion"
             // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
             dependencySet(group: 'org.apache.httpcomponents', version: "$apacheHttpClientVersion") {
                 entry "httpclient"
@@ -335,12 +342,16 @@ subprojects {
             dependency group: 'org.apache.thrift', name: 'libthrift', version: "$apacheThriftVersion"
             dependency group: 'com.google.guava', name: 'guava', version: "$guavaVersion"
             dependency "com.github.ben-manes.caffeine:caffeine:$caffeineVersion"
-            dependency group: 'io.jsonwebtoken', name: 'jjwt', version: "$jjwtVersion"
+            dependencySet(group: "io.jsonwebtoken", version: "$jjwtVersion") {
+                entry "jjwt-api"
+                entry "jjwt-impl"
+                entry "jjwt-jackson"
+            }
             dependency "net.sourceforge.jchardet:jchardet:1.0"
             dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring26x:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "joda-time:joda-time:$jodaTimeVersion"
-            dependency "org.bouncycastle:bcprov-jdk15on:$bcprovVersion"
+            dependency "org.bouncycastle:bcprov-jdk18on:$bcprovVersion"
             // https://github.com/ronmamo/reflections
             dependency "org.reflections:reflections:$reflectionsVersion"
             dependency "com.cronutils:cron-utils:$cronUtilsVersion"
@@ -354,6 +365,8 @@ subprojects {
                 entry "jooq-codegen"
                 entry "jooq-meta"
             }
+            dependency "jakarta.xml.bind:jakarta.xml.bind-api:$xmlBindVersion"
+            dependency "jakarta.annotation:jakarta.annotation-api:$annotationApiVersion"
             dependencySet(group: "com.fasterxml.jackson", version: "$jacksonVersion") {
                 entry "jackson-core"
                 entry "jackson-databind"
@@ -382,9 +395,9 @@ subprojects {
             dependency "io.projectreactor.netty:reactor-netty-core:$reactorNettyCoreVersion"
             dependency "io.netty:netty-codec-http2:$nettyCodecHttp2Version"
             dependency "org.springframework:spring-web:$springWebVersion"
-            dependency "com.squareup.okhttp3:okhttp:$okHttpVersion"
             dependency "com.rabbitmq:amqp-client:$amqpClientVersion"
             dependency "org.eclipse.jgit:org.eclipse.jgit:$jgitVersion"
+            dependency "com.mysql:mysql-connector-j:$mysqlConnectorVersion"
         }
     }
     dependencies {

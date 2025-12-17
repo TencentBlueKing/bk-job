@@ -20,10 +20,10 @@
 
 ```json
 {
-  "bk_scope_type": "biz",
-  "bk_scope_id": "1",
-  "id": 2,
-  "status": 1
+    "bk_scope_type": "biz",
+    "bk_scope_id": "1",
+    "id": 2,
+    "status": 1
 }
 ```
 
@@ -31,10 +31,10 @@
 
 ```json
 {
-  "result": true,
-  "code": 0,
-  "message": "success",
-  "data": 2
+    "result": true,
+    "code": 0,
+    "data": 2,
+    "job_request_id": "xxx"
 }
 ```
 
@@ -44,6 +44,6 @@
 
 ##### data
 
-| 字段   | 类型   | 描述     |
-|------|------|--------|
-| data | long | 定时任务ID |
+| 字段   | 类型   | 是否一定不为null | 描述     |
+|------|------|------------|--------|
+| data | long | 是          | 定时任务ID |

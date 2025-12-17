@@ -1,0 +1,191 @@
+### Function Description
+
+Query the notification configuration status of a business
+
+### Request Parameters
+
+#### Query Parameters
+
+| Fields        | Type   | Required | Description                                                                                     |
+|---------------|--------|----------|-------------------------------------------------------------------------------------------------|
+| bk_scope_type | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                     |
+| bk_scope_id   | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID     |
+
+### Example of request
+
+- GET
+
+```json
+/api/v3/get_notify_config?bk_scope_type=biz&bk_scope_id=2
+```
+
+### Example of responses
+
+```json
+{
+    "code": 0,
+    "result": true,
+    "data": [
+        {
+            "trigger_type": "PAGE_EXECUTE",
+            "resource_type_list": [
+                "SCRIPT",
+                "JOB",
+                "FILE"
+            ],
+            "role_list": [
+                "JOB_RESOURCE_TRIGGER_USER"
+            ],
+            "extra_observer_list": [],
+            "resource_status_channel_map": {
+                "READY": {
+                    "voice": false,
+                    "weixin": false,
+                    "mail": false,
+                    "rtx": false,
+                    "sms": false
+                },
+                "SUCCESS": {
+                    "voice": false,
+                    "weixin": false,
+                    "mail": false,
+                    "rtx": false,
+                    "sms": false
+                },
+                "FAIL": {
+                    "voice": false,
+                    "weixin": false,
+                    "mail": true,
+                    "rtx": false,
+                    "sms": false
+                }
+            }
+        },
+        {
+            "trigger_type": "API_INVOKE",
+            "resource_type_list": [
+                "SCRIPT",
+                "JOB",
+                "FILE"
+            ],
+            "role_list": [
+                "JOB_RESOURCE_TRIGGER_USER"
+            ],
+            "extra_observer_list": [],
+            "resource_status_channel_map": {
+                "READY": {
+                    "voice": false,
+                    "weixin": false,
+                    "mail": false,
+                    "rtx": false,
+                    "sms": false
+                },
+                "SUCCESS": {
+                    "voice": false,
+                    "weixin": false,
+                    "mail": false,
+                    "rtx": false,
+                    "sms": false
+                },
+                "FAIL": {
+                    "voice": false,
+                    "weixin": false,
+                    "mail": true,
+                    "rtx": false,
+                    "sms": false
+                }
+            }
+        },
+        {
+            "trigger_type": "TIMER_TASK",
+            "resource_type_list": [
+                "SCRIPT",
+                "FILE"
+            ],
+            "role_list": [
+                "JOB_EXTRA_OBSERVER",
+                "JOB_RESOURCE_TRIGGER_USER"
+            ],
+            "extra_observer_list": [
+                "zhangsan"
+            ],
+            "resource_status_channel_map": {
+                "READY": {
+                    "voice": false,
+                    "weixin": false,
+                    "mail": false,
+                    "rtx": false,
+                    "sms": false
+                },
+                "SUCCESS": {
+                    "voice": false,
+                    "weixin": false,
+                    "mail": false,
+                    "rtx": true,
+                    "sms": false
+                },
+                "FAIL": {
+                    "voice": false,
+                    "weixin": false,
+                    "mail": true,
+                    "rtx": true,
+                    "sms": false
+                }
+            }
+        }
+    ]
+}
+```
+
+### Response Description
+
+{% include '_generic_response.md.j2' %}
+
+##### data
+
+| Fields                      | Type                              | Never null | Description                                                                                                                  |
+|-----------------------------|-----------------------------------|------------|------------------------------------------------------------------------------------------------------------------------------|
+| trigger_type                | string                            | yes        | Trigger type                                                                                                                 |
+| resource_type_list          | array                             | yes        | Resource (task) type list                                                                                                    |
+| role_list                   | array                             | yes        | Task role (notification target) list                                                                                         |
+| extra_observer_list         | array                             | yes        | Extra observer list, list of usernames                                                                                       |
+| resource_status_channel_map | Map<string, Map<string, boolean>> | yes        | Status notification channel mapping. First level key is execution status, second level key is channel type, value is enabled |
+
+##### trigger_type Optional Values
+
+- `TIMER_TASK`: Cron Job
+- `PAGE_EXECUTE`: Page Execution
+- `API_INVOKE`: API Call
+
+##### resource_type_list Optional Values
+
+- `SCRIPT`: Fast Script Execution
+- `JOB`: Job Plan
+- `FILE`: Fast File Distribution
+
+##### role_list Optional Values
+
+- `JOB_RESOURCE_TRIGGER_USER`：Trigger User
+- `JOB_RESOURCE_OWNER`：Resource Owner
+- `JOB_EXTRA_OBSERVER`：Extra Observer
+- `bk_biz_maintainer`：Business Maintainer
+- `bk_biz_productor`：Business Product Manager
+- `bk_biz_tester`：Business Tester
+- `bk_biz_developer`：Developer
+- `operator`：Operator
+
+##### resource_status_channel_map Description
+
+First level key (execution status):
+- `SUCCESS`: Execution succeeded
+- `FAIL`: Execution failed
+- `READY`: Ready to execute
+
+Second level key (channel type):
+- `sms`: SMS
+- `mail`: Email
+- `weixin`: WeChat
+- `voice`: Voice Call
+- `rtx`: RTX (Enterprise Instant Messaging)
+
+value: Boolean value, true means the channel is enabled for this status, false means disabled

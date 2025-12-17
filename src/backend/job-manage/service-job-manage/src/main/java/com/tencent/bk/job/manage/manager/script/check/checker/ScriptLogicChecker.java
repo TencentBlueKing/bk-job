@@ -43,7 +43,9 @@ import static com.tencent.bk.job.manage.manager.script.check.consts.ScriptCheckI
  */
 @Slf4j
 public class ScriptLogicChecker extends DefaultChecker {
-    private final Pattern shellDefine = Pattern.compile("^#!/bin/(ksh|bash|tsh|sh)$");
+    // 匹配脚本shebang行，要求#!开头，紧跟/bin/或/usr/bin/env下的 ksh、bash、tsh、sh，允许换行符制表符等空白字符结尾
+    private final Pattern shellDefine = Pattern.compile("^#!(/usr/bin/env (ksh|bash|tsh|sh)" +
+        "|/bin/(ksh|bash|tsh|sh))\\s*$");
     private final Pattern cdDirCheck = Pattern.compile("^((\\s*?[^#c].*)(;|[|]{1,2}|[&]{1,2}))?(\\s*)cd(\\s+((" +
         "(?<b>[\"'])[^;&|\"']*\\k<b>)+|[^;&|\"']+))+(([;&|]*$)|(([|&]|[;]+)[^|&]+))");
 

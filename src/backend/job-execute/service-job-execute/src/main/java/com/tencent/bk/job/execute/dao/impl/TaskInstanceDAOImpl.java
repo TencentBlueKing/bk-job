@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.common.util.BatchUtil;
+import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
@@ -59,8 +60,8 @@ import org.springframework.stereotype.Repository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -227,12 +228,12 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
     public List<TaskInstanceDTO> listJobInstance(TaskInstanceQuery taskQuery,
                                                  SimplePaginationCondition simplePaginationCondition) {
         List<Condition> conditions = buildSearchCondition(taskQuery);
-        Result<?> result = stepwiseSelectTaskInstance(conditions,
+        List<TaskInstanceDTO> result = stepwiseSelectTaskInstance(conditions,
             simplePaginationCondition.getOffset(),
             simplePaginationCondition.getLength()
         );
 
-        return result.stream().map(this::extractInfo).collect(Collectors.toList());
+        return result;
     }
 
     @Override
@@ -245,24 +246,33 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
             conditions.add(TASK_INSTANCE_HOST.IPV6.eq(taskQuery.getIpv6()));
         }
 
-        Result<? extends Record> result = stepwiseSelectTaskInstanceByIpCondition(
+        List<TaskInstanceDTO> result = stepwiseSelectTaskInstanceByIpCondition(
             conditions,
             simplePaginationCondition.getOffset(),
             simplePaginationCondition.getLength()
         );
-        return result.stream().map(this::extractInfo).collect(Collectors.toList());
+        return result;
     }
+
+    @SuppressWarnings("all")
+    @Override
+    public int getTaskInstanceCountWithCondition(TaskInstanceQuery taskQuery) {
+        List<Condition> conditions = buildSearchCondition(taskQuery);
+        return dsl().selectCount().from(TASK_INSTANCE).where(conditions).fetchOne(0,
+            Integer.class);
+    }
+
 
     private PageData<TaskInstanceDTO> listPageTaskInstanceByBasicInfo(TaskInstanceQuery taskQuery,
                                                                       BaseSearchCondition baseSearchCondition) {
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
         List<Condition> conditions = buildSearchCondition(taskQuery);
-        Result<? extends Record> result = stepwiseSelectTaskInstance(conditions, start, length);
+        List<TaskInstanceDTO> result = stepwiseSelectTaskInstance(conditions, start, length);
 
         int count = 0;
         if (baseSearchCondition.isCountPageTotal()) {
-            count = getPageTaskInstanceCount(taskQuery);
+            count = getTaskInstanceCountWithCondition(taskQuery);
         }
 
         return buildTaskInstancePageData(start, length, count, result);
@@ -276,7 +286,7 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
      * @param length 查询长度
      * @return 查询结果
      */
-    private Result<? extends Record> stepwiseSelectTaskInstance(List<Condition> conditions,
+    private List<TaskInstanceDTO> stepwiseSelectTaskInstance(List<Condition> conditions,
                                                                 int start,
                                                                 int length) {
         Collection<SortField<?>> orderFields = new ArrayList<>();
@@ -289,16 +299,15 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
             .limit(start, length)
             .fetch();
         // 根据ID查出完整任务实例信息
-        Set<Long> taskInstanceIds = idResult.stream()
+        List<Long> taskInstanceIds = idResult.stream()
             .map(record -> record.get(TASK_INSTANCE.ID))
-            .collect(Collectors.toSet());
-        Result<? extends Record> result = dsl().select(ALL_FIELDS)
-            .from(TaskInstanceDAOImpl.TASK_INSTANCE)
-            .where(TASK_INSTANCE.ID.in(taskInstanceIds))
-            .orderBy(orderFields)
-            .fetch();
+            .collect(Collectors.toList());
 
-        return result;
+        List<TaskInstanceDTO> taskInstanceDTOList = selectByIdsInBatch(taskInstanceIds);
+        // 分批查出来的结果，不同批次间无序，需要排序
+        taskInstanceDTOList.sort(Comparator.comparing(TaskInstanceDTO::getCreateTime).reversed());
+
+        return taskInstanceDTOList;
     }
 
     private PageData<TaskInstanceDTO> listPageTaskInstanceByIp(TaskInstanceQuery taskQuery,
@@ -311,7 +320,7 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
         }
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
-        Result<? extends Record> result = stepwiseSelectTaskInstanceByIpCondition(conditions, start, length);
+        List<TaskInstanceDTO> result = stepwiseSelectTaskInstanceByIpCondition(conditions, start, length);
 
         Integer count = 0;
         if (baseSearchCondition.isCountPageTotal()) {
@@ -327,9 +336,9 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
         return buildTaskInstancePageData(start, length, count, result);
     }
 
-    private Result<? extends Record> stepwiseSelectTaskInstanceByIpCondition(List<Condition> conditions,
-                                                                             int start,
-                                                                             int length) {
+    private List<TaskInstanceDTO> stepwiseSelectTaskInstanceByIpCondition(List<Condition> conditions,
+                                                                          int start,
+                                                                          int length) {
         Collection<SortField<?>> orderFields = new ArrayList<>();
         orderFields.add(TASK_INSTANCE.CREATE_TIME.desc());
         // 条件中包含IP需要连表查询，只查出ID，根据ID走主键索引，避免回表
@@ -342,38 +351,53 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
             .limit(start, length)
             .fetch();
         // 根据ID查询完整任务实例信息
-        Set<Long> taskInstanceIds = result.stream()
+        List<Long> taskInstanceIds = result.stream()
             .map(record -> record.get(TASK_INSTANCE.ID))
-            .collect(Collectors.toSet());
-        Result<? extends Record> allFieldResult = dsl().select(ALL_FIELDS)
-            .from(TASK_INSTANCE)
-            .where(TASK_INSTANCE.ID.in(taskInstanceIds))
-            .orderBy(orderFields)
-            .fetch();
-        return allFieldResult;
+            .collect(Collectors.toList());
+
+        List<TaskInstanceDTO> taskInstanceDTOList = selectByIdsInBatch(taskInstanceIds);
+        // 分批查出来的结果，不同批次间无序，需要排序
+        taskInstanceDTOList.sort(Comparator.comparing(TaskInstanceDTO::getCreateTime).reversed());
+        return taskInstanceDTOList;
+    }
+
+    /**
+     * 防止id in 一个大列表导致全表扫描，当id列表过大时，分批查询
+     */
+    private List<TaskInstanceDTO> selectByIdsInBatch(List<Long> ids) {
+        // 先让id有序再去查DB性能更好，能减少数据页的换入换出
+        // 防止大列表直接排序，经过测试50w数据量排序性价比最高
+        List<List<Long>> sortBatches = CollectionUtil.partitionList(ids, 500000);
+        sortBatches.forEach(batch -> batch.sort(Long::compareTo));
+
+        List<List<Long>> batchIds = new ArrayList<>();
+        sortBatches.forEach(sortedList -> {
+            // 大表中，in 2000-5000大小的列表 对于存储引擎友好
+            List<List<Long>> subBatch = CollectionUtil.partitionList(sortedList, 2000);
+            batchIds.addAll(subBatch);
+        });
+
+        List<TaskInstanceDTO> result = new ArrayList<>();
+        for (int i = 0; i < batchIds.size(); i++) {
+            Result<? extends Record> allFieldResult = dsl().select(ALL_FIELDS)
+                .from(TASK_INSTANCE)
+                .where(TASK_INSTANCE.ID.in(batchIds.get(i)))
+                .fetch();
+            result.addAll(allFieldResult.stream().map(this::extractInfo).collect(Collectors.toList()));
+        }
+        return result;
     }
 
     private PageData<TaskInstanceDTO> buildTaskInstancePageData(int start,
                                                                 int length,
                                                                 int count,
-                                                                Result<? extends Record> result) {
-        List<TaskInstanceDTO> taskInstances = new ArrayList<>();
-        if (result != null && !result.isEmpty()) {
-            result.forEach(record -> taskInstances.add(extractInfo(record)));
-        }
+                                                                List<TaskInstanceDTO> result) {
         PageData<TaskInstanceDTO> pageData = new PageData<>();
-        pageData.setData(taskInstances);
+        pageData.setData(result);
         pageData.setStart(start);
         pageData.setPageSize(length);
         pageData.setTotal(Long.valueOf(String.valueOf(count)));
         return pageData;
-    }
-
-    @SuppressWarnings("all")
-    private int getPageTaskInstanceCount(TaskInstanceQuery taskQuery) {
-        List<Condition> conditions = buildSearchCondition(taskQuery);
-        return dsl().selectCount().from(TASK_INSTANCE).where(conditions).fetchOne(0,
-            Integer.class);
     }
 
     private List<Condition> buildSearchCondition(TaskInstanceQuery taskQuery) {
@@ -594,7 +618,7 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
             .limit(offset, limit)
             .fetch();
         List<Long> taskInstanceIdList = new ArrayList<>();
-        result.into(record -> {
+        result.forEach(record -> {
             taskInstanceIdList.add(record.get(TASK_INSTANCE.ID));
         });
         return taskInstanceIdList;

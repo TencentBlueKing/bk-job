@@ -34,9 +34,15 @@ import lombok.Data;
 public class EsbScriptHostLogV3DTO {
 
     /**
-     * 主机ID
+     * 主机ID（兼容字段，某些上层调用方已经依赖，新接口中再去除）
      */
     @JsonProperty("host_id")
+    private Long compatibleHostId;
+
+    /**
+     * 主机ID
+     */
+    @JsonProperty("bk_host_id")
     private Long hostId;
 
     /**
@@ -62,4 +68,9 @@ public class EsbScriptHostLogV3DTO {
      */
     @JsonProperty("log_content")
     private String logContent;
+
+    public void setHostId(Long hostId) {
+        this.hostId = hostId;
+        this.compatibleHostId = hostId;
+    }
 }

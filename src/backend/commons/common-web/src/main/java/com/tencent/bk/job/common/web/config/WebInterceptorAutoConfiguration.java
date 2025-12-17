@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.web.config;
 import com.tencent.bk.job.common.jwt.JwtManager;
 import com.tencent.bk.job.common.security.annotation.ConditionalOnSecurityEnabled;
 import com.tencent.bk.job.common.service.SpringProfile;
+import com.tencent.bk.job.common.web.interceptor.ControllerInfoInterceptor;
 import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
@@ -52,6 +53,10 @@ public class WebInterceptorAutoConfiguration {
         return new EsbApiLogInterceptor();
     }
 
+    @Bean
+    public ControllerInfoInterceptor controllerInfoInterceptor() {
+        return new ControllerInfoInterceptor();
+    }
 
     @ConditionalOnSecurityEnabled
     @Bean

@@ -613,6 +613,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             );
             return false;
         }
+        log.info("BeforeSync: taskPlan={}", taskPlan);
         // 用模板数据覆盖执行方案数据
         taskPlan.setVersion(taskTemplate.getVersion());
         taskPlan.setLastModifyTime(DateUtils.currentTimeSeconds());
@@ -669,6 +670,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         }
 
         syncPlan(taskPlan);
+        log.info("AfterSync: taskPlan={}", taskPlan);
 
         // 审计 - 实例名称
         ActionAuditContext.current().setInstanceName(taskPlan.getName());

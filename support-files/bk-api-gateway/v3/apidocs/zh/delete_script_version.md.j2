@@ -6,23 +6,20 @@
 
 #### 接口参数
 
-| 字段              | 类型   | 必选 | 描述                                                    |
-| ----------------- | ------ | ---- | ------------------------------------------------------- |
-| bk_scope_type     | string | 是   | 资源范围类型。可选值: biz - 业务，biz_set - 业务集      |
-| bk_scope_id       | string | 是   | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
-| script_id         | string | 是   | 脚本ID                                                  |
-| script_version_id | long   | 是   | 脚本版本ID                                              |
-
+| 字段                | 类型     | 必选  | 描述                                                |
+|-------------------|--------|-----|---------------------------------------------------|
+| bk_scope_type     | string | 是   | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                |
+| bk_scope_id       | string | 是   | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID           |
+| bk_biz_id         | long   | 是   | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
+| script_id         | string | 是   | 脚本ID                                              |
+| script_version_id | long   | 是   | 脚本版本ID                                            |
 
 ### 请求参数示例
 
 ```json
 {
-    "bk_app_code": "esb_test",
-    "bk_app_secret": "xxx",
-    "bk_token": "xxx",
-    "bk_scope_type":"biz",
-    "bk_scope_id":"2",
+    "bk_scope_type": "biz",
+    "bk_scope_id": "2",
     "script_id": "4a350b0e0707450e93326f6ace921072",
     "script_version_id": 1000019
 }
@@ -33,7 +30,8 @@
 ```json
 {
     "code": 0,
-    "result": true
+    "result": true,
+    "job_request_id": "xxx"
 }
 ```
 

@@ -23,6 +23,21 @@
  * IN THE SOFTWARE.
 */
 
+import Cookie from 'js-cookie';
+import _ from 'lodash';
+
+
+const CRRF_TOKEN_KEY = 'job_csrf_key';
+
 export default (interceptors) => {
-  interceptors.use(request => request, undefined);
+  interceptors.use((request) => {
+    const CSRFToken = Cookie.get(CRRF_TOKEN_KEY);
+    if (CSRFToken && !/^http/.test(request.url)) {
+      Object.assign(request.headers, {
+        'X-CSRF-Token': CSRFToken || '',
+      });
+    }
+
+    return request;
+  }, undefined);
 };

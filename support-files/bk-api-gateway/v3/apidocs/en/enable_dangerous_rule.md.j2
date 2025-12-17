@@ -7,17 +7,13 @@ Enable dangerous rule
 #### Interface parameters
 
 | Fields | Type | Required | Description |
-| ------ | ---- | -------- | ----------- |
+|--------|------|----------|-------------|
 | id     | long | yes      | Rule id     |
-
 
 ### Example of request
 
 ```json
 {
-    "bk_app_code": "esb_test",
-    "bk_app_secret": "xxx",
-    "bk_token": "xxx",
     "id": 1
 }
 ```
@@ -31,7 +27,8 @@ Enable dangerous rule
     "data": {
         "id": 1,
         "status": 1
-    }
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -41,7 +38,7 @@ Enable dangerous rule
 
 #### data
 
-| Fields | Type | Description                              |
-| ------ | ---- | ---------------------------------------- |
-| id     | long | Rule id                                  |
-| status | int  | Enabling status: 0- disabled, 1- enabled |
+| Fields | Type | Never null | Description                              |
+|--------|------|------------|------------------------------------------|
+| id     | long | yes        | Rule id                                  |
+| status | int  | yes        | Enabling status: 0- disabled, 1- enabled |

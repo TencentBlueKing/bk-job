@@ -15,28 +15,28 @@ query job link by gse task id
 - GET
 
 ```json
-/api/v3/system/query_job_instance?gse_task_id=a:aa:aa:a
+/api/v3/system/query_job_instance?gse_task_id=a: aa: aa: a
 ```
 
 ### Example of response
 
 ```json
 {
-  "result": true,
-  "code": 0,
-  "message": "success",
-  "data": {
-    "bk_scope_type": "biz",
-    "bk_scope_id": "1",
-    "job_instance_id": 1000000,
-    "step_instance_id": 10000001,
-    "retry_count": 0,
-    "batch": 1,
-    "gse_task_id": "aa:aa:aa:aa",
-    "link": [
-      "https://xxx.com"
-    ]
-  }
+    "result": true,
+    "code": 0,
+    "data": {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "1",
+        "job_instance_id": 1000000,
+        "step_instance_id": 10000001,
+        "retry_count": 0,
+        "batch": 1,
+        "gse_task_id": "aa:aa:aa:aa",
+        "link": [
+            "https://xxx.com"
+        ]
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -46,13 +46,13 @@ query job link by gse task id
 
 ##### data
 
-| Fields           | Type     | Description                                                                                 |
-|------------------|----------|---------------------------------------------------------------------------------------------|
-| bk_scope_type    | string   | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
-| bk_scope_id      | string   | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| job_instance_id  | long     | Job instance ID                                                                             |
-| step_instance_id | long     | Step instance ID                                                                            |
-| retry_count      | int      | Step retry count                                                                            |
-| batch            | int      | Batch No. Not set to 0 when rolling                                                         |
-| gse_task_id      | string   | Gse task id                                                                                 |
-| link             | string[] | Gse task id corresponding job links                                                         |
+| Fields           | Type     | Never null | Description                                                                                 |
+|------------------|----------|------------|---------------------------------------------------------------------------------------------|
+| bk_scope_type    | string   | yes        | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id      | string   | yes        | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| job_instance_id  | long     | yes        | Job instance ID                                                                             |
+| step_instance_id | long     | yes        | Step instance ID                                                                            |
+| retry_count      | int      | yes        | Step retry count                                                                            |
+| batch            | int      | yes        | Batch No. Not set to 0 when rolling                                                         |
+| gse_task_id      | string   | yes        | Gse task id                                                                                 |
+| link             | string[] | yes        | Gse task id corresponding job links                                                         |

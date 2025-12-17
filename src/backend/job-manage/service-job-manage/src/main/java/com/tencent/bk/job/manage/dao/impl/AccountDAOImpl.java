@@ -345,13 +345,19 @@ public class AccountDAOImpl implements AccountDAO {
 
     public PageData<AccountDTO> listPageAccountByConditions(BaseSearchCondition baseSearchCondition,
                                                             List<Condition> conditions, long count) {
-
         Collection<SortField<?>> orderFields = new ArrayList<>();
         if (StringUtils.isBlank(baseSearchCondition.getOrderField())) {
             orderFields.add(TB_ACCOUNT.LAST_MODIFY_TIME.desc());
         } else {
             String orderField = baseSearchCondition.getOrderField();
-            if ("alias".equals(orderField)) {
+            if ("id".equals(orderField)) {
+                //升序
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(TB_ACCOUNT.ID.asc());
+                } else {
+                    orderFields.add(TB_ACCOUNT.ID.desc());
+                }
+            } else if ("alias".equals(orderField)) {
                 //升序
                 if (baseSearchCondition.getOrder() == 1) {
                     orderFields.add(TB_ACCOUNT.ALIAS.asc());
@@ -364,12 +370,26 @@ public class AccountDAOImpl implements AccountDAO {
                 } else {
                     orderFields.add(TB_ACCOUNT.ACCOUNT_.desc());
                 }
+            } else if ("category".equals(orderField) || "categoryName".equals(orderField)) {
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(TB_ACCOUNT.CATEGORY.asc());
+                } else {
+                    orderFields.add(TB_ACCOUNT.CATEGORY.desc());
+                }
+            } else if ("type".equals(orderField) || "typeName".equals(orderField)) {
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(TB_ACCOUNT.TYPE.asc());
+                } else {
+                    orderFields.add(TB_ACCOUNT.TYPE.desc());
+                }
             } else if ("lastModifyTime".equals(orderField)) {
                 if (baseSearchCondition.getOrder() == 1) {
                     orderFields.add(TB_ACCOUNT.LAST_MODIFY_TIME.asc());
                 } else {
                     orderFields.add(TB_ACCOUNT.LAST_MODIFY_TIME.desc());
                 }
+            } else {
+                orderFields.add(TB_ACCOUNT.LAST_MODIFY_TIME.desc());
             }
         }
 
@@ -382,7 +402,7 @@ public class AccountDAOImpl implements AccountDAO {
                 .orderBy(orderFields)
                 .limit(start, length).fetch();
         List<AccountDTO> accounts = new ArrayList<>();
-        if (result.size() != 0) {
+        if (!result.isEmpty()) {
             result.map(record -> {
                 accounts.add(extract(record));
                 return null;
@@ -538,7 +558,7 @@ public class AccountDAOImpl implements AccountDAO {
         }
         List<AccountDTO> accountDTOS = new ArrayList<>();
         if (result.size() != 0) {
-            result.into(record -> accountDTOS.add(extract(record)));
+            result.forEach(record -> accountDTOS.add(extract(record)));
         }
         return accountDTOS;
     }

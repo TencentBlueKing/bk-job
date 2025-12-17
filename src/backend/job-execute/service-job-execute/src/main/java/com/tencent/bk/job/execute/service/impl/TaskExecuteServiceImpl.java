@@ -440,7 +440,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         Collection<ServiceHostDTO> serviceHostDTOs = getRealHostsByCustomPwdList(customHostPasswordDTOList);
         List<AgentCustomPasswordDTO> agentCustomPasswordDTOList = setAgentCustomPwd(customHostPasswordDTOList,
             serviceHostDTOs);
-        customPasswordCache.addCache(agentCustomPasswordDTOList, taskInstance.getId());
+        customPasswordCache.addCache(agentCustomPasswordDTOList, taskInstance);
         watch.stop();
     }
 
@@ -608,7 +608,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
      * @param stepInstance 步骤
      */
     private void adjustStepTimeout(StepInstanceDTO stepInstance) {
-        stepInstance.setTimeout(TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout()));
+        stepInstance.setTimeout(TimeoutUtils.adjustTaskTimeout(stepInstance.getAppId(), stepInstance.getTimeout()));
     }
 
     private void checkAndSetAccountInfo(StepInstanceDTO stepInstance,

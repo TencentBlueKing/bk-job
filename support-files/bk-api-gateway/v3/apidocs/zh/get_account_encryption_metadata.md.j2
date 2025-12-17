@@ -6,30 +6,27 @@
 
 #### Query参数
 
-| 字段           | 类型   | 必选 | 描述                                                           |
-|---------------|--------|-----|---------------------------------------------------------------|
-| bk_scope_type | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                  |
-| bk_scope_id   | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID             |
+无
 
 ### 请求参数示例
 
 - GET
 
 ```json
-/api/v3/get_account_password_encryption_metadata?bk_scope_type=biz&bk_scope_id=1
+/api/v3/get_account_password_encryption_metadata
 ```
 
 ### 返回结果示例
 
 ```json
 {
-  "code": 0,
-  "message": null,
-  "result": true,
-  "data": {
-    "public_key": "xxx",
-    "encrypt_algorithm": "RSA"
-  }
+    "code": 0,
+    "result": true,
+    "data": {
+        "public_key": "xxx",
+        "encrypt_algorithm": "RSA"
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -39,7 +36,7 @@
 
 ##### data
 
-| 字段               | 类型     | 描述            |
-|-------------------|---------|-----------------|
-| public_key        | string  | 公钥（Base64编码）|
-| encrypt_algorithm | string  | 加密算法，支持经典密码算法（RSA、AES）和国家商用密码算法（SM2、SM4）|
+| 字段                | 类型     | 是否一定不为null | 描述                                       |
+|-------------------|--------|------------|------------------------------------------|
+| public_key        | string | 是          | 公钥（Base64编码）                             |
+| encrypt_algorithm | string | 是          | 加密算法，支持经典密码算法（RSA、AES）和国家商用密码算法（SM2、SM4） |

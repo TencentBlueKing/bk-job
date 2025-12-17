@@ -6,10 +6,7 @@
 
 #### Query参数
 
-| 字段           | 类型   | 必选 | 描述                                                           |
-|---------------|--------|-----|---------------------------------------------------------------|
-| bk_scope_type | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                  |
-| bk_scope_id   | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID             |
+无
 
 ### 请求参数示例
 
@@ -23,13 +20,13 @@
 
 ```json
 {
-  "code": 0,
-  "message": null,
-  "result": true,
-  "data": {
-    "public_key": "xxx",
-    "encrypt_algorithm": "RSA"
-  }
+    "code": 0,
+    "result": true,
+    "data": {
+        "public_key": "xxx",
+        "encrypt_algorithm": "RSA"
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -37,18 +34,18 @@
 
 #### response
 
-| 字段         | 类型     | 描述                         |
-|------------|--------|----------------------------|
-| result     | bool   | 请求成功与否。true:请求成功；false请求失败 |
-| code       | int    | 错误编码。 0表示success，>0表示失败错误  |
-| message    | string | 请求失败返回的错误信息                |
-| data       | object | 请求返回的数据                    |
-| request_id | string | 请求ID                       |
-| permission | object | 权限信息                       |
+| 字段             | 类型     | 是否一定不为null | 描述                         |
+|----------------|--------|------------|----------------------------|
+| result         | bool   | 是          | 请求成功与否。true:请求成功；false请求失败 |
+| code           | int    | 是          | 错误编码。 0表示success，>0表示失败错误  |
+| message        | string | 否          | 请求失败返回的错误信息                |
+| data           | object | 否          | 请求返回的数据，删除操作可能没有值          |
+| job_request_id | string | 否          | 请求ID，请求唯一标识                |
+| permission     | object | 否          | 无权限返回的权限信息                 |
 
 ##### data
 
-| 字段               | 类型     | 描述            |
-|-------------------|---------|-----------------|
-| public_key        | string  | 公钥（Base64编码）|
-| encrypt_algorithm | string  | 加密算法，支持经典密码算法（RSA、AES）和国家商用密码算法（SM2、SM4）|
+| 字段                | 类型     | 是否一定不为null | 描述                                       |
+|-------------------|--------|------------|------------------------------------------|
+| public_key        | string | 是          | 公钥（Base64编码）                             |
+| encrypt_algorithm | string | 是          | 加密算法，支持经典密码算法（RSA、AES）和国家商用密码算法（SM2、SM4） |

@@ -34,11 +34,11 @@
 
 ```json
 {
-  "bk_scope_type": "biz",
-  "bk_scope_id": "1",
-  "job_instance_id": 100,
-  "step_instance_id": 200,
-  "operation_code": 2
+    "bk_scope_type": "biz",
+    "bk_scope_id": "1",
+    "job_instance_id": 100,
+    "step_instance_id": 200,
+    "operation_code": 2
 }
 ```
 
@@ -46,13 +46,13 @@
 
 ```json
 {
-  "result": true,
-  "code": 0,
-  "message": "success",
-  "data": {
-    "step_instance_id": 200,
-    "job_instance_id": 100
-  }
+    "result": true,
+    "code": 0,
+    "data": {
+        "step_instance_id": 200,
+        "job_instance_id": 100
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -62,7 +62,7 @@
 
 ##### data
 
-| 字段               | 类型   | 描述     |
-|------------------|------|--------|
-| job_instance_id  | long | 作业实例ID |
-| step_instance_id | long | 步骤实例ID |
+| 字段               | 类型   | 是否一定不为null | 描述     |
+|------------------|------|------------|--------|
+| job_instance_id  | long | 是          | 作业实例ID |
+| step_instance_id | long | 是          | 步骤实例ID |

@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import lombok.Getter;
 import lombok.Setter;
 
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -47,6 +48,7 @@ public class EsbExecuteJobV3Request extends EsbAppScopeReq {
     private Long taskId;
 
     @JsonProperty("global_var_list")
+    @Valid
     private List<EsbGlobalVarV3DTO> globalVars;
 
     /**

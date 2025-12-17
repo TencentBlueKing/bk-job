@@ -18,13 +18,13 @@ Query the information of the host agent in the job platform (executable status, 
 
 ```json
 {
-  "bk_scope_type": "biz",
-  "bk_scope_id": "1",
-  "host_id_list": [
-    1,
-    2,
-    3
-  ]
+    "bk_scope_type": "biz",
+    "bk_scope_id": "1",
+    "host_id_list": [
+        1,
+        2,
+        3
+    ]
 }
 ```
 
@@ -32,28 +32,28 @@ Query the information of the host agent in the job platform (executable status, 
 
 ```json
 {
-  "result": true,
-  "code": 0,
-  "message": "",
-  "data": {
-    "agent_info_list": [
-      {
-        "bk_host_id": 1,
-        "status": 0,
-        "version": "2.1.4"
-      },
-      {
-        "bk_host_id": 2,
-        "status": 1,
-        "version": "2.1.5"
-      },
-      {
-        "bk_host_id": 3,
-        "status": 1,
-        "version": "2.1.6"
-      }
-    ]
-  }
+    "result": true,
+    "code": 0,
+    "data": {
+        "agent_info_list": [
+            {
+                "bk_host_id": 1,
+                "status": 0,
+                "version": "2.1.4"
+            },
+            {
+                "bk_host_id": 2,
+                "status": 1,
+                "version": "2.1.5"
+            },
+            {
+                "bk_host_id": 3,
+                "status": 1,
+                "version": "2.1.6"
+            }
+        ]
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -63,14 +63,14 @@ Query the information of the host agent in the job platform (executable status, 
 
 #### data
 
-| Fields          | Type         | Description                                                                                                                                                                  |
-|-----------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| agent_info_list | list<object> | Agent info, see agent_info definition，If the passed host_id does not exist in the returned result list, it means that the agent information of the host has not been queried |
+| Fields          | Type         | Never null | Description                                                                                                                                                                  |
+|-----------------|--------------|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| agent_info_list | list<object> | yes        | Agent info, see agent_info definition，If the passed host_id does not exist in the returned result list, it means that the agent information of the host has not been queried |
 
 ##### agent_info
 
-| Fields     | Type   | Description                       |
-|------------|--------|-----------------------------------|
-| bk_host_id | long   | Host ID                           |
-| status     | int    | Agent status：0-Abnormal, 1-Normal |
-| version    | string | Agent version                     |
+| Fields     | Type   | Never null | Description                       |
+|------------|--------|------------|-----------------------------------|
+| bk_host_id | long   | yes        | Host ID                           |
+| status     | int    | yes        | Agent status：0-Abnormal, 1-Normal |
+| version    | string | yes        | Agent version                     |

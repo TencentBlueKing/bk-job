@@ -22,6 +22,7 @@ spec:
         {{- include "common.labels.matchLabels" . | nindent 8 }}
         app.kubernetes.io/component: "job-migration"
     spec:
+      {{- include "job.imagePullSecrets" . | nindent 6 }}
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
       initContainers:
         - name: wait-mariadb
@@ -67,6 +68,8 @@ spec:
               value: {{ include "job.web.api.url" . }}
             - name: BK_JOB_MIGRATION_MYSQL_SCHEMA_ENABLED
               value: {{ .Values.job.migration.mysqlSchema.enabled | quote }}
+            - name : BK_JOB_INCREMENTAL_MIGRATION_ENABLED
+              value : {{ .Values.job.migration.mysqlSchema.incrementalEnabled | quote }}
             - name: BK_JOB_MIGRATION_IAM_MODEL_ENABLED
               value: {{ .Values.job.migration.iamModel.enabled | quote }}
             {{- if .Values.job.migration.mysqlSchema.extraOptions }}

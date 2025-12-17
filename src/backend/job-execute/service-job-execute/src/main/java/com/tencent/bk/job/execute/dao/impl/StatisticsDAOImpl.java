@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
 import com.tencent.bk.job.execute.dao.StatisticsDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.tables.Statistics;
-import com.tencent.bk.job.execute.model.tables.records.StatisticsRecord;
 import com.tencent.bk.job.execute.statistics.StatisticsKey;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -38,8 +37,10 @@ import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Record;
 import org.jooq.Record2;
 import org.jooq.Result;
+import org.jooq.TableField;
 import org.jooq.conf.ParamType;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
@@ -58,6 +59,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
 
     private static final Statistics defaultTable = Statistics.STATISTICS;
+    private static final TableField<?, ?>[] ALL_FIELDS = {
+        defaultTable.ID,
+        defaultTable.APP_ID,
+        defaultTable.RESOURCE,
+        defaultTable.DIMENSION,
+        defaultTable.DIMENSION_VALUE,
+        defaultTable.DATE,
+        defaultTable.VALUE,
+        defaultTable.CREATE_TIME,
+        defaultTable.LAST_MODIFY_TIME
+    };
 
     @Autowired
     public StatisticsDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
@@ -104,7 +116,8 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
     @MySQLOperation(table = "statistics", op = DbOperationEnum.READ)
     public StatisticsDTO getStatistics(Long appId, String resource, String dimension, String dimensionValue,
                                        String date) {
-        val record = dsl().selectFrom(defaultTable)
+        val record = dsl().select(ALL_FIELDS)
+            .from(defaultTable)
             .where(defaultTable.APP_ID.eq(appId))
             .and(defaultTable.RESOURCE.eq(resource))
             .and(defaultTable.DIMENSION.eq(dimension))
@@ -116,6 +129,41 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
         } else {
             return convert(record);
         }
+    }
+
+    @Override
+    @MySQLOperation(table = "statistics", op = DbOperationEnum.READ)
+    public List<StatisticsDTO> getStatisticsListBetweenDate(Long appId,
+                                                            String resource,
+                                                            String dimension,
+                                                            String dimensionValue,
+                                                            String startDate,
+                                                            String endDate) {
+        List<Condition> conditions = buildBaseEqConditions(appId, resource, dimension, dimensionValue);
+        conditions.add(defaultTable.DATE.greaterOrEqual(startDate));
+        conditions.add(defaultTable.DATE.lessOrEqual(endDate));
+        return listStatisticsWithConditions(dsl(), conditions);
+    }
+
+    /**
+     * 根据参数直接构建等值条件（空值不忽略）
+     *
+     * @param appId          Job业务ID
+     * @param resource       资源
+     * @param dimension      维度
+     * @param dimensionValue 维度取值
+     * @return 条件列表
+     */
+    private List<Condition> buildBaseEqConditions(Long appId,
+                                                  String resource,
+                                                  String dimension,
+                                                  String dimensionValue) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.APP_ID.eq(appId));
+        conditions.add(defaultTable.RESOURCE.eq(resource));
+        conditions.add(defaultTable.DIMENSION.eq(dimension));
+        conditions.add(defaultTable.DIMENSION_VALUE.eq(dimensionValue));
+        return conditions;
     }
 
     @Override
@@ -151,10 +199,10 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
     }
 
     private List<StatisticsDTO> listStatisticsWithConditions(DSLContext dslContext, Collection<Condition> conditions) {
-        var query = dslContext.selectFrom(defaultTable).where(
-            conditions
-        );
-        Result<StatisticsRecord> records;
+        var query = dslContext.select(ALL_FIELDS)
+            .from(defaultTable)
+            .where(conditions);
+        Result<Record> records;
         val sql = query.getSQL(ParamType.INLINED);
         try {
             records = query.fetch();
@@ -162,24 +210,24 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
             log.error(sql);
             throw e;
         }
-        if (records == null || records.isEmpty()) {
+        if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
             return records.map(this::convert);
         }
     }
 
-    private StatisticsDTO convert(StatisticsRecord record) {
+    private StatisticsDTO convert(Record record) {
         return new StatisticsDTO(
-            record.getId(),
-            record.getAppId(),
-            record.getResource(),
-            record.getDimension(),
-            record.getDimensionValue(),
-            record.getDate(),
-            record.getValue(),
-            record.getCreateTime().longValue(),
-            record.getLastModifyTime().longValue()
+            record.get(defaultTable.ID),
+            record.get(defaultTable.APP_ID),
+            record.get(defaultTable.RESOURCE),
+            record.get(defaultTable.DIMENSION),
+            record.get(defaultTable.DIMENSION_VALUE),
+            record.get(defaultTable.DATE),
+            record.get(defaultTable.VALUE),
+            record.get(defaultTable.CREATE_TIME).longValue(),
+            record.get(defaultTable.LAST_MODIFY_TIME).longValue()
         );
     }
 
@@ -192,11 +240,7 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
         AtomicInteger affectedRows = new AtomicInteger(0);
         dsl().transaction(configuration -> {
             DSLContext context = DSL.using(configuration);
-            List<Condition> conditions = new ArrayList<>();
-            conditions.add(defaultTable.APP_ID.eq(appId));
-            conditions.add(defaultTable.RESOURCE.eq(resource));
-            conditions.add(defaultTable.DIMENSION.eq(dimension));
-            conditions.add(defaultTable.DIMENSION_VALUE.eq(dimensionValue));
+            List<Condition> conditions = buildBaseEqConditions(appId, resource, dimension, dimensionValue);
             conditions.add(defaultTable.DATE.eq(date));
             try {
                 Long oldValue = 0L;

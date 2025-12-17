@@ -612,6 +612,19 @@ gse:
     # 单次向GSE查询状态的Agent数量
     batchSize: 5000
 
+## 蓝鲸GSE V2参数配置
+gseV2:
+  # 是否初始化 GSE2.0 Client
+  enabled: true
+  # 重试策略
+  retry:
+    # 是否开启重试
+    enabled: false
+    # 含重试的最大执行次数
+    maxAttempts: 3
+    # 重试间隔（单位：秒）
+    intervalSeconds: 5
+
 ## 对接蓝鲸CMDB参数配置
 cmdb:
   # 供应商，默认为0
@@ -775,6 +788,8 @@ job:
     mysqlSchema:
       # 是否开启Mysql数据库结构migration
       enabled: true
+      # 是否开启增量migration
+      incrementalEnabled: true
       # mysql数据库migrate时使用的管理员用户名，不填默认是root
       adminUsername: ""
       # mysql数据库migrate时使用的管理员密码，不填使用mariadb/externalMariaDB的root密码
@@ -887,6 +902,28 @@ bkLogConfig:
     # 容器标准输出日志采集到的dataId
     # e.g: dataId: 3
     dataId: ""
+  # 自定义日志采集元数据配置，用于多集群部署场景
+  customMetadata:
+    # 是否启用自定义元数据
+    enabled: false
+    # 自定义元数据键值对，支持多个键值对
+    # 例如：clusterId: "bcs-cluster-001", region: "beijing"
+    metadata: {}
+    # 示例配置（注释掉，实际使用时取消注释并修改值）
+    # metadata:
+    #   clusterId: "bcs-cluster-001"
+  # 自定义BkLogConfig资源label配置
+  customLabels:
+    # 是否启用自定义label
+    enabled: false
+    # 自定义label键值对，支持多个键值对
+    # 例如：cluster: "bcs-cluster-001", region: "beijing"
+    labels: {}
+    # 示例配置（注释掉，实际使用时取消注释并修改值）
+    # labels:
+    #   cluster: "bcs-cluster-001"
+    #   region: "beijing"
+    #   bk_env: "prod"
 
 ## job-gateway网关配置
 gatewayConfig:
@@ -899,6 +936,9 @@ gatewayConfig:
     defaultUser: admin
   csrfCheck:
     # 是否开启CSRF校验，默认开启
+    enabled: true
+  customAccessLog:
+    # 是否开启自定义访问日志
     enabled: true
   image:
     registry: hub.bktencent.com
@@ -958,7 +998,7 @@ gatewayConfig:
       http: 80
   ingress:
     # 是否开启ingress
-    enabled: true
+    enabled: false
     path: "/"
     pathType: ImplementationSpecific
     annotations:
@@ -1063,7 +1103,10 @@ manageConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
-
+  # 资源范围（业务/业务集）选择面板相关配置
+  scopePanel:
+    # 是否展示当前用户无权限的资源范围，默认展示
+    showNoPermissionScopes: true
 
 ## job-execute执行引擎配置
 executeConfig:
@@ -1137,9 +1180,38 @@ executeConfig:
           connectTimeout: 5000
           # 读取超时，单位：毫秒
           readTimeout: 20000
-  # 任务执行结果轮询规则配置
+  # 任务执行结果相关配置
   result:
+    handle:
+      tasks:
+        # 单个实例支持轮询的最大任务量
+        limit: 2000
+    # 轮询规则配置
     pollingStrategy: {}
+#      # 脚本执行
+#      script:
+#        # 轮询间隔表，间隔不应太短，任务量大会给执行引擎、GSE增加压力，应根据实际情况渐进式调整
+#        # Key：轮询次数起点-轮询次数终点，Value：使用的轮询间隔时间，单位为毫秒
+#        intervalMap:
+#          # 第1-10次轮询（轮询用时<=10s），每1000ms一次
+#          1-10: 1000
+#          # 第11-35次轮询（轮询用时：10s-1min），每2000ms轮询一次
+#          11-35: 2000
+#          # 第36-88次轮询（轮询用时：1min-5min），每5000ms轮询一次
+#          36-88: 5000
+#        # 超出轮询间隔表中配置的轮询次数后使用的统一间隔（单位：毫秒）
+#        finalInterval: 10000
+#      # 文件分发
+#      file:
+#        intervalMap:
+#          # 第1-2次轮询（轮询用时<=2s），每1000ms一次
+#          1-2: 1000
+#          # 第3-11次轮询（轮询用时：2s-20s），每2000ms轮询一次
+#          3-11: 2000
+#          # 第12-67次轮询（轮询用时：20s-5min），每5000ms轮询一次
+#          12-67: 5000
+#        # 超出轮询间隔表中配置的轮询次数后使用的统一间隔（单位：毫秒）
+#        finalInterval: 10000
   # extraEnv:
   #   # 设置容器使用的 linux arena 内存分配区数量（资源充足的情况下，建议设置 MALLOC_ARENA_MAX=容器使用的 CPU 核数（resources.limits.cpu) * 8
   #   - name: MALLOC_ARENA_MAX
@@ -1164,6 +1236,26 @@ executeConfig:
       startLimitEnabled : false
       # start参数最大值，用于避免深度分页导致的DB慢查询
       maxStart : 1000
+  # 任务超时配置，resourceScope粒度，用yaml列表的方式配置，单个元素包含scopeType、scopeId、maxTimeout
+  # scopeType: biz/biz_set 业务或业务集
+  # scopeId: 业务(集)ID
+  # maxTimeout: 最大超时时间，单位：秒
+  # 目前全平台默认的单个步骤超时时间不能超过3天(259200s)
+  taskTimeout:
+    custom: []
+#      - scopeType: biz
+#        scopeId: 1
+#        maxTimeout: 259200
+  # 任务历史查询配置
+  taskHistoryQuery:
+    # 复杂查询限制，用于阻止大业务下大时间范围的复杂查询导致慢查询影响整个系统
+    complexQueryLimit:
+      # 是否开启，默认开启
+      enabled: true
+      # 允许查询扫描的最大数据量，默认2000万
+      maxQueryDataNum: 20000000
+      # 样本天数，用于估算平均每天任务量，默认7天
+      sampleDays: 7
 
   mysql:
     # 数据源模式。 standalone: 单 DB; vertical_sharding: 垂直分库; horizontal_sharding: 水平分库
@@ -1435,6 +1527,16 @@ backupConfig:
       batchInsertRowSize: 1000
       # 每次执行删除的最大行数。为了减少 MySQL 事务时长，DB 性能受限时可适当降低该值
       deleteRowLimit: 1000
+      # 定时检查归档的结果，是否有已经归档完的任务，但实际上数据未完全删除
+      check:
+        # 默认开启检查
+        enabled: true
+        # 检查cron表达式，默认每天10:30
+        cron: 0 30 10 * * *
+        # 允许存在的超出保留天数的天数
+        allowExtraDays: 3
+        # 当发现有归档不完全时，重调度这个时间点的归档任务，默认开启重调度
+        rescheduleEnabled: true
       tasks:
         jobInstance:
           dataSourceMode: standalone
@@ -1818,6 +1920,19 @@ apiConfig:
       # 请求包大小限制
       nginx.ingress.kubernetes.io/proxy-body-size: "10240m"
 
+## 腾讯云CLB相关配置
+tencentCloudClbConfig:
+  ingress:
+    # 对接腾讯云CLB的Ingress是否启用，默认不启用
+    enabled: false
+    annotations:
+      kubernetes.io/ingress.class: qcloud
+      # 子网ID，若是创建CLB类型内网ingress需指定该条annotation
+      # kubernetes.io/ingress.subnetId: "subnet-xxx"
+      # 如果启用CLB直通Pod模式需指定该条annotation
+      # ingress.cloud.tencent.com/direct-access: "true"
+    tls: []
+
 ## migration迁移任务配置
 migration:
   # 模块是否启用，默认启用
@@ -1962,9 +2077,9 @@ waitForDependServices:
 k8sConfigWatcherConfig:
   enabled: true
   image:
-    registry: docker.io
-    repository: springcloud/spring-cloud-kubernetes-configuration-watcher
-    tag: "3.0.0"
+    registry: hub.bktencent.com
+    repository: blueking/job-config-watcher
+    tag: "3.11.11"
     pullPolicy: IfNotPresent
     pullSecrets: []
   hostAliases: []

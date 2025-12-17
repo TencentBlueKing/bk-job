@@ -1,0 +1,74 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 Tencent.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+package com.tencent.bk.job.common.web.converter;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tencent.bk.job.common.annotation.EsbV4API;
+import com.tencent.bk.job.common.util.JobContextUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+
+/**
+ * 自定义HttpMessageConverter，返回时过滤一些不必要的属性，比如null
+ */
+@Slf4j
+public class EsbV4Jackson2HttpMessageConverter extends MappingJackson2HttpMessageConverter {
+
+    public EsbV4Jackson2HttpMessageConverter(Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
+        super(buildObjectMapper(jackson2ObjectMapperBuilder));
+    }
+
+    private static ObjectMapper buildObjectMapper(Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
+        ObjectMapper mapper = jackson2ObjectMapperBuilder.build();
+        // 排除null字段
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        return mapper;
+    }
+
+    /**
+     * 被@EsbV4API注解标记的controller，采用自定义序列化
+     */
+    @Override
+    public boolean canWrite(Class<?> clazz, MediaType mediaType) {
+        // 使用JobContext中缓存的控制器信息，避免访问可能被回收的请求对象
+        String controllerClassName = JobContextUtil.getControllerClassName();
+        if (StringUtils.isNotBlank(controllerClassName)) {
+            try {
+                Class<?> controllerClass = Class.forName(controllerClassName);
+                if (AnnotatedElementUtils.hasAnnotation(controllerClass, EsbV4API.class)) {
+                    return super.canWrite(clazz, mediaType);
+                }
+            } catch (ClassNotFoundException e) {
+                log.warn("Failed to load controller class: {}", controllerClassName, e);
+            }
+        }
+        return false;
+    }
+}
