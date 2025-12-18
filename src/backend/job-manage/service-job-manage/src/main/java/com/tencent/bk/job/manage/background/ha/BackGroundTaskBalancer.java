@@ -54,7 +54,13 @@ public class BackGroundTaskBalancer implements SmartLifecycle {
     private final BackGroundTaskListenerController backGroundTaskListenerController;
     private final BackGroundTaskDispatcher backGroundTaskDispatcher;
     private final BackGroundTaskProperties backGroundTaskProperties;
+    /**
+     * 均衡器是否活跃
+     */
     private volatile boolean isActive = false;
+    /**
+     * 均衡器是否正在执行均衡操作
+     */
     private volatile boolean isBalancerRunning = false;
 
     @Autowired
@@ -145,8 +151,8 @@ public class BackGroundTaskBalancer implements SmartLifecycle {
             stopTaskListener();
             watch.stop();
 
-            // 选取一批任务优雅终止
-            watch.start("chooseTask");
+            // 选取一批待转移任务
+            watch.start("chooseTasks");
             int deltaThreadCost = currentThreadCost - averageThreadCost;
             List<BackGroundTask> choosedTaskList = chooseTaskForThreadCostFromTail(
                 sortedTaskList,
@@ -154,19 +160,8 @@ public class BackGroundTaskBalancer implements SmartLifecycle {
             );
             watch.stop();
 
-            List<BackGroundTask> successList = new ArrayList<>();
-            List<BackGroundTask> failedList = new ArrayList<>();
-            for (BackGroundTask taskToTransfer : choosedTaskList) {
-                watch.start("tryToTransferTask:" + taskToTransfer.getUniqueCode());
-                boolean success = tryToTransferTask(taskToTransfer);
-                if (success) {
-                    successList.add(taskToTransfer);
-                } else {
-                    failedList.add(taskToTransfer);
-                }
-                watch.stop();
-            }
-            logBalanceResult(successList, failedList, watch);
+            // 将选取的任务优雅终止后转移到别的实例
+            transferTasks(choosedTaskList, watch);
         } else if (currentThreadCost <= averageThreadCost) {
             log.info(
                 "averageThreadCost={}, currentThreadCost={}, start task listener",
@@ -206,6 +201,28 @@ public class BackGroundTaskBalancer implements SmartLifecycle {
         BackGroundTask lastTask = sortedTaskList.get(sortedTaskList.size() - 1);
         // 如果当前线程消耗减去最后一个任务的线程消耗值后，依然于大于等于平均值，则需要执行负载均衡
         return currentThreadCost - lastTask.getThreadCost() >= averageThreadCost;
+    }
+
+    /**
+     * 转移任务至别的实例
+     *
+     * @param targetTaskList 目标任务列表
+     * @param watch          计时器
+     */
+    private void transferTasks(List<BackGroundTask> targetTaskList, StopWatch watch) {
+        List<BackGroundTask> successList = new ArrayList<>();
+        List<BackGroundTask> failedList = new ArrayList<>();
+        for (BackGroundTask taskToTransfer : targetTaskList) {
+            watch.start("tryToTransferTask:" + taskToTransfer.getUniqueCode());
+            boolean success = tryToTransferTask(taskToTransfer);
+            if (success) {
+                successList.add(taskToTransfer);
+            } else {
+                failedList.add(taskToTransfer);
+            }
+            watch.stop();
+        }
+        logBalanceResult(successList, failedList, watch);
     }
 
     /**
