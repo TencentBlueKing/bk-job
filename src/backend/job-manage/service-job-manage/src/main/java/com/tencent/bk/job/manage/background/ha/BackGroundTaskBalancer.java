@@ -294,11 +294,11 @@ public class BackGroundTaskBalancer implements SmartLifecycle {
      */
     private int calcCurrentThreadCost() {
         Map<String, BackGroundTask> taskMap = backGroundTaskRegistry.getTaskMap();
-        int ThreadCost = 0;
+        int threadCost = 0;
         for (BackGroundTask task : taskMap.values()) {
-            ThreadCost += task.getThreadCost();
+            threadCost += task.getThreadCost();
         }
-        return ThreadCost;
+        return threadCost;
     }
 
     /**
