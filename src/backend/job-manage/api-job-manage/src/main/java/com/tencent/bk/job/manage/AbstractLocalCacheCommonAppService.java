@@ -189,7 +189,11 @@ public abstract class AbstractLocalCacheCommonAppService implements CommonAppSer
     @Override
     public String getAppTimeZoneById(Long appId) {
         try {
-            return appIdTimeZoneCache.get(appId);
+            String timezone = appIdTimeZoneCache.get(appId);
+            if (StringUtils.isNotBlank(timezone)) {
+                return timezone;
+            }
+            return null;
         } catch (ExecutionException e) {
             String msg = MessageFormatter.format(
                 "Get app timezone by appId: {}, error: ", appId).getMessage();
