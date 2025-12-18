@@ -40,6 +40,7 @@ import com.tencent.bk.job.manage.common.constants.SmartLifecycleOrder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.SmartLifecycle;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -58,6 +59,7 @@ import java.util.concurrent.TimeoutException;
 @Service
 public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
 
+    RedisTemplate<String, String> redisTemplate;
     private final EventWatcherFactory eventWatcherFactory;
     private final ThreadPoolExecutor shutdownEventWatchExecutor;
     private final BackGroundTaskDispatcher backGroundTaskDispatcher;
@@ -66,11 +68,13 @@ public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
     private volatile boolean running = false;
 
     @Autowired
-    public CmdbEventManagerImpl(EventWatcherFactory eventWatcherFactory,
+    public CmdbEventManagerImpl(RedisTemplate<String, String> redisTemplate,
+                                EventWatcherFactory eventWatcherFactory,
                                 ThreadPoolExecutor shutdownEventWatchExecutor,
                                 BackGroundTaskDispatcher backGroundTaskDispatcher,
                                 BackGroundTaskListenerController backGroundTaskListenerController,
                                 BackGroundTaskRegistryImpl backGroundTaskRegistryImpl) {
+        this.redisTemplate = redisTemplate;
         this.eventWatcherFactory = eventWatcherFactory;
         this.shutdownEventWatchExecutor = shutdownEventWatchExecutor;
         this.backGroundTaskDispatcher = backGroundTaskDispatcher;
@@ -108,8 +112,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
      */
     @Override
     public boolean isWatchBizEventRunning(String tenantId) {
-        BizEventWatcher tenantBizEventWatcher = eventWatcherFactory.getOrCreateBizEventWatcher(tenantId);
-        return tenantBizEventWatcher.hasRunningInstance();
+        return BizEventWatcher.hasRunningInstance(redisTemplate, TaskEntity.ofWatchBiz(tenantId));
     }
 
     /**
@@ -120,8 +123,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
      */
     @Override
     public boolean isWatchBizSetEventRunning(String tenantId) {
-        BizSetEventWatcher bizSetEventWatcher = eventWatcherFactory.getOrCreateBizSetEventWatcher(tenantId);
-        return bizSetEventWatcher.hasRunningInstance();
+        return BizSetEventWatcher.hasRunningInstance(redisTemplate, TaskEntity.ofWatchBizSet(tenantId));
     }
 
     /**
@@ -132,9 +134,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
      */
     @Override
     public boolean isWatchBizSetRelationEventRunning(String tenantId) {
-        BizSetRelationEventWatcher bizSetRelationEventWatcher =
-            eventWatcherFactory.getOrCreateBizSetRelationEventWatcher(tenantId);
-        return bizSetRelationEventWatcher.hasRunningInstance();
+        return BizSetRelationEventWatcher.hasRunningInstance(redisTemplate, TaskEntity.ofWatchBizSetRelation(tenantId));
     }
 
     /**
@@ -145,8 +145,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
      */
     @Override
     public boolean isWatchHostEventRunning(String tenantId) {
-        HostEventWatcher hostEventWatcher = eventWatcherFactory.getOrCreateHostEventWatcher(tenantId);
-        return hostEventWatcher.hasRunningInstance();
+        return HostEventWatcher.hasRunningInstance(redisTemplate, TaskEntity.ofWatchHost(tenantId));
     }
 
     /**
@@ -157,9 +156,7 @@ public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
      */
     @Override
     public boolean isWatchHostRelationEventRunning(String tenantId) {
-        HostRelationEventWatcher hostRelationEventWatcher =
-            eventWatcherFactory.getOrCreateHostRelationEventWatcher(tenantId);
-        return hostRelationEventWatcher.hasRunningInstance();
+        return HostRelationEventWatcher.hasRunningInstance(redisTemplate, TaskEntity.ofWatchHostRelation(tenantId));
     }
 
     /**
@@ -167,11 +164,11 @@ public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
      */
     @Override
     public boolean startWatchBizEvent(String tenantId) {
-        BizEventWatcher bizEventWatcher = eventWatcherFactory.getOrCreateBizEventWatcher(tenantId);
-        if (bizEventWatcher.hasRunningInstance()) {
+        if (isWatchBizEventRunning(tenantId)) {
             // 已经有在运行的实例就不再启动新的实例
             return false;
         }
+        BizEventWatcher bizEventWatcher = eventWatcherFactory.getOrCreateBizEventWatcher(tenantId);
         return registerAndStartTask(bizEventWatcher);
     }
 
@@ -180,11 +177,11 @@ public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
      */
     @Override
     public boolean startWatchBizSetEvent(String tenantId) {
-        BizSetEventWatcher bizSetEventWatcher = eventWatcherFactory.getOrCreateBizSetEventWatcher(tenantId);
-        if (bizSetEventWatcher.hasRunningInstance()) {
+        if (isWatchBizSetEventRunning(tenantId)) {
             // 已经有在运行的实例就不再启动新的实例
             return false;
         }
+        BizSetEventWatcher bizSetEventWatcher = eventWatcherFactory.getOrCreateBizSetEventWatcher(tenantId);
         return registerAndStartTask(bizSetEventWatcher);
     }
 
@@ -193,12 +190,12 @@ public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
      */
     @Override
     public boolean startWatchBizSetRelationEvent(String tenantId) {
-        BizSetRelationEventWatcher bizSetRelationEventWatcher =
-            eventWatcherFactory.getOrCreateBizSetRelationEventWatcher(tenantId);
-        if (bizSetRelationEventWatcher.hasRunningInstance()) {
+        if (isWatchBizSetRelationEventRunning(tenantId)) {
             // 已经有在运行的实例就不再启动新的实例
             return false;
         }
+        BizSetRelationEventWatcher bizSetRelationEventWatcher =
+            eventWatcherFactory.getOrCreateBizSetRelationEventWatcher(tenantId);
         return registerAndStartTask(bizSetRelationEventWatcher);
     }
 
@@ -207,11 +204,11 @@ public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
      */
     @Override
     public boolean startWatchHostEvent(String tenantId) {
-        HostEventWatcher hostEventWatcher = eventWatcherFactory.getOrCreateHostEventWatcher(tenantId);
-        if (hostEventWatcher.hasRunningInstance()) {
+        if (isWatchHostEventRunning(tenantId)) {
             // 已经有在运行的实例就不再启动新的实例
             return false;
         }
+        HostEventWatcher hostEventWatcher = eventWatcherFactory.getOrCreateHostEventWatcher(tenantId);
         return registerAndStartTask(hostEventWatcher);
     }
 
@@ -220,12 +217,12 @@ public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
      */
     @Override
     public boolean startWatchHostRelationEvent(String tenantId) {
-        HostRelationEventWatcher hostRelationEventWatcher =
-            eventWatcherFactory.getOrCreateHostRelationEventWatcher(tenantId);
-        if (hostRelationEventWatcher.hasRunningInstance()) {
+        if (isWatchHostRelationEventRunning(tenantId)) {
             // 已经有在运行的实例就不再启动新的实例
             return false;
         }
+        HostRelationEventWatcher hostRelationEventWatcher =
+            eventWatcherFactory.getOrCreateHostRelationEventWatcher(tenantId);
         return registerAndStartTask(hostRelationEventWatcher);
     }
 

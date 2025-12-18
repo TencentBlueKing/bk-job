@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.redis.util.HeartBeatRedisLock;
 import com.tencent.bk.job.common.redis.util.LockResult;
+import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.tracing.util.SpanUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
@@ -40,6 +41,7 @@ import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventWatcher;
 import com.tencent.bk.job.manage.background.event.cmdb.consts.EventConsts;
 import com.tencent.bk.job.manage.background.event.cmdb.handler.CmdbEventHandler;
 import com.tencent.bk.job.manage.background.ha.AbstractBackGroundTask;
+import com.tencent.bk.job.manage.background.ha.TaskEntity;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
@@ -81,6 +83,10 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
      */
     private final CmdbEventHandler<E> cmdbEventHandler;
     /**
+     * Redis操作工具
+     */
+    RedisTemplate<String, String> redisTemplate;
+    /**
      * 租户服务
      */
     private final TenantService tenantService;
@@ -119,12 +125,13 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
                                             CmdbEventCursorManager cmdbEventCursorManager,
                                             CmdbEventHandler<E> cmdbEventHandler) {
         this.tenantId = tenantId;
+        this.watcherResourceName = watcherResourceName;
+        this.redisTemplate = redisTemplate;
         this.tenantService = tenantService;
         this.tracer = tracer;
         this.cmdbEventSampler = cmdbEventSampler;
         this.cmdbEventCursorManager = cmdbEventCursorManager;
         this.cmdbEventHandler = cmdbEventHandler;
-        this.watcherResourceName = watcherResourceName;
         this.setName(getUniqueCode());
         this.redisLock = new HeartBeatRedisLock(redisTemplate, getUniqueCode(), IpUtils.getFirstMachineIP());
     }
@@ -150,7 +157,7 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
      * 内层循环可在用户通过OP接口暂时关闭事件监听或抛出异常时退出，但外层循环只在进程结束主动关闭时才退出，确保事件监听机制可被动态启停。
      */
     private void mainActiveStatusCheckLoop() {
-        if (hasRunningInstance()) {
+        if (hasRunningInstance(redisTemplate, getTaskEntity())) {
             // 其他实例上已经有当前监听目标的实例在运行，直接退出
             log.info("{} already running on {}, ignore", getUniqueCode(), redisLock.peekLockKeyValue());
             return;
@@ -212,8 +219,9 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
      *
      * @return 是否有其他实例在运行
      */
-    public boolean hasRunningInstance() {
-        String lockKeyValue = redisLock.peekLockKeyValue();
+    public static boolean hasRunningInstance(RedisTemplate<String, String> redisTemplate, TaskEntity taskEntity) {
+        String realLockKey = LockUtils.LOCK_KEY_PREFIX + taskEntity.getUniqueCode();
+        String lockKeyValue = redisTemplate.opsForValue().get(realLockKey);
         return StringUtils.isNotBlank(lockKeyValue);
     }
 
