@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.background.ha;
 
 /**
- * 感知后台任务注册仓库
+ * 感知后台任务注册仓库接口
  */
 public interface BackGroundTaskRegistryAware {
 
