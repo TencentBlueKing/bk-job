@@ -194,9 +194,9 @@ public class BackGroundTaskBalancer implements SmartLifecycle {
      * @param sortedTaskList    已排序的当前任务列表
      * @return 是否需要执行负载均衡
      */
-    private boolean needToBalance(int averageThreadCost,
-                                  int currentThreadCost,
-                                  List<BackGroundTask> sortedTaskList) {
+    boolean needToBalance(int averageThreadCost,
+                          int currentThreadCost,
+                          List<BackGroundTask> sortedTaskList) {
         if (currentThreadCost <= averageThreadCost) {
             return false;
         }
@@ -239,8 +239,8 @@ public class BackGroundTaskBalancer implements SmartLifecycle {
      * @param targetThreadCost 目标线程消耗值
      * @return 选取的任务列表
      */
-    private List<BackGroundTask> chooseTaskForThreadCostFromTail(List<BackGroundTask> sortedTaskList,
-                                                                 int targetThreadCost) {
+    List<BackGroundTask> chooseTaskForThreadCostFromTail(List<BackGroundTask> sortedTaskList,
+                                                         int targetThreadCost) {
         List<BackGroundTask> choosedTaskList = new ArrayList<>();
         int accumulatedCost = 0;
         int size = sortedTaskList.size();

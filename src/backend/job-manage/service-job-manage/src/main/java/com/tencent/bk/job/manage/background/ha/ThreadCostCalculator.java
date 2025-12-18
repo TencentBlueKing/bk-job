@@ -97,7 +97,7 @@ public class ThreadCostCalculator {
      *
      * @return 线程消耗值
      */
-    public int calcThreadCostForAllTenantTasks() {
+    private int calcThreadCostForAllTenantTasks() {
         List<OpenApiTenant> tenantList = userApiClient.listAllTenant();
         return tenantList.size() * calcThreadCostForTasksOfOneTenant();
     }
@@ -107,7 +107,7 @@ public class ThreadCostCalculator {
      *
      * @return 线程消耗值
      */
-    private int calcThreadCostForTasksOfOneTenant() {
+    int calcThreadCostForTasksOfOneTenant() {
         int threadCost = 0;
         threadCost += BizEventWatcher.threadCostForWatcher();
         threadCost += BizSetEventWatcher.threadCostForWatcher();
