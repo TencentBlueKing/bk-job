@@ -48,6 +48,9 @@ public class TaskEntity {
     }
 
     public TaskEntity(EventWatchTaskTypeEnum taskType, String tenantId) {
+        if (taskType == null) {
+            throw new IllegalArgumentException("taskType cannot be null");
+        }
         this.taskType = taskType;
         this.tenantId = tenantId;
     }

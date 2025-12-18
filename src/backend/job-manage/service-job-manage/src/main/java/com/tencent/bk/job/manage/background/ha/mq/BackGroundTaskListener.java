@@ -55,11 +55,24 @@ public class BackGroundTaskListener {
     }
 
     /**
-     * 从MQ接收到事件监听任务消息后对其进行处理（启动事件监听）
+     * 尝试对从MQ接收到的任务消息进行处理，异常则打印错误日志
      *
      * @param taskEntityMessage 任务实体MQ信息
      */
     public void handleTask(Message<TaskEntity> taskEntityMessage) {
+        try {
+            doHandleTask(taskEntityMessage);
+        } catch (Throwable t) {
+            log.error("Fail to handleTask", t);
+        }
+    }
+
+    /**
+     * 从MQ接收到任务消息后对其进行处理（启动事件监听）
+     *
+     * @param taskEntityMessage 任务实体MQ信息
+     */
+    private void doHandleTask(Message<TaskEntity> taskEntityMessage) {
         TaskEntity taskEntity = taskEntityMessage.getPayload();
         log.info("Received task from queue: {}", taskEntity);
         String tenantId = taskEntity.getTenantId();

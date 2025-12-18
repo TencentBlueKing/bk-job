@@ -46,6 +46,11 @@ import java.util.List;
 @Service
 public class ThreadCostCalculator {
 
+    /**
+     * 所有实例都不健康时使用的默认平均线程消耗值
+     */
+    @SuppressWarnings("FieldCanBeLocal")
+    private final int DEFAULT_AVERAGE_THREAD_COST = 200;
     private final JobManageConfig jobManageConfig;
     private final IUserApiClient userApiClient;
     private final DiscoveryClient discoveryClient;
@@ -71,12 +76,11 @@ public class ThreadCostCalculator {
         int totalInstanceCount = getJobManageInstanceCount();
         if (totalInstanceCount == 0) {
             // 所有实例都不健康，使用默认值确保不接收过多任务，等待后续实例状态健康后再进行负载均衡
-            int defaultThreadCost = 200;
             log.info(
                 "No healthy job-manage instance, use defaultThreadCost({}) for current instance",
-                defaultThreadCost
+                DEFAULT_AVERAGE_THREAD_COST
             );
-            return defaultThreadCost;
+            return DEFAULT_AVERAGE_THREAD_COST;
         }
         // 3.计算平均每个实例应当承担的线程消耗，向上取整
         return (int) Math.ceil((double) totalThreadCost / totalInstanceCount);
