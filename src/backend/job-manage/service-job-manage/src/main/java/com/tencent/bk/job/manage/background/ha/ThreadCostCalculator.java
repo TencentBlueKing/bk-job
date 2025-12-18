@@ -44,13 +44,18 @@ import java.util.List;
  */
 @Slf4j
 @Service
+@SuppressWarnings("FieldCanBeLocal")
 public class ThreadCostCalculator {
 
     /**
+     * Job-Manage服务的Service名称
+     */
+    private final String SERVICE_NAME_JOB_MANAGE = "job-manage";
+    /**
      * 所有实例都不健康时使用的默认平均线程消耗值
      */
-    @SuppressWarnings("FieldCanBeLocal")
     private final int DEFAULT_AVERAGE_THREAD_COST = 200;
+
     private final JobManageConfig jobManageConfig;
     private final IUserApiClient userApiClient;
     private final DiscoveryClient discoveryClient;
@@ -77,7 +82,8 @@ public class ThreadCostCalculator {
         if (totalInstanceCount == 0) {
             // 所有实例都不健康，使用默认值确保不接收过多任务，等待后续实例状态健康后再进行负载均衡
             log.info(
-                "No healthy job-manage instance, use defaultThreadCost({}) for current instance",
+                "No healthy {} instance, use defaultThreadCost({}) for current instance",
+                SERVICE_NAME_JOB_MANAGE,
                 DEFAULT_AVERAGE_THREAD_COST
             );
             return DEFAULT_AVERAGE_THREAD_COST;
@@ -92,8 +98,7 @@ public class ThreadCostCalculator {
      * @return 服务实例数量
      */
     private int getJobManageInstanceCount() {
-        String jobManageServiceName = "job-manage";
-        return discoveryClient.getInstances(jobManageServiceName).size();
+        return discoveryClient.getInstances(SERVICE_NAME_JOB_MANAGE).size();
     }
 
     /**
