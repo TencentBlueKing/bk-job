@@ -316,14 +316,14 @@ public class BackGroundTaskBalancer implements SmartLifecycle {
         }
         if (failedList.isEmpty()) {
             log.info(
-                "Balance done, {} tasks hava been balanced: {}, timeConsuming: {}",
+                "Balance done, {} tasks have been balanced: {}, timeConsuming: {}",
                 successList.size(),
                 successList.stream().map(BackGroundTask::getUniqueCode).collect(Collectors.toList()),
                 watch.prettyPrint()
             );
         } else {
             log.warn(
-                "Balance done, {} tasks hava been balanced: {}, {} tasks failed: {}, timeConsuming: {}",
+                "Balance done, {} tasks have been balanced: {}, {} tasks failed: {}, timeConsuming: {}",
                 successList.size(),
                 successList.stream().map(BackGroundTask::getUniqueCode).collect(Collectors.toList()),
                 failedList.size(),
