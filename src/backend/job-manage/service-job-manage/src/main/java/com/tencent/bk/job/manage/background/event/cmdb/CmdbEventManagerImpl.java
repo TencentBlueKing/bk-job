@@ -314,7 +314,8 @@ public class CmdbEventManagerImpl implements CmdbEventManager, SmartLifecycle {
                 log.warn("Fail to wait all stop tasks finish", e);
             }
         }
-        log.info("All stop tasks finished");
+        List<Runnable> remainTaskList = shutdownEventWatchExecutor.shutdownNow();
+        log.info("GracefulShutdown end, {} task remain", remainTaskList.size());
     }
 
 }
