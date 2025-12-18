@@ -216,7 +216,7 @@
     checkIllegalHostFromVariableTargetValue,
     findUsedVariable,
     generatorDefaultCronTime,
-  } from '@utils/assist';
+    prettyDateTimeFormat } from '@utils/assist';
   import { timeTaskNameRule } from '@utils/validator';
 
   import GlobalVariable from '@components/global-variable/edit';
@@ -224,6 +224,7 @@
   import ToggleDisplay from '@components/global-variable/toggle-display';
   import JbInput from '@components/jb-input';
 
+  import Model from '@/domain/model/model';
   import I18n from '@/i18n';
   import timezonesList from '@/utils/world-timezones.json';
 
@@ -232,6 +233,8 @@
   import Crontab from './crontab';
   import CustomNotify from './custom-notify';
   import FormItemFactory from './form-item-strategy';
+
+  const model = new Model();
 
   const onceItemList = [
     'executeBeforeNotify',
@@ -350,7 +353,7 @@
             this.rules.executeTime = [
               { required: true, message: I18n.t('cron.单次执行时间必填'), trigger: 'blur' },
               {
-                validator: value => new Date(value).getTime() > Date.now(),
+                validator: value => model.getTimestamp({ date: prettyDateTimeFormat(value), timezone: this.formData.executeTimeZone }) > model.getTimestamp({ date: model.getTime({ timestamp: new Date().getTime(), timezone: this.formData.executeTimeZone }), timezone: this.formData.executeTimeZone }),
                 message: I18n.t('cron.执行时间无效（早于当前时间）'),
                 trigger: 'blur',
               },
@@ -730,10 +733,17 @@
               params.executeTime = '';
             } else {
               params.cronExpression = '';
-              params.executeTime = new Date(params.executeTime).getTime() / 1000;
+              params.executeTime = model.getTimestamp({
+                // 去掉原日期格式的时区信息
+                date: prettyDateTimeFormat(new Date(params.executeTime).getTime()),
+                timezone: params.executeTimeZone,
+              });
             }
             if (params.endTime) {
-              params.endTime = new Date(params.endTime).getTime() / 1000;
+              params.endTime = model.getTimestamp({
+                date: params.endTime,
+                timezone: params.executeTimeZone,
+              });
             }
 
             const requestHandler = params.id ? CronJobService.update : CronJobService.create;

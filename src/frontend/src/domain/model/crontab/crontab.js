@@ -62,10 +62,10 @@ export default class Crontab extends Model {
     this.creator = payload.creator;
     this.createTime = payload.createTime;
     this.cronExpression = payload.cronExpression;
-    this.executeTime = payload.executeTime || '';
+    this.executeTime = payload.executeTime ? this.getTime({ timestamp: payload.executeTime, timezone: payload.executeTimeZone }) : '';
     this.id = payload.id;
     this.enable = payload.enable;
-    this.endTime = prettyDateTimeFormat(parseInt(payload.endTime, 10) * 1000);
+    this.endTime = payload.endTime ? this.getTime({ timestamp: payload.endTime, timezone: payload.executeTimeZone }) : '';
     this.lastExecuteStatus = payload.lastExecuteStatus;
     this.lastModifyTime = payload.lastModifyTime;
     this.lastModifyUser = payload.lastModifyUser;
@@ -172,6 +172,7 @@ export default class Crontab extends Model {
     }
     return `${this.getTime({
       timestamp: this.executeTime,
+      timezone: this.executeTimeZone,
     })} ${fullTimezone}`;
   }
 
@@ -201,6 +202,7 @@ export default class Crontab extends Model {
     }
     return this.getTime({
       timestamp: this.executeTime,
+      timezone: this.executeTimeZone,
     });
   }
 

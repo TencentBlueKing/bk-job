@@ -34,7 +34,6 @@ class CronJob extends ModuleBase {
   }
 
   create(params = {}) {
-    params.timezone = this.timezone;
     return Request.post(`${this.path}/cron/job`, { params });
   }
 

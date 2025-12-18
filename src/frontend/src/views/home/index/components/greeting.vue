@@ -31,7 +31,10 @@
   </div>
 </template>
 <script>
+  import Model from '@/domain/model/model';
   import I18n from '@/i18n';
+
+  const model = new Model();
 
   export default {
     methods: {
@@ -109,8 +112,9 @@
           txtNight,
           txtTen,
         };
-        const currentHour = new Date().getHours();
-        const currentMin = new Date().getMinutes() > 10 ? new Date().getMinutes() : `0${new Date().getMinutes()}`;
+        const nowDate = model.getTime({ timestamp: new Date().valueOf() });
+        const currentHour = new Date(nowDate).getHours();
+        const currentMin = new Date(nowDate).getMinutes() > 10 ? new Date(nowDate).getMinutes() : `0${new Date(nowDate).getMinutes()}`;
         for (const greet in greetingMap) {
           const curTxt = greetingMap[greet](currentHour, currentMin);
           if (curTxt) {
