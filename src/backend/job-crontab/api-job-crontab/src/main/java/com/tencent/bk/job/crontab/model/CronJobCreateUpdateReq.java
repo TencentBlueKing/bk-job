@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.crontab.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.tencent.bk.job.common.model.dto.notify.StatusNotifyChannel;
 import com.tencent.bk.job.common.model.vo.UserRoleInfoVO;
+import com.tencent.bk.job.common.util.json.ToSecondDeserializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -99,6 +101,7 @@ public class CronJobCreateUpdateReq {
      * 不可与 cronExpression 同时为空
      */
     @ApiModelProperty("单次执行的指定执行时间, 不可与 cronExpression 同时为空")
+    @JsonDeserialize(using = ToSecondDeserializer.class)
     private Long executeTime;
 
     /**
