@@ -87,6 +87,15 @@ bkWebSiteAccess:
     rootPrefix: "/job"
 ```
 
+## 0.8.13
+1. job-gateway访问日志优化
+```yaml
+gatewayConfig:
+  customAccessLog:
+    # 是否开启自定义访问日志，默认开启
+    enabled: true
+```
+
 ## 0.8.12
 1. 升级过程中的SQL更新支持增量更新
 ```yaml
