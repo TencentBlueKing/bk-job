@@ -1,0 +1,47 @@
+# Git相关
+.git
+.gitignore
+.gitattributes
+
+# IDE相关
+.idea
+.vscode
+.codebuddy
+*.iml
+*.ipr
+*.iws
+
+# 构建产物
+build/
+target/
+out/
+.gradle/
+bin/
+
+# 测试相关
+.test/
+coverage/
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# 文档
+*.md
+README*
+docs/
+
+# 支持文件（除了需要的配置）
+support-files/
+!support-files/Dockerfile

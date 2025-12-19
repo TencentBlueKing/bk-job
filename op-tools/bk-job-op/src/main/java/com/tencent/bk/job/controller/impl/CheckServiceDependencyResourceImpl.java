@@ -1,6 +1,6 @@
-package com.tencent.bk.job.api.impl;
+package com.tencent.bk.job.controller.impl;
 
-import com.tencent.bk.job.api.CheckServiceDependencyResource;
+import com.tencent.bk.job.controller.CheckServiceDependencyResource;
 import com.tencent.bk.job.model.CheckStatusResp;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;

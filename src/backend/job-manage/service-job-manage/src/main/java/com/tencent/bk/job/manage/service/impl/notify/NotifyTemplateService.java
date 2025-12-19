@@ -154,7 +154,7 @@ public class NotifyTemplateService {
         String content = titleAndContent.getRight();
         //添加默认变量
         ResourceScope scope = applicationDTO.getScope();
-        variablesMap.putIfAbsent("BASE_HOST", jobCommonConfig.getJobWebUrl());
+        variablesMap.putIfAbsent("BASE_HOST", jobCommonConfig.getFirstJobWebUrl());
         variablesMap.putIfAbsent("APP_ID", getDisplayIdStr(scope));
         variablesMap.putIfAbsent("task.bk_biz_id", scope.getId());
         variablesMap.putIfAbsent("APP_NAME", appName);

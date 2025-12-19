@@ -1,4 +1,4 @@
-package com.tencent.bk.job.api;
+package com.tencent.bk.job.controller;
 
 import com.tencent.bk.job.model.CheckStatusResp;
 import org.springframework.web.bind.annotation.GetMapping;
