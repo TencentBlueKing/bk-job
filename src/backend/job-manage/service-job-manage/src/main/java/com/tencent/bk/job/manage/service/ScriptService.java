@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.model.dto.ScriptBasicDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
@@ -71,12 +72,12 @@ public interface ScriptService {
     /**
      * 查询脚本
      *
-     * @param username 用户账号
+     * @param user     用户账号
      * @param appId    业务ID
      * @param scriptId 脚本ID
      * @return 脚本
      */
-    ScriptDTO getScript(String username, Long appId, String scriptId);
+    ScriptDTO getScript(User user, Long appId, String scriptId);
 
     /**
      * 根据scriptIds批量查询脚本基础信息
@@ -89,19 +90,19 @@ public interface ScriptService {
     /**
      * 创建脚本
      *
-     * @param username 用户账号
-     * @param script   脚本信息
+     * @param user   用户账号
+     * @param script 脚本信息
      */
-    ScriptDTO createScript(String username, ScriptDTO script);
+    ScriptDTO createScript(User user, ScriptDTO script);
 
     /**
      * 删除脚本
      *
-     * @param username 用户账号
+     * @param user     用户账号
      * @param appId    业务ID
      * @param scriptId 脚本ID
      */
-    void deleteScript(String username, Long appId, String scriptId);
+    void deleteScript(User user, Long appId, String scriptId);
 
     /**
      * 根据版本ID查询脚本版本
@@ -123,12 +124,12 @@ public interface ScriptService {
     /**
      * 查询脚本版本
      *
-     * @param username        用户账号
+     * @param user            用户账号
      * @param appId           业务ID
      * @param scriptVersionId 脚本ID
      * @return 脚本版本
      */
-    ScriptDTO getScriptVersion(String username, long appId, Long scriptVersionId);
+    ScriptDTO getScriptVersion(User user, long appId, Long scriptVersionId);
 
     /**
      * 根据脚本ID查询所有版本的脚本
@@ -142,47 +143,47 @@ public interface ScriptService {
     /**
      * 创建脚本版本
      *
-     * @param username      用户账号
+     * @param user          用户账号
      * @param scriptVersion 脚本版本
      */
-    ScriptDTO createScriptVersion(String username, ScriptDTO scriptVersion);
+    ScriptDTO createScriptVersion(User user, ScriptDTO scriptVersion);
 
     /**
      * 更新脚本版本
      *
-     * @param username      用户账号
+     * @param user          用户账号
      * @param scriptVersion 脚本版本
      */
-    ScriptDTO updateScriptVersion(String username, ScriptDTO scriptVersion);
+    ScriptDTO updateScriptVersion(User user, ScriptDTO scriptVersion);
 
     /**
      * 删除脚本版本
      *
-     * @param username        操作者
+     * @param user            操作者
      * @param appId           业务ID
      * @param scriptVersionId 脚本版本ID
      */
-    void deleteScriptVersion(String username, Long appId, Long scriptVersionId);
+    void deleteScriptVersion(User user, Long appId, Long scriptVersionId);
 
     /**
      * 上线脚本
      *
      * @param appId           业务ID
-     * @param username        操作者
+     * @param user            操作者
      * @param scriptId        脚本ID
      * @param scriptVersionId 脚本版本ID
      */
-    void publishScript(Long appId, String username, String scriptId, Long scriptVersionId);
+    void publishScript(Long appId, User user, String scriptId, Long scriptVersionId);
 
     /**
      * 下线脚本
      *
      * @param appId           业务ID
-     * @param username        操作者
+     * @param user            操作者
      * @param scriptId        脚本ID
      * @param scriptVersionId 脚本版本ID
      */
-    void disableScript(Long appId, String username, String scriptId, Long scriptVersionId);
+    void disableScript(Long appId, User user, String scriptId, Long scriptVersionId);
 
     /**
      * 批量获取脚本的在线版本
@@ -196,31 +197,31 @@ public interface ScriptService {
      * 更新脚本描述
      *
      * @param appId    业务ID
-     * @param username 操作者
+     * @param user     操作者
      * @param scriptId 脚本ID
      * @param desc     脚本描述
      */
-    ScriptDTO updateScriptDesc(Long appId, String username, String scriptId, String desc);
+    ScriptDTO updateScriptDesc(Long appId, User user, String scriptId, String desc);
 
     /**
      * 更新脚本名称
      *
      * @param appId    业务ID
-     * @param username 操作者
+     * @param user     操作者
      * @param scriptId 脚本ID
      * @param newName  脚本名称
      */
-    ScriptDTO updateScriptName(Long appId, String username, String scriptId, String newName);
+    ScriptDTO updateScriptName(Long appId, User user, String scriptId, String newName);
 
     /**
      * 更新脚本标签
      *
      * @param appId    业务ID
-     * @param username 操作者
+     * @param user     操作者
      * @param scriptId 脚本ID
      * @param tags     脚本标签列表
      */
-    ScriptDTO updateScriptTags(Long appId, String username, String scriptId, List<TagDTO> tags);
+    ScriptDTO updateScriptTags(Long appId, User user, String scriptId, List<TagDTO> tags);
 
     /**
      * 根据脚本名称模糊查询业务下的脚本名
@@ -243,12 +244,12 @@ public interface ScriptService {
     /**
      * 获取脚本已上线脚本版本
      *
-     * @param username 用户账号
+     * @param user     用户账号
      * @param appId    业务 ID
      * @param scriptId 脚本 ID
      * @return 已上线版本，如果没有返回null
      */
-    ScriptDTO getOnlineScriptVersionByScriptId(String username, long appId, String scriptId);
+    ScriptDTO getOnlineScriptVersionByScriptId(User user, long appId, String scriptId);
 
     /**
      * 分页查询脚本版本列表
@@ -261,14 +262,14 @@ public interface ScriptService {
     /**
      * 批量同步脚本到作业模板
      *
-     * @param username            用户名
+     * @param user                用户账号
      * @param appId               业务ID
      * @param scriptId            脚本ID
      * @param syncScriptVersionId 需要同步的脚本版本ID
      * @param templateStepIDs     作业模板与步骤信息
      * @return 同步结果
      */
-    List<SyncScriptResultDTO> syncScriptToTaskTemplate(String username,
+    List<SyncScriptResultDTO> syncScriptToTaskTemplate(User user,
                                                        Long appId,
                                                        String scriptId,
                                                        Long syncScriptVersionId,
@@ -291,13 +292,13 @@ public interface ScriptService {
     /**
      * 根据脚本ID/版本号查询脚本
      *
-     * @param username 用户账号
+     * @param user     用户账号
      * @param appId    业务ID
      * @param scriptId 脚本ID
      * @param version  脚本版本
      * @return 脚本版本
      */
-    ScriptDTO getByScriptIdAndVersion(String username, Long appId, String scriptId, String version);
+    ScriptDTO getByScriptIdAndVersion(User user, Long appId, String scriptId, String version);
 
     /**
      * 根据脚本ID获取业务脚本

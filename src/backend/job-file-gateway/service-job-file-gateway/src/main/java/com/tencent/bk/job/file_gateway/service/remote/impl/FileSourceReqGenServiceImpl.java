@@ -50,7 +50,7 @@ public class FileSourceReqGenServiceImpl extends BaseRemoteFileReqGenServiceImpl
     }
 
     @Override
-    public HttpReq genFileAvailableReq(Long appId, FileWorkerDTO fileWorkerDTO, FileSourceDTO fileSourceDTO) {
+    public HttpReq genFileAvailableReq(FileWorkerDTO fileWorkerDTO, FileSourceDTO fileSourceDTO) {
         BaseReq req = new BaseReq();
         String url = fillBaseReqGetUrl(req, fileWorkerDTO, fileSourceDTO, "/file/available");
         log.info("genFileAvailableReq: url={},req={}", url, JsonUtils.toJsonWithoutSkippedFields(req));

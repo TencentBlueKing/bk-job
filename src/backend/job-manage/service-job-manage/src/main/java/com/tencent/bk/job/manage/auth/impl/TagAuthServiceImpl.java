@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.TagAuthService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -63,17 +64,17 @@ public class TagAuthServiceImpl implements TagAuthService {
     }
 
     @Override
-    public AuthResult authCreateTag(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(username, ActionId.CREATE_TAG, appResourceScope);
+    public AuthResult authCreateTag(User user, AppResourceScope appResourceScope) {
+        return appAuthService.auth(user, ActionId.CREATE_TAG, appResourceScope);
     }
 
     @Override
-    public AuthResult authManageTag(String username,
+    public AuthResult authManageTag(User user,
                                     AppResourceScope appResourceScope,
                                     Long tagId,
                                     String tagName) {
         return authService.auth(
-            username,
+            user,
             ActionId.MANAGE_TAG,
             ResourceTypeEnum.TAG,
             tagId.toString(),
@@ -82,17 +83,17 @@ public class TagAuthServiceImpl implements TagAuthService {
     }
 
     @Override
-    public List<Long> batchAuthManageTag(String username,
+    public List<Long> batchAuthManageTag(User user,
                                          AppResourceScope appResourceScope,
                                          List<Long> tagIdList) {
-        List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.MANAGE_TAG,
+        List<String> allowedIdList = appAuthService.batchAuth(user, ActionId.MANAGE_TAG,
             appResourceScope, ResourceTypeEnum.TAG,
             tagIdList.stream().map(Object::toString).collect(Collectors.toList()));
         return allowedIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
-    public boolean registerTag(Long id, String name, String creator) {
-        return authService.registerResource(id.toString(), name, ResourceTypeId.TAG, creator, null);
+    public boolean registerTag(User creator, Long id, String name) {
+        return authService.registerResource(creator, id.toString(), name, ResourceTypeId.TAG, null);
     }
 }

@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.runner;
 
 import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
+import com.tencent.bk.job.common.artifactory.sdk.InitJobRepoProcess;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.manage.config.LocalFileConfigForManage;
 import lombok.extern.slf4j.Slf4j;
@@ -41,16 +42,19 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class InitArtifactoryDataRunner implements CommandLineRunner {
 
     private final ArtifactoryConfig artifactoryConfig;
+    private final ArtifactoryHelper artifactoryHelper;
     private final LocalFileConfigForManage localFileConfigForManage;
     private final ThreadPoolExecutor initRunnerExecutor;
 
     @Autowired
     public InitArtifactoryDataRunner(
         ArtifactoryConfig artifactoryConfig,
+        ArtifactoryHelper artifactoryHelper,
         LocalFileConfigForManage localFileConfigForManage,
         @Qualifier("initRunnerExecutor") ThreadPoolExecutor initRunnerExecutor
     ) {
         this.artifactoryConfig = artifactoryConfig;
+        this.artifactoryHelper = artifactoryHelper;
         this.localFileConfigForManage = localFileConfigForManage;
         this.initRunnerExecutor = initRunnerExecutor;
     }
@@ -65,58 +69,16 @@ public class InitArtifactoryDataRunner implements CommandLineRunner {
             //不使用制品库作为后端存储时不初始化
             return;
         }
-        String baseUrl = artifactoryConfig.getArtifactoryBaseUrl();
-        String adminUsername = artifactoryConfig.getArtifactoryAdminUsername();
-        String adminPassword = artifactoryConfig.getArtifactoryAdminPassword();
-        String jobUsername = artifactoryConfig.getArtifactoryJobUsername();
-        String jobPassword = artifactoryConfig.getArtifactoryJobPassword();
-        String jobProject = artifactoryConfig.getArtifactoryJobProject();
         String localUploadRepo = localFileConfigForManage.getLocalUploadRepo();
-        // 1.检查用户、仓库是否存在
-        boolean userRepoExists = ArtifactoryHelper.checkRepoExists(
-            baseUrl,
-            jobUsername,
-            jobPassword,
-            jobProject,
-            localUploadRepo
-        );
-        if (userRepoExists) {
-            return;
-        }
-        // 2.创建项目与用户
-        boolean projectUserCreated = ArtifactoryHelper.createJobUserAndProjectIfNotExists(
-            baseUrl,
-            adminUsername,
-            adminPassword,
-            jobUsername,
-            jobPassword,
-            jobProject
-        );
-        if (!projectUserCreated) {
-            log.error(
-                "Fail to create project {} or user {}",
-                jobProject,
-                jobUsername
-            );
-        }
-        // 3.本地文件上传仓库不存在则创建
-        String REPO_LOCALUPLOAD_DESCRIPTION = "BlueKing bk-job official project localupload repo," +
+        String repoDescription = "BlueKing bk-job official project localupload repo," +
             " which is used to save job data produced by users. " +
             "Do not delete me unless you know what you are doing";
-        boolean repoCreated = ArtifactoryHelper.createRepoIfNotExist(
-            baseUrl,
-            adminUsername,
-            adminPassword,
-            jobProject,
+        new InitJobRepoProcess(
+            artifactoryConfig,
+            artifactoryHelper,
             localUploadRepo,
-            REPO_LOCALUPLOAD_DESCRIPTION
-        );
-        if (repoCreated) {
-            log.info(
-                "repo {} created",
-                localUploadRepo
-            );
-        }
+            repoDescription
+        ).execute();
     }
 
 }

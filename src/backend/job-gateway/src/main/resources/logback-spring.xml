@@ -63,7 +63,7 @@
                 additivity="false">
             <appender-ref ref="esbAccessLog"/>
         </logger>
-        <logger name="com.tencent.bk.job.gateway.filter.esb.RecordIamAccessLogGatewayFilterFactory" level="INFO"
+        <logger name="com.tencent.bk.job.gateway.filter.iam.RecordIamAccessLogGatewayFilterFactory" level="INFO"
                 additivity="false">
             <appender-ref ref="iamAccessLog"/>
         </logger>
@@ -76,7 +76,7 @@
                 additivity="false">
             <appender-ref ref="esbAccessLog"/>
         </logger>
-        <logger name="com.tencent.bk.job.gateway.filter.esb.RecordIamAccessLogGatewayFilterFactory" level="INFO"
+        <logger name="com.tencent.bk.job.gateway.filter.iam.RecordIamAccessLogGatewayFilterFactory" level="INFO"
                 additivity="false">
             <appender-ref ref="iamAccessLog"/>
         </logger>
@@ -91,7 +91,7 @@
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="esbAccessLog"/>
         </logger>
-        <logger name="com.tencent.bk.job.gateway.filter.esb.RecordIamAccessLogGatewayFilterFactory" level="INFO"
+        <logger name="com.tencent.bk.job.gateway.filter.iam.RecordIamAccessLogGatewayFilterFactory" level="INFO"
                 additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="iamAccessLog"/>
@@ -107,7 +107,7 @@
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="esbAccessLog"/>
         </logger>
-        <logger name="com.tencent.bk.job.gateway.filter.esb.RecordIamAccessLogGatewayFilterFactory" level="INFO"
+        <logger name="com.tencent.bk.job.gateway.filter.iam.RecordIamAccessLogGatewayFilterFactory" level="INFO"
                 additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="iamAccessLog"/>

@@ -1,8 +1,8 @@
 package com.tencent.bk.job.execute.service;
 
-import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.util.file.PathUtil;
@@ -17,19 +17,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class ArtifactoryLocalFileService {
 
-    private final ArtifactoryConfig artifactoryConfig;
+    private final ArtifactoryHelper artifactoryHelper;
     private final LocalFileConfigForExecute localFileConfigForExecute;
     private final ArtifactoryClient artifactoryClient;
     private final LocalFileConfigForExecute localFileConfig;
 
     @Autowired
     public ArtifactoryLocalFileService(
-        ArtifactoryConfig artifactoryConfig,
+        ArtifactoryHelper artifactoryHelper,
         LocalFileConfigForExecute localFileConfigForExecute,
         @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
         LocalFileConfigForExecute localFileConfig
     ) {
-        this.artifactoryConfig = artifactoryConfig;
+        this.artifactoryHelper = artifactoryHelper;
         this.localFileConfigForExecute = localFileConfigForExecute;
         this.artifactoryClient = artifactoryClient;
         this.localFileConfig = localFileConfig;
@@ -54,7 +54,7 @@ public class ArtifactoryLocalFileService {
 
     private NodeDTO getFileNodeAndHandleException(String filePath) {
         String fullPath = PathUtil.joinFilePath(
-            artifactoryConfig.getArtifactoryJobProject()
+            artifactoryHelper.getJobRealProject()
                 + "/" + localFileConfigForExecute.getLocalUploadRepo(),
             filePath
         );

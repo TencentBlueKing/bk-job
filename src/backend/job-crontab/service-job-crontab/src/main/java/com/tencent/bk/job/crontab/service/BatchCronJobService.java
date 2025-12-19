@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.service;
 
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.crontab.model.BatchUpdateCronJobReq;
 import com.tencent.bk.job.crontab.model.dto.BatchAddResult;
 import com.tencent.bk.job.crontab.model.dto.CronJobBasicInfoDTO;
@@ -44,12 +45,12 @@ public interface BatchCronJobService {
     /**
      * 批量更新定时任务
      *
-     * @param username              用户名
+     * @param user                  用户
      * @param appId                 Job业务ID
      * @param batchUpdateCronJobReq 批量更新请求
      * @return 更新结果数据
      */
-    NeedScheduleCronInfo batchUpdateCronJob(String username,
+    NeedScheduleCronInfo batchUpdateCronJob(User user,
                                             Long appId,
                                             BatchUpdateCronJobReq batchUpdateCronJobReq);
 }

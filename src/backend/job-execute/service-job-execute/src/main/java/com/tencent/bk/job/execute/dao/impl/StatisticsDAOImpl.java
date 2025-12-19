@@ -33,13 +33,13 @@ import com.tencent.bk.job.execute.model.tables.Statistics;
 import com.tencent.bk.job.execute.statistics.StatisticsKey;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import lombok.var;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Record2;
 import org.jooq.Result;
+import org.jooq.SelectConditionStep;
 import org.jooq.TableField;
 import org.jooq.conf.ParamType;
 import org.jooq.exception.DataAccessException;
@@ -199,11 +199,11 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
     }
 
     private List<StatisticsDTO> listStatisticsWithConditions(DSLContext dslContext, Collection<Condition> conditions) {
-        var query = dslContext.select(ALL_FIELDS)
+        SelectConditionStep<Record> query = dslContext.select(ALL_FIELDS)
             .from(defaultTable)
             .where(conditions);
         Result<Record> records;
-        val sql = query.getSQL(ParamType.INLINED);
+        String sql = query.getSQL(ParamType.INLINED);
         try {
             records = query.fetch();
         } catch (Exception e) {
@@ -220,17 +220,19 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
     private StatisticsDTO convert(Record record) {
         return new StatisticsDTO(
             record.get(defaultTable.ID),
+            null,
             record.get(defaultTable.APP_ID),
             record.get(defaultTable.RESOURCE),
             record.get(defaultTable.DIMENSION),
             record.get(defaultTable.DIMENSION_VALUE),
             record.get(defaultTable.DATE),
-            record.get(defaultTable.VALUE),
+            record.getValue(defaultTable.VALUE),
             record.get(defaultTable.CREATE_TIME).longValue(),
             record.get(defaultTable.LAST_MODIFY_TIME).longValue()
         );
     }
 
+    @SuppressWarnings("StatementWithEmptyBody")
     @MySQLOperation(table = "statistics", op = DbOperationEnum.WRITE)
     public int increaseStatisticValue(String date, StatisticsKey statisticsKey, Integer incrementValue) {
         Long appId = statisticsKey.getAppId();
@@ -275,7 +277,9 @@ public class StatisticsDAOImpl extends BaseDAO implements StatisticsDAO {
                         ULong.valueOf(System.currentTimeMillis()),
                         ULong.valueOf(System.currentTimeMillis())
                     ).returning(defaultTable.ID);
-                    id = query.fetchOne().getId();
+                    val record = query.fetchOne();
+                    assert record != null;
+                    id = record.getId();
                 } else {
                     if (records.size() > 1) {
                         log.warn("more than 1 records, statisticsKey:{}", statisticsKey);

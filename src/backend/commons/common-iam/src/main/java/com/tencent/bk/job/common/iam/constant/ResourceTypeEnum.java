@@ -45,6 +45,10 @@ public enum ResourceTypeEnum {
      */
     BUSINESS_SET(SystemId.CMDB, ResourceTypeId.BUSINESS_SET, null, true),
     /**
+     * 租户集
+     */
+    TENANT_SET(SystemId.CMDB, ResourceTypeId.TENANT_SET, null, true),
+    /**
      * 脚本
      */
     SCRIPT(SystemId.JOB, ResourceTypeId.SCRIPT, BUSINESS, true),

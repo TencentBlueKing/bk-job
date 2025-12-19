@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.esb.sdk;
 
-import com.tencent.bk.job.common.esb.model.EsbResp;
 import lombok.Data;
 
 /**
@@ -40,6 +39,10 @@ public class BkApiContext<T, R> {
      * HTTP 请求方法
      */
     private String method;
+    /**
+     * API名称
+     */
+    private String apiName;
     private String uri;
     private T req;
     private String queryParams;
@@ -50,7 +53,7 @@ public class BkApiContext<T, R> {
     /**
      * 反序列化之后的 API 响应
      */
-    private EsbResp<R> resp;
+    private R resp;
     /**
      * API 调用耗时
      */
@@ -74,14 +77,16 @@ public class BkApiContext<T, R> {
     private String requestId;
 
     public BkApiContext(String method,
+                        String apiName,
                         String uri,
                         T req,
                         String queryParams,
                         String originResp,
-                        EsbResp<R> resp,
+                        R resp,
                         long costTime,
                         boolean success) {
         this.method = method;
+        this.apiName = apiName;
         this.uri = uri;
         this.req = req;
         this.queryParams = queryParams;

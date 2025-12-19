@@ -31,7 +31,7 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
-import com.tencent.bk.job.common.paas.config.LoginConfiguration;
+import com.tencent.bk.job.common.paas.config.LoginProperties;
 import com.tencent.bk.job.common.paas.login.ILoginClient;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
@@ -47,13 +47,14 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Service
 public class LoginServiceImpl implements LoginService {
-    private final LoginConfiguration loginConfig;
+    private final LoginProperties loginProperties;
     private final String tokenName;
     private final String loginUrl;
     private final ILoginClient loginClient;
     private final LoadingCache<String, Optional<BkUserDTO>> onlineUserCache = CacheBuilder.newBuilder()
         .maximumSize(2000).expireAfterWrite(10, TimeUnit.SECONDS).build(
             new CacheLoader<String, Optional<BkUserDTO>>() {
+                @NotNull
                 @Override
                 public Optional<BkUserDTO> load(@NotNull String bkToken) {
                     BkUserDTO userDto = loginClient.getUserInfoByToken(bkToken);
@@ -63,23 +64,24 @@ public class LoginServiceImpl implements LoginService {
         );
 
     @Autowired
-    public LoginServiceImpl(LoginConfiguration loginConfig,
+    public LoginServiceImpl(LoginProperties loginProperties,
                             ILoginClient loginClient) {
-        this.loginConfig = loginConfig;
+        this.loginProperties = loginProperties;
         this.loginClient = loginClient;
         this.loginUrl = getLoginUrlProp();
-        this.tokenName = loginConfig.isCustomPaasLoginEnabled() ? loginConfig.getCustomLoginToken() : "bk_token";
-        log.info("Init login service, customLoginEnabled:{}, loginClient:{}, loginUrl:{}, tokenName:{}",
-            loginConfig.isCustomPaasLoginEnabled(), loginClient.getClass(), loginUrl, tokenName);
+        this.tokenName = loginProperties.getCustom().isEnabled() ?
+            loginProperties.getCustom().getTokenName() : "bk_token";
+        log.info(
+            "Init login service, customLoginEnabled:{}, loginClient:{}, loginUrl:{}, tokenName:{}",
+            loginProperties.getCustom().isEnabled(),
+            loginClient.getClass(),
+            loginUrl,
+            tokenName
+        );
     }
 
     private String getLoginUrlProp() {
-        String loginUrl;
-        if (loginConfig.isCustomPaasLoginEnabled()) {
-            loginUrl = loginConfig.getCustomLoginUrl();
-        } else {
-            loginUrl = loginConfig.getLoginUrl();
-        }
+        String loginUrl = loginProperties.getRealLoginUrl();
         if (!loginUrl.endsWith("?")) {
             loginUrl = loginUrl + "?";
         }

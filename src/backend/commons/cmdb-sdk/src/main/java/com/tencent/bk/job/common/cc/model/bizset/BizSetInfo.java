@@ -76,12 +76,6 @@ public class BizSetInfo {
     private String lastTime;
 
     /**
-     * 运维部门ID
-     */
-    @JsonProperty("bk_supplier_account")
-    private String supplierAccount;
-
-    /**
      * 时区
      */
     private String timezone;
@@ -101,4 +95,15 @@ public class BizSetInfo {
      * 子业务
      */
     private List<BizInfo> bizList;
+
+    /**
+     * 租户ID
+     */
+    private String tenantId;
+
+    /**
+     * 资源（业务/业务集/租户集）类型，1表示内置资源
+     */
+    @JsonProperty("default")
+    private Integer deFault = 0;
 }

@@ -41,6 +41,7 @@ import java.util.Date;
 public class TimeUtil {
 
     public static final String DEFAULT_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static final String TIME_FORMAT_WITH_MILLIS = "yyyy-MM-dd HH:mm:ss.SSS";
 
     /**
      * 从今天00:00:00开始到现在一共过了多少秒
@@ -114,6 +115,10 @@ public class TimeUtil {
         return getCurrentTimeStr(DEFAULT_TIME_FORMAT);
     }
 
+    public static String getCurrentTimeStrWithMs() {
+        return getCurrentTimeStr(TIME_FORMAT_WITH_MILLIS);
+    }
+
     public static String getCurrentTimeStr(String format) {
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern(format));
     }
@@ -168,6 +173,28 @@ public class TimeUtil {
         } catch (Exception e) {
             log.warn("Fail to parseZonedTime from: {}", zonedTimeStr);
             return null;
+        }
+    }
+
+    /**
+     * 为不同阶梯的耗时生成标签
+     *
+     * @param costTimeMillis 耗时（ms）
+     * @return 耗时标签
+     */
+    public static String genCostTimeTag(long costTimeMillis) {
+        if (costTimeMillis < 1000) {
+            return "lessThan1s";
+        } else if (costTimeMillis <= 5000) {
+            return "1sTo5s";
+        } else if (costTimeMillis <= 15000) {
+            return "5sTo15s";
+        } else if (costTimeMillis <= 30000) {
+            return "15sTo30s";
+        } else if (costTimeMillis <= 60000) {
+            return "30sTo1min";
+        } else {
+            return "moreThan1min";
         }
     }
 }

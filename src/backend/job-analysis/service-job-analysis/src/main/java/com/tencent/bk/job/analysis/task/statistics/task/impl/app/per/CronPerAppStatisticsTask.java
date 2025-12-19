@@ -26,11 +26,13 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.crontab.api.inner.ServiceCronMetricsResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -53,15 +55,17 @@ public class CronPerAppStatisticsTask extends BasePerAppStatisticsTask {
     private final ServiceCronMetricsResource cronMetricsResource;
 
     protected CronPerAppStatisticsTask(BasicServiceManager basicServiceManager,
-                                       StatisticsDAO statisticsDAO,
+                                       CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                       NoTenantStatisticsDAO noTenantStatisticsDAO,
                                        @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
-                                       ServiceCronMetricsResource cronMetricsResource) {
-        super(basicServiceManager, statisticsDAO, dslContext);
+                                       ServiceCronMetricsResource cronMetricsResource,
+                                       TenantService tenantService) {
+        super(basicServiceManager, currentTenantStatisticsDAO, noTenantStatisticsDAO, dslContext, tenantService);
         this.cronMetricsResource = cronMetricsResource;
     }
 
     private StatisticsDTO genCronStatusStatisticsDTO(String dateStr, Long appId, String value, String dimensionValue) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(appId);
         statisticsDTO.setDate(dateStr);
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_CRON);
@@ -72,7 +76,7 @@ public class CronPerAppStatisticsTask extends BasePerAppStatisticsTask {
     }
 
     private StatisticsDTO genCronTypeStatisticsDTO(String dateStr, Long appId, String value, String dimensionValue) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(appId);
         statisticsDTO.setDate(dateStr);
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_CRON);

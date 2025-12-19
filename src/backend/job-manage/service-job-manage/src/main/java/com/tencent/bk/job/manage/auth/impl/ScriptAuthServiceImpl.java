@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.ScriptAuthService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -64,17 +65,17 @@ public class ScriptAuthServiceImpl implements ScriptAuthService {
     }
 
     @Override
-    public AuthResult authCreateScript(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(username, ActionId.CREATE_SCRIPT, appResourceScope);
+    public AuthResult authCreateScript(User user, AppResourceScope appResourceScope) {
+        return appAuthService.auth(user, ActionId.CREATE_SCRIPT, appResourceScope);
     }
 
     @Override
-    public AuthResult authViewScript(String username,
+    public AuthResult authViewScript(User user,
                                      AppResourceScope appResourceScope,
                                      String scriptId,
                                      String scriptName) {
         return authService.auth(
-            username,
+            user,
             ActionId.VIEW_SCRIPT,
             ResourceTypeEnum.SCRIPT,
             scriptId,
@@ -83,12 +84,12 @@ public class ScriptAuthServiceImpl implements ScriptAuthService {
     }
 
     @Override
-    public AuthResult authManageScript(String username,
+    public AuthResult authManageScript(User user,
                                        AppResourceScope appResourceScope,
                                        String scriptId,
                                        String scriptName) {
         return authService.auth(
-            username,
+            user,
             ActionId.MANAGE_SCRIPT,
             ResourceTypeEnum.SCRIPT,
             scriptId,
@@ -97,33 +98,34 @@ public class ScriptAuthServiceImpl implements ScriptAuthService {
     }
 
     @Override
-    public List<String> batchAuthViewScript(String username,
+    public List<String> batchAuthViewScript(User user,
                                             AppResourceScope appResourceScope,
                                             List<String> scriptIdList) {
-        return appAuthService.batchAuth(username, ActionId.VIEW_SCRIPT, appResourceScope,
+        return appAuthService.batchAuth(user, ActionId.VIEW_SCRIPT, appResourceScope,
             ResourceTypeEnum.SCRIPT, scriptIdList);
     }
 
     @Override
-    public List<String> batchAuthManageScript(String username,
+    public List<String> batchAuthManageScript(User user,
                                               AppResourceScope appResourceScope,
                                               List<String> scriptIdList) {
-        return appAuthService.batchAuth(username, ActionId.MANAGE_SCRIPT, appResourceScope,
+        return appAuthService.batchAuth(user, ActionId.MANAGE_SCRIPT, appResourceScope,
             ResourceTypeEnum.SCRIPT, scriptIdList);
     }
 
     @Override
-    public AuthResult batchAuthResultManageScript(String username, AppResourceScope appResourceScope,
+    public AuthResult batchAuthResultManageScript(User user,
+                                                  AppResourceScope appResourceScope,
                                                   List<String> scriptIdList) {
         List<PermissionResource> resources = convertToPermissionResources(appResourceScope, scriptIdList);
-        return appAuthService.batchAuthResources(username, ActionId.MANAGE_SCRIPT, appResourceScope, resources);
+        return appAuthService.batchAuthResources(user, ActionId.MANAGE_SCRIPT, appResourceScope, resources);
     }
 
     @Override
-    public AuthResult batchAuthResultViewScript(String username, AppResourceScope appResourceScope,
+    public AuthResult batchAuthResultViewScript(User user, AppResourceScope appResourceScope,
                                                 List<String> scriptIdList) {
         List<PermissionResource> resources = convertToPermissionResources(appResourceScope, scriptIdList);
-        return appAuthService.batchAuthResources(username, ActionId.VIEW_SCRIPT, appResourceScope, resources);
+        return appAuthService.batchAuthResources(user, ActionId.VIEW_SCRIPT, appResourceScope, resources);
     }
 
     private List<PermissionResource> convertToPermissionResources(AppResourceScope appResourceScope,
@@ -138,7 +140,7 @@ public class ScriptAuthServiceImpl implements ScriptAuthService {
     }
 
     @Override
-    public boolean registerScript(String id, String name, String creator) {
-        return authService.registerResource(id, name, ResourceTypeId.SCRIPT, creator, null);
+    public boolean registerScript(User user, String id, String name) {
+        return authService.registerResource(user, id, name, ResourceTypeId.SCRIPT, null);
     }
 }

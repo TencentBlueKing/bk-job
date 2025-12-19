@@ -61,11 +61,8 @@ public class ScopeDynamicGroupService {
 
     public List<DynamicGroupDTO> listDynamicGroup(AppResourceScope appResourceScope, Collection<String> ids) {
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
-        if (applicationDTO.isAllBizSet()) {
-            // 全业务
-            return Collections.emptyList();
-        } else if (applicationDTO.isBizSet()) {
-            // 业务集
+        if (applicationDTO.isBizSet() || applicationDTO.isTenantSet()) {
+            // 业务集/租户集
             return Collections.emptyList();
         } else {
             // 普通业务

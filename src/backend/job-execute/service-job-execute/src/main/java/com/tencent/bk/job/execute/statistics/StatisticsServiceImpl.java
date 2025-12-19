@@ -37,7 +37,7 @@ import com.tencent.bk.job.execute.dao.StatisticsDAO;
 import com.tencent.bk.job.execute.dao.StepInstanceDAO;
 import com.tencent.bk.job.execute.model.FileStepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
@@ -62,7 +62,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     private final Object writeLock = new Object();
     private final TaskInstanceService taskInstanceService;
-    private final ApplicationService applicationService;
+    private final RemoteAppService remoteAppService;
     private final StepInstanceDAO stepInstanceDAO;
     private final StatisticsDAO statisticsDAO;
     private final StatisticConfig statisticConfig;
@@ -74,14 +74,14 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Autowired
     public StatisticsServiceImpl(
         TaskInstanceService taskInstanceService,
-        ApplicationService applicationService,
+        RemoteAppService remoteAppService,
         StepInstanceDAO stepInstanceDAO,
         StatisticsDAO statisticsDAO,
         StatisticConfig statisticConfig,
         RollingConfigService rollingConfigService
     ) {
         this.taskInstanceService = taskInstanceService;
-        this.applicationService = applicationService;
+        this.remoteAppService = remoteAppService;
         this.stepInstanceDAO = stepInstanceDAO;
         this.statisticsDAO = statisticsDAO;
         this.statisticConfig = statisticConfig;
@@ -503,7 +503,7 @@ public class StatisticsServiceImpl implements StatisticsService {
 
     @Override
     public Boolean triggerStatistics(List<String> dateList) {
-        List<Long> appIds = applicationService.listAllAppIds();
+        List<Long> appIds = remoteAppService.listAllAppIds();
         try {
             for (String dateStr : dateList) {
                 LocalDateTime dayStartTime = TimeUtil.getDayStartTime(dateStr);

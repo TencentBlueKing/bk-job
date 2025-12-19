@@ -27,8 +27,8 @@ package com.tencent.bk.job.file_gateway.api.inner;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.file_gateway.dao.filesource.NoTenantFileSourceDAO;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
-import com.tencent.bk.job.file_gateway.service.FileSourceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,34 +38,29 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ServiceFileSourceResourceImpl implements ServiceFileSourceResource {
 
-    private final FileSourceService fileSourceService;
+    private final NoTenantFileSourceDAO noTenantFileSourceDAO;
 
     @Autowired
-    public ServiceFileSourceResourceImpl(FileSourceService fileSourceService) {
-        this.fileSourceService = fileSourceService;
+    public ServiceFileSourceResourceImpl(NoTenantFileSourceDAO noTenantFileSourceDAO) {
+        this.noTenantFileSourceDAO = noTenantFileSourceDAO;
     }
 
     @Override
     public InternalResponse<Integer> getFileSourceIdByCode(Long appId, String code) {
-        FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceByCode(appId, code);
-        if (null == fileSourceDTO) {
-            throw new NotFoundException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE, new String[]{code});
+        FileSourceDTO fileSourceDTO = noTenantFileSourceDAO.getFileSourceByCode(appId, code);
+        if (null != fileSourceDTO) {
+            return InternalResponse.buildSuccessResp(fileSourceDTO.getId());
         }
-        return InternalResponse.buildSuccessResp(fileSourceDTO.getId());
-    }
-
-    @Override
-    public InternalResponse<Integer> getFileSourceIdByCode(String code) {
-        FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceByCode(code);
-        if (null == fileSourceDTO) {
-            throw new NotFoundException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE, new String[]{code});
+        fileSourceDTO = noTenantFileSourceDAO.getFileSourceByCode(code);
+        if (null != fileSourceDTO && fileSourceDTO.canUseByAppId(appId)) {
+            return InternalResponse.buildSuccessResp(fileSourceDTO.getId());
         }
-        return InternalResponse.buildSuccessResp(fileSourceDTO.getId());
+        throw new NotFoundException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE, new String[]{code});
     }
 
     @Override
     public InternalResponse<Boolean> existsFileSourceUsingCredential(Long appId, String credentialId) {
-        boolean result = fileSourceService.existsFileSourceUsingCredential(appId, credentialId);
+        boolean result = noTenantFileSourceDAO.existsFileSourceUsingCredential(appId, credentialId);
         return InternalResponse.buildSuccessResp(result);
     }
 }

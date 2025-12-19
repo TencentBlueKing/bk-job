@@ -35,8 +35,10 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.DataSizeConverter;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.constants.FileTransferModeEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -95,6 +97,7 @@ public class EsbBkCIPluginFastTransferFileV3ResourceImpl
             request.setName(generateDefaultFastTaskName());
         }
 
+        User user = JobContextUtil.getUser();
         ValidateResult validateResult = checkFastTransferFileRequest(request);
         if (!validateResult.isPass()) {
             log.warn("[EsbBkCIPluginFastTransferFileV3] request is invalid");
@@ -112,6 +115,7 @@ public class EsbBkCIPluginFastTransferFileV3ResourceImpl
                 .taskInstance(taskInstanceDTO)
                 .stepInstance(stepInstanceDTO)
                 .rollingConfig(rollingConfig)
+                .operator(user)
                 .build()
         );
 

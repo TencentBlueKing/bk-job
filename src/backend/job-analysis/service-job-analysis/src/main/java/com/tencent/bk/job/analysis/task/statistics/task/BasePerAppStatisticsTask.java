@@ -25,12 +25,15 @@
 package com.tencent.bk.job.analysis.task.statistics.task;
 
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.StopWatch;
 
@@ -42,12 +45,16 @@ import java.util.stream.Collectors;
 public abstract class BasePerAppStatisticsTask extends BaseStatisticsTask {
 
     protected BasePerAppStatisticsTask(BasicServiceManager basicServiceManager,
-                                       StatisticsDAO statisticsDAO,
-                                       @Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
-        super(basicServiceManager, statisticsDAO, dslContext);
+                                       CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                       NoTenantStatisticsDAO noTenantStatisticsDAO,
+                                       @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
+                                       TenantService tenantService) {
+        super(basicServiceManager, currentTenantStatisticsDAO, noTenantStatisticsDAO, dslContext, tenantService);
     }
 
-    public abstract List<StatisticsDTO> getStatisticsFrom(ServiceApplicationDTO app, Long fromTime, Long toTime,
+    public abstract List<StatisticsDTO> getStatisticsFrom(ServiceApplicationDTO app,
+                                                          Long fromTime,
+                                                          Long toTime,
                                                           String timeTag);
 
     public void afterAppDailyStatisticsUpdated(Long appId, LocalDateTime dateTime) {
@@ -82,7 +89,7 @@ public abstract class BasePerAppStatisticsTask extends BaseStatisticsTask {
                     dayTimeStr);
                 statisticsDTOList.forEach(statisticsDTO -> {
                     log.debug("upsert {}", statisticsDTO);
-                    statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+                    currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
                 });
                 afterAppDailyStatisticsUpdated(app.getId(), dateTime);
                 stopWatch.stop();
@@ -91,7 +98,12 @@ public abstract class BasePerAppStatisticsTask extends BaseStatisticsTask {
                     Thread.sleep(3000);
                 }
             } catch (Throwable t) {
-                log.warn("Fail to genStatisticsByDay, dateTime={}, app={}", dateTime, app, t);
+                String message = MessageFormatter.format(
+                    "Fail to genStatisticsByDay, dateTime={}, app={}",
+                    dateTime,
+                    app
+                ).getMessage();
+                log.warn(message, t);
             }
         });
         afterDailyStatisticsUpdated(dayTimeStr);

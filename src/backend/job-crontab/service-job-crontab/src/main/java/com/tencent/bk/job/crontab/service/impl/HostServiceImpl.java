@@ -77,12 +77,12 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public int fillHosts(List<HostDTO> hostList) {
+    public int fillHosts(String tenantId, List<HostDTO> hostList) {
         if (CollectionUtils.isEmpty(hostList)) {
             return 0;
         }
         InternalResponse<List<ServiceHostDTO>> resp =
-            hostResource.batchGetHosts(new ServiceBatchGetHostsReq(hostList));
+            hostResource.batchGetHostsFromCacheOrDB(new ServiceBatchGetHostsReq(tenantId, hostList));
         List<ServiceHostDTO> serviceHostDTOList = resp.getData();
         if (CollectionUtils.isEmpty(serviceHostDTOList)) {
             log.info(

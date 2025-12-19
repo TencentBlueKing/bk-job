@@ -30,7 +30,6 @@ import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.CronJobNotifyType;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
@@ -42,6 +41,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
@@ -78,6 +78,7 @@ import com.tencent.bk.job.crontab.timer.QuartzTrigger;
 import com.tencent.bk.job.crontab.timer.QuartzTriggerBuilder;
 import com.tencent.bk.job.crontab.timer.executor.InnerJobExecutor;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
+import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskPlanDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -119,6 +120,7 @@ public class CronJobServiceImpl implements CronJobService {
     private final HostService hostService;
     private final CrontabMQEventDispatcher crontabMQEventDispatcher;
     private final BatchCronJobService batchCronJobService;
+    private final ServiceTenantResource tenantResource;
     private final CustomNotifyPolicyService customNotifyPolicyService;
 
     @Autowired
@@ -131,6 +133,7 @@ public class CronJobServiceImpl implements CronJobService {
                               HostService hostService,
                               CrontabMQEventDispatcher crontabMQEventDispatcher,
                               BatchCronJobServiceImpl batchCronJobService,
+                              ServiceTenantResource tenantResource,
                               CustomNotifyPolicyService customNotifyPolicyService) {
         this.cronJobDAO = cronJobDAO;
         this.quartzTaskHandler = quartzTaskHandler;
@@ -141,6 +144,7 @@ public class CronJobServiceImpl implements CronJobService {
         this.hostService = hostService;
         this.crontabMQEventDispatcher = crontabMQEventDispatcher;
         this.batchCronJobService = batchCronJobService;
+        this.tenantResource = tenantResource;
         this.customNotifyPolicyService = customNotifyPolicyService;
     }
 
@@ -187,12 +191,12 @@ public class CronJobServiceImpl implements CronJobService {
         ),
         content = EventContentConstants.VIEW_CRON_JOB
     )
-    public CronJobInfoDTO getCronJobInfoById(String username, Long appId, Long cronJobId) {
+    public CronJobInfoDTO getCronJobInfoById(User user, Long appId, Long cronJobId) {
         CronJobInfoDTO cronJob = getIntegralCronJobInfoById(cronJobId);
         if (cronJob == null) {
             throw new NotFoundException(ErrorCode.CRON_JOB_NOT_EXIST);
         }
-        cronAuthService.authManageCron(username,
+        cronAuthService.authManageCron(user,
             new AppResourceScope(appId), cronJobId, null).denyIfNoPermission();
         return cronJob;
     }
@@ -218,8 +222,8 @@ public class CronJobServiceImpl implements CronJobService {
         ),
         content = EventContentConstants.CREATE_CRON_JOB
     )
-    public CronJobInfoDTO createCronJobInfo(String username, CronJobInfoDTO cronJobInfo) {
-        cronAuthService.authCreateCron(username,
+    public CronJobInfoDTO createCronJobInfo(User user, CronJobInfoDTO cronJobInfo) {
+        cronAuthService.authCreateCron(user,
             new AppResourceScope(cronJobInfo.getAppId())).denyIfNoPermission();
 
         checkCronJobPlanOrScript(cronJobInfo);
@@ -234,7 +238,7 @@ public class CronJobServiceImpl implements CronJobService {
         // 保存定时任务自定义通知策略
         saveCustomNotifyPolicyIfNeeded(id, cronJobInfo);
 
-        cronAuthService.registerCron(id, cronJobInfo.getName(), cronJobInfo.getCreator());
+        cronAuthService.registerCron(user, id, cronJobInfo.getName());
 
         return getIntegralCronJobInfoById(id);
     }
@@ -261,8 +265,8 @@ public class CronJobServiceImpl implements CronJobService {
         ),
         content = EventContentConstants.EDIT_CRON_JOB
     )
-    public CronJobInfoDTO updateCronJobInfo(String username, CronJobInfoDTO cronJobInfo) {
-        cronAuthService.authManageCron(username,
+    public CronJobInfoDTO updateCronJobInfo(User user, CronJobInfoDTO cronJobInfo) {
+        cronAuthService.authManageCron(user,
             new AppResourceScope(cronJobInfo.getAppId()), cronJobInfo.getId(), null).denyIfNoPermission();
 
         CronJobInfoDTO originCron = getIntegralCronJobInfoById(cronJobInfo.getId());
@@ -349,7 +353,8 @@ public class CronJobServiceImpl implements CronJobService {
             }
             List<HostDTO> hostByIpList = serverDTO.getIps();
             if (CollectionUtils.isNotEmpty(hostByIpList)) {
-                hostService.fillHosts(hostByIpList);
+                String tenantId = tenantResource.getTenantIdByAppId(cronJobInfo.getAppId()).getData();
+                hostService.fillHosts(tenantId, hostByIpList);
             }
         }
     }
@@ -416,8 +421,8 @@ public class CronJobServiceImpl implements CronJobService {
         ),
         content = EventContentConstants.DELETE_CRON_JOB
     )
-    public Boolean deleteCronJobInfo(String username, Long appId, Long cronJobId) {
-        cronAuthService.authManageCron(username,
+    public Boolean deleteCronJobInfo(User user, Long appId, Long cronJobId) {
+        cronAuthService.authManageCron(user,
             new AppResourceScope(appId), cronJobId, null).denyIfNoPermission();
 
         CronJobInfoDTO cron = getIntegralCronJobInfoById(cronJobId);
@@ -453,8 +458,8 @@ public class CronJobServiceImpl implements CronJobService {
         ),
         content = EventContentConstants.SWITCH_CRON_JOB_STATUS
     )
-    public Boolean changeCronJobEnableStatus(String username, Long appId, Long cronJobId, Boolean enable) {
-        cronAuthService.authManageCron(username,
+    public Boolean changeCronJobEnableStatus(User user, Long appId, Long cronJobId, Boolean enable) {
+        cronAuthService.authManageCron(user,
             new AppResourceScope(appId), cronJobId, null).denyIfNoPermission();
 
         CronJobInfoDTO originCronJobInfo = getCronJobInfoById(appId, cronJobId);
@@ -471,7 +476,7 @@ public class CronJobServiceImpl implements CronJobService {
         cronJobInfo.setAppId(appId);
         cronJobInfo.setId(cronJobId);
         cronJobInfo.setEnable(enable);
-        cronJobInfo.setLastModifyUser(username);
+        cronJobInfo.setLastModifyUser(user.getUsername());
         cronJobInfo.setLastModifyTime(DateUtils.currentTimeSeconds());
         if (enable) {
             try {
@@ -482,7 +487,7 @@ public class CronJobServiceImpl implements CronJobService {
                             .map(CronJobVariableDTO::toServiceTaskVariable).collect(Collectors.toList());
                 }
                 executeTaskService.authExecuteTask(appId, originCronJobInfo.getTaskPlanId(),
-                    cronJobId, originCronJobInfo.getName(), taskVariables, username);
+                    cronJobId, originCronJobInfo.getName(), taskVariables, user.getUsername());
                 if (cronJobDAO.updateCronJobById(cronJobInfo)) {
                     return informAllToAddJobToQuartz(appId, cronJobId);
                 } else {
@@ -657,12 +662,12 @@ public class CronJobServiceImpl implements CronJobService {
         ),
         content = EventContentConstants.EDIT_CRON_JOB
     )
-    public Boolean batchUpdateCronJob(String username,
+    public Boolean batchUpdateCronJob(User user,
                                       Long appId,
                                       BatchUpdateCronJobReq batchUpdateCronJobReq) {
         // 更新DB中的数据
         NeedScheduleCronInfo needScheduleCronInfo = batchCronJobService.batchUpdateCronJob(
-            username,
+            user,
             appId,
             batchUpdateCronJobReq
         );
@@ -790,33 +795,4 @@ public class CronJobServiceImpl implements CronJobService {
         return cronJobDAO.listEnabledCronBasicInfoForUpdate(start, limit);
     }
 
-    @Override
-    public boolean disableCronJobByAppId(Long appId) {
-        CronJobInfoDTO cronJobInfoDTO = new CronJobInfoDTO();
-        cronJobInfoDTO.setAppId(appId);
-        cronJobInfoDTO.setEnable(true);
-        List<Long> cronJobIdList = cronJobDAO.listCronJobIds(cronJobInfoDTO);
-        if (CollectionUtils.isEmpty(cronJobIdList)) {
-            return true;
-        }
-        List<Long> failedCronJobIds = new ArrayList<>();
-        log.info("cron job will be disabled, appId:{}, cronJobIds:{}", appId, cronJobIdList);
-        for (Long cronJobId : cronJobIdList) {
-            try {
-                Boolean disableResult = changeCronJobEnableStatus(JobConstants.DEFAULT_SYSTEM_USER_ADMIN, appId,
-                    cronJobId, false);
-                log.debug("disable cron job, result:{}, appId:{}, cronId:{}", disableResult, appId, cronJobId);
-                if (!disableResult) {
-                    failedCronJobIds.add(cronJobId);
-                }
-            } catch (Exception e) {
-                log.error("Failed to disable cron job with appId:{} and cronId:{}", appId, cronJobId, e);
-                failedCronJobIds.add(cronJobId);
-            }
-        }
-        if (!failedCronJobIds.isEmpty()) {
-            log.warn("Failed to disable cron jobs for appId:{} with cronJobIds:{}", appId, failedCronJobIds);
-        }
-        return failedCronJobIds.isEmpty();
-    }
 }

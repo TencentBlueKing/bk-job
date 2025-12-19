@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.runner;
 
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.notice.IBkNoticeClient;
 import com.tencent.bk.job.common.notice.model.BkNoticeApp;
 import com.tencent.bk.job.common.util.ThreadUtils;
@@ -99,6 +100,7 @@ public class RegisterBkNoticeRunner implements CommandLineRunner {
 
     private GlobalSettingDTO buildRegisterResult(boolean registerSuccess) {
         GlobalSettingDTO globalSettingDTO = new GlobalSettingDTO();
+        globalSettingDTO.setTenantId(TenantIdConstants.DEFAULT_TENANT_ID);
         globalSettingDTO.setKey(GlobalSettingKeys.KEY_BK_NOTICE_REGISTERED_SUCCESS);
         globalSettingDTO.setValue(String.valueOf(registerSuccess));
         globalSettingDTO.setDescription("Updated at " + TimeUtil.getCurrentTimeStr("yyyy-MM-dd HH:mm:ss.SSS"));

@@ -37,4 +37,8 @@ public class Consts {
     public static final String KEY_EXPECT_POD_LABELS_COMMON = "BK_JOB_EXPECT_POD_LABELS_COMMON";
     // 为每个依赖服务单独定义的达到Ready状态时必须要有的标签
     public static final String KEY_EXPECT_POD_LABELS_SERVICE = "BK_JOB_EXPECT_POD_LABELS_SERVICE";
+    // 是否启用检查服务外部依赖是否就绪
+    public static final String KEY_EXTERNAL_DEPENDENCY_CHECK_ENABLED = "BK_JOB_EXTERNAL_DEPENDENCY_CHECK_ENABLED";
+    // 用于检查服务外部依赖是否就绪的HTTP接口地址
+    public static final String KEY_EXTERNAL_DEPENDENCY_CHECK_URL = "BK_JOB_EXTERNAL_DEPENDENCY_CHECK_URL";
 }

@@ -28,8 +28,10 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
 import com.tencent.bk.job.file_gateway.model.req.web.OperationPermissionReq;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +71,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                                                            String operation,
                                                            String resourceId,
                                                            Boolean returnPermissionDetail) {
+        User user = JobContextUtil.getUser();
         AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, null);
         if (StringUtils.isEmpty(operation)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
@@ -88,7 +91,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                         webAuthService.toAuthResultVO(
                             isReturnApplyUrl,
                             fileSourceAuthService.authViewFileSource(
-                                username,
+                                user,
                                 appResourceScope,
                                 Integer.valueOf(resourceId),
                                 null
@@ -99,7 +102,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                     return Response.buildSuccessResp(
                         webAuthService.toAuthResultVO(
                             isReturnApplyUrl,
-                            fileSourceAuthService.authCreateFileSource(username, appResourceScope)
+                            fileSourceAuthService.authCreateFileSource(user, appResourceScope)
                         )
                     );
                 case "edit":
@@ -108,7 +111,7 @@ public class WebPermissionResourceImpl implements WebPermissionResource {
                         webAuthService.toAuthResultVO(
                             isReturnApplyUrl,
                             fileSourceAuthService.authManageFileSource(
-                                username,
+                                user,
                                 appResourceScope,
                                 Integer.valueOf(resourceId),
                                 null

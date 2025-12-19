@@ -25,9 +25,9 @@
 package com.tencent.bk.job.gateway.config;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpCookie;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.server.RouterFunction;
@@ -58,23 +59,24 @@ public class RouteConfig {
     }
 
     @Bean
-    public UserHandler userHandler(@Autowired LoginService loginService, @Autowired MessageI18nService i18nService,
+    public UserHandler userHandler(@Autowired TenantEnvService tenantEnvService,
+                                   @Autowired LoginService loginService,
                                    @Autowired LoginExemptionConfig loginExemptionConfig) {
-        return new UserHandler(loginService, i18nService, loginExemptionConfig);
+        return new UserHandler(tenantEnvService, loginService, loginExemptionConfig);
     }
 
     static class UserHandler {
-        private LoginService loginService;
-        private MessageI18nService i18nService;
-        private LoginExemptionConfig loginExemptionConfig;
+        private final TenantEnvService tenantEnvService;
+        private final LoginService loginService;
+        private final LoginExemptionConfig loginExemptionConfig;
 
         UserHandler(
+            TenantEnvService tenantEnvService,
             LoginService loginService,
-            MessageI18nService i18nService,
             LoginExemptionConfig loginExemptionConfig
         ) {
+            this.tenantEnvService = tenantEnvService;
             this.loginService = loginService;
-            this.i18nService = i18nService;
             this.loginExemptionConfig = loginExemptionConfig;
         }
 
@@ -83,7 +85,7 @@ public class RouteConfig {
             bkUserDTO.setId(1L);
             bkUserDTO.setUsername(loginExemptionConfig.getDefaultUser());
             bkUserDTO.setDisplayName(loginExemptionConfig.getDefaultUser());
-            bkUserDTO.setUid(loginExemptionConfig.getDefaultUser());
+            bkUserDTO.setTenantInfo(tenantEnvService.isTenantEnabled(), loginExemptionConfig.getDefaultUserTenantId());
             return bkUserDTO;
         }
 
@@ -100,10 +102,13 @@ public class RouteConfig {
 
             List<String> bkTokenList = RequestUtil.getCookieValuesFromCookies(cookieList, tokenCookieName);
             if (CollectionUtils.isEmpty(bkTokenList)) {
-                log.warn("Fail to parse token from headers, please check");
-                String bkToken = cookieMap.getFirst(tokenCookieName).getValue();
-                if (StringUtils.isNotBlank(bkToken)) {
-                    bkTokenList.add(bkToken);
+                log.info("Fail to parse token from headers, try to parse token from cookie");
+                HttpCookie httpCookie = cookieMap.getFirst(tokenCookieName);
+                if (httpCookie != null) {
+                    String bkToken = httpCookie.getValue();
+                    if (StringUtils.isNotBlank(bkToken)) {
+                        bkTokenList.add(bkToken);
+                    }
                 }
             }
             BkUserDTO user = null;
@@ -116,7 +121,9 @@ public class RouteConfig {
             }
             if (user == null) {
                 Response<?> resp = Response.buildCommonFailResp(ErrorCode.USER_NOT_EXIST_OR_NOT_LOGIN_IN);
-                return ServerResponse.ok().body(Mono.just(resp), Response.class);
+                return ServerResponse.status(HttpStatus.UNAUTHORIZED)
+                    .header("x-login-url", loginService.getLoginRedirectUrl())
+                    .body(Mono.just(resp), Response.class);
             }
             Response<BkUserDTO> resp = Response.buildSuccessResp(user);
             return ServerResponse.ok().body(Mono.just(resp), Response.class);

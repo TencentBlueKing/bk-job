@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.gateway.service;
 
-import com.tencent.bk.job.gateway.model.esb.EsbJwtInfo;
+import com.tencent.bk.job.gateway.model.esb.BkGwJwtInfo;
 
 import java.security.PublicKey;
 
@@ -36,7 +36,7 @@ public interface OpenApiJwtService {
      * @param token token
      * @return 解析 JWT 结果
      */
-    EsbJwtInfo extractFromJwt(String token);
+    BkGwJwtInfo extractFromJwt(String token);
 
     /**
      * 从jwt提取数据
@@ -45,5 +45,5 @@ public interface OpenApiJwtService {
      * @param publicKey 公钥
      * @return 解析 JWT 结果
      */
-    EsbJwtInfo extractFromJwt(String token, PublicKey publicKey);
+    BkGwJwtInfo extractFromJwt(String token, PublicKey publicKey);
 }

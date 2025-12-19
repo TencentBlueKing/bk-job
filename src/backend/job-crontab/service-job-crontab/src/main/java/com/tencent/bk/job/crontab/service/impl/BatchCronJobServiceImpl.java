@@ -25,6 +25,7 @@
 package com.tencent.bk.job.crontab.service.impl;
 
 import com.tencent.bk.audit.context.ActionAuditContext;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
@@ -171,13 +172,13 @@ public class BatchCronJobServiceImpl implements BatchCronJobService {
     /**
      * 批量更新定时任务DB数据，返回需要重新进行调度的任务信息，支持事务
      *
-     * @param username              用户名
+     * @param user                  用户
      * @param appId                 Job业务ID
      * @param batchUpdateCronJobReq 批量更新定时任务请求
      * @return 需要重新进行调度的任务信息
      */
     @JobTransactional(transactionManager = "jobCrontabTransactionManager")
-    public NeedScheduleCronInfo batchUpdateCronJob(String username,
+    public NeedScheduleCronInfo batchUpdateCronJob(User user,
                                                    Long appId,
                                                    BatchUpdateCronJobReq batchUpdateCronJobReq) {
         List<CronJobCreateUpdateReq> cronJobReqList = batchUpdateCronJobReq.getCronJobInfoList();
@@ -186,23 +187,23 @@ public class BatchCronJobServiceImpl implements BatchCronJobService {
         }
         List<Long> cronJobInstanceList = new ArrayList<>();
         cronJobReqList.forEach(cronJobCreateUpdateReq -> cronJobInstanceList.add(cronJobCreateUpdateReq.getId()));
-        cronAuthService.batchAuthManageCron(username, new AppResourceScope(appId), cronJobInstanceList);
+        cronAuthService.batchAuthManageCron(user, new AppResourceScope(appId), cronJobInstanceList);
 
         List<Long> needAddCronIdList = new ArrayList<>();
         List<Long> needDeleteCronIdList = new ArrayList<>();
         cronJobReqList.forEach(cronJobReq ->
-            updateCronJob(username, appId, cronJobReq, needAddCronIdList, needDeleteCronIdList)
+            updateCronJob(user, appId, cronJobReq, needAddCronIdList, needDeleteCronIdList)
         );
         return new NeedScheduleCronInfo(needAddCronIdList, needDeleteCronIdList);
     }
 
-    private void updateCronJob(String username,
+    private void updateCronJob(User user,
                                Long appId,
                                CronJobCreateUpdateReq cronJobReq,
                                List<Long> needAddCronIdList,
                                List<Long> needDeleteCronIdList) {
         Long cronJobId = cronJobReq.getId();
-        CronJobInfoDTO cronJobInfoFromReq = CronJobInfoDTO.fromReq(username, appId, cronJobReq);
+        CronJobInfoDTO cronJobInfoFromReq = CronJobInfoDTO.fromReq(user.getUsername(), appId, cronJobReq);
         cronJobInfoFromReq.setEnable(cronJobReq.getEnable());
         CronJobInfoDTO originCronJobInfo = cronJobDAO.getCronJobById(appId, cronJobId);
         if (cronJobReq.getEnable()) {
@@ -219,7 +220,7 @@ public class BatchCronJobServiceImpl implements BatchCronJobService {
                     cronJobId,
                     originCronJobInfo.getName(),
                     taskVariables,
-                    username
+                    user.getUsername()
                 );
                 if (cronJobDAO.updateCronJobById(cronJobInfoFromReq)) {
                     needAddCronIdList.add(cronJobId);

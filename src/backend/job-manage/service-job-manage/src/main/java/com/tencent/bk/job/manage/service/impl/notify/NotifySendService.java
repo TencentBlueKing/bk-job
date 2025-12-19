@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.manage.service.impl.notify;
 
-import com.tencent.bk.job.manage.dao.notify.EsbUserInfoDAO;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
+import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.service.impl.WatchableSendMsgService;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -47,16 +49,19 @@ public class NotifySendService {
     //发通知专用线程池
     private final ThreadPoolExecutor notifySendExecutor;
     private final WatchableSendMsgService watchableSendMsgService;
-    private final EsbUserInfoDAO esbUserInfoDAO;
+    private final UserLocalCache userLocalCache;
+    private final TenantService tenantService;
 
     @Autowired
     public NotifySendService(WatchableSendMsgService watchableSendMsgService,
-                             EsbUserInfoDAO esbUserInfoDAO,
+                             UserLocalCache userLocalCache,
                              @Qualifier("notifySendExecutor") ThreadPoolExecutor notifySendExecutor,
-                             MeterRegistry meterRegistry) {
+                             MeterRegistry meterRegistry,
+                             TenantService tenantService) {
         this.watchableSendMsgService = watchableSendMsgService;
-        this.esbUserInfoDAO = esbUserInfoDAO;
+        this.userLocalCache = userLocalCache;
         this.notifySendExecutor = notifySendExecutor;
+        this.tenantService = tenantService;
         measureNotifySendExecutor(meterRegistry);
     }
 
@@ -89,8 +94,9 @@ public class NotifySendService {
             .receivers(receivers)
             .title(title)
             .content(content)
+            .tenantId(tenantService.getTenantIdByAppId(appId))
             .build();
-        task.bindService(watchableSendMsgService, esbUserInfoDAO);
+        task.bindService(watchableSendMsgService, userLocalCache);
         return task;
     }
 
@@ -110,8 +116,7 @@ public class NotifySendService {
         notifySendExecutor.submit(buildSendTask(appId, receivers, channel, title, content));
     }
 
-    public void sendUserChannelNotify(Long appId,
-                                      Set<String> receivers,
+    public void sendUserChannelNotify(Set<String> receivers,
                                       String channel,
                                       String title,
                                       String content) {
@@ -119,8 +124,8 @@ public class NotifySendService {
             log.warn("receivers is empty of channel {}, do not send notification", channel);
             return;
         }
-        watchableSendMsgService.sendMsg(
-            appId,
+        watchableSendMsgService.sendMsgWithCurrentTenant(
+            JobContextUtil.getTenantId(),
             System.currentTimeMillis(),
             channel,
             null,

@@ -45,13 +45,13 @@ public class ResourceScopeTaskTimeoutProperties {
     @NoArgsConstructor
     public static class TimeoutConfig {
         /**
-         * 资源范围类型，biz/biz_set
+         * 资源范围类型，biz/biz_set/tenant_set
          * @see com.tencent.bk.job.common.constant.ResourceScopeTypeEnum
          */
         private String scopeType;
 
         /**
-         * 业务(集)ID
+         * 业务(集)/租户集ID
          */
         private String scopeId;
 
