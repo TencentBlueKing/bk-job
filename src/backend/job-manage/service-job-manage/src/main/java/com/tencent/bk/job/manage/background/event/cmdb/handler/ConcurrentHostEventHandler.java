@@ -28,16 +28,10 @@ import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.manage.background.event.cmdb.handler.factory.EventHandlerFactory;
 import com.tencent.bk.job.manage.config.JobManageConfig;
-import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
-import com.tencent.bk.job.manage.metrics.MetricsConstants;
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * 主机事件并发处理器，内部开启多个异步主机事件处理器（HostEventHandler）并发处理主机事件；
@@ -50,10 +44,6 @@ public class ConcurrentHostEventHandler implements CmdbEventHandler<HostEventDet
      * CMDB事件处理器工厂
      */
     private final EventHandlerFactory eventHandlerFactory;
-    /**
-     * CMDB事件指标数据采样器
-     */
-    private final CmdbEventSampler cmdbEventSampler;
     /**
      * 租户ID
      */
@@ -70,17 +60,11 @@ public class ConcurrentHostEventHandler implements CmdbEventHandler<HostEventDet
      * 内部主机事件处理器列表
      */
     private final List<AsyncEventHandler<HostEventDetail>> hostEventsHandlers = new ArrayList<>();
-    /**
-     * 内部主机事件处理器使用的事件队列列表
-     */
-    private final List<BlockingQueue<ResourceEvent<HostEventDetail>>> hostEventQueues = new ArrayList<>();
 
     public ConcurrentHostEventHandler(EventHandlerFactory eventHandlerFactory,
-                                      CmdbEventSampler cmdbEventSampler,
                                       JobManageConfig jobManageConfig,
                                       String tenantId) {
         this.eventHandlerFactory = eventHandlerFactory;
-        this.cmdbEventSampler = cmdbEventSampler;
         this.hostEventsHandlerNum = jobManageConfig.getHostEventHandlerNum();
         this.hostEventQueueSize = jobManageConfig.getHostEventQueueSize();
         this.tenantId = tenantId;
@@ -107,41 +91,13 @@ public class ConcurrentHostEventHandler implements CmdbEventHandler<HostEventDet
      * 初始化内部的多个主机事件处理器
      */
     private void initHostEventHandlers() {
-        initHostEventQueues();
         for (int i = 0; i < hostEventsHandlerNum; i++) {
-            BlockingQueue<ResourceEvent<HostEventDetail>> eventQueue = hostEventQueues.get(i);
             String handlerName = "HostEventHandler-" + i;
-            cmdbEventSampler.registerEventQueueToGauge(eventQueue, buildHostEventHandlerTags(handlerName));
             AsyncEventHandler<HostEventDetail> eventsHandler = eventHandlerFactory
-                .createHostEventHandler(tenantId, eventQueue);
-            String threadName = "[" + eventsHandler.getId() + "]-" + handlerName;
-            eventsHandler.setName(threadName);
+                .createHostEventHandler(tenantId, handlerName, hostEventQueueSize);
             hostEventsHandlers.add(eventsHandler);
             eventsHandler.start();
         }
-    }
-
-    /**
-     * 初始化主机事件处理器需要使用的事件队列
-     */
-    private void initHostEventQueues() {
-        for (int i = 0; i < hostEventsHandlerNum; i++) {
-            BlockingQueue<ResourceEvent<HostEventDetail>> queue = new LinkedBlockingQueue<>(hostEventQueueSize);
-            hostEventQueues.add(queue);
-        }
-    }
-
-    /**
-     * 构建主机事件处理器的指标数据维度标签
-     *
-     * @param handlerName 处理器名称
-     * @return 维度标签
-     */
-    private Iterable<Tag> buildHostEventHandlerTags(String handlerName) {
-        return Tags.of(
-            MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE, MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_HOST,
-            MetricsConstants.TAG_KEY_CMDB_HOST_EVENT_HANDLER_NAME, handlerName
-        );
     }
 
     /**

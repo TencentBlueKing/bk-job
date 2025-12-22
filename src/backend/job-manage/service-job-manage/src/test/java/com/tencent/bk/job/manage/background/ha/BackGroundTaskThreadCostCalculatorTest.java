@@ -48,7 +48,7 @@ import static org.mockito.Mockito.when;
  * 线程消耗计算器单元测试
  */
 @ExtendWith(MockitoExtension.class)
-public class ThreadCostCalculatorTest {
+public class BackGroundTaskThreadCostCalculatorTest {
 
     @Mock
     private JobManageConfig jobManageConfig;
@@ -62,18 +62,22 @@ public class ThreadCostCalculatorTest {
     @Mock
     private ServiceInstance serviceInstance;
 
-    private ThreadCostCalculator threadCostCalculator;
+    private BackGroundTaskThreadCostCalculator backGroundTaskThreadCostCalculator;
 
     @BeforeEach
     public void init() {
-        threadCostCalculator = new ThreadCostCalculator(jobManageConfig, userApiClient, discoveryClient);
+        backGroundTaskThreadCostCalculator = new BackGroundTaskThreadCostCalculator(
+            jobManageConfig,
+            userApiClient,
+            discoveryClient
+        );
     }
 
     @Test
     @DisplayName("calcThreadCostForTasksOfOneTenant - 默认配置下，单个租户所有任务总共消耗9个线程")
     public void testCalcThreadCostForTasksOfOneTenant() {
         when(jobManageConfig.getHostEventHandlerNum()).thenReturn(3);
-        int result = threadCostCalculator.calcThreadCostForTasksOfOneTenant();
+        int result = backGroundTaskThreadCostCalculator.calcThreadCostForTasksOfOneTenant();
         assertEquals(9, result);
     }
 
@@ -88,7 +92,7 @@ public class ThreadCostCalculatorTest {
             .thenReturn(Collections.singletonList(serviceInstance));
 
         // 执行测试
-        int result = threadCostCalculator.calcAverageThreadCostForOneInstance();
+        int result = backGroundTaskThreadCostCalculator.calcAverageThreadCostForOneInstance();
 
         // 验证结果：9个线程由单个实例完全承担
         assertEquals(9, result);
@@ -110,7 +114,7 @@ public class ThreadCostCalculatorTest {
         );
 
         // 执行测试
-        int result = threadCostCalculator.calcAverageThreadCostForOneInstance();
+        int result = backGroundTaskThreadCostCalculator.calcAverageThreadCostForOneInstance();
 
         // 验证结果：3*9/2=13.5，向上取整为14
         assertEquals(14, result);
@@ -129,7 +133,7 @@ public class ThreadCostCalculatorTest {
         when(discoveryClient.getInstances("job-manage")).thenReturn(Collections.emptyList());
 
         // 执行测试
-        int result = threadCostCalculator.calcAverageThreadCostForOneInstance();
+        int result = backGroundTaskThreadCostCalculator.calcAverageThreadCostForOneInstance();
 
         // 验证结果：启动过程中健康实例数为0的情况下，单个实例最大承担200线程，待后续实例正常后均衡
         assertEquals(200, result);

@@ -45,7 +45,7 @@ import java.util.List;
 @Slf4j
 @Service
 @SuppressWarnings("FieldCanBeLocal")
-public class ThreadCostCalculator {
+public class BackGroundTaskThreadCostCalculator {
 
     /**
      * Job-Manage服务的Service名称
@@ -61,9 +61,9 @@ public class ThreadCostCalculator {
     private final DiscoveryClient discoveryClient;
 
     @Autowired
-    public ThreadCostCalculator(JobManageConfig jobManageConfig,
-                                IUserApiClient userApiClient,
-                                DiscoveryClient discoveryClient) {
+    public BackGroundTaskThreadCostCalculator(JobManageConfig jobManageConfig,
+                                              IUserApiClient userApiClient,
+                                              DiscoveryClient discoveryClient) {
         this.jobManageConfig = jobManageConfig;
         this.userApiClient = userApiClient;
         this.discoveryClient = discoveryClient;

@@ -49,7 +49,7 @@ import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * 主机事件处理，在一个独立的线程中不断从队列中获取事件并处理
@@ -72,16 +72,32 @@ public class HostEventHandler extends AsyncEventHandler<HostEventDetail> {
 
     public HostEventHandler(Tracer tracer,
                             CmdbEventSampler cmdbEventSampler,
-                            BlockingQueue<ResourceEvent<HostEventDetail>> queue,
+                            String handlerName,
+                            int hostEventQueueSize,
                             NoTenantHostService noTenantHostService,
                             @Qualifier(GseConfig.MANAGE_BEAN_AGENT_STATE_CLIENT)
                             AgentStateClient agentStateClient,
                             IBizCmdbClient bizCmdbClient,
                             String tenantId) {
-        super(queue, tracer, cmdbEventSampler, tenantId);
+        super(new LinkedBlockingQueue<>(hostEventQueueSize), tracer, cmdbEventSampler, tenantId);
         this.noTenantHostService = noTenantHostService;
         this.agentStateClient = agentStateClient;
         this.bizCmdbClient = bizCmdbClient;
+        setName("[" + getId() + "]-" + handlerName);
+        cmdbEventSampler.registerEventQueueToGauge(queue, buildHostEventHandlerTags(handlerName));
+    }
+
+    /**
+     * 构建主机事件处理器的指标数据维度标签
+     *
+     * @param handlerName 处理器名称
+     * @return 维度标签
+     */
+    private Iterable<Tag> buildHostEventHandlerTags(String handlerName) {
+        return Tags.of(
+            MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE, MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_HOST,
+            MetricsConstants.TAG_KEY_CMDB_HOST_EVENT_HANDLER_NAME, handlerName
+        );
     }
 
     @Override

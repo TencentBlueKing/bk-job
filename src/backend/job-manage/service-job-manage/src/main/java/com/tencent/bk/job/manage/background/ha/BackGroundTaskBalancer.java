@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 @Service
 public class BackGroundTaskBalancer implements SmartLifecycle {
 
-    private final ThreadCostCalculator threadCostCalculator;
+    private final BackGroundTaskThreadCostCalculator threadCostCalculator;
     private final BackGroundTaskRegistry backGroundTaskRegistry;
     private final BackGroundTaskListenerController backGroundTaskListenerController;
     private final BackGroundTaskDispatcher backGroundTaskDispatcher;
@@ -64,7 +64,7 @@ public class BackGroundTaskBalancer implements SmartLifecycle {
     private volatile boolean isBalancerRunning = false;
 
     @Autowired
-    public BackGroundTaskBalancer(ThreadCostCalculator threadCostCalculator,
+    public BackGroundTaskBalancer(BackGroundTaskThreadCostCalculator threadCostCalculator,
                                   BackGroundTaskRegistry backGroundTaskRegistry,
                                   BackGroundTaskListenerController backGroundTaskListenerController,
                                   BackGroundTaskDispatcher backGroundTaskDispatcher,

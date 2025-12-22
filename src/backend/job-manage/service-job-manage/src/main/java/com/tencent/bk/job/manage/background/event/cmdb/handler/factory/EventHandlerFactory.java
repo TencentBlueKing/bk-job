@@ -29,7 +29,6 @@ import com.tencent.bk.job.common.cc.model.result.BizSetEventDetail;
 import com.tencent.bk.job.common.cc.model.result.BizSetRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
-import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.manage.background.event.cmdb.handler.AsyncEventHandler;
@@ -53,7 +52,6 @@ import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -195,12 +193,14 @@ public class EventHandlerFactory {
      */
     public AsyncEventHandler<HostEventDetail> createHostEventHandler(
         String tenantId,
-        BlockingQueue<ResourceEvent<HostEventDetail>> hostEventQueue
+        String handlerName,
+        int hostEventQueueSize
     ) {
         return new HostEventHandler(
             tracer,
             cmdbEventSampler,
-            hostEventQueue,
+            handlerName,
+            hostEventQueueSize,
             noTenantHostService,
             agentStateClient,
             bizCmdbClient,
@@ -219,7 +219,6 @@ public class EventHandlerFactory {
             tenantId,
             (inputTenantId) -> new ConcurrentHostEventHandler(
                 this,
-                cmdbEventSampler,
                 jobManageConfig,
                 inputTenantId
             )
