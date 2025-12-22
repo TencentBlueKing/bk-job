@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
@@ -42,7 +43,7 @@ import com.tencent.bk.job.execute.common.context.JobInstanceContext;
 import com.tencent.bk.job.execute.dao.TaskInstanceDAO;
 import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
@@ -57,7 +58,7 @@ import java.util.List;
 @Service
 public class TaskInstanceServiceImpl implements TaskInstanceService {
 
-    private final ApplicationService applicationService;
+    private final RemoteAppService remoteAppService;
     private final TaskInstanceDAO taskInstanceDAO;
     private final TaskInstanceVariableService taskInstanceVariableService;
     private final ExecuteAuthService executeAuthService;
@@ -66,13 +67,13 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     private final IdGen idGen;
 
     @Autowired
-    public TaskInstanceServiceImpl(ApplicationService applicationService,
+    public TaskInstanceServiceImpl(RemoteAppService remoteAppService,
                                    TaskInstanceDAO taskInstanceDAO,
                                    TaskInstanceVariableService taskInstanceVariableService,
                                    ExecuteAuthService executeAuthService,
                                    StepInstanceService stepInstanceService,
                                    IdGen idGen) {
-        this.applicationService = applicationService;
+        this.remoteAppService = remoteAppService;
         this.stepInstanceService = stepInstanceService;
         this.taskInstanceDAO = taskInstanceDAO;
         this.taskInstanceVariableService = taskInstanceVariableService;
@@ -115,12 +116,12 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
         ),
         content = EventContentConstants.VIEW_JOB_INSTANCE
     )
-    public TaskInstanceDTO getTaskInstance(String username, long appId, long taskInstanceId)
+    public TaskInstanceDTO getTaskInstance(User user, long appId, long taskInstanceId)
         throws NotFoundException, PermissionDeniedException {
 
         TaskInstanceDTO taskInstance = getTaskInstance(taskInstanceId);
         checkTaskInstanceExist(appId, taskInstanceId, taskInstance);
-        auditAndAuthViewTaskInstance(username, taskInstance);
+        auditAndAuthViewTaskInstance(user, taskInstance);
         JobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
         if (jobExecuteContext != null) {
             JobInstanceContext jobInstanceContext = new JobInstanceContext();
@@ -140,7 +141,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
         }
     }
 
-    private void auditAndAuthViewTaskInstance(String username,
+    private void auditAndAuthViewTaskInstance(User user,
                                               TaskInstanceDTO taskInstance) {
         // 审计
         ActionAuditContext.current()
@@ -148,7 +149,7 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
             .setInstanceName(taskInstance.getName());
 
         // 鉴权
-        executeAuthService.authViewTaskInstance(username, new AppResourceScope(taskInstance.getAppId()), taskInstance);
+        executeAuthService.authViewTaskInstance(user, new AppResourceScope(taskInstance.getAppId()), taskInstance);
     }
 
     @Override
@@ -164,9 +165,9 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
-    public TaskInstanceDTO getTaskInstanceDetail(String username, long appId, long taskInstanceId)
+    public TaskInstanceDTO getTaskInstanceDetail(User user, long appId, long taskInstanceId)
         throws NotFoundException, PermissionDeniedException {
-        TaskInstanceDTO taskInstance = getTaskInstance(username, appId, taskInstanceId);
+        TaskInstanceDTO taskInstance = getTaskInstance(user, appId, taskInstanceId);
         fillStepAndVariable(taskInstance);
         return taskInstance;
     }
@@ -202,9 +203,13 @@ public class TaskInstanceServiceImpl implements TaskInstanceService {
     }
 
     @Override
-    public List<Long> getJoinedAppIdList() {
+    public List<Long> getJoinedAppIdList(String tenantId) {
         // 加全量appId作为in条件查询以便走索引
-        return taskInstanceDAO.listTaskInstanceAppId(applicationService.listAllAppIds(), null, null);
+        return taskInstanceDAO.listTaskInstanceAppId(
+            remoteAppService.listAllAppIds(tenantId),
+            null,
+            null
+        );
     }
 
     @Override

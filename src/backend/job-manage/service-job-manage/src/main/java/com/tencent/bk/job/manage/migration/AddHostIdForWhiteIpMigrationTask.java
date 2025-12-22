@@ -24,7 +24,8 @@
 
 package com.tencent.bk.job.manage.migration;
 
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPIPDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPIPDTO;
@@ -49,10 +50,10 @@ import java.util.Map;
 public class AddHostIdForWhiteIpMigrationTask {
 
     private final WhiteIPIPDAO whiteIPIPDAO;
-    private final BizCmdbClient bizCmdbClient;
+    private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
-    public AddHostIdForWhiteIpMigrationTask(WhiteIPIPDAO whiteIPIPDAO, BizCmdbClient bizCmdbClient) {
+    public AddHostIdForWhiteIpMigrationTask(WhiteIPIPDAO whiteIPIPDAO, IBizCmdbClient bizCmdbClient) {
         this.whiteIPIPDAO = whiteIPIPDAO;
         this.bizCmdbClient = bizCmdbClient;
     }
@@ -149,11 +150,13 @@ public class AddHostIdForWhiteIpMigrationTask {
             }
         }
         List<ApplicationHostDTO> hostList = new ArrayList<>();
+        // 多租户版本默认不支持该迁移任务，需要支持时再开发这里
+        String tenantId= TenantIdConstants.DEFAULT_TENANT_ID;
         if (CollectionUtils.isNotEmpty(cloudIpList)) {
-            hostList.addAll(bizCmdbClient.listHostsByCloudIps(cloudIpList));
+            hostList.addAll(bizCmdbClient.listHostsByCloudIps(tenantId, cloudIpList));
         }
         if (CollectionUtils.isNotEmpty(cloudIpv6List)) {
-            hostList.addAll(bizCmdbClient.listHostsByCloudIpv6s(cloudIpv6List));
+            hostList.addAll(bizCmdbClient.listHostsByCloudIpv6s(tenantId, cloudIpv6List));
         }
         Map<String, ApplicationHostDTO> hostMap = new HashMap<>();
         for (ApplicationHostDTO hostDTO : hostList) {

@@ -28,14 +28,15 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
-import com.tencent.bk.job.analysis.model.dto.SimpleAppInfoDTO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.manage.model.remote.SimpleAppInfoDTO;
 import com.tencent.bk.job.analysis.model.inner.PerAppStatisticDTO;
 import com.tencent.bk.job.analysis.model.web.CommonStatisticWithRateVO;
 import com.tencent.bk.job.analysis.model.web.CommonTrendElementVO;
 import com.tencent.bk.job.analysis.util.calc.AppMomYoyCalculator;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -51,9 +52,11 @@ import java.util.stream.Collectors;
 public class AppStatisticService extends CommonStatisticService {
 
     @Autowired
-    public AppStatisticService(StatisticsDAO statisticsDAO, StatisticConfig statisticConfig,
-                               MetricResourceReslover metricResourceReslover, AppService appService) {
-        super(statisticsDAO, statisticConfig, metricResourceReslover, appService);
+    public AppStatisticService(CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                               StatisticConfig statisticConfig,
+                               MetricResourceReslover metricResourceReslover,
+                               RemoteAppService remoteAppService) {
+        super(currentTenantStatisticsDAO, statisticConfig, metricResourceReslover, remoteAppService);
     }
 
     /**
@@ -69,33 +72,52 @@ public class AppStatisticService extends CommonStatisticService {
     }
 
     public CommonStatisticWithRateVO getAppTotalStatistics(String username, List<Long> appIdList, String date) {
-        StatisticsDTO statisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
-            StatisticsConstants.RESOURCE_APP, StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
-            StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_APP_LIST, date);
+        StatisticsDTO statisticsDTO = currentTenantStatisticsDAO.getStatistics(
+            StatisticsConstants.DEFAULT_APP_ID,
+            StatisticsConstants.RESOURCE_APP,
+            StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
+            StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_APP_LIST,
+            date
+        );
         // 与昨天的数据对比计算环比
-        StatisticsDTO momStatisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
-            StatisticsConstants.RESOURCE_APP, StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
-            StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_APP_LIST, DateUtils.getPreviousDateStr(date,
-                StatisticsConstants.DATE_PATTERN, statisticConfig.getMomDays()));
+        StatisticsDTO momStatisticsDTO = currentTenantStatisticsDAO.getStatistics(
+            StatisticsConstants.DEFAULT_APP_ID,
+            StatisticsConstants.RESOURCE_APP,
+            StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
+            StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_APP_LIST,
+            DateUtils.getPreviousDateStr(
+                date,
+                StatisticsConstants.DATE_PATTERN,
+                statisticConfig.getMomDays()
+            )
+        );
         // 与上周的数据对比计算同比
-        StatisticsDTO yoyStatisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
-            StatisticsConstants.RESOURCE_APP, StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
-            StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_APP_LIST, DateUtils.getPreviousDateStr(date,
-                StatisticsConstants.DATE_PATTERN, statisticConfig.getYoyDays()));
+        StatisticsDTO yoyStatisticsDTO = currentTenantStatisticsDAO.getStatistics(
+            StatisticsConstants.DEFAULT_APP_ID,
+            StatisticsConstants.RESOURCE_APP,
+            StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
+            StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_APP_LIST,
+            DateUtils.getPreviousDateStr(
+                date,
+                StatisticsConstants.DATE_PATTERN,
+                statisticConfig.getYoyDays()
+            )
+        );
         return calcAppMomYoyStatistic(statisticsDTO, momStatisticsDTO, yoyStatisticsDTO);
     }
 
     public CommonStatisticWithRateVO getActiveAppTotalStatistics(String username, List<Long> appIdList, String date) {
-        StatisticsDTO statisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
+        StatisticsDTO statisticsDTO = currentTenantStatisticsDAO.getStatistics(
+            StatisticsConstants.DEFAULT_APP_ID,
             StatisticsConstants.RESOURCE_APP, StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
             StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_ACTIVE_APP_LIST, date);
         // 与昨天的数据对比计算环比
-        StatisticsDTO momStatisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
+        StatisticsDTO momStatisticsDTO = currentTenantStatisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
             StatisticsConstants.RESOURCE_APP, StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
             StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_ACTIVE_APP_LIST, DateUtils.getPreviousDateStr(date
                 , StatisticsConstants.DATE_PATTERN, statisticConfig.getMomDays()));
         // 与上周的数据对比计算同比
-        StatisticsDTO yoyStatisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
+        StatisticsDTO yoyStatisticsDTO = currentTenantStatisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
             StatisticsConstants.RESOURCE_APP, StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
             StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_ACTIVE_APP_LIST, DateUtils.getPreviousDateStr(date
                 , StatisticsConstants.DATE_PATTERN, statisticConfig.getYoyDays()));
@@ -139,7 +161,7 @@ public class AppStatisticService extends CommonStatisticService {
      * @return
      */
     public List<PerAppStatisticDTO> listJoinedApp(List<Long> appIdList, String date) {
-        StatisticsDTO statisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
+        StatisticsDTO statisticsDTO = currentTenantStatisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
             StatisticsConstants.RESOURCE_APP, StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
             StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_APP_LIST, date);
         return extractAppFromStatistics(appIdList, statisticsDTO);
@@ -153,7 +175,7 @@ public class AppStatisticService extends CommonStatisticService {
      * @return
      */
     public List<PerAppStatisticDTO> listActiveApp(List<Long> appIdList, String date) {
-        StatisticsDTO statisticsDTO = statisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
+        StatisticsDTO statisticsDTO = currentTenantStatisticsDAO.getStatistics(StatisticsConstants.DEFAULT_APP_ID,
             StatisticsConstants.RESOURCE_APP, StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
             StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_ACTIVE_APP_LIST, date);
         return extractAppFromStatistics(appIdList, statisticsDTO);
@@ -174,7 +196,7 @@ public class AppStatisticService extends CommonStatisticService {
 
     public List<CommonTrendElementVO> getJoinedAppTrend(List<Long> appIdList, String startDate, String endDate) {
         List<StatisticsDTO> statisticsDTOList =
-            statisticsDAO.getStatisticsListBetweenDate(StatisticsConstants.DEFAULT_APP_ID,
+            currentTenantStatisticsDAO.getStatisticsListBetweenDate(StatisticsConstants.DEFAULT_APP_ID,
                 StatisticsConstants.RESOURCE_APP, StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
                 StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_APP_LIST, startDate, endDate);
         return extractTrendFromStatisticsList(appIdList, statisticsDTOList);
@@ -182,7 +204,7 @@ public class AppStatisticService extends CommonStatisticService {
 
     public List<CommonTrendElementVO> getActiveAppTrend(List<Long> appIdList, String startDate, String endDate) {
         List<StatisticsDTO> statisticsDTOList =
-            statisticsDAO.getStatisticsListBetweenDate(StatisticsConstants.DEFAULT_APP_ID,
+            currentTenantStatisticsDAO.getStatisticsListBetweenDate(StatisticsConstants.DEFAULT_APP_ID,
                 StatisticsConstants.RESOURCE_APP, StatisticsConstants.DIMENSION_APP_STATISTIC_TYPE,
                 StatisticsConstants.DIMENSION_VALUE_APP_STATISTIC_TYPE_ACTIVE_APP_LIST, startDate, endDate);
         return extractTrendFromStatisticsList(appIdList, statisticsDTOList);

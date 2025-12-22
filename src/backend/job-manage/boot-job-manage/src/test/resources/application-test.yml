@@ -33,10 +33,19 @@ bk-api-gateway:
     url: bk-notice.apigw.com
   cmdb:
     url: cmdb.apigw.com
+  bk-login:
+    url: bk-login.apigw.com
+  bk-user:
+    url: bk-user.apigw.com
+  bkIam:
+    url: iam.apigw.com
+  cmsi:
+    url: cmsi.apigw.com
 esb:
   service:
     url: esb.service
+
 cmsi:
+  api-type: apigw
   voice:
     uri: /api/c/compapi/v2/cmsi/send_voice_msg/
-  useStandaloneVoiceAPI: true

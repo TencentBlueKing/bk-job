@@ -89,7 +89,11 @@
         align="left"
         :label="$t('detectRecords.执行人_colHead')"
         prop="operator"
-        width="140" />
+        width="140">
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.operator" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.statusDesc"
         key="createTime"
@@ -254,8 +258,12 @@
         {
           name: I18n.t('detectRecords.执行人_label'),
           id: 'operator',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
         {
           name: I18n.t('detectRecords.执行方式_label'),

@@ -123,6 +123,11 @@ public class ScriptDTO {
      */
     private String description;
 
+    /**
+     * 脚本所属租户 ID
+     */
+    private String tenantId;
+
     public EsbScriptV3DTO toEsbScriptV3DTO() {
         EsbScriptV3DTO esbScript = new EsbScriptV3DTO();
         esbScript.setId(id);

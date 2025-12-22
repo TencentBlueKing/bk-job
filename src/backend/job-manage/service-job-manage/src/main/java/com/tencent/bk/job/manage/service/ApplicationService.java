@@ -145,19 +145,19 @@ public interface ApplicationService {
     List<ApplicationDTO> listAllApps();
 
     /**
+     * 获取作业平台租户下所有业务
+     *
+     * @return 业务列表
+     */
+    List<ApplicationDTO> listAllAppsForTenant(String tenantId);
+
+    /**
      * 创建业务
      *
      * @param application 业务
      * @return 业务ID
      */
     Long createApp(ApplicationDTO application);
-
-    /**
-     * 获取Job业务数量
-     *
-     * @return 业务数量
-     */
-    Integer countApps();
 
     /**
      * 更新业务
@@ -194,4 +194,10 @@ public interface ApplicationService {
      * @return 业务列表
      */
     List<ApplicationDTO> listAllDeletedApps();
+
+    /**
+     * 通过appId获取对应租户
+     *
+     */
+    String getTenantIdByAppId(long appId);
 }

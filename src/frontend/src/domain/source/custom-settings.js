@@ -34,19 +34,19 @@ class CustomSettgings extends ModuleBase {
   }
 
   getAll(params = {}) {
-    return Request.post(`${this.path}/batchGet`, {
+    return Request.post(`${this.module}/batchGet`, {
       params,
     });
   }
 
   update(params = {}) {
-    return Request.post(`${this.path}`, {
+    return Request.post(`${this.module}`, {
       params,
     });
   }
 
   remove(params = {}) {
-    return Request.delete(`${this.path}`, {
+    return Request.delete(`${this.module}`, {
       params,
     });
   }

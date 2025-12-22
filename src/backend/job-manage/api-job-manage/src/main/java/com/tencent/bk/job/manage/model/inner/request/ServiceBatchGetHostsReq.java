@@ -40,9 +40,11 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 public class ServiceBatchGetHostsReq {
+    private String tenantId;
     private List<HostDTO> hosts;
 
-    public ServiceBatchGetHostsReq(List<HostDTO> hosts) {
+    public ServiceBatchGetHostsReq(String tenantId, List<HostDTO> hosts) {
+        this.tenantId = tenantId;
         this.hosts = hosts;
     }
 }

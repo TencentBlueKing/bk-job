@@ -31,8 +31,25 @@ import java.util.List;
 
 public interface IBkNoticeClient {
 
+    /**
+     * 注册应用
+     *
+     * @return 应用信息
+     */
     BkNoticeApp registerApplication();
 
-    List<AnnouncementDTO> getCurrentAnnouncements(String bkLanguage, Integer offset, Integer limit);
+    /**
+     * 获取当前生效的公告
+     *
+     * @param tenantId   租户ID
+     * @param bkLanguage 语言
+     * @param offset     偏移量
+     * @param limit      公告数量
+     * @return 公告列表
+     */
+    List<AnnouncementDTO> getCurrentAnnouncements(String tenantId,
+                                                  String bkLanguage,
+                                                  Integer offset,
+                                                  Integer limit);
 
 }

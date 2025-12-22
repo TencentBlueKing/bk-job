@@ -25,8 +25,10 @@
 package com.tencent.bk.job.analysis.task.statistics.task;
 
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.execute.api.inner.ServiceMetricsResource;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.DSLContext;
@@ -41,17 +43,24 @@ public abstract class ExecuteBasePerAppStatisticsTask extends BasePerAppStatisti
 
     protected ExecuteBasePerAppStatisticsTask(ServiceMetricsResource executeMetricsResource,
                                               BasicServiceManager basicServiceManager,
-                                              StatisticsDAO statisticsDAO,
-                                              @Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
-        super(basicServiceManager, statisticsDAO, dslContext);
+                                              CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                              NoTenantStatisticsDAO noTenantStatisticsDAO,
+                                              @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
+                                              TenantService tenantService) {
+        super(basicServiceManager, currentTenantStatisticsDAO, noTenantStatisticsDAO, dslContext, tenantService);
         this.executeMetricsResource = executeMetricsResource;
     }
 
     public void addExecuteStatisticsDTO(StatisticsDTO searchStatisticsDTO, List<StatisticsDTO> statisticsDTOList) {
-        StatisticsDTO remoteStatisticsDTO = executeMetricsResource.getStatistics(searchStatisticsDTO.getAppId(),
-            searchStatisticsDTO.getResource(), searchStatisticsDTO.getDimension(),
-            searchStatisticsDTO.getDimensionValue(), searchStatisticsDTO.getDate()).getData();
+        StatisticsDTO remoteStatisticsDTO = executeMetricsResource.getStatistics(
+            searchStatisticsDTO.getAppId(),
+            searchStatisticsDTO.getResource(),
+            searchStatisticsDTO.getDimension(),
+            searchStatisticsDTO.getDimensionValue(),
+            searchStatisticsDTO.getDate()
+        ).getData();
         if (remoteStatisticsDTO != null) {
+            remoteStatisticsDTO.setTenantId(getCurrentTenantId());
             statisticsDTOList.add(remoteStatisticsDTO);
         } else {
             remoteStatisticsDTO = searchStatisticsDTO.clone();

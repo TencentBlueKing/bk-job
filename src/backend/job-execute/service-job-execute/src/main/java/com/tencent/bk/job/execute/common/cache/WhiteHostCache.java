@@ -25,10 +25,15 @@
 package com.tencent.bk.job.execute.common.cache;
 
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.tenant.TenantDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
+import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
 import com.tencent.bk.job.manage.api.inner.ServiceWhiteIPResource;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.tools.StringUtils;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -46,54 +51,86 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @Component
 @Slf4j
 public class WhiteHostCache {
+    private final ServiceTenantResource tenantResource;
     private final ServiceWhiteIPResource whiteIpResource;
+    private final RemoteAppService remoteAppService;
 
     private volatile boolean isWhiteIpConfigLoaded = false;
     /**
-     * 主机白名单缓存， key: hostId, value: 白名单配置
+     * 主机白名单缓存， outerKey: 租户ID，innerKey: hostId, value: 白名单配置
      */
-    private final Map<Long, ServiceWhiteIPInfo> whiteHostConfig = new HashMap<>();
+    private final Map<String, Map<Long, ServiceWhiteIPInfo>> tenantWhiteHostConfig = new HashMap<>();
 
     private static final ReadWriteLock rwLock = new ReentrantReadWriteLock();
     private static final Lock rLock = rwLock.readLock();
     private static final Lock wLock = rwLock.writeLock();
 
     @Autowired
-    public WhiteHostCache(ServiceWhiteIPResource whiteIpResource) {
+    public WhiteHostCache(ServiceTenantResource tenantResource,
+                          ServiceWhiteIPResource whiteIpResource,
+                          RemoteAppService remoteAppService) {
+        this.tenantResource = tenantResource;
         this.whiteIpResource = whiteIpResource;
+        this.remoteAppService = remoteAppService;
     }
 
     @Scheduled(cron = "0 * * * * ?")
-    public void syncWhiteIpConfig() {
-        log.info("Sync white host config!");
+    public void syncWhiteIpConfigForAllTenants() {
+        List<TenantDTO> tenantDTOList = tenantResource.listEnabledTenant().getData();
+        for (TenantDTO tenantDTO : tenantDTOList) {
+            try {
+                syncWhiteIpConfig(tenantDTO.getId());
+            } catch (Exception e) {
+                String msg = MessageFormatter.format(
+                    "syncWhiteIpConfig error, tenantId={}",
+                    tenantDTO.getId()
+                ).toString();
+                log.error(msg, e);
+            }
+        }
+    }
+
+    public void syncWhiteIpConfig(String tenantId) {
         isWhiteIpConfigLoaded = true;
         long start = System.currentTimeMillis();
-        InternalResponse<List<ServiceWhiteIPInfo>> resp = whiteIpResource.listWhiteIPInfos();
+        InternalResponse<List<ServiceWhiteIPInfo>> resp = whiteIpResource.listWhiteIPInfosByTenantId(tenantId);
         if (resp == null || !resp.isSuccess()) {
-            log.warn("Get all white host config return fail resp! resp: {}", JsonUtils.toJson(resp));
+            log.warn(
+                "Get all white host config return fail resp! tenantId={}, resp={}",
+                tenantId,
+                JsonUtils.toJson(resp)
+            );
             return;
         }
-        log.info("Sync white host config, resp: {}", JsonUtils.toJson(resp));
+        log.info("syncWhiteIpConfig, tenantId={}, resp={}", tenantId, JsonUtils.toJson(resp));
 
-        refreshCache(resp.getData());
+        refreshCache(tenantId, resp.getData());
 
         long cost = System.currentTimeMillis() - start;
         if (cost > 1000L) {
-            log.warn("Sync white host config is slow, cost: {}", cost);
+            log.warn("syncWhiteIpConfig is slow, cost: {}", cost);
         }
-        log.info("Sync white host config success!");
+        log.info("syncWhiteIpConfig success!");
     }
 
-    private void refreshCache(List<ServiceWhiteIPInfo> whiteIpInfos) {
+    private void refreshCache(String tenantId, List<ServiceWhiteIPInfo> whiteIpInfos) {
         try {
             wLock.lock();
+            if (!tenantWhiteHostConfig.containsKey(tenantId)) {
+                tenantWhiteHostConfig.put(tenantId, new HashMap<>());
+            }
+            Map<Long, ServiceWhiteIPInfo> whiteHostConfig = tenantWhiteHostConfig.get(tenantId);
             whiteHostConfig.clear();
             whiteIpInfos.forEach(whiteIpInfo -> {
                 if (whiteIpInfo.getHostId() != null) {
                     whiteHostConfig.put(whiteIpInfo.getHostId(), whiteIpInfo);
                 }
             });
-            log.info("Refresh white host cache success. whiteHostConfig: {}", JsonUtils.toJson(whiteHostConfig));
+            log.info(
+                "Refresh white host cache success, tenantId={}, whiteHostConfig={}",
+                tenantId,
+                JsonUtils.toJson(whiteHostConfig)
+            );
         } finally {
             wLock.unlock();
         }
@@ -102,10 +139,19 @@ public class WhiteHostCache {
     public List<String> getHostAllowedAction(long appId, long hostId) {
         try {
             if (!isWhiteIpConfigLoaded) {
-                syncWhiteIpConfig();
+                syncWhiteIpConfigForAllTenants();
+            }
+            String tenantId = remoteAppService.getTenantIdByAppId(appId);
+            if (StringUtils.isBlank(tenantId)) {
+                log.warn("Cannot get tenantId by appId={}", appId);
+                return null;
             }
             try {
                 rLock.lock();
+                Map<Long, ServiceWhiteIPInfo> whiteHostConfig = tenantWhiteHostConfig.get(tenantId);
+                if (whiteHostConfig == null) {
+                    return null;
+                }
                 ServiceWhiteIPInfo whiteIPInfo = whiteHostConfig.get(hostId);
                 if (whiteIPInfo == null) {
                     return null;

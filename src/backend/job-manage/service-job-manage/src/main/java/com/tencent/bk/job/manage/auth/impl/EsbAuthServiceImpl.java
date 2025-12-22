@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.model.PermissionResourceGroup;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.EsbAuthService;
 import com.tencent.bk.sdk.iam.constants.SystemId;
@@ -56,14 +57,14 @@ public class EsbAuthServiceImpl implements EsbAuthService {
     }
 
     @Override
-    public EsbResp batchAuthJobResources(String username,
+    public EsbResp batchAuthJobResources(User user,
                                          String actionId,
                                          AppResourceScope appResourceScope,
                                          ResourceTypeEnum resourceType,
                                          List<String> resourceIds,
                                          Map<String, String> idNameMap) {
         List<String> hasPermissionIds = appAuthService.batchAuth(
-            username, actionId, appResourceScope, resourceType, resourceIds);
+            user, actionId, appResourceScope, resourceType, resourceIds);
         resourceIds.removeAll(hasPermissionIds);
         List<String> noPermissionIds = resourceIds;
         if (!noPermissionIds.isEmpty()) {

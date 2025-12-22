@@ -31,7 +31,6 @@ import com.tencent.bk.job.analysis.dao.AnalysisTaskInstanceDAO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskDTO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskInstanceDTO;
 import com.tencent.bk.job.analysis.model.inner.AnalysisTaskResultItemLocation;
-import com.tencent.bk.job.analysis.service.ApplicationService;
 import com.tencent.bk.job.analysis.service.HostService;
 import com.tencent.bk.job.analysis.service.TaskPlanService;
 import com.tencent.bk.job.analysis.service.TaskTemplateService;
@@ -41,7 +40,6 @@ import com.tencent.bk.job.analysis.task.analysis.enums.AnalysisResourceEnum;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultData;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultItem;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultVO;
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.Counter;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
@@ -54,6 +52,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceTaskStepDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -68,17 +67,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
- * @Description 寻找执行方案中是否有无效IP/Agent异常/Agent未安装的情况
- * @Date 2020/3/6
- * @Version 1.0
+ * 寻找执行方案中是否有无效IP/Agent异常/Agent未安装的情况
  */
 @Component
 @AnalysisTask("TaskPlanTargetChecker")
@@ -94,13 +89,13 @@ public class TaskPlanTargetChecker extends AbstractTemplateAnalysisTask {
         AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
         TaskTemplateService templateService,
         TaskPlanService taskPlanService,
-        ApplicationService applicationService,
+        RemoteAppService remoteAppService,
         HostService hostService,
         @Qualifier("templateAnalysisTaskExecutor") ThreadPoolExecutor threadPoolExecutor
     ) {
         super(analysisTaskDAO,
             analysisTaskInstanceDAO,
-            applicationService,
+            remoteAppService,
             templateService,
             threadPoolExecutor
         );
@@ -406,7 +401,7 @@ public class TaskPlanTargetChecker extends AbstractTemplateAnalysisTask {
         }
         //（3）主机
         List<ServiceHostInfoDTO> serviceHostInfoDTOList = targetServer.getHostList();
-        return existNotAliveHost(appId, serviceHostInfoDTOList);
+        return existNotAliveHost(serviceHostInfoDTOList);
     }
 
     /**
@@ -490,54 +485,23 @@ public class TaskPlanTargetChecker extends AbstractTemplateAnalysisTask {
     /**
      * 判断在主机列表中是否存在Agent异常的主机
      *
-     * @param appId           业务的appId
      * @param serviceHostList 主机信息列表
      * @return 是否存在Agent异常的主机
      */
-    private boolean existNotAliveHost(Long appId, List<ServiceHostInfoDTO> serviceHostList) {
+    private boolean existNotAliveHost(List<ServiceHostInfoDTO> serviceHostList) {
         if (CollectionUtils.isEmpty(serviceHostList)) {
             return false;
         }
-        //noinspection deprecation
-        List<HostDTO> hostList = serviceHostList.stream().map(serviceHost ->
-            // TODO:执行方案数据迁移添加hostId后此处可去除cloudAreaId与ip
-            new HostDTO(
-                serviceHost.getHostId(),
-                serviceHost.getCloudAreaId(),
-                serviceHost.getIp()
-            )
-        ).collect(Collectors.toList());
-        List<ServiceHostStatusDTO> hostStatusDTOListByHost =
-            hostService.getHostStatusByHost(appId, hostList);
-        Map<Long, ServiceHostStatusDTO> hostIdMap = new HashMap<>();
-        hostStatusDTOListByHost.forEach(hostStatusDTO -> hostIdMap.put(hostStatusDTO.getHostId(), hostStatusDTO));
-        if (hostList.isEmpty()) {
-            return true;
-        }
-        for (HostDTO host : hostList) {
-            if (!isHostAlive(hostIdMap, host)) {
+        List<Long> hostIdList = new ArrayList<>(serviceHostList.size());
+        for (ServiceHostInfoDTO serviceHostInfoDTO : serviceHostList) {
+            Long hostId = serviceHostInfoDTO.getHostId();
+            if (hostId == null) {
+                log.info("Found host without hostId: {}", serviceHostInfoDTO);
                 return true;
             }
+            hostIdList.add(hostId);
         }
-        return false;
-    }
-
-    /**
-     * 根据hostId判断Agent是否正常
-     *
-     * @param hostIdMap 主机Id与主机Agent状态信息映射表
-     * @param host      主机信息
-     * @return Agent是否正常
-     */
-    private boolean isHostAlive(Map<Long, ServiceHostStatusDTO> hostIdMap, HostDTO host) {
-        Long hostId = host.getHostId();
-        if (hostId == null) {
-            return false;
-        }
-        if (!hostIdMap.containsKey(hostId)) {
-            return false;
-        }
-        return hostIdMap.get(hostId).getAlive() == 1;
+        return hostService.existNotAliveHostByCache(hostIdList);
     }
 
     /**

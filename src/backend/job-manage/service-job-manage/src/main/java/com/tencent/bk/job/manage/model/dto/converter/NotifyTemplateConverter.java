@@ -55,7 +55,9 @@ public class NotifyTemplateConverter {
             return null;
         }
         String channel = notifyTemplateDTO.getChannel();
-        List<NotifyEsbChannelDTO> channelDTOList = notifyEsbChannelDAO.listNotifyEsbChannel();
+        List<NotifyEsbChannelDTO> channelDTOList = notifyEsbChannelDAO.listNotifyEsbChannel(
+            notifyTemplateDTO.getTenantId()
+        );
         String channelLabel = "";
         for (NotifyEsbChannelDTO notifyEsbChannelDTO : channelDTOList) {
             if (notifyEsbChannelDTO.getType().equals(channel)) {

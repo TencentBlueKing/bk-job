@@ -32,16 +32,18 @@ public interface CmdbEventCursorManager {
     /**
      * 尝试加载最近的已处理过的事件的游标，若加载过程发生异常则返回null并记录错误日志
      *
+     * @param tenantId            租户ID
      * @param watcherResourceName 监听的资源名称
      * @return 最近的已处理过的事件的游标
      */
-    String tryToLoadLatestCursor(String watcherResourceName);
+    String tryToLoadLatestCursor(String tenantId, String watcherResourceName);
 
     /**
      * 尝试保存最近的已处理过的事件的游标，若保存过程发生异常则记录错误日志
      *
+     * @param tenantId            租户ID
      * @param watcherResourceName 监听的资源名称
      * @param latestCursor        最近的已处理过的事件的游标
      */
-    void tryToSaveLatestCursor(String watcherResourceName, String latestCursor);
+    void tryToSaveLatestCursor(String tenantId, String watcherResourceName, String latestCursor);
 }

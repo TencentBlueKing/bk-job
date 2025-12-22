@@ -64,9 +64,6 @@ public class PerAppStatisticDTO {
 
     public PerAppStatisticVO toPerAppStatisticVO() {
         PerAppStatisticVO perAppStatisticVO = new PerAppStatisticVO();
-        // TODO:发布后去除
-        perAppStatisticVO.setAppId(appId);
-        perAppStatisticVO.setAppName(scopeName);
         AppScopeMappingService appScopeMappingService =
             ApplicationContextRegister.getBean(AppScopeMappingService.class);
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);

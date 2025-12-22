@@ -27,11 +27,13 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.consts.TotalMetricEnum;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.api.inner.ServiceMetricsResource;
@@ -56,15 +58,17 @@ public class ScriptPerAppStatisticsTask extends BasePerAppStatisticsTask {
     private final ServiceMetricsResource manageMetricsClient;
 
     protected ScriptPerAppStatisticsTask(BasicServiceManager basicServiceManager,
-                                         StatisticsDAO statisticsDAO,
+                                         CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                         NoTenantStatisticsDAO noTenantStatisticsDAO,
                                          @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
-                                         ServiceMetricsResource manageMetricsResource) {
-        super(basicServiceManager, statisticsDAO, dslContext);
+                                         ServiceMetricsResource manageMetricsResource,
+                                         TenantService tenantService) {
+        super(basicServiceManager, currentTenantStatisticsDAO, noTenantStatisticsDAO, dslContext, tenantService);
         this.manageMetricsClient = manageMetricsResource;
     }
 
     private StatisticsDTO genScriptTotalDTO(String dateStr, Long appId, String value) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(appId);
         statisticsDTO.setDate(dateStr);
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_GLOBAL);
@@ -78,7 +82,7 @@ public class ScriptPerAppStatisticsTask extends BasePerAppStatisticsTask {
     }
 
     private StatisticsDTO genScriptTypeDTO(String dateStr, Long appId, String value, String dimensionValue) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(appId);
         statisticsDTO.setDate(dateStr);
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_SCRIPT);
@@ -90,7 +94,7 @@ public class ScriptPerAppStatisticsTask extends BasePerAppStatisticsTask {
 
     private StatisticsDTO genScriptVersionStatusDTO(String dateStr, Long appId, String value,
                                                     String dimensionValue) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(appId);
         statisticsDTO.setDate(dateStr);
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_SCRIPT_VERSION);

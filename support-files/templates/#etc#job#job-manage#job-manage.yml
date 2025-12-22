@@ -90,6 +90,6 @@ job:
     notify:
       default:
         channels:
-          available: mail
+          available: mail,weixin,rtx
       
 

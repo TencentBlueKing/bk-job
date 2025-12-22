@@ -54,6 +54,14 @@ public class ErrorCode {
     public static final int GSE_ERROR = 1210001;
     // GSE数据异常：{0}
     public static final int GSE_API_DATA_ERROR = 1210002;
+    // 初始化租户失败：{0}
+    public static final int INIT_TENANT_ERROR = 1210003;
+    // 已有另一个初始化租户任务正在执行：{0}
+    public static final int INIT_TENANT_TASK_ALREADY_RUNNING = 1210004;
+    // 传入的租户ID为空，缺少的Header：{0}
+    public static final int TENANT_ID_CANNOT_BE_BLANK = 1210005;
+    // 禁止跨租户访问数据，当前租户ID：{0}，尝试访问的资源：{1}，资源所属租户ID：{2}
+    public static final int ACCESS_CROSS_TENANT_FORBIDDEN = 1210006;
 
     // CMDB错误
     // CMDB服务状态不可达 - 地址配置错误或者地址无法正确解析
@@ -65,7 +73,6 @@ public class ErrorCode {
     // 根据业务ID查找动态分组失败，业务ID：{0}，原因：{1}，请确认指定的业务是否存在动态分组
     public static final int FAIL_TO_FIND_DYNAMIC_GROUP_BY_BIZ = 1211004;
 
-    // PaaS异常
     // CMSI接口访问异常
     public static final int CMSI_API_ACCESS_ERROR = 1213001;
     // 用户管理接口访问异常
@@ -74,12 +81,16 @@ public class ErrorCode {
     public static final int CMSI_MSG_CHANNEL_DATA_ERROR = 1213003;
     // 调用CMSI接口发送通知失败，错误码：{0}，错误信息：{1}
     public static final int CMSI_FAIL_TO_SEND_MSG = 1213004;
+    // 未知的CMSI渠道: {0}
+    public static final int CMSI_UNKNOWN_CHANNEL = 1213005;
 
     // 制品库异常
     // Artifactory接口返回数据结构异常
     public static final int ARTIFACTORY_API_DATA_ERROR = 1214001;
-    // 制品库中找不到节点:{0}，请到制品库核实
+    // 制品库中找不到节点，请到制品库核实，详情：{0}
     public static final int CAN_NOT_FIND_NODE_IN_ARTIFACTORY = 1214002;
+    // 仓库不存在，请到制品库核实，详情：{0}
+    public static final int CAN_NOT_FIND_REPO_IN_ARTIFACTORY = 1214003;
 
     // IAM接口数据异常- 一般是被网关防火墙重定向返回统一登录页面
     public static final int IAM_API_DATA_ERROR = 1215001;
@@ -102,6 +113,17 @@ public class ErrorCode {
     public static final int BK_OPEN_AI_API_DATA_ERROR = 1218002;
     // 蓝鲸OpenAI接口数据超时
     public static final int BK_OPEN_AI_API_DATA_TIMEOUT = 1218003;
+
+    // bk-login（蓝鲸登录） 接口调用异常
+    public static final int BK_LOGIN_API_ERROR = 1219001;
+
+    // bk-user（用户管理） 接口调用异常
+    public static final int BK_USER_MANAGE_API_ERROR = 1220001;
+    // 用户缓存加载失败
+    public static final int BK_USER_CACHE_LOADING_ERROR = 1220002;
+    // 用户管理返回租户{0}的虚拟Admin账号为空
+    public static final int BK_USER_VIRTUAL_ADMIN_EMPTY = 1220003;
+
 
     // ======== 系统错误-权限错误 ==================//
     // 用户({0})权限不足，请前往权限中心确认并申请补充后重试
@@ -160,24 +182,24 @@ public class ErrorCode {
     public static final int ILLEGAL_PARAM = 1241002;
     // 不支持的操作
     public static final int UNSUPPORTED_OPERATION = 1241003;
-    // 请求参数[]缺失
+    // 请求参数[{0}]缺失
     public static final int MISSING_PARAM_WITH_PARAM_NAME = 1241004;
-    // 请求参数[]不合法
+    // 请求参数[{0}]不合法
     public static final int ILLEGAL_PARAM_WITH_PARAM_NAME = 1241005;
     // 请求参数缺失或不合法
     public static final int MISSING_OR_ILLEGAL_PARAM = 1241006;
-    // 请求参数[]缺失或不合法
+    // 请求参数[{0}]缺失或不合法
     public static final int MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME = 1241007;
     // 错误的业务 ID
     public static final int WRONG_APP_ID = 1241008;
-    // 请求参数[0]不合法，原因：[1]
+    // 请求参数[{0}]不合法，原因：{1}
     public static final int ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON = 1241010;
     // 尚未支持的功能
     public static final int NOT_SUPPORT_FEATURE = 1241011;
 
     public static final int ILLEGAL_PARAM_WITH_REASON = 1241012;
-    // 该功能暂不支持业务集
-    public static final int NOT_SUPPORT_FEATURE_FOR_BIZ_SET = 1241013;
+    // 该功能暂不支持，支持的资源范围：{0}，当前资源范围：{1}
+    public static final int NOT_SUPPORT_FEATURE_FOR_RESOURCE_SCOPE = 1241013;
     // IPv6地址不合法：{0}
     public static final int INVALID_IPV6_ADDRESS = 1241014;
     // 不支持的操作，请勿重复启动作业：{0}

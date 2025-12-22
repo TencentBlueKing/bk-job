@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.manage.auth.NoResourceScopeAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -51,24 +52,24 @@ public class NoResourceScopeAuthServiceImpl implements NoResourceScopeAuthServic
     }
 
     @Override
-    public AuthResult authCreateWhiteList(String username) {
-        return authService.auth(username, ActionId.CREATE_WHITELIST);
+    public AuthResult authCreateWhiteList(User user) {
+        return authService.auth(user, ActionId.CREATE_WHITELIST);
     }
 
     @Override
-    public AuthResult authManageWhiteList(String username) {
-        return authService.auth(username, ActionId.MANAGE_WHITELIST);
+    public AuthResult authManageWhiteList(User user) {
+        return authService.auth(user, ActionId.MANAGE_WHITELIST);
     }
 
     @Override
-    public AuthResult authCreatePublicScript(String username) {
-        return authService.auth(username, ActionId.CREATE_PUBLIC_SCRIPT);
+    public AuthResult authCreatePublicScript(User user) {
+        return authService.auth(user, ActionId.CREATE_PUBLIC_SCRIPT);
     }
 
     @Override
-    public AuthResult authManagePublicScript(String username, String scriptId) {
+    public AuthResult authManagePublicScript(User user, String scriptId) {
         return authService.auth(
-            username,
+            user,
             ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE,
             ResourceTypeEnum.PUBLIC_SCRIPT,
             scriptId,
@@ -77,31 +78,31 @@ public class NoResourceScopeAuthServiceImpl implements NoResourceScopeAuthServic
     }
 
     @Override
-    public List<String> batchAuthManagePublicScript(String username, List<String> scriptIdList) {
-        return authService.batchAuth(username, ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE,
+    public List<String> batchAuthManagePublicScript(User user, List<String> scriptIdList) {
+        return authService.batchAuth(user, ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE,
             ResourceTypeEnum.PUBLIC_SCRIPT, scriptIdList);
     }
 
     @Override
-    public AuthResult batchAuthResultManagePublicScript(String username, List<String> scriptIdList) {
+    public AuthResult batchAuthResultManagePublicScript(User user, List<String> scriptIdList) {
         List<PermissionResource> resources = scriptIdList.stream().map(scriptId -> {
             PermissionResource resource = new PermissionResource();
             resource.setResourceId(scriptId);
             resource.setResourceType(ResourceTypeEnum.PUBLIC_SCRIPT);
             return resource;
         }).collect(Collectors.toList());
-        return authService.batchAuthResources(username, ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE, resources);
+        return authService.batchAuthResources(user, ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE, resources);
     }
 
     @Override
-    public AuthResult authGlobalSetting(String username) {
-        return authService.auth(username, ActionId.GLOBAL_SETTINGS);
+    public AuthResult authGlobalSetting(User user) {
+        return authService.auth(user, ActionId.GLOBAL_SETTINGS);
     }
 
     @Override
-    public AuthResult authViewDashBoard(String username, String dashBoardId) {
+    public AuthResult authViewDashBoard(User user, String dashBoardId) {
         return authService.auth(
-            username,
+            user,
             ActionId.DASHBOARD_VIEW,
             ResourceTypeEnum.DASHBOARD_VIEW,
             dashBoardId,
@@ -110,22 +111,22 @@ public class NoResourceScopeAuthServiceImpl implements NoResourceScopeAuthServic
     }
 
     @Override
-    public AuthResult authViewServiceState(String username) {
-        return authService.auth(username, ActionId.SERVICE_STATE_ACCESS);
+    public AuthResult authViewServiceState(User user) {
+        return authService.auth(user, ActionId.SERVICE_STATE_ACCESS);
     }
 
     @Override
-    public AuthResult authHighRiskDetectRule(String username) {
-        return authService.auth(username, ActionId.HIGH_RISK_DETECT_RULE);
+    public AuthResult authHighRiskDetectRule(User user) {
+        return authService.auth(user, ActionId.HIGH_RISK_DETECT_RULE);
     }
 
     @Override
-    public AuthResult authHighRiskDetectRecord(String username) {
-        return authService.auth(username, ActionId.HIGH_RISK_DETECT_RECORD);
+    public AuthResult authHighRiskDetectRecord(User user) {
+        return authService.auth(user, ActionId.HIGH_RISK_DETECT_RECORD);
     }
 
     @Override
-    public boolean registerPublicScript(String id, String name, String creator) {
-        return authService.registerResource(id, name, ResourceTypeId.PUBLIC_SCRIPT, creator, null);
+    public boolean registerPublicScript(User creator, String id, String name) {
+        return authService.registerResource(creator, id, name, ResourceTypeId.PUBLIC_SCRIPT, null);
     }
 }

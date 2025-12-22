@@ -118,7 +118,11 @@
         v-if="allRenderColumnMap.lastModifyUser"
         key="lastModifyUser"
         :label="$t('file.更新人')"
-        prop="lastModifyUser" />
+        prop="lastModifyUser">
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.lastModifyUser" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyTime"
         key="lastModifyTime"

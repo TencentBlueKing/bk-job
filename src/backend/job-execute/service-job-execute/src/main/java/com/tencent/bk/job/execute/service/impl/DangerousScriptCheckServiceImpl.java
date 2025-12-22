@@ -32,7 +32,7 @@ import com.tencent.bk.job.execute.model.ScriptCheckItemDTO;
 import com.tencent.bk.job.execute.model.ScriptCheckResultDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.DangerousRecordService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
 import com.tencent.bk.job.manage.api.common.constants.RuleMatchHandleActionEnum;
@@ -59,28 +59,28 @@ public class DangerousScriptCheckServiceImpl implements DangerousScriptCheckServ
     private final ServiceCheckScriptResource scriptCheckResource;
     private final MessageI18nService messageI18nService;
     private final DangerousRecordService dangerousRecordService;
-    private final ApplicationService applicationService;
+    private final RemoteAppService remoteAppService;
 
     @Autowired
     public DangerousScriptCheckServiceImpl(ServiceCheckScriptResource scriptCheckResource,
                                            MessageI18nService messageI18nService,
                                            DangerousRecordService dangerousRecordService,
-                                           ApplicationService applicationService) {
+                                           RemoteAppService remoteAppService) {
         this.scriptCheckResource = scriptCheckResource;
         this.messageI18nService = messageI18nService;
         this.dangerousRecordService = dangerousRecordService;
-        this.applicationService = applicationService;
+        this.remoteAppService = remoteAppService;
     }
 
     @Override
-    public List<ServiceScriptCheckResultItemDTO> check(ScriptTypeEnum scriptType, String content) {
+    public List<ServiceScriptCheckResultItemDTO> check(String tenantId, ScriptTypeEnum scriptType, String content) {
         InternalResponse<List<ServiceScriptCheckResultItemDTO>> response =
-            scriptCheckResource.check(new ServiceCheckScriptRequest(content, scriptType.getValue()));
+            scriptCheckResource.check(new ServiceCheckScriptRequest(tenantId, content, scriptType.getValue()));
         return response.isSuccess() ? response.getData() : Collections.emptyList();
     }
 
     @Override
-    public boolean shouldIntercept(List<ServiceScriptCheckResultItemDTO> checkResultItems) {
+    public boolean shouldIntercept(String tenantId, List<ServiceScriptCheckResultItemDTO> checkResultItems) {
         return checkResultItems.stream().anyMatch(checkResultItem -> checkResultItem.getAction() != null
             && RuleMatchHandleActionEnum.INTERCEPT.getValue() == checkResultItem.getAction());
     }
@@ -129,10 +129,8 @@ public class DangerousScriptCheckServiceImpl implements DangerousScriptCheckServ
         record.setRuleExpression(checkResultItem.getRuleExpression());
         record.setAction(checkResultItem.getAction());
         record.setAppId(taskInstance.getAppId());
-        ServiceApplicationDTO app = applicationService.getAppById(taskInstance.getAppId());
-        if (app != null) {
-            record.setAppName(app.getName());
-        }
+        ServiceApplicationDTO app = remoteAppService.getAppById(taskInstance.getAppId());
+        record.setAppName(app.getName());
         record.setCreateTime(System.currentTimeMillis());
         record.setStartupMode(taskInstance.getStartupMode());
         if (TaskStartupModeEnum.getStartupMode(taskInstance.getStartupMode()) == TaskStartupModeEnum.API) {
@@ -151,6 +149,8 @@ public class DangerousScriptCheckServiceImpl implements DangerousScriptCheckServ
         checkItems.add(checkItem);
         ScriptCheckResultDTO checkResult = new ScriptCheckResultDTO(checkItems);
         record.setCheckResult(checkResult);
+
+        record.setTenantId(app.getTenantId());
 
         return record;
     }

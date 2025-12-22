@@ -42,7 +42,7 @@ public class IamScriptCallbackResourceImpl implements IamScriptCallbackResource 
     }
 
     @Override
-    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        return scriptCallbackHelper.doCallback(callbackRequest);
+    public CallbackBaseResponseDTO callback(String tenantId, CallbackRequestDTO callbackRequest) {
+        return scriptCallbackHelper.doCallback(tenantId, callbackRequest);
     }
 }

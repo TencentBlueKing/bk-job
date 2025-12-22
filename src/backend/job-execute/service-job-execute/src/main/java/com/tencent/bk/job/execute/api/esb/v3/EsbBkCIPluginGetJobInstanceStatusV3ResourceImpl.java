@@ -33,6 +33,8 @@ import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
@@ -85,10 +87,11 @@ public class EsbBkCIPluginGetJobInstanceStatusV3ResourceImpl implements EsbBkCIP
         @Validated
             EsbBkCIPluginGetJobInstanceStatusRequest request) {
 
+        User user = JobContextUtil.getUser();
         long taskInstanceId = request.getTaskInstanceId();
 
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(
-            username, request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
+            user, request.getAppResourceScope().getAppId(), request.getTaskInstanceId());
 
         List<StepInstanceBaseDTO> stepInstances =
             stepInstanceService.listBaseStepInstanceByTaskInstanceId(taskInstanceId);

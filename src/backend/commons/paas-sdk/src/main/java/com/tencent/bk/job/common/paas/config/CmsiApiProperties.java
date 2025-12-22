@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.paas.config;
 
+import com.tencent.bk.job.common.esb.constants.BkApiTypeEnum;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,14 +35,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class CmsiApiProperties {
 
     /**
+     * CMSI接口类型，默认APIGW
+     */
+    private String apiType = BkApiTypeEnum.APIGW.getType();
+
+    /**
      * CMSI语音通知接口配置
      */
     private ChannelConfig voice;
-
-    /**
-     * CMSI语音通知是否走独立接口
-     */
-    private Boolean useStandaloneVoiceAPI;
 
     @Getter
     @Setter

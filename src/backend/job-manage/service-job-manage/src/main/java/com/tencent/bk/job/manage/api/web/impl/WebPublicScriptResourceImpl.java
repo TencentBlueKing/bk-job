@@ -35,6 +35,8 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.web.WebPublicScriptResource;
@@ -61,6 +63,7 @@ import com.tencent.bk.job.manage.model.web.vo.script.ScriptSyncResultVO;
 import com.tencent.bk.job.manage.service.PublicScriptService;
 import com.tencent.bk.job.manage.service.ScriptManager;
 import com.tencent.bk.job.manage.service.TagService;
+import com.tencent.bk.job.manage.util.AssertUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -98,7 +101,8 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     @Override
     public Response<ScriptVO> getScriptVersionDetail(String username,
                                                      Long scriptVersionId) {
-        ScriptDTO script = publicScriptService.getScriptVersion(scriptVersionId);
+        ScriptDTO script = publicScriptService.getScriptVersion(JobContextUtil.getTenantId(), scriptVersionId);
+        AssertUtil.scriptAvailable(() -> script != null);
 
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(script);
         return Response.buildSuccessResp(scriptVO);
@@ -108,7 +112,8 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     @Override
     public Response<ScriptVO> getScript(String username,
                                         String scriptId) {
-        ScriptDTO script = publicScriptService.getScript(scriptId);
+        ScriptDTO script = publicScriptService.getScript(JobContextUtil.getTenantId(), scriptId);
+        AssertUtil.scriptAvailable(() -> script != null);
 
         List<ScriptDTO> scriptVersions = publicScriptService.listScriptVersion(scriptId);
         if (CollectionUtils.isEmpty(scriptVersions)) {
@@ -125,7 +130,7 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     @Override
     public Response<ScriptVO> getScriptBasicInfo(String username,
                                                  String scriptId) {
-        ScriptDTO script = publicScriptService.getScript(scriptId);
+        ScriptDTO script = publicScriptService.getScript(JobContextUtil.getTenantId(), scriptId);
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(script);
         return Response.buildSuccessResp(scriptVO);
     }
@@ -133,6 +138,8 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     @Override
     public Response<ScriptVO> getOnlineScriptVersionByScriptId(String username,
                                                                String scriptId) {
+        ScriptDTO script = publicScriptService.getScript(JobContextUtil.getTenantId(), scriptId);
+        AssertUtil.scriptAvailable(() -> script != null);
         ScriptDTO onlineScriptVersion =
             publicScriptService.getOnlineScriptVersionByScriptId(scriptId);
         if (onlineScriptVersion == null) {
@@ -158,9 +165,10 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
                                                        Integer pageSize,
                                                        String orderField,
                                                        Integer order) {
+        User user = JobContextUtil.getUser();
         ScriptQuery scriptQuery = buildListPageScriptQuery(null, name, type, tags, panelTag,
             panelType, creator, lastModifyUser, scriptId, content, start, pageSize, orderField, order);
-
+        scriptQuery.setTenantId(user.getTenantId());
         PageData<ScriptDTO> pageData = publicScriptService.listPageScript(scriptQuery);
         PageData<ScriptVO> resultPageData = pageVOs(pageData, start, pageSize);
 
@@ -171,21 +179,21 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
         setOnlineScriptVersionInfo(resultPageData.getData());
 
         // 设置权限
-        processPermissionForList(username, resultPageData);
-        resultPageData.setExistAny(publicScriptService.isExistAnyPublicScript());
+        processPermissionForList(user, resultPageData);
+        resultPageData.setExistAny(publicScriptService.isExistAnyPublicScript(JobContextUtil.getTenantId()));
 
         return Response.buildSuccessResp(resultPageData);
     }
 
-    private void processPermissionForList(String username,
+    private void processPermissionForList(User user,
                                           PageData<ScriptVO> resultPageData) {
         resultPageData.setCanCreate(
-            noResourceScopeAuthService.authCreatePublicScript(username).isPass()
+            noResourceScopeAuthService.authCreatePublicScript(user).isPass()
         );
 
         resultPageData.getData()
             .forEach(script -> script.setCanManage(
-                noResourceScopeAuthService.authManagePublicScript(username, script.getId()).isPass()));
+                noResourceScopeAuthService.authManagePublicScript(user, script.getId()).isPass()));
         resultPageData.getData().forEach(script -> script.setCanView(true));
     }
 
@@ -195,6 +203,7 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     public Response<ScriptVO> updateScriptInfo(String username,
                                                String scriptId,
                                                @AuditRequestBody ScriptInfoUpdateReq request) {
+        User user = JobContextUtil.getUser();
         String updateField = request.getUpdateField();
         boolean isUpdateDesc = "scriptDesc".equals(updateField);
         boolean isUpdateName = "scriptName".equals(updateField);
@@ -206,23 +215,25 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
 
         ScriptDTO updateScript;
         if (isUpdateDesc) {
-            updateScript = publicScriptService.updateScriptDesc(username, scriptId, request.getScriptDesc());
+            updateScript = publicScriptService.updateScriptDesc(user, scriptId, request.getScriptDesc());
         } else if (isUpdateName) {
-            updateScript = updateScriptName(username, scriptId, request);
+            updateScript = updateScriptName(user, scriptId, request);
         } else {
-            updateScript = updateScriptTags(username, scriptId, request);
+            updateScript = updateScriptTags(user, scriptId, request);
         }
         return Response.buildSuccessResp(ScriptConverter.convertToScriptVO(updateScript));
     }
 
-    private ScriptDTO updateScriptName(String operator, String scriptId, ScriptInfoUpdateReq scriptInfoUpdateReq) {
+    private ScriptDTO updateScriptName(User user, String scriptId, ScriptInfoUpdateReq scriptInfoUpdateReq) {
         scriptInfoUpdateReq.validateScriptName();
-        return publicScriptService.updateScriptName(operator, scriptId, scriptInfoUpdateReq.getScriptName());
+        return publicScriptService.updateScriptName(user, scriptId, scriptInfoUpdateReq.getScriptName());
     }
 
-    private ScriptDTO updateScriptTags(String operator, String scriptId, ScriptInfoUpdateReq scriptInfoUpdateReq) {
+    private ScriptDTO updateScriptTags(User user,
+                                       String scriptId,
+                                       ScriptInfoUpdateReq scriptInfoUpdateReq) {
         List<TagDTO> tags = extractTags(scriptInfoUpdateReq);
-        return publicScriptService.updateScriptTags(operator, scriptId, tags);
+        return publicScriptService.updateScriptTags(user, scriptId, tags);
     }
 
     @Override
@@ -247,7 +258,8 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     public Response<List<ScriptVO>> listScriptVersion(String username,
                                                       String scriptId) {
         // 鉴权
-        AuthResult manageAuthResult = noResourceScopeAuthService.authManagePublicScript(username, scriptId);
+        User user = JobContextUtil.getUser();
+        AuthResult manageAuthResult = noResourceScopeAuthService.authManagePublicScript(user, scriptId);
 
         List<ScriptDTO> scripts = publicScriptService.listScriptVersion(scriptId);
         List<ScriptVO> resultVOS = new ArrayList<>();
@@ -281,20 +293,21 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     @AuditEntry(actionId = ActionId.CREATE_PUBLIC_SCRIPT)
     public Response<ScriptVO> saveScript(String username,
                                          @AuditRequestBody ScriptCreateReq request) {
-
-        ScriptDTO script = buildCreateScriptDTO(request, username);
-        ScriptDTO savedScript = publicScriptService.saveScript(username, script);
+        User user = JobContextUtil.getUser();
+        ScriptDTO script = buildCreateScriptDTO(request, user);
+        ScriptDTO savedScript = publicScriptService.saveScript(user, script);
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(savedScript);
         return Response.buildSuccessResp(scriptVO);
     }
 
     private ScriptDTO buildCreateScriptDTO(ScriptCreateReq request,
-                                           String username) {
+                                           User user) {
         ScriptDTO script = scriptDTOBuilder.buildFromScriptCreateReq(request);
         script.setAppId(PUBLIC_APP_ID);
         script.setPublicScript(true);
-        script.setCreator(username);
-        script.setLastModifyUser(username);
+        script.setCreator(user.getUsername());
+        script.setLastModifyUser(user.getUsername());
+        script.setTenantId(user.getTenantId());
         return script;
     }
 
@@ -303,9 +316,10 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     public Response<ScriptVO> saveScriptVersion(String username,
                                                 String scriptId,
                                                 @AuditRequestBody ScriptVersionCreateUpdateReq request) {
+        User user = JobContextUtil.getUser();
         ScriptDTO script = buildCreateOrUpdateScriptVersion(true, request, scriptId,
             null, username);
-        ScriptDTO savedScript = publicScriptService.saveScriptVersion(username, script);
+        ScriptDTO savedScript = publicScriptService.saveScriptVersion(user, script);
 
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(savedScript);
         return Response.buildSuccessResp(scriptVO);
@@ -335,9 +349,10 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
                                                   String scriptId,
                                                   Long scriptVersionId,
                                                   @AuditRequestBody ScriptVersionCreateUpdateReq request) {
+        User user = JobContextUtil.getUser();
         ScriptDTO script = buildCreateOrUpdateScriptVersion(false, request, scriptId,
             scriptVersionId, username);
-        ScriptDTO savedScriptVersion = publicScriptService.updateScriptVersion(username, script);
+        ScriptDTO savedScriptVersion = publicScriptService.updateScriptVersion(user, script);
 
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(savedScriptVersion);
         return Response.buildSuccessResp(scriptVO);
@@ -348,7 +363,8 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     public Response publishScriptVersion(String username,
                                          String scriptId,
                                          Long scriptVersionId) {
-        publicScriptService.publishScript(username, scriptId, scriptVersionId);
+        User user = JobContextUtil.getUser();
+        publicScriptService.publishScript(user, scriptId, scriptVersionId);
         return Response.buildSuccessResp(null);
     }
 
@@ -357,7 +373,8 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     public Response disableScriptVersion(String username,
                                          String scriptId,
                                          Long scriptVersionId) {
-        publicScriptService.disableScript(username, scriptId, scriptVersionId);
+        User user = JobContextUtil.getUser();
+        publicScriptService.disableScript(user, scriptId, scriptVersionId);
         return Response.buildSuccessResp(null);
     }
 
@@ -365,7 +382,8 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     @AuditEntry(actionId = ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE)
     public Response deleteScriptByScriptId(String username,
                                            String scriptId) {
-        publicScriptService.deleteScript(username, scriptId);
+        User user = JobContextUtil.getUser();
+        publicScriptService.deleteScript(user, scriptId);
         return Response.buildSuccessResp(null);
     }
 
@@ -373,30 +391,32 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
     @AuditEntry(actionId = ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE)
     public Response deleteScriptByScriptVersionId(String username,
                                                   Long scriptVersionId) {
-        publicScriptService.deleteScriptVersion(username, scriptVersionId);
+        User user = JobContextUtil.getUser();
+        publicScriptService.deleteScriptVersion(user, scriptVersionId);
         return Response.buildSuccessResp(null);
     }
 
     @Override
     public Response<List<String>> listPublicScriptNames(String username,
                                                         String scriptName) {
-        List<String> scriptNames = publicScriptService.listScriptNames(scriptName);
+        List<String> scriptNames = publicScriptService.listScriptNames(JobContextUtil.getTenantId(), scriptName);
         return Response.buildSuccessResp(scriptNames);
     }
 
     @Override
     public Response<List<BasicScriptVO>> listScriptOnline(String username) {
-        List<ScriptDTO> scriptList = publicScriptService.listOnlineScript();
+        User user = JobContextUtil.getUser();
+        List<ScriptDTO> scriptList = publicScriptService.listOnlineScript(user.getTenantId());
         List<BasicScriptVO> scriptVOList = convertToBasicScriptVOList(scriptList);
-        processScriptPermission(username, scriptVOList);
+        processScriptPermission(user, scriptVOList);
         return Response.buildSuccessResp(scriptVOList);
     }
 
-    private void processScriptPermission(String username,
+    private void processScriptPermission(User user,
                                          List<BasicScriptVO> scriptList) {
         scriptList.forEach(script -> {
-            AuthResult managePermAuthResult = noResourceScopeAuthService.authManagePublicScript(username,
-                script.getId());
+            AuthResult managePermAuthResult = noResourceScopeAuthService.authManagePublicScript(
+                user, script.getId());
             script.setCanManage(managePermAuthResult.isPass());
             script.setCanView(true);
         });
@@ -417,12 +437,13 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
                                                           String scriptId,
                                                           Long scriptVersionId,
                                                           @AuditRequestBody ScriptSyncReq scriptSyncReq) {
+        User user = JobContextUtil.getUser();
         List<TemplateStepIDDTO> templateStepIDs = new ArrayList<>(scriptSyncReq.getSteps().size());
         scriptSyncReq.getSteps().forEach(step ->
             templateStepIDs.add(new TemplateStepIDDTO(step.getTemplateId(), step.getStepId())));
 
-        List<SyncScriptResultDTO> syncResults = publicScriptService.syncScriptToTaskTemplate(username, scriptId,
-            scriptVersionId, templateStepIDs);
+        List<SyncScriptResultDTO> syncResults = publicScriptService.syncScriptToTaskTemplate(
+            user, scriptId, scriptVersionId, templateStepIDs);
         List<ScriptSyncResultVO> syncResultVOS = convertToSyncResultVOs(syncResults, null);
         return Response.buildSuccessResp(syncResultVOS);
     }
@@ -452,8 +473,9 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
         req.validate();
 
         // 鉴权
+        User user = JobContextUtil.getUser();
         List<String> scriptIdList = req.getIdList();
-        noResourceScopeAuthService.batchAuthResultManagePublicScript(username, scriptIdList).denyIfNoPermission();
+        noResourceScopeAuthService.batchAuthResultManagePublicScript(user, scriptIdList).denyIfNoPermission();
 
         batchPatchResourceTags(JobResourceTypeEnum.PUBLIC_SCRIPT, scriptIdList, req.getAddTagIdList(),
             req.getDeleteTagIdList());
@@ -464,7 +486,7 @@ public class WebPublicScriptResourceImpl extends BaseWebScriptResource implement
 
     @Override
     public Response<TagCountVO> getTagPublicScriptCount(String username) {
-        return Response.buildSuccessResp(publicScriptService.getTagScriptCount());
+        return Response.buildSuccessResp(publicScriptService.getTagScriptCount(JobContextUtil.getTenantId()));
     }
 
 }

@@ -31,6 +31,8 @@ import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.api.iam.IamAccountCallbackResource;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
@@ -66,7 +68,10 @@ public class IamAccountCallbackResourceImpl extends BaseIamCallbackService imple
 
     @Autowired
     public IamAccountCallbackResourceImpl(AccountService accountService,
-                                          ApplicationService applicationService) {
+                                          ApplicationService applicationService,
+                                          TenantService tenantService,
+                                          AppScopeMappingService appScopeMappingService) {
+        super(appScopeMappingService, tenantService);
         this.accountService = accountService;
         this.applicationService = applicationService;
     }
@@ -78,7 +83,7 @@ public class IamAccountCallbackResourceImpl extends BaseIamCallbackService imple
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         AccountDTO accountQuery = new AccountDTO();
-        Long appId = applicationService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+        Long appId = getAppIdBySearchCondition(searchCondition);
         accountQuery.setAppId(appId);
         return Pair.of(accountQuery, baseSearchCondition);
     }
@@ -190,7 +195,7 @@ public class IamAccountCallbackResourceImpl extends BaseIamCallbackService imple
     }
 
     @Override
-    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        return baseCallback(callbackRequest);
+    public CallbackBaseResponseDTO callback(String tenantId, CallbackRequestDTO callbackRequest) {
+        return baseCallback(tenantId, callbackRequest);
     }
 }

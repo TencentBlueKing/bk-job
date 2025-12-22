@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.service.host;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
+import com.tencent.bk.job.manage.model.web.request.HostCheckReq;
 
 import java.util.Collection;
 import java.util.List;
@@ -96,4 +97,11 @@ public interface WhiteIpAwareScopeHostService {
                                                                 ActionScopeEnum actionScope,
                                                                 Collection<String> keys);
 
+    /**
+     * 根据 多种组合条件 查询主机信息
+     * @param appResourceScope 资源范围
+     * @param req 查询条件
+     * @return 主机信息列表
+     */
+    List<ApplicationHostDTO> findHosts(AppResourceScope appResourceScope, HostCheckReq req);
 }

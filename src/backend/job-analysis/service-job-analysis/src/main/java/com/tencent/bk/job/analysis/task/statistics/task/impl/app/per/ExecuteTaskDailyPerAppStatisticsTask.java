@@ -27,10 +27,12 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.consts.TotalMetricEnum;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.ExecuteBasePerAppStatisticsTask;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.inner.ServiceMetricsResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
@@ -52,9 +54,18 @@ public class ExecuteTaskDailyPerAppStatisticsTask extends ExecuteBasePerAppStati
     @Autowired
     public ExecuteTaskDailyPerAppStatisticsTask(ServiceMetricsResource executeMetricsResource,
                                                 BasicServiceManager basicServiceManager,
-                                                StatisticsDAO statisticsDAO,
-                                                @Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
-        super(executeMetricsResource, basicServiceManager, statisticsDAO, dslContext);
+                                                CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                                NoTenantStatisticsDAO noTenantStatisticsDAO,
+                                                @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
+                                                TenantService tenantService) {
+        super(
+            executeMetricsResource,
+            basicServiceManager,
+            currentTenantStatisticsDAO,
+            noTenantStatisticsDAO,
+            dslContext,
+            tenantService
+        );
     }
 
     private StatisticsDTO getExecutedTaskBaseStatisticsDTO(ServiceApplicationDTO app, String timeTag) {
@@ -70,7 +81,7 @@ public class ExecuteTaskDailyPerAppStatisticsTask extends ExecuteBasePerAppStati
     }
 
     private StatisticsDTO getTimeUnitBaseStatisticsDTO(ServiceApplicationDTO app, String timeTag) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(app.getId());
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(timeTag);
@@ -95,10 +106,10 @@ public class ExecuteTaskDailyPerAppStatisticsTask extends ExecuteBasePerAppStati
     /**
      * 汇总所有业务的执行总量
      *
-     * @param dayTimeStr
+     * @param dayTimeStr 日期字符串
      */
     public void updateTotalExecutedTaskStatistics(String dayTimeStr) {
-        List<StatisticsDTO> statisticsDTOList = statisticsDAO.getStatisticsList(
+        List<StatisticsDTO> statisticsDTOList = currentTenantStatisticsDAO.getStatisticsList(
             null,
             null,
             StatisticsConstants.RESOURCE_EXECUTED_TASK,
@@ -106,29 +117,29 @@ public class ExecuteTaskDailyPerAppStatisticsTask extends ExecuteBasePerAppStati
             StatisticsConstants.DIMENSION_VALUE_GLOBAL_STATISTIC_TYPE_PREFIX
                 + TotalMetricEnum.EXECUTED_TASK_COUNT,
             dayTimeStr);
-        Long totalValue = 0L;
+        long totalValue = 0L;
         for (StatisticsDTO dto : statisticsDTOList) {
             totalValue += Long.parseLong(dto.getValue());
         }
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(StatisticsConstants.DEFAULT_APP_ID);
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(dayTimeStr);
-        statisticsDTO.setValue(totalValue.toString());
+        statisticsDTO.setValue(Long.toString(totalValue));
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_GLOBAL);
         statisticsDTO.setDimension(StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE);
         statisticsDTO.setDimensionValue(StatisticsConstants.DIMENSION_VALUE_GLOBAL_STATISTIC_TYPE_PREFIX
             + TotalMetricEnum.EXECUTED_TASK_COUNT);
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
     }
 
     /**
      * 汇总所有业务的失败执行总量
      *
-     * @param dayTimeStr
+     * @param dayTimeStr 日期字符串
      */
     public void updateTotalFailedTaskStatistics(String dayTimeStr) {
-        List<StatisticsDTO> statisticsDTOList = statisticsDAO.getStatisticsList(
+        List<StatisticsDTO> statisticsDTOList = currentTenantStatisticsDAO.getStatisticsList(
             null,
             null,
             StatisticsConstants.RESOURCE_FAILED_TASK,
@@ -137,82 +148,92 @@ public class ExecuteTaskDailyPerAppStatisticsTask extends ExecuteBasePerAppStati
                 + TotalMetricEnum.FAILED_TASK_COUNT,
             dayTimeStr);
         log.debug("statisticsDTOList.size={}", statisticsDTOList.size());
-        Long totalValue = 0L;
+        long totalValue = 0L;
         for (StatisticsDTO dto : statisticsDTOList) {
             log.debug("add {} data", dto.getDate());
             totalValue += Long.parseLong(dto.getValue());
         }
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(StatisticsConstants.DEFAULT_APP_ID);
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(dayTimeStr);
-        statisticsDTO.setValue(totalValue.toString());
+        statisticsDTO.setValue(Long.toString(totalValue));
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_GLOBAL);
         statisticsDTO.setDimension(StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE);
         statisticsDTO.setDimensionValue(StatisticsConstants.DIMENSION_VALUE_GLOBAL_STATISTIC_TYPE_PREFIX
             + TotalMetricEnum.FAILED_TASK_COUNT);
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
     }
 
     /**
      * 汇总单个业务的执行总量（增量统计）
      *
-     * @param appId
-     * @param dayTimeStr
+     * @param appId      Job业务ID
+     * @param dayTimeStr 日期字符串
      */
     public void updateAppTotalExecutedTask(Long appId, String dayTimeStr) {
         // 今日累计执行总量=昨日累计执行总量+今日执行量
         String lastDayTimeStr = DateUtils.getLastDateStr(dayTimeStr);
         // 昨日累计执行总量
-        StatisticsDTO lastDayStatisticsDTO = statisticsDAO.getStatistics(
+        StatisticsDTO lastDayStatisticsDTO = currentTenantStatisticsDAO.getStatistics(
             appId,
             StatisticsConstants.RESOURCE_EXECUTED_TASK,
             StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE,
             StatisticsConstants.DIMENSION_VALUE_GLOBAL_STATISTIC_TYPE_PREFIX
                 + TotalMetricEnum.EXECUTED_TASK_COUNT,
-            lastDayTimeStr);
+            lastDayTimeStr
+        );
         // 今日执行量
-        StatisticsDTO todayStatisticsDTO = statisticsDAO.getStatistics(appId,
+        StatisticsDTO todayStatisticsDTO = currentTenantStatisticsDAO.getStatistics(appId,
             StatisticsConstants.RESOURCE_EXECUTED_TASK, StatisticsConstants.DIMENSION_TIME_UNIT,
             StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY, dayTimeStr);
-        Long totalValue = 0L;
+        long totalValue = 0L;
         if (todayStatisticsDTO != null) {
             totalValue += Long.parseLong(todayStatisticsDTO.getValue());
         } else {
-            log.warn("Cannot find today data:{},{},{},{},ignore", dayTimeStr,
-                StatisticsConstants.RESOURCE_EXECUTED_TASK, StatisticsConstants.DIMENSION_TIME_UNIT,
-                StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY);
+            log.warn(
+                "Cannot find today data:{},{},{},{},ignore",
+                dayTimeStr,
+                StatisticsConstants.RESOURCE_EXECUTED_TASK,
+                StatisticsConstants.DIMENSION_TIME_UNIT,
+                StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY
+            );
         }
         if (lastDayStatisticsDTO != null) {
             totalValue += Long.parseLong(lastDayStatisticsDTO.getValue());
         } else {
-            log.warn("Cannot find lastDay data:{},{},{},{},ignore", lastDayTimeStr,
-                StatisticsConstants.RESOURCE_EXECUTED_TASK, StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE,
-                StatisticsConstants.DIMENSION_VALUE_GLOBAL_STATISTIC_TYPE_PREFIX + TotalMetricEnum.EXECUTED_TASK_COUNT);
+            log.warn(
+                "Cannot find lastDay data:{},{},{},{},ignore",
+                lastDayTimeStr,
+                StatisticsConstants.RESOURCE_EXECUTED_TASK,
+                StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE,
+                StatisticsConstants.DIMENSION_VALUE_GLOBAL_STATISTIC_TYPE_PREFIX + TotalMetricEnum.EXECUTED_TASK_COUNT
+            );
         }
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(appId);
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(dayTimeStr);
-        statisticsDTO.setValue(totalValue.toString());
+        statisticsDTO.setValue(Long.toString(totalValue));
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_EXECUTED_TASK);
         statisticsDTO.setDimension(StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE);
-        statisticsDTO.setDimensionValue(StatisticsConstants.DIMENSION_VALUE_GLOBAL_STATISTIC_TYPE_PREFIX
-            + TotalMetricEnum.EXECUTED_TASK_COUNT);
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        statisticsDTO.setDimensionValue(
+            StatisticsConstants.DIMENSION_VALUE_GLOBAL_STATISTIC_TYPE_PREFIX + TotalMetricEnum.EXECUTED_TASK_COUNT
+        );
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
     }
 
     /**
      * 汇总单个业务的失败执行总量
      *
-     * @param appId
-     * @param dayTimeStr
+     * @param appId      Job业务ID
+     * @param dayTimeStr 日期字符串
      */
     public void updateAppTotalFailedTaskStatistics(Long appId, String dayTimeStr) {
         // 今日累计失败执行总量=昨日累计失败执行总量+今日失败执行量
         String lastDayTimeStr = DateUtils.getLastDateStr(dayTimeStr);
         // 昨日累计失败执行总量
-        StatisticsDTO lastDayStatisticsDTO = statisticsDAO.getStatistics(
+        StatisticsDTO lastDayStatisticsDTO = currentTenantStatisticsDAO.getStatistics(
             appId,
             StatisticsConstants.RESOURCE_FAILED_TASK,
             StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE,
@@ -220,10 +241,10 @@ public class ExecuteTaskDailyPerAppStatisticsTask extends ExecuteBasePerAppStati
                 + TotalMetricEnum.FAILED_TASK_COUNT,
             lastDayTimeStr);
         // 今日失败执行量
-        StatisticsDTO todayStatisticsDTO = statisticsDAO.getStatistics(appId,
+        StatisticsDTO todayStatisticsDTO = currentTenantStatisticsDAO.getStatistics(appId,
             StatisticsConstants.RESOURCE_FAILED_TASK, StatisticsConstants.DIMENSION_TIME_UNIT,
             StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY, dayTimeStr);
-        Long totalValue = 0L;
+        long totalValue = 0L;
         if (todayStatisticsDTO != null) {
             totalValue += Long.parseLong(todayStatisticsDTO.getValue());
         } else {
@@ -238,16 +259,16 @@ public class ExecuteTaskDailyPerAppStatisticsTask extends ExecuteBasePerAppStati
                 StatisticsConstants.RESOURCE_FAILED_TASK, StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE,
                 StatisticsConstants.DIMENSION_VALUE_GLOBAL_STATISTIC_TYPE_PREFIX + TotalMetricEnum.EXECUTED_TASK_COUNT);
         }
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(appId);
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(dayTimeStr);
-        statisticsDTO.setValue(totalValue.toString());
+        statisticsDTO.setValue(Long.toString(totalValue));
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_FAILED_TASK);
         statisticsDTO.setDimension(StatisticsConstants.DIMENSION_GLOBAL_STATISTIC_TYPE);
         statisticsDTO.setDimensionValue(StatisticsConstants.DIMENSION_VALUE_GLOBAL_STATISTIC_TYPE_PREFIX
             + TotalMetricEnum.FAILED_TASK_COUNT);
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
     }
 
     @Override

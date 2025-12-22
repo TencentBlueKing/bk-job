@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service.auth;
 
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
 
@@ -34,10 +35,12 @@ import java.util.List;
  * 作业模板鉴权服务
  */
 public interface TaskTemplateAuthService {
-    void processTemplatePermission(String username, AppResourceScope appResourceScope,
+    void processTemplatePermission(User user,
+                                   AppResourceScope appResourceScope,
                                    PageData<TaskTemplateVO> taskTemplateVOPageData);
 
-    void processTemplatePermission(String username, AppResourceScope appResourceScope,
+    void processTemplatePermission(User user,
+                                   AppResourceScope appResourceScope,
                                    List<TaskTemplateVO> taskTemplateVOList);
 }
 

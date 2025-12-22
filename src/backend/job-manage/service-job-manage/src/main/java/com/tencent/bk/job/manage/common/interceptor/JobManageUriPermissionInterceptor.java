@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,27 +75,27 @@ public class JobManageUriPermissionInterceptor extends HandlerInterceptorAdapter
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        String username = JobContextUtil.getUsername();
+        User user = JobContextUtil.getUser();
         String uri = request.getRequestURI();
 
         //仅超级管理员可使用管理相关接口
         if (pathMatcher.match(URI_PATTERN_NOTIFY_BLACKLIST, uri)) {
-            AuthResult authResult = authService.auth(username, ActionId.GLOBAL_SETTINGS);
+            AuthResult authResult = authService.auth(user, ActionId.GLOBAL_SETTINGS);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }
         } else if (pathMatcher.match(URI_PATTERN_GLOBAL_SETTINGS, uri)) {
-            AuthResult authResult = authService.auth(username, ActionId.GLOBAL_SETTINGS);
+            AuthResult authResult = authService.auth(user, ActionId.GLOBAL_SETTINGS);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }
         } else if (pathMatcher.match(URI_PATTERN_SERVICE_INFO, uri)) {
-            AuthResult authResult = authService.auth(username, ActionId.SERVICE_STATE_ACCESS);
+            AuthResult authResult = authService.auth(user, ActionId.SERVICE_STATE_ACCESS);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }
         } else if (pathMatcher.match(URI_PATTERN_DANGEROUS_RULE, uri)) {
-            AuthResult authResult = authService.auth(username, ActionId.HIGH_RISK_DETECT_RULE);
+            AuthResult authResult = authService.auth(user, ActionId.HIGH_RISK_DETECT_RULE);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }
