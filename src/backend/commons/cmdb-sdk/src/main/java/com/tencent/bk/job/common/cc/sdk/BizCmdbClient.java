@@ -1136,9 +1136,15 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
 
             // 设置主机业务信息
             setBizRelationInfo(tenantId, hosts);
+            // 设置主机租户信息
+            setHostTenantInfo(tenantId, hosts);
         } while (start < total);
 
         return hosts;
+    }
+
+    private void setHostTenantInfo(String tenantId, List<ApplicationHostDTO> hosts) {
+        hosts.forEach(host -> host.setTenantId(tenantId));
     }
 
     private void setBizRelationInfo(String tenantId, List<ApplicationHostDTO> hosts) {
