@@ -47,13 +47,13 @@ public class ServiceTaskVariableDTO {
      *
      * @see TaskVariableTypeEnum
      */
-    @ApiModelProperty(value = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码")
+    @ApiModelProperty(value = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码 5-关联数组 6-索引数组 7-容器列表")
     private Integer type;
 
     @ApiModelProperty(value = "默认值")
     private String defaultValue;
 
-    @ApiModelProperty(value = "主机列表默认值")
+    @ApiModelProperty(value = "主机列表/容器列表默认值")
     private ServiceTaskTargetDTO defaultTargetValue;
 
     @ApiModelProperty(value = "是否赋值可变")

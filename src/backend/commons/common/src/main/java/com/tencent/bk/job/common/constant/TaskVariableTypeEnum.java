@@ -61,7 +61,12 @@ public enum TaskVariableTypeEnum {
     /**
      * 索引数组
      */
-    INDEX_ARRAY(6, true, false, null);
+    INDEX_ARRAY(6, true, false, null),
+
+    /**
+     * 容器列表
+     */
+    CONTAINER_LIST(7, false, false, null);
 
     @JsonValue
     private int type;

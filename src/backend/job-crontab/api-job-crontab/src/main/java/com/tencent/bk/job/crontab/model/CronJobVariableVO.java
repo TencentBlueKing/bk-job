@@ -46,7 +46,7 @@ public class CronJobVariableVO {
      *
      * @see TaskVariableTypeEnum
      */
-    @ApiModelProperty(value = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码", required = true)
+    @ApiModelProperty(value = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码 5-关联数组 6-索引数组 7-容器列表", required = true)
     private Integer type;
 
     /**
@@ -58,9 +58,9 @@ public class CronJobVariableVO {
     /**
      * 字符型变量的值
      * <p>
-     * 命名空间，字符串，密码从该字段获取值，type 为 1 2 4 时必填
+     * 命名空间，字符串，密码从该字段获取值，type 为 1 2 4 5 6 时必填
      */
-    @ApiModelProperty("字符变量值，命名空间，字符串，密码从该字段获取值，type 为 1 2 4 时必填")
+    @ApiModelProperty("字符变量值，命名空间，字符串，密码从该字段获取值，type 为 1 2 4 5 6 时必填")
     private String value;
 
     /**
