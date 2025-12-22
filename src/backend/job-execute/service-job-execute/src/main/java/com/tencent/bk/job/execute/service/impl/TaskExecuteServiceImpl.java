@@ -46,6 +46,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.tenant.TenantService;
@@ -122,6 +123,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceTargetContainerDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskApprovalStepDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskFileInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskFileStepDTO;
@@ -1938,6 +1940,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 topoNodes.add(new DynamicServerTopoNodeDTO(topoNodeId.getId(), topoNodeId.getType()));
             }
             executeTarget.setTopoNodes(topoNodes);
+        }
+
+        List<ServiceTargetContainerDTO> serviceContainerList = taskTarget.getContainerList();
+        if (CollectionUtils.isNotEmpty(serviceContainerList)) {
+            List<Container> containerList = new ArrayList<>();
+            for (ServiceTargetContainerDTO serviceContainer : serviceContainerList) {
+                Container container = serviceContainer.toCommonContainer();
+                containerList.add(container);
+            }
+            executeTarget.setStaticContainerList(containerList);
         }
         return executeTarget;
     }
