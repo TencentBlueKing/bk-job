@@ -313,36 +313,33 @@
     },
     created() {
       this.ipSelectorConfig = {};
-      // 快速执行场景
       // 业务集和租户集场景不支持动态分组和容器
-      if (this.from === 'execute') {
-        if (window.PROJECT_CONFIG.SCOPE_TYPE === 'biz_set') {
-          this.ipSelectorConfig = {
-            panelList: [
-              'staticTopo',
-              'dynamicTopo',
-              'manualInput',
-            ],
-          };
-        } else if (window.PROJECT_CONFIG.SCOPE_TYPE === 'tenant_set') {
-          this.ipSelectorConfig = {
-            panelList: [
-              'staticTopo',
-              'manualInput',
-            ],
-          };
-        } else {
-          this.ipSelectorConfig = {
-            panelList: [
-              'staticTopo',
-              'dynamicTopo',
-              'dynamicGroup',
-              'manualInput',
-              'containerStaticTopo',
-              'containerManualInput',
-            ],
-          };
-        }
+      if (window.PROJECT_CONFIG.SCOPE_TYPE === 'biz_set') {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'dynamicTopo',
+            'manualInput',
+          ],
+        };
+      } else if (window.PROJECT_CONFIG.SCOPE_TYPE === 'tenant_set') {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'manualInput',
+          ],
+        };
+      } else {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'dynamicTopo',
+            'dynamicGroup',
+            'manualInput',
+            'containerStaticTopo',
+            'containerManualInput',
+          ],
+        };
       }
 
       // 执行目标是主机变量
