@@ -22,28 +22,50 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.service;
+package com.tencent.bk.job.manage.background.ha;
 
 /**
- * CMDB事件游标管理器
+ * 后台任务（CMDB事件监听任务、CMDB资源同步任务等）
  */
-public interface CmdbEventCursorManager {
+public interface BackGroundTask extends BackGroundTaskRegistryAware {
 
     /**
-     * 尝试加载最近的已处理过的事件的游标，若加载过程发生异常则返回null并记录错误日志
+     * 获取任务实体
      *
-     * @param tenantId            租户ID
-     * @param watcherResourceName 监听的资源名称
-     * @return 最近的已处理过的事件的游标
+     * @return 后台任务实体
      */
-    String tryToLoadLatestCursor(String tenantId, String watcherResourceName);
+    TaskEntity getTaskEntity();
 
     /**
-     * 尝试保存最近的已处理过的事件的游标，若保存过程发生异常则记录错误日志
+     * 获取任务唯一代码
      *
-     * @param tenantId            租户ID
-     * @param watcherResourceName 监听的资源名称
-     * @param latestCursor        最近的已处理过的事件的游标
+     * @return 后台任务唯一代码，多个任务之间不重复
      */
-    void tryToSaveLatestCursor(String tenantId, String watcherResourceName, String latestCursor);
+    default String getUniqueCode(){
+        return getTaskEntity().getUniqueCode();
+    }
+
+    /**
+     * 获取后台任务的租户ID
+     *
+     * @return 租户ID
+     */
+    String getTenantId();
+
+    /**
+     * 任务的线程消耗
+     *
+     * @return 线程消耗数值
+     */
+    int getThreadCost();
+
+    /**
+     * 启动任务
+     */
+    void startTask();
+
+    /**
+     * 优雅停止
+     */
+    void shutdownGracefully();
 }

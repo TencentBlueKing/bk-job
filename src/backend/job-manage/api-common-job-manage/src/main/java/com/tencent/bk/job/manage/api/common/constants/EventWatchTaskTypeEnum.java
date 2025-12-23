@@ -22,30 +22,62 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.ha;
+package com.tencent.bk.job.manage.api.common.constants;
 
-import lombok.extern.slf4j.Slf4j;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.Getter;
+import lombok.val;
 
 /**
- * 抽象的后台任务，封装部分公共逻辑
+ * 事件监听后台任务类型枚举类
  */
-@Slf4j
-public abstract class AbstractBackGroundTask extends Thread implements BackGroundTask {
+@Getter
+public enum EventWatchTaskTypeEnum {
 
-    private BackGroundTaskRegistry registry;
+    /**
+     * 监听业务事件
+     */
+    WATCH_BIZ("watchBiz"),
 
-    @Override
-    public void setRegistry(BackGroundTaskRegistry registry) {
-        this.registry = registry;
+    /**
+     * 监听业务集事件
+     */
+    WATCH_BIZ_SET("watchBizSet"),
+
+    /**
+     * 监听业务集关系事件
+     */
+    WATCH_BIZ_SET_RELATION("watchBizSetRelation"),
+
+    /**
+     * 监听主机事件
+     */
+    WATCH_HOST("watchHost"),
+
+    /**
+     * 监听主机关系事件
+     */
+    WATCH_HOST_RELATION("watchHostRelation");
+
+    @JsonValue
+    private final String type;
+
+    EventWatchTaskTypeEnum(String type) {
+        this.type = type;
     }
 
-    public void deregister() {
-        BackGroundTask backGroundTask = registry.removeTask(getUniqueCode());
-        log.info("deregister backGroundTask({}), result={}", getUniqueCode(), backGroundTask != null);
-    }
-
-    @Override
-    public void startTask() {
-        super.start();
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public static EventWatchTaskTypeEnum valOf(String type) {
+        if (type == null) {
+            return null;
+        }
+        val values = EventWatchTaskTypeEnum.values();
+        for (EventWatchTaskTypeEnum value : values) {
+            if (value.type.equals(type)) {
+                return value;
+            }
+        }
+        return null;
     }
 }

@@ -22,47 +22,45 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.ha;
+package com.tencent.bk.job.manage.api.op;
 
-import org.springframework.stereotype.Service;
-
-import java.util.Map;
+import com.tencent.bk.job.common.annotation.InternalAPI;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.manage.model.op.req.EventWatchOpReq;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * 后台任务注册仓库接口
+ * CMDB事件监听相关的OP接口
  */
-@Service
-public interface BackGroundTaskRegistry {
+@Api(tags = {"job-manage:api:CmdbEvent-OP"})
+@RequestMapping("/op/cmdbEvent")
+@InternalAPI
+public interface CmdbEventOpResource {
 
     /**
-     * 判断任务是否存在
+     * 开启某一类事件监听
      *
-     * @param uniqueCode 任务编码
-     * @return 布尔值
+     * @return 开启的事件监听器数量
      */
-    boolean existsTask(String uniqueCode);
+    @PutMapping("/enableWatch")
+    @ApiOperation(value = "开启某一类事件监听", produces = "application/json")
+    InternalResponse<Integer> enableWatch(
+        @ApiParam(value = "事件监听操作请求体", required = true) @RequestBody EventWatchOpReq req
+    );
 
     /**
-     * 注册任务
+     * 关闭某一类事件监听
      *
-     * @param uniqueCode 任务编码
-     * @param task       后台任务
-     * @return 是否注册成功
+     * @return 关闭的事件监听器数量
      */
-    boolean registerTask(String uniqueCode, BackGroundTask task);
-
-    /**
-     * 移除任务
-     *
-     * @param uniqueCode 任务编码
-     * @return 被移除的任务
-     */
-    BackGroundTask removeTask(String uniqueCode);
-
-    /**
-     * 获取所有任务Map
-     *
-     * @return Map<任务编码, 任务对象>
-     */
-    Map<String, BackGroundTask> getTaskMap();
+    @PutMapping("/disableWatch")
+    @ApiOperation(value = "关闭某一类事件监听", produces = "application/json")
+    InternalResponse<Integer> disableWatch(
+        @ApiParam(value = "事件监听操作请求体", required = true) @RequestBody EventWatchOpReq req
+    );
 }

@@ -22,15 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.ha;
+package com.tencent.bk.job.manage.background.event.cmdb;
 
 /**
- * 感知后台任务注册仓库
+ * CMDB事件监听器接口，定义监听器支持的操作
  */
-public interface IBackGroundTaskRegistryAware {
+public interface CmdbEventWatcher {
 
     /**
-     * 设置后台任务仓库
+     * 设置监听状态
+     *
+     * @param enabled 是否开启
      */
-    void setRegistry(IBackGroundTaskRegistry registry);
+    void setWatchEnabled(boolean enabled);
 }

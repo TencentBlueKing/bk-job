@@ -22,7 +22,7 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.event.cmdb;
+package com.tencent.bk.job.manage.background.event.cmdb.handler;
 
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
@@ -30,54 +30,82 @@ import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.manage.config.JobManageConfig;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
-import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.manager.host.HostCache;
 import com.tencent.bk.job.manage.metrics.CmdbEventSampler;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.host.NoTenantHostService;
+import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.util.StopWatch;
 
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
+/**
+ * 主机关系事件处理器
+ */
 @Slf4j
-public class HostRelationEventHandler extends EventsHandler<HostRelationEventDetail> {
+public class HostRelationEventHandler extends AsyncEventHandler<HostRelationEventDetail> {
 
     /**
-     * 单个Handler自身的线程资源成本
+     * 单个Handler的额外线程数
      */
-    public static final int SINGLE_HANDLER_THREAD_RESOURCE_COST = 1;
+    public static final int SINGLE_HANDLER_EXTRA_THREAD_NUM = 1;
+    /**
+     * CMDB事件指标数据采样器
+     */
+    private final CmdbEventSampler cmdbEventSampler;
+    /**
+     * 业务服务
+     */
     private final ApplicationService applicationService;
-    private final NoTenantHostDAO noTenantHostDAO;
+    /**
+     * 租户无关的主机服务
+     */
+    private final NoTenantHostService noTenantHostService;
+    /**
+     * 主机拓扑数据操作对象
+     */
     private final HostTopoDAO hostTopoDAO;
+    /**
+     * 主机缓存
+     */
     private final HostCache hostCache;
 
     public HostRelationEventHandler(Tracer tracer,
                                     CmdbEventSampler cmdbEventSampler,
-                                    BlockingQueue<ResourceEvent<HostRelationEventDetail>> queue,
                                     ApplicationService applicationService,
-                                    NoTenantHostDAO noTenantHostDAO,
+                                    NoTenantHostService noTenantHostService,
                                     HostTopoDAO hostTopoDAO,
                                     HostCache hostCache,
+                                    JobManageConfig jobManageConfig,
                                     String tenantId) {
-        super(queue, tracer, cmdbEventSampler, tenantId);
+        super(
+            new LinkedBlockingQueue<>(jobManageConfig.getHostRelationEventQueueSize()),
+            tracer,
+            cmdbEventSampler,
+            tenantId
+        );
+        this.cmdbEventSampler = cmdbEventSampler;
         this.applicationService = applicationService;
-        this.noTenantHostDAO = noTenantHostDAO;
+        this.noTenantHostService = noTenantHostService;
         this.hostTopoDAO = hostTopoDAO;
         this.hostCache = hostCache;
+        registerQueueMetrics();
     }
 
     @Override
-    void handleEvent(ResourceEvent<HostRelationEventDetail> event) {
-        handleOneEvent(event);
+    public int getExtraThreadNum() {
+        return SINGLE_HANDLER_EXTRA_THREAD_NUM;
     }
 
     @Override
-    Tags getEventHandleExtraTags() {
+    Iterable<Tag> getEventHandleExtraTags() {
         return Tags.of(
             MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE,
             MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_HOST_RELATION
@@ -85,15 +113,42 @@ public class HostRelationEventHandler extends EventsHandler<HostRelationEventDet
     }
 
     @Override
-    String getSpanName() {
-        return "handleHostRelationEvent";
+    void handleEventInternal(ResourceEvent<HostRelationEventDetail> event) {
+        handleOneEventAndRecordTime(event);
     }
 
-    private void handleOneEvent(ResourceEvent<HostRelationEventDetail> event) {
+    /**
+     * 注册事件队列相关指标数据
+     */
+    private void registerQueueMetrics() {
+        String handlerName = "HostRelationEventHandler";
+        Iterable<Tag> tags = buildHostRelationEventHandlerTags(handlerName);
+        cmdbEventSampler.registerEventQueueToGauge(queue, tags);
+    }
+
+    /**
+     * 构建主机关系事件处理器相关指标数据的维度标签
+     *
+     * @param handlerName 处理器名称
+     * @return 维度标签
+     */
+    private Iterable<Tag> buildHostRelationEventHandlerTags(String handlerName) {
+        return Tags.of(
+            MetricsConstants.TAG_KEY_CMDB_EVENT_TYPE, MetricsConstants.TAG_VALUE_CMDB_EVENT_TYPE_HOST_RELATION,
+            MetricsConstants.TAG_KEY_CMDB_HOST_EVENT_HANDLER_NAME, handlerName
+        );
+    }
+
+    /**
+     * 处理单个主机关系事件并记录耗时
+     *
+     * @param event 主机关系事件
+     */
+    private void handleOneEventAndRecordTime(ResourceEvent<HostRelationEventDetail> event) {
         log.info("start to handle host relation event:{}", JsonUtils.toJson(event));
         StopWatch watch = new StopWatch();
         watch.start("handleOneEventIndeed");
-        handleOneEventIndeed(event);
+        handleOneEvent(event);
         watch.stop();
         if (watch.getTotalTimeMillis() > 3000) {
             log.warn("PERF:SLOW:handle hostRelationEvent:" + watch.prettyPrint());
@@ -102,6 +157,33 @@ public class HostRelationEventHandler extends EventsHandler<HostRelationEventDet
         }
     }
 
+    /**
+     * 处理单个主机关系事件
+     *
+     * @param event 主机关系事件
+     */
+    private void handleOneEvent(ResourceEvent<HostRelationEventDetail> event) {
+        String eventType = event.getEventType();
+        HostTopoDTO hostTopoDTO = HostTopoDTO.fromHostRelationEvent(event.getDetail());
+        setDefaultLastTimeForHostTopoIfNeed(event, hostTopoDTO);
+        switch (eventType) {
+            case ResourceWatchReq.EVENT_TYPE_CREATE:
+                handleCreateEvent(hostTopoDTO);
+                break;
+            case ResourceWatchReq.EVENT_TYPE_DELETE:
+                handleDeleteEvent(hostTopoDTO);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * CMDB中某些主机拓扑数据由于历史原因存在lastTime字段为空的情况，使用事件创建时间作为其默认值
+     *
+     * @param event       事件
+     * @param hostTopoDTO 主机拓扑数据
+     */
     private void setDefaultLastTimeForHostTopoIfNeed(ResourceEvent<HostRelationEventDetail> event,
                                                      HostTopoDTO hostTopoDTO) {
         if (hostTopoDTO.getLastTime() == null || hostTopoDTO.getLastTime() < 0) {
@@ -109,53 +191,55 @@ public class HostRelationEventHandler extends EventsHandler<HostRelationEventDet
         }
     }
 
-    private void handleOneEventIndeed(ResourceEvent<HostRelationEventDetail> event) {
-        String eventType = event.getEventType();
-        HostTopoDTO hostTopoDTO = HostTopoDTO.fromHostRelationEvent(event.getDetail());
-        setDefaultLastTimeForHostTopoIfNeed(event, hostTopoDTO);
-        switch (eventType) {
-            case ResourceWatchReq.EVENT_TYPE_CREATE:
-                // 插入拓扑数据
-                int insertedHostTopoNum = hostTopoDAO.insertHostTopo(hostTopoDTO);
-                // 同步拓扑数据至主机表冗余字段
-                int affectedHostNum = updateTopoToHost(hostTopoDTO);
-                // 更新主机缓存
-                boolean cacheUpdated = updateOrDeleteHostCache(hostTopoDTO);
-                log.info(
-                    "create event handle result: insertedHostTopoNum={}, affectedHostNum={}, cacheUpdated={}",
-                    insertedHostTopoNum,
-                    affectedHostNum,
-                    cacheUpdated
-                );
-                break;
-            case ResourceWatchReq.EVENT_TYPE_DELETE:
-                // 删除拓扑数据
-                int deletedHostTopoNum = hostTopoDAO.deleteHostTopoBeforeOrEqualLastTime(
-                    hostTopoDTO.getHostId(),
-                    hostTopoDTO.getBizId(),
-                    hostTopoDTO.getSetId(),
-                    hostTopoDTO.getModuleId(),
-                    hostTopoDTO.getLastTime()
-                );
-                if (deletedHostTopoNum > 0) {
-                    // 同步拓扑数据至主机表冗余字段
-                    int deleteEventAffectedHostNum = updateTopoToHost(hostTopoDTO);
-                    // 更新主机缓存
-                    boolean deleteEventCacheUpdated = updateOrDeleteHostCache(hostTopoDTO);
-                    log.info(
-                        "delete event handle result: deletedHostTopoNum={}, deleteEventAffectedHostNum={}," +
-                            " deleteEventCacheUpdated={}",
-                        deletedHostTopoNum,
-                        deleteEventAffectedHostNum,
-                        deleteEventCacheUpdated
-                    );
-                } else {
-                    log.warn("no hostTopo deleted, delete event may expire for long time");
-                }
-                break;
-            default:
-                break;
+    /**
+     * 处理主机关系创建事件
+     *
+     * @param hostTopoDTO 主机拓扑对象
+     */
+    private void handleCreateEvent(HostTopoDTO hostTopoDTO) {
+        // 插入拓扑数据
+        int insertedHostTopoNum = hostTopoDAO.insertHostTopo(hostTopoDTO);
+        // 同步拓扑数据至主机表冗余字段
+        int affectedHostNum = updateTopoToHost(hostTopoDTO);
+        // 更新主机缓存
+        boolean cacheUpdated = updateOrDeleteHostCache(hostTopoDTO);
+        log.info(
+            "create event handle result: insertedHostTopoNum={}, affectedHostNum={}, cacheUpdated={}",
+            insertedHostTopoNum,
+            affectedHostNum,
+            cacheUpdated
+        );
+    }
+
+    /**
+     * 处理主机关系删除事件
+     *
+     * @param hostTopoDTO 主机拓扑对象
+     */
+    private void handleDeleteEvent(HostTopoDTO hostTopoDTO) {
+        // 删除拓扑数据
+        int deletedHostTopoNum = hostTopoDAO.deleteHostTopoBeforeOrEqualLastTime(
+            hostTopoDTO.getHostId(),
+            hostTopoDTO.getBizId(),
+            hostTopoDTO.getSetId(),
+            hostTopoDTO.getModuleId(),
+            hostTopoDTO.getLastTime()
+        );
+        if (deletedHostTopoNum == 0) {
+            log.warn("no hostTopo deleted, delete event may expire for long time");
+            return;
         }
+        // 同步拓扑数据至主机表冗余字段
+        int deleteEventAffectedHostNum = updateTopoToHost(hostTopoDTO);
+        // 更新主机缓存
+        boolean deleteEventCacheUpdated = updateOrDeleteHostCache(hostTopoDTO);
+        log.info(
+            "delete event handle result: deletedHostTopoNum={}, deleteEventAffectedHostNum={}," +
+                " deleteEventCacheUpdated={}",
+            deletedHostTopoNum,
+            deleteEventAffectedHostNum,
+            deleteEventCacheUpdated
+        );
     }
 
     /**
@@ -166,7 +250,7 @@ public class HostRelationEventHandler extends EventsHandler<HostRelationEventDet
      */
     private int updateTopoToHost(HostTopoDTO hostTopoDTO) {
         // 若主机存在需将拓扑信息同步至主机信息冗余字段
-        int affectedHostNum = noTenantHostDAO.syncHostTopo(hostTopoDTO.getHostId());
+        int affectedHostNum = noTenantHostService.syncHostTopo(hostTopoDTO.getHostId());
         if (affectedHostNum > 0) {
             log.info("host topo synced: affectedHostNum={}", affectedHostNum);
         } else if (affectedHostNum == 0) {
@@ -184,7 +268,7 @@ public class HostRelationEventHandler extends EventsHandler<HostRelationEventDet
      * @return 是否执行了更新/删除缓存动作
      */
     private boolean updateOrDeleteHostCache(HostTopoDTO hostTopoDTO) {
-        ApplicationHostDTO host = noTenantHostDAO.getHostById(hostTopoDTO.getHostId());
+        ApplicationHostDTO host = noTenantHostService.getHostById(hostTopoDTO.getHostId());
         if (host == null) {
             log.info("host already deleted by others: hostId={}, ignore", hostTopoDTO.getHostId());
             return false;

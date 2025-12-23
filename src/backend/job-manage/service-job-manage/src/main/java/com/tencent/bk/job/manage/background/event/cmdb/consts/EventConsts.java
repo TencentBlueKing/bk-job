@@ -22,35 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.ha;
+package com.tencent.bk.job.manage.background.event.cmdb.consts;
 
 /**
- * 后台任务代码
+ * 事件监听相关常量
  */
-public class BackGroundTaskCode {
+public class EventConsts {
 
     /**
-     * 监听业务事件
+     * 事件监听是否开启检测间隔：5s
      */
-    public static final String WATCH_BIZ = "watchBiz";
+    public static final int EVENT_ENABLED_CHECK_INTERVAL_MILLIS = 5 * 1000;
 
     /**
-     * 监听业务集事件
+     * 没有任何事件被监听时的等待间隔：1s
      */
-    public static final String WATCH_BIZ_SET = "watchBizSet";
+    public static final int NO_EVENT_WATCHED_WAIT_INTERVAL_MILLIS = 1000;
 
     /**
-     * 监听业务集关系事件
+     * 事件回溯时间：5min
      */
-    public static final String WATCH_BIZ_SET_RELATION = "watchBizSetRelation";
-
-    /**
-     * 监听主机事件
-     */
-    public static final String WATCH_HOST = "watchHost";
-
-    /**
-     * 监听主机关系事件
-     */
-    public static final String WATCH_HOST_RELATION = "watchHostRelation";
+    public static final int EVENT_BACK_TRACK_TIME_MILLIS = 5 * 60 * 1000;
 }

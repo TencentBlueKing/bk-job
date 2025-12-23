@@ -22,10 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.policy;
+package com.tencent.bk.job.manage.api.op.impl;
 
-/**
- * 线程均衡策略，保证每个实例上用于执行特定任务的线程数大致均衡
- */
-public class ThreadBalancePolicy {
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.manage.api.op.CmdbEventOpResource;
+import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventManager;
+import com.tencent.bk.job.manage.model.op.req.EventWatchOpReq;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RestController;
+
+@Slf4j
+@RestController
+public class CmdbEventOpResourceImpl implements CmdbEventOpResource {
+    private final CmdbEventManager cmdbEventManager;
+
+    @Autowired
+    public CmdbEventOpResourceImpl(CmdbEventManager cmdbEventManager) {
+        this.cmdbEventManager = cmdbEventManager;
+    }
+
+    @Override
+    public InternalResponse<Integer> enableWatch(EventWatchOpReq req) {
+        return InternalResponse.buildSuccessResp(cmdbEventManager.enableWatch(req.getTaskType()));
+    }
+
+    @Override
+    public InternalResponse<Integer> disableWatch(EventWatchOpReq req) {
+        return InternalResponse.buildSuccessResp(cmdbEventManager.disableWatch(req.getTaskType()));
+    }
 }

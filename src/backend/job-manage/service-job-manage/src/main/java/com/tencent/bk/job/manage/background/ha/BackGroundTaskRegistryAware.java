@@ -24,21 +24,13 @@
 
 package com.tencent.bk.job.manage.background.ha;
 
-import org.springframework.stereotype.Service;
-
-import java.util.Map;
-
 /**
- * 后台任务注册仓库接口
+ * 感知后台任务注册仓库接口
  */
-@Service
-public interface IBackGroundTaskRegistry {
+public interface BackGroundTaskRegistryAware {
 
-    boolean existsTask(String uniqueCode);
-
-    boolean registerTask(String uniqueCode, IBackGroundTask task);
-
-    IBackGroundTask removeTask(String uniqueCode);
-
-    Map<String, IBackGroundTask> getTaskMap();
+    /**
+     * 设置后台任务仓库
+     */
+    void setRegistry(BackGroundTaskRegistry registry);
 }

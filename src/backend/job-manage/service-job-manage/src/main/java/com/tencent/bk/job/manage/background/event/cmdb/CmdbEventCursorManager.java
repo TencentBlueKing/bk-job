@@ -22,30 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.ha;
-
-import lombok.extern.slf4j.Slf4j;
+package com.tencent.bk.job.manage.background.event.cmdb;
 
 /**
- * 抽象的后台任务，封装部分公共逻辑
+ * CMDB事件游标管理器
  */
-@Slf4j
-public abstract class AbstractBackGroundTask extends Thread implements BackGroundTask {
+public interface CmdbEventCursorManager {
 
-    private BackGroundTaskRegistry registry;
+    /**
+     * 尝试加载最近的已处理过的事件的游标，若加载过程发生异常则返回null并记录错误日志
+     *
+     * @param tenantId            租户ID
+     * @param watcherResourceName 监听的资源名称
+     * @return 最近的已处理过的事件的游标
+     */
+    String tryToLoadLatestCursor(String tenantId, String watcherResourceName);
 
-    @Override
-    public void setRegistry(BackGroundTaskRegistry registry) {
-        this.registry = registry;
-    }
-
-    public void deregister() {
-        BackGroundTask backGroundTask = registry.removeTask(getUniqueCode());
-        log.info("deregister backGroundTask({}), result={}", getUniqueCode(), backGroundTask != null);
-    }
-
-    @Override
-    public void startTask() {
-        super.start();
-    }
+    /**
+     * 尝试保存最近的已处理过的事件的游标，若保存过程发生异常则记录错误日志
+     *
+     * @param tenantId            租户ID
+     * @param watcherResourceName 监听的资源名称
+     * @param latestCursor        最近的已处理过的事件的游标
+     */
+    void tryToSaveLatestCursor(String tenantId, String watcherResourceName, String latestCursor);
 }

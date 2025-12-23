@@ -22,30 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.ha;
+package com.tencent.bk.job.manage.background.event.cmdb.handler;
 
-import lombok.extern.slf4j.Slf4j;
+import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
 
 /**
- * 抽象的后台任务，封装部分公共逻辑
+ * CMDB事件处理器接口
+ *
+ * @param <T> 事件类型
  */
-@Slf4j
-public abstract class AbstractBackGroundTask extends Thread implements BackGroundTask {
+public interface CmdbEventHandler<T> {
 
-    private BackGroundTaskRegistry registry;
+    /**
+     * 处理监听到的事件
+     *
+     * @param event 事件
+     */
+    void handleEvent(ResourceEvent<T> event);
 
-    @Override
-    public void setRegistry(BackGroundTaskRegistry registry) {
-        this.registry = registry;
-    }
+    /**
+     * 获取额外消耗的线程数量
+     *
+     * @return 额外消耗的线程数量
+     */
+    int getExtraThreadNum();
 
-    public void deregister() {
-        BackGroundTask backGroundTask = registry.removeTask(getUniqueCode());
-        log.info("deregister backGroundTask({}), result={}", getUniqueCode(), backGroundTask != null);
-    }
-
-    @Override
-    public void startTask() {
-        super.start();
+    /**
+     * 关闭事件处理器，用于可能存在的资源释放等操作
+     */
+    default void close() {
     }
 }

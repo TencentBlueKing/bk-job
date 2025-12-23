@@ -25,27 +25,44 @@
 package com.tencent.bk.job.manage.background.ha;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 抽象的后台任务，封装部分公共逻辑
+ * 后台任务注册仓库实现
  */
 @Slf4j
-public abstract class AbstractBackGroundTask extends Thread implements BackGroundTask {
-
-    private BackGroundTaskRegistry registry;
+@Service
+public class BackGroundTaskRegistryImpl implements BackGroundTaskRegistry {
+    private final Map<String, BackGroundTask> taskMap = new ConcurrentHashMap<>();
 
     @Override
-    public void setRegistry(BackGroundTaskRegistry registry) {
-        this.registry = registry;
-    }
-
-    public void deregister() {
-        BackGroundTask backGroundTask = registry.removeTask(getUniqueCode());
-        log.info("deregister backGroundTask({}), result={}", getUniqueCode(), backGroundTask != null);
+    public boolean existsTask(String uniqueCode) {
+        return taskMap.containsKey(uniqueCode);
     }
 
     @Override
-    public void startTask() {
-        super.start();
+    public boolean registerTask(String uniqueCode, BackGroundTask task) {
+        if (taskMap.containsKey(uniqueCode)) {
+            log.warn("task already registered, code={}, ignore", uniqueCode);
+            return false;
+        }
+        task.setRegistry(this);
+        taskMap.put(uniqueCode, task);
+        return true;
     }
+
+    @Override
+    public BackGroundTask removeTask(String uniqueCode) {
+        return taskMap.remove(uniqueCode);
+    }
+
+    @Override
+    public Map<String, BackGroundTask> getTaskMap() {
+        return taskMap;
+    }
+
+
 }
