@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class BackGroundTaskDispatcher {
+    @SuppressWarnings("FieldCanBeLocal")
     private final String BINDING_NAME_SEND_BACKGROUND_TASK = "sendBackGroundTask-out-0";
     private final StreamBridge streamBridge;
 

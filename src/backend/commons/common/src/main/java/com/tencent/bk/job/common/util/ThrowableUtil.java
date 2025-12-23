@@ -22,19 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.policy;
+package com.tencent.bk.job.common.util;
 
 /**
- * 线程资源消费者
+ * 异常工具类
  */
-public interface ThreadConsumer {
+public class ThrowableUtil {
+
     /**
-     * 获取当前消费者使用的线程数
+     * 判断一个异常是否由中断引起，
+     * 判断依据：异常中任何一层cause为InterruptedException
      *
-     * @return 线程数
+     * @param t 异常
+     * @return 布尔值
      */
-    default int getUsedThreadCount() {
-        // 普通消费者默认使用单线程执行任务
-        return 1;
+    public static boolean isCausedByInterrupted(Throwable t) {
+        if (t == null) {
+            return false;
+        }
+        if (t instanceof InterruptedException) {
+            return true;
+        }
+        Throwable cause = t.getCause();
+        while (cause != null) {
+            if (cause instanceof InterruptedException) {
+                return true;
+            }
+            cause = cause.getCause();
+        }
+        return false;
     }
 }

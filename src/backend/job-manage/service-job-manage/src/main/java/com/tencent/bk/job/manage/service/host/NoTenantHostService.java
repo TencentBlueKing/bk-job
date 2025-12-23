@@ -93,7 +93,7 @@ public interface NoTenantHostService {
      *
      * @param hostId 主机ID
      */
-    void updateDbHostToCache(Long hostId);
+    void loadHostFromDbToCache(Long hostId);
 
     /**
      * 更新主机状态
@@ -140,4 +140,20 @@ public interface NoTenantHostService {
      * @return Agent状态不正常的主机ID列表
      */
     List<Long> listHostIdOfNotAliveHostInDB(Collection<Long> hostIds);
+
+    /**
+     * 同步主机拓扑数据至主机表
+     *
+     * @param hostId 主机ID
+     * @return 受影响行数
+     */
+    int syncHostTopo(Long hostId);
+
+    /**
+     * 根据主机ID获取主机数据
+     *
+     * @param hostId 主机ID
+     * @return 主机数据
+     */
+    ApplicationHostDTO getHostById(Long hostId);
 }

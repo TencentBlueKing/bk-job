@@ -22,35 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.op;
+package com.tencent.bk.job.manage.model.op.req;
 
-import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
-import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
-import com.tencent.bk.job.common.constant.JobCommonHeaders;
-import com.tencent.bk.job.common.model.Response;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
-@Api(tags = {"job-manage:api:EventReplay-OP"})
-@RequestMapping("/op/eventReplay")
-@RestController
-public interface EventReplayOpResource {
+/**
+ * 事件监听任务OP操作请求体
+ */
+@Data
+public class EventWatchOpReq {
 
-    @ApiOperation(value = "重放主机事件", produces = "application/json")
-    @PostMapping("/host")
-    Response<Boolean> replayHostEvent(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username") String username,
-        @ApiParam("租户ID")
-        @RequestHeader(JobCommonHeaders.BK_TENANT_ID) String tenantId,
-        @ApiParam(value = "主机事件", required = true)
-        @RequestBody ResourceEvent<HostEventDetail> event
-    );
+    @ApiModelProperty(value = "事件监听任务的任务类型", required = true)
+    private EventWatchTaskTypeEnum taskType;
 
 }

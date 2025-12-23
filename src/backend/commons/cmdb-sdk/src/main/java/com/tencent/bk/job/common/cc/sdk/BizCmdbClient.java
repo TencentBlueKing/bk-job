@@ -1136,9 +1136,15 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
 
             // 设置主机业务信息
             setBizRelationInfo(tenantId, hosts);
+            // 设置主机租户信息
+            setHostTenantInfo(tenantId, hosts);
         } while (start < total);
 
         return hosts;
+    }
+
+    private void setHostTenantInfo(String tenantId, List<ApplicationHostDTO> hosts) {
+        hosts.forEach(host -> host.setTenantId(tenantId));
     }
 
     private void setBizRelationInfo(String tenantId, List<ApplicationHostDTO> hosts) {
@@ -1417,7 +1423,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public ResourceWatchResult<BizEventDetail> getAppEvents(String tenantId, Long startTime, String cursor) {
+    public ResourceWatchResult<BizEventDetail> getBizEvents(String tenantId, Long startTime, String cursor) {
         ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_biz_id", "bk_biz_name", "bk_supplier_account",
             "time_zone", "language", "default"));

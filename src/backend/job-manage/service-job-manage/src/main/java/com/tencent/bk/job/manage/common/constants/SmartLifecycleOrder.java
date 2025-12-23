@@ -22,37 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.op.impl;
+package com.tencent.bk.job.manage.common.constants;
 
-import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
-import com.tencent.bk.job.common.cc.model.result.ResourceEvent;
-import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.manage.api.op.EventReplayOpResource;
-import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventManager;
-import com.tencent.bk.job.manage.background.event.cmdb.TenantHostEventWatcher;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
-
-@Slf4j
-@RestController
-public class EventReplayOpResourceImpl implements EventReplayOpResource {
-
-    private final CmdbEventManager cmdbEventManager;
-
-    @Autowired
-    public EventReplayOpResourceImpl(CmdbEventManager cmdbEventManager) {
-        this.cmdbEventManager = cmdbEventManager;
-    }
-
-    @Override
-    public Response<Boolean> replayHostEvent(String username, String tenantId, ResourceEvent<HostEventDetail> event) {
-        TenantHostEventWatcher tenantHostEventWatcher = cmdbEventManager.getTenantHostEventWatcher(tenantId);
-        if (tenantHostEventWatcher == null) {
-            return Response.buildSuccessResp(false);
-        }
-        tenantHostEventWatcher.handleEvent(event);
-        return Response.buildSuccessResp(true);
-    }
-
+/**
+ * 定义实现了SmartLifecycle接口的各个Bean的相对启停顺序
+ */
+public class SmartLifecycleOrder {
+    // 后台任务负载均衡器，需要最先停止
+    public static final int BACK_GROUND_TASK_BALANCER = Integer.MAX_VALUE;
+    // CMDB事件管理器在负载均衡器后面停止，确保重调度消息发送到队列后不被自己收到
+    public static final int CMDB_EVENT_MANAGER = Integer.MAX_VALUE - 1;
 }

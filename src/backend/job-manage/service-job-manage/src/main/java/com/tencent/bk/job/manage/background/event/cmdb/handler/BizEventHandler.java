@@ -22,48 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.background.ha;
+package com.tencent.bk.job.manage.background.event.cmdb.handler;
+
+import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.manage.service.ApplicationService;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * 后台任务
+ * 业务事件处理器（在调用线程中处理事件）
  */
-public interface IBackGroundTask extends IBackGroundTaskRegistryAware {
+@Slf4j
+public class BizEventHandler extends AbstractResourceScopeEventHandler<BizEventDetail> {
 
-    /**
-     * 获取任务唯一代码
-     *
-     * @return 后台任务唯一代码，多个任务之间不重复
-     */
-    String getUniqueCode();
+    public BizEventHandler(ApplicationService applicationService,
+                           String tenantId) {
+        super(applicationService, tenantId);
+    }
 
-    /**
-     * 获取任务实体
-     *
-     * @return 后台任务实体
-     */
-    TaskEntity getTaskEntity();
+    @Override
+    ApplicationDTO buildApp(BizEventDetail eventDetail) {
+        return eventDetail.toAppInfoDTO();
+    }
 
-    /**
-     * 获取后台任务的租户ID
-     *
-     * @return 租户ID
-     */
-    String getTenantId();
-
-    /**
-     * 任务的资源消耗
-     *
-     * @return 资源消耗数值
-     */
-    int getResourceCost();
-
-    /**
-     * 启动任务
-     */
-    void startTask();
-
-    /**
-     * 优雅停止
-     */
-    void shutdownGracefully();
 }
