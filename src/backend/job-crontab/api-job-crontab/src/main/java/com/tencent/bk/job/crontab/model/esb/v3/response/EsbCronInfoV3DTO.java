@@ -108,4 +108,11 @@ public class EsbCronInfoV3DTO extends EsbAppScopeDTO {
     @JsonPropertyDescription("Last modify time")
     private Long lastModifyTime;
 
+    /**
+     * 定时任务触发时间所在的时区
+     */
+    @JsonProperty("execute_time_zone")
+    @JsonPropertyDescription("Execute time zone")
+    private String executeTimeZone;
+
 }

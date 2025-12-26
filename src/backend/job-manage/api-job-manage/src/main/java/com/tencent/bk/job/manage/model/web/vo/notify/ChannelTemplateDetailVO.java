@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.manage.model.web.vo.notify;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -56,7 +54,6 @@ public class ChannelTemplateDetailVO {
     private String content;
     @ApiModelProperty("最近修改人")
     private String lastModifier;
-    @ApiModelProperty("最近修改时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
+    @ApiModelProperty("最近修改时间，单位毫秒")
     private Long lastModifyTime;
 }

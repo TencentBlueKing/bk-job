@@ -50,6 +50,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -83,7 +84,8 @@ public class IndexServiceImpl implements IndexService {
     @Override
     public List<GreetingVO> listGreeting(String username) {
         String normalLang = LocaleUtils.getNormalLang(JobContextUtil.getUserLang());
-        int currentSeconds = TimeUtil.getCurrentSeconds();
+        ZoneId userTimeZone = JobContextUtil.getTimeZone();
+        int currentSeconds = TimeUtil.getSpecZoneCurrentSeconds(userTimeZone);
         return indexGreetingDAO.listActiveIndexGreeting(currentSeconds).stream().map(it -> {
             String content;
             if (normalLang.equals(LocaleUtils.LANG_EN) || normalLang.equals(LocaleUtils.LANG_EN_US)) {
@@ -95,9 +97,13 @@ public class IndexServiceImpl implements IndexService {
             } else {
                 content = it.getContent();
             }
-            return new GreetingVO(it.getId(), content.replace("${time}",
-                    TimeUtil.getCurrentTimeStrWithDescription("HH:mm"))
-                .replace("${username}", username), it.getPriority());
+            return new GreetingVO(
+                it.getId(),
+                content
+                    .replace("${time}", TimeUtil.getZonedCurrentTimeStrWithDesc("HH:mm", userTimeZone))
+                    .replace("${username}", username),
+                it.getPriority()
+            );
         }).collect(Collectors.toList());
     }
 

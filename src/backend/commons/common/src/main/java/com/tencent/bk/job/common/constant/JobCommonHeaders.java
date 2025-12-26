@@ -57,6 +57,11 @@ public interface JobCommonHeaders {
     String BK_TENANT_ID = "X-Bk-Tenant-Id";
 
     /**
+     * 用户时区
+     */
+    String BK_USER_TIMEZONE = "X-Bk-Job-User-Timezone";
+
+    /**
      * 应用态接口传递的用户名Header Key
      */
     String KEY_BK_USERNAME = "X-Bk-Username";

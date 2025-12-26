@@ -24,9 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.model.resp.web;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -137,8 +135,7 @@ public class FileSourceVO {
     /**
      * 创建时间
      */
-    @ApiModelProperty("创建时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
+    @ApiModelProperty("创建时间，单位毫秒")
     private Long createTime;
     /**
      * 更新人
@@ -146,8 +143,7 @@ public class FileSourceVO {
     @ApiModelProperty("更新人")
     private String lastModifyUser;
 
-    @ApiModelProperty("更新时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
+    @ApiModelProperty("更新时间，单位毫秒")
     private Long lastModifyTime;
 
     @ApiModelProperty("是否可以管理")

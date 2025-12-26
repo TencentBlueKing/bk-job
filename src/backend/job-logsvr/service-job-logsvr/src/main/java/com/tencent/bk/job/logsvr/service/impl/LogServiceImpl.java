@@ -324,7 +324,19 @@ public class LogServiceImpl implements LogService {
         if (StringUtils.isNotEmpty(fileTaskLog.getProcess())) {
             setDBObject.append(FileTaskLogDocField.PROCESS, fileTaskLog.getProcess());
         }
-        if (StringUtils.isNotEmpty(fileTaskLog.getContent())) {
+        
+        // 处理日志内容写入
+        if (CollectionUtils.isNotEmpty(fileTaskLog.getWriteContentList())) {
+            // 新版本：使用writeContentList，包含LogEntry对象（带时间戳）
+            for (FileTaskLogDoc.LogEntry logEntry : fileTaskLog.getWriteContentList()) {
+                BasicDBObject logEntryDoc = new BasicDBObject();
+                logEntryDoc.append(FileTaskLogDocField.FILE_TASK_LOG_TIME, logEntry.getLogTime());
+                logEntryDoc.append(FileTaskLogDocField.FILE_TASK_CONTENT, logEntry.getContent());
+                pushDBObject.append(FileTaskLogDocField.CONTENT_LIST, logEntryDoc);
+            }
+        } else if (StringUtils.isNotEmpty(fileTaskLog.getContent())) {
+            // 老版本兼容：若writeContentList为空，说明是老版本的请求，直接push字符串（内容中已包含时间）
+            // 版本发布后可删除
             pushDBObject.append(FileTaskLogDocField.CONTENT_LIST, fileTaskLog.getContent());
         }
 
@@ -402,10 +414,6 @@ public class LogServiceImpl implements LogService {
             Query query = buildFileLogMongoQuery(getLogRequest);
 
             List<FileTaskLogDoc> fileTaskLogs = mongoTemplate.find(query, FileTaskLogDoc.class, collectionName);
-            if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
-                fileTaskLogs.forEach(fileTaskLog ->
-                    fileTaskLog.setContent(StringUtils.join(fileTaskLog.getContentList(), null)));
-            }
             return fileTaskLogs;
         } finally {
             long cost = (System.currentTimeMillis() - start);
@@ -513,10 +521,6 @@ public class LogServiceImpl implements LogService {
                 query.addCriteria(Criteria.where(FileTaskLogDocField.BATCH).is(batch));
             }
             List<FileTaskLogDoc> fileTaskLogs = mongoTemplate.find(query, FileTaskLogDoc.class, collectionName);
-            if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
-                fileTaskLogs.forEach(taskTaskLog ->
-                    taskTaskLog.setContent(StringUtils.join(taskTaskLog.getContentList(), null)));
-            }
             return fileTaskLogs;
         } finally {
             long cost = (System.currentTimeMillis() - start);

@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.backup.model.web;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -48,8 +46,7 @@ public class LogEntityVO {
     /**
      * 日志产生时间
      */
-    @ApiModelProperty("日志时间戳")
-    @JsonSerialize(using = LongTimestampSerializer.class)
+    @ApiModelProperty("日志时间戳，单位毫秒")
     private Long timestamp;
 
     /**

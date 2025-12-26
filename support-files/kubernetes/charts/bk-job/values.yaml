@@ -535,6 +535,8 @@ bkPaasUrl: "http://paas.example.com"
 bkLoginUrl: "http://paas.example.com/login/"
 ## 蓝鲸 cmdb url
 bkCmdbUrl: "http://cmdb.example.com"
+# 用户管理页面 url
+bkUserUrl: "http://bk-user.example.com"
 # 蓝鲸 IAM url
 bkIamUrl: "http://bkiam.example.com"
 # 蓝鲸制品库 url
@@ -594,6 +596,14 @@ mockApi:
   cmsi:
     # 是否启用CMSI Mock API
     enabled: false
+
+# 时区配置
+timezone:
+  default:
+    # 默认展示时区（前端使用，当业务和个人都没有配置时区时使用）
+    display: "Asia/Shanghai"
+    # 运营时区
+    operation: "Asia/Shanghai"
 
 ## 蓝鲸GSE参数配置
 gse:

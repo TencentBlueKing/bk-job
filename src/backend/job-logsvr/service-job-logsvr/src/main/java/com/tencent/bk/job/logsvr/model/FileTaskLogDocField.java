@@ -30,4 +30,7 @@ public interface FileTaskLogDocField {
     String EXECUTE_OBJECT_ID = "executeObjectId";
     String SRC_EXECUTE_OBJECT_ID = "srcExecuteObjectId";
     String DEST_EXECUTE_OBJECT_ID = "destExecuteObjectId";
+    // 时区改造添加
+    String FILE_TASK_LOG_TIME = "logTime";
+    String FILE_TASK_CONTENT = "content";
 }
