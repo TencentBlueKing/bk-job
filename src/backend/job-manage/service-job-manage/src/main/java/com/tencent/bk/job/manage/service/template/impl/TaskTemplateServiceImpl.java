@@ -558,71 +558,96 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         return taskTemplateInfo.getId() == null || taskTemplateInfo.getId() <= 0;
     }
 
+    /**
+     * 比较作业变量列表是否有变更
+     */
+    private boolean variablesHasChanged(List<TaskVariableDTO> currentTaskVariableList,
+                                     List<TaskVariableDTO> originTaskVariableList) {
+        if (currentTaskVariableList.size() != originTaskVariableList.size()) {
+            return true;
+        }
+
+        for (int i = 0; i < currentTaskVariableList.size(); i++) {
+            TaskVariableDTO taskVariable = currentTaskVariableList.get(i);
+            TaskVariableDTO originTaskVariable = originTaskVariableList.get(i);
+            originTaskVariable.setDefaultValue(taskVariable.getDefaultValue());
+            originTaskVariable.setTemplateId(taskVariable.getTemplateId());
+            originTaskVariable.setDelete(false);
+            if (!taskVariable.equals(originTaskVariable)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 比较作业步骤是否有变更
+     */
+    private boolean stepsHasChanged(List<TaskStepDTO> currentTaskStepList,
+                                 List<TaskStepDTO> originTaskStepList) {
+        if (currentTaskStepList.size() != originTaskStepList.size()) {
+            return true;
+        }
+
+        for (int i = 0; i < currentTaskStepList.size(); i++) {
+            TaskStepDTO taskStep = currentTaskStepList.get(i);
+
+            if (taskStep.getId() == null || taskStep.getId() <= 0 || taskStep.getDelete() == 1) {
+                return true;
+            }
+
+            TaskStepDTO originTaskStep = originTaskStepList.get(i);
+            if (!taskStep.getId().equals(originTaskStep.getId())) {
+                return true;
+            }
+            if (!taskStep.getType().equals(originTaskStep.getType())) {
+                return true;
+            }
+            if (!taskStep.getName().equals(originTaskStep.getName())) {
+                return true;
+            }
+            switch (taskStep.getType()) {
+                case SCRIPT:
+                    originTaskStep.getScriptStepInfo().setId(null);
+                    originTaskStep.getScriptStepInfo().setTemplateId(taskStep.getScriptStepInfo().getTemplateId());
+                    if (!taskStep.getScriptStepInfo().equals(originTaskStep.getScriptStepInfo())) {
+                        return true;
+                    }
+                    break;
+                case FILE:
+                    originTaskStep.getFileStepInfo().setId(null);
+                    if (!taskStep.getFileStepInfo().equals(originTaskStep.getFileStepInfo())) {
+                        return true;
+                    }
+                    break;
+                case APPROVAL:
+                    originTaskStep.getApprovalStepInfo().setId(null);
+                    if (!taskStep.getApprovalStepInfo().equals(originTaskStep.getApprovalStepInfo())) {
+                        return true;
+                    }
+                    break;
+                default:
+                    return true;
+            }
+        }
+        return false;
+    }
+
     private boolean templateHasChange(TaskTemplateInfoDTO taskTemplateInfo) {
         TaskTemplateInfoDTO originTaskTemplateInfo =
             getTaskTemplateById(taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
         if (originTaskTemplateInfo == null) {
             throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
-        if (taskTemplateInfo.getVariableList().size() == originTaskTemplateInfo.getVariableList().size()) {
-            int count = 0;
-            for (TaskVariableDTO taskVariable : taskTemplateInfo.getVariableList()) {
-                TaskVariableDTO originTaskVariable = originTaskTemplateInfo.getVariableList().get(count);
-                originTaskVariable.setDefaultValue(taskVariable.getDefaultValue());
-                originTaskVariable.setTemplateId(taskVariable.getTemplateId());
-                originTaskVariable.setDelete(false);
-                if (!taskVariable.equals(originTaskVariable)) {
-                    return true;
-                }
-                count++;
-            }
-        } else {
+
+        if (variablesHasChanged(taskTemplateInfo.getVariableList(), originTaskTemplateInfo.getVariableList())) {
             return true;
         }
-        if (taskTemplateInfo.getStepList().size() == originTaskTemplateInfo.getStepList().size()) {
-            int count = 0;
-            for (TaskStepDTO taskStep : taskTemplateInfo.getStepList()) {
-                if (taskStep.getId() == null || taskStep.getId() <= 0 || taskStep.getDelete() == 1) {
-                    return true;
-                }
-                TaskStepDTO originTaskStep = originTaskTemplateInfo.getStepList().get(count);
-                if (!taskStep.getId().equals(originTaskStep.getId())) {
-                    return true;
-                }
-                if (!taskStep.getType().equals(originTaskStep.getType())) {
-                    return true;
-                }
-                if (!taskStep.getName().equals(originTaskStep.getName())) {
-                    return true;
-                }
-                switch (taskStep.getType()) {
-                    case SCRIPT:
-                        originTaskStep.getScriptStepInfo().setId(null);
-                        originTaskStep.getScriptStepInfo().setTemplateId(taskStep.getScriptStepInfo().getTemplateId());
-                        if (!taskStep.getScriptStepInfo().equals(originTaskStep.getScriptStepInfo())) {
-                            return true;
-                        }
-                        break;
-                    case FILE:
-                        originTaskStep.getFileStepInfo().setId(null);
-                        if (!taskStep.getFileStepInfo().equals(originTaskStep.getFileStepInfo())) {
-                            return true;
-                        }
-                        break;
-                    case APPROVAL:
-                        originTaskStep.getApprovalStepInfo().setId(null);
-                        if (!taskStep.getApprovalStepInfo().equals(originTaskStep.getApprovalStepInfo())) {
-                            return true;
-                        }
-                        break;
-                    default:
-                        return true;
-                }
-                count++;
-            }
-        } else {
+
+        if (stepsHasChanged(taskTemplateInfo.getStepList(), originTaskTemplateInfo.getStepList())) {
             return true;
         }
+
         return false;
     }
 
@@ -660,22 +685,36 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         if (CollectionUtils.isNotEmpty(taskPlanInfoList)) {
             List<Long> taskPlanIdList =
                 taskPlanInfoList.stream().map(TaskPlanInfoDTO::getId).collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(taskPlanIdList)) {
-                Map<Long, List<CronJobVO>> taskPlanCronJobMap =
-                    cronJobService.batchListCronJobByPlanIds(appId, taskPlanIdList);
-                if (MapUtils.isNotEmpty(taskPlanCronJobMap)) {
-                    for (List<CronJobVO> planCronJobList : taskPlanCronJobMap.values()) {
-                        if (CollectionUtils.isNotEmpty(planCronJobList)) {
-                            throw new FailedPreconditionException(ErrorCode.DELETE_TEMPLATE_FAILED_PLAN_USING_BY_CRON);
-                        }
-                    }
-                }
+            if (taskPlanUsedByCron(appId, taskPlanIdList)) {
+                throw new FailedPreconditionException(ErrorCode.DELETE_TEMPLATE_FAILED_PLAN_USING_BY_CRON);
             }
             taskPlanService.deleteTaskPlanByTemplate(appId, templateId);
         }
         taskTemplateDAO.deleteTaskTemplateById(appId, templateId);
         tagService.batchDeleteResourceTags(appId, JobResourceTypeEnum.TEMPLATE.getValue(), String.valueOf(templateId));
         return template;
+    }
+
+    /**
+     * 检查作业模板是否被定时任务关联
+     */
+    private Boolean taskPlanUsedByCron(Long appId, List<Long> taskPlanIdList) {
+        if (CollectionUtils.isEmpty(taskPlanIdList)) {
+            return false;
+        }
+        Map<Long, List<CronJobVO>> taskPlanCronJobMap =
+            cronJobService.batchListCronJobByPlanIds(appId, taskPlanIdList);
+
+        if (MapUtils.isEmpty(taskPlanCronJobMap)) {
+            return false;
+        }
+
+        for (List<CronJobVO> planCronJobList : taskPlanCronJobMap.values()) {
+            if (CollectionUtils.isNotEmpty(planCronJobList)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -826,22 +865,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         }
 
         // process template id
-        Long templateId;
-        if (taskTemplateInfo.getId() == null || taskTemplateInfo.getId() <= 0) {
-            templateId = insertNewTemplate(taskTemplateInfo);
-            taskTemplateInfo.setId(templateId);
-        } else {
-            taskTemplateInfo.setStatus(TaskTemplateStatusEnum.NEW);
-            if (checkTemplateId(taskTemplateInfo.getId())) {
-                if (insertNewTemplateWithTemplateId(taskTemplateInfo)) {
-                    templateId = taskTemplateInfo.getId();
-                } else {
-                    throw new InternalException(ErrorCode.INSERT_TEMPLATE_FAILED);
-                }
-            } else {
-                throw new AlreadyExistsException(ErrorCode.TEMPLATE_ID_EXIST);
-            }
-        }
+        Long templateId = processTemplateFromMigration(taskTemplateInfo);
 
         updateTemplateTags(taskTemplateInfo);
 
@@ -861,6 +885,29 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         });
         taskVariableService.batchInsertVariableWithId(variableList);
 
+        return templateId;
+    }
+
+    /**
+     * 保存作业模板（迁移用）
+     */
+    private Long processTemplateFromMigration(TaskTemplateInfoDTO taskTemplateInfo) {
+        Long templateId;
+        if (isCreate(taskTemplateInfo)) {
+            templateId = insertNewTemplate(taskTemplateInfo);
+            taskTemplateInfo.setId(templateId);
+        } else {
+            taskTemplateInfo.setStatus(TaskTemplateStatusEnum.NEW);
+            if (checkTemplateId(taskTemplateInfo.getId())) {
+                if (insertNewTemplateWithTemplateId(taskTemplateInfo)) {
+                    templateId = taskTemplateInfo.getId();
+                } else {
+                    throw new InternalException(ErrorCode.INSERT_TEMPLATE_FAILED);
+                }
+            } else {
+                throw new AlreadyExistsException(ErrorCode.TEMPLATE_ID_EXIST);
+            }
+        }
         return templateId;
     }
 
@@ -1039,43 +1086,53 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
 
     private Map<String, Long> getOutdatedScriptMap(List<TaskStepDTO> stepList) {
         Map<String, Long> outdatedScriptMap = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(stepList)) {
-            Map<String, Long> scriptVersionMap = new HashMap<>(stepList.size());
-            for (TaskStepDTO taskStep : stepList) {
-                if (taskStep.getDelete() == 1) {
-                    continue;
-                }
-                if (taskStep.getType() == TaskStepTypeEnum.SCRIPT) {
-                    TaskScriptStepDTO scriptStepInfo = taskStep.getScriptStepInfo();
-                    if (scriptStepInfo.getScriptSource() == TaskScriptSourceEnum.CITING
-                        || scriptStepInfo.getScriptSource() == TaskScriptSourceEnum.PUBLIC) {
-                        scriptVersionMap.put(scriptStepInfo.getScriptId(), scriptStepInfo.getScriptVersionId());
-                    }
-                }
+        if (CollectionUtils.isEmpty(stepList)) {
+            return outdatedScriptMap;
+        }
+
+        Map<String, Long> scriptVersionMap = new HashMap<>(stepList.size());
+        for (TaskStepDTO taskStep : stepList) {
+            if (taskStep.getDelete() == 1) {
+                continue;
             }
-            if (MapUtils.isNotEmpty(scriptVersionMap)) {
-                Map<String, ScriptDTO> scriptInfoMap;
-                try {
-                    scriptInfoMap = scriptManager
-                        .batchGetOnlineScriptVersionByScriptIds(new ArrayList<>(scriptVersionMap.keySet()));
-                } catch (ServiceException e) {
-                    log.error("Error while getting online script version!", e);
-                    return outdatedScriptMap;
-                }
-                if (MapUtils.isNotEmpty(scriptInfoMap)) {
-                    for (Map.Entry<String, ScriptDTO> scriptInfoEntry : scriptInfoMap.entrySet()) {
-                        Long submitVersion = scriptVersionMap.get(scriptInfoEntry.getKey());
-                        if (submitVersion != null) {
-                            if (!submitVersion.equals(scriptInfoEntry.getValue().getScriptVersionId())) {
-                                outdatedScriptMap.put(scriptInfoEntry.getKey(), submitVersion);
-                            }
-                        }
-                    }
-                } else {
-                    outdatedScriptMap = scriptVersionMap;
-                }
+            if (taskStep.getType() != TaskStepTypeEnum.SCRIPT) {
+                continue;
+            }
+
+            TaskScriptStepDTO scriptStepInfo = taskStep.getScriptStepInfo();
+            if (scriptStepInfo.getScriptSource() == TaskScriptSourceEnum.CITING
+                || scriptStepInfo.getScriptSource() == TaskScriptSourceEnum.PUBLIC) {
+                scriptVersionMap.put(scriptStepInfo.getScriptId(), scriptStepInfo.getScriptVersionId());
             }
         }
+
+        if (MapUtils.isEmpty(scriptVersionMap)) {
+            return outdatedScriptMap;
+        }
+
+        Map<String, ScriptDTO> scriptInfoMap;
+        try {
+            scriptInfoMap = scriptManager
+                .batchGetOnlineScriptVersionByScriptIds(new ArrayList<>(scriptVersionMap.keySet()));
+        } catch (ServiceException e) {
+            log.error("Error while getting online script version!", e);
+            return outdatedScriptMap;
+        }
+
+        if (MapUtils.isNotEmpty(scriptInfoMap)) {
+            for (Map.Entry<String, ScriptDTO> scriptInfoEntry : scriptInfoMap.entrySet()) {
+                Long submitVersion = scriptVersionMap.get(scriptInfoEntry.getKey());
+                if (submitVersion == null) {
+                    continue;
+                }
+                if (!submitVersion.equals(scriptInfoEntry.getValue().getScriptVersionId())) {
+                    outdatedScriptMap.put(scriptInfoEntry.getKey(), submitVersion);
+                }
+            }
+        } else {
+            outdatedScriptMap = scriptVersionMap;
+        }
+
         return outdatedScriptMap;
     }
 }
