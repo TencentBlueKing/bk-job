@@ -76,7 +76,7 @@ public abstract class AbstractLocalCacheCommonAppService implements CommonAppSer
             );
 
     private final LoadingCache<Long, String> appIdTimeZoneCache =
-        CacheBuilder.newBuilder().maximumSize(100_000).expireAfterWrite(1, TimeUnit.HOURS)
+        CacheBuilder.newBuilder().maximumSize(500).expireAfterWrite(1, TimeUnit.HOURS)
             .build(new CacheLoader<Long, String>() {
                        @Nonnull
                        @Override

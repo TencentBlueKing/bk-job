@@ -44,5 +44,5 @@ public class RelatedUrlKeys {
     // 登录地址
     public static final String KEY_BK_LOGIN_URL = "BK_LOGIN_URL";
     // 用户管理SaaS Web页面根地址
-    public static final String KEY_BK_USER_SAAS_WEB_ROOT_URL = "BK_USER_SAAS_WEB_ROOT_URL";
+    public static final String KEY_BK_USER_WEB_ROOT_URL = "BK_USER_WEB_ROOT_URL";
 }

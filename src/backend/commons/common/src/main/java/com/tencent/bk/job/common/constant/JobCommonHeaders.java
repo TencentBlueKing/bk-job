@@ -59,7 +59,7 @@ public interface JobCommonHeaders {
     /**
      * 用户时区
      */
-    String BK_USER_TIMEZONE = "X-Bk-User-Timezone";
+    String BK_USER_TIMEZONE = "X-Bk-Job-User-Timezone";
 
     /**
      * 应用态接口传递的用户名Header Key

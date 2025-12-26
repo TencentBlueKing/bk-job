@@ -54,18 +54,4 @@ public class DefaultTimezoneProperties {
      */
     private String operation = TimeZoneConstants.DEFAULT_ZONE_NAME_CN;
 
-    /**
-     * 安全地获取运营时区的 ZoneId 对象
-     * 如果配置的时区不合法，则返回默认时区 Asia/Shanghai
-     *
-     * @return 运营时区的 ZoneId
-     */
-    public ZoneId safelyGetOperationZoneId() {
-        try {
-            TimeZoneUtils.checkTimeZoneValid(operation);
-            return ZoneId.of(operation);
-        } catch (Exception e) {
-            return ZoneId.of(TimeZoneConstants.DEFAULT_ZONE_NAME_CN);
-        }
-    }
 }

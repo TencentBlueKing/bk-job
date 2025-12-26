@@ -119,6 +119,6 @@ public class JobManageConfig {
     /**
      * bk-user saas web页面地址
      */
-    @Value("${bk-user.saas.url:bk-user.example.com}")
-    private String bkUserSaasUrl;
+    @Value("${bk-user.url:bk-user.example.com}")
+    private String bkUserWebUrl;
 }

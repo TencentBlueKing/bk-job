@@ -40,7 +40,7 @@ import java.util.List;
 @Slf4j
 public class ToSecondDeserializer extends JsonDeserializer<Object> {
 
-    private static final long MAX_SECOND_TIMESTAMP = 9999999999L;
+    private static final long MAX_SECOND_TIMESTAMP = 9_999_999_999L;
 
     @Override
     public Object deserialize(JsonParser jsonParser,
