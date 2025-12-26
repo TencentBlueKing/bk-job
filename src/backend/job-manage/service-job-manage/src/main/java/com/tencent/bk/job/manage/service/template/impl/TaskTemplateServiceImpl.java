@@ -362,6 +362,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         content = EventContentConstants.CREATE_JOB_TEMPLATE
     )
     public TaskTemplateInfoDTO saveTaskTemplate(User user, TaskTemplateInfoDTO taskTemplateInfo) {
+        checkTaskTemplateExists(taskTemplateInfo);
         authCreateTemplate(user, taskTemplateInfo.getAppId());
         TaskTemplateInfoDTO createdTemplate = saveOrUpdateTaskTemplate(taskTemplateInfo);
         templateAuthService.registerTemplate(user, createdTemplate.getId(), createdTemplate.getName());
@@ -380,6 +381,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         content = EventContentConstants.EDIT_JOB_TEMPLATE
     )
     public TaskTemplateInfoDTO updateTaskTemplate(User user, TaskTemplateInfoDTO taskTemplateInfo) {
+        checkTaskTemplateExists(taskTemplateInfo);
+
         authEditTemplate(user, taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
 
         TaskTemplateInfoDTO template = saveOrUpdateTaskTemplate(taskTemplateInfo);
@@ -391,6 +394,22 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             .setInstance(TaskTemplateInfoDTO.toEsbTemplateInfoV3DTO(template));
 
         return template;
+    }
+
+    /**
+     * 检查作业模板存在性，抛出资源已存在异常
+     */
+    private void checkTaskTemplateExists(TaskTemplateInfoDTO taskTemplateInfo) {
+        Long templateId = 0L;
+        if (taskTemplateInfo.getId() != null && taskTemplateInfo.getId() > 0) {
+            templateId = taskTemplateInfo.getId();
+        }
+        if (!taskTemplateDAO.checkTemplateName(taskTemplateInfo.getAppId(), templateId, taskTemplateInfo.getName())) {
+            log.warn("Task template exists. appId={}, templateId={}, templateName={}",
+                taskTemplateInfo.getAppId(), templateId, taskTemplateInfo.getName());
+            throw new AlreadyExistsException(ErrorCode.TEMPLATE_NAME_EXIST,
+                new String[]{taskTemplateInfo.getName()});
+        }
     }
 
     private TaskTemplateInfoDTO saveOrUpdateTaskTemplate(TaskTemplateInfoDTO taskTemplateInfo) {
@@ -738,7 +757,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         TaskTemplateInfoDTO taskTemplateByName =
             taskTemplateDAO.getTaskTemplateByName(taskTemplateInfo.getAppId(), taskTemplateInfo.getName());
         if (taskTemplateByName != null) {
-            throw new AlreadyExistsException(ErrorCode.TEMPLATE_NAME_EXIST);
+            throw new AlreadyExistsException(ErrorCode.TEMPLATE_NAME_EXIST, new String[]{taskTemplateInfo.getName()});
         }
         createNewTagForTemplateIfNotExist(taskTemplateInfo);
 

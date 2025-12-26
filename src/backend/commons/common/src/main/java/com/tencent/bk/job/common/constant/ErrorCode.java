@@ -306,7 +306,7 @@ public class ErrorCode {
     public static final int DELETE_TEMPLATE_FAILED_PLAN_USING_BY_CRON = 1243038;
     // 脚本版本ID已存在
     public static final int SCRIPT_VERSION_ID_EXIST = 1243039;
-    // 模版已存在
+    // 模版[{0}]已存在
     public static final int TEMPLATE_NAME_EXIST = 1243040;
     // 获取模版编辑锁失败
     public static final int TEMPLATE_LOCK_ACQUIRE_FAILED = 1243041;
@@ -338,6 +338,8 @@ public class ErrorCode {
     public static final int DELETE_REF_SCRIPT_FAIL = 1243054;
     // 凭证被引用不支持删除
     public static final int DELETE_REF_CREDENTIAL_FAIL = 1243055;
+    // 高危语句规则[{0}]已存在
+    public static final int DANGEROUS_RUlE_EXIST = 1243056;
     // 作业管理 end
 
     // 作业执行 start
@@ -419,7 +421,7 @@ public class ErrorCode {
     public static final int UPDATE_CRON_JOB_FAILED = 1245002;
     // 插入定时任务错误
     public static final int INSERT_CRON_JOB_FAILED = 1245003;
-    // 定时任务已存在
+    // 定时任务[{0}]已存在
     public static final int CRON_JOB_ALREADY_EXIST = 1245004;
     public static final int ACQUIRE_CRON_JOB_LOCK_FAILED = 1245005;
     public static final int CRON_JOB_TIME_PASSED = 1245006;

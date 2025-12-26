@@ -27,11 +27,13 @@ package com.tencent.bk.job.manage.service.impl;
 import com.tencent.bk.audit.annotations.ActionAuditRecord;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.manage.api.common.constants.EnableStatusEnum;
+import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.dao.globalsetting.CurrentTenantDangerousRuleDAO;
 import com.tencent.bk.job.manage.manager.cache.DangerousRuleCache;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
@@ -44,6 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -77,6 +80,7 @@ public class CurrentTenantDangerousRuleServiceImpl implements CurrentTenantDange
     )
     public DangerousRuleDTO createDangerousRule(User user, AddOrUpdateDangerousRuleReq req) {
         int scriptType = DangerousRuleDTO.encodeScriptType(req.getScriptTypeList());
+        checkDangerousRuleExists(req.getId(), req.getExpression(), scriptType);
         int maxPriority = currentTenantDangerousRuleDAO.getMaxPriority();
         log.info(String.format("current maxPriority:%d", maxPriority));
         long id = currentTenantDangerousRuleDAO.insertDangerousRule(
@@ -107,6 +111,7 @@ public class CurrentTenantDangerousRuleServiceImpl implements CurrentTenantDange
     )
     public DangerousRuleDTO updateDangerousRule(User user, AddOrUpdateDangerousRuleReq req) {
         int scriptType = DangerousRuleDTO.encodeScriptType(req.getScriptTypeList());
+        checkDangerousRuleExists(req.getId(), req.getExpression(), scriptType);
         DangerousRuleDTO existDangerousRuleDTO = currentTenantDangerousRuleDAO.getDangerousRuleById(req.getId());
         if (existDangerousRuleDTO != null) {
             currentTenantDangerousRuleDAO.updateDangerousRule(
@@ -129,6 +134,20 @@ public class CurrentTenantDangerousRuleServiceImpl implements CurrentTenantDange
             dangerousRuleCache.deleteDangerousRuleCacheByScriptTypes(user.getTenantId(), existScriptTypes);
         }
         return currentTenantDangerousRuleDAO.getDangerousRuleById(req.getId());
+    }
+
+    /**
+     * 检查高危语句存在性，抛出资源已存在异常
+     */
+    private void checkDangerousRuleExists(Long id, String expression, int encodedScriptType) {
+        if (currentTenantDangerousRuleDAO.checkDangerousRuleExists(id, expression, encodedScriptType)) {
+            List<String> scriptTypeList = DangerousRuleDTO.decodeScriptType(encodedScriptType)
+                .stream()
+                .map(type -> ScriptTypeEnum.getName(type.intValue()))
+                .collect(Collectors.toList());
+            log.warn("Dangerous rule exists. expression={}, ScriptType={}", expression, scriptTypeList);
+            throw new AlreadyExistsException(ErrorCode.DANGEROUS_RUlE_EXIST, new String[]{expression});
+        }
     }
 
 
