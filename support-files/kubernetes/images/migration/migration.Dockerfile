@@ -1,15 +1,13 @@
-FROM bkjob/tool-set:3.12.3
+FROM bkjob/tool-set:3.12.4
 
 LABEL maintainer="Tencent BlueKing Job"
-LABEL dockerfile.version="3.12.3"
+LABEL dockerfile.version="3.12.4"
 
 ENV BK_JOB_HOME=/data/job/exec
 
 COPY ./ /data/job/exec/
 
-RUN ln -snf /usr/share/zoneinfo/UTC /etc/localtime && \
-    echo 'UTC' > /etc/timezone && \
-    chmod +x /data/job/exec/runUpgrader.sh && \
+RUN chmod +x /data/job/exec/runUpgrader.sh && \
     chmod +x /data/job/exec/startup.sh
 
 ENV LANG en_US.utf8

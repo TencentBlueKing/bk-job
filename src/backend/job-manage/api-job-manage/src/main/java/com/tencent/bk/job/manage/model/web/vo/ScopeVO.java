@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

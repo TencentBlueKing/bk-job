@@ -35,11 +35,12 @@ import java.util.List;
 
 /**
  * 将秒级时间戳转换为毫秒级时间戳的 Json 序列化器
+ * 可作用在序列化 Long、List<Long> 的场景
  */
 @Slf4j
 public class SecondToMillisSerializer extends JsonSerializer<Object> {
 
-    private static final long MAX_SECOND_TIMESTAMP = 9999999999L;
+    private static final long MAX_SECOND_TIMESTAMP = 9_999_999_999L;
 
     @Override
     public void serialize(Object value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
@@ -62,6 +63,13 @@ public class SecondToMillisSerializer extends JsonSerializer<Object> {
                 }
             }
             gen.writeEndArray();
+        } else {
+            String fieldName = gen.getOutputContext().getCurrentName();
+            log.warn(
+                "Serialize fail because of unsupported type, fieldName: {}, fieldValue: {}, valueType: {}, "
+                    + "ignore to serialize",
+                fieldName, value, value.getClass()
+            );
         }
     }
 

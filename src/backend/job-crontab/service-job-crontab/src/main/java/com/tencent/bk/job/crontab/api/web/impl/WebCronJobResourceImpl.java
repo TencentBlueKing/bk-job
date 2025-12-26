@@ -27,6 +27,8 @@ package com.tencent.bk.job.crontab.api.web.impl;
 import com.google.common.base.CaseFormat;
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.zone.InvalidTimeZoneException;
@@ -439,6 +441,12 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
      * @param appId 业务ID
      * @param cronJobCreateUpdateReq 请求体
      */
+    @CompatibleImplementation(
+        deprecatedVersion = "3.12.1",
+        name = "processExecuteTimeZone",
+        type = CompatibleType.DEPLOY,
+        explain = "兼容旧版本，如果请求体中时区为空，则默认使用业务时区，新版本前端会传executeTimeZone字段，发布后可删"
+    )
     private void processExecuteTimeZone(Long appId, CronJobCreateUpdateReq cronJobCreateUpdateReq) {
         if (cronJobCreateUpdateReq.getExecuteTimeZone() == null) {
             // 缺省默认使用业务时区

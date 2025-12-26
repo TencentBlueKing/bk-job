@@ -96,11 +96,11 @@ public class CronJobCreateUpdateReq {
     private String cronExpression;
 
     /**
-     * 单次执行的指定执行时间
+     * 单次执行的指定执行时间，单位毫秒
      * <p>
      * 不可与 cronExpression 同时为空
      */
-    @ApiModelProperty("单次执行的指定执行时间, 不可与 cronExpression 同时为空")
+    @ApiModelProperty("单次执行的指定执行时间, 不可与 cronExpression 同时为空，单位毫秒")
     @JsonDeserialize(using = ToSecondDeserializer.class)
     private Long executeTime;
 
