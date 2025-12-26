@@ -415,92 +415,35 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     private TaskTemplateInfoDTO saveOrUpdateTaskTemplate(TaskTemplateInfoDTO taskTemplateInfo) {
         String lockKey = null;
         try {
-            boolean isCreate = false;
-            if (taskTemplateInfo.getId() == null || taskTemplateInfo.getId() <= 0) {
-                isCreate = true;
-                lockKey = "save_template:" + taskTemplateInfo.getAppId() + ":" + taskTemplateInfo.getCreator();
-            } else {
-                lockKey = "save_template:" + taskTemplateInfo.getAppId() + ":" + taskTemplateInfo.getId();
-            }
-            if (!LockUtils.tryGetDistributedLock(lockKey, JobContextUtil.getRequestId(), 60_000)) {
-                throw new AbortedException(ErrorCode.TEMPLATE_LOCK_ACQUIRE_FAILED);
-            }
+            // 获取操作作业模板的分布式锁
+            lockKey = acquireTemplateLockAndReturnKey(taskTemplateInfo);
+
             // 保存新增的标签并获取tagId
             createNewTagForTemplateIfNotExist(taskTemplateInfo);
 
-            // 获取引用的非线上脚本
-            Map<String, Long> outdatedScriptMap = getOutdatedScriptMap(taskTemplateInfo.getStepList());
-            if (MapUtils.isNotEmpty(outdatedScriptMap)) {
-                taskTemplateInfo.setScriptStatus(1);
-                log.debug("Find outdated script version! Comparing...|{}", outdatedScriptMap);
-                if (isCreate) {
-                    throw new FailedPreconditionException(ErrorCode.SCRIPT_VERSION_ILLEGAL);
-                } else {
-                    Map<Long, List<Long>> scriptStepVersionIds =
-                        taskStepService.batchListScriptStepVersionIdsByTemplateIds(taskTemplateInfo.getAppId(),
-                            Collections.singletonList(taskTemplateInfo.getId()));
-                    List<Long> currentVersionIds = scriptStepVersionIds.get(taskTemplateInfo.getId());
-                    if (CollectionUtils.isNotEmpty(currentVersionIds)) {
-                        // 找出缺少的脚本版本Id
-                        outdatedScriptMap.values().removeIf(currentVersionIds::contains);
-                    }
-                    if (MapUtils.isNotEmpty(outdatedScriptMap)) {
-                        log.error("Script version outdated!|{}", outdatedScriptMap);
-                        throw new FailedPreconditionException(ErrorCode.SCRIPT_VERSION_ILLEGAL);
-                    }
-                }
-            } else {
-                taskTemplateInfo.setScriptStatus(0);
-            }
+            // 检查引用的脚本是否有效
+            checkReferencedScript(taskTemplateInfo);
 
-            // 写作业模板表
-            // process template id
-            Long templateId;
-            if (isCreate) {
-                taskTemplateInfo.setCreateTime(DateUtils.currentTimeSeconds());
-                templateId = insertNewTemplate(taskTemplateInfo);
-                taskTemplateInfo.setId(templateId);
-            } else {
-                boolean bumpVersion = templateHasChange(taskTemplateInfo);
-                if (!taskTemplateDAO.updateTaskTemplateById(taskTemplateInfo, bumpVersion)) {
-                    throw new InternalException(ErrorCode.UPDATE_TEMPLATE_FAILED);
-                }
-                templateId = taskTemplateInfo.getId();
-            }
+            // 保存作业模板
+            Long templateId = processTemplate(taskTemplateInfo);
 
+            // 更新作业模板标签
             updateTemplateTags(taskTemplateInfo);
 
-            // 写步骤
+            // 保存作业模板步骤
             processTemplateStep(taskTemplateInfo);
 
             // 更新作业模板首尾步骤
-            // Process first and last step id
             TaskTemplateInfoDTO updateStepIdReq = generateUpdateStepIdReq(taskTemplateInfo);
             taskTemplateDAO.updateTaskTemplateById(updateStepIdReq, false);
 
-            // 写变量
-            List<TaskVariableDTO> newVariables = new ArrayList<>();
-            Iterator<TaskVariableDTO> variableIterator = taskTemplateInfo.getVariableList().iterator();
-            while (variableIterator.hasNext()) {
-                TaskVariableDTO taskVariable = variableIterator.next();
-                taskVariable.setTemplateId(templateId);
-                if (taskVariable.getDelete()) {
-                    taskVariableService.deleteVariableById(taskVariable.getTemplateId(), taskVariable.getId());
-                    variableIterator.remove();
-                } else {
-                    if (taskVariable.getId() > 0) {
-                        // Update exist variable
-                        taskVariableService.updateVarByParentResourceIdAndTplVarId(taskVariable);
-                    } else {
-                        newVariables.add(taskVariable);
-                    }
-                }
-            }
-            // Insert new variable
-            taskVariableService.batchInsertVariable(newVariables);
+            // 保存作业模板变量
+            processTemplateVariables(taskTemplateInfo, templateId);
 
+            // 刷新作业模板脚本状态
             templateScriptStatusUpdateService.refreshTemplateScriptStatusByTemplate(templateId);
 
+            // 获取最新的作业模板信息并返回
             return getTaskTemplateById(taskTemplateInfo.getAppId(), templateId);
         } catch (ServiceException e) {
             throw e;
@@ -512,6 +455,107 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 LockUtils.releaseDistributedLock(lockKey, JobContextUtil.getRequestId());
             }
         }
+    }
+
+    /**
+     * 保存作业模板变量
+     */
+    private void processTemplateVariables(TaskTemplateInfoDTO taskTemplateInfo, Long templateId) {
+        List<TaskVariableDTO> newVariables = new ArrayList<>();
+        Iterator<TaskVariableDTO> variableIterator = taskTemplateInfo.getVariableList().iterator();
+
+        while (variableIterator.hasNext()) {
+            TaskVariableDTO variable = variableIterator.next();
+            variable.setTemplateId(templateId);
+            if (variable.getDelete()) {
+                taskVariableService.deleteVariableById(variable.getTemplateId(), variable.getId());
+                variableIterator.remove();
+                continue;
+            }
+
+            if (variable.getId() > 0) {
+                taskVariableService.updateVarByParentResourceIdAndTplVarId(variable);
+            } else {
+                newVariables.add(variable);
+            }
+        }
+
+        taskVariableService.batchInsertVariable(newVariables);
+    }
+
+    /**
+     * 保存作业模板
+     */
+    private Long processTemplate(TaskTemplateInfoDTO taskTemplateInfo) {
+        Long templateId;
+        if (isCreate(taskTemplateInfo)) {
+            taskTemplateInfo.setCreateTime(DateUtils.currentTimeSeconds());
+            templateId = insertNewTemplate(taskTemplateInfo);
+            taskTemplateInfo.setId(templateId);
+        } else {
+            boolean bumpVersion = templateHasChange(taskTemplateInfo);
+            if (!taskTemplateDAO.updateTaskTemplateById(taskTemplateInfo, bumpVersion)) {
+                throw new InternalException(ErrorCode.UPDATE_TEMPLATE_FAILED);
+            }
+            templateId = taskTemplateInfo.getId();
+        }
+        return templateId;
+    }
+
+    /**
+     * 检查作业模板引用脚本的有效性
+     */
+    private void checkReferencedScript(TaskTemplateInfoDTO taskTemplateInfo) {
+        // 获取引用的非线上脚本
+        Map<String, Long> outdatedScriptMap = getOutdatedScriptMap(taskTemplateInfo.getStepList());
+        if (MapUtils.isEmpty(outdatedScriptMap)) {
+            taskTemplateInfo.setScriptStatus(0);
+            return;
+        }
+
+        if (isCreate(taskTemplateInfo)) {
+            throw new FailedPreconditionException(ErrorCode.SCRIPT_VERSION_ILLEGAL);
+        }
+
+        taskTemplateInfo.setScriptStatus(1);
+        log.debug("Find outdated script version! Comparing...|{}", outdatedScriptMap);
+
+        Map<Long, List<Long>> scriptStepVersionIds =
+            taskStepService.batchListScriptStepVersionIdsByTemplateIds(taskTemplateInfo.getAppId(),
+                Collections.singletonList(taskTemplateInfo.getId()));
+        List<Long> currentVersionIds = scriptStepVersionIds.get(taskTemplateInfo.getId());
+        if (CollectionUtils.isNotEmpty(currentVersionIds)) {
+            // 找出缺少的脚本版本Id
+            outdatedScriptMap.values().removeIf(currentVersionIds::contains);
+        }
+        if (MapUtils.isNotEmpty(outdatedScriptMap)) {
+            log.error("Script version outdated!|{}", outdatedScriptMap);
+            throw new FailedPreconditionException(ErrorCode.SCRIPT_VERSION_ILLEGAL);
+        }
+    }
+
+    /**
+     * 获取操作作业模板的分布式锁，并返回key
+     */
+    private String acquireTemplateLockAndReturnKey(TaskTemplateInfoDTO taskTemplateInfo) {
+        String lockKey;
+        if (isCreate(taskTemplateInfo)) {
+            lockKey = "save_template:" + taskTemplateInfo.getAppId() + ":" + taskTemplateInfo.getCreator();
+        } else {
+            lockKey = "save_template:" + taskTemplateInfo.getAppId() + ":" + taskTemplateInfo.getId();
+        }
+        if (!LockUtils.tryGetDistributedLock(lockKey, JobContextUtil.getRequestId(), 60_000)) {
+            throw new AbortedException(ErrorCode.TEMPLATE_LOCK_ACQUIRE_FAILED);
+        }
+        return lockKey;
+    }
+
+
+    /**
+     * 判断是否新建作业模板
+     */
+    private boolean isCreate(TaskTemplateInfoDTO taskTemplateInfo) {
+        return taskTemplateInfo.getId() == null || taskTemplateInfo.getId() <= 0;
     }
 
     private boolean templateHasChange(TaskTemplateInfoDTO taskTemplateInfo) {
