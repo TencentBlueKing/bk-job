@@ -80,8 +80,11 @@
       <div class="content-wraper">
         <scroll-faker>
           <jb-ip-selector
+            :key="isShowDiff"
+            :original-value="originExecuteObjectsInfo"
             readonly
             show-view
+            show-view-diff
             :value="executeObjectsInfo" />
         </scroll-faker>
       </div>
@@ -89,6 +92,8 @@
   </div>
 </template>
 <script>
+  import _ from 'lodash';
+
   import ExecuteTargetModel from '@model/execute-target';
 
   import {
@@ -115,6 +120,9 @@
       return false;
     }
     if (executeTarget.executeObjectsInfo.dynamicGroupList.length > 0) {
+      return false;
+    }
+    if (executeTarget.executeObjectsInfo.containerList.length > 0) {
       return false;
     }
     return true;
@@ -188,11 +196,13 @@
           this.variableName = host.variable;
           const curVariable = findVariable(this.dataSourceParent.planVariableList, this.variableName);
 
-          this.originExecuteObjectsInfo = Object.freeze(curVariable.defaultTargetValue.executeObjectsInfo);
+          this.originExecuteObjectsInfo = Object.freeze(_.cloneDeep(curVariable.defaultTargetValue.executeObjectsInfo));
         } else {
-          this.originExecuteObjectsInfo = Object.freeze(host.executeObjectsInfo);
+          this.originExecuteObjectsInfo = Object.freeze(_.cloneDeep(host.executeObjectsInfo));
           this.ipText = host.text;
         }
+
+        console.log('pref = ', this.preHost);
         this.executeObjectsInfo = this.originExecuteObjectsInfo;
       },
       checkDiff() {
@@ -286,6 +296,30 @@
             this.hostEqual = false;
           }
         });
+
+        // 对比容器
+        const  containerDiffMap = {};
+        const containerList = [];
+        lastValue.containerList.forEach((container) => {
+          containerDiffMap[container.id] = 'new';
+          containerList.push(container);
+        });
+        preValue.containerList.forEach((container) => {
+          if (containerDiffMap[container.id]) {
+            containerDiffMap[container.id] = 'same';
+          } else {
+            containerDiffMap[container.id] = 'delete';
+            containerList.push(container);
+          }
+        });
+
+        this.composeContainer = Object.freeze(containerList);
+        this.diffContainerMemo = Object.freeze(containerDiffMap);
+        Object.values(this.diffContainerMemo).forEach((value) => {
+          if (value !== 'same') {
+            this.hostEqual = false;
+          }
+        });
       },
       handlerView() {
         this.executeObjectsInfo = this.originExecuteObjectsInfo;
@@ -301,10 +335,13 @@
             dynamicGroupList: this.composeGroup,
             hostList: this.composeHost,
             nodeList: this.composeNode,
+            containerList: this.composeContainer,
           });
           this.nodeDiff = this.diffNodeMemo;
           this.hostDiff = this.diffHostMemo;
           this.groupDiff = this.diffGroupMemo;
+          this.containerDiff = this.diffContainerMemo;
+          this.isShowDiff = true;
         } else {
           this.handlerView();
         }
