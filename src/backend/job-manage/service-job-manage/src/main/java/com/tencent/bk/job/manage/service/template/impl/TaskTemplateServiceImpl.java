@@ -591,46 +591,79 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
 
         for (int i = 0; i < currentTaskStepList.size(); i++) {
             TaskStepDTO taskStep = currentTaskStepList.get(i);
-
-            if (taskStep.getId() == null || taskStep.getId() <= 0 || taskStep.getDelete() == 1) {
-                return true;
-            }
-
             TaskStepDTO originTaskStep = originTaskStepList.get(i);
-            if (!taskStep.getId().equals(originTaskStep.getId())) {
+
+            if (stepBaseInfoChanged(taskStep, originTaskStep)) {
                 return true;
             }
-            if (!taskStep.getType().equals(originTaskStep.getType())) {
+            if (stepDetailChanged(taskStep, originTaskStep)) {
                 return true;
-            }
-            if (!taskStep.getName().equals(originTaskStep.getName())) {
-                return true;
-            }
-            switch (taskStep.getType()) {
-                case SCRIPT:
-                    originTaskStep.getScriptStepInfo().setId(null);
-                    originTaskStep.getScriptStepInfo().setTemplateId(taskStep.getScriptStepInfo().getTemplateId());
-                    if (!taskStep.getScriptStepInfo().equals(originTaskStep.getScriptStepInfo())) {
-                        return true;
-                    }
-                    break;
-                case FILE:
-                    originTaskStep.getFileStepInfo().setId(null);
-                    if (!taskStep.getFileStepInfo().equals(originTaskStep.getFileStepInfo())) {
-                        return true;
-                    }
-                    break;
-                case APPROVAL:
-                    originTaskStep.getApprovalStepInfo().setId(null);
-                    if (!taskStep.getApprovalStepInfo().equals(originTaskStep.getApprovalStepInfo())) {
-                        return true;
-                    }
-                    break;
-                default:
-                    return true;
             }
         }
         return false;
+    }
+
+    /**
+     * 作业步骤基础信息是否有变更
+     */
+    private boolean stepBaseInfoChanged(TaskStepDTO taskStepDTO,
+                                        TaskStepDTO originTaskStepDTO) {
+        if (taskStepDTO.getId() == null || taskStepDTO.getId() <= 0 || taskStepDTO.getDelete() == 1) {
+            return true;
+        }
+        if (!taskStepDTO.getId().equals(originTaskStepDTO.getId())) {
+            return true;
+        }
+        if (!taskStepDTO.getType().equals(originTaskStepDTO.getType())) {
+            return true;
+        }
+        return !taskStepDTO.getName().equals(originTaskStepDTO.getName());
+    }
+
+    /**
+     * 作业步骤详情是否有变更
+     */
+    private boolean stepDetailChanged(TaskStepDTO taskStepDTO,
+                                      TaskStepDTO originTaskStepDTO) {
+        switch (taskStepDTO.getType()) {
+            case SCRIPT:
+                return scriptStepChanged(taskStepDTO, originTaskStepDTO);
+            case FILE:
+                return fileStepChanged(taskStepDTO, originTaskStepDTO);
+            case APPROVAL:
+                return approvalStepChanged(taskStepDTO, originTaskStepDTO);
+            default:
+                return true;
+        }
+    }
+
+    /**
+     * 执行脚本步骤是否有变更
+     */
+    private boolean scriptStepChanged(TaskStepDTO taskStepDTO,
+                                      TaskStepDTO originTaskStepDTO) {
+        originTaskStepDTO.getScriptStepInfo().setId(null);
+        originTaskStepDTO.getScriptStepInfo()
+            .setTemplateId(taskStepDTO.getScriptStepInfo().getTemplateId());
+        return !taskStepDTO.getScriptStepInfo().equals(originTaskStepDTO.getScriptStepInfo());
+    }
+
+    /**
+     * 文件分发步骤是否有变更
+     */
+    private boolean fileStepChanged(TaskStepDTO taskStepDTO,
+                                    TaskStepDTO originTaskStepDTO) {
+        originTaskStepDTO.getFileStepInfo().setId(null);
+        return !taskStepDTO.getFileStepInfo().equals(originTaskStepDTO.getFileStepInfo());
+    }
+
+    /**
+     * 人工确认步骤是否有变更
+     */
+    private boolean approvalStepChanged(TaskStepDTO taskStepDTO,
+                                        TaskStepDTO originTaskStepDTO) {
+        originTaskStepDTO.getApprovalStepInfo().setId(null);
+        return !taskStepDTO.getApprovalStepInfo().equals(originTaskStepDTO.getApprovalStepInfo());
     }
 
     private boolean templateHasChange(TaskTemplateInfoDTO taskTemplateInfo) {
@@ -837,13 +870,59 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         Long lastModifyTime,
         String lastModifyUser
     ) {
-        TaskTemplateInfoDTO taskTemplateByName =
-            taskTemplateDAO.getTaskTemplateByName(taskTemplateInfo.getAppId(), taskTemplateInfo.getName());
-        if (taskTemplateByName != null) {
-            throw new AlreadyExistsException(ErrorCode.TEMPLATE_NAME_EXIST, new String[]{taskTemplateInfo.getName()});
-        }
+        // 检查作业模板是否存在
+        checkTaskTemplateExists(taskTemplateInfo);
+
+        // 设置作业模板标签，并创建不存在的标签
         createNewTagForTemplateIfNotExist(taskTemplateInfo);
 
+        // 初始化作业模板基础信息
+        initTemplateFromMigration(taskTemplateInfo, createTime, lastModifyTime, lastModifyUser);
+
+        // 保存作业模板
+        Long templateId = processTemplateFromMigration(taskTemplateInfo);
+
+        // 更新作业模板标签
+        updateTemplateTags(taskTemplateInfo);
+
+        // 保存作业步骤
+        processTemplateStep(taskTemplateInfo);
+
+        // 更新作业模板首尾步骤
+        TaskTemplateInfoDTO updateStepIdReq = generateUpdateStepIdReq(taskTemplateInfo);
+        taskTemplateDAO.updateTaskTemplateById(updateStepIdReq, true);
+
+        // 保存作业模板全局变量
+        processTemplateVarsFromMigration(taskTemplateInfo, templateId);
+
+        return templateId;
+    }
+
+    /**
+     * 保存作业模板全局变量（迁移用）
+     */
+    private void processTemplateVarsFromMigration(TaskTemplateInfoDTO taskTemplateInfo,
+                                                       Long templateId) {
+        List<TaskVariableDTO> variableList = taskTemplateInfo.getVariableList();
+        if (CollectionUtils.isEmpty(variableList)) {
+            return;
+        }
+        variableList.forEach(taskVariableDTO -> {
+            taskVariableDTO.setTemplateId(templateId);
+            if (taskVariableDTO.getId() <= 0) {
+                taskVariableDTO.setId(null);
+            }
+        });
+        taskVariableService.batchInsertVariableWithId(variableList);
+    }
+
+    /**
+     * 作业模板基础信息初始化（迁移用）
+     */
+    private void initTemplateFromMigration(TaskTemplateInfoDTO taskTemplateInfo,
+                                           Long createTime,
+                                           Long lastModifyTime,
+                                           String lastModifyUser) {
         if (createTime != null && createTime > 0) {
             taskTemplateInfo.setCreateTime(createTime);
         } else {
@@ -863,29 +942,6 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         if (taskTemplateInfo.getLastStepId() == null) {
             taskTemplateInfo.setLastStepId(0L);
         }
-
-        // process template id
-        Long templateId = processTemplateFromMigration(taskTemplateInfo);
-
-        updateTemplateTags(taskTemplateInfo);
-
-        processTemplateStep(taskTemplateInfo);
-
-        // Process first and last step id
-        TaskTemplateInfoDTO updateStepIdReq = generateUpdateStepIdReq(taskTemplateInfo);
-        taskTemplateDAO.updateTaskTemplateById(updateStepIdReq, true);
-
-        // Insert new variable
-        List<TaskVariableDTO> variableList = taskTemplateInfo.getVariableList();
-        variableList.forEach(taskVariableDTO -> {
-            taskVariableDTO.setTemplateId(templateId);
-            if (taskVariableDTO.getId() <= 0) {
-                taskVariableDTO.setId(null);
-            }
-        });
-        taskVariableService.batchInsertVariableWithId(variableList);
-
-        return templateId;
     }
 
     /**
