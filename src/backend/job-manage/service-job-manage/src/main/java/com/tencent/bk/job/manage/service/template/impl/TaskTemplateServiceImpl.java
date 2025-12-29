@@ -167,6 +167,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 continue;
             }
             scriptStatus |= scriptStepInfo.getStatus();
+            // 0b11表示需要更新和被禁用两个状态位都被设置了，同时存在需要更新和被禁用的脚本，无需继续遍历
             if (scriptStatus >= 0b11) {
                 break;
             }
