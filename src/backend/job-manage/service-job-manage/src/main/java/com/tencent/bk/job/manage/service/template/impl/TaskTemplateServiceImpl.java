@@ -156,18 +156,22 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     }
 
     private void setUpdateFlag(TaskTemplateInfoDTO templateInfo) {
-        if (templateInfo != null && CollectionUtils.isNotEmpty(templateInfo.getStepList())) {
-            int scriptScript = 0;
-            for (TaskStepDTO taskStep : templateInfo.getStepList()) {
-                if (taskStep.getScriptStepInfo() != null) {
-                    scriptScript |= taskStep.getScriptStepInfo().getStatus();
-                    if (scriptScript >= 0b11) {
-                        break;
-                    }
-                }
-            }
-            templateInfo.setScriptStatus(scriptScript);
+        if (templateInfo == null || CollectionUtils.isEmpty(templateInfo.getStepList())) {
+            return;
         }
+
+        int scriptStatus = 0;
+        for (TaskStepDTO taskStep : templateInfo.getStepList()) {
+            TaskScriptStepDTO scriptStepInfo = taskStep.getScriptStepInfo();
+            if (scriptStepInfo == null) {
+                continue;
+            }
+            scriptStatus |= scriptStepInfo.getStatus();
+            if (scriptStatus >= 0b11) {
+                break;
+            }
+        }
+        templateInfo.setScriptStatus(scriptStatus);
     }
 
     @Override
@@ -948,23 +952,21 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
      * 保存作业模板（迁移用）
      */
     private Long processTemplateFromMigration(TaskTemplateInfoDTO taskTemplateInfo) {
-        Long templateId;
         if (isCreate(taskTemplateInfo)) {
-            templateId = insertNewTemplate(taskTemplateInfo);
+            Long templateId = insertNewTemplate(taskTemplateInfo);
             taskTemplateInfo.setId(templateId);
-        } else {
-            taskTemplateInfo.setStatus(TaskTemplateStatusEnum.NEW);
-            if (checkTemplateId(taskTemplateInfo.getId())) {
-                if (insertNewTemplateWithTemplateId(taskTemplateInfo)) {
-                    templateId = taskTemplateInfo.getId();
-                } else {
-                    throw new InternalException(ErrorCode.INSERT_TEMPLATE_FAILED);
-                }
-            } else {
-                throw new AlreadyExistsException(ErrorCode.TEMPLATE_ID_EXIST);
-            }
+            return templateId;
         }
-        return templateId;
+
+        taskTemplateInfo.setStatus(TaskTemplateStatusEnum.NEW);
+        if (!checkTemplateId(taskTemplateInfo.getId())) {
+            throw new AlreadyExistsException(ErrorCode.TEMPLATE_ID_EXIST);
+        }
+        if (!insertNewTemplateWithTemplateId(taskTemplateInfo)) {
+            throw new InternalException(ErrorCode.INSERT_TEMPLATE_FAILED);
+        }
+
+        return taskTemplateInfo.getId();
     }
 
     private TaskTemplateInfoDTO generateUpdateStepIdReq(TaskTemplateInfoDTO taskTemplateInfo) {
@@ -1140,10 +1142,46 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         return new HashSet<>(localFileList);
     }
 
+    /**
+     * 获取作业步骤中过期的脚本
+     * @return map集合，key:脚本id，value:过期的脚本版本id
+     */
     private Map<String, Long> getOutdatedScriptMap(List<TaskStepDTO> stepList) {
         Map<String, Long> outdatedScriptMap = new HashMap<>();
-        if (CollectionUtils.isEmpty(stepList)) {
+        // 提取作业步骤中的引用脚本
+        Map<String, Long> scriptVersionMap = extractReferenceScripts(stepList);
+
+        if (MapUtils.isEmpty(scriptVersionMap)) {
             return outdatedScriptMap;
+        }
+
+        // 获取引用脚本的上线版本
+        Map<String, ScriptDTO> scriptInfoMap;
+        try {
+            scriptInfoMap = scriptManager
+                .batchGetOnlineScriptVersionByScriptIds(new ArrayList<>(scriptVersionMap.keySet()));
+        } catch (ServiceException e) {
+            log.error("Error while getting online script version!", e);
+            return outdatedScriptMap;
+        }
+
+        if (MapUtils.isNotEmpty(scriptInfoMap)) {
+            // 引用脚本和上线脚本比较，得到过期脚本
+            outdatedScriptMap = calculateOutdatedScript(scriptVersionMap, scriptInfoMap);
+        } else {
+            outdatedScriptMap = scriptVersionMap;
+        }
+
+        return outdatedScriptMap;
+    }
+
+    /**
+     * 提取作业步骤中的引用脚本
+     * @return map集合，key:引用脚本id，value:引用脚本的版本id
+     */
+    private Map<String, Long> extractReferenceScripts(List<TaskStepDTO> stepList) {
+        if (CollectionUtils.isEmpty(stepList)) {
+            return Collections.emptyMap();
         }
 
         Map<String, Long> scriptVersionMap = new HashMap<>(stepList.size());
@@ -1161,34 +1199,22 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 scriptVersionMap.put(scriptStepInfo.getScriptId(), scriptStepInfo.getScriptVersionId());
             }
         }
+        return scriptVersionMap;
+    }
 
-        if (MapUtils.isEmpty(scriptVersionMap)) {
-            return outdatedScriptMap;
-        }
-
-        Map<String, ScriptDTO> scriptInfoMap;
-        try {
-            scriptInfoMap = scriptManager
-                .batchGetOnlineScriptVersionByScriptIds(new ArrayList<>(scriptVersionMap.keySet()));
-        } catch (ServiceException e) {
-            log.error("Error while getting online script version!", e);
-            return outdatedScriptMap;
-        }
-
-        if (MapUtils.isNotEmpty(scriptInfoMap)) {
-            for (Map.Entry<String, ScriptDTO> scriptInfoEntry : scriptInfoMap.entrySet()) {
-                Long submitVersion = scriptVersionMap.get(scriptInfoEntry.getKey());
-                if (submitVersion == null) {
-                    continue;
-                }
-                if (!submitVersion.equals(scriptInfoEntry.getValue().getScriptVersionId())) {
-                    outdatedScriptMap.put(scriptInfoEntry.getKey(), submitVersion);
-                }
+    /**
+     * 比对提交版本和在线版本，返回过期脚本
+     * @return map集合，key:引用脚本id，value:过期的脚本版本id
+     */
+    private Map<String, Long> calculateOutdatedScript(Map<String, Long> scriptVersionMap,
+                                                      Map<String, ScriptDTO> onlineScripts) {
+        Map<String, Long> outdatedScripts = new HashMap<>();
+        onlineScripts.forEach((scriptId, scriptDTO) -> {
+            Long submitVersion = scriptVersionMap.get(scriptId);
+            if (submitVersion != null && !submitVersion.equals(scriptDTO.getScriptVersionId())) {
+                outdatedScripts.put(scriptId, submitVersion);
             }
-        } else {
-            outdatedScriptMap = scriptVersionMap;
-        }
-
-        return outdatedScriptMap;
+        });
+        return outdatedScripts;
     }
 }
