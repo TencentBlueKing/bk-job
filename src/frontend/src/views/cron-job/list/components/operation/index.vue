@@ -53,17 +53,8 @@
         :label-width="80"
         property="executeTimeZone"
         required>
-        <bk-select
-          v-model="formData.executeTimeZone"
-          :clearable="false"
-          :placeholder="$t('cron.选择任务时区')"
-          searchable>
-          <auth-option
-            v-for="option in timezonesList"
-            :id="option.timezone"
-            :key="option.timezone"
-            :name="option.timezone" />
-        </bk-select>
+        <timezone-picker
+          v-model="formData.executeTimeZone" />
       </jb-form-item>
       <jb-form-item
         :label="$t('cron.执行策略_label')"
@@ -224,6 +215,8 @@
   import ToggleDisplay from '@components/global-variable/toggle-display';
   import JbInput from '@components/jb-input';
 
+  import { TimezonePicker } from '@blueking/date-picker/vue2';
+
   import Model from '@/domain/model/model';
   import I18n from '@/i18n';
   import timezonesList from '@/utils/world-timezones.json';
@@ -233,6 +226,8 @@
   import Crontab from './crontab';
   import CustomNotify from './custom-notify';
   import FormItemFactory from './form-item-strategy';
+
+  import '@blueking/date-picker/vue2/vue2.css';
 
   const model = new Model();
 
@@ -277,6 +272,7 @@
     taskPlanId: 0, // 关联的执行方案 ID
     taskTemplateId: 0,
     variableValue: [], // 变量信息
+    executeTimeZone: window.PROJECT_CONFIG.BUSINESS_TIME_ZONE,
   });
 
   export default {
@@ -290,6 +286,7 @@
       FormItemFactory,
       Crontab,
       CustomNotify,
+      TimezonePicker,
     },
     props: {
       data: {
@@ -422,8 +419,6 @@
             this.fetchPlanDetailInfo();
           }
         }
-        // 默认为业务所属时区
-        this.formData.executeTimeZone = window.PROJECT_CONFIG.BUSINESS_TIME_ZONE;
       }
 
       this.rules = Object.assign({}, this.rules, {
@@ -462,6 +457,9 @@
     },
 
     methods: {
+      handleTimezoneChange(val) {
+        this.formData.executeTimeZone = val;
+      },
       /**
        * @desc 定时任务详情
        */

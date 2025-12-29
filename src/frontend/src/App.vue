@@ -239,7 +239,7 @@
        * @desc 跳转到用户设置页面
        */
       handleUserSetting() {
-        window.open(`${this.relatedSystemUrls.BK_USER_SAAS_WEB_ROOT_URL}/personal-center`);
+        window.open(`${this.relatedSystemUrls.BK_USER_WEB_ROOT_URL}/personal-center`);
       },
       /**
        * @desc 获取登录用户信息
