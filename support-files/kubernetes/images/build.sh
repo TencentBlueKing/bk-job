@@ -216,7 +216,9 @@ build_backend_modules () {
     for MODULE in ${MODULES[@]}; do
         if [[ "${MODULE}" == "job-manage" ]]; then
             log "Building version logs for module: ${MODULE}"
-            generate_version_logs
+            if ! generate_version_logs; then
+                log "Version logs generation failed, continue build..."
+            fi
         fi
         if [[ "${MODULE}" == "job-assemble" ]] || [[ "${MODULE}" == "job-gateway" ]]; then
             tasks+=":${MODULE}:build "
@@ -286,19 +288,22 @@ generate_version_logs() {
         log "Version log dir not found: $VERSION_LOGS_DIR"
         return 1
     fi
-    cd "$VERSION_LOGS_DIR" || return 1
 
-    python genBundledVersionLog.py || {
-        log "Failed to generate version logs"
+    local worker_dir=$(pwd)
+    cd "$VERSION_LOGS_DIR"
+    if ! python genBundledVersionLog.py; then
+        log "genBundledVersionLog.py failed"
+        cd "$worker_dir"
         return 1
-    }
+    fi
 
     local target_dir="$BACKEND_DIR/job-manage/boot-job-manage/src/main/resources/versionLog"
-    mkdir -p "$target_dir" || return 1
+    mkdir -p "$target_dir"
     log "Copy version log files to ${target_dir}"
-    cp bundledVersionLog*.json "$target_dir" || return 1
+    cp bundledVersionLog*.json "$target_dir"
     log "Version logs copied:"
-    ls -l "$target_dir"
+    ls -l "$target_dir"/*.json
+    cd "$worker_dir"
     return 0
 }
 
