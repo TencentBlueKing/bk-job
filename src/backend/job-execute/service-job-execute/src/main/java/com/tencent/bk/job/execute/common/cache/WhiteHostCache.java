@@ -30,7 +30,6 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
 import com.tencent.bk.job.manage.api.inner.ServiceWhiteIPResource;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
-import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +51,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class WhiteHostCache {
     private final ServiceTenantResource tenantResource;
     private final ServiceWhiteIPResource whiteIpResource;
-    private final RemoteAppService remoteAppService;
 
     private volatile boolean isWhiteIpConfigLoaded = false;
     /**
@@ -66,11 +64,9 @@ public class WhiteHostCache {
 
     @Autowired
     public WhiteHostCache(ServiceTenantResource tenantResource,
-                          ServiceWhiteIPResource whiteIpResource,
-                          RemoteAppService remoteAppService) {
+                          ServiceWhiteIPResource whiteIpResource) {
         this.tenantResource = tenantResource;
         this.whiteIpResource = whiteIpResource;
-        this.remoteAppService = remoteAppService;
     }
 
     @Scheduled(cron = "0 * * * * ?")
