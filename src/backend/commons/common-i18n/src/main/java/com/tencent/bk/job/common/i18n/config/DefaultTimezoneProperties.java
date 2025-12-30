@@ -25,14 +25,12 @@
 package com.tencent.bk.job.common.i18n.config;
 
 import com.tencent.bk.job.common.i18n.zone.TimeZoneConstants;
-import com.tencent.bk.job.common.i18n.zone.TimeZoneUtils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import java.time.ZoneId;
 
 /**
  * 默认时区配置属性
