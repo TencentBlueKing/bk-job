@@ -43,9 +43,9 @@ public interface WebVersionLogResource {
     /**
      * 按语言获取版本日志
      *
-     * @return 版本日志(json字符串)
+     * @return json格式的版本日志数组
      */
     @ApiOperation(value = "按语言获取版本日志", produces = "application/json")
     @GetMapping
-    Response<String> getVersionLog();
+    Response<Object> getVersionLog();
 }

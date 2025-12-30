@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.api.web.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotFoundException;
@@ -32,14 +33,12 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.web.WebVersionLogResource;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 @RestController
 @Slf4j
@@ -50,7 +49,7 @@ public class WebVersionLogResourceImpl implements WebVersionLogResource {
     private static final String LOG_FILE_NAME_SEPARATOR = "_";
 
     @Override
-    public Response<String> getVersionLog() {
+    public Response<Object> getVersionLog() {
         String userLang = LocaleUtils.getNormalLang(JobContextUtil.getUserLang());
         String fileName = getFileNameByLang(userLang);
         String logFilePath = buildFilePath(fileName);
@@ -62,7 +61,8 @@ public class WebVersionLogResourceImpl implements WebVersionLogResource {
         }
 
         try (InputStream inputStream = resource.getInputStream()) {
-            String versionLog = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+            ObjectMapper mapper = new ObjectMapper();
+            Object versionLog = mapper.readValue(inputStream, Object.class);
             return Response.buildSuccessResp(versionLog);
         } catch (IOException e) {
             log.error("Reading version log file failure, path={}", logFilePath, e);
