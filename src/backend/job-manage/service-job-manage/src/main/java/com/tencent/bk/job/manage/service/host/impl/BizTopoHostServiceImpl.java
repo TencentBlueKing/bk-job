@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import com.tencent.bk.job.manage.service.host.BizTopoHostService;
 import com.tencent.bk.job.manage.service.host.CurrentTenantBizHostService;
@@ -52,13 +53,21 @@ public class BizTopoHostServiceImpl implements BizTopoHostService {
 
     @Override
     public List<ApplicationHostDTO> listHostByNode(Long bizId, BizTopoNode node) {
-        List<Long> moduleIds = bizTopoService.findAllModuleIdsOfNodes(bizId, Collections.singletonList(node));
+        List<Long> moduleIds = bizTopoService.findAllModuleIdsOfNodes(
+            JobContextUtil.getTenantId(),
+            bizId,
+            Collections.singletonList(node)
+        );
         return currentTenantBizHostService.getHostsByModuleIds(moduleIds);
     }
 
     @Override
     public List<ApplicationHostDTO> listHostByNodes(Long bizId, List<BizTopoNode> nodes) {
-        List<Long> moduleIds = bizTopoService.findAllModuleIdsOfNodes(bizId, nodes);
+        List<Long> moduleIds = bizTopoService.findAllModuleIdsOfNodes(
+            JobContextUtil.getTenantId(),
+            bizId,
+            nodes
+        );
         return currentTenantBizHostService.getHostsByModuleIds(moduleIds);
     }
 }
