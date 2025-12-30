@@ -215,10 +215,11 @@ public interface IBizCmdbClient {
     /**
      * 根据cmdb业务角色获取人员
      *
+     * @param tenantId 租户ID
      * @param bizId cmdb业务ID
      * @param role  业务角色
      */
-    Set<String> listUsersByRole(Long bizId, String role);
+    Set<String> listUsersByRole(String tenantId, Long bizId, String role);
 
     /**
      * 获取CMDB业务角色列表

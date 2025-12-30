@@ -1214,7 +1214,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public Set<String> listUsersByRole(Long bizId, String role) {
+    public Set<String> listUsersByRole(String tenantId, Long bizId, String role) {
         CountInfo<Map<String, Object>> searchResult;
         GetAppReq req = makeCmdbBaseReq(GetAppReq.class);
         Map<String, Object> condition = new HashMap<>();
@@ -1222,7 +1222,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         req.setCondition(condition);
         req.setFields(Collections.singletonList(role));
         String uri = SEARCH_BUSINESS.replace("{bk_supplier_account}", req.getBkSupplierAccount());
-        EsbResp<CountInfo<Map<String, Object>>> esbResp = requestCmdbApiUseContextTenantId(
+        EsbResp<CountInfo<Map<String, Object>>> esbResp = requestCmdbApi(
+            tenantId,
             HttpMethodEnum.POST,
             SEARCH_BUSINESS,
             uri,
