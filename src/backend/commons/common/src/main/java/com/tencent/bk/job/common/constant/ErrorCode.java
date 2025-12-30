@@ -62,6 +62,8 @@ public class ErrorCode {
     public static final int TENANT_ID_CANNOT_BE_BLANK = 1210005;
     // 禁止跨租户访问数据，当前租户ID：{0}，尝试访问的资源：{1}，资源所属租户ID：{2}
     public static final int ACCESS_CROSS_TENANT_FORBIDDEN = 1210006;
+    // 版本日志文件[{0}]不存在
+    public static final int VERSION_LOG_FILE_NOT_FOUND = 1210007;
 
     // CMDB错误
     // CMDB服务状态不可达 - 地址配置错误或者地址无法正确解析
