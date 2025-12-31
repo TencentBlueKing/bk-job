@@ -133,11 +133,11 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<HostDTO> getHostsByDynamicGroupId(long appId, String groupId) {
+    public List<HostDTO> getHostsByDynamicGroupId(String tenantId, long appId, String groupId) {
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         List<DynamicGroupHostPropDTO> cmdbGroupHostList =
-            bizCmdbClient.getDynamicGroupIp(Long.parseLong(resourceScope.getId()), groupId);
+            bizCmdbClient.getDynamicGroupIp(tenantId, Long.parseLong(resourceScope.getId()), groupId);
         List<HostDTO> hostList = new ArrayList<>();
         if (cmdbGroupHostList == null || cmdbGroupHostList.isEmpty()) {
             return hostList;
@@ -171,14 +171,16 @@ public class HostServiceImpl implements HostService {
 
     @Override
     public Map<DynamicServerGroupDTO, List<HostDTO>> batchGetAndGroupHostsByDynamicGroup(
+        String tenantId,
         long appId,
-        Collection<DynamicServerGroupDTO> groups) {
+        Collection<DynamicServerGroupDTO> groups
+    ) {
         if (CollectionUtils.isEmpty(groups)) {
             return new HashMap<>();
         }
 
         Map<DynamicServerGroupDTO, List<HostDTO>> result = new HashMap<>();
-        groups.forEach(group -> result.put(group, getHostsByDynamicGroupId(appId, group.getGroupId())));
+        groups.forEach(group -> result.put(group, getHostsByDynamicGroupId(tenantId, appId, group.getGroupId())));
         return result;
     }
 

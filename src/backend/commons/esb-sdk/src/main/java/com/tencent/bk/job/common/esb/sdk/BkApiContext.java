@@ -39,6 +39,10 @@ public class BkApiContext<T, R> {
      * HTTP 请求方法
      */
     private String method;
+    /**
+     * API名称
+     */
+    private String apiName;
     private String uri;
     private T req;
     private String queryParams;
@@ -73,6 +77,7 @@ public class BkApiContext<T, R> {
     private String requestId;
 
     public BkApiContext(String method,
+                        String apiName,
                         String uri,
                         T req,
                         String queryParams,
@@ -81,6 +86,7 @@ public class BkApiContext<T, R> {
                         long costTime,
                         boolean success) {
         this.method = method;
+        this.apiName = apiName;
         this.uri = uri;
         this.req = req;
         this.queryParams = queryParams;

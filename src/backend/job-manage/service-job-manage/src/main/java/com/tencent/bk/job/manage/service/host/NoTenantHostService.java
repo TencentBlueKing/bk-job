@@ -32,7 +32,6 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 租户无关的主机服务接口，仅用于系统内部调用
@@ -125,4 +124,20 @@ public interface NoTenantHostService {
      * @return 主机
      */
     List<ApplicationHostDTO> listHostsFromCacheOrDB(Collection<HostDTO> hosts);
+
+    /**
+     * 批量获取DB中存在的主机ID
+     *
+     * @param hostIds 主机ID集合
+     * @return 存在的主机ID列表
+     */
+    List<Long> listHostIdsFromDB(Collection<Long> hostIds);
+
+    /**
+     * 根据传入的hostIds从DB数据中查出Agent状态不正常的主机ID
+     *
+     * @param hostIds 主机ID集合
+     * @return Agent状态不正常的主机ID列表
+     */
+    List<Long> listHostIdOfNotAliveHostInDB(Collection<Long> hostIds);
 }

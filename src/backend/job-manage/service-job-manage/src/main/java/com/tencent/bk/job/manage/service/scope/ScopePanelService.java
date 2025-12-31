@@ -25,10 +25,14 @@
 package com.tencent.bk.job.manage.service.scope;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.config.ScopePanelProperties;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
 import com.tencent.bk.job.manage.model.web.vo.ScopeGroup;
@@ -53,14 +57,17 @@ import java.util.Map;
 @Service
 public class ScopePanelService {
 
+    private final TenantEnvService tenantEnvService;
     private final ScopePanelProperties scopePanelProperties;
     private final AuthService authService;
     private final MessageI18nService messageI18nService;
 
     @Autowired
-    public ScopePanelService(ScopePanelProperties scopePanelProperties,
+    public ScopePanelService(TenantEnvService tenantEnvService,
+                             ScopePanelProperties scopePanelProperties,
                              AuthService authService,
                              MessageI18nService messageI18nService) {
+        this.tenantEnvService = tenantEnvService;
         this.scopePanelProperties = scopePanelProperties;
         this.authService = authService;
         this.messageI18nService = messageI18nService;
@@ -96,7 +103,11 @@ public class ScopePanelService {
         }
         List<ScopeGroup> scopeGroupList = new ArrayList<>();
         Map<String, List<ScopeVO>> id2ChildrenMap = new HashMap<>();
+        User user = JobContextUtil.getUser();
         for (ResourceScopeTypeEnum scopeTypeEnum : ResourceScopeTypeEnum.values()) {
+            if (!shouldDisplayScopeGroupForUser(user, scopeTypeEnum)) {
+                continue;
+            }
             ScopeGroup scopeGroup = new ScopeGroup();
             scopeGroup.setId(scopeTypeEnum.getValue());
             scopeGroup.setName(messageI18nService.getI18n(scopeTypeEnum.getI18nKey()));
@@ -125,6 +136,21 @@ public class ScopePanelService {
             mappedScopeList.add(scopeVO);
         }
         return scopeGroupList;
+    }
+
+    /**
+     * 判断是否应该向当前用户展示某个资源范围分组
+     *
+     * @param user          当前用户
+     * @param scopeTypeEnum 资源范围类型
+     * @return 布尔值
+     */
+    private boolean shouldDisplayScopeGroupForUser(User user, ResourceScopeTypeEnum scopeTypeEnum) {
+        if (scopeTypeEnum != ResourceScopeTypeEnum.TENANT_SET) {
+            return true;
+        }
+        // 只有系统租户下才展示租户集分组
+        return TenantIdConstants.SYSTEM_TENANT_ID.equals(user.getTenantId());
     }
 
     /**

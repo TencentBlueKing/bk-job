@@ -233,4 +233,13 @@ public class TaskFileStepDTO {
             return FileTransferModeEnum.STRICT;
         }
     }
+
+    @Override
+    public String toString() {
+        return "TaskFileStepDTO{" +
+            "id=" + id +
+            ", originFileList=" + originFileList +
+            ", destinationFileLocation=" + destinationFileLocation +
+            '}';
+    }
 }

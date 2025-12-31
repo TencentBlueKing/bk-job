@@ -106,11 +106,13 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
     private TaskExecuteParam buildExecuteParam(ServiceTaskExecuteRequest request) {
         List<TaskVariableDTO> executeVariableValues = new ArrayList<>();
         String tenantId = remoteAppService.getTenantIdByAppId(request.getAppId());
+        User user = new User(tenantId, request.getOperator(), request.getOperator());
+        JobContextUtil.setUser(user);
         TaskExecuteParam taskExecuteParam = TaskExecuteParam
             .builder()
             .appId(request.getAppId())
             .planId(request.getPlanId())
-            .operator(new User(tenantId, request.getOperator(), request.getOperator()))
+            .operator(user)
             .executeVariableValues(executeVariableValues)
             .startupMode(TaskStartupModeEnum.getStartupMode(request.getStartupMode()))
             .cronTaskId(request.getCronTaskId())

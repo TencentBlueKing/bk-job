@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.BasicHostDTO;
@@ -363,4 +364,13 @@ public class NoTenantHostServiceImpl extends BaseHostService implements NoTenant
         return existHosts;
     }
 
+    @Override
+    public List<Long> listHostIdsFromDB(Collection<Long> hostIds) {
+        return noTenantHostDAO.listHostId(hostIds);
+    }
+
+    @Override
+    public List<Long> listHostIdOfNotAliveHostInDB(Collection<Long> hostIds){
+        return noTenantHostDAO.listHostIdOfStatus(hostIds, AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
+    }
 }
