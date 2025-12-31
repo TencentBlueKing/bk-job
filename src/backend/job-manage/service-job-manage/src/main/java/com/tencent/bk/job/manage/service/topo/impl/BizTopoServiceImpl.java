@@ -54,11 +54,12 @@ public class BizTopoServiceImpl implements BizTopoService {
     }
 
     @Override
-    public List<List<InstanceTopologyDTO>> queryBizNodePaths(Long bizId,
+    public List<List<InstanceTopologyDTO>> queryBizNodePaths(String tenantId,
+                                                             Long bizId,
                                                              List<InstanceTopologyDTO> nodeList) {
         // 查业务拓扑树
         IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang());
-        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(bizId);
+        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(tenantId, bizId);
         // 搜索路径
         return TopologyHelper.findTopoPaths(appTopologyTree, nodeList);
     }
@@ -67,18 +68,20 @@ public class BizTopoServiceImpl implements BizTopoService {
     /**
      * 找出多个拓扑节点下属的所有模块ID
      *
+     * @param tenantId        租户ID
      * @param bizId           业务ID
      * @param appTopoNodeList 拓扑节点列表
      * @return 模块ID列表
      */
-    public List<Long> findAllModuleIdsOfNodes(Long bizId,
+    public List<Long> findAllModuleIdsOfNodes(String tenantId,
+                                              Long bizId,
                                               List<BizTopoNode> appTopoNodeList) {
         if (appTopoNodeList == null || appTopoNodeList.isEmpty()) {
             return Collections.emptyList();
         }
         List<Long> moduleIds = new ArrayList<>();
         // 查业务拓扑树
-        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(bizId);
+        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(tenantId, bizId);
         for (BizTopoNode treeNode : appTopoNodeList) {
             CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());
             // 查拓扑节点完整信息

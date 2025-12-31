@@ -251,10 +251,14 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
                            @NonNull Object handler,
                            ModelAndView modelAndView) {
         if (log.isDebugEnabled()) {
-            log.debug("Post handler|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(),
+            log.debug(
+                "Post handler|{}|{}|{}|{}|{}",
+                JobContextUtil.getRequestId(),
                 JobContextUtil.getApp(),
-                JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
-                request.getRequestURI());
+                JobContextUtil.getUsername(),
+                JobContextUtil.calcTimeMillisFromStart(),
+                request.getRequestURI()
+            );
         }
     }
 
@@ -273,7 +277,7 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
                     JobContextUtil.getRequestId(),
                     response.getStatus(),
                     JobContextUtil.getUsername(),
-                    System.currentTimeMillis() - JobContextUtil.getStartTime(),
+                    JobContextUtil.calcTimeMillisFromStart(),
                     request.getRequestURI(),
                     ex.getMessage()
                 );
@@ -283,7 +287,7 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
                     JobContextUtil.getRequestId(),
                     response.getStatus(),
                     JobContextUtil.getUsername(),
-                    System.currentTimeMillis() - JobContextUtil.getStartTime(),
+                    JobContextUtil.calcTimeMillisFromStart(),
                     request.getRequestURI()
                 );
             }

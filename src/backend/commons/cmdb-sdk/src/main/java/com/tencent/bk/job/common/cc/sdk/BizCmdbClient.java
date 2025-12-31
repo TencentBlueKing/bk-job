@@ -74,7 +74,6 @@ import com.tencent.bk.job.common.cc.model.req.GetBriefCacheTopoReq;
 import com.tencent.bk.job.common.cc.model.req.GetCloudAreaInfoReq;
 import com.tencent.bk.job.common.cc.model.req.GetObjAttributeReq;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
-import com.tencent.bk.job.common.cc.model.req.ListBizHostReq;
 import com.tencent.bk.job.common.cc.model.req.ListHostsWithoutBizReq;
 import com.tencent.bk.job.common.cc.model.req.ListKubeClusterReq;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
@@ -83,7 +82,6 @@ import com.tencent.bk.job.common.cc.model.req.ListKubeWorkloadReq;
 import com.tencent.bk.job.common.cc.model.req.Page;
 import com.tencent.bk.job.common.cc.model.req.ResourceWatchReq;
 import com.tencent.bk.job.common.cc.model.req.SearchHostDynamicGroupReq;
-import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
 import com.tencent.bk.job.common.cc.model.response.CountInfo;
 import com.tencent.bk.job.common.cc.model.result.BaseCcSearchResult;
 import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
@@ -95,7 +93,6 @@ import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostProp;
 import com.tencent.bk.job.common.cc.model.result.HostRelationEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostWithModules;
-import com.tencent.bk.job.common.cc.model.result.ListBizHostResult;
 import com.tencent.bk.job.common.cc.model.result.ListHostsWithoutBizResult;
 import com.tencent.bk.job.common.cc.model.result.ModuleProp;
 import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
@@ -115,7 +112,6 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
@@ -237,8 +233,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public InstanceTopologyDTO getBizInstTopology(long bizId) {
-        String tenantId = JobContextUtil.getTenantId();
+    public InstanceTopologyDTO getBizInstTopology(String tenantId, long bizId) {
         return getCachedBizInstCompleteTopology(tenantId, bizId);
     }
 
@@ -798,7 +793,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public List<CcDynamicGroupDTO> getDynamicGroupList(long bizId) {
+    public List<CcDynamicGroupDTO> getDynamicGroupList(String tenantId, long bizId) {
         SearchHostDynamicGroupReq req = makeCmdbBaseReq(SearchHostDynamicGroupReq.class);
         req.setBizId(bizId);
         int start = 0;
@@ -810,7 +805,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         while (!isLastPage) {
             req.getPage().setStart(start);
             String uri = SEARCH_DYNAMIC_GROUP.replace("{bk_biz_id}", String.valueOf(bizId));
-            EsbResp<SearchDynamicGroupResult> esbResp = requestCmdbApiUseContextTenantId(
+            EsbResp<SearchDynamicGroupResult> esbResp = requestCmdbApi(
+                tenantId,
                 HttpMethodEnum.POST,
                 SEARCH_DYNAMIC_GROUP,
                 uri,
@@ -968,20 +964,6 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         return appCloudAreaList;
     }
 
-    @Override
-    public List<ApplicationHostDTO> listBizHosts(long bizId, Collection<HostDTO> ipList) {
-        if (ipList == null || ipList.isEmpty()) {
-            return Collections.emptyList();
-        }
-        List<ApplicationHostDTO> appHosts = getHostByIp(new GetHostByIpInput(bizId, null, null,
-            ipList.stream().map(HostDTO::getIp).collect(Collectors.toList())));
-        if (appHosts == null || appHosts.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return appHosts.stream().filter(host ->
-            ipList.contains(new HostDTO(host.getCloudAreaId(), host.getIp()))).collect(Collectors.toList());
-    }
-
     /**
      * 根据hostId查询主机业务关系信息
      *
@@ -1006,51 +988,6 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             return Collections.emptyList();
         }
         return results;
-    }
-
-    @Override
-    public List<ApplicationHostDTO> getHostByIp(GetHostByIpInput input) {
-        List<ApplicationHostDTO> hostInfoList = new ArrayList<>();
-        ListBizHostReq req = makeCmdbBaseReq(ListBizHostReq.class);
-        req.setBizId(input.getBizId());
-        PropertyFilterDTO condition = new PropertyFilterDTO();
-        condition.setCondition(RuleConditionEnum.AND.getCondition());
-        input.ipList.removeIf(StringUtils::isBlank);
-        condition.addRule(BaseRuleDTO.in("bk_host_innerip", input.ipList));
-        req.setCondition(condition);
-
-        String uri = LIST_BIZ_HOSTS.replace("{bk_biz_id}", String.valueOf(input.getBizId()));
-        int limit = 200;
-        int start = 0;
-        boolean isLastPage = false;
-        while (!isLastPage) {
-            Page page = new Page(start, limit, "");
-            req.setPage(page);
-            EsbResp<ListBizHostResult> esbResp = requestCmdbApiUseContextTenantId(
-                HttpMethodEnum.POST,
-                LIST_BIZ_HOSTS,
-                uri,
-                null,
-                req,
-                new TypeReference<EsbResp<ListBizHostResult>>() {
-                });
-            ListBizHostResult pageData = esbResp.getData();
-            if (esbResp.getData() == null) {
-                return Collections.emptyList();
-            }
-            for (CcHostInfoDTO hostInfo : pageData.getInfo()) {
-                start++;
-                ApplicationHostDTO host = convertHost(input.getBizId(), hostInfo);
-                if (host != null) {
-                    hostInfoList.add(host);
-                }
-            }
-            // 如果该页未达到limit，说明是最后一页
-            if (pageData.getInfo().size() < limit) {
-                isLastPage = true;
-            }
-        }
-        return hostInfoList;
     }
 
     @Override
@@ -1136,9 +1073,15 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
 
             // 设置主机业务信息
             setBizRelationInfo(tenantId, hosts);
+            // 设置主机租户信息
+            setHostTenantInfo(tenantId, hosts);
         } while (start < total);
 
         return hosts;
+    }
+
+    private void setHostTenantInfo(String tenantId, List<ApplicationHostDTO> hosts) {
+        hosts.forEach(host -> host.setTenantId(tenantId));
     }
 
     private void setBizRelationInfo(String tenantId, List<ApplicationHostDTO> hosts) {
@@ -1208,7 +1151,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public Set<String> listUsersByRole(Long bizId, String role) {
+    public Set<String> listUsersByRole(String tenantId, Long bizId, String role) {
         CountInfo<Map<String, Object>> searchResult;
         GetAppReq req = makeCmdbBaseReq(GetAppReq.class);
         Map<String, Object> condition = new HashMap<>();
@@ -1216,7 +1159,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         req.setCondition(condition);
         req.setFields(Collections.singletonList(role));
         String uri = SEARCH_BUSINESS.replace("{bk_supplier_account}", req.getBkSupplierAccount());
-        EsbResp<CountInfo<Map<String, Object>>> esbResp = requestCmdbApiUseContextTenantId(
+        EsbResp<CountInfo<Map<String, Object>>> esbResp = requestCmdbApi(
+            tenantId,
             HttpMethodEnum.POST,
             SEARCH_BUSINESS,
             uri,
@@ -1417,7 +1361,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public ResourceWatchResult<BizEventDetail> getAppEvents(String tenantId, Long startTime, String cursor) {
+    public ResourceWatchResult<BizEventDetail> getBizEvents(String tenantId, Long startTime, String cursor) {
         ResourceWatchReq req = makeCmdbBaseReq(ResourceWatchReq.class);
         req.setFields(Arrays.asList("bk_biz_id", "bk_biz_name", "bk_supplier_account",
             "time_zone", "language", "default"));

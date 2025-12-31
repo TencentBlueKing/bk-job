@@ -69,7 +69,7 @@ public class AppRoleServiceImpl implements AppRoleService {
         ResourceScope scope = application.getScope();
         if (scope.getType() == ResourceScopeTypeEnum.BIZ) {
             IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang());
-            return bizCmdbClient.listUsersByRole(Long.valueOf(scope.getId()), role);
+            return bizCmdbClient.listUsersByRole(application.getTenantId(), Long.valueOf(scope.getId()), role);
         } else if (scope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
             // 业务集当前只支持运维人员
             return bizSetCmdbClient.listUsersByRole(application.getTenantId(), Long.valueOf(scope.getId()), role);
