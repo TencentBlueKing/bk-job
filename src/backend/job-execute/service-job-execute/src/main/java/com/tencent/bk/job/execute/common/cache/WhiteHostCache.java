@@ -27,12 +27,10 @@ package com.tencent.bk.job.execute.common.cache;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.tenant.TenantDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
 import com.tencent.bk.job.manage.api.inner.ServiceWhiteIPResource;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
 import lombok.extern.slf4j.Slf4j;
-import org.jooq.tools.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -53,7 +51,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class WhiteHostCache {
     private final ServiceTenantResource tenantResource;
     private final ServiceWhiteIPResource whiteIpResource;
-    private final RemoteAppService remoteAppService;
 
     private volatile boolean isWhiteIpConfigLoaded = false;
     /**
@@ -67,11 +64,9 @@ public class WhiteHostCache {
 
     @Autowired
     public WhiteHostCache(ServiceTenantResource tenantResource,
-                          ServiceWhiteIPResource whiteIpResource,
-                          RemoteAppService remoteAppService) {
+                          ServiceWhiteIPResource whiteIpResource) {
         this.tenantResource = tenantResource;
         this.whiteIpResource = whiteIpResource;
-        this.remoteAppService = remoteAppService;
     }
 
     @Scheduled(cron = "0 * * * * ?")
@@ -136,15 +131,18 @@ public class WhiteHostCache {
         }
     }
 
-    public List<String> getHostAllowedAction(long appId, long hostId) {
+    /**
+     * 获取主机允许的白名单操作
+     *
+     * @param tenantId 租户ID
+     * @param appId    Job业务ID
+     * @param hostId   主机ID
+     * @return 白名单操作
+     */
+    public List<String> getHostAllowedAction(String tenantId, long appId, long hostId) {
         try {
             if (!isWhiteIpConfigLoaded) {
                 syncWhiteIpConfigForAllTenants();
-            }
-            String tenantId = remoteAppService.getTenantIdByAppId(appId);
-            if (StringUtils.isBlank(tenantId)) {
-                log.warn("Cannot get tenantId by appId={}", appId);
-                return null;
             }
             try {
                 rLock.lock();

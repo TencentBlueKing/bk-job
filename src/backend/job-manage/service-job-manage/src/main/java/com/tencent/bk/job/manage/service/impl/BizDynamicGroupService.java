@@ -48,13 +48,13 @@ public class BizDynamicGroupService {
         this.bizCmdbClient = bizCmdbClient;
     }
 
-    public List<DynamicGroupDTO> listDynamicGroup(Long bizId) {
-        List<CcDynamicGroupDTO> ccGroupList = bizCmdbClient.getDynamicGroupList(bizId);
+    public List<DynamicGroupDTO> listDynamicGroup(String tenantId, Long bizId) {
+        List<CcDynamicGroupDTO> ccGroupList = bizCmdbClient.getDynamicGroupList(tenantId, bizId);
         return ccGroupList.stream().map(DynamicGroupDTO::fromCcGroupDTO).collect(Collectors.toList());
     }
 
-    public List<DynamicGroupDTO> listDynamicGroup(Long bizId, Collection<String> ids) {
-        List<DynamicGroupDTO> dynamicGroupList = listDynamicGroup(bizId);
+    public List<DynamicGroupDTO> listDynamicGroup(String tenantId, Long bizId, Collection<String> ids) {
+        List<DynamicGroupDTO> dynamicGroupList = listDynamicGroup(tenantId, bizId);
         if (ids == null) {
             return dynamicGroupList;
         }
