@@ -27,11 +27,15 @@ package com.tencent.bk.job.common.web.interceptor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.common.annotation.JobInterceptor;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpRequestSourceEnum;
 import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
+import com.tencent.bk.job.common.i18n.zone.InvalidTimeZoneException;
 import com.tencent.bk.job.common.i18n.zone.TimeZoneConstants;
+import com.tencent.bk.job.common.i18n.zone.TimeZoneUtils;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 import com.tencent.bk.job.common.paas.user.IUserApiClient;
@@ -176,6 +180,8 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
     /**
      * 从 HTTP Header 中获取用户时区（由job-gateway添加）并设置到 JobContext
      * 如果 Header 中没有时区信息，则使用默认时区（Asia/Shanghai）
+     * 
+     * @throws InvalidParamException 当时区参数无效时抛出
      */
     private void addTimeZone(HttpServletRequest request) {
         String userTimeZone = request.getHeader(JobCommonHeaders.BK_USER_TIMEZONE);
@@ -183,12 +189,15 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
         ZoneId zoneId;
         if (StringUtils.isNotBlank(userTimeZone)) {
             try {
-                zoneId = ZoneId.of(userTimeZone);
+                zoneId = TimeZoneUtils.checkTimeZoneValid(userTimeZone);
                 log.debug("Set user timezone from header: {}", userTimeZone);
-            } catch (Exception e) {
-                // 如果用户时区不合法，使用默认时区
-                log.warn("Invalid user timezone: {}, use default timezone", userTimeZone, e);
-                zoneId = TimeZoneConstants.DEFAULT_ZONE_ID_CN;
+            } catch (InvalidTimeZoneException e) {
+                log.warn("Invalid user timezone, user: {}, user's timezone: {}",
+                    JobContextUtil.getUser(), userTimeZone);
+                throw new InvalidParamException(
+                    ErrorCode.INVALID_USER_TIMEZONE,
+                    new Object[]{userTimeZone}
+                );
             }
         } else {
             zoneId = TimeZoneConstants.DEFAULT_ZONE_ID_CN;

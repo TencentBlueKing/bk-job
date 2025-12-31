@@ -26,6 +26,7 @@ package com.tencent.bk.job.logsvr.model;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
+import com.tencent.bk.job.common.util.CompatibleLogUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.FileTaskTimeAndRawLogDTO;
@@ -292,8 +293,8 @@ public class FileTaskLogDoc {
         fileLog.setTaskId(fileLog.buildTaskId());
 
         // 兼容老版本，老的上层服务(job-execute)传来的 老版本content内包含时间字符串和日志
-        // 版本发布后可删除
-        fileLog.setContent(serviceFileLog.getContent());
+        recordAndSetContent(serviceFileLog.getContent(), fileLog);
+
         // 新版本：如果有contentList，则构建writeContentList（包含LogEntry对象）
         if (CollectionUtils.isNotEmpty(serviceFileLog.getContentList())) {
             List<LogEntry> writeContentList = new ArrayList<>();
@@ -410,6 +411,24 @@ public class FileTaskLogDoc {
 
     public String getTaskId() {
         return this.taskId == null ? buildTaskId() : this.taskId;
+    }
+
+    /**
+     * 老版本上层服务(job-execute)传来的 content 非空时，设置content字段并记录到日志中，写入文件任务日志时使用
+     * 发布完成后，观察到没有打印日志后可删除
+     */
+    @CompatibleImplementation(
+        name = "record_content",
+        deprecatedVersion = "3.12.1",
+        type = CompatibleType.HISTORY_LOGIC,
+        explain = "时区改造后将不再使用，新版本使用contentList，为了发布过程中兼容不删，发布完成后，重构代码移除对content字段的使用"
+    )
+    private static void recordAndSetContent(String content, FileTaskLogDoc fileLog) {
+        if (StringUtils.isNotEmpty(content)) {
+            fileLog.setContent(content);
+            CompatibleLogUtil.logOldLogicLogFileTaskLogInvoke("convert ServiceFileTaskLogDTO to FileTaskLogDoc,"
+                + "ServiceFileTaskLogDTO.content still not blank.");
+        }
     }
 
     /**

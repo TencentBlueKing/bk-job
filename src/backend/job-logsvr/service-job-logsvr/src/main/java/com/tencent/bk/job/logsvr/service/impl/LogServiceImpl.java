@@ -30,6 +30,7 @@ import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.CollectionUtil;
@@ -174,6 +175,7 @@ public class LogServiceImpl implements LogService {
         }
     }
 
+    // 上层只有集成测试用例
     private void writeFileLog(TaskExecuteObjectLog taskExecuteObjectLog) {
         if (taskExecuteObjectLog.getFileTaskLogs().size() == 1) {
             taskExecuteObjectLog.getFileTaskLogs().forEach(
@@ -336,8 +338,7 @@ public class LogServiceImpl implements LogService {
             }
         } else if (StringUtils.isNotEmpty(fileTaskLog.getContent())) {
             // 老版本兼容：若writeContentList为空，说明是老版本的请求，直接push字符串（内容中已包含时间）
-            // 版本发布后可删除
-            pushDBObject.append(FileTaskLogDocField.CONTENT_LIST, fileTaskLog.getContent());
+            handleLegacyContentFieldCompatibly(fileTaskLog.getContent(), pushDBObject);
         }
 
         update.put("$set", setDBObject);
@@ -592,5 +593,18 @@ public class LogServiceImpl implements LogService {
             .map(ScriptTaskLogDoc::getExecuteObjectId)
             .distinct()
             .collect(Collectors.toList());
+    }
+
+    @CompatibleImplementation(
+        name = "legacy_content_field",
+        deprecatedVersion = "3.12.1",
+        type = com.tencent.bk.job.common.constant.CompatibleType.HISTORY_LOGIC,
+        explain = "兼容老版本（3.12.1之前）使用content字段写入日志的逻辑，新版本使用writeContentList。"
+            + "上层 FileTaskLogDoc.convert 已经打印了兼容代码被调用的日志，发布完成后，观察到没有新日志后可以删除兼容代码。"
+    )
+    private void handleLegacyContentFieldCompatibly(String fileTaskLogContent,
+                                                    BasicDBObject pushDBObject) {
+        // 兼容老的job-execute，直接push字符串（内容中已包含时间）
+        pushDBObject.append(FileTaskLogDocField.CONTENT_LIST, fileTaskLogContent);
     }
 }

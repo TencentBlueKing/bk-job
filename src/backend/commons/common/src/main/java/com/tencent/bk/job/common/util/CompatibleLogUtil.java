@@ -22,25 +22,38 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.i18n.zone;
+package com.tencent.bk.job.common.util;
 
-import java.time.ZoneId;
+import lombok.extern.slf4j.Slf4j;
 
-public class TimeZoneUtils {
+import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * 用于统一输出兼容性代码被调用时的日志，用于后续删除兼容代码时的检查
+ */
+@Slf4j
+public class CompatibleLogUtil {
     /**
-     * 检查时区非空，是否是存在的IANA时区
-     * 如果无效抛出 InvalidTimeZoneException 异常
-     * @param zoneStr 时区字符串
+     * 标明是兼容代码被调用时产生的日志前缀
      */
-    public static ZoneId checkTimeZoneValid(String zoneStr) {
-        if (zoneStr == null) {
-            throw new InvalidTimeZoneException("Time zone is null");
-        }
-        try {
-            return ZoneId.of(zoneStr);
-        } catch (Exception e) {
-            throw new InvalidTimeZoneException("Invalid time zone: " + zoneStr, e);
+    public static final String COMPATIBLE_LOG_PREFIX = "[COMPATIBLE]";
+
+    // ======================= mongodb 文件任务日志相关 ======================
+
+    public static final AtomicLong FILE_TASK_LOG_OLD_INVOKE_COUNT = new AtomicLong(0);
+    /**
+     * 日志采样率，用于控制兼容性日志的输出频率（每100次记录一次）
+     */
+    public static final Integer FILE_TASK_LOG_OLD_INVOKE_SAMPLE_RATE = 100;
+
+    public static void logOldLogicLogFileTaskLogInvoke(String infoContent) {
+        long currentCount = FILE_TASK_LOG_OLD_INVOKE_COUNT.getAndIncrement();
+        if (currentCount % FILE_TASK_LOG_OLD_INVOKE_SAMPLE_RATE == 0) {
+            log.info(COMPATIBLE_LOG_PREFIX + infoContent);
+            if (currentCount >= Integer.MAX_VALUE) {
+                FILE_TASK_LOG_OLD_INVOKE_COUNT.set(0);
+            }
         }
     }
+
 }
