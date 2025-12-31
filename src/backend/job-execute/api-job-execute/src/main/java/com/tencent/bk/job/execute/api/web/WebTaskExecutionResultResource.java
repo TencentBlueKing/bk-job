@@ -98,6 +98,9 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "任务类型", name = "taskType")
         @RequestParam(value = "taskType", required = false)
             Integer taskType,
+        @ApiParam(value = "时区, 配合startTime和endTime使用", name = "timezone")
+        @RequestParam(value = "timezone", required = false)
+            String timezone,
         @ApiParam(value = "开始时间", name = "startTime")
         @RequestParam(value = "startTime", required = false)
             String startTime,

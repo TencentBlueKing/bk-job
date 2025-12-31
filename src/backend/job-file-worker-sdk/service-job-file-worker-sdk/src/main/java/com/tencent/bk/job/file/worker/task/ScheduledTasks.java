@@ -52,7 +52,7 @@ public class ScheduledTasks {
     /**
      * 清理：1天/次，每天早上8点清理过期文件
      */
-    @Scheduled(cron = "0 0 8 * * *")
+    @Scheduled(cron = "0 0 8 * * *", zone = "${timezone.default.operation:Asia/Shanghai}")
     public void clearExpiredFile() {
         logger.info(Thread.currentThread().getId() + ":clearExpiredFile start");
         try {

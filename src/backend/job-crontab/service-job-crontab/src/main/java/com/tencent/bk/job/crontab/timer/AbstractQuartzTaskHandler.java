@@ -242,6 +242,11 @@ public abstract class AbstractQuartzTaskHandler {
             CronScheduleBuilder cronScheduleBuilder =
                 CronScheduleBuilder.cronSchedule(quartzTrigger.getCronExpression());
 
+            // 设置时区
+            if (quartzTrigger.getTimeZone() != null) {
+                cronScheduleBuilder.inTimeZone(quartzTrigger.getTimeZone());
+            }
+
             // 以当前时间为触发频率立刻触发一次执行，然后按照Cron频率依次执行
             if (quartzTrigger.getMisfireInstruction() == CronTrigger.MISFIRE_INSTRUCTION_FIRE_ONCE_NOW) {
                 cronScheduleBuilder.withMisfireHandlingInstructionFireAndProceed();

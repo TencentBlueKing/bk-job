@@ -7,6 +7,6 @@ COPY dist/index.html /data/job/job-frontend/
 COPY dist/static/ /data/job/job-frontend/static
 COPY dist/js/ /data/job/job-frontend/js
 
-RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
-    echo 'Asia/Shanghai' > /etc/timezone && \
+RUN ln -snf /usr/share/zoneinfo/UTC /etc/localtime && \
+    echo 'UTC' > /etc/timezone && \
     mkdir -p /data/job/logs/job-frontend/nginx

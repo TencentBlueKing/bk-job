@@ -63,6 +63,7 @@ exec java -server \
      -XX:HeapDumpPath=${JVM_FILE_DIR}/${BK_JOB_POD_NAME}_${CONTAINER_ID}_heap.hprof \
      -XX:ErrorFile=${JVM_FILE_DIR}/${BK_JOB_POD_NAME}_${CONTAINER_ID}_jvm_error.log \
      -Dspring.profiles.active=$BK_JOB_PROFILE \
+     -Duser.timezone=$BK_JOB_JVM_TIMEZONE \
      $BK_JOB_JVM_OPTION \
      -jar /data/job/exec/$BK_JOB_JAR \
      "$@"

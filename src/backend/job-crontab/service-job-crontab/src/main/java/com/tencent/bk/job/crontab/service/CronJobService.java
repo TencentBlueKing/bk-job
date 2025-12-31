@@ -227,14 +227,6 @@ public interface CronJobService {
     Boolean batchUpdateCronJob(User user, Long appId, BatchUpdateCronJobReq batchUpdateCronJobReq);
 
     /**
-     * 带 ID 新建定时任务
-     *
-     * @param cronJobInfo 定时任务信息
-     * @return 定时任务 ID
-     */
-    Long insertCronJobInfoWithId(CronJobInfoDTO cronJobInfo);
-
-    /**
      * 根据定时任务 ID 查询定时任务名称
      *
      * @param id 定时任务 ID

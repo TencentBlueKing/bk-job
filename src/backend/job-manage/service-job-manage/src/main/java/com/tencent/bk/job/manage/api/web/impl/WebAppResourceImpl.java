@@ -163,6 +163,7 @@ public class WebAppResourceImpl implements WebAppResource {
                     app.isAllBizSet(),
                     app.getName(),
                     true,
+                    app.getTimeZone(),
                     null,
                     null
                 );
@@ -179,6 +180,7 @@ public class WebAppResourceImpl implements WebAppResource {
                     app.isAllBizSet(),
                     app.getName(),
                     true,
+                    app.getTimeZone(),
                     null,
                     null
                 );

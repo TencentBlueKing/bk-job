@@ -538,7 +538,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
     }
 
-    @Scheduled(cron = "0 0 1 * * *")
+    @Scheduled(cron = "0 0 1 * * *", zone = "${timezone.default.operation:Asia/Shanghai}")
     public void clearStatistics() {
         log.info("clearStatistics task triggered");
         new ClearExpiredStatisticsTask(statisticsDAO, statisticConfig).start();

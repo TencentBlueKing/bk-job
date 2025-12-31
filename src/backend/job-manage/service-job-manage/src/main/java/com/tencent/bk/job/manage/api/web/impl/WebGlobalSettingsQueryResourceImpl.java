@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.analysis.consts.AnalysisConsts;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.i18n.config.DefaultTimezoneProperties;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
@@ -71,6 +72,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     private final EsbNotifyChannelService esbNotifyChannelService;
     private final PublicScriptService publicScriptService;
     private final ThreadPoolExecutor adminAuthExecutor;
+    private final DefaultTimezoneProperties defaultTimezoneProperties;
 
     @Autowired
     public WebGlobalSettingsQueryResourceImpl(GlobalSettingsService globalSettingsService,
@@ -80,7 +82,8 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
                                               EsbNotifyChannelService esbNotifyChannelService,
                                               AppAuthService appAuthService,
                                               PublicScriptService publicScriptService,
-                                              @Qualifier("adminAuthExecutor") ThreadPoolExecutor adminAuthExecutor) {
+                                              @Qualifier("adminAuthExecutor") ThreadPoolExecutor adminAuthExecutor,
+                                              DefaultTimezoneProperties defaultTimezoneProperties) {
         this.globalSettingsService = globalSettingsService;
         this.applicationService = applicationService;
         this.jobManageConfig = jobManageConfig;
@@ -89,6 +92,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
         this.appAuthService = appAuthService;
         this.publicScriptService = publicScriptService;
         this.adminAuthExecutor = adminAuthExecutor;
+        this.defaultTimezoneProperties = defaultTimezoneProperties;
     }
 
     @Override
@@ -261,6 +265,11 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     @Override
     public Response<Map<String, Object>> getJobConfig(String username) {
         return Response.buildSuccessResp(globalSettingsService.getJobConfig(username));
+    }
+
+    @Override
+    public Response<String> getDefaultDisplayTimezone(String username) {
+        return Response.buildSuccessResp(defaultTimezoneProperties.getDisplay());
     }
 
     @Override

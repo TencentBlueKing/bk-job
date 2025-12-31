@@ -60,6 +60,7 @@
                 "bk_scope_id": "1",
                 "job_plan_id": 1000193,
                 "expression": "* * * * * *",
+                "execute_time_zone": "Asia/Shanghai",
                 "create_time": 1617285956,
                 "last_modify_user": "admin",
                 "last_modify_time": 1617286227
@@ -84,17 +85,18 @@
 
 ##### data.data
 
-| 字段               | 类型     | 是否一定不为null | 描述                                                                      |
-|------------------|--------|------------|-------------------------------------------------------------------------|
-| bk_scope_type    | string | 是          | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                      |
-| bk_scope_id      | string | 是          | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                 |
-| job_plan_id      | long   | 是          | 执行方案 ID                                                                 |
-| id               | long   | 是          | 定时作业 ID                                                                 |
-| name             | string | 是          | 定时作业名称                                                                  |
-| status           | int    | 是          | 定时作业状态：1.已启动、2.已暂停                                                      |
-| expression       | string | 否          | 定时任务crontab的定时规则（该字段周期执行才返回），各字段含义为：分 时 日 月 周，如: 0/5 * * * ? 表示每5分钟执行一次 |
-| creator          | string | 是          | 创建人账号                                                                   |
-| create_time      | long   | 是          | 创建时间，Unix 时间戳(s)                                                        |
-| last_modify_user | string | 是          | 最后修改人账号                                                                 |
-| last_modify_time | long   | 是          | 最后修改时间，Unix 时间戳(s)                                                      |
+| 字段                | 类型     | 是否一定不为null | 描述                                                                      |
+|-------------------|--------|------------|-------------------------------------------------------------------------|
+| bk_scope_type     | string | 是          | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                      |
+| bk_scope_id       | string | 是          | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                 |
+| job_plan_id       | long   | 是          | 执行方案 ID                                                                 |
+| id                | long   | 是          | 定时作业 ID                                                                 |
+| name              | string | 是          | 定时作业名称                                                                  |
+| status            | int    | 是          | 定时作业状态：1.已启动、2.已暂停                                                      |
+| expression        | string | 否          | 定时任务crontab的定时规则（该字段周期执行才返回），各字段含义为：分 时 日 月 周，如: 0/5 * * * ? 表示每5分钟执行一次 |
+| execute_time_zone | string | 是          | 定时任务执行时间所在时区，例如：Asia/Shanghai                                           |
+| creator           | string | 是          | 创建人账号                                                                   |
+| create_time       | long   | 是          | 创建时间，Unix 时间戳(s)                                                        |
+| last_modify_user  | string | 是          | 最后修改人账号                                                                 |
+| last_modify_time  | long   | 是          | 最后修改时间，Unix 时间戳(s)                                                      |
 
