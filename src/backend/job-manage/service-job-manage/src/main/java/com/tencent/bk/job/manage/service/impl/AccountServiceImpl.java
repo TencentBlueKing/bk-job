@@ -30,7 +30,9 @@ import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.crypto.Encryptor;
+import com.tencent.bk.job.common.crypto.scenario.SensitiveDataCryptoService;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -85,16 +87,19 @@ public class AccountServiceImpl implements AccountService {
     private final Encryptor encryptor;
     private final GlobalSettingsService globalSettingsService;
     private final AccountAuthService accountAuthService;
+    private final SensitiveDataCryptoService sensitiveDataCryptoService;
 
     @Autowired
     public AccountServiceImpl(AccountDAO accountDAO,
                               @Qualifier("gseRsaEncryptor") Encryptor encryptor,
                               GlobalSettingsService globalSettingsService,
-                              AccountAuthService accountAuthService) {
+                              AccountAuthService accountAuthService,
+                              SensitiveDataCryptoService sensitiveDataCryptoService) {
         this.accountDAO = accountDAO;
         this.encryptor = encryptor;
         this.globalSettingsService = globalSettingsService;
         this.accountAuthService = accountAuthService;
+        this.sensitiveDataCryptoService = sensitiveDataCryptoService;
     }
 
     @Override
@@ -518,6 +523,32 @@ public class AccountServiceImpl implements AccountService {
             } catch (Exception e) {
                 log.warn("Fail to create default administrator account", e);
             }
+        }
+    }
+
+    @Override
+    public void decryptPwdFromReqIfNeeded(AccountCreateUpdateReq req) {
+        if (StringUtils.isNotEmpty(req.getAlgorithm())
+            && StringUtils.isNotEmpty(req.getPassword())
+            && !JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(req.getPassword())) {
+            String decryptedPassword = sensitiveDataCryptoService.decryptIfNeeded(req.getAlgorithm(),
+                req.getPassword());
+
+            log.debug("Account password, originPassword={}, decryptedPassword={}, algorithm={}",
+                req.getPassword(), decryptedPassword,  req.getAlgorithm());
+
+            req.setPassword(decryptedPassword);
+        }
+        if (StringUtils.isNotEmpty(req.getAlgorithm())
+            && StringUtils.isNotEmpty(req.getDbPassword())
+            && !JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(req.getDbPassword())) {
+            String decryptedPassword = sensitiveDataCryptoService.decryptIfNeeded(req.getAlgorithm(),
+                req.getDbPassword());
+
+            log.debug("DB password, originPassword={}, decryptedPassword={}, algorithm={}",
+                req.getDbPassword(), decryptedPassword,  req.getAlgorithm());
+
+            req.setDbPassword(decryptedPassword);
         }
     }
 
