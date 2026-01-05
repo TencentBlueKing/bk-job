@@ -753,6 +753,8 @@ Return the Job Web Scheme
 
 {{/*
 Return the Job Web Domain
+SubPath: example.com
+SubDomain: job.example.com
 */}}
 {{- define "job.web.domain" -}}
 {{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
@@ -793,9 +795,9 @@ SubDomain: http(s)://job.example.com
 */}}
 {{- define "job.url.base" -}}
 {{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
-{{ printf "%s://%s%s" (include "job.web.scheme" .) (include "job.web.domain" .) .Values.bkWebSiteAccess.subpath.rootPrefix }}
+{{ printf "%s%s" (include "job.web.host" .) .Values.bkWebSiteAccess.subpath.rootPrefix }}
 {{- else -}}
-{{ printf "%s://%s" (include "job.web.scheme" .) (include "job.web.domain" .) }}
+{{ include "job.web.host" . }}
 {{- end -}}
 {{- end -}}
 
@@ -841,6 +843,8 @@ Return the Job Frontend BK Site Path
 
 {{/*
 Return the Job Url Path Root Prefix
+SubPath: "/job"
+SubDomain: ""
 */}}
 {{- define "job.url.pathRootPrefix" -}}
 {{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
