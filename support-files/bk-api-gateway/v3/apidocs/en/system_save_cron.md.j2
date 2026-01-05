@@ -7,17 +7,18 @@ interface to turn it on if needed.
 
 #### Interface parameters
 
-| Fields          | Type   | Required | Description                                                                                                                                                                                                                                                                                 |
-|-----------------|--------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| bk_scope_type   | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                                                                                                                                                                                                 |
-| bk_scope_id     | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                                                                                                                                                                                                 |
-| bk_biz_id       | long   | yes      | Deprecated. Business ID. This field has been deprecated and replaced by the field bk_scope_type+bk_scope_id                                                                                                                                                                                 |
-| job_plan_id     | long   | yes      | Job Plan ID of the job to be executed regularly                                                                                                                                                                                                                                             |
-| id              | long   | no       | Cron Job ID, when updating a Cron Job, you must pass this value Cron Job                                                                                                                                                                                                                    |
-| name            | string | no       | Cron job name, required for new creation and optional for modification                                                                                                                                                                                                                      |
-| expression      | string | no       | Timing rules for Cron Job crontab, optional when modifying. The meaning of each field is: minute hour day month week, for example: 0/5 * * * * means execute every 5 minutes. caution: ? not supported. This field and execute_time cannot be empty at the same time when creating Cron Job |
-| execute_time    | long   | no       | Single execution execution time, Unix timestamp, this field and expression cannot be empty at the same time when creating Cron Job                                                                                                                                                          |
-| global_var_list | array  | no       | Global variable information, you can use the Query Job Plan Details interface to query the variable information which can be set for the plan                                                                                                                                               |
+| Fields            | Type   | Required | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+|-------------------|--------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| bk_scope_type     | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| bk_scope_id       | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| bk_biz_id         | long   | yes      | Deprecated. Business ID. This field has been deprecated and replaced by the field bk_scope_type+bk_scope_id                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| job_plan_id       | long   | yes      | Job Plan ID of the job to be executed regularly                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| id                | long   | no       | Cron Job ID, when updating a Cron Job, you must pass this value Cron Job                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| name              | string | no       | Cron job name, required for new creation and optional for modification                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| expression        | string | no       | Timing rules for Cron Job crontab, optional when modifying. The meaning of each field is: minute hour day month week, for example: 0/5 * * * * means execute every 5 minutes. caution: ? not supported. This field and execute_time cannot be empty at the same time when creating Cron Job                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| execute_time      | long   | no       | Single execution execution time, Unix timestamp, this field and expression cannot be empty at the same time when creating Cron Job                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| execute_time_zone | string | no       | The time zone in which the cron expression or execution time is triggered. If not specified, the business time zone will be used by default. If the business time zone is not configured, it defaults to Asia/Shanghai.<br/>**Time Zone ID Standard**: Must use IANA Time Zone Database standard time zone IDs in the format of `Region/City`, such as `Asia/Shanghai`, `America/Los_Angeles`.<br/>**Common Time Zone Examples**:<br/>- China Shanghai: `Asia/Shanghai`<br/>- US Silicon Valley (Pacific Time): `America/Los_Angeles`<br/>- US New York (Eastern Time): `America/New_York`<br/>- UK London: `Europe/London`<br/>- Japan Tokyo: `Asia/Tokyo`<br/>**Complete Time Zone List**:<br/>- [Wikipedia - List of tz database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) |
+| global_var_list   | array  | no       | Global variable information, you can use the Query Job Plan Details interface to query the variable information which can be set for the plan                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 #### global_var
 
@@ -63,6 +64,7 @@ interface to turn it on if needed.
     "bk_scope_id": "1",
     "execute_time": 0,
     "expression": "0 0/5 * * *",
+    "execute_time_zone": "Asia/Shanghai",
     "job_plan_id": 1023060,
     "name": "test API",
     "global_var_list": [
@@ -109,6 +111,7 @@ interface to turn it on if needed.
     "bk_scope_id": "1",
     "execute_time": 0,
     "expression": "0 0/5 * * *",
+    "execute_time_zone": "Asia/Shanghai",
     "job_plan_id": 1023060,
     "name": "test API",
     "global_var_list": [
@@ -163,6 +166,7 @@ interface to turn it on if needed.
         "bk_scope_id": "1",
         "job_plan_id": 1023060,
         "expression": "0 0/5 * * *",
+        "execute_time_zone": "Asia/Shanghai",
         "global_var_list": [
             {
                 "id": 1001101,
@@ -232,6 +236,7 @@ interface to turn it on if needed.
         "bk_scope_id": "1",
         "job_plan_id": 1023060,
         "expression": "0 0/5 * * *",
+        "execute_time_zone": "Asia/Shanghai",
         "global_var_list": [
             {
                 "id": 1001101,
@@ -291,21 +296,22 @@ interface to turn it on if needed.
 
 #### data
 
-| Fields           | Type   | Never null | Description                                                                                 |
-|------------------|--------|------------|---------------------------------------------------------------------------------------------|
-| id               | long   | yes        | Cron Job ID                                                                                 |
-| name             | string | yes        | Cron job name                                                                               |
-| status           | int    | yes        | Cron Job Status                                                                             |
-| bk_scope_type    | string | yes        | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
-| bk_scope_id      | string | yes        | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
-| job_plan_id      | long   | yes        | Job Plan ID of the job to be executed regularly                                             |
-| creator          | string | yes        | Creator                                                                                     |
-| create_time      | long   | yes        | Created time, Unix timestamp                                                                |
-| last_modify_user | string | yes        | Last modify user                                                                            |
-| last_modify_time | long   | yes        | Last modified time, Unix timestamp                                                          |
-| expression       | string | no         | Timing rules for Cron Job crontab                                                           |
-| execute_time     | long   | no         | Execution time of a single Cron Job execution, Unix timestamp                               |
-| global_var_list  | array  | no         | For global variable information, see global_var                                             |
+| Fields            | Type   | Never null | Description                                                                                           |
+|-------------------|--------|------------|-------------------------------------------------------------------------------------------------------|
+| id                | long   | yes        | Cron Job ID                                                                                           |
+| name              | string | yes        | Cron job name                                                                                         |
+| status            | int    | yes        | Cron Job Status                                                                                       |
+| bk_scope_type     | string | yes        | Resource scope type. Optional values: biz - Business，biz_set - Business Set                           |
+| bk_scope_id       | string | yes        | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID           |
+| job_plan_id       | long   | yes        | Job Plan ID of the job to be executed regularly                                                       |
+| creator           | string | yes        | Creator                                                                                               |
+| create_time       | long   | yes        | Created time, Unix timestamp                                                                          |
+| last_modify_user  | string | yes        | Last modify user                                                                                      |
+| last_modify_time  | long   | yes        | Last modified time, Unix timestamp                                                                    |
+| expression        | string | no         | Timing rules for Cron Job crontab                                                                     |
+| execute_time      | long   | no         | Execution time of a single Cron Job execution, Unix timestamp                                         |
+| execute_time_zone | string | no         | The time zone for the scheduled task execution, formatted in IANA format, for example: Asia/Shanghai. |
+| global_var_list   | array  | no         | For global variable information, see global_var                                                       |
 
 #### global_var
 

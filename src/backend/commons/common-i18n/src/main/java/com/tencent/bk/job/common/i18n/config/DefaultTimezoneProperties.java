@@ -48,7 +48,7 @@ public class DefaultTimezoneProperties {
     private String display = TimeZoneConstants.DEFAULT_ZONE_NAME_CN;
 
     /**
-     * 运营时区
+     * 运营时区，在后台定时任务，@ScheduledOnOperationTimeZone 中使用
      */
     private String operation = TimeZoneConstants.DEFAULT_ZONE_NAME_CN;
 

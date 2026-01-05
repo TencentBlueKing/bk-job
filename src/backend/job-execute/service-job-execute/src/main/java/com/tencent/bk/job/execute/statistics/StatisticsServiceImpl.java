@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.statistics;
 
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -43,7 +44,6 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
@@ -538,13 +538,13 @@ public class StatisticsServiceImpl implements StatisticsService {
         }
     }
 
-    @Scheduled(cron = "0 0 1 * * *", zone = "${timezone.default.operation:Asia/Shanghai}")
+    @ScheduledOnOperationTimeZone(cron = "0 0 1 * * *")
     public void clearStatistics() {
         log.info("clearStatistics task triggered");
         new ClearExpiredStatisticsTask(statisticsDAO, statisticConfig).start();
     }
 
-    @Scheduled(initialDelay = 3 * 1000, fixedRate = 3 * 1000)
+    @ScheduledOnOperationTimeZone(initialDelay = 3 * 1000, fixedRate = 3 * 1000)
     public void transfer() {
         try {
             synchronized (writeLock) {
