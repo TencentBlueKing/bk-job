@@ -275,4 +275,14 @@ public class CurrentTenantDangerousRuleDAOImpl extends BaseDangerousRuleDAOImpl
         }
     }
 
+    @Override
+    public Boolean checkDangerousRuleExists(Long id, String expression, int encodedScriptType) {
+        List<Condition> conditions = getBasicConditions();
+        if (id != null && id > 0) {
+            conditions.add(T.ID.notEqual(id));
+        }
+        conditions.add(T.SCRIPT_TYPE.equal(encodedScriptType));
+        conditions.add(T.EXPRESSION.equal(expression));
+        return dslContext.fetchExists(T, conditions);
+    }
 }

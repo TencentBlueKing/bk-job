@@ -32,8 +32,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 对称加密服务
@@ -43,7 +43,7 @@ import java.util.Map;
 public class SymmetricCryptoService {
 
     private final CryptoConfigService cryptoConfigService;
-    private final Map<String, SymmetricCryptor> cryptorMap = new HashMap<>();
+    private final Map<String, SymmetricCryptor> cryptorMap = new ConcurrentHashMap<>();
 
     public SymmetricCryptoService(CryptoConfigService cryptoConfigService) {
         this.cryptoConfigService = cryptoConfigService;

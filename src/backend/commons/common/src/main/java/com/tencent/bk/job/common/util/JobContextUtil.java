@@ -78,6 +78,20 @@ public class JobContextUtil {
         jobContext.setStartTime(System.currentTimeMillis());
     }
 
+    /**
+     * 计算从请求开始到现在过去了多长时间，单位：毫秒
+     *
+     * @return 已过去的时间
+     */
+    public static Long calcTimeMillisFromStart() {
+        Long startTime = getStartTime();
+        if (startTime == null) {
+            log.warn("startTimeNotSet, return null");
+            return null;
+        }
+        return System.currentTimeMillis() - startTime;
+    }
+
     public static String getUsername() {
         JobContext jobContext = JobContextThreadLocal.get();
         String staffName = null;

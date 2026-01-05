@@ -96,7 +96,16 @@ public class HostRelationEventHandler extends AsyncEventHandler<HostRelationEven
         this.noTenantHostService = noTenantHostService;
         this.hostTopoDAO = hostTopoDAO;
         this.hostCache = hostCache;
+        init();
+    }
+
+    /**
+     * 初始化：注册指标数据，设置线程名称，启动线程
+     */
+    private void init() {
         registerQueueMetrics();
+        setName("HostRelationEventHandler");
+        start();
     }
 
     @Override

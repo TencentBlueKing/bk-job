@@ -52,4 +52,13 @@ public interface CurrentTenantDangerousRuleDAO {
     int getMinPriority();
 
     int updateDangerousRuleStatus(String userName, Long id, EnableStatusEnum status);
+
+    /**
+     * 检查高危语句规则是否存在
+     * @param id 规则ID
+     * @param expression 规则表达式
+     * @param encodedScriptType 编码后的脚本类型
+     * @return 是否存在
+     */
+    Boolean checkDangerousRuleExists(Long id, String expression, int encodedScriptType);
 }
