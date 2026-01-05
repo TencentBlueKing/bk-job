@@ -27,16 +27,24 @@ package com.tencent.bk.job.common.crypto.scenario;
 import com.tencent.bk.job.common.crypto.ASymmetricCryptoService;
 import com.tencent.bk.job.common.crypto.CryptoConfigService;
 import com.tencent.bk.job.common.crypto.CryptoScenarioEnum;
+import com.tencent.bk.sdk.crypto.cryptor.ASymmetricCryptor;
+import com.tencent.bk.sdk.crypto.cryptor.ASymmetricCryptorFactory;
 import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
 import com.tencent.bk.sdk.crypto.exception.SM2DecryptException;
 import com.tencent.bk.sdk.crypto.util.Base64Util;
 import com.tencent.bk.sdk.crypto.util.SM2Util;
+import com.tencent.kona.crypto.KonaCryptoProvider;
 import com.tencent.kona.crypto.spec.SM2PrivateKeySpec;
+import com.tencent.kona.crypto.spec.SM2PublicKeySpec;
+import com.tencent.kona.crypto.util.SM2Ciphertext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Security;
 
 /**
  * 敏感数据解密服务
@@ -51,6 +59,10 @@ public class SensitiveDataCryptoService {
                                       CryptoConfigService cryptoConfigService) {
         this.aSymmetricCryptoService = aSymmetricCryptoService;
         this.cryptoConfigService = cryptoConfigService;
+        KonaCryptoProvider konaCryptoProvider = new KonaCryptoProvider();
+        if (null == Security.getProvider(konaCryptoProvider.getName())) {
+            Security.addProvider(konaCryptoProvider);
+        }
     }
 
     /**
