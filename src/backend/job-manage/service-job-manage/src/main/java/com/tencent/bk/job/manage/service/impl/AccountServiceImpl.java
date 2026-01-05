@@ -531,25 +531,18 @@ public class AccountServiceImpl implements AccountService {
         if (StringUtils.isNotEmpty(req.getAlgorithm())
             && StringUtils.isNotEmpty(req.getPassword())
             && !JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(req.getPassword())) {
+            log.debug("Decrypt account password, algorithm={}", req.getAlgorithm());
             String decryptedPassword = sensitiveDataCryptoService.decryptIfNeeded(req.getAlgorithm(),
                 req.getPassword());
-
-            log.debug("Account password, originPassword={}, decryptedPassword={}, algorithm={}",
-                req.getPassword(), decryptedPassword,  req.getAlgorithm());
-
             req.setPassword(decryptedPassword);
         }
         if (StringUtils.isNotEmpty(req.getAlgorithm())
             && StringUtils.isNotEmpty(req.getDbPassword())
             && !JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(req.getDbPassword())) {
+            log.debug("Decrypt DB password, algorithm={}", req.getAlgorithm());
             String decryptedPassword = sensitiveDataCryptoService.decryptIfNeeded(req.getAlgorithm(),
                 req.getDbPassword());
-
-            log.debug("DB password, originPassword={}, decryptedPassword={}, algorithm={}",
-                req.getDbPassword(), decryptedPassword,  req.getAlgorithm());
-
             req.setDbPassword(decryptedPassword);
         }
     }
-
 }
