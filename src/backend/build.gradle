@@ -137,7 +137,7 @@ ext {
     set('hibernateValidatorVersion', "6.1.4.Final")
     set('flapdoodleEmbeddedMongdbDBVersion', "4.4.0")
     set('jodaTimeVersion', "2.10.5")
-    set('bcprovVersion', "1.70")
+    set('bcprovVersion', "1.78.1")
     set('reflectionsVersion', "0.10.2")
     set('cronUtilsVersion', "9.1.6")
     set('otelJdbcVersion', "1.24.0-alpha")
@@ -156,7 +156,7 @@ ext {
         set('bkjobVersion', "1.0.0")
         println "bkjobVersion:" + bkjobVersion
     }
-    set('bkAuditJavaSdkVersion', "1.0.8")
+    set('bkAuditJavaSdkVersion', "1.0.9")
     set('mockitoVersion', "4.0.0")
     set('embeddedRedisVersion', "0.6")
     set('openai4jVersion', "0.18.0")
@@ -351,7 +351,7 @@ subprojects {
             dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring26x:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "joda-time:joda-time:$jodaTimeVersion"
-            dependency "org.bouncycastle:bcprov-jdk15on:$bcprovVersion"
+            dependency "org.bouncycastle:bcprov-jdk18on:$bcprovVersion"
             // https://github.com/ronmamo/reflections
             dependency "org.reflections:reflections:$reflectionsVersion"
             dependency "com.cronutils:cron-utils:$cronUtilsVersion"

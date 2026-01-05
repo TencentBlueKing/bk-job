@@ -4518,6 +4518,14 @@ paths:
           timeout: 0
           upstreams: { }
           transformHeaders: { }
+        pluginConfigs:
+          # Header转换插件，添加API类型请求头：应用态
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
@@ -4544,6 +4552,14 @@ paths:
           timeout: 0
           upstreams: { }
           transformHeaders: { }
+        pluginConfigs:
+          # Header转换插件，添加API类型请求头：应用态
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'app'
+              remove: []
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: false
@@ -4570,6 +4586,14 @@ paths:
           timeout: 0
           upstreams: { }
           transformHeaders: { }
+        pluginConfigs:
+          # Header转换插件，添加API类型请求头：应用态
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
@@ -4596,6 +4620,14 @@ paths:
           timeout: 0
           upstreams: { }
           transformHeaders: { }
+        pluginConfigs:
+          # Header转换插件，添加API类型请求头：应用态
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'app'
+              remove: []
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: false
@@ -4622,6 +4654,14 @@ paths:
           timeout: 0
           upstreams: { }
           transformHeaders: { }
+        pluginConfigs:
+          # Header转换插件，添加API类型请求头：应用态
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
@@ -4648,6 +4688,14 @@ paths:
           timeout: 0
           upstreams: { }
           transformHeaders: { }
+        pluginConfigs:
+          # Header转换插件，添加API类型请求头：应用态
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'app'
+              remove: []
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: false
@@ -4674,6 +4722,14 @@ paths:
           timeout: 0
           upstreams: { }
           transformHeaders: { }
+        pluginConfigs:
+          # Header转换插件，添加API类型请求头：应用态
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
@@ -4700,6 +4756,14 @@ paths:
           timeout: 0
           upstreams: { }
           transformHeaders: { }
+        pluginConfigs:
+          # Header转换插件，添加API类型请求头：应用态
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'app'
+              remove: []
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: false
@@ -4726,6 +4790,14 @@ paths:
           timeout: 0
           upstreams: { }
           transformHeaders: { }
+        pluginConfigs:
+          # Header转换插件，添加API类型请求头：应用态
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: true
@@ -4752,6 +4824,14 @@ paths:
           timeout: 0
           upstreams: { }
           transformHeaders: { }
+        pluginConfigs:
+          # Header转换插件，添加API类型请求头：应用态
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'app'
+              remove: []
         authConfig:
           appVerifiedRequired: true
           userVerifiedRequired: false

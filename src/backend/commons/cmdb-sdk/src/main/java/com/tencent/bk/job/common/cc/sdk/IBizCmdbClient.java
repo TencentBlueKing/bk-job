@@ -41,7 +41,6 @@ import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
 import com.tencent.bk.job.common.cc.model.query.WorkloadQuery;
 import com.tencent.bk.job.common.cc.model.req.GetTopoNodePathReq;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
-import com.tencent.bk.job.common.cc.model.req.input.GetHostByIpInput;
 import com.tencent.bk.job.common.cc.model.result.BizEventDetail;
 import com.tencent.bk.job.common.cc.model.result.HostBizRelationDTO;
 import com.tencent.bk.job.common.cc.model.result.HostEventDetail;
@@ -51,7 +50,6 @@ import com.tencent.bk.job.common.cc.model.result.ResourceWatchResult;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.HostDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -65,9 +63,10 @@ public interface IBizCmdbClient {
     /**
      * 获取业务topo
      *
-     * @param bizId cmdb业务ID
+     * @param tenantId 租户ID
+     * @param bizId    cmdb业务ID
      */
-    InstanceTopologyDTO getBizInstTopology(long bizId);
+    InstanceTopologyDTO getBizInstTopology(String tenantId, long bizId);
 
     /**
      * 获取业务完整拓扑树（含空闲机/故障机模块）
@@ -134,19 +133,21 @@ public interface IBizCmdbClient {
     /**
      * 查询业务下的动态分组
      *
-     * @param bizId cmdb业务ID
+     * @param tenantId 租户ID
+     * @param bizId    cmdb业务ID
      * @return 动态分组
      */
-    List<CcDynamicGroupDTO> getDynamicGroupList(long bizId);
+    List<CcDynamicGroupDTO> getDynamicGroupList(String tenantId, long bizId);
 
     /**
      * 获取动态分组下面的主机
      *
-     * @param bizId   cmdb业务ID
-     * @param groupId 动态分组ID
+     * @param tenantId 租户ID
+     * @param bizId    cmdb业务ID
+     * @param groupId  动态分组ID
      * @return 动态分组下的主机
      */
-    List<DynamicGroupHostPropDTO> getDynamicGroupIp(long bizId, String groupId);
+    List<DynamicGroupHostPropDTO> getDynamicGroupIp(String tenantId, long bizId, String groupId);
 
     /**
      * 获取云区域
@@ -155,14 +156,6 @@ public interface IBizCmdbClient {
      * @return 云区域列表
      */
     List<CcCloudAreaInfoDTO> getCloudAreaList(String tenantId);
-
-    /**
-     * 根据IP查询主机
-     *
-     * @param input 查询条件
-     * @return 主机
-     */
-    List<ApplicationHostDTO> getHostByIp(GetHostByIpInput input);
 
     /**
      * 根据IP批量获取主机
@@ -191,15 +184,6 @@ public interface IBizCmdbClient {
      */
     List<ApplicationHostDTO> listHostsByHostIds(String tenantId, List<Long> hostIds);
 
-    /**
-     * 批量获取业务下的主机列表
-     *
-     * @param bizId  cmdb业务ID
-     * @param ipList 主机IP列表
-     * @return 主机
-     */
-    List<ApplicationHostDTO> listBizHosts(long bizId, Collection<HostDTO> ipList);
-
     List<HostBizRelationDTO> findHostBizRelations(String tenantId, List<Long> hostIdList);
 
     /**
@@ -214,10 +198,11 @@ public interface IBizCmdbClient {
     /**
      * 根据cmdb业务角色获取人员
      *
-     * @param bizId cmdb业务ID
-     * @param role  业务角色
+     * @param tenantId 租户ID
+     * @param bizId    cmdb业务ID
+     * @param role     业务角色
      */
-    Set<String> listUsersByRole(Long bizId, String role);
+    Set<String> listUsersByRole(String tenantId, Long bizId, String role);
 
     /**
      * 获取CMDB业务角色列表
@@ -263,7 +248,7 @@ public interface IBizCmdbClient {
     /**
      * 监听CMDB业务事件
      */
-    ResourceWatchResult<BizEventDetail> getAppEvents(String tenantId, Long startTime, String cursor);
+    ResourceWatchResult<BizEventDetail> getBizEvents(String tenantId, Long startTime, String cursor);
 
     List<ContainerDetailDTO> listKubeContainerByIds(long bizId, Collection<Long> containerIds);
 

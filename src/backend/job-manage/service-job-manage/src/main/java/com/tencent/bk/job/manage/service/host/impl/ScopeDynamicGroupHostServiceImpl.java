@@ -75,7 +75,11 @@ public class ScopeDynamicGroupHostServiceImpl implements ScopeDynamicGroupHostSe
             return new PageData<>(start, pageSize, 0L, Collections.emptyList());
         }
         idStr = idStr.trim();
-        List<Long> hostIds = listHostIdsByDynamicGroups(appResourceScope, Arrays.asList(idStr.split(",")));
+        List<Long> hostIds = listHostIdsByDynamicGroups(
+            tenantId,
+            appResourceScope,
+            Arrays.asList(idStr.split(","))
+        );
         // 排序
         hostIds.sort(Long::compareTo);
         List<ApplicationHostDTO> hostList = hostDetailService.listHostDetails(
@@ -90,7 +94,7 @@ public class ScopeDynamicGroupHostServiceImpl implements ScopeDynamicGroupHostSe
     public List<ApplicationHostDTO> listHostByDynamicGroups(String tenantId,
                                                             AppResourceScope appResourceScope,
                                                             Collection<String> ids) {
-        List<Long> hostIds = listHostIdsByDynamicGroups(appResourceScope, ids);
+        List<Long> hostIds = listHostIdsByDynamicGroups(tenantId, appResourceScope, ids);
         // 展示信息需要包含主机详情完整字段
         return hostDetailService.listHostDetails(tenantId, appResourceScope, hostIds);
     }
@@ -99,12 +103,13 @@ public class ScopeDynamicGroupHostServiceImpl implements ScopeDynamicGroupHostSe
     public List<ApplicationHostDTO> listHostByDynamicGroup(String tenantId,
                                                            AppResourceScope appResourceScope,
                                                            String id) {
-        List<Long> hostIds = listHostIdsByDynamicGroup(appResourceScope, id);
+        List<Long> hostIds = listHostIdsByDynamicGroup(tenantId, appResourceScope, id);
         // 展示信息需要包含主机详情完整字段
         return hostDetailService.listHostDetails(tenantId, appResourceScope, hostIds);
     }
 
-    private List<Long> listHostIdsByDynamicGroups(AppResourceScope appResourceScope,
+    private List<Long> listHostIdsByDynamicGroups(String tenantId,
+                                                  AppResourceScope appResourceScope,
                                                   Collection<String> ids) {
         if (CollectionUtils.isEmpty(ids)) {
             return Collections.emptyList();
@@ -112,18 +117,18 @@ public class ScopeDynamicGroupHostServiceImpl implements ScopeDynamicGroupHostSe
         // 并发拉取
         int threadNum = Math.min(ids.size(), 5);
         List<Long> hostIdList = ConcurrencyUtil.getResultWithThreads(ids, threadNum, dynamicGroupId ->
-            listHostIdsByDynamicGroup(appResourceScope, dynamicGroupId)
+            listHostIdsByDynamicGroup(tenantId, appResourceScope, dynamicGroupId)
         );
         // 去重
         hostIdList = new ArrayList<>(new HashSet<>(hostIdList));
         return hostIdList;
     }
 
-    private List<Long> listHostIdsByDynamicGroup(AppResourceScope appResourceScope, String id) {
+    private List<Long> listHostIdsByDynamicGroup(String tenantId, AppResourceScope appResourceScope, String id) {
         // 动态分组当前只支持业务，不支持业务集/租户集
         ScopeFeatureUtil.assertOnlyBizSupported(appResourceScope);
         long bizId = Long.parseLong(appResourceScope.getId());
-        List<DynamicGroupHostPropDTO> dynamicGroupHostList = bizCmdbClient.getDynamicGroupIp(bizId, id);
+        List<DynamicGroupHostPropDTO> dynamicGroupHostList = bizCmdbClient.getDynamicGroupIp(tenantId, bizId, id);
         if (CollectionUtils.isEmpty(dynamicGroupHostList)) {
             return Collections.emptyList();
         }

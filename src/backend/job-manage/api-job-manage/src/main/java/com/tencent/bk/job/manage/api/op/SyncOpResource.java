@@ -90,42 +90,6 @@ public interface SyncOpResource {
                                               @PathVariable("bizId") Long bizId);
 
     /**
-     * 开启业务事件监听
-     *
-     * @return 是否操作成功
-     */
-    @PutMapping("/bizWatch/enable")
-    @ApiOperation(value = "开启业务事件监听", produces = "application/json")
-    InternalResponse<Boolean> enableBizWatch();
-
-    /**
-     * 关闭业务事件监听
-     *
-     * @return 是否操作成功
-     */
-    @PutMapping("/bizWatch/disable")
-    @ApiOperation(value = "关闭业务事件监听", produces = "application/json")
-    InternalResponse<Boolean> disableBizWatch();
-
-    /**
-     * 开启主机事件监听
-     *
-     * @return 是否操作成功
-     */
-    @PutMapping("/hostWatch/enable")
-    @ApiOperation(value = "开启主机事件监听", produces = "application/json")
-    InternalResponse<Boolean> enableHostWatch();
-
-    /**
-     * 关闭主机事件监听
-     *
-     * @return 是否操作成功
-     */
-    @PutMapping("/hostWatch/disable")
-    @ApiOperation(value = "关闭主机事件监听", produces = "application/json")
-    InternalResponse<Boolean> disableHostWatch();
-
-    /**
      * 开启业务（集）同步
      *
      * @return 是否操作成功

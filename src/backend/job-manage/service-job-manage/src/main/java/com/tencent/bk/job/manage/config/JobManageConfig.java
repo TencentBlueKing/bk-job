@@ -86,6 +86,12 @@ public class JobManageConfig {
     @Value("${job.manage.sync.hostEvent.handlerNum:3}")
     private int hostEventHandlerNum;
 
+    @Value("${job.manage.sync.hostEvent.queueSize:10000}")
+    private int hostEventQueueSize;
+
+    @Value("${job.manage.sync.hostRelationEvent.queueSize:10000}")
+    private int hostRelationEventQueueSize;
+
     //---------------------------- Cmdb Config ---------------------------------
     @Value("${cmdb.default.supplier.account:0}")
     private String defaultSupplierAccount;

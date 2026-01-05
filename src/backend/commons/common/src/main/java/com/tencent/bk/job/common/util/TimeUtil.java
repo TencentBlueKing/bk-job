@@ -155,4 +155,26 @@ public class TimeUtil {
             return null;
         }
     }
+
+    /**
+     * 为不同阶梯的耗时生成标签
+     *
+     * @param costTimeMillis 耗时（ms）
+     * @return 耗时标签
+     */
+    public static String genCostTimeTag(long costTimeMillis) {
+        if (costTimeMillis < 1000) {
+            return "lessThan1s";
+        } else if (costTimeMillis <= 5000) {
+            return "1sTo5s";
+        } else if (costTimeMillis <= 15000) {
+            return "5sTo15s";
+        } else if (costTimeMillis <= 30000) {
+            return "15sTo30s";
+        } else if (costTimeMillis <= 60000) {
+            return "30sTo1min";
+        } else {
+            return "moreThan1min";
+        }
+    }
 }

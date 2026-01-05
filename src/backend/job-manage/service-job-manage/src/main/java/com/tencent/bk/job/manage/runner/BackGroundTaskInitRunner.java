@@ -32,6 +32,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
+/**
+ * 后台任务初始化启动器
+ */
 @Slf4j
 @Component
 public class BackGroundTaskInitRunner implements CommandLineRunner {

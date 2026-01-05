@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.ListUtil;
 import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
 import com.tencent.bk.job.common.util.toggle.ToggleStrategyContextParams;
@@ -60,7 +61,6 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceExecuteObjects;
 import com.tencent.bk.job.execute.service.ContainerService;
 import com.tencent.bk.job.execute.service.HostService;
-import com.tencent.bk.job.file_gateway.consts.FileSourceTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
@@ -92,6 +92,7 @@ import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.SE
 @Service
 public class TaskInstanceExecuteObjectProcessor {
 
+    private final TenantService tenantService;
     private final HostService hostService;
     private final RemoteAppService remoteAppService;
     private final ContainerService containerService;
@@ -101,7 +102,8 @@ public class TaskInstanceExecuteObjectProcessor {
     private final IBizCmdbClient bizCmdbClient;
     private final ExecuteObjectSampler executeObjectSampler;
 
-    public TaskInstanceExecuteObjectProcessor(HostService hostService,
+    public TaskInstanceExecuteObjectProcessor(TenantService tenantService,
+                                              HostService hostService,
                                               RemoteAppService remoteAppService,
                                               ContainerService containerService,
                                               AppScopeMappingService appScopeMappingService,
@@ -109,6 +111,7 @@ public class TaskInstanceExecuteObjectProcessor {
                                               AgentStateClient agentStateClient,
                                               IBizCmdbClient bizCmdbClient,
                                               ExecuteObjectSampler executeObjectSampler) {
+        this.tenantService = tenantService;
         this.hostService = hostService;
         this.remoteAppService = remoteAppService;
         this.containerService = containerService;
@@ -342,8 +345,9 @@ public class TaskInstanceExecuteObjectProcessor {
         }
         // 获取动态分组的主机并设置
         watch.start("fillDynamicGroupHosts");
+        String tenantId = tenantService.getTenantIdByAppId(appId);
         Map<DynamicServerGroupDTO, List<HostDTO>> dynamicGroupHosts =
-            hostService.batchGetAndGroupHostsByDynamicGroup(appId, groups);
+            hostService.batchGetAndGroupHostsByDynamicGroup(tenantId, appId, groups);
         stepInstances.forEach(stepInstance -> {
             setHostsForDynamicGroup(stepInstance.getTargetExecuteObjects(), dynamicGroupHosts);
             if (stepInstance.isFileStep()) {
@@ -953,8 +957,13 @@ public class TaskInstanceExecuteObjectProcessor {
         if (CollectionUtils.isEmpty(hosts)) {
             return hostAllowActionsMap;
         }
+        String tenantId = tenantService.getTenantIdByAppId(appId);
         for (HostDTO host : hosts) {
-            List<String> allowActions = whiteHostCache.getHostAllowedAction(appId, host.getHostId());
+            List<String> allowActions = whiteHostCache.getHostAllowedAction(
+                tenantId,
+                appId,
+                host.getHostId()
+            );
             if (CollectionUtils.isNotEmpty(allowActions)) {
                 hostAllowActionsMap.put(host.getHostId(), allowActions);
             }

@@ -195,4 +195,15 @@ public class TaskStepDTO {
         }
         return serviceTaskStep;
     }
+
+    @Override
+    public String toString() {
+        String typeStr = type == null ? "null" : type.name();
+        return "TaskStepDTO{" +
+            "id=" + id +
+            ", type=" + typeStr +
+            ", scriptStepInfo=" + scriptStepInfo +
+            ", fileStepInfo=" + fileStepInfo +
+            '}';
+    }
 }

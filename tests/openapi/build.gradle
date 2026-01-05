@@ -22,6 +22,7 @@ ext {
     set('jwtVersion', "0.13.0")
     set('guavaVersion', "32.0.0-android")
     set('okHttpVersion', "4.12.0")
+    set('bcprovVersion', "1.78.1")
 }
 apply plugin: "io.freefair.lombok"
 group 'org.tencent.bk.job'
@@ -49,15 +50,15 @@ dependencies {
     testImplementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
     testImplementation "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
     testImplementation "com.fasterxml.jackson.datatype:jackson-datatype-joda:$jacksonVersion"
-    testImplementation "io.jsonwebtoken:jjwt-impl: $jwtVersion"
-    testImplementation "io.jsonwebtoken:jjwt-jackson: $jwtVersion"
+    testImplementation "io.jsonwebtoken:jjwt-impl:$jwtVersion"
+    testImplementation "io.jsonwebtoken:jjwt-jackson:$jwtVersion"
     testImplementation "com.google.guava:guava:$guavaVersion"
     testImplementation "com.squareup.okhttp3:okhttp:$okHttpVersion"
     testImplementation 'ch.qos.logback:logback-core:1.2.13'
     testImplementation 'ch.qos.logback:logback-classic:1.2.13'
     testImplementation 'org.slf4j:slf4j-api:1.7.30'
     testImplementation("org.apache.commons:commons-collections4:4.4")
-    testImplementation 'org.bouncycastle:bcprov-jdk15on:1.70'
+    testImplementation "org.bouncycastle:bcprov-jdk18on:$bcprovVersion"
     testImplementation 'org.projectlombok:lombok:1.18.8'
     compileOnly 'org.projectlombok:lombok:1.18.8'
     annotationProcessor 'org.projectlombok:lombok'

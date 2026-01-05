@@ -36,21 +36,25 @@ public interface InterceptorOrder {
         int HIGHEST = 1;
         int LOWEST = 100;
         /**
+         * 保存控制器类名信息
+         */
+        int SAVE_CONTROLLER_INFO = HIGHEST;
+        /**
          * 检查请求合法性
          */
-        int CHECK_VALID = HIGHEST;
+        int CHECK_VALID = HIGHEST + 1;
         /**
          * 日志记录
          */
-        int LOG = HIGHEST + 1;
+        int LOG = HIGHEST + 2;
         /**
          * 请求统计
          */
-        int METRICS = HIGHEST + 2;
+        int METRICS = HIGHEST + 3;
         /**
          * 请求处理
          */
-        int REWRITE_REQUEST = HIGHEST + 2;
+        int REWRITE_REQUEST = HIGHEST + 4;
     }
 
     /**
