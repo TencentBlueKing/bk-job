@@ -357,7 +357,7 @@ module.exports = function (env) {
 
     ].filter(_ => _),
     devServer: {
-      host: '0.0.0.0',
+      host: 'local.job.bk-pmc.bktencent.com',
       port: 8081,
       allowedHosts: 'all',
       liveReload: false,

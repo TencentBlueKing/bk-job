@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.HostSimpleDTO;
 import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
 import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
+import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
@@ -196,6 +197,30 @@ abstract public class AbstractBaseHostDAO {
         List<Condition> conditions = getBasicConditions();
         conditions.add(TABLE.IP_DESC.in(hostNames));
         return listHostInfoByConditions(conditions);
+    }
+
+    /**
+     * 根据传入的hostIds分批查询存在的hostId
+     *
+     * @param hostIds       主机ID集合
+     * @param queryFunction 查询函数
+     * @return 存在的hostId列表
+     */
+    protected List<Long> batchQueryHostId(
+        Collection<Long> hostIds,
+        Function<List<Long>, List<Long>> queryFunction
+    ) {
+        List<Long> hostIdList = new ArrayList<>(hostIds);
+        // 排序，优化DB查询性能
+        hostIdList.sort(Long::compare);
+        Set<Long> resultHostIds = new HashSet<>();
+        // 分批，防止SQL超长/全表扫描
+        int batchSize = 5000;
+        List<List<Long>> hostIdBatches = CollectionUtil.partitionList(hostIdList, batchSize);
+        for (List<Long> hostIdBatch : hostIdBatches) {
+            resultHostIds.addAll(queryFunction.apply(hostIdBatch));
+        }
+        return new ArrayList<>(resultHostIds);
     }
 
     protected Long countHostInfoBySearchContents(Collection<Long> bizIds,

@@ -74,6 +74,7 @@ module.exports = {
     'max-len': 'off',
     'vue/multi-word-component-names': 'off',
     'no-unused-vars': 'error',
+    'linebreak-style': ['error', 'windows'],
   },
   overrides: [
     {

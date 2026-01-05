@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.annotation.JobInterceptor;
 import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.util.StringUtil;
+import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.common.web.model.RepeatableReadHttpServletResponse;
 import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest;
@@ -140,7 +141,9 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
             String requestId = request.getHeader(JobCommonHeaders.BK_GATEWAY_REQUEST_ID);
             int respStatus = response.getStatus();
             long cost = System.currentTimeMillis() - startTimeInMills;
-            log.info("request-id: {}|API: {}|uri: {}|appCode: {}|username: {}|status: {}|resp: {}|cost: {}",
+            String costTag = TimeUtil.genCostTimeTag(cost);
+            log.info(
+                "request-id: {}|OpenAPI: {}|uri: {}|appCode: {}|username: {}|status: {}|resp: {}|costTag:{}|cost: {}",
                 requestId,
                 apiName,
                 request.getRequestURI(),
@@ -148,6 +151,7 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
                 username,
                 respStatus,
                 StringUtil.substring(wrapperResponse.getBodyAsText(), 10000),
+                costTag,
                 cost);
         } catch (Throwable e) {
             log.warn("Handle after completion fail", e);
@@ -156,4 +160,5 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
             super.afterCompletion(request, response, handler, ex);
         }
     }
+
 }

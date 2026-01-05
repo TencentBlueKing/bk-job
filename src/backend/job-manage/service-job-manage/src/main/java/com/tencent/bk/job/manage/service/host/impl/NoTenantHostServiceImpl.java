@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service.host.impl;
 
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.dto.BasicHostDTO;
@@ -264,7 +265,7 @@ public class NoTenantHostServiceImpl extends BaseHostService implements NoTenant
             int affectedNum = noTenantHostDAO.syncHostTopo(hostInfoDTO.getHostId());
             log.info("hostTopo synced: hostId={}, affectedNum={}", hostInfoDTO.getHostId(), affectedNum);
             // 更新缓存
-            updateDbHostToCache(hostInfoDTO.getHostId());
+            loadHostFromDbToCache(hostInfoDTO.getHostId());
         }
     }
 
@@ -295,7 +296,7 @@ public class NoTenantHostServiceImpl extends BaseHostService implements NoTenant
         return affectedRowNum;
     }
 
-    public void updateDbHostToCache(Long hostId) {
+    public void loadHostFromDbToCache(Long hostId) {
         ApplicationHostDTO hostInfoDTO = noTenantHostDAO.getHostById(hostId);
         if (hostInfoDTO.getBizId() != null && hostInfoDTO.getBizId() > 0) {
             // 只更新常规业务的主机到缓存
@@ -363,4 +364,21 @@ public class NoTenantHostServiceImpl extends BaseHostService implements NoTenant
         return existHosts;
     }
 
+    @Override
+    public List<Long> listHostIdsFromDB(Collection<Long> hostIds) {
+        return noTenantHostDAO.listHostId(hostIds);
+    }
+
+    @Override
+    public List<Long> listHostIdOfNotAliveHostInDB(Collection<Long> hostIds){
+        return noTenantHostDAO.listHostIdOfStatus(hostIds, AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
+    }
+
+    public int syncHostTopo(Long hostId) {
+        return noTenantHostDAO.syncHostTopo(hostId);
+    }
+
+    public ApplicationHostDTO getHostById(Long hostId) {
+        return noTenantHostDAO.getHostById(hostId);
+    }
 }

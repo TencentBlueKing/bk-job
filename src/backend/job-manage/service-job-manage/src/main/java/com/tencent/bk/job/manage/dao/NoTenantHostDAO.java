@@ -114,6 +114,23 @@ public interface NoTenantHostDAO {
      */
     List<Long> listHostId(long bizId, long minUpdateTimeMills, long maxUpdateTimeMills);
 
+    /**
+     * 根据传入的hostId集合查询存在的hostId
+     *
+     * @param hostIds 主机ID集合
+     * @return 存在的主机ID列表
+     */
+    List<Long> listHostId(Collection<Long> hostIds);
+
+    /**
+     * 在指定的hostIds范围内查出Agent状态为指定值的主机
+     *
+     * @param hostIds      主机ID集合
+     * @param isAgentAlive Agent状态值
+     * @return 主机ID列表
+     */
+    List<Long> listHostIdOfStatus(Collection<Long> hostIds, int isAgentAlive);
+
     List<ApplicationHostDTO> listHostInfoByBizId(long bizId);
 
     List<BasicHostDTO> listBasicHostInfo(Collection<Long> hostIds);

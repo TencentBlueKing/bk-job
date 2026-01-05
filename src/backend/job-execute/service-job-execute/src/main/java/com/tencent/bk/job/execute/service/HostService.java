@@ -81,22 +81,26 @@ public interface HostService {
     /**
      * 获取动态分组主机
      *
-     * @param appId   业务ID
-     * @param groupId 动态分组ID
+     * @param tenantId 租户ID
+     * @param appId    业务ID
+     * @param groupId  动态分组ID
      * @return 主机列表
      */
-    List<HostDTO> getHostsByDynamicGroupId(long appId, String groupId);
+    List<HostDTO> getHostsByDynamicGroupId(String tenantId, long appId, String groupId);
 
     /**
      * 批量获取动态分组主机，并根据动态分组ID对主机进行分组
      *
+     * @param tenantId 租户ID
      * @param appId    业务ID
      * @param groupIds 动态分组ID列表
      * @return Map, key: 动态分组 value: 动态分组下的主机列表
      */
     Map<DynamicServerGroupDTO, List<HostDTO>> batchGetAndGroupHostsByDynamicGroup(
+        String tenantId,
         long appId,
-        Collection<DynamicServerGroupDTO> groupIds);
+        Collection<DynamicServerGroupDTO> groupIds
+    );
 
 
     /**

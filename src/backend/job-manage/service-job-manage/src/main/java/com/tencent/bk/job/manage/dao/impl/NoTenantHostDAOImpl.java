@@ -60,6 +60,7 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -235,6 +236,25 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
         conditions.add(TABLE.LAST_MODIFY_TIME.greaterThan(JooqDataTypeUtil.buildULong(minUpdateTimeMills)));
         conditions.add(TABLE.LAST_MODIFY_TIME.lessThan(JooqDataTypeUtil.buildULong(maxUpdateTimeMills)));
         return listHostIdByConditions(conditions);
+    }
+
+    @Override
+    public List<Long> listHostId(Collection<Long> hostIds) {
+        return batchQueryHostId(hostIds, hostIdList -> {
+            List<Condition> conditions = new ArrayList<>();
+            conditions.add(TABLE.HOST_ID.in(hostIdList));
+            return listHostIdByConditions(conditions);
+        });
+    }
+
+    @Override
+    public List<Long> listHostIdOfStatus(Collection<Long> hostIds, int isAgentAlive) {
+        return batchQueryHostId(hostIds, hostIdList -> {
+            List<Condition> conditions = new ArrayList<>();
+            conditions.add(TABLE.HOST_ID.in(hostIdList));
+            conditions.add(TABLE.IS_AGENT_ALIVE.eq(JooqDataTypeUtil.buildUByte(isAgentAlive)));
+            return listHostIdByConditions(conditions);
+        });
     }
 
     @Override
