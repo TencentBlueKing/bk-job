@@ -94,7 +94,7 @@
 | name              | string | 是          | 定时作业名称                                                                  |
 | status            | int    | 是          | 定时作业状态：1.已启动、2.已暂停                                                      |
 | expression        | string | 否          | 定时任务crontab的定时规则（该字段周期执行才返回），各字段含义为：分 时 日 月 周，如: 0/5 * * * ? 表示每5分钟执行一次 |
-| execute_time_zone | string | 是          | 定时任务执行时间所在时区，例如：Asia/Shanghai                                           |
+| execute_time_zone | string | 是          | 定时任务执行时间所在时区，该时区为IANA格式，例如：Asia/Shanghai                                |
 | creator           | string | 是          | 创建人账号                                                                   |
 | create_time       | long   | 是          | 创建时间，Unix 时间戳(s)                                                        |
 | last_modify_user  | string | 是          | 最后修改人账号                                                                 |

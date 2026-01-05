@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.crontab.task;
 
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import com.tencent.bk.job.crontab.service.CronJobLoadingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -50,7 +50,7 @@ public class ScheduledTasks {
     /**
      * 每天早上9:30更新一次定时任务数据到Quartz内存
      */
-    @Scheduled(cron = "0 30 9 * * *", zone = "${timezone.default.operation:Asia/Shanghai}")
+    @ScheduledOnOperationTimeZone(cron = "0 30 9 * * *")
     public void loadCronToQuartzPeriodically() {
         log.info("loadCronToQuartzPeriodically");
         cronJobLoadingService.loadAllCronJob();
@@ -59,7 +59,7 @@ public class ScheduledTasks {
     /**
      * 每上午10点把已归档业务(集)的定时任务禁用
      */
-    @Scheduled(cron = "0 0 10 * * ?", zone = "${timezone.default.operation:Asia/Shanghai}")
+    @ScheduledOnOperationTimeZone(cron = "0 0 10 * * ?")
     public void disableCronJobOfArchivedScopeTask() {
         log.info(Thread.currentThread().getId() + ":disableCronJobOfArchivedScopeTask start");
         long start = System.currentTimeMillis();

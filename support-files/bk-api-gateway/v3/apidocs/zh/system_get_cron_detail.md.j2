@@ -90,22 +90,22 @@
 
 ##### data
 
-| 字段                | 类型     | 是否一定不为null | 描述                                      |
-|-------------------|--------|------------|-----------------------------------------|
-| id                | long   | 是          | 定时任务 ID                                 |
-| name              | string | 是          | 定时作业名称                                  |
-| status            | int    | 是          | 定时任务状态                                  |
-| bk_scope_type     | string | 是          | 资源范围类型。可选值: biz - 业务，biz_set - 业务集      |
-| bk_scope_id       | string | 是          | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
-| job_plan_id       | long   | 是          | 要定时执行的作业的执行方案 ID                        |
-| creator           | string | 是          | 创建人                                     |
-| create_time       | long   | 是          | 创建时间Unix时间戳（s）                          |
-| last_modify_user  | string | 是          | 最近一次修改人                                 |
-| last_modify_time  | long   | 是          | 最近一次修改时间Unix时间戳（s）                      |
-| expression        | string | 否          | 定时任务 crontab 的定时规则，                     |
-| execute_time      | long   | 否          | 定时任务单次执行的执行时间，Unix时间戳                   |
-| execute_time_zone | string | 是          | 定时任务执行时间所在时区，例如：Asia/Shanghai           |
-| global_var_list   | array  | 否          | 全局变量信息，定义见global_var                    |
+| 字段                | 类型     | 是否一定不为null | 描述                                       |
+|-------------------|--------|------------|------------------------------------------|
+| id                | long   | 是          | 定时任务 ID                                  |
+| name              | string | 是          | 定时作业名称                                   |
+| status            | int    | 是          | 定时任务状态                                   |
+| bk_scope_type     | string | 是          | 资源范围类型。可选值: biz - 业务，biz_set - 业务集       |
+| bk_scope_id       | string | 是          | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID  |
+| job_plan_id       | long   | 是          | 要定时执行的作业的执行方案 ID                         |
+| creator           | string | 是          | 创建人                                      |
+| create_time       | long   | 是          | 创建时间Unix时间戳（s）                           |
+| last_modify_user  | string | 是          | 最近一次修改人                                  |
+| last_modify_time  | long   | 是          | 最近一次修改时间Unix时间戳（s）                       |
+| expression        | string | 否          | 定时任务 crontab 的定时规则，                      |
+| execute_time      | long   | 否          | 定时任务单次执行的执行时间，Unix时间戳                    |
+| execute_time_zone | string | 是          | 定时任务执行时间所在时区，该时区为IANA格式，例如：Asia/Shanghai |
+| global_var_list   | array  | 否          | 全局变量信息，定义见global_var                     |
 
 ##### global_var
 

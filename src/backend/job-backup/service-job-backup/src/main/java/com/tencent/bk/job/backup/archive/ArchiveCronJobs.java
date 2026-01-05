@@ -26,9 +26,9 @@ package com.tencent.bk.job.backup.archive;
 
 import com.tencent.bk.job.backup.config.ArchiveProperties;
 import com.tencent.bk.job.backup.config.JobLogArchiveProperties;
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 
 /**
  * 归档定时任务
@@ -74,7 +74,7 @@ public class ArchiveCronJobs {
     /**
      * 定时创建归档任务,每小时 0 分钟 触发一次（正常情况一天触发一次即可；为了保障异常情况下任务有一定频率的重试机会）
      */
-    @Scheduled(cron = "0 0 * * * *")
+    @ScheduledOnOperationTimeZone(cron = "0 0 * * * *")
     public void generateArchiveTask() {
         if (archiveProperties.isEnabled()) {
             log.info("Generate historical data archive task start...");
@@ -92,10 +92,7 @@ public class ArchiveCronJobs {
     /**
      * 定时调度并执行历史数据归档任务，默认每小时第 1 分钟触发一次
      */
-    @Scheduled(
-        cron = "${job.backup.archive.execute.cron: 0 1 * * * *}",
-        zone = "${timezone.default.operation:Asia/Shanghai}"
-    )
+    @ScheduledOnOperationTimeZone(cron = "${job.backup.archive.execute.cron: 0 1 * * * *}")
     public void runHistoricalDataArchive() {
         if (archiveProperties.isEnabled()) {
             log.info("Schedule and execute historical data archive task start...");
@@ -107,10 +104,7 @@ public class ArchiveCronJobs {
     /**
      * 定时调度并执行执行日志归档任务，默认每小时第 1 分钟触发一次
      */
-    @Scheduled(
-        cron = "${job.backup.archive.execute-log.cron: 0 1 * * * *}",
-        zone = "${timezone.default.operation:Asia/Shanghai}"
-    )
+    @ScheduledOnOperationTimeZone(cron = "${job.backup.archive.execute-log.cron: 0 1 * * * *}")
     public void runJobLogArchive() {
         if (jobLogArchiveProperties.isEnabled()) {
             log.info("Schedule and execute historical log archive task start...");
@@ -122,10 +116,7 @@ public class ArchiveCronJobs {
     /**
      * 失败归档任务重调度，每小时触发一次
      */
-    @Scheduled(
-        cron = "0 59 * * * *",
-        zone = "${timezone.default.operation:Asia/Shanghai}"
-    )
+    @ScheduledOnOperationTimeZone(cron = "0 59 * * * *")
     public void scheduleFailedTasks() {
         if (!archiveProperties.isEnabled() && !jobLogArchiveProperties.isEnabled()) {
             return;
@@ -138,10 +129,7 @@ public class ArchiveCronJobs {
     /**
      * 定时查看是否有归档完成但实际还在热库中的任务，默认每天10:30触发
      */
-    @Scheduled(
-        cron = "${job.backup.archive.execute.check.cron: 0 30 10 * * ?}",
-        zone = "${timezone.default.operation:Asia/Shanghai}"
-    )
+    @ScheduledOnOperationTimeZone(cron = "${job.backup.archive.execute.check.cron: 0 30 10 * * ?}")
     public void checkArchiveTaskStatus() {
         if (!archiveProperties.isEnabled() || !archiveProperties.getCheck().isEnabled()) {
             log.debug("checkArchiveTaskStatus not enable, skip");

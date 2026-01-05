@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine.result.ha;
 
 
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,7 +37,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -128,7 +128,7 @@ public class ResultHandleTaskKeepaliveManager {
         }
     }
 
-    @Scheduled(cron = "0/10 * * * * ?")
+    @ScheduledOnOperationTimeZone(cron = "0/10 * * * * ?")
     public void refreshTaskKeepaliveInfo() {
         log.info("Refresh task keepalive info start...");
         if (!runningTasks.isEmpty()) {
