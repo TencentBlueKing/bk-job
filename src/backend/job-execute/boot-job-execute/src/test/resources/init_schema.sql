@@ -309,14 +309,13 @@ CREATE TABLE IF NOT EXISTS `dangerous_record`
     `action`          tinyint(4)    NOT NULL,
     `check_result`    text          NOT NULL,
     `ext_data`        text,
+    `tenant_id`       varchar(32)   NOT NULL DEFAULT 'default',
     PRIMARY KEY (`id`),
-    KEY `idx_create_time_rule_id` (`create_time`, `rule_id`),
-    KEY `idx_create_time_rule_expression` (`create_time`, `rule_expression`),
-    KEY `idx_create_time_app_id` (`create_time`, `app_id`),
-    KEY `idx_create_time_operator` (`create_time`, `operator`),
-    KEY `idx_create_time_startup_mode` (`create_time`, `startup_mode`),
-    KEY `idx_create_time_client` (`create_time`, `client`),
-    KEY `idx_create_time_mode` (`create_time`, `action`)
+    KEY `idx_tenant_id_ctime` (`tenant_id`,`create_time`),
+    KEY `idx_rule_id_ctime` (`rule_id`,`create_time`),
+    KEY `idx_app_id_ctime` (`app_id`,`create_time`),
+    KEY `idx_operator_ctime` (`operator`,`create_time`),
+    KEY `idx_client_ctime` (`client`,`create_time`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 

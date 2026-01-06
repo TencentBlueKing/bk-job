@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
@@ -153,7 +154,8 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
             .fetchAllGroupData(status == null)
             .build();
 
-        StepExecutionDetailDTO executionResult = taskResultService.getStepExecutionResult(username, appId, query);
+        StepExecutionDetailDTO executionResult = taskResultService.getStepExecutionResult(
+            JobContextUtil.getUser(), appId, query);
         if (executionResult == null) {
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }

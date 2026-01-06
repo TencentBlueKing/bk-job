@@ -1,0 +1,118 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 Tencent.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+package com.tencent.bk.job.manage.background.ha;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
+import lombok.Data;
+
+/**
+ * 任务实体
+ */
+@Data
+public class TaskEntity {
+    /**
+     * 任务类型
+     */
+    private EventWatchTaskTypeEnum taskType;
+    /**
+     * 租户ID
+     */
+    private String tenantId;
+
+    @JsonIgnore
+    public String getUniqueCode() {
+        return taskType.getType() + ":" + tenantId;
+    }
+
+    public TaskEntity(EventWatchTaskTypeEnum taskType, String tenantId) {
+        if (taskType == null) {
+            throw new IllegalArgumentException("taskType cannot be null");
+        }
+        this.taskType = taskType;
+        this.tenantId = tenantId;
+    }
+
+    /**
+     * 快速构建监听业务事件任务实体
+     *
+     * @param tenantId 租户ID
+     * @return 任务实体
+     */
+    public static TaskEntity ofWatchBiz(String tenantId) {
+        return of(EventWatchTaskTypeEnum.WATCH_BIZ, tenantId);
+    }
+
+    /**
+     * 快速构建监听业务集事件任务实体
+     *
+     * @param tenantId 租户ID
+     * @return 任务实体
+     */
+    public static TaskEntity ofWatchBizSet(String tenantId) {
+        return of(EventWatchTaskTypeEnum.WATCH_BIZ_SET, tenantId);
+    }
+
+    /**
+     * 快速构建监听业务集关系事件任务实体
+     *
+     * @param tenantId 租户ID
+     * @return 任务实体
+     */
+    public static TaskEntity ofWatchBizSetRelation(String tenantId) {
+        return of(EventWatchTaskTypeEnum.WATCH_BIZ_SET_RELATION, tenantId);
+    }
+
+    /**
+     * 快速构建监听主机事件任务实体
+     *
+     * @param tenantId 租户ID
+     * @return 任务实体
+     */
+    public static TaskEntity ofWatchHost(String tenantId) {
+        return of(EventWatchTaskTypeEnum.WATCH_HOST, tenantId);
+    }
+
+    /**
+     * 快速构建监听主机关系事件任务实体
+     *
+     * @param tenantId 租户ID
+     * @return 任务实体
+     */
+    public static TaskEntity ofWatchHostRelation(String tenantId) {
+        return of(EventWatchTaskTypeEnum.WATCH_HOST_RELATION, tenantId);
+    }
+
+    /**
+     * 快速构建任务实体
+     *
+     * @param taskType 任务类型枚举
+     * @param tenantId 租户ID
+     * @return 任务实体
+     */
+    private static TaskEntity of(EventWatchTaskTypeEnum taskType, String tenantId) {
+        return new TaskEntity(taskType, tenantId);
+    }
+}

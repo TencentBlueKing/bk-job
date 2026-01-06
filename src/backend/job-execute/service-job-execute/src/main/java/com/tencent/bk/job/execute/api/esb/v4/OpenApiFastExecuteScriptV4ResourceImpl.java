@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.v4.EsbV4Response;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -87,6 +88,7 @@ public class OpenApiFastExecuteScriptV4ResourceImpl implements OpenApiFastExecut
             FastTaskDTO.builder()
                 .taskInstance(taskInstance)
                 .stepInstance(stepInstance)
+                .operator(JobContextUtil.getUser())
                 .rollingConfig(rollingConfig)
                 .startTask(request.getStartTask())
                 .hostPasswordList(request.getHostPasswordList())

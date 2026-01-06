@@ -37,8 +37,10 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.file.CharsetDetectHelper;
 import com.tencent.bk.job.common.util.file.EncodingUtils;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
@@ -121,7 +123,8 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                                      String scopeType,
                                                      String scopeId,
                                                      Long scriptVersionId) {
-        ScriptDTO script = scriptService.getScriptVersion(username, appResourceScope.getAppId(), scriptVersionId);
+        User user = JobContextUtil.getUser();
+        ScriptDTO script = scriptService.getScriptVersion(user, appResourceScope.getAppId(), scriptVersionId);
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(script);
         return Response.buildSuccessResp(scriptVO);
     }
@@ -133,7 +136,8 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                         String scopeType,
                                         String scopeId,
                                         String scriptId) {
-        ScriptDTO script = scriptService.getScript(username, appResourceScope.getAppId(), scriptId);
+        User user = JobContextUtil.getUser();
+        ScriptDTO script = scriptService.getScript(user, appResourceScope.getAppId(), scriptId);
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(script);
 
         List<ScriptDTO> scriptVersions = scriptService.listScriptVersion(appResourceScope.getAppId(), scriptId);
@@ -153,7 +157,8 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                                       String scopeType,
                                                       String scopeId,
                                                       String scriptId) {
-        ScriptDTO script = scriptService.getScript(username, appResourceScope.getAppId(), scriptId);
+        User user = JobContextUtil.getUser();
+        ScriptDTO script = scriptService.getScript(user, appResourceScope.getAppId(), scriptId);
         BasicScriptVO scriptVO = ScriptConverter.convertToBasicScriptVO(script);
         return Response.buildSuccessResp(scriptVO);
     }
@@ -165,7 +170,8 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                                                String scopeType,
                                                                String scopeId,
                                                                String scriptId) {
-        ScriptDTO onlineScriptVersion = scriptService.getOnlineScriptVersionByScriptId(username,
+        User user = JobContextUtil.getUser();
+        ScriptDTO onlineScriptVersion = scriptService.getOnlineScriptVersionByScriptId(user,
             appResourceScope.getAppId(), scriptId);
         if (onlineScriptVersion == null) {
             return Response.buildSuccessResp(null);
@@ -193,6 +199,7 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                                        Integer pageSize,
                                                        String orderField,
                                                        Integer order) {
+        User user = JobContextUtil.getUser();
         ScriptQuery scriptQuery = buildListPageScriptQuery(appResourceScope, name, type, tags, panelTag, panelType,
             creator, lastModifyUser, scriptId, content, start, pageSize, orderField, order);
 
@@ -206,24 +213,25 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
         setOnlineScriptVersionInfo(resultPageData.getData());
 
         // 设置权限
-        processPermissionForList(username, appResourceScope, resultPageData);
+        processPermissionForList(user, appResourceScope, resultPageData);
         resultPageData.setExistAny(scriptService.isExistAnyAppScript(appResourceScope.getAppId()));
 
         return Response.buildSuccessResp(resultPageData);
     }
 
-    private void processPermissionForList(String username, AppResourceScope appResourceScope,
+    private void processPermissionForList(User user,
+                                          AppResourceScope appResourceScope,
                                           PageData<ScriptVO> resultPageData) {
         resultPageData.setCanCreate(
-            scriptAuthService.authCreateScript(username, appResourceScope).isPass());
+            scriptAuthService.authCreateScript(user, appResourceScope).isPass());
 
         List<String> scriptIdList = new ArrayList<>();
         resultPageData.getData().forEach(script -> scriptIdList.add(script.getId()));
 
         List<String> allowedManageScriptIdList =
-            scriptAuthService.batchAuthManageScript(username, appResourceScope, scriptIdList);
+            scriptAuthService.batchAuthManageScript(user, appResourceScope, scriptIdList);
         List<String> allowedViewScriptIdList =
-            scriptAuthService.batchAuthViewScript(username, appResourceScope, scriptIdList);
+            scriptAuthService.batchAuthViewScript(user, appResourceScope, scriptIdList);
         resultPageData.getData()
             .forEach(script -> script.setCanManage(allowedManageScriptIdList.contains(script.getId())));
         resultPageData.getData().forEach(script -> {
@@ -254,27 +262,32 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
         }
 
         ScriptDTO updateScript;
+        User user = JobContextUtil.getUser();
         if (isUpdateDesc) {
-            updateScript = scriptService.updateScriptDesc(appId, username, scriptId,
+            updateScript = scriptService.updateScriptDesc(appId, user, scriptId,
                 request.getScriptDesc());
         } else if (isUpdateName) {
-            updateScript = updateScriptName(username, appId, scriptId, request);
+            updateScript = updateScriptName(user, appId, scriptId, request);
         } else {
-            updateScript = updateScriptTags(username, appId, scriptId, request);
+            updateScript = updateScriptTags(user, appId, scriptId, request);
         }
         return Response.buildSuccessResp(ScriptConverter.convertToScriptVO(updateScript));
     }
 
-    private ScriptDTO updateScriptName(String username, Long appId, String scriptId,
+    private ScriptDTO updateScriptName(User user,
+                                       Long appId,
+                                       String scriptId,
                                        ScriptInfoUpdateReq scriptInfoUpdateReq) {
         scriptInfoUpdateReq.validateScriptName();
-        return scriptService.updateScriptName(appId, username, scriptId, scriptInfoUpdateReq.getScriptName());
+        return scriptService.updateScriptName(appId, user, scriptId, scriptInfoUpdateReq.getScriptName());
     }
 
-    private ScriptDTO updateScriptTags(String username, Long appId, String scriptId,
+    private ScriptDTO updateScriptTags(User user,
+                                       Long appId,
+                                       String scriptId,
                                        ScriptInfoUpdateReq scriptInfoUpdateReq) {
         List<TagDTO> tags = extractTags(scriptInfoUpdateReq);
-        return scriptService.updateScriptTags(appId, username, scriptId, tags);
+        return scriptService.updateScriptTags(appId, user, scriptId, tags);
     }
 
     @Override
@@ -312,8 +325,9 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
         }
 
         // 鉴权
-        AuthResult viewAuthResult = scriptAuthService.authViewScript(username, appResourceScope, scriptId, null);
-        AuthResult manageAuthResult = scriptAuthService.authManageScript(username, appResourceScope, scriptId, null);
+        User user = JobContextUtil.getUser();
+        AuthResult viewAuthResult = scriptAuthService.authViewScript(user, appResourceScope, scriptId, null);
+        AuthResult manageAuthResult = scriptAuthService.authManageScript(user, appResourceScope, scriptId, null);
 
         List<ScriptDTO> scripts = scriptService.listScriptVersion(appId, scriptId);
         List<ScriptVO> resultVOS = new ArrayList<>();
@@ -352,8 +366,9 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                          String scopeId,
                                          @AuditRequestBody @Validated ScriptCreateReq request) {
 
-        ScriptDTO script = buildCreateScriptDTO(request, appResourceScope, username);
-        ScriptDTO savedScript = scriptService.createScript(username, script);
+        User user = JobContextUtil.getUser();
+        ScriptDTO script = buildCreateScriptDTO(request, appResourceScope, user);
+        ScriptDTO savedScript = scriptService.createScript(user, script);
 
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(savedScript);
         return Response.buildSuccessResp(scriptVO);
@@ -362,12 +377,13 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
 
     private ScriptDTO buildCreateScriptDTO(ScriptCreateReq request,
                                            AppResourceScope appResourceScope,
-                                           String username) {
+                                           User user) {
         ScriptDTO script = scriptDTOBuilder.buildFromScriptCreateReq(request);
         script.setAppId(appResourceScope.getAppId());
         script.setPublicScript(false);
-        script.setCreator(username);
-        script.setLastModifyUser(username);
+        script.setCreator(user.getUsername());
+        script.setLastModifyUser(user.getUsername());
+        script.setTenantId(user.getTenantId());
         return script;
     }
 
@@ -380,9 +396,10 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                                 String scriptId,
                                                 @AuditRequestBody ScriptVersionCreateUpdateReq request) {
 
+        User user = JobContextUtil.getUser();
         ScriptDTO script = buildCreateOrUpdateScriptVersion(true, request, scriptId, null,
             appResourceScope, username);
-        ScriptDTO savedScript = scriptService.createScriptVersion(username, script);
+        ScriptDTO savedScript = scriptService.createScriptVersion(user, script);
 
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(savedScript);
         return Response.buildSuccessResp(scriptVO);
@@ -416,9 +433,10 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                                   Long scriptVersionId,
                                                   @AuditRequestBody ScriptVersionCreateUpdateReq request) {
 
+        User user = JobContextUtil.getUser();
         ScriptDTO script = buildCreateOrUpdateScriptVersion(false, request, scriptId, scriptVersionId,
             appResourceScope, username);
-        ScriptDTO savedScriptVersion = scriptService.updateScriptVersion(username, script);
+        ScriptDTO savedScriptVersion = scriptService.updateScriptVersion(user, script);
 
         ScriptVO scriptVO = ScriptConverter.convertToScriptVO(savedScriptVersion);
         return Response.buildSuccessResp(scriptVO);
@@ -432,7 +450,8 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                          String scopeId,
                                          String scriptId,
                                          Long scriptVersionId) {
-        scriptService.publishScript(appResourceScope.getAppId(), username, scriptId, scriptVersionId);
+        User user = JobContextUtil.getUser();
+        scriptService.publishScript(appResourceScope.getAppId(), user, scriptId, scriptVersionId);
         return Response.buildSuccessResp(null);
     }
 
@@ -444,7 +463,8 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                          String scopeId,
                                          String scriptId,
                                          Long scriptVersionId) {
-        scriptService.disableScript(appResourceScope.getAppId(), username, scriptId, scriptVersionId);
+        User user = JobContextUtil.getUser();
+        scriptService.disableScript(appResourceScope.getAppId(), user, scriptId, scriptVersionId);
         return Response.buildSuccessResp(null);
     }
 
@@ -455,7 +475,8 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                            String scopeType,
                                            String scopeId,
                                            String scriptId) {
-        scriptService.deleteScript(username, appResourceScope.getAppId(), scriptId);
+        User user = JobContextUtil.getUser();
+        scriptService.deleteScript(user, appResourceScope.getAppId(), scriptId);
         return Response.buildSuccessResp(null);
     }
 
@@ -468,9 +489,8 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                                   Long scriptVersionId) {
         log.info("Delete scriptVersion[{}], operator={}, scope={}", scriptVersionId, username, appResourceScope);
         long appId = appResourceScope.getAppId();
-        ScriptDTO script = scriptService.getScriptVersion(appId, scriptVersionId);
-
-        scriptService.deleteScriptVersion(username, appId, scriptVersionId);
+        User user = JobContextUtil.getUser();
+        scriptService.deleteScriptVersion(user, appId, scriptVersionId);
         return Response.buildSuccessResp(null);
     }
 
@@ -489,20 +509,21 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
                                                           AppResourceScope appResourceScope,
                                                           String scopeType,
                                                           String scopeId) {
+        User user = JobContextUtil.getUser();
         List<ScriptDTO> scriptList = scriptService.listOnlineScript(username, appResourceScope.getAppId());
         List<BasicScriptVO> scriptVOList = convertToBasicScriptVOList(scriptList);
-        processScriptPermission(username, appResourceScope, scriptVOList);
+        processScriptPermission(user, appResourceScope, scriptVOList);
         return Response.buildSuccessResp(scriptVOList);
     }
 
-    private void processScriptPermission(String username, AppResourceScope appResourceScope,
+    private void processScriptPermission(User user, AppResourceScope appResourceScope,
                                          List<BasicScriptVO> scriptList) {
         List<String> scriptIdList = new ArrayList<>();
         scriptList.forEach(script -> scriptIdList.add(script.getId()));
         List<String> allowedManageScriptIdList =
-            scriptAuthService.batchAuthManageScript(username, appResourceScope, scriptIdList);
+            scriptAuthService.batchAuthManageScript(user, appResourceScope, scriptIdList);
         List<String> allowedViewScriptIdList =
-            scriptAuthService.batchAuthViewScript(username, appResourceScope, scriptIdList);
+            scriptAuthService.batchAuthViewScript(user, appResourceScope, scriptIdList);
         scriptList
             .forEach(script -> {
                 script.setCanManage(allowedManageScriptIdList.contains(script.getId()));
@@ -512,6 +533,7 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
 
     @Override
     public Response<List<ScriptCheckResultItemVO>> checkScript(String username, ScriptCheckReq scriptCheckReq) {
+        User user = JobContextUtil.getUser();
         if (scriptCheckReq.getScriptType() == null || StringUtils.isBlank(scriptCheckReq.getContent())) {
             log.warn("Check script, request is illegal! req={}", scriptCheckReq);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
@@ -519,7 +541,7 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
 
         String content = new String(Base64.decodeBase64(scriptCheckReq.getContent()), StandardCharsets.UTF_8);
         List<ScriptCheckResultItemDTO> checkResultItems =
-            scriptCheckService.check(ScriptTypeEnum.valOf(scriptCheckReq.getScriptType()), content);
+            scriptCheckService.check(user.getTenantId(), ScriptTypeEnum.valOf(scriptCheckReq.getScriptType()), content);
 
         List<ScriptCheckResultItemVO> checkResultItemVOS = new ArrayList<>();
         if (checkResultItems != null) {
@@ -626,7 +648,8 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
         scriptSyncReq.getSteps().forEach(step ->
             templateStepIDs.add(new TemplateStepIDDTO(step.getTemplateId(), step.getStepId())));
 
-        List<SyncScriptResultDTO> syncResults = scriptService.syncScriptToTaskTemplate(username,
+        User user = JobContextUtil.getUser();
+        List<SyncScriptResultDTO> syncResults = scriptService.syncScriptToTaskTemplate(user,
             appId, scriptId, scriptVersionId, templateStepIDs);
         List<ScriptSyncResultVO> syncResultVOS = convertToSyncResultVOs(syncResults, appResourceScope);
         return Response.buildSuccessResp(syncResultVOS);
@@ -669,8 +692,9 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
         }
 
         // 鉴权
+        User user = JobContextUtil.getUser();
         List<String> scriptIdList = req.getIdList();
-        scriptAuthService.batchAuthResultManageScript(username, appResourceScope, scriptIdList).denyIfNoPermission();
+        scriptAuthService.batchAuthResultManageScript(user, appResourceScope, scriptIdList).denyIfNoPermission();
 
         batchPatchResourceTags(JobResourceTypeEnum.APP_SCRIPT, req.getIdList(), req.getAddTagIdList(),
             req.getDeleteTagIdList());

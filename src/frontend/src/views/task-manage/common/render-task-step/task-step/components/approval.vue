@@ -44,7 +44,7 @@
       required>
       <jb-user-selector
         class="input"
-        :filter-list="['JOB_EXTRA_OBSERVER']"
+        :exclude-role-listt="['JOB_EXTRA_OBSERVER']"
         :placeholder="$t('template.输入确认人')"
         :role="formData.approvalUser.roleList"
         :user="formData.approvalUser.userList"

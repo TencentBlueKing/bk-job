@@ -25,15 +25,14 @@
 package com.tencent.bk.job.manage.api.inner;
 
 import com.tencent.bk.job.common.annotation.InternalAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceSpecificResourceNotifyPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceAppRoleDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
 import com.tencent.bk.job.manage.model.inner.ServiceNotifyChannelDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceUserNotificationDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -52,20 +51,6 @@ import java.util.List;
 @InternalAPI
 public interface ServiceNotificationResource {
 
-    @ApiOperation(value = "发送通知给用户（渠道在配置文件中配置，默认所有渠道）", produces = "application/json")
-    @PostMapping("/service/notification/sendNotificationsToUsers")
-    InternalResponse<Integer> sendNotificationsToUsers(
-        @ApiParam("通知接受者与消息内容")
-        @RequestBody ServiceUserNotificationDTO serviceUserNotificationDTO
-    );
-
-    @ApiOperation(value = "发送通知给管理员（渠道在配置文件中配置，默认所有渠道）", produces = "application/json")
-    @PostMapping("/service/notification/sendNotificationsToAdministrators")
-    InternalResponse<Integer> sendNotificationsToAdministrators(
-        @ApiParam("消息内容")
-        @RequestBody ServiceNotificationMessage serviceNotificationMessage
-    );
-
     @ApiOperation(value = "触发模板消息通知", produces = "application/json")
     @PostMapping("/service/notification/triggerTemplateNotification")
     InternalResponse<Integer> triggerTemplateNotification(
@@ -82,15 +67,23 @@ public interface ServiceNotificationResource {
     @ApiOperation(value = "获取通知角色列表", produces = "application/json")
     @GetMapping("/service/notification/getNotifyRoles")
     InternalResponse<List<ServiceAppRoleDTO>> getNotifyRoles(
+        @ApiParam("租户ID")
+        @RequestHeader(value = JobCommonHeaders.BK_TENANT_ID, required = false)
+        String tenantId,
         @ApiParam("语言")
-        @RequestHeader("lang") String lang
+        @RequestHeader("lang")
+        String lang
     );
 
     @ApiOperation(value = "获取通知渠道", produces = "application/json")
     @GetMapping("/service/notification/getNotifyChannels")
     InternalResponse<List<ServiceNotifyChannelDTO>> getNotifyChannels(
         @ApiParam("语言")
-        @RequestHeader("lang") String lang
+        @RequestHeader("lang")
+        String lang,
+        @ApiParam("租户ID")
+        @RequestHeader("tenant_id")
+        String tenantId
     );
 
     @ApiOperation(value = "创建或更新特定资源消息通知策略", produces = "application/json")

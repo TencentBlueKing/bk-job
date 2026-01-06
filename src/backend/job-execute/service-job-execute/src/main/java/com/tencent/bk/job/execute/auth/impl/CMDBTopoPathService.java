@@ -26,9 +26,10 @@ package com.tencent.bk.job.execute.auth.impl;
 
 import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.cc.model.result.HostBizRelationDTO;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.util.ConcurrencyUtil;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.sdk.iam.service.TopoPathService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,11 +53,11 @@ import java.util.stream.Collectors;
 @Service("cmdbTopoPathService")
 public class CMDBTopoPathService implements TopoPathService {
 
-    private final BizCmdbClient bizCmdbClient;
+    private final IBizCmdbClient bizCmdbClient;
     private final ExecutorService executorService;
 
     @Autowired
-    public CMDBTopoPathService(BizCmdbClient bizCmdbClient,
+    public CMDBTopoPathService(IBizCmdbClient bizCmdbClient,
                                @Qualifier("getHostTopoPathExecutor")
                                ExecutorService executorService) {
         this.bizCmdbClient = bizCmdbClient;
@@ -73,7 +74,11 @@ public class CMDBTopoPathService implements TopoPathService {
         List<HostBizRelationDTO> hostBizRelationDTOList = ConcurrencyUtil.getResultWithThreads(
             hostIdsSubList,
             executorService,
-            bizCmdbClient::findHostBizRelations
+            pHostIdList ->
+                bizCmdbClient.findHostBizRelations(
+                    JobContextUtil.getTenantId(),
+                    pHostIdList
+                )
         );
         return buildTopoPathMap(hostBizRelationDTOList);
     }

@@ -47,6 +47,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
+/**
+ * 文件服务接口实现
+ */
 @Slf4j
 @Service
 public class FileServiceImpl implements FileService {
@@ -72,29 +75,6 @@ public class FileServiceImpl implements FileService {
             throw new InternalException(ErrorCode.FILE_SOURCE_NOT_EXIST);
         }
         return dispatchService.findBestFileWorker(fileSourceDTO, requestSource);
-    }
-
-    @Override
-    public boolean isFileAvailable(String username, Long appId, Integer fileSourceId) {
-        FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(appId, fileSourceId);
-        FileWorkerDTO fileWorkerDTO = getFileWorker(fileSourceDTO, "isFileAvailable");
-        if (fileWorkerDTO == null) {
-            throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
-        }
-        log.info("choose file worker:" + fileWorkerDTO.getBasicDesc());
-        // 访问文件Worker接口，拿到available状态信息
-        HttpReq req = fileSourceReqGenService.genFileAvailableReq(appId, fileWorkerDTO, fileSourceDTO);
-        String respStr;
-        try {
-            respStr = jobHttpClient.post(req);
-            Response<Boolean> resp = JsonUtils.fromJson(respStr,
-                new TypeReference<Response<Boolean>>() {
-                });
-            return resp.getData();
-        } catch (Exception e) {
-            log.error("Fail to request remote worker:", e);
-            return false;
-        }
     }
 
     @Override

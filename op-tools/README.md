@@ -71,3 +71,23 @@ bk-job-op
 
 > 在浏览器访问OP系统接口：
 > http://127.0.0.1:8080/checkServiceDependency?namespace=blueking&serviceName=bk-job-gateway
+
+### 4.业务使用数据统计
+
+#### 代码位置
+biz_statistics
+
+#### 功能简介
+统计每个业务的使用情况，并将统计的结果写入Excel，具体包含：
+
+```shell
+|业务ID|业务名称|作业模板数量|执行方案数量|定时任务数量|最近一年执行任务数|脚本数量|账号数量|
+```
+
+#### 使用方法
+
+```shell
+pip install pymysql pandas openpyxl
+cd biz_statistics
+python generate_business_statictics_excel.py
+```

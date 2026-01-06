@@ -31,7 +31,9 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.web.WebCredentialResource;
 import com.tencent.bk.job.manage.auth.TicketAuthService;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
@@ -73,6 +75,7 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
                                                             String lastModifyUser,
                                                             Integer start,
                                                             Integer pageSize) {
+        User user = JobContextUtil.getUser();
         CredentialDTO credentialQuery = new CredentialDTO();
         credentialQuery.setId(id);
         credentialQuery.setAppId(appResourceScope.getAppId());
@@ -91,7 +94,7 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
         finalPageData.setPageSize(pageData.getPageSize());
         finalPageData.setTotal(pageData.getTotal());
         finalPageData.setData(credentialVOList);
-        addPermissionData(username, appResourceScope, finalPageData);
+        addPermissionData(user, appResourceScope, finalPageData);
         return Response.buildSuccessResp(finalPageData);
     }
 
@@ -102,6 +105,7 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
                                                                          String scopeId,
                                                                          Integer start,
                                                                          Integer pageSize) {
+        User user = JobContextUtil.getUser();
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(start);
         baseSearchCondition.setLength(pageSize);
@@ -116,7 +120,7 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
         finalPageData.setPageSize(pageData.getPageSize());
         finalPageData.setTotal(pageData.getTotal());
         finalPageData.setData(credentialBasicVOList);
-        addPermissionDataForBasicVO(username, appResourceScope, finalPageData);
+        addPermissionDataForBasicVO(user, appResourceScope, finalPageData);
         return Response.buildSuccessResp(finalPageData);
     }
 
@@ -127,8 +131,9 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
                                                    String scopeType,
                                                    String scopeId,
                                                    @AuditRequestBody CredentialCreateUpdateReq createUpdateReq) {
+        User user = JobContextUtil.getUser();
         CredentialDTO credential =
-            credentialService.createCredential(username, appResourceScope.getAppId(), createUpdateReq);
+            credentialService.createCredential(user, appResourceScope.getAppId(), createUpdateReq);
         return Response.buildSuccessResp(credential.toVO());
     }
 
@@ -141,7 +146,8 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
                                                    String credentialId,
                                                    @AuditRequestBody CredentialCreateUpdateReq createUpdateReq) {
         createUpdateReq.setId(credentialId);
-        CredentialDTO credential = credentialService.updateCredential(username, appResourceScope.getAppId(),
+        User user = JobContextUtil.getUser();
+        CredentialDTO credential = credentialService.updateCredential(user, appResourceScope.getAppId(),
             createUpdateReq);
         return Response.buildSuccessResp(credential.toVO());
     }
@@ -153,11 +159,13 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
                                                   String scopeType,
                                                   String scopeId,
                                                   String id) {
+        User user = JobContextUtil.getUser();
         return Response.buildSuccessResp(
-            credentialService.deleteCredentialById(username, appResourceScope.getAppId(), id));
+            credentialService.deleteCredentialById(user, appResourceScope.getAppId(), id));
     }
 
-    private void addPermissionData(String username, AppResourceScope appResourceScope,
+    private void addPermissionData(User user,
+                                   AppResourceScope appResourceScope,
                                    PageData<CredentialVO> credentialVOPageData) {
         List<CredentialVO> credentialVOList = credentialVOPageData.getData();
         // 添加权限数据
@@ -165,17 +173,17 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
             .map(CredentialVO::getId)
             .collect(Collectors.toList());
         List<String> canManageIdList =
-            ticketAuthService.batchAuthManageTicket(username, appResourceScope, credentialIdList);
+            ticketAuthService.batchAuthManageTicket(user, appResourceScope, credentialIdList);
         List<String> canUseIdList =
-            ticketAuthService.batchAuthUseTicket(username, appResourceScope, credentialIdList);
+            ticketAuthService.batchAuthUseTicket(user, appResourceScope, credentialIdList);
         credentialVOList.forEach(it -> {
             it.setCanManage(canManageIdList.contains(it.getId()));
             it.setCanUse(canUseIdList.contains(it.getId()));
         });
-        credentialVOPageData.setCanCreate(checkCreateTicketPermission(username, appResourceScope).isPass());
+        credentialVOPageData.setCanCreate(checkCreateTicketPermission(user, appResourceScope).isPass());
     }
 
-    private void addPermissionDataForBasicVO(String username, AppResourceScope appResourceScope,
+    private void addPermissionDataForBasicVO(User user, AppResourceScope appResourceScope,
                                              PageData<CredentialBasicVO> credentialBasicVOPageData) {
         List<CredentialBasicVO> credentialBasicVOList = credentialBasicVOPageData.getData();
         // 添加权限数据
@@ -183,15 +191,15 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
             .map(CredentialBasicVO::getId)
             .collect(Collectors.toList());
         List<String> canUseIdList =
-            ticketAuthService.batchAuthUseTicket(username, appResourceScope, credentialIdList);
+            ticketAuthService.batchAuthUseTicket(user, appResourceScope, credentialIdList);
         credentialBasicVOList.forEach(it -> {
             it.setCanUse(canUseIdList.contains(it.getId()));
         });
-        credentialBasicVOPageData.setCanCreate(checkCreateTicketPermission(username, appResourceScope).isPass());
+        credentialBasicVOPageData.setCanCreate(checkCreateTicketPermission(user, appResourceScope).isPass());
     }
 
-    public AuthResult checkCreateTicketPermission(String username, AppResourceScope appResourceScope) {
+    public AuthResult checkCreateTicketPermission(User user, AppResourceScope appResourceScope) {
         // 需要拥有在业务下创建凭证的权限
-        return ticketAuthService.authCreateTicket(username, appResourceScope);
+        return ticketAuthService.authCreateTicket(user, appResourceScope);
     }
 }

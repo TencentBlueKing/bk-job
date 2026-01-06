@@ -104,7 +104,7 @@ public interface ScriptDAO {
     /**
      * 更新脚本最新更新人、更新时间
      *
-     * @param scriptId 脚本 ID
+     * @param scriptId       脚本 ID
      * @param lastModifyUser 更新人
      * @param lastModifyTime 最后更新时间
      */
@@ -133,22 +133,14 @@ public interface ScriptDAO {
     List<ScriptDTO> listScriptVersionsByScriptId(String scriptId);
 
     /**
-     * 业务下是否存在相同脚本Id
-     *
-     * @param appId
-     * @param scriptId
-     * @return
-     */
-    boolean isExistDuplicateScriptId(Long appId, String scriptId);
-
-    /**
      * 业务下是否存在同名脚本
      *
-     * @param appId
-     * @param scriptName
-     * @return
+     * @param tenantId   租户ID
+     * @param appId      Job业务ID
+     * @param scriptName 脚本名称
+     * @return true-存在同名脚本，false-不存在同名脚本
      */
-    boolean isExistDuplicateName(Long appId, String scriptName);
+    boolean isExistDuplicateName(String tenantId, Long appId, String scriptName);
 
     /**
      * 更新脚本描述
@@ -224,6 +216,8 @@ public interface ScriptDAO {
      */
     List<String> listScriptNames(Long appId, String keyword);
 
+    List<String> listPublicScriptNames(String tenantId, String keyword);
+
     /**
      * 获取业务下的已上线脚本列表
      *
@@ -231,6 +225,8 @@ public interface ScriptDAO {
      * @return
      */
     List<ScriptDTO> listOnlineScriptForApp(long appId);
+
+    List<ScriptDTO> listOnlinePublicScript(String tenantId);
 
     /**
      * 获取已上线脚本列表
@@ -273,7 +269,7 @@ public interface ScriptDAO {
      * @param appId 业务 ID
      * @return 脚本数
      */
-    long countScriptByAppId(long appId);
+    Long countScriptByAppId(long appId);
 
     /**
      * 脚本版本号是否重复
@@ -285,14 +281,6 @@ public interface ScriptDAO {
     boolean isExistDuplicateVersion(String scriptId, String version);
 
     /**
-     * 脚本版本Id是否重复
-     *
-     * @param scriptVersionId 脚本版本Id
-     * @return 是否重复
-     */
-    boolean isExistDuplicateScriptId(Long scriptVersionId);
-
-    /**
      * 业务下是否存在任意脚本
      *
      * @param appId 业务ID
@@ -302,7 +290,7 @@ public interface ScriptDAO {
     /**
      * 是否存在任意公共脚本
      */
-    boolean isExistAnyPublicScript();
+    boolean isExistAnyPublicScript(String tenantId);
 
     /**
      * 脚本总量统计
@@ -338,6 +326,14 @@ public interface ScriptDAO {
      * @return
      */
     List<String> listAppScriptIds(Long appId);
+
+    /**
+     * 查询租户下所有公共脚本 ID
+     *
+     * @param tenantId 租户 ID
+     * @return 脚本 ID 列表
+     */
+    List<String> listPublicScriptIds(String tenantId);
 
     /**
      * 获取脚本标签(兼容老版本)

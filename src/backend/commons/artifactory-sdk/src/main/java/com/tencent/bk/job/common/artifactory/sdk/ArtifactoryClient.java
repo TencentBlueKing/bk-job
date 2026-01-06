@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.artifactory.sdk;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.artifactory.constants.ArtifactoryInterfaceConsts;
 import com.tencent.bk.job.common.artifactory.constants.MetricsConstants;
+import com.tencent.bk.job.common.artifactory.exception.ArtifactoryExceptionConverter;
 import com.tencent.bk.job.common.artifactory.model.dto.ArtifactoryResp;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.model.dto.PageData;
@@ -53,10 +54,12 @@ import com.tencent.bk.job.common.artifactory.model.req.Sort;
 import com.tencent.bk.job.common.artifactory.model.req.UploadGenericFileReq;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpMethodEnum;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.exception.HttpStatusException;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.log.logger.DynamicLevelLogger;
 import com.tencent.bk.job.common.util.Base64Util;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.http.HttpHelper;
@@ -67,7 +70,7 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.Header;
@@ -80,6 +83,8 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.message.BasicHeader;
+import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.web.util.UriUtils;
 
@@ -91,11 +96,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 
-@Slf4j
 public class ArtifactoryClient {
 
+    private final DynamicLevelLogger log = new DynamicLevelLogger(LoggerFactory.getLogger(ArtifactoryClient.class));
     public static final String URL_ACTUATOR_INFO = "/repository/actuator/info";
     public static final String URL_LIST_PROJECT = "/repository/api/project/list";
     public static final String URL_LIST_REPO_PAGE = "/repository/api/repo/page/{projectId}/{pageNumber}/{pageSize}";
@@ -166,6 +172,15 @@ public class ArtifactoryClient {
         return headerList;
     }
 
+    private Header[] buildFinalHeaders(List<Header> headerList) {
+        List<Header> finalHeaderList = getJsonHeaderList();
+        if (CollectionUtils.isNotEmpty(headerList)) {
+            finalHeaderList.addAll(headerList);
+        }
+        Header[] headers = new Header[finalHeaderList.size()];
+        return finalHeaderList.toArray(headers);
+    }
+
     private Header[] getJsonHeaders() {
         List<Header> headerList = getJsonHeaderList();
         Header[] headers = new Header[headerList.size()];
@@ -179,28 +194,40 @@ public class ArtifactoryClient {
     }
 
     private String doHttpGet(String url, ArtifactoryReq reqBody, HttpHelper httpHelper) {
+        return doHttpGet(url, null, reqBody, httpHelper);
+    }
+
+    private String doHttpGet(String url, List<Header> headerList, ArtifactoryReq reqBody, HttpHelper httpHelper) {
         return httpHelper.requestForSuccessResp(
-            HttpRequest.builder(HttpMethodEnum.GET, reqBody == null ? url : url + reqBody.toUrlParams())
-                .setHeaders(getJsonHeaders())
-                .build())
+                HttpRequest.builder(HttpMethodEnum.GET, reqBody == null ? url : url + reqBody.toUrlParams())
+                    .setHeaders(buildFinalHeaders(headerList))
+                    .build())
             .getEntity();
     }
 
     private String doHttpPost(String url, ArtifactoryReq reqBody, HttpHelper httpHelper) {
+        return doHttpPost(url, null, reqBody, httpHelper);
+    }
+
+    private String doHttpPost(String url, List<Header> headerList, ArtifactoryReq reqBody, HttpHelper httpHelper) {
         return httpHelper.requestForSuccessResp(
-            HttpRequest.builder(HttpMethodEnum.POST, url)
-                .setStringEntity(reqBody == null ? "{}" : JsonUtils.toJson(reqBody))
-                .setHeaders(getJsonHeaders())
-                .build())
+                HttpRequest.builder(HttpMethodEnum.POST, url)
+                    .setStringEntity(reqBody == null ? "{}" : JsonUtils.toJson(reqBody))
+                    .setHeaders(buildFinalHeaders(headerList))
+                    .build())
             .getEntity();
     }
 
     private String doHttpDelete(String url, ArtifactoryReq reqBody, HttpHelper httpHelper) {
+        return doHttpDelete(url, null, reqBody, httpHelper);
+    }
+
+    private String doHttpDelete(String url, List<Header> headerList, ArtifactoryReq reqBody, HttpHelper httpHelper) {
         return httpHelper.requestForSuccessResp(
-            HttpRequest.builder(HttpMethodEnum.DELETE, reqBody == null ? url : url + reqBody.toUrlParams())
-                .setStringEntity(reqBody == null ? "{}" : JsonUtils.toJson(reqBody))
-                .setHeaders(getJsonHeaders())
-                .build())
+                HttpRequest.builder(HttpMethodEnum.DELETE, reqBody == null ? url : url + reqBody.toUrlParams())
+                    .setStringEntity(reqBody == null ? "{}" : JsonUtils.toJson(reqBody))
+                    .setHeaders(buildFinalHeaders(headerList))
+                    .build())
             .getEntity();
     }
 
@@ -248,6 +275,44 @@ public class ArtifactoryClient {
         TypeReference<R> typeReference,
         HttpHelper httpHelper
     ) throws ServiceException {
+        return getArtifactoryRespByReq(
+            null,
+            method,
+            urlTemplate,
+            reqBody,
+            typeReference,
+            httpHelper
+        );
+    }
+
+    private <R> R getArtifactoryRespByReq(
+        String tenantId,
+        String method,
+        String urlTemplate,
+        ArtifactoryReq reqBody,
+        TypeReference<R> typeReference,
+        HttpHelper httpHelper
+    ) throws ServiceException {
+        return getArtifactoryRespByReq(
+            Level.ERROR,
+            tenantId,
+            method,
+            urlTemplate,
+            reqBody,
+            typeReference,
+            httpHelper
+        );
+    }
+
+    private <R> R getArtifactoryRespByReq(
+        Level errorLogLevel,
+        String tenantId,
+        String method,
+        String urlTemplate,
+        ArtifactoryReq reqBody,
+        TypeReference<R> typeReference,
+        HttpHelper httpHelper
+    ) throws ServiceException {
         // URL模板变量替换
         String url = StringUtil.replacePathVariables(urlTemplate, reqBody);
         url = getCompleteUrl(url);
@@ -261,21 +326,22 @@ public class ArtifactoryClient {
         try {
             HttpMetricUtil.setHttpMetricName(MetricsConstants.METRICS_NAME_BKREPO_API_HTTP);
             HttpMetricUtil.addTagForCurrentMetric(Tag.of(MetricsConstants.TAG_KEY_API_NAME, urlTemplate));
+            List<Header> headerList = buildHeaderList(tenantId);
             switch (method) {
                 case HttpGet.METHOD_NAME:
-                    respStr = doHttpGet(url, reqBody, httpHelper);
+                    respStr = doHttpGet(url, headerList, reqBody, httpHelper);
                     break;
                 case HttpPost.METHOD_NAME:
-                    respStr = doHttpPost(url, reqBody, httpHelper);
+                    respStr = doHttpPost(url, headerList, reqBody, httpHelper);
                     break;
                 case HttpDelete.METHOD_NAME:
-                    respStr = doHttpDelete(url, reqBody, httpHelper);
+                    respStr = doHttpDelete(url, headerList, reqBody, httpHelper);
                     break;
                 default:
                     throw new InternalException(ErrorCode.NOT_SUPPORT_FEATURE);
             }
             if (StringUtils.isBlank(respStr)) {
-                log.error("fail:response is blank|method={}|url={}|reqStr={}", method, url, reqStr);
+                log.log(errorLogLevel, "fail:response is blank|method={}|url={}|reqStr={}", method, url, reqStr);
                 throw new InternalException("response is blank", ErrorCode.ARTIFACTORY_API_DATA_ERROR);
             } else {
                 log.info(
@@ -299,12 +365,9 @@ public class ArtifactoryClient {
                     reqStr
                 }
             ).getMessage();
-            log.error(msg, e);
+            log.log(errorLogLevel, msg, e);
             statusRef.set(MetricsConstants.TAG_VALUE_ERROR);
-
-            // 特殊处理文件 NotFound 导致的 HttpStatusException
-            return convertException(statusRef, e);
-
+            return ArtifactoryExceptionConverter.convertException(e);
         } finally {
             HttpMetricUtil.clearHttpMetric();
             long end = System.nanoTime();
@@ -319,21 +382,48 @@ public class ArtifactoryClient {
         }
     }
 
+    private List<Header> buildHeaderList(String tenantId) {
+        List<Header> headerList = new ArrayList<>();
+        if (StringUtils.isNotBlank(tenantId)) {
+            headerList.add(new BasicHeader(JobCommonHeaders.BK_TENANT_ID, tenantId));
+        }
+        return headerList;
+    }
+
     public boolean isAvailable() {
         try {
-            getArtifactoryRespByReq(HttpGet.METHOD_NAME, URL_ACTUATOR_INFO,
-                new ArtifactoryReq(), new TypeReference<Map<Object, Object>>() {
-                }, httpHelper);
+            getArtifactoryRespByReq(
+                Level.INFO,
+                null,
+                HttpGet.METHOD_NAME,
+                URL_ACTUATOR_INFO,
+                new ArtifactoryReq(),
+                new TypeReference<Map<Object, Object>>() {
+                },
+                httpHelper
+            );
             return true;
         } catch (Throwable t) {
             return false;
         }
     }
 
-    public List<ProjectDTO> listProject() {
-        ArtifactoryResp<List<ProjectDTO>> resp = getArtifactoryRespByReq(HttpGet.METHOD_NAME, URL_LIST_PROJECT,
-            new ListProjectReq(), new TypeReference<ArtifactoryResp<List<ProjectDTO>>>() {
-            }, httpHelper);
+    public List<ProjectDTO> listProject(List<String> projectNameList) {
+        ListProjectReq req = new ListProjectReq();
+        if (projectNameList != null) {
+            if (projectNameList.isEmpty()) {
+                return new ArrayList<>();
+            }
+            req.setNames(projectNameList.stream().map(String::trim).collect(Collectors.joining(",")));
+        }
+        ArtifactoryResp<List<ProjectDTO>> resp = getArtifactoryRespByReq(
+            HttpGet.METHOD_NAME,
+            URL_LIST_PROJECT,
+            req,
+            new TypeReference<ArtifactoryResp<List<ProjectDTO>>>() {
+            },
+            httpHelper
+        );
         return resp.getData();
     }
 
@@ -567,10 +657,10 @@ public class ArtifactoryClient {
             HttpMetricUtil.addTagForCurrentMetric(Tag.of("api_name", "upload:" + URL_UPLOAD_GENERIC_FILE));
 
             respStr = longHttpHelper.requestForSuccessResp(
-                HttpRequest.builder(HttpMethodEnum.PUT, url)
-                    .setHttpEntity(reqEntity)
-                    .setHeaders(getUploadFileHeaders())
-                    .build())
+                    HttpRequest.builder(HttpMethodEnum.PUT, url)
+                        .setHttpEntity(reqEntity)
+                        .setHeaders(getUploadFileHeaders())
+                        .build())
                 .getEntity();
             if (log.isDebugEnabled()) {
                 log.debug("respStr={}", getSimplifiedStrForLog(respStr));
@@ -613,17 +703,19 @@ public class ArtifactoryClient {
         return resp.getData();
     }
 
-    public boolean createProject(CreateProjectReq req) {
-        ArtifactoryResp<Object> resp = getArtifactoryRespByReq(
-            HttpPost.METHOD_NAME,
-            URL_CREATE_PROJECT,
-            req,
-            new TypeReference<ArtifactoryResp<Object>>() {
-            },
-            httpHelper
-        );
-        // 该接口正常创建情况下data字段返回也为null，用code判断
-        return resp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_OK;
+    public String createProject(String tenantId, CreateProjectReq req) {
+        // 该接口正常创建情况下resp.data字段返回创建好的项目ID
+        ArtifactoryResp<String> resp =
+            getArtifactoryRespByReq(
+                tenantId,
+                HttpPost.METHOD_NAME,
+                URL_CREATE_PROJECT,
+                req,
+                new TypeReference<ArtifactoryResp<String>>() {
+                },
+                httpHelper
+            );
+        return resp.getData();
     }
 
     public boolean checkRepoExist(CheckRepoExistReq req) {
@@ -639,15 +731,15 @@ public class ArtifactoryClient {
     }
 
     public boolean createRepo(CreateRepoReq req) {
-        ArtifactoryResp<Boolean> resp = getArtifactoryRespByReq(
+        ArtifactoryResp<Object> resp = getArtifactoryRespByReq(
             HttpPost.METHOD_NAME,
             URL_CREATE_REPO,
             req,
-            new TypeReference<ArtifactoryResp<Boolean>>() {
+            new TypeReference<ArtifactoryResp<Object>>() {
             },
             httpHelper
         );
-        // 该接口正常创建情况下data字段返回也为null，用code判断
+        // 该接口正常创建情况下data字段返回仓库详情，用code判断
         return resp.getCode() == ArtifactoryInterfaceConsts.RESULT_CODE_OK;
     }
 

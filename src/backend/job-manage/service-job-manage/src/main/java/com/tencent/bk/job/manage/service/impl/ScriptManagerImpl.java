@@ -25,22 +25,19 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.JobUUID;
-import com.tencent.bk.job.common.util.date.DateUtils;
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
@@ -69,8 +66,6 @@ import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import com.tencent.bk.job.manage.service.template.impl.TemplateScriptStatusUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
@@ -87,6 +82,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.tencent.bk.job.common.constant.JobConstants.PUBLIC_APP_ID;
 
 /**
  * 脚本管理通用实现
@@ -174,11 +171,6 @@ public class ScriptManagerImpl implements ScriptManager {
     @Override
     public List<ScriptBasicDTO> listScriptBasicInfoByScriptIds(Collection<String> scriptIds) {
         return scriptDAO.listScriptBasicInfoByScriptIds(scriptIds);
-    }
-
-    @Override
-    public ScriptDTO getScriptWithoutTagByScriptId(String scriptId) {
-        return scriptDAO.getScriptByScriptId(scriptId);
     }
 
     @Override
@@ -285,7 +277,7 @@ public class ScriptManagerImpl implements ScriptManager {
         log.info("Begin to  create script: {}", script);
         long appId = script.getAppId();
 
-        boolean isNameDuplicate = scriptDAO.isExistDuplicateName(appId, script.getName());
+        boolean isNameDuplicate = scriptDAO.isExistDuplicateName(script.getTenantId(), appId, script.getName());
         if (isNameDuplicate) {
             log.warn("The script name:{} is exist for app:{}", script.getName(), appId);
             throw new AlreadyExistsException(ErrorCode.SCRIPT_NAME_DUPLICATE);
@@ -315,19 +307,12 @@ public class ScriptManagerImpl implements ScriptManager {
             newTags = tagService.createNewTagIfNotExist(tags, appId, operator);
         }
 
-        Integer resourceType = appId == (JobConstants.PUBLIC_APP_ID) ?
+        Integer resourceType = appId == (PUBLIC_APP_ID) ?
             JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
             JobResourceTypeEnum.APP_SCRIPT.getValue();
 
         tagService.patchResourceTags(resourceType, scriptId, CollectionUtils.isEmpty(newTags) ?
             Collections.emptyList() : newTags.stream().map(TagDTO::getId).collect(Collectors.toList()));
-    }
-
-    private Long getTimeOrDefault(Long time) {
-        if (time == null) {
-            return DateUtils.currentTimeMillis();
-        }
-        return time;
     }
 
     @Override
@@ -371,83 +356,6 @@ public class ScriptManagerImpl implements ScriptManager {
 
     @Override
     @JobTransactional(transactionManager = "jobManageTransactionManager")
-    public Pair<String, Long> createScriptWithVersionId(
-        Long appId,
-        ScriptDTO script,
-        Long createTime,
-        Long lastModifyTime
-    ) throws ServiceException {
-        log.info("Begin to createScriptWithVersionId, appId={}, script={}, createTime={}, " +
-            "lastModifyTime={}", appId, JsonUtils.toJson(script), createTime, lastModifyTime);
-        script.setCreateTime(getTimeOrDefault(createTime));
-        script.setLastModifyTime(getTimeOrDefault(lastModifyTime));
-        final long targetAppId = script.isPublicScript() ? JobConstants.PUBLIC_APP_ID : appId;
-        script.setAppId(targetAppId);
-
-        // 默认为未上线状态
-        Integer status = script.getStatus();
-        if (status == null || status < 0) {
-            script.setStatus(JobResourceStatusEnum.DRAFT.getValue());
-        }
-
-        if (script.getScriptVersionId() != null && script.getScriptVersionId() > 0) {
-            if (scriptDAO.isExistDuplicateScriptId(script.getScriptVersionId())) {
-                log.warn("scriptVersionId:{} is exist, scriptId:{}", script.getScriptVersionId(), script.getId());
-                throw new AlreadyExistsException(ErrorCode.SCRIPT_VERSION_ID_EXIST);
-            }
-        }
-
-        if (StringUtils.isNotBlank(script.getId())) {
-            if (scriptDAO.isExistDuplicateVersion(script.getId(), script.getVersion())) {
-                log.warn("Script version:{} is exist, scriptId:{}", script.getVersion(), script.getId());
-                throw new AlreadyExistsException(ErrorCode.SCRIPT_VERSION_NAME_EXIST);
-            }
-            if (!scriptDAO.isExistDuplicateScriptId(appId, script.getId())) {
-                //脚本不存在，新增脚本和脚本版本
-                boolean isNameDuplicate = scriptDAO.isExistDuplicateName(targetAppId, script.getName());
-                if (isNameDuplicate) {
-                    log.warn("The script name:{} is exist for app:{}", script.getName(), targetAppId);
-                    throw new AlreadyExistsException(ErrorCode.SCRIPT_NAME_DUPLICATE);
-                }
-                saveScriptAndScriptVersionToDB(script);
-                log.info("script created with specified id:{}", script.getId());
-            } else {
-                // 脚本存在，新增脚本版本
-                saveScriptVersionToDB(script);
-            }
-        } else {
-            //脚本不存在，新增脚本
-            boolean isNameDuplicate = scriptDAO.isExistDuplicateName(targetAppId, script.getName());
-            if (isNameDuplicate) {
-                log.warn("The script name:{} is exist for app:{}", script.getName(), targetAppId);
-                throw new AlreadyExistsException(ErrorCode.SCRIPT_NAME_DUPLICATE);
-            }
-
-            script.setId(JobUUID.getUUID());
-            saveScriptAndScriptVersionToDB(script);
-        }
-        saveScriptTags(appId, script);
-        return Pair.of(script.getId(), script.getScriptVersionId());
-    }
-
-    public void saveScriptAndScriptVersionToDB(ScriptDTO script) {
-        // 插入script
-        String scriptId = scriptDAO.saveScript(script);
-        script.setId(scriptId);
-        // 插入script_version
-        Long scriptVersionId = scriptDAO.saveScriptVersion(script);
-        script.setScriptVersionId(scriptVersionId);
-    }
-
-    public void saveScriptVersionToDB(ScriptDTO script) {
-        // 插入script_version
-        Long scriptVersionId = scriptDAO.saveScriptVersion(script);
-        scriptDAO.updateScriptLastModify(script.getId(), script.getLastModifyUser(), script.getLastModifyTime());
-        script.setScriptVersionId(scriptVersionId);
-    }
-
-    @Override
-    @JobTransactional(transactionManager = "jobManageTransactionManager")
     public void deleteScriptVersion(Long appId, Long scriptVersionId) {
         ScriptDTO existScript = scriptDAO.getScriptVersionById(scriptVersionId);
         checkDeleteScriptPermission(appId, existScript);
@@ -480,7 +388,7 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     private void deleteScriptRelatedTags(Long appId, String scriptId) {
-        Integer resourceType = (appId == JobConstants.PUBLIC_APP_ID) ?
+        Integer resourceType = (appId == PUBLIC_APP_ID) ?
             JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
             JobResourceTypeEnum.APP_SCRIPT.getValue();
         tagService.batchDeleteResourceTags(appId, resourceType, scriptId);
@@ -495,7 +403,7 @@ public class ScriptManagerImpl implements ScriptManager {
         }
         long targetAppId = appId;
         if (existScript.isPublicScript()) {
-            targetAppId = JobConstants.PUBLIC_APP_ID;
+            targetAppId = PUBLIC_APP_ID;
         }
         if (!existScript.getAppId().equals(targetAppId)) {
             throw new NotFoundException(ErrorCode.SCRIPT_NOT_IN_APP);
@@ -517,7 +425,7 @@ public class ScriptManagerImpl implements ScriptManager {
         boolean isPublicScript = scriptVersions.get(0).isPublicScript();
         long targetAppId = appId;
         if (isPublicScript) {
-            targetAppId = JobConstants.PUBLIC_APP_ID;
+            targetAppId = PUBLIC_APP_ID;
         }
 
         boolean isScriptVersionInCurrentScript = false;
@@ -577,7 +485,7 @@ public class ScriptManagerImpl implements ScriptManager {
         boolean isPublicScript = scriptVersions.get(0).isPublicScript();
         long targetAppId = appId;
         if (isPublicScript) {
-            targetAppId = JobConstants.PUBLIC_APP_ID;
+            targetAppId = PUBLIC_APP_ID;
         }
 
         boolean isScriptVersionInCurrentScript = false;
@@ -643,7 +551,7 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
-    public ScriptDTO updateScriptName(String operator, Long appId, String scriptId, String newName) {
+    public ScriptDTO updateScriptName(User operator, Long appId, String scriptId, String newName) {
         log.info("Begin to update script name,appId={},operator={},scriptId={},desc={}", appId, operator, scriptId,
             newName);
         ScriptDTO script = scriptDAO.getScriptByScriptId(scriptId);
@@ -653,15 +561,15 @@ public class ScriptManagerImpl implements ScriptManager {
         }
         long targetAppId = appId;
         if (script.isPublicScript()) {
-            targetAppId = JobConstants.PUBLIC_APP_ID;
+            targetAppId = PUBLIC_APP_ID;
         }
-        boolean isNameExist = scriptDAO.isExistDuplicateName(targetAppId, newName);
+        boolean isNameExist = scriptDAO.isExistDuplicateName(operator.getTenantId(), targetAppId, newName);
         if (isNameExist) {
             log.warn("Update script name, script:{} new name {} is duplicate", scriptId, newName);
             throw new AlreadyExistsException(ErrorCode.SCRIPT_NAME_DUPLICATE);
         }
 
-        scriptDAO.updateScriptName(operator, scriptId, newName);
+        scriptDAO.updateScriptName(operator.getUsername(), scriptId, newName);
         script.setName(newName);
 
         return script;
@@ -675,7 +583,7 @@ public class ScriptManagerImpl implements ScriptManager {
         checkScriptInApp(appId, script);
         long targetAppId = appId;
         if (script.isPublicScript()) {
-            targetAppId = JobConstants.PUBLIC_APP_ID;
+            targetAppId = PUBLIC_APP_ID;
         }
         saveScriptTags(operator, targetAppId, scriptId, tags);
 
@@ -689,8 +597,20 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
+    public List<String> listPublicScriptNames(String tenantId, String keyword) {
+        return scriptDAO.listPublicScriptNames(tenantId, keyword);
+    }
+
+    @Override
     public List<ScriptDTO> listOnlineScriptForApp(long appId) {
         List<ScriptDTO> scripts = scriptDAO.listOnlineScriptForApp(appId);
+        setTags(scripts);
+        return scripts;
+    }
+
+    @Override
+    public List<ScriptDTO> listOnlinePublicScript(String tenantId) {
+        List<ScriptDTO> scripts = scriptDAO.listOnlinePublicScript(tenantId);
         setTags(scripts);
         return scripts;
     }
@@ -754,7 +674,9 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
-    public List<SyncScriptResultDTO> syncScriptToTaskTemplate(String username, Long appId, String scriptId,
+    public List<SyncScriptResultDTO> syncScriptToTaskTemplate(User user,
+                                                              Long appId,
+                                                              String scriptId,
                                                               Long syncScriptVersionId,
                                                               List<TemplateStepIDDTO> templateStepIDs)
         throws PermissionDeniedException {
@@ -783,7 +705,7 @@ public class ScriptManagerImpl implements ScriptManager {
             }
         });
         AuthResult authResult = templateAuthService.batchAuthResultEditJobTemplate(
-            username,
+            user,
             new AppResourceScope(appId),
             authTemplateIds
         );
@@ -944,6 +866,11 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
+    public List<String> listPublicScriptIds(String tenantId) {
+        return scriptDAO.listPublicScriptIds(tenantId);
+    }
+
+    @Override
     public Integer countCiteScripts(Long appId) {
         // 1.查询业务下所有脚本
         List<String> scriptIdList = scriptDAO.listAppScriptIds(appId);
@@ -959,7 +886,7 @@ public class ScriptManagerImpl implements ScriptManager {
             .stream().map(String::valueOf).collect(Collectors.toList());
         tagCount.setTotal((long) appScriptIds.size());
 
-        Integer resourceType = JobConstants.PUBLIC_APP_ID == appId ? JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
+        Integer resourceType = PUBLIC_APP_ID == appId ? JobResourceTypeEnum.PUBLIC_SCRIPT.getValue() :
             JobResourceTypeEnum.APP_SCRIPT.getValue();
         List<ResourceTagDTO> tags = tagService.listResourceTagsByResourceTypeAndResourceIds(appId,
             resourceType, appScriptIds);
@@ -973,8 +900,32 @@ public class ScriptManagerImpl implements ScriptManager {
     }
 
     @Override
+    public TagCountVO getTagPublicScriptCount(String tenantId) {
+        TagCountVO tagCount = new TagCountVO();
+
+        List<String> scriptIds = scriptDAO.listPublicScriptIds(tenantId)
+            .stream().map(String::valueOf).collect(Collectors.toList());
+        tagCount.setTotal((long) scriptIds.size());
+
+        List<ResourceTagDTO> tags = tagService.listResourceTagsByResourceTypeAndResourceIds(PUBLIC_APP_ID,
+            JobResourceTypeEnum.PUBLIC_SCRIPT.getValue(), scriptIds);
+        Map<Long, Long> scriptTagCount = tagService.countResourcesByTag(tags);
+        tagCount.setTagCount(scriptTagCount);
+
+        long taggedScriptCount = tags.stream()
+            .map(ResourceTagDTO::getResourceId).distinct().count();
+        tagCount.setUnclassified(scriptIds.size() - taggedScriptCount);
+        return tagCount;
+    }
+
+    @Override
     public boolean isExistAnyScript(Long appId) {
         return scriptDAO.isExistAnyScript(appId);
+    }
+
+    @Override
+    public boolean isExistAnyPublicScript(String tenantId) {
+        return scriptDAO.isExistAnyPublicScript(tenantId);
     }
 
     @Override

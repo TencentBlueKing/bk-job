@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -50,7 +50,7 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
     protected final GseTaskService gseTaskService;
     protected final ExecuteObjectTaskService executeObjectTaskService;
     protected final Tracer tracer;
-    protected final GseClient gseClient;
+    protected final IGseClient gseClient;
 
     /**
      * 步骤实例
@@ -84,11 +84,6 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
      * GSE 任务信息
      */
     protected String gseTaskInfo;
-    /**
-     * 是否是GSE V2 Task
-     */
-    protected boolean gseV2Task;
-
 
     public AbstractGseTaskCommand(EngineDependentServiceHolder engineDependentServiceHolder,
                                   ExecuteObjectTaskService executeObjectTaskService,
@@ -104,7 +99,6 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
         this.executeObjectTaskService = executeObjectTaskService;
         this.taskInstance = taskInstance;
         this.stepInstance = stepInstance;
-        this.gseV2Task = stepInstance.isTargetGseV2Agent();
         this.gseTask = gseTask;
         this.taskInstanceId = taskInstance.getId();
         this.stepInstanceId = gseTask.getStepInstanceId();

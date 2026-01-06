@@ -24,9 +24,12 @@
 
 package com.tencent.bk.job.file_gateway.task.worker;
 
+import com.tencent.bk.job.common.redis.util.DistributedUniqueTask;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.file_gateway.dao.filesource.FileWorkerDAO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -35,13 +38,39 @@ public class WorkerOnlineStatusUpdateTask {
 
     private static final long WORKER_HEART_BEAT_EXPIRE_TIME_MILLS = 150 * 1000L;
     private final FileWorkerDAO fileWorkerDAO;
+    private final RedisTemplate<String, String> redisTemplate;
+    private static final String machineIp = IpUtils.getFirstMachineIP();
+    private static final String REDIS_LOCK_KEY_WORKER_ONLINE_STATUS_UPDATE_TASK_RUNNING_MACHINE =
+        "file-gateway:WorkerOnlineStatusUpdateTask-running-machine";
 
     @Autowired
-    public WorkerOnlineStatusUpdateTask(FileWorkerDAO fileWorkerDAO) {
+    public WorkerOnlineStatusUpdateTask(FileWorkerDAO fileWorkerDAO,
+                                        RedisTemplate<String, String> redisTemplate) {
         this.fileWorkerDAO = fileWorkerDAO;
+        this.redisTemplate = redisTemplate;
     }
 
     public void run() {
+        Integer updatedNum;
+        try {
+            // 分布式唯一性保证
+            updatedNum = new DistributedUniqueTask<>(
+                redisTemplate,
+                this.getClass().getSimpleName(),
+                REDIS_LOCK_KEY_WORKER_ONLINE_STATUS_UPDATE_TASK_RUNNING_MACHINE,
+                machineIp,
+                this::updateFileWorkerOnlineStatus
+            ).execute();
+            if (updatedNum == null) {
+                // 任务已在其他实例执行
+                log.info("WorkerOnlineStatusUpdateTask already executed by another instance");
+            }
+        } catch (Throwable t) {
+            log.warn("Fail to updateFileWorkerOnlineStatus", t);
+        }
+    }
+
+    private Integer updateFileWorkerOnlineStatus() {
         // 150s内没有心跳就判定为离线
         int affectedRowNum = fileWorkerDAO.updateAllFileWorkerOnlineStatus(
             0,
@@ -50,5 +79,6 @@ public class WorkerOnlineStatusUpdateTask {
         if (affectedRowNum > 0) {
             log.info("{} workers offline", affectedRowNum);
         }
+        return affectedRowNum;
     }
 }

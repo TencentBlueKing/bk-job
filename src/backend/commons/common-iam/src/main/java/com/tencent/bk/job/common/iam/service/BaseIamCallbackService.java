@@ -26,9 +26,13 @@ package com.tencent.bk.job.common.iam.service;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.util.IamUtil;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.sdk.iam.constants.CommonResponseCode;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
@@ -51,6 +55,15 @@ import java.util.Map;
 @Slf4j
 public abstract class BaseIamCallbackService {
 
+    protected final AppScopeMappingService appScopeMappingService;
+    protected final TenantService tenantService;
+
+    public BaseIamCallbackService(AppScopeMappingService appScopeMappingService, TenantService tenantService) {
+        this.appScopeMappingService = appScopeMappingService;
+        this.tenantService = tenantService;
+    }
+
+    @SuppressWarnings("SameParameterValue")
     private CallbackBaseResponseDTO getFailResp(Long code, String message) {
         CallbackBaseResponseDTO respDTO = new CallbackBaseResponseDTO();
         respDTO.setCode(code);
@@ -109,7 +122,11 @@ public abstract class BaseIamCallbackService {
     protected abstract FetchResourceTypeSchemaResponseDTO fetchResourceTypeSchemaResp(
         CallbackRequestDTO callbackRequest);
 
-    public CallbackBaseResponseDTO baseCallback(CallbackRequestDTO callbackRequest) {
+    public CallbackBaseResponseDTO baseCallback(String tenantId, CallbackRequestDTO callbackRequest) {
+        if (log.isDebugEnabled()) {
+            // tenantId通过IamCallbackAspect切面提取，并放入JobContext中，此处打印用于对比是否有逻辑遗漏
+            log.debug("tenantId={}, tenantIdInJobContext={}", tenantId, JobContextUtil.getTenantId());
+        }
         CallbackBaseResponseDTO response;
         switch (callbackRequest.getMethod()) {
             case LIST_INSTANCE:
@@ -145,17 +162,78 @@ public abstract class BaseIamCallbackService {
     }
 
     /**
+     * 从查询条件中提取Job业务ID
+     *
+     * @param searchCondition 查询条件
+     * @return Job业务ID
+     */
+    protected Long getAppIdBySearchCondition(IamSearchCondition searchCondition) {
+        ResourceScope resourceScope = extractResourceScopeCondition(searchCondition);
+        Long appId = appScopeMappingService.getAppIdByScope(resourceScope);
+        checkAppIdInTenant(appId, resourceScope);
+        return appId;
+    }
+
+    /**
      * 从IAM查询条件中提取ResourceScope相关的查询条件
      *
      * @param searchCondition 查询条件
+     * @return 资源范围对象
+     * @throws InvalidParamException 如果查询条件中未包含ResourceScope
      */
-    public ResourceScope extractResourceScopeCondition(IamSearchCondition searchCondition) {
+    private ResourceScope extractResourceScopeCondition(IamSearchCondition searchCondition) {
         if (StringUtils.isNotBlank(searchCondition.getParentResourceTypeId())) {
             ResourceTypeEnum iamResourceType =
                 ResourceTypeEnum.getByResourceTypeId(searchCondition.getParentResourceTypeId());
             return IamUtil.getResourceScopeFromIamResource(iamResourceType, searchCondition.getParentResourceId());
         } else {
-            return null;
+            throw new InvalidParamException(
+                ErrorCode.MISSING_PARAM_WITH_PARAM_NAME,
+                new String[]{
+                    "parentResourceTypeId,parentResourceId"
+                }
+            );
+        }
+    }
+
+    /**
+     * 检查Job业务ID是否在当前租户内
+     *
+     * @param appId         Job业务ID
+     * @param resourceScope 资源范围
+     * @throws InvalidParamException 如果appId为空或不在当前租户内
+     */
+    private void checkAppIdInTenant(Long appId, ResourceScope resourceScope) {
+        if (appId == null || appId <= 0L) {
+            throw new InvalidParamException(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{
+                    "parentResourceTypeId,parentResourceId",
+                    "Cannot find appId by " + resourceScope.toBasicStr()
+                }
+            );
+        }
+        String tenantId = tenantService.getTenantIdByAppId(appId);
+        if (StringUtils.isBlank(tenantId)) {
+            log.warn("Cannot find tenantId for appId: {}", appId);
+            return;
+        }
+        String currentTenantId = JobContextUtil.getTenantId();
+        if (!tenantId.equals(currentTenantId)) {
+            log.warn(
+                "tenantId of appId={} is {}, currentTenantId is {}, forbidden",
+                appId,
+                tenantId,
+                currentTenantId
+            );
+            throw new InvalidParamException(
+                ErrorCode.ACCESS_CROSS_TENANT_FORBIDDEN,
+                new String[]{
+                    currentTenantId,
+                    resourceScope.toBasicStr(),
+                    tenantId
+                }
+            );
         }
     }
 }

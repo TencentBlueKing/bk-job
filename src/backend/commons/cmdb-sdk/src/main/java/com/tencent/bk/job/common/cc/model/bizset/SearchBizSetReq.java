@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.cc.model.bizset;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.cc.model.filter.CmdbFilter;
 import com.tencent.bk.job.common.esb.model.EsbReq;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,14 +46,14 @@ public class SearchBizSetReq extends EsbReq {
      * 业务集过滤器
      */
     @JsonProperty("bk_biz_set_filter")
-    private BizSetFilter filter;
+    private CmdbFilter filter;
 
     /**
      * 查询字段
      */
     private List<String> fields = Arrays.asList("bk_biz_set_id", "bk_biz_set_name", "bk_biz_set_desc",
         "bk_biz_maintainer", "bk_supplier_account", "create_time", "last_time", "time_zone",
-        "language", "bk_scope");
+        "language", "bk_scope", "default");
 
     /**
      * 分页参数

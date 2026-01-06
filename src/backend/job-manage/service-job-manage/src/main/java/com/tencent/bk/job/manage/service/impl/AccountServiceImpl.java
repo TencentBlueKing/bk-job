@@ -41,6 +41,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Utils;
@@ -143,28 +144,28 @@ public class AccountServiceImpl implements AccountService {
         ),
         content = EventContentConstants.CREATE_ACCOUNT
     )
-    public AccountDTO createAccount(String username, AccountDTO account) {
-        authCreateAccount(username, account.getAppId());
+    public AccountDTO createAccount(User user, AccountDTO account) {
+        authCreateAccount(user, account.getAppId());
         AccountDTO createdAccount = createAccount(account);
         accountAuthService.registerAccount(
-            username,
+            user,
             createdAccount.getId(),
             createdAccount.getAlias()
         );
         return createdAccount;
     }
 
-    private void authCreateAccount(String username, long appId) throws PermissionDeniedException {
-        accountAuthService.authCreateAccount(username, new AppResourceScope(appId)).denyIfNoPermission();
+    private void authCreateAccount(User user, long appId) throws PermissionDeniedException {
+        accountAuthService.authCreateAccount(user, new AppResourceScope(appId)).denyIfNoPermission();
     }
 
-    private void authUseAccount(String username, long appId, long accountId) throws PermissionDeniedException {
-        accountAuthService.authUseAccount(username, new AppResourceScope(appId), accountId, null)
+    private void authUseAccount(User user, long appId, long accountId) throws PermissionDeniedException {
+        accountAuthService.authUseAccount(user, new AppResourceScope(appId), accountId, null)
             .denyIfNoPermission();
     }
 
-    private void authManageAccount(String username, long appId, long accountId) throws PermissionDeniedException {
-        accountAuthService.authManageAccount(username, new AppResourceScope(appId), accountId, null)
+    private void authManageAccount(User user, long appId, long accountId) throws PermissionDeniedException {
+        accountAuthService.authManageAccount(user, new AppResourceScope(appId), accountId, null)
             .denyIfNoPermission();
     }
 
@@ -183,8 +184,8 @@ public class AccountServiceImpl implements AccountService {
         ),
         content = EventContentConstants.USE_ACCOUNT
     )
-    public AccountDTO getAccount(String username, long appId, Long accountId) {
-        authUseAccount(username, appId, accountId);
+    public AccountDTO getAccount(User user, long appId, Long accountId) {
+        authUseAccount(user, appId, accountId);
         return getAccount(appId, accountId);
     }
 
@@ -228,8 +229,8 @@ public class AccountServiceImpl implements AccountService {
         ),
         content = EventContentConstants.EDIT_ACCOUNT
     )
-    public AccountDTO updateAccount(String username, AccountDTO updateAccount) throws ServiceException {
-        authManageAccount(username, updateAccount.getAppId(), updateAccount.getId());
+    public AccountDTO updateAccount(User user, AccountDTO updateAccount) throws ServiceException {
+        authManageAccount(user, updateAccount.getAppId(), updateAccount.getId());
 
         AccountDTO originAccount = getAccount(updateAccount.getAppId(), updateAccount.getId());
 
@@ -282,15 +283,15 @@ public class AccountServiceImpl implements AccountService {
         ),
         content = EventContentConstants.DELETE_ACCOUNT
     )
-    public void deleteAccount(String username, long appId, Long accountId) throws ServiceException {
-        log.info("Delete account, operator={}, appId={}, accountId={}", username, appId, accountId);
+    public void deleteAccount(User user, long appId, Long accountId) throws ServiceException {
+        log.info("Delete account, operator={}, appId={}, accountId={}", user, appId, accountId);
         AccountDTO account = getAccountById(accountId);
         if (account == null) {
             log.info("Account is not exist, accountId={}", accountId);
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST);
         }
 
-        authManageAccount(username, account.getAppId(), accountId);
+        authManageAccount(user, account.getAppId(), accountId);
 
         if (isAccountRefByAnyStep(accountId)) {
             log.info("Account:{} is ref by step, should not delete!", accountId);
@@ -422,7 +423,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountDTO buildCreateAccountDTO(String operator, long appId, AccountCreateUpdateReq req) {
+    public AccountDTO buildCreateAccountDTO(String username, long appId, AccountCreateUpdateReq req) {
         AccountDTO accountDTO = new AccountDTO();
         accountDTO.setAppId(appId);
         accountDTO.setAccount(req.getAccount());
@@ -451,9 +452,9 @@ public class AccountServiceImpl implements AccountService {
             accountDTO.setDbSystemAccountId(req.getDbSystemAccountId());
         }
 
-        accountDTO.setCreator(operator);
+        accountDTO.setCreator(username);
         accountDTO.setCreateTime(DateUtils.currentTimeMillis());
-        accountDTO.setLastModifyUser(operator);
+        accountDTO.setLastModifyUser(username);
         accountDTO.setLastModifyTime(DateUtils.currentTimeMillis());
 
         return accountDTO;
@@ -520,8 +521,4 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
-    @Override
-    public Integer countAccounts(AccountTypeEnum accountType) {
-        return accountDAO.countAccounts(accountType);
-    }
 }

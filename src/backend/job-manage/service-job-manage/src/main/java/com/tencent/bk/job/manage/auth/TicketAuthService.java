@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.auth;
 
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 import java.util.List;
@@ -36,22 +37,22 @@ public interface TicketAuthService {
     /**
      * 资源范围下创建凭证鉴权
      *
-     * @param username      用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
      * @return 鉴权结果
      */
-    AuthResult authCreateTicket(String username, AppResourceScope appResourceScope);
+    AuthResult authCreateTicket(User user, AppResourceScope appResourceScope);
 
     /**
      * 资源范围下管理凭证鉴权
      *
-     * @param username      用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
-     * @param ticketId      凭证ID
-     * @param ticketName    凭证名称，如果传入为空，则会调用ResourceNameQueryService查询
+     * @param ticketId         凭证ID
+     * @param ticketName       凭证名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @return 鉴权结果
      */
-    AuthResult authManageTicket(String username,
+    AuthResult authManageTicket(User user,
                                 AppResourceScope appResourceScope,
                                 String ticketId,
                                 String ticketName);
@@ -59,13 +60,13 @@ public interface TicketAuthService {
     /**
      * 资源范围下使用凭证鉴权
      *
-     * @param username      用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
-     * @param ticketId      凭证ID
-     * @param ticketName    凭证名称，如果传入为空，则会调用ResourceNameQueryService查询
+     * @param ticketId         凭证ID
+     * @param ticketName       凭证名称，如果传入为空，则会调用ResourceNameQueryService查询
      * @return 鉴权结果
      */
-    AuthResult authUseTicket(String username,
+    AuthResult authUseTicket(User user,
                              AppResourceScope appResourceScope,
                              String ticketId,
                              String ticketName);
@@ -73,26 +74,27 @@ public interface TicketAuthService {
     /**
      * 资源范围下管理凭证批量鉴权
      *
-     * @param username      用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
-     * @param ticketIdList  凭证ID列表
+     * @param ticketIdList     凭证ID列表
      * @return 有权限的凭证ID
      */
-    List<String> batchAuthManageTicket(String username,
+    List<String> batchAuthManageTicket(User user,
                                        AppResourceScope appResourceScope,
                                        List<String> ticketIdList);
 
     /**
      * 资源范围下使用凭证批量鉴权
      *
-     * @param username      用户名
+     * @param user             用户
      * @param appResourceScope 资源范围
-     * @param ticketIdList  凭证ID列表
+     * @param ticketIdList     凭证ID列表
      * @return 有权限的凭证ID
      */
-    List<String> batchAuthUseTicket(String username,
-                                    AppResourceScope appResourceScope,
-                                    List<String> ticketIdList);
+    List<String> batchAuthUseTicket(
+        User user,
+        AppResourceScope appResourceScope,
+        List<String> ticketIdList);
 
     /**
      * 注册凭证实例
@@ -102,5 +104,5 @@ public interface TicketAuthService {
      * @param name    资源实例名称
      * @return 是否注册成功
      */
-    boolean registerTicket(String creator, String id, String name);
+    boolean registerTicket(User creator, String id, String name);
 }

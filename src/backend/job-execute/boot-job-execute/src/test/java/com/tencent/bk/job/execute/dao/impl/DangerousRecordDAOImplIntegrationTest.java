@@ -68,10 +68,12 @@ public class DangerousRecordDAOImplIntegrationTest {
         baseSearchCondition.setCreateTimeEnd(1619838000000L);
 
         DangerousRecordDTO query = new DangerousRecordDTO();
+        query.setTenantId("default");
         PageData<DangerousRecordDTO> pageData = dangerousRecordDAO.listPageDangerousRecord(query, baseSearchCondition);
         assertThat(pageData.getData()).hasSize(2);
 
         query = new DangerousRecordDTO();
+        query.setTenantId("default");
         query.setId(1L);
         pageData = dangerousRecordDAO.listPageDangerousRecord(query, baseSearchCondition);
         assertThat(pageData.getData()).hasSize(1);
@@ -94,18 +96,21 @@ public class DangerousRecordDAOImplIntegrationTest {
         assertThat(pageData.getData().get(0).getExtData()).containsKeys("request_param");
 
         query = new DangerousRecordDTO();
+        query.setTenantId("default");
         query.setAction(1);
         pageData = dangerousRecordDAO.listPageDangerousRecord(query, baseSearchCondition);
         assertThat(pageData.getData()).hasSize(1);
         assertThat(pageData.getData().get(0).getId()).isEqualTo(1L);
 
         query = new DangerousRecordDTO();
+        query.setTenantId("default");
         query.setStartupMode(2);
         pageData = dangerousRecordDAO.listPageDangerousRecord(query, baseSearchCondition);
         assertThat(pageData.getData()).hasSize(1);
         assertThat(pageData.getData().get(0).getId()).isEqualTo(1L);
 
         query = new DangerousRecordDTO();
+        query.setTenantId("default");
         query.setAppId(2L);
         pageData = dangerousRecordDAO.listPageDangerousRecord(query, baseSearchCondition);
         assertThat(pageData.getData()).hasSize(1);
@@ -113,6 +118,7 @@ public class DangerousRecordDAOImplIntegrationTest {
         assertThat(pageData.getData().get(0).getAppId()).isEqualTo(2L);
 
         query = new DangerousRecordDTO();
+        query.setTenantId("default");
         query.setClient("app1");
         pageData = dangerousRecordDAO.listPageDangerousRecord(query, baseSearchCondition);
         assertThat(pageData.getData()).hasSize(1);
@@ -120,6 +126,7 @@ public class DangerousRecordDAOImplIntegrationTest {
         assertThat(pageData.getData().get(0).getClient()).isEqualTo("app1");
 
         query = new DangerousRecordDTO();
+        query.setTenantId("default");
         query.setOperator("admin");
         pageData = dangerousRecordDAO.listPageDangerousRecord(query, baseSearchCondition);
         assertThat(pageData.getData()).hasSize(1);
@@ -127,6 +134,7 @@ public class DangerousRecordDAOImplIntegrationTest {
         assertThat(pageData.getData().get(0).getOperator()).isEqualTo("admin");
 
         query = new DangerousRecordDTO();
+        query.setTenantId("default");
         query.setRuleExpression("rm");
         pageData = dangerousRecordDAO.listPageDangerousRecord(query, baseSearchCondition);
         assertThat(pageData.getData()).hasSize(1);
@@ -134,6 +142,7 @@ public class DangerousRecordDAOImplIntegrationTest {
         assertThat(pageData.getData().get(0).getRuleExpression()).isEqualTo("rm -rf");
 
         query = new DangerousRecordDTO();
+        query.setTenantId("default");
         baseSearchCondition.setCreateTimeStart(1619747000000L);
         baseSearchCondition.setCreateTimeEnd(1619749000000L);
         pageData = dangerousRecordDAO.listPageDangerousRecord(query, baseSearchCondition);
@@ -155,6 +164,7 @@ public class DangerousRecordDAOImplIntegrationTest {
         record.setCreateTime(1619831994000L);
         record.setAppId(2L);
         record.setAppName("BlueKing");
+        record.setTenantId("default");
         ScriptCheckItemDTO checkItem = new ScriptCheckItemDTO(1, "shutdown now", "shutdown",
             ScriptCheckErrorLevelEnum.FATAL, "shutdown is forbidden!");
         ScriptCheckResultDTO checkResult = new ScriptCheckResultDTO(Collections.singletonList(checkItem));
@@ -171,6 +181,7 @@ public class DangerousRecordDAOImplIntegrationTest {
         baseSearchCondition.setCreateTimeStart(1619747000000L);
         baseSearchCondition.setCreateTimeEnd(1619884800000L);
         DangerousRecordDTO query = new DangerousRecordDTO();
+        query.setTenantId("default");
         query.setId(3L);
         PageData<DangerousRecordDTO> pageData = dangerousRecordDAO.listPageDangerousRecord(query, baseSearchCondition);
         assertThat(pageData.getData()).hasSize(1);

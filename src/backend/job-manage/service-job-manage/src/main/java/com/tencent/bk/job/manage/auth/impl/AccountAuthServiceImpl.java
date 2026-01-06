@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.auth.AccountAuthService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -60,8 +61,8 @@ public class AccountAuthServiceImpl implements AccountAuthService {
     }
 
     @Override
-    public AuthResult authCreateAccount(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(username, ActionId.CREATE_ACCOUNT, appResourceScope);
+    public AuthResult authCreateAccount(User user, AppResourceScope appResourceScope) {
+        return appAuthService.auth(user, ActionId.CREATE_ACCOUNT, appResourceScope);
     }
 
     private PathInfoDTO buildAppScopePath(AppResourceScope appResourceScope) {
@@ -70,12 +71,12 @@ public class AccountAuthServiceImpl implements AccountAuthService {
     }
 
     @Override
-    public AuthResult authManageAccount(String username,
+    public AuthResult authManageAccount(User user,
                                         AppResourceScope appResourceScope,
                                         Long accountId,
                                         String accountName) {
         return authService.auth(
-            username,
+            user,
             ActionId.MANAGE_ACCOUNT,
             ResourceTypeEnum.ACCOUNT,
             accountId.toString(),
@@ -84,12 +85,12 @@ public class AccountAuthServiceImpl implements AccountAuthService {
     }
 
     @Override
-    public AuthResult authUseAccount(String username,
+    public AuthResult authUseAccount(User user,
                                      AppResourceScope appResourceScope,
                                      Long accountId,
                                      String accountName) {
         return authService.auth(
-            username,
+            user,
             ActionId.USE_ACCOUNT,
             ResourceTypeEnum.ACCOUNT,
             accountId.toString(),
@@ -98,27 +99,35 @@ public class AccountAuthServiceImpl implements AccountAuthService {
     }
 
     @Override
-    public List<Long> batchAuthManageAccount(String username,
+    public List<Long> batchAuthManageAccount(User user,
                                              AppResourceScope appResourceScope,
                                              List<Long> accountIdList) {
-        List<String> allowIdList = appAuthService.batchAuth(username, ActionId.MANAGE_ACCOUNT, appResourceScope,
+        List<String> allowIdList = appAuthService.batchAuth(
+            user,
+            ActionId.MANAGE_ACCOUNT,
+            appResourceScope,
             ResourceTypeEnum.ACCOUNT,
-            accountIdList.stream().map(Object::toString).collect(Collectors.toList()));
+            accountIdList.stream().map(Object::toString).collect(Collectors.toList())
+        );
         return allowIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
-    public List<Long> batchAuthUseAccount(String username,
+    public List<Long> batchAuthUseAccount(User user,
                                           AppResourceScope appResourceScope,
                                           List<Long> accountIdList) {
-        List<String> allowIdList = appAuthService.batchAuth(username, ActionId.USE_ACCOUNT, appResourceScope,
+        List<String> allowIdList = appAuthService.batchAuth(
+            user,
+            ActionId.USE_ACCOUNT,
+            appResourceScope,
             ResourceTypeEnum.ACCOUNT,
-            accountIdList.stream().map(Object::toString).collect(Collectors.toList()));
+            accountIdList.stream().map(Object::toString).collect(Collectors.toList())
+        );
         return allowIdList.stream().map(Long::valueOf).collect(Collectors.toList());
     }
 
     @Override
-    public boolean registerAccount(String creator, Long id, String name) {
-        return authService.registerResource(id.toString(), name, ResourceTypeId.ACCOUNT, creator, null);
+    public boolean registerAccount(User creator, Long id, String name) {
+        return authService.registerResource(creator, id.toString(), name, ResourceTypeId.ACCOUNT, null);
     }
 }

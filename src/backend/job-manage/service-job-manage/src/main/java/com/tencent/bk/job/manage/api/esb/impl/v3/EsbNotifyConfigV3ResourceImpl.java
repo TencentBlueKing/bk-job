@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
 import com.tencent.bk.job.manage.api.esb.v3.EsbNotifyConfigV3Resource;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
@@ -67,11 +68,13 @@ public class EsbNotifyConfigV3ResourceImpl implements EsbNotifyConfigV3Resource 
         Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
 
         // 所有的通知渠道
-        List<String> allNotifyChannelTypes = notifyService.listAllNotifyChannel().stream()
+        List<String> allNotifyChannelTypes = notifyService.listAllNotifyChannel(JobContextUtil.getTenantId())
+            .stream()
             .map(NotifyEsbChannelDTO::getType)
             .collect(Collectors.toList());
         // 平台配置的可用通知渠道列表
-        List<String> availableChannels = notifyService.getAvailableChannelTypeList().stream()
+        List<String> availableChannels = notifyService.getAvailableChannelTypeList(JobContextUtil.getTenantId())
+            .stream()
             .filter(allNotifyChannelTypes::contains)
             .collect(Collectors.toList());
         List<TriggerPolicyDTO> notifyPolicies = notifyService.listAppDefaultNotifyPolicies(username, appId);

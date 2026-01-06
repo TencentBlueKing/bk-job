@@ -147,6 +147,10 @@ bk-api-gateway:
     url: bk-notice.apigw.com
   cmdb:
     url: cmdb.apigw.com
+  bkIam:
+    url: iam.apigw.com
+  cmsi:
+    url: cmsi.apigw.com
 esb:
   service:
     url: esb.service

@@ -163,7 +163,11 @@
         align="left"
         :label="$t('cron.创建人')"
         prop="creator"
-        width="120" />
+        width="120">
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.creator" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.createTime"
         key="createTime"
@@ -178,7 +182,11 @@
         :label="$t('cron.更新人_colHead')"
         prop="lastModifyUser"
         sortable="custom"
-        width="140" />
+        width="140">
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.lastModifyUser" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyTime"
         key="lastModifyTime"
@@ -317,6 +325,14 @@
       :is-show.sync="showDetail"
       :title="$t('cron.定时任务详情')"
       :width="960">
+      <div slot="header">
+        {{ $t('cron.定时任务详情') }}
+        <span
+          class="cron-job-detail-link-copy-btn"
+          @click="handleCopyDetailLink">
+          <icon type="copy-link" />
+        </span>
+      </div>
       <task-detail :data="cronJobDetailInfo" />
       <template #footer>
         <bk-button
@@ -349,6 +365,7 @@
   import CronJobService from '@service/cron-job';
   import NotifyService from '@service/notify';
 
+  import { execCopy } from '@utils/assist';
   import { listColumnsCache } from '@utils/cache-helper';
 
   import JbPopoverConfirm from '@components/jb-popover-confirm';
@@ -446,14 +463,22 @@
         {
           name: I18n.t('cron.创建人'),
           id: 'creator',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
         {
           name: I18n.t('cron.更新人_colHead'),
           id: 'lastModifyUser',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
       ];
       this.tableColumn = [
@@ -644,6 +669,16 @@
         this.cronJobDetailInfo = crontabData;
         this.showDetail = true;
       },
+      handleCopyDetailLink() {
+        const { href } = this.$router.resolve({
+          query: {
+            ...this.$route.query,
+            name: this.cronJobDetailInfo.name,
+            mode: 'detail',
+          },
+        });
+        execCopy(`${window.location.origin}${href}`);
+      },
       /**
        * @desc 新建定时任务
        */
@@ -794,6 +829,15 @@
       text-overflow: ellipsis;
       white-space: nowrap;
       vertical-align: bottom;
+    }
+  }
+
+  .cron-job-detail-link-copy-btn{
+    margin-left: 8px;
+    cursor: pointer;
+
+    &:hover{
+      color: #3a84ff;
     }
   }
 

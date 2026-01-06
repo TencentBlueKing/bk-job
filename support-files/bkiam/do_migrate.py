@@ -1,26 +1,32 @@
 # -*- coding: utf-8 -*-
 """
-Tencent is pleased to support the open source community by making 蓝鲸智云PaaS平台社区版 (BlueKing PaaS Community
-Edition) available.
-Copyright (C) 2017-2020 Tencent. All rights reserved.
+TencentBlueKing is pleased to support the open source community by making
+蓝鲸智云 - 权限中心 Python SDK(iam-python-sdk) available.
+Copyright (C) 2017-2021 Tencent. All rights reserved.
 Licensed under the MIT License (the "License"); you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-http://opensource.org/licenses/MIT
+You may obtain a copy of the License at http://opensource.org/licenses/MIT
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
 an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 """
 
+
 from __future__ import unicode_literals
+
 import argparse
 import json
 import os
 
+import urllib3
 import requests
 
-__version__ = "1.0.0"
+# NOTE: the usage doc https://bk.tencent.com/docs/document/6.0/160/8388
 
-BK_IAM_HOST = os.getenv("BK_IAM_V3_INNER_HOST", "http://bkiam.service.consul:5001")
+__version__ = "1.0.0"
+# no more useless warning
+urllib3.disable_warnings()
+
+BK_APIGATEWAY_URL = os.getenv("BK_IAM_APIGATEWAY_URL", "https://bkapi.example.com/api/bk-iam/prod/")
 
 APP_CODE = ""
 APP_SECRET = ""
@@ -28,11 +34,9 @@ data_file = ""
 
 
 # =================== load json ===================
-
-
 def load_data(filename):
     """
-    解析JSON数据文件
+    解析 JSON 数据文件
     """
     data = {}
     try:
@@ -76,10 +80,10 @@ def _http_request(method, url, headers=None, data=None, timeout=None, verify=Fal
                 url=url, headers=headers, json=data, timeout=timeout, verify=verify, cert=cert, cookies=cookies
             )
         else:
-            return False, None
+            return False, {"error": "method not supported"}
     except requests.exceptions.RequestException as e:
         print("http request error! method: %s, url: %s, data: %s! err=%s", method, url, data, e)
-        return False, None
+        return False, {"error": str(e)}
     else:
         if resp.status_code != 200:
             content = resp.content[:100] if resp.content else ""
@@ -87,7 +91,7 @@ def _http_request(method, url, headers=None, data=None, timeout=None, verify=Fal
                 "http request fail! method: %s, url: %s, data: %s, " "response_status_code: %s, response_content: %s"
             )
             print(error_msg % (method, url, str(data), resp.status_code, content))
-            return False, None
+            return False, {"error": "status_code is %d, not 200" % resp.status_code}
 
         return True, resp.json()
 
@@ -128,22 +132,28 @@ def http_delete(url, data, headers=None, verify=False, cert=None, timeout=None, 
 
 
 class Client(object):
-    def __init__(self, app_code, app_secret, bk_iam_host):
+    def __init__(self, app_code, app_secret, bk_apigateway_url, bk_tenant_id=""):
         self.app_code = app_code
         self.app_secret = app_secret
-        self.bk_iam_host = bk_iam_host
+        self.bk_apigateway_url = bk_apigateway_url.rstrip("/")
+        self.bk_tenant_id = bk_tenant_id
         self.system_id_set = set()
         self.resource_id_set = set()
         self.action_id_set = set()
 
     # 调用权限中心方法
     def _call_iam_api(self, http_func, path, data):
-        headers = {"X-BK-APP-CODE": self.app_code, "X-BK-APP-SECRET": self.app_secret}
-        url = "{host}{path}".format(host=self.bk_iam_host, path=path)
+        headers = {
+            "X-Bkapi-Authorization": json.dumps({"bk_app_code": self.app_code, "bk_app_secret": self.app_secret}),
+        }
+        if self.bk_tenant_id:
+            headers["X-Bk-Tenant-Id"] = self.bk_tenant_id
+
+        url = "{host}{path}".format(host=self.bk_apigateway_url, path=path)
         ok, _data = http_func(url, data, headers=headers)
         # TODO: add debug here
         if not ok:
-            message = "verify from iam server fail"
+            message = _data.get("error", "verify from iam server fail")
             print("_call_iam_api fail.", "error:", message)
             return False, message, None
 
@@ -151,11 +161,11 @@ class Client(object):
             message = _data.get("message", "iam api fail")
 
             if not (
-                http_func.__name__ == "http_get"
-                and path.startswith("/api/v1/model/systems/")
-                and path.endswith("/query")
-                and message.startswith("not found:system(")
-                and message.endswith(") not exists")
+                    http_func.__name__ == "http_get"
+                    and path.startswith("/api/v1/model/systems/")
+                    and path.endswith("/query")
+                    and message.startswith("not found:system(")
+                    and message.endswith(") not exists")
             ):
                 print("_call_iam_api fail.", "method:", http_func.__name__, "path:", path, "error:", message)
 
@@ -194,6 +204,9 @@ class Client(object):
         "add_feature_shield_rules": "add_feature_shield_rules",
         "update_feature_shield_rules": "update_feature_shield_rules",
         "upsert_feature_shield_rules": "update_feature_shield_rules",
+        "add_custom_frontend_settings": "add_custom_frontend_settings",
+        "update_custom_frontend_settings": "update_custom_frontend_settings",
+        "upsert_custom_frontend_settings": "update_custom_frontend_settings",
     }
 
     """
@@ -326,6 +339,17 @@ class Client(object):
         ok, message, data = self._call_iam_api(http_put, path, data)
         return ok, message
 
+    # ---------- custom_frontend_settings
+    def api_add_custom_frontend_settings(self, system_id, data):
+        path = "/api/v1/model/systems/{system_id}/configs/custom_frontend_settings".format(system_id=system_id)
+        ok, message, data = self._call_iam_api(http_post, path, data)
+        return ok, message
+
+    def api_update_custom_frontend_settings(self, system_id, data):
+        path = "/api/v1/model/systems/{system_id}/configs/custom_frontend_settings".format(system_id=system_id)
+        ok, message, data = self._call_iam_api(http_put, path, data)
+        return ok, message
+
     # ---------- query
 
     def api_query(self, system_id):
@@ -453,6 +477,12 @@ class Client(object):
     def update_feature_shield_rules(self, system_id, data):
         return self.api_update_feature_shield_rules(system_id, data)
 
+    def add_custom_frontend_settings(self, system_id, data):
+        return self.api_add_custom_frontend_settings(system_id, data)
+
+    def update_custom_frontend_settings(self, system_id, data):
+        return self.api_update_custom_frontend_settings(system_id, data)
+
     def upsert_system(self, system_id, data):
         if system_id not in self.system_id_set:
             return self.add_system(system_id, data)
@@ -528,13 +558,13 @@ class Client(object):
 # ---------- ping
 
 
-def api_ping(bk_iam_host):
-    url = "{host}{path}".format(host=bk_iam_host, path="/ping")
+def api_ping(bk_apigateway_url):
+    url = "{host}{path}".format(host=bk_apigateway_url, path="/ping")
     ok, data = http_get(url, None, timeout=5)
     return ok, data
 
 
-def do_migrate(data, bk_iam_host=BK_IAM_HOST, app_code=APP_CODE, app_secret=APP_SECRET):
+def do_migrate(data, bk_apigateway_url=BK_APIGATEWAY_URL, app_code=APP_CODE, app_secret=APP_SECRET, bk_tenant_id=""):
     system_id = data.get("system_id")
     if not system_id:
         print("invald json. [system_id] required, and should not be empty")
@@ -547,7 +577,7 @@ def do_migrate(data, bk_iam_host=BK_IAM_HOST, app_code=APP_CODE, app_secret=APP_
 
     print("do migrate")
 
-    client = Client(app_code, app_secret, bk_iam_host)
+    client = Client(app_code, app_secret, bk_apigateway_url, bk_tenant_id=bk_tenant_id)
 
     # 1. query all data of the system
     system_ids, resource_type_ids, action_ids, instance_selection_ids = client.query_all_models(system_id)
@@ -584,7 +614,11 @@ def do_migrate(data, bk_iam_host=BK_IAM_HOST, app_code=APP_CODE, app_secret=APP_
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument(
-        "-t", action="store", dest="bk_iam_host", help="bk_iam_host, i.e: http://iam.service.consul", required=True
+        "-t",
+        action="store",
+        dest="bk_apigateway_url",
+        help=("bk_apigateway_url, i.e: http://bkapi.example.com/api/bk-iam/prod/;"),
+        required=True,
     )
     p.add_argument(
         "-f",
@@ -595,21 +629,22 @@ if __name__ == "__main__":
     )
     p.add_argument("-a", action="store", dest="app_code", help="app code", required=True)
     p.add_argument("-s", action="store", dest="app_secret", help="app secret", required=True)
+    p.add_argument(
+        "--bk_tenant_id", action="store", dest="bk_tenant_id", help="blueking tenant id", default="", required=False
+    )
+
     args = p.parse_args()
-
-    BK_IAM_HOST = args.bk_iam_host.rstrip("/")
-
-    if not BK_IAM_HOST.startswith("http://"):
-        BK_IAM_HOST = "http://%s" % BK_IAM_HOST
 
     data_file = args.json_data_file
     APP_CODE = args.app_code
     APP_SECRET = args.app_secret
+    BK_APIGATEWAY_URL = args.bk_apigateway_url.rstrip("/")
+    bk_tenant_id = args.bk_tenant_id
 
     # test ping
-    ok, _ = api_ping(BK_IAM_HOST)
+    ok, _ = api_ping(BK_APIGATEWAY_URL)
     if not ok:
-        print("iam service is not available: %s" % BK_IAM_HOST)
+        print("iam service is not available: %s" % BK_APIGATEWAY_URL)
         exit(1)
 
     print("start migrate [%s]" % data_file)
@@ -619,7 +654,7 @@ if __name__ == "__main__":
     if not data:
         exit(1)
 
-    ok = do_migrate(data, BK_IAM_HOST, APP_CODE, APP_SECRET)
+    ok = do_migrate(data, BK_APIGATEWAY_URL, APP_CODE, APP_SECRET, bk_tenant_id=bk_tenant_id)
     if not ok:
         print("do migrate [%s] fail" % data_file)
         exit(1)

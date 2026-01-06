@@ -72,7 +72,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         T_APP.TIMEZONE,
         T_APP.LANGUAGE,
         T_APP.IS_DELETED,
-        T_APP.ATTRS
+        T_APP.ATTRS,
+        T_APP.TENANT_ID,
+        T_APP.DEFAULT
     };
 
     private final DSLContext dslContext;
@@ -91,7 +93,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             .and(T_APP.BK_SCOPE_ID.eq("" + bizId))
             .limit(1)
             .fetch();
-        return records.size() > 0;
+        return !records.isEmpty();
     }
 
     @Override
@@ -122,6 +124,8 @@ public class ApplicationDAOImpl implements ApplicationDAO {
         applicationDTO.setLanguage(record.get(T_APP.LANGUAGE));
         applicationDTO.setAttrs(JsonUtils.fromJson(record.get(T_APP.ATTRS), ApplicationAttrsDO.class));
         applicationDTO.setDeleted(Bool.isTrue(record.get(T_APP.IS_DELETED).byteValue()));
+        applicationDTO.setTenantId(record.get(T_APP.TENANT_ID));
+        applicationDTO.setDeFault(record.get(T_APP.DEFAULT));
         return applicationDTO;
     }
 
@@ -150,6 +154,13 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     @Override
     public List<ApplicationDTO> listAllApps() {
         List<Condition> conditions = getBasicNotDeletedConditions();
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationDTO> listAllAppsForTenant(String tenantId) {
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.TENANT_ID.eq(tenantId));
         return listAppsByConditions(conditions);
     }
 
@@ -184,23 +195,33 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     }
 
     @Override
-    public List<ApplicationDTO> listAllBizApps() {
+    public List<ApplicationDTO> listAllBizApps(String tenantId) {
         List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.TENANT_ID.equal(tenantId));
         conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ.getValue()));
         return listAppsByConditions(conditions);
     }
 
     @Override
-    public List<ApplicationDTO> listAllBizAppsWithDeleted() {
+    public List<ApplicationDTO> listAllBizAppsWithDeleted(String tenantId) {
         List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_APP.TENANT_ID.equal(tenantId));
         conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ.getValue()));
         return listAppsByConditions(conditions);
     }
 
     @Override
-    public List<ApplicationDTO> listAllBizSetAppsWithDeleted() {
+    public List<ApplicationDTO> listAllBizSetAppsWithDeleted(String tenantId) {
         List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_APP.TENANT_ID.equal(tenantId));
         conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.BIZ_SET.getValue()));
+        return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public List<ApplicationDTO> listAllTenantSetAppsWithDeleted() {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(T_APP.BK_SCOPE_TYPE.equal(ResourceScopeTypeEnum.TENANT_SET.getValue()));
         return listAppsByConditions(conditions);
     }
 
@@ -222,7 +243,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             T_APP.BK_SCOPE_TYPE,
             T_APP.BK_SCOPE_ID,
             T_APP.ATTRS,
-            T_APP.IS_DELETED
+            T_APP.IS_DELETED,
+            T_APP.TENANT_ID,
+            T_APP.DEFAULT
         ).values(
             applicationDTO.getName(),
             applicationDTO.getBkSupplierAccount(),
@@ -231,7 +254,9 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             scope == null ? null : scope.getType().getValue(),
             scope == null ? null : scope.getId(),
             applicationDTO.getAttrs() == null ? null : JsonUtils.toJson(applicationDTO.getAttrs()),
-            UByte.valueOf(Bool.FALSE.byteValue())
+            UByte.valueOf(Bool.FALSE.byteValue()),
+            applicationDTO.getTenantId(),
+            applicationDTO.getDeFaultOrDefaultValue()
         );
         try {
             val record = query.returning(T_APP.APP_ID).fetchOne();
@@ -261,6 +286,7 @@ public class ApplicationDAOImpl implements ApplicationDAO {
             .set(T_APP.TIMEZONE, applicationDTO.getTimeZone())
             .set(T_APP.LANGUAGE, applicationDTO.getLanguage())
             .set(T_APP.ATTRS, applicationDTO.getAttrs() == null ? null : JsonUtils.toJson(applicationDTO.getAttrs()))
+            .set(T_APP.DEFAULT, applicationDTO.getDeFaultOrDefaultValue())
             .where(T_APP.APP_ID.eq(ULong.valueOf(applicationDTO.getId())));
         return query.execute();
     }
@@ -336,6 +362,27 @@ public class ApplicationDAOImpl implements ApplicationDAO {
     public List<ApplicationDTO> listAllDeletedApps() {
         List<Condition> conditions = getBasicDeletedConditions();
         return listAppsByConditions(conditions);
+    }
+
+    @Override
+    public String getTenantIdByAppId(long appId) {
+        val record = dslContext.select(T_APP.TENANT_ID).where(T_APP.APP_ID.eq(ULong.valueOf(appId))).fetchOne();
+        if (record != null) {
+            return record.get(T_APP.TENANT_ID);
+        }
+        return null;
+    }
+
+    @Override
+    public List<Long> listAppIdByTenant(String tenantId) {
+        List<Condition> conditions = getBasicNotDeletedConditions();
+        conditions.add(T_APP.TENANT_ID.equal(tenantId));
+        Result<Record1<ULong>> records = dslContext
+            .select(T_APP.APP_ID)
+            .from(T_APP)
+            .where(conditions)
+            .fetch();
+        return records.map(record -> record.get(T_APP.APP_ID).longValue());
     }
 
     private List<Condition> getBasicDeletedConditions() {

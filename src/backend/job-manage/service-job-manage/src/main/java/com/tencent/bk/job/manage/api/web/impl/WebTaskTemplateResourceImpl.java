@@ -37,9 +37,11 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.common.constants.TemplateTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskTemplateStatusEnum;
 import com.tencent.bk.job.manage.api.web.WebTaskTemplateResource;
@@ -116,7 +118,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
                                                                 Integer pageSize,
                                                                 String orderField,
                                                                 Integer order) {
-
+        User user = JobContextUtil.getUser();
         Long appId = appResourceScope.getAppId();
         List<Long> favoriteList = taskFavoriteService.listFavorites(appId, username);
 
@@ -143,7 +145,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         resultPageData.setData(resultTemplates);
         resultPageData.setExistAny(templateService.isExistAnyAppTemplate(appId));
 
-        taskTemplateAuthService.processTemplatePermission(username, appResourceScope, resultPageData);
+        taskTemplateAuthService.processTemplatePermission(user, appResourceScope, resultPageData);
 
         return Response.buildSuccessResp(resultPageData);
     }
@@ -220,20 +222,21 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
                                                     String scopeType,
                                                     String scopeId,
                                                     Long templateId) {
-        TaskTemplateInfoDTO templateInfo = templateService.getTaskTemplate(username,
+        User user = JobContextUtil.getUser();
+        TaskTemplateInfoDTO templateInfo = templateService.getTaskTemplate(user,
             appResourceScope.getAppId(), templateId);
 
         StepRefVariableParser.parseStepRefVars(templateInfo.getStepList(), templateInfo.getVariableList());
 
         TaskTemplateVO taskTemplateVO = TaskTemplateInfoDTO.toVO(templateInfo);
         taskTemplateVO.setCanView(true);
-        taskTemplateVO.setCanEdit(templateAuthService.authEditJobTemplate(username, appResourceScope,
+        taskTemplateVO.setCanEdit(templateAuthService.authEditJobTemplate(user, appResourceScope,
             templateId).isPass());
-        taskTemplateVO.setCanDelete(templateAuthService.authDeleteJobTemplate(username, appResourceScope,
+        taskTemplateVO.setCanDelete(templateAuthService.authDeleteJobTemplate(user, appResourceScope,
             templateId).isPass());
         taskTemplateVO.setCanDebug(true);
         taskTemplateVO.setCanClone(taskTemplateVO.getCanView()
-            && templateAuthService.authCreateJobTemplate(username, appResourceScope).isPass());
+            && templateAuthService.authCreateJobTemplate(user, appResourceScope).isPass());
 
         return Response.buildSuccessResp(taskTemplateVO);
     }
@@ -249,8 +252,8 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
                                                    @AuditRequestBody TaskTemplateCreateUpdateReq request) {
 
         request.validate();
-
-        TaskTemplateInfoDTO createdTemplate = templateService.saveTaskTemplate(username,
+        User user = JobContextUtil.getUser();
+        TaskTemplateInfoDTO createdTemplate = templateService.saveTaskTemplate(user,
             TaskTemplateInfoDTO.fromReq(username, appResourceScope.getAppId(), request));
         return Response.buildSuccessResp(TaskTemplateInfoDTO.toVO(createdTemplate));
     }
@@ -268,7 +271,8 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
                                             Long templateId) {
 
         Long appId = appResourceScope.getAppId();
-        templateService.deleteTaskTemplate(username, appId, templateId);
+        User user = JobContextUtil.getUser();
+        templateService.deleteTaskTemplate(user, appId, templateId);
         taskFavoriteService.deleteFavorite(appId, username, templateId);
 
         return Response.buildSuccessResp(true);
@@ -287,8 +291,9 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
         request.setId(templateId);
         request.validate();
 
+        User user = JobContextUtil.getUser();
         TaskTemplateInfoDTO updatedTemplate = templateService.updateTaskTemplate(
-            username, TaskTemplateInfoDTO.fromReq(username, appResourceScope.getAppId(), request));
+            user, TaskTemplateInfoDTO.fromReq(username, appResourceScope.getAppId(), request));
 
         return Response.buildSuccessResp(TaskTemplateInfoDTO.toVO(updatedTemplate));
     }
@@ -312,7 +317,8 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
                                                      String scopeId,
                                                      Long templateId,
                                                      @AuditRequestBody TemplateBasicInfoUpdateReq request) {
-        templateService.saveTaskTemplateBasicInfo(username,
+        User user = JobContextUtil.getUser();
+        templateService.saveTaskTemplateBasicInfo(user,
             TaskTemplateInfoDTO.fromBasicReq(username, appResourceScope.getAppId(), request));
         return Response.buildSuccessResp(true);
     }
@@ -371,7 +377,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
                                                     String scopeType,
                                                     String scopeId,
                                                     TemplateTagBatchPatchReq req) {
-
+        User user = JobContextUtil.getUser();
         ValidateResult validateResult = checkTemplateTagBatchPatchReq(req);
         if (!validateResult.isPass()) {
             throw new InvalidParamException(validateResult);
@@ -382,7 +388,7 @@ public class WebTaskTemplateResourceImpl implements WebTaskTemplateResource {
             return Response.buildSuccessResp(true);
         }
 
-        AuthResult authResult = templateAuthService.batchAuthResultEditJobTemplate(username,
+        AuthResult authResult = templateAuthService.batchAuthResultEditJobTemplate(user,
             appResourceScope, req.getIdList());
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);

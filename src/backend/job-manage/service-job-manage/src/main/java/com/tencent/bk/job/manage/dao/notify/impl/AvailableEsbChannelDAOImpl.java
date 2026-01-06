@@ -29,6 +29,7 @@ import com.tencent.bk.job.manage.model.dto.notify.AvailableEsbChannelDTO;
 import com.tencent.bk.job.manage.model.tables.AvailableEsbChannel;
 import lombok.val;
 import org.jooq.DSLContext;
+import org.jooq.TableField;
 import org.jooq.conf.ParamType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,13 @@ public class AvailableEsbChannelDAOImpl implements AvailableEsbChannelDAO {
     private static final Logger logger = LoggerFactory.getLogger(AvailableEsbChannelDAOImpl.class);
     private static final AvailableEsbChannel T_AVAILABLE_ESB_CHANNEL = AvailableEsbChannel.AVAILABLE_ESB_CHANNEL;
     private static final AvailableEsbChannel defaultTable = T_AVAILABLE_ESB_CHANNEL;
+    private static final TableField<?, ?>[] ALL_FIELDS = {
+        defaultTable.TYPE,
+        defaultTable.ENABLE,
+        defaultTable.CREATOR,
+        defaultTable.LAST_MODIFY_TIME,
+        defaultTable.TENANT_ID
+    };
     private final DSLContext dslContext;
 
     @Autowired
@@ -58,12 +66,14 @@ public class AvailableEsbChannelDAOImpl implements AvailableEsbChannelDAO {
             defaultTable.TYPE,
             defaultTable.ENABLE,
             defaultTable.CREATOR,
-            defaultTable.LAST_MODIFY_TIME
+            defaultTable.LAST_MODIFY_TIME,
+            defaultTable.TENANT_ID
         ).values(
             availableEsbChannelDTO.getType(),
             availableEsbChannelDTO.isEnable(),
             availableEsbChannelDTO.getCreator(),
-            availableEsbChannelDTO.getLastModifyTime()
+            availableEsbChannelDTO.getLastModifyTime(),
+            availableEsbChannelDTO.getTenantId()
         );
         val sql = query.getSQL(ParamType.INLINED);
         try {
@@ -75,21 +85,25 @@ public class AvailableEsbChannelDAOImpl implements AvailableEsbChannelDAO {
     }
 
     @Override
-    public int deleteAll() {
-        return dslContext.deleteFrom(defaultTable).execute();
+    public int deleteAllChannelsByTenantId(String tenantId) {
+        return dslContext.deleteFrom(defaultTable).where(defaultTable.TENANT_ID.eq(tenantId)).execute();
     }
 
     @Override
-    public List<AvailableEsbChannelDTO> listAvailableEsbChannel() {
-        val records = dslContext.selectFrom(defaultTable).fetch();
+    public List<AvailableEsbChannelDTO> listAvailableEsbChannel(String tenantId) {
+        val records = dslContext.select(ALL_FIELDS)
+            .from(defaultTable)
+            .where(defaultTable.TENANT_ID.eq(tenantId))
+            .fetch();
         if (records.isEmpty()) {
             return new ArrayList<>();
         } else {
             return records.map(record -> new AvailableEsbChannelDTO(
-                record.getType(),
-                record.getEnable(),
-                record.getCreator(),
-                record.getLastModifyTime()
+                record.get(defaultTable.TYPE),
+                record.get(defaultTable.ENABLE),
+                record.get(defaultTable.CREATOR),
+                record.get(defaultTable.LAST_MODIFY_TIME),
+                tenantId
             ));
         }
     }

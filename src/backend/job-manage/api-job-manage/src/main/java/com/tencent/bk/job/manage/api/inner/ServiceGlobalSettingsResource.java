@@ -37,22 +37,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 @InternalAPI
 public interface ServiceGlobalSettingsResource {
 
-    /**
-     * 获取文档中心基础Url
-     * Deprecated：3.9.x中不推荐使用，3.10.x中下线，请使用getDocJobRootUrl
-     *
-     * @return 文档中心基础Url
-     */
-    @Deprecated
-    @ApiOperation(value = "获取文档中心基础Url", produces = "application/json")
-    @GetMapping("/service/globalSettings/docCenterBaseUrl")
-    InternalResponse<String> getDocCenterBaseUrl();
-
     @ApiOperation(value = "获取文档中心Job文档基础Url", produces = "application/json")
     @GetMapping("/service/globalSettings/docJobRootUrl")
     InternalResponse<String> getDocJobRootUrl();
 
-    @ApiOperation(value = "获取文件上传设置", produces = "application/json")
-    @GetMapping("/service/globalSettings/fileUploadSettings")
-    InternalResponse<ServiceFileUploadSettingDTO> getFileUploadSettings();
 }

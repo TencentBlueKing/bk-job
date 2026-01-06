@@ -30,11 +30,9 @@ import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.TriggerPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
 import com.tencent.bk.job.manage.model.inner.ServiceSpecificResourceNotifyPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceUserNotificationDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChannelReq;
 import com.tencent.bk.job.manage.model.web.vo.notify.ExecuteStatusVO;
@@ -90,7 +88,7 @@ public interface NotifyService {
      *
      * @return 通知角色列表
      */
-    List<AppRoleDTO> listRoles();
+    List<AppRoleDTO> listRoles(String tenantId);
 
 
     List<ExecuteStatusVO> listExecuteStatus(String username);
@@ -98,13 +96,13 @@ public interface NotifyService {
     /**
      * 获取所有的通知渠道
      */
-    List<NotifyEsbChannelDTO> listAllNotifyChannel();
+    List<NotifyEsbChannelDTO> listAllNotifyChannel(String tenantId);
 
     /**
      * 获取当前平台启用的消息通知渠道
      * @return 已启用的消息通知渠道列表
      */
-    List<String> getAvailableChannelTypeList();
+    List<String> getAvailableChannelTypeList(String tenantId);
 
     List<NotifyChannelVO> listAvailableNotifyChannel(String username);
 
@@ -116,13 +114,6 @@ public interface NotifyService {
                                         Set<String> roleSet);
 
     PageTemplateVO getPageTemplate(String username);
-
-    Integer asyncSendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO);
-
-    Integer asyncSendNotificationsByChannel(ServiceUserNotificationDTO serviceUserNotificationDTO,
-                                            List<String> channelTypeList);
-
-    Integer asyncSendNotificationsToAdministrators(ServiceNotificationMessage serviceNotificationMessage);
 
     Integer sendTemplateNotification(ServiceTemplateNotificationDTO templateNotificationDTO);
 

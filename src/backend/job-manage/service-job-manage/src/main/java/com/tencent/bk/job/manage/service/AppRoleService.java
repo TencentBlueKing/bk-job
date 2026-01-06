@@ -36,10 +36,11 @@ public interface AppRoleService {
     /**
      * 获取所有业务角色
      *
-     * @param lang 语言
-     * @return
+     * @param lang     语言
+     * @param tenantId 租户ID
+     * @return 业务角色列表
      */
-    List<AppRoleDTO> listAppRoles(String lang);
+    List<AppRoleDTO> listAppRoles(String lang, String tenantId);
 
     /**
      * 获取业务角色下的人员

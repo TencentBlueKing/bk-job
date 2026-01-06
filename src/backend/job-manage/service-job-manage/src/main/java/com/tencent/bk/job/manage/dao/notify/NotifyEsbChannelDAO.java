@@ -30,6 +30,6 @@ import java.util.List;
 
 public interface NotifyEsbChannelDAO {
 
-    List<NotifyEsbChannelDTO> listNotifyEsbChannel();
+    List<NotifyEsbChannelDTO> listNotifyEsbChannel(String tenantId);
 
 }

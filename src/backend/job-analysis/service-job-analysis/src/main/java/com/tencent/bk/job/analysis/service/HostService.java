@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.analysis.service;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostStatusDTO;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 
@@ -36,6 +35,11 @@ public interface HostService {
 
     List<ServiceHostStatusDTO> getHostStatusByDynamicGroup(Long appId, List<String> dynamicGroupIdList);
 
-    List<ServiceHostStatusDTO> getHostStatusByHost(Long appId,
-                                                   List<HostDTO> hostList);
+    /**
+     * 通过缓存数据（非接口实时数据）判断是否存在Agent状态不正常的主机
+     *
+     * @param hostIdList 主机ID列表
+     * @return 布尔值
+     */
+    boolean existNotAliveHostByCache(List<Long> hostIdList);
 }

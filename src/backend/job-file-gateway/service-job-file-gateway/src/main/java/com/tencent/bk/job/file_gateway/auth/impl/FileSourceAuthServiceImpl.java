@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.iam.util.IamUtil;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
@@ -64,17 +65,17 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
     }
 
     @Override
-    public AuthResult authCreateFileSource(String username, AppResourceScope appResourceScope) {
-        return appAuthService.auth(username, ActionId.CREATE_FILE_SOURCE, appResourceScope);
+    public AuthResult authCreateFileSource(User user, AppResourceScope appResourceScope) {
+        return appAuthService.auth(user, ActionId.CREATE_FILE_SOURCE, appResourceScope);
     }
 
     @Override
-    public AuthResult authViewFileSource(String username,
+    public AuthResult authViewFileSource(User user,
                                          AppResourceScope appResourceScope,
                                          Integer fileSourceId,
                                          String fileSourceName) {
         return authService.auth(
-            username,
+            user,
             ActionId.VIEW_FILE_SOURCE,
             ResourceTypeEnum.FILE_SOURCE,
             fileSourceId.toString(),
@@ -83,12 +84,12 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
     }
 
     @Override
-    public AuthResult authManageFileSource(String username,
+    public AuthResult authManageFileSource(User user,
                                            AppResourceScope appResourceScope,
                                            Integer fileSourceId,
                                            String fileSourceName) {
         return authService.auth(
-            username,
+            user,
             ActionId.MANAGE_FILE_SOURCE,
             ResourceTypeEnum.FILE_SOURCE,
             fileSourceId.toString(),
@@ -97,27 +98,27 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
     }
 
     @Override
-    public List<Integer> batchAuthViewFileSource(String username,
+    public List<Integer> batchAuthViewFileSource(User user,
                                                  AppResourceScope appResourceScope,
                                                  List<Integer> fileSourceIdList) {
-        List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.VIEW_FILE_SOURCE, appResourceScope,
+        List<String> allowedIdList = appAuthService.batchAuth(user, ActionId.VIEW_FILE_SOURCE, appResourceScope,
             ResourceTypeEnum.FILE_SOURCE,
             fileSourceIdList.stream().map(Object::toString).collect(Collectors.toList()));
         return allowedIdList.stream().map(Integer::valueOf).collect(Collectors.toList());
     }
 
     @Override
-    public List<Integer> batchAuthManageFileSource(String username,
+    public List<Integer> batchAuthManageFileSource(User user,
                                                    AppResourceScope appResourceScope,
                                                    List<Integer> fileSourceIdList) {
-        List<String> allowedIdList = appAuthService.batchAuth(username, ActionId.MANAGE_FILE_SOURCE, appResourceScope,
+        List<String> allowedIdList = appAuthService.batchAuth(user, ActionId.MANAGE_FILE_SOURCE, appResourceScope,
             ResourceTypeEnum.FILE_SOURCE,
             fileSourceIdList.stream().map(Object::toString).collect(Collectors.toList()));
         return allowedIdList.stream().map(Integer::valueOf).collect(Collectors.toList());
     }
 
     @Override
-    public boolean registerFileSource(String creator, Integer id, String name) {
-        return authService.registerResource(id.toString(), name, ResourceTypeId.FILE_SOURCE, creator, null);
+    public boolean registerFileSource(User creator, Integer id, String name) {
+        return authService.registerResource(creator, id.toString(), name, ResourceTypeId.FILE_SOURCE, null);
     }
 }
