@@ -28,12 +28,12 @@
 <template>
   <date-picker
     ref="datePicker"
-    :model-value="defaultDateTime"
+    :model-value="dateValue"
     :timezone.sync="timezone"
     @update:modelValue="handleDateChange" />
 </template>
 <script setup>
-  import { computed, watch } from 'vue';
+  import { computed, onMounted, ref } from 'vue';
 
   import DatePicker from '@blueking/date-picker/vue2';
 
@@ -52,8 +52,10 @@
     day: { // 没有时间数据，默认查几天前的
       type: Number,
       default: 1,
-    }
+    },
   });
+
+  const dateValue = ref([]); // 只能接受时间戳，接受日期组件内部会在转换一次，会导致显示数据错误
 
   const emits = defineEmits(['changeDate', 'changeTimezone']);
 
@@ -66,28 +68,22 @@
     },
   });
 
-  const defaultDateTime = computed(() => {
+  onMounted(() => {
     const { startTime, endTime } = props.date;
-    if (startTime) {
-      // 如果有数据，则根据时区将此时间格式转换成时间戳传给组件 --todo 组件修复回显问题在看传入什么，现在直接传日期
-      // return [model.getTimestamp({ date: startTime, timezone: timezone.value }), model.getTimestamp({ date: endTime, timezone: timezone.value })];
-      // return
-      return [startTime, endTime];
+    if (!startTime) {
+      const currentTime = new Date().getTime();
+      const startDate = model.getTime({ timestamp: currentTime - props.day * 86400000, timezone: timezone.value });
+      const endDate = model.getTime({ timestamp: currentTime, timezone: timezone.value });
+      dateValue.value = [currentTime - props.day * 86400000, currentTime];
+      emits('setDate', { startTime: startDate, endTime: endDate });
+      return;
     }
-    // 默认为近24小时的数据
-    const currentTime = new Date().getTime();
-    return [model.getTime({ timestamp: currentTime - props.day * 86400000, timezone: timezone.value }), model.getTime({ timestamp: currentTime, timezone: timezone.value })];
-  });
-
-  watch(() => defaultDateTime.value, (value) => {
-    const [startTime, endTime] = value;
-    emits('setDate', { startTime, endTime });
-  }, {
-    immediate: true,
+    dateValue.value = [model.getTimestamp({ date: startTime, timezone: timezone.value }), model.getTimestamp({ date: endTime, timezone: timezone.value })];
   });
 
   const handleDateChange = (date, info) => {
     const [{ formatText: startTime }, { formatText: endTime }] = info;
+    dateValue.value = date;
     emits('changeDate', { startTime, endTime });
   };
 </script>
