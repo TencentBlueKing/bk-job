@@ -64,13 +64,13 @@ public class SafeUserMgrApiClient implements IUserApiClient {
         List<OpenApiTenant> filteredTenantList = new ArrayList<>();
         for (OpenApiTenant tenant : tenantList) {
             if (!TenantIdConstants.DEFAULT_TENANT_ID.equals(tenant.getId())) {
-                log.warn("Unexpected tenant:{}, ignore", tenant);
+                log.info("Unexpected tenant:{}, ignore", tenant);
                 continue;
             }
             if (filteredTenantList.isEmpty()) {
                 filteredTenantList.add(tenant);
             } else {
-                log.warn("More than one default tenant:{}, ignore", tenant);
+                log.info("More than one default tenant:{}, ignore", tenant);
             }
         }
         return filteredTenantList;
