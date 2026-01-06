@@ -24,25 +24,20 @@
 
 package com.tencent.bk.job.manage.config.listener;
 
-import com.tencent.bk.job.common.mysql.JobTransactional;
-import com.tencent.bk.job.common.paas.cmsi.CmsiApiClient;
-import com.tencent.bk.job.common.paas.model.EsbNotifyChannelDTO;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
 import com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
-import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyTriggerPolicyDAO;
-import com.tencent.bk.job.manage.model.dto.notify.AvailableEsbChannelDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ResourceStatusChannel;
 import com.tencent.bk.job.manage.model.web.request.notify.TriggerPolicy;
 import com.tencent.bk.job.manage.service.NotifyService;
-import com.tencent.bk.job.manage.service.globalsetting.GlobalSettingsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
@@ -50,47 +45,42 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Slf4j
 @Component
 @Profile("!test")
 public class NotifyInitListener implements ApplicationListener<ApplicationReadyEvent> {
 
-    private final CmsiApiClient cmsiApiClient;
-    private final GlobalSettingsService globalSettingsService;
     private final NotifyService notifyService;
-    private final AvailableEsbChannelDAO availableEsbChannelDAO;
     private final NotifyTriggerPolicyDAO notifyTriggerPolicyDAO;
+    private final ThreadPoolExecutor initRunnerExecutor;
 
     @Value("${job.manage.notify.default.channels.available:mail,weixin,rtx}")
     private final String defaultAvailableNotifyChannelsStr = "mail,weixin,rtx";
 
     @Autowired
-    public NotifyInitListener(CmsiApiClient cmsiApiClient,
-                              GlobalSettingsService globalSettingsService,
-                              NotifyService notifyService,
-                              AvailableEsbChannelDAO availableEsbChannelDAO,
-                              NotifyTriggerPolicyDAO notifyTriggerPolicyDAO) {
-        this.cmsiApiClient = cmsiApiClient;
-        this.globalSettingsService = globalSettingsService;
+    public NotifyInitListener(NotifyService notifyService,
+                              NotifyTriggerPolicyDAO notifyTriggerPolicyDAO,
+                              @Qualifier("initRunnerExecutor") ThreadPoolExecutor initRunnerExecutor) {
         this.notifyService = notifyService;
-        this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyTriggerPolicyDAO = notifyTriggerPolicyDAO;
+        this.initRunnerExecutor = initRunnerExecutor;
     }
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
-        // 应用启动完成后的一些初始化操作
-        // 1.消息通知默认配置
-        initDefaultNotifyChannels();
-        // 2.用户侧默认配置
+        // 应用启动完成后异步执行一些初始化操作
+        initRunnerExecutor.submit(this::initNotifyChannelAndPolicies);
+    }
+
+    private void initNotifyChannelAndPolicies() {
+
         try {
             if (notifyTriggerPolicyDAO.countDefaultPolicies() == 0) {
-                //
                 NotifyPoliciesCreateUpdateReq req = new NotifyPoliciesCreateUpdateReq();
                 List<TriggerPolicy> triggerPolicyList = new ArrayList<>();
                 //1.页面执行策略
@@ -121,37 +111,6 @@ public class NotifyInitListener implements ApplicationListener<ApplicationReadyE
             }
         } catch (Exception e) {
             log.error("Fail to config default notify policies", e);
-        }
-    }
-
-    private void initDefaultNotifyChannels() {
-        log.info("init default notify channels");
-        List<EsbNotifyChannelDTO> esbNotifyChannelDTOList = cmsiApiClient.getNotifyChannelList();
-        if (esbNotifyChannelDTOList == null) {
-            log.error("Fail to get notify channels from esb, null");
-            return;
-        }
-        saveDefaultNotifyChannelsToDb(esbNotifyChannelDTOList);
-    }
-
-    @JobTransactional(transactionManager = "jobManageTransactionManager")
-    public void saveDefaultNotifyChannelsToDb(List<EsbNotifyChannelDTO> esbNotifyChannelDTOList) {
-        if (!globalSettingsService.isNotifyChannelConfiged()) {
-            globalSettingsService.setNotifyChannelConfiged();
-            availableEsbChannelDAO.deleteAll();
-            for (EsbNotifyChannelDTO esbNotifyChannelDTO : esbNotifyChannelDTOList) {
-                if (!esbNotifyChannelDTO.isActive()) {
-                    continue;
-                }
-                availableEsbChannelDAO.insertAvailableEsbChannel(
-                    new AvailableEsbChannelDTO(
-                        esbNotifyChannelDTO.getType(),
-                        true,
-                        "admin",
-                        LocalDateTime.now()
-                    )
-                );
-            }
         }
     }
 

@@ -47,4 +47,9 @@ public class ApplicationAttrsDO {
      * cmdb业务集是否包含所有子业务
      */
     private Boolean matchAllBiz;
+
+    /**
+     * cmdb租户集是否包含所有租户
+     */
+    private Boolean matchAllTenant;
 }

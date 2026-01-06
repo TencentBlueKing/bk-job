@@ -107,12 +107,6 @@ spec:
             - name: redis
               mountPath: /etc/secrets/redis
               readOnly: true
-            - name: job-gse-tls-certs
-              mountPath: /data/job/cert
-              readOnly: true
-            - name: job-gse-tls-password
-              mountPath: /etc/secrets
-              readOnly: true
             {{- include "job.mariadb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
             {{- include "job.redis.certsVolumeMount" . | nindent 12 }}
@@ -132,22 +126,6 @@ spec:
         - name: redis
           secret:
             secretName: {{ include "job.redis.secretName" . }}
-        - name: job-gse-tls-certs
-          secret:
-            secretName: {{ include "gse.secretName" . | quote }}
-            items:
-              - key: gse.keystore
-                path: gse_job_api_client.keystore
-              - key: gse.truststore
-                path: gse_job_api_client.truststore
-        - name: job-gse-tls-password
-          secret:
-            secretName: {{ include "gse.secretName" . | quote }}
-            items:
-              - key: gse.keystore.password
-                path: gse.keystore.password
-              - key: gse.truststore.password
-                path: gse.truststore.password
         {{- include "job.mariadb.certsVolume" . | nindent 8 }}
         {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
         {{- include "job.redis.certsVolume" . | nindent 8 }}

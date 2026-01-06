@@ -25,15 +25,19 @@
 package com.tencent.bk.job.gateway.filter.web;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.exception.InternalUserManageException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.paas.exception.AppPermissionDeniedException;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.gateway.common.consts.HeaderConsts;
 import com.tencent.bk.job.gateway.config.LoginExemptionConfig;
+import com.tencent.bk.job.gateway.config.UserMapProperties;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -64,12 +68,19 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
 
     private final LoginService loginService;
     private final LoginExemptionConfig loginExemptionConfig;
+    private final TenantEnvService tenantEnvService;
+    private final UserMapProperties userMapProperties;
 
     @Autowired
-    public AuthorizeGatewayFilterFactory(LoginService loginService, LoginExemptionConfig loginExemptionConfig) {
+    public AuthorizeGatewayFilterFactory(LoginService loginService,
+                                         LoginExemptionConfig loginExemptionConfig,
+                                         TenantEnvService tenantEnvService,
+                                         UserMapProperties userMapProperties) {
         super(Config.class);
         this.loginService = loginService;
         this.loginExemptionConfig = loginExemptionConfig;
+        this.tenantEnvService = tenantEnvService;
+        this.userMapProperties = userMapProperties;
     }
 
     private GatewayFilter getLoginExemptionFilter() {
@@ -77,7 +88,9 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             ServerHttpRequest request = exchange.getRequest();
             String username = loginExemptionConfig.getDefaultUser();
             log.info("loginExemption enabled, use default user:{}", username);
-            request.mutate().header("username", new String[]{username}).build();
+            request = request.mutate()
+                .header("username", username)
+                .build();
             return chain.filter(exchange.mutate().request(request).build());
         };
     }
@@ -118,17 +131,52 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
                     throw e;
                 }
             }
-            if (user == null) {
+            if (user == null || !user.validate()) {
                 log.warn("Invalid user token");
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 response.getHeaders().add(HeaderConsts.KEY_LOGIN_URL, loginService.getLoginRedirectUrl());
                 return response.setComplete();
             }
-            String username = user.getUsername();
 
-            request.mutate().header("username", new String[]{username}).build();
+            String tenantId = tenantEnvService.isTenantEnabled() ? user.getTenantId() :
+                TenantIdConstants.DEFAULT_TENANT_ID;
+            String username = user.getUsername();
+            String targetUsername = getTargetUsername(username);
+            request = request.mutate()
+                .header("username", targetUsername)
+                .header(JobCommonHeaders.BK_TENANT_ID, tenantId)
+                .build();
+            if (targetUsername.equals(username)) {
+                log.info(
+                    "UserAccess, tenantId: {}, username: {}, displayName: {}",
+                    tenantId,
+                    username,
+                    user.getDisplayName()
+                );
+            } else {
+                log.info(
+                    "FakeUserAccess, tenantId: {}, username: {}, displayName: {}, targetUsername: {}",
+                    tenantId,
+                    username,
+                    user.getDisplayName(),
+                    targetUsername
+                );
+            }
             return chain.filter(exchange.mutate().request(request).build());
         };
+    }
+
+    /**
+     * 将用户名映射为配置的其他用户，用于权限相关问题复现
+     *
+     * @param username 用户名
+     * @return 目标用户名
+     */
+    private String getTargetUsername(String username) {
+        if (userMapProperties.isEnabled() && userMapProperties.getMap().containsKey(username)) {
+            return userMapProperties.getMap().get(username);
+        }
+        return username;
     }
 
     private Mono<Void> getUserAccessAppForbiddenResp(ServerHttpResponse response, String data) {

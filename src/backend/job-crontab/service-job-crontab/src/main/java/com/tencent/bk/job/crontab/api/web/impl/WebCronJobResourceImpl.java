@@ -172,7 +172,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
 
     private void processCronJobPermission(AppResourceScope appResourceScope, PageData<CronJobVO> resultPageData) {
         resultPageData.setCanCreate(
-            cronAuthService.authCreateCron(JobContextUtil.getUsername(), appResourceScope).isPass());
+            cronAuthService.authCreateCron(JobContextUtil.getUser(), appResourceScope).isPass());
 
         processCronJobPermission(appResourceScope, resultPageData.getData());
     }
@@ -181,7 +181,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         List<Long> cronJobIdList = new ArrayList<>();
         cronJobList.forEach(cronJob -> cronJobIdList.add(cronJob.getId()));
         List<Long> allowedCronJob = cronAuthService.getPermissionAllowedCronIds(
-            JobContextUtil.getUsername(), appResourceScope, cronJobIdList);
+            JobContextUtil.getUser(), appResourceScope, cronJobIdList);
         cronJobList.forEach(cronJob -> {
             cronJob.setCanManage(allowedCronJob.contains(cronJob.getId()));
             if (!cronJob.getCanManage()) {
@@ -336,7 +336,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
                                               String scopeId,
                                               Long cronJobId) {
         Long appId = appResourceScope.getAppId();
-        CronJobInfoDTO cronJob = cronJobService.getCronJobInfoById(username, appId, cronJobId);
+        CronJobInfoDTO cronJob = cronJobService.getCronJobInfoById(JobContextUtil.getUser(), appId, cronJobId);
         CronJobVO cronJobVO = CronJobInfoDTO.toVO(cronJob);
         return Response.buildSuccessResp(cronJobVO);
     }
@@ -353,7 +353,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         checkCronName(cronJobCreateUpdateReq);
         CronJobInfoDTO cronJobInfoDTO = CronJobInfoDTO.fromReq(username, appId, cronJobCreateUpdateReq);
         if (cronJobInfoDTO.validate()) {
-            CronJobInfoDTO createdCronJob = cronJobService.createCronJobInfo(username, cronJobInfoDTO);
+            CronJobInfoDTO createdCronJob = cronJobService.createCronJobInfo(JobContextUtil.getUser(), cronJobInfoDTO);
             return Response.buildSuccessResp(CronJobInfoDTO.toVO(createdCronJob));
         } else {
             log.warn("Validate cron job failed!|{}", JobContextUtil.getDebugMessage());
@@ -376,7 +376,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         checkCronName(cronJobCreateUpdateReq);
         CronJobInfoDTO cronJobInfoDTO = CronJobInfoDTO.fromReq(username, appId, cronJobCreateUpdateReq);
         if (cronJobInfoDTO.validate()) {
-            CronJobInfoDTO updatedCronJob = cronJobService.updateCronJobInfo(username, cronJobInfoDTO);
+            CronJobInfoDTO updatedCronJob = cronJobService.updateCronJobInfo(JobContextUtil.getUser(), cronJobInfoDTO);
             return Response.buildSuccessResp(CronJobInfoDTO.toVO(updatedCronJob));
         } else {
             log.warn("Validate cron job failed!|{}", JobContextUtil.getDebugMessage());
@@ -402,7 +402,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
                                            String scopeType,
                                            String scopeId,
                                            Long cronJobId) {
-        return Response.buildSuccessResp(cronJobService.deleteCronJobInfo(username,
+        return Response.buildSuccessResp(cronJobService.deleteCronJobInfo(JobContextUtil.getUser(),
             appResourceScope.getAppId(), cronJobId));
     }
 
@@ -416,7 +416,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
                                                        Boolean enable) {
         Long appId = appResourceScope.getAppId();
         return Response.buildSuccessResp(
-            cronJobService.changeCronJobEnableStatus(username, appId, cronJobId, enable));
+            cronJobService.changeCronJobEnableStatus(JobContextUtil.getUser(), appId, cronJobId, enable));
     }
 
     @Override
@@ -437,8 +437,8 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
                                                 String scopeType,
                                                 String scopeId,
                                                 @AuditRequestBody BatchUpdateCronJobReq batchUpdateCronJobReq) {
-        return Response.buildSuccessResp(cronJobService.batchUpdateCronJob(username, appResourceScope.getAppId(),
-            batchUpdateCronJobReq));
+        return Response.buildSuccessResp(cronJobService.batchUpdateCronJob(
+            JobContextUtil.getUser(), appResourceScope.getAppId(), batchUpdateCronJobReq));
     }
 
     @Override

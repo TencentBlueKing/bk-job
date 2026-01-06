@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.cc.model.bizset;
 
+import com.tencent.bk.job.common.cc.model.filter.Rule;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

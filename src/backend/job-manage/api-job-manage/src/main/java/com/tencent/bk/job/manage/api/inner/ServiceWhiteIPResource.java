@@ -24,18 +24,16 @@
 
 package com.tencent.bk.job.manage.api.inner;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.InternalAPI;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
-import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -45,35 +43,22 @@ import java.util.List;
 @InternalAPI
 public interface ServiceWhiteIPResource {
 
-    @ApiOperation(value = "获取指定IP在白名单中的生效范围（脚本执行：SCRIPT_EXECUTE/文件分发：FILE_DISTRIBUTION）", produces = "application/json")
-    @GetMapping("/service/whiteip/getWhiteIPActionScopes")
-    InternalResponse<List<String>> getWhiteIPActionScopes(
-        @ApiParam("业务Id")
-        @RequestParam(value = "appId", required = false)
-            Long appId,
-        @ApiParam("IP")
-        @RequestParam(value = "ip", required = false)
-            String ip,
-        @ApiParam("云区域Id")
-        @RequestParam(value = "cloudAreaId", required = false)
-            Long cloudAreaId,
-        @ApiParam("主机hostId")
-        @RequestParam(value = "hostId", required = false)
-            Long hostId
-    );
-
+    @Deprecated
+    @CompatibleImplementation(
+        name = "tenant",
+        explain = "兼容发布过程中老的调用，发布完成后删除",
+        deprecatedVersion = "3.12.x",
+        type = CompatibleType.DEPLOY
+    )
     @ApiOperation(value = "获取白名单内IP详情信息", produces = "application/json")
     @GetMapping("/service/whiteip/listWhiteIPInfos")
     InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfos();
 
-    @ApiOperation(value = "新增/更新IP白名单", produces = "application/json")
-    @PostMapping("/service/whiteip")
-    InternalResponse<Long> saveWhiteIP(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
-        @RequestHeader("username")
-            String username,
-        @ApiParam(value = "创建或更新请求体", required = true)
-        @RequestBody
-            WhiteIPRecordCreateUpdateReq createUpdateReq
+    @ApiOperation(value = "获取某个租户下白名单内IP详情信息", produces = "application/json")
+    @GetMapping("/service/whiteip/listWhiteIPInfosByTenantId")
+    InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfosByTenantId(
+        @ApiParam("租户ID")
+        @RequestParam(value = "tenantId", required = true)
+        String tenantId
     );
 }

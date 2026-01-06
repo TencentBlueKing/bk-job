@@ -24,23 +24,14 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
-import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
-import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
-import com.tencent.bk.job.common.model.dto.HostStatusNumStatisticsDTO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
-import com.tencent.bk.job.manage.common.TopologyHelper;
-import com.tencent.bk.job.manage.dao.ApplicationDAO;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
 import com.tencent.bk.job.manage.dao.ScriptDAO;
 import com.tencent.bk.job.manage.dao.index.IndexGreetingDAO;
 import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
@@ -50,16 +41,15 @@ import com.tencent.bk.job.manage.model.web.vo.index.GreetingVO;
 import com.tencent.bk.job.manage.model.web.vo.index.JobAndScriptStatistics;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
 import com.tencent.bk.job.manage.service.IndexService;
-import com.tencent.bk.job.manage.service.host.HostDetailService;
+import com.tencent.bk.job.manage.service.agent.statistics.ScopeAgentStatisticsService;
+import com.tencent.bk.job.manage.service.host.ScopeAgentStatusHostService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -69,31 +59,25 @@ import java.util.stream.Collectors;
 public class IndexServiceImpl implements IndexService {
 
     private final IndexGreetingDAO indexGreetingDAO;
-    private final ApplicationDAO applicationDAO;
-    private final ApplicationHostDAO applicationHostDAO;
-    private final TopologyHelper topologyHelper;
+    private final ScopeAgentStatusHostService scopeAgentStatusHostService;
+    private final ScopeAgentStatisticsService scopeAgentStatisticsService;
     private final TaskTemplateService taskTemplateService;
     private final TaskTemplateDAO taskTemplateDAO;
     private final ScriptDAO scriptDAO;
-    private final HostDetailService hostDetailService;
 
     @Autowired
     public IndexServiceImpl(IndexGreetingDAO indexGreetingDAO,
-                            ApplicationDAO applicationDAO,
-                            ApplicationHostDAO applicationHostDAO,
-                            TopologyHelper topologyHelper,
+                            ScopeAgentStatusHostService scopeAgentStatusHostService,
+                            ScopeAgentStatisticsService scopeAgentStatisticsService,
                             TaskTemplateService taskTemplateService,
                             TaskTemplateDAO taskTemplateDAO,
-                            ScriptDAO scriptDAO,
-                            HostDetailService hostDetailService) {
+                            ScriptDAO scriptDAO) {
         this.indexGreetingDAO = indexGreetingDAO;
-        this.applicationDAO = applicationDAO;
-        this.applicationHostDAO = applicationHostDAO;
-        this.topologyHelper = topologyHelper;
+        this.scopeAgentStatusHostService = scopeAgentStatusHostService;
+        this.scopeAgentStatisticsService = scopeAgentStatisticsService;
         this.taskTemplateService = taskTemplateService;
         this.taskTemplateDAO = taskTemplateDAO;
         this.scriptDAO = scriptDAO;
-        this.hostDetailService = hostDetailService;
     }
 
     @Override
@@ -112,93 +96,42 @@ public class IndexServiceImpl implements IndexService {
                 content = it.getContent();
             }
             return new GreetingVO(it.getId(), content.replace("${time}",
-                TimeUtil.getCurrentTimeStrWithDescription("HH:mm"))
+                    TimeUtil.getCurrentTimeStrWithDescription("HH:mm"))
                 .replace("${username}", username), it.getPriority());
         }).collect(Collectors.toList());
     }
 
     @Override
     public AgentStatistics getAgentStatistics(String username, AppResourceScope appResourceScope) {
-        // 查出业务
-        ApplicationDTO appInfo = applicationDAO.getAppById(appResourceScope.getAppId());
-        int aliveCount = 0;
-        int notAliveCount = 0;
-        List<Long> bizIds;
-        if (appInfo.isBiz()) {
-            // 普通业务
-            bizIds = Collections.singletonList(Long.valueOf(appResourceScope.getId()));
-        } else if (appInfo.isAllBizSet()) {
-            // 全业务
-            // 不根据主机ID过滤
-            bizIds = null;
-        } else if (appInfo.isBizSet()) {
-            // 业务集
-            // 查出业务集下所有子业务
-            bizIds = appInfo.getSubBizIds();
-        } else {
-            throw new InternalException("Ilegal appInfo:" + appInfo, ErrorCode.INTERNAL_ERROR);
-        }
-        List<HostStatusNumStatisticsDTO> statisticsDTOS = applicationHostDAO.countHostStatusNumByBizIds(bizIds);
-        for (HostStatusNumStatisticsDTO statisticsDTO : statisticsDTOS) {
-            if (statisticsDTO.getGseAgentAlive() == AgentAliveStatusEnum.ALIVE.getStatusValue()) {
-                aliveCount += statisticsDTO.getHostNum();
-            } else {
-                notAliveCount += statisticsDTO.getHostNum();
-            }
-        }
-        return new AgentStatistics(aliveCount, notAliveCount);
+        return scopeAgentStatisticsService.getAgentStatistics(appResourceScope);
     }
 
-    /**
-     * 查询子业务包含appId对应业务的所有业务ID
-     * 注意：全业务返回null
-     *
-     * @param appId Job业务ID
-     * @return 子业务包含appId对应业务的所有业务ID
-     */
-    private List<Long> getQueryConditionBizIds(Long appId) {
-        // 查出业务
-        ApplicationDTO appInfo = applicationDAO.getAppById(appId);
-        List<Long> bizIds;
-        if (appInfo.getScope().getType() == ResourceScopeTypeEnum.BIZ) {
-            bizIds = Collections.singletonList(Long.valueOf(appInfo.getScope().getId()));
-        } else if (appInfo.isAllBizSet()) {
-            // 兼容发布过程中子业务字段未同步完成时的查询
-            // 全业务：仅根据具体的条件查主机
-            return null;
-        } else if (appInfo.isBizSet()) {
-            // 业务集：仅根据业务查主机
-            // 查出对应的所有普通业务
-            bizIds = topologyHelper.getBizSetSubBizIds(appInfo);
-        } else {
-            throw new InternalException("Ilegal appInfo:" + appInfo, ErrorCode.INTERNAL_ERROR);
-        }
-        return bizIds;
-    }
-
-    // DB分页
     @Override
     public PageData<HostInfoVO> listHostsByAgentStatus(String username,
                                                        Long appId,
                                                        Integer status,
                                                        Long start,
                                                        Long pageSize) {
-        //分页
         Pair<Long, Long> pagePair = PageUtil.normalizePageParam(start, pageSize);
         start = pagePair.getLeft();
         pageSize = pagePair.getRight();
-        List<Long> bizIds = getQueryConditionBizIds(appId);
-        List<HostInfoVO> hostInfoVOList;
-        val hosts = applicationHostDAO.listHostInfoBySearchContents(
-            bizIds, null, null, null, status, start, pageSize);
-        hostDetailService.fillDetailForApplicationHosts(hosts);
-        Long count = applicationHostDAO.countHostInfoBySearchContents(
-            bizIds, null, null, null, status);
-        hostInfoVOList = hosts.stream()
+        PageData<ApplicationHostDTO> hostsPageData = scopeAgentStatusHostService.listHostsByAgentStatus(
+            username,
+            appId,
+            status,
+            start,
+            pageSize
+        );
+        List<HostInfoVO> hostInfoVOList = hostsPageData.getData().stream()
             .filter(Objects::nonNull)
             .map(ApplicationHostDTO::toVO)
             .collect(Collectors.toList());
-        return new PageData<>(start.intValue(), pageSize.intValue(), count, hostInfoVOList);
+        return new PageData<>(
+            start.intValue(),
+            pageSize.intValue(),
+            hostsPageData.getTotal(),
+            hostInfoVOList
+        );
     }
 
     @Override

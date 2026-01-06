@@ -26,10 +26,12 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.ExecuteBasePerAppStatisticsTask;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.api.inner.ServiceMetricsResource;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
@@ -52,9 +54,18 @@ public class RollingTaskDailyPerAppStatisticsTask extends ExecuteBasePerAppStati
     @Autowired
     public RollingTaskDailyPerAppStatisticsTask(ServiceMetricsResource executeMetricsResource,
                                                 BasicServiceManager basicServiceManager,
-                                                StatisticsDAO statisticsDAO,
-                                                @Qualifier("job-analysis-dsl-context") DSLContext dslContext) {
-        super(executeMetricsResource, basicServiceManager, statisticsDAO, dslContext);
+                                                CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                                NoTenantStatisticsDAO noTenantStatisticsDAO,
+                                                @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
+                                                TenantService tenantService) {
+        super(
+            executeMetricsResource,
+            basicServiceManager,
+            currentTenantStatisticsDAO,
+            noTenantStatisticsDAO,
+            dslContext,
+            tenantService
+        );
     }
 
     private StatisticsDTO getFailedTaskBaseStatisticsDTO(ServiceApplicationDTO app, String timeTag) {
@@ -64,7 +75,7 @@ public class RollingTaskDailyPerAppStatisticsTask extends ExecuteBasePerAppStati
     }
 
     private StatisticsDTO getTimeUnitBaseStatisticsDTO(ServiceApplicationDTO app, String timeTag) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(app.getId());
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(timeTag);
@@ -87,7 +98,7 @@ public class RollingTaskDailyPerAppStatisticsTask extends ExecuteBasePerAppStati
      * @param dayTimeStr
      */
     public void updateTotalFailedTaskStatistics(String dayTimeStr) {
-        List<StatisticsDTO> statisticsDTOList = statisticsDAO.getStatisticsList(
+        List<StatisticsDTO> statisticsDTOList = currentTenantStatisticsDAO.getStatisticsList(
             null,
             Collections.singletonList(StatisticsConstants.DEFAULT_APP_ID),
             StatisticsConstants.RESOURCE_ROLLING_FAILED_TASK,
@@ -100,7 +111,7 @@ public class RollingTaskDailyPerAppStatisticsTask extends ExecuteBasePerAppStati
             log.debug("add {} data", dto.getDate());
             totalValue += Long.parseLong(dto.getValue());
         }
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(StatisticsConstants.DEFAULT_APP_ID);
         statisticsDTO.setCreateTime(System.currentTimeMillis());
         statisticsDTO.setDate(dayTimeStr);
@@ -108,7 +119,7 @@ public class RollingTaskDailyPerAppStatisticsTask extends ExecuteBasePerAppStati
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_ROLLING_FAILED_TASK);
         statisticsDTO.setDimension(StatisticsConstants.DIMENSION_TIME_UNIT);
         statisticsDTO.setDimensionValue(StatisticsConstants.DIMENSION_VALUE_TIME_UNIT_DAY);
-        statisticsDAO.upsertStatistics(dslContext, statisticsDTO);
+        currentTenantStatisticsDAO.upsertStatistics(dslContext, statisticsDTO);
     }
 
     @Override

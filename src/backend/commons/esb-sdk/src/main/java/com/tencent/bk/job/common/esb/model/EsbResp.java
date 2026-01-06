@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.esb.model.iam.EsbApplyPermissionDTO;
+import com.tencent.bk.job.common.esb.model.iam.OpenApiApplyPermissionDTO;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.error.ErrorDetailDTO;
@@ -61,7 +61,7 @@ public class EsbResp<T> {
     /**
      * 无权限返回数据
      */
-    private EsbApplyPermissionDTO permission;
+    private OpenApiApplyPermissionDTO permission;
 
     private EsbResp(T data) {
         this.code = ErrorCode.RESULT_OK;
@@ -101,9 +101,14 @@ public class EsbResp<T> {
         return buildCommonFailResp(e.getErrorCode(), e.getErrorParams(), null);
     }
 
-    public static <T> EsbResp<T> buildAuthFailResult(EsbApplyPermissionDTO permission) {
-        EsbResp<T> esbResp = buildCommonFailResp(ErrorCode.BK_PERMISSION_DENIED,
-            new String[]{JobContextUtil.getUsername()}, null);
+    public static <T> EsbResp<T> buildAuthFailResult(OpenApiApplyPermissionDTO permission) {
+        EsbResp<T> esbResp = buildCommonFailResp(
+            ErrorCode.BK_PERMISSION_DENIED,
+            new String[]{
+                JobContextUtil.getUserDisplayName()
+            },
+            null
+        );
         esbResp.setPermission(permission);
         return esbResp;
     }

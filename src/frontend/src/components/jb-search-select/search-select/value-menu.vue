@@ -211,7 +211,7 @@
         if (remoteMethod) {
           this.loading = true;
           try {
-            const list = await remoteMethod(this.search, currentItem, 0);
+            const list = await remoteMethod(this.search);
             this.list = Object.freeze([
               ...list,
             ]);

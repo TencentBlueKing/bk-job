@@ -17,6 +17,8 @@
     "@babel/runtime": "7.27.1",
     "@blueking/ai-blueking": "0.2.11",
     "@blueking/ip-selector": "1.0.1-beta.21",
+    "@blueking/bk-user-display-name": "1.0.1",
+    "@blueking/bk-user-selector": "0.0.29-beta.8",
     "@blueking/login-modal": "1.0.6",
     "@blueking/notice-component-vue2": "2.0.6-beta.5",
     "@blueking/paas-login": "0.0.11",

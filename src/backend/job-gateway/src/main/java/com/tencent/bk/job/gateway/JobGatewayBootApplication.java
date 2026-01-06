@@ -26,12 +26,13 @@ package com.tencent.bk.job.gateway;
 
 import com.tencent.bk.job.common.service.boot.JobBootApplication;
 import com.tencent.bk.job.gateway.config.CsrfCheckProperties;
+import com.tencent.bk.job.gateway.config.UserMapProperties;
+import com.tencent.bk.job.gateway.web.server.GatewayWebServerFactoryCustomizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import org.springframework.boot.web.server.WebServer;
@@ -48,14 +49,14 @@ import javax.annotation.PreDestroy;
     exclude = {ApplicationAvailabilityAutoConfiguration.class},
     excludeName = {"org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration"})
 @Slf4j
-@EnableConfigurationProperties(CsrfCheckProperties.class)
 @EnableFeignClients
+@EnableConfigurationProperties({UserMapProperties.class, CsrfCheckProperties.class})
 public class JobGatewayBootApplication {
     private final HttpHandler httpHandler;
 
     private WebServer httpWebServer;
 
-    private final NettyWebServerFactoryCustomizer nettyWebServerFactoryCustomizer;
+    private final GatewayWebServerFactoryCustomizer gatewayWebServerFactoryCustomizer;
 
     @Value("${server.http.enabled}")
     private Boolean httpEnabled;
@@ -66,9 +67,9 @@ public class JobGatewayBootApplication {
     public JobGatewayBootApplication(@Autowired
                                          HttpHandler httpHandler,
                                      @Autowired(required = false)
-                                         NettyWebServerFactoryCustomizer nettyWebServerFactoryCustomizer) {
+                                     GatewayWebServerFactoryCustomizer gatewayWebServerFactoryCustomizer) {
         this.httpHandler = httpHandler;
-        this.nettyWebServerFactoryCustomizer = nettyWebServerFactoryCustomizer;
+        this.gatewayWebServerFactoryCustomizer = gatewayWebServerFactoryCustomizer;
     }
 
     public static void main(String[] args) {
@@ -79,8 +80,8 @@ public class JobGatewayBootApplication {
     public void startHttpWebServer() {
         if (httpEnabled && httpPort != null) {
             NettyReactiveWebServerFactory factory = new NettyReactiveWebServerFactory(httpPort);
-            if (nettyWebServerFactoryCustomizer != null) {
-                nettyWebServerFactoryCustomizer.customize(factory);
+            if (gatewayWebServerFactoryCustomizer != null) {
+                gatewayWebServerFactoryCustomizer.customize(factory);
             }
             this.httpWebServer = factory.getWebServer(this.httpHandler);
             this.httpWebServer.start();

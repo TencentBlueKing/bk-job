@@ -59,13 +59,6 @@ public interface ServiceTaskTemplateResource {
         @ApiParam(value = "脚本状态 1 - 上线 2 - 下线 3 - 禁用", required = true) @RequestParam("status") Integer status);
 
     @ApiOperation(value = "根据模版 ID 获取模版信息", produces = "application/json")
-    @GetMapping("/service/app/{appId}/template/{templateId}")
-    InternalResponse<ServiceTaskTemplateDTO> getTemplateById(
-        @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
-        @ApiParam(value = "模版 ID") @PathVariable("templateId") Long templateId);
-
-    @ApiOperation(value = "根据模版 ID 获取模版信息", produces = "application/json")
     @GetMapping("/service/template/{templateId}")
     InternalResponse<ServiceTaskTemplateDTO> getTemplateById(
         @ApiParam(value = "模版 ID") @PathVariable("templateId") Long templateId);

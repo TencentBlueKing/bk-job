@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.service;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
@@ -51,11 +52,11 @@ public interface AccountService {
     /**
      * 新增账号
      *
-     * @param username 用户账号
-     * @param account  新增的账号信息
+     * @param user    用户账号
+     * @param account 新增的账号信息
      * @return 新增的账号
      */
-    AccountDTO createAccount(String username, AccountDTO account);
+    AccountDTO createAccount(User user, AccountDTO account);
 
     /**
      * 根据ID获取账号信息
@@ -68,12 +69,12 @@ public interface AccountService {
     /**
      * 根据ID获取账号信息
      *
-     * @param username  用户账号
+     * @param user      用户账号
      * @param appId     业务 ID
      * @param accountId 账号Id
      * @return 账号
      */
-    AccountDTO getAccount(String username, long appId, Long accountId);
+    AccountDTO getAccount(User user, long appId, Long accountId);
 
     /**
      * 根据ID获取账号信息
@@ -104,20 +105,20 @@ public interface AccountService {
     /**
      * 更新账号
      *
-     * @param username 用户账号
-     * @param account  更新账号内容
+     * @param user    用户账号
+     * @param account 更新账号内容
      * @return 更新完的账号信息
      */
-    AccountDTO updateAccount(String username, AccountDTO account);
+    AccountDTO updateAccount(User user, AccountDTO account);
 
     /**
      * 删除账号
      *
-     * @param username  用户账号
+     * @param user      用户账号
      * @param appId     业务 ID
      * @param accountId 账号ID
      */
-    void deleteAccount(String username, long appId, Long accountId);
+    void deleteAccount(User user, long appId, Long accountId);
 
     /**
      * 分页查询账号列表
@@ -185,8 +186,6 @@ public interface AccountService {
                              boolean checkAccountName);
 
     AccountDTO buildCreateAccountDTO(String username, long appId, AccountCreateUpdateReq accountCreateUpdateReq);
-
-    Integer countAccounts(AccountTypeEnum accountType);
 
     void createDefaultAccounts(long appId);
 }

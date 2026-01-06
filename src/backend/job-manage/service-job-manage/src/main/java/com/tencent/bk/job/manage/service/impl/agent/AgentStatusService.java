@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Agent状态查询服务
+ * 资源范围无关的Agent状态查询服务
  */
 @Slf4j
 @Service
@@ -120,13 +120,13 @@ public class AgentStatusService {
         List<HostSimpleDTO> statusChangedHosts = new ArrayList<>();
         if (hosts.isEmpty()) return statusChangedHosts;
 
+        // 构建查询列表，同时保存每个主机对应的 HostAgentStateQuery 对象
         List<HostAgentStateQuery> hostAgentStateQueryList = new ArrayList<>(hosts.size());
-        Map<String, HostAgentStateQuery> hostAgentStateQueryMap = new HashMap<>(hosts.size());
-        hosts.forEach(hostSimpleDTO -> {
+        for (HostSimpleDTO hostSimpleDTO : hosts) {
             HostAgentStateQuery hostAgentStateQuery = HostAgentStateQuery.from(hostSimpleDTO);
             hostAgentStateQueryList.add(hostAgentStateQuery);
-            hostAgentStateQueryMap.put(hostSimpleDTO.getHostIdOrCloudIp(), hostAgentStateQuery);
-        });
+        }
+
         Map<String, AgentState> agentStateMap;
         try {
             agentStateMap = agentStateClient.batchGetAgentState(hostAgentStateQueryList);
@@ -139,8 +139,10 @@ public class AgentStatusService {
             return statusChangedHosts;
         }
 
-        for (HostSimpleDTO host : hosts) {
-            HostAgentStateQuery hostAgentStateQuery = hostAgentStateQueryMap.get(host.getHostIdOrCloudIp());
+        // 遍历时通过索引配对 host 和 hostAgentStateQuery，避免使用 Map 查找
+        for (int i = 0; i < hosts.size(); i++) {
+            HostSimpleDTO host = hosts.get(i);
+            HostAgentStateQuery hostAgentStateQuery = hostAgentStateQueryList.get(i);
             String effectiveAgentId = agentStateClient.getEffectiveAgentId(hostAgentStateQuery);
             AgentState agentState = agentStateMap.get(effectiveAgentId);
             AgentAliveStatusEnum agentAliveStatus = AgentAliveStatusEnum.fromAgentState(agentState);

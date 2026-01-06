@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.config.GseConfig;
 import com.tencent.bk.job.execute.engine.consts.Consts;
@@ -66,25 +67,28 @@ import java.util.concurrent.TimeUnit;
 public class AgentServiceImpl implements AgentService {
     private final AgentStateClient agentStateClient;
     private final HostService hostService;
+    private final TenantEnvService tenantEnvService;
     private final LoadingCache<String, HostDTO> agentHostCache = CacheBuilder.newBuilder()
         .maximumSize(1).expireAfterWrite(60, TimeUnit.SECONDS).
-            build(new CacheLoader<String, HostDTO>() {
-                      @SuppressWarnings("all")
-                      @Override
-                      public HostDTO load(String key) {
-                          HostDTO agentHost = getAgentBindHost();
-                          log.info("Load agent host and save to cache:{}", agentHost);
-                          return agentHost;
-                      }
+        build(new CacheLoader<String, HostDTO>() {
+                  @SuppressWarnings("all")
+                  @Override
+                  public HostDTO load(String key) {
+                      HostDTO agentHost = getAgentBindHost();
+                      log.info("Load agent host and save to cache:{}", agentHost);
+                      return agentHost;
                   }
-            );
+              }
+        );
 
     @Autowired
     public AgentServiceImpl(@Qualifier(GseConfig.EXECUTE_BEAN_AGENT_STATE_CLIENT)
-                                AgentStateClient agentStateClient,
-                            HostService hostService) {
+                            AgentStateClient agentStateClient,
+                            HostService hostService,
+                            TenantEnvService tenantEnvService) {
         this.agentStateClient = agentStateClient;
         this.hostService = hostService;
+        this.tenantEnvService = tenantEnvService;
     }
 
     @Override
@@ -147,7 +151,10 @@ public class AgentServiceImpl implements AgentService {
             log.warn("Cannot find host by multiIpv4:{}", multiIpv4);
             return null;
         }
-        Map<HostDTO, ServiceHostDTO> map = hostService.batchGetHosts(hostIps);
+        Map<HostDTO, ServiceHostDTO> map = hostService.batchGetHostsFromCacheOrDB(
+            tenantEnvService.getJobMachineTenantId(),
+            hostIps
+        );
         ServiceHostDTO aliveHost = findOneAliveHost(map.values());
         if (aliveHost == null) {
             log.warn("Cannot find alive hosts, use first ip of {}", multiIpv4);
@@ -175,8 +182,14 @@ public class AgentServiceImpl implements AgentService {
         }
         String[] ipv6Arr = multiIpv6.trim().split("[,;]");
         List<ServiceHostDTO> hosts = new ArrayList<>();
+        String jobMachineTenantId = tenantEnvService.getJobMachineTenantId();
         for (String ipv6 : ipv6Arr) {
-            hosts.add(hostService.getHostByCloudIpv6(Consts.DEFAULT_CLOUD_ID, ipv6));
+            ServiceHostDTO serviceHost = hostService.getHostByCloudIpv6(
+                jobMachineTenantId,
+                Consts.DEFAULT_CLOUD_ID,
+                ipv6
+            );
+            hosts.add(serviceHost);
         }
         if (CollectionUtils.isEmpty(hosts)) {
             log.warn("Cannot find host by multiIpv6:{}", multiIpv6);

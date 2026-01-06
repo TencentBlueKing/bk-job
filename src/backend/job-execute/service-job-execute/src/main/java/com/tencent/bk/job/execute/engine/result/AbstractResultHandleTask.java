@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.engine.result;
 
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -104,7 +104,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected ExecuteObjectTaskService executeObjectTaskService;
     protected StepInstanceService stepInstanceService;
-    protected GseClient gseClient;
+    protected IGseClient gseClient;
     /**
      * 任务请求的requestId，用于防止重复下发任务
      */
@@ -201,10 +201,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     private volatile boolean isGseTaskTerminating = false;
     /**
-     * 是否是GSE V2 TASK
-     */
-    protected boolean gseV2Task;
-    /**
      * 是否存在不可执行的目标执行对象
      */
     protected boolean existNoExecutableTargetExecuteObject;
@@ -250,7 +246,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.taskInstance = taskInstance;
         this.taskInstanceId = taskInstance.getId();
         this.stepInstance = stepInstance;
-        this.gseV2Task = stepInstance.isTargetGseV2Agent();
         this.appId = stepInstance.getAppId();
         this.stepInstanceId = stepInstance.getId();
         this.taskVariablesAnalyzeResult = taskVariablesAnalyzeResult;

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import lombok.Builder;
@@ -52,7 +53,7 @@ public class TaskExecuteParam {
     /**
      * 执行者
      */
-    private String operator;
+    private User operator;
     /**
      * 作业执行传入变量
      */

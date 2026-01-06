@@ -27,6 +27,8 @@ package com.tencent.bk.job.manage.api.iam.impl;
 import com.tencent.bk.audit.utils.json.JsonSchemaUtils;
 import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.model.dto.ScriptBasicDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbScriptV3DTO;
@@ -52,8 +54,10 @@ public class ScriptCallbackHelper extends AbstractScriptCallbackHelper {
 
     @Autowired
     public ScriptCallbackHelper(ScriptService scriptService,
-                                ApplicationService applicationService) {
-        super(applicationService);
+                                ApplicationService applicationService,
+                                AppScopeMappingService appScopeMappingService,
+                                TenantService tenantService) {
+        super(applicationService, appScopeMappingService, tenantService);
         this.scriptService = scriptService;
     }
 
@@ -89,8 +93,8 @@ public class ScriptCallbackHelper extends AbstractScriptCallbackHelper {
         return false;
     }
 
-    public CallbackBaseResponseDTO doCallback(CallbackRequestDTO callbackRequest) {
-        return baseCallback(callbackRequest);
+    public CallbackBaseResponseDTO doCallback(String tenantId, CallbackRequestDTO callbackRequest) {
+        return baseCallback(tenantId, callbackRequest);
     }
 
     @Override

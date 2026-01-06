@@ -93,6 +93,11 @@ public class ScriptQuery {
      */
     private String contentKeyword;
 
+    /**
+     * 租户 ID
+     */
+    private String tenantId;
+
     private BaseSearchCondition baseSearchCondition;
 
     public boolean isExistTagCondition() {

@@ -36,5 +36,7 @@ public interface GlobalSettingDAO {
 
     int deleteGlobalSetting(String key);
 
+    GlobalSettingDTO getGlobalSetting(String key, String tenantId);
+
     GlobalSettingDTO getGlobalSetting(String key);
 }

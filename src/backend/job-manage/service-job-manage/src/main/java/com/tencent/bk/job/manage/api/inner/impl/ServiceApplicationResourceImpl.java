@@ -34,8 +34,9 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
-import com.tencent.bk.job.manage.model.inner.ServiceAppBaseInfoDTO;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationAttrsDTO;
+import com.tencent.bk.job.manage.model.inner.request.ServiceListAppByAppIdListReq;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -53,34 +55,19 @@ import java.util.stream.Collectors;
 @RestController
 public class ServiceApplicationResourceImpl implements ServiceApplicationResource {
     private final ApplicationService applicationService;
+    private final ApplicationDAO applicationDAO;
     private final IBizCmdbClient bizCmdbClient;
     private final IBizSetCmdbClient bizSetCmdbClient;
 
     @Autowired
     public ServiceApplicationResourceImpl(ApplicationService applicationService,
+                                          ApplicationDAO applicationDAO,
                                           IBizCmdbClient bizCmdbClient,
                                           IBizSetCmdbClient bizSetCmdbClient) {
         this.applicationService = applicationService;
+        this.applicationDAO = applicationDAO;
         this.bizCmdbClient = bizCmdbClient;
         this.bizSetCmdbClient = bizSetCmdbClient;
-    }
-
-    @Override
-    public InternalResponse<List<ServiceAppBaseInfoDTO>> listNormalApps() {
-        List<ApplicationDTO> appList = applicationService.listAllApps();
-        List<ServiceAppBaseInfoDTO> resultList =
-            appList.stream().filter(ApplicationDTO::isBiz)
-                .map(this::convertToServiceAppBaseInfo).collect(Collectors.toList());
-        return InternalResponse.buildSuccessResp(resultList);
-    }
-
-    @Override
-    public InternalResponse<List<ServiceApplicationDTO>> listBizSetApps() {
-        List<ApplicationDTO> applicationInfoDTOList =
-            applicationService.listAppsByScopeType(ResourceScopeTypeEnum.BIZ_SET);
-        List<ServiceApplicationDTO> resultList =
-            applicationInfoDTOList.stream().map(this::convertToServiceApp).collect(Collectors.toList());
-        return InternalResponse.buildSuccessResp(resultList);
     }
 
     @Override
@@ -101,7 +88,6 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
         app.setScopeType(appInfo.getScope().getType().getValue());
         app.setScopeId(appInfo.getScope().getId());
         app.setName(appInfo.getName());
-        app.setOwner(appInfo.getBkSupplierAccount());
         app.setTimeZone(appInfo.getTimeZone());
         app.setLanguage(appInfo.getLanguage());
         if (appInfo.getAttrs() != null) {
@@ -110,16 +96,8 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
             attrs.setSubBizIds(appInfo.getAttrs().getSubBizIds());
             app.setAttrs(attrs);
         }
+        app.setTenantId(appInfo.getTenantId());
         return app;
-    }
-
-    private ServiceAppBaseInfoDTO convertToServiceAppBaseInfo(ApplicationDTO appInfo) {
-        ServiceAppBaseInfoDTO appBaseInfoDTO = new ServiceAppBaseInfoDTO();
-        appBaseInfoDTO.setScopeType(appInfo.getScope().getType().getValue());
-        appBaseInfoDTO.setScopeId(appInfo.getScope().getId());
-        appBaseInfoDTO.setAppId(appInfo.getId());
-        appBaseInfoDTO.setName(appInfo.getName());
-        return appBaseInfoDTO;
     }
 
     @Override
@@ -132,13 +110,9 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
     }
 
     @Override
-    public List<ServiceApplicationDTO> listAppsByAppIds(String appIds) {
-        Set<Long> appIdList = Arrays.stream(appIds.split(","))
-            .map(Long::parseLong).collect(Collectors.toSet());
+    public List<ServiceApplicationDTO> listAppsByAppIdList(ServiceListAppByAppIdListReq req) {
+        List<Long> appIdList = req.getAppIdList();
         List<ApplicationDTO> applications = applicationService.listAppsByAppIds(appIdList);
-        if (CollectionUtils.isEmpty(applications)) {
-            throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
-        }
         return applications.stream().map(this::convertToServiceApp).collect(Collectors.toList());
     }
 
@@ -165,41 +139,50 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
         List<ApplicationDTO> loaclAllDeletedApps = applicationService.listAllDeletedApps();
         log.debug("find archived app from local, size={}", loaclAllDeletedApps.size());
 
-        List<ApplicationDTO> bizApps = loaclAllDeletedApps.stream()
+        Map<String, List<ApplicationDTO>> tenantBizApps = loaclAllDeletedApps.stream()
             .filter(app -> ResourceScopeTypeEnum.BIZ.getValue().equals(app.getScope().getType().getValue()))
-            .collect(Collectors.toList());
-        List<Long> bizIds = bizApps.stream()
-            .map(bizApp -> Long.valueOf(bizApp.getScope().getId()))
-            .collect(Collectors.toList());
-
-        List<ApplicationDTO> bizSetApps = loaclAllDeletedApps.stream()
+            .collect(Collectors.groupingBy(ApplicationDTO::getTenantId));
+        Map<String, List<ApplicationDTO>> tenantBizSetApps = loaclAllDeletedApps.stream()
             .filter(app -> ResourceScopeTypeEnum.BIZ_SET.getValue().equals(app.getScope().getType().getValue()))
-            .collect(Collectors.toList());
-        List<Long> bizSetIds = bizSetApps.stream()
-            .map(bizSetApp -> Long.valueOf(bizSetApp.getScope().getId()))
-            .collect(Collectors.toList());
-
+            .collect(Collectors.groupingBy(ApplicationDTO::getTenantId));
         List<Long> archivedIds = new ArrayList<>();
 
-        if (CollectionUtils.isNotEmpty(bizApps)) {
-            List<ApplicationDTO> ccAllBizApps = bizCmdbClient.ListBizAppByIds(bizIds);
-            Set<String> ccBizAppScopeIds = ccAllBizApps.stream()
-                .map(ccBizApp -> ccBizApp.getScope().getId())
-                .collect(Collectors.toSet());
-            archivedIds.addAll(bizApps.stream().filter(bizAppInfoDTO ->
-                !ccBizAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
-                .map(ApplicationDTO::getId)
-                .collect(Collectors.toList()));
+        // 逐个租户筛选业务
+        for (Map.Entry<String, List<ApplicationDTO>> entry : tenantBizApps.entrySet()) {
+            String tenantId = entry.getKey();
+            List<ApplicationDTO> bizApps = entry.getValue();
+            List<Long> bizIds = bizApps.stream()
+                .map(bizApp -> Long.valueOf(bizApp.getScope().getId()))
+                .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(bizApps)) {
+                List<ApplicationDTO> ccAllBizApps = bizCmdbClient.listBizAppByIds(tenantId, bizIds);
+                Set<String> ccBizAppScopeIds = ccAllBizApps.stream()
+                    .map(ccBizApp -> ccBizApp.getScope().getId())
+                    .collect(Collectors.toSet());
+                archivedIds.addAll(bizApps.stream().filter(bizAppInfoDTO ->
+                        !ccBizAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
+                    .map(ApplicationDTO::getId)
+                    .collect(Collectors.toList()));
+            }
         }
-        if (CollectionUtils.isNotEmpty(bizSetApps)) {
-            List<BizSetInfo> bizSetInfos = bizSetCmdbClient.ListBizSetByIds(bizSetIds);
-            Set<String> ccBizSetAppScopeIds = bizSetInfos.stream()
-                .map(ccBizSetApp -> String.valueOf(ccBizSetApp.getId()))
-                .collect(Collectors.toSet());
-            archivedIds.addAll(bizSetApps.stream().filter(bizAppInfoDTO ->
-                !ccBizSetAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
-                .map(ApplicationDTO::getId)
-                .collect(Collectors.toList()));
+
+        // 逐个租户筛选业务集
+        for (Map.Entry<String, List<ApplicationDTO>> entry : tenantBizSetApps.entrySet()) {
+            String tenantId = entry.getKey();
+            List<ApplicationDTO> bizSetApps = entry.getValue();
+            List<Long> bizSetIds = bizSetApps.stream()
+                .map(bizSetApp -> Long.valueOf(bizSetApp.getScope().getId()))
+                .collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(bizSetApps)) {
+                List<BizSetInfo> bizSetInfos = bizSetCmdbClient.listBizSetByIds(tenantId, bizSetIds);
+                Set<String> ccBizSetAppScopeIds = bizSetInfos.stream()
+                    .map(ccBizSetApp -> String.valueOf(ccBizSetApp.getId()))
+                    .collect(Collectors.toSet());
+                archivedIds.addAll(bizSetApps.stream().filter(bizAppInfoDTO ->
+                        !ccBizSetAppScopeIds.contains(bizAppInfoDTO.getScope().getId()))
+                    .map(ApplicationDTO::getId)
+                    .collect(Collectors.toList()));
+            }
         }
         log.debug("finally find archived appIds={}", archivedIds);
         return InternalResponse.buildSuccessResp(archivedIds);
@@ -210,9 +193,22 @@ public class ServiceApplicationResourceImpl implements ServiceApplicationResourc
         try {
             ApplicationDTO appInfo = applicationService.getAppByAppId(appId);
             return InternalResponse.buildSuccessResp(appInfo != null);
-        } catch (NotFoundException e){
+        } catch (NotFoundException e) {
             log.info("biz/bizSet not exist, appId={}", appId);
             return InternalResponse.buildSuccessResp(false);
         }
+    }
+
+    public InternalResponse<List<Long>> listAppIdByTenant(String tenantId) {
+        return InternalResponse.buildSuccessResp(applicationDAO.listAppIdByTenant(tenantId));
+    }
+
+    public InternalResponse<List<ServiceApplicationDTO>> listAppByTenant(String tenantId) {
+        return InternalResponse.buildSuccessResp(
+            applicationDAO.listAllAppsForTenant(tenantId)
+                .stream()
+                .map(ServiceApplicationDTO::fromApplicationDTO)
+                .collect(Collectors.toList())
+        );
     }
 }

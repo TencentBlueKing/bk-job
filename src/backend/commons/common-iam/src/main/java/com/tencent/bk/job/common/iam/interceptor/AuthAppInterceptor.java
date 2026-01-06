@@ -28,14 +28,18 @@
 package com.tencent.bk.job.common.iam.interceptor;
 
 import com.tencent.bk.job.common.annotation.JobInterceptor;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.InterceptorOrder;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
+import com.tencent.bk.job.common.model.BasicApp;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -56,33 +60,32 @@ public class AuthAppInterceptor extends HandlerInterceptorAdapter {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String url = request.getRequestURI();
-        Pair<String, AppResourceScope> userScopePair;
-        userScopePair = findUserAndScope();
-        if (userScopePair != null) {
-            String username = userScopePair.getLeft();
-            AppResourceScope appResourceScope = userScopePair.getRight();
-            if (appResourceScope != null) {
-                log.debug("Auth {} access_business {}", username, appResourceScope);
-                AuthResult authResult = businessAuthService.authAccessBusiness(username, appResourceScope);
-                if (!authResult.isPass()) {
-                    throw new PermissionDeniedException(authResult);
-                }
-            } else {
-                log.debug("Ignore auth {} access_business public scope", username);
+        User user = JobContextUtil.getUser();
+        if (user == null) {
+            log.debug("Can not find user for url:{}", url);
+            return true;
+        }
+        BasicApp app = JobContextUtil.getApp();
+        if (app != null) {
+            checkAppTenant(app, user.getTenantId());
+            AppResourceScope appResourceScope = new AppResourceScope(app.getId(), app.getScope());
+            log.debug("Auth {} access_business {}", user.getUsername(), appResourceScope);
+            AuthResult authResult = businessAuthService.authAccessBusiness(user, appResourceScope);
+            if (!authResult.isPass()) {
+                throw new PermissionDeniedException(authResult);
             }
         } else {
-            log.debug("Can not find username/scope for url:{}", url);
+            log.debug("Ignore auth {} access_business public scope", user.getUsername());
         }
         return true;
     }
 
-    private Pair<String, AppResourceScope> findUserAndScope() {
-        String username = JobContextUtil.getUsername();
-        AppResourceScope appResourceScope = JobContextUtil.getAppResourceScope();
-        if (username != null && appResourceScope != null) {
-            return Pair.of(username, appResourceScope);
+    private void checkAppTenant(BasicApp app, String tenantId) {
+        if (!app.getTenantId().equals(tenantId)) {
+            log.warn("App is not belong to tenant, app: {}, userTenantId: {}",
+                app, tenantId);
+            throw new NotFoundException(ErrorCode.APP_NOT_EXIST);
         }
-        return null;
     }
 
     @Override

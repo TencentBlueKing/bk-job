@@ -521,7 +521,7 @@ public class CronJobDAOImpl implements CronJobDAO {
                 .from(TABLE).where(conditions).fetch();
 
         List<CronJobInfoDTO> cronJobInfoList = new ArrayList<>();
-        if (records.size() >= 1) {
+        if (!records.isEmpty()) {
             records.map(record -> cronJobInfoList.add(convertToCronJobDTO(record)));
         }
         return cronJobInfoList;
@@ -585,6 +585,24 @@ public class CronJobDAOImpl implements CronJobDAO {
         List<Condition> conditions = buildConditionList(cronJobInfoDTO, new BaseSearchCondition());
         List<ULong> cronJobIds = context.select(TABLE.ID).from(TABLE).where(conditions).fetch(TABLE.ID);
         return cronJobIds.stream().map(ULong::longValue).collect(Collectors.toList());
+    }
+
+    @Override
+    public int disableCronJob(long appId, List<Long> cronJobIdList) {
+        List<Condition> conditions = buildNotDeleteConditions();
+        conditions.add(TABLE.APP_ID.eq(ULong.valueOf(appId)));
+        conditions.add(TABLE.ID.in(cronJobIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
+        return context
+            .update(TABLE)
+            .set(TABLE.IS_ENABLE, UByte.valueOf(0))
+            .where(conditions)
+            .execute();
+    }
+
+    private List<Condition> buildNotDeleteConditions() {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.IS_DELETED.eq(UByte.valueOf(0)));
+        return conditions;
     }
 
     private CronJobInfoDTO convertToCronJobDTO(Record record) {

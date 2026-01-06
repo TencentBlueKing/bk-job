@@ -71,3 +71,4 @@ job:
     login-exemption:
       enabled: false
       default-user: admin
+      default-user-tenant-id: default

@@ -27,8 +27,8 @@ import Request from '@utils/request';
 
 // 对接全业务场景的IP选择器
 class HostAllManage {
-  constructor() {
-    this.path = 'job-manage/web/scope/biz_set/9991001';
+  get path() {
+    return `job-manage/web/scope/biz_set/${window.PROJECT_CONFIG.ALL_BIZ_SET_SCOPE_ID}`;
   }
 
   // 获取动态分组

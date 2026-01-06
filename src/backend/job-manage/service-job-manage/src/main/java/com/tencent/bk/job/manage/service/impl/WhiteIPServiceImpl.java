@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
@@ -50,7 +51,7 @@ import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
-import com.tencent.bk.job.manage.dao.ApplicationHostDAO;
+import com.tencent.bk.job.manage.dao.CurrentTenantHostDAO;
 import com.tencent.bk.job.manage.dao.whiteip.ActionScopeDAO;
 import com.tencent.bk.job.manage.dao.whiteip.WhiteIPRecordDAO;
 import com.tencent.bk.job.manage.model.dto.whiteip.ActionScopeDTO;
@@ -89,7 +90,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     private final WhiteIPRecordDAO whiteIPRecordDAO;
     private final ApplicationDAO applicationDAO;
     private final AppScopeMappingService appScopeMappingService;
-    private final ApplicationHostDAO applicationHostDAO;
+    private final CurrentTenantHostDAO currentTenantHostDAO;
     private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
@@ -99,14 +100,14 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         ApplicationDAO applicationDAO,
         MessageI18nService i18nService,
         AppScopeMappingService appScopeMappingService,
-        ApplicationHostDAO applicationHostDAO,
+        CurrentTenantHostDAO currentTenantHostDAO,
         IBizCmdbClient bizCmdbClient) {
         this.actionScopeDAO = actionScopeDAO;
         this.whiteIPRecordDAO = whiteIPRecordDAO;
         this.applicationDAO = applicationDAO;
         this.i18nService = i18nService;
         this.appScopeMappingService = appScopeMappingService;
-        this.applicationHostDAO = applicationHostDAO;
+        this.currentTenantHostDAO = currentTenantHostDAO;
         this.bizCmdbClient = bizCmdbClient;
     }
 
@@ -118,10 +119,8 @@ public class WhiteIPServiceImpl implements WhiteIPService {
      */
     private List<Long> getEffectiveAppIdList(Long appId) {
         List<Long> effectiveAppIds = new ArrayList<>();
-        effectiveAppIds.add(JobConstants.DEFAULT_ALL_BIZ_SET_ID);
         effectiveAppIds.add(JobConstants.PUBLIC_APP_ID);
         if (appId != null
-            && !appId.equals(JobConstants.DEFAULT_ALL_BIZ_SET_ID)
             && !appId.equals(JobConstants.PUBLIC_APP_ID)) {
             effectiveAppIds.add(appId);
         }
@@ -252,9 +251,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
 
     private List<WhiteIPIPDTO> buildIpDtoList(List<HostIdWithMeta> hostList,
                                               String username) {
-        List<WhiteIPIPDTO> finalIpDtoList = new ArrayList<>();
-        finalIpDtoList.addAll(buildHostDtoList(hostList, username));
-        return finalIpDtoList;
+        return new ArrayList<>(buildHostDtoList(hostList, username));
     }
 
     private List<WhiteIPIPDTO> buildHostDtoList(List<HostIdWithMeta> hostList,
@@ -264,7 +261,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
         }
         // 从本地DB查询
         List<Long> hostIdList = hostList.stream().map(HostIdWithMeta::getHostId).collect(Collectors.toList());
-        List<ApplicationHostDTO> hostDTOList = applicationHostDAO.listHostInfoByHostIds(hostIdList);
+        List<ApplicationHostDTO> hostDTOList = currentTenantHostDAO.listHostInfoByHostIds(hostIdList);
         Map<Long, ApplicationHostDTO> hostMap = new HashMap<>();
         hostDTOList.forEach(hostDTO -> hostMap.put(hostDTO.getHostId(), hostDTO));
 
@@ -273,7 +270,8 @@ public class WhiteIPServiceImpl implements WhiteIPService {
             .filter(hostId -> !hostMap.containsKey(hostId))
             .collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(notInDbHostIdList)) {
-            List<ApplicationHostDTO> cmdbHostList = bizCmdbClient.listHostsByHostIds(notInDbHostIdList);
+            String tenantId = JobContextUtil.getTenantId();
+            List<ApplicationHostDTO> cmdbHostList = bizCmdbClient.listHostsByHostIds(tenantId, notInDbHostIdList);
             if (CollectionUtils.isNotEmpty(cmdbHostList)) {
                 cmdbHostList.forEach(hostDTO -> hostMap.put(hostDTO.getHostId(), hostDTO));
             }
@@ -417,7 +415,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     public List<CloudAreaInfoVO> listCloudAreas(String username) {
         log.info("Input(" + username + ")");
         List<CcCloudAreaInfoDTO> cloudAreaInfoList = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
-            .getCloudAreaList();
+            .getCloudAreaList(JobContextUtil.getTenantId());
         return cloudAreaInfoList.stream().map(it ->
             new CloudAreaInfoVO(it.getId(), it.getName())).collect(Collectors.toList());
     }
@@ -446,23 +444,15 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     }
 
     @Override
-    public List<String> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId, Long hostId) {
-        log.info("Input=({},{},{},{})", appId, ip, cloudAreaId, hostId);
-        // 1.找出与当前业务关联的所有appId
-        List<Long> effectiveAppIds = getEffectiveAppIdList(appId);
-        // 2.再查对应的白名单
-        List<String> actionScopes = new ArrayList<>();
-        if (hostId != null) {
-            actionScopes = whiteIPRecordDAO.getWhiteIPActionScopes(effectiveAppIds, hostId);
-        }
-        return actionScopes;
+    public List<ServiceWhiteIPInfo> listWhiteIPInfos() {
+        return listWhiteIPInfos(TenantIdConstants.DEFAULT_TENANT_ID);
     }
 
     @Override
-    public List<ServiceWhiteIPInfo> listWhiteIPInfos() {
+    public List<ServiceWhiteIPInfo> listWhiteIPInfos(String tenantId) {
         List<ServiceWhiteIPInfo> resultList = new ArrayList<>();
         //查出所有Record
-        List<WhiteIPRecordDTO> recordList = whiteIPRecordDAO.listAllWhiteIPRecord();
+        List<WhiteIPRecordDTO> recordList = whiteIPRecordDAO.listAllWhiteIPRecord(tenantId);
         if (CollectionUtils.isEmpty(recordList)) {
             return resultList;
         }

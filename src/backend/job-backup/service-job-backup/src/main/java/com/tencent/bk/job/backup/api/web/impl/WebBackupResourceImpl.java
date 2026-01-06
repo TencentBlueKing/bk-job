@@ -25,7 +25,6 @@
 package com.tencent.bk.job.backup.api.web.impl;
 
 import com.tencent.bk.job.backup.api.web.WebBackupResource;
-import com.tencent.bk.job.backup.config.ArtifactoryConfig;
 import com.tencent.bk.job.backup.config.BackupStorageConfig;
 import com.tencent.bk.job.backup.constant.BackupJobStatusEnum;
 import com.tencent.bk.job.backup.constant.Constant;
@@ -48,6 +47,7 @@ import com.tencent.bk.job.backup.service.LogService;
 import com.tencent.bk.job.backup.service.StorageService;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -77,9 +77,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * @since 21/7/2020 15:44
- */
 @Slf4j
 @RestController
 public class WebBackupResourceImpl implements WebBackupResource {
@@ -89,8 +86,9 @@ public class WebBackupResourceImpl implements WebBackupResource {
     private final LogService logService;
     private final StorageService storageService;
     private final ArtifactoryClient artifactoryClient;
-    private final ArtifactoryConfig artifactoryConfig;
+    private final ArtifactoryHelper artifactoryHelper;
     private final BackupStorageConfig backupStorageConfig;
+    private final ExportJobExecutor exportJobExecutor;
 
     @Autowired
     public WebBackupResourceImpl(ImportJobService importJobService,
@@ -98,15 +96,17 @@ public class WebBackupResourceImpl implements WebBackupResource {
                                  LogService logService,
                                  StorageService storageService,
                                  ArtifactoryClient artifactoryClient,
-                                 ArtifactoryConfig artifactoryConfig,
-                                 BackupStorageConfig backupStorageConfig) {
+                                 ArtifactoryHelper artifactoryHelper,
+                                 BackupStorageConfig backupStorageConfig,
+                                 ExportJobExecutor exportJobExecutor) {
         this.importJobService = importJobService;
         this.exportJobService = exportJobService;
         this.logService = logService;
         this.storageService = storageService;
         this.artifactoryClient = artifactoryClient;
-        this.artifactoryConfig = artifactoryConfig;
+        this.artifactoryHelper = artifactoryHelper;
         this.backupStorageConfig = backupStorageConfig;
+        this.exportJobExecutor = exportJobExecutor;
     }
 
     @Override
@@ -138,19 +138,12 @@ public class WebBackupResourceImpl implements WebBackupResource {
         exportJobInfoDTO.setTemplateInfo(exportRequest.getTemplateInfo().stream()
             .map(BackupTemplateInfoDTO::fromVO).collect(Collectors.toList()));
         String id = exportJobService.startExport(exportJobInfoDTO);
-
-        if (exportJobInfoDTO.getId().equals(id)) {
-            ExportInfoVO exportInfoVO = new ExportInfoVO();
-            exportInfoVO.setId(id);
-            exportInfoVO.setStatus(BackupJobStatusEnum.INIT.getStatus());
-            try {
-                ExportJobExecutor.startExport(id);
-            } catch (Exception e) {
-                throw new InternalException("Start job failed! System busy!", e, ErrorCode.INTERNAL_ERROR);
-            }
-            return Response.buildSuccessResp(exportInfoVO);
-        }
-        throw new InternalException("Start failed!", ErrorCode.INTERNAL_ERROR);
+        ExportInfoVO exportInfoVO = new ExportInfoVO();
+        exportInfoVO.setId(id);
+        exportInfoVO.setStatus(BackupJobStatusEnum.INIT.getStatus());
+        // 启动后台导出任务
+        exportJobExecutor.startExport(id);
+        return Response.buildSuccessResp(exportInfoVO);
     }
 
     @Override
@@ -191,7 +184,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
         InputStream ins;
         try {
             nodeDTO = artifactoryClient.queryNodeDetail(
-                artifactoryConfig.getArtifactoryJobProject(),
+                artifactoryHelper.getJobRealProject(),
                 backupStorageConfig.getBackupRepo(),
                 fileName
             );
@@ -200,7 +193,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
         }
         try {
             Pair<InputStream, HttpRequestBase> pair = artifactoryClient.getFileInputStream(
-                artifactoryConfig.getArtifactoryJobProject(),
+                artifactoryHelper.getJobRealProject(),
                 backupStorageConfig.getBackupRepo(),
                 fileName
             );
@@ -299,7 +292,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
         Long appId = appResourceScope.getAppId();
         String originalFileName = FilePathUtils.getPureFileName(uploadFile.getOriginalFilename());
         if (originalFileName != null && originalFileName.endsWith(Constant.JOB_EXPORT_FILE_SUFFIX)) {
-            String id = UUID.randomUUID().toString();
+            String id = UUID.randomUUID().toString().replace("-", "");
             String fileName = importJobService.saveFile(username, appId, id, uploadFile);
             String jobId = importJobService.addImportJob(username, appId, id, fileName);
             if (id.equals(jobId)) {
@@ -320,7 +313,7 @@ public class WebBackupResourceImpl implements WebBackupResource {
                     try {
                         log.debug("begin to upload to artifactory:{}", filePath);
                         artifactoryClient.uploadGenericFile(
-                            artifactoryConfig.getArtifactoryJobProject(),
+                            artifactoryHelper.getJobRealProject(),
                             backupStorageConfig.getBackupRepo(),
                             filePath,
                             file

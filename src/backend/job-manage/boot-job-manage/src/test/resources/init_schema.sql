@@ -46,6 +46,7 @@ CREATE TABLE `script`
     `description`      LONGTEXT,
     `is_deleted`       TINYINT(1) UNSIGNED          DEFAULT '0',
     `tags`             VARCHAR(512)                 DEFAULT NULL,
+    `tenant_id`        VARCHAR(32)         NOT NULL DEFAULT 'default',
     PRIMARY KEY (`id`),
     KEY (`app_id`),
     KEY (`app_id`, `name`)
@@ -600,7 +601,8 @@ CREATE TABLE IF NOT EXISTS `global_setting`
 (
     `key`        varchar(255) NOT NULL,
     `value`      text         NULL,
-    `decription` varchar(255) NULL DEFAULT NULL
+    `decription` varchar(255) NULL DEFAULT NULL,
+    `tenant_id`  varchar(32)  NOT NULL DEFAULT 'default'
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS `available_esb_channel`
@@ -609,6 +611,7 @@ CREATE TABLE IF NOT EXISTS `available_esb_channel`
     `enable`           bit(1)       NOT NULL,
     `creator`          varchar(255) NULL,
     `last_modify_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `tenant_id`  varchar(32)  NOT NULL DEFAULT 'default',
     PRIMARY KEY (`type`)
 ) ENGINE = InnoDB;
 
@@ -625,6 +628,7 @@ CREATE TABLE IF NOT EXISTS `dangerous_rule`
     `last_modify_user` varchar(128)        NULL     DEFAULT NULL,
     `create_time`      bigint(20) UNSIGNED NULL     DEFAULT NULL,
     `last_modify_time` bigint(20) UNSIGNED NULL     DEFAULT NULL,
+    `tenant_id`        VARCHAR(32)         NOT NULL DEFAULT 'default',
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB;
 

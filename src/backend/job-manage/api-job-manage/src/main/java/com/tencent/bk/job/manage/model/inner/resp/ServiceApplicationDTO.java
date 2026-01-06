@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.inner.resp;
 
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationAttrsDTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -57,14 +58,6 @@ public class ServiceApplicationDTO {
     private String name;
 
     /**
-     * 运维
-     */
-    private String maintainers;
-
-    @ApiModelProperty("开发商")
-    private String owner;
-
-    /**
      * 时区
      */
     private String timeZone;
@@ -79,7 +72,28 @@ public class ServiceApplicationDTO {
      */
     private ServiceApplicationAttrsDTO attrs;
 
+    /**
+     * 租户 ID
+     */
+    private String tenantId;
+
     public boolean isBiz() {
         return ResourceScopeTypeEnum.BIZ.getValue().equals(scopeType);
+    }
+
+    public static ServiceApplicationDTO fromApplicationDTO(ApplicationDTO applicationDTO) {
+        if (applicationDTO == null) {
+            return null;
+        }
+        ServiceApplicationDTO serviceApplicationDTO = new ServiceApplicationDTO();
+        serviceApplicationDTO.setId(applicationDTO.getId());
+        serviceApplicationDTO.setName(applicationDTO.getName());
+        serviceApplicationDTO.setScopeType(applicationDTO.getScope().getType().getValue());
+        serviceApplicationDTO.setScopeId(applicationDTO.getScope().getId());
+        serviceApplicationDTO.setTimeZone(applicationDTO.getTimeZone());
+        serviceApplicationDTO.setLanguage(applicationDTO.getLanguage());
+        serviceApplicationDTO.setAttrs(ServiceApplicationAttrsDTO.fromApplicationAttrsDO(applicationDTO.getAttrs()));
+        serviceApplicationDTO.setTenantId(applicationDTO.getTenantId());
+        return serviceApplicationDTO;
     }
 }

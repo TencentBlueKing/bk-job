@@ -26,13 +26,20 @@ package com.tencent.bk.job.common.gse.v2;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
+import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.IGseClient;
+import com.tencent.bk.job.common.gse.config.ConditionalOnMockGseV2ApiDisabled;
+import com.tencent.bk.job.common.gse.config.ConditionalOnMockGseV2ApiEnabled;
 import com.tencent.bk.job.common.gse.config.GseV2Properties;
+import com.tencent.bk.job.common.gse.mock.MockGseV2Client;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Slf4j
 @Configuration(proxyBeanMethods = false)
@@ -40,27 +47,46 @@ import org.springframework.context.annotation.Configuration;
 @ConditionalOnProperty(name = "gseV2.enabled", havingValue = "true", matchIfMissing = true)
 public class GseV2AutoConfiguration {
 
-    @ConditionalOnProperty(name = "gseV2.retry.enabled", havingValue = "false", matchIfMissing = true)
+    @Primary
     @Bean("gseV2ApiClient")
-    public GseV2ApiClient gseV2ApiClient(MeterRegistry meterRegistry,
-                                         AppProperties appProperties,
-                                         BkApiGatewayProperties bkApiGatewayProperties) {
+    @ConditionalOnMockGseV2ApiDisabled
+    @ConditionalOnProperty(name = "gseV2.retry.enabled", havingValue = "false", matchIfMissing = true)
+    public IGseClient gseV2ApiClient(MeterRegistry meterRegistry,
+                                     AppProperties appProperties,
+                                     BkApiGatewayProperties bkApiGatewayProperties,
+                                     TenantEnvService tenantEnvService) {
         log.info("Init gseV2ApiClient");
-        return new GseV2ApiClient(meterRegistry, appProperties, bkApiGatewayProperties);
+        return new GseClient(
+            new GseV2ApiClient(
+                meterRegistry,
+                appProperties,
+                bkApiGatewayProperties,
+                tenantEnvService
+            )
+        );
     }
 
-    @ConditionalOnProperty(name = "gseV2.retry.enabled", havingValue = "true")
+    @Bean
+    @ConditionalOnMockGseV2ApiEnabled
+    public IGseClient mockedGseV2ApiClient() {
+        return new MockGseV2Client();
+    }
+
     @Bean("retryableGseV2ApiClient")
-    public GseV2ApiClient retryableGseV2ApiClient(MeterRegistry meterRegistry,
-                                                  AppProperties appProperties,
-                                                  BkApiGatewayProperties bkApiGatewayProperties,
-                                                  GseV2Properties gseV2Properties) {
+    @ConditionalOnMockGseV2ApiDisabled
+    @ConditionalOnProperty(name = "gseV2.retry.enabled", havingValue = "true")
+    public IGseClient retryableGseV2ApiClient(MeterRegistry meterRegistry,
+                                              AppProperties appProperties,
+                                              BkApiGatewayProperties bkApiGatewayProperties,
+                                              GseV2Properties gseV2Properties,
+                                              TenantEnvService tenantEnvService) {
         log.info("Init retryableGseV2ApiClient");
         return new RetryableGseV2ApiClient(
             meterRegistry,
             appProperties,
             bkApiGatewayProperties,
-            gseV2Properties
+            gseV2Properties,
+            tenantEnvService
         );
     }
 }

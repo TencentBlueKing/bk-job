@@ -25,44 +25,72 @@
 package com.tencent.bk.job.common.paas.config;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
 import com.tencent.bk.job.common.esb.config.EsbProperties;
+import com.tencent.bk.job.common.paas.config.condition.ConditionalOnCustomLoginDisable;
+import com.tencent.bk.job.common.paas.config.condition.ConditionalOnCustomLoginEnable;
+import com.tencent.bk.job.common.paas.config.condition.ConditionalOnLoginUseApiGw;
+import com.tencent.bk.job.common.paas.config.condition.ConditionalOnLoginUseEsb;
 import com.tencent.bk.job.common.paas.login.CustomLoginClient;
 import com.tencent.bk.job.common.paas.login.ILoginClient;
-import com.tencent.bk.job.common.paas.login.StandardLoginClient;
+import com.tencent.bk.job.common.paas.login.StandardLoginApiGwClient;
+import com.tencent.bk.job.common.paas.login.StandardLoginEsbClient;
+import com.tencent.bk.job.common.paas.login.v3.BkLoginApiGwClient;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 
 @Configuration(proxyBeanMethods = false)
 @Slf4j
-@Import(LoginConfiguration.class)
+@EnableConfigurationProperties(LoginProperties.class)
 public class LoginAutoConfiguration {
 
     @Bean
-    @ConditionalOnProperty(value = "paas.login.custom.enabled", havingValue = "true")
-    public ILoginClient customLoginClient(@Autowired LoginConfiguration loginConfiguration) {
-        log.info("Init CustomLoginClient");
-        return new CustomLoginClient(loginConfiguration.getCustomLoginApiUrl());
+    @ConditionalOnCustomLoginEnable
+    public ILoginClient customLoginClient(@Autowired LoginProperties loginProperties) {
+        log.info("Init customLoginClient");
+        return new CustomLoginClient(loginProperties.getCustom().getLoginUrl());
     }
 
     @Bean
-    @ConditionalOnProperty(value = "paas.login.custom.enabled", havingValue = "false", matchIfMissing = true)
     @Primary
-    public ILoginClient standardLoginClient(AppProperties appProperties,
-                                            EsbProperties esbProperties,
-                                            ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
+    @ConditionalOnLoginUseApiGw
+    @ConditionalOnCustomLoginDisable
+    public ILoginClient standardLoginApiGwClient(BkApiGatewayProperties bkApiGatewayProperties,
+                                                 AppProperties appProperties,
+                                                 ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
+                                                 TenantEnvService tenantEnvService) {
+        log.info("Init standardLoginApiGwClient");
+        return new StandardLoginApiGwClient(
+            new BkLoginApiGwClient(
+                bkApiGatewayProperties,
+                appProperties,
+                meterRegistryObjectProvider.getIfAvailable(),
+                tenantEnvService
+            ),
+            tenantEnvService
+        );
+    }
 
-        log.info("Init StandardLoginClient");
-        return new StandardLoginClient(
+    @Bean
+    @ConditionalOnLoginUseEsb
+    @ConditionalOnCustomLoginDisable
+    public ILoginClient standardLoginEsbClient(EsbProperties esbProperties,
+                                               AppProperties appProperties,
+                                               MeterRegistry meterRegistry,
+                                               TenantEnvService tenantEnvService) {
+        log.info("Init standardLoginEsbClient");
+        return new StandardLoginEsbClient(
             esbProperties,
             appProperties,
-            meterRegistryObjectProvider.getIfAvailable()
+            meterRegistry,
+            tenantEnvService
         );
     }
 }

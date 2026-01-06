@@ -102,7 +102,11 @@
           align="left"
           :label="$t('dangerousRule.创建人')"
           prop="creator"
-          width="120" />
+          width="120">
+          <template slot-scope="{ row }">
+            <bk-user-display-name :user-id="row.creator" />
+          </template>
+        </bk-table-column>
         <bk-table-column
           v-if="allRenderColumnMap.createTime"
           key="createTime"
@@ -117,7 +121,11 @@
           :label="$t('dangerousRule.更新人')"
           prop="lastModifier"
           sortable="custom"
-          width="140" />
+          width="140">
+          <template slot-scope="{ row }">
+            <bk-user-display-name :user-id="row.lastModifier" />
+          </template>
+        </bk-table-column>
         <bk-table-column
           v-if="allRenderColumnMap.lastModifyTime"
           key="lastModifyTime"

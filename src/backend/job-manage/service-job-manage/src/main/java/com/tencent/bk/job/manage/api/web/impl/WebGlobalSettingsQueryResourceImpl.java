@@ -31,8 +31,10 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.web.WebGlobalSettingsQueryResource;
 import com.tencent.bk.job.manage.auth.NoResourceScopeAuthService;
 import com.tencent.bk.job.manage.config.JobManageConfig;
@@ -41,6 +43,7 @@ import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIco
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.PublicScriptService;
+import com.tencent.bk.job.manage.service.globalsetting.EsbNotifyChannelService;
 import com.tencent.bk.job.manage.service.globalsetting.GlobalSettingsService;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.tools.StringUtils;
@@ -65,6 +68,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     private final JobManageConfig jobManageConfig;
     private final NoResourceScopeAuthService noResourceScopeAuthService;
     private final AppAuthService appAuthService;
+    private final EsbNotifyChannelService esbNotifyChannelService;
     private final PublicScriptService publicScriptService;
     private final ThreadPoolExecutor adminAuthExecutor;
 
@@ -73,6 +77,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
                                               ApplicationService applicationService,
                                               JobManageConfig jobManageConfig,
                                               NoResourceScopeAuthService noResourceScopeAuthService,
+                                              EsbNotifyChannelService esbNotifyChannelService,
                                               AppAuthService appAuthService,
                                               PublicScriptService publicScriptService,
                                               @Qualifier("adminAuthExecutor") ThreadPoolExecutor adminAuthExecutor) {
@@ -80,6 +85,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
         this.applicationService = applicationService;
         this.jobManageConfig = jobManageConfig;
         this.noResourceScopeAuthService = noResourceScopeAuthService;
+        this.esbNotifyChannelService = esbNotifyChannelService;
         this.appAuthService = appAuthService;
         this.publicScriptService = publicScriptService;
         this.adminAuthExecutor = adminAuthExecutor;
@@ -88,7 +94,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     @Override
     @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
     public Response<List<NotifyChannelWithIconVO>> listNotifyChannel(String username) {
-        return Response.buildSuccessResp(globalSettingsService.listNotifyChannel(username));
+        return Response.buildSuccessResp(esbNotifyChannelService.listNotifyChannel(username));
     }
 
     @Override
@@ -99,11 +105,12 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
 
     @Override
     public Response<Boolean> isAdmin(String username) {
+        User user = JobContextUtil.getUser();
         AtomicBoolean flag = new AtomicBoolean(false);
         CountDownLatch latch = new CountDownLatch(9);
         adminAuthExecutor.submit(() -> {
             try {
-                AuthResult createWhiteListAuthResultVO = noResourceScopeAuthService.authCreateWhiteList(username);
+                AuthResult createWhiteListAuthResultVO = noResourceScopeAuthService.authCreateWhiteList(user);
                 flag.set(flag.get() || createWhiteListAuthResultVO.isPass());
             } catch (Throwable t) {
                 log.error("Fail to auth {} to {}", ActionId.CREATE_WHITELIST, username, t);
@@ -113,7 +120,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
         });
         adminAuthExecutor.submit(() -> {
             try {
-                AuthResult manageWhiteListAuthResultVO = noResourceScopeAuthService.authManageWhiteList(username);
+                AuthResult manageWhiteListAuthResultVO = noResourceScopeAuthService.authManageWhiteList(user);
                 flag.set(flag.get() || manageWhiteListAuthResultVO.isPass());
             } catch (Throwable t) {
                 log.error("Fail to auth {} to {}", ActionId.MANAGE_WHITELIST, username, t);
@@ -123,7 +130,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
         });
         adminAuthExecutor.submit(() -> {
             try {
-                AuthResult createPublicScriptAuthResultVO = noResourceScopeAuthService.authCreatePublicScript(username);
+                AuthResult createPublicScriptAuthResultVO = noResourceScopeAuthService.authCreatePublicScript(user);
                 flag.set(flag.get() || createPublicScriptAuthResultVO.isPass());
             } catch (Throwable t) {
                 log.error("Fail to auth {} to {}", ActionId.CREATE_PUBLIC_SCRIPT, username, t);
@@ -135,10 +142,10 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
             try {
                 // 是否能管理某些公共脚本
                 List<String> canManagePublicScriptIds =
-                    noResourceScopeAuthService.batchAuthManagePublicScript(username,
-                        publicScriptService.listScriptIds());
+                    noResourceScopeAuthService.batchAuthManagePublicScript(user,
+                        publicScriptService.listScriptIds(user.getTenantId()));
                 // 是否能够创建公共脚本
-                AuthResult authResult = noResourceScopeAuthService.authCreatePublicScript(username);
+                AuthResult authResult = noResourceScopeAuthService.authCreatePublicScript(user);
                 flag.set(flag.get() || !canManagePublicScriptIds.isEmpty() || authResult.isPass());
             } catch (Throwable t) {
                 log.error("Fail to auth {} to {}", ActionId.MANAGE_PUBLIC_SCRIPT_INSTANCE, username, t);
@@ -148,7 +155,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
         });
         adminAuthExecutor.submit(() -> {
             try {
-                AuthResult globalSettingsAuthResultVO = noResourceScopeAuthService.authGlobalSetting(username);
+                AuthResult globalSettingsAuthResultVO = noResourceScopeAuthService.authGlobalSetting(user);
                 flag.set(flag.get() || globalSettingsAuthResultVO.isPass());
             } catch (Throwable t) {
                 log.error("Fail to auth {} to {}", ActionId.GLOBAL_SETTINGS, username, t);
@@ -158,8 +165,8 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
         });
         adminAuthExecutor.submit(() -> {
             try {
-                AuthResult authResult = noResourceScopeAuthService.authViewDashBoard(username,
-                    AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID);
+                AuthResult authResult = noResourceScopeAuthService.authViewDashBoard(
+                    user, AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID);
                 flag.set(flag.get() || authResult.isPass());
             } catch (Throwable t) {
                 log.error("Fail to auth {} to {}", ActionId.DASHBOARD_VIEW, username, t);
@@ -169,7 +176,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
         });
         adminAuthExecutor.submit(() -> {
             try {
-                AuthResult serviceInfoAuthResultVO = noResourceScopeAuthService.authViewServiceState(username);
+                AuthResult serviceInfoAuthResultVO = noResourceScopeAuthService.authViewServiceState(user);
                 flag.set(flag.get() || serviceInfoAuthResultVO.isPass());
             } catch (Throwable t) {
                 log.error("Fail to auth {} to {}", ActionId.SERVICE_STATE_ACCESS, username, t);
@@ -179,7 +186,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
         });
         adminAuthExecutor.submit(() -> {
             try {
-                AuthResult highRiskRuleAuthResultVO = noResourceScopeAuthService.authHighRiskDetectRule(username);
+                AuthResult highRiskRuleAuthResultVO = noResourceScopeAuthService.authHighRiskDetectRule(user);
                 flag.set(flag.get() || highRiskRuleAuthResultVO.isPass());
             } catch (Throwable t) {
                 log.error("Fail to auth {} to {}", ActionId.SERVICE_STATE_ACCESS, username, t);
@@ -189,7 +196,7 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
         });
         adminAuthExecutor.submit(() -> {
             try {
-                AuthResult highRiskRecordAuthResultVO = noResourceScopeAuthService.authHighRiskDetectRecord(username);
+                AuthResult highRiskRecordAuthResultVO = noResourceScopeAuthService.authHighRiskDetectRecord(user);
                 flag.set(flag.get() || highRiskRecordAuthResultVO.isPass());
             } catch (Throwable t) {
                 log.error("Fail to auth {} to {}", ActionId.SERVICE_STATE_ACCESS, username, t);
@@ -212,16 +219,17 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
 
     @Override
     public Response<String> getApplyBusinessUrl(String username, String scopeType, String scopeId) {
+        User user = JobContextUtil.getUser();
         if (StringUtils.isBlank(scopeType) || StringUtils.isBlank(scopeId)) {
-            return Response.buildSuccessResp(appAuthService.getBusinessApplyUrl(null));
+            return Response.buildSuccessResp(appAuthService.getBusinessApplyUrl(user.getTenantId(), null));
         }
         AppResourceScope appResourceScope = new AppResourceScope(scopeType, scopeId, null);
         ApplicationDTO applicationDTO = applicationService.getAppByScope(appResourceScope);
         if (applicationDTO != null) {
             appResourceScope.setAppId(applicationDTO.getId());
-            return Response.buildSuccessResp(appAuthService.getBusinessApplyUrl(appResourceScope));
+            return Response.buildSuccessResp(appAuthService.getBusinessApplyUrl(user.getTenantId(), appResourceScope));
         } else {
-            return Response.buildSuccessResp(appAuthService.getBusinessApplyUrl(null));
+            return Response.buildSuccessResp(appAuthService.getBusinessApplyUrl(user.getTenantId(), null));
         }
     }
 

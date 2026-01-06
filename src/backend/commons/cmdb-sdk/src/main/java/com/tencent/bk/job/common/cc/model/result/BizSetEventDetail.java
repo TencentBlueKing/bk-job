@@ -72,6 +72,11 @@ public class BizSetEventDetail {
      */
     @JsonProperty("language")
     private String language;
+    /**
+     * 资源类型
+     */
+    @JsonProperty("default")
+    private Integer deFault = 0;
 
     public ApplicationDTO toApplicationDTO() {
         ApplicationDTO applicationDTO = new ApplicationDTO();
@@ -81,6 +86,7 @@ public class BizSetEventDetail {
         applicationDTO.setBkSupplierAccount(supplierAccount);
         applicationDTO.setTimeZone(timezone);
         applicationDTO.setLanguage(language);
+        applicationDTO.setDeFault(deFault);
         return applicationDTO;
     }
 }

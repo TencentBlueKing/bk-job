@@ -27,20 +27,16 @@ package com.tencent.bk.job.manage.api.inner.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
-import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.model.InternalResponse;
-import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.manage.api.common.ScriptDTOBuilder;
 import com.tencent.bk.job.manage.api.inner.ServiceScriptResource;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.dto.converter.ScriptConverter;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
-import com.tencent.bk.job.manage.model.web.request.ScriptCreateReq;
 import com.tencent.bk.job.manage.service.ScriptManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,14 +44,12 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class ServiceScriptResourceImpl implements ServiceScriptResource {
     private final ScriptManager scriptManager;
-    private final MessageI18nService i18nService;
 
     private final ScriptDTOBuilder scriptDTOBuilder;
 
     @Autowired
-    public ServiceScriptResourceImpl(MessageI18nService i18nService, ScriptManager scriptManager,
+    public ServiceScriptResourceImpl(ScriptManager scriptManager,
                                      ScriptDTOBuilder scriptDTOBuilder) {
-        this.i18nService = i18nService;
         this.scriptManager = scriptManager;
         this.scriptDTOBuilder = scriptDTOBuilder;
     }
@@ -96,47 +90,6 @@ public class ServiceScriptResourceImpl implements ServiceScriptResource {
 
         ServiceScriptDTO scriptVersion = ScriptConverter.convertToServiceScriptDTO(script);
         return InternalResponse.buildSuccessResp(scriptVersion);
-    }
-
-    @Override
-    @JobTransactional(transactionManager = "jobManageTransactionManager")
-    public InternalResponse<Pair<String, Long>> createScriptWithVersionId(String username, Long createTime,
-                                                                          Long lastModifyTime, String lastModifyUser,
-                                                                          Integer scriptStatus, Long appId,
-                                                                          ScriptCreateReq scriptCreateReq) {
-        if (log.isDebugEnabled()) {
-            log.debug("createScriptWithVersionId,operator={},appId={},script={},status={}", username, appId,
-                scriptCreateReq, scriptStatus);
-        }
-        ScriptDTO script = scriptDTOBuilder.buildFromScriptCreateReq(scriptCreateReq);
-        script.setAppId(appId);
-        script.setCreator(username);
-        if (StringUtils.isNotBlank(lastModifyUser)) {
-            script.setLastModifyUser(lastModifyUser);
-        } else {
-            script.setLastModifyUser(username);
-        }
-        if (scriptStatus != null && scriptStatus > 0) {
-            script.setStatus(scriptStatus);
-        }
-        return InternalResponse.buildSuccessResp(
-            scriptManager.createScriptWithVersionId(appId, script, createTime, lastModifyTime));
-    }
-
-    @Override
-    public InternalResponse<ServiceScriptDTO> getBasicScriptInfo(String scriptId) {
-        if (StringUtils.isEmpty(scriptId)) {
-            log.warn("Get script by id, param scriptId is empty");
-            throw new InvalidParamException(ErrorCode.MISSING_PARAM);
-        }
-
-        ScriptDTO script = scriptManager.getScriptWithoutTagByScriptId(scriptId);
-        if (script == null) {
-            log.warn("Get script by id:{}, the script is not exist", scriptId);
-            throw new NotFoundException(ErrorCode.SCRIPT_NOT_EXIST, ArrayUtil.toArray(scriptId));
-        }
-        ServiceScriptDTO serviceScript = ScriptConverter.convertToServiceScriptDTO(script);
-        return InternalResponse.buildSuccessResp(serviceScript);
     }
 
     @Override

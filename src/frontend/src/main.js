@@ -23,6 +23,7 @@
  * IN THE SOFTWARE.
 */
 
+import Cookie from 'js-cookie';
 import _ from 'lodash';
 import Vue from 'vue';
 
@@ -32,11 +33,13 @@ import AppManageService from '@service/app-manage';
 import QueryGlobalSettingService from '@service/query-global-setting';
 import TaskExecuteService from '@service/task-execute';
 import TaskPlanService from '@service/task-plan';
+import UserService from '@service/user';
 
 import { getURLSearchParams } from '@utils/assist';
 import { scopeCache } from '@utils/cache-helper';
 import EntryTask from '@utils/entry-task';
 
+import BkUserDisplayName from '@blueking/bk-user-display-name';
 import { subEnv } from '@blueking/sub-saas';
 
 import App from '@/App';
@@ -50,6 +53,7 @@ import '@/css/app.css';
 import '@bk-icon/style.css';
 import '@bk-icon/iconcool.js';
 import  '@blueking/notice-component-vue2/dist/style.css';
+
 
 /**
  * @desc 启动打印当前系统信息
@@ -155,6 +159,11 @@ entryTask.add(context => AppManageService.fetchWholeAppList().then((data) => {
       context.scopeId = scopeId;
     }
   }
+  // 内置全业务的 scopeId
+  const allBiz = _.find(data.data, item => item.allBizSet && item.builtIn);
+  if (allBiz) {
+    window.PROJECT_CONFIG.ALL_BIZ_SET_SCOPE_ID = allBiz.scopeId;
+  }
 }));
 
 /**
@@ -164,6 +173,14 @@ entryTask.add(context => QueryGlobalSettingService.fetchAdminIdentity().then((da
   // eslint-disable-next-line no-param-reassign
   context.isAdmin = data;
 }));
+
+/**
+ * @desc 关联系统链接
+ */
+entryTask.add(() => QueryGlobalSettingService.fetchRelatedSystemUrls().then((data) => {
+  window.PROJECT_CONFIG.BK_USER_WEB_API_ROOT_URL = data.BK_USER_WEB_API_ROOT_URL;
+}));
+
 
 /**
  * @desc 通过第三方系统查看任务执行详情
@@ -285,6 +302,17 @@ entryTask.add('', (context) => {
     scopeId,
   });
 
+  BkUserDisplayName.configure({
+    // 必填，租户 ID
+    tenantId: window.PROJECT_CONFIG.TENANT_ID,
+    // 必填，网关地址
+    apiBaseUrl: window.PROJECT_CONFIG.BK_USER_WEB_API_ROOT_URL,
+    // 可选，缓存时间，单位为毫秒, 默认 5 分钟
+    cacheDuration: 1000 * 60 * 5,
+    // 可选，当输入为空时，显示的文本，默认为 '--'
+    emptyText: '--',
+  });
+
   window.BKApp = new Vue({
     el: '#app',
     router: createRouter({
@@ -299,4 +327,16 @@ entryTask.add('', (context) => {
   });
 });
 
-entryTask.start();
+UserService.fetchUserInfo()
+  .then((data) => {
+    window.PROJECT_CONFIG.TENANT_ID = data.tenantId;
+    const latestTenantId = Cookie.get('tenant_id');
+    if (latestTenantId !== data.tenantId) {
+      scopeCache.clearItem();
+    }
+    Cookie.set('tenant_id', data.tenantId, {
+      expires: 365,
+    });
+    entryTask.start();
+})
+

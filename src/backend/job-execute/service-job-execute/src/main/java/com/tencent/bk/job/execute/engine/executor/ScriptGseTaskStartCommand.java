@@ -174,7 +174,6 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         } else {
             request = buildRequestWithoutAnyParam(stepInstance);
         }
-        request.setGseV2Task(gseV2Task);
 
         return request;
     }
