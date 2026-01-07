@@ -54,23 +54,6 @@ public class BkApiV1Client extends BaseBkApiClient {
         super(meterRegistry, metricName, baseAccessUrl, defaultHttpHelper, tenantEnvService);
     }
 
-    /**
-     * @param meterRegistry     MeterRegistry
-     * @param metricName        API http 请求指标名称
-     * @param baseAccessUrl     API 服务访问地址
-     * @param defaultHttpHelper http 请求处理客户端
-     * @param lang              语言
-     * @param tenantEnvService  租户环境信息 Service
-     */
-    public BkApiV1Client(MeterRegistry meterRegistry,
-                         String metricName,
-                         String baseAccessUrl,
-                         HttpHelper defaultHttpHelper,
-                         String lang,
-                         TenantEnvService tenantEnvService) {
-        super(meterRegistry, metricName, baseAccessUrl, defaultHttpHelper, lang, tenantEnvService);
-    }
-
     public <T, V> EsbResp<V> request(OpenApiRequestInfo<T> requestInfo,
                                      TypeReference<EsbResp<V>> typeReference,
                                      HttpHelper httpHelper) throws BkOpenApiException {

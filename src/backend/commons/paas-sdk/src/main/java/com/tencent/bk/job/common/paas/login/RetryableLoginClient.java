@@ -22,22 +22,43 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.gse.config;
+package com.tencent.bk.job.common.paas.login;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import com.tencent.bk.job.common.model.dto.BkUserDTO;
+import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
+import com.tencent.bk.job.common.retry.RetryExecutor;
+import com.tencent.bk.job.common.retry.metrics.RetryMetricsConstants;
+import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * GSE V2 配置
+ * 支持重试的登录客户端
+ * <p>
+ * 使用代理模式，对原有的 ILoginClient 进行封装，为幂等查询接口添加指数退避重试能力
+ * </p>
  */
-@ConfigurationProperties(prefix = "gse-v2")
-@Getter
-@Setter
-public class GseV2Properties {
+@Slf4j
+public class RetryableLoginClient implements ILoginClient {
 
-    /**
-     * 是否启用 GSE V2 客户端
-     */
-    private boolean enabled = true;
+    private final ILoginClient delegate;
+    private final RetryExecutor retryExecutor;
+
+    public RetryableLoginClient(ILoginClient delegate,
+                                ExponentialBackoffRetryPolicy retryPolicy,
+                                RetryMetricsRecorder metricsRecorder) {
+        this.delegate = delegate;
+        this.retryExecutor = new RetryExecutor(
+            retryPolicy,
+            metricsRecorder,
+            RetryMetricsConstants.TAG_VALUE_SYSTEM_BK_LOGIN
+        );
+    }
+
+    @Override
+    public BkUserDTO getUserInfoByToken(String token) {
+        return retryExecutor.executeWithRetry(
+            () -> delegate.getUserInfoByToken(token),
+            "getUserInfoByToken"
+        );
+    }
 }

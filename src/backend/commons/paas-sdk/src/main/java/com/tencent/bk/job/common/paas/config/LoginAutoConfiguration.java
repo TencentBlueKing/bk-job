@@ -59,7 +59,6 @@ public class LoginAutoConfiguration {
     }
 
     @Bean
-    @Primary
     @ConditionalOnLoginUseApiGw
     @ConditionalOnCustomLoginDisable
     public ILoginClient standardLoginApiGwClient(BkApiGatewayProperties bkApiGatewayProperties,

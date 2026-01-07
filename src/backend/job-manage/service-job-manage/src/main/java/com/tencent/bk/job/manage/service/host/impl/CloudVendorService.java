@@ -26,12 +26,12 @@ package com.tencent.bk.job.manage.service.host.impl;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -41,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class CloudVendorService {
 
+    private IBizCmdbClient bizCmdbClient;
     private final LoadingCache<Pair<String, String>, Map<String, String>> cloudVendorMapCache =
         Caffeine.newBuilder()
             .maximumSize(10)
@@ -48,10 +49,15 @@ public class CloudVendorService {
             .recordStats()
             .build(langTenantIdPair -> {
                 String lang = langTenantIdPair.getLeft();
+                JobContextUtil.setUserLang(lang);
                 String tenantId = langTenantIdPair.getRight();
-                IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(lang);
                 return bizCmdbClient.getCloudVendorIdNameMap(tenantId);
             });
+
+    @Autowired
+    public CloudVendorService(IBizCmdbClient bizCmdbClient) {
+        this.bizCmdbClient = bizCmdbClient;
+    }
 
     private String getCloudVendorNameById(String tenantId, String cloudVendorId) {
         Map<String, String> cloudVendorIdNameMap = cloudVendorMapCache.get(

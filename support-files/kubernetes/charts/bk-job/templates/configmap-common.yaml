@@ -68,6 +68,9 @@ data:
         rootPath: {{ .Values.gse.script.rootPath }}
     gseV2:
       {{- toYaml .Values.gseV2 | nindent 6 }}
+    external-system:
+      retry:
+        {{- toYaml .Values.externalSystemRetry | nindent 8 }}
     iam:
       web-url: {{ .Values.bkIamUrl }}
       system-id: {{ .Values.iam.systemId }}

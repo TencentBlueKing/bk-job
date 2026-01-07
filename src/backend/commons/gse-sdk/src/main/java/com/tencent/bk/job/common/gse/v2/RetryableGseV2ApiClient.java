@@ -24,72 +24,101 @@
 
 package com.tencent.bk.job.common.gse.v2;
 
+import com.tencent.bk.job.common.config.ExternalSystemRetryProperties;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
-import com.tencent.bk.job.common.gse.config.GseV2Properties;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
-import com.tencent.bk.job.common.retry.RetryUtils;
+import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
+import com.tencent.bk.job.common.retry.RetryExecutor;
+import com.tencent.bk.job.common.retry.metrics.RetryMetricsConstants;
+import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.Duration;
 import java.util.List;
 
 /**
  * 支持重试的GSE V2 API客户端
+ * <p>
+ * 使用指数退避策略进行重试，并记录重试指标
+ * </p>
  */
 @Slf4j
 public class RetryableGseV2ApiClient extends GseV2ApiClient {
 
-    /**
-     * 含重试的最大执行次数
-     */
-    private final Integer maxAttempts;
-    /**
-     * 重试间隔（单位：秒）
-     */
-    private final Integer intervalSeconds;
+    private final RetryExecutor retryExecutor;
 
+    /**
+     * 使用新的全局配置方式创建可重试 GSE 客户端
+     *
+     * @param meterRegistry           指标注册中心
+     * @param appProperties           应用配置
+     * @param bkApiGatewayProperties  API 网关配置
+     * @param retryProperties         外部系统重试配置
+     * @param tenantEnvService        租户环境服务
+     */
     public RetryableGseV2ApiClient(MeterRegistry meterRegistry,
                                    AppProperties appProperties,
                                    BkApiGatewayProperties bkApiGatewayProperties,
-                                   GseV2Properties gseV2Properties,
+                                   ExternalSystemRetryProperties retryProperties,
                                    TenantEnvService tenantEnvService) {
         super(meterRegistry, appProperties, bkApiGatewayProperties, tenantEnvService);
-        this.maxAttempts = gseV2Properties.getRetry().getMaxAttempts();
-        this.intervalSeconds = gseV2Properties.getRetry().getIntervalSeconds();
+        
+        // 使用 GSE 系统级配置，如果没有则使用全局配置
+        ExternalSystemRetryProperties.SystemRetryProperties gseRetryProps = retryProperties.getGse();
+        ExponentialBackoffRetryPolicy retryPolicy = ExponentialBackoffRetryPolicy.builder()
+            .initialIntervalMs(retryProperties.getSystemInitialIntervalMs(gseRetryProps))
+            .maxIntervalMs(retryProperties.getSystemMaxIntervalMs(gseRetryProps))
+            .maxAttempts(retryProperties.getSystemMaxAttempts(gseRetryProps))
+            .multiplier(retryProperties.getSystemMultiplier(gseRetryProps))
+            .build();
+        
+        RetryMetricsRecorder metricsRecorder = new RetryMetricsRecorder(
+            meterRegistry,
+            retryProperties.isMetricsEnabled()
+        );
+        
+        this.retryExecutor = new RetryExecutor(
+            retryPolicy,
+            metricsRecorder,
+            RetryMetricsConstants.TAG_VALUE_SYSTEM_GSE
+        );
+        
+        log.info("Init RetryableGseV2ApiClient with exponential backoff: initialInterval={}ms, maxAttempts={}, " +
+                "maxInterval={}ms, multiplier={}",
+            retryProperties.getSystemInitialIntervalMs(gseRetryProps),
+            retryProperties.getSystemMaxAttempts(gseRetryProps),
+            retryProperties.getSystemMaxIntervalMs(gseRetryProps),
+            retryProperties.getSystemMultiplier(gseRetryProps));
     }
 
     @Override
     public ScriptTaskResult getExecuteScriptResult(GetExecuteScriptResultRequest request) {
-        return RetryUtils.executeWithRetry(
+        return retryExecutor.executeWithRetry(
             () -> super.getExecuteScriptResult(request),
-            maxAttempts,
-            Duration.ofSeconds(intervalSeconds)
+            "getExecuteScriptResult"
         );
     }
 
     @Override
     public List<AgentState> listAgentState(ListAgentStateReq req) {
-        return RetryUtils.executeWithRetry(
+        return retryExecutor.executeWithRetry(
             () -> super.listAgentState(req),
-            maxAttempts,
-            Duration.ofSeconds(intervalSeconds)
+            "listAgentState"
         );
     }
 
     @Override
     public FileTaskResult getTransferFileResult(GetTransferFileResultRequest request) {
-        return RetryUtils.executeWithRetry(
+        return retryExecutor.executeWithRetry(
             () -> super.getTransferFileResult(request),
-            maxAttempts,
-            Duration.ofSeconds(intervalSeconds)
+            "getTransferFileResult"
         );
     }
 }

@@ -24,27 +24,43 @@
 
 package com.tencent.bk.job.common.cc.sdk;
 
-import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
-import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.common.cc.model.tenantset.TenantSetInfo;
+import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
+import com.tencent.bk.job.common.retry.RetryExecutor;
+import com.tencent.bk.job.common.retry.metrics.RetryMetricsConstants;
+import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-public class CmdbClientFactory {
+import java.util.List;
 
-    public static IBizCmdbClient getCmdbClient() {
-        return getCmdbClient(LocaleUtils.LANG_EN_US);
+/**
+ * 支持重试的 CMDB 租户集客户端
+ * <p>
+ * 使用代理模式，对原有的 ITenantSetCmdbClient 进行封装，为幂等查询接口添加指数退避重试能力
+ * </p>
+ */
+@Slf4j
+public class RetryableTenantSetCmdbClient implements ITenantSetCmdbClient {
+
+    private final ITenantSetCmdbClient delegate;
+    private final RetryExecutor retryExecutor;
+
+    public RetryableTenantSetCmdbClient(ITenantSetCmdbClient delegate,
+                                        ExponentialBackoffRetryPolicy retryPolicy,
+                                        RetryMetricsRecorder metricsRecorder) {
+        this.delegate = delegate;
+        this.retryExecutor = new RetryExecutor(
+            retryPolicy,
+            metricsRecorder,
+            RetryMetricsConstants.TAG_VALUE_SYSTEM_CMDB
+        );
     }
 
-    public static IBizCmdbClient getCmdbClient(String language) {
-        if (language == null) {
-            language = LocaleUtils.LANG_EN_US;
-        }
-        switch (language) {
-            case LocaleUtils.LANG_ZH:
-            case LocaleUtils.LANG_ZH_CN:
-                return ApplicationContextRegister.getBean("cnBizCmdbClient", IBizCmdbClient.class);
-            default:
-                return ApplicationContextRegister.getBean(IBizCmdbClient.class);
-        }
+    @Override
+    public List<TenantSetInfo> listAllTenantSet() {
+        return retryExecutor.executeWithRetry(
+            delegate::listAllTenantSet,
+            "listAllTenantSet"
+        );
     }
 }

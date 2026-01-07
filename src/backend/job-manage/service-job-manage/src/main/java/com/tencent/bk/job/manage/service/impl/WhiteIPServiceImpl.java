@@ -28,7 +28,6 @@ import com.google.common.collect.Lists;
 import com.tencent.bk.audit.annotations.ActionAuditRecord;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
-import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
@@ -414,8 +413,7 @@ public class WhiteIPServiceImpl implements WhiteIPService {
     @Override
     public List<CloudAreaInfoVO> listCloudAreas(String username) {
         log.info("Input(" + username + ")");
-        List<CcCloudAreaInfoDTO> cloudAreaInfoList = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
-            .getCloudAreaList(JobContextUtil.getTenantId());
+        List<CcCloudAreaInfoDTO> cloudAreaInfoList = bizCmdbClient.getCloudAreaList(JobContextUtil.getTenantId());
         return cloudAreaInfoList.stream().map(it ->
             new CloudAreaInfoVO(it.getId(), it.getName())).collect(Collectors.toList());
     }

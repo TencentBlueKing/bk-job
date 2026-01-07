@@ -26,7 +26,6 @@ package com.tencent.bk.job.manage.service.host.impl;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.util.JobContextUtil;
@@ -41,16 +40,21 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class OsTypeService {
 
+    private IBizCmdbClient bizCmdbClient;
     private final LoadingCache<Pair<String, String>, Map<String, String>> osTypeMapCache = Caffeine.newBuilder()
         .maximumSize(10)
         .expireAfterWrite(30, TimeUnit.MINUTES)
         .recordStats()
         .build(langTenantIdPair -> {
             String lang = langTenantIdPair.getLeft();
+            JobContextUtil.setUserLang(lang);
             String tenantId = langTenantIdPair.getRight();
-            IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(lang);
             return bizCmdbClient.getOsTypeIdNameMap(tenantId);
         });
+
+    public OsTypeService(IBizCmdbClient bizCmdbClient) {
+        this.bizCmdbClient = bizCmdbClient;
+    }
 
     private String getOsTypeNameById(String tenantId, String osTypeId) {
         Map<String, String> osTypeIdNameMap = osTypeMapCache.get(

@@ -86,8 +86,7 @@ public class BizSetCmdbClient extends BaseCmdbClient implements IBizSetCmdbClien
             cmdbConfig,
             meterRegistry,
             tenantEnvService,
-            virtualAdminAccountProvider,
-            null
+            virtualAdminAccountProvider
         );
     }
 

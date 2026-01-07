@@ -134,14 +134,12 @@ public class BaseCmdbClient extends BkApiV1Client {
                              CmdbConfig cmdbConfig,
                              MeterRegistry meterRegistry,
                              TenantEnvService tenantEnvService,
-                             IVirtualAdminAccountProvider virtualAdminAccountProvider,
-                             String lang) {
+                             IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         super(
             meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             bkApiGatewayProperties.getCmdb().getUrl(),
             HttpHelperFactory.getLongRetryableHttpHelper(),
-            lang,
             tenantEnvService
         );
         this.setLogger(LoggerFactory.getLogger(this.getClass()));

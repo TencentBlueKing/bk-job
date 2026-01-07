@@ -22,22 +22,34 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.gse.config;
-
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+package com.tencent.bk.job.common.retry;
 
 /**
- * GSE V2 配置
+ * 重试策略接口
  */
-@ConfigurationProperties(prefix = "gse-v2")
-@Getter
-@Setter
-public class GseV2Properties {
+public interface RetryPolicy {
 
     /**
-     * 是否启用 GSE V2 客户端
+     * 获取最大重试次数
+     *
+     * @return 最大重试次数
      */
-    private boolean enabled = true;
+    int getMaxAttempts();
+
+    /**
+     * 计算下一次重试的等待时间
+     *
+     * @param attemptNumber 当前重试次数（从1开始）
+     * @return 等待时间（毫秒）
+     */
+    long getWaitTimeMs(int attemptNumber);
+
+    /**
+     * 判断是否应该重试
+     *
+     * @param attemptNumber 当前已执行次数
+     * @param exception     异常
+     * @return 是否重试
+     */
+    boolean shouldRetry(int attemptNumber, Exception exception);
 }
