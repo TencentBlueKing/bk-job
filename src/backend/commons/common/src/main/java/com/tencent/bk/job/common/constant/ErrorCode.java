@@ -412,6 +412,8 @@ public class ErrorCode {
     public static final int FILE_SOURCE_ROLLING_ONLY_SUPPORT_SERVER_FILE = 1244035;
     // 当前业务下任务量较大，允许的复杂查询（按名称搜索、2个及以上条件组合搜索等）最大时间范围为：{0}天
     public static final int TASK_HISTORY_QUERY_RANGE_TOO_LARGE = 1244036;
+    // 文件分发，文件源主机[{0}]不存在CMDB中
+    public static final int TASK_FILE_SOURCE_HOST_NOT_EXIST = 1244037;
     // 作业执行 end
 
     // 定时作业 start
