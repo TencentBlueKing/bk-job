@@ -25,41 +25,32 @@
 package com.tencent.bk.job.gateway.web.server;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 
 import java.util.List;
 
 /**
- * 扩展主业务的NettyWebServerCustomizer
+ * 扩展management的NettyWebServerCustomizer
  */
-@Component
 @Slf4j
-public class GatewayWebServerFactoryCustomizer extends NettyWebServerFactoryCustomizer {
-
+public class ManagementWebServerFactoryCustomizer implements WebServerFactoryCustomizer<NettyReactiveWebServerFactory> {
     private final List<NettyFactoryCustomizer> customizers;
 
-    public GatewayWebServerFactoryCustomizer(Environment environment,
-                                             ServerProperties serverProperties,
-                                             List<NettyFactoryCustomizer> customizers) {
-        super(environment, serverProperties);
+    public ManagementWebServerFactoryCustomizer(List<NettyFactoryCustomizer> customizers) {
         this.customizers = customizers;
     }
 
     @Override
     public void customize(NettyReactiveWebServerFactory factory) {
-        super.customize(factory);
         if (!customizers.isEmpty()) {
             for (NettyFactoryCustomizer customizer : customizers) {
                 try {
-                    log.debug("Gateway applying additional Netty customizer: {}",
+                    log.debug("Management applying additional Netty customizer: {}",
                         customizer.getClass().getSimpleName());
                     customizer.customize(factory);
                 } catch (Exception e) {
-                    log.warn("Gateway applying additional Netty customizer {} failed.",
+                    log.warn("Management applying additional Netty customizer {} failed.",
                         customizer.getClass().getSimpleName(), e);
                 }
             }

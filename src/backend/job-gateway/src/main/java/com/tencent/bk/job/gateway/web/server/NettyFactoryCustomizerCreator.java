@@ -24,39 +24,16 @@
 
 package com.tencent.bk.job.gateway.web.server;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * AccessLog输出字段注册器
+ * 创建Netty工厂定制器
+ * 该接口的存在是为了避免将NettyFactoryCustomizer作为Spring Bean管理，
+ * 从而防止business / management WebServer之间出现实例复用和上下文串扰。
  */
-public class AccessLogFieldRegistry {
-    private final List<String> fields = new ArrayList<>();
+public interface NettyFactoryCustomizerCreator {
 
-    public AccessLogFieldRegistry() {
-        // AccessLog按此注册顺序输出
-        register(AccessLogConstants.LogField.ACCESS_TYPE);
-        register(AccessLogConstants.LogField.START_TIME);
-        register(AccessLogConstants.LogField.TRACE_ID);
-        register(AccessLogConstants.LogField.SPAN_ID);
-        register(AccessLogConstants.LogField.USER_NAME);
-        register(AccessLogConstants.LogField.METHOD);
-        register(AccessLogConstants.LogField.PATH);
-        register(AccessLogConstants.LogField.PROTOCOL);
-        register(AccessLogConstants.LogField.CLIENT_IP);
-        register(AccessLogConstants.LogField.USER_AGENT);
-        register(AccessLogConstants.LogField.UPSTREAM);
-        register(AccessLogConstants.LogField.END_TIME);
-        register(AccessLogConstants.LogField.STATUS);
-        register(AccessLogConstants.LogField.RESPONSE_SIZE);
-        register(AccessLogConstants.LogField.DURATION);
-    }
+    /*
+     * 为指定的WebServer角色创建NettyFactoryCustomizer实例
+     */
+    NettyFactoryCustomizer create(WebServerRoleEnum accessType);
 
-    public void register(String key) {
-        fields.add(key);
-    }
-
-    public List<String> getFields() {
-        return fields;
-    }
 }

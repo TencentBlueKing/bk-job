@@ -47,6 +47,7 @@ public class AccessLogConstants {
         public static final String RESPONSE_SIZE = "responseSize";
         public static final String TRACE_ID = "traceId";
         public static final String SPAN_ID = "spanId";
+        public static final String ACCESS_TYPE = "accessType";
     }
 
     /**

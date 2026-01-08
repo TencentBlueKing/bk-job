@@ -24,39 +24,25 @@
 
 package com.tencent.bk.job.gateway.web.server;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 /**
- * AccessLog输出字段注册器
+ * web服务类型枚举
  */
-public class AccessLogFieldRegistry {
-    private final List<String> fields = new ArrayList<>();
+@Getter
+@AllArgsConstructor
+public enum WebServerRoleEnum {
+    /**
+     * 主web服务
+     */
+    BUSINESS("business"),
+    /**
+     * 管理服务
+     */
+    MANAGEMENT("management");
 
-    public AccessLogFieldRegistry() {
-        // AccessLog按此注册顺序输出
-        register(AccessLogConstants.LogField.ACCESS_TYPE);
-        register(AccessLogConstants.LogField.START_TIME);
-        register(AccessLogConstants.LogField.TRACE_ID);
-        register(AccessLogConstants.LogField.SPAN_ID);
-        register(AccessLogConstants.LogField.USER_NAME);
-        register(AccessLogConstants.LogField.METHOD);
-        register(AccessLogConstants.LogField.PATH);
-        register(AccessLogConstants.LogField.PROTOCOL);
-        register(AccessLogConstants.LogField.CLIENT_IP);
-        register(AccessLogConstants.LogField.USER_AGENT);
-        register(AccessLogConstants.LogField.UPSTREAM);
-        register(AccessLogConstants.LogField.END_TIME);
-        register(AccessLogConstants.LogField.STATUS);
-        register(AccessLogConstants.LogField.RESPONSE_SIZE);
-        register(AccessLogConstants.LogField.DURATION);
-    }
-
-    public void register(String key) {
-        fields.add(key);
-    }
-
-    public List<String> getFields() {
-        return fields;
-    }
+    @JsonValue
+    private final String type;
 }

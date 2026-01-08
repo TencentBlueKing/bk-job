@@ -24,19 +24,19 @@
 
 package com.tencent.bk.job.gateway.web.server.config;
 
-import com.tencent.bk.job.gateway.web.server.AccessLogFieldRegistry;
-import com.tencent.bk.job.gateway.web.server.AccessLogFormatter;
-import com.tencent.bk.job.gateway.web.server.AccessLogMetadataCollector;
-import com.tencent.bk.job.gateway.web.server.NettyAccessLogCustomizer;
-import com.tencent.bk.job.gateway.web.server.filter.AccessLogEnricherFilter;
-import com.tencent.bk.job.gateway.web.server.provider.AccessLogMetadataProvider;
-import com.tencent.bk.job.gateway.web.server.provider.DefaultMetadataProvider;
-import com.tencent.bk.job.gateway.web.server.provider.RequestContextMetadataProvider;
+import com.tencent.bk.job.gateway.web.server.GatewayWebServerFactoryCustomizer;
+import com.tencent.bk.job.gateway.web.server.NettyFactoryCustomizer;
+import com.tencent.bk.job.gateway.web.server.NettyFactoryCustomizerCreator;
+import com.tencent.bk.job.gateway.web.server.WebServerRoleEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 @ConditionalOnProperty(
@@ -44,40 +44,23 @@ import java.util.List;
     havingValue = "true",
     matchIfMissing = false
 )
-public class CustomAccessLogConfig {
-    @Bean
-    public AccessLogEnricherFilter accessLogEnricherFilter() {
-        return new AccessLogEnricherFilter();
-    }
+@Slf4j
+public class GatewayWebServerConfig {
 
     @Bean
-    public DefaultMetadataProvider defaultMetadataProvider() {
-        return new DefaultMetadataProvider();
-    }
-
-    @Bean
-    public RequestContextMetadataProvider requestContextMetadataProvider() {
-        return new RequestContextMetadataProvider();
-    }
-
-    @Bean
-    public AccessLogFieldRegistry accessLogFieldRegistry() {
-        return new AccessLogFieldRegistry();
-    }
-
-    @Bean
-    public AccessLogFormatter accessLogFormatter(AccessLogFieldRegistry registry) {
-        return new AccessLogFormatter(registry);
-    }
-
-    @Bean
-    public AccessLogMetadataCollector accessLogMetadataCollector(List<AccessLogMetadataProvider> providers) {
-        return new AccessLogMetadataCollector(providers);
-    }
-
-    @Bean
-    public NettyAccessLogCustomizer nettyAccessLogCustomizer(AccessLogMetadataCollector collector,
-                                                               AccessLogFormatter formatter) {
-        return new NettyAccessLogCustomizer(collector, formatter);
+    public GatewayWebServerFactoryCustomizer gatewayWebServerFactoryCustomizer(
+        Environment environment,
+        ServerProperties serverProperties,
+        List<NettyFactoryCustomizerCreator> creators) {
+        log.debug("Initializing gateway web server factory customizer.");
+        List<NettyFactoryCustomizer> customizers = creators.stream()
+            .map(creator -> creator.create(WebServerRoleEnum.BUSINESS))
+            .collect(Collectors.toList());
+        log.debug("Gateway web server customizers count={}", customizers.size());
+        return new GatewayWebServerFactoryCustomizer(
+            environment,
+            serverProperties,
+            customizers
+        );
     }
 }
