@@ -52,7 +52,7 @@ public class UserLocalCache {
                           throw new UserNotFoundException(
                               "user(tenantId=" + tenantId + ", username=" + username + ") not found in bk-user");
                       }
-                      return userMgrApiClient.getUserByUsername(tenantId, username);
+                      return user;
                   }
 
                   @Override
