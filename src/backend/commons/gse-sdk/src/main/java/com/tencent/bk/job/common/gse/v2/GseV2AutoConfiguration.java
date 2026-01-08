@@ -49,7 +49,6 @@ public class GseV2AutoConfiguration {
 
     @Bean("gseV2ApiClient")
     @ConditionalOnMockGseV2ApiDisabled
-    @ConditionalOnProperty(name = "external-system.retry.enabled", havingValue = "false", matchIfMissing = true)
     public IGseClient gseV2ApiClient(MeterRegistry meterRegistry,
                                      AppProperties appProperties,
                                      BkApiGatewayProperties bkApiGatewayProperties,
