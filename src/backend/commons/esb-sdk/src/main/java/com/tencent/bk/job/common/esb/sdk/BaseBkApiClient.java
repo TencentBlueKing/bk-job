@@ -235,7 +235,7 @@ public class BaseBkApiClient {
             throw e;
         } catch (Throwable e) {
             String errorMsg = "Fail to request api|method=" + httpMethod.name() + "|uri=" + uri;
-            log.error(errorMsg, e);
+            log.warn(errorMsg, e);
             apiContext.setSuccess(false);
             status = EsbMetricTags.VALUE_STATUS_ERROR;
             throw new InternalException("Request bk open api error", ErrorCode.API_ERROR);
@@ -358,7 +358,7 @@ public class BaseBkApiClient {
     private String getLangFromContext() {
         try {
             String lang = JobContextUtil.getUserLang();
-            if(StringUtils.isNotBlank(lang)){
+            if (StringUtils.isNotBlank(lang)) {
                 return lang;
             }
             HttpServletRequest request = JobContextUtil.getRequest();

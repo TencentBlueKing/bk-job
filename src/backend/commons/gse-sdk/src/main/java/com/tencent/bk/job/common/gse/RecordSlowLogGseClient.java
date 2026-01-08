@@ -34,14 +34,16 @@ import org.springframework.util.StopWatch;
 import java.util.Collections;
 import java.util.List;
 
-
+/**
+ * 支持记录慢请求日志的GseClient
+ */
 @Slf4j
-public class GseClient implements IGseClient {
+public class RecordSlowLogGseClient implements IGseClient {
 
     @Delegate
     private final IGseClient delegate;
 
-    public GseClient(IGseClient delegate) {
+    public RecordSlowLogGseClient(IGseClient delegate) {
         this.delegate = delegate;
         log.info("Init gseClient, delegate: {}", delegate);
     }
