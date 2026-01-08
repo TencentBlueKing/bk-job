@@ -48,7 +48,7 @@ public class TaskVariableVO {
     @ApiModelProperty(value = "变量名", required = true)
     private String name;
 
-    @ApiModelProperty(value = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码 5-关联数组 6-索引数组", required = true)
+    @ApiModelProperty(value = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码 5-关联数组 6-索引数组 7-容器列表", required = true)
     private Integer type;
 
     @ApiModelProperty(value = "默认值")
@@ -89,7 +89,7 @@ public class TaskVariableVO {
         if (description == null) {
             description = "";
         }
-        if (type <= 0 || type > 6) {
+        if (type <= 0 || type > 7) {
             log.warn("Invalid variable type: {}", type);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
