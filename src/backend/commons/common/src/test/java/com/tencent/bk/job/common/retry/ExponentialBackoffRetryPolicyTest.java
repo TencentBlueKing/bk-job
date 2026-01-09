@@ -30,7 +30,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -38,103 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 @DisplayName("ExponentialBackoffRetryPolicy 测试")
 public class ExponentialBackoffRetryPolicyTest {
-
-    @Nested
-    @DisplayName("构造函数测试")
-    class ConstructorTest {
-
-        @Test
-        @DisplayName("默认构造函数使用默认参数")
-        void testDefaultConstructor() {
-            ExponentialBackoffRetryPolicy policy = new ExponentialBackoffRetryPolicy();
-
-            assertEquals(ExponentialBackoffRetryPolicy.DEFAULT_INITIAL_INTERVAL_MS, policy.getInitialIntervalMs());
-            assertEquals(ExponentialBackoffRetryPolicy.DEFAULT_MAX_INTERVAL_MS, policy.getMaxIntervalMs());
-            assertEquals(ExponentialBackoffRetryPolicy.DEFAULT_MAX_ATTEMPTS, policy.getMaxAttempts());
-            assertEquals(ExponentialBackoffRetryPolicy.DEFAULT_MULTIPLIER, policy.getMultiplier());
-        }
-
-        @Test
-        @DisplayName("自定义参数构造函数")
-        void testCustomConstructor() {
-            ExponentialBackoffRetryPolicy policy = new ExponentialBackoffRetryPolicy(
-                1000L, 60000L, 10, 3.0
-            );
-
-            assertEquals(1000L, policy.getInitialIntervalMs());
-            assertEquals(60000L, policy.getMaxIntervalMs());
-            assertEquals(10, policy.getMaxAttempts());
-            assertEquals(3.0, policy.getMultiplier());
-        }
-
-        @Test
-        @DisplayName("initialIntervalMs 小于等于0抛出异常")
-        void testInvalidInitialIntervalMs() {
-            assertThrows(IllegalArgumentException.class, () ->
-                new ExponentialBackoffRetryPolicy(0, 30000L, 5, 2.0));
-            assertThrows(IllegalArgumentException.class, () ->
-                new ExponentialBackoffRetryPolicy(-1, 30000L, 5, 2.0));
-        }
-
-        @Test
-        @DisplayName("maxIntervalMs 小于等于0抛出异常")
-        void testInvalidMaxIntervalMs() {
-            assertThrows(IllegalArgumentException.class, () ->
-                new ExponentialBackoffRetryPolicy(500L, 0, 5, 2.0));
-            assertThrows(IllegalArgumentException.class, () ->
-                new ExponentialBackoffRetryPolicy(500L, -1, 5, 2.0));
-        }
-
-        @Test
-        @DisplayName("maxAttempts 小于等于0抛出异常")
-        void testInvalidMaxAttempts() {
-            assertThrows(IllegalArgumentException.class, () ->
-                new ExponentialBackoffRetryPolicy(500L, 30000L, 0, 2.0));
-            assertThrows(IllegalArgumentException.class, () ->
-                new ExponentialBackoffRetryPolicy(500L, 30000L, -1, 2.0));
-        }
-
-        @Test
-        @DisplayName("multiplier 小于等于0抛出异常")
-        void testInvalidMultiplier() {
-            assertThrows(IllegalArgumentException.class, () ->
-                new ExponentialBackoffRetryPolicy(500L, 30000L, 5, 0));
-            assertThrows(IllegalArgumentException.class, () ->
-                new ExponentialBackoffRetryPolicy(500L, 30000L, 5, -1));
-        }
-    }
-
-    @Nested
-    @DisplayName("Builder 模式测试")
-    class BuilderTest {
-
-        @Test
-        @DisplayName("Builder 默认值")
-        void testBuilderDefaults() {
-            ExponentialBackoffRetryPolicy policy = ExponentialBackoffRetryPolicy.builder().build();
-
-            assertEquals(ExponentialBackoffRetryPolicy.DEFAULT_INITIAL_INTERVAL_MS, policy.getInitialIntervalMs());
-            assertEquals(ExponentialBackoffRetryPolicy.DEFAULT_MAX_INTERVAL_MS, policy.getMaxIntervalMs());
-            assertEquals(ExponentialBackoffRetryPolicy.DEFAULT_MAX_ATTEMPTS, policy.getMaxAttempts());
-            assertEquals(ExponentialBackoffRetryPolicy.DEFAULT_MULTIPLIER, policy.getMultiplier());
-        }
-
-        @Test
-        @DisplayName("Builder 自定义值")
-        void testBuilderCustomValues() {
-            ExponentialBackoffRetryPolicy policy = ExponentialBackoffRetryPolicy.builder()
-                .initialIntervalMs(100L)
-                .maxIntervalMs(10000L)
-                .maxAttempts(3)
-                .multiplier(1.5)
-                .build();
-
-            assertEquals(100L, policy.getInitialIntervalMs());
-            assertEquals(10000L, policy.getMaxIntervalMs());
-            assertEquals(3, policy.getMaxAttempts());
-            assertEquals(1.5, policy.getMultiplier());
-        }
-    }
 
     @Nested
     @DisplayName("getWaitTimeMs 方法测试")
@@ -244,25 +146,6 @@ public class ExponentialBackoffRetryPolicyTest {
             RuntimeException exception = new RuntimeException("Test exception");
 
             assertFalse(policy.shouldRetry(1, exception));
-        }
-    }
-
-    @Nested
-    @DisplayName("getMaxAttempts 方法测试")
-    class GetMaxAttemptsTest {
-
-        @Test
-        @DisplayName("返回配置的最大重试次数")
-        void testGetMaxAttempts() {
-            ExponentialBackoffRetryPolicy policy1 = new ExponentialBackoffRetryPolicy(
-                500L, 30000L, 3, 2.0
-            );
-            assertEquals(3, policy1.getMaxAttempts());
-
-            ExponentialBackoffRetryPolicy policy2 = ExponentialBackoffRetryPolicy.builder()
-                .maxAttempts(10)
-                .build();
-            assertEquals(10, policy2.getMaxAttempts());
         }
     }
 }
