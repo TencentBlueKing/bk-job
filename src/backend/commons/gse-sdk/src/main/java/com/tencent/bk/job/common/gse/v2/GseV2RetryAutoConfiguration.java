@@ -24,12 +24,17 @@
 
 package com.tencent.bk.job.common.gse.v2;
 
+import com.tencent.bk.job.common.config.CircuitBreakerProperties;
 import com.tencent.bk.job.common.config.ExternalSystemRetryProperties;
+import com.tencent.bk.job.common.config.RetryProperties;
+import com.tencent.bk.job.common.constant.BKConstants;
 import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.config.ConditionalOnMockGseV2ApiDisabled;
+import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
+import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
+import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -50,18 +55,41 @@ public class GseV2RetryAutoConfiguration {
     @ConditionalOnProperty(name = "external-system.retry.enabled", havingValue = "true")
     public IGseClient retryableGseV2ApiClient(IGseClient gseClient,
                                               MeterRegistry meterRegistry,
-                                              ObjectProvider<ExternalSystemRetryProperties> retryPropertiesProvider) {
-        ExternalSystemRetryProperties retryProperties = retryPropertiesProvider.getIfAvailable(
-            ExternalSystemRetryProperties::new
-        );
-
+                                              ExternalSystemRetryProperties retryProperties) {
         // 检查 GSE 系统级别是否启用重试
         if (!retryProperties.isSystemRetryEnabled(retryProperties.getGse())) {
             log.info("GSE retry is disabled by system-level config, using non-retryable client");
             return gseClient;
         }
 
-        log.info("Init retryableGseV2ApiClient with exponential backoff");
-        return new RetryableGseV2ApiClient(gseClient, meterRegistry, retryProperties);
+        // 使用 GSE 系统级配置，如果没有则使用全局配置
+        RetryProperties gseRetryProps = retryProperties.getGse();
+        ExponentialBackoffRetryPolicy retryPolicy = ExponentialBackoffRetryPolicy.builder()
+            .initialIntervalMs(retryProperties.getSystemInitialIntervalMs(gseRetryProps))
+            .maxIntervalMs(retryProperties.getSystemMaxIntervalMs(gseRetryProps))
+            .maxAttempts(retryProperties.getSystemMaxAttempts(gseRetryProps))
+            .multiplier(retryProperties.getSystemMultiplier(gseRetryProps))
+            .build();
+
+        RetryMetricsRecorder metricsRecorder = new RetryMetricsRecorder(
+            meterRegistry,
+            retryProperties.isMetricsEnabled(gseRetryProps)
+        );
+
+        log.info("Init retryableGseV2ApiClient");
+        SystemCircuitBreakerManager circuitBreakerManager = buildCircuitBreakerManager(retryProperties);
+        return new RetryableGseV2ApiClient(gseClient, retryPolicy, metricsRecorder, circuitBreakerManager);
+    }
+
+    private SystemCircuitBreakerManager buildCircuitBreakerManager(ExternalSystemRetryProperties retryProperties) {
+        CircuitBreakerProperties globalCircuitBreakerProperties = retryProperties.getGlobal().getCircuitBreaker();
+        CircuitBreakerProperties finalCircuitBreakerProperties = globalCircuitBreakerProperties;
+        RetryProperties gseRetryProperties = retryProperties.getGse();
+        if (gseRetryProperties != null && gseRetryProperties.getCircuitBreaker() != null) {
+            // 优先使用为指定系统配置的值，未配置的字段使用全局配置填充
+            finalCircuitBreakerProperties = gseRetryProperties.getCircuitBreaker();
+            finalCircuitBreakerProperties.fillDefault(globalCircuitBreakerProperties);
+        }
+        return new SystemCircuitBreakerManager(BKConstants.SYSTEM_NAME_GSE, finalCircuitBreakerProperties);
     }
 }

@@ -22,76 +22,85 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.retry.metrics;
-
-import com.tencent.bk.job.common.constant.BKConstants;
+package com.tencent.bk.job.common.retry.circuitbreaker;
 
 /**
- * 外部系统重试指标常量
+ * 熔断器指标常量
  */
-public class RetryMetricsConstants {
+public class CircuitBreakerMetricsConstants {
 
-    // ==================== 指标名称 ====================
     /**
-     * 外部系统重试指标名
+     * 熔断器状态变更指标名
      */
-    public static final String NAME_EXTERNAL_SYSTEM_RETRY = "external.system.retry";
+    public static final String NAME_CIRCUIT_BREAKER_STATE_TRANSITION = "circuit.breaker.state.transition";
 
-    // ==================== Tag Keys ====================
     /**
-     * 外部系统名称
+     * 熔断器调用指标名
+     */
+    public static final String NAME_CIRCUIT_BREAKER_CALL = "circuit.breaker.call";
+
+    /**
+     * 熔断器拒绝调用指标名
+     */
+    public static final String NAME_CIRCUIT_BREAKER_REJECTED = "circuit.breaker.rejected";
+
+    /**
+     * 熔断器指标 - 失败率
+     */
+    public static final String NAME_CIRCUIT_BREAKER_FAILURE_RATE = "circuit.breaker.failure.rate";
+
+    /**
+     * 熔断器指标 - 慢调用率
+     */
+    public static final String NAME_CIRCUIT_BREAKER_SLOW_CALL_RATE = "circuit.breaker.slow.call.rate";
+
+    /**
+     * 标签键 - 系统名称
      */
     public static final String TAG_KEY_SYSTEM = "system";
 
     /**
-     * API 名称/方法名
+     * 标签键 - API 名称
      */
     public static final String TAG_KEY_API = "api";
 
     /**
-     * 重试次数
+     * 标签键 - 状态
      */
-    public static final String TAG_KEY_RETRY_COUNT = "retry_count";
+    public static final String TAG_KEY_STATE = "state";
 
     /**
-     * 最终结果
+     * 标签键 - 从状态
      */
-    public static final String TAG_KEY_FINAL_RESULT = "final_result";
-
-    // ==================== Tag Values - System ====================
-    /**
-     * GSE 系统
-     */
-    public static final String TAG_VALUE_SYSTEM_GSE = BKConstants.SYSTEM_NAME_GSE;
+    public static final String TAG_KEY_FROM_STATE = "from_state";
 
     /**
-     * CMDB 系统
+     * 标签键 - 到状态
      */
-    public static final String TAG_VALUE_SYSTEM_CMDB = BKConstants.SYSTEM_NAME_CMDB;
+    public static final String TAG_KEY_TO_STATE = "to_state";
 
     /**
-     * IAM 系统
+     * 标签键 - 结果
      */
-    public static final String TAG_VALUE_SYSTEM_IAM = BKConstants.SYSTEM_NAME_IAM;
+    public static final String TAG_KEY_RESULT = "result";
 
     /**
-     * BK-Login 系统
-     */
-    public static final String TAG_VALUE_SYSTEM_BK_LOGIN = BKConstants.SYSTEM_NAME_BK_LOGIN;
-
-    /**
-     * BK-User 系统
-     */
-    public static final String TAG_VALUE_SYSTEM_BK_USER = BKConstants.SYSTEM_NAME_BK_USER;
-
-    // ==================== Tag Values - Final Result ====================
-    /**
-     * 最终成功
+     * 标签值 - 成功
      */
     public static final String TAG_VALUE_RESULT_SUCCESS = "success";
 
     /**
-     * 最终失败
+     * 标签值 - 失败
      */
     public static final String TAG_VALUE_RESULT_FAILURE = "failure";
+
+    /**
+     * 标签值 - 慢调用
+     */
+    public static final String TAG_VALUE_RESULT_SLOW = "slow";
+
+    /**
+     * 标签值 - 拒绝
+     */
+    public static final String TAG_VALUE_RESULT_REJECTED = "rejected";
 }

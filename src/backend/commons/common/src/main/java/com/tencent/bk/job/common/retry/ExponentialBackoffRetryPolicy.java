@@ -29,9 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 指数退避重试策略
- * <p>
  * 重试间隔按指数增长，例如：500ms → 1000ms → 2000ms → 4000ms → 8000ms
- * </p>
  */
 @Slf4j
 @Getter
@@ -92,7 +90,8 @@ public class ExponentialBackoffRetryPolicy implements RetryPolicy {
      * @param maxAttempts       最大重试次数
      * @param multiplier        间隔增长倍数
      */
-    public ExponentialBackoffRetryPolicy(long initialIntervalMs, long maxIntervalMs, int maxAttempts, double multiplier) {
+    public ExponentialBackoffRetryPolicy(long initialIntervalMs, long maxIntervalMs, int maxAttempts,
+                                         double multiplier) {
         if (initialIntervalMs <= 0) {
             throw new IllegalArgumentException("initialIntervalMs must be positive");
         }

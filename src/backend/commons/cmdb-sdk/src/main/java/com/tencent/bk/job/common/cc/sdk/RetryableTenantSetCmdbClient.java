@@ -25,8 +25,9 @@
 package com.tencent.bk.job.common.cc.sdk;
 
 import com.tencent.bk.job.common.cc.model.tenantset.TenantSetInfo;
-import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
 import com.tencent.bk.job.common.retry.RetryExecutor;
+import com.tencent.bk.job.common.retry.RetryPolicy;
+import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsConstants;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
 import lombok.extern.slf4j.Slf4j;
@@ -46,13 +47,15 @@ public class RetryableTenantSetCmdbClient implements ITenantSetCmdbClient {
     private final RetryExecutor retryExecutor;
 
     public RetryableTenantSetCmdbClient(ITenantSetCmdbClient delegate,
-                                        ExponentialBackoffRetryPolicy retryPolicy,
-                                        RetryMetricsRecorder metricsRecorder) {
+                                        RetryPolicy retryPolicy,
+                                        RetryMetricsRecorder metricsRecorder,
+                                        SystemCircuitBreakerManager circuitBreakerManager) {
         this.delegate = delegate;
         this.retryExecutor = new RetryExecutor(
             retryPolicy,
             metricsRecorder,
-            RetryMetricsConstants.TAG_VALUE_SYSTEM_CMDB
+            RetryMetricsConstants.TAG_VALUE_SYSTEM_CMDB,
+            circuitBreakerManager
         );
     }
 

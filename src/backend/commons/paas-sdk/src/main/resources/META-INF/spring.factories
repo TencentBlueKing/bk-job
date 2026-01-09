@@ -1,5 +1,6 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 com.tencent.bk.job.common.paas.config.LoginAutoConfiguration,\
+com.tencent.bk.job.common.paas.config.LoginRetryAutoConfiguration,\
 com.tencent.bk.job.common.paas.config.CmsiAutoConfiguration,\
 com.tencent.bk.job.common.paas.config.UserMgrAutoConfiguration,\
-com.tencent.bk.job.common.paas.config.PaasRetryAutoConfiguration
+com.tencent.bk.job.common.paas.config.UserMgrRetryAutoConfiguration

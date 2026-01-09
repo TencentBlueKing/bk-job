@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.gse.v2;
 
-import com.tencent.bk.job.common.config.ExternalSystemRetryProperties;
 import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
@@ -32,11 +31,11 @@ import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
-import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
 import com.tencent.bk.job.common.retry.RetryExecutor;
+import com.tencent.bk.job.common.retry.RetryPolicy;
+import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsConstants;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,44 +54,17 @@ public class RetryableGseV2ApiClient implements IGseClient {
     private final IGseClient delegate;
     private final RetryExecutor retryExecutor;
 
-    /**
-     * 使用新的全局配置方式创建可重试 GSE 客户端
-     *
-     * @param delegate        代理的GseClient对象
-     * @param meterRegistry   指标注册中心
-     * @param retryProperties 外部系统重试配置
-     */
     public RetryableGseV2ApiClient(IGseClient delegate,
-                                   MeterRegistry meterRegistry,
-                                   ExternalSystemRetryProperties retryProperties) {
+                                   RetryPolicy retryPolicy,
+                                   RetryMetricsRecorder metricsRecorder,
+                                   SystemCircuitBreakerManager circuitBreakerManager) {
         this.delegate = delegate;
-
-        // 使用 GSE 系统级配置，如果没有则使用全局配置
-        ExternalSystemRetryProperties.SystemRetryProperties gseRetryProps = retryProperties.getGse();
-        ExponentialBackoffRetryPolicy retryPolicy = ExponentialBackoffRetryPolicy.builder()
-            .initialIntervalMs(retryProperties.getSystemInitialIntervalMs(gseRetryProps))
-            .maxIntervalMs(retryProperties.getSystemMaxIntervalMs(gseRetryProps))
-            .maxAttempts(retryProperties.getSystemMaxAttempts(gseRetryProps))
-            .multiplier(retryProperties.getSystemMultiplier(gseRetryProps))
-            .build();
-
-        RetryMetricsRecorder metricsRecorder = new RetryMetricsRecorder(
-            meterRegistry,
-            retryProperties.isMetricsEnabled()
-        );
-
         this.retryExecutor = new RetryExecutor(
             retryPolicy,
             metricsRecorder,
-            RetryMetricsConstants.TAG_VALUE_SYSTEM_GSE
+            RetryMetricsConstants.TAG_VALUE_SYSTEM_GSE,
+            circuitBreakerManager
         );
-
-        log.info("Init RetryableGseV2ApiClient with exponential backoff: initialInterval={}ms, maxAttempts={}, " +
-                "maxInterval={}ms, multiplier={}",
-            retryProperties.getSystemInitialIntervalMs(gseRetryProps),
-            retryProperties.getSystemMaxAttempts(gseRetryProps),
-            retryProperties.getSystemMaxIntervalMs(gseRetryProps),
-            retryProperties.getSystemMultiplier(gseRetryProps));
     }
 
     @Override

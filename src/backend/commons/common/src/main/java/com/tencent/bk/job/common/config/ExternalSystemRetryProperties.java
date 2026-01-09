@@ -38,72 +38,47 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ExternalSystemRetryProperties {
 
     /**
-     * 是否启用重试（默认关闭）
+     * 全局配置
      */
-    private boolean enabled = false;
-
-    /**
-     * 初始重试间隔（毫秒），默认 500ms
-     */
-    private long initialIntervalMs = 500L;
-
-    /**
-     * 最大重试次数，默认 5 次
-     */
-    private int maxAttempts = 5;
-
-    /**
-     * 最大重试间隔（毫秒），默认 30000ms (30秒)
-     */
-    private long maxIntervalMs = 30000L;
-
-    /**
-     * 间隔增长倍数，默认 2.0
-     */
-    private double multiplier = 2.0;
-
-    /**
-     * 是否启用指标采集（默认开启）
-     */
-    private boolean metricsEnabled = true;
+    private RetryProperties global = RetryProperties.defaultGlobalConfig();
 
     /**
      * CMDB 系统单独配置
      */
-    private SystemRetryProperties cmdb = new SystemRetryProperties();
+    private RetryProperties cmdb;
 
     /**
      * IAM 系统单独配置
      */
-    private SystemRetryProperties iam = new SystemRetryProperties();
+    private RetryProperties iam;
 
     /**
      * GSE 系统单独配置
      */
-    private SystemRetryProperties gse = new SystemRetryProperties();
+    private RetryProperties gse;
 
     /**
      * BK-Login 系统单独配置
      */
-    private SystemRetryProperties bkLogin = new SystemRetryProperties();
+    private RetryProperties bkLogin;
 
     /**
      * BK-User 系统单独配置
      */
-    private SystemRetryProperties bkUser = new SystemRetryProperties();
+    private RetryProperties bkUser;
 
     /**
-     * 判断指定系统是否启用重试
+     * 判断指定系统是否应当启用重试
      *
      * @param systemProperties 系统配置
      * @return 是否启用重试
      */
-    public boolean isSystemRetryEnabled(SystemRetryProperties systemProperties) {
+    public boolean isSystemRetryEnabled(RetryProperties systemProperties) {
         if (systemProperties == null) {
-            return enabled;
+            return global.getEnabled();
         }
         // 如果系统级别有明确配置，使用系统级别的配置；否则使用全局配置
-        return systemProperties.getEnabled() != null ? systemProperties.getEnabled() : enabled;
+        return systemProperties.getEnabled() != null ? systemProperties.getEnabled() : global.getEnabled();
     }
 
     /**
@@ -112,11 +87,11 @@ public class ExternalSystemRetryProperties {
      * @param systemProperties 系统配置
      * @return 最大重试次数
      */
-    public int getSystemMaxAttempts(SystemRetryProperties systemProperties) {
+    public int getSystemMaxAttempts(RetryProperties systemProperties) {
         if (systemProperties != null && systemProperties.getMaxAttempts() != null) {
             return systemProperties.getMaxAttempts();
         }
-        return maxAttempts;
+        return global.getMaxAttempts();
     }
 
     /**
@@ -125,11 +100,11 @@ public class ExternalSystemRetryProperties {
      * @param systemProperties 系统配置
      * @return 初始重试间隔（毫秒）
      */
-    public long getSystemInitialIntervalMs(SystemRetryProperties systemProperties) {
+    public long getSystemInitialIntervalMs(RetryProperties systemProperties) {
         if (systemProperties != null && systemProperties.getInitialIntervalMs() != null) {
             return systemProperties.getInitialIntervalMs();
         }
-        return initialIntervalMs;
+        return global.getInitialIntervalMs();
     }
 
     /**
@@ -138,11 +113,11 @@ public class ExternalSystemRetryProperties {
      * @param systemProperties 系统配置
      * @return 最大重试间隔（毫秒）
      */
-    public long getSystemMaxIntervalMs(SystemRetryProperties systemProperties) {
+    public long getSystemMaxIntervalMs(RetryProperties systemProperties) {
         if (systemProperties != null && systemProperties.getMaxIntervalMs() != null) {
             return systemProperties.getMaxIntervalMs();
         }
-        return maxIntervalMs;
+        return global.getMaxIntervalMs();
     }
 
     /**
@@ -151,41 +126,25 @@ public class ExternalSystemRetryProperties {
      * @param systemProperties 系统配置
      * @return 间隔增长倍数
      */
-    public double getSystemMultiplier(SystemRetryProperties systemProperties) {
+    public double getSystemMultiplier(RetryProperties systemProperties) {
         if (systemProperties != null && systemProperties.getMultiplier() != null) {
             return systemProperties.getMultiplier();
         }
-        return multiplier;
+        return global.getMultiplier();
     }
 
     /**
-     * 各外部系统的单独配置
+     * 是否启用重试指标采集
+     *
+     * @param systemProperties 系统配置
+     * @return 布尔值
      */
-    @Data
-    public static class SystemRetryProperties {
-        /**
-         * 是否启用（null 表示使用全局配置）
-         */
-        private Boolean enabled;
-
-        /**
-         * 最大重试次数（null 表示使用全局配置）
-         */
-        private Integer maxAttempts;
-
-        /**
-         * 初始重试间隔（毫秒，null 表示使用全局配置）
-         */
-        private Long initialIntervalMs;
-
-        /**
-         * 最大重试间隔（毫秒，null 表示使用全局配置）
-         */
-        private Long maxIntervalMs;
-
-        /**
-         * 间隔增长倍数（null 表示使用全局配置）
-         */
-        private Double multiplier;
+    public boolean isMetricsEnabled(RetryProperties systemProperties) {
+        if (systemProperties != null && systemProperties.getMetricsEnabled() != null) {
+            return systemProperties.getMetricsEnabled();
+        }
+        return global.getMetricsEnabled();
     }
+
+
 }

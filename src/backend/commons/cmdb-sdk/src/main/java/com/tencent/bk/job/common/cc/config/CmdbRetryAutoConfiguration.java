@@ -30,8 +30,12 @@ import com.tencent.bk.job.common.cc.sdk.ITenantSetCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.RetryableBizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.RetryableBizSetCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.RetryableTenantSetCmdbClient;
+import com.tencent.bk.job.common.config.CircuitBreakerProperties;
 import com.tencent.bk.job.common.config.ExternalSystemRetryProperties;
+import com.tencent.bk.job.common.config.RetryProperties;
+import com.tencent.bk.job.common.constant.BKConstants;
 import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
+import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -62,45 +66,40 @@ public class CmdbRetryAutoConfiguration {
     @ConditionalOnBean(IBizCmdbClient.class)
     @ConditionalOnMockCmdbApiDisabled
     public IBizCmdbClient retryableBizCmdbClient(IBizCmdbClient bizCmdbClient,
-                                                 ObjectProvider<ExternalSystemRetryProperties> retryPropertiesProvider,
+                                                 ExternalSystemRetryProperties retryProperties,
                                                  ObjectProvider<MeterRegistry> meterRegistryProvider) {
-        ExternalSystemRetryProperties retryProperties = retryPropertiesProvider.getIfAvailable(
-            ExternalSystemRetryProperties::new);
-        
         // 检查 CMDB 系统级别是否启用重试
         if (!retryProperties.isSystemRetryEnabled(retryProperties.getCmdb())) {
             log.info("CMDB retry is disabled by system-level config");
             return bizCmdbClient;
         }
-        
-        ExponentialBackoffRetryPolicy retryPolicy = buildRetryPolicy(retryProperties, retryProperties.getCmdb());
+
+        ExponentialBackoffRetryPolicy retryPolicy = buildRetryPolicy(retryProperties);
         RetryMetricsRecorder metricsRecorder = buildMetricsRecorder(retryProperties, meterRegistryProvider);
-        
-        log.info("Init RetryableBizCmdbClient with exponential backoff: maxAttempts={}, initialIntervalMs={}",
-            retryPolicy.getMaxAttempts(), retryPolicy.getInitialIntervalMs());
-        return new RetryableBizCmdbClient(bizCmdbClient, retryPolicy, metricsRecorder);
+        SystemCircuitBreakerManager circuitBreakerManager = buildCircuitBreakerManager(retryProperties);
+
+        log.info("Init RetryableBizCmdbClient");
+        return new RetryableBizCmdbClient(bizCmdbClient, retryPolicy, metricsRecorder, circuitBreakerManager);
     }
 
     @Bean
     @Primary
     @ConditionalOnBean(IBizSetCmdbClient.class)
     public IBizSetCmdbClient retryableBizSetCmdbClient(IBizSetCmdbClient bizSetCmdbClient,
-                                                       ObjectProvider<ExternalSystemRetryProperties> retryPropertiesProvider,
+                                                       ExternalSystemRetryProperties retryProperties,
                                                        ObjectProvider<MeterRegistry> meterRegistryProvider) {
-        ExternalSystemRetryProperties retryProperties = retryPropertiesProvider.getIfAvailable(
-            ExternalSystemRetryProperties::new);
-        
         // 检查 CMDB 系统级别是否启用重试
         if (!retryProperties.isSystemRetryEnabled(retryProperties.getCmdb())) {
             log.info("CMDB BizSet retry is disabled by system-level config");
             return bizSetCmdbClient;
         }
-        
-        ExponentialBackoffRetryPolicy retryPolicy = buildRetryPolicy(retryProperties, retryProperties.getCmdb());
+
+        ExponentialBackoffRetryPolicy retryPolicy = buildRetryPolicy(retryProperties);
         RetryMetricsRecorder metricsRecorder = buildMetricsRecorder(retryProperties, meterRegistryProvider);
-        
-        log.info("Init RetryableBizSetCmdbClient with exponential backoff");
-        return new RetryableBizSetCmdbClient(bizSetCmdbClient, retryPolicy, metricsRecorder);
+        SystemCircuitBreakerManager circuitBreakerManager = buildCircuitBreakerManager(retryProperties);
+
+        log.info("Init RetryableBizSetCmdbClient");
+        return new RetryableBizSetCmdbClient(bizSetCmdbClient, retryPolicy, metricsRecorder, circuitBreakerManager);
     }
 
     @Bean
@@ -108,31 +107,33 @@ public class CmdbRetryAutoConfiguration {
     @ConditionalOnBean(ITenantSetCmdbClient.class)
     @ConditionalOnMockCmdbApiDisabled
     public ITenantSetCmdbClient retryableTenantSetCmdbClient(ITenantSetCmdbClient tenantSetCmdbClient,
-                                                             ObjectProvider<ExternalSystemRetryProperties> retryPropertiesProvider,
+                                                             ExternalSystemRetryProperties retryProperties,
                                                              ObjectProvider<MeterRegistry> meterRegistryProvider) {
-        ExternalSystemRetryProperties retryProperties = retryPropertiesProvider.getIfAvailable(
-            ExternalSystemRetryProperties::new);
-        
         // 检查 CMDB 系统级别是否启用重试
         if (!retryProperties.isSystemRetryEnabled(retryProperties.getCmdb())) {
             log.info("CMDB TenantSet retry is disabled by system-level config");
             return tenantSetCmdbClient;
         }
-        
-        ExponentialBackoffRetryPolicy retryPolicy = buildRetryPolicy(retryProperties, retryProperties.getCmdb());
+
+        ExponentialBackoffRetryPolicy retryPolicy = buildRetryPolicy(retryProperties);
         RetryMetricsRecorder metricsRecorder = buildMetricsRecorder(retryProperties, meterRegistryProvider);
-        
-        log.info("Init RetryableTenantSetCmdbClient with exponential backoff");
-        return new RetryableTenantSetCmdbClient(tenantSetCmdbClient, retryPolicy, metricsRecorder);
+        SystemCircuitBreakerManager circuitBreakerManager = buildCircuitBreakerManager(retryProperties);
+
+        log.info("Init RetryableTenantSetCmdbClient");
+        return new RetryableTenantSetCmdbClient(
+            tenantSetCmdbClient,
+            retryPolicy,
+            metricsRecorder,
+            circuitBreakerManager
+        );
     }
 
-    private ExponentialBackoffRetryPolicy buildRetryPolicy(ExternalSystemRetryProperties globalProps,
-                                                           ExternalSystemRetryProperties.SystemRetryProperties systemProps) {
+    private ExponentialBackoffRetryPolicy buildRetryPolicy(ExternalSystemRetryProperties retryProperties) {
         return ExponentialBackoffRetryPolicy.builder()
-            .initialIntervalMs(globalProps.getSystemInitialIntervalMs(systemProps))
-            .maxIntervalMs(globalProps.getSystemMaxIntervalMs(systemProps))
-            .maxAttempts(globalProps.getSystemMaxAttempts(systemProps))
-            .multiplier(globalProps.getSystemMultiplier(systemProps))
+            .initialIntervalMs(retryProperties.getSystemInitialIntervalMs(retryProperties.getCmdb()))
+            .maxIntervalMs(retryProperties.getSystemMaxIntervalMs(retryProperties.getCmdb()))
+            .maxAttempts(retryProperties.getSystemMaxAttempts(retryProperties.getCmdb()))
+            .multiplier(retryProperties.getSystemMultiplier(retryProperties.getCmdb()))
             .build();
     }
 
@@ -140,7 +141,19 @@ public class CmdbRetryAutoConfiguration {
                                                       ObjectProvider<MeterRegistry> meterRegistryProvider) {
         return new RetryMetricsRecorder(
             meterRegistryProvider.getIfAvailable(),
-            retryProperties.isMetricsEnabled()
+            retryProperties.isMetricsEnabled(retryProperties.getCmdb())
         );
+    }
+
+    private SystemCircuitBreakerManager buildCircuitBreakerManager(ExternalSystemRetryProperties retryProperties) {
+        CircuitBreakerProperties globalCircuitBreakerProperties = retryProperties.getGlobal().getCircuitBreaker();
+        CircuitBreakerProperties finalCircuitBreakerProperties = globalCircuitBreakerProperties;
+        RetryProperties cmdbRetryProperties = retryProperties.getCmdb();
+        if (cmdbRetryProperties != null && cmdbRetryProperties.getCircuitBreaker() != null) {
+            // 优先使用为指定系统配置的值，未配置的字段使用全局配置填充
+            finalCircuitBreakerProperties = cmdbRetryProperties.getCircuitBreaker();
+            finalCircuitBreakerProperties.fillDefault(globalCircuitBreakerProperties);
+        }
+        return new SystemCircuitBreakerManager(BKConstants.SYSTEM_NAME_CMDB, finalCircuitBreakerProperties);
     }
 }

@@ -26,8 +26,9 @@ package com.tencent.bk.job.common.paas.user;
 
 import com.tencent.bk.job.common.paas.model.OpenApiTenant;
 import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
-import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
 import com.tencent.bk.job.common.retry.RetryExecutor;
+import com.tencent.bk.job.common.retry.RetryPolicy;
+import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsConstants;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
 import lombok.extern.slf4j.Slf4j;
@@ -48,13 +49,15 @@ public class RetryableUserApiClient implements IUserApiClient {
     private final RetryExecutor retryExecutor;
 
     public RetryableUserApiClient(IUserApiClient delegate,
-                                  ExponentialBackoffRetryPolicy retryPolicy,
-                                  RetryMetricsRecorder metricsRecorder) {
+                                  RetryPolicy retryPolicy,
+                                  RetryMetricsRecorder metricsRecorder,
+                                  SystemCircuitBreakerManager circuitBreakerManager) {
         this.delegate = delegate;
         this.retryExecutor = new RetryExecutor(
             retryPolicy,
             metricsRecorder,
-            RetryMetricsConstants.TAG_VALUE_SYSTEM_BK_USER
+            RetryMetricsConstants.TAG_VALUE_SYSTEM_BK_USER,
+            circuitBreakerManager
         );
     }
 

@@ -22,14 +22,14 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.iam.config;
+package com.tencent.bk.job.common.paas.config;
 
 import com.tencent.bk.job.common.config.CircuitBreakerProperties;
 import com.tencent.bk.job.common.config.ExternalSystemRetryProperties;
 import com.tencent.bk.job.common.config.RetryProperties;
 import com.tencent.bk.job.common.constant.BKConstants;
-import com.tencent.bk.job.common.iam.client.IIamClient;
-import com.tencent.bk.job.common.iam.client.RetryableIamClient;
+import com.tencent.bk.job.common.paas.login.ILoginClient;
+import com.tencent.bk.job.common.paas.login.RetryableLoginClient;
 import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
 import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
@@ -44,58 +44,55 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 /**
- * IAM 客户端重试自动配置
- * <p>
- * 当启用外部系统重试时，自动为 IAM 客户端添加重试能力
- * </p>
+ * BK-Login重试自动配置
+ * 当启用外部系统重试时，自动为 BK-Login 客户端添加重试能力
  */
 @Slf4j
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(ExternalSystemRetryProperties.class)
-@AutoConfigureAfter(IamAutoConfiguration.class)
+@AutoConfigureAfter({LoginAutoConfiguration.class})
 @ConditionalOnProperty(name = "external-system.retry.enabled", havingValue = "true")
-public class IamRetryAutoConfiguration {
+public class LoginRetryAutoConfiguration {
 
     @Bean
     @Primary
-    @ConditionalOnBean(IIamClient.class)
-    @ConditionalOnMockIamApiDisabled
-    public IIamClient retryableIamClient(IIamClient iamClient,
-                                         ExternalSystemRetryProperties retryProperties,
-                                         MeterRegistry meterRegistry) {
-        // 检查 IAM 系统级别是否启用重试
-        if (!retryProperties.isSystemRetryEnabled(retryProperties.getIam())) {
-            log.info("IAM retry is disabled by system-level config");
-            return iamClient;
+    @ConditionalOnBean(ILoginClient.class)
+    public ILoginClient retryableLoginClient(ILoginClient loginClient,
+                                             ExternalSystemRetryProperties retryProperties,
+                                             MeterRegistry meterRegistry) {
+        // 检查 BK-Login 系统级别是否启用重试
+        if (!retryProperties.isSystemRetryEnabled(retryProperties.getBkLogin())) {
+            log.info("BK-Login retry is disabled by system-level config");
+            return loginClient;
         }
 
-        RetryProperties iamRetryProps = retryProperties.getIam();
+        RetryProperties loginRetryProps = retryProperties.getBkLogin();
         ExponentialBackoffRetryPolicy retryPolicy = ExponentialBackoffRetryPolicy.builder()
-            .initialIntervalMs(retryProperties.getSystemInitialIntervalMs(iamRetryProps))
-            .maxIntervalMs(retryProperties.getSystemMaxIntervalMs(iamRetryProps))
-            .maxAttempts(retryProperties.getSystemMaxAttempts(iamRetryProps))
-            .multiplier(retryProperties.getSystemMultiplier(iamRetryProps))
+            .initialIntervalMs(retryProperties.getSystemInitialIntervalMs(loginRetryProps))
+            .maxIntervalMs(retryProperties.getSystemMaxIntervalMs(loginRetryProps))
+            .maxAttempts(retryProperties.getSystemMaxAttempts(loginRetryProps))
+            .multiplier(retryProperties.getSystemMultiplier(loginRetryProps))
             .build();
 
         RetryMetricsRecorder metricsRecorder = new RetryMetricsRecorder(
             meterRegistry,
-            retryProperties.isMetricsEnabled(iamRetryProps)
+            retryProperties.isMetricsEnabled(loginRetryProps)
         );
 
-        log.info("Init RetryableIamClient");
+        log.info("Init RetryableLoginClient");
         SystemCircuitBreakerManager circuitBreakerManager = buildCircuitBreakerManager(retryProperties);
-        return new RetryableIamClient(iamClient, retryPolicy, metricsRecorder, circuitBreakerManager);
+        return new RetryableLoginClient(loginClient, retryPolicy, metricsRecorder, circuitBreakerManager);
     }
 
     private SystemCircuitBreakerManager buildCircuitBreakerManager(ExternalSystemRetryProperties retryProperties) {
         CircuitBreakerProperties globalCircuitBreakerProperties = retryProperties.getGlobal().getCircuitBreaker();
         CircuitBreakerProperties finalCircuitBreakerProperties = globalCircuitBreakerProperties;
-        RetryProperties iamRetryProperties = retryProperties.getIam();
-        if (iamRetryProperties != null && iamRetryProperties.getCircuitBreaker() != null) {
+        RetryProperties bkLoginRetryProperties = retryProperties.getBkLogin();
+        if (bkLoginRetryProperties != null && bkLoginRetryProperties.getCircuitBreaker() != null) {
             // 优先使用为指定系统配置的值，未配置的字段使用全局配置填充
-            finalCircuitBreakerProperties = iamRetryProperties.getCircuitBreaker();
+            finalCircuitBreakerProperties = bkLoginRetryProperties.getCircuitBreaker();
             finalCircuitBreakerProperties.fillDefault(globalCircuitBreakerProperties);
         }
-        return new SystemCircuitBreakerManager(BKConstants.SYSTEM_NAME_IAM, finalCircuitBreakerProperties);
+        return new SystemCircuitBreakerManager(BKConstants.SYSTEM_NAME_BK_LOGIN, finalCircuitBreakerProperties);
     }
 }

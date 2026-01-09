@@ -25,8 +25,9 @@
 package com.tencent.bk.job.common.paas.login;
 
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
-import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
 import com.tencent.bk.job.common.retry.RetryExecutor;
+import com.tencent.bk.job.common.retry.RetryPolicy;
+import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsConstants;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
 import lombok.extern.slf4j.Slf4j;
@@ -44,13 +45,15 @@ public class RetryableLoginClient implements ILoginClient {
     private final RetryExecutor retryExecutor;
 
     public RetryableLoginClient(ILoginClient delegate,
-                                ExponentialBackoffRetryPolicy retryPolicy,
-                                RetryMetricsRecorder metricsRecorder) {
+                                RetryPolicy retryPolicy,
+                                RetryMetricsRecorder metricsRecorder,
+                                SystemCircuitBreakerManager circuitBreakerManager) {
         this.delegate = delegate;
         this.retryExecutor = new RetryExecutor(
             retryPolicy,
             metricsRecorder,
-            RetryMetricsConstants.TAG_VALUE_SYSTEM_BK_LOGIN
+            RetryMetricsConstants.TAG_VALUE_SYSTEM_BK_LOGIN,
+            circuitBreakerManager
         );
     }
 

@@ -24,8 +24,9 @@
 
 package com.tencent.bk.job.common.iam.client;
 
-import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
 import com.tencent.bk.job.common.retry.RetryExecutor;
+import com.tencent.bk.job.common.retry.RetryPolicy;
+import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsConstants;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
 import com.tencent.bk.sdk.iam.dto.action.ActionDTO;
@@ -47,13 +48,15 @@ public class RetryableIamClient implements IIamClient {
     private final RetryExecutor retryExecutor;
 
     public RetryableIamClient(IIamClient delegate,
-                              ExponentialBackoffRetryPolicy retryPolicy,
-                              RetryMetricsRecorder metricsRecorder) {
+                              RetryPolicy retryPolicy,
+                              RetryMetricsRecorder metricsRecorder,
+                              SystemCircuitBreakerManager circuitBreakerManager) {
         this.delegate = delegate;
         this.retryExecutor = new RetryExecutor(
             retryPolicy,
             metricsRecorder,
-            RetryMetricsConstants.TAG_VALUE_SYSTEM_IAM
+            RetryMetricsConstants.TAG_VALUE_SYSTEM_IAM,
+            circuitBreakerManager
         );
     }
 
