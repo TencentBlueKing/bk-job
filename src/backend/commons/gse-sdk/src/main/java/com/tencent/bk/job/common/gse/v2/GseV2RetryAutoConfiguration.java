@@ -58,12 +58,6 @@ public class GseV2RetryAutoConfiguration {
     public IGseClient retryableGseV2ApiClient(IGseClient gseClient,
                                               MeterRegistry meterRegistry,
                                               ExternalSystemRetryProperties retryProperties) {
-        // 检查 GSE 系统级别是否启用重试
-        if (!retryProperties.isSystemRetryEnabled(retryProperties.getGse())) {
-            log.info("GSE retry is disabled by system-level config, using non-retryable client");
-            return gseClient;
-        }
-
         // 使用 GSE 系统级配置，如果没有则使用全局配置
         RetryProperties gseRetryProps = retryProperties.getGse();
         ExponentialBackoffRetryPolicy retryPolicy = ExponentialBackoffRetryPolicy.builder()

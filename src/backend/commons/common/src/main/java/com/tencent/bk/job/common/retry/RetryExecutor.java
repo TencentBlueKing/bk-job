@@ -29,8 +29,12 @@ import com.tencent.bk.job.common.retry.circuitbreaker.CircuitBreakerException;
 import com.tencent.bk.job.common.retry.circuitbreaker.CircuitBreakerOpenException;
 import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.cloud.sleuth.Tracer;
+import org.springframework.cloud.sleuth.instrument.async.TraceCallable;
+import org.springframework.cloud.sleuth.internal.DefaultSpanNamer;
 
 import java.util.concurrent.Callable;
 
@@ -56,6 +60,10 @@ public class RetryExecutor {
      * 指标记录器
      */
     private final RetryMetricsRecorder metricsRecorder;
+    /**
+     * 调用链追踪器
+     */
+    private volatile Tracer tracer = null;
 
     /**
      * 创建重试执行器
@@ -87,9 +95,10 @@ public class RetryExecutor {
      * @throws RetryAbortedException 重试被中断或待执行任务抛出受检异常时抛出
      */
     public <T> T executeWithRetry(Callable<T> task, String apiName) {
+        Callable<T> wrappedTask = getTraceableTask(task);
         CircuitBreaker circuitBreaker = circuitBreakerManager.getCircuitBreaker(apiName);
         // 首先判断是否需要被熔断器处理执行
-        T circuitBreakerResult = executeWithCircuitBreaker(circuitBreaker, apiName, task);
+        T circuitBreakerResult = executeWithCircuitBreaker(circuitBreaker, apiName, wrappedTask);
         if (circuitBreakerResult != null) {
             return circuitBreakerResult;
         }
@@ -100,7 +109,7 @@ public class RetryExecutor {
         while (attemptNumber < retryPolicy.getMaxAttempts()) {
             try {
                 startTime = System.currentTimeMillis();
-                T result = task.call();
+                T result = wrappedTask.call();
                 long duration = System.currentTimeMillis() - startTime;
 
                 // 记录熔断器成功
@@ -140,6 +149,28 @@ public class RetryExecutor {
             wrapAndThrowIfNecessary(lastException);
         }
         throw new RetryAbortedException("maxAttempts is invalid: " + retryPolicy.getMaxAttempts());
+    }
+
+    /**
+     * 获取可追踪的任务，确保Trace数据被传递
+     *
+     * @param task 原始任务
+     * @param <T>  任务返回值类型
+     * @return 可追踪的任务
+     */
+    private <T> Callable<T> getTraceableTask(Callable<T> task) {
+        if (tracer == null) {
+            try {
+                tracer = ApplicationContextRegister.getBean(Tracer.class);
+            } catch (Throwable t) {
+                log.warn("Fail to get tracer", t);
+            }
+        }
+        if (tracer == null) {
+            log.warn("No tracer found, use raw task");
+            return task;
+        }
+        return new TraceCallable<>(tracer, new DefaultSpanNamer(), task);
     }
 
     /**

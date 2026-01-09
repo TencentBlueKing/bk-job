@@ -61,12 +61,6 @@ public class LoginRetryAutoConfiguration {
     public ILoginClient retryableLoginClient(ILoginClient loginClient,
                                              ExternalSystemRetryProperties retryProperties,
                                              MeterRegistry meterRegistry) {
-        // 检查 BK-Login 系统级别是否启用重试
-        if (!retryProperties.isSystemRetryEnabled(retryProperties.getBkLogin())) {
-            log.info("BK-Login retry is disabled by system-level config");
-            return loginClient;
-        }
-
         RetryProperties loginRetryProps = retryProperties.getBkLogin();
         ExponentialBackoffRetryPolicy retryPolicy = ExponentialBackoffRetryPolicy.builder()
             .initialIntervalMs(retryProperties.getSystemInitialIntervalMs(loginRetryProps))

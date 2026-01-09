@@ -61,12 +61,6 @@ public class UserMgrRetryAutoConfiguration {
     public IUserApiClient retryableUserApiClient(IUserApiClient userApiClient,
                                                  ExternalSystemRetryProperties retryProperties,
                                                  MeterRegistry meterRegistry) {
-        // 检查 BK-User 系统级别是否启用重试
-        if (!retryProperties.isSystemRetryEnabled(retryProperties.getBkUser())) {
-            log.info("BK-User retry is disabled by system-level config");
-            return userApiClient;
-        }
-
         RetryProperties userRetryProps = retryProperties.getBkUser();
         ExponentialBackoffRetryPolicy retryPolicy = ExponentialBackoffRetryPolicy.builder()
             .initialIntervalMs(retryProperties.getSystemInitialIntervalMs(userRetryProps))

@@ -63,12 +63,6 @@ public class IamRetryAutoConfiguration {
     public IIamClient retryableIamClient(IIamClient iamClient,
                                          ExternalSystemRetryProperties retryProperties,
                                          MeterRegistry meterRegistry) {
-        // 检查 IAM 系统级别是否启用重试
-        if (!retryProperties.isSystemRetryEnabled(retryProperties.getIam())) {
-            log.info("IAM retry is disabled by system-level config");
-            return iamClient;
-        }
-
         RetryProperties iamRetryProps = retryProperties.getIam();
         ExponentialBackoffRetryPolicy retryPolicy = ExponentialBackoffRetryPolicy.builder()
             .initialIntervalMs(retryProperties.getSystemInitialIntervalMs(iamRetryProps))

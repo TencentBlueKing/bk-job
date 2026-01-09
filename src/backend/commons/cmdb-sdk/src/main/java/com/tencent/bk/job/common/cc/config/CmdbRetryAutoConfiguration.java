@@ -85,12 +85,6 @@ public class CmdbRetryAutoConfiguration {
                                                  @Qualifier("cmdbCircuitBreakerManager")
                                                  SystemCircuitBreakerManager circuitBreakerManager,
                                                  ObjectProvider<MeterRegistry> meterRegistryProvider) {
-        // 检查 CMDB 系统级别是否启用重试
-        if (!retryProperties.isSystemRetryEnabled(retryProperties.getCmdb())) {
-            log.info("CMDB retry is disabled by system-level config");
-            return bizCmdbClient;
-        }
-
         ExponentialBackoffRetryPolicy retryPolicy = buildRetryPolicy(retryProperties);
         RetryMetricsRecorder metricsRecorder = buildMetricsRecorder(retryProperties, meterRegistryProvider);
 
@@ -106,12 +100,6 @@ public class CmdbRetryAutoConfiguration {
                                                        @Qualifier("cmdbCircuitBreakerManager")
                                                        SystemCircuitBreakerManager circuitBreakerManager,
                                                        ObjectProvider<MeterRegistry> meterRegistryProvider) {
-        // 检查 CMDB 系统级别是否启用重试
-        if (!retryProperties.isSystemRetryEnabled(retryProperties.getCmdb())) {
-            log.info("CMDB BizSet retry is disabled by system-level config");
-            return bizSetCmdbClient;
-        }
-
         ExponentialBackoffRetryPolicy retryPolicy = buildRetryPolicy(retryProperties);
         RetryMetricsRecorder metricsRecorder = buildMetricsRecorder(retryProperties, meterRegistryProvider);
 
@@ -128,11 +116,6 @@ public class CmdbRetryAutoConfiguration {
                                                              @Qualifier("cmdbCircuitBreakerManager")
                                                              SystemCircuitBreakerManager circuitBreakerManager,
                                                              ObjectProvider<MeterRegistry> meterRegistryProvider) {
-        // 检查 CMDB 系统级别是否启用重试
-        if (!retryProperties.isSystemRetryEnabled(retryProperties.getCmdb())) {
-            log.info("CMDB TenantSet retry is disabled by system-level config");
-            return tenantSetCmdbClient;
-        }
 
         ExponentialBackoffRetryPolicy retryPolicy = buildRetryPolicy(retryProperties);
         RetryMetricsRecorder metricsRecorder = buildMetricsRecorder(retryProperties, meterRegistryProvider);
