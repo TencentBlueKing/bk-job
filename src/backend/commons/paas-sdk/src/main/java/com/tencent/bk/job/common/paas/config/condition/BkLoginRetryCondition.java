@@ -27,7 +27,12 @@ package com.tencent.bk.job.common.paas.config.condition;
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.core.type.AnnotatedTypeMetadata;
+
+import java.util.Objects;
 
 /**
  * 开启BK-Login重试的条件，满足任意一项即可：
@@ -59,9 +64,18 @@ public class BkLoginRetryCondition extends AnyNestedCondition {
 
         }
 
-        @ConditionalOnProperty(name = "external-system.retry.bkLogin.enabled", havingValue = "")
-        static class BkLoginRetryHavingValueCondition {
+        @Conditional(BkLoginRetryNotFalseCondition.class)
+        static class BkLoginRetryNotDisabledCondition {
 
+        }
+
+        static class BkLoginRetryNotFalseCondition implements Condition {
+            @Override
+            public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+                String enabled = context.getEnvironment().getProperty("external-system.retry.bkLogin.enabled");
+                // 配置项不存在或值不为 "false" 时返回 true
+                return enabled == null || !Objects.equals(enabled, "false");
+            }
         }
     }
 }

@@ -27,12 +27,17 @@ package com.tencent.bk.job.common.cc.config;
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.core.type.AnnotatedTypeMetadata;
+
+import java.util.Objects;
 
 /**
  * 开启CMDB重试的条件，满足任意一项即可：
  * 1.external-system.retry.cmdb.enabled配置项明确指定开启；
- * 2.external-system.retry.cmdb.enabled配置项未配置，但全局配置项external-system.retry.global.enabled指定开启。
+ * 2.external-system.retry.cmdb.enabled配置项未配置或值不为false，但全局配置项external-system.retry.global.enabled指定开启。
  */
 public class CmdbRetryCondition extends AnyNestedCondition {
     public CmdbRetryCondition() {
@@ -59,9 +64,19 @@ public class CmdbRetryCondition extends AnyNestedCondition {
 
         }
 
-        @ConditionalOnProperty(name = "external-system.retry.cmdb.enabled", havingValue = "")
-        static class CmdbRetryHavingValueCondition {
+        @Conditional(CmdbRetryNotFalseCondition.class)
+        static class CmdbRetryNotDisabledCondition {
 
         }
+
+        static class CmdbRetryNotFalseCondition implements Condition {
+            @Override
+            public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+                String enabled = context.getEnvironment().getProperty("external-system.retry.cmdb.enabled");
+                // 配置项不存在或值不为 "false" 时返回 true
+                return enabled == null || !Objects.equals(enabled, "false");
+            }
+        }
+
     }
 }

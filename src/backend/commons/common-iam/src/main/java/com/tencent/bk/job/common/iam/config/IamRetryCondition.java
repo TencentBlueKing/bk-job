@@ -27,7 +27,12 @@ package com.tencent.bk.job.common.iam.config;
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.AnyNestedCondition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.core.type.AnnotatedTypeMetadata;
+
+import java.util.Objects;
 
 /**
  * 开启IAM重试的条件，满足任意一项即可：
@@ -59,9 +64,18 @@ public class IamRetryCondition extends AnyNestedCondition {
 
         }
 
-        @ConditionalOnProperty(name = "external-system.retry.iam.enabled", havingValue = "")
-        static class IamRetryHavingValueCondition {
+        @Conditional(IamRetryNotFalseCondition.class)
+        static class IamRetryNotDisabledCondition {
 
+        }
+
+        static class IamRetryNotFalseCondition implements Condition {
+            @Override
+            public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+                String enabled = context.getEnvironment().getProperty("external-system.retry.iam.enabled");
+                // 配置项不存在或值不为 "false" 时返回 true
+                return enabled == null || !Objects.equals(enabled, "false");
+            }
         }
     }
 }
