@@ -28,20 +28,19 @@ import com.tencent.bk.job.common.config.CircuitBreakerProperties;
 import com.tencent.bk.job.common.config.ExternalSystemRetryProperties;
 import com.tencent.bk.job.common.config.RetryProperties;
 import com.tencent.bk.job.common.constant.BKConstants;
+import com.tencent.bk.job.common.paas.config.condition.UserMgrRetryCondition;
 import com.tencent.bk.job.common.paas.user.IUserApiClient;
 import com.tencent.bk.job.common.paas.user.RetryableUserApiClient;
-import com.tencent.bk.job.common.retry.circuitbreaker.CircuitBreaker;
 import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
 import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
@@ -53,7 +52,7 @@ import org.springframework.context.annotation.Primary;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(ExternalSystemRetryProperties.class)
 @AutoConfigureAfter({UserMgrAutoConfiguration.class})
-@ConditionalOnProperty(name = "external-system.retry.enabled", havingValue = "true")
+@Conditional(UserMgrRetryCondition.class)
 public class UserMgrRetryAutoConfiguration {
 
     @Bean
@@ -61,8 +60,7 @@ public class UserMgrRetryAutoConfiguration {
     @ConditionalOnBean(IUserApiClient.class)
     public IUserApiClient retryableUserApiClient(IUserApiClient userApiClient,
                                                  ExternalSystemRetryProperties retryProperties,
-                                                 MeterRegistry meterRegistry,
-                                                 ObjectProvider<CircuitBreaker> circuitBreakerProvider) {
+                                                 MeterRegistry meterRegistry) {
         // 检查 BK-User 系统级别是否启用重试
         if (!retryProperties.isSystemRetryEnabled(retryProperties.getBkUser())) {
             log.info("BK-User retry is disabled by system-level config");

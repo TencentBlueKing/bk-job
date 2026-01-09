@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.config.RetryProperties;
 import com.tencent.bk.job.common.constant.BKConstants;
 import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.config.ConditionalOnMockGseV2ApiDisabled;
+import com.tencent.bk.job.common.gse.config.GseRetryCondition;
 import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
 import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
@@ -39,6 +40,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
@@ -47,12 +49,12 @@ import org.springframework.context.annotation.Primary;
 @AutoConfigureAfter({GseV2AutoConfiguration.class})
 @EnableConfigurationProperties({ExternalSystemRetryProperties.class})
 @ConditionalOnProperty(name = "gseV2.enabled", havingValue = "true", matchIfMissing = true)
+@Conditional(GseRetryCondition.class)
 public class GseV2RetryAutoConfiguration {
 
     @Primary
     @Bean("retryableGseV2ApiClient")
     @ConditionalOnMockGseV2ApiDisabled
-    @ConditionalOnProperty(name = "external-system.retry.enabled", havingValue = "true")
     public IGseClient retryableGseV2ApiClient(IGseClient gseClient,
                                               MeterRegistry meterRegistry,
                                               ExternalSystemRetryProperties retryProperties) {

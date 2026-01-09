@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.config.CircuitBreakerProperties;
 import com.tencent.bk.job.common.config.ExternalSystemRetryProperties;
 import com.tencent.bk.job.common.config.RetryProperties;
 import com.tencent.bk.job.common.constant.BKConstants;
+import com.tencent.bk.job.common.paas.config.condition.BkLoginRetryCondition;
 import com.tencent.bk.job.common.paas.login.ILoginClient;
 import com.tencent.bk.job.common.paas.login.RetryableLoginClient;
 import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
@@ -37,9 +38,9 @@ import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
@@ -51,7 +52,7 @@ import org.springframework.context.annotation.Primary;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(ExternalSystemRetryProperties.class)
 @AutoConfigureAfter({LoginAutoConfiguration.class})
-@ConditionalOnProperty(name = "external-system.retry.enabled", havingValue = "true")
+@Conditional(BkLoginRetryCondition.class)
 public class LoginRetryAutoConfiguration {
 
     @Bean
