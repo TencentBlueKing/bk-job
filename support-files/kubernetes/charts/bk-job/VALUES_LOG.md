@@ -39,11 +39,15 @@ externalSystemRetry:
       # HALF_OPEN 状态允许的调用次数，默认10次
       permittedCallsInHalfOpenState: 10
       # 熔断器 OPEN 时是否快速失败：true：快速失败（抛出异常），false：继续调用但不重试
-      fastFail: true
+      fastFail: false
       # 白名单（API名称列表，这些API不参与熔断，一般情况下无需修改）
       whiteApiList:
         # CMDB 事件监听接口，正常耗时约 20 秒
-        - "watchEvent"
+        - "getBizEvents"
+        - "getBizSetEvents"
+        - "getBizSetRelationEvents"
+        - "getHostEvents"
+        - "getHostRelationEvents"
   # 各外部系统单独配置（可选，不配置则使用全局配置）
   # cmdb:
   #   enabled: true
