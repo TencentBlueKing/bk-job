@@ -31,6 +31,8 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
  * 基于计数的滑动窗口实现（使用环形缓冲区）
+ * 线程安全性：此类是线程安全的，所有公共方法都可以在多线程环境下并发调用。
+ * 内部使用 synchronized 保证数据一致性。
  */
 public class CountBasedSlidingWindow implements SlidingWindow {
     /**
@@ -88,7 +90,7 @@ public class CountBasedSlidingWindow implements SlidingWindow {
     /**
      * 添加调用结果到环形缓冲区
      */
-    private void addCallResult(CallResult result) {
+    private synchronized void addCallResult(CallResult result) {
         int index = currentIndex.getAndIncrement() % windowSize;
         CallResult oldResult = ringBuffer.getAndSet(index, result);
 
@@ -119,7 +121,7 @@ public class CountBasedSlidingWindow implements SlidingWindow {
     }
 
     @Override
-    public SlidingWindowMetrics getMetrics() {
+    public synchronized SlidingWindowMetrics getMetrics() {
         return new SlidingWindowMetrics(
             totalCalls.get(),
             successCalls.get(),
@@ -129,7 +131,7 @@ public class CountBasedSlidingWindow implements SlidingWindow {
     }
 
     @Override
-    public void reset() {
+    public synchronized void reset() {
         for (int i = 0; i < windowSize; i++) {
             ringBuffer.set(i, null);
         }
@@ -152,6 +154,5 @@ public class CountBasedSlidingWindow implements SlidingWindow {
             this.success = success;
             this.slowCall = slowCall;
         }
-
     }
 }
