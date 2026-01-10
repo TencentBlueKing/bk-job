@@ -166,6 +166,13 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
     @Override
     public void onSuccess(long durationMs) {
         CircuitBreakerState currentState = state.get();
+        log.trace(
+            "{} onSuccess: currentState={}, halfOpenSuccessCount={}, halfOpenFailCount={}",
+            currentState,
+            getFullName(),
+            halfOpenSuccessCount.get(),
+            halfOpenFailCount.get()
+        );
         if (currentState == CircuitBreakerState.HALF_OPEN) {
             halfOpenSuccessCount.incrementAndGet();
             // 半开状态下成功，检查统计数据，决定是否更新状态
@@ -183,6 +190,13 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
     @Override
     public void onError(long durationMs, Throwable throwable) {
         CircuitBreakerState currentState = state.get();
+        log.trace(
+            "{} onError: currentState={}, halfOpenSuccessCount={}, halfOpenFailCount={}",
+            getFullName(),
+            currentState,
+            halfOpenSuccessCount.get(),
+            halfOpenFailCount.get()
+        );
         if (currentState == CircuitBreakerState.HALF_OPEN) {
             halfOpenFailCount.incrementAndGet();
             // 半开状态下失败，检查统计数据，决定是否更新状态
@@ -245,7 +259,7 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
      */
     private void refreshHalfOpenState() {
         int successCallCount = halfOpenSuccessCount.get();
-        int failCallCount = halfOpenSuccessCount.get();
+        int failCallCount = halfOpenFailCount.get();
         int totalFinishedCount = successCallCount + failCallCount;
         // 已完成的请求尚未达到允许的最大调用次数
         if (totalFinishedCount < circuitBreakerProperties.getPermittedCallsInHalfOpenState()) {
@@ -257,20 +271,20 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
         if (successRate >= (100 - circuitBreakerProperties.getFailureRateThreshold())) {
             log.info(
                 "{}:CallCount(total={},success={},fail={}), successRate={}% in HALF_OPEN, change to CLOSED",
+                getFullName(),
                 totalFinishedCount,
                 successCallCount,
                 failCallCount,
-                getFullName(),
                 successRate
             );
             changeToClosed();
         } else {
             log.warn(
                 "{}:CallCount(total={},success={},fail={}), successRate {}% in HALF_OPEN too low, change to OPEN",
+                getFullName(),
                 totalFinishedCount,
                 successCallCount,
                 failCallCount,
-                getFullName(),
                 successRate
             );
             changeToOpen();
@@ -309,6 +323,7 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
      * 重置半开状态数据
      */
     private void resetHalfOpenStateData() {
+        log.debug("{}:resetHalfOpenStateData", getFullName());
         halfOpenCallCount.set(0);
         halfOpenSuccessCount.set(0);
         halfOpenFailCount.set(0);
