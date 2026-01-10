@@ -87,18 +87,18 @@ public class RetryExecutor {
      * @throws RetryAbortedException 重试被中断或待执行任务抛出受检异常时抛出
      */
     public <T> T executeWithRetry(Callable<T> task, String apiName) {
-        CircuitBreaker circuitBreaker = circuitBreakerManager.getCircuitBreaker(apiName);
-        // 首先判断是否需要被熔断器处理执行
-        T circuitBreakerResult = executeWithCircuitBreaker(circuitBreaker, apiName, task);
-        if (circuitBreakerResult != null) {
-            return circuitBreakerResult;
-        }
-
         int attemptNumber = 0;
         Exception lastException = null;
         long startTime = System.currentTimeMillis();
+        CircuitBreaker circuitBreaker = circuitBreakerManager.getCircuitBreaker(apiName);
         while (attemptNumber < retryPolicy.getMaxAttempts()) {
             try {
+                // 首先判断是否需要被熔断器处理执行
+                T circuitBreakerResult = executeWithCircuitBreaker(circuitBreaker, apiName, task);
+                if (circuitBreakerResult != null) {
+                    return circuitBreakerResult;
+                }
+
                 startTime = System.currentTimeMillis();
                 T result = task.call();
                 long duration = System.currentTimeMillis() - startTime;

@@ -102,17 +102,17 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
     public boolean canExecute() {
         CircuitBreakerState currentState = state.get();
         if (currentState == CircuitBreakerState.CLOSED) {
+            log.trace("{}:currentState=CLOSED", getFullName());
             return true;
         }
 
         if (currentState == CircuitBreakerState.OPEN) {
-            // 检查是否可以转换为半开状态
-            long now = System.currentTimeMillis();
-            long elapsedTime = now - stateChangeTime.get();
-            if (elapsedTime >= circuitBreakerProperties.getWaitDurationInOpenStateMs()) {
-                changeToHalfOpen();
-                return true;
-            }
+            refreshOpenState();
+            currentState = state.get();
+        }
+
+        if (currentState == CircuitBreakerState.OPEN) {
+            log.debug("{}:currentState=OPEN", getFullName());
             return false;
         }
 
@@ -120,8 +120,10 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
             // 半开状态下，只允许有限次数的调用
             if (halfOpenCallCount.get() < circuitBreakerProperties.getPermittedCallsInHalfOpenState()) {
                 halfOpenCallCount.incrementAndGet();
+                log.debug("{}:currentState=HALF_OPEN, halfOpenCallCount in permit", getFullName());
                 return true;
             }
+            log.debug("{}:currentState=HALF_OPEN, halfOpenCallCount not in permit", getFullName());
             return false;
         }
         log.warn("{}:Unknown state: {}", getFullName(), currentState);
@@ -153,6 +155,19 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
         } else if (currentState == CircuitBreakerState.CLOSED) {
             slidingWindow.recordFailure(durationMs);
             refreshClosedState();
+        }
+    }
+
+    /**
+     * 检查Open状态并刷新
+     */
+    private void refreshOpenState() {
+        // 检查是否可以转换为半开状态
+        long now = System.currentTimeMillis();
+        long waitTimeInOpen = now - stateChangeTime.get();
+        if (waitTimeInOpen >= circuitBreakerProperties.getWaitDurationInOpenStateMs()) {
+            log.info("{}:waitTimeInOpen={}ms, change to HALF_OPEN", getFullName(), waitTimeInOpen);
+            changeToHalfOpen();
         }
     }
 
