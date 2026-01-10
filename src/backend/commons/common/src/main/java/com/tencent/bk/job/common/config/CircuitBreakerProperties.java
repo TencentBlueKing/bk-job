@@ -53,7 +53,7 @@ public class CircuitBreakerProperties {
     /**
      * 慢调用时长阈值（毫秒）
      */
-    private Long slowCallDurationThresholdMs;
+    private Integer slowCallDurationThresholdMs;
 
     /**
      * 滑动窗口大小（调用次数）
@@ -68,12 +68,17 @@ public class CircuitBreakerProperties {
     /**
      * 熔断器开启状态下的等待时间（毫秒）
      */
-    private Long waitDurationInOpenStateMs;
+    private Integer waitDurationInOpenStateMs;
 
     /**
      * 半开状态下允许的调用次数
      */
     private Integer permittedCallsInHalfOpenState;
+
+    /**
+     * 半开状态下放过探测请求后等待的最大时间（毫秒）
+     */
+    private Integer waitDurationForProbeInHalfOpenStateMs;
 
     /**
      * 熔断器开启时是否强制快速失败（true：抛出异常，false：继续调用但不重试）
@@ -99,15 +104,17 @@ public class CircuitBreakerProperties {
         // 慢调用率阈值（百分比，0-100），默认 90%
         circuitBreakerProperties.setSlowCallRateThreshold(90.0f);
         // 慢调用时长阈值（毫秒），默认 30000ms (30秒)
-        circuitBreakerProperties.setSlowCallDurationThresholdMs(30000L);
+        circuitBreakerProperties.setSlowCallDurationThresholdMs(30_000);
         // 滑动窗口大小（调用次数），默认 100
         circuitBreakerProperties.setSlidingWindowSize(100);
         // 最小调用次数（达到此次数后才开始计算失败率），默认 10
         circuitBreakerProperties.setMinimumNumberOfCalls(10);
         // 熔断器开启状态下的等待时间（毫秒），默认 30000ms (30秒)
-        circuitBreakerProperties.setWaitDurationInOpenStateMs(30000L);
+        circuitBreakerProperties.setWaitDurationInOpenStateMs(30_000);
         // 半开状态下允许的调用次数，默认 10
         circuitBreakerProperties.setPermittedCallsInHalfOpenState(10);
+        // 半开状态下放过探测请求后等待的最大时间，默认 60000ms (60秒)
+        circuitBreakerProperties.setWaitDurationForProbeInHalfOpenStateMs(60_000);
         // 熔断器开启时是否强制快速失败，默认 false
         circuitBreakerProperties.setFastFail(false);
         // 白名单：默认空列表
@@ -147,6 +154,9 @@ public class CircuitBreakerProperties {
         }
         if (permittedCallsInHalfOpenState == null) {
             permittedCallsInHalfOpenState = defaultProperties.getPermittedCallsInHalfOpenState();
+        }
+        if (waitDurationForProbeInHalfOpenStateMs == null) {
+            waitDurationForProbeInHalfOpenStateMs = defaultProperties.getWaitDurationForProbeInHalfOpenStateMs();
         }
         if (fastFail == null) {
             fastFail = defaultProperties.getFastFail();

@@ -647,9 +647,11 @@ externalSystemRetry:
       minimumNumberOfCalls: 10
       # 熔断器开启状态下的等待时间（毫秒），默认30000ms（30秒）
       waitDurationInOpenStateMs: 30000
-      # HALF_OPEN 状态允许的调用次数，默认10次
+      # 半开状态允许的调用次数，默认10次
       permittedCallsInHalfOpenState: 10
-      # 熔断器 OPEN 时是否快速失败：true：快速失败（抛出异常），false：继续调用但不重试
+      # 半开状态下放过探测请求后等待的最大时间（毫秒），默认60000ms（60秒）
+      waitDurationForProbeInHalfOpenStateMs: 60000
+      # 熔断器断开时是否快速失败：true：快速失败（抛出异常），false：继续调用但不重试
       fastFail: false
   # 各外部系统单独配置（可选，不配置则使用全局配置）
   cmdb:

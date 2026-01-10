@@ -113,17 +113,18 @@ public class RetryExecutor {
                 return result;
             } catch (Exception e) {
                 lastException = e;
+                // 记录熔断器失败
+                if (circuitBreaker != null) {
+                    long duration = System.currentTimeMillis() - startTime;
+                    circuitBreaker.onError(duration, lastException);
+                }
+
                 attemptNumber++;
                 // 检查是否应该重试
                 if (attemptNumber >= retryPolicy.getMaxAttempts() || !retryPolicy.shouldRetry(attemptNumber, e)) {
                     break;
                 }
 
-                // 记录熔断器失败
-                if (circuitBreaker != null) {
-                    long duration = System.currentTimeMillis() - startTime;
-                    circuitBreaker.onError(duration, lastException);
-                }
                 // 等待重试
                 waitForRetry(apiName, attemptNumber, e);
             }
@@ -131,11 +132,6 @@ public class RetryExecutor {
 
         // 如果达到最大重试次数，记录失败指标并抛出异常
         if (lastException != null) {
-            long duration = System.currentTimeMillis() - startTime;
-            // 记录熔断器失败
-            if (circuitBreaker != null) {
-                circuitBreaker.onError(duration, lastException);
-            }
             recordMetrics(apiName, attemptNumber, false);
             wrapAndThrowIfNecessary(lastException);
         }

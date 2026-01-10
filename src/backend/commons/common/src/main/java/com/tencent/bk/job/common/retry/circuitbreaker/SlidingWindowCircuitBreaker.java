@@ -71,6 +71,16 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
      */
     private final AtomicInteger halfOpenSuccessCount;
 
+    /**
+     * 半开状态下的失败调用计数
+     */
+    private final AtomicInteger halfOpenFailCount;
+
+    /**
+     * 半开状态下的最后一个探测请求发起时间
+     */
+    private volatile Long lastProbeRequestStartTime = null;
+
     public SlidingWindowCircuitBreaker(String name, CircuitBreakerProperties circuitBreakerProperties) {
         this.name = name;
         this.circuitBreakerProperties = circuitBreakerProperties;
@@ -79,6 +89,7 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
         this.stateChangeTime = new AtomicLong(System.currentTimeMillis());
         this.halfOpenCallCount = new AtomicInteger(0);
         this.halfOpenSuccessCount = new AtomicInteger(0);
+        this.halfOpenFailCount = new AtomicInteger(0);
     }
 
     /**
@@ -123,8 +134,30 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
                 log.debug("{}:currentState=HALF_OPEN, halfOpenCallCount in permit", getFullName());
                 return true;
             }
-            log.debug("{}:currentState=HALF_OPEN, halfOpenCallCount not in permit", getFullName());
-            return false;
+            if (lastProbeRequestStartTime == null) {
+                lastProbeRequestStartTime = System.currentTimeMillis();
+            }
+            long now = System.currentTimeMillis();
+            long waitDurationForProbeInHalfOpen = now - lastProbeRequestStartTime;
+            if (waitDurationForProbeInHalfOpen < circuitBreakerProperties.getWaitDurationForProbeInHalfOpenStateMs()) {
+                log.debug(
+                    "{}:currentState=HALF_OPEN, halfOpenCallCount not in permit, waitDurationForProbeInHalfOpen={}ms",
+                    getFullName(),
+                    waitDurationForProbeInHalfOpen
+                );
+                return false;
+            } else {
+                // 兜底逻辑：理论上走不到这里，部分探测请求如果长时间不结束，不能在半开状态一直等，此时自动闭合熔断器
+                log.error(
+                    "FATAL:{}:currentState=HALF_OPEN, " +
+                        "waitDurationForProbeInHalfOpen={}ms, waitTimeInHalfOpenTooLong, " +
+                        "auto close circuitbreaker, please check reason",
+                    getFullName(),
+                    waitDurationForProbeInHalfOpen
+                );
+                changeToClosed();
+                return true;
+            }
         }
         log.warn("{}:Unknown state: {}", getFullName(), currentState);
         return true;
@@ -135,6 +168,7 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
         CircuitBreakerState currentState = state.get();
         if (currentState == CircuitBreakerState.HALF_OPEN) {
             halfOpenSuccessCount.incrementAndGet();
+            // 半开状态下成功，检查统计数据，决定是否更新状态
             refreshHalfOpenState();
         } else if (currentState == CircuitBreakerState.CLOSED) {
             // 判断是否为慢调用
@@ -150,6 +184,7 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
     public void onError(long durationMs, Throwable throwable) {
         CircuitBreakerState currentState = state.get();
         if (currentState == CircuitBreakerState.HALF_OPEN) {
+            halfOpenFailCount.incrementAndGet();
             // 半开状态下失败，检查统计数据，决定是否更新状态
             refreshHalfOpenState();
         } else if (currentState == CircuitBreakerState.CLOSED) {
@@ -209,25 +244,32 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
      * 检查半开状态并刷新
      */
     private void refreshHalfOpenState() {
-        int totalCalls = halfOpenCallCount.get();
-        int successCalls = halfOpenSuccessCount.get();
-        // 尚未达到允许的最大调用次数
-        if (totalCalls < circuitBreakerProperties.getPermittedCallsInHalfOpenState()) {
+        int successCallCount = halfOpenSuccessCount.get();
+        int failCallCount = halfOpenSuccessCount.get();
+        int totalFinishedCount = successCallCount + failCallCount;
+        // 已完成的请求尚未达到允许的最大调用次数
+        if (totalFinishedCount < circuitBreakerProperties.getPermittedCallsInHalfOpenState()) {
             return;
         }
-        // 已达到允许的最大调用次数，检查成功率，进行状态切换
-        float successRate = (float) successCalls / totalCalls * 100;
+        // 已达到允许的最大调用次数且所有请求均已结束，检查成功率，进行状态切换
+        float successRate = (float) successCallCount / totalFinishedCount * 100;
         // 如果成功率高于阈值，转换为关闭状态
         if (successRate >= (100 - circuitBreakerProperties.getFailureRateThreshold())) {
             log.info(
-                "{} success rate {}% in HALF_OPEN state, change to CLOSED",
+                "{}:CallCount(total={},success={},fail={}), successRate={}% in HALF_OPEN, change to CLOSED",
+                totalFinishedCount,
+                successCallCount,
+                failCallCount,
                 getFullName(),
                 successRate
             );
             changeToClosed();
         } else {
             log.warn(
-                "{} success rate {}% in HALF_OPEN state is too low, change to OPEN",
+                "{}:CallCount(total={},success={},fail={}), successRate {}% in HALF_OPEN too low, change to OPEN",
+                totalFinishedCount,
+                successCallCount,
+                failCallCount,
                 getFullName(),
                 successRate
             );
@@ -241,9 +283,8 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
     private void changeToClosed() {
         state.set(CircuitBreakerState.CLOSED);
         stateChangeTime.set(System.currentTimeMillis());
-        halfOpenCallCount.set(0);
-        halfOpenSuccessCount.set(0);
         slidingWindow.reset();
+        resetHalfOpenStateData();
     }
 
     /**
@@ -252,8 +293,7 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
     private void changeToOpen() {
         state.set(CircuitBreakerState.OPEN);
         stateChangeTime.set(System.currentTimeMillis());
-        halfOpenCallCount.set(0);
-        halfOpenSuccessCount.set(0);
+        resetHalfOpenStateData();
     }
 
     /**
@@ -262,8 +302,17 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
     private void changeToHalfOpen() {
         state.set(CircuitBreakerState.HALF_OPEN);
         stateChangeTime.set(System.currentTimeMillis());
+        resetHalfOpenStateData();
+    }
+
+    /**
+     * 重置半开状态数据
+     */
+    private void resetHalfOpenStateData() {
         halfOpenCallCount.set(0);
         halfOpenSuccessCount.set(0);
+        halfOpenFailCount.set(0);
+        lastProbeRequestStartTime = null;
     }
 
     @Override
