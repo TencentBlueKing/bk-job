@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.http.HttpHelper;
@@ -359,7 +360,7 @@ public class BaseBkApiClient {
         try {
             String lang = JobContextUtil.getUserLang();
             if (StringUtils.isNotBlank(lang)) {
-                return lang;
+                return LocaleUtils.getBkLang(lang);
             }
             HttpServletRequest request = JobContextUtil.getRequest();
             if (request != null) {
