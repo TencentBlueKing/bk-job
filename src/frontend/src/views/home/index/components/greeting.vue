@@ -41,7 +41,7 @@
       setAnalysisGreeting() {
         const txtOne = (currentHour, currentMin) => {
           if (currentHour >= 1 && currentHour < 4) {
-            return I18n.t('home.现在是凌晨 {HH:MM}！切忌劳累过度，影响身体还容易误操作，赶紧休息吧...', { 'HH:MM': `${currentHour}:${currentMin}` });
+            return I18n.t('home.现在是凌晨 t！切忌劳累过度，影响身体还容易误操作，赶紧休息吧', { t: `${currentHour}:${currentMin}` });
           }
           return false;
         };
