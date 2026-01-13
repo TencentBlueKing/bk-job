@@ -39,11 +39,32 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @WebAPI
 public interface WebVersionLogResource {
 
-
     /**
-     * 按语言获取版本日志
+     * 按语言获取版本日志。
+     * <p>返回数据为JSON数组，数组元素按version倒序排列（新版本在前）。</p>
+     * <p>示例返回：</p>
      *
-     * @return json格式的版本日志数组
+     * <pre>
+     * [
+     *   {
+     *     "content": "新增xxx\n优化xxx\n修复xxx",
+     *     "version": "V3.11.3",
+     *     "time": "2025-02-04"
+     *   },
+     *   {
+     *     "content": "新增xxx\n优化xxx\n修复xxx",
+     *     "version": "V3.10.2",
+     *     "time": "2024-11-04"
+     *   }
+     * ]
+     * </pre>
+     *
+     * <p>字段说明：</p>
+     * <ul>
+     *   <li><b>content</b>：版本更新日志内容</li>
+     *   <li><b>version</b>：版本号</li>
+     *   <li><b>time</b>：版本发布时间</li>
+     * </ul>
      */
     @ApiOperation(value = "按语言获取版本日志", produces = "application/json")
     @GetMapping

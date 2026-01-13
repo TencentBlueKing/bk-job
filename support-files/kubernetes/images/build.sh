@@ -217,7 +217,8 @@ build_backend_modules () {
         if [[ "${MODULE}" == "job-manage" ]]; then
             log "Building version logs for module: ${MODULE}"
             if ! generate_version_logs; then
-                log "Version logs generation failed, continue build..."
+                log "Version logs generation failed, terminate build."
+                exit 1
             fi
         fi
         if [[ "${MODULE}" == "job-assemble" ]] || [[ "${MODULE}" == "job-gateway" ]]; then
