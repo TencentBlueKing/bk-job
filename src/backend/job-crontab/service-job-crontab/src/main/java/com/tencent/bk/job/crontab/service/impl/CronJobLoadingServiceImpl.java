@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.service.impl;
 
+import com.tencent.bk.job.crontab.config.JobCrontabProperties;
 import com.tencent.bk.job.crontab.model.dto.CronJobBasicInfoDTO;
 import com.tencent.bk.job.crontab.service.CronJobBatchLoadService;
 import com.tencent.bk.job.crontab.service.CronJobLoadingService;
@@ -42,16 +43,31 @@ public class CronJobLoadingServiceImpl implements CronJobLoadingService {
 
     private final CronJobBatchLoadService cronJobBatchLoadService;
     private final Scheduler scheduler;
+    private final JobCrontabProperties jobCrontabProperties;
     private volatile boolean loadingCronToQuartz = false;
 
     @Autowired
-    public CronJobLoadingServiceImpl(CronJobBatchLoadService cronJobBatchLoadService, Scheduler scheduler) {
+    public CronJobLoadingServiceImpl(CronJobBatchLoadService cronJobBatchLoadService,
+                                     Scheduler scheduler,
+                                     JobCrontabProperties jobCrontabProperties) {
         this.cronJobBatchLoadService = cronJobBatchLoadService;
         this.scheduler = scheduler;
+        this.jobCrontabProperties = jobCrontabProperties;
     }
 
     @Override
     public void loadAllCronJob() {
+        Boolean enabled = jobCrontabProperties.getLoadCronJobToQuartz().getEnabled();
+        if (enabled == null || !enabled) {
+            log.info("loadCronJobToQuartz not enabled");
+        }
+        tryToLoadAllCronJob();
+    }
+
+    /**
+     * 尝试加载所有定时任务到Quartz引擎
+     */
+    public void tryToLoadAllCronJob() {
         long start = System.currentTimeMillis();
         try {
             if (loadingCronToQuartz) {
