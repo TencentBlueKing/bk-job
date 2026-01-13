@@ -88,7 +88,8 @@
             left="135">
             <crontab
               v-model="formData.cronExpression"
-              class="cron-task" />
+              class="cron-task"
+              :timezone="formData.executeTimeZone" />
           </render-info-detail>
         </div>
       </jb-form-item>
