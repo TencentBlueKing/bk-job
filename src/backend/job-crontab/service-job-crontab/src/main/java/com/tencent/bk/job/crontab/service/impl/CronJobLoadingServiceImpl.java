@@ -60,6 +60,7 @@ public class CronJobLoadingServiceImpl implements CronJobLoadingService {
         Boolean enabled = jobCrontabProperties.getLoadCronJobToQuartz().getEnabled();
         if (enabled == null || !enabled) {
             log.info("loadCronJobToQuartz not enabled");
+            return;
         }
         tryToLoadAllCronJob();
     }
