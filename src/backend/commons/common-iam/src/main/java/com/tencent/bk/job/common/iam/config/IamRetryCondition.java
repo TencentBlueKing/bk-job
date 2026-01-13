@@ -39,6 +39,7 @@ import java.util.Objects;
  * 1.external-system.retry.iam.enabled配置项明确指定开启；
  * 2.external-system.retry.iam.enabled配置项未配置，但全局配置项external-system.retry.global.enabled指定开启。
  */
+@SuppressWarnings("unused")
 public class IamRetryCondition extends AnyNestedCondition {
     public IamRetryCondition() {
         super(ConfigurationPhase.PARSE_CONFIGURATION);
@@ -55,7 +56,7 @@ public class IamRetryCondition extends AnyNestedCondition {
     }
 
     static class IamUseGlobalRetryCondition extends AllNestedConditions {
-        public IamUseGlobalRetryCondition() {
+        IamUseGlobalRetryCondition() {
             super(ConfigurationPhase.PARSE_CONFIGURATION);
         }
 

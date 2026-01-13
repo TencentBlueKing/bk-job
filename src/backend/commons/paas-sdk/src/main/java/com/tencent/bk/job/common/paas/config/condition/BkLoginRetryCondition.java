@@ -39,6 +39,7 @@ import java.util.Objects;
  * 1.external-system.retry.bkLogin.enabled配置项明确指定开启；
  * 2.external-system.retry.bkLogin.enabled配置项未配置，但全局配置项external-system.retry.global.enabled指定开启。
  */
+@SuppressWarnings("unused")
 public class BkLoginRetryCondition extends AnyNestedCondition {
     public BkLoginRetryCondition() {
         super(ConfigurationPhase.PARSE_CONFIGURATION);
@@ -55,7 +56,7 @@ public class BkLoginRetryCondition extends AnyNestedCondition {
     }
 
     static class BkLoginUseGlobalRetryCondition extends AllNestedConditions {
-        public BkLoginUseGlobalRetryCondition() {
+        BkLoginUseGlobalRetryCondition() {
             super(ConfigurationPhase.PARSE_CONFIGURATION);
         }
 

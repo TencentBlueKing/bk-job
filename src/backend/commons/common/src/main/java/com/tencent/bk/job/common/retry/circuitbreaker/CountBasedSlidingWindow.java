@@ -150,7 +150,7 @@ public class CountBasedSlidingWindow implements SlidingWindow {
         private final boolean success;
         private final boolean slowCall;
 
-        public CallResult(boolean success, boolean slowCall) {
+        CallResult(boolean success, boolean slowCall) {
             this.success = success;
             this.slowCall = slowCall;
         }

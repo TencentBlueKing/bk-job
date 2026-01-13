@@ -39,6 +39,7 @@ import java.util.Objects;
  * 1.external-system.retry.gse.enabled配置项明确指定开启；
  * 2.external-system.retry.gse.enabled配置项未配置，但全局配置项external-system.retry.global.enabled指定开启。
  */
+@SuppressWarnings("unused")
 public class GseRetryCondition extends AnyNestedCondition {
     public GseRetryCondition() {
         super(ConfigurationPhase.PARSE_CONFIGURATION);
@@ -55,7 +56,7 @@ public class GseRetryCondition extends AnyNestedCondition {
     }
 
     static class GseUseGlobalRetryCondition extends AllNestedConditions {
-        public GseUseGlobalRetryCondition() {
+        GseUseGlobalRetryCondition() {
             super(ConfigurationPhase.PARSE_CONFIGURATION);
         }
 

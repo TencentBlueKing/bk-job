@@ -39,6 +39,7 @@ import java.util.Objects;
  * 1.external-system.retry.cmdb.enabled配置项明确指定开启；
  * 2.external-system.retry.cmdb.enabled配置项未配置或值不为false，但全局配置项external-system.retry.global.enabled指定开启。
  */
+@SuppressWarnings("unused")
 public class CmdbRetryCondition extends AnyNestedCondition {
     public CmdbRetryCondition() {
         super(ConfigurationPhase.PARSE_CONFIGURATION);
@@ -55,7 +56,7 @@ public class CmdbRetryCondition extends AnyNestedCondition {
     }
 
     static class CmdbUseGlobalRetryCondition extends AllNestedConditions {
-        public CmdbUseGlobalRetryCondition() {
+        CmdbUseGlobalRetryCondition() {
             super(ConfigurationPhase.PARSE_CONFIGURATION);
         }
 
