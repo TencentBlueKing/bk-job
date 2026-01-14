@@ -44,7 +44,7 @@ export default class Model {
 
   getFullTimeZone(defaultTimezone) {
     const timezone = defaultTimezone || this.getTimeZone();
-    const { country, offset } = timezonesList[timezone] || {};
+    const { country = '', offset = '' } = timezonesList[timezone] || {};
     return `${timezone} ${country} ${offset}`;
   }
 
