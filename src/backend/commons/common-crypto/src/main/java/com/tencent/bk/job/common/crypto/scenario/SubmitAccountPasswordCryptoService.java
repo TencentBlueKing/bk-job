@@ -123,7 +123,7 @@ public class SubmitAccountPasswordCryptoService {
     /**
      * SM2原始公钥 -> PEM公钥
      */
-    public static String sm2RawPublicKeyToPem(String rawPublicKeyBase64) {
+    public String sm2RawPublicKeyToPem(String rawPublicKeyBase64) {
         byte[] raw = Base64Util.decodeContentToByte(rawPublicKeyBase64);
         if (raw.length != 65 || raw[0] != 0x04) {
             throw new CryptoException("Illegal SM2 original public key.");
