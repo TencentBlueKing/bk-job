@@ -79,16 +79,16 @@ public class CryptoConfigService {
     /**
      * 获取SM2私钥字符串
      */
-    public String getSM2PrivateKey() {
-        return encryptConfig.getSM2PrivateKey();
+    public String getSm2PrivateKey() {
+        return encryptConfig.getSm2PrivateKey();
     }
 
     /**
      * 获取SM2公钥
      * @return
      */
-    public String getSM2PublicKey() {
-        return encryptConfig.getSM2PublicKey();
+    public String getSm2PublicKey() {
+        return encryptConfig.getSm2PublicKey();
     }
 
     /**

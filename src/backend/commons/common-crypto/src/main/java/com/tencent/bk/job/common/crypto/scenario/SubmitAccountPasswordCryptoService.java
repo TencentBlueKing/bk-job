@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.crypto.ASymmetricCryptoService;
 import com.tencent.bk.job.common.crypto.CryptoConfigService;
 import com.tencent.bk.job.common.crypto.CryptoScenarioEnum;
 import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
+import com.tencent.bk.sdk.crypto.exception.CryptoException;
 import com.tencent.bk.sdk.crypto.exception.SM2DecryptException;
 import com.tencent.bk.sdk.crypto.util.Base64Util;
 import com.tencent.bk.sdk.crypto.util.SM2Util;
@@ -35,22 +36,27 @@ import com.tencent.kona.crypto.KonaCryptoProvider;
 import com.tencent.kona.crypto.spec.SM2PrivateKeySpec;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.asn1.gm.GMObjectIdentifiers;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.slf4j.helpers.MessageFormatter;
 
+import java.io.IOException;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.Security;
 
 /**
- * 敏感数据解密服务
+ * 前端给后端提交账号的密码解密
  */
 @Slf4j
-public class SensitiveDataCryptoService {
+public class SubmitAccountPasswordCryptoService {
 
     private final ASymmetricCryptoService aSymmetricCryptoService;
     private final CryptoConfigService cryptoConfigService;
 
-    public SensitiveDataCryptoService(ASymmetricCryptoService aSymmetricCryptoService,
-                                      CryptoConfigService cryptoConfigService) {
+    public SubmitAccountPasswordCryptoService(ASymmetricCryptoService aSymmetricCryptoService,
+                                              CryptoConfigService cryptoConfigService) {
         this.aSymmetricCryptoService = aSymmetricCryptoService;
         this.cryptoConfigService = cryptoConfigService;
         KonaCryptoProvider konaCryptoProvider = new KonaCryptoProvider();
@@ -60,18 +66,17 @@ public class SensitiveDataCryptoService {
     }
 
     /**
-     * 获取SM2公钥字符串
+     * 获取SM2的pem公钥
      */
-    public String getPublicKeyStr() {
-       return cryptoConfigService.getSM2PublicKey();
+    public String getPemPublicKey() {
+       return sm2RawPublicKeyToPem(cryptoConfigService.getSm2PublicKey());
     }
 
     /**
      * 获取加密算法名称
-     * @return
      */
     public String getAlgorithm() {
-        return cryptoConfigService.getSymmetricAlgorithmByScenario(CryptoScenarioEnum.SENSITIVE_DATA);
+        return cryptoConfigService.getSymmetricAlgorithmByScenario(CryptoScenarioEnum.SUBMIT_ACCOUNT_PASSWORD);
     }
 
     /**
@@ -86,20 +91,20 @@ public class SensitiveDataCryptoService {
             return encryptedData;
         }
         if (StringUtils.isEmpty(algorithm)) {
-            algorithm = cryptoConfigService.getSymmetricAlgorithmByScenario(CryptoScenarioEnum.SENSITIVE_DATA);
+            algorithm = cryptoConfigService.getSymmetricAlgorithmByScenario(CryptoScenarioEnum.SUBMIT_ACCOUNT_PASSWORD);
         }
         // 暂时只支持SM2解密
         if (!CryptorNames.SM2.equals(algorithm)) {
-            log.warn("Decrypt fail, only supports SM2 algorithm, algorithm: {}", algorithm);
-            return encryptedData;
+            String msg = MessageFormatter.format(
+                "Decrypt fail, only supports SM2 algorithm, algorithm: {}",
+                algorithm
+            ).getMessage();
+            log.warn(msg);
+            throw new CryptoException(msg);
         }
 
-        PrivateKey privateKey = loadSM2PrivateKey(cryptoConfigService.getSM2PrivateKey());
-        String decrypted = aSymmetricCryptoService.decrypt(privateKey,
-            encryptedData,
-            CryptoScenarioEnum.SENSITIVE_DATA
-        );
-        return decrypted;
+        PrivateKey privateKey = loadSM2PrivateKey(cryptoConfigService.getSm2PrivateKey());
+        return aSymmetricCryptoService.decrypt(privateKey, encryptedData, CryptoScenarioEnum.SUBMIT_ACCOUNT_PASSWORD);
     }
 
     /**
@@ -109,10 +114,30 @@ public class SensitiveDataCryptoService {
         try {
             KeyFactory keyFactory = KeyFactory.getInstance(CryptorNames.SM2, SM2Util.PROVIDER_NAME_KONA_CRYPTO);
             SM2PrivateKeySpec privateKeySpec = new SM2PrivateKeySpec(Base64Util.decodeContentToByte(base64PrivateKey));
-            PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
-            return privateKey;
+            return keyFactory.generatePrivate(privateKeySpec);
         } catch (Exception e) {
             throw new SM2DecryptException("Invalid SM2 private key", e);
         }
+    }
+
+    /**
+     * SM2原始公钥 -> PEM公钥
+     */
+    public static String sm2RawPublicKeyToPem(String rawPublicKeyBase64) {
+        byte[] raw = Base64Util.decodeContentToByte(rawPublicKeyBase64);
+        if (raw.length != 65 || raw[0] != 0x04) {
+            throw new CryptoException("Illegal SM2 original public key.");
+        }
+        AlgorithmIdentifier algId = new AlgorithmIdentifier(GMObjectIdentifiers.sm2p256v1);
+        SubjectPublicKeyInfo spki = new SubjectPublicKeyInfo(algId, raw);
+        String base64;
+        try {
+            base64 = Base64Util.encodeContentToStr(spki.getEncoded());
+        } catch (IOException e) {
+            throw new CryptoException("SM2 curve identifier encoding error.", e);
+        }
+        return "-----BEGIN PUBLIC KEY-----\n"
+            + base64.replaceAll("(.{64})", "$1\n")
+            + "\n-----END PUBLIC KEY-----";
     }
 }

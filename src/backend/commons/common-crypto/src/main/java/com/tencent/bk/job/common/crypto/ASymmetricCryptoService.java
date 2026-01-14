@@ -30,8 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 非对称加解密服务
@@ -41,7 +41,7 @@ import java.util.Map;
 public class ASymmetricCryptoService {
 
     private final CryptoConfigService cryptoConfigService;
-    private final Map<String, ASymmetricCryptor> cryptorMap = new HashMap<>();
+    private final Map<String, ASymmetricCryptor> cryptorMap = new ConcurrentHashMap<>();
 
     public ASymmetricCryptoService(CryptoConfigService cryptoConfigService) {
         this.cryptoConfigService = cryptoConfigService;

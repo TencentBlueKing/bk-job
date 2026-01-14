@@ -22,32 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.api.web.impl;
+package com.tencent.bk.job.manage.api.web;
 
-import com.tencent.bk.job.common.crypto.scenario.SensitiveDataCryptoService;
+import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
-import com.tencent.bk.job.manage.api.web.WebSensitiveDataCryptoResource;
 import com.tencent.bk.job.manage.model.web.vo.EncryptionInfoVO;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-@RestController
-@Slf4j
-public class WebSensitiveDataCryptoResourceImpl implements WebSensitiveDataCryptoResource {
-
-    private final SensitiveDataCryptoService sensitiveDataCryptoService;
-
-    @Autowired
-    public WebSensitiveDataCryptoResourceImpl(SensitiveDataCryptoService sensitiveDataCryptoService) {
-        this.sensitiveDataCryptoService = sensitiveDataCryptoService;
-    }
-
-    @Override
-    public Response<EncryptionInfoVO> getEncryptionInfo(String username) {
-        EncryptionInfoVO encryptionInfoVO = new EncryptionInfoVO();
-        encryptionInfoVO.setPublicKey(sensitiveDataCryptoService.getPublicKeyStr());
-        encryptionInfoVO.setAlgorithm(sensitiveDataCryptoService.getAlgorithm());
-        return Response.buildSuccessResp(encryptionInfoVO);
-    }
+/**
+ * 前端提交账号密码的加密Web API
+ */
+@Api(tags = {"job-manage:web:crypto"})
+@RequestMapping("/web/crypto/submit/account/")
+@WebAPI
+public interface WebSubmitPasswordCryptoResource {
+    /**
+     * 获取账号密码的加密信息
+     */
+    @ApiOperation(value = "获取账号密码的加密信息", produces = "application/json")
+    @GetMapping("/encryption")
+    Response<EncryptionInfoVO> getEncryptionInfo(
+        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @RequestHeader("username")
+            String username
+    );
 }

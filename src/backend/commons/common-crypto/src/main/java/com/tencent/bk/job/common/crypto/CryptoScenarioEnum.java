@@ -42,8 +42,8 @@ public enum CryptoScenarioEnum {
     EXPORT_JOB_PASSWORD((byte) 0, "exportJobPassword", null),
     // 导出作业的备份文件
     BACKUP_FILE((byte) 0, "backupFile", null),
-    // 敏感数据
-    SENSITIVE_DATA((byte) 1, "sensitiveData", CryptorNames.SM2);
+    // 前端给后端提交账号的密码
+    SUBMIT_ACCOUNT_PASSWORD((byte) 1, "submitAccountPassword", CryptorNames.SM2);
 
     // 加密类型：0为对称加密，1为非对称加密
     private final byte type;

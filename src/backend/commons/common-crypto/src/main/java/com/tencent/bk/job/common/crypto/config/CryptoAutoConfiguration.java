@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.crypto.EncryptConfig;
 import com.tencent.bk.job.common.crypto.SymmetricCryptoService;
 import com.tencent.bk.job.common.crypto.scenario.CipherVariableCryptoService;
 import com.tencent.bk.job.common.crypto.scenario.DbPasswordCryptoService;
-import com.tencent.bk.job.common.crypto.scenario.SensitiveDataCryptoService;
+import com.tencent.bk.job.common.crypto.scenario.SubmitAccountPasswordCryptoService;
 import com.tencent.bk.job.common.crypto.scenario.SensitiveParamCryptoService;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -71,8 +71,8 @@ public class CryptoAutoConfiguration {
     }
 
     @Bean
-    SensitiveDataCryptoService sensitiveDataCryptoService(ASymmetricCryptoService aSymmetricCryptoService,
-                                                          CryptoConfigService cryptoConfigService) {
-        return new SensitiveDataCryptoService(aSymmetricCryptoService, cryptoConfigService);
+    SubmitAccountPasswordCryptoService sensitiveDataCryptoService(ASymmetricCryptoService aSymmetricCryptoService,
+                                                                  CryptoConfigService cryptoConfigService) {
+        return new SubmitAccountPasswordCryptoService(aSymmetricCryptoService, cryptoConfigService);
     }
 }

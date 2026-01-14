@@ -12,9 +12,9 @@ import lombok.NoArgsConstructor;
 public class EncryptionInfoVO {
 
     /**
-     * Base64公钥
+     * PEM格式的公钥
      */
-    private String publicKey;
+    private String pemPublicKey;
 
     /**
      * 加密算法

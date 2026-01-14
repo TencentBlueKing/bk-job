@@ -32,7 +32,7 @@ import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.crypto.Encryptor;
-import com.tencent.bk.job.common.crypto.scenario.SensitiveDataCryptoService;
+import com.tencent.bk.job.common.crypto.scenario.SubmitAccountPasswordCryptoService;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -87,19 +87,19 @@ public class AccountServiceImpl implements AccountService {
     private final Encryptor encryptor;
     private final GlobalSettingsService globalSettingsService;
     private final AccountAuthService accountAuthService;
-    private final SensitiveDataCryptoService sensitiveDataCryptoService;
+    private final SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService;
 
     @Autowired
     public AccountServiceImpl(AccountDAO accountDAO,
                               @Qualifier("gseRsaEncryptor") Encryptor encryptor,
                               GlobalSettingsService globalSettingsService,
                               AccountAuthService accountAuthService,
-                              SensitiveDataCryptoService sensitiveDataCryptoService) {
+                              SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService) {
         this.accountDAO = accountDAO;
         this.encryptor = encryptor;
         this.globalSettingsService = globalSettingsService;
         this.accountAuthService = accountAuthService;
-        this.sensitiveDataCryptoService = sensitiveDataCryptoService;
+        this.submitAccountPasswordCryptoService = submitAccountPasswordCryptoService;
     }
 
     @Override
@@ -532,7 +532,7 @@ public class AccountServiceImpl implements AccountService {
             && StringUtils.isNotEmpty(req.getPassword())
             && !JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(req.getPassword())) {
             log.debug("Decrypt account password, algorithm={}", req.getAlgorithm());
-            String decryptedPassword = sensitiveDataCryptoService.decryptIfNeeded(req.getAlgorithm(),
+            String decryptedPassword = submitAccountPasswordCryptoService.decryptIfNeeded(req.getAlgorithm(),
                 req.getPassword());
             req.setPassword(decryptedPassword);
         }
@@ -540,7 +540,7 @@ public class AccountServiceImpl implements AccountService {
             && StringUtils.isNotEmpty(req.getDbPassword())
             && !JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(req.getDbPassword())) {
             log.debug("Decrypt DB password, algorithm={}", req.getAlgorithm());
-            String decryptedPassword = sensitiveDataCryptoService.decryptIfNeeded(req.getAlgorithm(),
+            String decryptedPassword = submitAccountPasswordCryptoService.decryptIfNeeded(req.getAlgorithm(),
                 req.getDbPassword());
             req.setDbPassword(decryptedPassword);
         }
