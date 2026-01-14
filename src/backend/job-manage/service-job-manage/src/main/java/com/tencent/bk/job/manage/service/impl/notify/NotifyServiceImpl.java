@@ -907,7 +907,7 @@ public class NotifyServiceImpl implements NotifyService {
             if (availableChannelTypeList.contains(channel)) {
                 validChannelUsersMap.put(channel, userSet);
             } else {
-                log.error(
+                log.info(
                     String.format("channel %s of tenant %s is not available, not notified",
                         channel, tenantId)
                 );
