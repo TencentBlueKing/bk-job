@@ -1387,6 +1387,10 @@ crontabConfig:
         frequency: 5
         # 通知次数：默认 -1 - 不限制通知次数， 0 - 不通知， 1 - 只通知1次，
         total: -1
+  # 将定时任务加载到Quartz引擎相关参数配置
+  loadCronJobToQuartz:
+    # 是否开启
+    enabled: true
   # 业务（集）归档后自动禁用其定时任务相关配置
   disableCronJobOfArchivedScope:
     # 是否开启
