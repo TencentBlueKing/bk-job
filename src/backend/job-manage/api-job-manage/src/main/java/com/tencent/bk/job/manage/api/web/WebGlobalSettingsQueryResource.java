@@ -148,9 +148,9 @@ public interface WebGlobalSettingsQueryResource {
             String username
     );
 
-    @ApiOperation(value = "获取默认展示时区", produces = "application/json")
-    @GetMapping("/defaultDisplayTimezone")
-    Response<String> getDefaultDisplayTimezone(
+    @ApiOperation(value = "获取配置的默认时区", produces = "application/json")
+    @GetMapping("/defaultTimezoneConfig")
+    Response<Map<String, String>> getDefaultDisplayTimezone(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username

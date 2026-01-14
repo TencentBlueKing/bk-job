@@ -32,6 +32,16 @@ import java.time.ZoneId;
 public class TimeZoneConstants {
 
     /**
+     * 默认展示时区配置属性key
+     */
+    public static final String KEY_DISPLAY_TIMEZONE_CONFIG = "display";
+
+    /**
+     * 默认运营时区配置属性key
+     */
+    public static final String KEY_OPERATION_TIMEZONE_CONFIG = "operation";
+
+    /**
      * 默认时区：东八区
      */
     public static final String DEFAULT_ZONE_NAME_CN = "Asia/Shanghai";

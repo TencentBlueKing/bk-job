@@ -28,6 +28,7 @@ import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.analysis.consts.AnalysisConsts;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.i18n.config.DefaultTimezoneProperties;
+import com.tencent.bk.job.common.i18n.zone.TimeZoneConstants;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AppAuthService;
@@ -53,6 +54,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -268,8 +270,11 @@ public class WebGlobalSettingsQueryResourceImpl implements WebGlobalSettingsQuer
     }
 
     @Override
-    public Response<String> getDefaultDisplayTimezone(String username) {
-        return Response.buildSuccessResp(defaultTimezoneProperties.getDisplay());
+    public Response<Map<String, String>> getDefaultDisplayTimezone(String username) {
+        Map<String, String> config = new HashMap<>();
+        config.put(TimeZoneConstants.KEY_DISPLAY_TIMEZONE_CONFIG, defaultTimezoneProperties.getDisplay());
+        config.put(TimeZoneConstants.KEY_OPERATION_TIMEZONE_CONFIG, defaultTimezoneProperties.getOperation());
+        return Response.buildSuccessResp(config);
     }
 
     @Override
