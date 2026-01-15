@@ -951,7 +951,7 @@ public class NotifyServiceImpl implements NotifyService {
             new HashMap<>(originalVariablesMap == null ? Collections.emptyMap() : originalVariablesMap);
         ResourceScope scope = applicationDTO.getScope();
         String appName = applicationDTO.getName();
-        variablesMap.putIfAbsent("BASE_HOST", jobCommonConfig.getJobWebUrl());
+        variablesMap.putIfAbsent("BASE_HOST", jobCommonConfig.getFirstJobWebUrl());
         variablesMap.putIfAbsent("APP_ID", getDisplayIdStr(scope));
         variablesMap.putIfAbsent("task.bk_biz_id", scope.getId());
         variablesMap.putIfAbsent("APP_NAME", appName);

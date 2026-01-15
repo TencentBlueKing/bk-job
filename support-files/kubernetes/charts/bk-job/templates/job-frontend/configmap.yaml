@@ -29,7 +29,7 @@ data:
       server {
         listen                  80;
         listen                  [::]:80;
-        server_name             {{ .Values.job.web.domain }};
+        server_name             {{ include "job.web.domain" . }};
         gzip on;
         gzip_min_length  1k;
         gzip_buffers     4 16k;

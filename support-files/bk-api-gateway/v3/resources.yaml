@@ -25,7 +25,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/fast_execute_script
+          path: /{env.api_path_prefix}api/job/v3/job-execute/fast_execute_script
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -59,7 +59,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/fast_execute_script
+          path: /{env.api_path_prefix}api/job/v3/job-execute/fast_execute_script
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -93,7 +93,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/execute_job_plan
+          path: /{env.api_path_prefix}api/job/v3/job-execute/execute_job_plan
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -127,7 +127,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/execute_job_plan
+          path: /{env.api_path_prefix}api/job/v3/job-execute/execute_job_plan
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -161,7 +161,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/fast_execute_sql
+          path: /{env.api_path_prefix}api/job/v3/job-execute/fast_execute_sql
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -195,7 +195,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/fast_execute_sql
+          path: /{env.api_path_prefix}api/job/v3/job-execute/fast_execute_sql
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -229,7 +229,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/fast_transfer_file
+          path: /{env.api_path_prefix}api/job/v3/job-execute/fast_transfer_file
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -263,7 +263,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/fast_transfer_file
+          path: /{env.api_path_prefix}api/job/v3/job-execute/fast_transfer_file
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -297,7 +297,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/push_config_file
+          path: /{env.api_path_prefix}api/job/v3/job-execute/push_config_file
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -331,7 +331,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/push_config_file
+          path: /{env.api_path_prefix}api/job/v3/job-execute/push_config_file
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -365,7 +365,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/bkci_plugin_fast_execute_script
+          path: /{env.api_path_prefix}api/job/v3/job-execute/bkci_plugin_fast_execute_script
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -399,7 +399,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/operate_job_instance
+          path: /{env.api_path_prefix}api/job/v3/job-execute/operate_job_instance
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -433,7 +433,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/operate_job_instance
+          path: /{env.api_path_prefix}api/job/v3/job-execute/operate_job_instance
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -467,7 +467,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/operate_step_instance
+          path: /{env.api_path_prefix}api/job/v3/job-execute/operate_step_instance
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -501,7 +501,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/operate_step_instance
+          path: /{env.api_path_prefix}api/job/v3/job-execute/operate_step_instance
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -535,7 +535,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/bkci_plugin_batch_get_job_instance_execute_object_log
+          path: /{env.api_path_prefix}api/job/v3/job-execute/bkci_plugin_batch_get_job_instance_execute_object_log
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -569,7 +569,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/bkci_plugin_get_job_instance_status
+          path: /{env.api_path_prefix}api/job/v3/job-execute/bkci_plugin_get_job_instance_status
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -603,7 +603,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-execute/get_job_instance_status
+          path: /{env.api_path_prefix}api/job/v3/job-execute/get_job_instance_status
           matchSubpath: false
           timeout: 0
           upstreams: { }
@@ -637,7 +637,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-execute/get_job_instance_status
+          path: /{env.api_path_prefix}api/job/v3/job-execute/get_job_instance_status
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -671,7 +671,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-execute/get_job_instance_global_var_value
+          path: /{env.api_path_prefix}api/job/v3/job-execute/get_job_instance_global_var_value
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -705,7 +705,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-execute/get_job_instance_global_var_value
+          path: /{env.api_path_prefix}api/job/v3/job-execute/get_job_instance_global_var_value
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -739,7 +739,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-execute/get_job_instance_ip_log
+          path: /{env.api_path_prefix}api/job/v3/job-execute/get_job_instance_ip_log
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -773,7 +773,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-execute/get_job_instance_ip_log
+          path: /{env.api_path_prefix}api/job/v3/job-execute/get_job_instance_ip_log
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -807,7 +807,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-execute/get_job_instance_list
+          path: /{env.api_path_prefix}api/job/v3/job-execute/get_job_instance_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -841,7 +841,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-execute/get_job_instance_list
+          path: /{env.api_path_prefix}api/job/v3/job-execute/get_job_instance_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -875,7 +875,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-execute/get_step_instance_detail
+          path: /{env.api_path_prefix}api/job/v3/job-execute/get_step_instance_detail
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -909,7 +909,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-execute/get_step_instance_detail
+          path: /{env.api_path_prefix}api/job/v3/job-execute/get_step_instance_detail
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -943,7 +943,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-execute/get_step_instance_status
+          path: /{env.api_path_prefix}api/job/v3/job-execute/get_step_instance_status
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -977,7 +977,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-execute/get_step_instance_status
+          path: /{env.api_path_prefix}api/job/v3/job-execute/get_step_instance_status
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1011,7 +1011,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/query_agent_info
+          path: /{env.api_path_prefix}api/job/v3/job-manage/query_agent_info
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1045,7 +1045,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_job_plan_detail
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_job_plan_detail
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1079,7 +1079,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_job_plan_detail
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_job_plan_detail
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1113,7 +1113,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_job_plan_list
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_job_plan_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1147,7 +1147,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_job_plan_list
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_job_plan_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1181,7 +1181,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_job_template_list
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_job_template_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1215,7 +1215,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_job_template_list
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_job_template_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1249,7 +1249,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_public_script_list
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_public_script_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1283,7 +1283,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_public_script_list
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_public_script_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1317,7 +1317,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_public_script_version_detail
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_public_script_version_detail
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1351,7 +1351,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_public_script_version_detail
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_public_script_version_detail
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1385,7 +1385,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_public_script_version_list
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_public_script_version_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1419,7 +1419,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_public_script_version_list
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_public_script_version_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1453,7 +1453,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_script_list
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_script_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1487,7 +1487,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_script_list
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_script_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1521,7 +1521,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_script_version_detail
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_script_version_detail
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1555,7 +1555,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_script_version_detail
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_script_version_detail
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1589,7 +1589,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_script_version_list
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_script_version_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1623,7 +1623,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_script_version_list
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_script_version_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1657,7 +1657,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/batch_get_job_instance_ip_log
+          path: /{env.api_path_prefix}api/job/v3/job-execute/batch_get_job_instance_ip_log
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1691,7 +1691,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/batch_get_job_instance_ip_log
+          path: /{env.api_path_prefix}api/job/v3/job-execute/batch_get_job_instance_ip_log
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1725,7 +1725,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/create_account
+          path: /{env.api_path_prefix}api/job/v3/job-manage/create_account
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1759,7 +1759,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/create_account
+          path: /{env.api_path_prefix}api/job/v3/job-manage/create_account
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1793,7 +1793,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/delete_account
+          path: /{env.api_path_prefix}api/job/v3/job-manage/delete_account
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1827,7 +1827,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/delete_account
+          path: /{env.api_path_prefix}api/job/v3/job-manage/delete_account
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1861,7 +1861,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_account_list
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_account_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1895,7 +1895,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_account_list
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_account_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1929,7 +1929,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_credential_detail
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_credential_detail
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1963,7 +1963,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_credential_detail
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_credential_detail
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -1997,7 +1997,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/update_credential
+          path: /{env.api_path_prefix}api/job/v3/job-manage/update_credential
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2031,7 +2031,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/update_credential
+          path: /{env.api_path_prefix}api/job/v3/job-manage/update_credential
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2065,7 +2065,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/create_credential
+          path: /{env.api_path_prefix}api/job/v3/job-manage/create_credential
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2099,7 +2099,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/create_credential
+          path: /{env.api_path_prefix}api/job/v3/job-manage/create_credential
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2133,7 +2133,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/create_dangerous_rule
+          path: /{env.api_path_prefix}api/job/v3/job-manage/create_dangerous_rule
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2167,7 +2167,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/create_dangerous_rule
+          path: /{env.api_path_prefix}api/job/v3/job-manage/create_dangerous_rule
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2201,7 +2201,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/delete_dangerous_rule
+          path: /{env.api_path_prefix}api/job/v3/job-manage/delete_dangerous_rule
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2235,7 +2235,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/delete_dangerous_rule
+          path: /{env.api_path_prefix}api/job/v3/job-manage/delete_dangerous_rule
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2269,7 +2269,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/disable_dangerous_rule
+          path: /{env.api_path_prefix}api/job/v3/job-manage/disable_dangerous_rule
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2303,7 +2303,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/disable_dangerous_rule
+          path: /{env.api_path_prefix}api/job/v3/job-manage/disable_dangerous_rule
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2337,7 +2337,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/enable_dangerous_rule
+          path: /{env.api_path_prefix}api/job/v3/job-manage/enable_dangerous_rule
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2371,7 +2371,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/enable_dangerous_rule
+          path: /{env.api_path_prefix}api/job/v3/job-manage/enable_dangerous_rule
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2405,7 +2405,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/get_dangerous_rule_list
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_dangerous_rule_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2439,7 +2439,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/get_dangerous_rule_list
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_dangerous_rule_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2473,7 +2473,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/update_dangerous_rule
+          path: /{env.api_path_prefix}api/job/v3/job-manage/update_dangerous_rule
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2507,7 +2507,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/update_dangerous_rule
+          path: /{env.api_path_prefix}api/job/v3/job-manage/update_dangerous_rule
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2541,7 +2541,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_latest_service_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_latest_service_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2575,7 +2575,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/generate_local_file_upload_url
+          path: /{env.api_path_prefix}api/job/v3/job-manage/generate_local_file_upload_url
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2609,7 +2609,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/check_script
+          path: /{env.api_path_prefix}api/job/v3/job-manage/check_script
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2643,7 +2643,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/check_script
+          path: /{env.api_path_prefix}api/job/v3/job-manage/check_script
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2677,7 +2677,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/create_public_script
+          path: /{env.api_path_prefix}api/job/v3/job-manage/create_public_script
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2711,7 +2711,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/create_public_script
+          path: /{env.api_path_prefix}api/job/v3/job-manage/create_public_script
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2745,7 +2745,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/create_public_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/create_public_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2779,7 +2779,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/create_public_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/create_public_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2813,7 +2813,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/delete_public_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/delete_public_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2847,7 +2847,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/delete_public_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/delete_public_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2881,7 +2881,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/disable_public_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/disable_public_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2915,7 +2915,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/disable_public_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/disable_public_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2949,7 +2949,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/delete_public_script
+          path: /{env.api_path_prefix}api/job/v3/job-manage/delete_public_script
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -2983,7 +2983,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/delete_public_script
+          path: /{env.api_path_prefix}api/job/v3/job-manage/delete_public_script
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3017,7 +3017,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/update_public_script_basic
+          path: /{env.api_path_prefix}api/job/v3/job-manage/update_public_script_basic
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3051,7 +3051,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/update_public_script_basic
+          path: /{env.api_path_prefix}api/job/v3/job-manage/update_public_script_basic
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3085,7 +3085,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/update_public_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/update_public_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3119,7 +3119,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/update_public_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/update_public_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3153,7 +3153,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/publish_public_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/publish_public_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3187,7 +3187,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/publish_public_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/publish_public_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3221,7 +3221,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/create_script
+          path: /{env.api_path_prefix}api/job/v3/job-manage/create_script
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3255,7 +3255,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/create_script
+          path: /{env.api_path_prefix}api/job/v3/job-manage/create_script
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3289,7 +3289,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/create_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/create_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3323,7 +3323,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/create_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/create_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3357,7 +3357,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/delete_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/delete_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3391,7 +3391,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/delete_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/delete_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3425,7 +3425,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/delete_script
+          path: /{env.api_path_prefix}api/job/v3/job-manage/delete_script
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3459,7 +3459,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/delete_script
+          path: /{env.api_path_prefix}api/job/v3/job-manage/delete_script
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3493,7 +3493,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/disable_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/disable_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3527,7 +3527,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/disable_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/disable_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3561,7 +3561,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/update_script_basic
+          path: /{env.api_path_prefix}api/job/v3/job-manage/update_script_basic
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3595,7 +3595,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/update_script_basic
+          path: /{env.api_path_prefix}api/job/v3/job-manage/update_script_basic
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3629,7 +3629,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/update_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/update_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3663,7 +3663,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/update_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/update_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3697,7 +3697,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/publish_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/publish_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3731,7 +3731,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-manage/publish_script_version
+          path: /{env.api_path_prefix}api/job/v3/job-manage/publish_script_version
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3765,7 +3765,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-crontab/delete_cron
+          path: /{env.api_path_prefix}api/job/v3/job-crontab/delete_cron
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3799,7 +3799,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-crontab/delete_cron
+          path: /{env.api_path_prefix}api/job/v3/job-crontab/delete_cron
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3833,7 +3833,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-crontab/save_cron
+          path: /{env.api_path_prefix}api/job/v3/job-crontab/save_cron
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3867,7 +3867,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-crontab/save_cron
+          path: /{env.api_path_prefix}api/job/v3/job-crontab/save_cron
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3901,7 +3901,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-crontab/update_cron_status
+          path: /{env.api_path_prefix}api/job/v3/job-crontab/update_cron_status
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3935,7 +3935,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-crontab/update_cron_status
+          path: /{env.api_path_prefix}api/job/v3/job-crontab/update_cron_status
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -3969,7 +3969,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-crontab/get_cron_list
+          path: /{env.api_path_prefix}api/job/v3/job-crontab/get_cron_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -4003,7 +4003,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-crontab/get_cron_list
+          path: /{env.api_path_prefix}api/job/v3/job-crontab/get_cron_list
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -4037,7 +4037,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-crontab/get_cron_detail
+          path: /{env.api_path_prefix}api/job/v3/job-crontab/get_cron_detail
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -4071,7 +4071,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-crontab/get_cron_detail
+          path: /{env.api_path_prefix}api/job/v3/job-crontab/get_cron_detail
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -4105,7 +4105,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-file-gateway/get_file_source_detail
+          path: /{env.api_path_prefix}api/job/v3/job-file-gateway/get_file_source_detail
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -4139,7 +4139,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-file-gateway/get_file_source_detail
+          path: /{env.api_path_prefix}api/job/v3/job-file-gateway/get_file_source_detail
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -4173,7 +4173,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-file-gateway/update_file_source
+          path: /{env.api_path_prefix}api/job/v3/job-file-gateway/update_file_source
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -4207,7 +4207,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-file-gateway/update_file_source
+          path: /{env.api_path_prefix}api/job/v3/job-file-gateway/update_file_source
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -4241,7 +4241,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-file-gateway/create_file_source
+          path: /{env.api_path_prefix}api/job/v3/job-file-gateway/create_file_source
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -4275,7 +4275,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-file-gateway/create_file_source
+          path: /{env.api_path_prefix}api/job/v3/job-file-gateway/create_file_source
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -4309,7 +4309,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/callback_protocol
+          path: /{env.api_path_prefix}api/job/v3/job-manage/callback_protocol
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -4343,7 +4343,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-execute/query_gse_task
+          path: /{env.api_path_prefix}api/job/v3/job-execute/query_gse_task
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -4377,7 +4377,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-execute/query_job_instance
+          path: /{env.api_path_prefix}api/job/v3/job-execute/query_job_instance
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -4411,7 +4411,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v3/job-execute/bkci_plugin_fast_transfer_file
+          path: /{env.api_path_prefix}api/job/v3/job-execute/bkci_plugin_fast_transfer_file
           matchSubpath: false
           timeout: 0
           upstreams: {}
@@ -4445,7 +4445,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_account_password_encryption_metadata
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_account_password_encryption_metadata
           matchSubpath: false
           timeout: 0
           upstreams: { }
@@ -4479,7 +4479,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_account_password_encryption_metadata
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_account_password_encryption_metadata
           matchSubpath: false
           timeout: 0
           upstreams: { }
@@ -4513,7 +4513,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_notify_config
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_notify_config
           matchSubpath: false
           timeout: 0
           upstreams: { }
@@ -4547,7 +4547,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v3/job-manage/get_notify_config
+          path: /{env.api_path_prefix}api/job/v3/job-manage/get_notify_config
           matchSubpath: false
           timeout: 0
           upstreams: { }
@@ -4581,7 +4581,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v4/job-execute/get_job_instance_list
+          path: /{env.api_path_prefix}api/job/v4/job-execute/get_job_instance_list
           matchSubpath: false
           timeout: 0
           upstreams: { }
@@ -4615,7 +4615,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v4/job-execute/get_job_instance_list
+          path: /{env.api_path_prefix}api/job/v4/job-execute/get_job_instance_list
           matchSubpath: false
           timeout: 0
           upstreams: { }
@@ -4649,7 +4649,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v4/job-execute/fast_execute_script
+          path: /{env.api_path_prefix}api/job/v4/job-execute/fast_execute_script
           matchSubpath: false
           timeout: 0
           upstreams: { }
@@ -4683,7 +4683,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v4/job-execute/fast_execute_script
+          path: /{env.api_path_prefix}api/job/v4/job-execute/fast_execute_script
           matchSubpath: false
           timeout: 0
           upstreams: { }
@@ -4717,7 +4717,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v4/job-execute/batch_get_job_instance_execute_object_log
+          path: /{env.api_path_prefix}api/job/v4/job-execute/batch_get_job_instance_execute_object_log
           matchSubpath: false
           timeout: 0
           upstreams: { }
@@ -4751,7 +4751,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: post
-          path: /api/job/v4/job-execute/batch_get_job_instance_execute_object_log
+          path: /{env.api_path_prefix}api/job/v4/job-execute/batch_get_job_instance_execute_object_log
           matchSubpath: false
           timeout: 0
           upstreams: { }
@@ -4785,7 +4785,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v4/job-execute/get_job_instance_status
+          path: /{env.api_path_prefix}api/job/v4/job-execute/get_job_instance_status
           matchSubpath: false
           timeout: 0
           upstreams: { }
@@ -4819,7 +4819,7 @@ paths:
           # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
           type: HTTP
           method: get
-          path: /api/job/v4/job-execute/get_job_instance_status
+          path: /{env.api_path_prefix}api/job/v4/job-execute/get_job_instance_status
           matchSubpath: false
           timeout: 0
           upstreams: { }

@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.file_gateway.validate;
 
-import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.file_gateway.consts.FileSourceInfoConsts;
 import org.apache.commons.lang3.StringUtils;
 
@@ -74,12 +73,8 @@ public @interface ValidFileSourceInfo {
             if (StringUtils.isBlank(baseUrl)) {
                 return false;
             }
-            // 限制文件源根地址只能是 http(s)://domain 形式
-            if (!isHttpOrHttpsUrl(baseUrl)) {
-                return false;
-            }
-            String urlWithoutScheme = StringUtil.removeHttpOrHttpsSchemeOfUrl(baseUrl);
-            return !urlWithoutScheme.contains("/");
+            // 限制文件源根地址只能是 http(s)://xxx 形式
+            return isHttpOrHttpsUrl(baseUrl);
         }
 
         private boolean isHttpOrHttpsUrl(String url) {
