@@ -26,12 +26,12 @@ package com.tencent.bk.job.backup.task;
 
 import com.tencent.bk.job.backup.service.ExportJobService;
 import com.tencent.bk.job.backup.service.ImportJobService;
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -59,7 +59,7 @@ public class ScheduledTask {
     /**
      * 定期清理导入导出产生的临时文件
      */
-    @Scheduled(cron = "${job.backup.clean.cron:0 0 * * * ?}")
+    @ScheduledOnOperationTimeZone(cron = "${job.backup.clean.cron:0 0 * * * ?}")
     public void cleanFileTask() {
         try {
             JobContextUtil.setRequestId(UUID.randomUUID().toString());

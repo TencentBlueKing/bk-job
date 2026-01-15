@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.task;
 
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import com.tencent.bk.job.manage.background.ha.BackGroundTaskBalancer;
 import com.tencent.bk.job.manage.background.ha.BackGroundTaskDaemon;
 import com.tencent.bk.job.manage.background.sync.AgentStatusSyncService;
@@ -33,7 +34,6 @@ import com.tencent.bk.job.manage.manager.app.ApplicationCache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -70,7 +70,7 @@ public class ScheduledTasks {
     /**
      * 业务同步：1min/次
      */
-    @Scheduled(cron = "0 * * * * ?")
+    @ScheduledOnOperationTimeZone(cron = "0 * * * * ?")
     public void appSyncTask() {
         log.info(Thread.currentThread().getId() + ":appSyncTask start");
         try {
@@ -83,7 +83,7 @@ public class ScheduledTasks {
     /**
      * 业务缓存刷新：1min/次
      */
-    @Scheduled(cron = "0 * * * * ?")
+    @ScheduledOnOperationTimeZone(cron = "0 * * * * ?")
     public void refreshAppCache() {
         log.info(Thread.currentThread().getId() + ":refreshAppCache start");
         try {
@@ -96,7 +96,7 @@ public class ScheduledTasks {
     /**
      * 主机同步：5min/次
      */
-    @Scheduled(cron = "0 0/5 * * * ?")
+    @ScheduledOnOperationTimeZone(cron = "0 0/5 * * * ?")
     public void hostSyncTask() {
         log.info(Thread.currentThread().getId() + ":hostSyncTask start");
         try {
@@ -109,7 +109,7 @@ public class ScheduledTasks {
     /**
      * Agent状态同步：1min/次
      */
-    @Scheduled(cron = "0 * * * * ?")
+    @ScheduledOnOperationTimeZone(cron = "0 * * * * ?")
     public void agentStatusSyncTask() {
         log.info(Thread.currentThread().getId() + ":agentStatusSyncTask start");
         try {
@@ -119,7 +119,7 @@ public class ScheduledTasks {
         }
     }
 
-    @Scheduled(cron = "0 4 * * * ?")
+    @ScheduledOnOperationTimeZone(cron = "0 4 * * * ?")
     public void cleanUserUploadFileTask() {
         log.info("Clean user upload file task begin");
         try {
@@ -133,7 +133,7 @@ public class ScheduledTasks {
     /**
      * 每分钟均衡一次分布在多个实例上的后台任务
      */
-    @Scheduled(cron = "0 * * * * ?")
+    @ScheduledOnOperationTimeZone(cron = "0 * * * * ?")
     public void balanceBackGroundTask() {
         log.info("balanceBackGroundTask begin");
         try {
@@ -146,7 +146,7 @@ public class ScheduledTasks {
     /**
      * 每分钟检查并恢复一次异常终止的后台任务
      */
-    @Scheduled(cron = "0 * * * * ?")
+    @ScheduledOnOperationTimeZone(cron = "0 * * * * ?")
     public void runBackGroundTaskDaemon() {
         log.info("balanceBackGroundTask begin");
         try {

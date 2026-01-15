@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file.worker.task;
 
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import com.tencent.bk.job.file.worker.state.event.WorkerEvent;
 import com.tencent.bk.job.file.worker.state.event.WorkerEventService;
 import com.tencent.bk.job.file.worker.task.clear.ClearFileTask;
@@ -31,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component("jobFileWorkerScheduledTasks")
@@ -52,7 +52,7 @@ public class ScheduledTasks {
     /**
      * 清理：1天/次，每天早上8点清理过期文件
      */
-    @Scheduled(cron = "0 0 8 * * *")
+    @ScheduledOnOperationTimeZone(cron = "0 0 8 * * *")
     public void clearExpiredFile() {
         logger.info(Thread.currentThread().getId() + ":clearExpiredFile start");
         try {
@@ -65,7 +65,7 @@ public class ScheduledTasks {
     /**
      * 每分钟检查磁盘容量并清理
      */
-    @Scheduled(cron = "0 * * * * *")
+    @ScheduledOnOperationTimeZone(cron = "0 * * * * *")
     public void checkVolumeAndClear() {
         logger.debug(Thread.currentThread().getId() + ":checkVolumeAndClear start");
         try {
@@ -78,7 +78,7 @@ public class ScheduledTasks {
     /**
      * Worker心跳：1min/次
      */
-    @Scheduled(fixedRate = 60 * 1000L)
+    @ScheduledOnOperationTimeZone(fixedRate = 60 * 1000L)
     public void heartBeat() {
         logger.info(Thread.currentThread().getId() + ":heartBeat start");
         try {

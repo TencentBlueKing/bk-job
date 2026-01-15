@@ -52,6 +52,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Date;
 import java.time.Instant;
+import java.util.TimeZone;
 
 @Slf4j
 @Service
@@ -146,6 +147,14 @@ public class QuartzServiceImpl implements QuartzService {
                 .withIdentity(jobName, jobGroup)
                 .withCronExpression(cronJobInfo.getCronExpression())
                 .withMisfireInstruction(CronTrigger.MISFIRE_INSTRUCTION_DO_NOTHING);
+            
+            // 设置时区
+            if (StringUtils.isNotBlank(cronJobInfo.getExecuteTimeZone())) {
+                cronTriggerBuilder = cronTriggerBuilder.withTimeZone(
+                    TimeZone.getTimeZone(cronJobInfo.getExecuteTimeZone())
+                );
+            }
+            
             if (cronJobInfo.getEndTime() > 0) {
                 if (cronJobInfo.getEndTime() < DateUtils.currentTimeSeconds()) {
                     throw new FailedPreconditionException(ErrorCode.END_TIME_OR_NOTIFY_TIME_ALREADY_PASSED);

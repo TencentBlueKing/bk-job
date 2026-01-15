@@ -27,11 +27,11 @@ package com.tencent.bk.job.analysis.task;
 import com.tencent.bk.job.analysis.task.ai.AIChatHistoryCleanTask;
 import com.tencent.bk.job.analysis.task.analysis.AnalysisTaskScheduler;
 import com.tencent.bk.job.analysis.task.statistics.StatisticsTaskScheduler;
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component("jobAnalysisScheduledTasks")
@@ -56,7 +56,7 @@ public class ScheduledTasks {
      * 驱动统计分析任务调度
      * 1h一次
      */
-    @Scheduled(cron = "0 1 * * * *")
+    @ScheduledOnOperationTimeZone(cron = "0 1 * * * *")
     public void statisticsTaskSchedulerTask() {
         logger.info("statisticsTaskSchedulerTask:"
             + Thread.currentThread().getId()
@@ -73,7 +73,7 @@ public class ScheduledTasks {
      * 驱动后台异常分析任务调度
      * 1s一次
      */
-    @Scheduled(fixedDelay = 1000)
+    @ScheduledOnOperationTimeZone(fixedDelay = 1000)
     public void analysisTaskSchedulerTask() {
         try {
             analysisTaskScheduler.schedule();
@@ -85,7 +85,7 @@ public class ScheduledTasks {
     /**
      * 定时清理用户产生的AI对话记录，1h一次
      */
-    @Scheduled(cron = "0 20 * * * *")
+    @ScheduledOnOperationTimeZone(cron = "0 20 * * * *")
     public void aiChatHistoryCleanTask() {
         try {
             aiChatHistoryCleanTask.execute();

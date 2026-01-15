@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.common.task;
 
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import com.tencent.bk.job.common.task.config.JvmDiagnosticFileClearByLastModifyTimeProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
 
 @Slf4j
 public class JvmDiagnosticFileClearScheduledTasks {
@@ -51,7 +51,7 @@ public class JvmDiagnosticFileClearScheduledTasks {
     /**
      * 清理：每小时根据最后修改时间清理一次JVM诊断文件
      */
-    @Scheduled(cron = "05 30 * * * ?")
+    @ScheduledOnOperationTimeZone(cron = "05 30 * * * ?")
     public void clearJvmDiagnosticFileByLastModifyTime() {
         if (clearJvmDiagnosticFileByLastModifyTimeTask == null) {
             log.debug("clearJvmDiagnosticFileByLastModifyTime not enabled, ignore");

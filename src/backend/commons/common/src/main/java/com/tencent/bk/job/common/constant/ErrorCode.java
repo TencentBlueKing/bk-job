@@ -452,6 +452,8 @@ public class ErrorCode {
     public static final int USER_ACCESS_APP_FORBIDDEN = 1247403;
     // 缺少有效的AppCode
     public static final int MISSING_APP_CODE = 1247004;
+    // 用户时区配置错误，配置了无效的时区：{0}
+    public static final int INVALID_USER_TIMEZONE = 1247005;
     // 网关服务 end
 
     // 业务网关 start

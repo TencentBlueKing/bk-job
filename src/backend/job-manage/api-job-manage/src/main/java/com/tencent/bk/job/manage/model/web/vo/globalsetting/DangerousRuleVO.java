@@ -24,10 +24,6 @@
 
 package com.tencent.bk.job.manage.model.web.vo.globalsetting;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampDeserializer;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbDangerousRuleV3DTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -58,15 +54,11 @@ public class DangerousRuleVO {
     private Integer status;
     @ApiModelProperty("创建人")
     private String creator;
-    @JsonSerialize(using = LongTimestampSerializer.class)
-    @JsonDeserialize(using = LongTimestampDeserializer.class)
-    @ApiModelProperty("创建时间")
+    @ApiModelProperty("创建时间，单位毫秒")
     private Long createTime;
     @ApiModelProperty("最近更新人")
     private String lastModifier;
-    @JsonSerialize(using = LongTimestampSerializer.class)
-    @JsonDeserialize(using = LongTimestampDeserializer.class)
-    @ApiModelProperty("最近更新时间")
+    @ApiModelProperty("最近更新时间，单位毫秒")
     private Long lastModifyTime;
 
     public EsbDangerousRuleV3DTO toEsbDangerousRuleV3DTO() {

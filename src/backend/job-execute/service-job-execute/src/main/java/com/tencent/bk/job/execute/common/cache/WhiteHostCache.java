@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.common.cache;
 
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.tenant.TenantDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -33,7 +34,6 @@ import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -69,7 +69,7 @@ public class WhiteHostCache {
         this.whiteIpResource = whiteIpResource;
     }
 
-    @Scheduled(cron = "0 * * * * ?")
+    @ScheduledOnOperationTimeZone(cron = "0 * * * * ?")
     public void syncWhiteIpConfigForAllTenants() {
         List<TenantDTO> tenantDTOList = tenantResource.listEnabledTenant().getData();
         for (TenantDTO tenantDTO : tenantDTOList) {

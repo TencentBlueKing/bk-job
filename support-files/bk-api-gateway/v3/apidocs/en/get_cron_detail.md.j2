@@ -35,6 +35,7 @@ Query Cron job details
         "name": "test",
         "status": 1,
         "expression": "0/5 * * * ?",
+        "execute_time_zone": "Asia/Shanghai",
         "global_var_list": [
             {
                 "id": 436,
@@ -89,20 +90,21 @@ Query Cron job details
 
 #### data
 
-| Fields           | Type   | Never null | Description                                                                                                                                                                                            |
-|------------------|--------|------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| bk_scope_type    | string | yes        | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                                                                                                            |
-| bk_scope_id      | string | yes        | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                                                                                                            |
-| job_plan_id      | long   | yes        | Job Plan ID                                                                                                                                                                                            |
-| id               | long   | yes        | Cron job ID                                                                                                                                                                                            |
-| name             | string | yes        | Cron job name                                                                                                                                                                                          |
-| status           | int    | yes        | Cron job status: 1. Started, 2. Paused                                                                                                                                                                 |
-| expression       | string | no         | Timing rules for Cron Job crontab, required when creating, optional when modifying. The meaning of each field is: minute hour day month week, for example: 0/5 * * * * ? means execute every 5 minutes |
-| global_var_list  | array  | no         | Global variable information                                                                                                                                                                            |
-| creator          | string | yes        | Cron job creator                                                                                                                                                                                       |
-| create_time      | long   | yes        | Creation time, Unix timestamp                                                                                                                                                                          |
-| last_modify_user | string | yes        | Cron job modifier                                                                                                                                                                                      |
-| last_modify_time | long   | yes        | Last modified time, Unix timestamp                                                                                                                                                                     |
+| Fields            | Type   | Never null | Description                                                                                                                                                                                            |
+|-------------------|--------|------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| bk_scope_type     | string | yes        | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                                                                                                            |
+| bk_scope_id       | string | yes        | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                                                                                                            |
+| job_plan_id       | long   | yes        | Job Plan ID                                                                                                                                                                                            |
+| id                | long   | yes        | Cron job ID                                                                                                                                                                                            |
+| name              | string | yes        | Cron job name                                                                                                                                                                                          |
+| status            | int    | yes        | Cron job status: 1. Started, 2. Paused                                                                                                                                                                 |
+| expression        | string | no         | Timing rules for Cron Job crontab, required when creating, optional when modifying. The meaning of each field is: minute hour day month week, for example: 0/5 * * * * ? means execute every 5 minutes |
+| execute_time_zone | string | no         | The time zone for the scheduled task execution, formatted in IANA format, for example: Asia/Shanghai.                                                                                                  |
+| global_var_list   | array  | no         | Global variable information                                                                                                                                                                            |
+| creator           | string | yes        | Cron job creator                                                                                                                                                                                       |
+| create_time       | long   | yes        | Creation time, Unix timestamp                                                                                                                                                                          |
+| last_modify_user  | string | yes        | Cron job modifier                                                                                                                                                                                      |
+| last_modify_time  | long   | yes        | Last modified time, Unix timestamp                                                                                                                                                                     |
 
 #### global_var
 

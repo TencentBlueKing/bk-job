@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -51,8 +49,7 @@ public class TaskOperationLogVO {
     private Integer batch;
     @ApiModelProperty("步骤名称")
     private String stepName;
-    @ApiModelProperty("操作时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
+    @ApiModelProperty("操作时间，单位毫秒")
     private Long createTime;
     @ApiModelProperty("详情-文本")
     private String detail;
