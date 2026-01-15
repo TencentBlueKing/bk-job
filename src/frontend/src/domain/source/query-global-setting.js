@@ -93,7 +93,7 @@ class QueryGlobalSetting extends ModuleBase {
   }
 
   getDefaultDisplayTimeZone(params = {}) {
-    return Request.get(`${this.module}/defaultDisplayTimezone`, {
+    return Request.get(`${this.module}/defaultTimezoneConfig`, {
       params,
       cache: true,
     });
