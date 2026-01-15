@@ -1098,6 +1098,11 @@ manageConfig:
       # 开启CMDB事件监听时用于处理主机事件的线程数量，一般情况下无须修改
       # 当环境中主机事件平均产生速率较高（>10/s）或主机信息相比于CMDB数据经常性明显滞后（分钟级）时，可增大该数值
       handlerNum: 3
+    agentStatus:
+      # 是否开启主机Agent状态更新
+      enabled: true
+      # 一次更新Agent状态的主机数量
+      batchSize: 10000
   mysql:
     slowSql:
       # 是否打印慢查询SQL语句到日志中
@@ -1367,6 +1372,10 @@ crontabConfig:
         frequency: 5
         # 通知次数：默认 -1 - 不限制通知次数， 0 - 不通知， 1 - 只通知1次，
         total: -1
+  # 将定时任务加载到Quartz引擎相关参数配置
+  loadCronJobToQuartz:
+    # 是否开启
+    enabled: true
   # 业务（集）归档后自动禁用其定时任务相关配置
   disableCronJobOfArchivedScope:
     # 是否开启

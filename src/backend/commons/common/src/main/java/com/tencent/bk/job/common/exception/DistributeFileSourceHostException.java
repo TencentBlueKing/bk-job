@@ -22,14 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.paas.exception;
+package com.tencent.bk.job.common.exception;
+
+import com.tencent.bk.job.common.model.error.ErrorType;
+
 
 /**
- * 在用户管理(bk-user)中，无法通过username查到用户的异常
+ * 文件分发文件源主机异常，使用集群外部机器或默认宿主机作为文件的分发源时，不满足分发条件时抛出的异常
  */
-public class UserNotFoundException extends RuntimeException {
+public class DistributeFileSourceHostException extends ServiceException {
 
-    public UserNotFoundException(String msg) {
-        super(msg);
+    public DistributeFileSourceHostException(Integer errorCode) {
+        super(ErrorType.INTERNAL, errorCode);
+    }
+
+    public DistributeFileSourceHostException(String message, Integer errorCode) {
+        super(message, ErrorType.INTERNAL, errorCode);
+    }
+
+    public DistributeFileSourceHostException(Integer errorCode, Object[] errorParams) {
+        super(ErrorType.INTERNAL, errorCode, errorParams);
     }
 }

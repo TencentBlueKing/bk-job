@@ -692,6 +692,21 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
     }
 
     @Override
+    public List<HostSimpleDTO> listHostSimpleInfoByHostIdRange(Long startHostId, int limit) {
+        val query = context.select(SIMPLE_FIELDS)
+            .from(TABLE)
+            .where(TABLE.HOST_ID.gt(ULong.valueOf(startHostId)))
+            .orderBy(TABLE.HOST_ID.asc())
+            .limit(limit);
+        Result<Record> records = query.fetch();
+        List<HostSimpleDTO> hostInfoList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(records)) {
+            records.map(record -> hostInfoList.add(extractSimpleData(record)));
+        }
+        return hostInfoList;
+    }
+
+    @Override
     public List<BasicHostDTO> listAllBasicHost() {
         val query = context.select(BASIC_FIELDS)
             .from(TABLE);
