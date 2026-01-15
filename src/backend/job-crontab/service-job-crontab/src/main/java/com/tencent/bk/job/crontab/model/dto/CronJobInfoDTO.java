@@ -193,7 +193,7 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
     private CustomNotifyDTO customCronJobNotifyDTO = new CustomNotifyDTO();
 
     /**
-     * 周期执行结束时间
+     * 周期执行结束时间，在DB中存储的单位是秒
      */
     private Long endTime = 0L;
 

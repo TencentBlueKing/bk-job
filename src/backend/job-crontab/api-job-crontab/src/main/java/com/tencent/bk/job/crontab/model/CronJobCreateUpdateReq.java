@@ -170,7 +170,8 @@ public class CronJobCreateUpdateReq {
     /**
      * 周期执行的结束时间
      */
-    @ApiModelProperty("周期执行的结束时间")
+    @ApiModelProperty("周期执行的结束时间，单位毫秒")
+    @JsonDeserialize(using = ToSecondDeserializer.class)
     private Long endTime = 0L;
 
 }
