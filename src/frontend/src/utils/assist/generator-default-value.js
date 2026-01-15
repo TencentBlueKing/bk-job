@@ -25,36 +25,44 @@
 
 import Cookie from 'js-cookie';
 
+import Model from '@/domain/model/model';
+import { extractDateTime, formatTimezoneOffset } from '@/utils/assist/time';
+
 export const defaultValue = value => value || '--';
 
+export const getSufixName = () => {
+  const model = new Model();
+  const date = model.getTime({
+    timestamp: new Date().valueOf(),
+  });
+  const { offset } = model.getTimezoneInfo();
+  const {
+    year,
+    month,
+    day,
+    hour,
+    minute,
+    second,
+  } = extractDateTime(date);
+
+  return [
+    year,
+    month,
+    day,
+    hour,
+    minute,
+    second,
+    `${Math.floor(Math.random() * 900) + 100}`,
+    formatTimezoneOffset(offset),
+  ];
+};
 /**
  * @desc 生成默认名称
  * @param { String } prefixStr 名称前缀
  * @returns { String }
  */
 export const genDefaultName = (prefixStr = 'auto') => {
-  const formatStr = (str) => {
-    if (String(str).length === 1) {
-      return `0${str}`;
-    }
-    return str;
-  };
-  const d = new Date();
-  const month = d.getMonth() + 1;
-  const timezoneOffset = d.getTimezoneOffset();
-  const offsetHours = Math.abs(Math.floor(timezoneOffset / 60));
-  const offsetMinutes = Math.abs(timezoneOffset % 60);
-
-  const temp = [
-    d.getFullYear(),
-    formatStr(month),
-    formatStr(d.getDate()),
-    formatStr(d.getHours()),
-    formatStr(d.getMinutes()),
-    formatStr(d.getSeconds()),
-    `${d.getMilliseconds()}${Math.floor(Math.random() * 900) + 100}`,
-    `${offsetHours.toString().padStart(2, '0')}${offsetMinutes.toString().padStart(2, '0')}`,
-  ];
+  const temp = getSufixName();
   return `${prefixStr}_${temp.join('_')}`;
 };
 
@@ -64,34 +72,6 @@ export const genDefaultName = (prefixStr = 'auto') => {
  */
 export const genDefaultScriptVersion = () => {
   const uid = Cookie.get('job_user');
-  const formatStr = (str) => {
-    if (String(str).length === 1) {
-      return `0${str}`;
-    }
-    return str;
-  };
-  const d = new Date();
-
-  const month = formatStr(d.getMonth() + 1);
-  const date = formatStr(d.getDate());
-  const hours = formatStr(d.getHours());
-  const minutes = formatStr(d.getMinutes());
-  const seconds = formatStr(d.getSeconds());
-  const millSeconds = formatStr(d.getMilliseconds());
-  const timezoneOffset = d.getTimezoneOffset();
-  const offsetHours = Math.abs(Math.floor(timezoneOffset / 60));
-  const offsetMinutes = Math.abs(timezoneOffset % 60);
-
-  const temp = [
-    d.getFullYear(),
-    month,
-    date,
-    hours,
-    minutes,
-    seconds,
-    `${millSeconds}${Math.floor(Math.random() * 900) + 100}`,
-    `${offsetHours.toString().padStart(2, '0')}${offsetMinutes.toString().padStart(2, '0')}`,
-  ];
-
+  const temp = getSufixName();
   return `${uid}.${temp.join('_')}`.slice(0, 60);
 };

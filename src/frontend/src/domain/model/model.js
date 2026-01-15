@@ -37,6 +37,12 @@ export default class Model {
     return value || '--';
   }
 
+  getTimezoneInfo(defaultTimezone) {
+    const timezone = defaultTimezone || this.getTimeZone();
+    const { country = '', offset = '' } = timezonesList[timezone] || {};
+    return { country, offset };
+  }
+
   getTimeZone() {
     const { USER_TIME_ZONE, BUSINESS_TIME_ZONE, DEFAULT_DISPLAY_TIME_ZONE } = window.PROJECT_CONFIG;
     return USER_TIME_ZONE || BUSINESS_TIME_ZONE || DEFAULT_DISPLAY_TIME_ZONE;
@@ -44,7 +50,7 @@ export default class Model {
 
   getFullTimeZone(defaultTimezone) {
     const timezone = defaultTimezone || this.getTimeZone();
-    const { country = '', offset = '' } = timezonesList[timezone] || {};
+    const { country = '', offset = '' } = this.getTimezoneInfo(timezone);
     return `${timezone} ${country} ${offset}`;
   }
 
