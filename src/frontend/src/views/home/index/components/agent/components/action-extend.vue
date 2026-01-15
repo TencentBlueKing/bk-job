@@ -128,7 +128,7 @@
        */
       handleCopyAll() {
         if (this.list.length < 1 && this.invalidList.length < 1) {
-          this.messageWarn(I18n.t('你还未选择主机'));
+          this.messageWarn(I18n.t('你还未选择执行目标'));
           return;
         }
         let allIP = this.list.map(host => host.ip);
@@ -143,7 +143,7 @@
        */
       handleCopyFail() {
         if (this.list.length < 1 && this.invalidList.length < 1) {
-          this.messageWarn(I18n.t('你还未选择主机'));
+          this.messageWarn(I18n.t('你还未选择执行目标'));
           return;
         }
         let allFailIp = [];

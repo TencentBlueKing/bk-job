@@ -68,7 +68,7 @@
               <bk-select
                 class="server-global-variable-select"
                 :clearable="false"
-                :placeholder="$t('请选择主机列表变量')"
+                :placeholder="$t('请选择执行目标变量')"
                 :value="localVariable"
                 @change="handleVariableChange">
                 <bk-option
@@ -214,7 +214,7 @@
       },
       mode: {
         type: String,
-        default: '', // onlyHost: 快速执行只可以选择主机列表
+        default: '', // onlyHost: 快速执行只可以执行目标列表
       },
       // 组件被使用的场景，快速执行｜作业模板
       from: {
