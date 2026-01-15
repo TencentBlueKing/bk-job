@@ -55,6 +55,15 @@ public class SubmitAccountPasswordCryptoService {
     private final ASymmetricCryptoService aSymmetricCryptoService;
     private final CryptoConfigService cryptoConfigService;
 
+    /**
+     * SM2公钥的标准长度（非压缩格式）
+     */
+    private static final int SM2_PUBLIC_KEY_LENGTH = 65;
+    /**
+     * SM2公钥非压缩格式前缀
+     */
+    private static final byte SM2_PUBLIC_UNCOMPRESSED_PREFIX = 0x04;
+
     public SubmitAccountPasswordCryptoService(ASymmetricCryptoService aSymmetricCryptoService,
                                               CryptoConfigService cryptoConfigService) {
         this.aSymmetricCryptoService = aSymmetricCryptoService;
@@ -125,7 +134,7 @@ public class SubmitAccountPasswordCryptoService {
      */
     public String sm2RawPublicKeyToPem(String rawPublicKeyBase64) {
         byte[] raw = Base64Util.decodeContentToByte(rawPublicKeyBase64);
-        if (raw.length != 65 || raw[0] != 0x04) {
+        if (raw.length != SM2_PUBLIC_KEY_LENGTH || raw[0] != SM2_PUBLIC_UNCOMPRESSED_PREFIX) {
             throw new CryptoException("Illegal SM2 original public key.");
         }
         AlgorithmIdentifier algId = new AlgorithmIdentifier(GMObjectIdentifiers.sm2p256v1);

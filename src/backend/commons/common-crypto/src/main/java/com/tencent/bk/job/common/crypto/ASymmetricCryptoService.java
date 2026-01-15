@@ -72,8 +72,8 @@ public class ASymmetricCryptoService {
      * @return 解密后的明文信息
      */
     public String decrypt(PrivateKey privateKey,
-                        String base64EncryptedMessage,
-                        CryptoScenarioEnum cryptoScenarioEnum) {
+                          String base64EncryptedMessage,
+                          CryptoScenarioEnum cryptoScenarioEnum) {
         String algorithm = cryptoConfigService.getSymmetricAlgorithmByScenario(cryptoScenarioEnum);
         ASymmetricCryptor cryptor = cryptorMap.computeIfAbsent(algorithm, ASymmetricCryptorFactory::getCryptor);
         return cryptor.decrypt(privateKey, base64EncryptedMessage);

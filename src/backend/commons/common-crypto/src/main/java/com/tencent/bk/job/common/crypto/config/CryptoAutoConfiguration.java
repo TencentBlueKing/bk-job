@@ -71,8 +71,9 @@ public class CryptoAutoConfiguration {
     }
 
     @Bean
-    SubmitAccountPasswordCryptoService sensitiveDataCryptoService(ASymmetricCryptoService aSymmetricCryptoService,
-                                                                  CryptoConfigService cryptoConfigService) {
+    SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService(
+        ASymmetricCryptoService aSymmetricCryptoService,
+        CryptoConfigService cryptoConfigService) {
         return new SubmitAccountPasswordCryptoService(aSymmetricCryptoService, cryptoConfigService);
     }
 }
