@@ -28,6 +28,7 @@
 <template>
   <component
     :is="com"
+    :rules="rules"
     v-bind="$attrs"
     v-on="$listeners" />
 </template>
@@ -49,6 +50,7 @@
         type: String,
         required: true,
       },
+      rules: Array,
     },
     computed: {
       com() {

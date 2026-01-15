@@ -102,3 +102,40 @@ export const transformTimeFriendly = (target) => {
   stack.push(`${second}s`);
   return stack.join(' ');
 };
+
+// 通过字符串日期格式拆分出年月日时分秒
+export function extractDateTime(dateTimeStr) {
+  const regex = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/;
+  const match = dateTimeStr.match(regex);
+
+  if (match) {
+    return {
+      year: match[1],
+      month: match[2],
+      day: match[3],
+      hour: match[4],
+      minute: match[5],
+      second: match[6],
+    };
+  }
+  console.warn('日期格式不匹配');
+  return null;
+}
+
+// UTC+08:00 转换成0800
+export function formatTimezoneOffset(utcOffset) {
+  // 正则表达式匹配 UTC+/- 时区格式
+  const regex = /UTC([+-])(\d{2}):(\d{2})/;
+  const match = utcOffset.match(regex);
+
+  if (match) {
+    const sign = match[1]; // 获取符号 (+ 或 -)
+    const hours = match[2]; // 获取小时
+    const minutes = match[3]; // 获取分钟
+    // 拼接成目标格式
+    return sign === '+' ? hours + minutes : sign + hours + minutes;
+  }
+  // 如果输入格式不匹配，返回原字符串或抛出错误
+  console.warn('输入的时区格式不支持:', utcOffset);
+  return utcOffset || '0000';
+}

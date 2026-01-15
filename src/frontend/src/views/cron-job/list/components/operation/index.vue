@@ -88,7 +88,8 @@
             left="135">
             <crontab
               v-model="formData.cronExpression"
-              class="cron-task" />
+              class="cron-task"
+              :timezone="formData.executeTimeZone" />
           </render-info-detail>
         </div>
       </jb-form-item>
@@ -97,6 +98,7 @@
         :key="item"
         :form-data="formData"
         :name="item"
+        :rules="getItemRule(item)"
         @on-change="handleFormItemChange" />
       <jb-form-item
         :label="$t('cron.作业模板')"
@@ -219,7 +221,6 @@
 
   import Model from '@/domain/model/model';
   import I18n from '@/i18n';
-  import timezonesList from '@/utils/world-timezones.json';
 
   import RenderInfoDetail from '../render-info-detail';
 
@@ -350,7 +351,7 @@
             this.rules.executeTime = [
               { required: true, message: I18n.t('cron.单次执行时间必填'), trigger: 'blur' },
               {
-                validator: value => model.getTimestamp({ date: prettyDateTimeFormat(value), timezone: this.formData.executeTimeZone }) > model.getTimestamp({ date: model.getTime({ timestamp: new Date().getTime(), timezone: this.formData.executeTimeZone }), timezone: this.formData.executeTimeZone }),
+                validator: value => this.compareTimestamp(value),
                 message: I18n.t('cron.执行时间无效（早于当前时间）'),
                 trigger: 'blur',
               },
@@ -391,7 +392,6 @@
       },
     },
     created() {
-      this.timezonesList = timezonesList;
       // 作业模板列表
       this.fetchTemplateList();
 
@@ -457,6 +457,20 @@
     },
 
     methods: {
+      getItemRule(name) {
+        if (name === 'endTime') {
+          return [{ validator: () => this.compareTimestamp(this.formData.endTime), message: I18n.t('cron.结束时间无效（早于当前时间）'), trigger: 'blur' }];
+        }
+        return [];
+      },
+      // 比较选择时间是否比当前时间要早（根据选择的任务时区来）
+      compareTimestamp(time) {
+        const timezone = this.formData.executeTimeZone; // 当前选择的任务时区
+        const nowDate = model.getTime({ timestamp: new Date().getTime(), timezone }); // 当下所选时区的日期
+        const choseTime = model.getTimestamp({ date: prettyDateTimeFormat(time), timezone }); // 选择的时间根据当前选择的时区转换成时间戳
+        const nowTime = model.getTimestamp({ date: nowDate, timezone }); // 当下所选时区的时间戳
+        return choseTime > nowTime; // 返回所选时间是否大于当下时间
+      },
       handleTimezoneChange(val) {
         this.formData.executeTimeZone = val;
       },

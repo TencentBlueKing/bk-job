@@ -26,7 +26,7 @@
 -->
 
 <template>
-  <jb-form-item>
+  <jb-form-item :rules="rules">
     <bk-checkbox
       :value="isEndTime"
       @change="handleChange">
@@ -53,6 +53,7 @@
   export default {
     name: '',
     props: {
+      rules: Array,
       formData: {
         type: Object,
         required: true,
