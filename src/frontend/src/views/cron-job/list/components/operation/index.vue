@@ -99,6 +99,7 @@
         :form-data="formData"
         :name="item"
         :rules="getItemRule(item)"
+        :timezone="formData.executeTimeZone"
         @on-change="handleFormItemChange" />
       <jb-form-item
         :label="$t('cron.作业模板')"
