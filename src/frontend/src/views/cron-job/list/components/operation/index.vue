@@ -46,6 +46,17 @@
           :placeholder="$t('cron.推荐按照该定时执行的实际场景来取名')" />
       </jb-form-item>
       <jb-form-item
+        class="has-tips"
+        :desc="$t('cron.默认为业务所属时区')"
+        desc-type="icon"
+        :label="$t('cron.任务时区')"
+        :label-width="80"
+        property="executeTimeZone"
+        required>
+        <timezone-picker
+          v-model="formData.executeTimeZone" />
+      </jb-form-item>
+      <jb-form-item
         :label="$t('cron.执行策略_label')"
         :property="strategyField"
         required>
@@ -77,7 +88,8 @@
             left="135">
             <crontab
               v-model="formData.cronExpression"
-              class="cron-task" />
+              class="cron-task"
+              :timezone="formData.executeTimeZone" />
           </render-info-detail>
         </div>
       </jb-form-item>
@@ -86,6 +98,8 @@
         :key="item"
         :form-data="formData"
         :name="item"
+        :rules="getItemRule(item)"
+        :timezone="formData.executeTimeZone"
         @on-change="handleFormItemChange" />
       <jb-form-item
         :label="$t('cron.作业模板')"
@@ -196,7 +210,7 @@
     checkIllegalHostFromVariableTargetValue,
     findUsedVariable,
     generatorDefaultCronTime,
-  } from '@utils/assist';
+    prettyDateTimeFormat } from '@utils/assist';
   import { timeTaskNameRule } from '@utils/validator';
 
   import GlobalVariable from '@components/global-variable/edit';
@@ -204,6 +218,9 @@
   import ToggleDisplay from '@components/global-variable/toggle-display';
   import JbInput from '@components/jb-input';
 
+  import { TimezonePicker } from '@blueking/date-picker/vue2';
+
+  import Model from '@/domain/model/model';
   import I18n from '@/i18n';
 
   import RenderInfoDetail from '../render-info-detail';
@@ -211,6 +228,10 @@
   import Crontab from './crontab';
   import CustomNotify from './custom-notify';
   import FormItemFactory from './form-item-strategy';
+
+  import '@blueking/date-picker/vue2/vue2.css';
+
+  const model = new Model();
 
   const onceItemList = [
     'executeBeforeNotify',
@@ -253,6 +274,7 @@
     taskPlanId: 0, // 关联的执行方案 ID
     taskTemplateId: 0,
     variableValue: [], // 变量信息
+    executeTimeZone: window.PROJECT_CONFIG.BUSINESS_TIME_ZONE,
   });
 
   export default {
@@ -266,6 +288,7 @@
       FormItemFactory,
       Crontab,
       CustomNotify,
+      TimezonePicker,
     },
     props: {
       data: {
@@ -329,7 +352,7 @@
             this.rules.executeTime = [
               { required: true, message: I18n.t('cron.单次执行时间必填'), trigger: 'blur' },
               {
-                validator: value => new Date(value).getTime() > Date.now(),
+                validator: value => this.compareTimestamp(value),
                 message: I18n.t('cron.执行时间无效（早于当前时间）'),
                 trigger: 'blur',
               },
@@ -435,6 +458,23 @@
     },
 
     methods: {
+      getItemRule(name) {
+        if (name === 'endTime') {
+          return [{ validator: () => this.compareTimestamp(this.formData.endTime), message: I18n.t('cron.结束时间无效（早于当前时间）'), trigger: 'blur' }];
+        }
+        return [];
+      },
+      // 比较选择时间是否比当前时间要早（根据选择的任务时区来）
+      compareTimestamp(time) {
+        const timezone = this.formData.executeTimeZone; // 当前选择的任务时区
+        const nowDate = model.getTime({ timestamp: new Date().getTime(), timezone }); // 当下所选时区的日期
+        const choseTime = model.getTimestamp({ date: prettyDateTimeFormat(time), timezone }); // 选择的时间根据当前选择的时区转换成时间戳
+        const nowTime = model.getTimestamp({ date: nowDate, timezone }); // 当下所选时区的时间戳
+        return choseTime > nowTime; // 返回所选时间是否大于当下时间
+      },
+      handleTimezoneChange(val) {
+        this.formData.executeTimeZone = val;
+      },
       /**
        * @desc 定时任务详情
        */
@@ -467,7 +507,7 @@
             taskTemplateId,
             notifyType,
             cronJobCustomNotifyVO,
-
+            executeTimeZone,
           } = cronJob;
 
           if (executeTime) {
@@ -489,6 +529,7 @@
             taskTemplateId,
             variableValue: [],
             notifyType,
+            executeTimeZone,
             customNotifyUser: {
               roleList: cronJobCustomNotifyVO.roleList,
               userList: cronJobCustomNotifyVO.extraObserverList,
@@ -705,10 +746,17 @@
               params.executeTime = '';
             } else {
               params.cronExpression = '';
-              params.executeTime = new Date(params.executeTime).getTime() / 1000;
+              params.executeTime = model.getTimestamp({
+                // 去掉原日期格式的时区信息
+                date: prettyDateTimeFormat(new Date(params.executeTime).getTime()),
+                timezone: params.executeTimeZone,
+              });
             }
             if (params.endTime) {
-              params.endTime = new Date(params.endTime).getTime() / 1000;
+              params.endTime = model.getTimestamp({
+                date: params.endTime,
+                timezone: params.executeTimeZone,
+              });
             }
 
             const requestHandler = params.id ? CronJobService.update : CronJobService.create;
@@ -761,6 +809,12 @@
 
     .plan-variable-empty {
       color: #b2b5bd;
+    }
+
+    .has-tips {
+      :deep(.bk-label) {
+        white-space: nowrap;
+      }
     }
   }
 </style>

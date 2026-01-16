@@ -38,7 +38,7 @@
           required>
           <bk-input
             v-model="formData.packageName"
-            :maxlength="40"
+            :maxlength="60"
             :placeholder="$t('template.压缩包名仅支持大小写英文、数字、- 或 _')" />
         </jb-form-item>
         <jb-form-item
@@ -173,7 +173,7 @@
       return {
         isSubmiting: false,
         formData: {
-          packageName: genDefaultName(`bk_job_export_${window.PROJECT_CONFIG.SCOPE_TYPE}_${window.PROJECT_CONFIG.SCOPE_ID}`).slice(0, 40),
+          packageName: genDefaultName(`bk_job_export_${window.PROJECT_CONFIG.SCOPE_TYPE}_${window.PROJECT_CONFIG.SCOPE_ID}`).slice(0, 60),
           secretHandler: 1,
           isEncrypt: 2,
           password: '',

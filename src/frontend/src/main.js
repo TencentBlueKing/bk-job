@@ -338,5 +338,12 @@ UserService.fetchUserInfo()
       expires: 365,
     });
     entryTask.start();
-})
+  });
+
+QueryGlobalSettingService.fetchConfigTimeZone().then((data) => {
+  // 设置默认时区和运营时区
+  const { display = '', operation = '' } = data;
+  window.PROJECT_CONFIG.DEFAULT_DISPLAY_TIME_ZONE = display;
+  window.PROJECT_CONFIG.OPERATION_TIME_ZONE = operation;
+});
 

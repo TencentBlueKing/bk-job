@@ -3,7 +3,7 @@ import { ref } from 'vue';
 
 import I18n from '@/i18n';
 
-export default (messageList) => {
+export default (messageList, getTime) => {
   const loading = ref(false);
 
   const apiPath = `${window.PROJECT_CONFIG.AJAX_URL_PREFIX}/job-analysis/web/ai/scope/${window.PROJECT_CONFIG.SCOPE_TYPE}/${window.PROJECT_CONFIG.SCOPE_ID}`;
@@ -57,7 +57,7 @@ export default (messageList) => {
                   .forEach((item) => {
                     try {
                       const chunkData = JSON.parse(item).data;
-                      latestChatMessage.time = chunkData.time;
+                      latestChatMessage.time = getTime(chunkData.time);
                       latestChatMessage.content += chunkData.content;
                     } catch {
                       fragment += item;

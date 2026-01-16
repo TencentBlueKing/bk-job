@@ -104,6 +104,7 @@
   import { prettyDateTimeFormat } from '@utils/assist';
   import Translate from '@utils/cron/translate';
 
+  import Model from '@/domain/model/model';
   import I18n from '@/i18n';
 
   import renderTextCn from './components/render-text-cn.vue';
@@ -121,6 +122,7 @@
     3: 'month',
     4: 'dayOfWeek',
   };
+  const model = new Model();
 
   export default {
     name: '',
@@ -128,6 +130,10 @@
       value: {
         type: String,
         default: '',
+      },
+      timezone: {
+        type: String,
+        require: true,
       },
     },
     data() {
@@ -146,6 +152,11 @@
         return I18n.locale === 'zh-CN' ? renderTextCn : renderTextEn;
       },
     },
+    watch: {
+      timezone(val) {
+        this.checkAndTranslate(this.nativeValue);
+      },
+    },
     mounted() {
       if (!this.nativeValue) {
         return;
@@ -158,7 +169,7 @@
        */
       checkAndTranslate(value) {
         const interval = CronExpression.parse(`0 ${value.trim()}`, {
-          currentDate: new Date(),
+          currentDate: model.getTime({ timestamp: new Date().valueOf(), timezone: this.timezone }),  // 根据当前时区的时间
         });
 
         let i = 5;

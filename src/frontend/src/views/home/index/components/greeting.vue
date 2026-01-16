@@ -31,14 +31,17 @@
   </div>
 </template>
 <script>
+  import Model from '@/domain/model/model';
   import I18n from '@/i18n';
+
+  const model = new Model();
 
   export default {
     methods: {
       setAnalysisGreeting() {
         const txtOne = (currentHour, currentMin) => {
           if (currentHour >= 1 && currentHour < 4) {
-            return I18n.t('home.现在是凌晨 {HH:MM}！切忌劳累过度，影响身体还容易误操作，赶紧休息吧...', { 'HH:MM': `${currentHour}:${currentMin}` });
+            return I18n.t('home.现在是凌晨 t！切忌劳累过度，影响身体还容易误操作，赶紧休息吧', { t: `${currentHour}:${currentMin}` });
           }
           return false;
         };
@@ -109,8 +112,9 @@
           txtNight,
           txtTen,
         };
-        const currentHour = new Date().getHours();
-        const currentMin = new Date().getMinutes() > 10 ? new Date().getMinutes() : `0${new Date().getMinutes()}`;
+        const nowDate = model.getTime({ timestamp: new Date().valueOf() });
+        const currentHour = new Date(nowDate).getHours();
+        const currentMin = new Date(nowDate).getMinutes() > 10 ? new Date(nowDate).getMinutes() : `0${new Date(nowDate).getMinutes()}`;
         for (const greet in greetingMap) {
           const curTxt = greetingMap[greet](currentHour, currentMin);
           if (curTxt) {

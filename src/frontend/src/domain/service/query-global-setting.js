@@ -79,4 +79,8 @@ export default {
     return QueryGlobalSettingSource.getJobConfig(params)
       .then(({ data }) => data);
   },
+  fetchConfigTimeZone() {
+    return QueryGlobalSettingSource.getDefaultDisplayTimeZone()
+      .then(({ data }) => data);
+  },
 };

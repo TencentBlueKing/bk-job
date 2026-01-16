@@ -46,7 +46,7 @@
           </div>
           <div class="detail-item">
             <label>{{ $t('setting.最近修改时间：') }}</label>
-            <span>{{ formData.lastModifyTime }}</span>
+            <span v-bk-tooltips="lastModifyTooltipsText">{{ lastModifyTimeText }}</span>
           </div>
         </div>
       </div>
@@ -124,6 +124,7 @@
   import JbUserSelector from '@components/jb-user-selector';
   import RenderStrategy from '@components/render-strategy';
 
+  import Model from '@/domain/model/model';
   import I18n from '@/i18n';
 
   import InternalVariable from './internal-variable';
@@ -146,6 +147,8 @@
     // 消息模板标题
     title: '',
   });
+
+  const model = new Model();
 
   export default {
     components: {
@@ -171,6 +174,14 @@
         reciverList: [],
         formData: getDefaultData(),
       };
+    },
+    computed: {
+      lastModifyTimeText() {
+        return model.getTime({ timestamp: this.formData.lastModifyTime });
+      },
+      lastModifyTooltipsText() {
+        return model.getTimeTooltip(this.lastModifyTimeText);
+      },
     },
     watch: {
       data(newVal) {

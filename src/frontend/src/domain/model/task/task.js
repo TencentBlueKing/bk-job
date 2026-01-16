@@ -29,6 +29,7 @@
 
 import _ from 'lodash';
 
+import Model from '@model/model';
 import TagModel from '@model/tag';
 import GlobalVariableModel from '@model/task/global-variable';
 import TaskStepModel from '@model/task/task-step';
@@ -39,12 +40,13 @@ const STATUS_SCRIPT_NEED_UPDATE = 1;
 const STATUS_SCRIPT_DISABLED = 2;
 const STATUS_SCRIPT_NEED_UPDATE_AND_DISABLE = 3;
 
-export default class Task {
+export default class Task extends Model {
   static STATUS_SCRIPT_NEED_UPDATE = STATUS_SCRIPT_NEED_UPDATE;
   static STATUS_SCRIPT_DISABLED = STATUS_SCRIPT_DISABLED;
   static STATUS_SCRIPT_NEED_UPDATE_AND_DISABLE = STATUS_SCRIPT_NEED_UPDATE_AND_DISABLE;
 
   constructor(payload, isClone = false) {
+    super();
     this.id = isClone ? -payload.id : payload.id;
     this.name = payload.name;
     this.description = payload.description || '';
