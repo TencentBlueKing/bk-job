@@ -90,7 +90,9 @@ public class ExponentialBackoffRetryPolicy implements RetryPolicy {
      * @param maxAttempts       最大重试次数
      * @param multiplier        间隔增长倍数
      */
-    public ExponentialBackoffRetryPolicy(long initialIntervalMs, long maxIntervalMs, int maxAttempts,
+    public ExponentialBackoffRetryPolicy(long initialIntervalMs,
+                                         long maxIntervalMs,
+                                         int maxAttempts,
                                          double multiplier) {
         if (initialIntervalMs <= 0) {
             throw new IllegalArgumentException("initialIntervalMs must be positive");

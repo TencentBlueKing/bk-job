@@ -92,6 +92,9 @@ public class CountBasedSlidingWindow implements SlidingWindow {
      */
     private synchronized void addCallResult(CallResult result) {
         int index = currentIndex.getAndIncrement() % windowSize;
+        if (currentIndex.get() == windowSize) {
+            currentIndex.set(0);
+        }
         CallResult oldResult = ringBuffer.getAndSet(index, result);
 
         // 更新统计计数

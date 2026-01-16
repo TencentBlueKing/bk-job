@@ -33,10 +33,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 系统熔断管理器，按单个API粒度进行熔断
+ * 第三方系统熔断器工厂，提供按单个API粒度进行熔断的熔断器
  */
 @Slf4j
-public class SystemCircuitBreakerManager {
+public class SystemCircuitBreakerFactory implements CircuitBreakerFactory {
     /**
      * 系统名称
      */
@@ -58,19 +58,19 @@ public class SystemCircuitBreakerManager {
     private final Map<String, CircuitBreaker> circuitBreakerMap = new ConcurrentHashMap<>();
 
 
-    public SystemCircuitBreakerManager(String systemName, CircuitBreakerProperties circuitBreakerProperties) {
+    public SystemCircuitBreakerFactory(String systemName, CircuitBreakerProperties circuitBreakerProperties) {
         this.systemName = systemName;
         this.circuitBreakerProperties = circuitBreakerProperties;
         this.whiteApiSet = new HashSet<>(circuitBreakerProperties.getWhiteApiList());
     }
 
     /**
-     * 针对某个API获取对应熔断器
+     * 针对某个API获取或创建对应熔断器
      *
      * @param apiName API名称
      * @return 熔断器
      */
-    public CircuitBreaker getCircuitBreaker(String apiName) {
+    public CircuitBreaker getOrCreateCircuitBreaker(String apiName) {
         if (!circuitBreakerProperties.getEnabled()) {
             return null;
         }

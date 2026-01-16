@@ -26,8 +26,8 @@ package com.tencent.bk.job.common.retry;
 
 import com.tencent.bk.job.common.retry.circuitbreaker.CircuitBreaker;
 import com.tencent.bk.job.common.retry.circuitbreaker.CircuitBreakerException;
+import com.tencent.bk.job.common.retry.circuitbreaker.CircuitBreakerFactory;
 import com.tencent.bk.job.common.retry.circuitbreaker.CircuitBreakerOpenException;
-import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
@@ -49,9 +49,9 @@ public class RetryExecutor {
      */
     private final RetryPolicy retryPolicy;
     /**
-     * 熔断管理器
+     * 熔断器工厂
      */
-    private final SystemCircuitBreakerManager circuitBreakerManager;
+    private final CircuitBreakerFactory circuitBreakerFactory;
     /**
      * 指标记录器
      */
@@ -63,15 +63,15 @@ public class RetryExecutor {
      * @param retryPolicy           重试策略
      * @param metricsRecorder       指标记录器（可为 null）
      * @param systemName            外部系统名称（用于指标记录）
-     * @param circuitBreakerManager 熔断管理器（可为 null）
+     * @param circuitBreakerFactory 熔断器工厂（可为 null）
      */
     public RetryExecutor(RetryPolicy retryPolicy,
                          RetryMetricsRecorder metricsRecorder,
                          String systemName,
-                         SystemCircuitBreakerManager circuitBreakerManager) {
+                         CircuitBreakerFactory circuitBreakerFactory) {
         this.systemName = systemName;
         this.retryPolicy = retryPolicy;
-        this.circuitBreakerManager = circuitBreakerManager;
+        this.circuitBreakerFactory = circuitBreakerFactory;
         this.metricsRecorder = metricsRecorder;
     }
 
@@ -90,7 +90,7 @@ public class RetryExecutor {
         int attemptNumber = 0;
         Exception lastException = null;
         long startTime = System.currentTimeMillis();
-        CircuitBreaker circuitBreaker = circuitBreakerManager.getCircuitBreaker(apiName);
+        CircuitBreaker circuitBreaker = circuitBreakerFactory.getOrCreateCircuitBreaker(apiName);
         while (attemptNumber < retryPolicy.getMaxAttempts()) {
             try {
                 // 首先判断是否需要被熔断器处理执行

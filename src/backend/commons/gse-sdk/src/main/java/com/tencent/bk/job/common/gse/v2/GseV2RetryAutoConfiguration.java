@@ -32,7 +32,8 @@ import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.config.ConditionalOnMockGseV2ApiDisabled;
 import com.tencent.bk.job.common.gse.config.GseRetryCondition;
 import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
-import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
+import com.tencent.bk.job.common.retry.circuitbreaker.CircuitBreakerFactory;
+import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerFactory;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -73,11 +74,11 @@ public class GseV2RetryAutoConfiguration {
         );
 
         log.info("Init retryableGseV2ApiClient");
-        SystemCircuitBreakerManager circuitBreakerManager = buildCircuitBreakerManager(retryProperties);
-        return new RetryableGseV2ApiClient(gseClient, retryPolicy, metricsRecorder, circuitBreakerManager);
+        CircuitBreakerFactory circuitBreakerFactory = buildCircuitBreakerFactory(retryProperties);
+        return new RetryableGseV2ApiClient(gseClient, retryPolicy, metricsRecorder, circuitBreakerFactory);
     }
 
-    private SystemCircuitBreakerManager buildCircuitBreakerManager(ExternalSystemRetryProperties retryProperties) {
+    private CircuitBreakerFactory buildCircuitBreakerFactory(ExternalSystemRetryProperties retryProperties) {
         CircuitBreakerProperties globalCircuitBreakerProperties = retryProperties.getGlobal().getCircuitBreaker();
         CircuitBreakerProperties finalCircuitBreakerProperties = globalCircuitBreakerProperties;
         RetryProperties gseRetryProperties = retryProperties.getGse();
@@ -86,6 +87,6 @@ public class GseV2RetryAutoConfiguration {
             finalCircuitBreakerProperties = gseRetryProperties.getCircuitBreaker();
             finalCircuitBreakerProperties.fillDefault(globalCircuitBreakerProperties);
         }
-        return new SystemCircuitBreakerManager(BKConstants.SYSTEM_NAME_GSE, finalCircuitBreakerProperties);
+        return new SystemCircuitBreakerFactory(BKConstants.SYSTEM_NAME_GSE, finalCircuitBreakerProperties);
     }
 }

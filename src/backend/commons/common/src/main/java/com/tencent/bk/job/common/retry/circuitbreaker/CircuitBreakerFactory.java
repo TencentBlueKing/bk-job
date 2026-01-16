@@ -25,45 +25,15 @@
 package com.tencent.bk.job.common.retry.circuitbreaker;
 
 /**
- * 熔断器接口
+ * 熔断器工厂接口，为API创建熔断器
  */
-public interface CircuitBreaker {
+public interface CircuitBreakerFactory {
 
     /**
-     * 获取熔断器名称
+     * 针对某个API获取或创建对应熔断器
      *
-     * @return 熔断器名称
+     * @param apiName API名称
+     * @return 熔断器
      */
-    String getFullName();
-
-    /**
-     * 判断是否能执行
-     *
-     * @return true 可以执行，false 不能执行
-     */
-    boolean canExecute();
-
-    /**
-     * 记录成功调用
-     *
-     * @param durationMs 调用耗时（毫秒）
-     */
-    void onSuccess(long durationMs);
-
-    /**
-     * 记录失败调用
-     *
-     * @param durationMs 调用耗时（毫秒）
-     * @param throwable  异常信息
-     */
-    void onError(long durationMs, Throwable throwable);
-
-    /**
-     * 熔断时是否应当快速失败：
-     * 如果为true，表示直接抛出异常，不发起调用；
-     * 如果为false，表示继续发起调用但不重试。
-     *
-     * @return 布尔值
-     */
-    boolean shouldFastFail();
+    CircuitBreaker getOrCreateCircuitBreaker(String apiName);
 }

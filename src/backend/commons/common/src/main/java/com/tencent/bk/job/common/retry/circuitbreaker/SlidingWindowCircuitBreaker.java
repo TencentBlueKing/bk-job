@@ -109,6 +109,14 @@ public class SlidingWindowCircuitBreaker implements CircuitBreaker {
         return new CountBasedSlidingWindow(config.getSlidingWindowSize());
     }
 
+    /**
+     * 判断目标方法是否能够执行，必要时刷新熔断器状态，核心逻辑如下：
+     * 1.根据熔断器当前状态判断目标方法能否执行，如果熔断器闭合则直接放行；
+     * 2.如果熔断器断开则先刷新熔断器状态，再根据最新状态判断是否放行；
+     * 3.如果熔断器半开则根据配置判断是否放行，并记录半开状态调用数据用于后续调用的判断。
+     *
+     * @return 布尔值
+     */
     @Override
     public boolean canExecute() {
         CircuitBreakerState currentState = state.get();

@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.retry.RetryExecutor;
 import com.tencent.bk.job.common.retry.RetryPolicy;
-import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
+import com.tencent.bk.job.common.retry.circuitbreaker.CircuitBreakerFactory;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsConstants;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
 import lombok.experimental.Delegate;
@@ -57,13 +57,13 @@ public class RetryableGseV2ApiClient implements IGseClient {
     public RetryableGseV2ApiClient(IGseClient delegate,
                                    RetryPolicy retryPolicy,
                                    RetryMetricsRecorder metricsRecorder,
-                                   SystemCircuitBreakerManager circuitBreakerManager) {
+                                   CircuitBreakerFactory circuitBreakerFactory) {
         this.delegate = delegate;
         this.retryExecutor = new RetryExecutor(
             retryPolicy,
             metricsRecorder,
             RetryMetricsConstants.TAG_VALUE_SYSTEM_GSE,
-            circuitBreakerManager
+            circuitBreakerFactory
         );
     }
 

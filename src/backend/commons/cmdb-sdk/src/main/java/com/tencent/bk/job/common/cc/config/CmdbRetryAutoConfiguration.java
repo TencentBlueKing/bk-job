@@ -35,7 +35,8 @@ import com.tencent.bk.job.common.config.ExternalSystemRetryProperties;
 import com.tencent.bk.job.common.config.RetryProperties;
 import com.tencent.bk.job.common.constant.BKConstants;
 import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
-import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
+import com.tencent.bk.job.common.retry.circuitbreaker.CircuitBreakerFactory;
+import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerFactory;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -62,9 +63,9 @@ import org.springframework.context.annotation.Primary;
 @Conditional(CmdbRetryCondition.class)
 public class CmdbRetryAutoConfiguration {
 
-    @Bean("cmdbCircuitBreakerManager")
+    @Bean("cmdbCircuitBreakerFactory")
     @ConditionalOnMockCmdbApiDisabled
-    public SystemCircuitBreakerManager cmdbCircuitBreakerManager(ExternalSystemRetryProperties retryProperties) {
+    public CircuitBreakerFactory cmdbCircuitBreakerFactory(ExternalSystemRetryProperties retryProperties) {
         CircuitBreakerProperties globalCircuitBreakerProperties = retryProperties.getGlobal().getCircuitBreaker();
         CircuitBreakerProperties finalCircuitBreakerProperties = globalCircuitBreakerProperties;
         RetryProperties cmdbRetryProperties = retryProperties.getCmdb();
@@ -73,7 +74,7 @@ public class CmdbRetryAutoConfiguration {
             finalCircuitBreakerProperties = cmdbRetryProperties.getCircuitBreaker();
             finalCircuitBreakerProperties.fillDefault(globalCircuitBreakerProperties);
         }
-        return new SystemCircuitBreakerManager(BKConstants.SYSTEM_NAME_CMDB, finalCircuitBreakerProperties);
+        return new SystemCircuitBreakerFactory(BKConstants.SYSTEM_NAME_CMDB, finalCircuitBreakerProperties);
     }
 
     @Bean
@@ -82,14 +83,14 @@ public class CmdbRetryAutoConfiguration {
     @ConditionalOnMockCmdbApiDisabled
     public IBizCmdbClient retryableBizCmdbClient(IBizCmdbClient bizCmdbClient,
                                                  ExternalSystemRetryProperties retryProperties,
-                                                 @Qualifier("cmdbCircuitBreakerManager")
-                                                 SystemCircuitBreakerManager circuitBreakerManager,
+                                                 @Qualifier("cmdbCircuitBreakerFactory")
+                                                 CircuitBreakerFactory circuitBreakerFactory,
                                                  ObjectProvider<MeterRegistry> meterRegistryProvider) {
         ExponentialBackoffRetryPolicy retryPolicy = buildRetryPolicy(retryProperties);
         RetryMetricsRecorder metricsRecorder = buildMetricsRecorder(retryProperties, meterRegistryProvider);
 
         log.info("Init RetryableBizCmdbClient");
-        return new RetryableBizCmdbClient(bizCmdbClient, retryPolicy, metricsRecorder, circuitBreakerManager);
+        return new RetryableBizCmdbClient(bizCmdbClient, retryPolicy, metricsRecorder, circuitBreakerFactory);
     }
 
     @Bean
@@ -97,14 +98,14 @@ public class CmdbRetryAutoConfiguration {
     @ConditionalOnBean(IBizSetCmdbClient.class)
     public IBizSetCmdbClient retryableBizSetCmdbClient(IBizSetCmdbClient bizSetCmdbClient,
                                                        ExternalSystemRetryProperties retryProperties,
-                                                       @Qualifier("cmdbCircuitBreakerManager")
-                                                       SystemCircuitBreakerManager circuitBreakerManager,
+                                                       @Qualifier("cmdbCircuitBreakerFactory")
+                                                       CircuitBreakerFactory circuitBreakerFactory,
                                                        ObjectProvider<MeterRegistry> meterRegistryProvider) {
         ExponentialBackoffRetryPolicy retryPolicy = buildRetryPolicy(retryProperties);
         RetryMetricsRecorder metricsRecorder = buildMetricsRecorder(retryProperties, meterRegistryProvider);
 
         log.info("Init RetryableBizSetCmdbClient");
-        return new RetryableBizSetCmdbClient(bizSetCmdbClient, retryPolicy, metricsRecorder, circuitBreakerManager);
+        return new RetryableBizSetCmdbClient(bizSetCmdbClient, retryPolicy, metricsRecorder, circuitBreakerFactory);
     }
 
     @Bean
@@ -113,8 +114,8 @@ public class CmdbRetryAutoConfiguration {
     @ConditionalOnMockCmdbApiDisabled
     public ITenantSetCmdbClient retryableTenantSetCmdbClient(ITenantSetCmdbClient tenantSetCmdbClient,
                                                              ExternalSystemRetryProperties retryProperties,
-                                                             @Qualifier("cmdbCircuitBreakerManager")
-                                                             SystemCircuitBreakerManager circuitBreakerManager,
+                                                             @Qualifier("cmdbCircuitBreakerFactory")
+                                                             CircuitBreakerFactory circuitBreakerFactory,
                                                              ObjectProvider<MeterRegistry> meterRegistryProvider) {
 
         ExponentialBackoffRetryPolicy retryPolicy = buildRetryPolicy(retryProperties);
@@ -125,7 +126,7 @@ public class CmdbRetryAutoConfiguration {
             tenantSetCmdbClient,
             retryPolicy,
             metricsRecorder,
-            circuitBreakerManager
+            circuitBreakerFactory
         );
     }
 

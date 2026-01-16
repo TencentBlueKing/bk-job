@@ -32,7 +32,8 @@ import com.tencent.bk.job.common.paas.config.condition.BkLoginRetryCondition;
 import com.tencent.bk.job.common.paas.login.ILoginClient;
 import com.tencent.bk.job.common.paas.login.RetryableLoginClient;
 import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
-import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
+import com.tencent.bk.job.common.retry.circuitbreaker.CircuitBreakerFactory;
+import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerFactory;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -75,11 +76,11 @@ public class LoginRetryAutoConfiguration {
         );
 
         log.info("Init RetryableLoginClient");
-        SystemCircuitBreakerManager circuitBreakerManager = buildCircuitBreakerManager(retryProperties);
-        return new RetryableLoginClient(loginClient, retryPolicy, metricsRecorder, circuitBreakerManager);
+        CircuitBreakerFactory circuitBreakerFactory = buildCircuitBreakerFactory(retryProperties);
+        return new RetryableLoginClient(loginClient, retryPolicy, metricsRecorder, circuitBreakerFactory);
     }
 
-    private SystemCircuitBreakerManager buildCircuitBreakerManager(ExternalSystemRetryProperties retryProperties) {
+    private CircuitBreakerFactory buildCircuitBreakerFactory(ExternalSystemRetryProperties retryProperties) {
         CircuitBreakerProperties globalCircuitBreakerProperties = retryProperties.getGlobal().getCircuitBreaker();
         CircuitBreakerProperties finalCircuitBreakerProperties = globalCircuitBreakerProperties;
         RetryProperties bkLoginRetryProperties = retryProperties.getBkLogin();
@@ -88,6 +89,6 @@ public class LoginRetryAutoConfiguration {
             finalCircuitBreakerProperties = bkLoginRetryProperties.getCircuitBreaker();
             finalCircuitBreakerProperties.fillDefault(globalCircuitBreakerProperties);
         }
-        return new SystemCircuitBreakerManager(BKConstants.SYSTEM_NAME_BK_LOGIN, finalCircuitBreakerProperties);
+        return new SystemCircuitBreakerFactory(BKConstants.SYSTEM_NAME_BK_LOGIN, finalCircuitBreakerProperties);
     }
 }

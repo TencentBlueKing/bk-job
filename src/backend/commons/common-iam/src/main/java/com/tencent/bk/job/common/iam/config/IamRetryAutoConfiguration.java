@@ -31,7 +31,8 @@ import com.tencent.bk.job.common.constant.BKConstants;
 import com.tencent.bk.job.common.iam.client.IIamClient;
 import com.tencent.bk.job.common.iam.client.RetryableIamClient;
 import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
-import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerManager;
+import com.tencent.bk.job.common.retry.circuitbreaker.CircuitBreakerFactory;
+import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerFactory;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -77,11 +78,11 @@ public class IamRetryAutoConfiguration {
         );
 
         log.info("Init RetryableIamClient");
-        SystemCircuitBreakerManager circuitBreakerManager = buildCircuitBreakerManager(retryProperties);
-        return new RetryableIamClient(iamClient, retryPolicy, metricsRecorder, circuitBreakerManager);
+        CircuitBreakerFactory circuitBreakerFactory = buildCircuitBreakerFactory(retryProperties);
+        return new RetryableIamClient(iamClient, retryPolicy, metricsRecorder, circuitBreakerFactory);
     }
 
-    private SystemCircuitBreakerManager buildCircuitBreakerManager(ExternalSystemRetryProperties retryProperties) {
+    private CircuitBreakerFactory buildCircuitBreakerFactory(ExternalSystemRetryProperties retryProperties) {
         CircuitBreakerProperties globalCircuitBreakerProperties = retryProperties.getGlobal().getCircuitBreaker();
         CircuitBreakerProperties finalCircuitBreakerProperties = globalCircuitBreakerProperties;
         RetryProperties iamRetryProperties = retryProperties.getIam();
@@ -90,6 +91,6 @@ public class IamRetryAutoConfiguration {
             finalCircuitBreakerProperties = iamRetryProperties.getCircuitBreaker();
             finalCircuitBreakerProperties.fillDefault(globalCircuitBreakerProperties);
         }
-        return new SystemCircuitBreakerManager(BKConstants.SYSTEM_NAME_IAM, finalCircuitBreakerProperties);
+        return new SystemCircuitBreakerFactory(BKConstants.SYSTEM_NAME_IAM, finalCircuitBreakerProperties);
     }
 }
