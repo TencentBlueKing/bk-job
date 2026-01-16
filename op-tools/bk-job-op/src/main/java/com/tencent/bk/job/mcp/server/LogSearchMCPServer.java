@@ -71,6 +71,38 @@ public class LogSearchMCPServer {
         this.bkLogProperties = bkLogProperties;
     }
 
+    @Tool(description = "通过requestId搜索日志（支持分页与时间范围指定）")
+    public PageData<SimpleLogDTO> searchLogsByRequestId(
+            @JsonPropertyDescription("作业平台请求的requestId，某些场景下也称traceId")
+            String requestId,
+            @Nullable
+            @JsonPropertyDescription("预定义时间范围，支持格式：1d、1h、15m，最大7天。使用了startTime和endTime时忽略。不传默认1d")
+            String timeRange,
+            @Nullable
+            @JsonPropertyDescription("自定义开始时间，格式：yyyy-MM-dd HH:mm:ss，与endTime同时使用，" +
+                "优先级比timeRange高，使用timeRange的话不要传这个参数。")
+            String startTime,
+            @Nullable
+            @JsonPropertyDescription("自定义结束时间，格式：yyyy-MM-dd HH:mm:ss，与startTime同时使用，" +
+                "优先级比timeRange高，使用timeRange的话不要传这个参数。")
+            String endTime,
+            @Nullable
+            @JsonPropertyDescription("分页起始位置，从0开始，默认0")
+            Integer start,
+            @Nullable
+            @JsonPropertyDescription("每页返回的日志条数，默认10，建议不超过100")
+            Integer size) {
+        log.info("[MCP Tool Call] searchLogsByCondition - Input: requestId={}, " +
+                "timeRange={}, startTime={}, endTime={}, start={}, size={}",
+            requestId, timeRange, startTime, endTime, start, size);
+        String requestIdKql = buildRequestIdKql(requestId);
+        return searchLogsByCondition(requestIdKql, timeRange, startTime, endTime, start, size, false);
+    }
+
+    private String buildRequestIdKql(String requestId) {
+        return "request_id: " + requestId;
+    }
+
     @Tool(description = "通过时间、符合KQL语法的查询语句 搜索日志（支持分页）")
     public PageData<SimpleLogDTO> searchLogsByCondition(
             @JsonPropertyDescription("KQL语法的查询语句")
@@ -99,7 +131,7 @@ public class LogSearchMCPServer {
         log.info("[MCP Tool Call] searchLogsByCondition - Input: queryString={}, " +
                 "timeRange={}, startTime={}, endTime={}, start={}, size={}",
                 queryString, timeRange, startTime, endTime, start, size);
-        
+
         try {
             if (timeRange == null && startTime == null && endTime == null) {
                 timeRange = "1d"; // 默认查询最近1天
@@ -113,7 +145,7 @@ public class LogSearchMCPServer {
             if (size == null || size <= 0) {
                 size = 10; // 默认每页10条
             }
-            
+
             PageData<SimpleLogDTO> result = jobLogQueryService.queryLogs(
                 queryString,
                 timeRange,
@@ -128,7 +160,7 @@ public class LogSearchMCPServer {
                     result != null ? result.getTotal() : 0,
                     result != null ? result.getSize() : 0,
                     result != null && result.getData() != null ? result.getData().size() : 0);
-            
+
             return result;
         } catch (Exception e) {
             log.error("[MCP Tool Call] searchLogsByCondition - Error: {}", e.getMessage(), e);
@@ -141,7 +173,7 @@ public class LogSearchMCPServer {
             @JsonPropertyDescription("作业步骤实例ID")
             String stepInstanceId) {
         log.info("[MCP Tool Call] searchRequestIdByStepInstanceId - Input: stepInstanceId={}", stepInstanceId);
-        
+
         try {
             PageData<SimpleLogDTO> logs = null;
 
@@ -165,7 +197,7 @@ public class LogSearchMCPServer {
             } else {
                 result = "未找到包含stepInstanceId: " + stepInstanceId + " 的日志";
             }
-            
+
             log.info("[MCP Tool Call] searchRequestIdByStepInstanceId - Output: {}", result);
             return result;
         } catch (Exception e) {
@@ -183,16 +215,16 @@ public class LogSearchMCPServer {
             if (startTime == null || endTime == null) {
                 throw new IllegalArgumentException("开始时间和结束时间必须同时提供");
             }
-            
+
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             try {
                 LocalDateTime start = LocalDateTime.parse(startTime, formatter);
                 LocalDateTime end = LocalDateTime.parse(endTime, formatter);
-                
+
                 if (start.isAfter(end)) {
                     throw new IllegalArgumentException("开始时间不能晚于结束时间");
                 }
-                
+
                 // 校验开始时间不能早于配置的天数前
                 LocalDateTime expireDaysAgo = LocalDateTime.now().minusDays(bkLogProperties.getExpireTime());
                 if (start.isBefore(expireDaysAgo)) {
