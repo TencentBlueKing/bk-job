@@ -188,4 +188,9 @@ public interface AccountService {
     AccountDTO buildCreateAccountDTO(String username, long appId, AccountCreateUpdateReq accountCreateUpdateReq);
 
     void createDefaultAccounts(long appId);
+
+    /**
+     * 解密请求中的密码字段,解密后并设置回请求对象
+     */
+    void decryptPwdFromReqIfNeeded(AccountCreateUpdateReq req);
 }

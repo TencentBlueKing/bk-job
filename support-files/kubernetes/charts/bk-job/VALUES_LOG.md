@@ -1,4 +1,15 @@
 # chart values 更新日志
+## 0.9.1
+1. 新增前端提给后端账号密码的加密算法配置
+```yaml
+job:
+  encrypt:
+    # SM2加密算法原始公钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PublicKey: ""
+    # SM2加密算法原始私钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PrivateKey: ""
+```
+
 ## 0.9.0
 1. 新增 bk-login/bk-user蓝鲸网关配置
 ```yaml
