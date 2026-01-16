@@ -22,47 +22,44 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.gateway.web.server;
+package com.tencent.bk.job.gateway.web.server.config;
 
+import com.tencent.bk.job.gateway.web.server.AccessLogFormatter;
+import com.tencent.bk.job.gateway.web.server.AccessLogMetadataCollector;
+import com.tencent.bk.job.gateway.web.server.GatewayWebServerFactoryCustomizer;
+import com.tencent.bk.job.gateway.web.server.NettyAccessLogCustomizer;
+import com.tencent.bk.job.gateway.web.server.NettyFactoryCustomizer;
+import com.tencent.bk.job.gateway.web.server.WebServerRoleEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
-import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
-import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.List;
 
-/**
- * 扩展主业务的NettyWebServerCustomizer
- */
-@Component
+@Configuration
+@ConditionalOnCustomAccessLogEnabled
 @Slf4j
-public class GatewayWebServerFactoryCustomizer extends NettyWebServerFactoryCustomizer {
+public class GatewayWebServerConfig {
 
-    private final List<NettyFactoryCustomizer> customizers;
-
-    public GatewayWebServerFactoryCustomizer(Environment environment,
-                                             ServerProperties serverProperties,
-                                             List<NettyFactoryCustomizer> customizers) {
-        super(environment, serverProperties);
-        this.customizers = customizers;
-    }
-
-    @Override
-    public void customize(NettyReactiveWebServerFactory factory) {
-        super.customize(factory);
-        if (!customizers.isEmpty()) {
-            for (NettyFactoryCustomizer customizer : customizers) {
-                try {
-                    log.debug("Gateway applying additional Netty customizer: {}",
-                        customizer.getClass().getSimpleName());
-                    customizer.customize(factory);
-                } catch (Exception e) {
-                    log.warn("Gateway applying additional Netty customizer {} failed.",
-                        customizer.getClass().getSimpleName(), e);
-                }
-            }
-        }
+    @Bean
+    public GatewayWebServerFactoryCustomizer gatewayWebServerFactoryCustomizer(
+        Environment environment,
+        ServerProperties serverProperties,
+        AccessLogMetadataCollector collector,
+        AccessLogFormatter formatter
+    ) {
+        log.debug("Initializing gateway web server factory customizer.");
+        List<NettyFactoryCustomizer> customizers = Arrays.asList(
+            new NettyAccessLogCustomizer(collector, formatter, WebServerRoleEnum.BUSINESS)
+        );
+        log.debug("Gateway web server customizers count={}", customizers.size());
+        return new GatewayWebServerFactoryCustomizer(
+            environment,
+            serverProperties,
+            customizers
+        );
     }
 }
