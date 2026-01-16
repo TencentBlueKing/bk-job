@@ -46,7 +46,6 @@ public class AccessLogMetadataCollector {
 
     private final List<AccessLogMetadataProvider> providers;
 
-    @Autowired
     public AccessLogMetadataCollector(List<AccessLogMetadataProvider> providers) {
         this.providers = providers;
     }

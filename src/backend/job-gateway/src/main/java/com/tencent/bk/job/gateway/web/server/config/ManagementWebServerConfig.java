@@ -39,11 +39,11 @@ import java.util.Arrays;
 import java.util.List;
 
 @ManagementContextConfiguration(value = ManagementContextType.CHILD)
-@ConditionalOnCustomAccessLogEnabled
 @Slf4j
 public class ManagementWebServerConfig {
 
     @Bean
+    @ConditionalOnCustomAccessLogEnabled
     public ManagementWebServerFactoryCustomizer managementWebServerFactoryCustomizer(
         AccessLogMetadataCollector collector,
         AccessLogFormatter formatter
