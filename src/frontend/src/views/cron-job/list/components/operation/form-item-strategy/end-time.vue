@@ -50,6 +50,10 @@
     prettyDateTimeFormat,
   } from '@utils/assist';
 
+  import Model from '@/domain/model/model';
+
+  const model = new Model();
+
   export default {
     name: '',
     props: {
@@ -58,11 +62,26 @@
         type: Object,
         required: true,
       },
+      timezone: {
+        type: String,
+        required: true,
+      },
     },
     data() {
       return {
         isEndTime: false,
       };
+    },
+    computed: {
+      dateOptions() {
+        const disabledDate = (date) => {
+          const prettyDate = prettyDateTimeFormat(date); // 当前经过格式化的日期 --去除时区
+          return model.getTimestamp({ date: prettyDate, timezone: this.timezone }) < Date.now() - 86400000;
+        };
+        return {
+          disabledDate,
+        };
+      },
     },
     watch: {
       formData: {
@@ -73,13 +92,6 @@
         },
         immediate: true,
       },
-    },
-    created() {
-      this.dateOptions = {
-        disabledDate(date) {
-          return date.valueOf() < Date.now() - 86400000;
-        },
-      };
     },
     methods: {
       handleChange(value) {
