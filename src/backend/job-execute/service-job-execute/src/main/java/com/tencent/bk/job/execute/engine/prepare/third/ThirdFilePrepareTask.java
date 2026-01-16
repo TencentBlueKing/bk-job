@@ -174,6 +174,7 @@ public class ThirdFilePrepareTask implements ContinuousScheduledTask, JobTaskCon
                 batchTaskId
             );
             log.error(msg.getMessage(), e);
+            resultHandler.onFailed(this);
         }
     }
 

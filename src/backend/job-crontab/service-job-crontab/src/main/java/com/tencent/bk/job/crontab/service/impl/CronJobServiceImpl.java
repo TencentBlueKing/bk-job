@@ -489,12 +489,9 @@ public class CronJobServiceImpl implements CronJobService {
             .setInstanceName(originCronJobInfo.getName())
             .addAttribute(OPERATION, enable ? "Switch on" : "Switch off");
 
-        CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
-        cronJobInfo.setAppId(appId);
-        cronJobInfo.setId(cronJobId);
-        cronJobInfo.setEnable(enable);
-        cronJobInfo.setLastModifyUser(user.getUsername());
-        cronJobInfo.setLastModifyTime(DateUtils.currentTimeSeconds());
+        originCronJobInfo.setEnable(enable);
+        originCronJobInfo.setLastModifyUser(user.getUsername());
+        originCronJobInfo.setLastModifyTime(DateUtils.currentTimeSeconds());
         if (enable) {
             try {
                 List<ServiceTaskVariable> taskVariables = null;
@@ -505,7 +502,7 @@ public class CronJobServiceImpl implements CronJobService {
                 }
                 executeTaskService.authExecuteTask(appId, originCronJobInfo.getTaskPlanId(),
                     cronJobId, originCronJobInfo.getName(), taskVariables, user.getUsername());
-                if (cronJobDAO.updateCronJobById(cronJobInfo)) {
+                if (cronJobDAO.updateCronJobById(originCronJobInfo)) {
                     return informAllToAddJobToQuartz(appId, cronJobId);
                 } else {
                     return false;
@@ -515,7 +512,7 @@ public class CronJobServiceImpl implements CronJobService {
                 throw e;
             }
         } else {
-            if (cronJobDAO.updateCronJobById(cronJobInfo)) {
+            if (cronJobDAO.updateCronJobById(originCronJobInfo)) {
                 return informAllToDeleteJobFromQuartz(appId, cronJobId);
             } else {
                 return false;
@@ -526,9 +523,11 @@ public class CronJobServiceImpl implements CronJobService {
 
     @Override
     public Boolean disableExpiredCronJob(Long appId, Long cronJobId, String lastModifyUser, Long lastModifyTime) {
-        CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
-        cronJobInfo.setAppId(appId);
-        cronJobInfo.setId(cronJobId);
+        CronJobInfoDTO cronJobInfo = getCronJobInfoById(appId, cronJobId);
+        if (cronJobInfo == null) {
+            log.warn("CronJob not found when disableExpiredCronJob, appId: {}, cronJobId: {}", appId, cronJobId);
+            return false;
+        }
         cronJobInfo.setLastModifyUser(lastModifyUser);
         cronJobInfo.setLastModifyTime(lastModifyTime);
         cronJobInfo.setEnable(false);
