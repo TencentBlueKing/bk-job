@@ -26,7 +26,6 @@ package com.tencent.bk.job.common.gse.config;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -37,27 +36,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Setter
 public class GseV2Properties {
 
-    private boolean enabled = true;
     /**
-     * 重试配置
+     * 是否启用 GSE V2 客户端
      */
-    private RetryProperties retry = new RetryProperties();
-
-    @Getter
-    @Setter
-    @ToString
-    public static class RetryProperties {
-        /**
-         * 是否开启重试，默认不开启
-         */
-        private boolean enabled = false;
-        /**
-         * 含重试的最大执行次数
-         */
-        private Integer maxAttempts = 3;
-        /**
-         * 重试间隔（单位：秒）
-         */
-        private Integer intervalSeconds = 5;
-    }
+    private boolean enabled = true;
 }

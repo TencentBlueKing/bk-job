@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.manage.metrics;
 
+import com.tencent.bk.job.common.constant.BKConstants;
+
 public class MetricsConstants {
     // metric name
     // 后台指标
@@ -93,7 +95,7 @@ public class MetricsConstants {
     public static final String TAG_VALUE_MODULE_SCRIPT = "script";
     public static final String TAG_VALUE_MODULE_ACCOUNT = "account";
     public static final String TAG_VALUE_MODULE_NOTIFY = "notify";
-    public static final String TAG_VALUE_MODULE_CMDB = "cmdb";
+    public static final String TAG_VALUE_MODULE_CMDB = BKConstants.SYSTEM_NAME_CMDB;
     public static final String TAG_VALUE_MODULE_SYNC = "sync";
     public static final String TAG_VALUE_ASPECT_FLOW_CONTROL = "flowControl";
     public static final String TAG_VALUE_APP_ID_NULL = "null";

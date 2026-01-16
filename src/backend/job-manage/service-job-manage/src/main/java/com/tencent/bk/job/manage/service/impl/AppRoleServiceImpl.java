@@ -25,13 +25,11 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
-import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.service.AppRoleService;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import lombok.extern.slf4j.Slf4j;
@@ -48,18 +46,20 @@ import java.util.Set;
 public class AppRoleServiceImpl implements AppRoleService {
 
     private final ApplicationService applicationService;
+    private final IBizCmdbClient bizCmdbClient;
     private final IBizSetCmdbClient bizSetCmdbClient;
 
     @Autowired
     public AppRoleServiceImpl(@Lazy ApplicationService applicationService,
+                              IBizCmdbClient bizCmdbClient,
                               IBizSetCmdbClient bizSetCmdbClient) {
         this.applicationService = applicationService;
+        this.bizCmdbClient = bizCmdbClient;
         this.bizSetCmdbClient = bizSetCmdbClient;
     }
 
     @Override
-    public List<AppRoleDTO> listAppRoles(String lang,String tenantId) {
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(lang);
+    public List<AppRoleDTO> listAppRoles(String lang, String tenantId) {
         return bizCmdbClient.listRoles(tenantId);
     }
 
@@ -68,8 +68,11 @@ public class AppRoleServiceImpl implements AppRoleService {
         ApplicationDTO application = applicationService.getAppByAppId(appId);
         ResourceScope scope = application.getScope();
         if (scope.getType() == ResourceScopeTypeEnum.BIZ) {
-            IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang());
-            return bizCmdbClient.listUsersByRole(application.getTenantId(), Long.valueOf(scope.getId()), role);
+            return bizCmdbClient.listUsersByRole(
+                application.getTenantId(),
+                Long.valueOf(scope.getId()),
+                role
+            );
         } else if (scope.getType() == ResourceScopeTypeEnum.BIZ_SET) {
             // 业务集当前只支持运维人员
             return bizSetCmdbClient.listUsersByRole(application.getTenantId(), Long.valueOf(scope.getId()), role);

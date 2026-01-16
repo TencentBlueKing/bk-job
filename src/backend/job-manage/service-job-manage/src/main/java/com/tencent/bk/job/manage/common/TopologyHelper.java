@@ -25,12 +25,11 @@
 package com.tencent.bk.job.manage.common;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.model.web.vo.CcTopologyNodeVO;
 import lombok.extern.slf4j.Slf4j;
@@ -67,10 +66,12 @@ public class TopologyHelper {
     private static final Map<Long, Map<String, Map<Long, String>>> BIZ_NODE_TYPE_NAME_MAP = new ConcurrentHashMap<>();
 
     private final ApplicationDAO applicationDAO;
+    private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
-    public TopologyHelper(ApplicationDAO applicationDAO) {
+    public TopologyHelper(ApplicationDAO applicationDAO, IBizCmdbClient bizCmdbClient) {
         this.applicationDAO = applicationDAO;
+        this.bizCmdbClient = bizCmdbClient;
     }
 
     /**
@@ -183,8 +184,10 @@ public class TopologyHelper {
     }
 
     public InstanceTopologyDTO getTopologyTreeByApplication(ApplicationDTO applicationInfo) {
-        InstanceTopologyDTO instanceTopology = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang())
-            .getBizInstTopology(applicationInfo.getTenantId(), Long.parseLong(applicationInfo.getScope().getId()));
+        InstanceTopologyDTO instanceTopology = bizCmdbClient.getBizInstTopology(
+            applicationInfo.getTenantId(),
+            Long.parseLong(applicationInfo.getScope().getId())
+        );
         if (instanceTopology == null) {
             return null;
         }

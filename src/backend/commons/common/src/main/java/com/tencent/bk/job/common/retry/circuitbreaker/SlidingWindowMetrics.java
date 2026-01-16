@@ -22,47 +22,58 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.gse;
+package com.tencent.bk.job.common.retry.circuitbreaker;
 
-import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
-import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
-import lombok.experimental.Delegate;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StopWatch;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-import java.util.Collections;
-import java.util.List;
+/**
+ * 滑动窗口指标
+ */
+@Data
+@AllArgsConstructor
+public class SlidingWindowMetrics {
+    /**
+     * 总调用次数
+     */
+    private int totalCalls;
 
+    /**
+     * 成功调用次数
+     */
+    private int successCalls;
 
-@Slf4j
-public class GseClient implements IGseClient {
+    /**
+     * 失败调用次数
+     */
+    private int failureCalls;
 
-    @Delegate
-    private final IGseClient delegate;
+    /**
+     * 慢调用次数
+     */
+    private int slowCalls;
 
-    public GseClient(IGseClient delegate) {
-        this.delegate = delegate;
-        log.info("Init gseClient, delegate: {}", delegate);
+    /**
+     * 获取失败率（百分比）
+     *
+     * @return 失败率（0-100）
+     */
+    public float getFailureRate() {
+        if (totalCalls == 0) {
+            return 0.0f;
+        }
+        return (float) failureCalls / totalCalls * 100;
     }
 
-    @Override
-    public List<AgentState> listAgentState(ListAgentStateReq req) {
-        StopWatch watch = new StopWatch("listAgentState");
-        List<String> agentIdList = req.getAgentIdList();
-        if (CollectionUtils.isEmpty(agentIdList)) {
-            log.info("agentIdList is empty");
-            return Collections.emptyList();
+    /**
+     * 获取慢调用率（百分比）
+     *
+     * @return 慢调用率（0-100）
+     */
+    public float getSlowCallRate() {
+        if (totalCalls == 0) {
+            return 0.0f;
         }
-
-        watch.start("gseClient.listAgentState");
-        List<AgentState> resultList = delegate.listAgentState(req);
-        watch.stop();
-
-        if (watch.getTotalTimeMillis() > 3000) {
-            log.warn("listAgentState slow, statistics: " + watch.prettyPrint());
-        }
-
-        return resultList;
+        return (float) slowCalls / totalCalls * 100;
     }
 }
