@@ -24,35 +24,34 @@
 
 package com.tencent.bk.job.gateway.web.server.config;
 
+import com.tencent.bk.job.gateway.web.server.AccessLogFormatter;
+import com.tencent.bk.job.gateway.web.server.AccessLogMetadataCollector;
 import com.tencent.bk.job.gateway.web.server.ManagementWebServerFactoryCustomizer;
+import com.tencent.bk.job.gateway.web.server.NettyAccessLogCustomizer;
 import com.tencent.bk.job.gateway.web.server.NettyFactoryCustomizer;
-import com.tencent.bk.job.gateway.web.server.NettyFactoryCustomizerCreator;
 import com.tencent.bk.job.gateway.web.server.WebServerRoleEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.actuate.autoconfigure.web.ManagementContextConfiguration;
 import org.springframework.boot.actuate.autoconfigure.web.ManagementContextType;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @ManagementContextConfiguration(value = ManagementContextType.CHILD)
-@ConditionalOnProperty(
-    value = "job.gateway.customAccessLog.enabled",
-    havingValue = "true",
-    matchIfMissing = false
-)
+@ConditionalOnCustomAccessLogEnabled
 @Slf4j
 public class ManagementWebServerConfig {
 
     @Bean
     public ManagementWebServerFactoryCustomizer managementWebServerFactoryCustomizer(
-        List<NettyFactoryCustomizerCreator> creators) {
+        AccessLogMetadataCollector collector,
+        AccessLogFormatter formatter
+    ) {
         log.info("Initializing management web server factory customizer.");
-        List<NettyFactoryCustomizer> customizers = creators.stream()
-            .map(creator -> creator.create(WebServerRoleEnum.MANAGEMENT))
-            .collect(Collectors.toList());
+        List<NettyFactoryCustomizer> customizers = Arrays.asList(
+            new NettyAccessLogCustomizer(collector, formatter, WebServerRoleEnum.MANAGEMENT)
+        );
         log.debug("Management web server customizers count={}", customizers.size());
         return new ManagementWebServerFactoryCustomizer(customizers);
     }

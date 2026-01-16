@@ -41,7 +41,7 @@ public class AccessLogFieldRegistry {
         register(AccessLogConstants.LogField.SPAN_ID);
         register(AccessLogConstants.LogField.USER_NAME);
         register(AccessLogConstants.LogField.METHOD);
-        register(AccessLogConstants.LogField.PATH);
+        register(AccessLogConstants.LogField.URI);
         register(AccessLogConstants.LogField.PROTOCOL);
         register(AccessLogConstants.LogField.CLIENT_IP);
         register(AccessLogConstants.LogField.USER_AGENT);
@@ -49,7 +49,7 @@ public class AccessLogFieldRegistry {
         register(AccessLogConstants.LogField.END_TIME);
         register(AccessLogConstants.LogField.STATUS);
         register(AccessLogConstants.LogField.RESPONSE_SIZE);
-        register(AccessLogConstants.LogField.DURATION);
+        register(AccessLogConstants.LogField.DURATION_MS);
     }
 
     public void register(String key) {

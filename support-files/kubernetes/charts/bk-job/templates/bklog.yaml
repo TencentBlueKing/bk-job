@@ -76,7 +76,7 @@ spec:
   encoding: 'utf-8'
   multiline:
     {{- if .Values.gatewayConfig.customAccessLog.enabled }}
-    pattern: '^accessType=(?P<access_type>[^|]+)\|startTime=(?P<start_time>[^|]+)\|traceId=(?P<trace_id>[^|]+)\|spanId=(?P<span_id>[^|]+)\|userName=(?P<user_name>[^|]+)\|method=(?P<method>[^|]+)\|path=(?P<path>[^|]+)\|protocol=(?P<protocol>[^|]+)\|clientIp=(?P<client_ip>[^|]+)\|userAgent=(?P<user_agent>[^|]+)\|upstream=(?P<upstream>[^|]+)\|endTime=(?P<end_time>[^|]+)\|status=(?P<status>[^|]+)\|responseSize=(?P<response_size>[^|]+)\|duration=(?P<duration>[^|]+)$'
+    pattern: '^accessType=(?P<access_type>[^|]+)\|startTime=(?P<start_time>[^|]+)\|traceId=(?P<trace_id>[^|]+)\|spanId=(?P<span_id>[^|]+)\|userName=(?P<user_name>[^|]+)\|method=(?P<method>[^|]+)\|uri=(?P<uri>[^|]+)\|protocol=(?P<protocol>[^|]+)\|clientIp=(?P<client_ip>[^|]+)\|userAgent=(?P<user_agent>[^|]+)\|upstream=(?P<upstream>[^|]+)\|endTime=(?P<end_time>[^|]+)\|status=(?P<status>[^|]+)\|responseSize=(?P<response_size>[^|]+)\|durationMS=(?P<duration_ms>\d+|-)(?:ms)?$'
     {{- else }}
     pattern: '^\[(.*?)|(.*?)\](?P<src_ip>.*?):(?P<src_port>.*?)\s+?'
     {{- end }}

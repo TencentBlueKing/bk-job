@@ -32,18 +32,13 @@ import com.tencent.bk.job.gateway.web.server.provider.AccessLogMetadataProvider;
 import com.tencent.bk.job.gateway.web.server.provider.DefaultMetadataProvider;
 import com.tencent.bk.job.gateway.web.server.provider.RequestContextMetadataProvider;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
 @Configuration
-@ConditionalOnProperty(
-    value = "job.gateway.customAccessLog.enabled",
-    havingValue = "true",
-    matchIfMissing = false
-)
+@ConditionalOnCustomAccessLogEnabled
 @Slf4j
 public class WebServerCommonConfig {
     @Bean

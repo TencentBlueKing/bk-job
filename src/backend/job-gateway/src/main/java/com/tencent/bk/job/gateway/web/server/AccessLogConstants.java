@@ -36,10 +36,10 @@ public class AccessLogConstants {
         public static final String STATUS = "status";
         public static final String USER_NAME = "userName";
         public static final String METHOD = "method";
-        public static final String PATH = "path";
+        public static final String URI = "uri";
         public static final String START_TIME = "startTime";
         public static final String END_TIME = "endTime";
-        public static final String DURATION = "duration";
+        public static final String DURATION_MS = "durationMS";
         public static final String PROTOCOL = "protocol";
         public static final String CLIENT_IP = "clientIp";
         public static final String USER_AGENT = "userAgent";

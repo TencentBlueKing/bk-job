@@ -24,26 +24,23 @@
 
 package com.tencent.bk.job.gateway.web.server.config;
 
+import com.tencent.bk.job.gateway.web.server.AccessLogFormatter;
+import com.tencent.bk.job.gateway.web.server.AccessLogMetadataCollector;
 import com.tencent.bk.job.gateway.web.server.GatewayWebServerFactoryCustomizer;
+import com.tencent.bk.job.gateway.web.server.NettyAccessLogCustomizer;
 import com.tencent.bk.job.gateway.web.server.NettyFactoryCustomizer;
-import com.tencent.bk.job.gateway.web.server.NettyFactoryCustomizerCreator;
 import com.tencent.bk.job.gateway.web.server.WebServerRoleEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Configuration
-@ConditionalOnProperty(
-    value = "job.gateway.customAccessLog.enabled",
-    havingValue = "true",
-    matchIfMissing = false
-)
+@ConditionalOnCustomAccessLogEnabled
 @Slf4j
 public class GatewayWebServerConfig {
 
@@ -51,11 +48,13 @@ public class GatewayWebServerConfig {
     public GatewayWebServerFactoryCustomizer gatewayWebServerFactoryCustomizer(
         Environment environment,
         ServerProperties serverProperties,
-        List<NettyFactoryCustomizerCreator> creators) {
+        AccessLogMetadataCollector collector,
+        AccessLogFormatter formatter
+    ) {
         log.debug("Initializing gateway web server factory customizer.");
-        List<NettyFactoryCustomizer> customizers = creators.stream()
-            .map(creator -> creator.create(WebServerRoleEnum.BUSINESS))
-            .collect(Collectors.toList());
+        List<NettyFactoryCustomizer> customizers = Arrays.asList(
+            new NettyAccessLogCustomizer(collector, formatter, WebServerRoleEnum.BUSINESS)
+        );
         log.debug("Gateway web server customizers count={}", customizers.size());
         return new GatewayWebServerFactoryCustomizer(
             environment,
