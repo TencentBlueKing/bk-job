@@ -70,6 +70,7 @@ public class SystemCircuitBreakerFactory implements CircuitBreakerFactory {
      * @param apiName API名称
      * @return 熔断器
      */
+    @Override
     public CircuitBreaker getOrCreateCircuitBreaker(String apiName) {
         if (!circuitBreakerProperties.getEnabled()) {
             return null;
