@@ -127,4 +127,9 @@ public class JobManageConfig {
      */
     @Value("${bk-user.url:bk-user.example.com}")
     private String bkUserWebUrl;
+
+    //------------------------------- BK-IAM ----------------------------------------------
+
+    @Value("${iam.web-url:bkiam.example.com}")
+    private String bkIamWebUrl;
 }
