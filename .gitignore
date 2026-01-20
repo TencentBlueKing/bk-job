@@ -25,6 +25,9 @@ support-files/dependJarLists/
 **/*.DS_Store
 .codecc
 build.yml
-
+AGENTS.md
+CODEBUDDY.md
+.codebuddy/
+openspec/
 
 pre-*-bkcodeai

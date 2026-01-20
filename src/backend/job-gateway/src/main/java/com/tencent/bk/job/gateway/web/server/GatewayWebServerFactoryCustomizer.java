@@ -25,18 +25,16 @@
 package com.tencent.bk.job.gateway.web.server;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.autoconfigure.web.embedded.NettyWebServerFactoryCustomizer;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
- * 扩展Spring Boot默认的NettyWebServerCustomizer
+ * 扩展主业务的NettyWebServerCustomizer
  */
 @Component
 @Slf4j
@@ -46,9 +44,9 @@ public class GatewayWebServerFactoryCustomizer extends NettyWebServerFactoryCust
 
     public GatewayWebServerFactoryCustomizer(Environment environment,
                                              ServerProperties serverProperties,
-                                             ObjectProvider<List<NettyFactoryCustomizer>> customizersProvider) {
+                                             List<NettyFactoryCustomizer> customizers) {
         super(environment, serverProperties);
-        this.customizers = customizersProvider.getIfAvailable(Collections::emptyList);
+        this.customizers = customizers;
     }
 
     @Override
@@ -57,10 +55,11 @@ public class GatewayWebServerFactoryCustomizer extends NettyWebServerFactoryCust
         if (!customizers.isEmpty()) {
             for (NettyFactoryCustomizer customizer : customizers) {
                 try {
-                    log.debug("Applying additional Netty customizers: {}", customizer.getClass().getSimpleName());
+                    log.debug("Gateway applying additional Netty customizer: {}",
+                        customizer.getClass().getSimpleName());
                     customizer.customize(factory);
                 } catch (Exception e) {
-                    log.warn("Applying additional Netty customizer {} failed.",
+                    log.warn("Gateway applying additional Netty customizer {} failed.",
                         customizer.getClass().getSimpleName(), e);
                 }
             }

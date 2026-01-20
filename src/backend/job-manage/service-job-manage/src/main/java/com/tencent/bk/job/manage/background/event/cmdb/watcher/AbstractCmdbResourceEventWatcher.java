@@ -174,10 +174,12 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
      *
      * @return 是否需要继续开启监听
      */
+    @SuppressWarnings("TryFinallyCanBeTryWithResources")
     private boolean startNewWatchLoopAndHandleResult() {
         LockResult lockResult = null;
         Span span = SpanUtil.buildNewSpan(this.tracer, this.watcherResourceName + "WatchOuterLoop");
-        try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
+        Tracer.SpanInScope spanInScope = this.tracer.withSpan(span.start());
+        try {
             // 尝试获取Redis心跳锁，确保当前实例正在监听目标租户事件的分布式唯一性
             lockResult = redisLock.lock();
             if (!lockResult.isLockGotten()) {
@@ -203,7 +205,6 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
             // 监听过程中发生异常，需要延时后继续检测
             return true;
         } finally {
-            span.end();
             if (lockResult != null) {
                 lockResult.tryToRelease();
             }
@@ -211,6 +212,8 @@ public abstract class AbstractCmdbResourceEventWatcher<E> extends AbstractBackGr
                 // 等待检测间隔后外层循环继续检测并决定是否继续开启监听
                 ThreadUtils.sleep(EventConsts.EVENT_ENABLED_CHECK_INTERVAL_MILLIS);
             }
+            spanInScope.close();
+            span.end();
         }
     }
 

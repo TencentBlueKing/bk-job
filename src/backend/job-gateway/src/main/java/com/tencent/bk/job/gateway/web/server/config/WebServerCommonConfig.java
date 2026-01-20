@@ -27,24 +27,20 @@ package com.tencent.bk.job.gateway.web.server.config;
 import com.tencent.bk.job.gateway.web.server.AccessLogFieldRegistry;
 import com.tencent.bk.job.gateway.web.server.AccessLogFormatter;
 import com.tencent.bk.job.gateway.web.server.AccessLogMetadataCollector;
-import com.tencent.bk.job.gateway.web.server.NettyAccessLogCustomizer;
 import com.tencent.bk.job.gateway.web.server.filter.AccessLogEnricherFilter;
 import com.tencent.bk.job.gateway.web.server.provider.AccessLogMetadataProvider;
 import com.tencent.bk.job.gateway.web.server.provider.DefaultMetadataProvider;
 import com.tencent.bk.job.gateway.web.server.provider.RequestContextMetadataProvider;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
 @Configuration
-@ConditionalOnProperty(
-    value = "job.gateway.customAccessLog.enabled",
-    havingValue = "true",
-    matchIfMissing = false
-)
-public class CustomAccessLogConfig {
+@ConditionalOnCustomAccessLogEnabled
+@Slf4j
+public class WebServerCommonConfig {
     @Bean
     public AccessLogEnricherFilter accessLogEnricherFilter() {
         return new AccessLogEnricherFilter();
@@ -73,11 +69,5 @@ public class CustomAccessLogConfig {
     @Bean
     public AccessLogMetadataCollector accessLogMetadataCollector(List<AccessLogMetadataProvider> providers) {
         return new AccessLogMetadataCollector(providers);
-    }
-
-    @Bean
-    public NettyAccessLogCustomizer nettyAccessLogCustomizer(AccessLogMetadataCollector collector,
-                                                               AccessLogFormatter formatter) {
-        return new NettyAccessLogCustomizer(collector, formatter);
     }
 }

@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.esb.metrics.EsbMetricTags;
 import com.tencent.bk.job.common.esb.model.BkApiAuthorization;
 import com.tencent.bk.job.common.esb.model.OpenApiRequestInfo;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.http.HttpHelper;
@@ -71,7 +72,6 @@ import static com.tencent.bk.job.common.i18n.locale.LocaleUtils.COMMON_LANG_HEAD
  */
 public class BaseBkApiClient {
 
-    private String lang;
     private Logger log = LoggerFactory.getLogger(this.getClass());
     private final String baseAccessUrl;
     private final HttpHelper defaultHttpHelper;
@@ -102,16 +102,6 @@ public class BaseBkApiClient {
         this.baseAccessUrl = baseAccessUrl;
         this.defaultHttpHelper = defaultHttpHelper;
         this.tenantEnvService = tenantEnvService;
-    }
-
-    public BaseBkApiClient(MeterRegistry meterRegistry,
-                           String metricName,
-                           String baseAccessUrl,
-                           HttpHelper defaultHttpHelper,
-                           String lang,
-                           TenantEnvService tenantEnvService) {
-        this(meterRegistry, metricName, baseAccessUrl, defaultHttpHelper, tenantEnvService);
-        this.lang = lang;
     }
 
     /**
@@ -246,7 +236,7 @@ public class BaseBkApiClient {
             throw e;
         } catch (Throwable e) {
             String errorMsg = "Fail to request api|method=" + httpMethod.name() + "|uri=" + uri;
-            log.error(errorMsg, e);
+            log.warn(errorMsg, e);
             apiContext.setSuccess(false);
             status = EsbMetricTags.VALUE_STATUS_ERROR;
             throw new InternalException("Request bk open api error", ErrorCode.API_ERROR);
@@ -326,11 +316,7 @@ public class BaseBkApiClient {
         List<Header> headers = new ArrayList<>();
         headers.add(new BasicHeader("Content-Type", "application/json"));
         headers.add(buildBkApiAuthorizationHeader(requestInfo.getAuthorization()));
-        if (StringUtils.isNotEmpty(lang)) {
-            headers.add(new BasicHeader(HDR_BK_LANG, lang));
-        } else {
-            headers.add(new BasicHeader(HDR_BK_LANG, getLangFromRequest()));
-        }
+        headers.add(new BasicHeader(HDR_BK_LANG, getLangFromContext()));
 
         if (CollectionUtils.isNotEmpty(requestInfo.getHeaders())) {
             headers.addAll(requestInfo.getHeaders());
@@ -370,15 +356,17 @@ public class BaseBkApiClient {
         return new BasicHeader(BK_API_AUTH_HEADER, jsonMapper.toJson(authorization));
     }
 
-    private String getLangFromRequest() {
+    private String getLangFromContext() {
         try {
+            String lang = JobContextUtil.getUserLang();
+            if (StringUtils.isNotBlank(lang)) {
+                return LocaleUtils.getBkLang(lang);
+            }
             HttpServletRequest request = JobContextUtil.getRequest();
-            String lang = null;
             if (request != null) {
                 lang = request.getHeader(COMMON_LANG_HEADER);
             }
-
-            return StringUtils.isEmpty(lang) ? EsbLang.EN : lang;
+            return StringUtils.isBlank(lang) ? EsbLang.EN : lang;
         } catch (Throwable ignore) {
             return EsbLang.EN;
         }

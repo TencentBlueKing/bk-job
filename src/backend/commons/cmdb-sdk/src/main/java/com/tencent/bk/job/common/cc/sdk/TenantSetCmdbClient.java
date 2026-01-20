@@ -69,8 +69,7 @@ public class TenantSetCmdbClient extends BaseCmdbClient implements ITenantSetCmd
             cmdbConfig,
             meterRegistry,
             tenantEnvService,
-            virtualAdminAccountProvider,
-            null
+            virtualAdminAccountProvider
         );
     }
 

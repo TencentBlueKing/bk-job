@@ -34,6 +34,7 @@ import com.tencent.bk.job.common.paas.user.IUserApiClient;
 import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.paas.user.MockUserApiClient;
 import com.tencent.bk.job.common.paas.user.OriginalAdminNameProvider;
+import com.tencent.bk.job.common.paas.user.SafeUserMgrApiClient;
 import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
 import com.tencent.bk.job.common.paas.user.VirtualAdminAccountCache;
@@ -43,13 +44,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 @Configuration(proxyBeanMethods = false)
 @Slf4j
 public class UserMgrAutoConfiguration {
 
-    @Primary
     @Bean
     @ConditionalOnMockUserApiDisable
     public IUserApiClient userMgrApiClient(AppProperties appProperties,
@@ -57,10 +56,13 @@ public class UserMgrAutoConfiguration {
                                            ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
                                            TenantEnvService tenantEnvService) {
         log.info("Init UserMgrApiClient");
-        return new UserMgrApiClient(
-            bkApiGatewayProperties,
-            appProperties,
-            meterRegistryObjectProvider.getIfAvailable(),
+        return new SafeUserMgrApiClient(
+            new UserMgrApiClient(
+                bkApiGatewayProperties,
+                appProperties,
+                meterRegistryObjectProvider.getIfAvailable(),
+                tenantEnvService
+            ),
             tenantEnvService
         );
     }

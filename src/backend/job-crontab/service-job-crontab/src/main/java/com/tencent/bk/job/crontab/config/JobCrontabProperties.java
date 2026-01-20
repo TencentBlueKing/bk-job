@@ -36,7 +36,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @NoArgsConstructor
 public class JobCrontabProperties {
 
-    private DisableCronJobOfArchivedScopeTaskProperties disableCronJobOfArchivedScope;
+    private LoadCronJobToQuartzProperties loadCronJobToQuartz = new LoadCronJobToQuartzProperties();
+    private DisableCronJobOfArchivedScopeTaskProperties disableCronJobOfArchivedScope =
+        new DisableCronJobOfArchivedScopeTaskProperties();
 
     /**
      * 自动禁用已归档业务下定时任务的相关配置
@@ -45,6 +47,16 @@ public class JobCrontabProperties {
     @Setter
     @ToString
     public static class DisableCronJobOfArchivedScopeTaskProperties {
+        private Boolean enabled = true;
+    }
+
+    /**
+     * 将定时任务加载到Quartz引擎相关参数配置
+     */
+    @Getter
+    @Setter
+    @ToString
+    public static class LoadCronJobToQuartzProperties {
         private Boolean enabled = true;
     }
 

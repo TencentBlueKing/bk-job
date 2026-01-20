@@ -36,7 +36,6 @@ import com.tencent.bk.job.common.cc.sdk.TenantSetCmdbClient;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiAutoConfiguration;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
-import com.tencent.bk.job.common.esb.constants.EsbLang;
 import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.FlowController;
@@ -47,7 +46,6 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -95,7 +93,6 @@ public class CmdbAutoConfiguration {
     }
 
     @Bean
-    @Primary
     @ConditionalOnMockCmdbApiDisabled
     public IBizCmdbClient bizCmdbClient(AppProperties appProperties,
                                         BkApiGatewayProperties bkApiGatewayProperties,
@@ -110,32 +107,6 @@ public class CmdbAutoConfiguration {
             appProperties,
             bkApiGatewayProperties,
             cmdbConfig,
-            EsbLang.EN,
-            cmdbThreadPoolExecutor,
-            cmdbLongTermThreadPoolExecutor,
-            flowControllerProvider.getIfAvailable(),
-            meterRegistry,
-            tenantEnvService,
-            virtualAdminAccountProvider
-        );
-    }
-
-    @Bean("cnBizCmdbClient")
-    @ConditionalOnMockCmdbApiDisabled
-    public IBizCmdbClient cnBizCmdbClient(AppProperties appProperties,
-                                          BkApiGatewayProperties bkApiGatewayProperties,
-                                          CmdbConfig cmdbConfig,
-                                          ThreadPoolExecutor cmdbThreadPoolExecutor,
-                                          ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
-                                          MeterRegistry meterRegistry,
-                                          ObjectProvider<FlowController> flowControllerProvider,
-                                          TenantEnvService tenantEnvService,
-                                          IVirtualAdminAccountProvider virtualAdminAccountProvider) {
-        return new BizCmdbClient(
-            appProperties,
-            bkApiGatewayProperties,
-            cmdbConfig,
-            EsbLang.CN,
             cmdbThreadPoolExecutor,
             cmdbLongTermThreadPoolExecutor,
             flowControllerProvider.getIfAvailable(),
@@ -185,7 +156,6 @@ public class CmdbAutoConfiguration {
     }
 
     @Bean
-    @Primary
     @ConditionalOnMockCmdbApiEnabled
     public IBizCmdbClient mockedBizCmdbClient(AppProperties appProperties,
                                               BkApiGatewayProperties bkApiGatewayProperties,
@@ -200,32 +170,6 @@ public class CmdbAutoConfiguration {
             appProperties,
             bkApiGatewayProperties,
             cmdbConfig,
-            EsbLang.EN,
-            cmdbThreadPoolExecutor,
-            cmdbLongTermThreadPoolExecutor,
-            meterRegistry,
-            flowControllerProvider,
-            tenantEnvService,
-            virtualAdminAccountProvider
-        );
-    }
-
-    @Bean("cnBizCmdbClient")
-    @ConditionalOnMockCmdbApiEnabled
-    public IBizCmdbClient mockedCnBizCmdbClient(AppProperties appProperties,
-                                                BkApiGatewayProperties bkApiGatewayProperties,
-                                                CmdbConfig cmdbConfig,
-                                                ThreadPoolExecutor cmdbThreadPoolExecutor,
-                                                ThreadPoolExecutor cmdbLongTermThreadPoolExecutor,
-                                                MeterRegistry meterRegistry,
-                                                ObjectProvider<FlowController> flowControllerProvider,
-                                                TenantEnvService tenantEnvService,
-                                                IVirtualAdminAccountProvider virtualAdminAccountProvider) {
-        return new MockBizCmdbClient(
-            appProperties,
-            bkApiGatewayProperties,
-            cmdbConfig,
-            EsbLang.CN,
             cmdbThreadPoolExecutor,
             cmdbLongTermThreadPoolExecutor,
             meterRegistry,
