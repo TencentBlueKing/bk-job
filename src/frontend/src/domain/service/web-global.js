@@ -35,4 +35,8 @@ export default {
     return WebGlobalSource.getVersionENLog()
       .then(({ data }) => Object.freeze(data));
   },
+  fetchAccountEncryption() {
+    return WebGlobalSource.getAccountEncryption()
+      .then(({ data }) => Object.freeze(data));
+  },
 };

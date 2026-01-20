@@ -134,14 +134,12 @@ public class BaseCmdbClient extends BkApiV1Client {
                              CmdbConfig cmdbConfig,
                              MeterRegistry meterRegistry,
                              TenantEnvService tenantEnvService,
-                             IVirtualAdminAccountProvider virtualAdminAccountProvider,
-                             String lang) {
+                             IVirtualAdminAccountProvider virtualAdminAccountProvider) {
         super(
             meterRegistry,
             CmdbMetricNames.CMDB_API_PREFIX,
             bkApiGatewayProperties.getCmdb().getUrl(),
             HttpHelperFactory.getLongRetryableHttpHelper(),
-            lang,
             tenantEnvService
         );
         this.setLogger(LoggerFactory.getLogger(this.getClass()));
@@ -253,7 +251,7 @@ public class BaseCmdbClient extends BkApiV1Client {
             String errorMsg = "Fail to request CMDB data|method=" + method + "|uri=" + uri + "|queryParams="
                 + queryParams + "|body="
                 + JsonUtils.toJsonWithoutSkippedFields(JsonUtils.toJsonWithoutSkippedFields(reqBody));
-            log.error(errorMsg, e);
+            log.warn(errorMsg, e);
             throw new InternalCmdbException(e.getMessage(), e, ErrorCode.CMDB_API_DATA_ERROR);
         } finally {
             HttpMetricUtil.clearHttpMetric();

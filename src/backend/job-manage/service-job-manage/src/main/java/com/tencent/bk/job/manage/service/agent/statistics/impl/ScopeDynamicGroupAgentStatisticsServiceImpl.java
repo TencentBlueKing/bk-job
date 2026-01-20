@@ -75,7 +75,7 @@ public class ScopeDynamicGroupAgentStatisticsServiceImpl implements ScopeDynamic
         }
         List<String> idList = idWithMetaList.stream().map(DynamicGroupIdWithMeta::getId).collect(Collectors.toList());
         Long bizId = Long.parseLong(appResourceScope.getId());
-        List<DynamicGroupDTO> dynamicGroupList = bizDynamicGroupService.listDynamicGroup(bizId, idList);
+        List<DynamicGroupDTO> dynamicGroupList = bizDynamicGroupService.listDynamicGroup(tenantId, bizId, idList);
         List<DynamicGroupHostStatisticsVO> resultList = new ArrayList<>();
         for (DynamicGroupDTO dynamicGroupDTO : dynamicGroupList) {
             DynamicGroupHostStatisticsVO statisticsVO = new DynamicGroupHostStatisticsVO();

@@ -62,6 +62,8 @@ public class ErrorCode {
     public static final int TENANT_ID_CANNOT_BE_BLANK = 1210005;
     // 禁止跨租户访问数据，当前租户ID：{0}，尝试访问的资源：{1}，资源所属租户ID：{2}
     public static final int ACCESS_CROSS_TENANT_FORBIDDEN = 1210006;
+    // 版本日志文件[{0}]不存在
+    public static final int VERSION_LOG_FILE_NOT_FOUND = 1210007;
 
     // CMDB错误
     // CMDB服务状态不可达 - 地址配置错误或者地址无法正确解析
@@ -412,6 +414,8 @@ public class ErrorCode {
     public static final int FILE_SOURCE_ROLLING_ONLY_SUPPORT_SERVER_FILE = 1244035;
     // 当前业务下任务量较大，允许的复杂查询（按名称搜索、2个及以上条件组合搜索等）最大时间范围为：{0}天
     public static final int TASK_HISTORY_QUERY_RANGE_TOO_LARGE = 1244036;
+    // 文件分发，文件源主机[{0}]不存在CMDB中
+    public static final int TASK_FILE_SOURCE_HOST_NOT_EXIST = 1244037;
     // 作业执行 end
 
     // 定时作业 start

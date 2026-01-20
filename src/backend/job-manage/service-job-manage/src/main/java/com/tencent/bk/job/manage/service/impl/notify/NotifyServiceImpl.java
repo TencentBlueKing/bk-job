@@ -27,15 +27,20 @@ package com.tencent.bk.job.manage.service.impl.notify;
 import com.google.common.collect.Sets;
 import com.tencent.bk.audit.annotations.ActionAuditRecord;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
+import com.tencent.bk.job.common.cc.constants.CmdbConstants;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
+import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
 import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import com.tencent.bk.job.common.mysql.JobTransactional;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.redis.util.LockUtils;
+import com.tencent.bk.job.common.service.config.JobCommonConfig;
 import com.tencent.bk.job.common.tenant.TenantService;
-import com.tencent.bk.job.common.util.Counter;
 import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PrefConsts;
@@ -44,6 +49,7 @@ import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
 import com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.EsbAppRoleDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyConfigStatusDAO;
@@ -56,7 +62,6 @@ import com.tencent.bk.job.manage.model.dto.notify.AvailableEsbChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyPolicyRoleTargetDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyRoleTargetChannelDTO;
-import com.tencent.bk.job.manage.model.dto.notify.NotifyTemplateDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
 import com.tencent.bk.job.manage.model.dto.notify.TriggerPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
@@ -121,6 +126,9 @@ public class NotifyServiceImpl implements NotifyService {
     private final AppRoleService roleService;
     private final TenantService tenantService;
     private final NotifyChannelInitService notifyChannelInitService;
+    private final ApplicationDAO applicationDAO;
+    private final JobCommonConfig jobCommonConfig;
+    private final UserLocalCache userLocalCache;
 
     @Autowired
     public NotifyServiceImpl(
@@ -137,7 +145,10 @@ public class NotifyServiceImpl implements NotifyService {
         TaskPlanDAO taskPlanDAO,
         NotifyUserService notifyUserService,
         TenantService tenantService,
-        NotifyChannelInitService notifyChannelInitService) {
+        NotifyChannelInitService notifyChannelInitService,
+        ApplicationDAO applicationDAO,
+        JobCommonConfig jobCommonConfig,
+        UserLocalCache userLocalCache) {
         this.notifyTriggerPolicyDAO = notifyTriggerPolicyDAO;
         this.notifyPolicyRoleTargetDAO = notifyPolicyRoleTargetDAO;
         this.notifyRoleTargetChannelDAO = notifyRoleTargetChannelDAO;
@@ -152,6 +163,9 @@ public class NotifyServiceImpl implements NotifyService {
         this.taskPlanDAO = taskPlanDAO;
         this.tenantService = tenantService;
         this.notifyChannelInitService = notifyChannelInitService;
+        this.applicationDAO = applicationDAO;
+        this.jobCommonConfig = jobCommonConfig;
+        this.userLocalCache = userLocalCache;
     }
 
     @Override
@@ -819,55 +833,48 @@ public class NotifyServiceImpl implements NotifyService {
     public Integer sendTemplateNotification(ServiceTemplateNotificationDTO templateNotificationDTO) {
         Long appId = templateNotificationDTO.getAppId();
         String tenantId = tenantService.getTenantIdByAppId(appId);
-        Map<String, NotifyTemplateDTO> channelTemplateMap = notifyTemplateService.getChannelTemplateMap(
-            templateNotificationDTO.getTemplateCode(),
-            tenantId
-        );
+        String templateCode = templateNotificationDTO.getTemplateCode();
+        
         //获取通知用户
         Set<String> userSet = new HashSet<>();
         UserRoleInfoDTO receiverInfo = templateNotificationDTO.getReceiverInfo();
         userSet.addAll(receiverInfo.getUserList());
-        userSet.addAll(findUserByRole(templateNotificationDTO.getAppId(), templateNotificationDTO.getTriggerUser(),
+        userSet.addAll(findUserByRole(appId, templateNotificationDTO.getTriggerUser(),
             templateNotificationDTO.getResourceType(), templateNotificationDTO.getResourceId(),
             receiverInfo.getRoleList()));
         //过滤黑名单用户
         userSet = notifyUserService.filterBlackUser(userSet, tenantId);
+        
         //获取可用通知渠道
         Set<String> availableChannelSet = new HashSet<>(getAvailableChannelTypeList(tenantId));
         //与激活通知渠道取交集
         Set<String> validChannelSet = Sets.intersection(new HashSet<>(templateNotificationDTO.getActiveChannels()),
             availableChannelSet);
+        
+        // 构建 channelUsersMap（只包含有效渠道）
+        Map<String, Set<String>> channelUsersMap = new HashMap<>();
         for (String channel : validChannelSet) {
-            //取得Title与Content模板
-            if (channelTemplateMap.containsKey(channel)) {
-                NotifyTemplateDTO templateDTO = channelTemplateMap.get(channel);
-                //变量替换
-                Map<String, String> variablesMap = templateNotificationDTO.getVariablesMap();
-                ServiceNotificationMessage notifyMsg = notifyTemplateService.getNotificationMessageFromTemplate(
-                    appId,
-                    templateDTO,
-                    variablesMap
-                );
-                //发送消息通知
-                if (notifyMsg != null) {
-                    notifySendService.asyncSendUserChannelNotify(
-                        appId,
-                        userSet,
-                        channel,
-                        notifyMsg.getTitle(),
-                        notifyMsg.getContent()
-                    );
-                } else {
-                    log.warn(
-                        "Fail to get notifyMsg from template of templateCode:{},channel:{}, ignore",
-                        templateNotificationDTO.getTemplateCode(),
-                        channel
-                    );
-                }
-            } else {
-                log.warn("No templates found for channel:{}", channel);
-            }
+            channelUsersMap.put(channel, userSet);
         }
+
+        ApplicationDTO applicationDTO = applicationDAO.getAppById(appId);
+        if (applicationDTO == null) {
+            log.error("cannot find applicationInfo of appId:{}", appId);
+            return 0;
+        }
+        // 处理变量
+        Map<String, String> finalVariablesMap = processVariablesMap(
+            applicationDTO,
+            tenantId,
+            templateNotificationDTO.getVariablesMap()
+        );
+        // 获取语言
+        String normalLang = getNormalUserLanguage(applicationDTO);
+        
+        // 发送通知
+        sendNotificationToChannels(appId, tenantId, templateCode, channelUsersMap, 
+            finalVariablesMap, normalLang, null);
+        
         return userSet.size();
     }
 
@@ -875,7 +882,9 @@ public class NotifyServiceImpl implements NotifyService {
     public Integer triggerTemplateNotification(ServiceTriggerTemplateNotificationDTO triggerTemplateNotification) {
         Long appId = triggerTemplateNotification.getTriggerDTO().getAppId();
         String tenantId = tenantService.getTenantIdByAppId(appId);
-        // 1.获取所有可用渠道
+        String templateCode = triggerTemplateNotification.getTemplateCode();
+        
+        // 获取所有可用渠道
         StopWatch watch = new StopWatch();
         watch.start("getAvailableChannelTypeList");
         List<String> availableChannelTypeList = getAvailableChannelTypeList(tenantId);
@@ -883,50 +892,172 @@ public class NotifyServiceImpl implements NotifyService {
         if (watch.getLastTaskTimeMillis() > 500) {
             log.warn(PrefConsts.TAG_PREF_SLOW + watch.prettyPrint());
         }
+        
+        // 获取渠道用户映射
         watch.start("getChannelUsersMap");
         Map<String, Set<String>> channelUsersMap = getChannelUsersMap(triggerTemplateNotification.getTriggerDTO());
         watch.stop();
         if (watch.getLastTaskTimeMillis() > 500) {
             log.warn(PrefConsts.TAG_PREF_SLOW + watch.prettyPrint());
         }
-        Counter counter = new Counter();
+        
+        // 过滤不可用渠道
+        Map<String, Set<String>> validChannelUsersMap = new HashMap<>();
         channelUsersMap.forEach((channel, userSet) -> {
-            if (!availableChannelTypeList.contains(channel)) {
-                log.error(
-                    String.format("channel %s of tenant %s is not available, not notified, please contact admin",
-                        channel,
-                        tenantId
-                    )
-                );
+            if (availableChannelTypeList.contains(channel)) {
+                validChannelUsersMap.put(channel, userSet);
             } else {
-                String templateCode = triggerTemplateNotification.getTemplateCode();
-                Map<String, String> variablesMap = triggerTemplateNotification.getVariablesMap();
-                watch.start("getNotificationMessage_" + channel);
-                ServiceNotificationMessage notificationMessage = notifyTemplateService.getNotificationMessage(
-                    appId,
-                    templateCode,
-                    channel,
-                    variablesMap
+                log.info(
+                    String.format("channel %s of tenant %s is not available, not notified",
+                        channel, tenantId)
                 );
+            }
+        });
+
+        ApplicationDTO applicationDTO = applicationDAO.getAppById(appId);
+        if (applicationDTO == null) {
+            log.error("cannot find applicationInfo of appId:{}", appId);
+            return 0;
+        }
+        // 处理变量
+        Map<String, String> finalVariablesMap = processVariablesMap(
+            applicationDTO,
+            tenantId,
+            triggerTemplateNotification.getVariablesMap()
+        );
+        // 获取语言
+        String normalLang = getNormalUserLanguage(applicationDTO);
+        
+        // 发送通知
+        sendNotificationToChannels(
+            appId,
+            tenantId,
+            templateCode,
+            validChannelUsersMap,
+            finalVariablesMap,
+            normalLang,
+            watch
+        );
+        
+        return validChannelUsersMap.size();
+    }
+
+    /**
+     * 添加默认变量到 variablesMap
+     */
+    private Map<String, String> addDefaultVariables(ApplicationDTO applicationDTO,
+                                                    Map<String, String> originalVariablesMap) {
+        Map<String, String> variablesMap =
+            new HashMap<>(originalVariablesMap == null ? Collections.emptyMap() : originalVariablesMap);
+        ResourceScope scope = applicationDTO.getScope();
+        String appName = applicationDTO.getName();
+        variablesMap.putIfAbsent("BASE_HOST", jobCommonConfig.getJobWebUrl());
+        variablesMap.putIfAbsent("APP_ID", getDisplayIdStr(scope));
+        variablesMap.putIfAbsent("task.bk_biz_id", scope.getId());
+        variablesMap.putIfAbsent("APP_NAME", appName);
+        variablesMap.putIfAbsent("task.bk_biz_name", appName);
+        return variablesMap;
+    }
+
+    private String getDisplayIdStr(ResourceScope scope) {
+        return scope.getType().getValue() + ":" + scope.getId();
+    }
+
+    /**
+     * 将 variablesMap 中的 username 替换为 displayName
+     */
+    private Map<String, String> replaceUsernameInMap(String tenantId, Map<String, String> originalVariablesMap) {
+        Map<String, String> displayVariablesMap = new HashMap<>(originalVariablesMap);
+        List<String> keys = Arrays.asList(
+            "task.operator",
+            "task.step.username",
+            "cron_updater"
+        );
+        for (String key : keys) {
+            String username = displayVariablesMap.getOrDefault(key, null);
+            if (StringUtils.isNotEmpty(username)) {
+                String displayName = userLocalCache.getSingleUser(tenantId, username).getDisplayName();
+                displayVariablesMap.put(key, displayName);
+            }
+        }
+        return displayVariablesMap;
+    }
+
+    /**
+     * 获取标准化的用户语言
+     */
+    private String getNormalUserLanguage(ApplicationDTO applicationDTO) {
+        String userLang = JobContextUtil.getUserLang();
+        if (userLang == null) {
+            String appLang = applicationDTO.getLanguage();
+            if (CmdbConstants.APP_LANG_VALUE_ZH_CN.equals(appLang)) {
+                userLang = LocaleUtils.LANG_ZH_CN;
+            } else if (CmdbConstants.APP_LANG_VALUE_EN_US.equals(appLang)) {
+                userLang = LocaleUtils.LANG_EN_US;
+            } else {
+                log.warn("appLang=null, use zh_CN, appId={}", applicationDTO.getId());
+                userLang = LocaleUtils.LANG_ZH_CN;
+            }
+        }
+        return LocaleUtils.getNormalLang(userLang);
+    }
+
+    /**
+     * 处理变量 Map
+     * 添加默认变量 + 替换 username
+     * 
+     * @return 处理后的变量 Map
+     */
+    private Map<String, String> processVariablesMap(ApplicationDTO app,
+                                                    String tenantId,
+                                                    Map<String, String> originalVariablesMap) {
+        // 1. 添加默认变量
+        Map<String, String> variablesMapWithDefaults = addDefaultVariables(app, originalVariablesMap);
+        // 2. 替换 username 为 displayName
+        return replaceUsernameInMap(tenantId, variablesMapWithDefaults);
+    }
+
+    /**
+     * 发送模板通知的核心逻辑
+     */
+    private void sendNotificationToChannels(
+        Long appId,
+        String tenantId,
+        String templateCode,
+        Map<String, Set<String>> channelUsersMap,
+        Map<String, String> finalVariablesMap,
+        String normalLang,
+        StopWatch watch
+    ) {
+        channelUsersMap.forEach((channel, userSet) -> {
+            if (watch != null) {
+                watch.start("getNotificationMessage_" + channel);
+            }
+            ServiceNotificationMessage notificationMessage = notifyTemplateService.getNotificationMessage(
+                tenantId,
+                templateCode,
+                channel,
+                normalLang,
+                finalVariablesMap
+            );
+            if (watch != null) {
                 watch.stop();
                 if (watch.getLastTaskTimeMillis() > 500) {
                     log.warn(PrefConsts.TAG_PREF_SLOW + watch.prettyPrint());
                 }
-                if (notificationMessage != null) {
-                    notifySendService.asyncSendUserChannelNotify(
-                        appId,
-                        userSet,
-                        channel,
-                        notificationMessage.getTitle(),
-                        notificationMessage.getContent()
-                    );
-                    counter.addOne();
-                } else {
-                    log.warn("Cannot find template of templateCode:{},channel:{}, ignore", templateCode, channel);
-                }
+            }
+            if (notificationMessage != null) {
+                notifySendService.asyncSendUserChannelNotify(
+                    appId,
+                    userSet,
+                    channel,
+                    notificationMessage.getTitle(),
+                    notificationMessage.getContent()
+                );
+            } else {
+                log.warn("Cannot find template of templateCode:{},channel:{}, ignore", templateCode, channel);
             }
         });
-        return counter.getValue().intValue();
     }
 
     private void addChannelUsersToMap(Map<String, Set<String>> channelUsersMap, String channel, Set<String> userSet) {

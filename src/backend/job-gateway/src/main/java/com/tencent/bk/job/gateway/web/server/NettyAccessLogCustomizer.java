@@ -26,7 +26,6 @@ package com.tencent.bk.job.gateway.web.server;
 
 import com.tencent.bk.job.gateway.web.server.utils.AccessLogValueSafeUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
 import reactor.netty.http.server.logging.AccessLog;
 import reactor.netty.http.server.logging.AccessLogArgProvider;
@@ -41,17 +40,19 @@ import java.util.Map;
 public class NettyAccessLogCustomizer implements NettyFactoryCustomizer {
     private final AccessLogMetadataCollector collector;
     private final AccessLogFormatter formatter;
+    private final WebServerRoleEnum webServerRoleEnum;
 
-    @Autowired
     public NettyAccessLogCustomizer(AccessLogMetadataCollector collector,
-                                    AccessLogFormatter formatter) {
+                                    AccessLogFormatter formatter,
+                                    WebServerRoleEnum webServerRoleEnum) {
         this.collector = collector;
         this.formatter = formatter;
+        this.webServerRoleEnum = webServerRoleEnum;
     }
 
     @Override
     public void customize(NettyReactiveWebServerFactory factory) {
-        log.info("Registering Netty AccessLog customizer.");
+        log.info("Registering {} Netty AccessLog customizer.", webServerRoleEnum.getType());
         factory.addServerCustomizers(httpServer -> {
             httpServer = httpServer.wiretap(false);
             return httpServer.accessLog(true,
@@ -59,6 +60,7 @@ public class NettyAccessLogCustomizer implements NettyFactoryCustomizer {
                     provider -> {
                         try {
                             Map<String, Object> metadata = collector.collect(provider);
+                            metadata.put(AccessLogConstants.LogField.ACCESS_TYPE, webServerRoleEnum.getType());
                             return AccessLog.create(formatter.format(metadata));
                         } catch (Exception e) {
                             log.error("Failed to build AccessLog.", e);

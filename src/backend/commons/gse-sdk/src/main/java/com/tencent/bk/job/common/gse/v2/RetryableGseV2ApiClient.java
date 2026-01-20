@@ -24,72 +24,70 @@
 
 package com.tencent.bk.job.common.gse.v2;
 
-import com.tencent.bk.job.common.esb.config.AppProperties;
-import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
-import com.tencent.bk.job.common.gse.config.GseV2Properties;
+import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetExecuteScriptResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
 import com.tencent.bk.job.common.gse.v2.model.ScriptTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
-import com.tencent.bk.job.common.retry.RetryUtils;
-import com.tencent.bk.job.common.tenant.TenantEnvService;
-import io.micrometer.core.instrument.MeterRegistry;
+import com.tencent.bk.job.common.retry.RetryExecutor;
+import com.tencent.bk.job.common.retry.RetryPolicy;
+import com.tencent.bk.job.common.retry.circuitbreaker.CircuitBreakerFactory;
+import com.tencent.bk.job.common.retry.metrics.RetryMetricsConstants;
+import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
+import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.Duration;
 import java.util.List;
 
 /**
  * 支持重试的GSE V2 API客户端
+ * <p>
+ * 使用指数退避策略进行重试，并记录重试指标
+ * </p>
  */
 @Slf4j
-public class RetryableGseV2ApiClient extends GseV2ApiClient {
+public class RetryableGseV2ApiClient implements IGseClient {
 
-    /**
-     * 含重试的最大执行次数
-     */
-    private final Integer maxAttempts;
-    /**
-     * 重试间隔（单位：秒）
-     */
-    private final Integer intervalSeconds;
+    @Delegate
+    private final IGseClient delegate;
+    private final RetryExecutor retryExecutor;
 
-    public RetryableGseV2ApiClient(MeterRegistry meterRegistry,
-                                   AppProperties appProperties,
-                                   BkApiGatewayProperties bkApiGatewayProperties,
-                                   GseV2Properties gseV2Properties,
-                                   TenantEnvService tenantEnvService) {
-        super(meterRegistry, appProperties, bkApiGatewayProperties, tenantEnvService);
-        this.maxAttempts = gseV2Properties.getRetry().getMaxAttempts();
-        this.intervalSeconds = gseV2Properties.getRetry().getIntervalSeconds();
+    public RetryableGseV2ApiClient(IGseClient delegate,
+                                   RetryPolicy retryPolicy,
+                                   RetryMetricsRecorder metricsRecorder,
+                                   CircuitBreakerFactory circuitBreakerFactory) {
+        this.delegate = delegate;
+        this.retryExecutor = new RetryExecutor(
+            retryPolicy,
+            metricsRecorder,
+            RetryMetricsConstants.TAG_VALUE_SYSTEM_GSE,
+            circuitBreakerFactory
+        );
     }
 
     @Override
     public ScriptTaskResult getExecuteScriptResult(GetExecuteScriptResultRequest request) {
-        return RetryUtils.executeWithRetry(
-            () -> super.getExecuteScriptResult(request),
-            maxAttempts,
-            Duration.ofSeconds(intervalSeconds)
+        return retryExecutor.executeWithRetry(
+            () -> delegate.getExecuteScriptResult(request),
+            "getExecuteScriptResult"
         );
     }
 
     @Override
     public List<AgentState> listAgentState(ListAgentStateReq req) {
-        return RetryUtils.executeWithRetry(
-            () -> super.listAgentState(req),
-            maxAttempts,
-            Duration.ofSeconds(intervalSeconds)
+        return retryExecutor.executeWithRetry(
+            () -> delegate.listAgentState(req),
+            "listAgentState"
         );
     }
 
     @Override
     public FileTaskResult getTransferFileResult(GetTransferFileResultRequest request) {
-        return RetryUtils.executeWithRetry(
-            () -> super.getTransferFileResult(request),
-            maxAttempts,
-            Duration.ofSeconds(intervalSeconds)
+        return retryExecutor.executeWithRetry(
+            () -> delegate.getTransferFileResult(request),
+            "getTransferFileResult"
         );
     }
 }

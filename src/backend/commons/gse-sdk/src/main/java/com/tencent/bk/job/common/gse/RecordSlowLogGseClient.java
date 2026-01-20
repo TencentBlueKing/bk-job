@@ -22,21 +22,49 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.exception;
+package com.tencent.bk.job.common.gse;
 
-import com.tencent.bk.job.common.model.error.ErrorType;
+import com.tencent.bk.job.common.gse.v2.model.req.ListAgentStateReq;
+import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
+import lombok.experimental.Delegate;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StopWatch;
 
+import java.util.Collections;
+import java.util.List;
 
 /**
- * 当使用集群外部的机器作为文件的分发源时，不满足分发条件（没有可用的源机器/...）时抛出的异常
+ * 支持记录慢请求日志的GseClient
  */
-public class DistributeFileFromExternalAgentException extends ServiceException {
+@Slf4j
+public class RecordSlowLogGseClient implements IGseClient {
 
-    public DistributeFileFromExternalAgentException(Integer errorCode) {
-        super(ErrorType.INTERNAL, errorCode);
+    @Delegate
+    private final IGseClient delegate;
+
+    public RecordSlowLogGseClient(IGseClient delegate) {
+        this.delegate = delegate;
+        log.info("Init gseClient, delegate: {}", delegate);
     }
 
-    public DistributeFileFromExternalAgentException(String message, Integer errorCode) {
-        super(message, ErrorType.INTERNAL, errorCode);
+    @Override
+    public List<AgentState> listAgentState(ListAgentStateReq req) {
+        StopWatch watch = new StopWatch("listAgentState");
+        List<String> agentIdList = req.getAgentIdList();
+        if (CollectionUtils.isEmpty(agentIdList)) {
+            log.info("agentIdList is empty");
+            return Collections.emptyList();
+        }
+
+        watch.start("gseClient.listAgentState");
+        List<AgentState> resultList = delegate.listAgentState(req);
+        watch.stop();
+
+        if (watch.getTotalTimeMillis() > 3000) {
+            log.warn("listAgentState slow, statistics: " + watch.prettyPrint());
+        }
+
+        return resultList;
     }
 }

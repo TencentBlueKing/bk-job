@@ -22,29 +22,51 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.cc.sdk;
+package com.tencent.bk.job.common.retry.circuitbreaker;
 
-import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
-import com.tencent.bk.job.common.util.ApplicationContextRegister;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
 
-@Slf4j
-public class CmdbClientFactory {
+/**
+ * 熔断器状态枚举
+ */
+@Getter
+public enum CircuitBreakerState {
+    /**
+     * 关闭状态：正常执行，记录调用结果，当失败率超过阈值时转换为 OPEN
+     */
+    CLOSED(0),
 
-    public static IBizCmdbClient getCmdbClient() {
-        return getCmdbClient(LocaleUtils.LANG_EN_US);
+    /**
+     * 开启状态：拒绝所有调用（或继续调用但不重试），等待配置的时间后转换为 HALF_OPEN
+     */
+    OPEN(1),
+
+    /**
+     * 半开状态：允许有限次数调用，根据结果决定转换为 CLOSED 或 OPEN
+     */
+    HALF_OPEN(2);
+
+    /**
+     * 状态值
+     */
+    private final int value;
+
+    CircuitBreakerState(int value) {
+        this.value = value;
     }
 
-    public static IBizCmdbClient getCmdbClient(String language) {
-        if (language == null) {
-            language = LocaleUtils.LANG_EN_US;
+    /**
+     * 根据值获取枚举
+     *
+     * @param value 状态值
+     * @return 对应的枚举
+     */
+    public static CircuitBreakerState valueOf(int value) {
+        for (CircuitBreakerState state : values()) {
+            if (state.getValue() == value) {
+                return state;
+            }
         }
-        switch (language) {
-            case LocaleUtils.LANG_ZH:
-            case LocaleUtils.LANG_ZH_CN:
-                return ApplicationContextRegister.getBean("cnBizCmdbClient", IBizCmdbClient.class);
-            default:
-                return ApplicationContextRegister.getBean(IBizCmdbClient.class);
-        }
+        throw new IllegalArgumentException("Invalid circuit breaker state value: " + value);
     }
 }
