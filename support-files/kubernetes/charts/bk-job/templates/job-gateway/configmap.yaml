@@ -92,15 +92,6 @@ data:
                 - CsrfCheck
                 - StripPrefix=1
                 - AddWebLangHeader
-            - id: job-ticket-web
-              uri: lb://job-manage
-              predicates:
-                - Path= /job-ticket/web/**
-              filters:
-                - Authorize
-                - CsrfCheck
-                - StripPrefix=1
-                - AddWebLangHeader
             - id: job-analysis-web
               uri: lb://job-analysis
               predicates:
@@ -260,15 +251,6 @@ data:
                 - CheckTenant
                 - AddEsbLangHeader
 
-            - id: job-ticket-iam
-              uri: lb://job-manage
-              predicates:
-                - Path=/iam/api/v1/resources/ticket
-              filters:
-                - RecordIamAccessLog
-                - CheckTenant
-                - AddEsbLangHeader
-
             - id: job-analysis-iam
               uri: lb://job-analysis
               predicates:
@@ -281,7 +263,7 @@ data:
             - id: job-manage-iam
               uri: lb://job-manage
               predicates:
-                - Path=/iam/api/v1/resources/script,/iam/api/v1/resources/task/template,/iam/api/v1/resources/task/plan,/iam/api/v1/resources/account,/iam/api/v1/resources/whitelist,/iam/api/v1/resources/script/public,/iam/api/v1/resources/tag
+                - Path=/iam/api/v1/resources/script,/iam/api/v1/resources/task/template,/iam/api/v1/resources/task/plan,/iam/api/v1/resources/account,/iam/api/v1/resources/whitelist,/iam/api/v1/resources/script/public,/iam/api/v1/resources/tag,/iam/api/v1/resources/ticket
               filters:
                 - RecordIamAccessLog
                 - CheckTenant
@@ -413,7 +395,7 @@ data:
             - id: job-web
               uri: lb://job-assemble
               predicates:
-                - Path= /job-manage/web/**,/job-crontab/web/**,/job-execute/web/**,/job-analysis/web/**,/job-backup/web/**,/job-logsvr/web/**,/job-file-gateway/web/**,/job-ticket/web/**
+                - Path= /job-manage/web/**,/job-crontab/web/**,/job-execute/web/**,/job-analysis/web/**,/job-backup/web/**,/job-logsvr/web/**,/job-file-gateway/web/**
               filters:
                 - Authorize
                 - CsrfCheck

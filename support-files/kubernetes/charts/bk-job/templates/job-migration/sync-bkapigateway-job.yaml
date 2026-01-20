@@ -44,8 +44,10 @@ spec:
           value: {{ .Values.bkApiGatewayConfig.stage }}
         - name: BK_APIGW_RESOURCE_DOCS_BASE_DIR
           value: {{ .Values.bkApiGatewayConfig.resourceDir }}
-        - name: BK_JOB_API_URL
-          value: "{{ .Values.bkDomainScheme }}://{{ .Values.job.web.domain }}"
+        - name: BK_JOB_WEB_HOST
+          value: "{{ include "job.web.host" . }}"
+        - name: BK_JOB_API_PATH_PREFIX
+          value: "{{ include "job.api.path.prefix" . }}"
         - name: BK_APIGW_MAINTAINERS
           value: {{ .Values.bkApiGatewayConfig.maintainers }}
         - name: BK_APIGW_AUTO_PUBLISH

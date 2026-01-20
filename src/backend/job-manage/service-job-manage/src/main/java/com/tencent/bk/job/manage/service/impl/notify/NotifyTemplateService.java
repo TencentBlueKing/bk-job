@@ -72,7 +72,7 @@ public class NotifyTemplateService {
 
     /**
      * 从模板生成通知消息（仅负责模板渲染，不做变量预处理）
-     * 
+     *
      * @param templateDTO 通知模板
      * @param normalLang 标准化的语言（zh_CN 或 en_US）
      * @param variablesMap 已完成预处理的变量 Map
@@ -111,7 +111,7 @@ public class NotifyTemplateService {
     /**
      * 获取通知消息（仅负责查询模板和渲染）
      * 注意：variablesMap 应该已经完成预处理（添加默认变量、替换 username）
-     * 
+     *
      * @param tenantId 租户 ID
      * @param templateCode 模板代码
      * @param channel 通知渠道
@@ -146,7 +146,7 @@ public class NotifyTemplateService {
                 templateCode, channel);
             return null;
         }
-        
+
         return getNotificationMessageFromTemplate(notifyTemplateDTO, normalLang, variablesMap);
     }
 }

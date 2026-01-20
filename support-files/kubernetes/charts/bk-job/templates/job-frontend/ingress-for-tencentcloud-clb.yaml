@@ -24,27 +24,25 @@ spec:
   tls: {{- include "common.tplvalues.render" ( dict "value" .Values.tencentCloudClbConfig.ingress.tls "context" $) | nindent 2 -}}
   {{- end }}
   rules:
-    {{- if .Values.job.web.domain }}
-    - host: {{ .Values.job.web.domain }}
+    - host: {{ include "job.web.domain" . }}
       http:
         paths:
-          - path: "/"
+          - path: "{{ include "job.url.pathRootPrefix" . }}/"
             pathType: ImplementationSpecific
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-frontend" (include "common.names.fullname" .)) "servicePort" .Values.frontendConfig.service.port "context" $)  | nindent 14 }}
-          - path: "/api/"
+          - path: "{{ include "job.url.pathRootPrefix" . }}/api/"
             pathType: ImplementationSpecific
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
-          - path: "/iam/"
+          - path: "{{ include "job.url.pathRootPrefix" . }}/iam/"
             pathType: ImplementationSpecific
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
-          - path: "/job-"
+          - path: "{{ include "job.url.pathRootPrefix" . }}/job-"
             pathType: ImplementationSpecific
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
-          - path: "/user/"
+          - path: "{{ include "job.url.pathRootPrefix" . }}/user/"
             pathType: ImplementationSpecific
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
-          - path: "/logout"
+          - path: "{{ include "job.url.pathRootPrefix" . }}/logout"
             pathType: ImplementationSpecific
             backend: {{- include "common.ingress.backend" (dict "serviceName" (printf "%s-gateway" (include "common.names.fullname" .)) "servicePort" .Values.gatewayConfig.service.port.http "context" $)  | nindent 14 }}
-    {{- end }}
 {{- end }}

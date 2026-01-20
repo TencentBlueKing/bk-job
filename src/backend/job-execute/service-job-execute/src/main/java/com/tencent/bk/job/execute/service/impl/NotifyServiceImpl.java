@@ -212,7 +212,7 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     private String buildJobExecuteDetailUrl(Long taskInstanceId) {
-        return jobCommonConfig.getJobWebUrl() + "/api_execute/" + taskInstanceId;
+        return jobCommonConfig.getFirstJobWebUrl() + "/api_execute/" + taskInstanceId;
     }
 
     @Override
