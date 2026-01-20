@@ -30,22 +30,16 @@ import functools
 
 VERSION_LOG_PATH = os.environ.get("VERSION_LOG_PATH", os.getcwd())
 
-# data元素格式
+# 日志文件内容格式
 '''
-{
-    "version": "V1.0.0.0",
-    "time": "2020-03-29",
-    "content": "### 【V1.0.0.0】版本更新明细\n#### 【新增】一个功能.\n"
-}
+[
+	{
+		"version": "V1.0.0.0",
+		"time": "2020-03-29",
+		"content": "### 【V1.0.0.0】版本更新明细\n#### 【新增】一个功能.\n"
+	}
+]
 '''
-language_data_map = {}
-resp = {
-    "success": True,
-    "code": 0,
-    "errorMsg": None,
-    "data": [],
-    "requestId": None
-}
 DEFAULT_LANGUAGE = "zh_CN"
 
 
@@ -103,9 +97,8 @@ def compare_version(version_log_1, version_log_2):
 def write_one_language_version_log(version_log_data, file_name):
     # 版本降序排列
     version_log_data.sort(key=functools.cmp_to_key(compare_version), reverse=True)
-    resp["data"] = version_log_data
     bundled_file = codecs.open(os.path.join(VERSION_LOG_PATH, file_name), "w", encoding="UTF-8")
-    bundled_file.write(json.dumps(resp))
+    bundled_file.write(json.dumps(version_log_data))
     bundled_file.close()
 
 

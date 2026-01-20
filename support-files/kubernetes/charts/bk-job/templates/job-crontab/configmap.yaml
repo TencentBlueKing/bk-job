@@ -130,6 +130,8 @@ data:
       crontab:
         notification-policy:
           {{- toYaml .Values.crontabConfig.notificationPolicy | nindent 10 }}
+        loadCronJobToQuartz:
+          {{- toYaml .Values.crontabConfig.loadCronJobToQuartz | nindent 10 }}
         disableCronJobOfArchivedScope:
           {{- toYaml .Values.crontabConfig.disableCronJobOfArchivedScope | nindent 10 }}
     mysql:

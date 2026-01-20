@@ -183,7 +183,6 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     public BizCmdbClient(AppProperties appProperties,
                          BkApiGatewayProperties bkApiGatewayProperties,
                          CmdbConfig cmdbConfig,
-                         String lang,
                          ThreadPoolExecutor threadPoolExecutor,
                          ThreadPoolExecutor longTermThreadPoolExecutor,
                          FlowController flowController,
@@ -197,8 +196,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             cmdbConfig,
             meterRegistry,
             tenantEnvService,
-            virtualAdminAccountProvider,
-            lang
+            virtualAdminAccountProvider
         );
         this.threadPoolExecutor = threadPoolExecutor;
         this.longTermThreadPoolExecutor = longTermThreadPoolExecutor;

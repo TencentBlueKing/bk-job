@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo test",
     "dev": "webpack serve --hot --env development --env mode=development --config ./webpack.config.js",
-    "dev-external": "webpack serve --server-type https --hot --env development --env mode=external --config ./webpack.config.js",
+    "dev:https": "webpack serve --server-type https --hot --env development --env mode=https --config ./webpack.config.js",
     "build": "webpack --env --config ./webpack.config.js",
     "lint:js": "eslint ./src --fix --ext .js --ext .vue",
     "lint:style": "stylelint --fix ./src/**/*.{vue,css} --custom-syntax"
@@ -16,9 +16,10 @@
   "dependencies": {
     "@babel/runtime": "7.27.1",
     "@blueking/ai-blueking": "0.2.11",
-    "@blueking/ip-selector": "1.0.1-beta.21",
     "@blueking/bk-user-display-name": "1.0.1",
     "@blueking/bk-user-selector": "0.0.29-beta.8",
+    "@blueking/crypto-js-sdk": "0.0.5",
+    "@blueking/ip-selector": "1.0.1-beta.21",
     "@blueking/date-picker": "3.0.4",
     "@blueking/login-modal": "1.0.6",
     "@blueking/notice-component-vue2": "2.0.6-beta.5",

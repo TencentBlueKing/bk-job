@@ -26,10 +26,8 @@ package com.tencent.bk.job.manage.service.topo.impl;
 
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
-import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.util.TopologyUtil;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.common.TopologyHelper;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
@@ -58,7 +56,6 @@ public class BizTopoServiceImpl implements BizTopoService {
                                                              Long bizId,
                                                              List<InstanceTopologyDTO> nodeList) {
         // 查业务拓扑树
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(JobContextUtil.getUserLang());
         InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(tenantId, bizId);
         // 搜索路径
         return TopologyHelper.findTopoPaths(appTopologyTree, nodeList);
