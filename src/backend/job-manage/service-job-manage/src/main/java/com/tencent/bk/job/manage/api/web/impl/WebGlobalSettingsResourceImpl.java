@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -41,13 +41,12 @@ import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChan
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
-import com.tencent.bk.job.manage.service.GlobalSettingsService;
+import com.tencent.bk.job.manage.service.globalsetting.EsbNotifyChannelService;
+import com.tencent.bk.job.manage.service.globalsetting.GlobalSettingsService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -59,10 +58,13 @@ import java.util.List;
 public class WebGlobalSettingsResourceImpl implements WebGlobalSettingsResource {
 
     private final GlobalSettingsService globalSettingsService;
+    private final EsbNotifyChannelService esbNotifyChannelService;
 
     @Autowired
-    public WebGlobalSettingsResourceImpl(GlobalSettingsService globalSettingsService) {
+    public WebGlobalSettingsResourceImpl(GlobalSettingsService globalSettingsService,
+                                         EsbNotifyChannelService esbNotifyChannelService) {
         this.globalSettingsService = globalSettingsService;
+        this.esbNotifyChannelService = esbNotifyChannelService;
     }
 
     @Override
@@ -72,14 +74,14 @@ public class WebGlobalSettingsResourceImpl implements WebGlobalSettingsResource 
         content = EventContentConstants.VIEW_GLOBAL_SETTINGS
     )
     public Response<List<NotifyChannelWithIconVO>> listNotifyChannel(String username) {
-        return Response.buildSuccessResp(globalSettingsService.listNotifyChannel(username));
+        return Response.buildSuccessResp(esbNotifyChannelService.listNotifyChannel(username));
     }
 
     @Override
     @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
     public Response<Integer> setAvailableNotifyChannel(String username,
                                                        @AuditRequestBody SetAvailableNotifyChannelReq req) {
-        return Response.buildSuccessResp(globalSettingsService.setAvailableNotifyChannel(username, req));
+        return Response.buildSuccessResp(esbNotifyChannelService.setAvailableNotifyChannel(username, req));
     }
 
     @Override
@@ -115,17 +117,7 @@ public class WebGlobalSettingsResourceImpl implements WebGlobalSettingsResource 
         content = EventContentConstants.VIEW_GLOBAL_SETTINGS
     )
     public Response<List<ChannelTemplateStatusVO>> listChannelTemplateStatus(String username) {
-        return Response.buildSuccessResp(globalSettingsService.listChannelTemplateStatus(username));
-    }
-
-    @Override
-    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
-    @ActionAuditRecord(
-        actionId = ActionId.GLOBAL_SETTINGS,
-        content = EventContentConstants.VIEW_GLOBAL_SETTINGS
-    )
-    public Response<List<UserVO>> listUsers(String username, String prefixStr, Long offset, Long limit) {
-        return Response.buildSuccessResp(globalSettingsService.listUsers(username, prefixStr, offset, limit));
+        return Response.buildSuccessResp(esbNotifyChannelService.listChannelTemplateStatus(username));
     }
 
     @Override
@@ -195,14 +187,6 @@ public class WebGlobalSettingsResourceImpl implements WebGlobalSettingsResource 
     )
     public Response<FileUploadSettingVO> getFileUploadSettings(String username) {
         return Response.buildSuccessResp(globalSettingsService.getFileUploadSettings());
-    }
-
-    @Override
-    @AuditEntry(actionId = ActionId.GLOBAL_SETTINGS)
-    public Response<PlatformInfoVO> savePlatformInfo(String username,
-                                                     @AuditRequestBody PlatformInfoVO platformInfoVO) {
-        PlatformInfoVO updatedPlatformInfo = globalSettingsService.savePlatformInfo(username, platformInfoVO);
-        return Response.buildSuccessResp(updatedPlatformInfo);
     }
 
     @Override

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -44,9 +44,10 @@ public interface FilePrepareService {
     /**
      * 清理已准备完成的临时文件
      *
+     * @param taskInstanceId 作业实例Id
      * @param stepInstanceId 步骤实例Id
      */
-    void clearPreparedTmpFile(long stepInstanceId);
+    void clearPreparedTmpFile(long taskInstanceId, long stepInstanceId);
 
     /**
      * 是否需要准备源文件

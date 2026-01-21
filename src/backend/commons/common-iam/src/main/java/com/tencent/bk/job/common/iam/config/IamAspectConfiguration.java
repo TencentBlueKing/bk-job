@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -27,7 +27,10 @@ package com.tencent.bk.job.common.iam.config;
 import com.tencent.bk.job.common.iam.aspect.IamAppTransferAspect;
 import com.tencent.bk.job.common.iam.aspect.IamCallbackAspect;
 import com.tencent.bk.job.common.iam.aspect.IamExceptionHandleAspect;
+import com.tencent.bk.job.common.iam.aspect.IamMetricsAspect;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,8 +42,8 @@ import org.springframework.context.annotation.Configuration;
 public class IamAspectConfiguration {
 
     @Bean
-    public IamCallbackAspect iamCallbackAspect() {
-        return new IamCallbackAspect();
+    public IamCallbackAspect iamCallbackAspect(TenantEnvService tenantEnvService) {
+        return new IamCallbackAspect(tenantEnvService);
     }
 
     @Bean
@@ -52,5 +55,10 @@ public class IamAspectConfiguration {
     @Bean
     public IamExceptionHandleAspect iamExceptionHandleAspect() {
         return new IamExceptionHandleAspect();
+    }
+
+    @Bean
+    public IamMetricsAspect iamMetricsAspect(MeterRegistry meterRegistry) {
+        return new IamMetricsAspect(meterRegistry);
     }
 }

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.paas.login;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.model.dto.BkUserDTO;
 import com.tencent.bk.job.common.util.http.HttpConPoolUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -84,6 +85,8 @@ public class CustomLoginClient implements ILoginClient {
             }
             BkUserDTO bkUserDto = new BkUserDTO();
             bkUserDto.setUsername(resp.getData().getUsername());
+            // 当前只有在单租户环境下才会用到自定义登录
+            bkUserDto.setTenantInfo(false, TenantIdConstants.DEFAULT_TENANT_ID);
             return bkUserDto;
         } catch (Exception e) {
             log.error("Error occur when get user info", e);

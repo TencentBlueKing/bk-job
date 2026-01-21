@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -48,22 +48,17 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class ConfirmStepEventHandler implements StepEventHandler {
+public class ConfirmStepEventHandler extends AbstractStepEventHandler {
 
-    private final TaskInstanceService taskInstanceService;
-    private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final NotifyService notifyService;
-    private final StepInstanceService stepInstanceService;
 
     @Autowired
     public ConfirmStepEventHandler(TaskInstanceService taskInstanceService,
                                    TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
                                    NotifyService notifyService,
                                    StepInstanceService stepInstanceService) {
-        this.taskInstanceService = taskInstanceService;
-        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
+        super(taskInstanceService, stepInstanceService, taskExecuteMQEventDispatcher);
         this.notifyService = notifyService;
-        this.stepInstanceService = stepInstanceService;
     }
 
     @Override
@@ -92,6 +87,7 @@ public class ConfirmStepEventHandler implements StepEventHandler {
         } catch (Throwable e) {
             String errorMsg = "Handling step event error,stepInstanceId:" + stepInstanceId;
             log.error(errorMsg, e);
+            safelyFinishStepWhenCaughtException(stepInstance);
         }
     }
 
@@ -108,8 +104,8 @@ public class ConfirmStepEventHandler implements StepEventHandler {
                 null, endTime, taskTotalTime);
             long stepTotalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());
-            stepInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.CONFIRM_TERMINATED, null,
-                endTime, stepTotalTime);
+            stepInstanceService.updateStepExecutionInfo(stepInstance.getTaskInstanceId(), stepInstanceId,
+                RunStatusEnum.CONFIRM_TERMINATED, null, endTime, stepTotalTime);
         } else {
             log.warn("Unsupported step instance status for confirm step terminate action, stepInstanceId:{}, " +
                 "status:{}", stepInstanceId, stepInstance.getStatus());
@@ -147,7 +143,7 @@ public class ConfirmStepEventHandler implements StepEventHandler {
                 stepOperator = taskInstance.getOperator();
                 stepInstance.setOperator(stepOperator);
             }
-            stepInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.WAITING_USER,
+            stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId, RunStatusEnum.WAITING_USER,
                 System.currentTimeMillis(), null, null);
             taskInstanceService.updateTaskStatus(taskInstanceId, RunStatusEnum.WAITING_USER.getValue());
             notifyService.asyncSendMQConfirmNotification(taskInstance, stepInstance);
@@ -169,10 +165,10 @@ public class ConfirmStepEventHandler implements StepEventHandler {
             long totalTime = TaskCostCalculator.calculate(stepInstance.getStartTime(), endTime,
                 stepInstance.getTotalTime());
             // 人工确认通过，该步骤状态标识为成功；终止成功的步骤保持状态不变
-            stepInstanceService.updateStepExecutionInfo(stepInstanceId, RunStatusEnum.SUCCESS, null, endTime,
-                totalTime);
+            stepInstanceService.updateStepExecutionInfo(taskInstanceId, stepInstanceId, RunStatusEnum.SUCCESS,
+                null, endTime, totalTime);
             taskExecuteMQEventDispatcher.dispatchJobEvent(
-                JobEvent.refreshJob(taskInstanceId, EventSource.buildStepEventSource(stepInstanceId)));
+                JobEvent.refreshJob(taskInstanceId, EventSource.buildStepEventSource(taskInstanceId, stepInstanceId)));
         } else {
             log.warn("Unsupported step instance status for confirm-step-continue step action, stepInstanceId:{}, " +
                 "status:{}", stepInstanceId, stepInstance.getStatus());

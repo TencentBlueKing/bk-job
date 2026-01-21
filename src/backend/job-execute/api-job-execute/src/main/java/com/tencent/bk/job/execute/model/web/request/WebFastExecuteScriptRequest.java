@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -27,13 +27,17 @@ package com.tencent.bk.job.execute.model.web.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
-import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.constant.MySQLTextDataType;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.common.validation.EndWith;
+import com.tencent.bk.job.common.validation.MaxLength;
+import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
+import com.tencent.bk.job.common.validation.ValidSensitiveParamLength;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
+import com.tencent.bk.job.execute.validation.ValidTimeoutLimit;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.NotNull;
 
@@ -42,6 +46,7 @@ import javax.validation.constraints.NotNull;
  */
 @Data
 @ApiModel("快速执行脚本请求报文")
+@ValidSensitiveParamLength(sensitiveFlag = "secureParam", usedBase64 = false)
 public class WebFastExecuteScriptRequest {
     /**
      * 脚本执行任务名称
@@ -52,6 +57,11 @@ public class WebFastExecuteScriptRequest {
      * 脚本内容
      */
     @ApiModelProperty(value = "脚本内容，BASE64编码，当手动录入的时候使用此参数")
+    @NotExceedMySQLTextFieldLength(
+        fieldName = "scriptContent",
+        fieldType = MySQLTextDataType.MEDIUMTEXT,
+        base64 = true
+    )
     private String content;
 
     @ApiModelProperty(value = "脚本ID,当引用脚本的时候传该参数")
@@ -85,12 +95,21 @@ public class WebFastExecuteScriptRequest {
     private String scriptParam;
 
     /**
+     * 自定义Windows解释器路径
+     */
+    @ApiModelProperty(value = "自定义Windows解释器路径，对Linux机器不生效，对SQL脚本不生效")
+    @EndWith(fieldName = "windowsInterpreter", value = ".exe",
+        message = "{validation.constraints.WinInterpreterInvalidSuffix.message}")
+    @MaxLength(value = 260,
+        message = "{validation.constraints.WindowsInterpreterExceedMaxLength.message}")
+    private String windowsInterpreter;
+
+    /**
      * 执行超时时间
      */
     @ApiModelProperty(value = "执行超时时间，单位秒", required = true)
     @NotNull(message = "{validation.constraints.InvalidJobTimeout_empty.message}")
-    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max= JobConstants.MAX_JOB_TIMEOUT_SECONDS,
-        message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
+    @ValidTimeoutLimit
     private Integer timeout;
 
     /**
@@ -131,5 +150,14 @@ public class WebFastExecuteScriptRequest {
         explain = "发布完成后可以删除")
     public TaskTargetVO getTaskTarget() {
         return taskTarget != null ? taskTarget : targetServers;
+    }
+
+    /**
+     * 获取去除首尾空格后的windowsInterpreter
+     *
+     * @return Trim后的windowsInterpreter
+     */
+    public String getTrimmedWindowsInterpreter() {
+        return windowsInterpreter != null ? windowsInterpreter.trim() : null;
     }
 }

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,7 +24,8 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
-import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.IGseClient;
+import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.model.AccountDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -43,12 +44,13 @@ import org.springframework.cloud.sleuth.Tracer;
 @Slf4j
 public abstract class AbstractGseTaskCommand implements GseTaskCommand {
 
+    protected final EngineDependentServiceHolder engineDependentServiceHolder;
     protected final AgentService agentService;
     protected final AccountService accountService;
     protected final GseTaskService gseTaskService;
     protected final ExecuteObjectTaskService executeObjectTaskService;
     protected final Tracer tracer;
-    protected final GseClient gseClient;
+    protected final IGseClient gseClient;
 
     /**
      * 步骤实例
@@ -82,30 +84,21 @@ public abstract class AbstractGseTaskCommand implements GseTaskCommand {
      * GSE 任务信息
      */
     protected String gseTaskInfo;
-    /**
-     * 是否是GSE V2 Task
-     */
-    protected boolean gseV2Task;
 
-
-    public AbstractGseTaskCommand(AgentService agentService,
-                                  AccountService accountService,
-                                  GseTaskService gseTaskService,
+    public AbstractGseTaskCommand(EngineDependentServiceHolder engineDependentServiceHolder,
                                   ExecuteObjectTaskService executeObjectTaskService,
-                                  Tracer tracer,
-                                  GseClient gseClient,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance,
                                   GseTaskDTO gseTask) {
-        this.agentService = agentService;
-        this.accountService = accountService;
-        this.gseTaskService = gseTaskService;
+        this.engineDependentServiceHolder = engineDependentServiceHolder;
+        this.agentService = engineDependentServiceHolder.getAgentService();
+        this.accountService = engineDependentServiceHolder.getAccountService();
+        this.gseTaskService = engineDependentServiceHolder.getGseTaskService();
+        this.tracer = engineDependentServiceHolder.getTracer();
+        this.gseClient = engineDependentServiceHolder.getGseClient();
         this.executeObjectTaskService = executeObjectTaskService;
-        this.tracer = tracer;
-        this.gseClient = gseClient;
         this.taskInstance = taskInstance;
         this.stepInstance = stepInstance;
-        this.gseV2Task = stepInstance.isTargetGseV2Agent();
         this.gseTask = gseTask;
         this.taskInstanceId = taskInstance.getId();
         this.stepInstanceId = gseTask.getStepInstanceId();

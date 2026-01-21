@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.crypto;
 
 import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -76,6 +77,21 @@ public class CryptoConfigService {
     }
 
     /**
+     * 获取SM2私钥字符串
+     */
+    public String getSm2PrivateKey() {
+        return encryptConfig.getSm2PrivateKey();
+    }
+
+    /**
+     * 获取SM2公钥
+     * @return
+     */
+    public String getSm2PublicKey() {
+        return encryptConfig.getSm2PublicKey();
+    }
+
+    /**
      * 根据加密场景获取需要使用的加密算法
      *
      * @param cryptoScenarioEnum 加密场景枚举值
@@ -87,6 +103,9 @@ public class CryptoConfigService {
         }
         if (scenarioAlgorithms != null && scenarioAlgorithms.containsKey(cryptoScenarioEnum.getValue())) {
             return scenarioAlgorithms.get(cryptoScenarioEnum.getValue());
+        }
+        if (StringUtils.isNotEmpty(cryptoScenarioEnum.getAlgorithm())) {
+            return cryptoScenarioEnum.getAlgorithm();
         }
         return getDefaultSymmetricAlgorithm();
     }

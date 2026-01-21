@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.file.worker.task.heartbeat;
 
+import com.tencent.bk.job.common.config.ClusterProperties;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
 import com.tencent.bk.job.common.util.http.JobHttpClient;
@@ -32,6 +33,7 @@ import com.tencent.bk.job.common.util.machine.MachineUtil;
 import com.tencent.bk.job.file.worker.config.WorkerConfig;
 import com.tencent.bk.job.file.worker.service.EnvironmentService;
 import com.tencent.bk.job.file.worker.service.GatewayInfoService;
+import com.tencent.bk.job.file.worker.service.JwtTokenService;
 import com.tencent.bk.job.file.worker.service.MetaDataService;
 import com.tencent.bk.job.file_gateway.model.req.inner.HeartBeatReq;
 import lombok.extern.slf4j.Slf4j;
@@ -45,29 +47,29 @@ import java.io.FileNotFoundException;
 @Service
 public class HeartBeatTask {
 
-    public static volatile boolean runFlag = true;
-
     private final JobHttpClient jobHttpClient;
+    private final ClusterProperties clusterProperties;
     private final WorkerConfig workerConfig;
     private final GatewayInfoService gatewayInfoService;
     private final MetaDataService metaDataService;
     private final EnvironmentService environmentService;
+    private final JwtTokenService jwtTokenService;
 
     @Autowired
     public HeartBeatTask(JobHttpClient jobHttpClient,
+                         ClusterProperties clusterProperties,
                          WorkerConfig workerConfig,
                          GatewayInfoService gatewayInfoService,
                          MetaDataService metaDataService,
-                         EnvironmentService environmentService) {
+                         EnvironmentService environmentService,
+                         JwtTokenService jwtTokenService) {
         this.jobHttpClient = jobHttpClient;
+        this.clusterProperties = clusterProperties;
         this.workerConfig = workerConfig;
         this.gatewayInfoService = gatewayInfoService;
         this.metaDataService = metaDataService;
         this.environmentService = environmentService;
-    }
-
-    public static void stopHeartBeat() {
-        runFlag = false;
+        this.jwtTokenService = jwtTokenService;
     }
 
     private HeartBeatReq getHeartBeatReq() {
@@ -76,6 +78,7 @@ public class HeartBeatTask {
         heartBeatReq.setTagList(workerConfig.getTagList());
         heartBeatReq.setAppId(workerConfig.getAppId());
         heartBeatReq.setToken(workerConfig.getToken());
+        heartBeatReq.setClusterName(clusterProperties.getName());
 
         // 二进制部署环境与K8s环境差异处理
         heartBeatReq.setAccessHost(environmentService.getAccessHost());
@@ -101,15 +104,15 @@ public class HeartBeatTask {
         return heartBeatReq;
     }
 
-    public void run() {
-        if (!runFlag) {
-            log.info("HeartBeat closed, ignore");
-            return;
-        }
+    public void doHeartBeat() {
         String url = gatewayInfoService.getHeartBeatUrl();
         HeartBeatReq heartBeatReq = getHeartBeatReq();
         log.info("HeartBeat: url={},body={}", url, JsonUtils.toJsonWithoutSkippedFields(heartBeatReq));
-        HttpReq req = HttpReqGenUtil.genSimpleJsonReq(url, heartBeatReq);
+        HttpReq req = HttpReqGenUtil.genSimpleJsonReq(
+            url,
+            jwtTokenService.getJwtTokenHeaders(),
+            heartBeatReq
+        );
         jobHttpClient.post(req);
     }
 }

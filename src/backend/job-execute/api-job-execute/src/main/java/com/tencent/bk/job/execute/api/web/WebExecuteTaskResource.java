@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.execute.api.web;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.WebAPI;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.execute.model.web.request.RedoTaskRequest;
@@ -141,7 +143,33 @@ public interface WebExecuteTaskResource {
 
     @ApiOperation(value = "执行作业步骤操作", produces = "application/json")
     @PostMapping(value = {"/do-step-operation/stepInstanceId/{stepInstanceId}"})
+    @Deprecated
+    @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.11.x",
+        type = CompatibleType.DEPLOY, explain = "发布完成后可以删除")
     Response<StepOperationVO> doStepOperation(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+        String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+        AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+        String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+        String scopeId,
+        @ApiParam(value = "步骤实例ID", required = true, example = "1")
+        @PathVariable("stepInstanceId")
+        Long stepInstanceId,
+        @ApiParam(value = "步骤实例操作请求报文", name = "operation", required = true)
+        @RequestBody
+        WebStepOperation operation
+    );
+
+    @ApiOperation(value = "执行作业步骤操作", produces = "application/json")
+    @PostMapping(value = {"/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/operate"})
+    Response<StepOperationVO> doStepOperationV2(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -154,6 +182,9 @@ public interface WebExecuteTaskResource {
         @ApiParam(value = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
+        @ApiParam(value = "作业实例ID", required = true, example = "1")
+        @PathVariable("taskInstanceId")
+            Long taskInstanceId,
         @ApiParam(value = "步骤实例ID", required = true, example = "1")
         @PathVariable("stepInstanceId")
             Long stepInstanceId,

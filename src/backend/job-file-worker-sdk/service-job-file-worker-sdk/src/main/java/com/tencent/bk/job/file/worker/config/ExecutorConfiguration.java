@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -43,11 +43,11 @@ public class ExecutorConfiguration {
         return new WatchableThreadPoolExecutor(
             meterRegistry,
             "fileTaskExecutor",
-            40,
-            40,
+            100,
+            100,
             1,
             TimeUnit.MINUTES,
-            new LinkedBlockingQueue<>(1000), (r, executor) -> {
+            new LinkedBlockingQueue<>(10000), (r, executor) -> {
             log.error("fileTaskWorkerPool rejected a task, use current thread now, plz add more threads");
             r.run();
         });
@@ -58,11 +58,11 @@ public class ExecutorConfiguration {
         return new WatchableThreadPoolExecutor(
             meterRegistry,
             "watchingTaskExecutor",
-            40,
-            40,
+            100,
+            100,
             1,
             TimeUnit.MINUTES
-            , new LinkedBlockingQueue<>(1000), (r, executor) ->
+            , new LinkedBlockingQueue<>(10000), (r, executor) ->
             log.error("watchingTaskExecutor rejected a task, ignore, plz add more threads")
         );
     }

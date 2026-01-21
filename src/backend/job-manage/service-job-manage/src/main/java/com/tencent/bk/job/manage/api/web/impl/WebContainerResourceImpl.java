@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -34,10 +34,10 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.vo.ContainerVO;
-import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
-import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
-import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
+import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
+import com.tencent.bk.job.common.util.toggle.ToggleStrategyContextParams;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureToggle;
 import com.tencent.bk.job.manage.api.web.WebContainerResource;
 import com.tencent.bk.job.manage.model.mapper.ContainerMapper;
 import com.tencent.bk.job.manage.model.query.ContainerQuery;
@@ -49,7 +49,7 @@ import com.tencent.bk.job.manage.model.web.request.chooser.container.ListContain
 import com.tencent.bk.job.manage.model.web.vo.chooser.container.ContainerTopologyNodeVO;
 import com.tencent.bk.job.manage.service.ApplicationService;
 import com.tencent.bk.job.manage.service.ContainerService;
-import com.tencent.bk.job.manage.service.host.HostService;
+import com.tencent.bk.job.manage.service.host.CurrentTenantHostService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,17 +69,17 @@ public class WebContainerResourceImpl implements WebContainerResource {
     private final ContainerService containerService;
     private final ApplicationService applicationService;
     private final MessageI18nService i18nService;
-    private final HostService hostService;
+    private final CurrentTenantHostService currentTenantHostService;
 
     @Autowired
     public WebContainerResourceImpl(ContainerService containerService,
                                     ApplicationService applicationService,
                                     MessageI18nService i18nService,
-                                    HostService hostService) {
+                                    CurrentTenantHostService currentTenantHostService) {
         this.containerService = containerService;
         this.applicationService = applicationService;
         this.i18nService = i18nService;
-        this.hostService = hostService;
+        this.currentTenantHostService = currentTenantHostService;
     }
 
     @Override
@@ -122,13 +122,16 @@ public class WebContainerResourceImpl implements WebContainerResource {
     }
 
     private boolean isContainerExecuteSupport(AppResourceScope appResourceScope) {
+        if (appResourceScope.isBizSet()) {
+            return false;
+        }
         return FeatureToggle.checkFeature(
             FeatureIdConstants.FEATURE_CONTAINER_EXECUTE,
-            FeatureExecutionContext.builder().addContextParam(
+            ToggleEvaluateContext.builder().addContextParam(
                 ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE, appResourceScope));
     }
 
-    public ContainerTopologyNodeVO convertToContainerTopologyNodeVO(KubeNodeDTO node) {
+    private ContainerTopologyNodeVO convertToContainerTopologyNodeVO(KubeNodeDTO node) {
         ContainerTopologyNodeVO nodeVO = new ContainerTopologyNodeVO();
         nodeVO.setObjectId(node.getKind());
         nodeVO.setObjectName(node.getKind());
@@ -156,6 +159,9 @@ public class WebContainerResourceImpl implements WebContainerResource {
         } else if (bizSetApp.isBizSet()) {
             topo.setObjectId("biz_set");
             topo.setObjectName(i18nService.getI18n("cmdb.object.name.biz_set"));
+        } else if (bizSetApp.isTenantSet()) {
+            topo.setObjectId("tenant_set");
+            topo.setObjectName(i18nService.getI18n("cmdb.object.name.tenant_set"));
         }
         topo.setCount(0);
         return Collections.singletonList(topo);
@@ -186,7 +192,7 @@ public class WebContainerResourceImpl implements WebContainerResource {
     private void fillNodesHostInfo(Collection<ContainerVO> containerVOs) {
         List<Long> hostIds = containerVOs.stream()
             .map(ContainerVO::getNodeHostId).distinct().collect(Collectors.toList());
-        Map<Long, ApplicationHostDTO> hostMap = hostService.listHostsByHostIds(hostIds);
+        Map<Long, ApplicationHostDTO> hostMap = currentTenantHostService.listHostsByHostIds(hostIds);
 
         containerVOs.forEach(containerVO -> {
             Long nodeHostId = containerVO.getNodeHostId();

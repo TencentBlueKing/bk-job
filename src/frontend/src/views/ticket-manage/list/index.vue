@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -42,7 +42,7 @@
         <jb-search-select
           ref="search"
           :data="searchSelect"
-          :placeholder="$t('ticket.搜索 ID、名称、描述、创建人、更新人...')"
+          :placeholder="$t('ticket.搜索 ID、名称、描述、创建人、更新人')"
           style="width: 480px;"
           @on-change="handleSearch" />
       </template>
@@ -82,7 +82,7 @@
         align="left"
         :filter-method="handelFilterType"
         :filters="sourceFilters"
-        :label="$t('ticket.类型.colHead')"
+        :label="$t('ticket.类型_colHead')"
         prop="type"
         show-overflow-tooltip
         width="180">
@@ -106,7 +106,7 @@
         v-if="allRenderColumnMap.related"
         key="related"
         align="right"
-        :label="$t('ticket.被引用.colHead')"
+        :label="$t('ticket.被引用_colHead')"
         prop="related"
         width="100">
         <template slot-scope="{ row }">
@@ -135,7 +135,11 @@
         :label="$t('ticket.创建人')"
         prop="creator"
         show-overflow-tooltip
-        width="120" />
+        width="120">
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.creator" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.createTime"
         key="createTime"
@@ -151,7 +155,11 @@
         :label="$t('ticket.更新人')"
         prop="lastModifyUser"
         show-overflow-tooltip
-        width="120" />
+        width="120">
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.lastModifyUser" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyTime"
         key="lastModifyTime"
@@ -204,7 +212,7 @@
     <jb-sideslider
       :is-show.sync="showRelatedSideslider"
       :show-footer="false"
-      :title="$t('ticket.被引用.label')"
+      :title="$t('ticket.被引用_label')"
       :width="900">
       <related-ticket
         :credential-id="credentialId" />
@@ -322,14 +330,22 @@
         {
           name: I18n.t('ticket.创建人'),
           id: 'creator',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
         {
           name: I18n.t('ticket.更新人'),
           id: 'lastModifyUser',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
       ];
       this.tableColumn = [
@@ -344,7 +360,7 @@
         },
         {
           id: 'type',
-          label: I18n.t('ticket.类型.colHead'),
+          label: I18n.t('ticket.类型_colHead'),
           disabled: true,
         },
         {
@@ -353,7 +369,7 @@
         },
         {
           id: 'related',
-          label: I18n.t('ticket.被引用.colHead'),
+          label: I18n.t('ticket.被引用_colHead'),
         },
         {
           id: 'creator',

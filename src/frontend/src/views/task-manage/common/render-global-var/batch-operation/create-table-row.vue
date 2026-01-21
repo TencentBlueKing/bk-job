@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -112,7 +112,7 @@
         type="reduce-fill"
         @click="handleDelete" />
     </td>
-    <ip-selector
+    <jb-ip-selector
       :original-value="originalValue"
       :show-dialog="isShowChooseIp"
       :value="formData.defaultTargetValue.executeObjectsInfo"
@@ -121,8 +121,7 @@
   </tr>
 </template>
 <script>
-  import _ from 'lodash';
-
+  import ExecuteTargetModel from '@model/execute-target';
   import GlobalVariableModel from '@model/task/global-variable';
 
   import { globalVariableNameRule } from '@utils/validator';
@@ -149,7 +148,7 @@
     },
     data() {
       return {
-        formData: _.cloneDeep(this.data),
+        formData: { ...this.data },
         isShowChooseIp: false,
         isShowNameError: false,
         errorNameText: '',
@@ -185,7 +184,7 @@
       },
     },
     created() {
-      this.originalValue = _.cloneDeep(this.data.defaultTargetValue.executeObjectsInfo);
+      this.originalValue = ExecuteTargetModel.cloneExecuteObjectsInfo(this.data.defaultTargetValue.executeObjectsInfo);
 
       this.typeList = [
         {
@@ -261,7 +260,10 @@
        * @param { Object } executeObjectsInfo 主机信息
        */
       handleExecuteObjectsInfoChange(executeObjectsInfo) {
-        this.formData.defaultTargetValue.executeObjectsInfo = executeObjectsInfo;
+        this.formData.defaultTargetValue = {
+          ...this.formData.defaultTargetValue,
+          executeObjectsInfo,
+        };
         this.triggerChange();
       },
       /**

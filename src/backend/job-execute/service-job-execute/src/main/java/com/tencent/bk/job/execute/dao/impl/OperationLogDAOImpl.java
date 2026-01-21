@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,58 +24,76 @@
 
 package com.tencent.bk.job.execute.dao.impl;
 
+import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
+import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
+import com.tencent.bk.job.common.mysql.jooq.JooqDataTypeUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.execute.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.constants.UserOperationEnum;
 import com.tencent.bk.job.execute.dao.OperationLogDAO;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.OperationLogDTO;
 import com.tencent.bk.job.execute.model.tables.OperationLog;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public class OperationLogDAOImpl implements OperationLogDAO {
+public class OperationLogDAOImpl extends BaseDAO implements OperationLogDAO {
     private static final OperationLog TABLE = OperationLog.OPERATION_LOG;
-    private DSLContext ctx;
 
     @Autowired
-    public OperationLogDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
-        this.ctx = ctx;
+    public OperationLogDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory, TABLE.getName());
     }
 
     @Override
+    @MySQLOperation(table = "operation_log", op = DbOperationEnum.WRITE)
     public long saveOperationLog(OperationLogDTO operationLog) {
-        Record record = ctx.insertInto(TABLE, TABLE.TASK_INSTANCE_ID, TABLE.OP_CODE, TABLE.OPERATOR,
-            TABLE.CREATE_TIME, TABLE.DETAIL)
-            .values(operationLog.getTaskInstanceId(),
+        Record record = dsl().insertInto(
+                TABLE,
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.OP_CODE,
+                TABLE.OPERATOR,
+                TABLE.CREATE_TIME,
+                TABLE.DETAIL)
+            .values(
+                operationLog.getId(),
+                operationLog.getTaskInstanceId(),
                 JooqDataTypeUtil.toByte(operationLog.getOperationEnum().getValue()),
                 operationLog.getOperator(),
                 operationLog.getCreateTime(),
                 JsonUtils.toJson(operationLog.getDetail()))
-            .returning(TABLE.ID).fetchOne();
-        return record.getValue(TABLE.ID);
+            .returning(TABLE.ID)
+            .fetchOne();
+
+        return operationLog.getId() != null ? operationLog.getId() : record.getValue(TABLE.ID);
     }
 
     @Override
+    @MySQLOperation(table = "operation_log", op = DbOperationEnum.READ)
     public List<OperationLogDTO> listOperationLog(long taskInstanceId) {
-        Result result = ctx.select(TABLE.ID, TABLE.TASK_INSTANCE_ID, TABLE.OP_CODE, TABLE.OPERATOR, TABLE.CREATE_TIME
-            , TABLE.DETAIL)
+        Result result = dsl()
+            .select(
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.OP_CODE,
+                TABLE.OPERATOR,
+                TABLE.CREATE_TIME,
+                TABLE.DETAIL)
             .from(TABLE)
             .where(TABLE.TASK_INSTANCE_ID.eq(taskInstanceId))
             .orderBy(TABLE.CREATE_TIME.desc())
             .fetch();
         List<OperationLogDTO> opLogs = new ArrayList<>();
-        if (result.size() > 0) {
-            result.into(record -> {
-                opLogs.add(extractInfo(record));
+        if (!result.isEmpty()) {
+            result.forEach(record -> {
+                opLogs.add(extractInfo((Record) record));
             });
         }
         return opLogs;

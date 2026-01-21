@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -31,7 +31,7 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
     implementation 'org.springframework:spring-webmvc'
     implementation(group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis')
-    runtimeOnly('mysql:mysql-connector-java')
+    runtimeOnly('com.mysql:mysql-connector-j')
 }
 springBoot {
     getMainClass().set("com.tencent.bk.job.file_gateway.JobFileGatewayBootApplication")
@@ -43,8 +43,7 @@ task renameArtifacts(type: Copy) {
     destinationDir file('build/libs/')
     rename "boot-job-file-gateway-${version}.jar", "job-file-gateway-${version}.jar"
 }
-renameArtifacts.dependsOn jar
-assemble.dependsOn renameArtifacts
+renameArtifacts.dependsOn assemble
 
 task copyToLatestJar(type: Copy) {
     group = "local"
@@ -56,3 +55,4 @@ task copyToLatestJar(type: Copy) {
 copyToLatestJar.dependsOn assemble
 
 apply from: "$rootDir/task_job_package.gradle"
+copyToRelease.dependsOn renameArtifacts

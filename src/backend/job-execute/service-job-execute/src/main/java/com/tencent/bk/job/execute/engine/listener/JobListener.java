@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -27,25 +27,30 @@ package com.tencent.bk.job.execute.engine.listener;
 import com.google.common.collect.Lists;
 import com.tencent.bk.job.common.constant.RollingModeEnum;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.engine.consts.JobActionEnum;
 import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
+import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobResourceQuotaManager;
 import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
+import com.tencent.bk.job.execute.model.db.ExecuteObjectRollingConfigDetailDO;
 import com.tencent.bk.job.execute.service.NotifyService;
-import com.tencent.bk.job.execute.service.RollingConfigService;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.statistics.StatisticsService;
+import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -56,7 +61,7 @@ import java.util.List;
  */
 @Component("jobEventListener")
 @Slf4j
-public class JobListener {
+public class JobListener extends BaseJobMqListener {
 
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final StatisticsService statisticsService;
@@ -64,6 +69,9 @@ public class JobListener {
     private final StepInstanceService stepInstanceService;
     private final RollingConfigService rollingConfigService;
     private final NotifyService notifyService;
+    protected final CustomPasswordCache customPasswordCache;
+
+    private final RunningJobResourceQuotaManager runningJobResourceQuotaManager;
 
     @Autowired
     public JobListener(TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
@@ -71,36 +79,40 @@ public class JobListener {
                        TaskInstanceService taskInstanceService,
                        StepInstanceService stepInstanceService,
                        RollingConfigService rollingConfigService,
-                       NotifyService notifyService) {
+                       NotifyService notifyService,
+                       RunningJobResourceQuotaManager runningJobResourceQuotaManager,
+                       CustomPasswordCache customPasswordCache) {
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.statisticsService = statisticsService;
         this.taskInstanceService = taskInstanceService;
         this.stepInstanceService = stepInstanceService;
         this.rollingConfigService = rollingConfigService;
         this.notifyService = notifyService;
+        this.runningJobResourceQuotaManager = runningJobResourceQuotaManager;
+        this.customPasswordCache = customPasswordCache;
     }
 
 
     /**
      * 处理作业执行相关的事件
      *
-     * @param jobEvent 作业执行相关的事件
+     * @param message 消息
      */
-    public void handleEvent(JobEvent jobEvent) {
+    @Override
+    public void handleEvent(Message<? extends JobMessage> message) {
+        JobEvent jobEvent = (JobEvent) message.getPayload();
         log.info("Handle job event, event: {}, duration: {}ms", jobEvent, jobEvent.duration());
         long jobInstanceId = jobEvent.getJobInstanceId();
         JobActionEnum action = JobActionEnum.valueOf(jobEvent.getAction());
+        TaskInstanceDTO taskInstance;
         try {
-            TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(jobInstanceId);
+            taskInstance = taskInstanceService.getTaskInstance(jobInstanceId);
             switch (action) {
                 case START:
                     startJob(taskInstance);
                     break;
                 case STOP:
                     stopJob(taskInstance);
-                    break;
-                case RESTART:
-                    restartJob(taskInstance);
                     break;
                 case REFRESH:
                     refreshJob(taskInstance);
@@ -148,38 +160,10 @@ public class JobListener {
         if (RunStatusEnum.RUNNING == taskStatus || RunStatusEnum.WAITING_USER == taskStatus) {
             taskInstanceService.updateTaskStatus(jobInstanceId, RunStatusEnum.STOPPING.getValue());
             long currentStepInstanceId = taskInstance.getCurrentStepInstanceId();
-            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.stopStep(currentStepInstanceId));
+            taskExecuteMQEventDispatcher.dispatchStepEvent(
+                StepEvent.stopStep(jobInstanceId, currentStepInstanceId));
         } else {
             log.warn("Unsupported job instance run status for stop task, jobInstanceId={}, status={}",
-                jobInstanceId, taskInstance.getStatus());
-        }
-    }
-
-    /**
-     * 重头执行作业
-     *
-     * @param taskInstance 作业实例
-     */
-    private void restartJob(TaskInstanceDTO taskInstance) {
-        long jobInstanceId = taskInstance.getId();
-        RunStatusEnum taskStatus = taskInstance.getStatus();
-        // 验证作业状态，只有“执行失败”和“等待用户”的作业可以重头执行
-        if (RunStatusEnum.WAITING_USER == taskStatus || RunStatusEnum.FAIL == taskStatus) {
-
-            // 重置作业状态
-            taskInstanceService.resetTaskStatus(jobInstanceId);
-            stepInstanceService.addStepInstanceExecuteCount(jobInstanceId);
-
-            // 重置作业下步骤的状态、开始时间和结束时间等。
-            List<Long> stepInstanceIdList = stepInstanceService.getTaskStepIdList(jobInstanceId);
-            for (long stepInstanceId : stepInstanceIdList) {
-                stepInstanceService.updateStepStatus(stepInstanceId, RunStatusEnum.BLANK.getValue());
-                stepInstanceService.resetStepStatus(stepInstanceId);
-            }
-
-            taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.startJob(jobInstanceId));
-        } else {
-            log.warn("Unsupported job instance run status for restart task, jobInstanceId={}, status={}",
                 jobInstanceId, taskInstance.getStatus());
         }
     }
@@ -194,7 +178,8 @@ public class JobListener {
         RunStatusEnum taskStatus = taskInstance.getStatus();
 
         long currentStepInstanceId = taskInstance.getCurrentStepInstanceId();
-        StepInstanceBaseDTO currentStepInstance = stepInstanceService.getBaseStepInstance(currentStepInstanceId);
+        StepInstanceBaseDTO currentStepInstance = stepInstanceService.getBaseStepInstance(
+            jobInstanceId, currentStepInstanceId);
         RunStatusEnum stepStatus = currentStepInstance.getStatus();
 
         // 验证作业状态，只有'正在执行'、'强制终止中'的作业可以刷新状态进入下一步或者结束
@@ -230,19 +215,24 @@ public class JobListener {
 
     private void nextStep(TaskInstanceDTO taskInstance, StepInstanceBaseDTO currentStepInstance) {
         if (currentStepInstance.isRollingStep()) {
-            RollingConfigDTO taskInstanceRollingConfig =
-                rollingConfigService.getRollingConfig(currentStepInstance.getRollingConfigId());
-            RollingConfigDetailDO rollingConfig = taskInstanceRollingConfig.getConfigDetail();
-            StepInstanceBaseDTO nextStepInstance = getNextStepInstance(taskInstance, currentStepInstance,
-                rollingConfig);
+            RollingConfigDTO rollingConfig = rollingConfigService.getRollingConfig(
+                currentStepInstance.getTaskInstanceId(),
+                currentStepInstance.getRollingConfigId()
+            );
+            StepInstanceBaseDTO nextStepInstance = getNextStepInstance(
+                taskInstance,
+                currentStepInstance,
+                rollingConfig
+            );
             if (nextStepInstance == null) {
                 finishJob(taskInstance, currentStepInstance, RunStatusEnum.SUCCESS);
             } else {
-                if (rollingConfig.getMode().equals(RollingModeEnum.MANUAL.getValue())
+                RollingModeEnum mode = rollingConfig.getModeOfStep(currentStepInstance.getId());
+                if (mode == RollingModeEnum.MANUAL
                     && rollingConfig.isFirstRollingStep(nextStepInstance.getId())) {
                     log.info("Manual mode for rolling step[{}], pause and wait for user confirmation",
                         nextStepInstance.getId());
-                    stepInstanceService.updateStepStatus(nextStepInstance.getId(),
+                    stepInstanceService.updateStepStatus(taskInstance.getId(), nextStepInstance.getId(),
                         RunStatusEnum.WAITING_USER.getValue());
                     taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.WAITING_USER.getValue());
                 } else {
@@ -266,27 +256,47 @@ public class JobListener {
                            StepInstanceBaseDTO stepInstance,
                            RunStatusEnum jobStatus) {
         long jobInstanceId = taskInstance.getId();
-        long stepInstanceId = stepInstance.getId();
-        Long endTime = DateUtils.currentTimeMillis();
-        long totalTime = TaskCostCalculator.calculate(taskInstance.getStartTime(), endTime,
-            taskInstance.getTotalTime());
-        taskInstance.setEndTime(endTime);
-        taskInstance.setTotalTime(totalTime);
-        taskInstance.setStatus(jobStatus);
-        taskInstanceService.updateTaskExecutionInfo(jobInstanceId, jobStatus, null, null, endTime, totalTime);
+        try {
+            Long endTime = DateUtils.currentTimeMillis();
+            long totalTime = TaskCostCalculator.calculate(taskInstance.getStartTime(), endTime,
+                taskInstance.getTotalTime());
+            taskInstance.setEndTime(endTime);
+            taskInstance.setTotalTime(totalTime);
+            taskInstance.setStatus(jobStatus);
+            taskInstanceService.updateTaskExecutionInfo(jobInstanceId, jobStatus, null, null, endTime, totalTime);
 
-        // 作业执行结果消息通知
-        if (RunStatusEnum.SUCCESS == jobStatus || RunStatusEnum.IGNORE_ERROR == jobStatus) {
-            notifyService.asyncSendMQSuccessTaskNotification(taskInstance, stepInstance);
-        } else {
-            notifyService.asyncSendMQFailTaskNotification(taskInstance, stepInstance);
+            // 处理目标主机的密码缓存
+            handleTargetHostPasswordCache(jobInstanceId, jobStatus);
+
+            // 作业执行结果消息通知
+            if (RunStatusEnum.SUCCESS == jobStatus || RunStatusEnum.IGNORE_ERROR == jobStatus) {
+                notifyService.asyncSendMQSuccessTaskNotification(taskInstance, stepInstance);
+            } else {
+                notifyService.asyncSendMQFailTaskNotification(taskInstance, stepInstance);
+            }
+
+            // 触发作业结束统计分析
+            statisticsService.updateEndJobStatistics(taskInstance);
+
+            // 作业执行完成回调
+            callback(taskInstance);
+        } finally {
+            // 从资源配额中删除该作业实例
+            runningJobResourceQuotaManager.removeJob(
+                taskInstance.getAppCode(),
+                GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
+                jobInstanceId
+            );
         }
 
-        // 触发作业结束统计分析
-        statisticsService.updateEndJobStatistics(taskInstance);
+    }
 
-        // 作业执行完成回调
-        callback(taskInstance, jobInstanceId, jobStatus.getValue(), stepInstanceId, stepInstance.getStatus());
+    private void handleTargetHostPasswordCache(Long jobInstanceId, RunStatusEnum jobStatus) {
+        if (RunStatusEnum.SUCCESS == jobStatus || RunStatusEnum.IGNORE_ERROR == jobStatus) {
+            customPasswordCache.deleteCache(jobInstanceId);
+        } else {
+            customPasswordCache.setPwdExpireTimeOnTaskFail(jobInstanceId);
+        }
     }
 
     /**
@@ -294,38 +304,103 @@ public class JobListener {
      *
      * @param taskInstance        作业实例
      * @param currentStepInstance 当前步骤实例
-     * @param rollingConfig       滚动配置，仅当当前步骤为滚动步骤时才需要传入
+     * @param rollingConfigDTO       滚动配置，仅当当前步骤为滚动步骤时才需要传入
      * @return 步骤实例;如果当前步骤已经是最后一个步骤，那么返回null
      */
     private StepInstanceBaseDTO getNextStepInstance(TaskInstanceDTO taskInstance,
                                                     StepInstanceBaseDTO currentStepInstance,
-                                                    RollingConfigDetailDO rollingConfig) {
-        StepInstanceBaseDTO nextStepInstance = null;
+                                                    RollingConfigDTO rollingConfigDTO) {
+        StepInstanceBaseDTO nextStepInstance;
         if (currentStepInstance.isRollingStep()) {
-            int currentBatch = currentStepInstance.getBatch();
-            List<Long> includeStepInstanceIdList = rollingConfig.getIncludeStepInstanceIdList();
-            boolean isLastRollingStep = rollingConfig.isLastRollingStep(currentStepInstance.getId());
-            boolean isLastBatch = rollingConfig.getTotalBatch() == currentBatch;
-
-            // 最后一个滚动步骤和滚动批次，那么该滚动任务执行结束，进入下一个步骤
-            if (isLastRollingStep && isLastBatch) {
-                nextStepInstance = stepInstanceService.getNextStepInstance(taskInstance.getId(),
-                    currentStepInstance.getStepOrder());
+            if (rollingConfigDTO.isFileSourceRolling()) {
+                // 按源文件滚动的步骤
+                nextStepInstance = getNextStepInstanceForFileSourceRollingStep(
+                    taskInstance,
+                    currentStepInstance,
+                    rollingConfigDTO
+                );
             } else {
-                Long nextRollingStepInstanceId;
-                if (isLastRollingStep) {
-                    nextRollingStepInstanceId = includeStepInstanceIdList.get(0);
-                } else {
-                    nextRollingStepInstanceId = getNextStepInstanceId(includeStepInstanceIdList,
-                        currentStepInstance.getId());
-                }
-                if (nextRollingStepInstanceId != null) {
-                    nextStepInstance = stepInstanceService.getBaseStepInstance(nextRollingStepInstanceId);
-                }
+                // 按目标执行对象滚动的步骤
+                nextStepInstance = getNextStepInstanceForEORollingStep(
+                    taskInstance,
+                    currentStepInstance,
+                    rollingConfigDTO
+                );
             }
         } else {
             nextStepInstance = stepInstanceService.getNextStepInstance(taskInstance.getId(),
                 currentStepInstance.getStepOrder());
+        }
+        return nextStepInstance;
+    }
+
+    /**
+     * 当前步骤为按源文件滚动的步骤，获取下一个步骤
+     *
+     * @param taskInstance        任务实例
+     * @param currentStepInstance 当前步骤实例
+     * @param rollingConfigDTO    任务级别的滚动配置
+     * @return 下一个步骤
+     */
+    private StepInstanceBaseDTO getNextStepInstanceForFileSourceRollingStep(TaskInstanceDTO taskInstance,
+                                                                            StepInstanceBaseDTO currentStepInstance,
+                                                                            RollingConfigDTO rollingConfigDTO) {
+        StepInstanceBaseDTO nextStepInstance;
+        int totalBatch = rollingConfigService.getTotalBatch(
+            taskInstance.getId(),
+            currentStepInstance.getId(),
+            rollingConfigDTO.getId()
+        );
+        int currentBatch = currentStepInstance.getBatch();
+        boolean isLastBatch = totalBatch == currentBatch;
+
+        if (isLastBatch) {
+            // 最后一个滚动批次，那么该滚动任务执行结束，进入下一个步骤
+            nextStepInstance = stepInstanceService.getNextStepInstance(
+                taskInstance.getId(),
+                currentStepInstance.getStepOrder()
+            );
+        } else {
+            // 非最后一个批次，那么继续执行当前步骤的下一个批次
+            nextStepInstance = currentStepInstance;
+        }
+        return nextStepInstance;
+    }
+
+    /**
+     * 当前步骤为按目标执行对象滚动的步骤，获取下一个步骤
+     *
+     * @param taskInstance              任务实例
+     * @param currentStepInstance       当前步骤实例
+     * @param taskInstanceRollingConfig 任务级别的滚动配置
+     * @return 下一个步骤
+     */
+    private StepInstanceBaseDTO getNextStepInstanceForEORollingStep(TaskInstanceDTO taskInstance,
+                                                                    StepInstanceBaseDTO currentStepInstance,
+                                                                    RollingConfigDTO taskInstanceRollingConfig){
+        StepInstanceBaseDTO nextStepInstance = null;
+        ExecuteObjectRollingConfigDetailDO rollingConfig = taskInstanceRollingConfig.getExecuteObjectRollingConfig();
+        int currentBatch = currentStepInstance.getBatch();
+        List<Long> includeStepInstanceIdList = rollingConfig.getIncludeStepInstanceIdList();
+        boolean isLastRollingStep = rollingConfig.isLastRollingStep(currentStepInstance.getId());
+        boolean isLastBatch = rollingConfig.getTotalBatch() == currentBatch;
+
+        // 最后一个滚动步骤和滚动批次，那么该滚动任务执行结束，进入下一个步骤
+        if (isLastRollingStep && isLastBatch) {
+            nextStepInstance = stepInstanceService.getNextStepInstance(taskInstance.getId(),
+                currentStepInstance.getStepOrder());
+        } else {
+            Long nextRollingStepInstanceId;
+            if (isLastRollingStep) {
+                nextRollingStepInstanceId = includeStepInstanceIdList.get(0);
+            } else {
+                nextRollingStepInstanceId = getNextStepInstanceId(includeStepInstanceIdList,
+                    currentStepInstance.getId());
+            }
+            if (nextRollingStepInstanceId != null) {
+                nextStepInstance = stepInstanceService.getBaseStepInstance(taskInstance.getId(),
+                    nextRollingStepInstanceId);
+            }
         }
         return nextStepInstance;
     }
@@ -342,28 +417,50 @@ public class JobListener {
     private void startStep(StepInstanceBaseDTO stepInstance) {
         taskInstanceService.updateTaskCurrentStepId(stepInstance.getTaskInstanceId(), stepInstance.getId());
         if (stepInstance.isRollingStep()) {
-            stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.ROLLING_WAITING.getValue());
-            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getId(),
-                stepInstance.getBatch() + 1));
+            stepInstanceService.updateStepStatus(
+                stepInstance.getTaskInstanceId(),
+                stepInstance.getId(),
+                RunStatusEnum.ROLLING_WAITING.getValue()
+            );
+            taskExecuteMQEventDispatcher.dispatchStepEvent(
+                StepEvent.startStep(
+                    stepInstance.getTaskInstanceId(),
+                    stepInstance.getId(),
+                    stepInstance.getBatch() + 1
+                )
+            );
         } else {
-            stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.BLANK.getValue());
-            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getId(), null));
+            stepInstanceService.updateStepStatus(
+                stepInstance.getTaskInstanceId(),
+                stepInstance.getId(),
+                RunStatusEnum.BLANK.getValue()
+            );
+            taskExecuteMQEventDispatcher.dispatchStepEvent(
+                StepEvent.startStep(
+                    stepInstance.getTaskInstanceId(),
+                    stepInstance.getId(),
+                    null
+                )
+            );
         }
     }
 
-    private void callback(TaskInstanceDTO taskInstance, long jobInstanceId, int taskStatus, long currentStepId,
-                          RunStatusEnum stepStatus) {
+    private void callback(TaskInstanceDTO taskInstance) {
         if (StringUtils.isNotBlank(taskInstance.getCallbackUrl())) {
             JobCallbackDTO callback = new JobCallbackDTO();
-            callback.setId(jobInstanceId);
-            callback.setStatus(taskStatus);
+            callback.setId(taskInstance.getId());
+            callback.setStatus(taskInstance.getStatus().getValue());
             callback.setCallbackUrl(taskInstance.getCallbackUrl());
-            Collection<JobCallbackDTO.StepInstanceStatus> stepInstanceList = Lists.newArrayList();
-            JobCallbackDTO.StepInstanceStatus stepInstance = new JobCallbackDTO.StepInstanceStatus();
-            stepInstance.setId(currentStepId);
-            stepInstance.setStatus(stepStatus.getValue());
-            stepInstanceList.add(stepInstance);
-            callback.setStepInstances(stepInstanceList);
+            Collection<JobCallbackDTO.StepInstanceStatus> stepInstanceStatusList = Lists.newArrayList();
+            List<StepInstanceBaseDTO> stepInstanceList =
+                stepInstanceService.listBaseStepInstanceByTaskInstanceId(taskInstance.getId());
+            stepInstanceList.forEach(stepInstance -> {
+                JobCallbackDTO.StepInstanceStatus stepInstanceStatus = new JobCallbackDTO.StepInstanceStatus();
+                stepInstanceStatus.setId(stepInstance.getId());
+                stepInstanceStatus.setStatus(stepInstance.getStatus().getValue());
+                stepInstanceStatusList.add(stepInstanceStatus);
+            });
+            callback.setStepInstances(stepInstanceStatusList);
             taskExecuteMQEventDispatcher.dispatchCallbackMsg(callback);
         }
     }

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -47,4 +47,9 @@ public class ApplicationAttrsDO {
      * cmdb业务集是否包含所有子业务
      */
     private Boolean matchAllBiz;
+
+    /**
+     * cmdb租户集是否包含所有租户
+     */
+    private Boolean matchAllTenant;
 }

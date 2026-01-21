@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -28,10 +28,13 @@ import com.tencent.bk.job.common.constant.HttpMethodEnum;
 import com.tencent.bk.job.common.util.http.RetryModeEnum;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,6 +45,10 @@ import java.util.Map;
 @Data
 public class OpenApiRequestInfo<T> {
     private final HttpMethodEnum method;
+    /**
+     * API名称，用作指标数据维度取值
+     */
+    private final String apiName;
     private final String uri;
     /**
      * http url 格式 Query 参数，比如 ?name=admin&type=1
@@ -62,8 +69,16 @@ public class OpenApiRequestInfo<T> {
      */
     private final Boolean idempotent;
 
+    private final List<Header> headers;
+
     public OpenApiRequestInfo(Builder<T> builder) {
         this.method = builder.method;
+        if (builder.apiName != null) {
+            this.apiName = builder.apiName;
+        } else {
+            // 未指定apiName，默认使用uri作为接口名称
+            this.apiName = builder.uri;
+        }
         this.uri = builder.uri;
         this.queryParams = builder.queryParams;
         this.queryParamsMap = builder.queryParamsMap;
@@ -71,6 +86,7 @@ public class OpenApiRequestInfo<T> {
         this.authorization = builder.authorization;
         this.retryMode = builder.retryMode;
         this.idempotent = builder.idempotent;
+        this.headers = builder.headers;
     }
 
     public static <T> Builder<T> builder() {
@@ -79,6 +95,7 @@ public class OpenApiRequestInfo<T> {
 
     public static class Builder<T> {
         private HttpMethodEnum method;
+        private String apiName;
         private String uri;
         private String queryParams;
         private Map<String, String> queryParamsMap;
@@ -86,9 +103,15 @@ public class OpenApiRequestInfo<T> {
         private BkApiAuthorization authorization;
         private RetryModeEnum retryMode = RetryModeEnum.SAFE_GUARANTEED;
         private Boolean idempotent;
+        private List<Header> headers;
 
         public Builder<T> method(HttpMethodEnum method) {
             this.method = method;
+            return this;
+        }
+
+        public Builder<T> apiName(String apiName) {
+            this.apiName = apiName;
             return this;
         }
 
@@ -145,6 +168,19 @@ public class OpenApiRequestInfo<T> {
             return this;
         }
 
+        public Builder<T> setHeaders(List<Header> headers) {
+            this.headers = headers;
+            return this;
+        }
+
+        public Builder<T> addHeader(Header header) {
+            if (headers == null) {
+                headers = new ArrayList<>();
+            }
+            headers.add(header);
+            return this;
+        }
+
         public OpenApiRequestInfo<T> build() {
             return new OpenApiRequestInfo<>(this);
         }
@@ -166,7 +202,7 @@ public class OpenApiRequestInfo<T> {
         return result;
     }
 
-    private String buildQueryParamUrl() {
+    public String buildQueryParamUrl() {
         if (queryParamsMap != null && !queryParamsMap.isEmpty()) {
             StringBuilder urlString = new StringBuilder(512);
             queryParamsMap.forEach((name, value) ->

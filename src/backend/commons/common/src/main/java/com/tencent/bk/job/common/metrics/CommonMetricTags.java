@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -44,4 +44,24 @@ public class CommonMetricTags {
      * API类型：未知
      */
     public static final String VALUE_API_TYPE_UNKNOWN = "unknown";
+
+    /**
+     * Job 资源管理空间
+     */
+    public static final String KEY_RESOURCE_SCOPE = "resource_scope";
+
+    /**
+     * 蓝鲸应用 ID
+     */
+    public static final String KEY_APP_CODE = "app_code";
+
+    /**
+     * HTTP请求状态
+     */
+    public static final String KEY_HTTP_STATUS = "http_status";
+
+    /**
+     * HTTP请求状态：未知
+     */
+    public static final String VALUE_HTTP_STATUS_UNKNOWN = "unknown";
 }

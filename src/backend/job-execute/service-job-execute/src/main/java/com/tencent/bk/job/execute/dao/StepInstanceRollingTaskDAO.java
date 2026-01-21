@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -37,24 +37,28 @@ public interface StepInstanceRollingTaskDAO {
     /**
      * 查询步骤滚动任务
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   步骤执行次数
      * @param batch          滚动批次
      * @return 步骤滚动任务
      */
-    StepInstanceRollingTaskDTO queryRollingTask(long stepInstanceId,
+    StepInstanceRollingTaskDTO queryRollingTask(Long taskInstanceId,
+                                                long stepInstanceId,
                                                 int executeCount,
                                                 int batch);
 
     /**
      * 查询步骤滚动任务
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数;如果不为null，会根据executeCount过滤
      * @param batch          滚动执行批次;如果不为null，会根据batch过滤
      * @return 步骤滚动任务
      */
-    List<StepInstanceRollingTaskDTO> listRollingTasks(long stepInstanceId,
+    List<StepInstanceRollingTaskDTO> listRollingTasks(Long taskInstanceId,
+                                                      long stepInstanceId,
                                                       Integer executeCount,
                                                       Integer batch);
 
@@ -69,6 +73,7 @@ public interface StepInstanceRollingTaskDAO {
     /**
      * 更新滚动任务
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   步骤执行次数
      * @param batch          滚动执行批次
@@ -77,7 +82,8 @@ public interface StepInstanceRollingTaskDAO {
      * @param endTime        任务结束时间；如果不更新传入null
      * @param totalTime      任务执行总时间；如果不更新传入null
      */
-    void updateRollingTask(long stepInstanceId,
+    void updateRollingTask(Long taskInstanceId,
+                           long stepInstanceId,
                            int executeCount,
                            int batch,
                            RunStatusEnum status,

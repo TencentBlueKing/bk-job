@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -115,5 +115,27 @@ public class CollectionUtil {
             map.put(keyFunc.apply(entity), valueFunc.apply(entity));
         }
         return map;
+    }
+
+    public static <T> ArrayList<T> mergeToArrayList(List<T> list1, List<T> list2) {
+        ArrayList<T> mergeList;
+
+        boolean isList1NotEmpty = CollectionUtils.isNotEmpty(list1);
+        boolean isList2NotEmpty = CollectionUtils.isNotEmpty(list2);
+
+        if (isList1NotEmpty && isList2NotEmpty) {
+            mergeList = new ArrayList<>(list1.size() + list2.size());
+            mergeList.addAll(list1);
+            mergeList.addAll(list2);
+            return mergeList;
+        } else if (isList1NotEmpty) {
+            mergeList = new ArrayList<>(list1);
+            return mergeList;
+        } else if (isList2NotEmpty) {
+            mergeList = new ArrayList<>(list2);
+            return mergeList;
+        } else {
+            return new ArrayList<>(0);
+        }
     }
 }

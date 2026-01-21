@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -93,8 +93,13 @@ public class Response<T> {
     }
 
     public static <T> Response<T> buildAuthFailResp(AuthResultVO authResult) {
-        Response<T> resp = new Response<>(ErrorCode.PERMISSION_DENIED
-                                            , new String[]{JobContextUtil.getUsername()}, null);
+        Response<T> resp = new Response<>(
+            ErrorCode.PERMISSION_DENIED,
+            new String[]{
+                JobContextUtil.getUserDisplayName()
+            },
+            null
+        );
         resp.authResult = authResult;
         return resp;
     }

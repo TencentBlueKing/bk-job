@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,6 +25,7 @@
 package com.tencent.bk.job.file_gateway.service.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.config.ClusterProperties;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.file_gateway.config.FileGatewayConfig;
@@ -57,16 +58,19 @@ public class FileWorkerServiceImpl implements FileWorkerService {
     private final FileWorkerDAO fileWorkerDAO;
     private final FileSourceTypeDAO fileSourceTypeDAO;
     private final FileWorkerTagDAO fileWorkerTagDAO;
+    private final ClusterProperties clusterProperties;
     private final FileGatewayConfig fileGatewayConfig;
 
     @Autowired
     public FileWorkerServiceImpl(FileWorkerDAO fileWorkerDAO,
                                  FileSourceTypeDAO fileSourceTypeDAO,
                                  FileWorkerTagDAO fileWorkerTagDAO,
+                                 ClusterProperties clusterProperties,
                                  FileGatewayConfig fileGatewayConfig) {
         this.fileWorkerDAO = fileWorkerDAO;
         this.fileSourceTypeDAO = fileSourceTypeDAO;
         this.fileWorkerTagDAO = fileWorkerTagDAO;
+        this.clusterProperties = clusterProperties;
         this.fileGatewayConfig = fileGatewayConfig;
     }
 
@@ -84,6 +88,7 @@ public class FileWorkerServiceImpl implements FileWorkerService {
             }
         }
         if (!fileWorkerDAO.existsFileWorker(
+            fileWorkerDTO.getClusterName(),
             fileWorkerDTO.getAccessHost(),
             fileWorkerDTO.getAccessPort())
         ) {
@@ -167,7 +172,9 @@ public class FileWorkerServiceImpl implements FileWorkerService {
 
     private Long updateFileWorker(FileWorkerDTO fileWorkerDTO) {
         FileWorkerDTO oldFileWorkerDTO = fileWorkerDAO.getFileWorker(
-            fileWorkerDTO.getAccessHost(), fileWorkerDTO.getAccessPort()
+            fileWorkerDTO.getClusterName(),
+            fileWorkerDTO.getAccessHost(),
+            fileWorkerDTO.getAccessPort()
         );
         Long workerId = oldFileWorkerDTO.getId();
         fileWorkerDTO.setId(workerId);
@@ -192,17 +199,20 @@ public class FileWorkerServiceImpl implements FileWorkerService {
         WorkerIdsCondition workerIdsCondition = getIncludedAndExcludedWorkerIds();
         List<FileWorkerDTO> fileWorkerDTOList = new ArrayList<>();
         if (workerSelectScope == WorkerSelectScopeEnum.PUBLIC) {
+            // 公共接入点
             fileWorkerDTOList = fileWorkerDAO.listPublicFileWorkers(
                 workerIdsCondition.getIncludedWorkerIds(),
                 workerIdsCondition.getExcludedWorkerIds()
             );
         } else if (workerSelectScope == WorkerSelectScopeEnum.APP) {
+            // 业务私有接入点
             fileWorkerDTOList = fileWorkerDAO.listFileWorkers(
                 appId,
                 workerIdsCondition.getIncludedWorkerIds(),
                 workerIdsCondition.getExcludedWorkerIds()
             );
         } else {
+            // 所有接入点：合并公共接入点和业务私有接入点
             List<FileWorkerDTO> publicFileWorkerDTOList = fileWorkerDAO.listPublicFileWorkers(
                 workerIdsCondition.getIncludedWorkerIds(),
                 workerIdsCondition.getExcludedWorkerIds()
@@ -228,18 +238,30 @@ public class FileWorkerServiceImpl implements FileWorkerService {
     }
 
     @Override
-    public FileWorkerDTO getFileWorker(String accessHost, Integer accessPort) {
-        return fileWorkerDAO.getFileWorker(accessHost, accessPort);
+    public FileWorkerDTO getFileWorker(String clusterName, String accessHost, Integer accessPort) {
+        return fileWorkerDAO.getFileWorker(clusterName, accessHost, accessPort);
     }
 
+    /**
+     * 获取当前File-Gateway调度File-Worker时需要考虑的workerId范围和排除条件
+     * 调度规则：
+     * 1.File-Gateway实例只能调度相同集群内的File-Worker;
+     * 2.如果File-Gateway上配置了白名单标签，则只能调度配置了至少任意一个白名单标签的File-Worker;
+     * 3.如果File-Gateway上配置了黑名单标签，则不能调度配置了任意黑名单标签的File-Worker。
+     *
+     * @return workerId范围和排除条件，null表示不作为过滤条件
+     */
     @Override
     public WorkerIdsCondition getIncludedAndExcludedWorkerIds() {
-        List<Long> includedWorkerIds = null;
+        List<Long> includedWorkerIds;
         List<Long> excludedWorkerIds = null;
+        String clusterName = clusterProperties.getName();
         List<String> whiteTags = fileGatewayConfig.getWorkerTagWhiteList();
         List<String> blackTags = fileGatewayConfig.getWorkerTagBlackList();
         if (CollectionUtils.isNotEmpty(whiteTags)) {
-            includedWorkerIds = fileWorkerTagDAO.listWorkerIdByTag(whiteTags);
+            includedWorkerIds = fileWorkerTagDAO.listWorkerIdByClusterNameAndTag(clusterName, whiteTags);
+        } else {
+            includedWorkerIds = fileWorkerDAO.listWorkerIdByClusterName(clusterName);
         }
         if (CollectionUtils.isNotEmpty(blackTags)) {
             excludedWorkerIds = fileWorkerTagDAO.listWorkerIdByTag(blackTags);

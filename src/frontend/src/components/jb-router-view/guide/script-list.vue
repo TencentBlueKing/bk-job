@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -49,7 +49,7 @@
         <div class="feature-item">
           <div class="feature-pic">
             <img
-              src="/static/images/guide/script-new.svg"
+              :src="scriptImage"
               style="width: 220px; margin: 39px 39px 0 31px;">
           </div>
           <div class="feature-box">
@@ -63,7 +63,7 @@
         <div class="feature-item">
           <div class="feature-pic">
             <img
-              src="/static/images/guide/script-version.svg"
+              :src="scriptVersionImage"
               style="width: 230px; margin: 32px 27px 0 7px;">
           </div>
           <div class="feature-box">
@@ -78,7 +78,7 @@
         <div>
           <span>{{ $t('脚本的版本管理功能有哪些？点击') }} </span>
           <a
-            :href="`${relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/JOB/UserGuide/Features/Scripts.md`"
+            :href="`${relatedSystemUrls.BK_DOC_JOB_ROOT_URL}/UserGuide/Features/Scripts.md`"
             target="_blank">
             <span>{{ $t('脚本功能介绍') }}</span>
             <icon type="link" />
@@ -88,7 +88,7 @@
         <div style="margin-top: 10px;">
           <span>{{ $t('想要 “禁用” 脚本使其他调用方无法使用怎么做？') }}</span>
           <a
-            :href="`${relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/JOB/UserGuide/Best-Practices/How-to-stop-the-spread-of-the-problem-script-immediately.md`"
+            :href="`${relatedSystemUrls.BK_DOC_JOB_ROOT_URL}/UserGuide/Best-Practices/How-to-stop-the-spread-of-the-problem-script-immediately.md`"
             target="_blank">
             <span>{{ $t('立即查看') }}</span>
             <icon type="link" />
@@ -105,12 +105,14 @@
     data() {
       return {
         relatedSystemUrls: {
-          BK_DOC_CENTER_ROOT_URL: '/',
+          BK_DOC_JOB_ROOT_URL: '/',
         },
       };
     },
     created() {
       this.fetchRelatedSystemUrls();
+      this.scriptImage = window.__loadAssetsUrl__('/static/images/guide/script-new.svg');
+      this.scriptVersionImage = window.__loadAssetsUrl__('/static/images/guide/script-version.svg');
     },
     methods: {
       fetchRelatedSystemUrls() {

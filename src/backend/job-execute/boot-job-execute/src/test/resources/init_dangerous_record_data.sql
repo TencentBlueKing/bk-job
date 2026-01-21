@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,9 +25,9 @@
 truncate table dangerous_record;
 
 insert into job_execute.dangerous_record (id,rule_id,rule_expression,app_id,app_name,operator,script_language,script_content,create_time,startup_mode,client,action,check_result,
-ext_data) values (1, 1, 'rm -rf',2,'BlueKing','admin',1,'#!/bin/bash\nrm -rf *',1619748000000,2,'app1',1,'{"results":[{"line":"2","level":3,"description":"rm -rf forbidden"}]}','{"request_param":"aaa"}');
+ext_data,tenant_id) values (1, 1, 'rm -rf',2,'BlueKing','admin',1,'#!/bin/bash\nrm -rf *',1619748000000,2,'app1',1,'{"results":[{"line":"2","level":3,"description":"rm -rf forbidden"}]}','{"request_param":"aaa"}','default');
 insert into job_execute.dangerous_record (id,rule_id,rule_expression,app_id,app_name,operator,script_language,script_content,create_time,startup_mode,client,action,check_result,
-ext_data) values (2, 2,'shutdown',3,'Test','userT',2,'shutdown',1619834400000,3,'job',2,'{"results":[{"line":"1","level":3,"description":"shutdown forbidden"}]}','{"request_param":"bbb"}');
+ext_data,tenant_id) values (2, 2,'shutdown',3,'Test','userT',2,'shutdown',1619834400000,3,'job',2,'{"results":[{"line":"1","level":3,"description":"shutdown forbidden"}]}','{"request_param":"bbb"}','default');
 
 
 

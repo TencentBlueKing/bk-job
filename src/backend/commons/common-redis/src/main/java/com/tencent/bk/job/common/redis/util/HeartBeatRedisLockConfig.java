@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -26,6 +26,7 @@ package com.tencent.bk.job.common.redis.util;
 
 import com.tencent.bk.job.common.util.JobUUID;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -33,6 +34,7 @@ import lombok.Setter;
  */
 @Setter
 @Getter
+@NoArgsConstructor
 public class HeartBeatRedisLockConfig {
 
     /**
@@ -48,10 +50,13 @@ public class HeartBeatRedisLockConfig {
      */
     private String heartBeatThreadName = "redisKeyHeartBeatThread-" + JobUUID.getUUID().substring(0, 8);
 
-    public static final HeartBeatRedisLockConfig INSTANCE = new HeartBeatRedisLockConfig();
-
     public static HeartBeatRedisLockConfig getDefault() {
-        return INSTANCE;
+        return new HeartBeatRedisLockConfig();
     }
 
+    public HeartBeatRedisLockConfig(String heartBeatThreadName, long expireTimeMillis, long periodMillis) {
+        this.heartBeatThreadName = heartBeatThreadName;
+        this.expireTimeMillis = expireTimeMillis;
+        this.periodMillis = periodMillis;
+    }
 }

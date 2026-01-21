@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -34,14 +34,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GseLogBatchPullResult<T> {
     /**
-     * 是否成功拉取到日志
-     */
-    private boolean success;
-    /**
-     * 错误信息
-     */
-    private String errorMsg;
-    /**
      * 是否最后一批
      */
     private boolean lastBatch;
@@ -50,10 +42,8 @@ public class GseLogBatchPullResult<T> {
      */
     private GseTaskResult<T> gseTaskResult;
 
-    public GseLogBatchPullResult(boolean success, boolean isLastBatch, GseTaskResult<T> gseTaskResult, String errorMsg) {
-        this.success = success;
+    public GseLogBatchPullResult(boolean isLastBatch, GseTaskResult<T> gseTaskResult) {
         this.lastBatch = isLastBatch;
         this.gseTaskResult = gseTaskResult;
-        this.errorMsg = errorMsg;
     }
 }

@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -35,7 +35,7 @@
       field="name"
       :form-data="formData"
       name="scriptName"
-      :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
+      :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名')"
       @on-change="handleChange" />
     <item-factory
       content-field="content"
@@ -63,6 +63,12 @@
       secure-field="secureParam"
       @on-change="handleChange" />
     <item-factory
+      field="windowsInterpreter"
+      :form-data="formData"
+      language-field="scriptLanguage"
+      name="windowsInterpreter"
+      @on-change="handleChange" />
+    <item-factory
       field="timeout"
       :form-data="formData"
       name="scriptTimeout"
@@ -83,6 +89,7 @@
       :form-data="formData"
       name="executeTargetOfTemplate"
       :variable="variable"
+      windows-interpreter-field="windowsInterpreter"
       @on-change="handleChange" />
   </jb-form>
 </template>
@@ -120,8 +127,10 @@
     content: '',
     // 脚本参数
     scriptParam: '',
+    // windows解释器 (undefined : 不采用自定义, other: 采用自定义)
+    windowsInterpreter: undefined,
     // 超时时间
-    timeout: 7200,
+    timeout: 300,
     // 敏感参数 （0-关闭 1-开启）
     secureParam: 0,
     // 执行账号
@@ -197,6 +206,7 @@
           id,
           ignoreError,
           scriptParam,
+          windowsInterpreter,
           timeout,
           secureParam,
           scriptSource,
@@ -217,6 +227,7 @@
           scriptStepInfo: {
             ignoreError,
             scriptParam,
+            windowsInterpreter,
             timeout,
             scriptSource,
             scriptId,

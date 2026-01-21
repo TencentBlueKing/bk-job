@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,7 +24,8 @@
 
 package com.tencent.bk.job.common.context;
 
-import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.model.BasicApp;
+import com.tencent.bk.job.common.model.User;
 import io.micrometer.core.instrument.Tag;
 import lombok.Data;
 import org.apache.commons.lang3.tuple.Pair;
@@ -44,13 +45,13 @@ public class JobContext {
 
     private Long startTime;
 
-    private String username;
-
-    private AppResourceScope appResourceScope;
+    private BasicApp app;
 
     private String requestId;
 
     private String userLang;
+
+    private String requestFrom;
 
     private List<String> debugMessage;
 
@@ -67,4 +68,24 @@ public class JobContext {
     private String httpMetricName;
 
     private AbstractList<Tag> httpMetricTags;
+
+    /**
+     * 控制器类名，用于缓存控制器信息，避免在序列化阶段访问被回收的请求对象
+     */
+    private String controllerClassName;
+
+    /**
+     * 用户
+     */
+    private User user;
+
+    public String getUsername() {
+        return user != null ? user.getUsername() : null;
+    }
+
+    public String getTenantId() {
+        return user != null ? user.getTenantId() : null;
+    }
+
+
 }

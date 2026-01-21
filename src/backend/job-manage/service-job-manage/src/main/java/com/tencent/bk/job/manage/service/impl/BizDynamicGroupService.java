@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.service.impl;
 
 import com.tencent.bk.job.common.cc.model.CcDynamicGroupDTO;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.manage.model.dto.DynamicGroupDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,20 +41,20 @@ import java.util.stream.Collectors;
 @Service
 public class BizDynamicGroupService {
 
-    private final BizCmdbClient bizCmdbClient;
+    private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
-    public BizDynamicGroupService(BizCmdbClient bizCmdbClient) {
+    public BizDynamicGroupService(IBizCmdbClient bizCmdbClient) {
         this.bizCmdbClient = bizCmdbClient;
     }
 
-    public List<DynamicGroupDTO> listDynamicGroup(Long bizId) {
-        List<CcDynamicGroupDTO> ccGroupList = bizCmdbClient.getDynamicGroupList(bizId);
+    public List<DynamicGroupDTO> listDynamicGroup(String tenantId, Long bizId) {
+        List<CcDynamicGroupDTO> ccGroupList = bizCmdbClient.getDynamicGroupList(tenantId, bizId);
         return ccGroupList.stream().map(DynamicGroupDTO::fromCcGroupDTO).collect(Collectors.toList());
     }
 
-    public List<DynamicGroupDTO> listDynamicGroup(Long bizId, Collection<String> ids) {
-        List<DynamicGroupDTO> dynamicGroupList = listDynamicGroup(bizId);
+    public List<DynamicGroupDTO> listDynamicGroup(String tenantId, Long bizId, Collection<String> ids) {
+        List<DynamicGroupDTO> dynamicGroupList = listDynamicGroup(tenantId, bizId);
         if (ids == null) {
             return dynamicGroupList;
         }

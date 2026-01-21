@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -37,6 +37,7 @@
           slot="title"
           class="view-title">
           <edit-title
+            v-if="planInfo.id"
             :data="planInfo"
             @on-edit-success="handleEditSuccess" />
           <span
@@ -67,7 +68,7 @@
         </div>
         <jb-form form-type="vertical">
           <jb-form-item
-            :label="$t('template.全局变量.label')"
+            :label="$t('template.全局变量_label')"
             style="margin-bottom: 30px;">
             <render-global-var
               :key="id"
@@ -117,7 +118,7 @@
               <div slot="content">
                 <p>{{ $t('template.共有') }} {{ planInfo.templateStepNums }} {{ $t('template.个步骤，') }}</p>
                 <!-- eslint-disable-next-line max-len -->
-                <p>{{ $t('template.当前已选中') }} {{ planInfo.enableStepNums }} {{ $t('template.个.select') }}</p>
+                <p>{{ $t('template.当前已选中') }} {{ planInfo.enableStepNums }} {{ $t('template.个_select') }}</p>
               </div>
             </bk-popover>
             <auth-button

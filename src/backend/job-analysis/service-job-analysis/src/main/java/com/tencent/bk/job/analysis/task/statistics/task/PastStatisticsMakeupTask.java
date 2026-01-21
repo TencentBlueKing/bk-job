@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -26,8 +26,15 @@ package com.tencent.bk.job.analysis.task.statistics.task;
 
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.config.StatisticConfig;
+import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.common.model.tenant.TenantDTO;
+import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
@@ -44,41 +51,37 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * 历史数据补全任务
+ */
 @Slf4j
 @Service
 public class PastStatisticsMakeupTask {
+    protected final TenantService tenantService;
     private final StatisticConfig statisticConfig;
+    @Getter
     public Map<String, TaskInfo> pastStatisticTaskFutureMap = new HashMap<>();
+    @Setter
     private List<IStatisticsTask> statisticsTaskList;
+    @Setter
     private volatile boolean runFlag = true;
     private volatile boolean isRunning = false;
+    @Setter
     private ThreadPoolExecutor executor;
 
     @Autowired
-    public PastStatisticsMakeupTask(StatisticConfig statisticConfig) {
+    public PastStatisticsMakeupTask(TenantService tenantService, StatisticConfig statisticConfig) {
+        this.tenantService = tenantService;
         this.statisticConfig = statisticConfig;
-    }
-
-    public void setRunFlag(boolean runFlag) {
-        this.runFlag = runFlag;
-    }
-
-    public void setExecutor(ThreadPoolExecutor executor) {
-        this.executor = executor;
-    }
-
-    public void setStatisticsTaskList(List<IStatisticsTask> statisticsTaskList) {
-        this.statisticsTaskList = statisticsTaskList;
-    }
-
-    public Map<String, TaskInfo> getPastStatisticTaskFutureMap() {
-        return pastStatisticTaskFutureMap;
     }
 
     public WatchableTask<Boolean> getCallableOfTask(IStatisticsTask statisticsTask, LocalDateTime targetDate) {
         Callable<Boolean> callable = () -> {
             try {
-                statisticsTask.genStatisticsByDay(targetDate);
+                List<TenantDTO> tenantDTOList = tenantService.listEnabledTenant();
+                for (TenantDTO tenantDTO : tenantDTOList) {
+                    genStatisticsByDayForTenant(tenantDTO.getId(), statisticsTask, targetDate);
+                }
                 return true;
             } catch (Throwable t) {
                 log.error("Fail to genStatisticsByDay({})", targetDate, t);
@@ -90,6 +93,27 @@ public class PastStatisticsMakeupTask {
         WatchableTask<Boolean> taskCallable = new WatchableTask<>(taskName, callable);
         taskCallable.setTaskStatusListener(new DefaultTaskStatusListener(pastStatisticTaskFutureMap, taskName));
         return taskCallable;
+    }
+
+    private void genStatisticsByDayForTenant(String tenantId,
+                                             IStatisticsTask statisticsTask,
+                                             LocalDateTime targetDate) {
+        try {
+            // 设置当前租户ID
+            JobContextUtil.setUser(new User(tenantId, null, null));
+            statisticsTask.genStatisticsByDay(targetDate);
+        } catch (Throwable t) {
+            String message = MessageFormatter.format(
+                "Fail to genStatisticsByDay({}), tenantId={}",
+                targetDate,
+                tenantId
+            ).getMessage();
+            log.warn(message);
+            throw t;
+        } finally {
+            // 清理租户ID
+            JobContextUtil.setUser(null);
+        }
     }
 
     public List<WatchableTask<Boolean>> getCallableList(LocalDateTime targetDate) {

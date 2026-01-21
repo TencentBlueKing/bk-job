@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -36,8 +36,10 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.ArrayUtil;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.api.esb.common.ConfigFileUtil;
@@ -58,7 +60,7 @@ import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v2.EsbJobExecuteDTO;
 import com.tencent.bk.job.execute.model.esb.v2.request.EsbPushConfigFileRequest;
 import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.execute.service.AgentService;
+import com.tencent.bk.job.execute.service.LocalFileDistributeSourceHostProvisioner;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -77,17 +79,19 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
 
     private final AccountService accountService;
     private final FileDistributeConfig fileDistributeConfig;
-    private final AgentService agentService;
+    private final LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner;
 
     @Autowired
-    public EsbPushConfigFileResourceImpl(TaskExecuteService taskExecuteService,
-                                         AccountService accountService,
-                                         FileDistributeConfig fileDistributeConfig,
-                                         AgentService agentService) {
+    public EsbPushConfigFileResourceImpl(
+        TaskExecuteService taskExecuteService,
+        AccountService accountService,
+        FileDistributeConfig fileDistributeConfig,
+        LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner
+    ) {
         this.taskExecuteService = taskExecuteService;
         this.accountService = accountService;
         this.fileDistributeConfig = fileDistributeConfig;
-        this.agentService = agentService;
+        this.localFileDistributeSourceHostProvisioner = localFileDistributeSourceHostProvisioner;
     }
 
     @Override
@@ -101,6 +105,7 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
     public EsbResp<EsbJobExecuteDTO> pushConfigFile(String username,
                                                     String appCode,
                                                     @AuditRequestBody EsbPushConfigFileRequest request) {
+        User user = JobContextUtil.getUser();
         ValidateResult checkResult = checkPushConfigFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");
@@ -112,7 +117,7 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
         TaskInstanceDTO taskInstance = buildFastFileTaskInstance(username, appCode, request);
         StepInstanceDTO stepInstance = buildFastFileStepInstance(username, request, request.getFileList());
         TaskInstanceDTO executeTaskInstance = taskExecuteService.executeFastTask(
-            FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
+            FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).operator(user).build()
         );
 
         EsbJobExecuteDTO jobExecuteInfo = new EsbJobExecuteDTO();
@@ -207,7 +212,9 @@ public class EsbPushConfigFileResourceImpl extends JobExecuteCommonProcessor imp
             fileSourceDTO.setFiles(files);
             // 设置配置文件所在主机信息
             ExecuteTargetDTO fileSourceExecuteObjects = new ExecuteTargetDTO();
-            fileSourceExecuteObjects.setStaticIpList(Collections.singletonList(agentService.getLocalAgentHost()));
+            fileSourceExecuteObjects.setStaticIpList(Collections.singletonList(
+                localFileDistributeSourceHostProvisioner.getLocalFileDistributeSourceHost()
+            ));
             fileSourceDTO.setServers(fileSourceExecuteObjects);
             fileSourceDTOS.add(fileSourceDTO);
         });

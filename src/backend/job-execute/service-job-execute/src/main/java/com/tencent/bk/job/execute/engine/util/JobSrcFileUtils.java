@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -114,13 +114,15 @@ public class JobSrcFileUtils {
      * 从步骤解析源文件，处理服务器文件、本地文件、第三方源文件的差异，统一为IP+Path信息
      *
      * @param stepInstance      步骤
+     * @param fileSourceList    源文件列表
      * @param jobStorageRootDir job共享存储根目录
      * @return 多个要分发的源文件信息集合
      */
-    public static Set<JobFile> parseSrcFiles(StepInstanceDTO stepInstance,
-                                             String jobStorageRootDir) {
+    public static Set<JobFile> parseSrcFilesFromFileSource(StepInstanceDTO stepInstance,
+                                                           List<FileSourceDTO> fileSourceList,
+                                                           String jobStorageRootDir) {
         Set<JobFile> sendFiles = Sets.newHashSet();
-        for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
+        for (FileSourceDTO fileSource : fileSourceList) {
             List<FileDetailDTO> files = fileSource.getFiles();
             if (isServerOrThirdFileSource(fileSource)) {
                 boolean isThirdFile = false;
@@ -143,14 +145,33 @@ public class JobSrcFileUtils {
                     for (ExecuteObject sourceExecuteObject : sourceExecuteObjects) {
                         // 第三方源文件的displayName不同
                         if (isThirdFile) {
-                            sendFiles.add(new JobFile(TaskFileTypeEnum.FILE_SOURCE, sourceExecuteObject,
-                                file.getThirdFilePathWithFileSourceName(),
-                                file.getThirdFilePathWithFileSourceName(),
-                                dir, fileName, stepInstance.getAppId(), accountId, accountAlias));
+                            sendFiles.add(
+                                new JobFile(
+                                    TaskFileTypeEnum.FILE_SOURCE,
+                                    sourceExecuteObject,
+                                    file.getThirdFilePathWithFileSourceName(),
+                                    file.getThirdFilePathWithFileSourceName(),
+                                    dir,
+                                    fileName,
+                                    stepInstance.getAppId(),
+                                    accountId,
+                                    accountAlias
+                                )
+                            );
                         } else {
-                            sendFiles.add(new JobFile(TaskFileTypeEnum.SERVER, sourceExecuteObject,
-                                filePath, filePath, dir, fileName, stepInstance.getAppId(), accountId,
-                                accountAlias));
+                            sendFiles.add(
+                                new JobFile(
+                                    TaskFileTypeEnum.SERVER,
+                                    sourceExecuteObject,
+                                    filePath,
+                                    filePath,
+                                    dir,
+                                    fileName,
+                                    stepInstance.getAppId(),
+                                    accountId,
+                                    accountAlias
+                                )
+                            );
                         }
                     }
                 }
@@ -166,9 +187,18 @@ public class JobSrcFileUtils {
                         && CollectionUtils.isNotEmpty(executeTarget.getExecuteObjectsCompatibly())) {
                         List<ExecuteObject> executeObjects = executeTarget.getExecuteObjectsCompatibly();
                         for (ExecuteObject executeObject : executeObjects) {
-                            sendFiles.add(new JobFile(TaskFileTypeEnum.LOCAL, executeObject, file.getFilePath(), dir,
-                                fileName, "root", null,
-                                FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
+                            sendFiles.add(
+                                new JobFile(
+                                    TaskFileTypeEnum.LOCAL,
+                                    executeObject,
+                                    file.getFilePath(),
+                                    dir,
+                                    fileName,
+                                    "root",
+                                    null,
+                                    FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()
+                                )
+                            );
                         }
                     }
                 }
@@ -181,9 +211,18 @@ public class JobSrcFileUtils {
                     String fileName = fileNameAndPath.getRight();
                     List<ExecuteObject> executeObjects = fileSource.getServers().getExecuteObjectsCompatibly();
                     for (ExecuteObject executeObject : executeObjects) {
-                        sendFiles.add(new JobFile(TaskFileTypeEnum.BASE64_FILE, executeObject, file.getFilePath(), dir,
-                            fileName, "root", null,
-                            FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()));
+                        sendFiles.add(
+                            new JobFile(
+                                TaskFileTypeEnum.BASE64_FILE,
+                                executeObject,
+                                file.getFilePath(),
+                                dir,
+                                fileName,
+                                "root",
+                                null,
+                                FilePathUtils.parseDirAndFileName(file.getFilePath()).getRight()
+                            )
+                        );
                     }
                 }
             }

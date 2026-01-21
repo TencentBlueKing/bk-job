@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -163,7 +163,13 @@ public class FileTaskService {
                     fileTaskFuture.cancel(true);
                     allStoppedFileCount += 1;
                 } else {
-                    log.info("task {} already done, stop too late", stopKey);
+                    log.info("fileTask {} already done, stop too late", stopKey);
+                }
+                Future<?> watchingTaskFuture = watchingTaskMap.get(stopKey);
+                if (watchingTaskFuture != null && !watchingTaskFuture.isDone()) {
+                    watchingTaskFuture.cancel(true);
+                } else {
+                    log.info("watchingTask {} already done, stop too late", stopKey);
                 }
             }
         }

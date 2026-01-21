@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -23,6 +23,11 @@
  * IN THE SOFTWARE.
 */
 
+// eslint-disable-next-line
+import '../static/webpack_public_path';
+
+import Cookie from 'js-cookie';
+
 import _ from 'lodash';
 import Vue from 'vue';
 
@@ -32,11 +37,13 @@ import AppManageService from '@service/app-manage';
 import QueryGlobalSettingService from '@service/query-global-setting';
 import TaskExecuteService from '@service/task-execute';
 import TaskPlanService from '@service/task-plan';
+import UserService from '@service/user';
 
 import { getURLSearchParams } from '@utils/assist';
 import { scopeCache } from '@utils/cache-helper';
 import EntryTask from '@utils/entry-task';
 
+import BkUserDisplayName from '@blueking/bk-user-display-name';
 import { subEnv } from '@blueking/sub-saas';
 
 import App from '@/App';
@@ -50,6 +57,7 @@ import '@/css/app.css';
 import '@bk-icon/style.css';
 import '@bk-icon/iconcool.js';
 import  '@blueking/notice-component-vue2/dist/style.css';
+
 
 /**
  * @desc 启动打印当前系统信息
@@ -84,9 +92,9 @@ window.routerFlashBack = false;
  * 老版 URL 格式： /${APP_ID}/execute/step/${TASK_ID}，
  * 解析 TASK_ID 拼接 api_execute/TASK_ID 跳转
  */
-const oldExecute = window.location.pathname.match(/^\/\d+\/execute\/step\/(\d+)/);
+const oldExecute = window.location.pathname.match(new RegExp(`^${window.PROJECT_CONFIG.BK_SITE_PATH}\\d+/execute/step/(\\d+)`));
 if (oldExecute) {
-  window.location.href = `/api_execute/${oldExecute[1]}`;
+  window.location.href = `${window.PROJECT_CONFIG.BK_SITE_PATH}api_execute/${oldExecute[1]}`;
 }
 
 /**
@@ -118,8 +126,7 @@ let EntryApp = subEnv ? IframeApp : App;
  * @desc 解析路由 scopeType、scopeId
  */
 entryTask.add((context) => {
-  const pathRoot = window.location.pathname.match(/^\/([^/]+)\/(\d+)\/?/);
-
+  const pathRoot = window.location.pathname.match(new RegExp(`^${window.PROJECT_CONFIG.BK_SITE_PATH}((?!api_)[^/]+)/(\\d+)/?`));
   if (pathRoot) {
     // 路由指定了业务id
     [,
@@ -155,6 +162,11 @@ entryTask.add(context => AppManageService.fetchWholeAppList().then((data) => {
       context.scopeId = scopeId;
     }
   }
+  // 内置全业务的 scopeId
+  const allBiz = _.find(data.data, item => item.allBizSet && item.builtIn);
+  if (allBiz) {
+    window.PROJECT_CONFIG.ALL_BIZ_SET_SCOPE_ID = allBiz.scopeId;
+  }
 }));
 
 /**
@@ -166,9 +178,17 @@ entryTask.add(context => QueryGlobalSettingService.fetchAdminIdentity().then((da
 }));
 
 /**
+ * @desc 关联系统链接
+ */
+entryTask.add(() => QueryGlobalSettingService.fetchRelatedSystemUrls().then((data) => {
+  window.PROJECT_CONFIG.BK_USER_WEB_API_ROOT_URL = data.BK_USER_WEB_API_ROOT_URL;
+}));
+
+
+/**
  * @desc 通过第三方系统查看任务执行详情
  */
-const apiExecute = window.location.href.match(/api_execute\/([^/]+)/);
+const apiExecute = window.location.href.match(new RegExp(`${window.PROJECT_CONFIG.BK_SITE_PATH}api_execute/([^/]+)/?`));
 if (apiExecute) {
   // 通过 iframe 访问任务详情入口为 IframeApp
   if (window.frames.length !== parent.frames.length) {
@@ -209,7 +229,7 @@ if (apiExecute) {
 /**
  * @desc 通过第三方系统查看作业任务步骤执行详情
  */
-const apiExecuteStep = window.location.href.match(/api_execute_step\/([^/]+)\/([^/]+)/);
+const apiExecuteStep = window.location.href.match(new RegExp(`${window.PROJECT_CONFIG.BK_SITE_PATH}api_execute_step/([^/]+)/([^/]+)/?`));
 if (apiExecuteStep) {
   // 通过 iframe 访问任务详情入口为 IframeApp
   if (window.frames.length !== parent.frames.length) {
@@ -242,7 +262,7 @@ if (apiExecuteStep) {
 /**
  * @desc 通过第三方系统查看执行方案详情
  */
-const apiPlan = window.location.href.match(/api_plan\/([^/]+)/);
+const apiPlan = window.location.href.match(new RegExp(`${window.PROJECT_CONFIG.BK_SITE_PATH}api_plan/([^/]+)/?`));
 if (apiPlan) {
   entryTask.add(
     context => TaskPlanService.fetchPlanData({
@@ -285,6 +305,17 @@ entryTask.add('', (context) => {
     scopeId,
   });
 
+  BkUserDisplayName.configure({
+    // 必填，租户 ID
+    tenantId: window.PROJECT_CONFIG.TENANT_ID,
+    // 必填，网关地址
+    apiBaseUrl: window.PROJECT_CONFIG.BK_USER_WEB_API_ROOT_URL,
+    // 可选，缓存时间，单位为毫秒, 默认 5 分钟
+    cacheDuration: 1000 * 60 * 5,
+    // 可选，当输入为空时，显示的文本，默认为 '--'
+    emptyText: '--',
+  });
+
   window.BKApp = new Vue({
     el: '#app',
     router: createRouter({
@@ -298,4 +329,17 @@ entryTask.add('', (context) => {
     render: h => h(EntryApp),
   });
 });
-entryTask.start();
+
+UserService.fetchUserInfo()
+  .then((data) => {
+    window.PROJECT_CONFIG.TENANT_ID = data.tenantId;
+    const latestTenantId = Cookie.get('tenant_id');
+    if (latestTenantId !== data.tenantId) {
+      scopeCache.clearItem();
+    }
+    Cookie.set('tenant_id', data.tenantId, {
+      expires: 365,
+    });
+    entryTask.start();
+  });
+

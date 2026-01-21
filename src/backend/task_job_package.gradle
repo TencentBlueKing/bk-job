@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -22,8 +22,6 @@
  * IN THE SOFTWARE.
  */
 
-import com.tencent.bk.gradle.tasks.GenCompleteDependJarListAndRemoveInfectedJarsTask
-import com.tencent.bk.gradle.tasks.ReplaceEditionTextTask
 task copyToRelease(type: Copy) {
     from("build/libs") {
         include("**/job-*.jar")
@@ -35,54 +33,3 @@ task copyToRelease(type: Copy) {
 
 copyToRelease.dependsOn assemble
 build.dependsOn copyToRelease
-
-task replaceEEConfig(type: ReplaceEditionTextTask) {
-    group = "build"
-    description = "企业版打包时替换classpath下的ce配置为ee"
-    processResourcesOutputFiles = fileTree(processResources.destinationDir)
-    srcStr = "edition:\\s*ce"
-    targetStr = "edition: ee"
-    process ".*.yml"
-}
-replaceEEConfig.dependsOn processResources
-classes.dependsOn replaceEEConfig
-
-task postProcessRelease(type: GenCompleteDependJarListAndRemoveInfectedJarsTask) {
-    group = "build"
-    description = "生成含有传染性协议Jar包的完整清单，并在最终Jar包中移除含传染性协议的包"
-    bootJarOutputFiles = fileTree(copyToRelease.destinationDir)
-    completeJarListsRootPath = "../../support-files/dependJarLists"
-
-    remove "amqp-client-.*jar"
-    remove "aspectjrt-.*jar"
-    remove "aspectjweaver-.*jar"
-    remove "bcpkix-jdk15on-.*jar"
-    remove "bcprov-jdk15on-.*jar"
-    remove "c3p0-.*jar"
-    remove "HdrHistogram-.*jar"
-    remove "jakarta.activation-api-.*jar"
-    remove "jakarta.annotation-api-.*jar"
-    remove "jakarta.el-.*jar"
-    remove "jakarta.xml.bind-api-.*jar"
-    remove "javax.activation-api-.*jar"
-    remove "javax.servlet-api-.*jar"
-    remove "javax.ws.rs-api-.*jar"
-    remove "jaxb-api-.*jar"
-    remove "jchardet-.*jar"
-    remove "jersey-apache-client4-.*jar"
-    remove "jersey-client-.*jar"
-    remove "jersey-core-.*jar"
-    remove "jsch-.*jar"
-    remove "jsr311-api-.*jar"
-    remove "jzlib-.*jar"
-    remove "LatencyUtils-.*jar"
-    remove "logback-classic-.*jar"
-    remove "logback-core-.*jar"
-    remove "mchange-commons-java-.*jar"
-    remove "mysql-connector-java-.*jar"
-    remove "org.eclipse.jgit-.*jar"
-    remove "org.eclipse.jgit.http.apache-.*jar"
-    remove "reactive-streams-.*jar"
-}
-postProcessRelease.dependsOn copyToRelease
-build.dependsOn postProcessRelease

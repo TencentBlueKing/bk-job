@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -40,12 +40,13 @@ import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
 import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
 import com.tencent.bk.job.common.cc.model.query.WorkloadQuery;
 import com.tencent.bk.job.common.cc.model.req.ListKubeContainerByTopoReq;
-import com.tencent.bk.job.common.cc.sdk.BizCmdbClient;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.LabelSelectorOperatorEnum;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.RandomUtil;
 import com.tencent.bk.job.execute.model.KubeClusterFilter;
 import com.tencent.bk.job.execute.model.KubeContainerFilter;
 import com.tencent.bk.job.execute.model.KubeContainerPropFilter;
@@ -71,11 +72,12 @@ import java.util.stream.Collectors;
 @Service
 public class ContainerServiceImpl implements ContainerService {
     private final HostService hostService;
-    private final BizCmdbClient cmdbClient;
+    private final IBizCmdbClient cmdbClient;
     private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
-    public ContainerServiceImpl(HostService hostService, BizCmdbClient cmdbClient,
+    public ContainerServiceImpl(HostService hostService,
+                                IBizCmdbClient cmdbClient,
                                 AppScopeMappingService appScopeMappingService) {
         this.hostService = hostService;
         this.cmdbClient = cmdbClient;
@@ -116,6 +118,7 @@ public class ContainerServiceImpl implements ContainerService {
                 return;
             }
             container.setNodeAgentId(nodeHost.getAgentId());
+            container.setNodeIp(nodeHost.getPrimaryIp());
         });
     }
 
@@ -179,7 +182,9 @@ public class ContainerServiceImpl implements ContainerService {
         fillNodeHostInfo(appId, containers);
 
         if (filter.isFetchAnyOneContainer()) {
-            return Collections.singletonList(containers.get(0));
+            // 随机选择一个容器
+            int index = RandomUtil.nextInt(containers.size());
+            return Collections.singletonList(containers.get(index));
         } else {
             return containers;
         }

@@ -1,0 +1,71 @@
+### Function Description
+
+Query file source details
+
+### Request Parameters
+
+#### Interface parameters
+
+| Fields        | Type   | Required | Description                                                                                                 |
+|---------------|--------|----------|-------------------------------------------------------------------------------------------------------------|
+| bk_scope_type | string | yes      | Resource scope type. Optional values: biz - Business，biz_set - Business Set                                 |
+| bk_scope_id   | string | yes      | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID                 |
+| bk_biz_id     | long   | yes      | Deprecated. Business ID. This field has been deprecated and replaced by the field bk_scope_type+bk_scope_id |
+| code          | String | yes      | File source code                                                                                            |
+
+### Example of request
+
+- GET
+
+```json
+/api/v3/get_file_source_detail?bk_scope_type=biz&bk_scope_id=2&code=bkrepo-1
+```
+
+### Example of responses
+
+```json
+{
+    "result": true,
+    "code": 0,
+    "data": {
+        "bk_scope_type": "biz",
+        "bk_scope_id": "2",
+        "id": 10001,
+        "code": "bkrepo-1",
+        "alias": "xxx",
+        "status": 0,
+        "file_source_type_code": "BLUEKING_ARTIFACTORY",
+        "is_public": false,
+        "credential_id": "xxx",
+        "enable": true,
+        "creator": "admin",
+        "create_time": 1712050614742,
+        "last_modify_user": "admin",
+        "last_modify_time": 1712050614742
+    },
+    "job_request_id": "xxx"
+}
+```
+
+### Response Description
+
+{% include '_generic_response.md.j2' %}
+
+##### data
+
+| Fields                | Type   | Never null | Description                                                                                 |
+|-----------------------|--------|------------|---------------------------------------------------------------------------------------------|
+| bk_scope_type         | string | yes        | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id           | string | yes        | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| id                    | int    | yes        | File Source ID                                                                              |
+| code                  | string | yes        | File Source code                                                                            |
+| alias                 | string | yes        | File Source alias                                                                           |
+| status                | int    | yes        | Status                                                                                      |
+| file_source_type_code | string | yes        | File Source code。optional value：BLUEKING_ARTIFACTORY                                        |
+| is_public             | bool   | yes        | Is public                                                                                   |
+| credential_id         | string | yes        | Credential ID                                                                               |
+| enable                | bool   | yes        | Enable                                                                                      |
+| creator               | string | yes        | Job creator                                                                                 |
+| create_time           | long   | yes        | Created time, Unix timestamp                                                                |
+| last_modify_user      | string | yes        | Job modifier                                                                                |
+| last_modify_time      | long   | yes        | Last modified time, Unix timestamp                                                          |

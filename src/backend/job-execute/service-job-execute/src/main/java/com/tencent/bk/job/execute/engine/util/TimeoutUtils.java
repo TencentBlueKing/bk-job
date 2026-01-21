@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.execute.engine.util;
 
+import com.tencent.bk.job.common.util.ApplicationContextRegister;
+import com.tencent.bk.job.execute.config.ResourceScopeTaskTimeoutParser;
+
 import static com.tencent.bk.job.common.constant.JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS;
 import static com.tencent.bk.job.common.constant.JobConstants.MAX_JOB_TIMEOUT_SECONDS;
 
@@ -33,15 +36,21 @@ public class TimeoutUtils {
      * 调整任务超时时间
      *
      * @param timeout 超时时间
+     * @param appId   业务ID
      * @return 超时时间
      */
-    public static Integer adjustTaskTimeout(Integer timeout) {
+    public static Integer adjustTaskTimeout(Long appId, Integer timeout) {
         if (timeout == null) {
             return DEFAULT_JOB_TIMEOUT_SECONDS;
         }
+
+        ResourceScopeTaskTimeoutParser resourceScopeTaskTimeoutParser = ApplicationContextRegister.getBean(
+            ResourceScopeTaskTimeoutParser.class);
+        int maxTimeout = resourceScopeTaskTimeoutParser.getMaxTimeoutOrDefault(appId, MAX_JOB_TIMEOUT_SECONDS);
+
         Integer finalTimeout = timeout;
-        if (timeout <= 0 || timeout > MAX_JOB_TIMEOUT_SECONDS) {
-            finalTimeout = MAX_JOB_TIMEOUT_SECONDS;
+        if (timeout <= 0 || timeout > maxTimeout) {
+            finalTimeout = maxTimeout;
         }
         return finalTimeout;
     }

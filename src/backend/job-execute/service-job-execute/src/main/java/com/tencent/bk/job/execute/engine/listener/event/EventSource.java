@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -67,11 +67,13 @@ public class EventSource {
     /**
      * 构造事件源 - 步骤
      *
+     * @param jobInstanceId  作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @return 执行引擎事件源
      */
-    public static EventSource buildStepEventSource(long stepInstanceId) {
+    public static EventSource buildStepEventSource(Long jobInstanceId, long stepInstanceId) {
         EventSource eventSource = new EventSource();
+        eventSource.setJobInstanceId(jobInstanceId);
         eventSource.setStepInstanceId(stepInstanceId);
         eventSource.setSourceType(EventSourceTypeEnum.STEP);
         return eventSource;
@@ -80,17 +82,20 @@ public class EventSource {
     /**
      * 构造事件源 - GSE 任务
      *
+     * @param jobInstanceId  作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   步骤执行次数
      * @param batch          滚动执行批次
      * @param gseTaskId      GSE 任务ID
      * @return 执行引擎事件源
      */
-    public static EventSource buildGseTaskEventSource(Long stepInstanceId,
+    public static EventSource buildGseTaskEventSource(Long jobInstanceId,
+                                                      Long stepInstanceId,
                                                       Integer executeCount,
                                                       Integer batch,
                                                       Long gseTaskId) {
         EventSource eventSource = new EventSource();
+        eventSource.setJobInstanceId(jobInstanceId);
         eventSource.setStepInstanceId(stepInstanceId);
         eventSource.setExecuteCount(executeCount);
         eventSource.setBatch(batch);

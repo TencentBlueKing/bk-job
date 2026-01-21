@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -30,7 +30,7 @@
     v-bkloading="{ isLoading }"
     class="task-import-step5">
     <div class="flag">
-      <img src="/static/images/import.svg">
+      <img :src="importImage">
     </div>
     <div class="title">
       <span v-if="isImportSuccess">{{ $t('template.作业导入完成（全部成功），请及时检查确认。') }}</span>
@@ -130,6 +130,7 @@
     created() {
       this.id = taskImport.getItem('id');
       this.pollingQueue = [];
+      this.importImage = window.__loadAssetsUrl__('/static/images/import.svg');
       taskImport.clearItem();
       this.fetchData();
       this.startTimer();

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.api.esb.v2.EsbGetStepInstanceStatusResource;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
@@ -93,14 +94,17 @@ public class EsbGetStepInstanceStatusResourceImpl implements EsbGetStepInstanceS
         EsbStepInstanceStatusDTO resultData = new EsbStepInstanceStatusDTO();
 
         StepExecutionResultQuery query = StepExecutionResultQuery.builder()
-            .stepInstanceId(request.getStepInstanceId()).build();
-        StepExecutionDetailDTO stepExecutionDetail = taskResultService.getStepExecutionResult(username,
-            request.getAppId(), query);
+            .taskInstanceId(request.getTaskInstanceId())
+            .stepInstanceId(request.getStepInstanceId())
+            .build();
+        StepExecutionDetailDTO stepExecutionDetail = taskResultService.getStepExecutionResult(
+            JobContextUtil.getUser(), request.getAppId(), query);
 
         resultData.setIsFinished(stepExecutionDetail.isFinished());
         resultData.setAyalyseResult(convertToStandardAnalyseResult(stepExecutionDetail));
 
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(request.getStepInstanceId());
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(request.getTaskInstanceId(),
+            request.getStepInstanceId());
         if (stepInstance == null) {
             log.warn("Get step instance status by taskInstanceId:{}, stepInstanceId:{}, stepInstance is null!",
                 request.getTaskInstanceId(), request.getStepInstanceId());

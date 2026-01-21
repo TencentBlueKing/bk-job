@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service.plan;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanBasicInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
@@ -105,32 +106,32 @@ public interface TaskPlanService {
     /**
      * 查询执行方案信息
      *
-     * @param username   用户账号
+     * @param user       用户账号
      * @param appId      业务 ID
      * @param templateId 作业模版 ID
      * @param planId     执行方案 ID
      * @return 执行方案信息
      */
-    TaskPlanInfoDTO getTaskPlan(String username, Long appId, Long templateId, Long planId);
+    TaskPlanInfoDTO getTaskPlan(User user, Long appId, Long templateId, Long planId);
 
     /**
      * 查询执行方案信息
      *
-     * @param username 用户账号
-     * @param appId    业务 ID
-     * @param planId   执行方案 ID
+     * @param user   用户账号
+     * @param appId  业务 ID
+     * @param planId 执行方案 ID
      * @return 执行方案信息
      */
-    TaskPlanInfoDTO getTaskPlan(String username, Long appId, Long planId);
+    TaskPlanInfoDTO getTaskPlan(User user, Long appId, Long planId);
 
     /**
      * 新建执行方案
      *
-     * @param username     用户账号
+     * @param user         用户账号
      * @param taskPlanInfo 执行方案
      * @return 新建的执行方案
      */
-    TaskPlanInfoDTO createTaskPlan(String username, TaskPlanInfoDTO taskPlanInfo);
+    TaskPlanInfoDTO createTaskPlan(User user, TaskPlanInfoDTO taskPlanInfo);
 
     /**
      * 新建执行方案
@@ -143,44 +144,53 @@ public interface TaskPlanService {
     /**
      * 更新执行方案
      *
-     * @param username     用户账号
+     * @param user         用户账号
      * @param taskPlanInfo 执行方案
      * @return 更新之后的执行方案
      */
-    TaskPlanInfoDTO updateTaskPlan(String username, TaskPlanInfoDTO taskPlanInfo);
+    TaskPlanInfoDTO updateTaskPlan(User user, TaskPlanInfoDTO taskPlanInfo);
 
     /**
      * 更新内置的用于调试的执行方案
      *
-     * @param username     用户账号
+     * @param user         用户账号
      * @param taskPlanInfo 执行方案
      * @return 更新之后的执行方案
      */
-    TaskPlanInfoDTO updateDebugTaskPlan(String username, TaskPlanInfoDTO taskPlanInfo);
+    TaskPlanInfoDTO updateDebugTaskPlan(User user, TaskPlanInfoDTO taskPlanInfo);
 
     /**
      * 删除执行方案
      *
-     * @param username   用户账号
+     * @param user       用户账号
      * @param appId      业务 ID
      * @param templateId 模版 ID
      * @param planId     执行方案 ID
      * @return 删除掉的执行方案
      */
-    TaskPlanInfoDTO deleteTaskPlan(String username, Long appId, Long templateId, Long planId);
+    TaskPlanInfoDTO deleteTaskPlan(User user, Long appId, Long templateId, Long planId);
 
     /**
      * 获取调试执行方案（不存在则创建）
      *
-     * @param username   用户名
+     * @param user       用户账号
      * @param appId      业务 ID
      * @param templateId 模版 ID
      * @return 执行方案信息
      */
-    TaskPlanInfoDTO getDebugTaskPlan(String username, Long appId, Long templateId);
+    TaskPlanInfoDTO getDebugTaskPlan(User user, Long appId, Long templateId);
 
     /**
-     * 根据执行方案 ID 列表批量获取执行方案基本信息
+     * 根据执行方案 ID 列表批量获取执行方案基本信息（含变量与模板信息）
+     *
+     * @param appId      业务 ID
+     * @param planIdList 执行方案 ID 列表
+     * @return 执行方案基本信息列表
+     */
+    List<TaskPlanInfoDTO> listPlanBasicInfoWithVariablesByIds(Long appId, List<Long> planIdList);
+
+    /**
+     * 根据执行方案 ID 列表批量获取执行方案基本信息（不含变量与模板信息）
      *
      * @param appId      业务 ID
      * @param planIdList 执行方案 ID 列表
@@ -220,7 +230,7 @@ public interface TaskPlanService {
     /**
      * 新增执行方案（仅数据迁移用）
      *
-     * @param username       用户名
+     * @param user           用户账号
      * @param appId          业务 ID
      * @param templateId     作业模版 ID
      * @param planId         执行方案 ID
@@ -230,7 +240,7 @@ public interface TaskPlanService {
      * @return 新增的执行方案 ID
      */
     Long saveTaskPlanForMigration(
-        String username, Long appId, Long templateId, Long planId, Long createTime,
+        User user, Long appId, Long templateId, Long planId, Long createTime,
         Long lastModifyTime, String lastModifyUser
     );
 

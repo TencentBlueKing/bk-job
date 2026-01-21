@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -28,7 +28,7 @@ dependencies {
     api project(":commons:common-i18n")
     implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
-    runtimeOnly 'mysql:mysql-connector-java'
+    runtimeOnly 'com.mysql:mysql-connector-j'
 
     testImplementation("com.h2database:h2")
 }
@@ -40,10 +40,22 @@ task renameArtifacts(type: Copy) {
     from('build/libs')
     include "boot-job-execute-${version}.jar"
     destinationDir file('build/libs/')
+    println("renameArtifacts, version=" + version)
     rename "boot-job-execute-${version}.jar", "job-execute-${version}.jar"
+    doLast{
+        println("After rename:")
+        def libsDir = file("build/libs")
+        if (libsDir.exists() && libsDir.isDirectory()) {
+            println "Files in $libsDir:"
+            libsDir.eachFile { file ->
+                println file.name
+            }
+        } else {
+            println "$libsDir does not exist or is not a directory."
+        }
+    }
 }
-renameArtifacts.dependsOn jar
-assemble.dependsOn renameArtifacts
+renameArtifacts.dependsOn assemble
 
 task copyToLatestJar(type: Copy) {
     group = "local"
@@ -55,3 +67,4 @@ task copyToLatestJar(type: Copy) {
 copyToLatestJar.dependsOn assemble
 
 apply from: "$rootDir/task_job_package.gradle"
+copyToRelease.dependsOn renameArtifacts

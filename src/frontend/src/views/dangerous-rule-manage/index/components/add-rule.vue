@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -32,19 +32,19 @@
     :model="formData"
     :rules="rules">
     <jb-form-item
-      :label="$t('dangerousRule.语法检测表达式.label')"
+      :label="$t('dangerousRule.语法检测表达式_label')"
       property="expression"
       required>
       <bk-input v-model="formData.expression" />
     </jb-form-item>
     <jb-form-item
-      :label="$t('dangerousRule.规则说明.label')"
+      :label="$t('dangerousRule.规则说明_label')"
       property="description"
       required>
       <bk-input v-model="formData.description" />
     </jb-form-item>
     <jb-form-item
-      :label="$t('dangerousRule.脚本类型.label')"
+      :label="$t('dangerousRule.脚本类型_label')"
       property="scriptTypeList"
       required>
       <bk-select
@@ -60,7 +60,7 @@
       </bk-select>
     </jb-form-item>
     <jb-form-item
-      :label="$t('dangerousRule.动作.label')"
+      :label="$t('dangerousRule.动作_label')"
       property="action"
       required>
       <bk-select

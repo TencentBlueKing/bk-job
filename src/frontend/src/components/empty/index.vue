@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -29,7 +29,7 @@
   <div class="job-empty">
     <template v-if="type === 'search'">
       <img
-        src="/static/images/search-empty.svg"
+        :src="searchEmptyImage"
         :style="styles">
       <div class="job-empty-text">
         <slot>{{ $t('搜索结果为空') }}</slot>
@@ -37,7 +37,7 @@
     </template>
     <template v-else>
       <img
-        src="/static/images/empty.svg"
+        :src="emptyImage"
         :style="styles">
       <div class="job-empty-text">
         <slot>{{ title }}</slot>
@@ -74,6 +74,10 @@
         }
         return {};
       },
+    },
+    created() {
+      this.searchEmptyImage = window.__loadAssetsUrl__('/static/images/search-empty.svg');
+      this.emptyImage = window.__loadAssetsUrl__('/static/images/empty.svg');
     },
   };
 </script>

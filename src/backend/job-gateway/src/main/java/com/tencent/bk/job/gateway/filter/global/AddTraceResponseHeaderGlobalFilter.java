@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,6 +25,8 @@
 package com.tencent.bk.job.gateway.filter.global;
 
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.gateway.consts.GlobalFilterOrder;
+import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -60,6 +62,8 @@ public class AddTraceResponseHeaderGlobalFilter implements GlobalFilter, Ordered
             ServerHttpRequest request = exchange.getRequest();
             ServerHttpResponse response = exchange.getResponse();
             response.getHeaders().add(JobCommonHeaders.REQUEST_ID, traceId);
+            // 由于Reactor Netty异步模型存在线程切换，trace可能无法正确传播,将trace写入请求头确保访问日志能稳定获取链路信息
+            request.mutate().header(AccessLogConstants.Header.SPAN_ID, span.context().spanId());
             return chain.filter(exchange.mutate().request(request).build());
         } catch (Exception e) {
             span.error(e);
@@ -71,6 +75,6 @@ public class AddTraceResponseHeaderGlobalFilter implements GlobalFilter, Ordered
 
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
+        return GlobalFilterOrder.ADD_TRACE_RESPONSE_HEADER;
     }
 }

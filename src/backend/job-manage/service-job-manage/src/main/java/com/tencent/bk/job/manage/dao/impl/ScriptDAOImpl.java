@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -40,14 +40,17 @@ import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
 import com.tencent.bk.job.manage.model.tables.Script;
 import com.tencent.bk.job.manage.model.tables.ScriptVersion;
+import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
+import org.jooq.Record1;
 import org.jooq.Record6;
 import org.jooq.Result;
 import org.jooq.SortField;
+import org.jooq.TableField;
 import org.jooq.impl.DSL;
 import org.jooq.types.UByte;
 import org.jooq.types.ULong;
@@ -64,6 +67,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.tencent.bk.job.common.constant.JobConstants.PUBLIC_APP_ID;
+
 /**
  * 脚本DAO - script/script_version
  */
@@ -72,6 +77,45 @@ public class ScriptDAOImpl implements ScriptDAO {
     private static final Script TB_SCRIPT = Script.SCRIPT;
     private static final ScriptVersion TB_SCRIPT_VERSION = ScriptVersion.SCRIPT_VERSION;
     private final DSLContext dslContext;
+
+    private static final TableField<?, ?>[] SCRIPT_ALL_FIELDS = {
+        TB_SCRIPT.ID,
+        TB_SCRIPT.APP_ID,
+        TB_SCRIPT.NAME,
+        TB_SCRIPT.CATEGORY,
+        TB_SCRIPT.TYPE,
+        TB_SCRIPT.CREATOR,
+        TB_SCRIPT.CREATE_TIME,
+        TB_SCRIPT.LAST_MODIFY_USER,
+        TB_SCRIPT.LAST_MODIFY_TIME,
+        TB_SCRIPT.IS_PUBLIC,
+        TB_SCRIPT.DESCRIPTION,
+        TB_SCRIPT.TENANT_ID
+    };
+
+    private static final TableField<?, ?>[] ALL_FIELDS = {
+        TB_SCRIPT.ID,
+        TB_SCRIPT.APP_ID,
+        TB_SCRIPT.NAME,
+        TB_SCRIPT.CATEGORY,
+        TB_SCRIPT.TYPE,
+        TB_SCRIPT.CREATOR,
+        TB_SCRIPT.CREATE_TIME,
+        TB_SCRIPT.LAST_MODIFY_USER,
+        TB_SCRIPT.LAST_MODIFY_TIME,
+        TB_SCRIPT.IS_PUBLIC,
+        TB_SCRIPT.DESCRIPTION,
+        TB_SCRIPT.TENANT_ID,
+        TB_SCRIPT_VERSION.ID,
+        TB_SCRIPT_VERSION.VERSION,
+        TB_SCRIPT_VERSION.CONTENT,
+        TB_SCRIPT_VERSION.STATUS,
+        TB_SCRIPT_VERSION.CREATE_TIME,
+        TB_SCRIPT_VERSION.CREATOR,
+        TB_SCRIPT_VERSION.LAST_MODIFY_TIME,
+        TB_SCRIPT_VERSION.LAST_MODIFY_USER,
+        TB_SCRIPT_VERSION.VERSION_DESC
+    };
 
     @Autowired
     public ScriptDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
@@ -97,9 +141,7 @@ public class ScriptDAOImpl implements ScriptDAO {
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
         Result<? extends Record> result =
-            dslContext.select(TB_SCRIPT.ID, TB_SCRIPT.APP_ID, TB_SCRIPT.NAME, TB_SCRIPT.CATEGORY,
-                TB_SCRIPT.TYPE, TB_SCRIPT.CREATOR, TB_SCRIPT.CREATE_TIME, TB_SCRIPT.LAST_MODIFY_USER,
-                TB_SCRIPT.LAST_MODIFY_TIME, TB_SCRIPT.IS_PUBLIC, TB_SCRIPT.DESCRIPTION)
+            dslContext.select(SCRIPT_ALL_FIELDS)
                 .from(TB_SCRIPT)
                 .where(buildScriptConditionList(scriptQuery, baseSearchCondition))
                 .orderBy(orderFields)
@@ -123,9 +165,7 @@ public class ScriptDAOImpl implements ScriptDAO {
         int length = baseSearchCondition.getLengthOrDefault(10);
 
         Result<? extends Record> result =
-            dslContext.selectDistinct(TB_SCRIPT.ID, TB_SCRIPT.APP_ID, TB_SCRIPT.NAME, TB_SCRIPT.CATEGORY,
-                TB_SCRIPT.TYPE, TB_SCRIPT.CREATOR, TB_SCRIPT.CREATE_TIME, TB_SCRIPT.LAST_MODIFY_USER,
-                TB_SCRIPT.LAST_MODIFY_TIME, TB_SCRIPT.IS_PUBLIC, TB_SCRIPT.DESCRIPTION)
+            dslContext.selectDistinct(SCRIPT_ALL_FIELDS)
                 .from(TB_SCRIPT)
                 .leftJoin(TB_SCRIPT_VERSION)
                 .on(TB_SCRIPT.ID.eq(TB_SCRIPT_VERSION.SCRIPT_ID))
@@ -137,12 +177,13 @@ public class ScriptDAOImpl implements ScriptDAO {
 
     private int getPageScriptCountWithScriptVersionQueryCondition(ScriptQuery scriptQuery,
                                                                   BaseSearchCondition baseSearchCondition) {
-        return dslContext.fetchCount(
-            dslContext.selectDistinct(TB_SCRIPT.ID)
-                .from(TB_SCRIPT)
-                .leftJoin(TB_SCRIPT_VERSION)
-                .on(TB_SCRIPT.ID.eq(TB_SCRIPT_VERSION.SCRIPT_ID))
-                .where(buildScriptConditionList(scriptQuery, baseSearchCondition)));
+        return dslContext.selectCount().from(
+                dslContext.selectDistinct(TB_SCRIPT.ID)
+                    .from(TB_SCRIPT)
+                    .leftJoin(TB_SCRIPT_VERSION)
+                    .on(TB_SCRIPT.ID.eq(TB_SCRIPT_VERSION.SCRIPT_ID))
+                    .where(buildScriptConditionList(scriptQuery, baseSearchCondition))
+            ).fetchOne(0, Integer.class);
     }
 
     private List<SortField<?>> buildOrderFields(BaseSearchCondition baseSearchCondition) {
@@ -189,7 +230,7 @@ public class ScriptDAOImpl implements ScriptDAO {
 
     private PageData<ScriptDTO> pageResult(Result<? extends Record> result, long count, int start, int length) {
         List<ScriptDTO> scripts = new ArrayList<>();
-        if (result.size() != 0) {
+        if (!result.isEmpty()) {
             scripts = result.map(this::extractScriptData);
         }
 
@@ -204,15 +245,13 @@ public class ScriptDAOImpl implements ScriptDAO {
     @Override
     public List<ScriptDTO> listScripts(ScriptQuery scriptQuery) {
         Result<? extends Record> result =
-            dslContext.select(TB_SCRIPT.ID, TB_SCRIPT.APP_ID, TB_SCRIPT.NAME, TB_SCRIPT.CATEGORY,
-                TB_SCRIPT.TYPE, TB_SCRIPT.CREATOR, TB_SCRIPT.CREATE_TIME, TB_SCRIPT.LAST_MODIFY_USER,
-                TB_SCRIPT.LAST_MODIFY_TIME, TB_SCRIPT.IS_PUBLIC, TB_SCRIPT.DESCRIPTION)
+            dslContext.select(SCRIPT_ALL_FIELDS)
                 .from(TB_SCRIPT)
                 .where(buildScriptConditionList(scriptQuery, null))
                 .orderBy(TB_SCRIPT.NAME.asc())
                 .fetch();
         List<ScriptDTO> scripts = new ArrayList<>();
-        if (result.size() != 0) {
+        if (!result.isEmpty()) {
             scripts = result.map(this::extractScriptData);
         }
         return scripts;
@@ -220,9 +259,7 @@ public class ScriptDAOImpl implements ScriptDAO {
 
     @Override
     public ScriptDTO getScriptByScriptId(String scriptId) {
-        Record record = dslContext.select(TB_SCRIPT.ID, TB_SCRIPT.APP_ID, TB_SCRIPT.NAME, TB_SCRIPT.CATEGORY,
-            TB_SCRIPT.TYPE, TB_SCRIPT.IS_PUBLIC, TB_SCRIPT.CREATOR, TB_SCRIPT.CREATE_TIME,
-            TB_SCRIPT.LAST_MODIFY_USER, TB_SCRIPT.LAST_MODIFY_TIME, TB_SCRIPT.DESCRIPTION).from(Script.SCRIPT)
+        Record record = dslContext.select(SCRIPT_ALL_FIELDS).from(Script.SCRIPT)
             .where(TB_SCRIPT.ID.eq(scriptId)).fetchOne();
         return extractScriptData(record);
     }
@@ -230,53 +267,42 @@ public class ScriptDAOImpl implements ScriptDAO {
     @Override
     public List<ScriptBasicDTO> listScriptBasicInfoByScriptIds(Collection<String> scriptIds) {
         Result<Record6<String, ULong, String, UByte, UByte, UByte>> records = dslContext.select(
-            TB_SCRIPT.ID,
-            TB_SCRIPT.APP_ID,
-            TB_SCRIPT.NAME,
-            TB_SCRIPT.CATEGORY,
-            TB_SCRIPT.TYPE,
-            TB_SCRIPT.IS_PUBLIC
-        ).from(Script.SCRIPT)
+                TB_SCRIPT.ID,
+                TB_SCRIPT.APP_ID,
+                TB_SCRIPT.NAME,
+                TB_SCRIPT.CATEGORY,
+                TB_SCRIPT.TYPE,
+                TB_SCRIPT.IS_PUBLIC
+            ).from(Script.SCRIPT)
             .where(TB_SCRIPT.ID.in(scriptIds)).fetch();
         return records.map(this::extractScriptBasicDTO);
     }
 
     @Override
     public ScriptDTO getScriptVersionById(long id) {
-        Script tbScript = Script.SCRIPT.as("t1");
-        ScriptVersion tbScriptVersion = ScriptVersion.SCRIPT_VERSION.as("t2");
-
-        Record record = dslContext.select(tbScript.ID, tbScript.APP_ID, tbScript.NAME, tbScript.CATEGORY,
-            tbScript.TYPE, tbScript.IS_PUBLIC, tbScript.DESCRIPTION, tbScriptVersion.ID.as("scriptVersionId"),
-            tbScriptVersion.VERSION, tbScriptVersion.CONTENT, tbScriptVersion.STATUS, tbScriptVersion.CREATE_TIME,
-            tbScriptVersion.CREATOR, tbScriptVersion.LAST_MODIFY_TIME, tbScriptVersion.LAST_MODIFY_USER,
-            tbScriptVersion.VERSION_DESC).from(tbScriptVersion).join(tbScript)
-            .on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID))
-            .where(tbScriptVersion.ID.eq(ULong.valueOf(id))
-                .and(tbScriptVersion.IS_DELETED.eq(UByte.valueOf(0))))
+        Record record = dslContext.select(ALL_FIELDS)
+            .from(TB_SCRIPT_VERSION)
+            .join(TB_SCRIPT)
+            .on(TB_SCRIPT.ID.eq(TB_SCRIPT_VERSION.SCRIPT_ID))
+            .where(TB_SCRIPT_VERSION.ID.eq(ULong.valueOf(id))
+                .and(TB_SCRIPT_VERSION.IS_DELETED.eq(UByte.valueOf(0))))
             .fetchOne();
         return extractScriptVersionData(record);
     }
 
     @Override
     public ScriptDTO getByScriptIdAndVersion(Long appId, String scriptId, String version) {
-        Script tbScript = Script.SCRIPT.as("t1");
-        ScriptVersion tbScriptVersion = ScriptVersion.SCRIPT_VERSION.as("t2");
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(tbScriptVersion.IS_DELETED.eq(UByte.valueOf(0)));
+        conditions.add(TB_SCRIPT_VERSION.IS_DELETED.eq(UByte.valueOf(0)));
         if (scriptId != null) {
-            conditions.add(tbScript.ID.eq(scriptId));
+            conditions.add(TB_SCRIPT.ID.eq(scriptId));
         }
         if (version != null) {
-            conditions.add(tbScriptVersion.VERSION.eq(version));
+            conditions.add(TB_SCRIPT_VERSION.VERSION.eq(version));
         }
 
-        Record record = dslContext.select(tbScript.ID, tbScript.APP_ID, tbScript.NAME, tbScript.CATEGORY,
-            tbScript.TYPE, tbScript.IS_PUBLIC, tbScript.DESCRIPTION, tbScriptVersion.ID.as("scriptVersionId"),
-            tbScriptVersion.VERSION, tbScriptVersion.CONTENT, tbScriptVersion.STATUS, tbScriptVersion.CREATE_TIME,
-            tbScriptVersion.CREATOR, tbScriptVersion.LAST_MODIFY_TIME, tbScriptVersion.LAST_MODIFY_USER,
-            tbScriptVersion.VERSION_DESC).from(tbScriptVersion).join(tbScript)
-            .on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID))
+        Record record = dslContext.select(ALL_FIELDS).from(TB_SCRIPT_VERSION).join(TB_SCRIPT)
+            .on(TB_SCRIPT.ID.eq(TB_SCRIPT_VERSION.SCRIPT_ID))
             .where(conditions)
             .fetchOne();
         return extractScriptVersionData(record);
@@ -284,20 +310,17 @@ public class ScriptDAOImpl implements ScriptDAO {
 
     @Override
     public List<ScriptDTO> batchGetScriptVersionsByIds(Collection<Long> scriptVersionIds) {
-        Script tbScript = Script.SCRIPT.as("t1");
-        ScriptVersion tbScriptVersion = ScriptVersion.SCRIPT_VERSION.as("t2");
-
         List<ULong> scriptVersionIdList = scriptVersionIds.stream().map(ULong::valueOf).collect(Collectors.toList());
-        Result<? extends Record> result = dslContext.select(tbScript.ID, tbScript.APP_ID, tbScript.NAME,
-            tbScript.CATEGORY,
-            tbScript.TYPE, tbScript.IS_PUBLIC, tbScript.DESCRIPTION, tbScriptVersion.ID.as("scriptVersionId"),
-            tbScriptVersion.VERSION, tbScriptVersion.CONTENT, tbScriptVersion.STATUS, tbScriptVersion.CREATE_TIME,
-            tbScriptVersion.CREATOR, tbScriptVersion.LAST_MODIFY_TIME, tbScriptVersion.LAST_MODIFY_USER,
-            tbScriptVersion.VERSION_DESC).from(tbScriptVersion).join(tbScript)
-            .on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID)).where(tbScriptVersion.ID.in(scriptVersionIdList).and(tbScriptVersion.IS_DELETED.eq(UByte.valueOf(0))))
+        Result<? extends Record> result = dslContext
+            .select(ALL_FIELDS)
+            .from(TB_SCRIPT_VERSION)
+            .join(TB_SCRIPT)
+            .on(TB_SCRIPT.ID.eq(TB_SCRIPT_VERSION.SCRIPT_ID))
+            .where(TB_SCRIPT_VERSION.ID.in(scriptVersionIdList)
+                .and(TB_SCRIPT_VERSION.IS_DELETED.eq(UByte.valueOf(0))))
             .fetch();
 
-        if (result.size() == 0) {
+        if (result.isEmpty()) {
             return Collections.emptyList();
         }
 
@@ -350,6 +373,12 @@ public class ScriptDAOImpl implements ScriptDAO {
                     )
                 );
             }
+
+            String tenantId = scriptQuery.getTenantId();
+            if (tenantId != null) {
+                conditions.add(TB_SCRIPT.TENANT_ID.eq(tenantId));
+            }
+
         }
 
         return conditions;
@@ -374,17 +403,18 @@ public class ScriptDAOImpl implements ScriptDAO {
         int isPublicScript = script.isPublicScript() ? ScriptScopeEnum.PUBLIC.getValue() :
             ScriptScopeEnum.APP.getValue();
         dslContext.insertInto(TB_SCRIPT,
-            TB_SCRIPT.ID,
-            TB_SCRIPT.NAME,
-            TB_SCRIPT.APP_ID,
-            TB_SCRIPT.CATEGORY,
-            TB_SCRIPT.TYPE,
-            TB_SCRIPT.DESCRIPTION,
-            TB_SCRIPT.IS_PUBLIC,
-            TB_SCRIPT.CREATOR,
-            TB_SCRIPT.LAST_MODIFY_USER,
-            TB_SCRIPT.LAST_MODIFY_TIME,
-            TB_SCRIPT.CREATE_TIME)
+                TB_SCRIPT.ID,
+                TB_SCRIPT.NAME,
+                TB_SCRIPT.APP_ID,
+                TB_SCRIPT.CATEGORY,
+                TB_SCRIPT.TYPE,
+                TB_SCRIPT.DESCRIPTION,
+                TB_SCRIPT.IS_PUBLIC,
+                TB_SCRIPT.CREATOR,
+                TB_SCRIPT.LAST_MODIFY_USER,
+                TB_SCRIPT.LAST_MODIFY_TIME,
+                TB_SCRIPT.CREATE_TIME,
+                TB_SCRIPT.TENANT_ID)
             .values(script.getId(),
                 script.getName(),
                 ULong.valueOf(script.getAppId()),
@@ -396,7 +426,8 @@ public class ScriptDAOImpl implements ScriptDAO {
                 script.getCreator(),
                 ULong.valueOf(script.getCreateTime() == null ? System.currentTimeMillis() : script.getCreateTime()),
                 ULong.valueOf(script.getLastModifyTime() == null ? System.currentTimeMillis() :
-                    script.getLastModifyTime()))
+                    script.getLastModifyTime()),
+                script.getTenantId())
             .execute();
         return script.getId();
     }
@@ -427,17 +458,17 @@ public class ScriptDAOImpl implements ScriptDAO {
             scriptVersionId = null;
         }
         Record record = dslContext.insertInto(
-            TB_SCRIPT_VERSION,
-            TB_SCRIPT_VERSION.ID,
-            TB_SCRIPT_VERSION.SCRIPT_ID,
-            TB_SCRIPT_VERSION.CONTENT,
-            TB_SCRIPT_VERSION.VERSION_DESC,
-            TB_SCRIPT_VERSION.VERSION,
-            TB_SCRIPT_VERSION.CREATOR,
-            TB_SCRIPT_VERSION.LAST_MODIFY_USER,
-            TB_SCRIPT_VERSION.STATUS,
-            TB_SCRIPT_VERSION.CREATE_TIME,
-            TB_SCRIPT_VERSION.LAST_MODIFY_TIME)
+                TB_SCRIPT_VERSION,
+                TB_SCRIPT_VERSION.ID,
+                TB_SCRIPT_VERSION.SCRIPT_ID,
+                TB_SCRIPT_VERSION.CONTENT,
+                TB_SCRIPT_VERSION.VERSION_DESC,
+                TB_SCRIPT_VERSION.VERSION,
+                TB_SCRIPT_VERSION.CREATOR,
+                TB_SCRIPT_VERSION.LAST_MODIFY_USER,
+                TB_SCRIPT_VERSION.STATUS,
+                TB_SCRIPT_VERSION.CREATE_TIME,
+                TB_SCRIPT_VERSION.LAST_MODIFY_TIME)
             .values(
                 scriptVersionId == null ? null : ULong.valueOf(scriptVersionId),
                 scriptDTO.getId(),
@@ -457,31 +488,22 @@ public class ScriptDAOImpl implements ScriptDAO {
 
     @Override
     public List<ScriptDTO> listScriptVersionsByScriptId(String scriptId) {
-        Script tbScript = Script.SCRIPT.as("t1");
-        ScriptVersion tbScriptVersion = ScriptVersion.SCRIPT_VERSION.as("t2");
-
-        Result<? extends Record> result = dslContext.select(tbScript.ID, tbScript.APP_ID, tbScript.NAME,
-            tbScript.CATEGORY,
-            tbScript.TYPE, tbScript.IS_PUBLIC, tbScript.DESCRIPTION, tbScriptVersion.ID.as("scriptVersionId"),
-            tbScriptVersion.VERSION, tbScriptVersion.CONTENT, tbScriptVersion.VERSION_DESC, tbScriptVersion.STATUS,
-            tbScriptVersion.CREATE_TIME,
-            tbScriptVersion.CREATOR, tbScriptVersion.LAST_MODIFY_TIME, tbScriptVersion.LAST_MODIFY_USER).from(tbScriptVersion).join(tbScript)
-            .on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID)).where(tbScript.ID.eq(scriptId).and(tbScriptVersion.IS_DELETED.eq(UByte.valueOf(0))))
-            .orderBy(tbScriptVersion.LAST_MODIFY_TIME.desc())
+        Result<? extends Record> result = dslContext.select(ALL_FIELDS)
+            .from(TB_SCRIPT_VERSION).join(TB_SCRIPT)
+            .on(TB_SCRIPT.ID.eq(TB_SCRIPT_VERSION.SCRIPT_ID))
+            .where(TB_SCRIPT.ID.eq(scriptId).and(TB_SCRIPT_VERSION.IS_DELETED.eq(UByte.valueOf(0))))
+            .orderBy(TB_SCRIPT_VERSION.LAST_MODIFY_TIME.desc())
             .fetch();
         return result.map(this::extractScriptVersionData);
     }
 
+    @SuppressWarnings("DataFlowIssue")
     @Override
-    public boolean isExistDuplicateScriptId(Long appId, String scriptId) {
-        int count = dslContext.selectCount().from(TB_SCRIPT).where(TB_SCRIPT.APP_ID.eq(ULong.valueOf(appId))
-            .and(TB_SCRIPT.ID.eq(scriptId))).fetchOne(0, Integer.class);
-        return (count >= 1);
-    }
-
-    @Override
-    public boolean isExistDuplicateName(Long appId, String scriptName) {
-        int count = dslContext.selectCount().from(TB_SCRIPT).where(TB_SCRIPT.APP_ID.eq(ULong.valueOf(appId)))
+    public boolean isExistDuplicateName(String tenantId, Long appId, String scriptName) {
+        int count = dslContext.selectCount()
+            .from(TB_SCRIPT)
+            .where(TB_SCRIPT.APP_ID.eq(ULong.valueOf(appId)))
+            .and(TB_SCRIPT.TENANT_ID.eq(tenantId))
             .and(TB_SCRIPT.NAME.eq(scriptName))
             .and(TB_SCRIPT.IS_DELETED.eq(UByte.valueOf(0)))
             .fetchOne(0, Integer.class);
@@ -520,10 +542,7 @@ public class ScriptDAOImpl implements ScriptDAO {
         scriptBasicDTO.setAppId(record.get(TB_SCRIPT.APP_ID).longValue());
 
         int scriptScopeValue = record.get(TB_SCRIPT.IS_PUBLIC, Integer.class);
-        boolean isPublic = false;
-        if (scriptScopeValue == ScriptScopeEnum.PUBLIC.getValue()) {
-            isPublic = true;
-        }
+        boolean isPublic = scriptScopeValue == ScriptScopeEnum.PUBLIC.getValue();
         scriptBasicDTO.setPublicScript(isPublic);
         scriptBasicDTO.setType(record.get(TB_SCRIPT.TYPE, Integer.class));
         scriptBasicDTO.setCategory(record.get(TB_SCRIPT.CATEGORY, Integer.class));
@@ -540,10 +559,7 @@ public class ScriptDAOImpl implements ScriptDAO {
         script.setType(record.get(TB_SCRIPT.TYPE, Integer.class));
 
         int scriptScopeValue = record.get(TB_SCRIPT.IS_PUBLIC, Integer.class);
-        boolean isPublic = false;
-        if (scriptScopeValue == ScriptScopeEnum.PUBLIC.getValue()) {
-            isPublic = true;
-        }
+        boolean isPublic = scriptScopeValue == ScriptScopeEnum.PUBLIC.getValue();
         script.setPublicScript(isPublic);
         script.setAppId(record.get(TB_SCRIPT.APP_ID).longValue());
         script.setCategory(record.get(TB_SCRIPT.CATEGORY, Integer.class));
@@ -552,6 +568,7 @@ public class ScriptDAOImpl implements ScriptDAO {
         script.setCreateTime(record.get(TB_SCRIPT.CREATE_TIME).longValue());
         script.setLastModifyUser(record.get(TB_SCRIPT.LAST_MODIFY_USER));
         script.setLastModifyTime(record.get(TB_SCRIPT.LAST_MODIFY_TIME).longValue());
+        script.setTenantId(record.get(TB_SCRIPT.TENANT_ID));
         return script;
     }
 
@@ -564,15 +581,12 @@ public class ScriptDAOImpl implements ScriptDAO {
         script.setName(record.get(TB_SCRIPT.NAME));
         script.setType(record.get(TB_SCRIPT.TYPE, Integer.class));
         int scriptScopeValue = record.get(TB_SCRIPT.IS_PUBLIC, Integer.class);
-        boolean isPublic = false;
-        if (scriptScopeValue == ScriptScopeEnum.PUBLIC.getValue()) {
-            isPublic = true;
-        }
+        boolean isPublic = scriptScopeValue == ScriptScopeEnum.PUBLIC.getValue();
         script.setPublicScript(isPublic);
         script.setAppId(record.get(TB_SCRIPT.APP_ID).longValue());
         script.setCategory(record.get(TB_SCRIPT.CATEGORY, Integer.class));
         script.setDescription(record.get(TB_SCRIPT.DESCRIPTION));
-        script.setScriptVersionId(record.get("scriptVersionId", Long.class));
+        script.setScriptVersionId(record.get(TB_SCRIPT_VERSION.ID, Long.class));
         script.setVersion(record.get(TB_SCRIPT_VERSION.VERSION));
         script.setContent(record.get(TB_SCRIPT_VERSION.CONTENT));
         script.setCreator(record.get(TB_SCRIPT_VERSION.CREATOR));
@@ -581,6 +595,7 @@ public class ScriptDAOImpl implements ScriptDAO {
         script.setLastModifyTime(record.get(TB_SCRIPT_VERSION.LAST_MODIFY_TIME).longValue());
         script.setStatus(record.get(TB_SCRIPT_VERSION.STATUS, Integer.class));
         script.setVersionDesc(record.get(TB_SCRIPT_VERSION.VERSION_DESC));
+        script.setTenantId(record.get(TB_SCRIPT.TENANT_ID));
         return script;
     }
 
@@ -592,35 +607,16 @@ public class ScriptDAOImpl implements ScriptDAO {
 
     @Override
     public Map<String, ScriptDTO> batchGetOnlineByScriptIds(List<String> scriptIds) {
-        Script tbScript = Script.SCRIPT.as("t1");
-        ScriptVersion tbScriptVersion = ScriptVersion.SCRIPT_VERSION.as("t2");
-
         Result<? extends Record> result =
-            dslContext.select(
-                tbScript.ID,
-                tbScript.APP_ID,
-                tbScript.NAME,
-                tbScript.CATEGORY,
-                tbScript.TYPE,
-                tbScript.IS_PUBLIC,
-                tbScript.DESCRIPTION,
-                tbScriptVersion.ID.as("scriptVersionId"),
-                tbScriptVersion.VERSION,
-                tbScriptVersion.CONTENT,
-                tbScriptVersion.VERSION_DESC,
-                tbScriptVersion.STATUS,
-                tbScriptVersion.CREATE_TIME,
-                tbScriptVersion.CREATOR,
-                tbScriptVersion.LAST_MODIFY_TIME,
-                tbScriptVersion.LAST_MODIFY_USER)
-                .from(tbScriptVersion)
-                .join(tbScript)
-                .on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID)).where(tbScript.ID.in(scriptIds)
-                .and(tbScriptVersion.STATUS.eq(UByte.valueOf(JobResourceStatusEnum.ONLINE.getValue())))
-                .and(tbScriptVersion.IS_DELETED.eq(UByte.valueOf(0))))
+            dslContext.select(ALL_FIELDS)
+                .from(TB_SCRIPT_VERSION)
+                .join(TB_SCRIPT)
+                .on(TB_SCRIPT.ID.eq(TB_SCRIPT_VERSION.SCRIPT_ID)).where(TB_SCRIPT.ID.in(scriptIds)
+                    .and(TB_SCRIPT_VERSION.STATUS.eq(UByte.valueOf(JobResourceStatusEnum.ONLINE.getValue())))
+                    .and(TB_SCRIPT_VERSION.IS_DELETED.eq(UByte.valueOf(0))))
                 .fetch();
         List<ScriptDTO> scriptVersions = new ArrayList<>();
-        if (result.size() > 0) {
+        if (!result.isEmpty()) {
             scriptVersions = result.map(this::extractScriptVersionData);
         }
 
@@ -660,8 +656,28 @@ public class ScriptDAOImpl implements ScriptDAO {
     @Override
     public List<String> listScriptNames(Long appId, String keyword) {
         String likePattern = "%" + keyword + "%";
-        Result result =
+        val result =
             dslContext.select(TB_SCRIPT.NAME).from(TB_SCRIPT).where(TB_SCRIPT.APP_ID.eq(ULong.valueOf(appId)))
+                .and(TB_SCRIPT.IS_DELETED.eq(UByte.valueOf(0)))
+                .and(TB_SCRIPT.NAME.like(likePattern))
+                .orderBy(TB_SCRIPT.NAME.asc())
+                .fetch();
+        List<String> scriptNames = new ArrayList<>();
+        result.forEach(record -> {
+            String scriptName = ((Record) record).get(TB_SCRIPT.NAME);
+            scriptNames.add(scriptName);
+        });
+        return scriptNames;
+    }
+
+    @Override
+    public List<String> listPublicScriptNames(String tenantId, String keyword) {
+        String likePattern = "%" + keyword + "%";
+        Result<Record1<String>> result =
+            dslContext.select(TB_SCRIPT.NAME)
+                .from(TB_SCRIPT)
+                .where(TB_SCRIPT.TENANT_ID.eq(tenantId))
+                .and(TB_SCRIPT.IS_PUBLIC.eq(UByte.valueOf(ScriptScopeEnum.PUBLIC.getValue())))
                 .and(TB_SCRIPT.IS_DELETED.eq(UByte.valueOf(0)))
                 .and(TB_SCRIPT.NAME.like(likePattern))
                 .orderBy(TB_SCRIPT.NAME.asc())
@@ -675,23 +691,39 @@ public class ScriptDAOImpl implements ScriptDAO {
     }
 
     public List<ScriptDTO> listOnlineScriptForApp(long appId) {
-        Script tbScript = Script.SCRIPT.as("t1");
-        ScriptVersion tbScriptVersion = ScriptVersion.SCRIPT_VERSION.as("t2");
-
-        Result result = dslContext.select(tbScript.ID, tbScript.APP_ID, tbScript.NAME, tbScript.CATEGORY,
-            tbScript.TYPE, tbScript.IS_PUBLIC, tbScript.DESCRIPTION, tbScriptVersion.ID.as("scriptVersionId"),
-            tbScriptVersion.VERSION, tbScriptVersion.CONTENT, tbScriptVersion.VERSION_DESC, tbScriptVersion.STATUS,
-            tbScriptVersion.CREATE_TIME,
-            tbScriptVersion.CREATOR, tbScriptVersion.LAST_MODIFY_TIME, tbScriptVersion.LAST_MODIFY_USER)
-            .from(tbScriptVersion).join(tbScript)
-            .on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID)).where(tbScript.APP_ID.eq(ULong.valueOf(appId))
-                .and(tbScriptVersion.STATUS.eq(UByte.valueOf(JobResourceStatusEnum.ONLINE.getValue())))
-                .and(tbScriptVersion.IS_DELETED.eq(UByte.valueOf(0))))
-            .orderBy(tbScriptVersion.LAST_MODIFY_TIME.desc())
+        val result = dslContext.select(ALL_FIELDS)
+            .from(TB_SCRIPT_VERSION).join(TB_SCRIPT)
+            .on(TB_SCRIPT.ID.eq(TB_SCRIPT_VERSION.SCRIPT_ID)).where(TB_SCRIPT.APP_ID.eq(ULong.valueOf(appId))
+                .and(TB_SCRIPT_VERSION.STATUS.eq(UByte.valueOf(JobResourceStatusEnum.ONLINE.getValue())))
+                .and(TB_SCRIPT_VERSION.IS_DELETED.eq(UByte.valueOf(0))))
+            .orderBy(TB_SCRIPT_VERSION.LAST_MODIFY_TIME.desc())
             .fetch();
         List<ScriptDTO> scriptVersions = new ArrayList<>();
         result.into(record -> {
             ScriptDTO scriptVersion = extractScriptVersionData(record);
+            if (scriptVersion != null) {
+                scriptVersions.add(scriptVersion);
+            }
+        });
+        return scriptVersions;
+    }
+
+    @Override
+    public List<ScriptDTO> listOnlinePublicScript(String tenantId) {
+        val result = dslContext
+            .select(ALL_FIELDS)
+            .from(TB_SCRIPT)
+            .join(TB_SCRIPT_VERSION)
+            .on(TB_SCRIPT.ID.eq(TB_SCRIPT_VERSION.SCRIPT_ID))
+            .where(TB_SCRIPT.TENANT_ID.eq(tenantId)
+                .and(TB_SCRIPT.IS_PUBLIC.eq(UByte.valueOf(ScriptScopeEnum.PUBLIC.getValue())))
+                .and(TB_SCRIPT_VERSION.STATUS.eq(UByte.valueOf(JobResourceStatusEnum.ONLINE.getValue())))
+                .and(TB_SCRIPT_VERSION.IS_DELETED.eq(UByte.valueOf(0))))
+            .orderBy(TB_SCRIPT_VERSION.LAST_MODIFY_TIME.desc())
+            .fetch();
+        List<ScriptDTO> scriptVersions = new ArrayList<>();
+        result.forEach(record -> {
+            ScriptDTO scriptVersion = extractScriptVersionData((Record) record);
             if (scriptVersion != null) {
                 scriptVersions.add(scriptVersion);
             }
@@ -707,25 +739,24 @@ public class ScriptDAOImpl implements ScriptDAO {
         List<Condition> conditions = buildScriptConditionList(scriptCondition, baseSearchCondition);
         conditions.add(ScriptVersion.SCRIPT_VERSION.STATUS.eq(UByte.valueOf(JobResourceStatusEnum.ONLINE.getValue())));
 
-        long total = dslContext.selectCount().from(tbScriptVersion).join(tbScript)
-            .on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID)).
-                where(conditions).fetchOne(0, Long.class);
+        Long total = dslContext.selectCount()
+            .from(tbScriptVersion)
+            .join(tbScript)
+            .on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID))
+            .where(conditions)
+            .fetchOne(0, Long.class);
 
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
 
-        Result result = dslContext.select(tbScript.ID, tbScript.APP_ID, tbScript.NAME, tbScript.CATEGORY,
-            tbScript.TYPE, tbScript.IS_PUBLIC, tbScript.DESCRIPTION, tbScriptVersion.ID.as("scriptVersionId"),
-            tbScriptVersion.VERSION, tbScriptVersion.CONTENT, tbScriptVersion.VERSION_DESC, tbScriptVersion.STATUS,
-            tbScriptVersion.CREATE_TIME,
-            tbScriptVersion.CREATOR, tbScriptVersion.LAST_MODIFY_TIME, tbScriptVersion.LAST_MODIFY_USER).from(tbScriptVersion).join(tbScript)
+        val result = dslContext.select(ALL_FIELDS).from(tbScriptVersion).join(tbScript)
             .on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID))
             .where(conditions)
             .orderBy(tbScriptVersion.LAST_MODIFY_TIME.desc())
             .fetch();
         List<ScriptDTO> scriptVersions = new ArrayList<>();
-        result.into(record -> {
-            ScriptDTO scriptVersion = extractScriptVersionData(record);
+        result.forEach(record -> {
+            ScriptDTO scriptVersion = extractScriptVersionData((Record) record);
             if (scriptVersion != null) {
                 scriptVersions.add(scriptVersion);
             }
@@ -743,25 +774,21 @@ public class ScriptDAOImpl implements ScriptDAO {
         Script tbScript = Script.SCRIPT;
         ScriptVersion tbScriptVersion = ScriptVersion.SCRIPT_VERSION;
 
-        long count = getScriptVersionPageCount(scriptQuery);
+        Long count = getScriptVersionPageCount(scriptQuery);
 
         BaseSearchCondition baseSearchCondition = scriptQuery.getBaseSearchCondition();
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
 
-        Result result = dslContext.select(tbScript.ID, tbScript.APP_ID, tbScript.NAME, tbScript.CATEGORY,
-            tbScript.TYPE, tbScript.IS_PUBLIC, tbScript.DESCRIPTION, tbScriptVersion.ID.as("scriptVersionId"),
-            tbScriptVersion.VERSION, tbScriptVersion.CONTENT, tbScriptVersion.VERSION_DESC, tbScriptVersion.STATUS,
-            tbScriptVersion.CREATE_TIME,
-            tbScriptVersion.CREATOR, tbScriptVersion.LAST_MODIFY_TIME, tbScriptVersion.LAST_MODIFY_USER).from(tbScriptVersion).join(tbScript)
+        val result = dslContext.select(ALL_FIELDS).from(tbScriptVersion).join(tbScript)
             .on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID))
             .where(buildScriptVersionConditionList(scriptQuery, baseSearchCondition))
             .orderBy(tbScriptVersion.LAST_MODIFY_TIME.desc())
             .limit(start, length)
             .fetch();
         List<ScriptDTO> scriptVersions = new ArrayList<>();
-        result.into(record -> {
-            ScriptDTO scriptVersion = extractScriptVersionData(record);
+        result.forEach(record -> {
+            ScriptDTO scriptVersion = extractScriptVersionData((Record) record);
             if (scriptVersion != null) {
                 scriptVersions.add(scriptVersion);
             }
@@ -774,7 +801,7 @@ public class ScriptDAOImpl implements ScriptDAO {
         return scriptVersionPageData;
     }
 
-    private long getScriptVersionPageCount(ScriptQuery scriptQuery) {
+    private Long getScriptVersionPageCount(ScriptQuery scriptQuery) {
         BaseSearchCondition baseSearchCondition = scriptQuery.getBaseSearchCondition();
         Script tbScript = Script.SCRIPT;
         ScriptVersion tbScriptVersion = ScriptVersion.SCRIPT_VERSION;
@@ -789,64 +816,47 @@ public class ScriptDAOImpl implements ScriptDAO {
 
     @Override
     public ScriptDTO getOnlineScriptVersionByScriptId(long appId, String scriptId) {
-        Script tbScript = Script.SCRIPT.as("t1");
-        ScriptVersion tbScriptVersion = ScriptVersion.SCRIPT_VERSION.as("t2");
-        Record record = dslContext.select(tbScript.ID, tbScript.APP_ID, tbScript.NAME, tbScript.CATEGORY,
-            tbScript.TYPE, tbScript.IS_PUBLIC, tbScript.DESCRIPTION, tbScriptVersion.ID.as("scriptVersionId"),
-            tbScriptVersion.VERSION, tbScriptVersion.CONTENT, tbScriptVersion.VERSION_DESC, tbScriptVersion.STATUS,
-            tbScriptVersion.CREATE_TIME,
-            tbScriptVersion.CREATOR, tbScriptVersion.LAST_MODIFY_TIME, tbScriptVersion.LAST_MODIFY_USER)
-            .from(tbScriptVersion).join(tbScript)
-            .on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID)).where(tbScript.APP_ID.eq(ULong.valueOf(appId))
-                .and(tbScriptVersion.SCRIPT_ID.eq(scriptId))
-                .and(tbScriptVersion.STATUS.eq(UByte.valueOf(JobResourceStatusEnum.ONLINE.getValue())))
-                .and(tbScriptVersion.IS_DELETED.eq(UByte.valueOf(0))))
+        Record record = dslContext.select(ALL_FIELDS)
+            .from(TB_SCRIPT_VERSION).join(TB_SCRIPT)
+            .on(TB_SCRIPT.ID.eq(TB_SCRIPT_VERSION.SCRIPT_ID)).where(TB_SCRIPT.APP_ID.eq(ULong.valueOf(appId))
+                .and(TB_SCRIPT_VERSION.SCRIPT_ID.eq(scriptId))
+                .and(TB_SCRIPT_VERSION.STATUS.eq(UByte.valueOf(JobResourceStatusEnum.ONLINE.getValue())))
+                .and(TB_SCRIPT_VERSION.IS_DELETED.eq(UByte.valueOf(0))))
             .fetchOne();
         return extractScriptVersionData(record);
     }
 
     @Override
     public ScriptDTO getOnlineScriptVersionByScriptId(String scriptId) {
-        Script tbScript = Script.SCRIPT.as("t1");
-        ScriptVersion tbScriptVersion = ScriptVersion.SCRIPT_VERSION.as("t2");
-        Record record = dslContext.select(tbScript.ID, tbScript.APP_ID, tbScript.NAME, tbScript.CATEGORY,
-            tbScript.TYPE, tbScript.IS_PUBLIC, tbScript.DESCRIPTION, tbScriptVersion.ID.as("scriptVersionId"),
-            tbScriptVersion.VERSION, tbScriptVersion.CONTENT, tbScriptVersion.VERSION_DESC, tbScriptVersion.STATUS,
-            tbScriptVersion.CREATE_TIME,
-            tbScriptVersion.CREATOR, tbScriptVersion.LAST_MODIFY_TIME, tbScriptVersion.LAST_MODIFY_USER)
-            .from(tbScriptVersion).join(tbScript)
-            .on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID))
-            .where(tbScriptVersion.SCRIPT_ID.eq(scriptId))
-            .and(tbScriptVersion.STATUS.eq(UByte.valueOf(JobResourceStatusEnum.ONLINE.getValue())))
-            .and(tbScriptVersion.IS_DELETED.eq(UByte.valueOf(0)))
+        Record record = dslContext.select(ALL_FIELDS)
+            .from(TB_SCRIPT_VERSION).join(TB_SCRIPT)
+            .on(TB_SCRIPT.ID.eq(TB_SCRIPT_VERSION.SCRIPT_ID))
+            .where(TB_SCRIPT_VERSION.SCRIPT_ID.eq(scriptId))
+            .and(TB_SCRIPT_VERSION.STATUS.eq(UByte.valueOf(JobResourceStatusEnum.ONLINE.getValue())))
+            .and(TB_SCRIPT_VERSION.IS_DELETED.eq(UByte.valueOf(0)))
             .fetchOne();
         return extractScriptVersionData(record);
     }
 
     @Override
-    public long countScriptByAppId(long appId) {
+    public Long countScriptByAppId(long appId) {
         Script tbScript = Script.SCRIPT.as("tbScript");
-        return dslContext.selectCount().from(tbScript)
+        return dslContext.selectCount()
+            .from(tbScript)
             .where(tbScript.APP_ID.eq(ULong.valueOf(appId))
-                .and(tbScript.IS_DELETED.eq(UByte.valueOf(0)))).fetchOne().value1();
+                .and(tbScript.IS_DELETED.eq(UByte.valueOf(0))))
+            .fetchOne(0, Long.class);
     }
 
     @Override
     public boolean isExistDuplicateVersion(String scriptId, String version) {
-        int count = dslContext.selectCount().from(TB_SCRIPT_VERSION)
+        Integer count = dslContext.selectCount()
+            .from(TB_SCRIPT_VERSION)
             .where(TB_SCRIPT_VERSION.SCRIPT_ID.eq(scriptId))
             .and(TB_SCRIPT_VERSION.VERSION.eq(version))
             .and(TB_SCRIPT_VERSION.IS_DELETED.eq(UByte.valueOf(0)))
             .fetchOne(0, Integer.class);
-        return (count >= 1);
-    }
-
-    @Override
-    public boolean isExistDuplicateScriptId(Long scriptVersionId) {
-        int count = dslContext.selectCount().from(TB_SCRIPT_VERSION)
-            .where(TB_SCRIPT_VERSION.ID.eq(ULong.valueOf(scriptVersionId)))
-            .fetchOne(0, Integer.class);
-        return (count >= 1);
+        return (count != null && count >= 1);
     }
 
     @Override
@@ -858,9 +868,10 @@ public class ScriptDAOImpl implements ScriptDAO {
     }
 
     @Override
-    public boolean isExistAnyPublicScript() {
+    public boolean isExistAnyPublicScript(String tenantId) {
         List<Condition> conditions = new ArrayList<>(2);
         conditions.add(TB_SCRIPT.IS_PUBLIC.eq(UByte.valueOf(ScriptScopeEnum.PUBLIC.getValue())));
+        conditions.add(TB_SCRIPT.TENANT_ID.eq(tenantId));
         conditions.add(TB_SCRIPT.IS_DELETED.eq(UByte.valueOf(0)));
         return dslContext.fetchExists(TB_SCRIPT, conditions);
     }
@@ -881,16 +892,20 @@ public class ScriptDAOImpl implements ScriptDAO {
             conditions.add(tbScriptVersion.STATUS.eq(UByte.valueOf(jobResourceStatusEnum.getValue())));
         }
         conditions.add(tbScript.IS_DELETED.eq(UByte.valueOf(0)));
-        return dslContext.select(DSL.countDistinct(tbScript.ID)).from(tbScript).join(tbScriptVersion)
+        return dslContext.select(DSL.countDistinct(tbScript.ID))
+            .from(tbScript)
+            .join(tbScriptVersion)
             .on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID))
-            .where(conditions).fetchOne().value1();
+            .where(conditions)
+            .fetchOne(0, Integer.class);
     }
 
     @Override
     public Integer countScripts() {
         Script tbScript = Script.SCRIPT.as("tbScript");
         return dslContext.selectCount().from(tbScript)
-            .where(tbScript.IS_DELETED.eq(UByte.valueOf(0))).fetchOne().value1();
+            .where(tbScript.IS_DELETED.eq(UByte.valueOf(0)))
+            .fetchOne(0, Integer.class);
     }
 
     @Override
@@ -909,9 +924,12 @@ public class ScriptDAOImpl implements ScriptDAO {
             conditions.add(tbScriptVersion.STATUS.eq(UByte.valueOf(jobResourceStatusEnum.getValue())));
         }
         conditions.add(tbScript.IS_DELETED.eq(UByte.valueOf(0)));
-        return dslContext.select(DSL.countDistinct(tbScriptVersion.ID)).from(tbScript).join(tbScriptVersion)
+        return dslContext.select(DSL.countDistinct(tbScriptVersion.ID))
+            .from(tbScript)
+            .join(tbScriptVersion)
             .on(tbScript.ID.eq(tbScriptVersion.SCRIPT_ID))
-            .where(conditions).fetchOne().value1();
+            .where(conditions)
+            .fetchOne(0, Integer.class);
     }
 
     @Override
@@ -921,12 +939,31 @@ public class ScriptDAOImpl implements ScriptDAO {
         if (appId != null) {
             conditions.add(TB_SCRIPT.APP_ID.eq(ULong.valueOf(appId)));
         }
-        Result result = dslContext.select(TB_SCRIPT.ID).from(TB_SCRIPT)
+        val result = dslContext.select(TB_SCRIPT.ID).from(TB_SCRIPT)
             .where(conditions)
             .fetch();
         List<String> scriptIdList = new ArrayList<>();
         result.into(record -> {
             String scriptId = record.get(TB_SCRIPT.ID);
+            scriptIdList.add(scriptId);
+        });
+        return scriptIdList;
+    }
+
+    @Override
+    public List<String> listPublicScriptIds(String tenantId) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TB_SCRIPT.IS_DELETED.eq(UByte.valueOf(0)));
+        conditions.add(TB_SCRIPT.APP_ID.eq(ULong.valueOf(PUBLIC_APP_ID)));
+        conditions.add(TB_SCRIPT.TENANT_ID.eq(tenantId));
+        val result = dslContext
+            .select(TB_SCRIPT.ID)
+            .from(TB_SCRIPT)
+            .where(conditions)
+            .fetch();
+        List<String> scriptIdList = new ArrayList<>();
+        result.forEach(record -> {
+            String scriptId = ((Record)record).get(TB_SCRIPT.ID);
             scriptIdList.add(scriptId);
         });
         return scriptIdList;
@@ -945,5 +982,28 @@ public class ScriptDAOImpl implements ScriptDAO {
             return null;
         });
         return scriptTagsMap;
+    }
+
+    @Override
+    public Map<Long, JobResourceStatusEnum> batchGetScriptVersionStatus(Collection<Long> scriptVersionIds) {
+        Result<? extends Record> result = dslContext
+            .select(TB_SCRIPT_VERSION.ID, TB_SCRIPT_VERSION.STATUS)
+            .from(TB_SCRIPT_VERSION)
+            .where(TB_SCRIPT_VERSION.ID.in(scriptVersionIds)
+                .and(TB_SCRIPT_VERSION.IS_DELETED.eq(UByte.valueOf(0))))
+            .fetch();
+        Map<Long, JobResourceStatusEnum> scriptVersionStatusMap = new HashMap<>();
+        if (result.isEmpty()) {
+            return scriptVersionStatusMap;
+        }
+
+        result.forEach(record ->
+            scriptVersionStatusMap.put(
+                record.get(TB_SCRIPT_VERSION.ID).longValue(),
+                JobResourceStatusEnum.getJobResourceStatus(record.get(TB_SCRIPT_VERSION.STATUS).intValue())
+            )
+        );
+
+        return scriptVersionStatusMap;
     }
 }

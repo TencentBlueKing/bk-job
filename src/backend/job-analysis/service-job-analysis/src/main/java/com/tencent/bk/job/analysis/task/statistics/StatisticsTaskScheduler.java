@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -86,6 +86,7 @@ public class StatisticsTaskScheduler {
     public static final int defaultMaximumPoolSize = 10;
     public static final int currentStatisticsTaskQueueSize = 2000;
     public static final int pastStatisticsTaskQueueSize = 200000;
+    public static final int templateAnalysisTaskQueueSize = 1000;
 
     public static List<IStatisticsTask> statisticsTaskList = new ArrayList<>();
     public static Map<String, IStatisticsTask> statisticsTaskMap = new ConcurrentHashMap<>();

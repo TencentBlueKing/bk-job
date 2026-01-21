@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -31,6 +31,7 @@ import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateDangerousRuleV3Re
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetDangerousRuleV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbManageDangerousRuleV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbUpdateDangerousRuleV3Req;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbDangerousRuleStatusV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbDangerousRuleV3DTO;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -86,7 +87,7 @@ public interface EsbDangerousRuleV3Resource {
     );
 
     @PostMapping("/enable_dangerous_rule")
-    EsbResp<EsbDangerousRuleV3DTO> enableDangerousRule(
+    EsbResp<EsbDangerousRuleStatusV3DTO> enableDangerousRule(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody
@@ -95,7 +96,7 @@ public interface EsbDangerousRuleV3Resource {
     );
 
     @PostMapping("/disable_dangerous_rule")
-    EsbResp<EsbDangerousRuleV3DTO> disableDangerousRule(
+    EsbResp<EsbDangerousRuleStatusV3DTO> disableDangerousRule(
         @RequestHeader(value = JobCommonHeaders.USERNAME) String username,
         @RequestHeader(value = JobCommonHeaders.APP_CODE) String appCode,
         @RequestBody

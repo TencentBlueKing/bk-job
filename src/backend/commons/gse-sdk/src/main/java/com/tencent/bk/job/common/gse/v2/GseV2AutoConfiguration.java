@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,24 +24,49 @@
 
 package com.tencent.bk.job.common.gse.v2;
 
+import com.tencent.bk.job.common.config.ExternalSystemRetryProperties;
 import com.tencent.bk.job.common.esb.config.AppProperties;
 import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
+import com.tencent.bk.job.common.gse.IGseClient;
+import com.tencent.bk.job.common.gse.RecordSlowLogGseClient;
+import com.tencent.bk.job.common.gse.config.ConditionalOnMockGseV2ApiDisabled;
+import com.tencent.bk.job.common.gse.config.ConditionalOnMockGseV2ApiEnabled;
 import com.tencent.bk.job.common.gse.config.GseV2Properties;
+import com.tencent.bk.job.common.gse.mock.MockGseV2Client;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+@Slf4j
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties({GseV2Properties.class})
+@EnableConfigurationProperties({GseV2Properties.class, ExternalSystemRetryProperties.class})
 @ConditionalOnProperty(name = "gseV2.enabled", havingValue = "true", matchIfMissing = true)
 public class GseV2AutoConfiguration {
 
     @Bean("gseV2ApiClient")
-    public GseV2ApiClient gseV2ApiClient(MeterRegistry meterRegistry,
-                                         AppProperties appProperties,
-                                         BkApiGatewayProperties bkApiGatewayProperties) {
-        return new GseV2ApiClient(meterRegistry, appProperties, bkApiGatewayProperties);
+    @ConditionalOnMockGseV2ApiDisabled
+    public IGseClient gseV2ApiClient(MeterRegistry meterRegistry,
+                                     AppProperties appProperties,
+                                     BkApiGatewayProperties bkApiGatewayProperties,
+                                     TenantEnvService tenantEnvService) {
+        log.info("Init gseV2ApiClient");
+        return new RecordSlowLogGseClient(
+            new GseV2ApiClient(
+                meterRegistry,
+                appProperties,
+                bkApiGatewayProperties,
+                tenantEnvService
+            )
+        );
+    }
+
+    @Bean
+    @ConditionalOnMockGseV2ApiEnabled
+    public IGseClient mockedGseV2ApiClient() {
+        return new MockGseV2Client();
     }
 }

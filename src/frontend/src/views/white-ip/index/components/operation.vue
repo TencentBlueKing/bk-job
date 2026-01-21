@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -34,7 +34,7 @@
       form-type="vertical"
       :model="formData"
       :rules="rules">
-      <jb-form-item :label="$t('whiteIP.目标业务.label')">
+      <jb-form-item :label="$t('whiteIP.目标业务_label')">
         <div class="app-wraper">
           <bk-select
             v-model="scopeValue"
@@ -64,7 +64,7 @@
         <bk-button @click="handleShowIpSelector">
           {{ $t('whiteIP.添加服务器') }}
         </bk-button>
-        <ip-selector
+        <jb-ip-selector
           v-bind="ipSelectorConfig"
           model="dialog"
           :show-dialog="isShowIpSelector"
@@ -74,7 +74,7 @@
           @close-dialog="handleColseIpSelector" />
       </jb-form-item>
       <jb-form-item
-        :label="$t('whiteIP.备注.label')"
+        :label="$t('whiteIP.备注_label')"
         property="remark"
         required>
         <bk-input
@@ -83,7 +83,7 @@
           type="textarea" />
       </jb-form-item>
       <jb-form-item
-        :label="$t('whiteIP.生效范围.label')"
+        :label="$t('whiteIP.生效范围_label')"
         property="actionScopeIdList"
         required
         style="margin-bottom: 0;">
@@ -103,6 +103,8 @@
   </div>
 </template>
 <script>
+  import _ from 'lodash';
+
   import AppManageService from '@service/app-manage';
   import HostAllManageService from '@service/host-all-manage';
   import WhiteIpService from '@service/white-ip';
@@ -166,6 +168,8 @@
           this.ipSelectorValue = {
             hostList,
           };
+
+          this.scopeValue = _.filter(this.formData.scopeList, item => item.scopeType && item.scopeId).map(item => `#${item.scopeType}#${item.scopeId}`);
         },
         immediate: true,
       },
@@ -226,21 +230,7 @@
               ...item,
               localKey: `#${item.scopeType}#${item.scopeId}`,
             }));
-            // 默认选中第一个
-            if (this.formData.scopeList.length < 1) {
-              const [
-                {
-                  scopeType,
-                  scopeId,
-                },
-              ] = data;
-              this.formData.scopeList = [
-                {
-                  scopeType,
-                  scopeId,
-                },
-              ];
-            }
+            this.scopeValue = this.formData.scopeList.map(item => `#${item.scopeType}#${item.scopeId}`);
           });
       },
       /**
@@ -283,7 +273,7 @@
             if (params.id < 1) {
               delete params.id;
             }
-            if (params.allScopeh) {
+            if (params.allScope) {
               params.scopeList = [];
             } else {
               params.scopeList = this.scopeValue.map((scopeLocalKey) => {

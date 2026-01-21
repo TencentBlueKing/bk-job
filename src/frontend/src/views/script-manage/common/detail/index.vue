@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -35,7 +35,7 @@
     </div>
     <template slot="sub-header">
       <span style="font-size: 12px; color: #63656e;">
-        <span>{{ scriptInfo.lastModifyUser }}</span>
+        <bk-user-display-name :user-id="scriptInfo.lastModifyUser" />
         <span>|</span>
         <span>{{ scriptInfo.lastModifyTime }}</span>
       </span>
@@ -52,14 +52,14 @@
         class="content-tab-item"
         :class="{ active: contentTab === 'content' }"
         @click="handleChangeDispaly('content')">
-        {{ $t('script.脚本内容.label') }}
+        {{ $t('script.脚本内容_label') }}
       </div>
       <div
         v-test="{ type: 'button', value: 'scriptVersionLogTab' }"
         class="content-tab-item"
         :class="{ active: contentTab === 'log' }"
         @click="handleChangeDispaly('log')">
-        {{ $t('script.版本日志.label') }}
+        {{ $t('script.版本日志_label') }}
       </div>
     </div>
     <div class="version-content">
@@ -99,7 +99,7 @@
         key="online"
         class="mr10"
         :confirm-handler="handleOnline"
-        :content="$t('script.上线后，之前的线上版本将被置为「已下线」状态，但不影响作业使用')"
+        :content="$t('script.上线后，之前的线上版本将被置为_已下线_状态，但不影响作业使用')"
         :disabled="scriptInfo.isDisabledOnline"
         :title="$t('script.确定上线该版本？')">
         <auth-button
@@ -116,7 +116,7 @@
       <span
         v-if="!scriptInfo.isDraft"
         key="create"
-        :tippy-tips="isCopyCreateDisabled ? $t('script.已有[未上线]版本') : ''">
+        :tippy-tips="isCopyCreateDisabled ? $t('script.已有_未上线_版本') : ''">
         <auth-button
           v-test="{ type: 'button', value: 'copyCreateScript' }"
           auth="script/clone"
@@ -138,7 +138,7 @@
         v-if="!publicScript && scriptInfo.isOnline"
         key="sync"
         class="mr10"
-        :tippy-tips="!scriptInfo.syncEnabled ? $t('script.暂无关联作业，或已是当前版本。') : ''">
+        :tippy-tips="!scriptInfo.syncEnabled ? $t('script.暂无关联作业，或已是当前版本') : ''">
         <auth-button
           v-test="{ type: 'button', value: 'syncScript' }"
           auth="script/edit"
@@ -198,6 +198,8 @@
 
   import PublicScriptService from '@service/public-script-manage';
   import ScriptService from '@service/script-manage';
+
+  import TaskStepModel from '@model/task/task-step';
 
   import {
     checkPublicScript,
@@ -410,7 +412,7 @@
             scriptVersionId: this.scriptInfo.scriptVersionId,
           },
           query: {
-            from: 'scriptVersion',
+            source: this.publicScript ? TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC : TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS,
           },
         });
       },

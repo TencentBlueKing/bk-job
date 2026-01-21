@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -34,10 +34,10 @@ public interface NotifyTemplateDAO {
 
     int updateNotifyTemplateById(NotifyTemplateDTO notifyTemplateDTO);
 
-    NotifyTemplateDTO getNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault);
+    NotifyTemplateDTO getNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault, String tenantId);
 
-    List<NotifyTemplateDTO> listNotifyTemplateByCode(String code);
+    List<NotifyTemplateDTO> listNotifyTemplateByCode(String code, String tenantId);
 
-    boolean existsNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault);
+    boolean existsNotifyTemplate(String channelCode, String messageTypeCode, boolean isDefault, String tenantId);
 
 }

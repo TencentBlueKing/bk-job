@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -46,7 +46,7 @@
           {{ $t('清空') }}
         </bk-button>
       </div>
-      <ip-selector
+      <jb-ip-selector
         ref="ipSelector"
         :original-value="originalExecuteObjectsInfo"
         :show-dialog="isShowChooseIp"
@@ -65,8 +65,6 @@
 </template>
 
 <script>
-  import _ from 'lodash';
-
   import ExecuteTargetModel from '@model/execute-target';
 
   import {
@@ -139,7 +137,9 @@
         } else {
           this.executeObjectsInfo = this.data.targetValue.executeObjectsInfo;
         }
-        this.originalExecuteObjectsInfo = Object.freeze(_.cloneDeep(this.executeObjectsInfo));
+        this.originalExecuteObjectsInfo = Object.freeze({
+          ...this.executeObjectsInfo,
+        });
       },
       /**
        * @desc 外部调用——移除无效主机
@@ -183,7 +183,9 @@
        */
       removeIllegalHost() {
         this.executeObjectsInfo = Object.freeze(removeIllegalHostFromExecuteObjectsInfo(this.executeObjectsInfo));
-        this.originalExecuteObjectsInfo = Object.freeze(_.cloneDeep(this.executeObjectsInfo));
+        this.originalExecuteObjectsInfo = Object.freeze({
+          ...this.executeObjectsInfo,
+        });
       },
       /**
        * @desc 外部调用——值验证

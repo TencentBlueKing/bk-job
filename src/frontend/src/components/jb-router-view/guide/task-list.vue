@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -44,7 +44,7 @@
             {{ $t('新建作业') }}
           </bk-button>
           <bk-button @click="handleGoImportTemplate">
-            {{ $t('导入作业.guide') }}
+            {{ $t('导入作业_guide') }}
           </bk-button>
         </div>
       </div>
@@ -54,7 +54,7 @@
         <div class="feature-item">
           <div class="feature-pic">
             <img
-              src="/static/images/guide/task-template.svg"
+              :src="taskTemplateImage"
               style="width: 223px; margin: 28px 25px 0 22px;">
           </div>
           <div class="feature-box">
@@ -74,7 +74,7 @@
         <div class="feature-item">
           <div class="feature-pic">
             <img
-              src="/static/images/guide/task-plan.svg"
+              :src="taskPlanImage"
               style="width: 230px; margin: 20px 36px 0 7px;">
           </div>
           <div class="feature-box">
@@ -88,7 +88,7 @@
       <div class="page-link">
         <span>{{ $t('了解更多关于作业模板和执行方案的功能细节，请点击查阅') }}</span>
         <a
-          :href="`${relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/JOB/UserGuide/Features/Jobs.md`"
+          :href="`${relatedSystemUrls.BK_DOC_JOB_ROOT_URL}/UserGuide/Features/Jobs.md`"
           target="_blank">
           <span>{{ $t('产品文档') }}</span>
           <icon type="link" />
@@ -104,12 +104,14 @@
     data() {
       return {
         relatedSystemUrls: {
-          BK_DOC_CENTER_ROOT_URL: '/',
+          BK_DOC_JOB_ROOT_URL: '/',
         },
       };
     },
     created() {
       this.fetchRelatedSystemUrls();
+      this.taskTemplateImage = window.__loadAssetsUrl__('/static/images/guide/task-template.svg');
+      this.taskPlanImage = window.__loadAssetsUrl__('/static/images/guide/task-plan.svg');
     },
     methods: {
       fetchRelatedSystemUrls() {

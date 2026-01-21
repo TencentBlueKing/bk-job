@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -28,6 +28,9 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.service.BaseIamCallbackService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.model.dto.ScriptBasicDTO;
 import com.tencent.bk.job.manage.model.dto.ScriptDTO;
 import com.tencent.bk.job.manage.model.query.ScriptQuery;
@@ -50,7 +53,10 @@ public abstract class AbstractScriptCallbackHelper extends BaseIamCallbackServic
 
     private final ApplicationService applicationService;
 
-    protected AbstractScriptCallbackHelper(ApplicationService applicationService) {
+    protected AbstractScriptCallbackHelper(ApplicationService applicationService,
+                                           AppScopeMappingService appScopeMappingService,
+                                           TenantService tenantService) {
+        super(appScopeMappingService, tenantService);
         this.applicationService = applicationService;
     }
 
@@ -70,8 +76,9 @@ public abstract class AbstractScriptCallbackHelper extends BaseIamCallbackServic
         ScriptQuery scriptQuery = new ScriptQuery();
         boolean isPublicScript = isPublicScript();
         scriptQuery.setPublicScript(isPublicScript);
+        scriptQuery.setTenantId(JobContextUtil.getTenantId());
         if (!isPublicScript) {
-            Long appId = applicationService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+            Long appId = getAppIdBySearchCondition(searchCondition);
             scriptQuery.setAppId(appId);
         }
         scriptQuery.setBaseSearchCondition(baseSearchCondition);

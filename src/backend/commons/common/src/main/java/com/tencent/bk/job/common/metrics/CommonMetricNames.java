@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -31,19 +31,19 @@ public class CommonMetricNames {
     /**
      * 仅统计调用ESB BK-LOGIN API的HTTP请求过程
      */
-    public static final String ESB_BK_LOGIN_API_HTTP = "job.client.bk.login.api.http";
+    public static final String BK_LOGIN_API_HTTP = "job.client.bk.login.api.http";
     /**
      * 仅统计调用ESB BK-LOGIN API的整个过程，含反序列化
      */
-    public static final String ESB_BK_LOGIN_API = "job.client.bk.login.api";
+    public static final String BK_LOGIN_API = "job.client.bk.login.api";
     /**
      * 仅统计调用ESB USER-MANAGE API的HTTP请求过程
      */
-    public static final String ESB_USER_MANAGE_API_HTTP = "job.client.user.manage.api.http";
+    public static final String USER_MANAGE_API_HTTP = "job.client.user.manage.api.http";
     /**
      * 统计调用ESB 用户管理 API的整个过程，含反序列化
      */
-    public static final String ESB_USER_MANAGE_API = "job.client.user.manage.api";
+    public static final String USER_MANAGE_API = "job.client.user.manage.api";
     /**
      * 仅统计调用ESB CMSI API的HTTP请求过程
      */
@@ -56,16 +56,6 @@ public class CommonMetricNames {
      * 仅统计调用ESB CMDB API的HTTP请求过程
      */
     public static final String ESB_CMDB_API_HTTP = "job.client.cmdb.api.http";
-
-    /**
-     * 仅统计调用制品库 API的HTTP请求过程
-     */
-    public static final String BKREPO_API_HTTP = "job.client.bkrepo.api.http";
-    /**
-     * 统计调用制品库 API整个过程，含反序列化
-     */
-    public static final String BKREPO_API = "job.client.bkrepo.api";
-
 
     /**
      * 仅统计调用权限中心后台 API的HTTP请求过程
@@ -85,6 +75,15 @@ public class CommonMetricNames {
      */
     public static final String BK_NOTICE_API = "job.client.bknotice.api";
 
+    /**
+     * 仅统计调用AIDev后台 API的HTTP请求过程
+     */
+    public static final String BK_AI_DEV_API_HTTP = "job.client.bkAIDev.api.http";
+    /**
+     * 统计调用AIDev后台 API整个过程，含反序列化
+     */
+    public static final String BK_AI_DEV_API = "job.client.bkAIDev.api";
+
 
     /**
      * 被调用ESB API
@@ -103,4 +102,5 @@ public class CommonMetricNames {
      * 统计调用 GSE API整个过程，含反序列化
      */
     public static final String ESB_GSE_API = "job.client.gse.api";
+
 }

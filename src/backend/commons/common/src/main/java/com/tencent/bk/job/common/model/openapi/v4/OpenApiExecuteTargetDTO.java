@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.model.openapi.v4;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
@@ -31,6 +32,7 @@ import com.tencent.bk.job.common.model.openapi.v3.EsbCmdbTopoNodeDTO;
 import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
 import com.tencent.bk.job.common.validation.ExecuteTargetNotEmpty;
 import lombok.Data;
+import org.apache.commons.collections.CollectionUtils;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -75,4 +77,11 @@ public class OpenApiExecuteTargetDTO {
     @Valid
     private List<OpenApiKubeContainerFilterDTO> kubeContainerFilters;
 
+    @JsonIgnore
+    public Boolean isValidExecuteTarget() {
+        return CollectionUtils.isNotEmpty(hosts)
+            || CollectionUtils.isNotEmpty(hostDynamicGroups)
+            || CollectionUtils.isNotEmpty(hostTopoNodes)
+            || CollectionUtils.isNotEmpty(kubeContainerFilters);
+    }
 }

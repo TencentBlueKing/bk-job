@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -72,6 +72,8 @@ public class TaskScriptStepDTO {
 
     private String scriptParam;
 
+    private String windowsInterpreter;
+
     private Long timeout;
 
     private Long account;
@@ -100,6 +102,7 @@ public class TaskScriptStepDTO {
         }
         scriptStepVO.setScriptLanguage(scriptStep.getLanguage().getValue());
         scriptStepVO.setScriptParam(scriptStep.getScriptParam());
+        scriptStepVO.setWindowsInterpreter(scriptStep.getWindowsInterpreter());
         scriptStepVO.setTimeout(scriptStep.getTimeout());
         scriptStepVO.setAccount(scriptStep.getAccount());
         scriptStepVO.setExecuteTarget(TaskTargetDTO.toVO(scriptStep.getExecuteTarget()));
@@ -125,6 +128,7 @@ public class TaskScriptStepDTO {
         }
         scriptStep.setLanguage(ScriptTypeEnum.valOf(scriptStepVO.getScriptLanguage()));
         scriptStep.setScriptParam(scriptStepVO.getScriptParam());
+        scriptStep.setWindowsInterpreter(scriptStepVO.getTrimmedWindowsInterpreter());
         if (scriptStepVO.getTimeout() == null) {
             scriptStep.setTimeout((long) JobConstants.DEFAULT_JOB_TIMEOUT_SECONDS);
         } else {
@@ -153,6 +157,7 @@ public class TaskScriptStepDTO {
         if (StringUtils.isNotBlank(scriptStepInfo.getScriptParam())) {
             esbScriptStep.setScriptParam(Base64Util.encodeContentToStr(scriptStepInfo.getScriptParam()));
         }
+        esbScriptStep.setWindowsInterpreter(scriptStepInfo.getWindowsInterpreter());
         esbScriptStep.setScriptTimeout(scriptStepInfo.getTimeout());
         EsbAccountV3BasicDTO account = new EsbAccountV3BasicDTO();
         account.setId(scriptStepInfo.getAccount());
@@ -174,6 +179,7 @@ public class TaskScriptStepDTO {
         serviceScriptStep.setType(scriptStepInfo.getLanguage().getValue());
         serviceScriptStep.setContent(scriptStepInfo.getContent());
         serviceScriptStep.setScriptParam(scriptStepInfo.getScriptParam());
+        serviceScriptStep.setWindowsInterpreter(scriptStepInfo.getWindowsInterpreter());
         serviceScriptStep.setScriptTimeout(scriptStepInfo.getTimeout());
 
         serviceScriptStep.setAccount(new ServiceAccountDTO());
@@ -183,5 +189,16 @@ public class TaskScriptStepDTO {
         serviceScriptStep.setSecureParam(scriptStepInfo.getSecureParam());
         serviceScriptStep.setIgnoreError(scriptStepInfo.getIgnoreError());
         return serviceScriptStep;
+    }
+
+    @Override
+    public String toString() {
+        int contentLength = content == null ? 0 : content.length();
+        return "TaskScriptStepDTO{" +
+            "id=" + id +
+            ", scriptId=" + scriptId +
+            ", scriptVersionId=" + scriptVersionId +
+            ", content.length=" + contentLength +
+            '}';
     }
 }

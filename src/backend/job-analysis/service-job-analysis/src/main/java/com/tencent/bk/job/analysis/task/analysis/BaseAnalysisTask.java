@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -31,10 +31,10 @@ import com.tencent.bk.job.analysis.dao.AnalysisTaskDAO;
 import com.tencent.bk.job.analysis.dao.AnalysisTaskInstanceDAO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskDTO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskInstanceDTO;
-import com.tencent.bk.job.analysis.service.ApplicationService;
 import com.tencent.bk.job.analysis.task.analysis.anotation.AnalysisTask;
 import com.tencent.bk.job.analysis.task.analysis.task.IAnalysisTask;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -46,7 +46,7 @@ public abstract class BaseAnalysisTask implements IAnalysisTask {
 
     protected final AnalysisTaskInstanceDAO analysisTaskInstanceDAO;
     private final String taskCode;
-    private final ApplicationService applicationService;
+    private final RemoteAppService remoteAppService;
     private final String KEY_ANALYSIS_TASK_DTO = "KEY_ANALYSIS_TASK_DTO";
     private final AnalysisTaskDAO analysisTaskDAO;
     private LoadingCache<String, AnalysisTaskDTO> analysisTaskDTOCache = CacheBuilder.newBuilder()
@@ -65,10 +65,10 @@ public abstract class BaseAnalysisTask implements IAnalysisTask {
 
     public BaseAnalysisTask(AnalysisTaskDAO analysisTaskDAO,
                             AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
-                            ApplicationService applicationService) {
+                            RemoteAppService remoteAppService) {
         this.analysisTaskDAO = analysisTaskDAO;
         this.analysisTaskInstanceDAO = analysisTaskInstanceDAO;
-        this.applicationService = applicationService;
+        this.remoteAppService = remoteAppService;
         this.taskCode = this.getClass().getAnnotation(AnalysisTask.class).value();
     }
 
@@ -95,7 +95,7 @@ public abstract class BaseAnalysisTask implements IAnalysisTask {
     }
 
     public List<ServiceApplicationDTO> getAppInfoList() {
-        return applicationService.listLocalDBApps();
+        return remoteAppService.listLocalDBApps();
     }
 
     @Override

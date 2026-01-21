@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -34,6 +34,10 @@ import lombok.ToString;
 @ToString
 public class ScriptStepInstanceDTO {
     /**
+     * 作业实例ID
+     */
+    private Long taskInstanceId;
+    /**
      * 步骤实例ID
      */
     private Long stepInstanceId;
@@ -59,7 +63,6 @@ public class ScriptStepInstanceDTO {
 
     /**
      * 执行脚本的类型:1(shell脚本)、2(bat脚本)、3(perl脚本)、4(python脚本)、5(powershell脚本)
-     *
      */
     private ScriptTypeEnum scriptType;
     /**
@@ -96,4 +99,8 @@ public class ScriptStepInstanceDTO {
      * 是否敏感参数
      */
     private boolean secureParam;
+    /**
+     * Windows解释器路径
+     */
+    private String windowsInterpreter;
 }

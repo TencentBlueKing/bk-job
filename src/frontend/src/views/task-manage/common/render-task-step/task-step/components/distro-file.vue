@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -39,7 +39,7 @@
           field="name"
           :form-data="formData"
           name="stepName"
-          :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
+          :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名')"
           @on-change="handleChange" />
         <item-factory
           field="timeout"
@@ -128,7 +128,7 @@
     // 源文件列表
     fileSourceList: [],
     // 超时
-    timeout: 7200,
+    timeout: 500,
     // 上传文件限速
     uploadSpeedLimit: 0,
     // 传输模式： 1 - 严谨模式； 2 - 强制模式；3 - 安全模式
@@ -300,7 +300,7 @@
               // 有重名目录和文件
               this.$bkInfo({
                 title: I18n.t('template.源文件可能出现同名'),
-                subTitle: I18n.t('template.多文件源传输场景下容易出现同名文件覆盖的问题，你可以在目标路径中使用 [源服务器IP] 的变量来尽可能规避风险。'),
+                subTitle: I18n.t('template.多文件源传输场景下容易出现同名文件覆盖的问题，你可以在目标路径中使用_源服务器IP_的变量来尽可能规避风险。'),
                 okText: I18n.t('template.好的，我调整一下'),
                 cancelText: I18n.t('template.已知悉，确定执行'),
                 maskClose: false,

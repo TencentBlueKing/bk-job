@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -51,7 +51,7 @@
           type="loading-circle" />
       </div>
     </div>
-    <ip-selector
+    <jb-ip-selector
       :original-value="originalExecuteObjectsInfo"
       :show-dialog="isShowChooseIp"
       :value="localValue.executeObjectsInfo"
@@ -131,13 +131,13 @@
         } = this.localValue.executeObjectsInfo || {};
         const strs = [];
         if (hostList.length > 0) {
-          strs.push(`<span class="number strong">${hostList.length}</span>${I18n.t('台主机.result')}`);
+          strs.push(`<span class="number strong">${hostList.length}</span>${I18n.t('台主机_result')}`);
         }
         if (nodeList.length > 0) {
-          strs.push(`<span class="number strong">${nodeList.length}</span>${I18n.t('个节点.result')}`);
+          strs.push(`<span class="number strong">${nodeList.length}</span>${I18n.t('个节点_result')}`);
         }
         if (dynamicGroupList.length > 0) {
-          strs.push(`<span class="number strong">${dynamicGroupList.length}</span>${I18n.t('个分组.result')}`);
+          strs.push(`<span class="number strong">${dynamicGroupList.length}</span>${I18n.t('个分组_result')}`);
         }
         return strs.length > 0 ? strs.join('\n') : '--';
       },
@@ -153,13 +153,16 @@
     watch: {
       value: {
         handler(value) {
-          this.localValue = Object.freeze(_.cloneDeep(value));
+          this.localValue = Object.freeze({
+            ...value,
+            originalExecuteObjectsInfo: ExecuteTargetModel.cloneExecuteObjectsInfo(this.value.executeObjectsInfo),
+          });
         },
         immediate: true,
       },
     },
     created() {
-      this.originalExecuteObjectsInfo = _.cloneDeep(this.value.executeObjectsInfo);
+      this.originalExecuteObjectsInfo = ExecuteTargetModel.cloneExecuteObjectsInfo(this.value.executeObjectsInfo);
     },
     methods: {
       /**

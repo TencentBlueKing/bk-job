@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -63,8 +63,8 @@ public class ScriptExecuteObjectTaskDAOImplIntegrationTest {
         long taskInstanceId = 1L;
         int executeCount = 0;
         int batch = 1;
-        ExecuteObjectTask executeObjectTask = scriptExecuteObjectTaskDAO.getTaskByExecuteObjectId(stepInstanceId,
-            executeCount, batch, executeObjectId);
+        ExecuteObjectTask executeObjectTask = scriptExecuteObjectTaskDAO.getTaskByExecuteObjectId(
+            taskInstanceId, stepInstanceId, executeCount, batch, executeObjectId);
 
         assertThat(executeObjectTask.getStepInstanceId()).isEqualTo(stepInstanceId);
         assertThat(executeObjectTask.getTaskInstanceId()).isEqualTo(taskInstanceId);
@@ -122,7 +122,7 @@ public class ScriptExecuteObjectTaskDAOImplIntegrationTest {
         executeObjectTask2.setEndTime(1572858331000L);
         executeObjectTask2.setTotalTime(1000L);
         executeObjectTask2.setErrorCode(88);
-        executeObjectTask2.setStatus(ExecuteObjectTaskStatusEnum.HOST_NOT_EXIST);
+        executeObjectTask2.setStatus(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
         executeObjectTask2.setTag("bb");
         executeObjectTask2.setExitCode(2);
         executeObjectTaskList.add(executeObjectTask2);
@@ -130,7 +130,7 @@ public class ScriptExecuteObjectTaskDAOImplIntegrationTest {
         scriptExecuteObjectTaskDAO.batchSaveTasks(executeObjectTaskList);
 
         ExecuteObjectTask executeObjectTask1Return = scriptExecuteObjectTaskDAO
-            .getTaskByExecuteObjectId(100L, 1, 1, "1:101");
+            .getTaskByExecuteObjectId(100L, 100L, 1, 1, "1:101");
         assertThat(executeObjectTask1Return.getTaskInstanceId()).isEqualTo(100L);
         assertThat(executeObjectTask1Return.getStepInstanceId()).isEqualTo(100L);
         assertThat(executeObjectTask1Return.getExecuteCount()).isEqualTo(1L);
@@ -149,8 +149,9 @@ public class ScriptExecuteObjectTaskDAOImplIntegrationTest {
 
 
         ExecuteObjectTask executeObjectTask2Return = scriptExecuteObjectTaskDAO
-            .getTaskByExecuteObjectId(100L, 1, 1, "1:102");
+            .getTaskByExecuteObjectId(100L, 100L, 1, 1, "1:102");
         assertThat(executeObjectTask2Return.getStepInstanceId()).isEqualTo(100L);
+        assertThat(executeObjectTask2Return.getTaskInstanceId()).isEqualTo(100L);
         assertThat(executeObjectTask2Return.getExecuteCount()).isEqualTo(1L);
         assertThat(executeObjectTask2Return.getActualExecuteCount()).isEqualTo(1L);
         assertThat(executeObjectTask2Return.getBatch()).isEqualTo(1);
@@ -161,7 +162,7 @@ public class ScriptExecuteObjectTaskDAOImplIntegrationTest {
         assertThat(executeObjectTask2Return.getEndTime()).isEqualTo(1572858331000L);
         assertThat(executeObjectTask2Return.getTotalTime()).isEqualTo(1000L);
         assertThat(executeObjectTask2Return.getErrorCode()).isEqualTo(88);
-        assertThat(executeObjectTask2Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.HOST_NOT_EXIST);
+        assertThat(executeObjectTask2Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
         assertThat(executeObjectTask2Return.getTag()).isEqualTo("bb");
         assertThat(executeObjectTask2Return.getExitCode()).isEqualTo(2);
     }
@@ -201,7 +202,7 @@ public class ScriptExecuteObjectTaskDAOImplIntegrationTest {
         executeObjectTask2.setEndTime(1572858331000L);
         executeObjectTask2.setTotalTime(1000L);
         executeObjectTask2.setErrorCode(88);
-        executeObjectTask2.setStatus(ExecuteObjectTaskStatusEnum.HOST_NOT_EXIST);
+        executeObjectTask2.setStatus(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
         executeObjectTask2.setTag("bb");
         executeObjectTask2.setExitCode(2);
         executeObjectTaskList.add(executeObjectTask2);
@@ -209,7 +210,7 @@ public class ScriptExecuteObjectTaskDAOImplIntegrationTest {
         scriptExecuteObjectTaskDAO.batchUpdateTasks(executeObjectTaskList);
 
         ExecuteObjectTask executeObjectTask1Return =
-            scriptExecuteObjectTaskDAO.getTaskByExecuteObjectId(1L, 0, 3, "1:103");
+            scriptExecuteObjectTaskDAO.getTaskByExecuteObjectId(1L, 1L, 0, 3, "1:103");
         assertThat(executeObjectTask1Return.getStepInstanceId()).isEqualTo(1L);
         assertThat(executeObjectTask1Return.getExecuteCount()).isEqualTo(0L);
         assertThat(executeObjectTask1Return.getBatch()).isEqualTo(3);
@@ -226,7 +227,7 @@ public class ScriptExecuteObjectTaskDAOImplIntegrationTest {
 
 
         ExecuteObjectTask executeObjectTask2Return =
-            scriptExecuteObjectTaskDAO.getTaskByExecuteObjectId(1L, 0, 3, "1:104");
+            scriptExecuteObjectTaskDAO.getTaskByExecuteObjectId(1L, 1L, 0, 3, "1:104");
         assertThat(executeObjectTask2Return.getStepInstanceId()).isEqualTo(1L);
         assertThat(executeObjectTask2Return.getExecuteCount()).isEqualTo(0L);
         assertThat(executeObjectTask2Return.getBatch()).isEqualTo(3);
@@ -237,21 +238,21 @@ public class ScriptExecuteObjectTaskDAOImplIntegrationTest {
         assertThat(executeObjectTask2Return.getEndTime()).isEqualTo(1572858331000L);
         assertThat(executeObjectTask2Return.getTotalTime()).isEqualTo(1000L);
         assertThat(executeObjectTask2Return.getErrorCode()).isEqualTo(88);
-        assertThat(executeObjectTask2Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.HOST_NOT_EXIST);
+        assertThat(executeObjectTask2Return.getStatus()).isEqualTo(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
         assertThat(executeObjectTask2Return.getTag()).isEqualTo("bb");
         assertThat(executeObjectTask2Return.getExitCode()).isEqualTo(2);
     }
 
     @Test
     public void testGetSuccessIpCount() {
-        Integer count = scriptExecuteObjectTaskDAO.getSuccessTaskCount(1L, 0);
+        Integer count = scriptExecuteObjectTaskDAO.getSuccessTaskCount(1L, 1L, 0);
         assertThat(count).isEqualTo(4);
     }
 
     @Test
     @DisplayName("查询任务结果分组")
     public void listResultGroups() {
-        List<ResultGroupBaseDTO> resultGroups = scriptExecuteObjectTaskDAO.listResultGroups(1L, 0, null);
+        List<ResultGroupBaseDTO> resultGroups = scriptExecuteObjectTaskDAO.listResultGroups(1L, 1L, 0, null);
 
         assertThat(resultGroups.size()).isEqualTo(2);
         assertThat(resultGroups).extracting("status").containsOnly(9, 11);
@@ -265,7 +266,7 @@ public class ScriptExecuteObjectTaskDAOImplIntegrationTest {
         }
 
         // 根据滚动执行批次查询
-        resultGroups = scriptExecuteObjectTaskDAO.listResultGroups(1L, 0, 3);
+        resultGroups = scriptExecuteObjectTaskDAO.listResultGroups(1L, 1L, 0, 3);
 
         assertThat(resultGroups.size()).isEqualTo(2);
         assertThat(resultGroups).extracting("status").containsOnly(9, 11);
@@ -281,7 +282,7 @@ public class ScriptExecuteObjectTaskDAOImplIntegrationTest {
 
     @Test
     public void testListAgentTaskByResultGroup() {
-        List<ExecuteObjectTask> executeObjectTasks = scriptExecuteObjectTaskDAO.listTasksByResultGroup(1L, 0, 1, 9,
+        List<ExecuteObjectTask> executeObjectTasks = scriptExecuteObjectTaskDAO.listTasksByResultGroup(1L, 1L, 0, 1, 9,
             "succ");
         assertThat(executeObjectTasks.size()).isEqualTo(1);
         assertThat(executeObjectTasks.get(0).getStepInstanceId()).isEqualTo(1L);

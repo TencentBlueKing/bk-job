@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,29 +24,34 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
+import com.tencent.bk.job.common.cc.model.container.KubeClusterDTO;
+import com.tencent.bk.job.common.cc.model.container.KubeNamespaceDTO;
+import com.tencent.bk.job.common.cc.model.query.KubeClusterQuery;
+import com.tencent.bk.job.common.cc.model.query.NamespaceQuery;
+import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.NotImplementedException;
 import com.tencent.bk.job.common.gse.constants.AgentAliveStatusEnum;
-import com.tencent.bk.job.common.gse.constants.DefaultBeanNames;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
-import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.common.gse.v2.model.resp.AgentState;
 import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.service.feature.strategy.JobInstanceAttrToggleStrategy;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.ListUtil;
-import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
-import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
-import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
+import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
+import com.tencent.bk.job.common.util.toggle.ToggleStrategyContextParams;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureToggle;
 import com.tencent.bk.job.execute.common.cache.WhiteHostCache;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
+import com.tencent.bk.job.execute.metrics.ExecuteObjectSampler;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
@@ -54,7 +59,6 @@ import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceExecuteObjects;
-import com.tencent.bk.job.execute.service.ApplicationService;
 import com.tencent.bk.job.execute.service.ContainerService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
@@ -62,10 +66,10 @@ import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
@@ -76,6 +80,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.SEND_FILE;
@@ -87,26 +92,34 @@ import static com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum.SE
 @Service
 public class TaskInstanceExecuteObjectProcessor {
 
+    private final TenantService tenantService;
     private final HostService hostService;
-    private final ApplicationService applicationService;
+    private final RemoteAppService remoteAppService;
     private final ContainerService containerService;
     private final AppScopeMappingService appScopeMappingService;
     private final WhiteHostCache whiteHostCache;
-    private final AgentStateClient preferV2AgentStateClient;
+    private final AgentStateClient agentStateClient;
+    private final IBizCmdbClient bizCmdbClient;
+    private final ExecuteObjectSampler executeObjectSampler;
 
-    public TaskInstanceExecuteObjectProcessor(HostService hostService,
-                                              ApplicationService applicationService,
+    public TaskInstanceExecuteObjectProcessor(TenantService tenantService,
+                                              HostService hostService,
+                                              RemoteAppService remoteAppService,
                                               ContainerService containerService,
                                               AppScopeMappingService appScopeMappingService,
                                               WhiteHostCache whiteHostCache,
-                                              @Qualifier(DefaultBeanNames.PREFER_V2_AGENT_STATE_CLIENT)
-                                                  AgentStateClient preferV2AgentStateClient) {
+                                              AgentStateClient agentStateClient,
+                                              IBizCmdbClient bizCmdbClient,
+                                              ExecuteObjectSampler executeObjectSampler) {
+        this.tenantService = tenantService;
         this.hostService = hostService;
-        this.applicationService = applicationService;
+        this.remoteAppService = remoteAppService;
         this.containerService = containerService;
         this.appScopeMappingService = appScopeMappingService;
         this.whiteHostCache = whiteHostCache;
-        this.preferV2AgentStateClient = preferV2AgentStateClient;
+        this.agentStateClient = agentStateClient;
+        this.bizCmdbClient = bizCmdbClient;
+        this.executeObjectSampler = executeObjectSampler;
     }
 
     /**
@@ -122,10 +135,13 @@ public class TaskInstanceExecuteObjectProcessor {
                                                             Collection<TaskVariableDTO> variables) {
 
         StopWatch watch = new StopWatch("processExecuteObjects");
+        boolean hasContainer;
+        TaskInstanceExecuteObjects taskInstanceExecuteObjects = new TaskInstanceExecuteObjects();
         try {
-            if (!isContainerExecuteFeatureEnabled(taskInstance.getAppId())
-                && isContainerExecuteJob(stepInstanceList, variables)) {
-                // 未开启"容器执行"特性的灰度,返回错误
+            hasContainer = isJobHasContainerExecuteObject(stepInstanceList, variables);
+
+            if (hasContainer && !isContainerExecuteFeatureEnabled(taskInstance.getAppId())) {
+                // 如果资源空间不支持容器执行（比如业务集不支持容器执行），或者该资源空间未在容器执行特性灰度列表，需要返回错误信息
                 throw new NotImplementedException(
                     "ContainerExecute is not support", ErrorCode.NOT_SUPPORT_FEATURE);
             }
@@ -133,7 +149,6 @@ public class TaskInstanceExecuteObjectProcessor {
             long appId = taskInstance.getAppId();
             // 获取执行对象
             watch.start("acquireAndSetExecuteObjects");
-            TaskInstanceExecuteObjects taskInstanceExecuteObjects = new TaskInstanceExecuteObjects();
             // 获取并设置主机执行对象
             acquireAndSetHosts(taskInstanceExecuteObjects, taskInstance, stepInstanceList, variables);
             // 获取并设置容器执行对象
@@ -141,8 +156,8 @@ public class TaskInstanceExecuteObjectProcessor {
             boolean isSupportExecuteObjectFeature = isSupportExecuteObjectFeature(taskInstance);
             // 合并所有执行对象
             mergeExecuteObjects(stepInstanceList, variables, isSupportExecuteObjectFeature);
-            // 检查执行对象是否存在
-            checkExecuteObjectExist(taskInstanceExecuteObjects);
+            // 检查执行对象是否合法
+            checkExecuteObjectExist(taskInstance, stepInstanceList, taskInstanceExecuteObjects);
             watch.stop();
 
             // 如果包含主机执行对象，需要获取主机白名单
@@ -158,11 +173,16 @@ public class TaskInstanceExecuteObjectProcessor {
 
             // 检查执行对象是否可用
             watch.start("checkExecuteObjectAccessible");
-            checkExecuteObjectAccessible(appId, stepInstanceList, taskInstanceExecuteObjects);
+            checkExecuteObjectAccessible(taskInstance, stepInstanceList, taskInstanceExecuteObjects);
             watch.stop();
 
             return taskInstanceExecuteObjects;
         } finally {
+            // 记录作业执行对象相关指标
+            executeObjectSampler.tryToRecordExecuteObjectMetrics(
+                taskInstance,
+                taskInstanceExecuteObjects
+            );
             if (watch.isRunning()) {
                 watch.stop();
             }
@@ -173,9 +193,14 @@ public class TaskInstanceExecuteObjectProcessor {
     }
 
     private boolean isContainerExecuteFeatureEnabled(long appId) {
+        ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
+        if (resourceScope.isBizSet()) {
+            // 业务集不支持容器执行
+            return false;
+        }
         return FeatureToggle.checkFeature(
             FeatureIdConstants.FEATURE_CONTAINER_EXECUTE,
-            FeatureExecutionContext.builder()
+            ToggleEvaluateContext.builder()
                 .addContextParam(
                     ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     appScopeMappingService.getScopeByAppId(appId)
@@ -183,26 +208,41 @@ public class TaskInstanceExecuteObjectProcessor {
         );
     }
 
-    private boolean isContainerExecuteJob(List<StepInstanceDTO> stepInstanceList,
-                                          Collection<TaskVariableDTO> variables) {
-        boolean isContainerExecuteJob = stepInstanceList.stream()
+    private boolean isJobHasContainerExecuteObject(List<StepInstanceDTO> stepInstanceList,
+                                                   Collection<TaskVariableDTO> variables) {
+        return checkExecuteObjectExists(stepInstanceList, variables,
+            ExecuteTargetDTO::hasContainerExecuteObject);
+    }
+
+    /**
+     * 检查步骤、全局变量中是否存在某种类型的执行对象
+     *
+     * @param stepInstanceList            作业步骤实例列表
+     * @param variables                   作业全局变量列表
+     * @param executeObjectExistsFunction 检查是否存在函数
+     */
+    private boolean checkExecuteObjectExists(List<StepInstanceDTO> stepInstanceList,
+                                             Collection<TaskVariableDTO> variables,
+                                             Function<ExecuteTargetDTO, Boolean> executeObjectExistsFunction) {
+        boolean checkResult = stepInstanceList.stream()
             .anyMatch(stepInstance ->
                 (stepInstance.getTargetExecuteObjects() != null &&
-                    stepInstance.getTargetExecuteObjects().hasContainerExecuteObject()) ||
+                    executeObjectExistsFunction.apply(stepInstance.getTargetExecuteObjects()) ||
                     CollectionUtils.isNotEmpty(stepInstance.getFileSourceList()) &&
                         stepInstance.getFileSourceList().stream()
                             .anyMatch(fileSource -> fileSource.getServers() != null &&
-                                fileSource.getServers().hasContainerExecuteObject()));
-        if (isContainerExecuteJob) {
+                                executeObjectExistsFunction.apply(fileSource.getServers()))));
+        if (checkResult) {
             return true;
         }
 
         if (CollectionUtils.isNotEmpty(variables)) {
-            isContainerExecuteJob = variables.stream()
+            checkResult = variables.stream()
                 .anyMatch(variable ->
-                    variable.getExecuteTarget() != null && variable.getExecuteTarget().hasContainerExecuteObject());
+                    variable.getExecuteTarget() != null
+                        && executeObjectExistsFunction.apply(variable.getExecuteTarget()));
         }
-        return isContainerExecuteJob;
+        return checkResult;
     }
 
     private void acquireAndSetHosts(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
@@ -305,8 +345,9 @@ public class TaskInstanceExecuteObjectProcessor {
         }
         // 获取动态分组的主机并设置
         watch.start("fillDynamicGroupHosts");
+        String tenantId = tenantService.getTenantIdByAppId(appId);
         Map<DynamicServerGroupDTO, List<HostDTO>> dynamicGroupHosts =
-            hostService.batchGetAndGroupHostsByDynamicGroup(appId, groups);
+            hostService.batchGetAndGroupHostsByDynamicGroup(tenantId, appId, groups);
         stepInstances.forEach(stepInstance -> {
             setHostsForDynamicGroup(stepInstance.getTargetExecuteObjects(), dynamicGroupHosts);
             if (stepInstance.isFileStep()) {
@@ -385,117 +426,98 @@ public class TaskInstanceExecuteObjectProcessor {
 
         fillHostAgent(taskInstance, taskInstanceExecuteObjects);
 
-        Map<String, HostDTO> hostMap = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getValidHosts())) {
-            taskInstanceExecuteObjects.getValidHosts().forEach(host -> {
-                hostMap.put("hostId:" + host.getHostId(), host);
-                hostMap.put("hostIp:" + host.toCloudIp(), host);
-            });
-        }
-        if (CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getNotInAppHosts())) {
-            taskInstanceExecuteObjects.getNotInAppHosts().forEach(host -> {
-                hostMap.put("hostId:" + host.getHostId(), host);
-                hostMap.put("hostIp:" + host.toCloudIp(), host);
-            });
-        }
-
         for (StepInstanceDTO stepInstance : stepInstanceList) {
             if (!stepInstance.isStepContainsExecuteObject()) {
                 continue;
             }
             // 目标主机设置主机详情
-            fillTargetHostDetail(stepInstance, hostMap);
+            fillTargetHostDetail(stepInstance, taskInstanceExecuteObjects);
             // 文件源设置主机详情
-            fillFileSourceHostDetail(stepInstance, hostMap);
+            fillFileSourceHostDetail(stepInstance, taskInstanceExecuteObjects);
         }
 
         if (CollectionUtils.isNotEmpty(variables)) {
             variables.forEach(variable -> {
                 if (variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
-                    fillHostsDetail(variable.getExecuteTarget(), hostMap);
+                    fillHostsDetail(variable.getExecuteTarget(), taskInstanceExecuteObjects);
                 }
             });
         }
     }
 
     private void fillHostAgent(TaskInstanceDTO taskInstance, TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
-        boolean isUsingGseV2 = isUsingGseV2(taskInstance,
-            ListUtil.union(taskInstanceExecuteObjects.getValidHosts(), taskInstanceExecuteObjects.getNotInAppHosts()));
         /*
-         * 后续下发任务给GSE会根据agentId路由请求到GSE1.0/2.0。如果要使用GSE2.0，那么直接使用原始bk_agent_id;如果要使用GSE1.0,
-         * 按照{云区域ID:ip}的方式构造agent_id
+         * 使用GSE 2.0，但GSE V2服务可兼容管控V1 Agent，如果bk_agent_id不为空，那么直接使用原始bk_agent_id，
+         * 如果bk_agent_id为空，说明是兼容管控1.0的Agent，按照{云区域ID:ip}的方式构造agent_id
          */
         Set<HostDTO> invalidAgentIdHosts = new HashSet<>();
 
         if (CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getValidHosts())) {
             taskInstanceExecuteObjects.getValidHosts()
-                .forEach(host -> setHostAgentId(isUsingGseV2, host, invalidAgentIdHosts));
+                .forEach(host -> setHostAgentId(host, invalidAgentIdHosts));
         }
 
         if (CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getNotInAppHosts())) {
             taskInstanceExecuteObjects.getNotInAppHosts()
-                .forEach(host -> setHostAgentId(isUsingGseV2, host, invalidAgentIdHosts));
+                .forEach(host -> setHostAgentId(host, invalidAgentIdHosts));
         }
 
         if (CollectionUtils.isNotEmpty(invalidAgentIdHosts)) {
             // 如果存在主机没有agentID，不影响影响整个任务的执行。所以这里仅输出日志，不拦截整个任务的执行。后续执行代码会处理`主机没有agentId`的情况
-            log.warn("Contains invalid agent id host, appId: {}, isUsingGseV2: {}, invalidHosts: {}",
-                taskInstance.getAppId(), isUsingGseV2, invalidAgentIdHosts);
+            log.warn("Contains invalid agent id host, appId: {}, invalidHosts: {}",
+                taskInstance.getAppId(), invalidAgentIdHosts);
         }
 
         setAgentStatus(taskInstanceExecuteObjects.getValidHosts());
         setAgentStatus(taskInstanceExecuteObjects.getNotInAppHosts());
     }
 
-    private void setHostAgentId(boolean isUsingGseV2, HostDTO host, Set<HostDTO> invalidAgentIdHosts) {
-        // 如果对接GSE1.0,使用云区域+ipv4构造agentId
-        if (!isUsingGseV2) {
-            host.setAgentId(host.toCloudIp());
-        }
+    private void setHostAgentId(HostDTO host, Set<HostDTO> invalidAgentIdHosts) {
+        // 如果AgentId为空，是GSE V2服务兼容管控V1 Agent的场景，使用云区域+ipv4构造AgentId
         if (StringUtils.isBlank(host.getAgentId())) {
-            invalidAgentIdHosts.add(host);
+            if (StringUtils.isNotBlank(host.getIp())) {
+                host.setAgentId(host.toCloudIp());
+            } else {
+                invalidAgentIdHosts.add(host);
+            }
         }
     }
 
-    private void fillTargetHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
-        fillHostsDetail(stepInstance.getTargetExecuteObjects(), hostMap);
+    private void fillTargetHostDetail(StepInstanceDTO stepInstance,
+                                      TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
+        fillHostsDetail(stepInstance.getTargetExecuteObjects(), taskInstanceExecuteObjects);
     }
 
-    private void fillFileSourceHostDetail(StepInstanceDTO stepInstance, Map<String, HostDTO> hostMap) {
+    private void fillFileSourceHostDetail(StepInstanceDTO stepInstance,
+                                          TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
         if (stepInstance.getExecuteType() == SEND_FILE) {
             List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
             if (fileSourceList != null) {
                 for (FileSourceDTO fileSource : fileSourceList) {
-                    fillHostsDetail(fileSource.getServers(), hostMap);
+                    fillHostsDetail(fileSource.getServers(), taskInstanceExecuteObjects);
                 }
             }
         }
     }
 
-    private void fillHostsDetail(ExecuteTargetDTO executeTargetDTO, Map<String, HostDTO> hostMap) {
+    private void fillHostsDetail(ExecuteTargetDTO executeTargetDTO,
+                                 TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
         if (executeTargetDTO != null) {
-            fillHostsDetail(executeTargetDTO.getStaticIpList(), hostMap);
+            fillHostsDetail(executeTargetDTO.getStaticIpList(), taskInstanceExecuteObjects);
             if (CollectionUtils.isNotEmpty(executeTargetDTO.getDynamicServerGroups())) {
                 executeTargetDTO.getDynamicServerGroups()
-                    .forEach(group -> fillHostsDetail(group.getIpList(), hostMap));
+                    .forEach(group -> fillHostsDetail(group.getIpList(), taskInstanceExecuteObjects));
             }
             if (CollectionUtils.isNotEmpty(executeTargetDTO.getTopoNodes())) {
-                executeTargetDTO.getTopoNodes().forEach(topoNode -> fillHostsDetail(topoNode.getIpList(), hostMap));
+                executeTargetDTO.getTopoNodes().forEach(
+                    topoNode -> fillHostsDetail(topoNode.getIpList(), taskInstanceExecuteObjects));
             }
         }
     }
 
-    private void fillHostsDetail(Collection<HostDTO> hosts, Map<String, HostDTO> hostMap) {
+    private void fillHostsDetail(Collection<HostDTO> hosts, TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
         if (CollectionUtils.isNotEmpty(hosts)) {
-            hosts.forEach(host -> {
-                HostDTO hostDetail;
-                if (host.getHostId() != null) {
-                    hostDetail = hostMap.get("hostId:" + host.getHostId());
-                } else {
-                    hostDetail = hostMap.get("hostIp:" + host.toCloudIp());
-                }
-                host.updateByHost(hostDetail);
-            });
+            hosts.forEach(host -> host.updateByHost(taskInstanceExecuteObjects.queryByHostKey(host)));
         }
     }
 
@@ -507,18 +529,25 @@ public class TaskInstanceExecuteObjectProcessor {
 
         List<HostAgentStateQuery> hostAgentStateQueryList = new ArrayList<>(hosts.size());
         Map<HostDTO, HostAgentStateQuery> hostAgentStateQueryMap = new HashMap<>(hosts.size());
-        hosts.forEach(hostDTO -> {
-            HostAgentStateQuery hostAgentStateQuery = HostAgentStateQuery.from(hostDTO);
-            hostAgentStateQueryList.add(hostAgentStateQuery);
-            hostAgentStateQueryMap.put(hostDTO, hostAgentStateQuery);
-        });
+        hosts.stream()
+            .filter(this::isAgentIdValid)
+            .forEach(host -> {
+                HostAgentStateQuery hostAgentStateQuery = HostAgentStateQuery.from(host);
+                hostAgentStateQueryList.add(hostAgentStateQuery);
+                hostAgentStateQueryMap.put(host, hostAgentStateQuery);
+            });
 
         // 此处用于记录下发任务时的Agent状态快照数据，因此使用最终真实下发任务的agentId获取状态
-        Map<String, AgentState> agentStateMap = preferV2AgentStateClient.batchGetAgentState(hostAgentStateQueryList);
+        Map<String, AgentState> agentStateMap = agentStateClient.batchGetAgentState(hostAgentStateQueryList);
 
         for (HostDTO host : hosts) {
             HostAgentStateQuery hostAgentStateQuery = hostAgentStateQueryMap.get(host);
-            String effectiveAgentId = preferV2AgentStateClient.getEffectiveAgentId(hostAgentStateQuery);
+            if (hostAgentStateQuery == null) {
+                host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
+                continue;
+            }
+
+            String effectiveAgentId = agentStateClient.getEffectiveAgentId(hostAgentStateQuery);
             if (StringUtils.isEmpty(effectiveAgentId)) {
                 host.setAlive(AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
                 continue;
@@ -537,17 +566,80 @@ public class TaskInstanceExecuteObjectProcessor {
         }
     }
 
+    private boolean isAgentIdValid(HostDTO host) {
+        return StringUtils.isNotBlank(host.getAgentId());
+    }
+
     private void acquireAndSetContainers(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
                                          TaskInstanceDTO taskInstance,
                                          List<StepInstanceDTO> stepInstances) {
 
-        // // 根据静态容器列表方式获取并设置容器执行对象
+        // 根据静态容器列表方式获取并设置容器执行对象
         acquireAndSetContainersByStaticContainerList(taskInstanceExecuteObjects,
             taskInstance, stepInstances);
 
         // 根据 ContainerFilter 方式获取并设置容器执行对象
         acquireAndSetContainersByContainerFilters(taskInstanceExecuteObjects,
             taskInstance, stepInstances);
+
+        taskInstanceExecuteObjects.setContainsAnyContainer(
+            CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getValidContainers()));
+
+        // 增加容器 topo 信息（集群 UID，集群名称、命名空间名称等)
+        fillContainerTopoInfo(taskInstance.getAppId(), taskInstanceExecuteObjects.getValidContainers(), stepInstances);
+    }
+
+    private void fillContainerTopoInfo(long appId,
+                                       Collection<Container> containers,
+                                       List<StepInstanceDTO> stepInstances) {
+        if (CollectionUtils.isEmpty(containers)) {
+            return;
+        }
+        long bizId = Long.parseLong(appScopeMappingService.getScopeByAppId(appId).getId());
+        // 从 cmdb 获取集群信息
+        List<Long> ccKubeClusterIds =
+            containers.stream().map(Container::getClusterId).distinct().collect(Collectors.toList());
+        List<KubeClusterDTO> clusters =
+            bizCmdbClient.listKubeClusters(KubeClusterQuery.Builder.builder(bizId).ids(ccKubeClusterIds).build());
+        Map<Long, KubeClusterDTO> clusterMap = clusters.stream().collect(
+            Collectors.toMap(KubeClusterDTO::getId, cluster -> cluster));
+
+        // 从 cmdb 获取命名空间信息
+        List<Long> ccKubeNamespaceIds =
+            containers.stream().map(Container::getNamespaceId).distinct().collect(Collectors.toList());
+        List<KubeNamespaceDTO> namespaces =
+            bizCmdbClient.listKubeNamespaces(NamespaceQuery.Builder.builder(bizId).ids(ccKubeNamespaceIds).build());
+        Map<Long, KubeNamespaceDTO> namespaceMap = namespaces.stream().collect(
+            Collectors.toMap(KubeNamespaceDTO::getId, namespace -> namespace));
+
+        // 填充 cluster、 namespace 信息
+        for (StepInstanceDTO stepInstance : stepInstances) {
+            stepInstance.forEachExecuteObjects(executeObjects -> {
+                if (CollectionUtils.isNotEmpty(executeObjects.getContainerFilters())) {
+                    executeObjects.getContainerFilters().forEach(containerFilter -> {
+                        if (CollectionUtils.isNotEmpty(containerFilter.getContainers())) {
+                            containerFilter.getContainers().forEach(
+                                container -> addTopoDetail(container, clusterMap, namespaceMap));
+                        }
+                    });
+                }
+                if (CollectionUtils.isNotEmpty(executeObjects.getStaticContainerList())) {
+                    executeObjects.getStaticContainerList().forEach(
+                        container -> addTopoDetail(container, clusterMap, namespaceMap));
+                }
+            });
+        }
+    }
+
+    private void addTopoDetail(Container container,
+                               Map<Long, KubeClusterDTO> clusterMap,
+                               Map<Long, KubeNamespaceDTO> namespaceMap) {
+        KubeClusterDTO cluster = clusterMap.get(container.getClusterId());
+        container.setClusterName(cluster.getName());
+        container.setClusterUID(cluster.getUid());
+
+        KubeNamespaceDTO namespace = namespaceMap.get(container.getNamespaceId());
+        container.setNamespace(namespace.getName());
     }
 
     private void acquireAndSetContainersByStaticContainerList(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
@@ -606,6 +698,7 @@ public class TaskInstanceExecuteObjectProcessor {
                                 notExistContainerIds.add(container.getId());
                                 return;
                             }
+                            taskInstanceExecuteObjects.addContainer(containDetail);
                             container.updatePropsByContainer(containDetail);
                         });
                 }
@@ -628,29 +721,94 @@ public class TaskInstanceExecuteObjectProcessor {
         }
     }
 
-    private void checkExecuteObjectExist(TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
-        List<String> notExistExecuteObjectList = new ArrayList<>();
+    private void checkExecuteObjectExist(TaskInstanceDTO taskInstance,
+                                         List<StepInstanceDTO> stepInstanceList,
+                                         TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
+        List<String> invalidExecuteObjects = new ArrayList<>();
+
+        // 处理主机执行对象
         if (CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getNotExistHosts())) {
-            notExistExecuteObjectList.addAll(taskInstanceExecuteObjects.getNotExistHosts().stream()
-                .map(this::printHostIdOrIp).collect(Collectors.toList()));
+            if (shouldIgnoreInvalidHost(taskInstance)) {
+                if (taskInstanceExecuteObjects.getNotExistHosts().stream().anyMatch(host -> host.getHostId() == null)) {
+                    // 由于历史原因，部分定时任务使用了管控区域ID:Ipv4 作为主机 ID，并且这部分主机已经不存在于 cmdb，所以无法
+                    // 正确获取到对应的 hostId，会导致后续报错；所以这里直接对外抛出错误，不再继续兼容处理
+                    invalidExecuteObjects.addAll(taskInstanceExecuteObjects.getNotExistHosts().stream()
+                        .map(this::printHostIdOrIp).collect(Collectors.toList()));
+                } else {
+                    // 忽略主机不存在错误，并标识执行对象的 invalid 属性为 true
+                    markExecuteObjectInvalid(stepInstanceList, taskInstanceExecuteObjects.getNotExistHosts());
+                }
+            } else {
+                invalidExecuteObjects.addAll(taskInstanceExecuteObjects.getNotExistHosts().stream()
+                    .map(this::printHostIdOrIp).collect(Collectors.toList()));
+            }
         }
+
+        // 处理容器执行对象
         if (CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getNotExistContainerIds())) {
-            notExistExecuteObjectList.addAll(
+            invalidExecuteObjects.addAll(
                 taskInstanceExecuteObjects.getNotExistContainerIds().stream()
                     .map(containerId -> "(container_id:" + containerId + ")")
                     .collect(Collectors.toList()));
         }
-        if (CollectionUtils.isNotEmpty(notExistExecuteObjectList)) {
-            String executeObjectStr = StringUtils.join(notExistExecuteObjectList, ",");
-            log.warn("The following execute object are not exist, notExistExecuteObjectList={}",
-                notExistExecuteObjectList);
+
+        if (CollectionUtils.isNotEmpty(invalidExecuteObjects)) {
+            String executeObjectStr = StringUtils.join(invalidExecuteObjects, ",");
+            log.warn("The following execute object are not exist, invalidExecuteObjects={}",
+                invalidExecuteObjects);
             throw new FailedPreconditionException(ErrorCode.EXECUTE_OBJECT_NOT_EXIST,
-                new Object[]{notExistExecuteObjectList.size(), executeObjectStr});
+                new Object[]{invalidExecuteObjects.size(), executeObjectStr});
         }
     }
 
+    private void markExecuteObjectInvalid(List<StepInstanceDTO> stepInstanceList,
+                                          List<HostDTO> invalidHost) {
+        for (StepInstanceDTO stepInstance : stepInstanceList) {
+            if (!stepInstance.isStepContainsExecuteObject()) {
+                continue;
+            }
+            // 检查目标主机
+            stepInstance.getTargetExecuteObjects().getExecuteObjectsCompatibly().stream()
+                .filter(ExecuteObject::isHostExecuteObject)
+                .forEach(executeObject -> {
+                    if (invalidHost.contains(executeObject.getHost())) {
+                        executeObject.setInvalid(true);
+                    }
+                });
+            // 如果是文件分发任务，检查文件源
+            if (stepInstance.isFileStep()) {
+                List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
+                if (CollectionUtils.isEmpty(fileSourceList)) {
+                    return;
+                }
+                for (FileSourceDTO fileSource : fileSourceList) {
+                    // 远程文件分发需要校验文件源主机;其他类型不需要
+                    if (fileSource.getFileType().equals(TaskFileTypeEnum.SERVER.getType())) {
+                        ExecuteTargetDTO executeTarget = fileSource.getServers();
+                        if (executeTarget == null ||
+                            CollectionUtils.isEmpty(executeTarget.getExecuteObjectsCompatibly())) {
+                            continue;
+                        }
+                        executeTarget.getExecuteObjectsCompatibly().stream()
+                            .filter(ExecuteObject::isHostExecuteObject)
+                            .forEach(executeObject -> {
+                                if (invalidHost.contains(executeObject.getHost())) {
+                                    executeObject.setInvalid(true);
+                                }
+                            });
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean shouldIgnoreInvalidHost(TaskInstanceDTO taskInstance) {
+        // 定时任务忽略非法主机，继续执行
+        return TaskStartupModeEnum.getStartupMode(taskInstance.getStartupMode()) == TaskStartupModeEnum.CRON;
+    }
+
     private void throwHostInvalidException(Long appId, Collection<HostDTO> invalidHosts) {
-        ServiceApplicationDTO application = applicationService.getAppById(appId);
+        ServiceApplicationDTO application = remoteAppService.getAppById(appId);
         String appName = application.getName();
         String hostListStr = StringUtils.join(invalidHosts.stream()
             .map(this::printHostIdOrIp).collect(Collectors.toList()), ",");
@@ -662,11 +820,11 @@ public class TaskInstanceExecuteObjectProcessor {
     /**
      * 判断执行对象是否可以被当前作业使用
      *
-     * @param appId                      业务 ID
+     * @param taskInstance               作业实例
      * @param stepInstanceList           作业步骤列表
      * @param taskInstanceExecuteObjects 作业实例中包含的执行对象
      */
-    private void checkExecuteObjectAccessible(long appId,
+    private void checkExecuteObjectAccessible(TaskInstanceDTO taskInstance,
                                               List<StepInstanceDTO> stepInstanceList,
                                               TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
         if (CollectionUtils.isEmpty(taskInstanceExecuteObjects.getNotInAppHosts())) {
@@ -679,6 +837,7 @@ public class TaskInstanceExecuteObjectProcessor {
             .collect(Collectors.toMap(HostDTO::getHostId, host -> host, (host1, host2) -> host2));
 
         // 非法的主机
+        boolean shouldIgnoreInvalidHost = shouldIgnoreInvalidHost(taskInstance);
         Set<HostDTO> invalidHosts = new HashSet<>();
         for (StepInstanceDTO stepInstance : stepInstanceList) {
             if (!stepInstance.isStepContainsExecuteObject()) {
@@ -690,17 +849,22 @@ public class TaskInstanceExecuteObjectProcessor {
                 .filter(ExecuteObject::isHostExecuteObject)
                 .forEach(executeObject -> {
                     if (isHostUnAccessible(stepType, executeObject.getHost(), notInAppHostMap, whileHostAllowActions)) {
-                        invalidHosts.add(executeObject.getHost());
+                        if (shouldIgnoreInvalidHost) {
+                            executeObject.setInvalid(true);
+                        } else {
+                            invalidHosts.add(executeObject.getHost());
+                        }
                     }
                 });
             // 如果是文件分发任务，检查文件源
-            checkFileSourceHostAccessible(invalidHosts, stepInstance, stepType, notInAppHostMap, whileHostAllowActions);
+            checkFileSourceHostAccessible(invalidHosts, stepInstance, stepType, notInAppHostMap,
+                whileHostAllowActions, shouldIgnoreInvalidHost);
         }
 
         if (CollectionUtils.isNotEmpty(invalidHosts)) {
             // 检查是否在白名单配置
-            log.warn("Found hosts not in target app: {}!", appId);
-            throwHostInvalidException(appId, invalidHosts);
+            log.warn("Found hosts not in target app: {}!", taskInstance.getAppId());
+            throwHostInvalidException(taskInstance.getAppId(), invalidHosts);
         }
     }
 
@@ -708,7 +872,8 @@ public class TaskInstanceExecuteObjectProcessor {
                                                StepInstanceDTO stepInstance,
                                                TaskStepTypeEnum stepType,
                                                Map<Long, HostDTO> notInAppHostMap,
-                                               Map<Long, List<String>> whileHostAllowActions) {
+                                               Map<Long, List<String>> whileHostAllowActions,
+                                               boolean ignoreInvalidHost) {
         if (!stepInstance.isFileStep()) {
             return;
         }
@@ -728,7 +893,11 @@ public class TaskInstanceExecuteObjectProcessor {
                     .forEach(executeObject -> {
                         if (isHostUnAccessible(stepType, executeObject.getHost(),
                             notInAppHostMap, whileHostAllowActions)) {
-                            invalidHosts.add(executeObject.getHost());
+                            if (ignoreInvalidHost) {
+                                executeObject.setInvalid(true);
+                            } else {
+                                invalidHosts.add(executeObject.getHost());
+                            }
                         }
                     });
             }
@@ -765,8 +934,8 @@ public class TaskInstanceExecuteObjectProcessor {
     }
 
     private boolean isSupportExecuteObjectFeature(TaskInstanceDTO taskInstance) {
-        FeatureExecutionContext featureExecutionContext =
-            FeatureExecutionContext.builder()
+        ToggleEvaluateContext featureExecutionContext =
+            ToggleEvaluateContext.builder()
                 .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     appScopeMappingService.getScopeByAppId(taskInstance.getAppId()));
 
@@ -788,8 +957,13 @@ public class TaskInstanceExecuteObjectProcessor {
         if (CollectionUtils.isEmpty(hosts)) {
             return hostAllowActionsMap;
         }
+        String tenantId = tenantService.getTenantIdByAppId(appId);
         for (HostDTO host : hosts) {
-            List<String> allowActions = whiteHostCache.getHostAllowedAction(appId, host.getHostId());
+            List<String> allowActions = whiteHostCache.getHostAllowedAction(
+                tenantId,
+                appId,
+                host.getHostId()
+            );
             if (CollectionUtils.isNotEmpty(allowActions)) {
                 hostAllowActionsMap.put(host.getHostId(), allowActions);
             }
@@ -806,29 +980,6 @@ public class TaskInstanceExecuteObjectProcessor {
             && StringUtils.isNotEmpty(taskInstance.getAppCode())
             && (StringUtils.equals(taskInstance.getAppCode(), "bkc-nodeman")
             || StringUtils.equals(taskInstance.getAppCode(), "bk_nodeman"));
-    }
-
-    private boolean isUsingGseV2(TaskInstanceDTO taskInstance, Collection<HostDTO> taskInstanceHosts) {
-        // 初始化Job任务灰度对接 GSE2.0 上下文
-        FeatureExecutionContext featureExecutionContext =
-            FeatureExecutionContext.builder()
-                .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
-                    appScopeMappingService.getScopeByAppId(taskInstance.getAppId()))
-                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ANY_GSE_V2_AGENT_AVAILABLE,
-                    () -> taskInstanceHosts.stream().anyMatch(host -> AgentUtils.isGseV2AgentId(host.getAgentId())))
-                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_IS_ALL_GSE_V2_AGENT_AVAILABLE,
-                    () -> taskInstanceHosts.stream().allMatch(
-                        host -> AgentUtils.isGseV2AgentId(host.getAgentId())))
-                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_STARTUP_MODE,
-                    () -> TaskStartupModeEnum.getStartupMode(taskInstance.getStartupMode()).getName())
-                .addContextParam(JobInstanceAttrToggleStrategy.CTX_PARAM_OPERATOR, taskInstance::getOperator);
-
-        boolean isUsingGseV2 = FeatureToggle.checkFeature(
-            FeatureIdConstants.FEATURE_GSE_V2,
-            featureExecutionContext
-        );
-        log.info("Use gse version {}", isUsingGseV2 ? "v2" : "v1");
-        return isUsingGseV2;
     }
 
     /**
@@ -852,7 +1003,7 @@ public class TaskInstanceExecuteObjectProcessor {
                 List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
                 if (fileSourceList != null) {
                     for (FileSourceDTO fileSource : fileSourceList) {
-                        if (fileSource.getServers() != null) {
+                        if (fileSource.needToCheckHosts() && fileSource.getServers() != null) {
                             hosts.addAll(fileSource.getServers().extractHosts());
                         }
                     }

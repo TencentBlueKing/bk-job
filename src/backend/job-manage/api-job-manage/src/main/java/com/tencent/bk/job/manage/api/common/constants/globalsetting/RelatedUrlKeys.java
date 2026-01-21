@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -37,4 +37,10 @@ public class RelatedUrlKeys {
     public static final String KEY_BK_DOC_JOB_ROOT_URL = "BK_DOC_JOB_ROOT_URL";
     // 问题反馈
     public static final String KEY_BK_FEED_BACK_ROOT_URL = "BK_FEED_BACK_ROOT_URL";
+    // 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件base.js基础地址
+    public static final String KEY_BK_SHARED_RES_BASE_JS_URL = "BK_SHARED_RES_BASE_JS_URL";
+    // 用户管理前端服务接口基础地址
+    public static final String KEY_BK_USER_WEB_API_ROOT_URL = "BK_USER_WEB_API_ROOT_URL";
+    // 登录地址
+    public static final String KEY_BK_LOGIN_URL = "BK_LOGIN_URL";
 }

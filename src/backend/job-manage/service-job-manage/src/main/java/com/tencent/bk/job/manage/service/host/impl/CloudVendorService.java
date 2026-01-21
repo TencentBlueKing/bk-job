@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -26,11 +26,12 @@ package com.tencent.bk.job.manage.service.host.impl;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -40,30 +41,43 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class CloudVendorService {
 
-    private final LoadingCache<String, Map<String, String>> cloudVendorMapCache =
+    private IBizCmdbClient bizCmdbClient;
+    private final LoadingCache<Pair<String, String>, Map<String, String>> cloudVendorMapCache =
         Caffeine.newBuilder()
-            .maximumSize(2)
+            .maximumSize(10)
             .expireAfterWrite(30, TimeUnit.MINUTES)
             .recordStats()
-            .build(lang -> {
-                IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(lang);
-                return bizCmdbClient.getCloudVendorIdNameMap();
+            .build(langTenantIdPair -> {
+                String lang = langTenantIdPair.getLeft();
+                JobContextUtil.setUserLang(lang);
+                String tenantId = langTenantIdPair.getRight();
+                return bizCmdbClient.getCloudVendorIdNameMap(tenantId);
             });
 
-    private String getCloudVendorNameById(String cloudVendorId) {
-        Map<String, String> cloudVendorIdNameMap = cloudVendorMapCache.get(JobContextUtil.getUserLang());
+    @Autowired
+    public CloudVendorService(IBizCmdbClient bizCmdbClient) {
+        this.bizCmdbClient = bizCmdbClient;
+    }
+
+    private String getCloudVendorNameById(String tenantId, String cloudVendorId) {
+        Map<String, String> cloudVendorIdNameMap = cloudVendorMapCache.get(
+            Pair.of(
+                JobContextUtil.getUserLang(),
+                tenantId
+            )
+        );
         if (cloudVendorIdNameMap == null) {
             return JobConstants.UNKNOWN_NAME;
         }
         return cloudVendorIdNameMap.get(cloudVendorId);
     }
 
-    public String getCloudVendorNameOrDefault(String cloudVendorId, String defaultValue) {
+    public String getCloudVendorNameOrDefault(String tenantId, String cloudVendorId, String defaultValue) {
         if (cloudVendorId == null) {
             return defaultValue;
         }
         try {
-            return getCloudVendorNameById(cloudVendorId);
+            return getCloudVendorNameById(tenantId, cloudVendorId);
         } catch (Exception e) {
             log.warn("Fail to getCloudVendorNameById", e);
             return defaultValue;

@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -65,7 +65,11 @@
         <bk-table-column
           :label="$t('home.更新人')"
           prop="lastModifyUser"
-          width="180" />
+          width="180">
+          <template slot-scope="{ row }">
+            <bk-user-display-name :user-id="row.lastModifyUser" />
+          </template>
+        </bk-table-column>
         <bk-table-column
           :label="$t('home.更新时间')"
           prop="lastModifyTime"
@@ -148,7 +152,7 @@
     },
     created() {
       this.fetchMyFavorList();
-      this.emptyUrl = I18n.locale === 'zh-CN' ? '/static/images/favor-task-empty.png' : '/static/images/favor-task-empty-en.png';
+      this.emptyUrl = I18n.locale === 'zh-CN' ? window.__loadAssetsUrl__('/static/images/favor-task-empty.png') : window.__loadAssetsUrl__('/static/images/favor-task-empty-en.png');
     },
     mounted() {
       this.containerStyle = {

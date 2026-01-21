@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -28,13 +28,14 @@ import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.crypto.scenario.DbPasswordCryptoService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
-import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.AccountDAO;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
 import com.tencent.bk.job.manage.model.tables.Account;
+import com.tencent.bk.job.manage.model.tables.Application;
 import com.tencent.bk.job.manage.model.tables.TaskTemplate;
 import com.tencent.bk.job.manage.model.tables.TaskTemplateStep;
 import com.tencent.bk.job.manage.model.tables.TaskTemplateStepFile;
@@ -66,6 +67,7 @@ import java.util.List;
 @Repository
 public class AccountDAOImpl implements AccountDAO {
     private static final Account TB_ACCOUNT = Account.ACCOUNT;
+    private static final Application TB_APP = Application.APPLICATION;
     private static final TableField[] ALL_FILED = {
         TB_ACCOUNT.ID,
         TB_ACCOUNT.ACCOUNT_,
@@ -347,13 +349,19 @@ public class AccountDAOImpl implements AccountDAO {
 
     public PageData<AccountDTO> listPageAccountByConditions(BaseSearchCondition baseSearchCondition,
                                                             List<Condition> conditions, long count) {
-
         Collection<SortField<?>> orderFields = new ArrayList<>();
         if (StringUtils.isBlank(baseSearchCondition.getOrderField())) {
             orderFields.add(TB_ACCOUNT.LAST_MODIFY_TIME.desc());
         } else {
             String orderField = baseSearchCondition.getOrderField();
-            if ("alias".equals(orderField)) {
+            if ("id".equals(orderField)) {
+                //升序
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(TB_ACCOUNT.ID.asc());
+                } else {
+                    orderFields.add(TB_ACCOUNT.ID.desc());
+                }
+            } else if ("alias".equals(orderField)) {
                 //升序
                 if (baseSearchCondition.getOrder() == 1) {
                     orderFields.add(TB_ACCOUNT.ALIAS.asc());
@@ -366,12 +374,26 @@ public class AccountDAOImpl implements AccountDAO {
                 } else {
                     orderFields.add(TB_ACCOUNT.ACCOUNT_.desc());
                 }
+            } else if ("category".equals(orderField) || "categoryName".equals(orderField)) {
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(TB_ACCOUNT.CATEGORY.asc());
+                } else {
+                    orderFields.add(TB_ACCOUNT.CATEGORY.desc());
+                }
+            } else if ("type".equals(orderField) || "typeName".equals(orderField)) {
+                if (baseSearchCondition.getOrder() == 1) {
+                    orderFields.add(TB_ACCOUNT.TYPE.asc());
+                } else {
+                    orderFields.add(TB_ACCOUNT.TYPE.desc());
+                }
             } else if ("lastModifyTime".equals(orderField)) {
                 if (baseSearchCondition.getOrder() == 1) {
                     orderFields.add(TB_ACCOUNT.LAST_MODIFY_TIME.asc());
                 } else {
                     orderFields.add(TB_ACCOUNT.LAST_MODIFY_TIME.desc());
                 }
+            } else {
+                orderFields.add(TB_ACCOUNT.LAST_MODIFY_TIME.desc());
             }
         }
 
@@ -384,7 +406,7 @@ public class AccountDAOImpl implements AccountDAO {
                 .orderBy(orderFields)
                 .limit(start, length).fetch();
         List<AccountDTO> accounts = new ArrayList<>();
-        if (result.size() != 0) {
+        if (!result.isEmpty()) {
             result.map(record -> {
                 accounts.add(extract(record));
                 return null;
@@ -540,7 +562,7 @@ public class AccountDAOImpl implements AccountDAO {
         }
         List<AccountDTO> accountDTOS = new ArrayList<>();
         if (result.size() != 0) {
-            result.into(record -> accountDTOS.add(extract(record)));
+            result.forEach(record -> accountDTOS.add(extract(record)));
         }
         return accountDTOS;
     }
@@ -638,12 +660,34 @@ public class AccountDAOImpl implements AccountDAO {
 
     @Override
     public Integer countAccounts(AccountTypeEnum accountType) {
+        List<Condition> conditions = buildConditions(accountType);
+        return countByConditions(conditions);
+    }
+
+    @Override
+    public Integer countAccounts(String tenantId, AccountTypeEnum accountType) {
+        List<Condition> conditions = buildConditions(accountType);
+        conditions.add(TB_APP.TENANT_ID.eq(tenantId));
+        return ctx.selectCount()
+            .from(TB_ACCOUNT)
+            .join(TB_APP)
+            .on(TB_ACCOUNT.APP_ID.eq(TB_APP.APP_ID.cast(Long.class)))
+            .where(conditions)
+            .fetchOne(0, Integer.class);
+    }
+
+    List<Condition> buildConditions(AccountTypeEnum accountType) {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TB_ACCOUNT.IS_DELETED.eq(UByte.valueOf(0)));
         if (accountType != null) {
             conditions.add(TB_ACCOUNT.TYPE.eq(accountType.getType().byteValue()));
         }
-        return ctx.selectCount().from(TB_ACCOUNT)
+        return conditions;
+    }
+
+    private Integer countByConditions(List<Condition> conditions) {
+        return ctx.selectCount()
+            .from(TB_ACCOUNT)
             .where(conditions)
             .fetchOne(0, Integer.class);
     }
@@ -655,7 +699,7 @@ public class AccountDAOImpl implements AccountDAO {
             .where(TB_ACCOUNT.CATEGORY.eq(JooqDataTypeUtil.getByteFromInteger(accountCategoryEnum.getValue())))
             .and(TB_ACCOUNT.IS_DELETED.eq(UByte.valueOf(0)))
             .fetch();
-        if (records.size() == 0) {
+        if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
             return records.map(this::extract);

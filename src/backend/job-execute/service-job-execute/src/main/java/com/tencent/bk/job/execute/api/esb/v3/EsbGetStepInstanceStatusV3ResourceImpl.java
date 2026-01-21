@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -28,14 +28,13 @@ import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
-import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.ResultGroupDTO;
@@ -43,7 +42,6 @@ import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
 import com.tencent.bk.job.execute.model.StepExecutionResultQuery;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbStepInstanceStatusV3DTO;
-import com.tencent.bk.job.execute.service.StepInstanceValidateService;
 import com.tencent.bk.job.execute.service.TaskResultService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RestController;
@@ -55,16 +53,13 @@ import java.util.List;
 @Slf4j
 public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanceStatusV3Resource {
 
-    private final StepInstanceValidateService stepInstanceValidateService;
     private final AppScopeMappingService appScopeMappingService;
     private final TaskResultService taskResultService;
     private final MessageI18nService messageI18nService;
 
-    public EsbGetStepInstanceStatusV3ResourceImpl(StepInstanceValidateService stepInstanceValidateService,
-                                                  AppScopeMappingService appScopeMappingService,
+    public EsbGetStepInstanceStatusV3ResourceImpl(AppScopeMappingService appScopeMappingService,
                                                   TaskResultService taskResultService,
                                                   MessageI18nService messageI18nService) {
-        this.stepInstanceValidateService = stepInstanceValidateService;
         this.appScopeMappingService = appScopeMappingService;
         this.taskResultService = taskResultService;
         this.messageI18nService = messageI18nService;
@@ -145,17 +140,8 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
                                                                      String tag) {
         long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
 
-        ValidateResult checkResult = stepInstanceValidateService.checkStepInstance(
-            appId,
-            taskInstanceId,
-            stepInstanceId
-        );
-        if (!checkResult.isPass()) {
-            log.warn("Get step instance status request is illegal!");
-            throw new InvalidParamException(checkResult);
-        }
-
         StepExecutionResultQuery query = StepExecutionResultQuery.builder()
+            .taskInstanceId(taskInstanceId)
             .stepInstanceId(stepInstanceId)
             .executeCount(executeCount)
             .batch(batch == null ? null : (batch == 0 ? null : batch))
@@ -168,7 +154,8 @@ public class EsbGetStepInstanceStatusV3ResourceImpl implements EsbGetStepInstanc
             .fetchAllGroupData(status == null)
             .build();
 
-        StepExecutionDetailDTO executionResult = taskResultService.getStepExecutionResult(username, appId, query);
+        StepExecutionDetailDTO executionResult = taskResultService.getStepExecutionResult(
+            JobContextUtil.getUser(), appId, query);
         if (executionResult == null) {
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }

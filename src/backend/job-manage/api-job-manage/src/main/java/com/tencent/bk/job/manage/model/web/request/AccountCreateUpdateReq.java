@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -92,4 +92,11 @@ public class AccountCreateUpdateReq {
     @ApiModelProperty(value = "DB账号的密码,创建/更新DB账号的时候必传")
     @SkipLogFields
     private String dbPassword;
+
+    /**
+     * 系统账号密码/DB账号密码传输过程中的加密算法
+     * 若有值表示密码是密文传输，将使用该算法对系统账号密码/DB账号密码进行解密，如果没有值则表示明文传输
+     */
+    @ApiModelProperty(value = "加密算法")
+    private String algorithm;
 }

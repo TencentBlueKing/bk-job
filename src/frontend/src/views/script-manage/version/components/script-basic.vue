@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -32,14 +32,14 @@
     class="script-version-basic-box">
     <template v-if="data.id">
       <div class="script-type-flag">
-        <img :src="`/static/images/script/${data.typeName}.svg`">
+        <img :src="scriptTypeImg">
       </div>
       <div
         class="detail-column"
         style="width: 270px;">
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.脚本名称.label') }}:
+            {{ $t('script.脚本名称_label') }}:
           </div>
           <div class="item-value">
             <auth-component
@@ -58,25 +58,21 @@
         </div>
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.更新人.label') }}:
+            {{ $t('script.更新人_label') }}:
           </div>
           <div class="item-value">
-            <div
-              v-bk-overflow-tips
-              class="text-box">
-              {{ data.lastModifyUser }}
+            <div class="text-box">
+              <bk-user-display-name :user-id=" data.lastModifyUser" />
             </div>
           </div>
         </div>
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.创建人.label') }}:
+            {{ $t('script.创建人_label') }}:
           </div>
           <div class="item-value">
-            <div
-              v-bk-overflow-tips
-              class="text-box">
-              {{ data.creator }}
+            <div class="text-box">
+              <bk-user-display-name :user-id="data.creator" />
             </div>
           </div>
         </div>
@@ -96,7 +92,7 @@
         </div>
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.更新时间.label') }}:
+            {{ $t('script.更新时间_label') }}:
           </div>
           <div class="item-value">
             <div
@@ -122,7 +118,7 @@
       <div class="detail-column last">
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.场景标签.label') }}:
+            {{ $t('script.场景标签_label') }}:
           </div>
           <div class="item-value">
             <auth-component
@@ -142,7 +138,7 @@
         </div>
         <div class="detail-col">
           <div class="item-label">
-            {{ $t('script.脚本描述.label') }}:
+            {{ $t('script.脚本描述_label') }}:
           </div>
           <div class="item-value">
             <jb-edit-textarea
@@ -181,6 +177,11 @@
         isLoading: true,
         data: {},
       };
+    },
+    computed: {
+      scriptTypeImg() {
+        return window.__loadAssetsUrl__(`/static/images/script/${this.data.typeName}.svg`);
+      },
     },
     created() {
       this.publicScript = checkPublicScript(this.$route);

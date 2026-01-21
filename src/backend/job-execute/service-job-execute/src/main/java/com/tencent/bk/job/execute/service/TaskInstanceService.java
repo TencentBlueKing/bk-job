@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
@@ -44,7 +45,7 @@ public interface TaskInstanceService {
 
     TaskInstanceDTO getTaskInstance(long taskInstanceId) throws NotFoundException;
 
-    TaskInstanceDTO getTaskInstance(String username, long appId, long taskInstanceId)
+    TaskInstanceDTO getTaskInstance(User user, long appId, long taskInstanceId)
         throws NotFoundException, PermissionDeniedException;
 
     /**
@@ -63,7 +64,7 @@ public interface TaskInstanceService {
      * @param taskInstanceId 作业实例 ID
      * @return 作业实例
      */
-    TaskInstanceDTO getTaskInstanceDetail(String username, long appId, long taskInstanceId)
+    TaskInstanceDTO getTaskInstanceDetail(User user, long appId, long taskInstanceId)
         throws NotFoundException, PermissionDeniedException;
 
     void updateTaskStatus(long taskInstanceId, int status);
@@ -96,7 +97,7 @@ public interface TaskInstanceService {
                                  Long endTime,
                                  Long totalTime);
 
-    List<Long> getJoinedAppIdList();
+    List<Long> getJoinedAppIdList(String tenantId);
 
     boolean hasExecuteHistory(Long appId, Long cronTaskId, Long fromTime, Long toTime);
 
@@ -105,8 +106,9 @@ public interface TaskInstanceService {
     /**
      * 保存作业实例与主机的关系，便于根据ip/ipv6检索作业实例
      *
+     * @param appId          业务 ID
      * @param taskInstanceId 作业实例ID
      * @param hosts          主机列表
      */
-    void saveTaskInstanceHosts(long taskInstanceId, Collection<HostDTO> hosts);
+    void saveTaskInstanceHosts(long appId, long taskInstanceId, Collection<HostDTO> hosts);
 }

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -34,6 +34,7 @@ import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.JobFile;
+import com.tencent.bk.job.execute.metrics.LogSampler;
 import com.tencent.bk.job.execute.model.AtomicFileTaskLog;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
@@ -41,6 +42,7 @@ import com.tencent.bk.job.execute.model.FileExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.ScriptExecuteObjectLogContent;
 import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
@@ -54,6 +56,7 @@ import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectScriptLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileLogQueryRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceScriptLogQueryRequest;
+import com.tencent.bk.job.logsvr.util.LogFieldUtil;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -81,6 +84,8 @@ public class LogServiceImpl implements LogService {
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final StepInstanceService stepInstanceService;
+    private final LogSampler logSampler;
+
 
     // 脚本日志阈值128MB，当批量保存脚本日志时，如果日志集合超过阈值，采用分批保存
     @Value("${job.execute.scriptLog.requestContentSizeThresholdMB:128}")
@@ -93,11 +98,13 @@ public class LogServiceImpl implements LogService {
     public LogServiceImpl(ServiceLogResource logResource,
                           ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                           FileExecuteObjectTaskService fileExecuteObjectTaskService,
-                          StepInstanceService stepInstanceService) {
+                          StepInstanceService stepInstanceService,
+                          LogSampler logSampler) {
         this.logResource = logResource;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
         this.stepInstanceService = stepInstanceService;
+        this.logSampler = logSampler;
     }
 
     @PostConstruct
@@ -142,7 +149,7 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public void batchWriteScriptLog(long jobCreateTime,
+    public void batchWriteScriptLog(TaskInstanceDTO taskInstance,
                                     long stepInstanceId,
                                     int executeCount,
                                     Integer batch,
@@ -150,9 +157,11 @@ public class LogServiceImpl implements LogService {
         if (CollectionUtils.isEmpty(scriptLogs)) {
             return;
         }
-        String jobCreateDate = DateUtils.formatUnixTimestamp(jobCreateTime, ChronoUnit.MILLIS,
-            "yyyy_MM_dd", ZoneId.of("UTC"));
+        String jobCreateDate = LogFieldUtil.buildJobCreateDate(taskInstance.getCreateTime());
         ServiceBatchSaveLogRequest request = new ServiceBatchSaveLogRequest();
+        request.setAppId(taskInstance.getAppId());
+        request.setCronTaskId(taskInstance.getCronTaskId());
+        request.setAppCode(taskInstance.getAppCode());
         request.setJobCreateDate(jobCreateDate);
         request.setLogType(LogTypeEnum.SCRIPT.getValue());
 
@@ -189,7 +198,7 @@ public class LogServiceImpl implements LogService {
                           long stepInstanceId,
                           int executeCount,
                           Integer batch) {
-        InternalResponse<?> resp = logResource.saveLogs(request);
+        InternalResponse<?> resp = saveLogsAndRecordLogSizeMetrics(request);
         if (!resp.isSuccess()) {
             log.error("Batch write log content fail, stepInstanceId:{}, executeCount:{}, batch: {}",
                 stepInstanceId, executeCount, batch);
@@ -227,8 +236,7 @@ public class LogServiceImpl implements LogService {
     }
 
     private String buildTaskCreateDateStr(StepInstanceBaseDTO stepInstance) {
-        return DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
-            "yyyy_MM_dd", ZoneId.of("UTC"));
+        return LogFieldUtil.buildJobCreateDate(stepInstance.getCreateTime());
     }
 
     private ScriptExecuteObjectLogContent convertToScriptExecuteObjectLogContent(
@@ -287,22 +295,17 @@ public class LogServiceImpl implements LogService {
         if (CollectionUtils.isEmpty(executeObjectCompositeKeys)) {
             return Collections.emptyList();
         }
-        ServiceScriptLogQueryRequest query = new ServiceScriptLogQueryRequest();
-        query.setBatch(batch);
-
         List<ExecuteObject> queryExecuteObjects =
             stepInstanceService.findExecuteObjectByCompositeKeys(stepInstance, executeObjectCompositeKeys);
-        setExecuteObjectCondition(query, stepInstance, queryExecuteObjects);
 
-        long stepInstanceId = stepInstance.getId();
-        InternalResponse<List<ServiceExecuteObjectLogDTO>> resp =
-            logResource.listScriptExecuteObjectLogs(jobCreateDateStr, stepInstanceId, executeCount, query);
-        if (!resp.isSuccess()) {
-            log.error("Get script log content by execute objects error, stepInstanceId={}, executeCount={}, batch={}," +
-                "executeObjectCompositeKeys: {}", stepInstanceId, executeCount, batch, executeObjectCompositeKeys);
-            throw new InternalException(resp.getCode());
-        }
-        if (CollectionUtils.isEmpty(resp.getData())) {
+        List<ServiceExecuteObjectLogDTO> logList = queryScriptLogsFromLogsvr(
+            jobCreateDateStr,
+            stepInstance,
+            executeCount,
+            batch,
+            queryExecuteObjects
+        );
+        if (CollectionUtils.isEmpty(logList)) {
             return Collections.emptyList();
         }
 
@@ -310,7 +313,7 @@ public class LogServiceImpl implements LogService {
             Map<String, ExecuteObject> executeObjectMap = queryExecuteObjects.stream()
                 .collect(Collectors.toMap(ExecuteObject::getId, executeObject -> executeObject,
                     (oldValue, newValue) -> newValue));
-            return resp.getData().stream().map(logDTO -> {
+            return logList.stream().map(logDTO -> {
                 String scriptContent = logDTO.getScriptLog() != null ? logDTO.getScriptLog().getContent() : "";
                 ExecuteObject executeObject = executeObjectMap.get(logDTO.getExecuteObjectId());
                 if (executeObject == null) {
@@ -327,7 +330,7 @@ public class LogServiceImpl implements LogService {
                 .collect(Collectors.toMap(
                     executeObject -> executeObject.getHost().getHostId(), executeObject -> executeObject,
                     (oldValue, newValue) -> newValue));
-            return resp.getData().stream().map(logDTO -> {
+            return logList.stream().map(logDTO -> {
                 String scriptContent = logDTO.getScriptLog() != null ? logDTO.getScriptLog().getContent() : "";
                 ExecuteObject executeObject = executeObjectMap.get(logDTO.getHostId());
                 if (executeObject == null) {
@@ -342,19 +345,102 @@ public class LogServiceImpl implements LogService {
         }
     }
 
-    private void setExecuteObjectCondition(ServiceScriptLogQueryRequest query,
-                                           StepInstanceBaseDTO stepInstance,
-                                           List<ExecuteObject> queryExecuteObjects) {
-        if (stepInstance.isSupportExecuteObjectFeature()) {
-            List<String> executeObjectId = queryExecuteObjects.stream()
-                .map(ExecuteObject::getId).collect(Collectors.toList());
-            query.setExecuteObjectIds(executeObjectId);
-        } else {
-            // 兼容 hostId 查询
-            List<Long> hostIds = queryExecuteObjects.stream()
-                .map(executeObject -> executeObject.getHost().getHostId()).collect(Collectors.toList());
-            query.setHostIds(hostIds);
+    private List<ServiceExecuteObjectLogDTO> queryScriptLogsFromLogsvr(String jobCreateDateStr,
+                                                                       StepInstanceBaseDTO stepInstance,
+                                                                       int executeCount,
+                                                                       Integer batch,
+                                                                       List<ExecuteObject> queryExecuteObjects) {
+        List<ServiceExecuteObjectLogDTO> logList = new ArrayList<>();
+
+        List<ExecuteObjectTask> executeObjectTaskList =
+            scriptExecuteObjectTaskService.getTaskByExecuteObjectIds(
+                stepInstance,
+                executeCount,
+                batch,
+                queryExecuteObjects.stream().map(ExecuteObject::getId).collect(Collectors.toList())
+            );
+        long stepInstanceId = stepInstance.getId();
+        // 根据真实执行次数对执行对象进行分组
+        Map<Integer, List<ExecuteObjectTask>> actualExecuteCountObjMap = executeObjectTaskList.stream()
+            .collect(Collectors.groupingBy(ExecuteObjectTask::getActualExecuteCount));
+
+        for (Map.Entry<Integer, List<ExecuteObjectTask>> entry : actualExecuteCountObjMap.entrySet()) {
+            Integer actualExecuteCount = entry.getKey();
+            List<ExecuteObjectTask> executeObjectTasks = entry.getValue();
+            if (log.isDebugEnabled()) {
+                log.debug(
+                    "actualExecuteCount={},executeObjectTasks.size={}",
+                    actualExecuteCount,
+                    executeObjectTasks.size()
+                );
+            }
+            if (CollectionUtils.isEmpty(executeObjectTasks)) {
+                continue;
+            }
+            List<String> executeObjectIds = executeObjectTasks.stream()
+                .map(ExecuteObjectTask::getExecuteObjectId)
+                .collect(Collectors.toList());
+            List<ServiceExecuteObjectLogDTO> actualExecuteLogs = queryScriptLogsForExecuteOnce(
+                jobCreateDateStr,
+                stepInstanceId,
+                actualExecuteCount,
+                batch,
+                executeObjectIds
+            );
+            logList.addAll(actualExecuteLogs);
         }
+        return logList;
+    }
+
+    /**
+     * 查询单次执行对应的脚本日志
+     *
+     * @param jobCreateDateStr   任务创建日期
+     * @param stepInstanceId     步骤实例ID
+     * @param actualExecuteCount 实际执行次数
+     * @param batch              批次
+     * @param executeObjectIds   执行目标ID列表
+     * @return 单次执行对应的脚本日志
+     */
+    private List<ServiceExecuteObjectLogDTO> queryScriptLogsForExecuteOnce(String jobCreateDateStr,
+                                                                           long stepInstanceId,
+                                                                           int actualExecuteCount,
+                                                                           Integer batch,
+                                                                           List<String> executeObjectIds) {
+        ServiceScriptLogQueryRequest query = new ServiceScriptLogQueryRequest();
+        query.setBatch(batch);
+        query.setExecuteObjectIds(executeObjectIds);
+
+        InternalResponse<List<ServiceExecuteObjectLogDTO>> resp = logResource.listScriptExecuteObjectLogs(
+            jobCreateDateStr,
+            stepInstanceId,
+            actualExecuteCount,
+            query
+        );
+        if (!resp.isSuccess()) {
+            log.error(
+                "Get script log content by execute objects error, " +
+                    "stepInstanceId={}, actualExecuteCount={}, batch={}, executeObjectIds: {}",
+                stepInstanceId,
+                actualExecuteCount,
+                batch,
+                executeObjectIds
+            );
+            throw new InternalException(resp.getCode());
+        }
+        List<ServiceExecuteObjectLogDTO> logDTOList = resp.getData();
+        if (log.isDebugEnabled()) {
+            log.debug(
+                "Get {} script log content by execute objects, " +
+                    "stepInstanceId={}, actualExecuteCount={}, batch={}, executeObjectIds: {}",
+                logDTOList == null ? 0 : logDTOList.size(),
+                stepInstanceId,
+                actualExecuteCount,
+                batch,
+                executeObjectIds
+            );
+        }
+        return logDTOList;
     }
 
     @Override
@@ -367,6 +453,9 @@ public class LogServiceImpl implements LogService {
     ) {
         ExecuteObjectTask executeObjectTask = fileExecuteObjectTaskService.getTaskByExecuteObjectCompositeKey(
             stepInstance, executeCount, batch, FileTaskModeEnum.getFileTaskMode(mode), executeObjectCompositeKey);
+        if (executeObjectTask == null) {
+            return null;
+        }
         return getFileExecuteObjectLogContent(stepInstance, executeCount, batch, executeObjectTask);
     }
 
@@ -405,8 +494,15 @@ public class LogServiceImpl implements LogService {
             resp = logResource.getFileHostLogByHostId(taskCreateDateStr, stepInstanceId, actualExecuteCount,
                 executeObject.getHost().getHostId(), executeObjectTask.getFileTaskMode().getValue(), batch);
         }
-
-        List<ServiceFileTaskLogDTO> fileTaskLogs = (resp.getData() == null) ? null : resp.getData().getFileTaskLogs();
+        if (resp == null || resp.getData() == null) {
+            log.warn("Get file execute object log, api response is empty");
+            return null;
+        }
+        List<ServiceFileTaskLogDTO> fileTaskLogs = resp.getData().getFileTaskLogs();
+        if (CollectionUtils.isEmpty(fileTaskLogs)) {
+            log.warn("Get file execute object log, file task logs are empty");
+            return null;
+        }
         ExecuteObjectTaskStatusEnum executeObjectTaskStatus = executeObjectTask.getStatus();
         boolean isFinished = executeObjectTaskStatus.isFinished() || isAllFileTasksFinished(fileTaskLogs);
         return new FileExecuteObjectLogContent(stepInstanceId, executeCount, executeObject,
@@ -414,11 +510,12 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public List<AtomicFileTaskLog> getAtomicFileTaskLogByTaskIds(long stepInstanceId,
+    public List<AtomicFileTaskLog> getAtomicFileTaskLogByTaskIds(long taskInstanceId,
+                                                                 long stepInstanceId,
                                                                  int executeCount,
                                                                  Integer batch,
                                                                  List<String> taskIds) {
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(taskInstanceId, stepInstanceId);
         String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
         InternalResponse<List<ServiceFileTaskLogDTO>> resp = logResource.listTaskFileLogsByTaskIds(
             taskCreateDateStr, stepInstanceId, executeCount, batch, taskIds);
@@ -473,18 +570,38 @@ public class LogServiceImpl implements LogService {
             .map(fileTaskLog ->
                 AtomicFileTaskLog.fromServiceExecuteObjectLogDTO(
                     fileTaskLog,
-                    fileTaskLogParam -> srcKeyExtractor.apply(fileTaskLogParam) == null ?
-                        null : executeObjectMap.get(srcKeyExtractor.apply(fileTaskLogParam)),
-                    fileTaskLogParam -> destKeyExtractor.apply(fileTaskLogParam) == null ?
-                        null : executeObjectMap.get(destKeyExtractor.apply(fileTaskLogParam))))
+                    fileTaskLogParam -> {
+                        K srcKey = srcKeyExtractor.apply(fileTaskLogParam);
+                        if (srcKey == null) {
+                            return null;
+                        }
+                        ExecuteObject executeObject = executeObjectMap.get(srcKey);
+                        if (executeObject == null) {
+                            log.warn("Can not find src execute object by key : {}", srcKey);
+                        }
+                        return executeObject;
+                    },
+                    fileTaskLogParam -> {
+                        K destKey = destKeyExtractor.apply(fileTaskLog);
+                        if (destKey == null) {
+                            return null;
+                        }
+                        ExecuteObject executeObject = executeObjectMap.get(destKey);
+                        if (executeObject == null) {
+                            log.warn("Can not find dest execute object by key : {}", destKey);
+                        }
+                        return executeObject;
+                    }
+                ))
             .collect(Collectors.toList());
     }
 
     @Override
-    public List<FileExecuteObjectLogContent> batchGetFileSourceExecuteObjectLogContent(long stepInstanceId,
+    public List<FileExecuteObjectLogContent> batchGetFileSourceExecuteObjectLogContent(long taskInstanceId,
+                                                                                       long stepInstanceId,
                                                                                        int executeCount,
                                                                                        Integer batch) {
-        return batchGetFileExecuteObjectLogContent(stepInstanceId, executeCount, batch,
+        return batchGetFileExecuteObjectLogContent(taskInstanceId, stepInstanceId, executeCount, batch,
             FileTaskModeEnum.UPLOAD, null);
     }
 
@@ -540,13 +657,14 @@ public class LogServiceImpl implements LogService {
 
     @Override
     public List<FileExecuteObjectLogContent> batchGetFileExecuteObjectLogContent(
+        long taskInstanceId,
         long stepInstanceId,
         int executeCount,
         Integer batch,
         FileTaskModeEnum mode,
         List<ExecuteObjectCompositeKey> executeObjectCompositeKeys) {
 
-        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(taskInstanceId, stepInstanceId);
         String taskCreateDateStr = buildTaskCreateDateStr(stepInstance);
         ServiceFileLogQueryRequest request = new ServiceFileLogQueryRequest();
         request.setStepInstanceId(stepInstance.getId());
@@ -627,7 +745,7 @@ public class LogServiceImpl implements LogService {
         }
     }
 
-    public void writeFileLogsWithTimestamp(long jobCreateTime,
+    public void writeFileLogsWithTimestamp(TaskInstanceDTO taskInstance,
                                            List<ServiceExecuteObjectLogDTO> executeObjectFileLogs,
                                            Long logTimeInMillSeconds) {
 
@@ -636,8 +754,15 @@ public class LogServiceImpl implements LogService {
         }
 
         ServiceBatchSaveLogRequest request = new ServiceBatchSaveLogRequest();
-        request.setJobCreateDate(DateUtils.formatUnixTimestamp(jobCreateTime, ChronoUnit.MILLIS, "yyyy_MM_dd",
-            ZoneId.of("UTC")));
+        request.setAppId(taskInstance.getAppId());
+        request.setCronTaskId(taskInstance.getCronTaskId());
+        request.setAppCode(taskInstance.getAppCode());
+        request.setJobCreateDate(DateUtils.formatUnixTimestamp(
+            taskInstance.getCreateTime(),
+            ChronoUnit.MILLIS,
+            "yyyy_MM_dd",
+            ZoneId.of("UTC")
+        ));
         request.setLogType(LogTypeEnum.FILE.getValue());
 
         String logDateTime = "[";
@@ -658,12 +783,18 @@ public class LogServiceImpl implements LogService {
             }
             request.setLogs(executeObjectFileLogs);
         }
-        logResource.saveLogs(request);
+        saveLogsAndRecordLogSizeMetrics(request);
+    }
+
+    private InternalResponse<?> saveLogsAndRecordLogSizeMetrics(ServiceBatchSaveLogRequest request) {
+        InternalResponse<?> resp = logResource.saveLogs(request);
+        logSampler.tryToRecordLogSizeMetrics(request);
+        return resp;
     }
 
     @Override
-    public void writeFileLogs(long jobCreateTime, List<ServiceExecuteObjectLogDTO> executeObjectLogs) {
-        writeFileLogsWithTimestamp(jobCreateTime, executeObjectLogs, System.currentTimeMillis());
+    public void writeFileLogs(TaskInstanceDTO taskInstance, List<ServiceExecuteObjectLogDTO> executeObjectLogs) {
+        writeFileLogsWithTimestamp(taskInstance, executeObjectLogs, System.currentTimeMillis());
     }
 
     @Override

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.dao.TaskInstanceVariableDAO;
+import com.tencent.bk.job.execute.dao.common.IdGen;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -39,10 +40,12 @@ import java.util.List;
 @Slf4j
 public class TaskInstanceVariableServiceImpl implements com.tencent.bk.job.execute.service.TaskInstanceVariableService {
     private final TaskInstanceVariableDAO taskInstanceVariableDAO;
+    private final IdGen idGen;
 
     @Autowired
-    public TaskInstanceVariableServiceImpl(TaskInstanceVariableDAO taskInstanceVariableDAO) {
+    public TaskInstanceVariableServiceImpl(TaskInstanceVariableDAO taskInstanceVariableDAO, IdGen idGen) {
         this.taskInstanceVariableDAO = taskInstanceVariableDAO;
+        this.idGen = idGen;
     }
 
     @Override
@@ -80,6 +83,7 @@ public class TaskInstanceVariableServiceImpl implements com.tencent.bk.job.execu
                 && taskVariable.getExecuteTarget() != null) {
                 taskVariable.setValue(JsonUtils.toJson(taskVariable.getExecuteTarget()));
             }
+            taskVariable.setId(idGen.genTaskInstanceVariableId());
         }
         taskInstanceVariableDAO.saveTaskInstanceVariables(taskVarList);
     }

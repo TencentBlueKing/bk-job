@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -42,6 +42,7 @@ dependencies {
     api project(":commons:common-jwt")
     api project(":commons:esb-sdk")
     api project(":commons:artifactory-sdk")
+    api(project(":job-manage:api-job-manage"))
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     implementation 'ch.qos.logback:logback-core'
@@ -60,7 +61,6 @@ apply plugin: "application"
 mainClassName = "com.tencent.bk.job.upgrader.Upgrader"
 
 shadowJar {
-    classifier = null
     zip64 true
 }
 task copyToRelease(type: Copy) {
@@ -71,5 +71,6 @@ task copyToRelease(type: Copy) {
     outputs.upToDateWhen { false }
 }
 
+copyToRelease.dependsOn jar
 copyToRelease.dependsOn shadowJar
 build.dependsOn copyToRelease

@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -87,7 +87,7 @@
               v-if="allColumnMap.version"
               key="version"
               align="left"
-              :label="$t('script.版本号.colHead')"
+              :label="$t('script.版本号_colHead')"
               prop="version"
               show-overflow-tooltip
               sortable>
@@ -99,7 +99,7 @@
               v-if="allColumnMap.relatedTaskNum"
               key="relatedTaskNum"
               align="right"
-              :label="$t('script.被引用.colHead')"
+              :label="$t('script.被引用_colHead')"
               prop="relatedTaskNum"
               :render-header="renderHeader"
               width="150">
@@ -125,14 +125,18 @@
               v-if="allColumnMap.lastModifyUser"
               key="lastModifyUser"
               align="left"
-              :label="$t('script.更新人.colHead')"
+              :label="$t('script.更新人_colHead')"
               prop="lastModifyUser"
-              width="160" />
+              width="160">
+              <template slot-scope="{ row }">
+                <bk-user-display-name :user-id="row.lastModifyUser" />
+              </template>
+            </bk-table-column>
             <bk-table-column
               v-if="allColumnMap.lastModifyTime"
               key="lastModifyTime"
               align="left"
-              :label="$t('script.更新时间.colHead')"
+              :label="$t('script.更新时间_colHead')"
               prop="lastModifyTime"
               sortable
               width="200" />
@@ -164,9 +168,10 @@
                 @click.stop="">
                 <jb-popover-confirm
                   v-if="!row.isOnline"
+                  key="online"
                   class="mr10"
                   :confirm-handler="() => handleOnline(row.id, row.scriptVersionId)"
-                  :content="$t('script.上线后，之前的线上版本将被置为「已下线」状态，但不影响作业使用')"
+                  :content="$t('script.上线后，之前的线上版本将被置为_已下线_状态，但不影响作业使用')"
                   :disabled="row.isDisabledOnline"
                   :title="$t('script.确定上线该版本？')">
                   <auth-button
@@ -180,6 +185,7 @@
                 </jb-popover-confirm>
                 <jb-popover-confirm
                   v-if="row.isBanable"
+                  key="disabled"
                   class="mr10"
                   :confirm-handler="() => handleOffline(row.id, row.scriptVersionId)"
                   :content="$t('script.一旦禁用成功，不可恢复！且线上引用该版本的作业步骤都会无法执行，请务必谨慎操作！')"
@@ -194,6 +200,7 @@
                 </jb-popover-confirm>
                 <auth-button
                   v-if="row.isDraft"
+                  key="edit"
                   auth="script/edit"
                   class="mr10"
                   :permission="row.canManage"
@@ -204,8 +211,9 @@
                 </auth-button>
                 <span
                   v-if="!row.isDraft"
+                  key="clone"
                   class="mr10"
-                  :tippy-tips="isCopyCreateDisabled ? $t('script.已有[未上线]版本') : ''">
+                  :tippy-tips="isCopyCreateDisabled ? $t('script.已有_未上线_版本') : ''">
                   <auth-button
                     auth="script/clone"
                     :disabled="isCopyCreateDisabled"
@@ -218,6 +226,7 @@
                 </span>
                 <auth-button
                   v-if="row.isOnline"
+                  key="execute"
                   auth="script/execute"
                   :disabled="row.isExecuteDisable"
                   :permission="row.canManage"
@@ -227,10 +236,10 @@
                   {{ $t('script.去执行') }}
                 </auth-button>
                 <span
-                  v-if="!isPublicScript"
-                  :tippy-tips="!row.syncEnabled ? $t('script.暂无关联作业，或已是当前版本。') : ''">
+                  v-if="!isPublicScript && row.isOnline"
+                  key="sync"
+                  :tippy-tips="!row.syncEnabled ? $t('script.暂无关联作业，或已是当前版本') : ''">
                   <auth-button
-                    v-if="row.isOnline"
                     auth="script/edit"
                     class="ml10"
                     :disabled="!row.syncEnabled"
@@ -243,6 +252,7 @@
                 </span>
                 <jb-popover-confirm
                   v-if="row.isVersionEnableRemove"
+                  key="remove"
                   :confirm-handler="() => handleRemove(row.scriptVersionId)"
                   :content="$t('script.删除后不可恢复，请谨慎操作！')"
                   :title="$t('script.确定删除该版本？')">
@@ -306,7 +316,7 @@
         id="newVersionDisableActions"
         style="padding: 16px 12px;">
         <div style="margin-bottom: 17px; font-size: 14px; line-height: 22px; color: #313238;">
-          {{ $t('script.已有[未上线]版本') }}
+          {{ $t('script.已有_未上线_版本') }}
         </div>
         <div>
           <bk-button
@@ -339,7 +349,7 @@
       :is-show.sync="showRelated"
       quick-close
       :show-footer="false"
-      :title="$t('script.被引用.label')"
+      :title="$t('script.被引用_label')"
       :width="695">
       <script-related-info
         :info="relatedScriptInfo"
@@ -369,6 +379,7 @@
   import ScriptService from '@service/script-manage';
 
   import ScriptModel from '@model/script/script';
+  import TaskStepModel from '@model/task/task-step';
 
   import {
     checkPublicScript,
@@ -553,25 +564,29 @@
 
       this.searchSelect = [
         {
-          name: I18n.t('script.版本号.colHead'),
+          name: I18n.t('script.版本号_colHead'),
           id: 'version',
           default: true,
         },
         {
-          name: I18n.t('script.脚本内容.colHead'),
+          name: I18n.t('script.脚本内容_colHead'),
           id: 'content',
           default: true,
         },
         {
-          name: I18n.t('script.版本日志.colHead'),
+          name: I18n.t('script.版本日志_colHead'),
           id: 'versionDesc',
           default: true,
         },
         {
-          name: I18n.t('script.更新人.colHead'),
+          name: I18n.t('script.更新人_colHead'),
           id: 'lastModifyUser',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
       ];
       this.tableColumn = [
@@ -581,21 +596,21 @@
         },
         {
           id: 'version',
-          label: I18n.t('script.版本号.colHead'),
+          label: I18n.t('script.版本号_colHead'),
           disabled: true,
         },
         {
           id: 'relatedTaskNum',
-          label: I18n.t('script.被引用.colHead'),
+          label: I18n.t('script.被引用_colHead'),
           disabled: true,
         },
         {
           id: 'lastModifyUser',
-          label: I18n.t('script.更新人.colHead'),
+          label: I18n.t('script.更新人_colHead'),
         },
         {
           id: 'lastModifyTime',
-          label: I18n.t('script.更新时间.colHead'),
+          label: I18n.t('script.更新时间_colHead'),
         },
         {
           id: 'statusDesc',
@@ -872,7 +887,7 @@
             scriptVersionId: payload.scriptVersionId,
           },
           query: {
-            from: 'scriptDetail',
+            source: this.isPublicScript ? TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC : TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS,
           },
         });
       },

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,8 +24,9 @@
 
 package com.tencent.bk.job.file.worker.task;
 
+import com.tencent.bk.job.file.worker.state.event.WorkerEvent;
+import com.tencent.bk.job.file.worker.state.event.WorkerEventService;
 import com.tencent.bk.job.file.worker.task.clear.ClearFileTask;
-import com.tencent.bk.job.file.worker.task.heartbeat.HeartBeatTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,12 +40,12 @@ public class ScheduledTasks {
 
     private static final Logger logger = LoggerFactory.getLogger(ScheduledTasks.class);
 
-    private final HeartBeatTask heartBeatTask;
+    private final WorkerEventService workerEventService;
     private final ClearFileTask clearFileTask;
 
     @Autowired
-    public ScheduledTasks(HeartBeatTask heartBeatTask, ClearFileTask clearFileTask) {
-        this.heartBeatTask = heartBeatTask;
+    public ScheduledTasks(WorkerEventService workerEventService, ClearFileTask clearFileTask) {
+        this.workerEventService = workerEventService;
         this.clearFileTask = clearFileTask;
     }
 
@@ -81,9 +82,9 @@ public class ScheduledTasks {
     public void heartBeat() {
         logger.info(Thread.currentThread().getId() + ":heartBeat start");
         try {
-            heartBeatTask.run();
+            workerEventService.commitWorkerEvent(WorkerEvent.heartBeat());
         } catch (Exception e) {
-            logger.error("heartBeatTask fail", e);
+            logger.error("commit heartBeat event fail", e);
         }
     }
 }

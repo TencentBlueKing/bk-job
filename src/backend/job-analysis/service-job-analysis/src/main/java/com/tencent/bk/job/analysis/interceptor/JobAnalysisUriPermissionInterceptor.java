@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -63,11 +63,10 @@ public class JobAnalysisUriPermissionInterceptor extends HandlerInterceptorAdapt
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        String username = JobContextUtil.getUsername();
         String uri = request.getRequestURI();
         if (pathMatcher.match(URI_PATTERN_WEB_STATISTICS, uri)) {
             AuthResult authResult = authService.auth(
-                username,
+                JobContextUtil.getUser(),
                 ActionId.DASHBOARD_VIEW,
                 ResourceTypeEnum.DASHBOARD_VIEW,
                 AnalysisConsts.GLOBAL_DASHBOARD_VIEW_ID,

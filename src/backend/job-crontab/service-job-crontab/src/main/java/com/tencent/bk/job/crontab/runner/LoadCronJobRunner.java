@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -31,6 +31,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -43,6 +45,8 @@ public class LoadCronJobRunner implements CommandLineRunner {
     private final CronJobLoadingService cronJobLoadingService;
     private final ThreadPoolExecutor crontabInitRunnerExecutor;
 
+    private Future<?> loadCronJobFuture;
+
     @Autowired
     public LoadCronJobRunner(CronJobLoadingService cronJobLoadingService,
                              @Qualifier("crontabInitRunnerExecutor") ThreadPoolExecutor crontabInitRunnerExecutor) {
@@ -52,9 +56,18 @@ public class LoadCronJobRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        crontabInitRunnerExecutor.submit(() -> {
+        loadCronJobFuture = crontabInitRunnerExecutor.submit(() -> {
             log.info("loadCronToQuartzOnStartup");
             cronJobLoadingService.loadAllCronJob();
         });
+    }
+
+    @PreDestroy
+    public void destroy() {
+        log.info("destroy LoadCronJobRunner");
+        if (loadCronJobFuture != null) {
+            boolean result = loadCronJobFuture.cancel(true);
+            log.info("loadCronJobFuture cancel result:{}", result);
+        }
     }
 }

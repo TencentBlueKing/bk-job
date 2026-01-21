@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,18 +25,22 @@
 package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.constant.MySQLTextDataType;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteTargetDTO;
 import com.tencent.bk.job.common.validation.CheckEnum;
+import com.tencent.bk.job.common.validation.EndWith;
+import com.tencent.bk.job.common.validation.MaxLength;
+import com.tencent.bk.job.common.validation.NotExceedMySQLTextFieldLength;
+import com.tencent.bk.job.common.validation.ValidSensitiveParamLength;
 import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import com.tencent.bk.job.execute.model.esb.v3.bkci.plugin.validator.EsbBkCIPluginFastExecuteScriptRequestGroupSequenceProvider;
+import com.tencent.bk.job.execute.validation.ValidTimeoutLimit;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.validator.constraints.Length;
-import org.hibernate.validator.constraints.Range;
 import org.hibernate.validator.group.GroupSequenceProvider;
 
 import javax.validation.Valid;
@@ -48,6 +52,7 @@ import javax.validation.constraints.NotNull;
 @Getter
 @Setter
 @GroupSequenceProvider(EsbBkCIPluginFastExecuteScriptRequestGroupSequenceProvider.class)
+@ValidSensitiveParamLength
 public class EsbBkCIPluginFastExecuteScriptRequest extends EsbAppScopeReq {
 
     /**
@@ -61,6 +66,11 @@ public class EsbBkCIPluginFastExecuteScriptRequest extends EsbAppScopeReq {
      * 脚本内容，BASE64编码
      */
     @JsonProperty("script_content")
+    @NotExceedMySQLTextFieldLength(
+        fieldName = "script_content",
+        fieldType = MySQLTextDataType.MEDIUMTEXT,
+        base64 = true
+    )
     private String content;
 
     /**
@@ -94,6 +104,15 @@ public class EsbBkCIPluginFastExecuteScriptRequest extends EsbAppScopeReq {
     private String scriptParam;
 
     /**
+     * 自定义Windows解释器路径
+     */
+    @EndWith(fieldName = "windows_interpreter", value = ".exe")
+    @MaxLength(value = 260,
+        message = "{validation.constraints.WindowsInterpreterExceedMaxLength.message}")
+    @JsonProperty("windows_interpreter")
+    private String windowsInterpreter;
+
+    /**
      * 脚本ID
      */
     @JsonProperty("script_id")
@@ -115,8 +134,7 @@ public class EsbBkCIPluginFastExecuteScriptRequest extends EsbAppScopeReq {
      * 执行超时时间,单位秒
      */
     @JsonProperty("timeout")
-    @Range(min = JobConstants.MIN_JOB_TIMEOUT_SECONDS, max = JobConstants.MAX_JOB_TIMEOUT_SECONDS,
-        message = "{validation.constraints.InvalidJobTimeout_outOfRange.message}")
+    @ValidTimeoutLimit
     private Integer timeout;
 
     @JsonProperty("execute_target")
@@ -133,6 +151,15 @@ public class EsbBkCIPluginFastExecuteScriptRequest extends EsbAppScopeReq {
      * 滚动配置
      */
     @JsonProperty("rolling_config")
+    @Valid
     private EsbRollingConfigDTO rollingConfig;
 
+    /**
+     * 获取去除首尾空格后的windowsInterpreter
+     *
+     * @return Trim后的windowsInterpreter
+     */
+    public String getTrimmedWindowsInterpreter() {
+        return windowsInterpreter != null ? windowsInterpreter.trim() : null;
+    }
 }

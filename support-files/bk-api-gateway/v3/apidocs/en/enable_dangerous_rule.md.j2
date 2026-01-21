@@ -1,0 +1,44 @@
+### Function Description
+
+Enable dangerous rule
+
+### Request Parameters
+
+#### Interface parameters
+
+| Fields | Type | Required | Description |
+|--------|------|----------|-------------|
+| id     | long | yes      | Rule id     |
+
+### Example of request
+
+```json
+{
+    "id": 1
+}
+```
+
+### Example of responses
+
+```json
+{
+    "code": 0,
+    "result": true,
+    "data": {
+        "id": 1,
+        "status": 1
+    },
+    "job_request_id": "xxx"
+}
+```
+
+### Response Description
+
+{% include '_generic_response.md.j2' %}
+
+#### data
+
+| Fields | Type | Never null | Description                              |
+|--------|------|------------|------------------------------------------|
+| id     | long | yes        | Rule id                                  |
+| status | int  | yes        | Enabling status: 0- disabled, 1- enabled |

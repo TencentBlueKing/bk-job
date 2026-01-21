@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,16 +25,16 @@
 package com.tencent.bk.job.execute;
 
 import com.tencent.bk.job.common.service.boot.JobBootApplication;
-import com.tencent.bk.job.common.service.feature.config.FeatureToggleConfig;
+import com.tencent.devops.leaf.plugin.annotation.EnableLeafServer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.availability.ApplicationAvailabilityAutoConfiguration;
 import org.springframework.boot.autoconfigure.jooq.JooqAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @JobBootApplication(
     scanBasePackages = "com.tencent.bk.job.execute",
-    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class})
+    exclude = {JooqAutoConfiguration.class, ApplicationAvailabilityAutoConfiguration.class},
+    excludeName = {"org.springframework.cloud.kubernetes.client.discovery.KubernetesDiscoveryClientAutoConfiguration"})
 @EnableFeignClients(
     basePackages = {
         "com.tencent.bk.job.manage.api",
@@ -42,7 +42,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
         "com.tencent.bk.job.file_gateway.api"
     }
 )
-@EnableConfigurationProperties({FeatureToggleConfig.class})
+@EnableLeafServer
 public class JobExecuteBootApplication {
 
     public static void main(String[] args) {

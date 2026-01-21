@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.dto;
 
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -170,9 +171,9 @@ public class AccountDTO {
         accountVO.setOwnerUsers(Utils.getNotBlankSplitList(grantees, ","));
         accountVO.setRemark(remark);
         accountVO.setOs(os);
-        accountVO.setPassword("******");
+        accountVO.setPassword(JobConstants.SENSITIVE_FIELD_PLACEHOLDER);
         accountVO.setDbPort(dbPort);
-        accountVO.setDbPassword("******");
+        accountVO.setDbPassword(JobConstants.SENSITIVE_FIELD_PLACEHOLDER);
         accountVO.setDbSystemAccountId(dbSystemAccountId);
         accountVO.setLastModifyUser(lastModifyUser);
         accountVO.setCreator(creator);

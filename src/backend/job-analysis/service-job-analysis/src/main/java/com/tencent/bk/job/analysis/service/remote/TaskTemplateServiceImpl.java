@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -26,6 +26,7 @@ package com.tencent.bk.job.analysis.service.remote;
 
 import com.tencent.bk.job.analysis.service.TaskTemplateService;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
@@ -56,5 +57,10 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             throw new RuntimeException("Fail to call job-manage:serviceTaskTemplateResourceClient" +
                 ".listPageTaskTemplates, please check");
         }
+    }
+
+    @Override
+    public InternalResponse<Integer> countTemplates(Long appId) {
+        return taskTemplateResource.countTemplates(appId);
     }
 }

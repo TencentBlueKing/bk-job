@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.crontab.api.iam.IamCronCallbackResource;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.model.esb.v3.response.EsbCronInfoV3DTO;
@@ -62,13 +63,13 @@ import java.util.Set;
 public class IamCronCallbackResourceImpl extends BaseIamCallbackService implements IamCronCallbackResource {
 
     private final CronJobService cronJobService;
-    private final AppScopeMappingService appScopeMappingService;
 
     @Autowired
     public IamCronCallbackResourceImpl(CronJobService cronJobService,
-                                       AppScopeMappingService appScopeMappingService) {
+                                       AppScopeMappingService appScopeMappingService,
+                                       TenantService tenantService) {
+        super(appScopeMappingService, tenantService);
         this.cronJobService = cronJobService;
-        this.appScopeMappingService = appScopeMappingService;
     }
 
     private Pair<CronJobInfoDTO, BaseSearchCondition> getBasicQueryCondition(CallbackRequestDTO callbackRequest) {
@@ -78,7 +79,7 @@ public class IamCronCallbackResourceImpl extends BaseIamCallbackService implemen
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         CronJobInfoDTO cronJobQuery = new CronJobInfoDTO();
-        Long appId = appScopeMappingService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+        Long appId = getAppIdBySearchCondition(searchCondition);
         cronJobQuery.setAppId(appId);
         return Pair.of(cronJobQuery, baseSearchCondition);
     }
@@ -100,7 +101,7 @@ public class IamCronCallbackResourceImpl extends BaseIamCallbackService implemen
 
         cronJobQuery.setName(callbackRequest.getFilter().getKeyword());
         PageData<CronJobInfoDTO> cronJobInfoPageData =
-            cronJobService.listPageCronJobInfos(cronJobQuery, baseSearchCondition);
+            cronJobService.listPageCronJobInfosWithoutVars(cronJobQuery, baseSearchCondition);
 
         return IamRespUtil.getSearchInstanceRespFromPageData(cronJobInfoPageData, this::convert);
     }
@@ -114,7 +115,7 @@ public class IamCronCallbackResourceImpl extends BaseIamCallbackService implemen
         BaseSearchCondition baseSearchCondition = basicQueryCond.getRight();
 
         PageData<CronJobInfoDTO> cronJobInfoPageData =
-            cronJobService.listPageCronJobInfos(cronJobQuery, baseSearchCondition);
+            cronJobService.listPageCronJobInfosWithoutVars(cronJobQuery, baseSearchCondition);
 
         return IamRespUtil.getListInstanceRespFromPageData(cronJobInfoPageData, this::convert);
     }
@@ -182,8 +183,8 @@ public class IamCronCallbackResourceImpl extends BaseIamCallbackService implemen
     }
 
     @Override
-    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        return baseCallback(callbackRequest);
+    public CallbackBaseResponseDTO callback(String tenantId, CallbackRequestDTO callbackRequest) {
+        return baseCallback(tenantId, callbackRequest);
     }
 
     @Override

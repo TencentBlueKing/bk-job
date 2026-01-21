@@ -12,8 +12,8 @@ public class JobApplicationAvailabilityBean extends ApplicationAvailabilityBean 
     public void onApplicationEvent(AvailabilityChangeEvent<?> event) {
         super.onApplicationEvent(event);
         if (ReadinessState.REFUSING_TRAFFIC == event.getState()) {
-            // SpringCloud负载均衡缓存默认为35s，等待调用方缓存刷新后再真正关闭Spring容器
-            int waitSeconds = 35;
+            // SpringCloud负载均衡缓存设置为20s，等待调用方缓存刷新后再真正关闭Spring容器
+            int waitSeconds = 40;
             while (waitSeconds > 0) {
                 ThreadUtils.sleep(1000);
                 log.info("wait for GracefulShutdown, {}s left", waitSeconds--);

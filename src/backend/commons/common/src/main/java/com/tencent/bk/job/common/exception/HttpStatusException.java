@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -36,11 +36,22 @@ public class HttpStatusException extends RuntimeException {
     private final String uri;
     private final int httpStatus;
     private final String reasonPhrase;
+    private final String respBodyStr;
 
     public HttpStatusException(String uri, int httpStatus, String reasonPhrase) {
         super("http status not ok, uri=" + uri + ", statusCode=" + httpStatus + ", reasonPhrase=" + reasonPhrase);
         this.uri = uri;
         this.httpStatus = httpStatus;
         this.reasonPhrase = reasonPhrase;
+        respBodyStr = null;
+    }
+
+    public HttpStatusException(String uri, int httpStatus, String reasonPhrase, String respBodyStr) {
+        super("http status not ok, uri=" + uri
+            + ", statusCode=" + httpStatus + ", reasonPhrase=" + reasonPhrase + ", respBodyStr=" + respBodyStr);
+        this.uri = uri;
+        this.httpStatus = httpStatus;
+        this.reasonPhrase = reasonPhrase;
+        this.respBodyStr = respBodyStr;
     }
 }

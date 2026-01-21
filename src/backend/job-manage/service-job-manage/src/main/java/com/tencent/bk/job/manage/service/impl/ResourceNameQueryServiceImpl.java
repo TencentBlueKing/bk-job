@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -102,6 +102,7 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
         switch (resourceType) {
             case BUSINESS:
             case BUSINESS_SET:
+            case TENANT_SET:
                 Long appId = appScopeMappingService.getAppIdByScope(
                     IamUtil.getResourceScopeFromIamResource(resourceType, resourceId));
                 if (appId != null && appId > 0) {
@@ -109,7 +110,7 @@ public class ResourceNameQueryServiceImpl implements ResourceNameQueryService {
                 }
                 break;
             case PUBLIC_SCRIPT:
-                ScriptDTO publicScript = publicScriptService.getScriptByScriptId(resourceId);
+                ScriptDTO publicScript = publicScriptService.getScript(resourceId);
                 if (publicScript != null) {
                     return publicScript.getName();
                 }

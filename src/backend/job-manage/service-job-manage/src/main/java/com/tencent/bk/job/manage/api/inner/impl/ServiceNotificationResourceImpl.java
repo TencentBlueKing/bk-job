@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,17 +25,18 @@
 package com.tencent.bk.job.manage.api.inner.impl;
 
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
+import com.tencent.bk.job.common.compat.util.TenantCompatUtil;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.common.util.PrefConsts;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceNotificationResource;
+import com.tencent.bk.job.manage.model.inner.ServiceSpecificResourceNotifyPolicyDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceAppRoleDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
 import com.tencent.bk.job.manage.model.inner.ServiceNotifyChannelDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceUserNotificationDTO;
 import com.tencent.bk.job.manage.service.NotifyService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,27 +54,6 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
     @Autowired
     public ServiceNotificationResourceImpl(NotifyService notifyService) {
         this.notifyService = notifyService;
-    }
-
-    @Override
-    public InternalResponse<Integer> sendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO) {
-        if (log.isDebugEnabled()) {
-            log.debug("Input: {}", JsonUtils.toJson(serviceUserNotificationDTO));
-        }
-        return InternalResponse.buildSuccessResp(
-            notifyService.asyncSendNotificationsToUsers(serviceUserNotificationDTO));
-    }
-
-    @Override
-    public InternalResponse<Integer> sendNotificationsToAdministrators(
-        ServiceNotificationMessage serviceNotificationMessage
-    ) {
-        if (log.isDebugEnabled()) {
-            log.debug("Input: {}", JsonUtils.toJson(serviceNotificationMessage));
-        }
-        return InternalResponse.buildSuccessResp(
-            notifyService.asyncSendNotificationsToAdministrators(serviceNotificationMessage)
-        );
     }
 
     @Override
@@ -104,19 +84,51 @@ public class ServiceNotificationResourceImpl implements ServiceNotificationResou
     }
 
     @Override
-    public InternalResponse<List<ServiceAppRoleDTO>> getNotifyRoles(String lang) {
-        List<AppRoleDTO> roles = notifyService.listRoles();
+    public InternalResponse<List<ServiceAppRoleDTO>> getNotifyRoles(String tenantId, String lang) {
+        List<AppRoleDTO> roles = notifyService.listRoles(
+            TenantCompatUtil.getTenantIdWithDefault(tenantId)
+        );
         List<ServiceAppRoleDTO> result = roles.stream().map(role -> new ServiceAppRoleDTO(role.getId(),
             role.getName())).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(result);
     }
 
     @Override
-    public InternalResponse<List<ServiceNotifyChannelDTO>> getNotifyChannels(String lang) {
-        List<NotifyEsbChannelDTO> channels = notifyService.listAllNotifyChannel();
+    public InternalResponse<List<ServiceNotifyChannelDTO>> getNotifyChannels(String lang, String tenantId) {
+        List<NotifyEsbChannelDTO> channels = notifyService.listAllNotifyChannel(tenantId);
         List<ServiceNotifyChannelDTO> result =
             channels.stream().map(channel ->
                 new ServiceNotifyChannelDTO(channel.getType(), channel.getLabel())).collect(Collectors.toList());
         return InternalResponse.buildSuccessResp(result);
+    }
+
+    @Override
+    public InternalResponse<Boolean> createOrUpdateSpecificResourceNotifyPolicy(
+        String username,
+        Long appId,
+        ServiceSpecificResourceNotifyPolicyDTO serviceNotifyPolicyDTO) {
+
+        return InternalResponse.buildSuccessResp(notifyService.saveSpecificResourceNotifyPolicies(
+            appId,
+            username,
+            serviceNotifyPolicyDTO
+        ));
+    }
+
+    @Override
+    public InternalResponse<Integer> deleteSpecificResourceNotifyPolicy(Long appId,
+                                                                        Integer resourceType, String resourceId) {
+        return InternalResponse.buildSuccessResp(notifyService.deleteAppResourceNotifyPolicies(
+            appId,
+            resourceType,
+            resourceId
+        ));
+    }
+
+    @Override
+    public InternalResponse<CustomNotifyDTO> getSpecificResourceNotifyPolicy(Long appId, Integer resourceType,
+                                                                             String resourceId, Integer triggerType) {
+        return InternalResponse.buildSuccessResp(notifyService.getSpecificResourceNotifyPolicy(
+            appId, resourceType, resourceId, triggerType));
     }
 }

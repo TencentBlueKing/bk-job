@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -41,7 +41,7 @@
         <jb-search-select
           ref="search"
           :data="searchSelect"
-          :placeholder="$t('file.请输入文件源名称...')"
+          :placeholder="$t('file.请输入文件源名称')"
           style="width: 480px;"
           @on-change="handleSearch" />
       </template>
@@ -61,7 +61,7 @@
       <bk-table-column
         key="alias"
         align="left"
-        :label="$t('file.文件源别名.colHead')"
+        :label="$t('file.文件源别名_colHead')"
         prop="alias"
         show-overflow-tooltip
         sortable>
@@ -92,7 +92,7 @@
         v-if="allRenderColumnMap.code"
         key="code"
         align="left"
-        :label="$t('file.文件源标识.colHead')"
+        :label="$t('file.文件源标识_colHead')"
         prop="code"
         show-overflow-tooltip
         sortable />
@@ -112,13 +112,17 @@
       <bk-table-column
         v-if="allRenderColumnMap.type"
         key="type"
-        :label="$t('file.类型.colHead')"
+        :label="$t('file.类型_colHead')"
         prop="storageTypeText" />
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyUser"
         key="lastModifyUser"
         :label="$t('file.更新人')"
-        prop="lastModifyUser" />
+        prop="lastModifyUser">
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.lastModifyUser" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyTime"
         key="lastModifyTime"
@@ -256,19 +260,19 @@
       this.searchSelect = [
         {
           id: 'alias',
-          name: I18n.t('file.文件源别名.colHead'),
+          name: I18n.t('file.文件源别名_colHead'),
           default: true,
         },
       ];
       this.tableColumn = [
         {
           id: 'alias',
-          label: I18n.t('file.文件源别名.colHead'),
+          label: I18n.t('file.文件源别名_colHead'),
           disabled: true,
         },
         {
           id: 'code',
-          label: I18n.t('file.文件源标识.colHead'),
+          label: I18n.t('file.文件源标识_colHead'),
         },
         {
           id: 'status',
@@ -276,7 +280,7 @@
         },
         {
           id: 'type',
-          label: I18n.t('file.类型.colHead'),
+          label: I18n.t('file.类型_colHead'),
           disabled: true,
         },
         {

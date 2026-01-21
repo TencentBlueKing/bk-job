@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,12 +24,15 @@
 
 package com.tencent.bk.job.manage.config;
 
+import com.tencent.bk.job.common.mysql.util.JooqConfigurationUtil;
 import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
+import org.jooq.conf.Settings;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
+import org.jooq.impl.DefaultExecuteListenerProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
@@ -69,14 +72,18 @@ public class DbConfig {
     @Qualifier("job-manage-dsl-context")
     @Bean(name = "job-manage-dsl-context")
     public DSLContext dslContext(@Qualifier("job-manage-jooq-conf") org.jooq.Configuration configuration) {
-        return new DefaultDSLContext(configuration);
+        return configuration
+            .derive(new Settings().withRenderGroupConcatMaxLenSessionVariable(false))
+            .dsl();
     }
 
     @Qualifier("job-manage-jooq-conf")
     @Bean(name = "job-manage-jooq-conf")
     public org.jooq.Configuration
-    jooqConf(@Qualifier("job-manage-conn-provider") ConnectionProvider connectionProvider) {
-        return new DefaultConfiguration().derive(connectionProvider).derive(SQLDialect.MYSQL);
+    jooqConf(@Qualifier("job-manage-conn-provider") ConnectionProvider connectionProvider,
+             DefaultExecuteListenerProvider jooqExecuteListenerProvider
+    ) {
+        return JooqConfigurationUtil.getConfiguration(connectionProvider, jooqExecuteListenerProvider);
     }
 
     @Qualifier("job-manage-conn-provider")

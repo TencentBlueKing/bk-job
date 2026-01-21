@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -56,13 +56,13 @@
         :model="formData"
         :rules="rules">
         <jb-form-item
-          :label="$t('script.版本号.label')"
+          :label="$t('script.版本号_label')"
           required>
           <bk-input
             readonly
             :value="formData.version" />
         </jb-form-item>
-        <jb-form-item :label="$t('script.版本日志.label')">
+        <jb-form-item :label="$t('script.版本日志_label')">
           <bk-input
             v-model="formData.versionDesc"
             :maxlength="100"

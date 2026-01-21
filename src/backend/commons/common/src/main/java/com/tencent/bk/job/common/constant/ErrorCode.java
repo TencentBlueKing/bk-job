@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -29,6 +29,13 @@ package com.tencent.bk.job.common.constant;
  * <p>
  * 错误码分类： 文件磁盘系统 59 MySQL系统 52 Redis系统 50 MQ 55 GSE 10 CMDB 11 作业平台 12 PAAS 13
  * </p>
+ *
+ * @since 2025-08-14
+ * 在蓝鲸新版 HTTP API 协议中：
+ *   错误码不应用于返回展示给用户，响应使用标准 HTTP 状态码
+ *   错误码应仅用于系统内部错误处理，可用于平台开发排查问题
+ *   错误码可用于上下文传递，获取对应描述
+ *
  */
 public class ErrorCode {
 
@@ -47,6 +54,16 @@ public class ErrorCode {
     public static final int GSE_ERROR = 1210001;
     // GSE数据异常：{0}
     public static final int GSE_API_DATA_ERROR = 1210002;
+    // 初始化租户失败：{0}
+    public static final int INIT_TENANT_ERROR = 1210003;
+    // 已有另一个初始化租户任务正在执行：{0}
+    public static final int INIT_TENANT_TASK_ALREADY_RUNNING = 1210004;
+    // 传入的租户ID为空，缺少的Header：{0}
+    public static final int TENANT_ID_CANNOT_BE_BLANK = 1210005;
+    // 禁止跨租户访问数据，当前租户ID：{0}，尝试访问的资源：{1}，资源所属租户ID：{2}
+    public static final int ACCESS_CROSS_TENANT_FORBIDDEN = 1210006;
+    // 版本日志文件[{0}]不存在
+    public static final int VERSION_LOG_FILE_NOT_FOUND = 1210007;
 
     // CMDB错误
     // CMDB服务状态不可达 - 地址配置错误或者地址无法正确解析
@@ -58,7 +75,6 @@ public class ErrorCode {
     // 根据业务ID查找动态分组失败，业务ID：{0}，原因：{1}，请确认指定的业务是否存在动态分组
     public static final int FAIL_TO_FIND_DYNAMIC_GROUP_BY_BIZ = 1211004;
 
-    // PaaS异常
     // CMSI接口访问异常
     public static final int CMSI_API_ACCESS_ERROR = 1213001;
     // 用户管理接口访问异常
@@ -67,12 +83,16 @@ public class ErrorCode {
     public static final int CMSI_MSG_CHANNEL_DATA_ERROR = 1213003;
     // 调用CMSI接口发送通知失败，错误码：{0}，错误信息：{1}
     public static final int CMSI_FAIL_TO_SEND_MSG = 1213004;
+    // 未知的CMSI渠道: {0}
+    public static final int CMSI_UNKNOWN_CHANNEL = 1213005;
 
     // 制品库异常
     // Artifactory接口返回数据结构异常
     public static final int ARTIFACTORY_API_DATA_ERROR = 1214001;
-    // 制品库中找不到节点:{0}，请到制品库核实
+    // 制品库中找不到节点，请到制品库核实，详情：{0}
     public static final int CAN_NOT_FIND_NODE_IN_ARTIFACTORY = 1214002;
+    // 仓库不存在，请到制品库核实，详情：{0}
+    public static final int CAN_NOT_FIND_REPO_IN_ARTIFACTORY = 1214003;
 
     // IAM接口数据异常- 一般是被网关防火墙重定向返回统一登录页面
     public static final int IAM_API_DATA_ERROR = 1215001;
@@ -87,6 +107,25 @@ public class ErrorCode {
     public static final int BK_NOTICE_API_NOT_FOUND = 1217001;
     // 消息通知中心接口数据异常
     public static final int BK_NOTICE_API_DATA_ERROR = 1217002;
+
+    // AIDev平台异常
+    // AIDev接口数据异常
+    public static final int BK_AI_DEV_API_DATA_ERROR = 1218001;
+    // 蓝鲸OpenAI接口数据异常
+    public static final int BK_OPEN_AI_API_DATA_ERROR = 1218002;
+    // 蓝鲸OpenAI接口数据超时
+    public static final int BK_OPEN_AI_API_DATA_TIMEOUT = 1218003;
+
+    // bk-login（蓝鲸登录） 接口调用异常
+    public static final int BK_LOGIN_API_ERROR = 1219001;
+
+    // bk-user（用户管理） 接口调用异常
+    public static final int BK_USER_MANAGE_API_ERROR = 1220001;
+    // 用户缓存加载失败
+    public static final int BK_USER_CACHE_LOADING_ERROR = 1220002;
+    // 用户管理返回租户{0}的虚拟Admin账号为空
+    public static final int BK_USER_VIRTUAL_ADMIN_EMPTY = 1220003;
+
 
     // ======== 系统错误-权限错误 ==================//
     // 用户({0})权限不足，请前往权限中心确认并申请补充后重试
@@ -130,7 +169,7 @@ public class ErrorCode {
      * 作业执行-1244xxx
      * 定时作业-1245xxx
      * 日志服务-1246xxx
-     * 用户服务-1247xxx
+     * 网关服务-1247xxx
      * 业务网关-1248xxx
      * 备份服务-1249xxx
      * 文件网关-1260xxx
@@ -145,26 +184,48 @@ public class ErrorCode {
     public static final int ILLEGAL_PARAM = 1241002;
     // 不支持的操作
     public static final int UNSUPPORTED_OPERATION = 1241003;
-    // 请求参数[]缺失
+    // 请求参数[{0}]缺失
     public static final int MISSING_PARAM_WITH_PARAM_NAME = 1241004;
-    // 请求参数[]不合法
+    // 请求参数[{0}]不合法
     public static final int ILLEGAL_PARAM_WITH_PARAM_NAME = 1241005;
     // 请求参数缺失或不合法
     public static final int MISSING_OR_ILLEGAL_PARAM = 1241006;
-    // 请求参数[]缺失或不合法
+    // 请求参数[{0}]缺失或不合法
     public static final int MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME = 1241007;
     // 错误的业务 ID
     public static final int WRONG_APP_ID = 1241008;
-    // 请求参数[0]不合法，原因：[1]
+    // 请求参数[{0}]不合法，原因：{1}
     public static final int ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON = 1241010;
     // 尚未支持的功能
     public static final int NOT_SUPPORT_FEATURE = 1241011;
 
     public static final int ILLEGAL_PARAM_WITH_REASON = 1241012;
-    // 该功能暂不支持业务集
-    public static final int NOT_SUPPORT_FEATURE_FOR_BIZ_SET = 1241013;
+    // 该功能暂不支持，支持的资源范围：{0}，当前资源范围：{1}
+    public static final int NOT_SUPPORT_FEATURE_FOR_RESOURCE_SCOPE = 1241013;
     // IPv6地址不合法：{0}
     public static final int INVALID_IPV6_ADDRESS = 1241014;
+    // 不支持的操作，请勿重复启动作业：{0}
+    public static final int UNSUPPORTED_OPERATION_REPEAT_START_JOB = 1241015;
+    // 非法文件
+    public static final int ILLEGAL_FILE = 1241016;
+    // 不支持的Http方法
+    public static final int NOT_SUPPORTED_HTTP_REQUEST_METHOD = 1241017;
+    // 不支持的MediaType
+    public static final int NOT_SUPPORTED_MEDIA_TYPE = 1241018;
+    // 缺少路径参数
+    public static final int MISSING_PATH_VARIABLE = 1241019;
+    // 请求参数[{0}]类型错误
+    public static final int PARAMETER_TYPE_ERROR = 1241020;
+    // ACCEPT头中指定了服务器不提供的Content-Type
+    public static final int NOT_ACCEPTABLE_MEDIA_TYPE = 1241021;
+    // HTTP请求体格式不正确
+    public static final int HTTP_REQUEST_BODY_FORMAT_ERROR = 1241022;
+    // 缺少请求部分[{0}]
+    public static final int MISSING_SERVLET_REQUEST_PART = 1241023;
+    // {0}请求的URL[{1}]没有对应的Handler
+    public static final int REQUEST_DOES_NOT_HAS_HANDLER = 1241024;
+    // 字段[{0}]绑定失败
+    public static final int FIELD_BIND_FAILED = 1241025;
     // 业务通用 end
 
     // 配置服务 start
@@ -247,7 +308,7 @@ public class ErrorCode {
     public static final int DELETE_TEMPLATE_FAILED_PLAN_USING_BY_CRON = 1243038;
     // 脚本版本ID已存在
     public static final int SCRIPT_VERSION_ID_EXIST = 1243039;
-    // 模版已存在
+    // 模版[{0}]已存在
     public static final int TEMPLATE_NAME_EXIST = 1243040;
     // 获取模版编辑锁失败
     public static final int TEMPLATE_LOCK_ACQUIRE_FAILED = 1243041;
@@ -279,6 +340,8 @@ public class ErrorCode {
     public static final int DELETE_REF_SCRIPT_FAIL = 1243054;
     // 凭证被引用不支持删除
     public static final int DELETE_REF_CREDENTIAL_FAIL = 1243055;
+    // 高危语句规则[{0}]已存在
+    public static final int DANGEROUS_RUlE_EXIST = 1243056;
     // 作业管理 end
 
     // 作业执行 start
@@ -341,17 +404,35 @@ public class ErrorCode {
     // 执行对象不存在。无效的{0}个执行对象：[{1}]
     public static final int EXECUTE_OBJECT_NOT_EXIST = 1244030;
     public static final int INVALID_LABEL_SELECTOR = 1244031;
+    // 当前执行的作业总量超过业务配额限制
+    public static final int RUNNING_JOB_EXCEED_RESOURCE_SCOPE_QUOTA_LIMIT = 1244032;
+    // 当前执行的作业总量超过应用配额限制
+    public static final int RUNNING_JOB_EXCEED_APP_QUOTA_LIMIT = 1244033;
+    // 当前执行的作业总量超过系统配额限制
+    public static final int RUNNING_JOB_EXCEED_SYSTEM_QUOTA_LIMIT = 1244034;
+    // 按源文件滚动策略仅支持服务器文件
+    public static final int FILE_SOURCE_ROLLING_ONLY_SUPPORT_SERVER_FILE = 1244035;
+    // 当前业务下任务量较大，允许的复杂查询（按名称搜索、2个及以上条件组合搜索等）最大时间范围为：{0}天
+    public static final int TASK_HISTORY_QUERY_RANGE_TOO_LARGE = 1244036;
+    // 文件分发，文件源主机[{0}]不存在CMDB中
+    public static final int TASK_FILE_SOURCE_HOST_NOT_EXIST = 1244037;
     // 作业执行 end
 
     // 定时作业 start
+    // 定时任务不存在
     public static final int CRON_JOB_NOT_EXIST = 1245001;
+    // 更新定时任务错误
     public static final int UPDATE_CRON_JOB_FAILED = 1245002;
+    // 插入定时任务错误
     public static final int INSERT_CRON_JOB_FAILED = 1245003;
+    // 定时任务[{0}]已存在
     public static final int CRON_JOB_ALREADY_EXIST = 1245004;
     public static final int ACQUIRE_CRON_JOB_LOCK_FAILED = 1245005;
     public static final int CRON_JOB_TIME_PASSED = 1245006;
     public static final int END_TIME_OR_NOTIFY_TIME_ALREADY_PASSED = 1245007;
     public static final int DELETE_CRON_FAILED = 1245008;
+    // 保存定时任务(id={0})自定义消息通知策略失败
+    public static final int SAVE_CRON_CUSTOM_NOTIFY_FAILED = 1245009;
     // 定时作业 end
 
     // 日志服务
@@ -362,12 +443,16 @@ public class ErrorCode {
     // 删除作业执执行日志失败
     public static final int GET_JOB_EXECUTION_LOG_FAIL = 1246001;
 
-    // 用户服务 start
+    // 网关服务 start
     // 用户不存在或者未登录
     public static final int USER_NOT_EXIST_OR_NOT_LOGIN_IN = 1247001;
+    // 缺少有效的用户信息
+    public static final int MISSING_USER_INFO = 1247002;
     // 用户认证成功，但用户无应用访问权限
     public static final int USER_ACCESS_APP_FORBIDDEN = 1247403;
-    // 用户服务 end
+    // 缺少有效的AppCode
+    public static final int MISSING_APP_CODE = 1247004;
+    // 网关服务 end
 
     // 业务网关 start
     // 业务网关 end
@@ -423,6 +508,10 @@ public class ErrorCode {
     public static final int FAIL_TO_REQUEST_FILE_WORKER_WITH_REASON = 1260018;
     // 文件源code不可为空
     public static final int FILE_SOURCE_CODE_CAN_NOT_BE_EMPTY = 1260019;
+    // 制品库根地址不在允许范围内（默认仅支持当前环境蓝鲸制品库），如需对接其他环境请联系平台管理员添加白名单
+    public static final int BK_ARTIFACTORY_BASE_URL_INVALID = 1260020;
+    // 白名单记录已存在，请删除旧数据后再添加
+    public static final int FILE_SOURCE_WHITE_INFO_ALREADY_EXISTS = 1260021;
 
     // 文件网关 end
     // 文件代理 start
@@ -446,4 +535,12 @@ public class ErrorCode {
     // 迁移失败，任务: {0}, 详情: {1}
     public static final int MIGRATION_FAIL = 1263001;
 
+    // 统计分析服务job-analysis错误码 start
+    // AI分析任务报错信息仅支持脚本或文件任务步骤
+    public static final int AI_ANALYZE_ERROR_ONLY_SUPPORT_SCRIPT_OR_FILE_STEP = 1264001;
+    // AI分析任务报错信息内容超过最大值：{0}
+    public static final int AI_ANALYZE_ERROR_CONTENT_EXCEED_MAX_LENGTH = 1264002;
+    // AI对话记录不存在：id={0}
+    public static final int AI_CHAT_HISTORY_NOT_FOUND_BY_ID = 1264003;
+    // 统计分析服务job-analysis错误码 end
 }

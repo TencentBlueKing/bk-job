@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -21,7 +21,7 @@
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
- */
+*/
 
 import _ from 'lodash';
 
@@ -206,21 +206,21 @@ export default class SourceFile {
       return this.host.variable;
     }
     const textArr = [];
-    const { dynamicGroupList, hostList, nodeList, containerList = [] } = this.host.executeObjectsInfo;
+    const { dynamicGroupList = [], hostList = [], nodeList = [], containerList = [] } = this.host.executeObjectsInfo;
 
     // eslint-disable-next-line max-len
     const getHtml = (len, text) => `<span><span class="strong number">${len}</span>${text}</span>`;
     if (hostList.length > 0) {
-      textArr.push(getHtml(hostList.length, I18n.t('台主机.result')));
+      textArr.push(getHtml(hostList.length, I18n.t('台主机_result')));
     }
     if (nodeList.length > 0) {
-      textArr.push(getHtml(nodeList.length, I18n.t('个节点.result')));
+      textArr.push(getHtml(nodeList.length, I18n.t('个节点_result')));
     }
     if (dynamicGroupList.length > 0) {
-      textArr.push(getHtml(dynamicGroupList.length, I18n.t('个分组.result')));
+      textArr.push(getHtml(dynamicGroupList.length, I18n.t('个分组_result')));
     }
     if (containerList.length > 0) {
-      textArr.push(getHtml(containerList.length, I18n.t('个容器.result')));
+      textArr.push(getHtml(containerList.length, I18n.t('个容器_result')));
     }
     return `${textArr.join('<span class="sep-location"></span>\n')}`;
   }

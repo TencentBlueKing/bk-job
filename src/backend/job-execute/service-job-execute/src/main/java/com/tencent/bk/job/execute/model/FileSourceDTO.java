@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,17 +24,25 @@
 
 package com.tencent.bk.job.execute.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.execute.model.inner.ServiceFileSourceDTO;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 文件源
  */
+@Slf4j
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @PersistenceObject
@@ -105,5 +113,81 @@ public class FileSourceDTO implements Cloneable {
             cloneFileSourceDTO.setServers(servers.clone());
         }
         return cloneFileSourceDTO;
+    }
+
+    public ServiceFileSourceDTO toServiceFileSourceDTO() {
+        ServiceFileSourceDTO serviceFileSourceDTO = new ServiceFileSourceDTO();
+        serviceFileSourceDTO.setFileType(fileType);
+        if (CollectionUtils.isNotEmpty(files)) {
+            serviceFileSourceDTO.setFiles(
+                files.stream()
+                    .map(FileDetailDTO::toServiceFileDetailDTO)
+                    .collect(Collectors.toList())
+            );
+        }
+        serviceFileSourceDTO.setServers(servers.toServiceExecuteTargetDTO());
+        return serviceFileSourceDTO;
+    }
+
+    /**
+     * 获取文件数量
+     *
+     * @return 文件数量
+     */
+    public int getFileNum() {
+        if (CollectionUtils.isEmpty(files)) {
+            return 0;
+        }
+        return files.size();
+    }
+
+    /**
+     * 获取执行对象数量
+     *
+     * @return 执行对象数量
+     */
+    public int getExecuteObjectNum() {
+        // 本地文件与第三方源文件只有一台源机器
+        if (localUpload || fileSourceId != null) {
+            return 1;
+        }
+        List<ExecuteObject> executeObjects = servers.getExecuteObjects();
+        if (CollectionUtils.isEmpty(executeObjects)) {
+            log.warn("executeObjects is empty");
+            return 0;
+        }
+        return executeObjects.size();
+    }
+
+    /**
+     * 获取简单描述
+     *
+     * @return 简单描述
+     */
+    public String getSimpleDesc() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("FileSourceDTO(");
+        if (fileType != null) {
+            sb.append("fileType=").append(fileType);
+        }
+        sb.append(",localUpload=").append(localUpload);
+        if (fileSourceId != null) {
+            sb.append(",fileSourceId:").append(fileSourceId);
+            sb.append(",fileSourceTaskId:").append(fileSourceTaskId);
+        }
+        sb.append(",executeObjectNum=").append(getExecuteObjectNum());
+        sb.append(",fileNum=").append(getFileNum());
+        sb.append(")");
+        return sb.toString();
+    }
+
+    /**
+     * 是否需要校验源主机，当前只有服务器文件需要校验
+     *
+     * @return 布尔值
+     */
+    @JsonIgnore
+    public boolean needToCheckHosts() {
+        return getFileType() == TaskFileTypeEnum.SERVER.getType();
     }
 }

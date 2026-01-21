@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -32,9 +32,12 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.inner.ServiceAccountResource;
@@ -57,14 +60,21 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
     private final AccountService accountService;
     private final AccountAuthService accountAuthService;
     private final AppScopeMappingService appScopeMappingService;
+    private final TenantService tenantService;
+
+    private final UserLocalCache userLocalCache;
 
     @Autowired
     public ServiceAccountResourceImpl(AccountService accountService,
                                       AccountAuthService accountAuthService,
-                                      AppScopeMappingService appScopeMappingService) {
+                                      AppScopeMappingService appScopeMappingService,
+                                      UserLocalCache userLocalCache,
+                                      TenantService tenantService) {
         this.accountService = accountService;
         this.accountAuthService = accountAuthService;
         this.appScopeMappingService = appScopeMappingService;
+        this.userLocalCache = userLocalCache;
+        this.tenantService = tenantService;
     }
 
     @Override
@@ -175,7 +185,8 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
                                       Long appId,
                                       AccountCreateUpdateReq accountCreateUpdateReq) {
         AppResourceScope appResourceScope = appScopeMappingService.getAppResourceScope(appId, null, null);
-        AuthResult authResult = accountAuthService.authCreateAccount(username, appResourceScope);
+        User user = userLocalCache.getUser(tenantService.getTenantIdByAppId(appId), username);
+        AuthResult authResult = accountAuthService.authCreateAccount(user, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -184,7 +195,7 @@ public class ServiceAccountResourceImpl implements ServiceAccountResource {
         AccountDTO newAccount = accountService.buildCreateAccountDTO(username, appResourceScope.getAppId(),
             accountCreateUpdateReq);
         AccountDTO savedAccount = accountService.createAccount(newAccount);
-        accountAuthService.registerAccount(username, savedAccount.getId(), newAccount.getAlias());
+        accountAuthService.registerAccount(user, savedAccount.getId(), newAccount.getAlias());
         return Response.buildSuccessResp(savedAccount.getId());
     }
 

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -36,9 +36,9 @@ public interface TopoService {
     /**
      * 批量获取topo节点的层级
      *
-     * @param appId     业务ID
+     * @param bizId     CMDB业务ID
      * @param topoNodes cmdb topo 节点列表
      * @return topo节点层级
      */
-    List<InstanceTopologyDTO> batchGetTopoNodeHierarchy(long appId, List<DynamicServerTopoNodeDTO> topoNodes);
+    List<InstanceTopologyDTO> batchGetTopoNodeHierarchy(long bizId, List<DynamicServerTopoNodeDTO> topoNodes);
 }

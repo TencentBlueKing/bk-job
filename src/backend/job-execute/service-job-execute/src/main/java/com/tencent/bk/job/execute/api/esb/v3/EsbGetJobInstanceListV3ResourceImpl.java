@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -38,6 +38,7 @@ import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
+import com.tencent.bk.job.execute.config.OpenApiProperties;
 import com.tencent.bk.job.execute.constants.Consts;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceQuery;
@@ -58,11 +59,14 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
 
     private final TaskResultService taskResultService;
     private final AppScopeMappingService appScopeMappingService;
+    private final OpenApiProperties openApiProperties;
 
     public EsbGetJobInstanceListV3ResourceImpl(TaskResultService taskResultService,
-                                    AppScopeMappingService appScopeMappingService) {
+                                               AppScopeMappingService appScopeMappingService,
+                                               OpenApiProperties openApiProperties) {
         this.taskResultService = taskResultService;
         this.appScopeMappingService = appScopeMappingService;
+        this.openApiProperties = openApiProperties;
     }
 
     @Override
@@ -158,6 +162,16 @@ public class EsbGetJobInstanceListV3ResourceImpl implements EsbGetJobInstanceLis
         if (request.getTaskType() != null && TaskTypeEnum.valueOf(request.getTaskType()) == null) {
             log.warn("Param type is illegal!");
             return ValidateResult.fail(ErrorCode.ILLEGAL_PARAM, "type");
+        }
+        if (openApiProperties.getV3GetJobInstanceList().isStartLimitEnabled()
+            && request.getStart() > openApiProperties.getV3GetJobInstanceList().getMaxStart()) {
+            return ValidateResult.fail(
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new String[]{
+                    "start",
+                    "The value of start cannot exceed " + openApiProperties.getV3GetJobInstanceList().getMaxStart()
+                }
+            );
         }
         return ValidateResult.pass();
     }

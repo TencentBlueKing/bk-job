@@ -14,6 +14,9 @@ data:
   application.yaml: |-
     spring:
       cloud:
+        loadbalancer:
+          cache:
+            ttl: 20s
         stream:
           defaultBinder: jobCommon
           binders:
@@ -89,15 +92,6 @@ data:
                 - CsrfCheck
                 - StripPrefix=1
                 - AddWebLangHeader
-            - id: job-ticket-web
-              uri: lb://job-manage
-              predicates:
-                - Path= /job-ticket/web/**
-              filters:
-                - Authorize
-                - CsrfCheck
-                - StripPrefix=1
-                - AddWebLangHeader
             - id: job-analysis-web
               uri: lb://job-analysis
               predicates:
@@ -121,7 +115,8 @@ data:
               predicates:
                 - JobEsbV2Path=/api/job/v2/job-manage/{api_name}
               filters:
-                - CheckEsbJwt
+                - CheckTenant
+                - CheckOpenApiJwt
                 - SetPath=/esb/api/v2/{api_name}
                 - RecordEsbAccessLog
                 - AddEsbLangHeader
@@ -131,7 +126,8 @@ data:
               predicates:
                 - Path=/api/job/v3/job-manage/{api_name}
               filters:
-                - CheckEsbJwt
+                - CheckTenant
+                - CheckOpenApiJwt
                 - SetPath=/esb/api/v3/{api_name}
                 - RecordEsbAccessLog
                 - AddEsbLangHeader
@@ -141,7 +137,8 @@ data:
               predicates:
                 - JobEsbV2Path=/api/job/v2/job-crontab/{api_name}
               filters:
-                - CheckEsbJwt
+                - CheckTenant
+                - CheckOpenApiJwt
                 - SetPath=/esb/api/v2/{api_name}
                 - RecordEsbAccessLog
                 - AddEsbLangHeader
@@ -151,7 +148,8 @@ data:
               predicates:
                 - JobEsbV2Path=/api/job/v3/job-crontab/{api_name}
               filters:
-                - CheckEsbJwt
+                - CheckTenant
+                - CheckOpenApiJwt
                 - SetPath=/esb/api/v3/{api_name}
                 - RecordEsbAccessLog
                 - AddEsbLangHeader
@@ -161,7 +159,8 @@ data:
               predicates:
                 - JobEsbV2Path=/api/job/v2/job-execute/{api_name}
               filters:
-                - CheckEsbJwt
+                - CheckTenant
+                - CheckOpenApiJwt
                 - SetPath=/esb/api/v2/{api_name}
                 - RecordEsbAccessLog
                 - AddEsbLangHeader
@@ -171,7 +170,8 @@ data:
               predicates:
                 - JobEsbV2Path=/api/job/v3/job-execute/{api_name}
               filters:
-                - CheckEsbJwt
+                - CheckTenant
+                - CheckOpenApiJwt
                 - SetPath=/esb/api/v3/{api_name}
                 - RecordEsbAccessLog
                 - AddEsbLangHeader
@@ -181,8 +181,64 @@ data:
               predicates:
                 - JobEsbV2Path=/api/job/v3/job-file-gateway/{api_name}
               filters:
-                - CheckEsbJwt
+                - CheckTenant
+                - CheckOpenApiJwt
                 - SetPath=/esb/api/v3/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-execute-esb-v4
+              uri: lb://job-execute
+              predicates:
+                - JobEsbV2Path=/api/job/v4/job-execute/{api_name}
+              filters:
+                - CheckTenant
+                - CheckOpenApiJwt
+                - SetPath=/esb/api/v4/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-manage-esb-v4
+              uri: lb://job-manage
+              predicates:
+                - JobEsbV2Path=/api/job/v4/job-manage/{api_name}
+              filters:
+                - CheckTenant
+                - CheckOpenApiJwt
+                - SetPath=/esb/api/v4/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-file-gateway-esb-v4
+              uri: lb://job-file-gateway
+              predicates:
+                - JobEsbV2Path=/api/job/v4/job-file-gateway/{api_name}
+              filters:
+                - CheckTenant
+                - CheckOpenApiJwt
+                - SetPath=/esb/api/v4/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-crontab-esb-v4
+              uri: lb://job-crontab
+              predicates:
+                - JobEsbV2Path=/api/job/v4/job-crontab/{api_name}
+              filters:
+                - CheckTenant
+                - CheckOpenApiJwt
+                - SetPath=/esb/api/v4/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-esb-v4
+              uri: lb://job-assemble
+              predicates:
+                - Path=/api/job/v4/{module}/{api_name}
+              filters:
+                - CheckTenant
+                - CheckOpenApiJwt
+                - SetPath=/esb/api/v4/{api_name}
                 - RecordEsbAccessLog
                 - AddEsbLangHeader
 
@@ -192,14 +248,7 @@ data:
                 - Path=/iam/api/v1/resources/file_source
               filters:
                 - RecordIamAccessLog
-                - AddEsbLangHeader
-
-            - id: job-ticket-iam
-              uri: lb://job-manage
-              predicates:
-                - Path=/iam/api/v1/resources/ticket
-              filters:
-                - RecordIamAccessLog
+                - CheckTenant
                 - AddEsbLangHeader
 
             - id: job-analysis-iam
@@ -208,14 +257,16 @@ data:
                 - Path=/iam/api/v1/resources/dashboard_view
               filters:
                 - RecordIamAccessLog
+                - CheckTenant
                 - AddEsbLangHeader
 
             - id: job-manage-iam
               uri: lb://job-manage
               predicates:
-                - Path=/iam/api/v1/resources/script,/iam/api/v1/resources/task/template,/iam/api/v1/resources/task/plan,/iam/api/v1/resources/account,/iam/api/v1/resources/whitelist,/iam/api/v1/resources/script/public,/iam/api/v1/resources/tag
+                - Path=/iam/api/v1/resources/script,/iam/api/v1/resources/task/template,/iam/api/v1/resources/task/plan,/iam/api/v1/resources/account,/iam/api/v1/resources/whitelist,/iam/api/v1/resources/script/public,/iam/api/v1/resources/tag,/iam/api/v1/resources/ticket
               filters:
                 - RecordIamAccessLog
+                - CheckTenant
                 - AddEsbLangHeader
 
             - id: job-crontab-iam
@@ -224,6 +275,7 @@ data:
                 - Path=/iam/api/v1/resources/cron/job
               filters:
                 - RecordIamAccessLog
+                - CheckTenant
                 - AddEsbLangHeader
 
             - id: job-execute-iam
@@ -232,7 +284,106 @@ data:
                 - Path=/iam/api/v1/resources/execute/record
               filters:
                 - RecordIamAccessLog
+                - CheckTenant
                 - AddEsbLangHeader
+            {{- if eq (include "job.profileIsDev" .) "true" }}
+            - id: job-execute-swagger
+              uri: lb://job-execute
+              predicates:
+                - Path=/job-execute/swagger-ui/**,/job-execute/swagger-resources/**,/job-execute/v3/api-docs
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-manage-swagger
+              uri: lb://job-manage
+              predicates:
+                - Path=/job-manage/swagger-ui/**,/job-manage/swagger-resources/**,/job-manage/v3/api-docs
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-analysis-swagger
+              uri: lb://job-analysis
+              predicates:
+                - Path=/job-analysis/swagger-ui/**,/job-analysis/swagger-resources/**,/job-analysis/v3/api-docs
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-crontab-swagger
+              uri: lb://job-crontab
+              predicates:
+                - Path=/job-crontab/swagger-ui/**,/job-crontab/swagger-resources/**,/job-crontab/v3/api-docs
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-backup-swagger
+              uri: lb://job-backup
+              predicates:
+                - Path=/job-backup/swagger-ui/**,/job-backup/swagger-resources/**,/job-backup/v3/api-docs
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-file-gateway-swagger
+              uri: lb://job-file-gateway
+              predicates:
+                - Path=/job-file-gateway/swagger-ui/**,/job-file-gateway/swagger-resources/**,/job-file-gateway/v3/api-docs
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-execute-swagger-service-op-esb
+              uri: lb://job-execute
+              predicates:
+                - Path=/job-execute/service/**,/job-execute/op/**,/job-execute/esb/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-manage-swagger-service-op-esb
+              uri: lb://job-manage
+              predicates:
+                - Path=/job-manage/service/**,/job-manage/op/**,/job-manage/esb/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-analysis-swagger-service-op-esb
+              uri: lb://job-analysis
+              predicates:
+                - Path=/job-analysis/service/**,/job-analysis/op/**,/job-analysis/esb/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-crontab-swagger-service-op-esb
+              uri: lb://job-crontab
+              predicates:
+                - Path=/job-crontab/service/**,/job-crontab/op/**,/job-crontab/esb/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-backup-swagger-service-op-esb
+              uri: lb://job-backup
+              predicates:
+                - Path=/job-backup/service/**,/job-backup/op/**,/job-backup/esb/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            - id: job-file-gateway-swagger-service-op-esb
+              uri: lb://job-file-gateway
+              predicates:
+                - Path=/job-file-gateway/service/**,/job-file-gateway/op/**,/job-file-gateway/esb/**
+              filters:
+                - Authorize
+                - CsrfCheck
+                - StripPrefix=1
+            {{- end }}
             {{- else if eq .Values.deploy.mode "lite" }}
             - id: job-logout
               uri: lb://job-gateway
@@ -244,7 +395,7 @@ data:
             - id: job-web
               uri: lb://job-assemble
               predicates:
-                - Path= /job-manage/web/**,/job-crontab/web/**,/job-execute/web/**,/job-analysis/web/**,/job-backup/web/**,/job-logsvr/web/**,/job-file-gateway/web/**,/job-ticket/web/**
+                - Path= /job-manage/web/**,/job-crontab/web/**,/job-execute/web/**,/job-analysis/web/**,/job-backup/web/**,/job-logsvr/web/**,/job-file-gateway/web/**
               filters:
                 - Authorize
                 - CsrfCheck
@@ -258,13 +409,14 @@ data:
               filters:
                 - AuthorizeRemote
                 - StripPrefix=1
-    
+
             - id: job-esb
               uri: lb://job-assemble
               predicates:
                 - JobEsbV2Path=/api/job/v2/{module}/{api_name}
               filters:
-                - CheckEsbJwt
+                - CheckTenant
+                - CheckOpenApiJwt
                 - SetPath=/esb/api/v2/{api_name}
                 - RecordEsbAccessLog
                 - AddEsbLangHeader
@@ -274,7 +426,8 @@ data:
               predicates:
                 - Path=/api/job/v3/{module}/{api_name}
               filters:
-                - CheckEsbJwt
+                - CheckTenant
+                - CheckOpenApiJwt
                 - SetPath=/esb/api/v3/{api_name}
                 - RecordEsbAccessLog
                 - AddEsbLangHeader
@@ -285,6 +438,7 @@ data:
                 - Path=/iam/api/v1/resources/**
               filters:
                 - RecordIamAccessLog
+                - CheckTenant
                 - AddEsbLangHeader
             {{- end }}      
     job:
@@ -292,6 +446,19 @@ data:
         login-exemption:
           enabled: {{ .Values.gatewayConfig.loginExemption.enabled | default false }}
           default-user: {{ .Values.gatewayConfig.loginExemption.defaultUser | default "admin" }}
+          default-user-tenant-id: {{ .Values.gatewayConfig.loginExemption.defaultUserTenantId | default "default" }}
+        user-map:
+          {{- toYaml .Values.gatewayConfig.userMap | nindent 10 }}
+        csrf-check:
+          enabled: {{ .Values.gatewayConfig.csrfCheck.enabled }}
+        customAccessLog:
+          enabled: {{ .Values.gatewayConfig.customAccessLog.enabled }}
+      bkApiGateway:
+        enabled: {{ .Values.bkApiGatewayConfig.enabled | default false }}
+        gatewayName: {{ .Values.bkApiGatewayConfig.gatewayName | default "bk-job" }}
+        jwtPublicKey:
+          get:
+            failPolicy: {{ .Values.bkApiGatewayConfig.jwtPublicKey.failPolicy | default "retry" }}
     server:
       port: {{ .Values.gatewayConfig.containerPort.https }}
       http:

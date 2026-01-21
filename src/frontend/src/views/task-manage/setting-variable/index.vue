@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -94,6 +94,7 @@
   </div>
 </template>
 <script>
+  import Dexie from 'dexie';
   import _ from 'lodash';
 
   import TaskExecuteService from '@service/task-execute';
@@ -103,7 +104,6 @@
     checkIllegalHostFromVariableTargetValue,
     findUsedVariable,
   } from '@utils/assist';
-  import { execTaskPlanVariableCache } from '@utils/cache-helper';
 
   import BackTop from '@components/back-top';
   import GlobalVariable from '@components/global-variable/edit';
@@ -113,6 +113,8 @@
   import I18n from '@/i18n';
 
   import RemoveInvalid from './components/remove-invalid.vue';
+
+  const RECORD_TABLE_NAME = 'task_plan_exec_variable';
 
   export default {
     name: '',
@@ -145,6 +147,10 @@
       this.templateId = this.$route.params.templateId;
       this.isDebugPlan = Boolean(this.$route.params.debug);
       this.fetchData();
+      this.db = new Dexie('task_plan_exec');
+      this.db.version(1).stores({
+        [RECORD_TABLE_NAME]: '++id,planId,variableList',
+      });
     },
     methods: {
       /**
@@ -236,9 +242,10 @@
               return Promise.reject();
             }
 
-            execTaskPlanVariableCache.setItem(this.planId, variableList);
-
-            return TaskExecuteService.taskExecution({
+            return this.db[RECORD_TABLE_NAME].add({
+              planId: this.planId,
+              variableList,
+            }).then(() => TaskExecuteService.taskExecution({
               taskId: this.planId,
               taskVariables: variableList.map(({
                 id,
@@ -269,9 +276,9 @@
                   from: 'planList',
                 },
               });
-            });
+            }));
           })
-          .catch(() => {
+          .finally(() => {
             this.isSubmiting = false;
           });
       },
@@ -289,29 +296,33 @@
         this.$refs.unused && this.$refs.unused.forEach(item => item.removeAllInvalidHost());
       },
       handleLoadLastValue() {
-        const lastExecuteVariableMap = execTaskPlanVariableCache.getItem(this.planId)
-          .reduce((result, item) => Object.assign(result, {
-            [item.name]: item,
-          }), {});
-        console.log('lastExecuteVariableMap = ', this.planId, lastExecuteVariableMap);
+        this.db[RECORD_TABLE_NAME].where('planId').equals(this.planId)
+          .last()
+          .then((lastData) => {
+            if (lastData && lastData.variableList) {
+              const lastExecuteVariableMap = lastData.variableList.reduce((result, item) => Object.assign(result, {
+                [item.name]: item,
+              }), {});
 
-        const replaceVariableValue = (variableList, lastExecuteVariableMap) => {
-          const variableListResult = [...variableList];
-          variableListResult.forEach((variable) => {
-            if (lastExecuteVariableMap[variable.name]) {
-              if (variable.type === 3) {
-                variable.defaultTargetValue.executeObjectsInfo = lastExecuteVariableMap[variable.name].targetValue.executeObjectsInfo;
-              } else {
-                variable.defaultValue = lastExecuteVariableMap[variable.name].value;
-              }
+              const replaceVariableValue = (variableList, lastExecuteVariableMap) => {
+                const variableListResult = [...variableList];
+                variableListResult.forEach((variable) => {
+                  if (lastExecuteVariableMap[variable.name]) {
+                    if (variable.type === 3) {
+                      variable.defaultTargetValue.executeObjectsInfo = lastExecuteVariableMap[variable.name].targetValue.executeObjectsInfo;
+                    } else {
+                      variable.defaultValue = lastExecuteVariableMap[variable.name].value;
+                    }
+                  }
+                });
+                return variableListResult;
+              };
+              this.usedList = Object.freeze(replaceVariableValue(this.usedList, lastExecuteVariableMap));
+              this.unusedList = Object.freeze(replaceVariableValue(this.unusedList, lastExecuteVariableMap));
+              this.allHostVariable = Object.freeze(replaceVariableValue(this.allHostVariable, lastExecuteVariableMap));
+              this.refreshKey = Date.now();
             }
           });
-          return variableListResult;
-        };
-        this.usedList = Object.freeze(replaceVariableValue(this.usedList, lastExecuteVariableMap));
-        this.unusedList = Object.freeze(replaceVariableValue(this.unusedList, lastExecuteVariableMap));
-        this.allHostVariable = Object.freeze(replaceVariableValue(this.allHostVariable, lastExecuteVariableMap));
-        this.refreshKey = Date.now();
       },
       /**
        * @desc 路由回退

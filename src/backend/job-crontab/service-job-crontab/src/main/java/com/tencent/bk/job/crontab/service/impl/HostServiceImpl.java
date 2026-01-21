@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -77,12 +77,12 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public int fillHosts(List<HostDTO> hostList) {
+    public int fillHosts(String tenantId, List<HostDTO> hostList) {
         if (CollectionUtils.isEmpty(hostList)) {
             return 0;
         }
         InternalResponse<List<ServiceHostDTO>> resp =
-            hostResource.batchGetHosts(new ServiceBatchGetHostsReq(hostList));
+            hostResource.batchGetHostsFromCacheOrDB(new ServiceBatchGetHostsReq(tenantId, hostList));
         List<ServiceHostDTO> serviceHostDTOList = resp.getData();
         if (CollectionUtils.isEmpty(serviceHostDTOList)) {
             log.info(

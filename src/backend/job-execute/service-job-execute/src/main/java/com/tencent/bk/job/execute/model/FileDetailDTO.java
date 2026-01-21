@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.execute.model.inner.ServiceFileDetailDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -91,5 +92,11 @@ public class FileDetailDTO implements Cloneable {
         FileDetailDTO fileDetailDTO = new FileDetailDTO(filePath, fileName, fileHash, fileSize);
         fileDetailDTO.setResolvedFilePath(resolvedFilePath);
         return fileDetailDTO;
+    }
+
+    public ServiceFileDetailDTO toServiceFileDetailDTO() {
+        ServiceFileDetailDTO serviceFileDetailDTO = new ServiceFileDetailDTO();
+        serviceFileDetailDTO.setFilePath(filePath);
+        return serviceFileDetailDTO;
     }
 }

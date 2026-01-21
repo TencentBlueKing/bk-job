@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,31 +24,38 @@
 
 package com.tencent.bk.job.common.crypto;
 
+import com.tencent.bk.sdk.crypto.cryptor.consts.CryptorNames;
+
 /**
  * 加密场景枚举值
  */
 public enum CryptoScenarioEnum {
     // 脚本敏感参数
-    SCRIPT_SENSITIVE_PARAM((byte) 0, "scriptSensitiveParam"),
+    SCRIPT_SENSITIVE_PARAM((byte) 0, "scriptSensitiveParam", null),
     // 密文变量
-    CIPHER_VARIABLE((byte) 0, "cipherVariable"),
+    CIPHER_VARIABLE((byte) 0, "cipherVariable", null),
     // DB账号的密码
-    DATABASE_PASSWORD((byte) 0, "databasePassword"),
+    DATABASE_PASSWORD((byte) 0, "databasePassword", null),
     // 凭证信息
-    CREDENTIAL((byte) 0, "credential"),
+    CREDENTIAL((byte) 0, "credential", null),
     // 导出作业的密码
-    EXPORT_JOB_PASSWORD((byte) 0, "exportJobPassword"),
+    EXPORT_JOB_PASSWORD((byte) 0, "exportJobPassword", null),
     // 导出作业的备份文件
-    BACKUP_FILE((byte) 0, "backupFile");
+    BACKUP_FILE((byte) 0, "backupFile", null),
+    // 前端给后端提交账号的密码
+    SUBMIT_ACCOUNT_PASSWORD((byte) 1, "submitAccountPassword", CryptorNames.SM2);
 
     // 加密类型：0为对称加密，1为非对称加密
     private final byte type;
     // 场景标识
     private final String value;
+    // 场景默认加密算法
+    private final String algorithm;
 
-    CryptoScenarioEnum(byte type, String value) {
+    CryptoScenarioEnum(byte type, String value, String algorithm) {
         this.type = type;
         this.value = value;
+        this.algorithm = algorithm;
     }
 
     public String getValue() {
@@ -57,5 +64,9 @@ public enum CryptoScenarioEnum {
 
     public byte getType() {
         return type;
+    }
+
+    public String getAlgorithm() {
+        return algorithm;
     }
 }

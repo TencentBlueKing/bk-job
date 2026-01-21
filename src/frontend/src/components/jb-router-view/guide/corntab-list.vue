@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -36,11 +36,12 @@
           {{ $t('采用类Unix Crontab的配置表达式风格，降低使用门槛更快上手！提供了执行前/后通知提醒、执行记录等辅助功能，让用户可以放心地把定期执行的任务交给Job！') }}
         </div>
         <div class="page-action">
-          <bk-button
+          <auth-button
+            auth="cron/create"
             theme="primary"
             @click="handleCreateCron">
             {{ $t('新建定时任务') }}
-          </bk-button>
+          </auth-button>
         </div>
       </div>
     </div>
@@ -49,7 +50,7 @@
         <div class="feature-item">
           <div class="feature-pic">
             <img
-              src="/static/images/guide/cron-plan.svg"
+              :src="cronPlanImage"
               style="width: 220px; margin: 24px 25px 0;">
           </div>
           <div class="feature-box">
@@ -63,7 +64,7 @@
         <div class="feature-item">
           <div class="feature-pic">
             <img
-              src="/static/images/guide/cron-clock.svg"
+              :src="cronClockImage"
               style="width: 246px; margin: 21px 8px 0 16px;">
           </div>
           <div class="feature-box">
@@ -79,6 +80,10 @@
 </template>
 <script>
   export default {
+    created() {
+      this.cronPlanImage = window.__loadAssetsUrl__('/static/images/guide/cron-plan.svg');
+      this.cronClockImage = window.__loadAssetsUrl__('/static/images/guide/cron-clock.svg');
+    },
     methods: {
       handleCreateCron() {
         this.$router.push({

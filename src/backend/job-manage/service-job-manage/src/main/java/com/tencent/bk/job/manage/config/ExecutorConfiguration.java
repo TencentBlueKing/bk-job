@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -136,6 +136,19 @@ public class ExecutorConfiguration {
             "initRunnerExecutor",
             0,
             5,
+            1,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>()
+        );
+    }
+
+    @Bean("shutdownEventWatchExecutor")
+    public ThreadPoolExecutor shutdownEventWatchExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "shutdownEventWatchExecutor",
+            0,
+            50,
             1,
             TimeUnit.SECONDS,
             new LinkedBlockingQueue<>()

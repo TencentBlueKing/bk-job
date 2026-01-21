@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -55,6 +55,7 @@ public class GseTaskDAOImplIntegrationTest {
     @DisplayName("保存GseTask")
     void saveGseTask() {
         GseTaskDTO gseTask = new GseTaskDTO();
+        gseTask.setTaskInstanceId(9L);
         gseTask.setStepInstanceId(10L);
         gseTask.setExecuteCount(0);
         gseTask.setBatch(1);
@@ -67,8 +68,9 @@ public class GseTaskDAOImplIntegrationTest {
         long id = gseTaskDAO.saveGseTask(gseTask);
         assertThat(id).isGreaterThan(0);
 
-        GseTaskDTO savedGseTask = gseTaskDAO.getGseTask(id);
+        GseTaskDTO savedGseTask = gseTaskDAO.getGseTask(9L, id);
 
+        assertThat(savedGseTask.getTaskInstanceId()).isEqualTo(9L);
         assertThat(savedGseTask.getStepInstanceId()).isEqualTo(10L);
         assertThat(savedGseTask.getExecuteCount()).isEqualTo(0);
         assertThat(savedGseTask.getBatch()).isEqualTo(1);
@@ -84,6 +86,7 @@ public class GseTaskDAOImplIntegrationTest {
     void updateGseTask() {
         GseTaskDTO gseTask = new GseTaskDTO();
         gseTask.setId(1L);
+        gseTask.setTaskInstanceId(1L);
         gseTask.setStepInstanceId(1L);
         gseTask.setExecuteCount(0);
         gseTask.setBatch(0);
@@ -96,8 +99,9 @@ public class GseTaskDAOImplIntegrationTest {
         boolean result = gseTaskDAO.updateGseTask(gseTask);
         assertThat(result).isTrue();
 
-        GseTaskDTO savedGseTask = gseTaskDAO.getGseTask(1L);
+        GseTaskDTO savedGseTask = gseTaskDAO.getGseTask(1L, 1L);
 
+        assertThat(savedGseTask.getTaskInstanceId()).isEqualTo(1L);
         assertThat(savedGseTask.getStepInstanceId()).isEqualTo(1L);
         assertThat(savedGseTask.getExecuteCount()).isEqualTo(0);
         assertThat(savedGseTask.getBatch()).isEqualTo(0);

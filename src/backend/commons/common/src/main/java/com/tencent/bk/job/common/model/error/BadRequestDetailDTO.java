@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB 蓝鲸作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB 蓝鲸作业平台 is licensed under the MIT license.
  *
@@ -34,6 +34,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -65,6 +66,22 @@ public class BadRequestDetailDTO {
             return "";
         }
         return this.fieldViolations.get(0).getDescription();
+    }
+
+    /**
+     * 返回所有参数校验错误字段字符串
+     *
+     * @return 所有字段拼接起来的字符串
+     */
+    public String getViolationFieldsStr() {
+        if (CollectionUtils.isEmpty(this.fieldViolations)) {
+            return "";
+        }
+        StringJoiner sj = new StringJoiner(",");
+        for (FieldViolationDTO fieldViolation : this.fieldViolations) {
+            sj.add(fieldViolation.getField());
+        }
+        return sj.toString();
     }
 
 }

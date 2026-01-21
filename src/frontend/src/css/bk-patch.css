@@ -181,7 +181,7 @@
     vertical-align: middle;
 
     &.bk-dialog-fullscreen {
-      inset: 0;
+      inset: 0 !important;
     }
 
     &.bk-info-box {
@@ -257,6 +257,10 @@
   }
 }
 
+.bk-form-item.is-checking .bk-form-content ::after{
+  z-index: 9;
+}
+
 /**
     覆盖 bk-radio-button 样式
  */
@@ -310,4 +314,11 @@
 .host-table-column-setting-popover .bk-dialog-wrapper .bk-dialog,
 [data-bkpop-container="true"] .bk-dialog-wrapper .bk-dialog{
   top: initial !important;
+}
+
+.bk-notice-component-dialog.bk-dialog-wrapper {
+  .bk-dialog-content{
+    position:  relative !important;
+    overflow: hidden;
+  }
 }

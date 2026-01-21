@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -108,23 +108,6 @@ public interface WebNotifyResource {
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username
-    );
-
-    @ApiOperation(value = "根据用户英文名前缀拉取用户列表（不包括黑名单内用户）", produces = "application/json")
-    @GetMapping("/users/list")
-    Response<List<UserVO>> listUsers(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiParam("英文名前缀（逗号分隔）")
-        @RequestParam(value = "prefixStr", required = false)
-            String prefixStr,
-        @ApiParam("起始位置")
-        @RequestParam(value = "offset", required = false)
-            Long offset,
-        @ApiParam("拉取数量")
-        @RequestParam(value = "limit", required = false)
-            Long limit
     );
 
     @ApiOperation(value = "后台自测调试用接口：发送消息通知", produces = "application/json")

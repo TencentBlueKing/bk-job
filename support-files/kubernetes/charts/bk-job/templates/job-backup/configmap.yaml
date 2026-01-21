@@ -14,6 +14,9 @@ data:
   application.yaml: |-
     spring:
       cloud:
+        loadbalancer:
+          cache:
+            ttl: 20s
         stream:
           defaultBinder: jobCommon
           binders:
@@ -48,10 +51,11 @@ data:
           poolName: "job-backup"
           validationTimeout: 5000
         {{- if and .Values.backupConfig.archive.execute.enabled }}
+        {{- if eq .Values.backupConfig.archive.execute.mariadb.dataSourceMode "standalone" }}
         job-execute:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
-          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute{{ .Values.backupConfig.archive.execute.mariadb.connection.properties }}
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{- include "job.mariadb.host" . }}:{{- include "job.mariadb.port" . }}/job_execute{{ include "job.backup.archive.execute.mariadb.connection.properties" . }}
           username: {{ include "job.mariadb.username" . }}
           {{ if .Values.externalMariaDB.existingPasswordSecret }}
           password: {{ .Values.externalMariaDB.existingPasswordKey | default "mariadb-password" | printf "${%s}" }}
@@ -63,12 +67,26 @@ data:
           idle-timeout: 6000
           poolName: "job-execute"
           validationTimeout: 5000
-        {{- end }}  
-        {{- if and .Values.backupConfig.archive.execute.enabled (eq .Values.backupConfig.archive.execute.mode "backupThenDelete") }}
+        {{- else if eq .Values.backupConfig.archive.execute.mariadb.dataSourceMode "vertical_sharding" }}
+        {{- range $dsName, $ds := .Values.backupConfig.archive.execute.mariadb.verticalSharding.datasource }}
+        {{ $dsName }}:
+            driverClassName: {{ include "job.jdbcMysqlDriverClass" . }}
+            jdbcUrl: {{ $ds.jdbcUrl | quote }}
+            username: {{ $ds.username | quote }}
+            password: {{ $ds.password | quote }}
+            maximumPoolSize: {{ $ds.maximumPoolSize | default 100 }}
+            minimumIdle: {{ $ds.minimumIdle | default 20 }}
+            idleTimeout: {{ $ds.idleTimeout | default 600000 }}
+            poolName: {{ $ds.poolName | default "job-execute" }}
+            validationTimeout: {{ $ds.validationTimeout | default 5000 }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- if and .Values.backupConfig.archive.execute.enabled (or (eq .Values.backupConfig.archive.execute.mode "backupThenDelete") (eq .Values.backupConfig.archive.execute.mode "backupOnly")) }}
         job-execute-archive:
           driver-class-name: {{ include "job.jdbcMysqlDriverClass" . }}
           type: com.zaxxer.hikari.HikariDataSource
-          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{ .Values.backupConfig.archive.mariadb.host }}:{{ .Values.backupConfig.archive.mariadb.port }}/job_execute{{ .Values.backupConfig.archive.mariadb.connection.properties }}
+          jdbc-url: {{ include "job.jdbcMysqlScheme" . }}://{{ .Values.backupConfig.archive.mariadb.host }}:{{ .Values.backupConfig.archive.mariadb.port }}/job_execute{{ include "job.backup.archive.mariadb.connection.properties" . }}
           username: {{ .Values.backupConfig.archive.mariadb.username }}
           password: ${archive-mariadb-password}
           maximum-pool-size: 10
@@ -76,6 +94,11 @@ data:
           idle-timeout: 6000
           poolName: "job-execute-archive"
           validationTimeout: 5000
+        {{- end }}
+        {{- if and .Values.backupConfig.archive.executeLog.enabled (or (eq .Values.backupConfig.archive.executeLog.mode "deleteOnly") (eq .Values.backupConfig.archive.executeLog.mode "backupThenDelete")) }}
+        job-execute-mongodb:
+          uri: {{ include "job.mongodb.connect.uri" . | quote }}
+          database: "joblog"
         {{- end }}
       redis:
       {{- include "job.redis.config" . | indent 8 }}
@@ -103,7 +126,14 @@ data:
         storage-backend: {{ .Values.backupConfig.storageBackend }}
         artifactory:
           repo: {{ .Values.backupConfig.artifactory.repo }}
-        archive:  
-          execute:
-            {{- toYaml .Values.backupConfig.archive.execute | nindent 12 }}
+        archive:
+          {{- toYaml .Values.backupConfig.archive | nindent 10 }}
+    mysql:
+      {{- toYaml .Values.backupConfig.mysql | nindent 6 }}
+    tls:
+      # 连接Redis使用的TLS配置
+      redis:
+        {{- include "job.redis.tls" . | nindent 8 }}
+      mongodb:
+        {{- include "job.mongodb.tls" . | nindent 8 }}
 {{- end }}

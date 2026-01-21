@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,14 +24,13 @@
 
 package com.tencent.bk.job.execute.service.impl;
 
-import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.file.ZipUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.config.LogExportConfig;
@@ -46,6 +45,7 @@ import com.tencent.bk.job.execute.service.LogExportService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
+import com.tencent.bk.job.logsvr.util.LogFieldUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -59,8 +59,6 @@ import org.springframework.util.StopWatch;
 
 import java.io.File;
 import java.io.PrintWriter;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -78,7 +76,7 @@ public class LogExportServiceImpl implements LogExportService {
     private final StringRedisTemplate redisTemplate;
     private final StepInstanceService stepInstanceService;
     private final ArtifactoryClient artifactoryClient;
-    private final ArtifactoryConfig artifactoryConfig;
+    private final ArtifactoryHelper artifactoryHelper;
     private final LogExportConfig logExportConfig;
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
 
@@ -87,7 +85,7 @@ public class LogExportServiceImpl implements LogExportService {
                                 StringRedisTemplate redisTemplate,
                                 StepInstanceService stepInstanceService,
                                 @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
-                                ArtifactoryConfig artifactoryConfig,
+                                ArtifactoryHelper artifactoryHelper,
                                 LogExportConfig logExportConfig,
                                 ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                 @Qualifier("logExportExecutor") ExecutorService logExportExecutor) {
@@ -95,7 +93,7 @@ public class LogExportServiceImpl implements LogExportService {
         this.redisTemplate = redisTemplate;
         this.stepInstanceService = stepInstanceService;
         this.artifactoryClient = artifactoryClient;
-        this.artifactoryConfig = artifactoryConfig;
+        this.artifactoryHelper = artifactoryHelper;
         this.logExportConfig = logExportConfig;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
         this.logExportExecutor = logExportExecutor;
@@ -104,6 +102,7 @@ public class LogExportServiceImpl implements LogExportService {
     @Override
     public LogExportJobInfoDTO packageLogFile(String username,
                                               Long appId,
+                                              Long taskInstanceId,
                                               Long stepInstanceId,
                                               ExecuteObjectTypeEnum executeObjectType,
                                               Long executeObjectResourceId,
@@ -129,7 +128,7 @@ public class LogExportServiceImpl implements LogExportService {
         boolean isGetByExecuteObject = executeObjectResourceId != null;
 
         if (isGetByExecuteObject) {
-            doPackage(exportJobInfo, stepInstanceId, executeObjectType, executeObjectResourceId,
+            doPackage(exportJobInfo, taskInstanceId, stepInstanceId, executeObjectType, executeObjectResourceId,
                 executeCount, logFileDir, logFileName);
         } else {
             String requestId = JobContextUtil.getRequestId();
@@ -143,8 +142,8 @@ public class LogExportServiceImpl implements LogExportService {
                         exportJobInfo.setStatus(LogExportStatusEnum.PROCESSING);
                         saveExportInfo(exportJobInfo);
 
-                        doPackage(exportJobInfo, stepInstanceId, executeObjectType, executeObjectResourceId,
-                            executeCount, logFileDir, logFileName);
+                        doPackage(exportJobInfo, taskInstanceId, stepInstanceId, executeObjectType,
+                            executeObjectResourceId, executeCount, logFileDir, logFileName);
                     } else {
                         log.error("Job already running!|appId={}|stepInstanceId={}", appId, stepInstanceId);
                     }
@@ -179,7 +178,7 @@ public class LogExportServiceImpl implements LogExportService {
                                              ExecuteObjectTypeEnum executeObjectType,
                                              Long executeObjectResourceId) {
         return JsonUtils.fromJson(redisTemplate.opsForValue().get(
-            getExportJobKey(appId, stepInstanceId, executeObjectType, executeObjectResourceId)),
+                getExportJobKey(appId, stepInstanceId, executeObjectType, executeObjectResourceId)),
             LogExportJobInfoDTO.class);
     }
 
@@ -204,13 +203,14 @@ public class LogExportServiceImpl implements LogExportService {
     }
 
     private void doPackage(LogExportJobInfoDTO exportJobInfo,
+                           long taskInstanceId,
                            long stepInstanceId,
                            ExecuteObjectTypeEnum executeObjectType,
                            Long executeObjectResourceId,
                            int executeCount,
                            String logFileDir,
                            String logFileName) {
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(taskInstanceId, stepInstanceId);
         File logFile = new File(logFileDir + logFileName);
 
         StopWatch watch = new StopWatch("exportJobLog");
@@ -279,8 +279,7 @@ public class LogExportServiceImpl implements LogExportService {
                                                 LogExportJobInfoDTO exportJobInfo) {
         Collection<LogBatchQuery> querys = buildLogBatchQuery(stepInstance.getId(), executeObjectTasks);
 
-        String jobCreateDate = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
-            "yyyy_MM_dd", ZoneId.of("UTC"));
+        String jobCreateDate = LogFieldUtil.buildJobCreateDate(stepInstance.getCreateTime());
         try (PrintWriter out = new PrintWriter(logFile, "UTF-8")) {
             for (LogBatchQuery query : querys) {
                 for (List<ExecuteObject> executeObjects : query.getExecuteObjectBatches()) {
@@ -356,7 +355,7 @@ public class LogExportServiceImpl implements LogExportService {
         // 将zip文件上传至制品库
         try {
             artifactoryClient.uploadGenericFile(
-                artifactoryConfig.getArtifactoryJobProject(),
+                artifactoryHelper.getJobRealProject(),
                 logExportConfig.getLogExportRepo(),
                 zipFile.getName(),
                 zipFile

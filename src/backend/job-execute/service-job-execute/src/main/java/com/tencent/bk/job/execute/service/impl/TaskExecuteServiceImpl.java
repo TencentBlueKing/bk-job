@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.audit.JobAuditExtendDataKeys;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AbortedException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
@@ -44,19 +45,27 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.audit.ExecuteJobAuditEventBuilder;
 import com.tencent.bk.job.execute.auth.ExecuteAuthService;
+import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskTypeEnum;
+import com.tencent.bk.job.execute.common.context.JobExecuteContext;
+import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
+import com.tencent.bk.job.execute.common.context.JobInstanceContext;
 import com.tencent.bk.job.execute.common.converter.StepTypeExecuteTypeConverter;
+import com.tencent.bk.job.execute.common.exception.RunningJobQuotaLimitExceedException;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
 import com.tencent.bk.job.execute.constants.ScriptSourceEnum;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
@@ -67,8 +76,11 @@ import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
+import com.tencent.bk.job.execute.engine.quota.limit.ResourceQuotaCheckResultEnum;
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobResourceQuotaManager;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
+import com.tencent.bk.job.execute.model.AgentCustomPasswordDTO;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
 import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
@@ -83,9 +95,10 @@ import com.tencent.bk.job.execute.model.TaskExecuteParam;
 import com.tencent.bk.job.execute.model.TaskInfo;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceExecuteObjects;
+import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
 import com.tencent.bk.job.execute.service.AccountService;
 import com.tencent.bk.job.execute.service.DangerousScriptCheckService;
-import com.tencent.bk.job.execute.service.RollingConfigService;
+import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.execute.service.ScriptService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
@@ -93,7 +106,9 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
 import com.tencent.bk.job.execute.service.TaskPlanService;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.execute.util.LoggerFactory;
+import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum;
@@ -104,6 +119,7 @@ import com.tencent.bk.job.manage.api.common.constants.whiteip.ActionScopeEnum;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.api.inner.ServiceUserResource;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceHostInfoDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptCheckResultItemDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
@@ -161,6 +177,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     private final ServiceTaskTemplateResource taskTemplateResource;
     private final TaskInstanceExecuteObjectProcessor taskInstanceExecuteObjectProcessor;
+    private final HostService hostService;
+    private final CustomPasswordCache customPasswordCache;
+
+    private final RunningJobResourceQuotaManager runningJobResourceQuotaManager;
+    private final TenantService tenantService;
 
     private static final Logger TASK_MONITOR_LOGGER = LoggerFactory.TASK_MONITOR_LOGGER;
 
@@ -180,7 +201,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
                                   RollingConfigService rollingConfigService,
                                   ServiceTaskTemplateResource taskTemplateResource,
-                                  TaskInstanceExecuteObjectProcessor taskInstanceExecuteObjectProcessor) {
+                                  TaskInstanceExecuteObjectProcessor taskInstanceExecuteObjectProcessor,
+                                  RunningJobResourceQuotaManager runningJobResourceQuotaManager,
+                                  HostService hostService,
+                                  CustomPasswordCache customPasswordCache,
+                                  TenantService tenantService) {
         this.accountService = accountService;
         this.taskInstanceService = taskInstanceService;
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
@@ -197,12 +222,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
         this.taskTemplateResource = taskTemplateResource;
         this.taskInstanceExecuteObjectProcessor = taskInstanceExecuteObjectProcessor;
+        this.runningJobResourceQuotaManager = runningJobResourceQuotaManager;
+        this.hostService = hostService;
+        this.customPasswordCache = customPasswordCache;
+        this.tenantService = tenantService;
     }
 
     @Override
     public TaskInstanceDTO executeFastTask(FastTaskDTO fastTask) {
         // 设置脚本信息
-        checkAndSetScript(fastTask.getTaskInstance(), fastTask.getStepInstance());
+        checkAndSetScript(fastTask.getOperator().getTenantId(), fastTask.getTaskInstance(), fastTask.getStepInstance());
 
         StepInstanceDTO stepInstance = fastTask.getStepInstance();
 
@@ -243,18 +272,27 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private TaskInstanceDTO executeFastTaskInternal(FastTaskDTO fastTask) {
         log.info("Begin to execute fast task: {}", fastTask);
+
+        long appId = fastTask.getTaskInstance().getAppId();
         TaskInstanceDTO taskInstance = fastTask.getTaskInstance();
         StepInstanceDTO stepInstance = fastTask.getStepInstance();
 
         StopWatch watch = new StopWatch("executeFastTask");
-        // 检查任务是否应当被驱逐
-        checkTaskEvict(taskInstance);
-        standardizeStepDynamicGroupId(Collections.singletonList(stepInstance));
-        adjustStepTimeout(stepInstance);
         try {
+            watch.start("checkRunningJobQuoteLimit");
+            // 检查正在执行的作业配额限制
+            checkRunningJobQuotaLimit(appId, taskInstance.getAppCode());
+            watch.stop();
+
+            // 检查任务是否应当被驱逐
+            checkTaskEvict(taskInstance);
+
+            standardizeStepDynamicGroupId(Collections.singletonList(stepInstance));
+            adjustStepTimeout(stepInstance);
+
             // 设置账号信息
             watch.start("checkAndSetAccountInfo");
-            checkAndSetAccountInfo(stepInstance, taskInstance.getAppId());
+            checkAndSetAccountInfo(stepInstance, appId);
             watch.stop();
 
             // 处理执行对象
@@ -271,22 +309,37 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 鉴权
             watch.start("authFastExecute");
-            authFastExecute(taskInstance, stepInstance, taskInstanceExecuteObjects.getWhiteHostAllowActions());
+            authFastExecute(fastTask.getOperator(), taskInstance, stepInstance,
+                taskInstanceExecuteObjects.getWhiteHostAllowActions());
             watch.stop();
 
             // 保存作业
             saveTaskInstance(watch, fastTask, taskInstance, stepInstance);
 
-            // 启动作业
-            watch.start("startJob");
-            startTask(taskInstance.getId());
+            // 缓存目标主机密码
+            cacheTargetHostPwd(watch, fastTask, taskInstance, stepInstance);
+
+            // 记录操作日志
+            watch.start("saveOperationLog");
+            taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
+                fastTask.getStartTask() ? UserOperationEnum.START : UserOperationEnum.CREATE_JOB));
             watch.stop();
+
+            // 启动作业
+            if (fastTask.getStartTask()) {
+                watch.start("startJob");
+                startTask(taskInstance.getId());
+                watch.stop();
+            }
 
             // 审计
             Set<HostDTO> allHosts = taskInstanceExecuteObjectProcessor.extractHosts(
                 Collections.singletonList(stepInstance), null);
             taskInstance.setAllHosts(allHosts);
             auditFastJobExecute(taskInstance);
+
+            // 日志记录容器执行对象的作业，用于统计、分析
+            logContainerExecuteObjectJob(taskInstance, taskInstanceExecuteObjects);
 
             return taskInstance;
         } finally {
@@ -299,14 +352,165 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
+    /**
+     * 是否为windows账号
+     */
+    private boolean isWindowsAccount(Long accountId) {
+        AccountDTO accountDTO = accountService.getAccountById(accountId);
+        return accountDTO != null && accountDTO.isWindowsAccount();
+    }
+
+    /**
+     * 通过自定义密码列表查询真实的主机信息
+     */
+    private Collection<ServiceHostDTO> getRealHostsByCustomPwdList(
+        long appId,
+        List<EsbCustomHostPasswordDTO> customHostPasswordDTOList
+    ) {
+        List<HostDTO> queryHostDTOList = customHostPasswordDTOList.stream()
+            .map(dto -> new HostDTO(dto.getHostId(), dto.getCloudAreaId(), dto.getIp()))
+            .collect(Collectors.toList());
+
+        String tenantId = tenantService.getTenantIdByAppId(appId);
+        Map<HostDTO, ServiceHostDTO> hostDTOServiceHostDTOMap = hostService.batchGetHostsFromCacheOrDB(
+            tenantId,
+            queryHostDTOList
+        );
+
+        if (hostDTOServiceHostDTOMap.isEmpty()) {
+            log.info("The custom password is incorrect, no real host is found. queryList={}", queryHostDTOList);
+        }
+        Collection<ServiceHostDTO> serviceHostDTOs = hostDTOServiceHostDTOMap.values();
+        if (customHostPasswordDTOList.size() != serviceHostDTOs.size()) {
+            log.debug("Custom password size doesn't match actual host size, customList={}, actualList={}",
+                queryHostDTOList, serviceHostDTOs);
+        }
+        return serviceHostDTOs;
+    }
+
+
+    /**
+     * 给主机赋值密码
+     */
+    private List<AgentCustomPasswordDTO> setAgentCustomPwd(List<EsbCustomHostPasswordDTO> customPasswordDTOList,
+                                                           Collection<ServiceHostDTO> serviceHosts) {
+        // 构造原始主机密码列表映射关系，加快匹配
+        Map<Long, EsbCustomHostPasswordDTO> hostIdMap = customPasswordDTOList.stream()
+            .filter(dto -> dto.getHostId() != null)
+            .collect(Collectors.toMap(EsbCustomHostPasswordDTO::getHostId, dto -> dto, (oldVal, newVal) -> newVal));
+        Map<String, EsbCustomHostPasswordDTO> cloudIpMap = customPasswordDTOList.stream()
+            .filter(dto -> dto.getCloudIp() != null)
+            .collect(Collectors.toMap(EsbCustomHostPasswordDTO::getCloudIp, dto -> dto, (oldVal, newVal) -> newVal));
+
+        List<AgentCustomPasswordDTO> result = new ArrayList<>();
+        List<ServiceHostDTO> unmatchedHosts = new ArrayList<>();
+
+        for (ServiceHostDTO host : serviceHosts) {
+            // 优先hostId
+            EsbCustomHostPasswordDTO matched = hostIdMap.getOrDefault(host.getHostId(),
+                cloudIpMap.get(host.getCloudIp()));
+            if (matched != null) {
+                AgentCustomPasswordDTO dto = new AgentCustomPasswordDTO();
+                dto.setEncryptedPassword(matched.getEncryptedPassword());
+                dto.setAgentId(host.getAgentId());
+                dto.setCloudIp(host.getCloudIp());
+                dto.setHostId(host.getHostId());
+                result.add(dto);
+            } else {
+                unmatchedHosts.add(host);
+            }
+        }
+
+        log.info("Custom password collection size {}, actual matching password collection size {}.",
+            customPasswordDTOList.size(), result.size());
+        if (!unmatchedHosts.isEmpty()) {
+            log.debug("Some hosts have no matching password entries. Unmatched hosts: {}", unmatchedHosts);
+        }
+
+        return result;
+    }
+
+    /**
+     * 缓存用户传入的主机密码，后续执行任务使用
+     */
+    private void cacheTargetHostPwd(StopWatch watch,
+                                    FastTaskDTO fastTask,
+                                    TaskInstanceDTO taskInstance,
+                                    StepInstanceDTO stepInstanceDTO) {
+        List<EsbCustomHostPasswordDTO> customHostPasswordDTOList = fastTask.getHostPasswordList();
+        if (CollectionUtils.isEmpty(customHostPasswordDTOList)) {
+            return;
+        }
+
+        watch.start("cacheTargetHostPwd");
+        if (!isWindowsAccount(stepInstanceDTO.getAccountId())) {
+            log.debug("Not windows target host, no password is required, skip.");
+            return;
+        }
+
+        Collection<ServiceHostDTO> serviceHostDTOs = getRealHostsByCustomPwdList(
+            taskInstance.getAppId(),
+            customHostPasswordDTOList
+        );
+        List<AgentCustomPasswordDTO> agentCustomPasswordDTOList = setAgentCustomPwd(
+            customHostPasswordDTOList,
+            serviceHostDTOs
+        );
+        customPasswordCache.addCache(agentCustomPasswordDTOList, taskInstance);
+        watch.stop();
+    }
+
+    /*
+     * 对于包含容器执行对象的作业，输出日志用于统计、分析（后续版本删除）
+     */
+    private void logContainerExecuteObjectJob(TaskInstanceDTO taskInstance,
+                                              TaskInstanceExecuteObjects taskInstanceExecuteObjects) {
+        if (taskInstanceExecuteObjects.isContainsAnyContainer()) {
+            log.info("ContainerJobRecord -> resourceScope|{}|appCode|{}|jobInstanceId|{}|name|{}",
+                GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()).toResourceScopeUniqueId(),
+                StringUtils.isNotEmpty(taskInstance.getAppCode()) ? taskInstance.getAppCode() : "None",
+                taskInstance.getId(),
+                taskInstance.getName()
+            );
+        }
+    }
+
+    /*
+     * 检查正在执行的作业配额限制，防止单个业务占用所有的执行引擎调度资源
+     */
+    private void checkRunningJobQuotaLimit(Long appId, String appCode) {
+        ResourceScope resourceScope = GlobalAppScopeMappingService.get().getScopeByAppId(appId);
+        ResourceQuotaCheckResultEnum checkResult = runningJobResourceQuotaManager.checkResourceQuotaLimit(
+            appCode, resourceScope);
+        switch (checkResult) {
+            case NO_LIMIT:
+                break;
+            case RESOURCE_SCOPE_LIMIT:
+                log.warn("ResourceQuotaLimit-runningJob exceed resource scope quota limit, resourceScope: {}",
+                    resourceScope.toResourceScopeUniqueId());
+                throw new RunningJobQuotaLimitExceedException(ErrorCode.RUNNING_JOB_EXCEED_RESOURCE_SCOPE_QUOTA_LIMIT);
+            case APP_LIMIT:
+                log.warn("ResourceQuotaLimit-runningJob exceed app quota limit, appCode: {}", appCode);
+                throw new RunningJobQuotaLimitExceedException(ErrorCode.RUNNING_JOB_EXCEED_APP_QUOTA_LIMIT);
+            case SYSTEM_LIMIT:
+                log.warn("ResourceQuotaLimit-runningJob exceed system quota limit, resourceScope: {}, appCode: {}",
+                    resourceScope.toResourceScopeUniqueId(), appCode);
+                throw new RunningJobQuotaLimitExceedException(ErrorCode.RUNNING_JOB_EXCEED_SYSTEM_QUOTA_LIMIT);
+        }
+    }
+
     private void saveTaskInstance(StopWatch watch,
                                   FastTaskDTO fastTask,
                                   TaskInstanceDTO taskInstance,
                                   StepInstanceDTO stepInstance) {
         // 保存作业、步骤实例
         watch.start("saveInstance");
-        Long taskInstanceId = taskInstanceService.addTaskInstance(taskInstance);
+        long taskInstanceId = taskInstanceService.addTaskInstance(taskInstance);
         taskInstance.setId(taskInstanceId);
+
+        // 添加作业执行上下文，用于全局共享、传播上下文信息
+        addJobInstanceContext(taskInstance);
+
         stepInstance.setTaskInstanceId(taskInstanceId);
         stepInstance.setStepNum(1);
         stepInstance.setStepOrder(1);
@@ -317,7 +521,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 保存作业实例与主机的关系，优化根据主机检索作业执行历史的效率
         watch.start("saveTaskInstanceHosts");
-        saveTaskInstanceHosts(taskInstanceId, Collections.singletonList(stepInstance));
+        saveTaskInstanceHosts(taskInstance.getAppId(), taskInstanceId, Collections.singletonList(stepInstance));
         watch.stop();
 
         // 保存滚动配置
@@ -325,15 +529,27 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             watch.start("saveRollingConfig");
             RollingConfigDTO rollingConfig = rollingConfigService.saveRollingConfigForFastJob(fastTask);
             long rollingConfigId = rollingConfig.getId();
-            stepInstanceService.updateStepRollingConfigId(stepInstanceId, rollingConfigId);
+            stepInstanceService.updateStepRollingConfigId(taskInstanceId, stepInstanceId, rollingConfigId);
             watch.stop();
         }
 
-        // 记录操作日志
-        watch.start("saveOperationLog");
-        taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
-            UserOperationEnum.START));
+        // 记录到当前正在运行的任务存储中，用于配额限制
+        watch.start("addRunningJobResourceQuota");
+        runningJobResourceQuotaManager.addJob(
+            taskInstance.getAppCode(),
+            GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
+            taskInstanceId
+        );
         watch.stop();
+    }
+
+    private void addJobInstanceContext(TaskInstanceDTO taskInstance) {
+        JobExecuteContext jobExecuteContext = JobExecuteContextThreadLocalRepo.get();
+        if (jobExecuteContext != null) {
+            JobInstanceContext jobInstanceContext = new JobInstanceContext(taskInstance.getId());
+            jobExecuteContext.setJobInstanceContext(jobInstanceContext);
+            JobExecuteContextThreadLocalRepo.set(jobExecuteContext);
+        }
     }
 
     private void auditFastJobExecute(TaskInstanceDTO taskInstance) {
@@ -382,17 +598,18 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             .addExtendData(JobAuditExtendDataKeys.JOB_INSTANCE_ID, taskInstance.getId());
     }
 
-    private void saveTaskInstanceHosts(long taskInstanceId,
+    private void saveTaskInstanceHosts(long appId,
+                                       long taskInstanceId,
                                        List<StepInstanceDTO> stepInstanceList) {
         Set<HostDTO> stepHosts = taskInstanceExecuteObjectProcessor.extractHosts(stepInstanceList, null);
-        saveTaskInstanceHosts(taskInstanceId, stepHosts);
+        saveTaskInstanceHosts(appId, taskInstanceId, stepHosts);
     }
 
-    private void saveTaskInstanceHosts(long taskInstanceId, Collection<HostDTO> hosts) {
+    private void saveTaskInstanceHosts(long appId, long taskInstanceId, Collection<HostDTO> hosts) {
         if (CollectionUtils.isEmpty(hosts)) {
             return;
         }
-        taskInstanceService.saveTaskInstanceHosts(taskInstanceId, hosts);
+        taskInstanceService.saveTaskInstanceHosts(appId, taskInstanceId, hosts);
     }
 
     private void checkTaskEvict(TaskInstanceDTO taskInstance) {
@@ -407,7 +624,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
      * @param stepInstance 步骤
      */
     private void adjustStepTimeout(StepInstanceDTO stepInstance) {
-        stepInstance.setTimeout(TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout()));
+        stepInstance.setTimeout(TimeoutUtils.adjustTaskTimeout(stepInstance.getAppId(), stepInstance.getTimeout()));
     }
 
     private void checkAndSetAccountInfo(StepInstanceDTO stepInstance,
@@ -501,7 +718,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private void checkAndSetScript(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance) {
+    private void checkAndSetScript(String tenantId, TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance) {
         long appId = taskInstance.getAppId();
         ServiceScriptDTO script = null;
         if (stepInstance.isScriptStep()) {
@@ -537,7 +754,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             }
         }
         // 检查高危脚本
-        checkScriptMatchDangerousRule(taskInstance, stepInstance);
+        checkScriptMatchDangerousRule(tenantId, taskInstance, stepInstance);
     }
 
     private void checkScriptExist(long appId, StepInstanceDTO stepInstance, ServiceScriptDTO script) {
@@ -566,21 +783,23 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private void checkScriptMatchDangerousRule(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance) {
+    private void checkScriptMatchDangerousRule(String tenantId,
+                                               TaskInstanceDTO taskInstance,
+                                               StepInstanceDTO stepInstance) {
         if (!stepInstance.isScriptStep()) {
             return;
         }
 
         String content = stepInstance.getScriptContent();
         List<ServiceScriptCheckResultItemDTO> checkResultItems =
-            dangerousScriptCheckService.check(stepInstance.getScriptType(), content);
+            dangerousScriptCheckService.check(tenantId, stepInstance.getScriptType(), content);
         if (CollectionUtils.isNotEmpty(checkResultItems)) {
             String checkResultSummary =
                 dangerousScriptCheckService.summaryDangerousScriptCheckResult(stepInstance.getName(), checkResultItems);
             if (StringUtils.isNotBlank(checkResultSummary)) {
                 log.info("Script match dangerous rule, checkResult: {}", checkResultItems);
                 dangerousScriptCheckService.saveDangerousRecord(taskInstance, stepInstance, checkResultItems);
-                if (dangerousScriptCheckService.shouldIntercept(checkResultItems)) {
+                if (dangerousScriptCheckService.shouldIntercept(tenantId, checkResultItems)) {
                     throw new AbortedException(ErrorCode.DANGEROUS_SCRIPT_FORBIDDEN_EXECUTION,
                         ArrayUtil.toArray(checkResultSummary));
                 }
@@ -588,21 +807,23 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private void batchCheckScriptMatchDangerousRule(TaskInstanceDTO taskInstance,
+    private void batchCheckScriptMatchDangerousRule(String tenantId,
+                                                    TaskInstanceDTO taskInstance,
                                                     List<StepInstanceDTO> stepInstanceList) {
-        stepInstanceList.forEach(stepInstance -> checkScriptMatchDangerousRule(taskInstance, stepInstance));
+        stepInstanceList.forEach(stepInstance -> checkScriptMatchDangerousRule(tenantId, taskInstance, stepInstance));
     }
 
-    private void authFastExecute(TaskInstanceDTO taskInstance,
+    private void authFastExecute(User operator,
+                                 TaskInstanceDTO taskInstance,
                                  StepInstanceDTO stepInstance,
                                  Map<Long, List<String>> whiteHostAllowActions) {
         AuthResult authResult;
         if (stepInstance.isScriptStep()) {
             // 鉴权脚本任务
-            authResult = authExecuteScript(taskInstance, stepInstance, whiteHostAllowActions);
+            authResult = authExecuteScript(operator, taskInstance, stepInstance, whiteHostAllowActions);
         } else {
             // 鉴权文件任务
-            authResult = authFileTransfer(taskInstance, stepInstance, whiteHostAllowActions);
+            authResult = authFileTransfer(operator, taskInstance, stepInstance, whiteHostAllowActions);
         }
 
         if (!authResult.isPass()) {
@@ -610,11 +831,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private AuthResult authExecuteScript(TaskInstanceDTO taskInstance,
+    private AuthResult authExecuteScript(User user,
+                                         TaskInstanceDTO taskInstance,
                                          StepInstanceDTO stepInstance,
                                          Map<Long, List<String>> whiteHostAllowActions) {
         Long appId = taskInstance.getAppId();
-        String username = taskInstance.getOperator();
         Long accountId = null;
         if (StepExecuteTypeEnum.EXECUTE_SCRIPT == stepInstance.getExecuteType()) {
             accountId = stepInstance.getAccountId();
@@ -622,10 +843,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             accountId = stepInstance.getDbAccountId();
         }
         if (accountId == null) {
-            return AuthResult.fail();
+            return AuthResult.fail(user);
         }
 
-        AuthResult accountAuthResult = executeAuthService.authAccountExecutable(username,
+        AuthResult accountAuthResult = executeAuthService.authAccountExecutable(user,
             new AppResourceScope(appId), accountId);
 
         AuthResult serverAuthResult;
@@ -639,17 +860,17 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         if (scriptSource == ScriptSourceEnum.CUSTOM) {
             // 快速执行脚本鉴权
             serverAuthResult = executeAuthService.authFastExecuteScript(
-                username, new AppResourceScope(appId), executeObjects);
+                user, new AppResourceScope(appId), executeObjects);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_APP) {
             serverAuthResult = executeAuthService.authExecuteAppScript(
-                username, new AppResourceScope(appId), stepInstance.getScriptId(),
+                user, new AppResourceScope(appId), stepInstance.getScriptId(),
                 stepInstance.getScriptName(), executeObjects);
         } else if (scriptSource == ScriptSourceEnum.QUOTED_PUBLIC) {
             serverAuthResult = executeAuthService.authExecutePublicScript(
-                username, new AppResourceScope(appId), stepInstance.getScriptId(),
+                user, new AppResourceScope(appId), stepInstance.getScriptId(),
                 stepInstance.getScriptName(), executeObjects);
         } else {
-            serverAuthResult = AuthResult.fail();
+            serverAuthResult = AuthResult.fail(user);
         }
 
         return accountAuthResult.mergeAuthResult(serverAuthResult);
@@ -678,10 +899,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private AuthResult authFileTransfer(TaskInstanceDTO taskInstance,
+    private AuthResult authFileTransfer(User operator,
+                                        TaskInstanceDTO taskInstance,
                                         StepInstanceDTO stepInstance,
                                         Map<Long, List<String>> whiteHostAllowActions) {
-        String username = taskInstance.getOperator();
         Long appId = taskInstance.getAppId();
 
         Set<Long> accounts = new HashSet<>();
@@ -691,7 +912,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             .forEach(fileSource -> accounts.add(fileSource.getAccountId()));
 
         AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
-            username, new AppResourceScope(appId), accounts);
+            operator, new AppResourceScope(appId), accounts);
 
         ExecuteTargetDTO executeTarget = stepInstance.getTargetExecuteObjects().clone();
         stepInstance.getFileSourceList().stream()
@@ -706,7 +927,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         AuthResult serverAuthResult = executeAuthService.authFastPushFile(
-            username, new AppResourceScope(appId), executeTarget);
+            operator, new AppResourceScope(appId), executeTarget);
 
         return accountAuthResult.mergeAuthResult(serverAuthResult);
     }
@@ -728,7 +949,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 // 远程文件分发需要判断文件源主机是否为空
                 if (TaskFileTypeEnum.SERVER.getType() == fileSource.getFileType()) {
                     ExecuteTargetDTO executeTarget = fileSource.getServers();
-                    if (executeTarget != null && CollectionUtils.isEmpty(executeTarget.getExecuteObjectsCompatibly())) {
+                    if (executeTarget == null
+                        || CollectionUtils.isEmpty(executeTarget.getExecuteObjectsCompatibly())) {
                         log.warn("Empty file source server, stepInstanceName: {}", stepInstance.getName());
                         throw new FailedPreconditionException(ErrorCode.STEP_SOURCE_EXECUTE_OBJECT_EMPTY,
                             new String[]{stepInstance.getName()});
@@ -779,16 +1001,16 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                         new Integer[]{jobExecuteConfig.getFileTasksMax()});
                 }
             } else if (stepInstance.isScriptStep()) {
-                int targetServerSize = stepInstance.getTargetExecuteObjectCount();
-                if (targetServerSize > 10000) {
+                int targetExecuteObjectSize = stepInstance.getTargetExecuteObjectCount();
+                if (targetExecuteObjectSize > 10000) {
                     TASK_MONITOR_LOGGER.info("LargeTask|type:script|taskName:{}|appCode:{}|appId:{}|operator:{}"
-                            + "|targetServerSize:{}",
-                        taskName, appCode, appId, operator, targetServerSize);
+                            + "|targetExecuteObjectSize:{}",
+                        taskName, appCode, appId, operator, targetExecuteObjectSize);
                 }
-                if (targetServerSize > jobExecuteConfig.getScriptTaskMaxTargetServer()) {
+                if (targetExecuteObjectSize > jobExecuteConfig.getScriptTaskMaxTargetServer()) {
                     log.info("Reject large task|type:file|taskName:{}|appCode:{}|appId:{}|operator" +
-                            ":{}|targetServerSize:{}|maxAllowedSize:{}", taskName, appCode, appId, operator,
-                        targetServerSize, jobExecuteConfig.getScriptTaskMaxTargetServer());
+                            ":{}|targetExecuteObjectSize:{}|maxAllowedSize:{}", taskName, appCode, appId, operator,
+                        targetExecuteObjectSize, jobExecuteConfig.getScriptTaskMaxTargetServer());
                     throw new ResourceExhaustedException(ErrorCode.SCRIPT_TASK_TARGET_SERVER_EXCEEDS_LIMIT,
                         new Integer[]{jobExecuteConfig.getScriptTaskMaxTargetServer()});
                 }
@@ -801,7 +1023,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         TaskInstanceDTO taskInstance = fastTask.getTaskInstance();
         StepInstanceDTO stepInstance = fastTask.getStepInstance();
         long taskInstanceId = taskInstance.getId();
-        if (StringUtils.isNotEmpty(stepInstance.getScriptParam()) && stepInstance.getScriptParam().equals("******")) {
+        if (StringUtils.isNotEmpty(stepInstance.getScriptParam())
+            && stepInstance.getScriptParam().equals(JobConstants.SENSITIVE_FIELD_PLACEHOLDER)) {
             // 重做快速任务，如果是敏感参数，并且用户未修改脚本参数值(******为与前端的约定，表示用户未修改脚本参数值)，需要从原始任务取值
             StepInstanceDTO originStepInstance = stepInstanceService.getStepInstanceByTaskInstanceId(taskInstanceId);
             if (originStepInstance == null) {
@@ -858,8 +1081,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
     private TaskInstanceDTO executeJobPlanInternal(StopWatch watch, TaskExecuteParam executeParam, TaskInfo taskInfo) {
         try {
-            ServiceTaskPlanDTO jobPlan = taskInfo.getJobPlan();
+            // 检查正在执行的作业配额限制
             TaskInstanceDTO taskInstance = taskInfo.getTaskInstance();
+            watch.start("checkRunningJobQuoteLimit");
+            checkRunningJobQuotaLimit(taskInstance.getAppId(), taskInstance.getAppCode());
+            watch.stop();
+
+            ServiceTaskPlanDTO jobPlan = taskInfo.getJobPlan();
             taskInstance.setPlan(jobPlan);
             List<StepInstanceDTO> stepInstanceList = taskInfo.getStepInstances();
             taskInstance.setStepInstances(stepInstanceList);
@@ -871,7 +1099,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 检查高危脚本
             watch.start("checkDangerousScript");
-            batchCheckScriptMatchDangerousRule(taskInstance, stepInstanceList);
+            batchCheckScriptMatchDangerousRule(
+                executeParam.getOperator().getTenantId(),
+                taskInstance,
+                stepInstanceList
+            );
             watch.stop();
 
             // 处理执行对象
@@ -904,18 +1136,24 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
             // 保存作业实例与主机的关系，优化根据主机检索作业执行历史的效率
             watch.start("saveTaskInstanceHosts");
-            saveTaskInstanceHosts(taskInstance.getId(), allHosts);
+            saveTaskInstanceHosts(taskInstance.getAppId(), taskInstance.getId(), allHosts);
             watch.stop();
 
+            // 记录操作日志
             watch.start("saveOperationLog");
             taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
-                UserOperationEnum.START));
+                executeParam.getStartTask() ? UserOperationEnum.START : UserOperationEnum.CREATE_JOB));
             watch.stop();
 
             // 启动作业
-            watch.start("startJob");
-            startTask(taskInstance.getId());
-            watch.stop();
+            if (executeParam.getStartTask()) {
+                watch.start("startJob");
+                startTask(taskInstance.getId());
+                watch.stop();
+            }
+
+            // 日志记录容器执行对象的作业，用于统计、分析
+            logContainerExecuteObjectJob(taskInstance, taskInstanceExecuteObjects);
 
             return taskInstance;
         } finally {
@@ -972,7 +1210,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     private TaskInfo buildTaskInfoFromExecuteParam(TaskExecuteParam executeParam, StopWatch watch) {
         Long appId = executeParam.getAppId();
         Long planId = executeParam.getPlanId();
-        String operator = executeParam.getOperator();
+        User operator = executeParam.getOperator();
         log.info("Create task instance for task, appId={}, planId={}, operator={}, variables={}", appId, planId,
             operator, executeParam.getExecuteVariableValues());
         watch.start("getPlan");
@@ -1000,7 +1238,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         List<StepInstanceDTO> stepInstanceList = new ArrayList<>();
         for (ServiceTaskStepDTO step : taskPlan.getStepList()) {
             StepExecuteTypeEnum executeType = getExecuteTypeFromTaskStepType(step);
-            StepInstanceDTO stepInstance = createCommonStepInstanceDTO(appId, operator, step.getId(),
+            StepInstanceDTO stepInstance = createCommonStepInstanceDTO(appId, operator.getUsername(), step.getId(),
                 step.getName(), executeType);
             TaskStepTypeEnum stepType = TaskStepTypeEnum.valueOf(step.getType());
             switch (stepType) {
@@ -1022,7 +1260,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return new TaskInfo(taskInstance, stepInstanceList, finalVariableValueMap, taskPlan);
     }
 
-    private void authExecuteJobPlan(String username, long appId, ServiceTaskPlanDTO plan,
+    private void authExecuteJobPlan(User user,
+                                    long appId,
+                                    ServiceTaskPlanDTO plan,
                                     List<StepInstanceDTO> stepInstanceList,
                                     Map<Long, List<String>> whiteHostAllowActions) throws PermissionDeniedException {
         boolean needAuth = stepInstanceList.stream()
@@ -1046,7 +1286,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 账号使用鉴权
         AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
-            username, new AppResourceScope(appId), accountIds);
+            user, new AppResourceScope(appId), accountIds);
 
         AuthResult authResult;
         if (authServers.isEmpty()) {
@@ -1058,11 +1298,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             if (isDebugTask) {
                 // 鉴权模板调试
                 serverAuthResult = executeAuthService.authDebugTemplate(
-                    username, new AppResourceScope(appId), plan.getTaskTemplateId(), authServers);
+                    user, new AppResourceScope(appId), plan.getTaskTemplateId(), authServers);
             } else {
                 // 鉴权执行方案的执行
                 serverAuthResult = executeAuthService.authExecutePlan(
-                    username, new AppResourceScope(appId), plan.getTaskTemplateId(),
+                    user, new AppResourceScope(appId), plan.getTaskTemplateId(),
                     plan.getId(), plan.getName(), authServers);
             }
             authResult = accountAuthResult.mergeAuthResult(serverAuthResult);
@@ -1088,8 +1328,12 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 whiteHostAllowActions);
             authServers.merge(stepTargetServers);
             if (!CollectionUtils.isEmpty(stepInstance.getFileSourceList())) {
-                stepInstance.getFileSourceList().stream().filter(fileSource -> !fileSource.isLocalUpload())
+                stepInstance.getFileSourceList().stream()
+                    .filter(fileSource -> !fileSource.isLocalUpload())
                     .forEach(fileSource -> {
+                            if (fileSource.getServers() == null) {
+                                return;
+                            }
                             ExecuteTargetDTO stepFileSourceServers = fileSource.getServers().clone();
                             filterHostsDoNotRequireAuth(ActionScopeEnum.FILE_DISTRIBUTION, stepFileSourceServers,
                                 whiteHostAllowActions);
@@ -1108,7 +1352,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return Pair.of(authServers, accountIds);
     }
 
-    private void authRedoJob(String username, long appId, TaskInstanceDTO taskInstance,
+    private void authRedoJob(User user,
+                             long appId,
+                             TaskInstanceDTO taskInstance,
                              Map<Long, List<String>> whiteHostAllowActions) {
         Integer taskType = taskInstance.getType();
         if (taskType.equals(TaskTypeEnum.NORMAL.getValue())
@@ -1121,7 +1367,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     taskInstance.getPlanId());
                 throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
             }
-            authExecuteJobPlan(username, appId, serviceTaskPlanDTO, taskInstance.getStepInstances(),
+            authExecuteJobPlan(user, appId, serviceTaskPlanDTO, taskInstance.getStepInstances(),
                 whiteHostAllowActions);
         } else if (taskType.equals(TaskTypeEnum.SCRIPT.getValue())) {
             // 快速执行脚本鉴权
@@ -1133,14 +1379,14 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                     scriptStepInstance.setScriptName(script.getName());
                 }
             }
-            authFastExecute(taskInstance, scriptStepInstance, whiteHostAllowActions);
+            authFastExecute(user, taskInstance, scriptStepInstance, whiteHostAllowActions);
         } else if (taskType.equals(TaskTypeEnum.FILE.getValue())) {
             // 快速分发文件鉴权
             StepInstanceDTO fileStepInstance = taskInstance.getStepInstances().get(0);
-            authFastExecute(taskInstance, fileStepInstance, whiteHostAllowActions);
+            authFastExecute(user, taskInstance, fileStepInstance, whiteHostAllowActions);
         } else {
             log.warn("Auth fail because of invalid task type!");
-            throw new PermissionDeniedException(AuthResult.fail());
+            throw new PermissionDeniedException(AuthResult.fail(user));
         }
     }
 
@@ -1178,7 +1424,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
         taskInstance.setStatus(RunStatusEnum.BLANK);
         taskInstance.setCreateTime(DateUtils.currentTimeMillis());
-        taskInstance.setOperator(executeParam.getOperator());
+        taskInstance.setOperator(executeParam.getOperator().getUsername());
         String taskName = StringUtils.isBlank(executeParam.getTaskName()) ? taskPlan.getName() :
             executeParam.getTaskName();
         taskInstance.setName(taskName);
@@ -1205,8 +1451,10 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return stepInstance;
     }
 
-    public TaskInstanceDTO createTaskInstanceForRedo(Long appId, Long taskInstanceId, String operator,
-                                                     List<TaskVariableDTO> executeVariableValues) throws ServiceException {
+    public TaskInstanceDTO redoJob(Long appId,
+                                   Long taskInstanceId,
+                                   User operator,
+                                   List<TaskVariableDTO> executeVariableValues) {
         log.info("Create task instance for redo, appId={}, taskInstanceId={}, operator={}, variables={}", appId,
             taskInstanceId, operator, executeVariableValues);
         TaskInstanceDTO originTaskInstance = taskInstanceService.getTaskInstanceDetail(taskInstanceId);
@@ -1216,7 +1464,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
 
-        TaskInstanceDTO taskInstance = createTaskInstanceForRedo(originTaskInstance, operator);
+        TaskInstanceDTO taskInstance = createTaskInstanceForRedo(originTaskInstance, operator.getUsername());
 
         Map<String, TaskVariableDTO> finalVariableValueMap = buildFinalTaskVariableValues(
             originTaskInstance.getVariables(), executeVariableValues);
@@ -1230,7 +1478,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         List<StepInstanceDTO> stepInstanceList = new ArrayList<>();
         for (StepInstanceDTO originStepInstance : originTaskInstance.getStepInstances()) {
             StepExecuteTypeEnum executeType = originStepInstance.getExecuteType();
-            StepInstanceDTO stepInstance = createCommonStepInstanceDTO(appId, operator,
+            StepInstanceDTO stepInstance = createCommonStepInstanceDTO(appId, operator.getUsername(),
                 originStepInstance.getStepId(), originStepInstance.getName(), executeType);
             TaskStepTypeEnum stepType = StepTypeExecuteTypeConverter.convertToStepType(executeType);
             switch (stepType) {
@@ -1248,7 +1496,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
 
         // 检查高危脚本
-        batchCheckScriptMatchDangerousRule(taskInstance, stepInstanceList);
+        batchCheckScriptMatchDangerousRule(operator.getTenantId(), taskInstance, stepInstanceList);
 
         // 处理执行对象
         TaskInstanceExecuteObjects taskInstanceExecuteObjects =
@@ -1262,7 +1510,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         saveTaskInstance(taskInstance, stepInstanceList, finalVariableValueMap);
 
-        saveTaskInstanceHosts(taskInstance.getId(), taskInstance.getStepInstances());
+        saveTaskInstanceHosts(taskInstance.getAppId(), taskInstance.getId(), taskInstance.getStepInstances());
 
         taskOperationLogService.saveOperationLog(buildTaskOperationLog(taskInstance, taskInstance.getOperator(),
             UserOperationEnum.START));
@@ -1290,8 +1538,9 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         return taskInstance;
     }
 
-    private void saveTaskInstance(TaskInstanceDTO taskInstance, List<StepInstanceDTO> stepInstances,
-                                  Map<String, TaskVariableDTO> taskVariablesMap) throws ServiceException {
+    private void saveTaskInstance(TaskInstanceDTO taskInstance,
+                                  List<StepInstanceDTO> stepInstances,
+                                  Map<String, TaskVariableDTO> taskVariablesMap) {
         // 保存TaskInstance
         long newTaskInstanceId = taskInstanceService.addTaskInstance(taskInstance);
         taskInstance.setId(newTaskInstanceId);
@@ -1316,6 +1565,13 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             taskInstanceVariableService.saveTaskInstanceVariables(taskVariables);
             taskInstance.setVariables(taskVariables);
         }
+
+        // 记录到当前正在运行的任务存储中，用于配额限制
+        runningJobResourceQuotaManager.addJob(
+            taskInstance.getAppCode(),
+            GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
+            taskInstance.getId()
+        );
         log.info("Save taskInstance successfully! taskInstanceId: {}", taskInstance.getId());
     }
 
@@ -1446,6 +1702,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         } else {
             stepInstance.setAccountId(accountInfo.getId());
             stepInstance.setAccount(accountInfo.getAccount());
+            stepInstance.setWindowsInterpreter(scriptStepInfo.getWindowsInterpreter());
         }
 
         ServiceTaskTargetDTO target = scriptStepInfo.getExecuteTarget();
@@ -1500,7 +1757,6 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 fileSource.setFiles(fileList);
             } else if (originFile.getFileType() == TaskFileTypeEnum.FILE_SOURCE.getType()) {
                 fileSource.setLocalUpload(false);
-                fileSource.setServers(ExecuteTargetDTO.emptyInstance());
                 // 文件源文件只需要fileSourceId与文件路径
                 List<FileDetailDTO> fileList = new ArrayList<>();
                 originFile.getFileLocation().forEach(fileLocation -> fileList.add(new FileDetailDTO(fileLocation)));
@@ -1689,48 +1945,48 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     @Override
-    public Integer doStepOperation(Long appId, String operator,
-                                   StepOperationDTO stepOperation) throws ServiceException {
+    public Integer doStepOperation(Long appId,
+                                   User operator,
+                                   StepOperationDTO stepOperation) {
         long stepInstanceId = stepOperation.getStepInstanceId();
         StepOperationEnum operation = stepOperation.getOperation();
+
         log.info("Operate step, appId:{}, stepInstanceId:{}, operator:{}, operation:{}", appId, stepInstanceId,
             operator, operation.getValue());
-        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
-        if (stepInstance == null) {
-            log.warn("Step instance {} is not exist", stepInstanceId);
-            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
-        }
-        if (!stepInstance.getAppId().equals(appId)) {
-            log.warn("Step instance {} is not in app:{}", stepInstance, appId);
-            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
-        }
+
+        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(appId, stepOperation.getTaskInstanceId());
+        addJobInstanceContext(taskInstance);
+
+        StepInstanceDTO stepInstance = queryStepInstanceAndCheckExist(
+            appId, stepOperation.getTaskInstanceId(), stepInstanceId);
+
         int executeCount = stepInstance.getExecuteCount();
         switch (operation) {
             case CONFIRM_CONTINUE:
-                confirmContinue(stepInstance, operator, stepOperation.getConfirmReason());
+                confirmContinue(stepInstance, operator.getUsername(), stepOperation.getConfirmReason());
                 break;
             case RETRY_FAIL_IP:
-                retryStepFail(stepInstance, operator);
+                retryStepFail(taskInstance, stepInstance, operator.getUsername());
                 executeCount++;
                 break;
             case IGNORE_ERROR:
-                ignoreError(stepInstance, operator);
+                ignoreError(taskInstance, stepInstance, operator.getUsername());
                 break;
             case RETRY_ALL_IP:
-                retryStepAll(stepInstance, operator);
+                retryStepAll(taskInstance, stepInstance, operator.getUsername());
                 executeCount++;
                 break;
             case CONFIRM_TERMINATE:
-                confirmTerminate(stepInstance, operator, stepOperation.getConfirmReason());
+                confirmTerminate(stepInstance, operator.getUsername(), stepOperation.getConfirmReason());
                 break;
             case CONFIRM_RESTART:
-                confirmRestart(stepInstance, operator);
+                confirmRestart(stepInstance, operator.getUsername());
                 break;
             case NEXT_STEP:
-                nextStep(stepInstance, operator);
+                nextStep(taskInstance, stepInstance, operator.getUsername());
                 break;
             case SKIP:
-                skipStep(stepInstance, operator);
+                skipStep(taskInstance, stepInstance, operator.getUsername());
                 break;
             case ROLLING_CONTINUE:
                 continueRolling(stepInstance);
@@ -1740,6 +1996,29 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 break;
         }
         return executeCount;
+    }
+
+    private TaskInstanceDTO queryTaskInstanceAndCheckExist(long appId, long taskInstanceId) {
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
+        if (taskInstance == null || !taskInstance.getAppId().equals(appId)) {
+            log.warn("Task instance is not exist, appId:{}, taskInstanceId:{}", appId, taskInstance);
+            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
+        }
+        return taskInstance;
+    }
+
+    private StepInstanceDTO queryStepInstanceAndCheckExist(long appId, long taskInstanceId, long stepInstanceId) {
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
+            taskInstanceId, stepInstanceId);
+        if (stepInstance == null) {
+            log.warn("Step instance {} is not exist", stepInstanceId);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+        }
+        if (!stepInstance.getAppId().equals(appId)) {
+            log.warn("Step instance {} is not in app:{}", stepInstance, appId);
+            throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
+        }
+        return stepInstance;
     }
 
     private void continueRolling(StepInstanceDTO stepInstance) {
@@ -1757,8 +2036,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getId(),
-            stepInstance.getBatch() + 1));
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.startStep(stepInstance.getTaskInstanceId(),
+            stepInstance.getId(), stepInstance.getBatch() + 1));
     }
 
     private void confirmTerminate(StepInstanceDTO stepInstance, String operator, String reason) {
@@ -1781,10 +2060,11 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         operationLog.getDetail().setConfirmReason(reason);
         taskOperationLogService.saveOperationLog(operationLog);
 
-        stepInstanceService.updateConfirmReason(stepInstance.getId(), reason);
-        stepInstanceService.updateStepOperator(stepInstance.getId(), operator);
+        stepInstanceService.updateConfirmReason(stepInstance.getTaskInstanceId(), stepInstance.getId(), reason);
+        stepInstanceService.updateStepOperator(stepInstance.getTaskInstanceId(), stepInstance.getId(), operator);
 
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.confirmStepTerminate(stepInstance.getId()));
+        taskExecuteMQEventDispatcher.dispatchStepEvent(
+            StepEvent.confirmStepTerminate(stepInstance.getTaskInstanceId(), stepInstance.getId()));
     }
 
     private void confirmRestart(StepInstanceDTO stepInstance, String operator) {
@@ -1801,7 +2081,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
         taskOperationLogService.saveOperationLog(buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.CONFIRM_RESTART));
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.confirmStepRestart(stepInstance.getId()));
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.confirmStepRestart(
+            stepInstance.getTaskInstanceId(), stepInstance.getId()));
     }
 
     private void checkConfirmUser(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance,
@@ -1876,56 +2157,75 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         operationLog.getDetail().setConfirmReason(reason);
         taskOperationLogService.saveOperationLog(operationLog);
 
-        stepInstanceService.updateConfirmReason(stepInstance.getId(), reason);
-        stepInstanceService.updateStepOperator(stepInstance.getId(), operator);
+        stepInstanceService.updateConfirmReason(stepInstance.getTaskInstanceId(), stepInstance.getId(), reason);
+        stepInstanceService.updateStepOperator(stepInstance.getTaskInstanceId(), stepInstance.getId(), operator);
 
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.RUNNING.getValue());
 
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.confirmStepContinue(stepInstance.getId()));
+        taskExecuteMQEventDispatcher.dispatchStepEvent(
+            StepEvent.confirmStepContinue(stepInstance.getTaskInstanceId(), stepInstance.getId()));
     }
 
-    private void nextStep(StepInstanceDTO stepInstance, String operator) {
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
+    private void nextStep(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance, String operator) {
         // 只有"终止成功"状态的任务，可以直接进入下一步
         if (RunStatusEnum.STOP_SUCCESS != stepInstance.getStatus()) {
             log.warn("Unsupported operation, stepInstanceId: {}, operation: {}, stepStatus: {}",
                 stepInstance.getId(), StepOperationEnum.NEXT_STEP.name(), stepInstance.getStatus().name());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
+        runningJobResourceQuotaManager.addJob(
+            taskInstance.getAppCode(),
+            GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
+            taskInstance.getId()
+        );
         taskOperationLogService.saveOperationLog(buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.NEXT_STEP));
 
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(taskInstance.getId(), RunStatusEnum.RUNNING.getValue());
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.nextStep(stepInstance.getId()));
+        taskExecuteMQEventDispatcher.dispatchStepEvent(
+            StepEvent.nextStep(stepInstance.getTaskInstanceId(), stepInstance.getId()));
     }
 
-    private void retryStepFail(StepInstanceDTO stepInstance, String operator) {
+    private void retryStepFail(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance, String operator) {
         if (!isStepRetryable(stepInstance.getStatus())) {
             log.warn("Unsupported operation, stepInstanceId: {}, operation: {}, stepStatus: {}",
                 stepInstance.getId(), StepOperationEnum.RETRY_FAIL_IP.name(), stepInstance.getStatus().name());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
+        runningJobResourceQuotaManager.addJob(
+            taskInstance.getAppCode(),
+            GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
+            taskInstance.getId()
+        );
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
-        stepInstanceService.addStepInstanceExecuteCount(stepInstance.getId());
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.retryStepFail(stepInstance.getId()));
+        stepInstanceService.addStepInstanceExecuteCount(
+            stepInstance.getTaskInstanceId(), stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.retryStepFail(stepInstance.getTaskInstanceId(),
+            stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.RETRY_STEP_FAIL);
         taskOperationLogService.saveOperationLog(operationLog);
     }
 
-    private void retryStepAll(StepInstanceDTO stepInstance, String operator) {
+    private void retryStepAll(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance, String operator) {
         if (!isStepRetryable(stepInstance.getStatus())) {
             log.warn("Unsupported operation, stepInstanceId: {}, operation: {}, stepStatus: {}",
                 stepInstance.getId(), StepOperationEnum.RETRY_ALL_IP.name(), stepInstance.getStatus().name());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
+        runningJobResourceQuotaManager.addJob(
+            taskInstance.getAppCode(),
+            GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
+            taskInstance.getId()
+        );
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
-        stepInstanceService.addStepInstanceExecuteCount(stepInstance.getId());
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.retryStepAll(stepInstance.getId()));
+        stepInstanceService.addStepInstanceExecuteCount(stepInstance.getTaskInstanceId(), stepInstance.getId());
+        taskExecuteMQEventDispatcher.dispatchStepEvent(
+            StepEvent.retryStepAll(stepInstance.getTaskInstanceId(), stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.RETRY_STEP_ALL);
         taskOperationLogService.saveOperationLog(operationLog);
@@ -1938,7 +2238,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             || stepStatus == RunStatusEnum.STOP_SUCCESS;
     }
 
-    private void ignoreError(StepInstanceDTO stepInstance, String operator) {
+    private void ignoreError(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance, String operator) {
         // 只有“执行失败”的作业可以忽略错误进入下一步
         if (stepInstance.getStatus() != RunStatusEnum.FAIL &&
             stepInstance.getStatus() != RunStatusEnum.ABNORMAL_STATE) {
@@ -1946,22 +2246,34 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
                 stepInstance.getId(), StepOperationEnum.IGNORE_ERROR.name(), stepInstance.getStatus().name());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
+        runningJobResourceQuotaManager.addJob(
+            taskInstance.getAppCode(),
+            GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
+            taskInstance.getId()
+        );
         // 需要同步设置任务状态为RUNNING，保证客户端可以在操作完之后立马获取到运行状态，开启同步刷新
         taskInstanceService.updateTaskStatus(stepInstance.getTaskInstanceId(), RunStatusEnum.RUNNING.getValue());
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.ignoreError(stepInstance.getId()));
+        taskExecuteMQEventDispatcher.dispatchStepEvent(
+            StepEvent.ignoreError(stepInstance.getTaskInstanceId(), stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator,
             UserOperationEnum.IGNORE_ERROR);
         taskOperationLogService.saveOperationLog(operationLog);
     }
 
-    private void skipStep(StepInstanceDTO stepInstance, String operator) {
+    private void skipStep(TaskInstanceDTO taskInstance, StepInstanceDTO stepInstance, String operator) {
         // 只有“强制终止中”的作业可以跳过
         if (stepInstance.getStatus() != RunStatusEnum.STOPPING) {
             log.warn("Unsupported operation, stepInstanceId: {}, operation: {}, stepStatus: {}",
                 stepInstance.getId(), StepOperationEnum.SKIP.name(), stepInstance.getStatus().name());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.skipStep(stepInstance.getId()));
+        runningJobResourceQuotaManager.addJob(
+            taskInstance.getAppCode(),
+            GlobalAppScopeMappingService.get().getScopeByAppId(taskInstance.getAppId()),
+            taskInstance.getId()
+        );
+        taskExecuteMQEventDispatcher.dispatchStepEvent(
+            StepEvent.skipStep(stepInstance.getTaskInstanceId(), stepInstance.getId()));
         OperationLogDTO operationLog = buildCommonStepOperationLog(stepInstance, operator, UserOperationEnum.SKIP_STEP);
         taskOperationLogService.saveOperationLog(operationLog);
     }
@@ -2000,31 +2312,54 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     @Override
-    public void terminateJob(String username, Long appId, Long taskInstanceId) throws ServiceException {
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(taskInstanceId);
-        if (taskInstance == null || !taskInstance.getAppId().equals(appId)) {
-            log.warn("Task instance is not exist, appId:{}, taskInstanceId:{}", appId, taskInstance);
-            throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
-        }
+    public void terminateJob(User user, Long appId, Long taskInstanceId) {
+        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(appId, taskInstanceId);
+        terminateJob(user.getUsername(), taskInstance);
+    }
+
+    private void terminateJob(String operator, TaskInstanceDTO taskInstance) {
         if (RunStatusEnum.RUNNING != taskInstance.getStatus()
             && RunStatusEnum.WAITING_USER != taskInstance.getStatus()) {
             log.warn("TaskInstance:{} status is not running/waiting, should not terminate it!", taskInstance.getId());
             throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION);
         }
-        taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.stopJob(taskInstanceId));
-        OperationLogDTO operationLog = buildTaskOperationLog(taskInstance, username, UserOperationEnum.TERMINATE_JOB);
+        taskExecuteMQEventDispatcher.dispatchJobEvent(JobEvent.stopJob(taskInstance.getId()));
+        OperationLogDTO operationLog = buildTaskOperationLog(taskInstance, operator, UserOperationEnum.TERMINATE_JOB);
+        taskOperationLogService.saveOperationLog(operationLog);
+    }
+
+    private void startJob(String operator, TaskInstanceDTO taskInstance) {
+        // 只有等待中的作业才可以启动
+        if (RunStatusEnum.BLANK != taskInstance.getStatus()) {
+            log.warn("TaskInstance:{} status:{} Only task waiting for execution can be started!",
+                taskInstance.getId(), taskInstance.getStatus());
+            throw new FailedPreconditionException(ErrorCode.UNSUPPORTED_OPERATION_REPEAT_START_JOB,
+                new Long[]{taskInstance.getId()});
+        }
+        startTask(taskInstance.getId());
+        OperationLogDTO operationLog = buildTaskOperationLog(taskInstance, operator, UserOperationEnum.START);
         taskOperationLogService.saveOperationLog(operationLog);
     }
 
     @Override
-    public void doTaskOperation(Long appId, String operator, long taskInstanceId,
-                                TaskOperationEnum operation) throws ServiceException {
+    public void doTaskOperation(Long appId,
+                                User operator,
+                                long taskInstanceId,
+                                TaskOperationEnum operation) {
         log.info("Operate task instance, appId:{}, taskInstanceId:{}, operator:{}, operation:{}", appId,
             taskInstanceId, operator, operation.getValue());
-        if (operation == TaskOperationEnum.TERMINATE_JOB) {
-            terminateJob(operator, appId, taskInstanceId);
-        } else {
-            log.warn("Undefined task operation!");
+        TaskInstanceDTO taskInstance = queryTaskInstanceAndCheckExist(appId, taskInstanceId);
+        addJobInstanceContext(taskInstance);
+        switch (operation) {
+            case TERMINATE_JOB:
+                terminateJob(operator.getUsername(), taskInstance);
+                break;
+            case START_JOB:
+                startJob(operator.getUsername(), taskInstance);
+                break;
+            default:
+                log.warn("Undefined task operation!");
+                break;
         }
     }
 

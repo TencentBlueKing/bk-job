@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,7 +24,11 @@
 
 package com.tencent.bk.job.common.service;
 
-import com.tencent.bk.job.common.util.feature.FeatureStore;
+import com.tencent.bk.job.common.service.quota.ResourceQuotaStore;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureStore;
+import com.tencent.bk.job.common.util.toggle.prop.PropToggleStore;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.cloud.context.environment.EnvironmentChangeEvent;
@@ -32,6 +36,7 @@ import org.springframework.context.event.EventListener;
 
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 /**
  * 配置刷新监听
@@ -39,10 +44,26 @@ import java.util.StringJoiner;
 @Slf4j
 public class ConfigRefreshEventListener {
 
+    private final MeterRegistry meterRegistry;
+
     private final FeatureStore featureStore;
 
-    public ConfigRefreshEventListener(FeatureStore featureStore) {
+    private final ResourceQuotaStore resourceQuotaStore;
+
+    private final PropToggleStore propToggleStore;
+
+    private static final String METRIC_JOB_CONFIG_REFRESH_FAIL_TOTAL = "job_config_refresh_fail_total";
+    private static final String METRIC_TAG_CONFIG_NAME = "config_name";
+
+
+    public ConfigRefreshEventListener(MeterRegistry meterRegistry,
+                                      FeatureStore featureStore,
+                                      ResourceQuotaStore resourceQuotaStore,
+                                      PropToggleStore propToggleStore) {
+        this.meterRegistry = meterRegistry;
         this.featureStore = featureStore;
+        this.resourceQuotaStore = resourceQuotaStore;
+        this.propToggleStore = propToggleStore;
         log.info("Init ConfigRefreshEventListener");
     }
 
@@ -56,7 +77,7 @@ public class ConfigRefreshEventListener {
         if (log.isInfoEnabled()) {
             log.info("Handle EnvironmentChangeEvent, event: {}", printEnvironmentChangeEvent(event));
         }
-        reloadFeatureToggleIfChanged(event.getKeys());
+        reload(event.getKeys());
     }
 
     private String printEnvironmentChangeEvent(EnvironmentChangeEvent event) {
@@ -67,18 +88,51 @@ public class ConfigRefreshEventListener {
             .toString();
     }
 
-
     /**
-     * 重载特性开关配置
+     * 重载配置
      */
-    private void reloadFeatureToggleIfChanged(Set<String> changedKeys) {
+    private void reload(Set<String> changedKeys) {
         if (CollectionUtils.isEmpty(changedKeys)) {
             return;
         }
-        boolean isFeatureToggleConfigChanged =
-            changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith("job.features."));
-        if (isFeatureToggleConfigChanged) {
-            featureStore.load(true);
+        if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith(FeatureStore.PROP_KEY_PREFIX))) {
+            boolean handleResult = featureStore.handleConfigChange(
+                filterChangedKeys(changedKeys, FeatureStore.PROP_KEY_PREFIX), true);
+            if (!handleResult) {
+                meterRegistry.counter(
+                        METRIC_JOB_CONFIG_REFRESH_FAIL_TOTAL,
+                        Tags.of(METRIC_TAG_CONFIG_NAME, "job.feature"))
+                    .increment();
+            }
+        }
+
+        if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith(ResourceQuotaStore.PROP_KEY_PREFIX))) {
+            boolean handleResult = resourceQuotaStore.handleConfigChange(
+                filterChangedKeys(changedKeys, ResourceQuotaStore.PROP_KEY_PREFIX));
+            if (!handleResult) {
+                meterRegistry.counter(
+                        METRIC_JOB_CONFIG_REFRESH_FAIL_TOTAL,
+                        Tags.of(METRIC_TAG_CONFIG_NAME, "job.resourceQuotaLimit"))
+                    .increment();
+            }
+        }
+
+        if (changedKeys.stream().anyMatch(changedKey -> changedKey.startsWith(PropToggleStore.PROP_KEY_PREFIX))) {
+            boolean handleResult = propToggleStore.handleConfigChange(
+                filterChangedKeys(changedKeys, PropToggleStore.PROP_KEY_PREFIX), true);
+
+            if (!handleResult) {
+                meterRegistry.counter(
+                        METRIC_JOB_CONFIG_REFRESH_FAIL_TOTAL,
+                        Tags.of(METRIC_TAG_CONFIG_NAME, "job.toggle.props"))
+                    .increment();
+            }
         }
     }
+
+    private Set<String> filterChangedKeys(Set<String> changedKeys, String keyPrefix) {
+        return changedKeys.stream().filter(key -> key.startsWith(keyPrefix))
+            .collect(Collectors.toSet());
+    }
+
 }

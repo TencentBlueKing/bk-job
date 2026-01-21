@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,11 +25,13 @@
 package com.tencent.bk.job.execute.engine.listener;
 
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
+import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,7 +39,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class StepListener {
+public class StepListener extends BaseJobMqListener {
     private final StepInstanceService stepInstanceService;
     private final GseStepEventHandler gseStepEventHandler;
     private final ConfirmStepEventHandler confirmStepEventHandler;
@@ -54,13 +56,16 @@ public class StepListener {
     /**
      * 处理步骤执行相关的事件
      *
-     * @param stepEvent 步骤执行相关的事件
+     * @param message 消息
      */
-    public void handleEvent(StepEvent stepEvent) {
+    @Override
+    public void handleEvent(Message<? extends JobMessage> message) {
+        StepEvent stepEvent = (StepEvent) message.getPayload();
         log.info("Handle step event: {}, duration: {}ms", stepEvent, stepEvent.duration());
         long stepInstanceId = stepEvent.getStepInstanceId();
         try {
-            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(stepInstanceId);
+            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
+                stepEvent.getJobInstanceId(), stepInstanceId);
             dispatchEvent(stepEvent, stepInstance);
         } catch (Throwable e) {
             String errorMsg = "Handling step event error,stepInstanceId:" + stepInstanceId;

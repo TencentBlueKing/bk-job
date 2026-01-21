@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -32,12 +32,27 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Configuration(value = "jobAnalysisExecutorConfig")
 public class ExecutorConfiguration {
+
+    @Bean("analysisAsyncTaskExecutor")
+    public ThreadPoolExecutor analysisAsyncTaskExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "analysisAsyncTaskExecutor",
+            0,
+            50,
+            180L,
+            TimeUnit.SECONDS,
+            new SynchronousQueue<>(),
+            (r, executor) -> log.warn("AsyncTask runnable rejected!")
+        );
+    }
 
     @Bean("analysisScheduleExecutor")
     public ThreadPoolExecutor analysisScheduleExecutor(MeterRegistry meterRegistry) {
@@ -75,6 +90,20 @@ public class ExecutorConfiguration {
             StatisticsTaskScheduler.defaultKeepAliveTime,
             TimeUnit.SECONDS, new LinkedBlockingQueue<>(StatisticsTaskScheduler.pastStatisticsTaskQueueSize),
             (r, executor) -> log.error("pastStatisticsTaskExecutor runnable rejected! num:{}",
+                StatisticsTaskScheduler.rejectedStatisticsTaskNum.incrementAndGet()));
+    }
+
+    @Bean("templateAnalysisTaskExecutor")
+    public ThreadPoolExecutor templateAnalysisTaskExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "templateAnalysisTaskExecutor",
+            StatisticsTaskScheduler.defaultCorePoolSize,
+            StatisticsTaskScheduler.defaultMaximumPoolSize,
+            StatisticsTaskScheduler.defaultKeepAliveTime,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(StatisticsTaskScheduler.templateAnalysisTaskQueueSize),
+            (r, executor) -> log.error("templateAnalysisTaskExecutor runnable rejected! num:{}",
                 StatisticsTaskScheduler.rejectedStatisticsTaskNum.incrementAndGet()));
     }
 }

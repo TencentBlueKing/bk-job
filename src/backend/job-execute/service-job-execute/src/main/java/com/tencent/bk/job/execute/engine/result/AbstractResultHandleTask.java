@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,12 +25,14 @@
 package com.tencent.bk.job.execute.engine.result;
 
 import com.tencent.bk.job.common.constant.JobConstants;
-import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.IGseClient;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
+import com.tencent.bk.job.execute.config.PollingStrategyProperties;
+import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
@@ -43,6 +45,7 @@ import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskResult;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
@@ -101,7 +104,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     protected TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected ExecuteObjectTaskService executeObjectTaskService;
     protected StepInstanceService stepInstanceService;
-    protected GseClient gseClient;
+    protected IGseClient gseClient;
     /**
      * 任务请求的requestId，用于防止重复下发任务
      */
@@ -131,7 +134,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     protected GseTaskDTO gseTask;
     /**
-     * 执行对象任务列表
+     * 执行对象任务列表(全量)
      */
     protected List<ExecuteObjectTask> executeObjectTasks;
     /**
@@ -198,30 +201,25 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      */
     private volatile boolean isGseTaskTerminating = false;
     /**
-     * 是否是GSE V2 TASK
+     * 是否存在不可执行的目标执行对象
      */
-    protected boolean gseV2Task;
-    /**
-     * 是否包含非法执行对象
-     */
-    protected boolean hasInvalidExecuteObject;
+    protected boolean existNoExecutableTargetExecuteObject;
     /**
      * GSE 任务信息，用于日志输出
      */
     protected String gseTaskInfo;
 
+    protected final RunningJobKeepaliveManager runningJobKeepaliveManager;
 
-    protected AbstractResultHandleTask(TaskInstanceService taskInstanceService,
-                                       GseTaskService gseTaskService,
-                                       LogService logService,
-                                       TaskInstanceVariableService taskInstanceVariableService,
-                                       StepInstanceVariableValueService stepInstanceVariableValueService,
-                                       TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                       ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                       TaskEvictPolicyExecutor taskEvictPolicyExecutor,
+    private final TaskContext taskContext;
+
+    /**
+     * 轮询策略配置
+     */
+    protected final PollingStrategyProperties pollingStrategyProperties;
+
+    protected AbstractResultHandleTask(EngineDependentServiceHolder engineDependentServiceHolder,
                                        ExecuteObjectTaskService executeObjectTaskService,
-                                       StepInstanceService stepInstanceService,
-                                       GseClient gseClient,
                                        TaskInstanceDTO taskInstance,
                                        StepInstanceDTO stepInstance,
                                        TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -229,22 +227,25 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                                        GseTaskDTO gseTask,
                                        String requestId,
                                        List<ExecuteObjectTask> executeObjectTasks) {
-        this.taskInstanceService = taskInstanceService;
-        this.gseTaskService = gseTaskService;
-        this.logService = logService;
-        this.taskInstanceVariableService = taskInstanceVariableService;
-        this.stepInstanceVariableValueService = stepInstanceVariableValueService;
-        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
-        this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
-        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
+        this.taskInstanceService = engineDependentServiceHolder.getTaskInstanceService();
+        this.gseTaskService = engineDependentServiceHolder.getGseTaskService();
+        this.logService = engineDependentServiceHolder.getLogService();
+        this.taskInstanceVariableService = engineDependentServiceHolder.getTaskInstanceVariableService();
+        this.stepInstanceVariableValueService = engineDependentServiceHolder.getStepInstanceVariableValueService();
+        this.taskExecuteMQEventDispatcher = engineDependentServiceHolder.getTaskExecuteMQEventDispatcher();
+        this.resultHandleTaskKeepaliveManager = engineDependentServiceHolder.getResultHandleTaskKeepaliveManager();
+        this.taskEvictPolicyExecutor = engineDependentServiceHolder.getTaskEvictPolicyExecutor();
+        this.stepInstanceService = engineDependentServiceHolder.getStepInstanceService();
+        this.gseClient = engineDependentServiceHolder.getGseClient();
+        this.runningJobKeepaliveManager = engineDependentServiceHolder.getRunningJobKeepaliveManager();
+        this.pollingStrategyProperties = engineDependentServiceHolder.getPollingStrategyProperties();
+
         this.executeObjectTaskService = executeObjectTaskService;
-        this.stepInstanceService = stepInstanceService;
-        this.gseClient = gseClient;
+
         this.requestId = requestId;
         this.taskInstance = taskInstance;
         this.taskInstanceId = taskInstance.getId();
         this.stepInstance = stepInstance;
-        this.gseV2Task = stepInstance.isTargetGseV2Agent();
         this.appId = stepInstance.getAppId();
         this.stepInstanceId = stepInstance.getId();
         this.taskVariablesAnalyzeResult = taskVariablesAnalyzeResult;
@@ -252,6 +253,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         this.gseTask = gseTask;
         this.executeObjectTasks = executeObjectTasks;
         this.gseTaskInfo = buildGseTaskInfo(stepInstance.getTaskInstanceId(), gseTask);
+        this.taskContext = new TaskContext(taskInstanceId);
 
         targetExecuteObjectTasks.values().forEach(executeObjectTask ->
             this.targetExecuteObjectGseKeys.add(executeObjectTask.getExecuteObject().toExecuteObjectGseKey()));
@@ -265,9 +267,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             }
         }
 
-        this.hasInvalidExecuteObject =
-            executeObjectTasks.stream().anyMatch(
-                executeObjectTask -> executeObjectTask.getExecuteObject().isAgentIdEmpty());
+        this.existNoExecutableTargetExecuteObject =
+            executeObjectTasks.stream().
+                filter(ExecuteObjectTask::isTarget)
+                .anyMatch(executeObjectTask -> !executeObjectTask.getExecuteObject().isExecutable());
     }
 
     private String buildGseTaskInfo(Long jobInstanceId, GseTaskDTO gseTask) {
@@ -284,11 +287,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         watch.start("check-evict-task");
         if (taskEvictPolicyExecutor.shouldEvictTask(taskInstance)) {
             log.info("taskInstance {} evicted", taskInstance.getId());
-            // 更新任务与步骤状态
-            taskEvictPolicyExecutor.updateEvictedTaskStatus(taskInstance, stepInstance);
             // 停止日志拉取调度
             this.executeResult = GseTaskExecuteResult.DISCARDED;
-            finishGseTask(this.executeResult, false);
+            finishGseTask(this.executeResult);
+
             watch.stop();
             return true;
         }
@@ -316,11 +318,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             watch.start("pull-task-result-batch-" + batch);
             // 分批拉取GSE任务执行结果
             gseLogBatchPullResult = pullGseTaskResultInBatches();
-
-            // 拉取结果校验
-            if (!checkPullResult(gseLogBatchPullResult)) {
-                return false;
-            }
 
             // 检查任务异常并处理
             GseTaskResult<T> gseTaskResult = gseLogBatchPullResult.getGseTaskResult();
@@ -379,13 +376,13 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             // 如果任务已结束
             if (this.executeResult != GseTaskExecuteResult.RUNNING) {
                 watch.start("finish-gse-task");
-                finishGseTask(this.executeResult, true);
+                finishGseTask(this.executeResult);
                 watch.stop();
             }
         } catch (Throwable e) {
             log.error("[" + gseTaskInfo + "]: result handle error.", e);
             this.executeResult = GseTaskExecuteResult.EXCEPTION;
-            finishGseTask(this.executeResult, true);
+            finishGseTask(this.executeResult);
         } finally {
             this.isRunning = false;
             LockUtils.releaseDistributedLock(lockKey, requestId);
@@ -425,7 +422,8 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 log.info("Task instance status is stopping, stop executing the step! taskInstanceId:{}, " +
                     "task:{}", taskInstance.getId(), gseTaskInfo);
                 taskExecuteMQEventDispatcher.dispatchGseTaskEvent(GseTaskEvent.stopGseTask(
-                    gseTask.getStepInstanceId(), gseTask.getExecuteCount(), gseTask.getBatch(), gseTask.getId()));
+                    taskInstanceId, gseTask.getStepInstanceId(), gseTask.getExecuteCount(),
+                    gseTask.getBatch(), gseTask.getId()));
                 this.isGseTaskTerminating = true;
                 log.info("Send stop gse step control action successfully!");
             }
@@ -433,7 +431,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     }
 
     private boolean shouldSkipStep() {
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(taskInstanceId, stepInstanceId);
         return stepInstance == null || RunStatusEnum.SKIPPED == stepInstance.getStatus();
     }
 
@@ -471,7 +469,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             this.executeResult = GseTaskExecuteResult.FAILED;
             saveFailInfoForUnfinishedExecuteObjectTask(ExecuteObjectTaskStatusEnum.LOG_ERROR,
                 "Task execution may be abnormal or timeout.");
-            finishGseTask(GseTaskExecuteResult.FAILED, true);
+            finishGseTask(GseTaskExecuteResult.FAILED);
             isTimeout = true;
         }
         return isTimeout;
@@ -494,7 +492,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
                 saveFailInfoForUnfinishedExecuteObjectTask(ExecuteObjectTaskStatusEnum.LOG_ERROR, "Execution result " +
                     "log " +
                     "always empty.");
-                finishGseTask(GseTaskExecuteResult.FAILED, true);
+                finishGseTask(GseTaskExecuteResult.FAILED);
                 isAbnormal = true;
             }
         } else {
@@ -502,20 +500,6 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         }
         return isAbnormal;
     }
-
-    private boolean checkPullResult(GseLogBatchPullResult<T> gseLogBatchPullResult) {
-        if (!gseLogBatchPullResult.isSuccess()) {
-            log.error("[{}] Pull gse task result error, errorMsg: {}", gseTaskInfo,
-                gseLogBatchPullResult.getErrorMsg());
-            this.executeResult = GseTaskExecuteResult.FAILED;
-            saveFailInfoForUnfinishedExecuteObjectTask(ExecuteObjectTaskStatusEnum.LOG_ERROR,
-                gseLogBatchPullResult.getErrorMsg());
-            finishGseTask(GseTaskExecuteResult.FAILED, true);
-            return false;
-        }
-        return true;
-    }
-
 
     /**
      * 设置目标gent任务结束状态
@@ -549,10 +533,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
     /**
      * 设置GSE TASK 完成状态并分发事件
      *
-     * @param result               任务执行结果
-     * @param dispatchRefreshEvent 是否分发Refresh事件
+     * @param result 任务执行结果
      */
-    private void finishGseTask(GseTaskExecuteResult result, boolean dispatchRefreshEvent) {
+    private void finishGseTask(GseTaskExecuteResult result) {
         int gseTaskExecuteResult = result.getResultCode();
 
         // 处理GSE任务执行结果
@@ -564,15 +547,21 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
 
         updateGseTaskExecutionInfo(result, endTime, gseTotalTime);
 
-        if (dispatchRefreshEvent) {
-            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
-                EventSource.buildGseTaskEventSource(stepInstanceId, stepInstance.getExecuteCount(),
-                    stepInstance.getBatch(), gseTask.getId())));
-        }
+        taskExecuteMQEventDispatcher.dispatchStepEvent(
+            StepEvent.refreshStep(
+                taskInstanceId,
+                stepInstanceId,
+                EventSource.buildGseTaskEventSource(
+                    taskInstanceId,
+                    stepInstanceId,
+                    stepInstance.getExecuteCount(),
+                    stepInstance.getBatch(),
+                    gseTask.getId())
+            )
+        );
     }
 
-    private void updateGseTaskExecutionInfo(GseTaskExecuteResult result, long endTime,
-                                            long totalTime) {
+    private void updateGseTaskExecutionInfo(GseTaskExecuteResult result, long endTime, long totalTime) {
 
         gseTask.setStatus(analyseGseTaskStatus(result).getValue());
         gseTask.setEndTime(endTime);
@@ -644,8 +633,10 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         if (!this.isRunning) {
             log.info("ResultHandleTask-onStop start, task: {}", gseTaskInfo);
             resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(getTaskId());
+            runningJobKeepaliveManager.stopKeepaliveTask(taskInstanceId);
+
             taskExecuteMQEventDispatcher.dispatchResultHandleTaskResumeEvent(
-                ResultHandleTaskResumeEvent.resume(gseTask.getStepInstanceId(),
+                ResultHandleTaskResumeEvent.resume(stepInstance.getTaskInstanceId(), gseTask.getStepInstanceId(),
                     gseTask.getExecuteCount(), gseTask.getBatch(), gseTask.getId(), requestId));
 
             this.isStopped = true;
@@ -698,7 +689,7 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
         GseTaskExecuteResult rst;
         if (isAllTargetExecuteObjectTasksSuccess()) {
             // 如果源/目标包含非法主机，设置任务状态为失败
-            if (hasInvalidExecuteObject) {
+            if (existNoExecutableExecuteObject()) {
                 log.info("Gse task contains invalid execute object, set execute result fail");
                 rst = GseTaskExecuteResult.FAILED;
             } else {
@@ -712,6 +703,13 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
             }
         }
         return rst;
+    }
+
+    /**
+     * 任务是否包含不可执行的执行对象
+     */
+    protected boolean existNoExecutableExecuteObject() {
+        return this.existNoExecutableTargetExecuteObject;
     }
 
     /**
@@ -737,4 +735,9 @@ public abstract class AbstractResultHandleTask<T> implements ContinuousScheduled
      * @return 任务执行结果
      */
     abstract GseTaskExecuteResult analyseGseTaskResult(GseTaskResult<T> gseTaskResult);
+
+    @Override
+    public TaskContext getTaskContext() {
+        return this.taskContext;
+    }
 }

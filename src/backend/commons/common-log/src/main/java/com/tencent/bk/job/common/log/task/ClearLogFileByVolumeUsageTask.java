@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -58,8 +58,8 @@ public class ClearLogFileByVolumeUsageTask {
             log.info("maxSizeStr is blank, ignore checkVolumeAndClear");
             return;
         }
-        Long maxSizeBytes = FileSizeUtil.parseFileSizeBytes(maxSizeStr);
-        if (maxSizeBytes == null || maxSizeBytes <= 0) {
+        long maxSizeBytes = FileSizeUtil.parseFileSizeBytes(maxSizeStr);
+        if (maxSizeBytes <= 0) {
             log.error("Cannot parse valid maxSizeBytes from maxSizeStr {}, ignore checkVolumeAndClear", maxSizeStr);
             return;
         }

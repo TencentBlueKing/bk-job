@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -234,13 +234,13 @@ public class ApplicationServiceImpl implements ApplicationService {
     }
 
     @Override
-    public Integer countApps() {
-        return applicationDAO.countApps();
+    public List<ApplicationDTO> listAllApps() {
+        return applicationDAO.listAllApps();
     }
 
     @Override
-    public List<ApplicationDTO> listAllApps() {
-        return applicationDAO.listAllApps();
+    public List<ApplicationDTO> listAllAppsForTenant(String tenantId) {
+        return applicationDAO.listAllAppsForTenant(tenantId);
     }
 
     @Override
@@ -273,5 +273,14 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public List<ApplicationDTO> listAllDeletedApps() {
         return applicationDAO.listAllDeletedApps();
+    }
+
+    @Override
+    public String getTenantIdByAppId(long appId) {
+        ApplicationDTO app = applicationCache.getApplication(appId);
+        if (app != null) {
+            return app.getTenantId();
+        }
+        return applicationDAO.getTenantIdByAppId(appId);
     }
 }

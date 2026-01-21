@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,7 +25,6 @@
 package com.tencent.bk.job.execute.model;
 
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
-import com.tencent.bk.job.common.gse.util.AgentUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
@@ -137,11 +136,6 @@ public class StepInstanceBaseDTO {
     private Boolean supportExecuteObject;
 
     /**
-     * 目标执行对象是否使用 GSE V2 Agent
-     */
-    private Boolean targetGseV2Agent;
-
-    /**
      * 获取步骤类型
      *
      * @return 步骤类型
@@ -185,6 +179,9 @@ public class StepInstanceBaseDTO {
     }
 
     public int getTargetExecuteObjectCount() {
+        if (targetExecuteObjects == null) {
+            return 0;
+        }
         return targetExecuteObjects.getExecuteObjectsCountCompatibly();
     }
 
@@ -207,27 +204,6 @@ public class StepInstanceBaseDTO {
             return id.toString();
         }
         return id + "_" + executeCount;
-    }
-
-    /**
-     * 执行目标是否是 GSE V2 Agent
-     */
-    public boolean isTargetGseV2Agent() {
-        if (targetGseV2Agent != null) {
-            return targetGseV2Agent;
-        }
-        // 只需要判断任意一个即可，因为前置校验已经保证所有的主机的agentId全部都是V1或者V2
-        this.targetGseV2Agent = this.targetExecuteObjects.getExecuteObjectsCompatibly().stream()
-            .anyMatch(executeObject -> {
-                if (executeObject.isHostExecuteObject()) {
-                    return AgentUtils.isGseV2AgentId(executeObject.getHost().getAgentId());
-                } else if (executeObject.isContainerExecuteObject()) {
-                    // 只有 GSE V2 agent 才支持容器执行特性，这里这里必然是 true
-                    return true;
-                }
-                return false;
-            });
-        return this.targetGseV2Agent;
     }
 
     /**

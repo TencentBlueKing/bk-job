@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -96,4 +96,10 @@ public class LogMessage {
     public static final String IMPORT_FAILED = "job.backup.importFailed";
 
     public static final String IMPORT_FINISHED = "job.backup.importFinished";
+
+    // [%s]账号[%s]不存在，请手动添加，添加完成后修改作业对应的字段
+    public static final String IMPORT_ACCOUNT_NOT_EXIST = "job.backup.importAccountNotExist";
+
+    // 作业[%s]步骤[%s]的账号无效
+    public static final String IMPORT_STEP_ACCOUNT_INVALID = "job.backup.importStepAccountInvalid";
 }

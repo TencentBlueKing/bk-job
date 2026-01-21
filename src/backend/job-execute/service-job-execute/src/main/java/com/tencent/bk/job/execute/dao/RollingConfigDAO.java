@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -41,13 +41,15 @@ public interface RollingConfigDAO {
     /**
      * 通过滚动配置ID获取滚动配置
      *
+     * @param taskInstanceId  任务id
      * @param rollingConfigId 滚动配置ID
      * @return 滚动配置
      */
-    RollingConfigDTO queryRollingConfigById(Long rollingConfigId);
+    RollingConfigDTO queryRollingConfigById(Long taskInstanceId, Long rollingConfigId);
 
     /**
      * 任务是否启用了滚动执行
+     *
      * @param taskInstanceId 任务id
      * @return boolean true启用，false未启用
      */

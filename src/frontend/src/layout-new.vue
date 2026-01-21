@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -26,24 +26,25 @@
 -->
 
 <template>
-  <div>
+  <div :style="{'--notice-height': isShowBKNotice ? '40px' : '0px'}">
     <notice-component
       v-if="isEnableBKNotice"
-      :api-url="noticApiUrl" />
+      :api-url="noticApiUrl"
+      :headers-fn="genNoticeHeader"
+      @show-alert-change="showNoticChange" />
     <site-frame
       :side-fixed="isFrameSideFixed"
       @on-side-expand="handleSideExpandChange"
       @on-side-fixed="handleSideFixedChnage">
       <template slot="header">
-        <icon
-          style="font-size: 28px; color: #96a2b9;"
-          svg
-          type="job-logo"
-          @click="handleRouterChange('home')" />
+        <img
+          :src="store.state.platformConfig.appLogo"
+          style="width: 28px; height: 28px;"
+          @click="handleRouterChange('home')">
         <span
           class="site-title"
           @click="handleRouterChange('home')">
-          {{ $t('蓝鲸作业平台') }}
+          {{ productName }}
         </span>
       </template>
       <template slot="headerCenter">
@@ -143,10 +144,10 @@
             </jb-item-group>
             <jb-item-group>
               <div slot="title">
-                {{ $t('资源.menuGroup') }}
+                {{ $t('资源_menuGroup') }}
               </div>
               <div slot="flod-title">
-                {{ $t('资源.flodTitle') }}
+                {{ $t('资源_flodTitle') }}
               </div>
               <jb-item index="scriptManage">
                 <icon type="job-script" />
@@ -159,14 +160,14 @@
             </jb-item-group>
             <jb-item-group v-if="isEnableFeatureFileManage">
               <div slot="title">
-                {{ $t('文件源.menuGroup') }}
+                {{ $t('文件源_menuGroup') }}
               </div>
               <div slot="flod-title">
                 {{ $t('文件') }}
               </div>
               <jb-item index="fileManage">
                 <icon type="file-fill" />
-                {{ $t('文件源.menu') }}
+                {{ $t('文件源_menu') }}
               </jb-item>
               <jb-item index="ticketManage">
                 <icon type="certificate" />
@@ -175,10 +176,10 @@
             </jb-item-group>
             <jb-item-group>
               <div slot="title">
-                {{ $t('管理.menuGroup') }}
+                {{ $t('管理_menuGroup') }}
               </div>
               <div slot="flod-title">
-                {{ $t('管理.flodTitle') }}
+                {{ $t('管理_flodTitle') }}
               </div>
               <jb-item index="tagManage">
                 <icon type="tag" />
@@ -205,10 +206,10 @@
           <template v-if="routerGroup === 'manage'">
             <jb-item-group>
               <div slot="title">
-                {{ $t('资源.menuGroup') }}
+                {{ $t('资源_menuGroup') }}
               </div>
               <div slot="flod-title">
-                {{ $t('资源.flodTitle') }}
+                {{ $t('资源_flodTitle') }}
               </div>
               <jb-item index="publicScript">
                 <icon type="job-public-script" />
@@ -217,10 +218,10 @@
             </jb-item-group>
             <jb-item-group>
               <div slot="title">
-                {{ $t('设置.menuGroup') }}
+                {{ $t('设置_menuGroup') }}
               </div>
               <div slot="flod-title">
-                {{ $t('设置.flodTitle') }}
+                {{ $t('设置_flodTitle') }}
               </div>
               <jb-item index="whiteIp">
                 <icon type="job-white-list" />
@@ -233,10 +234,10 @@
             </jb-item-group>
             <jb-item-group>
               <div slot="title">
-                {{ $t('安全.menuGroup') }}
+                {{ $t('安全_menuGroup') }}
               </div>
               <div slot="flod-title">
-                {{ $t('安全.flodTitle') }}
+                {{ $t('安全_flodTitle') }}
               </div>
               <jb-item index="dangerousRuleManage">
                 <icon type="gaoweiyujujiance" />
@@ -247,7 +248,7 @@
                 {{ $t('检测记录') }}
               </jb-item>
             </jb-item-group>
-            <jb-item-group>
+            <jb-item-group v-if="isShowServiceStateMenu">
               <div slot="title">
                 {{ $t('视图') }}
               </div>
@@ -282,12 +283,15 @@
   </div>
 </template>
 <script setup>
+  import Cookie from 'js-cookie';
   import {
+    computed,
     ref,
     watch,
   } from 'vue';
 
   import QueryGlobalSettingService from '@service/query-global-setting';
+  import UserService from '@service/user';
 
   import AppSelect from '@components/app-select';
   import JbMenu from '@components/jb-menu';
@@ -297,10 +301,14 @@
 
   import  NoticeComponent  from  '@blueking/notice-component-vue2';
 
+  import { useI18n } from '@/i18n';
   import {
     useRoute,
     useRouter,
   } from '@/router';
+  import { useStore } from '@/store';
+
+  const store = useStore();
 
   const TOGGLE_CACHE = 'navigation_toggle_status';
 
@@ -311,11 +319,20 @@
   const routerTitle = ref('');
   const isEnableFeatureFileManage = ref(false);
   const isEnableBKNotice = ref(false);
+  const isShowBKNotice = ref(false);
+  const isShowServiceStateMenu = ref(false);
 
   const route = useRoute();
   const router = useRouter();
+  const { locale } = useI18n();
 
   const noticApiUrl = `${window.PROJECT_CONFIG.AJAX_URL_PREFIX}/job-manage/web/notice/announcement/currentAnnouncements`;
+
+  const genNoticeHeader = () => ({
+    ['X-CSRF-Token']: Cookie.get('job_csrf_key') || '',
+  });
+
+  const productName = computed(() => (locale === 'en-US' ? store.state.platformConfig.productNameEn : store.state.platformConfig.productName));
 
   watch(route, (currentRoute) => {
     routerTitle.value = (currentRoute.meta.title || currentRoute.meta.pageTitle);
@@ -329,6 +346,16 @@
         routerGroup.value = matched[i].meta.group;
         return;
       }
+    }
+  }, {
+    immediate: true,
+  });
+
+  watch(routerGroup, () => {
+    if (['operation', 'personal', 'manage'].includes(routerGroup.value)) {
+      document.body.classList.add('admin-permission');
+    } else {
+      document.body.classList.remove('admin-permission');
     }
   }, {
     immediate: true,
@@ -361,8 +388,20 @@
       localStorage.removeItem(TOGGLE_CACHE);
     }
   };
+
+  /**
+   * @desc 获取登录用户信息
+   */
+  UserService.fetchUserInfo()
+    .then((data) => {
+      isShowServiceStateMenu.value = !data.tenantEnabled || (data.tenantEnabled && data.systemTenant);
+    });
   const handleSideExpandChange = (sideExpand) => {
     isSideExpand.value = sideExpand;
+  };
+
+  const showNoticChange = (value) => {
+    isShowBKNotice.value = value;
   };
   /**
    * @desc 跳转路由
@@ -382,46 +421,64 @@
 
 </script>
 <style lang="postcss">
-    #app {
-      .site-title {
-        padding-left: 16px;
-        font-size: 18px;
-        color: #96a2b9;
+  body.no-business-permission:not(.admin-permission) {
+    .jb-navigation-side{
+      display: none !important;
+    }
+
+    .jb-navigation-main{
+      margin-left: 0 !important;
+
+      & > .scroll-faker{
+        width: unset !important;
       }
+    }
 
-      .top-menu-box {
-        display: flex;
-        padding: 0 4px;
+    .jb-navigation-content{
+      width: 100% !important;
+    }
+  }
 
-        .top-menu-item {
-          padding: 0 20px;
-          cursor: pointer;
-          transition: all 0.15s;
+  #app {
+    .site-title {
+      padding-left: 16px;
+      font-size: 18px;
+      color: #96a2b9;
+    }
 
-          &.active {
-            color: #fff;
-          }
+    .top-menu-box {
+      display: flex;
+      padding: 0 4px;
 
-          &:hover {
-            color: #d3d9e4;
-          }
+      .top-menu-item {
+        padding: 0 20px;
+        cursor: pointer;
+        transition: all 0.15s;
+
+        &.active {
+          color: #fff;
+        }
+
+        &:hover {
+          color: #d3d9e4;
         }
       }
-
-      .app-select-box {
-        padding: 0 12px 10px;
-        margin-bottom: 10px;
-        border-bottom: 1px solid #2f3847;
-      }
-
-      .page-title {
-        display: flex;
-        flex: 1;
-        align-items: center;
-      }
     }
 
-    #siteHeaderStatusBar {
+    .app-select-box {
+      padding: 0 12px 10px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #2f3847;
+    }
+
+    .page-title {
+      display: flex;
       flex: 1;
+      align-items: center;
     }
+  }
+
+  #siteHeaderStatusBar {
+    flex: 1;
+  }
 </style>

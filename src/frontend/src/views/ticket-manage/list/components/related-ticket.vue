@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -32,7 +32,7 @@
       class="search-select-style"
       :data="searchSelect"
       :parse-url="false"
-      :placeholder="$t('ticket.搜索文件源别名...')"
+      :placeholder="$t('ticket.搜索文件源别名')"
       @on-change="handleSearch" />
     <render-list
       ref="fileSourcelist"
@@ -92,7 +92,11 @@
       <bk-table-column
         :label="$t('ticket.更新人')"
         prop="lastModifyUser"
-        width="120" />
+        width="120">
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.lastModifyUser" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         :label="$t('ticket.更新时间')"
         prop="lastModifyTime"

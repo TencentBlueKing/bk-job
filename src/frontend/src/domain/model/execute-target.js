@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -28,9 +28,9 @@ import I18n from '@/i18n';
 export default class ExecuteObjectsInfo {
   static isExecuteObjectsInfoEmpty(executeObjectsInfo) {
     const {
-      dynamicGroupList,
-      hostList,
-      nodeList,
+      dynamicGroupList = [],
+      hostList = [],
+      nodeList = [],
       containerList = [],
     } = executeObjectsInfo;
 
@@ -38,6 +38,22 @@ export default class ExecuteObjectsInfo {
             && hostList.length < 1
             && nodeList.length < 1
             && containerList.length < 1;
+  }
+
+  static cloneExecuteObjectsInfo(executeObjectsInfo) {
+    const {
+      dynamicGroupList = [],
+      hostList = [],
+      nodeList = [],
+      containerList = [],
+    } = executeObjectsInfo;
+
+    return {
+      dynamicGroupList: [...dynamicGroupList],
+      hostList: [...hostList],
+      nodeList: [...nodeList],
+      containerList: [...containerList],
+    };
   }
 
   constructor(payload = {}) {
@@ -51,23 +67,23 @@ export default class ExecuteObjectsInfo {
 
   get text() {
     const {
-      dynamicGroupList,
-      hostList,
-      nodeList,
+      dynamicGroupList = [],
+      hostList = [],
+      nodeList = [],
       containerList = [],
     } = this.executeObjectsInfo;
     const strs = [];
     if (hostList.length > 0) {
-      strs.push(`${hostList.length} ${I18n.t('台主机.result')}`);
+      strs.push(`${hostList.length} ${I18n.t('台主机_result')}`);
     }
     if (nodeList.length > 0) {
-      strs.push(`${nodeList.length} ${I18n.t('个节点.result')}`);
+      strs.push(`${nodeList.length} ${I18n.t('个节点_result')}`);
     }
     if (dynamicGroupList.length > 0) {
-      strs.push(`${dynamicGroupList.length} ${I18n.t('个分组.result')}`);
+      strs.push(`${dynamicGroupList.length} ${I18n.t('个分组_result')}`);
     }
     if (containerList.length > 0) {
-      strs.push(`${containerList.length} ${I18n.t('个容器.result')}`);
+      strs.push(`${containerList.length} ${I18n.t('个容器_result')}`);
     }
     return strs.length > 0 ? strs.join('，') : '--';
   }

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -37,10 +37,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 文件源
@@ -229,5 +231,21 @@ public class FileSourceDTO {
 
     public String getBasicDesc() {
         return "(id=" + id + ", appId=" + appId + ", code=" + code + ", alias=" + alias + ", enable=" + enable + ")";
+    }
+
+    /**
+     * 判断当前文件源是否可以给指定appId使用
+     *
+     * @param appId 要判断的appId
+     * @return 是否可用
+     */
+    public boolean canUseByAppId(Long appId) {
+        if (Objects.equals(this.appId, appId)) {
+            return true;
+        }
+        if (this.publicFlag) {
+            return true;
+        }
+        return CollectionUtils.isNotEmpty(sharedAppIdList) && sharedAppIdList.contains(appId);
     }
 }

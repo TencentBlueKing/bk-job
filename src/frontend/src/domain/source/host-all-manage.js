@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -27,8 +27,8 @@ import Request from '@utils/request';
 
 // 对接全业务场景的IP选择器
 class HostAllManage {
-  constructor() {
-    this.path = 'job-manage/web/scope/biz_set/9991001';
+  get path() {
+    return `job-manage/web/scope/biz_set/${window.PROJECT_CONFIG.ALL_BIZ_SET_SCOPE_ID}`;
   }
 
   // 获取动态分组

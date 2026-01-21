@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -27,13 +27,20 @@ package com.tencent.bk.job.manage.service.impl.notify;
 import com.google.common.collect.Sets;
 import com.tencent.bk.audit.annotations.ActionAuditRecord;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
+import com.tencent.bk.job.common.cc.constants.CmdbConstants;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
+import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.model.dto.ApplicationDTO;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.model.dto.UserRoleInfoDTO;
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.common.model.vo.NotifyChannelVO;
 import com.tencent.bk.job.common.mysql.JobTransactional;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.redis.util.LockUtils;
-import com.tencent.bk.job.common.util.Counter;
+import com.tencent.bk.job.common.service.config.JobCommonConfig;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PrefConsts;
@@ -42,7 +49,7 @@ import com.tencent.bk.job.manage.api.common.constants.notify.JobRoleEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.NotifyConsts;
 import com.tencent.bk.job.manage.api.common.constants.notify.ResourceTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.notify.TriggerTypeEnum;
-import com.tencent.bk.job.manage.dao.ScriptDAO;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.notify.AvailableEsbChannelDAO;
 import com.tencent.bk.job.manage.dao.notify.EsbAppRoleDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyConfigStatusDAO;
@@ -55,14 +62,14 @@ import com.tencent.bk.job.manage.model.dto.notify.AvailableEsbChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyEsbChannelDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyPolicyRoleTargetDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyRoleTargetChannelDTO;
-import com.tencent.bk.job.manage.model.dto.notify.NotifyTemplateDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
+import com.tencent.bk.job.manage.model.dto.notify.TriggerPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationTriggerDTO;
+import com.tencent.bk.job.manage.model.inner.ServiceSpecificResourceNotifyPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
-import com.tencent.bk.job.manage.model.inner.ServiceUserNotificationDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.notify.ResourceStatusChannel;
 import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChannelReq;
@@ -71,21 +78,21 @@ import com.tencent.bk.job.manage.model.web.vo.notify.ExecuteStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.PageTemplateVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ResourceTypeVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.RoleVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerTypeVO;
 import com.tencent.bk.job.manage.service.AppRoleService;
-import com.tencent.bk.job.manage.service.LocalPermissionService;
 import com.tencent.bk.job.manage.service.NotifyService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
+import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -111,14 +118,17 @@ public class NotifyServiceImpl implements NotifyService {
     private final EsbAppRoleDAO esbAppRoleDAO;
     private final AvailableEsbChannelDAO availableEsbChannelDAO;
     private final NotifyEsbChannelDAO notifyEsbChannelDAO;
-    private final LocalPermissionService localPermissionService;
     private final NotifyConfigStatusDAO notifyConfigStatusDAO;
     private final NotifyTemplateService notifyTemplateService;
-    private final ScriptDAO scriptDAO;
     private final TaskPlanDAO taskPlanDAO;
     private final NotifyUserService notifyUserService;
     private final NotifySendService notifySendService;
     private final AppRoleService roleService;
+    private final TenantService tenantService;
+    private final NotifyChannelInitService notifyChannelInitService;
+    private final ApplicationDAO applicationDAO;
+    private final JobCommonConfig jobCommonConfig;
+    private final UserLocalCache userLocalCache;
 
     @Autowired
     public NotifyServiceImpl(
@@ -128,34 +138,49 @@ public class NotifyServiceImpl implements NotifyService {
         EsbAppRoleDAO esbAppRoleDAO,
         AvailableEsbChannelDAO availableEsbChannelDAO,
         NotifyEsbChannelDAO notifyEsbChannelDAO,
-        LocalPermissionService localPermissionService,
         NotifySendService notifySendService,
         AppRoleService roleService,
         NotifyConfigStatusDAO notifyConfigStatusDAO,
         NotifyTemplateService notifyTemplateService,
-        ScriptDAO scriptDAO,
         TaskPlanDAO taskPlanDAO,
-        NotifyUserService notifyUserService) {
+        NotifyUserService notifyUserService,
+        TenantService tenantService,
+        NotifyChannelInitService notifyChannelInitService,
+        ApplicationDAO applicationDAO,
+        JobCommonConfig jobCommonConfig,
+        UserLocalCache userLocalCache) {
         this.notifyTriggerPolicyDAO = notifyTriggerPolicyDAO;
         this.notifyPolicyRoleTargetDAO = notifyPolicyRoleTargetDAO;
         this.notifyRoleTargetChannelDAO = notifyRoleTargetChannelDAO;
         this.esbAppRoleDAO = esbAppRoleDAO;
         this.availableEsbChannelDAO = availableEsbChannelDAO;
         this.notifyEsbChannelDAO = notifyEsbChannelDAO;
-        this.localPermissionService = localPermissionService;
         this.notifyUserService = notifyUserService;
         this.notifySendService = notifySendService;
         this.roleService = roleService;
         this.notifyConfigStatusDAO = notifyConfigStatusDAO;
         this.notifyTemplateService = notifyTemplateService;
-        this.scriptDAO = scriptDAO;
         this.taskPlanDAO = taskPlanDAO;
+        this.tenantService = tenantService;
+        this.notifyChannelInitService = notifyChannelInitService;
+        this.applicationDAO = applicationDAO;
+        this.jobCommonConfig = jobCommonConfig;
+        this.userLocalCache = userLocalCache;
     }
 
     @Override
-    public List<TriggerPolicyVO> listAppDefaultNotifyPolicies(String username, Long appId) {
-        return notifyTriggerPolicyDAO.list(getDefaultTriggerUser(), appId, NotifyConsts.DEFAULT_RESOURCE_ID);
+    public List<TriggerPolicyDTO> listAppDefaultNotifyPolicies(String username, Long appId) {
+        return notifyTriggerPolicyDAO.listAppDefault(getDefaultTriggerUser(), appId, NotifyConsts.DEFAULT_RESOURCE_ID);
     }
+
+    @Override
+    public CustomNotifyDTO getSpecificResourceNotifyPolicy(Long appId,
+                                                           Integer resourceType,
+                                                           String resourceId,
+                                                           Integer triggerType) {
+        return notifyTriggerPolicyDAO.getSpecificResourceNotifyPolicy(appId, resourceType, resourceId, triggerType);
+    }
+
 
     @Override
     @ActionAuditRecord(
@@ -173,6 +198,7 @@ public class NotifyServiceImpl implements NotifyService {
 
     private Long saveTriggerPolicy(Long appId,
                                    ResourceTypeEnum resourceType,
+                                   String resourceId,
                                    String triggerUser,
                                    TriggerPolicy triggerPolicy,
                                    ResourceStatusChannel resourceStatusChannel,
@@ -181,7 +207,7 @@ public class NotifyServiceImpl implements NotifyService {
             new NotifyTriggerPolicyDTO(
                 null,
                 appId,
-                NotifyConsts.DEFAULT_RESOURCE_ID,
+                resourceId,
                 resourceType,
                 triggerUser,
                 triggerPolicy.getTriggerType(),
@@ -252,15 +278,32 @@ public class NotifyServiceImpl implements NotifyService {
         resourceTypeSet.forEach(resourceType -> {
             Set<ResourceStatusChannel> channelSet = new HashSet<>(triggerPolicy.getResourceStatusChannelList());
             channelSet.forEach(channel -> {
-                //保存触发策略
-                val policyId = saveTriggerPolicy(
-                    appId, resourceType,
-                    triggerUser, triggerPolicy, channel, operator
-                );
-                //保存所有通知对象
-                saveNotifyRoleTargets(policyId, triggerPolicy, channel, operator);
+                cascadeSaveTriggerPolicyAndTarget(
+                    appId,
+                    operator,
+                    resourceType,
+                    NotifyConsts.DEFAULT_RESOURCE_ID,
+                    triggerUser,
+                    triggerPolicy,
+                    channel);
             });
         });
+    }
+
+    private void cascadeSaveTriggerPolicyAndTarget(Long appId,
+                                                   String operator,
+                                                   ResourceTypeEnum resourceType,
+                                                   String resourceId,
+                                                   String triggerUser,
+                                                   TriggerPolicy triggerPolicy,
+                                                   ResourceStatusChannel channel) {
+        //保存触发策略
+        val policyId = saveTriggerPolicy(
+            appId, resourceType, resourceId,
+            triggerUser, triggerPolicy, channel, operator
+        );
+        //保存所有通知对象
+        saveNotifyRoleTargets(policyId, triggerPolicy, channel, operator);
     }
 
     @Override
@@ -275,6 +318,60 @@ public class NotifyServiceImpl implements NotifyService {
         //3.保存notify_trigger_policy
         policyList.forEach(policy -> saveTriggerPolicy(operator, appId, triggerUser, policy));
         return (long) policyList.size();
+    }
+
+    @Override
+    @JobTransactional(transactionManager = "jobManageTransactionManager")
+    public Boolean saveSpecificResourceNotifyPolicies(
+        Long appId,
+        String operator,
+        ServiceSpecificResourceNotifyPolicyDTO specificResourceNotifyPolicyDTO
+    ) {
+
+        if (specificResourceNotifyPolicyDTO.getResourceId() == -1) {
+            log.error("[saveSpecificResourceNotifyPolicies] not allow to save app default resource notify policies "
+                + "with resourceId=-1");
+            throw new InvalidParameterException("cannot save custom notify policy with resourceId=-1");
+        }
+
+        notifyTriggerPolicyDAO.deleteAppResourceNotifyPolicies(
+            appId,
+            specificResourceNotifyPolicyDTO.getResourceType(),
+            specificResourceNotifyPolicyDTO.getResourceId().toString()
+        );
+
+        TriggerPolicy triggerPolicy = buildTriggerPolicy(specificResourceNotifyPolicyDTO);
+
+        List<ResourceStatusChannel> resourceStatusChannelList = ResourceStatusChannel.fromMap(
+            specificResourceNotifyPolicyDTO.getResourceStatusChannelMap()
+        );
+        resourceStatusChannelList.forEach(resourceStatusChannel -> {
+            cascadeSaveTriggerPolicyAndTarget(
+                appId,
+                operator,
+                ResourceTypeEnum.get(specificResourceNotifyPolicyDTO.getResourceType()),
+                specificResourceNotifyPolicyDTO.getResourceId().toString(),
+                getDefaultTriggerUser(),
+                triggerPolicy,
+                resourceStatusChannel
+            );
+        });
+
+        return true;
+    }
+
+    private TriggerPolicy buildTriggerPolicy(ServiceSpecificResourceNotifyPolicyDTO specificResourceNotifyPolicyDTO) {
+        TriggerPolicy triggerPolicy = new TriggerPolicy();
+        triggerPolicy.setTriggerType(TriggerTypeEnum.get(specificResourceNotifyPolicyDTO.getTriggerType()));
+        triggerPolicy.setResourceTypeList(Collections.singletonList(ResourceTypeEnum.get(
+            specificResourceNotifyPolicyDTO.getResourceType()
+        )));
+        triggerPolicy.setRoleList(specificResourceNotifyPolicyDTO.getRoleList());
+        triggerPolicy.setExtraObserverList(specificResourceNotifyPolicyDTO.getExtraObserverList());
+        triggerPolicy.setResourceStatusChannelList(
+            ResourceStatusChannel.fromMap(specificResourceNotifyPolicyDTO.getResourceStatusChannelMap())
+        );
+        return triggerPolicy;
     }
 
     private String getDefaultTriggerUser() {
@@ -316,6 +413,16 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
+    public int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId) {
+        // 业务全局消息通知方式不允许删除
+        if (NotifyConsts.DEFAULT_RESOURCE_ID.equals(resourceId)) {
+            log.error("not allow to delete app default resource notify policies with resourceId=-1");
+            throw new InvalidParameterException("cannot delete notify policy with resourceId=-1");
+        }
+        return notifyTriggerPolicyDAO.deleteAppResourceNotifyPolicies(appId, resourceType, resourceId);
+    }
+
+    @Override
     public List<TriggerTypeVO> listTriggerType(String username) {
         return TriggerTypeEnum.getVOList();
     }
@@ -328,22 +435,20 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     public List<RoleVO> listRole(String username) {
         //Job系统角色+CMDB业务角色
-        List<AppRoleDTO> appRoles = esbAppRoleDAO.listEsbAppRole();
-        if (CollectionUtils.isEmpty(appRoles)) {
-            return Collections.emptyList();
+        List<RoleVO> resultList = new ArrayList<>(JobRoleEnum.getVOList());
+        List<AppRoleDTO> appRoles = esbAppRoleDAO.listEsbAppRole(JobContextUtil.getTenantId());
+        if (CollectionUtils.isNotEmpty(appRoles)) {
+            resultList.addAll(appRoles.stream().map(it ->
+                new RoleVO(it.getId(), it.getName())).collect(Collectors.toList()));
         }
-        List<RoleVO> resultList = new ArrayList<>();
-        resultList.addAll(JobRoleEnum.getVOList());
-        resultList.addAll(appRoles.stream().map(it ->
-            new RoleVO(it.getId(), it.getName())).collect(Collectors.toList()));
         return resultList;
     }
 
     @Override
-    public List<AppRoleDTO> listRoles() {
+    public List<AppRoleDTO> listRoles(String tenantId) {
         //Job系统角色+CMDB业务角色
         List<AppRoleDTO> resultList = new ArrayList<>();
-        List<AppRoleDTO> appRoleDTOList = esbAppRoleDAO.listEsbAppRole();
+        List<AppRoleDTO> appRoleDTOList = esbAppRoleDAO.listEsbAppRole(tenantId);
         if (appRoleDTOList != null) {
             resultList.addAll(appRoleDTOList);
         }
@@ -364,8 +469,8 @@ public class NotifyServiceImpl implements NotifyService {
     }
 
     @Override
-    public List<NotifyEsbChannelDTO> listAllNotifyChannel() {
-        return notifyEsbChannelDAO.listNotifyEsbChannel().stream()
+    public List<NotifyEsbChannelDTO> listAllNotifyChannel(String tenantId) {
+        return notifyEsbChannelDAO.listNotifyEsbChannel(tenantId).stream()
             .filter(NotifyEsbChannelDTO::isActive).map(it -> {
                     NotifyEsbChannelDTO channel = new NotifyEsbChannelDTO();
                     channel.setType(it.getType());
@@ -375,16 +480,22 @@ public class NotifyServiceImpl implements NotifyService {
             ).collect(Collectors.toList());
     }
 
-    private List<String> getAvailableChannelTypeList() {
+    @Override
+    public List<String> getAvailableChannelTypeList(String tenantId) {
+
+        // 懒加载当前租户下的消息通知渠道
+        notifyChannelInitService.tryToInitDefaultNotifyChannelsWithSingleTenant(tenantId);
+
         List<AvailableEsbChannelDTO> availableEsbChannelDTOList =
-            availableEsbChannelDAO.listAvailableEsbChannel();
+            availableEsbChannelDAO.listAvailableEsbChannel(tenantId);
         return availableEsbChannelDTOList.stream().map(AvailableEsbChannelDTO::getType).collect(Collectors.toList());
     }
 
     @Override
     public List<NotifyChannelVO> listAvailableNotifyChannel(String username) {
-        List<String> availableChannelTypeList = getAvailableChannelTypeList();
-        return notifyEsbChannelDAO.listNotifyEsbChannel().stream().map(it -> new NotifyChannelVO(
+        List<String> availableChannelTypeList = getAvailableChannelTypeList(JobContextUtil.getTenantId());
+        String tenantId = JobContextUtil.getTenantId();
+        return notifyEsbChannelDAO.listNotifyEsbChannel(tenantId).stream().map(it -> new NotifyChannelVO(
             it.getType(),
             it.getLabel()
         )).filter(it -> availableChannelTypeList.contains(it.getCode())).collect(Collectors.toList());
@@ -393,11 +504,17 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     @JobTransactional(transactionManager = "jobManageTransactionManager")
     public Integer setAvailableNotifyChannel(String username, SetAvailableNotifyChannelReq req) {
+        String tenantId = JobContextUtil.getTenantId();
         List<String> channelCodeList =
             Arrays.asList(req.getChannelCodeStr().trim().split(NotifyConsts.SEPERATOR_COMMA));
-        availableEsbChannelDAO.deleteAll();
+        availableEsbChannelDAO.deleteAllChannelsByTenantId(tenantId);
         channelCodeList.forEach(it -> availableEsbChannelDAO.insertAvailableEsbChannel(
-            new AvailableEsbChannelDTO(it, true, username, LocalDateTime.now())));
+            new AvailableEsbChannelDTO(
+                it,
+                true,
+                username,
+                LocalDateTime.now(),
+                tenantId)));
         return channelCodeList.size();
     }
 
@@ -412,7 +529,7 @@ public class NotifyServiceImpl implements NotifyService {
         // 2.调ESB接口发送通知
         val notifyMessageMap = notification.getNotificationMessageMap();
         Set<String> channelSet = notifyMessageMap.keySet();
-        if (channelSet.size() == 0) {
+        if (channelSet.isEmpty()) {
             return 0;
         }
         ServiceNotificationMessage notificationMessage =
@@ -491,6 +608,30 @@ public class NotifyServiceImpl implements NotifyService {
         );
     }
 
+    private List<NotifyTriggerPolicyDTO> searchResourceNotifyPolices(Long appId,
+                                                                     Integer triggerType,
+                                                                     Integer resourceType,
+                                                                     String resourceIdStr,
+                                                                     Integer resourceExecuteStatus) {
+        log.debug(
+            "try to get resource custom trigger policy:|appId={}|triggerType={}"
+                + "|resourceType={}|resourceIdStr={}|resourceExecuteStatus={}",
+            appId,
+            triggerType,
+            resourceType,
+            resourceIdStr,
+            resourceExecuteStatus
+        );
+        return notifyTriggerPolicyDAO.list(
+            NotifyConsts.DEFAULT_TRIGGER_USER,
+            appId,
+            resourceIdStr,
+            resourceType,
+            triggerType,
+            resourceExecuteStatus
+        );
+    }
+
     private List<NotifyTriggerPolicyDTO> searchAppNotifyPolices(Long appId,
                                                                 Integer triggerType,
                                                                 Integer resourceType,
@@ -524,19 +665,47 @@ public class NotifyServiceImpl implements NotifyService {
         return notifyConfigStatusDAO.exist(getDefaultTriggerUser(), appId);
     }
 
-    private List<NotifyTriggerPolicyDTO> getTriggerPolicys(Long appId,
-                                                           String triggerUser,
-                                                           Integer triggerType,
-                                                           Integer resourceType,
-                                                           Integer resourceExecuteStatus) {
-        // 1.业务公共触发策略
-        List<NotifyTriggerPolicyDTO> triggerPolicyList = searchAppNotifyPolices(
-            appId,
-            triggerType,
-            resourceType,
-            resourceExecuteStatus
-        );
-        // 2.查找当前触发者自己制定的触发策略
+    private List<NotifyTriggerPolicyDTO> getTriggerPolicys(ServiceNotificationTriggerDTO triggerDTO) {
+        Long appId = triggerDTO.getAppId() == null ? NotifyConsts.DEFAULT_APP_ID : triggerDTO.getAppId();
+        String triggerUser = triggerDTO.getTriggerUser();
+        Integer triggerType = triggerDTO.getTriggerType();
+        Integer resourceType = triggerDTO.getResourceType();
+        String resourceIdStr = triggerDTO.getResourceId();
+        Integer resourceExecuteStatus = triggerDTO.getResourceExecuteStatus();
+        List<NotifyTriggerPolicyDTO> triggerPolicyList = Collections.emptyList();
+        // 1.查找资源级别的触发策略
+        if (canHaveCustomTriggerPolicy(triggerDTO)) {
+            Pair<Integer, String> resource = getResourceIndeed(triggerDTO);
+            Integer triggerPolicyResourceType = resource.getLeft();
+            String triggerPolicyResourceId = resource.getRight();
+            triggerPolicyList = searchResourceNotifyPolices(
+                appId,
+                triggerType,
+                triggerPolicyResourceType,
+                triggerPolicyResourceId,
+                resourceExecuteStatus
+            );
+        }
+        // 2.业务公共触发策略
+        if (CollectionUtils.isEmpty(triggerPolicyList)) {
+            log.debug(
+                "not found custom trigger policy|appId={}|triggerUser={}"
+                    + "|triggerType={}|resourceType={}|{}|resourceIdStr={}",
+                appId,
+                triggerUser,
+                triggerType,
+                resourceType,
+                resourceIdStr,
+                resourceExecuteStatus
+            );
+            triggerPolicyList = searchAppNotifyPolices(
+                appId,
+                triggerType,
+                resourceType,
+                resourceExecuteStatus
+            );
+        }
+        // 3.查找当前触发者自己制定的触发策略
         if (CollectionUtils.isEmpty(triggerPolicyList)) {
             triggerPolicyList = searchNotifyPolices(
                 appId,
@@ -546,12 +715,22 @@ public class NotifyServiceImpl implements NotifyService {
                 resourceExecuteStatus
             );
         }
-        // 3.默认业务
+        // 4.默认业务
         // 业务未配置消息通知策略才使用默认策略
         if (!appNotifyPolicyConfigured(appId) && CollectionUtils.isEmpty(triggerPolicyList)) {
             triggerPolicyList = systemDefaultNotifyPolices(triggerType, resourceType, resourceExecuteStatus);
         }
         return triggerPolicyList;
+    }
+
+    private boolean canHaveCustomTriggerPolicy(ServiceNotificationTriggerDTO triggerDTO) {
+        Pair<Integer, String> resource = getResourceIndeed(triggerDTO);
+        // 当前只有定时任务支持资源级别的自定义通知
+        if (resource.getLeft() == ResourceTypeEnum.CRON.getType()) {
+            return true;
+        }
+
+        return false;
     }
 
     private Set<String> findUserByRole(Long appId,
@@ -576,17 +755,10 @@ public class NotifyServiceImpl implements NotifyService {
 
     private Map<String, Set<String>> getChannelUsersMap(ServiceNotificationTriggerDTO triggerDTO) {
         Long appId = triggerDTO.getAppId() == null ? NotifyConsts.DEFAULT_APP_ID : triggerDTO.getAppId();
+        String tenantId = tenantService.getTenantIdByAppId(appId);
         String triggerUser = triggerDTO.getTriggerUser();
-        Integer triggerType = triggerDTO.getTriggerType();
         Integer resourceType = triggerDTO.getResourceType();
-        Integer resourceExecuteStatus = triggerDTO.getResourceExecuteStatus();
-        List<NotifyTriggerPolicyDTO> triggerPolicyList = getTriggerPolicys(
-            appId,
-            triggerUser,
-            triggerType,
-            resourceType,
-            resourceExecuteStatus
-        );
+        List<NotifyTriggerPolicyDTO> triggerPolicyList = getTriggerPolicys(triggerDTO);
         if (CollectionUtils.isEmpty(triggerPolicyList)) {
             return Collections.emptyMap();
         }
@@ -615,9 +787,20 @@ public class NotifyServiceImpl implements NotifyService {
         }
         // 过滤通知黑名单
         channelUsersMap.keySet().forEach(key ->
-            channelUsersMap.put(key, notifyUserService.filterBlackUser(channelUsersMap.get(key)))
+            channelUsersMap.put(key, notifyUserService.filterBlackUser(channelUsersMap.get(key), tenantId))
         );
         return channelUsersMap;
+    }
+
+    /**
+     * 是定时任务的话，返回定时任务ID而非执行方案ID
+     */
+    private Pair<Integer, String> getResourceIndeed(ServiceNotificationTriggerDTO triggerDTO) {
+        if (triggerDTO.getCronTaskId() != null && triggerDTO.getCronTaskId() != -1L) {
+            return Pair.of(ResourceTypeEnum.CRON.getType(), String.valueOf(triggerDTO.getCronTaskId()));
+        }
+
+        return Pair.of(triggerDTO.getResourceType(), triggerDTO.getResourceId());
     }
 
     @Override
@@ -629,38 +812,6 @@ public class NotifyServiceImpl implements NotifyService {
             listExecuteStatus(username),
             listAvailableNotifyChannel(username)
         );
-    }
-
-    @Override
-    public Integer asyncSendNotificationsToUsers(ServiceUserNotificationDTO serviceUserNotificationDTO) {
-        // 获取所有可用渠道
-        List<String> availableChannelTypeList = getAvailableChannelTypeList();
-        return asyncSendNotificationsByChannel(serviceUserNotificationDTO, availableChannelTypeList);
-    }
-
-    @Override
-    public Integer asyncSendNotificationsByChannel(ServiceUserNotificationDTO serviceUserNotificationDTO,
-                                                   List<String> channelTypeList) {
-        // 组装通知map
-        Map<String, Set<String>> channelUsersMap = new HashMap<>();
-        for (String channelType : channelTypeList) {
-            channelUsersMap.put(channelType, serviceUserNotificationDTO.getReceivers());
-        }
-        ServiceNotificationMessage notificationMessage = serviceUserNotificationDTO.getNotificationMessage();
-        notifySendService.asyncSendNotifyMessages(
-            null,
-            channelUsersMap,
-            notificationMessage.getTitle(),
-            notificationMessage.getContent()
-        );
-        return serviceUserNotificationDTO.getReceivers().size();
-    }
-
-    @Override
-    public Integer asyncSendNotificationsToAdministrators(ServiceNotificationMessage serviceNotificationMessage) {
-        List<String> administrators = localPermissionService.getAdministrators();
-        return asyncSendNotificationsToUsers(new ServiceUserNotificationDTO(new HashSet<>(administrators),
-            serviceNotificationMessage));
     }
 
     private Set<String> findUserByRole(Long appId,
@@ -680,108 +831,233 @@ public class NotifyServiceImpl implements NotifyService {
 
     @Override
     public Integer sendTemplateNotification(ServiceTemplateNotificationDTO templateNotificationDTO) {
-        Map<String, NotifyTemplateDTO> channelTemplateMap = notifyTemplateService.getChannelTemplateMap(
-            templateNotificationDTO.getTemplateCode()
-        );
+        Long appId = templateNotificationDTO.getAppId();
+        String tenantId = tenantService.getTenantIdByAppId(appId);
+        String templateCode = templateNotificationDTO.getTemplateCode();
+        
         //获取通知用户
         Set<String> userSet = new HashSet<>();
         UserRoleInfoDTO receiverInfo = templateNotificationDTO.getReceiverInfo();
         userSet.addAll(receiverInfo.getUserList());
-        userSet.addAll(findUserByRole(templateNotificationDTO.getAppId(), templateNotificationDTO.getTriggerUser(),
+        userSet.addAll(findUserByRole(appId, templateNotificationDTO.getTriggerUser(),
             templateNotificationDTO.getResourceType(), templateNotificationDTO.getResourceId(),
             receiverInfo.getRoleList()));
         //过滤黑名单用户
-        userSet = notifyUserService.filterBlackUser(userSet);
+        userSet = notifyUserService.filterBlackUser(userSet, tenantId);
+        
         //获取可用通知渠道
-        Set<String> availableChannelSet = new HashSet<>(getAvailableChannelTypeList());
+        Set<String> availableChannelSet = new HashSet<>(getAvailableChannelTypeList(tenantId));
         //与激活通知渠道取交集
         Set<String> validChannelSet = Sets.intersection(new HashSet<>(templateNotificationDTO.getActiveChannels()),
             availableChannelSet);
-        Long appId = templateNotificationDTO.getAppId();
+        
+        // 构建 channelUsersMap（只包含有效渠道）
+        Map<String, Set<String>> channelUsersMap = new HashMap<>();
         for (String channel : validChannelSet) {
-            //取得Title与Content模板
-            if (channelTemplateMap.containsKey(channel)) {
-                NotifyTemplateDTO templateDTO = channelTemplateMap.get(channel);
-                //变量替换
-                Map<String, String> variablesMap = templateNotificationDTO.getVariablesMap();
-                ServiceNotificationMessage notifyMsg = notifyTemplateService.getNotificationMessageFromTemplate(
-                    appId,
-                    templateDTO,
-                    variablesMap
-                );
-                //发送消息通知
-                if (notifyMsg != null) {
-                    notifySendService.asyncSendUserChannelNotify(
-                        appId,
-                        userSet,
-                        channel,
-                        notifyMsg.getTitle(),
-                        notifyMsg.getContent()
-                    );
-                } else {
-                    log.warn(
-                        "Fail to get notifyMsg from template of templateCode:{},channel:{}, ignore",
-                        templateNotificationDTO.getTemplateCode(),
-                        channel
-                    );
-                }
-            } else {
-                log.warn("No templates found for channel:{}", channel);
-            }
+            channelUsersMap.put(channel, userSet);
         }
+
+        ApplicationDTO applicationDTO = applicationDAO.getAppById(appId);
+        if (applicationDTO == null) {
+            log.error("cannot find applicationInfo of appId:{}", appId);
+            return 0;
+        }
+        // 处理变量
+        Map<String, String> finalVariablesMap = processVariablesMap(
+            applicationDTO,
+            tenantId,
+            templateNotificationDTO.getVariablesMap()
+        );
+        // 获取语言
+        String normalLang = getNormalUserLanguage(applicationDTO);
+        
+        // 发送通知
+        sendNotificationToChannels(appId, tenantId, templateCode, channelUsersMap, 
+            finalVariablesMap, normalLang, null);
+        
         return userSet.size();
     }
 
     @Override
     public Integer triggerTemplateNotification(ServiceTriggerTemplateNotificationDTO triggerTemplateNotification) {
         Long appId = triggerTemplateNotification.getTriggerDTO().getAppId();
-        // 1.获取所有可用渠道
+        String tenantId = tenantService.getTenantIdByAppId(appId);
+        String templateCode = triggerTemplateNotification.getTemplateCode();
+        
+        // 获取所有可用渠道
         StopWatch watch = new StopWatch();
         watch.start("getAvailableChannelTypeList");
-        List<String> availableChannelTypeList = getAvailableChannelTypeList();
+        List<String> availableChannelTypeList = getAvailableChannelTypeList(tenantId);
         watch.stop();
         if (watch.getLastTaskTimeMillis() > 500) {
             log.warn(PrefConsts.TAG_PREF_SLOW + watch.prettyPrint());
         }
+        
+        // 获取渠道用户映射
         watch.start("getChannelUsersMap");
         Map<String, Set<String>> channelUsersMap = getChannelUsersMap(triggerTemplateNotification.getTriggerDTO());
         watch.stop();
         if (watch.getLastTaskTimeMillis() > 500) {
             log.warn(PrefConsts.TAG_PREF_SLOW + watch.prettyPrint());
         }
-        Counter counter = new Counter();
+        
+        // 过滤不可用渠道
+        Map<String, Set<String>> validChannelUsersMap = new HashMap<>();
         channelUsersMap.forEach((channel, userSet) -> {
-            if (!availableChannelTypeList.contains(channel)) {
-                log.error(String.format("channel %s is not available, not notified, please contack admin", channel));
+            if (availableChannelTypeList.contains(channel)) {
+                validChannelUsersMap.put(channel, userSet);
             } else {
-                String templateCode = triggerTemplateNotification.getTemplateCode();
-                Map<String, String> variablesMap = triggerTemplateNotification.getVariablesMap();
-                watch.start("getNotificationMessage_" + channel);
-                ServiceNotificationMessage notificationMessage = notifyTemplateService.getNotificationMessage(
-                    appId,
-                    templateCode,
-                    channel,
-                    variablesMap
+                log.info(
+                    String.format("channel %s of tenant %s is not available, not notified",
+                        channel, tenantId)
                 );
+            }
+        });
+
+        ApplicationDTO applicationDTO = applicationDAO.getAppById(appId);
+        if (applicationDTO == null) {
+            log.error("cannot find applicationInfo of appId:{}", appId);
+            return 0;
+        }
+        // 处理变量
+        Map<String, String> finalVariablesMap = processVariablesMap(
+            applicationDTO,
+            tenantId,
+            triggerTemplateNotification.getVariablesMap()
+        );
+        // 获取语言
+        String normalLang = getNormalUserLanguage(applicationDTO);
+        
+        // 发送通知
+        sendNotificationToChannels(
+            appId,
+            tenantId,
+            templateCode,
+            validChannelUsersMap,
+            finalVariablesMap,
+            normalLang,
+            watch
+        );
+        
+        return validChannelUsersMap.size();
+    }
+
+    /**
+     * 添加默认变量到 variablesMap
+     */
+    private Map<String, String> addDefaultVariables(ApplicationDTO applicationDTO,
+                                                    Map<String, String> originalVariablesMap) {
+        Map<String, String> variablesMap =
+            new HashMap<>(originalVariablesMap == null ? Collections.emptyMap() : originalVariablesMap);
+        ResourceScope scope = applicationDTO.getScope();
+        String appName = applicationDTO.getName();
+        variablesMap.putIfAbsent("BASE_HOST", jobCommonConfig.getFirstJobWebUrl());
+        variablesMap.putIfAbsent("APP_ID", getDisplayIdStr(scope));
+        variablesMap.putIfAbsent("task.bk_biz_id", scope.getId());
+        variablesMap.putIfAbsent("APP_NAME", appName);
+        variablesMap.putIfAbsent("task.bk_biz_name", appName);
+        return variablesMap;
+    }
+
+    private String getDisplayIdStr(ResourceScope scope) {
+        return scope.getType().getValue() + ":" + scope.getId();
+    }
+
+    /**
+     * 将 variablesMap 中的 username 替换为 displayName
+     */
+    private Map<String, String> replaceUsernameInMap(String tenantId, Map<String, String> originalVariablesMap) {
+        Map<String, String> displayVariablesMap = new HashMap<>(originalVariablesMap);
+        List<String> keys = Arrays.asList(
+            "task.operator",
+            "task.step.username",
+            "cron_updater"
+        );
+        for (String key : keys) {
+            String username = displayVariablesMap.getOrDefault(key, null);
+            if (StringUtils.isNotEmpty(username)) {
+                String displayName = userLocalCache.getSingleUser(tenantId, username).getDisplayName();
+                displayVariablesMap.put(key, displayName);
+            }
+        }
+        return displayVariablesMap;
+    }
+
+    /**
+     * 获取标准化的用户语言
+     */
+    private String getNormalUserLanguage(ApplicationDTO applicationDTO) {
+        String userLang = JobContextUtil.getUserLang();
+        if (userLang == null) {
+            String appLang = applicationDTO.getLanguage();
+            if (CmdbConstants.APP_LANG_VALUE_ZH_CN.equals(appLang)) {
+                userLang = LocaleUtils.LANG_ZH_CN;
+            } else if (CmdbConstants.APP_LANG_VALUE_EN_US.equals(appLang)) {
+                userLang = LocaleUtils.LANG_EN_US;
+            } else {
+                log.warn("appLang=null, use zh_CN, appId={}", applicationDTO.getId());
+                userLang = LocaleUtils.LANG_ZH_CN;
+            }
+        }
+        return LocaleUtils.getNormalLang(userLang);
+    }
+
+    /**
+     * 处理变量 Map
+     * 添加默认变量 + 替换 username
+     * 
+     * @return 处理后的变量 Map
+     */
+    private Map<String, String> processVariablesMap(ApplicationDTO app,
+                                                    String tenantId,
+                                                    Map<String, String> originalVariablesMap) {
+        // 1. 添加默认变量
+        Map<String, String> variablesMapWithDefaults = addDefaultVariables(app, originalVariablesMap);
+        // 2. 替换 username 为 displayName
+        return replaceUsernameInMap(tenantId, variablesMapWithDefaults);
+    }
+
+    /**
+     * 发送模板通知的核心逻辑
+     */
+    private void sendNotificationToChannels(
+        Long appId,
+        String tenantId,
+        String templateCode,
+        Map<String, Set<String>> channelUsersMap,
+        Map<String, String> finalVariablesMap,
+        String normalLang,
+        StopWatch watch
+    ) {
+        channelUsersMap.forEach((channel, userSet) -> {
+            if (watch != null) {
+                watch.start("getNotificationMessage_" + channel);
+            }
+            ServiceNotificationMessage notificationMessage = notifyTemplateService.getNotificationMessage(
+                tenantId,
+                templateCode,
+                channel,
+                normalLang,
+                finalVariablesMap
+            );
+            if (watch != null) {
                 watch.stop();
                 if (watch.getLastTaskTimeMillis() > 500) {
                     log.warn(PrefConsts.TAG_PREF_SLOW + watch.prettyPrint());
                 }
-                if (notificationMessage != null) {
-                    notifySendService.asyncSendUserChannelNotify(
-                        appId,
-                        userSet,
-                        channel,
-                        notificationMessage.getTitle(),
-                        notificationMessage.getContent()
-                    );
-                    counter.addOne();
-                } else {
-                    log.warn("Cannot find template of templateCode:{},channel:{}, ignore", templateCode, channel);
-                }
+            }
+            if (notificationMessage != null) {
+                notifySendService.asyncSendUserChannelNotify(
+                    appId,
+                    userSet,
+                    channel,
+                    notificationMessage.getTitle(),
+                    notificationMessage.getContent()
+                );
+            } else {
+                log.warn("Cannot find template of templateCode:{},channel:{}, ignore", templateCode, channel);
             }
         });
-        return counter.getValue().intValue();
     }
 
     private void addChannelUsersToMap(Map<String, Set<String>> channelUsersMap, String channel, Set<String> userSet) {

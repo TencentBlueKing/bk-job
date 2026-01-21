@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -23,6 +23,8 @@
  * IN THE SOFTWARE.
 */
 
+import DOMPurify from 'dompurify';
+
 import Model from '@model/model';
 
 import I18n from '@/i18n';
@@ -43,7 +45,7 @@ export default class SeverState extends Model {
   get versionHtml() {
     /* eslint-disable max-len */
     return this.versionConsistent
-      ? `<span>${this.version}</span>`
+      ? DOMPurify.sanitize(`<span>${this.version}</span>`)
       : `<i class="job-icon job-icon-script-disable" style="color: #EA3636;" svg /><span style="color: #63656E;">${I18n.t('存在不同版本')}</span>`;
   }
 }

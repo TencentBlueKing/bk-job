@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -27,7 +27,7 @@ import com.dorongold.gradle.tasktree.TaskTreePlugin
 buildscript {
     ext {
         set('springDependencyManagePluginVersion', "1.0.11.RELEASE")
-        set("springBootVersion", "2.6.13")
+        set("springBootVersion", "2.7.11")
         set("gradleJooqVersion", "3.0.0")
     }
 
@@ -68,9 +68,15 @@ buildscript {
 plugins {
     id "java-library"
     id "io.spring.dependency-management" version '1.0.11.RELEASE' apply false
-    id 'org.springframework.boot' version '2.6.13' apply false
+    id 'org.springframework.boot' version '2.7.11' apply false
     id "idea"
-    id 'nu.studer.jooq' version '3.0.0'
+    id 'nu.studer.jooq' version '9.0'
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
 }
 
 ext {
@@ -82,19 +88,20 @@ ext {
 
     set("springVersion", "5.3.25")
     // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
-    set("springBootVersion", "2.6.13")
+    set("springBootVersion", "2.7.11")
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies
     set('springCloudVersion', "2021.0.5")
     set('springCloudOtelVersion', "1.1.3")
     set('swaggerVersion', "3.0.0")
     set('junitVersion', "5.5.2")
     // https://mvnrepository.com/artifact/org.projectlombok/lombok
-    set('lombokVersion', "1.18.10")
+    set('lombokVersion', "1.18.24")
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
-    set('jacksonVersion', "2.13.5")
-    set('jaxrsVersion', "2.0")
+    set('jacksonVersion', "2.15.4")
+    set('jaxrsVersion', "2.1.6")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-core
-    set('logbackVersion', "1.2.10")
+    // Fix CVE-2023-6378 1.2.11->1.2.13
+    set('logbackVersion', "1.2.13")
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
     set('slf4jVersion', "1.7.30")
     set('servletVersion', "3.0.1")
@@ -112,31 +119,36 @@ ext {
     set('dozerVersion', "5.5.1")
     set('jedisVersion', "3.0.1")
     // https://mvnrepository.com/artifact/org.jooq/jooq
-    set('jooqVersion', "3.14.8")
+    set('jooqVersion', "3.19.1")
+    set('xmlBindVersion', "4.0.0")
+    set('annotationApiVersion', "2.1.1")
     set('h2Version', "1.4.199")
     set('gradleJooqVersion', "2.0.11")
     // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
     set('apacheHttpClientVersion', "4.5.13")
     set('apacheThriftVersion', "0.15.0")
-    set('commonsIOVersion', "2.6")
-    set('javaxServletVersion', "4.0.1")
-    set('guavaVersion', "28.2-jre")
+    // Fix CVE-2024-47554 CVE-2021-29425 2.6->2.14.0
+    set('commonsIOVersion', "2.14.0")
+    set('jakartaServletVersion', "4.0.4")
+    // Fix CVE-2023-2976 CVE-2020-8908 28.2-jre->32.0.0-android
+    set('guavaVersion', "32.0.0-android")
     set('caffeineVersion', "2.9.3")
-    set('jjwtVersion', "0.9.1")
+    set('jjwtVersion', "0.13.0")
     set('hibernateValidatorVersion', "6.1.4.Final")
-    set('micrometerPrometheusVersion', "1.5.1")
     set('flapdoodleEmbeddedMongdbDBVersion', "4.4.0")
     set('jodaTimeVersion', "2.10.5")
-    set('bcprovVersion', "1.70")
+    set('bcprovVersion', "1.78.1")
     set('reflectionsVersion', "0.10.2")
     set('cronUtilsVersion', "9.1.6")
     set('otelJdbcVersion', "1.24.0-alpha")
     set('commonsValidatorVersion', "1.6")
-    set('okHttpVersion', "4.9.1")
-    set('jcommanderVersion', "1.71")
+    set('okHttpVersion', "4.12.0")
+    set('jcommanderVersion', "1.72")
     set('kubernetesJavaClientVersion', "11.0.4")
     set('springCloudKubernetesVersion', "2.0.6")
     set('cryptoJavaSDKVersion', "1.1.3")
+    // Fix CVE-2019-10086,CVE-2014-0114
+    set('commonsBeanutilsVersion', "1.9.4")
     if (System.getProperty("bkjobVersion")) {
         set('bkjobVersion', System.getProperty("bkjobVersion"))
         println "bkjobVersion:" + bkjobVersion
@@ -144,9 +156,36 @@ ext {
         set('bkjobVersion', "1.0.0")
         println "bkjobVersion:" + bkjobVersion
     }
-    set('bkAuditJavaSdkVersion', "1.0.8")
+    set('bkAuditJavaSdkVersion', "1.0.9")
     set('mockitoVersion', "4.0.0")
     set('embeddedRedisVersion', "0.6")
+    set('openai4jVersion', "0.18.0")
+    set('shardingJdbcVersion', "5.4.1")
+    set('bkDevOpsLeafVersion', "1.0.2-RELEASE")
+    // Fix CVE-2023-44981,CVE-2024-23944 3.7.1->3.8.4
+    set('zookeeperVersion', "3.8.4")
+    // Fix CVE-2023-3635 2.8.0->3.4.0
+    set('okioVersion', "3.4.0")
+    // Fix CVE-2023-34062 1.0.24->1.0.39
+    set('reactorNettyHttpVersion', "1.0.39")
+    set('reactorNettyCoreVersion', "1.0.39")
+    // Fix CVE-2023-44487 4.1.84.Final->4.1.100.Final
+    set('nettyCodecHttp2Version', "4.1.100.Final")
+    // Fix CVE-2024-38809 CVE-2024-22262 CVE-2024-22259 CVE-2024-22243 5.3.23->5.3.39
+    set('springWebVersion', "5.3.39")
+    // Fix CVE-2023-46120 5.13.1->5.18.0
+    set('amqpClientVersion', "5.18.0")
+    // Fix CVE-2023-4759 5.13.1.202206130422-r->6.6.1.202309021850-r
+    set('jgitVersion', "6.6.1.202309021850-r")
+
+    // 使用Spring Boot内置的版本号变量，不采用驼峰命名，保持与官方BOM文件一致
+    // Fix CVE-2023-22102 8.0.33->8.2.0
+    set('mysql.version', "8.2.0")
+    // Fix CVE-2023-44487, CVE-2024-52316
+    set('tomcat.version', "9.0.96")
+    // Fix CVE-2022-41854 CVE-2022-38752 CVE-2022-38751 CVE-2022-38749 CVE-2022-25857 CVE-2022-1471 1.29->1.33
+    set('snakeyaml.version', "1.33")
+    set('mysqlConnectorVersion', "8.0.33")
 }
 
 group "com.tencent.bk.job"
@@ -171,6 +210,7 @@ allprojects {
     }
 
     repositories {
+        mavenCentral()
         mavenLocal()
 
         // 用户通过命令行方式指定的 maven repo
@@ -190,7 +230,6 @@ allprojects {
                 maven { url repoUrl }
             }
         }
-        mavenCentral()
         maven {
             url "https://repo.spring.io/snapshot"
         }
@@ -277,7 +316,7 @@ subprojects {
             dependency "org.springframework:spring-jdbc:$springVersion"
             dependency "org.springframework:spring-webflux:$springVersion"
             dependency "org.projectlombok:lombok:$lombokVersion"
-            dependency "javax.ws.rs:javax.ws.rs-api:$jaxrsVersion"
+            dependency "jakarta.ws.rs:jakarta.ws.rs-api:$jaxrsVersion"
             dependency "org.slf4j:slf4j-api:$slf4jVersion"
             dependency "io.springfox:springfox-boot-starter:$swaggerVersion"
             // apache commons
@@ -289,10 +328,11 @@ subprojects {
             dependency "commons-collections:commons-collections:$commonsCollectionsVersion"
             dependency "commons-io:commons-io:$commonsIOVersion"
             dependency "commons-codec:commons-codec:$apacheCommonsCodecVersion"
+            dependency "commons-beanutils:commons-beanutils:$commonsBeanutilsVersion"
             dependency "net.sf.dozer:dozer:$dozerVersion"
             dependency "org.jedis:jedis:$jedisVersion"
             dependency "com.h2database:h2:$h2Version"
-            dependency "javax.servlet:javax.servlet-api:$javaxServletVersion"
+            dependency "jakarta.servlet:jakarta.servlet-api:$jakartaServletVersion"
             // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
             dependencySet(group: 'org.apache.httpcomponents', version: "$apacheHttpClientVersion") {
                 entry "httpclient"
@@ -302,13 +342,16 @@ subprojects {
             dependency group: 'org.apache.thrift', name: 'libthrift', version: "$apacheThriftVersion"
             dependency group: 'com.google.guava', name: 'guava', version: "$guavaVersion"
             dependency "com.github.ben-manes.caffeine:caffeine:$caffeineVersion"
-            dependency group: 'io.jsonwebtoken', name: 'jjwt', version: "$jjwtVersion"
+            dependencySet(group: "io.jsonwebtoken", version: "$jjwtVersion") {
+                entry "jjwt-api"
+                entry "jjwt-impl"
+                entry "jjwt-jackson"
+            }
             dependency "net.sourceforge.jchardet:jchardet:1.0"
-            dependency "io.micrometer:micrometer-registry-prometheus:$micrometerPrometheusVersion"
             dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo.spring26x:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "de.flapdoodle.embed:de.flapdoodle.embed.mongo:$flapdoodleEmbeddedMongdbDBVersion"
             dependency "joda-time:joda-time:$jodaTimeVersion"
-            dependency "org.bouncycastle:bcprov-jdk15on:$bcprovVersion"
+            dependency "org.bouncycastle:bcprov-jdk18on:$bcprovVersion"
             // https://github.com/ronmamo/reflections
             dependency "org.reflections:reflections:$reflectionsVersion"
             dependency "com.cronutils:cron-utils:$cronUtilsVersion"
@@ -316,11 +359,14 @@ subprojects {
             dependency "io.opentelemetry.instrumentation:opentelemetry-jdbc:$otelJdbcVersion"
             dependency "com.squareup.okhttp3:logging-interceptor:$okHttpVersion"
             dependency "com.squareup.okhttp3:okhttp:$okHttpVersion"
+            dependency "com.squareup.okhttp3:okhttp-sse:$okHttpVersion"
             dependencySet(group: "org.jooq", version: "$jooqVersion") {
                 entry "jooq"
                 entry "jooq-codegen"
                 entry "jooq-meta"
             }
+            dependency "jakarta.xml.bind:jakarta.xml.bind-api:$xmlBindVersion"
+            dependency "jakarta.annotation:jakarta.annotation-api:$annotationApiVersion"
             dependencySet(group: "com.fasterxml.jackson", version: "$jacksonVersion") {
                 entry "jackson-core"
                 entry "jackson-databind"
@@ -340,11 +386,23 @@ subprojects {
             dependency "com.tencent.bk.sdk:spring-boot-bk-audit-starter:$bkAuditJavaSdkVersion"
             dependency "org.mockito:mockito-inline:$mockitoVersion"
             dependency "com.github.kstyrc:embedded-redis:$embeddedRedisVersion"
+            dependency "dev.ai4j:openai4j:$openai4jVersion"
+            dependency "org.apache.shardingsphere:shardingsphere-jdbc-core:$shardingJdbcVersion"
+            dependency "com.tencent.devops.leaf:leaf-boot-starter:$bkDevOpsLeafVersion"
+            dependency "org.apache.zookeeper:zookeeper:$zookeeperVersion"
+            dependency "com.squareup.okio:okio:$okioVersion"
+            dependency "io.projectreactor.netty:reactor-netty-http:$reactorNettyHttpVersion"
+            dependency "io.projectreactor.netty:reactor-netty-core:$reactorNettyCoreVersion"
+            dependency "io.netty:netty-codec-http2:$nettyCodecHttp2Version"
+            dependency "org.springframework:spring-web:$springWebVersion"
+            dependency "com.rabbitmq:amqp-client:$amqpClientVersion"
+            dependency "org.eclipse.jgit:org.eclipse.jgit:$jgitVersion"
+            dependency "com.mysql:mysql-connector-j:$mysqlConnectorVersion"
         }
     }
     dependencies {
         constraints {
-            implementation('commons-fileupload:commons-fileupload:1.5') {
+            implementation('commons-fileupload:commons-fileupload:1.6.0') {
                 because 'version 1.4 pulled from spring-cloud-starter-openfeign has vulnerabilities(CVE-2023-24998)'
             }
         }
@@ -354,6 +412,7 @@ subprojects {
         all*.exclude group: 'junit', module: 'junit'
         all*.exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
         all*.exclude group: 'org.springframework.cloud', module: 'spring-cloud-sleuth-brave'
+        all*.exclude group: 'org.springframework.data', module: 'spring-data-redis'
     }
 }
 apply plugin: TaskTreePlugin

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -36,4 +36,5 @@ public class HttpHeader {
     public static final String HDR_REQ_SAPN_ID = "span-id";
     public static final String HDR_CONTENT_TYPE = "Content-Type";
     public static final String S_CURRENT_PAGE = "currentPage";
+    public static final String HDR_UER_AGENT = "User-Agent";
 }

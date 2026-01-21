@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -55,11 +55,12 @@ public interface ExecuteObjectTaskService {
     /**
      * 获取执行成功的执行对象任务数量
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   步骤执行次数
      * @return 执行成功的任务数量
      */
-    int getSuccessTaskCount(long stepInstanceId, int executeCount);
+    int getSuccessTaskCount(Long taskInstanceId, long stepInstanceId, int executeCount);
 
 
     /**

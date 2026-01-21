@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -32,6 +32,7 @@ import com.tencent.bk.job.file_gateway.model.resp.web.FileWorkerVO;
 import com.tencent.bk.job.file_gateway.service.FileWorkerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collections;
@@ -58,7 +59,7 @@ public class WebFileWorkerResourceImpl implements WebFileWorkerResource {
                                                        WorkerSelectScopeEnum workerSelectScope) {
         Long appId = appResourceScope.getAppId();
         List<FileWorkerDTO> fileWorkerDTOList = fileWorkerService.listFileWorker(username, appId, workerSelectScope);
-        if (fileWorkerDTOList == null || fileWorkerDTOList.size() == 0) {
+        if (CollectionUtils.isEmpty(fileWorkerDTOList)) {
             return Response.buildSuccessResp(Collections.emptyList());
         }
         List<FileWorkerVO> fileWorkerVOList =

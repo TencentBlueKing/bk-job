@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -30,6 +30,7 @@ import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispat
 import com.tencent.bk.job.execute.engine.result.ContinuousScheduledTask;
 import com.tencent.bk.job.execute.engine.result.ScheduleStrategy;
 import com.tencent.bk.job.execute.engine.result.StopTaskCounter;
+import com.tencent.bk.job.execute.engine.result.TaskContext;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.StepInstanceService;
@@ -62,6 +63,7 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
     private final FilePrepareTaskResultHandler filePrepareTaskResultHandler;
     private final StepInstanceService stepInstanceService;
     private final long startTimeMills;
+    private final TaskContext taskContext;
 
     public FilePrepareControlTask(
         FilePrepareService filePrepareService,
@@ -81,6 +83,7 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
         this.filePrepareTaskResultHandler = filePrepareTaskResultHandler;
         this.stepInstanceService = stepInstanceService;
         this.startTimeMills = System.currentTimeMillis();
+        this.taskContext = new TaskContext(stepInstance.getTaskInstanceId());
     }
 
     @Override
@@ -130,7 +133,8 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
     private boolean needToStop(StepInstanceDTO stepInstance) {
         TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstance(stepInstance.getTaskInstanceId());
         // 刷新步骤状态
-        stepInstance = stepInstanceService.getStepInstanceDetail(stepInstance.getId());
+        stepInstance = stepInstanceService.getStepInstanceDetail(
+            stepInstance.getTaskInstanceId(), stepInstance.getId());
         // 如果任务处于“终止中”状态，触发任务终止
         if (taskInstance.getStatus() == RunStatusEnum.STOPPING) {
             // 已经发送过停止命令的就不再重复发送了
@@ -161,7 +165,8 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
             // 1.停止正在进行的所有文件准备任务
             filePrepareService.stopPrepareFile(stepInstance);
             // 2.MQ消息通知其他实例准备文件
-            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.prepareFile(stepInstance.getId()));
+            taskExecuteMQEventDispatcher.dispatchStepEvent(
+                StepEvent.prepareFile(stepInstance.getTaskInstanceId(), stepInstance.getId()));
             this.isStopped = true;
             StopTaskCounter.getInstance().decrement(getTaskId());
             log.info("gracefulStop end:{}", getTaskId());
@@ -173,6 +178,11 @@ public class FilePrepareControlTask implements ContinuousScheduledTask {
     @Override
     public String getTaskId() {
         return "FilePrepareControlTask-" + stepInstance.getId() + "_" + stepInstance.getExecuteCount();
+    }
+
+    @Override
+    public TaskContext getTaskContext() {
+        return taskContext;
     }
 
     @Override

@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -42,12 +42,19 @@
             @click="handleGoCreateApp">
             {{ $t('新建业务') }}
           </bk-button>
-          <bk-button
-            :loading="isApplyLoading"
-            theme="primary"
-            @click="handleGoApplyPermission">
-            {{ $t('申请业务权限') }}
-          </bk-button>
+          <span
+            v-bk-tooltips="{
+              content: $t('请联系业务运维加入业务'),
+              disabled: canApply,
+            }">
+            <bk-button
+              :disabled="!canApply"
+              :loading="isApplyLoading"
+              theme="primary"
+              @click="handleGoApplyPermission">
+              {{ $t('申请业务权限') }}
+            </bk-button>
+          </span>
         </div>
       </div>
     </div>
@@ -56,7 +63,7 @@
         <div class="feature-item">
           <div class="feature-pic">
             <img
-              src="/static/images/guide/permission-apply.svg"
+              :src="permissionApplyImage"
               style="width: 220px; margin: 19px 26px 0 24px;">
           </div>
           <div class="feature-box">
@@ -65,7 +72,12 @@
             </div>
             <div>
               {{ $t('不同团队在作业平台上的资源以“业务”分隔，而“业务”是统一由配置平台进行创建和管理的，你可以选择') }}
-              <a @click="handleGoApplyPermission">
+              <a
+                v-bk-tooltips="{
+                  content: $t('请联系业务运维加入业务'),
+                  disabled: canApply,
+                }"
+                @click="handleGoApplyPermission">
                 {{ $t('申请已有业务的权限') }}
               </a>
               {{ $t('，亦或是') }}
@@ -82,7 +94,7 @@
         <div class="feature-item">
           <div class="feature-pic">
             <img
-              src="/static/images/guide/permission-use.svg"
+              :src="permissionUseImage"
               style="width: 230px; margin: 22px 32px 0 7px;">
           </div>
           <div class="feature-box">
@@ -112,7 +124,7 @@
           <span>{{ $t('第一次使用作业平台？点击查阅') }}  </span>
           <!-- eslint-disable-next-line  max-len -->
           <a
-            :href="`${relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/JOB/UserGuide/Quick-Starts/1.Create-system-account.md`"
+            :href="`${relatedSystemUrls.BK_DOC_JOB_ROOT_URL}/UserGuide/Quick-Starts/1.Create-system-account.md`"
             target="_blank">
             <span>{{ $t('快速入门技巧') }}</span>
             <icon type="link" />
@@ -121,7 +133,7 @@
         <div style="margin-top: 10px;">
           <span>{{ $t('了解更多关于作业平台产品的功能介绍，点击前往') }}</span>
           <a
-            :href="`${relatedSystemUrls.BK_DOC_JOB_ROOT_URL}/markdown/JOB/UserGuide/Introduction/What-is-Job.md`"
+            :href="`${relatedSystemUrls.BK_DOC_JOB_ROOT_URL}/UserGuide/Introduction/What-is-Job.md`"
             target="_blank">
             <span>{{ $t('产品文档') }}</span>
             <icon type="link" />
@@ -132,6 +144,7 @@
   </div>
 </template>
 <script>
+  import AppManageService from '@service/app-manage';
   import QueryGlobalSettingService from '@service/query-global-setting';
 
   import I18n from '@/i18n';
@@ -140,18 +153,27 @@
     data() {
       return {
         isApplyLoading: false,
+        canApply: false,
         relatedSystemUrls: {
           BK_CMDB_ROOT_URL: '',
           BK_DOC_JOB_ROOT_URL: '',
-          BK_DOC_CENTER_ROOT_URL: '/',
         },
       };
     },
     created() {
       this.fetchRelatedSystemUrls();
+      this.fetchGroupPanel();
+      this.permissionApplyImage = window.__loadAssetsUrl__('/static/images/guide/permission-apply.svg');
+      this.permissionUseImage = window.__loadAssetsUrl__('/static/images/guide/permission-use.svg');
       document.title = I18n.t('无业务权限');
     },
     methods: {
+      fetchGroupPanel() {
+        AppManageService.fetchGroupPanel()
+          .then((data) => {
+            this.canApply = data.canApply;
+          });
+      },
       fetchRelatedSystemUrls() {
         QueryGlobalSettingService.fetchRelatedSystemUrls()
           .then((data) => {
@@ -166,6 +188,9 @@
         window.open(`${this.relatedSystemUrls.BK_CMDB_ROOT_URL}/#/resource/business`);
       },
       handleGoApplyPermission() {
+        if (!this.canApply) {
+          return;
+        }
         this.isApplyLoading = true;
         QueryGlobalSettingService.fetchApplyBusinessUrl({
           scopeType: window.PROJECT_CONFIG.SCOPE_TYPE,

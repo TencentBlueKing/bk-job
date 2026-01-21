@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -36,8 +36,10 @@ import com.tencent.bk.job.common.esb.util.EsbDTOAppScopeMappingHelper;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
@@ -106,7 +108,8 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
         Long appId = request.getAppId();
         Long jobId = request.getPlanId();
 
-        TaskPlanInfoDTO taskPlan = taskPlanService.getTaskPlan(username, appId, jobId);
+        User user = JobContextUtil.getUser();
+        TaskPlanInfoDTO taskPlan = taskPlanService.getTaskPlan(user, appId, jobId);
 
         return EsbResp.buildSuccessResp(buildJobDetail(taskPlan));
     }

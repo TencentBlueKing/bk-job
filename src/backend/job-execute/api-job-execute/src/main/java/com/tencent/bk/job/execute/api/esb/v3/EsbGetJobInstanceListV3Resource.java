@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbPageDataV3;
 import com.tencent.bk.job.execute.model.esb.v3.EsbTaskInstanceV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceListV3Request;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 查询作业执行历史 -V3
  */
+@Validated
 @RequestMapping("/esb/api/v3")
 @RestController
 @EsbAPI
@@ -73,8 +75,9 @@ public interface EsbGetJobInstanceListV3Resource {
         @RequestParam(value = "status", required = false) Integer taskStatus,
         @RequestParam(value = "ip", required = false) String ip,
         @RequestParam(value = "job_cron_id", required = false) Long cronId,
-        @RequestParam(value = "start", required = false) Integer start,
-        @RequestParam(value = "length", required = false) Integer length);
+        @RequestParam(value = "start", required = false, defaultValue = "0") Integer start,
+        @Range(min = 1L, max = 1000L, message = "{validation.constraints.InvalidJobInstanceLength.message}")
+        @RequestParam(value = "length", required = false, defaultValue = "20") Integer length);
 
 
 }

@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -58,7 +58,7 @@
           <detail-item :label="`${$t('history.步骤名称')}：`">
             {{ data.name }}
           </detail-item>
-          <detail-item :label="`${$t('history.开始时间.label')}：`">
+          <detail-item :label="`${$t('history.开始时间_label')}：`">
             {{ data.startTime }}
           </detail-item>
           <detail-item :label="`${$t('history.结束时间')}：`">
@@ -75,7 +75,7 @@
     <img
       v-if="data.isDoing"
       class="loading-progress"
-      src="/static/images/task-loading.png">
+      :src="taskLoadingImage">
     <div
       class="step-action"
       @click.stop="">
@@ -109,6 +109,9 @@
       handleChangeStatus: {
         type: Function,
       },
+    },
+    created() {
+      this.taskLoadingImage = window.__loadAssetsUrl__('/static/images/task-loading.png');
     },
   };
 </script>

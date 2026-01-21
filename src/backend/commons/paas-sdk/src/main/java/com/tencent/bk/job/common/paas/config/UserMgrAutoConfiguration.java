@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,8 +25,20 @@
 package com.tencent.bk.job.common.paas.config;
 
 import com.tencent.bk.job.common.esb.config.AppProperties;
-import com.tencent.bk.job.common.esb.config.EsbProperties;
+import com.tencent.bk.job.common.esb.config.BkApiGatewayProperties;
+import com.tencent.bk.job.common.paas.config.condition.ConditionalOnMockUserApiDisable;
+import com.tencent.bk.job.common.paas.config.condition.ConditionalOnMockUserApiEnable;
+import com.tencent.bk.job.common.paas.config.condition.UseOriginalAdminAccount;
+import com.tencent.bk.job.common.paas.config.condition.UseVirtualAdminAccountUsername;
+import com.tencent.bk.job.common.paas.user.IUserApiClient;
+import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
+import com.tencent.bk.job.common.paas.user.MockUserApiClient;
+import com.tencent.bk.job.common.paas.user.OriginalAdminNameProvider;
+import com.tencent.bk.job.common.paas.user.SafeUserMgrApiClient;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.paas.user.UserMgrApiClient;
+import com.tencent.bk.job.common.paas.user.VirtualAdminAccountCache;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -38,11 +50,48 @@ import org.springframework.context.annotation.Configuration;
 public class UserMgrAutoConfiguration {
 
     @Bean
-    public UserMgrApiClient userMgrApiClient(AppProperties appProperties,
-                                             EsbProperties esbProperties,
-                                             ObjectProvider<MeterRegistry> meterRegistryObjectProvider) {
+    @ConditionalOnMockUserApiDisable
+    public IUserApiClient userMgrApiClient(AppProperties appProperties,
+                                           BkApiGatewayProperties bkApiGatewayProperties,
+                                           ObjectProvider<MeterRegistry> meterRegistryObjectProvider,
+                                           TenantEnvService tenantEnvService) {
         log.info("Init UserMgrApiClient");
-        return new UserMgrApiClient(esbProperties, appProperties, meterRegistryObjectProvider.getIfAvailable());
+        return new SafeUserMgrApiClient(
+            new UserMgrApiClient(
+                bkApiGatewayProperties,
+                appProperties,
+                meterRegistryObjectProvider.getIfAvailable(),
+                tenantEnvService
+            ),
+            tenantEnvService
+        );
+    }
+
+    @Bean
+    @ConditionalOnMockUserApiEnable
+    public IUserApiClient mockUserApiClient() {
+        log.info("Init MockUserApiClient");
+        return new MockUserApiClient();
+    }
+
+    @Bean
+    UserLocalCache userLocalCache(IUserApiClient userMgrApiClient) {
+        log.info("Init UserLocalCache");
+        return new UserLocalCache(userMgrApiClient);
+    }
+
+    @Bean
+    @UseVirtualAdminAccountUsername
+    public IVirtualAdminAccountProvider virtualAdminAccountCache(IUserApiClient userMgrApiClient) {
+        log.info("Init VirtualAdminAccountCache");
+        return new VirtualAdminAccountCache(userMgrApiClient);
+    }
+
+    @Bean
+    @UseOriginalAdminAccount
+    public IVirtualAdminAccountProvider originalAdminNameProvider() {
+        log.info("Init OriginalAdminNameProvider");
+        return new OriginalAdminNameProvider();
     }
 
 }

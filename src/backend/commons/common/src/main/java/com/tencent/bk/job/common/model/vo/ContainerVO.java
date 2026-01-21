@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -66,4 +66,22 @@ public class ContainerVO {
 
     @ApiModelProperty("所属 Node GSE agent 状态")
     private String nodeAgentStatus;
+
+    @ApiModelProperty("cluster在cmdb中的唯一ID")
+    private Long clusterId;
+
+    @ApiModelProperty(value = "集群 ID", example = "BCS-K8S-00000")
+    private String clusterUID;
+
+    @ApiModelProperty("集群名称")
+    private String clusterName;
+
+    @ApiModelProperty("命名空间在 cmdb 的唯一 ID")
+    private Long namespaceId;
+
+    @ApiModelProperty("命名空间名称")
+    private String namespace;
+
+    @ApiModelProperty("workload 类型")
+    private String workloadType;
 }

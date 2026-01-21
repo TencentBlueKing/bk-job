@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -92,9 +92,10 @@
         left="20">
         <div class="send-message-content">
           <jb-user-selector
-            class="input"
+            :exclude-user-list="blackUserList"
             :placeholder="$t('setting.请输入接收消息预览的用户名（请确保接受人对应的账号配置正常）')"
             :show-role="false"
+            style="flex: 1"
             :user="reciverList"
             @on-change="handleApprovalUserChange" />
           <bk-button
@@ -156,6 +157,10 @@
       data: {
         type: Object,
         default: () => ({}),
+      },
+      blackUserList: {
+        type: Array,
+        default: () => [],
       },
     },
     data() {

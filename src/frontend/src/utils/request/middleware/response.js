@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -23,12 +23,15 @@
  * IN THE SOFTWARE.
 */
 
+import path from 'path-browserify';
+
 import AuthResultModel from '@model/auth-result';
 
 import EventBus from '@utils/event-bus';
 
+import { showLoginModal } from '@blueking/login-modal';
+
 import {
-  loginDialog,
   messageError,
   permissionDialog,
   systemPermission,
@@ -47,6 +50,9 @@ EventBus.$on('logout', () => {
 
 export default (interceptors) => {
   interceptors.use((response) => {
+    if (response.data.code === undefined) {
+      return response.data;
+    }
     // 处理http响应成功，后端返回逻辑
     switch (response.data.code) {
       // 后端业务逻辑处理成功
@@ -93,9 +99,11 @@ export default (interceptors) => {
       // 未登录
       case 401:
         if (hasLogined) {
-          loginDialog(error.message);
+          showLoginModal({
+            loginUrl: `${error.message}is_from_logout=1&c_url=${decodeURIComponent(path.join(window.location.origin, window.PROJECT_CONFIG.BK_SITE_PATH, 'static/login_success.html'))}`,
+          });
         } else {
-          window.location.href = `${error.message}&c_url=${decodeURIComponent(window.location.href)}`;
+          window.location.href = `${error.message}is_from_logout=1&c_url=${decodeURIComponent(window.location.href)}`;
         }
         break;
         // 没权限

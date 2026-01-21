@@ -59,7 +59,7 @@ For more information, please check Blueking's official website [Platform Product
 
 ## Getting started
 - [Download and Compile](docs/overview/source_compile.en.md)
-- [Installation Setup](docs/overview/installation.en.md)
+- [Install and Operation](docs/overview/operation_en.md)
 
 ## Support
 1. [GitHub Community](https://github.com/Tencent/bk-job/discussions)

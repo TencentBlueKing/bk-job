@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
@@ -71,34 +72,70 @@ public class Container implements Cloneable {
     private Long nodeHostId;
 
     /**
+     * node 主机 ip
+     */
+    @JsonProperty("nodeIp")
+    private String nodeIp;
+
+    /**
      * 容器所在 Node 对应的 Agent ID
      */
     @JsonProperty("nodeAgentId")
     private String nodeAgentId;
 
     /**
-     * 容器所在集群 ID
+     * cluster在cmdb中的唯一ID
      */
     @JsonProperty("clusterId")
-    private String clusterId;
+    private Long clusterId;
 
     /**
-     * 容器所在命名空间
+     * 集群 ID
+     */
+    @JsonProperty("clusterUID")
+    private String clusterUID;
+
+    /**
+     * 集群名称
+     */
+    @JsonProperty("clusterName")
+    private String clusterName;
+
+    /**
+     * namespace在cmdb中的唯一ID
+     */
+    @JsonProperty("namespaceId")
+    private Long namespaceId;
+
+    /**
+     * 命名空间名称
      */
     @JsonProperty("namespace")
     private String namespace;
 
     /**
-     * 容器所在 POD 名称
+     * POD 名称
      */
     @JsonProperty("podName")
     private String podName;
 
     /**
-     * 容器所在 POD 名称
+     * pod labels
      */
     @JsonProperty("podLabels")
     private Map<String, String> podLabels;
+
+    /**
+     * workload 类型(Deployment/Job ...)
+     */
+    @JsonProperty("workloadType")
+    private String workloadType;
+
+    /**
+     * workload在cmdb中的唯一ID
+     */
+    @JsonProperty("workloadId")
+    private Long workloadId;
 
     @Override
     public boolean equals(Object o) {
@@ -119,13 +156,19 @@ public class Container implements Cloneable {
         Container clone = new Container();
         clone.setId(id);
         clone.setNodeHostId(nodeHostId);
+        clone.setNodeIp(nodeIp);
         clone.setNodeAgentId(nodeAgentId);
         clone.setContainerId(containerId);
         clone.setPodLabels(podLabels);
         clone.setClusterId(clusterId);
+        clone.setClusterUID(clusterUID);
+        clone.setClusterName(clusterName);
+        clone.setNamespaceId(namespaceId);
         clone.setNamespace(namespace);
         clone.setPodName(podName);
         clone.setName(name);
+        clone.setWorkloadType(workloadType);
+        clone.setWorkloadId(workloadId);
         return clone;
     }
 
@@ -135,8 +178,15 @@ public class Container implements Cloneable {
         vo.setName(name);
         vo.setUid(containerId);
         vo.setNodeHostId(nodeHostId);
+        vo.setNodeIp(nodeIp);
         vo.setPodName(podName);
         vo.setPodLabels(podLabels);
+        vo.setClusterId(clusterId);
+        vo.setClusterUID(clusterUID);
+        vo.setClusterName(clusterName);
+        vo.setNamespaceId(namespaceId);
+        vo.setNamespace(namespace);
+        vo.setWorkloadType(workloadType);
         return vo;
     }
 
@@ -153,10 +203,32 @@ public class Container implements Cloneable {
         this.containerId = container.getContainerId();
         this.nodeHostId = container.getNodeHostId();
         this.nodeAgentId = container.getNodeAgentId();
+        this.nodeIp = container.getNodeIp();
         this.clusterId = container.getClusterId();
+        this.clusterUID = container.getClusterUID();
+        this.clusterName = container.getClusterName();
+        this.namespaceId = container.getNamespaceId();
         this.namespace = container.getNamespace();
+        this.workloadType = container.getWorkloadType();
+        this.workloadId = container.getWorkloadId();
         this.podName = container.getPodName();
         this.podLabels = container.getPodLabels();
         this.name = container.getName();
+    }
+
+    /**
+     * 获取可读性的执行对象名称
+     */
+    @JsonIgnore
+    public String getReadabilityName() {
+        StringBuilder nameBuilder = new StringBuilder(256);
+        if (clusterId != null) {
+            nameBuilder.append(clusterId).append("::");
+        }
+        if (namespace != null) {
+            nameBuilder.append(namespace).append("::");
+        }
+        nameBuilder.append(podName).append("::").append(name).append("::").append(containerId);
+        return nameBuilder.toString();
     }
 }

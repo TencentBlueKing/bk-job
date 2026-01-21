@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -26,7 +26,6 @@ package com.tencent.bk.job.common.util.file;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.helpers.MessageFormatter;
 
 @Slf4j
 public class FileSizeUtil {
@@ -55,9 +54,9 @@ public class FileSizeUtil {
      * @param fileSizeStr 带单位的文件大小描述
      * @return 真实表示的字节数
      */
-    public static Long parseFileSizeBytes(String fileSizeStr) {
+    public static long parseFileSizeBytes(String fileSizeStr) {
         if (StringUtils.isBlank(fileSizeStr)) {
-            return null;
+            throw new IllegalArgumentException("Invalid fileSize : " + fileSizeStr);
         }
         long factor = 1L;
         fileSizeStr = fileSizeStr.trim().toUpperCase();
@@ -84,15 +83,6 @@ public class FileSizeUtil {
             fileSizeStr = fileSizeStr.replace("K", "");
             factor = 1024L;
         }
-        try {
-            return Math.round(Double.parseDouble(fileSizeStr) * factor);
-        } catch (Exception e) {
-            String msg = MessageFormatter.format(
-                "Fail to parse double from fileSizeStr:{}",
-                fileSizeStr
-            ).getMessage();
-            log.warn(msg, e);
-            return null;
-        }
+        return Math.round(Double.parseDouble(fileSizeStr) * factor);
     }
 }

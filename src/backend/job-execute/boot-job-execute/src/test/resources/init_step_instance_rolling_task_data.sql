@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,7 +25,8 @@
 TRUNCATE TABLE step_instance_rolling_task;
 
 INSERT INTO job_execute.step_instance_rolling_task
-            (step_instance_id,
+            (task_instance_id,
+             step_instance_id,
              execute_count,
              batch,
              status,
@@ -33,9 +34,9 @@ INSERT INTO job_execute.step_instance_rolling_task
              end_time,
              total_time)
 VALUES
-    (1,0,1,1,1642247802000,1642247803000,1000),
-    (1,0,2,1,1642247804000,1642247805000,1000),
-    (2,0,1,1,1642247804000,1642247805000,1000),
-    (2,0,2,1,1642247805000,1642247806000,1000),
-    (2,0,3,1,1642247806000,1642247807000,1000);
+    (1,1,0,1,1,1642247802000,1642247803000,1000),
+    (1,1,0,2,1,1642247804000,1642247805000,1000),
+    (2,2,0,1,1,1642247804000,1642247805000,1000),
+    (2,2,0,2,1,1642247805000,1642247806000,1000),
+    (2,2,0,3,1,1642247806000,1642247807000,1000);
 

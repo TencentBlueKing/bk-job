@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -57,39 +57,47 @@ public interface FileAgentTaskDAO {
     /**
      * 获取步骤成功执行的Agent任务数量
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @return 步骤成功执行的Agent任务数量
      */
-    int getSuccessAgentTaskCount(long stepInstanceId, int executeCount);
+    int getSuccessAgentTaskCount(Long taskInstanceId, long stepInstanceId, int executeCount);
 
     /**
      * 查询执行结果分组
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
      * @return 执行结果分组
      */
-    List<ResultGroupBaseDTO> listResultGroups(long stepInstanceId, int executeCount, Integer batch);
+    List<ResultGroupBaseDTO> listResultGroups(Long taskInstanceId,
+                                              long stepInstanceId,
+                                              int executeCount,
+                                              Integer batch);
 
     /**
      * 根据执行结果查询Agent任务
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
      * @param status         任务状态
      * @return Agent任务
      */
-    List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                  Integer executeCount,
-                                                  Integer batch,
-                                                  Integer status);
+    List<ExecuteObjectTask> listAgentTaskByResultGroup(Long taskInstanceId,
+                                                       Long stepInstanceId,
+                                                       Integer executeCount,
+                                                       Integer batch,
+                                                       Integer status);
 
     /**
      * 根据执行结果查询Agent任务(排序、限制返回数量)
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次；如果传入null或者0，忽略该参数
@@ -99,39 +107,44 @@ public interface FileAgentTaskDAO {
      * @param order          排序方式
      * @return Agent任务
      */
-    List<ExecuteObjectTask> listAgentTaskByResultGroup(Long stepInstanceId,
-                                                  Integer executeCount,
-                                                  Integer batch,
-                                                  Integer status,
-                                                  Integer limit,
-                                                  String orderField,
-                                                  Order order);
+    List<ExecuteObjectTask> listAgentTaskByResultGroup(Long taskInstanceId,
+                                                       Long stepInstanceId,
+                                                       Integer executeCount,
+                                                       Integer batch,
+                                                       Integer status,
+                                                       Integer limit,
+                                                       String orderField,
+                                                       Order order);
 
     /**
      * 获取agent任务
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次；传入null或者0将忽略该参数
      * @param fileTaskMode   文件分发任务模式;传入null表示忽略该过滤条件
      * @return agent任务
      */
-    List<ExecuteObjectTask> listAgentTasks(Long stepInstanceId,
-                                      Integer executeCount,
-                                      Integer batch,
-                                      FileTaskModeEnum fileTaskMode);
+    List<ExecuteObjectTask> listAgentTasks(Long taskInstanceId,
+                                           Long stepInstanceId,
+                                           Integer executeCount,
+                                           Integer batch,
+                                           FileTaskModeEnum fileTaskMode);
 
     /**
      * 根据GSE任务ID获取agent任务
      *
-     * @param gseTaskId GSE任务ID
+     * @param taskInstanceId 作业实例 ID
+     * @param gseTaskId      GSE任务ID
      * @return agent任务
      */
-    List<ExecuteObjectTask> listAgentTasksByGseTaskId(Long gseTaskId);
+    List<ExecuteObjectTask> listAgentTasksByGseTaskId(Long taskInstanceId, Long gseTaskId);
 
     /**
      * 根据hostId查询Agent任务
      *
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次；传入null或者0将忽略该参数
@@ -139,20 +152,26 @@ public interface FileAgentTaskDAO {
      * @param hostId         主机ID
      * @return Agent任务
      */
-    ExecuteObjectTask getAgentTaskByHostId(Long stepInstanceId, Integer executeCount, Integer batch,
-                                      FileTaskModeEnum mode, long hostId);
+    ExecuteObjectTask getAgentTaskByHostId(Long taskInstanceId,
+                                           Long stepInstanceId,
+                                           Integer executeCount,
+                                           Integer batch,
+                                           FileTaskModeEnum mode,
+                                           long hostId);
 
 
     /**
      * 批量更新AgentTask的字段
      *
+     * @param taskInstanceId     作业实例 ID
      * @param stepInstanceId     条件 - 步骤实例ID
      * @param executeCount       条件 - 重试次数
      * @param batch              条件 - 滚动执行批次；传入null将忽略该条件
      * @param actualExecuteCount 值 - Agent任务实际执行的步骤重试次数；如果传入null，则不更新
      * @param gseTaskId          值 - Agent任务对应的GSE_TASK_ID；如果传入null，则不更新
      */
-    void updateAgentTaskFields(long stepInstanceId,
+    void updateAgentTaskFields(Long taskInstanceId,
+                               long stepInstanceId,
                                int executeCount,
                                Integer batch,
                                Integer actualExecuteCount,

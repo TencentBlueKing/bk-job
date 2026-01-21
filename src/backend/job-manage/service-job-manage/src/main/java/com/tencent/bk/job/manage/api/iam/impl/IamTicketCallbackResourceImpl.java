@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -31,6 +31,8 @@ import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.api.iam.IamTicketCallbackResource;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbCredentialSimpleInfoV3DTO;
@@ -68,7 +70,10 @@ public class IamTicketCallbackResourceImpl extends BaseIamCallbackService
 
     @Autowired
     public IamTicketCallbackResourceImpl(CredentialService credentialService,
-                                         ApplicationService applicationService) {
+                                         ApplicationService applicationService,
+                                         AppScopeMappingService appScopeMappingService,
+                                         TenantService tenantService) {
+        super(appScopeMappingService, tenantService);
         this.credentialService = credentialService;
         this.applicationService = applicationService;
     }
@@ -80,7 +85,7 @@ public class IamTicketCallbackResourceImpl extends BaseIamCallbackService
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
 
         CredentialDTO credentialQuery = new CredentialDTO();
-        Long appId = applicationService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+        Long appId = getAppIdBySearchCondition(searchCondition);
         credentialQuery.setAppId(appId);
         return Pair.of(credentialQuery, baseSearchCondition);
     }
@@ -184,8 +189,8 @@ public class IamTicketCallbackResourceImpl extends BaseIamCallbackService
     }
 
     @Override
-    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        return baseCallback(callbackRequest);
+    public CallbackBaseResponseDTO callback(String tenantId, CallbackRequestDTO callbackRequest) {
+        return baseCallback(tenantId, callbackRequest);
     }
 
     @Override

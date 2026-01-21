@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.iam.client;
 
-import com.tencent.bk.job.common.iam.dto.*;
 import com.tencent.bk.sdk.iam.dto.action.ActionDTO;
 import com.tencent.bk.sdk.iam.dto.resource.ResourceDTO;
 
@@ -54,23 +53,4 @@ public interface IIamClient {
      */
     boolean registerResource(String id, String name, String type, String creator, List<ResourceDTO> ancestors);
 
-    /**
-     * 对拓扑路径下资源进行授权
-     *
-     * @param esbIamAction    操作
-     * @param esbIamSubject   授权对象
-     * @param esbIamResources 资源列表
-     * @return 授权后的对象权限策略
-     */
-    EsbIamAuthedPolicy authByPath(EsbIamAction esbIamAction, EsbIamSubject esbIamSubject, List<EsbIamResource> esbIamResources);
-
-    /**
-     * 对拓扑路径下资源进行批量授权
-     *
-     * @param esbIamActions    操作列表
-     * @param esbIamSubject   授权对象
-     * @param esbIamBatchPathResources 资源列表
-     * @return 授权后的对象权限策略
-     */
-    List<EsbIamBatchAuthedPolicy> batchAuthByPath(List<EsbIamAction> esbIamActions, EsbIamSubject esbIamSubject, List<EsbIamBatchPathResource> esbIamBatchPathResources, Long expiredAt);
 }

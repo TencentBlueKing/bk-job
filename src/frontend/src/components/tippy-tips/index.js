@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -37,7 +37,12 @@ export default {
         const $els = document.body.querySelectorAll('[tippy-tips]');
         $els.forEach(($current) => {
           const content = $current.getAttribute('tippy-tips');
+
           if (!content) {
+            if ($current._tippy) { // eslint-disable-line no-underscore-dangle
+              $current._tippy.hide(); // eslint-disable-line no-underscore-dangle
+              $current._tippy.destroy(); // eslint-disable-line no-underscore-dangle
+            }
             return;
           }
           const placement = $current.getAttribute('placement') || 'top';

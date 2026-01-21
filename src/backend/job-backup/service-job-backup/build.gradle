@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -28,16 +28,20 @@ dependencies {
     api project(":job-backup:model-job-backup")
     api project(":job-manage:api-job-manage")
     api project(":job-execute:model-job-execute")
+    api project(":job-logsvr:api-job-logsvr")
     api project(":commons:artifactory-sdk")
     api project(":commons:common-web")
     api project(":commons:common-security")
     api project(":commons:common-redis")
     api project(":commons:common")
     api project(":commons:common-crypto")
+    api project(":commons:common-mysql-sharding")
+    api project(":commons:common-mongodb")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation "org.apache.commons:commons-collections4"
     implementation "commons-io:commons-io"
     implementation "ch.qos.logback:logback-core"

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.backup.config;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -39,18 +38,50 @@ import java.util.concurrent.TimeUnit;
 @Configuration(value = "jobBackupExecutorConfig")
 public class ExecutorConfiguration {
 
-    @Bean("archiveExecutor")
-    public ThreadPoolExecutor archiveExecutor(MeterRegistry meterRegistry) {
+    @Bean("backupImportJobExecutor")
+    public ThreadPoolExecutor importJobExecutor(MeterRegistry meterRegistry) {
         return new WatchableThreadPoolExecutor(
             meterRegistry,
-            "archiveExecutor",
-            20,
-            20,
-            0L,
-            TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>(20),
-            new ThreadFactoryBuilder().setNameFormat("archive-thread-pool-%d").build(),
-            new ThreadPoolExecutor.AbortPolicy()
+            "importJobExecutor",
+            0,
+            10,
+            3,
+            TimeUnit.MINUTES,
+            new LinkedBlockingQueue<>(5),
+            (r, executor) -> {
+                log.error("importJobExecutor rejected a task, use current thread to execute it, please scale up");
+                r.run();
+            }
+        );
+    }
+
+    @Bean("backupExportJobExecutor")
+    public ThreadPoolExecutor exportJobExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "exportJobExecutor",
+            0,
+            10,
+            3,
+            TimeUnit.MINUTES,
+            new LinkedBlockingQueue<>(5),
+            (r, executor) -> {
+                log.error("exportJobExecutor rejected a task, use current thread to execute it, please scale up");
+                r.run();
+            }
+        );
+    }
+
+    @Bean("backupInitRunnerExecutor")
+    public ThreadPoolExecutor backupInitRunnerExecutor(MeterRegistry meterRegistry) {
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "initRunnerExecutor",
+            0,
+            5,
+            1,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>()
         );
     }
 }

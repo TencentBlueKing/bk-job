@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -42,7 +42,11 @@ public class StatisticsDTO implements Cloneable {
      */
     private Long id;
     /**
-     * id
+     * 租户ID
+     */
+    private String tenantId;
+    /**
+     * Job业务ID
      */
     private Long appId;
     /**
@@ -62,7 +66,7 @@ public class StatisticsDTO implements Cloneable {
      */
     private String date;
     /**
-     * 统计值
+     * 序列化的统计数据
      */
     private String value;
     /**
@@ -74,10 +78,15 @@ public class StatisticsDTO implements Cloneable {
      */
     private Long lastModifyTime;
 
+    public StatisticsDTO(String value) {
+        this.value = value;
+    }
+
     @Override
     public StatisticsDTO clone() {
         StatisticsDTO statisticsDTO = new StatisticsDTO();
         statisticsDTO.setId(id);
+        statisticsDTO.setTenantId(tenantId);
         statisticsDTO.setAppId(appId);
         statisticsDTO.setResource(resource);
         statisticsDTO.setDimension(dimension);

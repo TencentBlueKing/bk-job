@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -28,15 +28,15 @@ dependencies {
     api project(":job-analysis:api-job-analysis")
     api project(":job-analysis:model-job-analysis")
     api project(":job-crontab:api-job-crontab")
+    api project(":job-logsvr:api-job-logsvr")
     api project(":commons:common")
     api project(":commons:common-web")
     api project(":commons:common-iam")
     api project(":commons:common-security")
     api project(":commons:common-redis")
-    api project(":commons:cmdb-sdk")
-    api project(":commons:paas-sdk")
-    api project(":commons:esb-sdk")
+    api project(":commons:common-mysql")
     api project(":commons:gse-sdk")
+    api project(":commons:ai-dev-sdk")
     implementation "org.springframework.boot:spring-boot-starter-web"
     implementation "org.springframework.boot:spring-boot-starter-jdbc"
     implementation "org.springframework.boot:spring-boot-starter-jooq"
@@ -47,7 +47,6 @@ dependencies {
     implementation "org.slf4j:slf4j-api"
     implementation "org.apache.commons:commons-collections4"
     implementation 'org.apache.httpcomponents:httpclient'
-    implementation group: 'org.apache.thrift', name: 'libthrift'
     implementation "commons-io:commons-io"
     implementation "commons-codec:commons-codec"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

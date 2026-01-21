@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.api.esb.v3;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbAccountV3BasicDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbFileDestinationV3DTO;
@@ -33,15 +34,13 @@ import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbApprovalStepV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbFileStepV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbScriptStepV3DTO;
 import com.tencent.bk.job.common.esb.model.job.v3.resp.EsbStepV3DTO;
-import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
-import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.execute.service.StepInstanceValidateService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.util.FileTransferModeUtil;
@@ -61,18 +60,15 @@ public class EsbGetStepInstanceDetailV3ResourceImpl implements EsbGetStepInstanc
     private final TaskInstanceService taskInstanceService;
     private final AppScopeMappingService appScopeMappingService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
-    private final StepInstanceValidateService stepInstanceValidateService;
     private final StepInstanceService stepInstanceService;
 
     public EsbGetStepInstanceDetailV3ResourceImpl(TaskInstanceService taskInstanceService,
                                                   AppScopeMappingService appScopeMappingService,
                                                   TaskInstanceAccessProcessor taskInstanceAccessProcessor,
-                                                  StepInstanceValidateService stepInstanceValidateService,
                                                   StepInstanceService stepInstanceService) {
         this.taskInstanceService = taskInstanceService;
         this.appScopeMappingService = appScopeMappingService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
-        this.stepInstanceValidateService = stepInstanceValidateService;
         this.stepInstanceService = stepInstanceService;
     }
 
@@ -86,19 +82,10 @@ public class EsbGetStepInstanceDetailV3ResourceImpl implements EsbGetStepInstanc
                                                        Long stepInstanceId) {
         long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
 
-        ValidateResult checkResult = stepInstanceValidateService.checkStepInstance(
-            appId,
-            taskInstanceId,
-            stepInstanceId
-        );
-        if (!checkResult.isPass()) {
-            log.warn("Get step instance detail request is illegal!");
-            throw new InvalidParamException(checkResult);
-        }
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(taskInstanceId, stepInstanceId);
 
-        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(appId, stepInstanceId);
-
-        taskInstanceAccessProcessor.processBeforeAccess(username, appId, stepInstance.getTaskInstanceId());
+        taskInstanceAccessProcessor.processBeforeAccess(JobContextUtil.getUser(),
+            appId, stepInstance.getTaskInstanceId());
 
         EsbStepV3DTO esbStepV3DTO = convertToEsbStepV3DTO(stepInstance);
         return EsbResp.buildSuccessResp(esbStepV3DTO);
@@ -122,7 +109,7 @@ public class EsbGetStepInstanceDetailV3ResourceImpl implements EsbGetStepInstanc
                 scriptStepInfo.setLanguage(stepInstance.getScriptType().getValue());
                 if (stepInstance.isSecureParam()) {
                     scriptStepInfo.setSecureParam(1);
-                    scriptStepInfo.setScriptParam("******");
+                    scriptStepInfo.setScriptParam(JobConstants.SENSITIVE_FIELD_PLACEHOLDER);
                 } else {
                     scriptStepInfo.setSecureParam(0);
                     if (StringUtils.isNotEmpty(stepInstance.getResolvedScriptParam())) {

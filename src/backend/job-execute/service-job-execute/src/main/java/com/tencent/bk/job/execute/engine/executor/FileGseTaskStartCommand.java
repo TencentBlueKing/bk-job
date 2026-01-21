@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -26,7 +26,7 @@ package com.tencent.bk.job.execute.engine.executor;
 
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
-import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.gse.v2.model.FileTransferTask;
@@ -34,22 +34,21 @@ import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.gse.v2.model.SourceFile;
 import com.tencent.bk.job.common.gse.v2.model.TargetFile;
 import com.tencent.bk.job.common.gse.v2.model.TransferFileRequest;
+import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
+import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
-import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.result.FileResultHandleTask;
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.JobSrcFileUtils;
 import com.tencent.bk.job.execute.engine.util.MacroUtil;
 import com.tencent.bk.job.execute.model.AccountDTO;
@@ -58,24 +57,16 @@ import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.FileDetailDTO;
 import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
+import com.tencent.bk.job.execute.model.RollingConfigDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
+import com.tencent.bk.job.execute.model.StepInstanceFileBatchDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
-import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
-import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
-import com.tencent.bk.job.execute.service.GseTaskService;
-import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
-import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
+import com.tencent.bk.job.execute.service.rolling.StepInstanceFileBatchService;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.cloud.sleuth.Tracer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -89,6 +80,7 @@ import java.util.stream.Collectors;
 public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
+    private final StepInstanceFileBatchService stepInstanceFileBatchService;
     /**
      * 待分发文件，文件传输的源文件
      */
@@ -114,55 +106,55 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
      * 源文件与目标文件路径映射关系, 包含非法主机
      */
     private Map<JobFile, FileDest> allSrcDestFileMap;
+    /**
+     * 源执行对象任务列表(全量，包含非法的任务)
+     */
+    protected List<ExecuteObjectTask> sourceExecuteObjectTasks;
+
+    /**
+     * 当前步骤是否为源文件滚动步骤
+     */
+    private final boolean isFileSourceRollingStep;
 
 
-    public FileGseTaskStartCommand(ResultHandleManager resultHandleManager,
-                                   TaskInstanceService taskInstanceService,
-                                   GseTaskService gseTaskService,
+    public FileGseTaskStartCommand(EngineDependentServiceHolder engineDependentServiceHolder,
                                    FileExecuteObjectTaskService fileExecuteObjectTaskService,
-                                   AccountService accountService,
-                                   TaskInstanceVariableService taskInstanceVariableService,
-                                   StepInstanceVariableValueService stepInstanceVariableValueService,
-                                   AgentService agentService,
-                                   LogService logService,
-                                   TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                   ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                   ExecuteMonitor executeMonitor,
+                                   StepInstanceFileBatchService stepInstanceFileBatchService,
                                    JobExecuteConfig jobExecuteConfig,
-                                   TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                   GseTasksExceptionCounter gseTasksExceptionCounter,
-                                   StepInstanceService stepInstanceService,
-                                   Tracer tracer,
-                                   GseClient gseClient,
                                    String requestId,
                                    TaskInstanceDTO taskInstance,
                                    StepInstanceDTO stepInstance,
                                    GseTaskDTO gseTask,
-                                   String fileStorageRootPath) {
-        super(resultHandleManager,
-            taskInstanceService,
-            gseTaskService,
+                                   String fileStorageRootPath,
+                                   CustomPasswordCache customPasswordCache) {
+        super(engineDependentServiceHolder,
             fileExecuteObjectTaskService,
-            accountService,
-            taskInstanceVariableService,
-            stepInstanceVariableValueService,
-            agentService,
-            logService,
-            taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
-            executeMonitor,
             jobExecuteConfig,
-            taskEvictPolicyExecutor,
-            gseTasksExceptionCounter,
-            tracer,
-            gseClient,
             requestId,
             taskInstance,
             stepInstance,
             gseTask,
-            stepInstanceService);
+            customPasswordCache);
         this.fileExecuteObjectTaskService = fileExecuteObjectTaskService;
+        this.stepInstanceFileBatchService = stepInstanceFileBatchService;
         this.fileStorageRootPath = fileStorageRootPath;
+        this.isFileSourceRollingStep = checkIfFileSourceRollingStep();
+    }
+
+    /**
+     * 判断当前步骤是否为源文件滚动步骤
+     *
+     * @return 布尔值
+     */
+    private boolean checkIfFileSourceRollingStep() {
+        if (!stepInstance.isRollingStep()) {
+            return false;
+        }
+        RollingConfigDTO rollingConfigDTO = rollingConfigService.getRollingConfig(
+            taskInstanceId,
+            stepInstance.getRollingConfigId()
+        );
+        return rollingConfigDTO.isFileSourceRolling();
     }
 
     @Override
@@ -189,7 +181,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         allSrcDestFileMap = JobSrcFileUtils.buildSourceDestPathMapping(allSrcFiles, targetDir,
             stepInstance.getFileTargetName());
         allSrcDestFileMap.forEach((sreFile, destFile) -> {
-            if (isAgentInstalled(sreFile.getExecuteObject())) {
+            if (sreFile.getExecuteObject().isExecutable()) {
                 srcDestFileMap.put(sreFile, destFile);
             }
         });
@@ -199,26 +191,92 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
      * 解析文件源
      */
     private void resolveFileSource() {
-        List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
-        if (CollectionUtils.isNotEmpty(fileSourceList)) {
-            // 解析源文件路径中的全局变量
-            resolveVariableForSourceFilePath(fileSourceList, buildStringGlobalVarKV(stepInputVariables));
-
-            stepInstanceService.updateResolvedSourceFile(stepInstance.getId(),
-                stepInstance.getFileSourceList());
+        if (isFileSourceRollingStep) {
+            // 解析一个滚动批次的源文件信息
+            resolveFileSourceForStepBatch();
+        } else {
+            // 解析整个步骤的源文件信息
+            resolveFileSourceForStep();
         }
+    }
+
+    /**
+     * 解析整个步骤的源文件信息
+     */
+    private void resolveFileSourceForStep() {
+        List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
+        if (CollectionUtils.isEmpty(fileSourceList)) {
+            return;
+        }
+        // 解析源文件路径中的全局变量
+        resolveVariableForSourceFilePath(fileSourceList, buildStringGlobalVarKV(stepInputVariables));
+        // 更新源文件信息到DB
+        stepInstanceService.updateResolvedSourceFile(
+            stepInstance.getTaskInstanceId(),
+            stepInstance.getId(),
+            stepInstance.getFileSourceList()
+        );
+    }
+
+    /**
+     * 解析步骤当前滚动批次的源文件信息
+     */
+    private void resolveFileSourceForStepBatch() {
+        List<FileSourceDTO> fileSourceList = getFileSourceListForBatch();
+        if (CollectionUtils.isEmpty(fileSourceList)) {
+            return;
+        }
+        // 解析源文件路径中的全局变量
+        resolveVariableForSourceFilePath(fileSourceList, buildStringGlobalVarKV(stepInputVariables));
+        // 更新源文件信息到DB
+        stepInstanceFileBatchService.updateResolvedSourceFile(
+            stepInstance.getTaskInstanceId(),
+            stepInstance.getId(),
+            batch,
+            fileSourceList
+        );
     }
 
     /**
      * 解析源文件
      */
     private void parseSrcFiles() {
-        allSrcFiles = JobSrcFileUtils.parseSrcFiles(stepInstance, fileStorageRootPath);
+        List<FileSourceDTO> batchFileSourceList = getFileSourceListForBatch();
+        allSrcFiles = JobSrcFileUtils.parseSrcFilesFromFileSource(
+            stepInstance,
+            batchFileSourceList,
+            fileStorageRootPath
+        );
         srcFiles = allSrcFiles.stream()
-            .filter(file -> isAgentInstalled(file.getExecuteObject()))
+            .filter(file -> file.getExecuteObject().isExecutable())
             .collect(Collectors.toSet());
         // 设置源文件所在主机账号信息
         setAccountInfoForSourceFiles(srcFiles);
+    }
+
+    /**
+     * 获取当前滚动批次需要传输的源文件信息
+     *
+     * @return 源文件信息
+     */
+    private List<FileSourceDTO> getFileSourceListForBatch() {
+        if (isFileSourceRollingStep) {
+            // 按源文件滚动
+            StepInstanceFileBatchDTO stepInstanceFileBatch = stepInstanceFileBatchService.get(
+                taskInstanceId,
+                stepInstanceId,
+                batch
+            );
+            if (stepInstanceFileBatch == null) {
+                // 该滚动批次没有对应的源文件信息
+                throw new InternalException(
+                    "stepInstanceFileBatch is null, stepInstanceId=" + stepInstanceId + ", batch=" + batch
+                );
+            }
+            return stepInstanceFileBatch.getFileSourceList();
+        }
+        // 其他滚动类型
+        return stepInstance.getFileSourceList();
     }
 
     private void setAccountInfoForSourceFiles(Set<JobFile> sendFiles) {
@@ -238,6 +296,12 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         });
     }
 
+    /**
+     * 解析源文件路径中的变量，设置到resolvedFilePath字段中
+     *
+     * @param fileSources                     源文件信息
+     * @param stepInputGlobalVariableValueMap 步骤输入全局变量表
+     */
     private void resolveVariableForSourceFilePath(List<FileSourceDTO> fileSources,
                                                   Map<String, String> stepInputGlobalVariableValueMap) {
         if (stepInputGlobalVariableValueMap == null || stepInputGlobalVariableValueMap.isEmpty()) {
@@ -265,7 +329,8 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
         resolvedTargetPath = MacroUtil.resolveDateWithStrfTime(resolvedTargetPath);
         stepInstance.setResolvedFileTargetPath(resolvedTargetPath);
         if (!resolvedTargetPath.equals(stepInstance.getFileTargetPath())) {
-            stepInstanceService.updateResolvedTargetPath(stepInstance.getId(), resolvedTargetPath);
+            stepInstanceService.updateResolvedTargetPath(stepInstance.getTaskInstanceId(),
+                stepInstance.getId(), resolvedTargetPath);
         }
     }
 
@@ -281,7 +346,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 }
             }
         }
-        List<ExecuteObjectTask> executeObjectTasks = new ArrayList<>();
+        sourceExecuteObjectTasks = new ArrayList<>();
         for (ExecuteObject sourceExecuteObject : sourceExecuteObjects) {
             ExecuteObjectTask executeObjectTask = new ExecuteObjectTask(
                 taskInstanceId,
@@ -295,21 +360,22 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
             executeObjectTask.setGseTaskId(gseTask.getId());
 
             if (sourceExecuteObject.isAgentIdEmpty()) {
-                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.FAILED);
+                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.AGENT_NOT_INSTALLED);
+            } else if (sourceExecuteObject.isInvalid()) {
+                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.INVALID_EXECUTE_OBJECT);
             } else {
                 executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.WAITING);
                 sourceExecuteObjectTaskMap.put(sourceExecuteObject.toExecuteObjectGseKey(), executeObjectTask);
             }
 
-            executeObjectTasks.add(executeObjectTask);
+            sourceExecuteObjectTasks.add(executeObjectTask);
         }
-        fileExecuteObjectTaskService.batchSaveTasks(executeObjectTasks);
+        fileExecuteObjectTaskService.batchSaveTasks(sourceExecuteObjectTasks);
     }
 
     @Override
     protected GseTaskResponse startGseTask() {
         TransferFileRequest request = new TransferFileRequest();
-        request.setGseV2Task(gseV2Task);
 
         // 账号信息查询与填充
         AccountDTO accountInfo = accountService.getAccount(stepInstance.getAccountId(), AccountCategoryEnum.SYSTEM,
@@ -392,33 +458,50 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     private void addInitialFileUploadTaskLogs(Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> logs) {
         // 每个要分发的源文件一条上传日志
         for (JobFile file : allSrcFiles) {
-            boolean isAgentInstalled = isAgentInstalled(file.getExecuteObject());
-            FileDistStatusEnum status = isAgentInstalled ?
+            boolean isSourceValid = !file.getExecuteObject().isInvalid();
+            boolean isSourceAgentInstalled = !file.getExecuteObject().isAgentIdEmpty();
+            FileDistStatusEnum status = isSourceValid && isSourceAgentInstalled ?
                 FileDistStatusEnum.WAITING : FileDistStatusEnum.FAILED;
             logService.addFileTaskLog(
                 stepInstance,
                 logs,
                 file.getExecuteObject(),
                 logService.buildUploadServiceFileTaskLogDTO(
-                    stepInstance, file, status, "--", "--", "--",
-                    isAgentInstalled ? null : "Agent is not installed"));
+                    stepInstance,
+                    file,
+                    status,
+                    "--",
+                    "--",
+                    "--",
+                    buildInitialFileTaskUploadLogContent(isSourceValid, isSourceAgentInstalled)
+                )
+            );
         }
     }
 
-    private boolean isAgentInstalled(ExecuteObject executeObject) {
-        return !executeObject.isAgentIdEmpty();
+    private String buildInitialFileTaskUploadLogContent(boolean isSourceValid,
+                                                        boolean isSourceAgentInstalled) {
+        if (!isSourceValid) {
+            return "Source execute object is invalid, please check whether the host belongs to the current business";
+        } else if (!isSourceAgentInstalled) {
+            return "Agent is not installed";
+        } else {
+            // 源、目标正常，无需写入错误日志
+            return null;
+        }
     }
 
     private void addInitialFileDownloadTaskLogs(Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> logs) {
         // 每个目标IP从每个要分发的源文件下载的一条下载日志
-        executeObjectTasks.stream()
-            .filter(ExecuteObjectTask::isTarget)
+        targetExecuteObjectTasks
             .forEach(targetExecuteObjectTask -> {
-                boolean isTargetAgentInstalled = isAgentInstalled(targetExecuteObjectTask.getExecuteObject());
+                boolean isTargetValid = !targetExecuteObjectTask.getExecuteObject().isInvalid();
+                boolean isTargetAgentInstalled = !targetExecuteObjectTask.getExecuteObject().isAgentIdEmpty();
                 for (JobFile file : allSrcFiles) {
-                    boolean isSourceAgentInstalled = isAgentInstalled(file.getExecuteObject());
-                    FileDistStatusEnum status = isTargetAgentInstalled && isSourceAgentInstalled ?
-                        FileDistStatusEnum.WAITING : FileDistStatusEnum.FAILED;
+                    boolean isSourceValid = !file.getExecuteObject().isInvalid();
+                    boolean isSourceAgentInstalled = !file.getExecuteObject().isAgentIdEmpty();
+                    FileDistStatusEnum status = isTargetValid && isTargetAgentInstalled && isSourceValid
+                        && isSourceAgentInstalled ? FileDistStatusEnum.WAITING : FileDistStatusEnum.FAILED;
                     logService.addFileTaskLog(
                         stepInstance,
                         logs,
@@ -432,19 +515,41 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                             "--",
                             "--",
                             "--",
-                            isTargetAgentInstalled ? (isSourceAgentInstalled ? null : "Source agent is not installed")
-                                : "Agent is not installed"
+                            buildInitialFileTaskDownloadLogContent(
+                                isTargetValid,
+                                isTargetAgentInstalled,
+                                isSourceValid,
+                                isSourceAgentInstalled
+                            )
                         )
                     );
                 }
             });
     }
 
+    private String buildInitialFileTaskDownloadLogContent(boolean isTargetValid,
+                                                          boolean isTargetAgentInstalled,
+                                                          boolean isSourceValid,
+                                                          boolean isSourceAgentInstalled) {
+        if (!isTargetValid) {
+            return "Target execute object is invalid, please check whether the host belongs to the current business";
+        } else if (!isTargetAgentInstalled) {
+            return "Agent is not installed";
+        } else if (!isSourceValid) {
+            return "Source execute object is invalid, please check whether the host belongs to the current business";
+        } else if (!isSourceAgentInstalled) {
+            return "Source agent is not installed";
+        } else {
+            // 源、目标正常，无需错误日志
+            return null;
+        }
+    }
+
     private void writeLogs(Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executionLogs) {
         if (log.isDebugEnabled()) {
             log.debug("Write file task initial logs, executionLogs: {}", executionLogs);
         }
-        logService.writeFileLogs(taskInstance.getCreateTime(), new ArrayList<>(executionLogs.values()));
+        logService.writeFileLogs(taskInstance, new ArrayList<>(executionLogs.values()));
     }
 
 
@@ -460,17 +565,9 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
     @Override
     protected void addResultHandleTask() {
         FileResultHandleTask fileResultHandleTask =
-            new FileResultHandleTask(taskInstanceService,
-                gseTaskService,
-                logService,
-                taskInstanceVariableService,
-                stepInstanceVariableValueService,
-                taskExecuteMQEventDispatcher,
-                resultHandleTaskKeepaliveManager,
-                taskEvictPolicyExecutor,
+            new FileResultHandleTask(
+                engineDependentServiceHolder,
                 fileExecuteObjectTaskService,
-                stepInstanceService,
-                gseClient,
                 taskInstance,
                 stepInstance,
                 taskVariablesAnalyzeResult,
@@ -479,7 +576,7 @@ public class FileGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 gseTask,
                 srcDestFileMap,
                 requestId,
-                executeObjectTasks);
+                CollectionUtil.mergeToArrayList(targetExecuteObjectTasks, sourceExecuteObjectTasks));
         resultHandleManager.handleDeliveredTask(fileResultHandleTask);
     }
 

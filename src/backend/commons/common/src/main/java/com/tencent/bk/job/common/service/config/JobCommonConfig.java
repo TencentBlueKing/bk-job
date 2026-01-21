@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -43,4 +43,16 @@ public class JobCommonConfig {
     @Value("${swagger.url:swagger.job.com}")
     private String swaggerUrl;
 
+    /**
+     * 获取第一个作业平台web访问地址
+     *
+     * @return 第一个作业平台web访问地址
+     */
+    public String getFirstJobWebUrl() {
+        String[] jobWebUrls = jobWebUrl.split(",");
+        if (jobWebUrls.length > 0) {
+            return jobWebUrls[0];
+        }
+        return jobWebUrl;
+    }
 }

@@ -9,6 +9,9 @@ metadata:
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
     {{- end }}
+    {{- if and .Values.bkLogConfig.customLabels .Values.bkLogConfig.customLabels.enabled .Values.bkLogConfig.customLabels.labels }}
+    {{- toYaml .Values.bkLogConfig.customLabels.labels | nindent 4 }}
+    {{- end }}
   {{- if .Values.commonAnnotations }}
   annotations:
     {{- if .Values.commonAnnotations }}
@@ -33,6 +36,9 @@ spec:
     timeout: '5s'
   extMeta:
     logSourceType: "file"
+    {{- if and .Values.bkLogConfig.customMetadata .Values.bkLogConfig.customMetadata.enabled .Values.bkLogConfig.customMetadata.metadata }}
+    {{- toYaml .Values.bkLogConfig.customMetadata.metadata | nindent 4 }}
+    {{- end }}
 {{- end }}
 {{- if and (.Values.bkLogConfig.enabled) (.Values.bkLogConfig.file.accessLog.dataId) }}
 ---
@@ -45,6 +51,9 @@ metadata:
     {{- include "common.labels.standard" . | nindent 4 }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+    {{- if and .Values.bkLogConfig.customLabels .Values.bkLogConfig.customLabels.enabled .Values.bkLogConfig.customLabels.labels }}
+    {{- toYaml .Values.bkLogConfig.customLabels.labels | nindent 4 }}
     {{- end }}
   {{- if .Values.commonAnnotations }}
   annotations:
@@ -66,11 +75,18 @@ spec:
     - /data/logs/job-gateway/access.log
   encoding: 'utf-8'
   multiline:
+    {{- if .Values.gatewayConfig.customAccessLog.enabled }}
+    pattern: '^accessType=(?P<access_type>[^|]+)\|startTime=(?P<start_time>[^|]+)\|traceId=(?P<trace_id>[^|]+)\|spanId=(?P<span_id>[^|]+)\|userName=(?P<user_name>[^|]+)\|method=(?P<method>[^|]+)\|uri=(?P<uri>[^|]+)\|protocol=(?P<protocol>[^|]+)\|clientIp=(?P<client_ip>[^|]+)\|userAgent=(?P<user_agent>[^|]+)\|upstream=(?P<upstream>[^|]+)\|endTime=(?P<end_time>[^|]+)\|status=(?P<status>[^|]+)\|responseSize=(?P<response_size>[^|]+)\|durationMS=(?P<duration_ms>\d+|-)(?:ms)?$'
+    {{- else }}
     pattern: '^\[(.*?)|(.*?)\](?P<src_ip>.*?):(?P<src_port>.*?)\s+?'
+    {{- end }}
     maxLines: 100
     timeout: '5s'
   extMeta:
     logSourceType: "file"
+    {{- if and .Values.bkLogConfig.customMetadata .Values.bkLogConfig.customMetadata.enabled .Values.bkLogConfig.customMetadata.metadata }}
+    {{- toYaml .Values.bkLogConfig.customMetadata.metadata | nindent 4 }}
+    {{- end }}
 {{- end }}
 {{- if and (.Values.bkLogConfig.enabled) (.Values.bkLogConfig.std.dataId) }}
 ---
@@ -83,6 +99,9 @@ metadata:
     {{- include "common.labels.standard" . | nindent 4 }}
     {{- if .Values.commonLabels }}
     {{- include "common.tplvalues.render" ( dict "value" .Values.commonLabels "context" $ ) | nindent 4 }}
+    {{- end }}
+    {{- if and .Values.bkLogConfig.customLabels .Values.bkLogConfig.customLabels.enabled .Values.bkLogConfig.customLabels.labels }}
+    {{- toYaml .Values.bkLogConfig.customLabels.labels | nindent 4 }}
     {{- end }}
   {{- if .Values.commonAnnotations }}
   annotations:
@@ -102,4 +121,7 @@ spec:
       {{ include "job.labelKeys.jobScope" . }}: {{ include "job.labelValues.jobScope.backend" . }}
   extMeta:
     logSourceType: "std"
+    {{- if and .Values.bkLogConfig.customMetadata .Values.bkLogConfig.customMetadata.enabled .Values.bkLogConfig.customMetadata.metadata }}
+    {{- toYaml .Values.bkLogConfig.customMetadata.metadata | nindent 4 }}
+    {{- end }}
 {{- end }}

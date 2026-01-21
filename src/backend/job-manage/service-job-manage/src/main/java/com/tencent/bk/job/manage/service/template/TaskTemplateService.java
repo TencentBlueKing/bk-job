@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.service.template;
 
 import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
@@ -67,40 +67,40 @@ public interface TaskTemplateService {
     /**
      * 查询模版信息
      *
-     * @param username   用户账号
+     * @param user       用户账号
      * @param appId      业务 ID
      * @param templateId 模版 ID
      * @return 模版信息
      */
-    TaskTemplateInfoDTO getTaskTemplate(String username, long appId, Long templateId);
+    TaskTemplateInfoDTO getTaskTemplate(User user, long appId, Long templateId);
 
     /**
      * 新增作业模板
      *
-     * @param username         用户账号
+     * @param user             用户账号
      * @param taskTemplateInfo 模版信息
      * @return 模版
      */
-    TaskTemplateInfoDTO saveTaskTemplate(String username, TaskTemplateInfoDTO taskTemplateInfo);
+    TaskTemplateInfoDTO saveTaskTemplate(User user, TaskTemplateInfoDTO taskTemplateInfo);
 
     /**
      * 更新作业模板
      *
-     * @param username         用户账号
+     * @param user             用户账号
      * @param taskTemplateInfo 模版信息
      * @return 模版
      */
-    TaskTemplateInfoDTO updateTaskTemplate(String username, TaskTemplateInfoDTO taskTemplateInfo);
+    TaskTemplateInfoDTO updateTaskTemplate(User user, TaskTemplateInfoDTO taskTemplateInfo);
 
     /**
      * 删除模版
      *
-     * @param username   用户账号
+     * @param user       用户账号
      * @param appId      业务 ID
      * @param templateId 模版 ID
      * @return 被删除的模板
      */
-    TaskTemplateInfoDTO deleteTaskTemplate(String username, Long appId, Long templateId);
+    TaskTemplateInfoDTO deleteTaskTemplate(User user, Long appId, Long templateId);
 
     /**
      * 获取标签关联的模版数量
@@ -119,7 +119,7 @@ public interface TaskTemplateService {
      * @param taskTemplateInfo 模版信息
      * @return 是否更新成功
      */
-    TaskTemplateInfoDTO saveTaskTemplateBasicInfo(String username, TaskTemplateInfoDTO taskTemplateInfo);
+    TaskTemplateInfoDTO saveTaskTemplateBasicInfo(User user, TaskTemplateInfoDTO taskTemplateInfo);
 
     /**
      * 根据作业模版 ID 查询模版基础信息
@@ -172,19 +172,6 @@ public interface TaskTemplateService {
      * @return 是否可用
      */
     boolean checkTemplateName(Long appId, Long templateId, String name);
-
-    /**
-     * 批量更新模版中的脚本引用状态
-     * <p>
-     * 当脚本版本变化时由脚本管理服务调用此接口后台更新模版中的脚本引用状态
-     *
-     * @param appId           业务 ID
-     * @param scriptId        脚本 ID
-     * @param scriptVersionId 脚本版本 ID
-     * @param status          引用状态
-     * @return 更新任务是否入队成功
-     */
-    boolean updateScriptStatus(Long appId, String scriptId, Long scriptVersionId, JobResourceStatusEnum status);
 
     /**
      * 获取用户收藏的作业模版基本信息列表

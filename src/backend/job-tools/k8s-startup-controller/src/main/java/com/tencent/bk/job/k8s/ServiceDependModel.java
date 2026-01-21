@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -47,4 +47,14 @@ public class ServiceDependModel {
         description = "为每个依赖服务单独定义的必须拥有的label，多个服务间用英文括号及英文逗号分隔，" +
             "格式：(job-manage:label1=value1,label2=value2),(job-execute:label3=value3),(...)")
     private String expectLabelsService;
+
+    @Parameter(names = {"--external-dependency-check-enabled"},
+        description = "是否启用检查服务外部依赖是否就绪", arity = 1)
+    private Boolean externalDependencyCheckEnabled;
+
+    @Parameter(names = {"--external-dependency-check-url"},
+        description = "用于检查服务外部依赖是否就绪的HTTP接口地址，请求方法为GET，" +
+            "请求参数为：namespace=${namespace}&service=${service}，通过QueryParam传递，" +
+            "接口地址格式：http(s)://example.com/xxx")
+    private String externalDependencyCheckUrl;
 }

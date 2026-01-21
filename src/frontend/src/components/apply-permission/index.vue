@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -30,7 +30,7 @@
     <div class="no-permission-tips">
       <img
         class="lock"
-        src="/static/images/no-permission.svg">
+        :src="noPermissionImage">
       <p class="tips-text">
         {{ titleText }}
       </p>
@@ -108,6 +108,7 @@
       this.actionText = I18n.t('需申请的权限');
       this.resourceText = I18n.t('关联的资源实例');
       this.errorTips = I18n.t('你已拥有权限，请刷新页面');
+      this.noPermissionImage = window.__loadAssetsUrl__('/static/images/no-permission.svg');
     },
   };
 </script>

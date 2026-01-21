@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.dao.customsetting.impl;
 
-import com.tencent.bk.job.manage.common.util.JooqDataTypeUtil;
+import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import com.tencent.bk.job.manage.dao.customsetting.CustomScriptTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.customsetting.ScriptTemplateDTO;
 import com.tencent.bk.job.manage.model.tables.UserCustomScriptTemplate;
@@ -57,10 +57,9 @@ public class CustomScriptTemplateDAOImpl implements CustomScriptTemplateDAO {
             .where(TB.USERNAME.eq(username))
             .fetch();
         List<ScriptTemplateDTO> scriptTemplates = new ArrayList<>();
-        if (result.size() != 0) {
-            result.map(record -> {
-                scriptTemplates.add(extractScriptTemplate(record));
-                return null;
+        if (!result.isEmpty()) {
+            result.forEach(record -> {
+                scriptTemplates.add(extractScriptTemplate((Record) record));
             });
         }
         return scriptTemplates;

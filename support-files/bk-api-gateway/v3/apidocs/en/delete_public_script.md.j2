@@ -1,0 +1,37 @@
+### Function Description
+
+Delete public script will also delete all script versions under that script.
+
+### Request Parameters
+
+#### Interface parameters
+
+| Fields    | Type   | Required | Description      |
+|-----------|--------|----------|------------------|
+| script_id | string | yes      | Public script id |
+
+### Example of request
+
+```json
+{
+    "script_id": "4537fb49ec0840a1b91cef4179c99f9c"
+}
+```
+
+### Example of responses
+
+```json
+{
+    "code": 0,
+    "result": true,
+    "job_request_id": "xxx"
+}
+```
+
+### Response Description
+
+{% include '_generic_response.md.j2' %}
+
+#### data
+
+null

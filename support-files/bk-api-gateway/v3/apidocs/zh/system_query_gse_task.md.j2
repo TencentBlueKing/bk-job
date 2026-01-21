@@ -1,0 +1,72 @@
+### 功能描述
+
+根据步骤实例id查询gse task id
+
+### 请求参数
+
+#### Query参数
+
+| 字段               | 类型  | 必选 | 描述               |
+|------------------|-----|----|------------------|
+| step_instance_id | Int | 是  | step instance id |
+
+### 请求参数示例
+
+- GET
+
+```json
+/api/v3/system/query_gse_task?step_instance_id=1000001
+```
+
+### 返回结果示例
+
+```json
+{
+    "result": true,
+    "code": 0,
+    "data": [
+        {
+            "bk_scope_type": "biz",
+            "bk_scope_id": "1",
+            "job_instance_id": 1000000,
+            "step_instance_id": 10000001,
+            "retry_count": 0,
+            "batch": 1,
+            "gse_task_id": "aa:aa:aa:aa",
+            "link": [
+                "https://xxx.com"
+            ]
+        },
+        {
+            "bk_scope_type": "biz",
+            "bk_scope_id": "1",
+            "job_instance_id": 1000000,
+            "step_instance_id": 10000001,
+            "retry_count": 0,
+            "batch": 2,
+            "gse_task_id": "aa:aa:aa:aa",
+            "link": [
+                "https://xxx.com"
+            ]
+        }
+    ],
+    "job_request_id": "xxx"
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_response.md.j2' %}
+
+#### data
+
+| 字段               | 类型       | 是否一定不为null | 描述                                      |
+|------------------|----------|------------|-----------------------------------------|
+| bk_scope_type    | string   | 是          | 资源范围类型。可选值: biz - 业务，biz_set - 业务集      |
+| bk_scope_id      | string   | 是          | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
+| job_instance_id  | long     | 是          | 作业实例ID                                  |
+| step_instance_id | long     | 是          | 脚本实例ID                                  |
+| retry_count      | int      | 是          | 重试次数                                    |
+| batch            | int      | 是          | 批次，滚动执行时不为0                             |
+| gse_task_id      | string   | 否          | gse task id                             |
+| link             | string[] | 否          | gse task id 对应的job网址                    |

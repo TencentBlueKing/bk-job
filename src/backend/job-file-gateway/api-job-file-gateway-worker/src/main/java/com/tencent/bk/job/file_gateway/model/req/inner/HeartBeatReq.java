@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,15 +24,19 @@
 
 package com.tencent.bk.job.file_gateway.model.req.inner;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.util.json.SkipLogFields;
 import com.tencent.bk.job.file_gateway.model.req.common.FileWorkerConfig;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+@Slf4j
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -48,6 +52,8 @@ public class HeartBeatReq {
     @SkipLogFields(value = "token")
     @ApiModelProperty(value = "密钥", required = true)
     String token;
+    @ApiModelProperty(value = "所在集群名称", required = true)
+    String clusterName;
     @ApiModelProperty(value = "访问worker使用的host", required = true)
     String accessHost;
     @ApiModelProperty(value = "访问worker使用的port", required = true)
@@ -77,12 +83,25 @@ public class HeartBeatReq {
     @ApiModelProperty(value = "FileWorker配置信息", required = true)
     FileWorkerConfig fileWorkerConfig;
 
+    @CompatibleImplementation(
+        name = "multi_cluster_deploy",
+        deprecatedVersion = "3.12.x",
+        type = CompatibleType.DEPLOY,
+        explain = "兼容发布过程中老版本File-Worker调用，发布完成后可删除")
+    public String getClusterName() {
+        if (clusterName == null) {
+            log.warn("CompatibleImplementation: clusterName is null, use default");
+            return "default";
+        }
+        return clusterName;
+    }
+
     @Override
     public String toString() {
         return "HeartBeatReq{" +
             "id=" + id +
             ", appId=" + appId +
-            ", token='" + token + '\'' +
+            ", clusterName='" + clusterName + '\'' +
             ", accessHost='" + accessHost + '\'' +
             ", accessPort=" + accessPort +
             ", cloudAreaId=" + cloudAreaId +

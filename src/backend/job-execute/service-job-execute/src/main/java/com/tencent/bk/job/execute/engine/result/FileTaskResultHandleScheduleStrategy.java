@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,20 +24,19 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import com.tencent.bk.job.execute.config.PollingStrategyProperties;
 
 /**
  * 文件任务结果处理调度策略
  */
-public class FileTaskResultHandleScheduleStrategy implements ScheduleStrategy {
-    /**
-     * 任务累计执行次数
-     */
-    private final AtomicInteger times = new AtomicInteger(0);
+public class FileTaskResultHandleScheduleStrategy extends AbstractResultHandleScheduleStrategy {
+
+    public FileTaskResultHandleScheduleStrategy(PollingStrategyProperties.PollingConfig config) {
+        super(config);
+    }
 
     @Override
-    public long getDelay() {
-        int handleCount = times.addAndGet(1);
+    protected long getDelayWithoutRules(int handleCount) {
         if (handleCount <= 2) {
             // 2s以内，周期为1s
             return 1000;

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -26,7 +26,6 @@ package com.tencent.bk.job.manage.dao.whiteip;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.manage.model.dto.whiteip.CloudIPDTO;
 import com.tencent.bk.job.manage.model.dto.whiteip.WhiteIPRecordDTO;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.WhiteIPRecordVO;
 
@@ -52,17 +51,11 @@ public interface WhiteIPRecordDAO {
 
     int updateWhiteIPRecordById(WhiteIPRecordDTO whiteIPRecordDTO);
 
-    List<String> getWhiteIPActionScopes(Collection<Long> appIds, String ip, Long cloudAreaId);
-
-    List<String> getWhiteIPActionScopes(Collection<Long> appIds, Long hostId);
-
-    List<CloudIPDTO> listWhiteIPByAppIds(Collection<Long> appIds, Long actionScopeId);
-
     List<HostDTO> listWhiteIPHost(Collection<Long> appIds, Long actionScopeId, Collection<Long> hostIds);
 
     List<HostDTO> listWhiteIPHostByIps(Collection<Long> appIds, Long actionScopeId, Collection<String> ips);
 
     List<HostDTO> listWhiteIPHostByIpv6s(Collection<Long> appIds, Long actionScopeId, Collection<String> ipv6s);
 
-    List<WhiteIPRecordDTO> listAllWhiteIPRecord();
+    List<WhiteIPRecordDTO> listAllWhiteIPRecord(String tenantId);
 }

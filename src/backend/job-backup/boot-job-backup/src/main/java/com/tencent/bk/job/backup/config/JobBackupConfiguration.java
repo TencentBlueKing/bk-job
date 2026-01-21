@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,22 +24,33 @@
 
 package com.tencent.bk.job.backup.config;
 
-import com.tencent.bk.job.common.service.AppScopeMappingService;
-import com.tencent.bk.job.common.web.interceptor.AppResourceScopeInterceptor;
-import com.tencent.bk.job.manage.AppScopeMappingServiceImpl;
+import com.tencent.bk.job.common.service.CommonAppService;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
+import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.common.web.interceptor.BasicAppInterceptor;
+import com.tencent.bk.job.manage.CommonAppServiceImpl;
+import com.tencent.bk.job.manage.CachedTenantServiceImpl;
 import com.tencent.bk.job.manage.api.inner.ServiceApplicationResource;
+import com.tencent.bk.job.manage.api.inner.ServiceTenantResource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class JobBackupConfiguration {
+
     @Bean
-    AppScopeMappingService appScopeMappingService(ServiceApplicationResource applicationResource) {
-        return new AppScopeMappingServiceImpl(applicationResource);
+    TenantService cachedTenantService(ServiceTenantResource serviceTenantResource) {
+        return new CachedTenantServiceImpl(serviceTenantResource);
     }
 
     @Bean
-    public AppResourceScopeInterceptor appResourceScopeInterceptor(AppScopeMappingService appScopeMappingService) {
-        return new AppResourceScopeInterceptor(appScopeMappingService);
+    CommonAppService appService(ServiceApplicationResource applicationResource,
+                                TenantEnvService tenantEnvService) {
+        return new CommonAppServiceImpl(applicationResource, tenantEnvService);
+    }
+
+    @Bean
+    public BasicAppInterceptor basicAppInterceptor(CommonAppService appService) {
+        return new BasicAppInterceptor(appService);
     }
 }

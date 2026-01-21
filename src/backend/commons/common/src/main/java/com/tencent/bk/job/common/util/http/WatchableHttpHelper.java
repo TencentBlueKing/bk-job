@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -36,6 +36,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import java.util.AbstractList;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * 对Http请求状态码与异常情况进行统计便于监控
@@ -43,11 +44,11 @@ import java.util.function.Function;
 public class WatchableHttpHelper implements HttpHelper {
 
     private final HttpHelper httpHelper;
-    private final MeterRegistry meterRegistry;
+    private final Supplier<MeterRegistry> meterRegistrySupplier;
 
-    public WatchableHttpHelper(HttpHelper httpHelper, MeterRegistry meterRegistry) {
+    public WatchableHttpHelper(HttpHelper httpHelper, Supplier<MeterRegistry> meterRegistrySupplier) {
         this.httpHelper = httpHelper;
-        this.meterRegistry = meterRegistry;
+        this.meterRegistrySupplier = meterRegistrySupplier;
     }
 
     @Override
@@ -82,6 +83,7 @@ public class WatchableHttpHelper implements HttpHelper {
             AbstractList<Tag> httpMetricTags = HttpMetricUtil.getCurrentMetricTags();
             httpMetricTags.add(Tag.of("http_status",
                 StringUtils.isNotEmpty(httpStatusTagValue) ? httpStatusTagValue : "UNKNOWN"));
+            MeterRegistry meterRegistry = meterRegistrySupplier.get();
             if (meterRegistry != null && StringUtils.isNotBlank(httpMetricName)) {
                 meterRegistry.timer(httpMetricName, httpMetricTags)
                     .record(end - start, TimeUnit.NANOSECONDS);

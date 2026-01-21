@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,9 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.api.inner;
 
-import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.InternalAPI;
-import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
 import io.swagger.annotations.Api;
@@ -44,14 +42,6 @@ public interface ServiceFileSourceResource {
     @GetMapping("/service/app/{appId}/fileSource/getFileSourceIdByCode/codes/{code}")
     InternalResponse<Integer> getFileSourceIdByCode(
         @ApiParam(value = "Job业务ID", required = true) @PathVariable("appId") Long appId,
-        @ApiParam(value = "文件源标识", required = true) @PathVariable("code") String code);
-
-    @Deprecated
-    @CompatibleImplementation(name = "fileSourceId", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
-        explain = "文件源标识仅在appId下唯一，发布完成后可删除")
-    @ApiOperation(value = "获取文件源ID", produces = "application/json")
-    @GetMapping("/service/fileSource/getFileSourceIdByCode/codes/{code}")
-    InternalResponse<Integer> getFileSourceIdByCode(
         @ApiParam(value = "文件源标识", required = true) @PathVariable("code") String code);
 
     @ApiOperation(value = "判断是否存在文件源引用了指定凭证", produces = "application/json")

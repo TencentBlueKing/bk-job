@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -31,20 +31,15 @@ import com.tencent.bk.job.analysis.dao.AnalysisTaskInstanceDAO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskDTO;
 import com.tencent.bk.job.analysis.model.dto.AnalysisTaskInstanceDTO;
 import com.tencent.bk.job.analysis.model.inner.AnalysisTaskResultItemLocation;
-import com.tencent.bk.job.analysis.service.ApplicationService;
 import com.tencent.bk.job.analysis.service.HostService;
 import com.tencent.bk.job.analysis.service.TaskPlanService;
 import com.tencent.bk.job.analysis.service.TaskTemplateService;
 import com.tencent.bk.job.analysis.task.analysis.AnalysisTaskStatusEnum;
-import com.tencent.bk.job.analysis.task.analysis.BaseAnalysisTask;
 import com.tencent.bk.job.analysis.task.analysis.anotation.AnalysisTask;
 import com.tencent.bk.job.analysis.task.analysis.enums.AnalysisResourceEnum;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultData;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultItem;
 import com.tencent.bk.job.analysis.task.analysis.task.pojo.AnalysisTaskResultVO;
-import com.tencent.bk.job.common.model.BaseSearchCondition;
-import com.tencent.bk.job.common.model.PageData;
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.util.Counter;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
@@ -57,6 +52,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceTaskStepDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -66,26 +62,25 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
- * @Description 寻找执行方案中是否有无效IP/Agent异常/Agent未安装的情况
- * @Date 2020/3/6
- * @Version 1.0
+ * 寻找执行方案中是否有无效IP/Agent异常/Agent未安装的情况
  */
 @Component
 @AnalysisTask("TaskPlanTargetChecker")
 @Slf4j
-public class TaskPlanTargetChecker extends BaseAnalysisTask {
+public class TaskPlanTargetChecker extends AbstractTemplateAnalysisTask {
 
     private final TaskPlanService taskPlanService;
-    private final TaskTemplateService templateService;
     private final HostService hostService;
 
     @Autowired
@@ -94,11 +89,16 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         AnalysisTaskInstanceDAO analysisTaskInstanceDAO,
         TaskTemplateService templateService,
         TaskPlanService taskPlanService,
-        ApplicationService applicationService,
-        HostService hostService
+        RemoteAppService remoteAppService,
+        HostService hostService,
+        @Qualifier("templateAnalysisTaskExecutor") ThreadPoolExecutor threadPoolExecutor
     ) {
-        super(analysisTaskDAO, analysisTaskInstanceDAO, applicationService);
-        this.templateService = templateService;
+        super(analysisTaskDAO,
+            analysisTaskInstanceDAO,
+            remoteAppService,
+            templateService,
+            threadPoolExecutor
+        );
         this.taskPlanService = taskPlanService;
         this.hostService = hostService;
     }
@@ -226,32 +226,20 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
      * @param analysisTaskInstance 分析任务实例
      */
     private void analysisOneApp(ServiceApplicationDTO application,
-                                AnalysisTaskInstanceDTO analysisTaskInstance) {
+                                AnalysisTaskInstanceDTO analysisTaskInstance) throws InterruptedException {
         Long appId = application.getId();
         Long id = insertAnalysisTaskInstance(analysisTaskInstance);
         log.info("taskId:{}", id);
         analysisTaskInstance.setId(id);
-        List<AbnormalTargetPlanInfo> abnormalPlanList = new ArrayList<>();
-        //1.拿到所有作业模板
-        ServiceTaskTemplateDTO taskTemplateCondition = new ServiceTaskTemplateDTO();
-        taskTemplateCondition.setAppId(appId);
-        BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
-        baseSearchCondition.setStart(0);
-        baseSearchCondition.setLength(Integer.MAX_VALUE);
-        PageData<ServiceTaskTemplateDTO> taskTemplateInfoDTOPageData =
-            templateService.listPageTaskTemplates(appId, baseSearchCondition);
-        List<ServiceTaskTemplateDTO> templateList = taskTemplateInfoDTOPageData.getData();
-        //2.遍历所有作业模板
-        Counter templateCounter = new Counter();
-        for (ServiceTaskTemplateDTO templateBasicInfo : templateList) {
-            tryToAnalysisOneTemplate(
-                appId,
-                templateBasicInfo,
-                abnormalPlanList,
-                templateCounter,
-                templateList.size()
-            );
-        }
+        List<AbnormalTargetPlanInfo> abnormalPlanList = Collections.synchronizedList(new ArrayList<>());
+        AtomicInteger templateCounter = new AtomicInteger();
+        // 分析作业，找出无效的执行信息
+        runAnalysisForApp(appId,
+            templates -> {
+                for (ServiceTaskTemplateDTO template : templates) {
+                    tryToAnalysisOneTemplate(appId, template, abnormalPlanList, templateCounter, templates.size());
+                }
+            });
         //结果入库
         analysisTaskInstance.setResultData(
             JsonUtils.toJson(
@@ -279,7 +267,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
     private void tryToAnalysisOneTemplate(Long appId,
                                           ServiceTaskTemplateDTO templateBasicInfo,
                                           List<AbnormalTargetPlanInfo> abnormalPlanList,
-                                          Counter templateCounter,
+                                          AtomicInteger templateCounter,
                                           int allTemplateNum) {
         try {
             analysisOneTemplate(appId, templateBasicInfo, abnormalPlanList, templateCounter, allTemplateNum);
@@ -305,12 +293,12 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
     private void analysisOneTemplate(Long appId,
                                      ServiceTaskTemplateDTO templateBasicInfo,
                                      List<AbnormalTargetPlanInfo> abnormalPlanList,
-                                     Counter templateCounter,
+                                     AtomicInteger templateCounter,
                                      int allTemplateNum) {
-        templateCounter.addOne();
+        templateCounter.incrementAndGet();
         log.info(
             "begin to analysis taskTemplate:{}/{},{},{}",
-            templateCounter.getValue(),
+            templateCounter.get(),
             allTemplateNum,
             templateBasicInfo.getId(),
             templateBasicInfo.getName()
@@ -413,7 +401,7 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
         }
         //（3）主机
         List<ServiceHostInfoDTO> serviceHostInfoDTOList = targetServer.getHostList();
-        return existNotAliveHost(appId, serviceHostInfoDTOList);
+        return existNotAliveHost(serviceHostInfoDTOList);
     }
 
     /**
@@ -497,54 +485,23 @@ public class TaskPlanTargetChecker extends BaseAnalysisTask {
     /**
      * 判断在主机列表中是否存在Agent异常的主机
      *
-     * @param appId           业务的appId
      * @param serviceHostList 主机信息列表
      * @return 是否存在Agent异常的主机
      */
-    private boolean existNotAliveHost(Long appId, List<ServiceHostInfoDTO> serviceHostList) {
+    private boolean existNotAliveHost(List<ServiceHostInfoDTO> serviceHostList) {
         if (CollectionUtils.isEmpty(serviceHostList)) {
             return false;
         }
-        //noinspection deprecation
-        List<HostDTO> hostList = serviceHostList.stream().map(serviceHost ->
-            // TODO:执行方案数据迁移添加hostId后此处可去除cloudAreaId与ip
-            new HostDTO(
-                serviceHost.getHostId(),
-                serviceHost.getCloudAreaId(),
-                serviceHost.getIp()
-            )
-        ).collect(Collectors.toList());
-        List<ServiceHostStatusDTO> hostStatusDTOListByHost =
-            hostService.getHostStatusByHost(appId, hostList);
-        Map<Long, ServiceHostStatusDTO> hostIdMap = new HashMap<>();
-        hostStatusDTOListByHost.forEach(hostStatusDTO -> hostIdMap.put(hostStatusDTO.getHostId(), hostStatusDTO));
-        if (hostList.isEmpty()) {
-            return true;
-        }
-        for (HostDTO host : hostList) {
-            if (!isHostAlive(hostIdMap, host)) {
+        List<Long> hostIdList = new ArrayList<>(serviceHostList.size());
+        for (ServiceHostInfoDTO serviceHostInfoDTO : serviceHostList) {
+            Long hostId = serviceHostInfoDTO.getHostId();
+            if (hostId == null) {
+                log.info("Found host without hostId: {}", serviceHostInfoDTO);
                 return true;
             }
+            hostIdList.add(hostId);
         }
-        return false;
-    }
-
-    /**
-     * 根据hostId判断Agent是否正常
-     *
-     * @param hostIdMap 主机Id与主机Agent状态信息映射表
-     * @param host      主机信息
-     * @return Agent是否正常
-     */
-    private boolean isHostAlive(Map<Long, ServiceHostStatusDTO> hostIdMap, HostDTO host) {
-        Long hostId = host.getHostId();
-        if (hostId == null) {
-            return false;
-        }
-        if (!hostIdMap.containsKey(hostId)) {
-            return false;
-        }
-        return hostIdMap.get(hostId).getAlive() == 1;
+        return hostService.existNotAliveHostByCache(hostIdList);
     }
 
     /**

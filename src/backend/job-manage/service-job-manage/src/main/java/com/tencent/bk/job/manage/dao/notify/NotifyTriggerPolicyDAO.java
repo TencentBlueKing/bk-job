@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,8 +24,9 @@
 
 package com.tencent.bk.job.manage.dao.notify;
 
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTriggerPolicyDTO;
-import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
+import com.tencent.bk.job.manage.model.dto.notify.TriggerPolicyDTO;
 
 import java.util.List;
 
@@ -34,10 +35,21 @@ public interface NotifyTriggerPolicyDAO {
 
     int deleteAppNotifyPolicies(Long appId, String triggerUser);
 
-    List<TriggerPolicyVO> list(String triggerUser, Long appId, String resourceId);
+    int deleteAppResourceNotifyPolicies(Long appId, Integer resourceType, String resourceId);
 
-    List<NotifyTriggerPolicyDTO> list(String triggerUser, Long appId, String resourceId,
-                                      Integer resourceType, Integer triggerType, Integer executeStatus);
+    CustomNotifyDTO getSpecificResourceNotifyPolicy(Long appId,
+                                                    Integer resourceType,
+                                                    String resourceId,
+                                                    Integer triggerType);
+
+    List<TriggerPolicyDTO> listAppDefault(String triggerUser, Long appId, String resourceId);
+
+    List<NotifyTriggerPolicyDTO> list(String triggerUser,
+                                      Long appId,
+                                      String resourceId,
+                                      Integer resourceType,
+                                      Integer triggerType,
+                                      Integer executeStatus);
 
     int countDefaultPolicies();
 }

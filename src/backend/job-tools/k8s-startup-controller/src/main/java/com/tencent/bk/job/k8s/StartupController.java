@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,9 +24,10 @@
 
 package com.tencent.bk.job.k8s;
 
-import com.beust.jcommander.JCommander;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
+import com.tencent.bk.job.k8s.external.HttpServiceExternalDependencyChecker;
+import com.tencent.bk.job.k8s.external.IServiceExternalDependencyCheck;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
@@ -70,33 +71,33 @@ public class StartupController {
     public static final String POD_PHASE_RUNNING = "Running";
 
     // K8s API
-    private static final CoreV1Api api;
+    private static CoreV1Api api;
 
-    static {
-        ApiClient client = null;
-        try {
-            client = Config.defaultClient();
-        } catch (IOException e) {
-            log.error("Fail to get k8s api defaultClient", e);
-        }
-        Configuration.setDefaultApiClient(client);
-        api = new CoreV1Api();
-    }
+    // 服务依赖模型
+    private static ServiceDependModel serviceDependModel;
+    // 外部依赖检查器
+    private static IServiceExternalDependencyCheck externalDependencyChecker;
 
     // 主程序入口
     public static void main(String[] args) {
+        // 初始化K8s API
+        initK8sApi();
         // 解析需要的依赖参数
-        ServiceDependModel serviceDependModel = parseDependModelFromArgsOrEnv(args);
+        ServiceDependModelParser modelParser = new ServiceDependModelParser();
+        serviceDependModel = modelParser.parseDependModelFromArgsOrEnv(args);
         String namespace = serviceDependModel.getNamespace();
         String currentService = serviceDependModel.getServiceName();
         String dependenciesStr = serviceDependModel.getDependenciesStr();
         String expectLabelsCommon = serviceDependModel.getExpectLabelsCommon();
         String expectLabelsService = serviceDependModel.getExpectLabelsService();
+        String externalDependencyCheckUrl = serviceDependModel.getExternalDependencyCheckUrl();
         log.info("namespace={}", namespace);
         log.info("dependenciesStr={}", dependenciesStr);
         log.info("currentService={}", currentService);
         log.info("expectLabelsCommon={}", expectLabelsCommon);
         log.info("expectLabelsService={}", expectLabelsService);
+        log.info("externalDependencyCheckUrl={}", externalDependencyCheckUrl);
+        externalDependencyChecker = new HttpServiceExternalDependencyChecker(externalDependencyCheckUrl);
         // 解析出结构化的依赖映射表
         Map<String, List<String>> dependencyMap = parseDependencyMap(dependenciesStr);
         printDependencyMap(dependencyMap);
@@ -124,72 +125,17 @@ public class StartupController {
     }
 
     /**
-     * 从命令行参数或环境变量解析出程序运行需要的服务依赖参数
-     *
-     * @param args 命令行参数
-     * @return 服务依赖数据
+     * 初始化K8s API
      */
-    static ServiceDependModel parseDependModelFromArgsOrEnv(String[] args) {
-        ServiceDependModel serviceDependModel = new ServiceDependModel();
-        JCommander.newBuilder()
-            .addObject(serviceDependModel)
-            .build()
-            .parse(args);
-        String namespace = serviceDependModel.getNamespace();
-        if (StringUtils.isBlank(namespace)) {
-            namespace = System.getenv(Consts.KEY_KUBERNETES_NAMESPACE);
-            log.info(
-                "Commandline param [-n,--namespace] is null or blank, use env variable {}={}",
-                Consts.KEY_KUBERNETES_NAMESPACE,
-                namespace
-            );
-            if (StringUtils.isBlank(namespace)) {
-                namespace = Consts.VALUE_NAMESPACE_DEFAULT;
-                log.warn("use default namespace:{}", namespace);
-            }
-            serviceDependModel.setNamespace(namespace);
+    private static void initK8sApi() {
+        ApiClient client = null;
+        try {
+            client = Config.defaultClient();
+        } catch (IOException e) {
+            log.error("Fail to get k8s api defaultClient", e);
         }
-        String serviceName = serviceDependModel.getServiceName();
-        if (StringUtils.isBlank(serviceName)) {
-            serviceName = System.getenv(Consts.KEY_CURRENT_SERVICE_NAME);
-            log.info(
-                "Commandline param [-s,--service] is null or blank, use env variable {}={}",
-                Consts.KEY_CURRENT_SERVICE_NAME,
-                serviceName
-            );
-            serviceDependModel.setServiceName(serviceName);
-        }
-        String dependenciesStr = serviceDependModel.getDependenciesStr();
-        if (StringUtils.isBlank(dependenciesStr)) {
-            dependenciesStr = System.getenv(Consts.KEY_STARTUP_DEPENDENCIES_STR);
-            log.info(
-                "Commandline param [-d,--dependencies] is null or blank, use env variable {}={}",
-                Consts.KEY_STARTUP_DEPENDENCIES_STR,
-                dependenciesStr
-            );
-            serviceDependModel.setDependenciesStr(dependenciesStr);
-        }
-        String expectLabelsCommonStr = serviceDependModel.getExpectLabelsCommon();
-        if (StringUtils.isBlank(expectLabelsCommonStr)) {
-            expectLabelsCommonStr = System.getenv(Consts.KEY_EXPECT_POD_LABELS_COMMON);
-            log.info(
-                "Commandline param [-lc,--expect-pod-labels-common] is null or blank, use env variable {}={}",
-                Consts.KEY_EXPECT_POD_LABELS_COMMON,
-                expectLabelsCommonStr
-            );
-            serviceDependModel.setExpectLabelsCommon(expectLabelsCommonStr);
-        }
-        String expectLabelsServiceStr = serviceDependModel.getExpectLabelsService();
-        if (StringUtils.isBlank(expectLabelsServiceStr)) {
-            expectLabelsServiceStr = System.getenv(Consts.KEY_EXPECT_POD_LABELS_SERVICE);
-            log.info(
-                "Commandline param [-ls,--expect-pod-labels-service] is null or blank, use env variable {}={}",
-                Consts.KEY_EXPECT_POD_LABELS_SERVICE,
-                expectLabelsServiceStr
-            );
-            serviceDependModel.setExpectLabelsService(expectLabelsServiceStr);
-        }
-        return serviceDependModel;
+        Configuration.setDefaultApiClient(client);
+        api = new CoreV1Api();
     }
 
     /**
@@ -402,7 +348,8 @@ public class StartupController {
                                           String serviceName,
                                           Map<String, String> requiredPodLabelsMap) {
         return isServiceEndPointAddressReady(namespace, serviceName)
-            && isServicePodReady(namespace, serviceName, requiredPodLabelsMap);
+            && isServicePodReady(namespace, serviceName, requiredPodLabelsMap)
+            && isServiceExternalDependencyReady(namespace, serviceName);
     }
 
     /**
@@ -486,6 +433,21 @@ public class StartupController {
         }
         log.info("{}: {}/{} pod ready", serviceName, readyPodNum, servicePodList.size());
         return readyPodNum == servicePodList.size();
+    }
+
+    /**
+     * 判断服务对应的外部依赖是否准备好
+     *
+     * @param namespace   命名空间
+     * @param serviceName 服务名称
+     * @return 服务外部依赖是否准备好，布尔值
+     */
+    private static boolean isServiceExternalDependencyReady(String namespace, String serviceName) {
+        if (!serviceDependModel.getExternalDependencyCheckEnabled()) {
+            // 外部依赖检查未开启，视为已就绪
+            return true;
+        }
+        return externalDependencyChecker.isReady(namespace, serviceName);
     }
 
     /**

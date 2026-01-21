@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -105,25 +105,28 @@ public class DefaultFilePrepareTaskResultHandler implements FilePrepareTaskResul
     private void onSuccess(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
         if (!finalResult.getTaskContext().isForRetry()) {
             // 直接进行下一步
-            taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.continueGseFileStep(stepInstance.getId()));
+            taskExecuteMQEventDispatcher.dispatchStepEvent(
+                StepEvent.continueGseFileStep(stepInstance.getTaskInstanceId(), stepInstance.getId()));
         }
     }
 
     private void onStopped(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
         // 步骤状态变更
-        stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.STOP_SUCCESS.getValue());
+        stepInstanceService.updateStepStatus(stepInstance.getTaskInstanceId(),
+            stepInstance.getId(), RunStatusEnum.STOP_SUCCESS.getValue());
         // 任务状态变更
         taskExecuteMQEventDispatcher.dispatchJobEvent(
             JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
-                EventSource.buildStepEventSource(stepInstance.getId())));
+                EventSource.buildStepEventSource(stepInstance.getTaskInstanceId(), stepInstance.getId())));
     }
 
     private void onFailed(StepInstanceDTO stepInstance, FilePrepareTaskResult finalResult) {
         // 文件源文件下载失败
-        stepInstanceService.updateStepStatus(stepInstance.getId(), RunStatusEnum.FAIL.getValue());
+        stepInstanceService.updateStepStatus(stepInstance.getTaskInstanceId(),
+            stepInstance.getId(), RunStatusEnum.FAIL.getValue());
         taskExecuteMQEventDispatcher.dispatchJobEvent(
             JobEvent.refreshJob(stepInstance.getTaskInstanceId(),
-                EventSource.buildStepEventSource(stepInstance.getId())));
+                EventSource.buildStepEventSource(stepInstance.getTaskInstanceId(), stepInstance.getId())));
     }
 
 }

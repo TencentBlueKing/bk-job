@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -34,7 +34,9 @@ import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.api.esb.common.ConfigFileUtil;
@@ -52,7 +54,7 @@ import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbJobExecuteV3DTO;
 import com.tencent.bk.job.execute.model.esb.v3.request.EsbPushConfigFileV3Request;
-import com.tencent.bk.job.execute.service.AgentService;
+import com.tencent.bk.job.execute.service.LocalFileDistributeSourceHostProvisioner;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -71,15 +73,17 @@ public class EsbPushConfigFileResourceV3Impl
     implements EsbPushConfigFileV3Resource {
     private final TaskExecuteService taskExecuteService;
     private final FileDistributeConfig fileDistributeConfig;
-    private final AgentService agentService;
+    private final LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner;
 
     @Autowired
-    public EsbPushConfigFileResourceV3Impl(TaskExecuteService taskExecuteService,
-                                           FileDistributeConfig fileDistributeConfig,
-                                           AgentService agentService) {
+    public EsbPushConfigFileResourceV3Impl(
+        TaskExecuteService taskExecuteService,
+        FileDistributeConfig fileDistributeConfig,
+        LocalFileDistributeSourceHostProvisioner localFileDistributeSourceHostProvisioner
+    ) {
         this.taskExecuteService = taskExecuteService;
         this.fileDistributeConfig = fileDistributeConfig;
-        this.agentService = agentService;
+        this.localFileDistributeSourceHostProvisioner = localFileDistributeSourceHostProvisioner;
     }
 
     @Override
@@ -93,6 +97,7 @@ public class EsbPushConfigFileResourceV3Impl
     public EsbResp<EsbJobExecuteV3DTO> pushConfigFile(String username,
                                                       String appCode,
                                                       @AuditRequestBody EsbPushConfigFileV3Request request) {
+        User user = JobContextUtil.getUser();
         ValidateResult checkResult = checkPushConfigFileRequest(request);
         if (!checkResult.isPass()) {
             log.warn("Fast transfer file request is illegal!");
@@ -104,7 +109,7 @@ public class EsbPushConfigFileResourceV3Impl
         TaskInstanceDTO taskInstance = buildFastFileTaskInstance(username, appCode, request);
         StepInstanceDTO stepInstance = buildFastFileStepInstance(username, request, request.getFileList());
         TaskInstanceDTO executeTaskInstance = taskExecuteService.executeFastTask(
-            FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build());
+            FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).operator(user).build());
 
         EsbJobExecuteV3DTO jobExecuteInfo = new EsbJobExecuteV3DTO();
         jobExecuteInfo.setTaskInstanceId(executeTaskInstance.getId());
@@ -188,7 +193,9 @@ public class EsbPushConfigFileResourceV3Impl
             fileSourceDTO.setFiles(files);
             // 设置配置文件所在主机信息
             ExecuteTargetDTO fileSourceExecuteObjects = new ExecuteTargetDTO();
-            fileSourceExecuteObjects.setStaticIpList(Collections.singletonList(agentService.getLocalAgentHost()));
+            fileSourceExecuteObjects.setStaticIpList(Collections.singletonList(
+                localFileDistributeSourceHostProvisioner.getLocalFileDistributeSourceHost()
+            ));
             fileSourceDTO.setServers(fileSourceExecuteObjects);
             fileSourceDTOS.add(fileSourceDTO);
         });

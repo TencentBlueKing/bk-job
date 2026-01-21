@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -96,6 +96,7 @@ public class TaskTemplateVO {
 
     /**
      * 模版内的脚本状态
+     *
      */
     @ApiModelProperty(value = "模版内脚本状态 0 - 正常 1 - 需要更新 2 - 被禁用 3 - 需要更新和被禁用的都存在")
     private Integer scriptStatus;

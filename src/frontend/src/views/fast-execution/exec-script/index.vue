@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -44,7 +44,7 @@
             :form-data="formData"
             :label="$t('execution.任务名称')"
             name="scriptName"
-            :placeholder="$t('execution.取一个便于记忆的任务名，方便后续在历史记录中快速定位...')"
+            :placeholder="$t('execution.取一个便于记忆的任务名，方便后续在历史记录中快速定位')"
             @on-change="handleChange" />
           <item-factory
             content-field="content"
@@ -70,6 +70,12 @@
             secure-field="secureParam"
             @on-change="handleChange" />
           <item-factory
+            field="windowsInterpreter"
+            :form-data="formData"
+            language-field="scriptLanguage"
+            name="windowsInterpreter"
+            @on-change="handleChange" />
+          <item-factory
             field="timeout"
             :form-data="formData"
             name="scriptTimeout"
@@ -84,6 +90,7 @@
             field="taskTarget"
             :form-data="formData"
             name="executeTargetOfExecution"
+            windows-interpreter-field="windowsInterpreter"
             @on-change="handleChange" />
           <item-factory
             enabled-field="rollingEnabled"
@@ -91,6 +98,7 @@
             :form-data="formData"
             mode-field="rollingMode"
             name="rolling"
+            server-field="taskTarget"
             @on-change="handleChange"
             @on-reset="handleReset" />
         </jb-form>
@@ -182,8 +190,10 @@
     scriptParam: '',
     // 敏感参数 0-关闭 1-开启
     secureParam: 0,
+    // windows解释器 (undefined : 不采用自定义, other: 采用自定义)
+    windowsInterpreter: undefined,
     // 超时
-    timeout: 7200,
+    timeout: 300,
     // 账号
     account: '',
     // 目标服务器
@@ -258,6 +268,7 @@
             scriptId,
             scriptLanguage,
             scriptParam,
+            windowsInterpreter,
             scriptSource,
             scriptVersionId,
             secureParam,
@@ -274,6 +285,7 @@
             scriptId,
             scriptLanguage,
             scriptParam,
+            windowsInterpreter,
             scriptSource,
             scriptVersionId,
             secureParam,
@@ -339,7 +351,8 @@
         // 执行指定版本的脚本
         if (this.scriptVersionId > 0) {
           this.formData.scriptVersionId = this.scriptVersionId;
-          this.formData.scriptSource = TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC;
+          this.formData.scriptSource = this.$route.query.source === TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS
+            ? TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS : TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC;
         }
       },
       /**
@@ -412,6 +425,7 @@
               scriptLanguage,
               content,
               scriptParam,
+              windowsInterpreter,
               secureParam,
               timeout,
               account,
@@ -429,6 +443,7 @@
               scriptLanguage,
               content,
               scriptParam,
+              windowsInterpreter,
               secureParam,
               timeout,
               account,
@@ -468,7 +483,7 @@
                 });
               });
           })
-          .catch(() => {
+          .finally(() => {
             this.isSubmiting = false;
           });
       },

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,11 +25,12 @@
 package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
+import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.web.request.app.FavorAppReq;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
-import com.tencent.bk.job.manage.model.web.vo.PageDataWithAvailableIdList;
+import com.tencent.bk.job.manage.model.web.vo.ScopeGroupPanel;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -53,9 +54,9 @@ import springfox.documentation.annotations.ApiIgnore;
 @WebAPI
 public interface WebAppResource {
 
-    @ApiOperation(value = "获取用户的业务列表（带收藏标识、分页）", produces = "application/json")
+    @ApiOperation(value = "获取用户的业务列表（带收藏标识、分页），IP白名单相关场景选择业务使用", produces = "application/json")
     @GetMapping(value = {"/app/list/favor", "/scope/list/favor"})
-    Response<PageDataWithAvailableIdList<AppVO, Long>> listAppWithFavor(
+    Response<PageData<AppVO>> listPagedAppWithFavor(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
             String username,
@@ -65,6 +66,14 @@ public interface WebAppResource {
         @ApiParam(value = "分页-每页大小")
         @RequestParam(value = "pageSize", required = false)
             Integer pageSize
+    );
+
+    @ApiOperation(value = "获取用户的资源范围分组面板数据（含分组列表（带收藏标识、权限标识）、申请按钮状态等数据）", produces = "application/json")
+    @GetMapping(value = {"/scopeGroupPanel"})
+    Response<ScopeGroupPanel> getScopeGroupPanel(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+        String username
     );
 
     @ApiOperation(value = "收藏业务", produces = "application/json")

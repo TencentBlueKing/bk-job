@@ -1,0 +1,46 @@
+@echo on
+setlocal enabledelayedexpansion
+call:job_start
+
+REM 作业平台中执行脚本成功和失败的标准只取决于脚本最后一条执行语句的返回值
+REM 如果返回值为0，则认为此脚本执行成功，如果非0，则认为脚本执行失败
+REM 可在此处开始编写您的脚本逻辑代码
+
+
+
+REM 函数自定义区域，不要把正文写到函数区下面
+goto:eof
+REM 可在脚本开始运行时调用，打印当时的时间戳及PID。
+:job_start
+    set cu_time=[%date:~0,10% %time:~0,8%]
+    for /F "skip=3 tokens=2" %%i in ('tasklist /v /FI "IMAGENAME eq cmd.exe" /FI "STATUS eq Unknown"') do (
+        set pid=[PID:%%i]
+        goto:break
+    )
+    :break
+    echo %cu_time%%pid% job_start
+    goto:eof
+
+REM 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。
+:job_success
+    set cu_time=[%date:~0,10% %time:~0,8%]
+    for /F "skip=3 tokens=2" %%i in ('tasklist /v /FI "IMAGENAME eq cmd.exe" /FI "STATUS eq Unknown"') do (
+        set pid=[PID:%%i]
+        goto:break
+    )
+    :break
+    echo %cu_time%%pid% job_success:[%*]
+    exit 0
+
+REM 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。
+:job_fail
+    set cu_time=[%date:~0,10% %time:~0,8%]
+    for /F "skip=3 tokens=2" %%i in ('tasklist /v /FI "IMAGENAME eq cmd.exe" /FI "STATUS eq Unknown"') do (
+        set pid=[PID:%%i]
+        goto:break
+    )
+    :break
+    echo %cu_time%%pid% job_fail:[%*]
+    exit 1
+
+

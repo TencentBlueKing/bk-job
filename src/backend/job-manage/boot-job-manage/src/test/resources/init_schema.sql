@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -46,6 +46,7 @@ CREATE TABLE `script`
     `description`      LONGTEXT,
     `is_deleted`       TINYINT(1) UNSIGNED          DEFAULT '0',
     `tags`             VARCHAR(512)                 DEFAULT NULL,
+    `tenant_id`        VARCHAR(32)         NOT NULL DEFAULT 'default',
     PRIMARY KEY (`id`),
     KEY (`app_id`),
     KEY (`app_id`, `name`)
@@ -282,6 +283,7 @@ CREATE TABLE `task_plan_step_script`
     `is_secure_param`       TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
     `is_latest_version`     TINYINT(1) UNSIGNED NOT NULL DEFAULT '1',
     `ignore_error`          TINYINT(1) UNSIGNED NOT NULL,
+    `windows_interpreter`   VARCHAR(260)            NULL DEFAULT NULL,
     PRIMARY KEY (`id`),
     KEY (`step_id`) USING BTREE,
     KEY (`script_id`) USING BTREE,
@@ -445,6 +447,7 @@ CREATE TABLE `task_template_step_script`
     `is_secure_param`       TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',
     `is_latest_version`     TINYINT(1) UNSIGNED NOT NULL DEFAULT '1',
     `ignore_error`          TINYINT(1) UNSIGNED NOT NULL,
+    `windows_interpreter`   VARCHAR(260)            NULL DEFAULT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY (`step_id`) USING BTREE,
     KEY (`script_id`) USING BTREE,
@@ -598,7 +601,8 @@ CREATE TABLE IF NOT EXISTS `global_setting`
 (
     `key`        varchar(255) NOT NULL,
     `value`      text         NULL,
-    `decription` varchar(255) NULL DEFAULT NULL
+    `decription` varchar(255) NULL DEFAULT NULL,
+    `tenant_id`  varchar(32)  NOT NULL DEFAULT 'default'
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS `available_esb_channel`
@@ -607,6 +611,7 @@ CREATE TABLE IF NOT EXISTS `available_esb_channel`
     `enable`           bit(1)       NOT NULL,
     `creator`          varchar(255) NULL,
     `last_modify_time` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `tenant_id`  varchar(32)  NOT NULL DEFAULT 'default',
     PRIMARY KEY (`type`)
 ) ENGINE = InnoDB;
 
@@ -623,6 +628,7 @@ CREATE TABLE IF NOT EXISTS `dangerous_rule`
     `last_modify_user` varchar(128)        NULL     DEFAULT NULL,
     `create_time`      bigint(20) UNSIGNED NULL     DEFAULT NULL,
     `last_modify_time` bigint(20) UNSIGNED NULL     DEFAULT NULL,
+    `tenant_id`        VARCHAR(32)         NOT NULL DEFAULT 'default',
     PRIMARY KEY (`id`)
 ) ENGINE = InnoDB;
 

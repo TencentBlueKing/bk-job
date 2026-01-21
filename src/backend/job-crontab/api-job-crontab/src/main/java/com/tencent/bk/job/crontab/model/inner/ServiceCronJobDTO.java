@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,13 +24,12 @@
 
 package com.tencent.bk.job.crontab.model.inner;
 
+import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -65,9 +64,6 @@ public class ServiceCronJobDTO {
     @ApiModelProperty("单次执行的指定执行时间戳")
     private Long executeTime;
 
-    @ApiModelProperty("变量信息")
-    private List<ServiceCronJobVariableDTO> variableValue;
-
     @ApiModelProperty("上次执行结果 0 - 未执行 1 - 成功 2 - 失败")
     private Integer lastExecuteStatus;
 
@@ -79,4 +75,17 @@ public class ServiceCronJobDTO {
 
     @ApiModelProperty("最后修改时间戳")
     private Long lastModifyTime;
+
+    /**
+     * 通知方式（1-继承业务, 2-自定义）
+     * @see com.tencent.bk.job.common.constant.CronJobNotifyType
+     */
+    @ApiModelProperty("通知方式（1-继承业务, 2-自定义）")
+    private Integer notifyType = 1;
+
+    /**
+     * 自定义通知配置
+     */
+    @ApiModelProperty("自定义通知配置")
+    private CustomNotifyDTO customCronJobNotifyDTO = new CustomNotifyDTO();
 }

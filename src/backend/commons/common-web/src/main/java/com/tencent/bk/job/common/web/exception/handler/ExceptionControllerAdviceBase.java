@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -28,15 +28,30 @@ import com.tencent.bk.job.common.model.error.BadRequestDetailDTO;
 import com.tencent.bk.job.common.model.error.ErrorDetailDTO;
 import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.model.error.FieldViolationDTO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.util.Set;
 
+@Slf4j
 public class ExceptionControllerAdviceBase extends ResponseEntityExceptionHandler {
+
+    @Override
+    @SuppressWarnings("NullableProblems")
+    protected ResponseEntity<Object> handleExceptionInternal(
+        Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        log.warn("handleExceptionInternal", ex);
+        return super.handleExceptionInternal(ex, body, headers, status, request);
+    }
 
     protected ErrorDetailDTO buildErrorDetail(BindException ex) {
         BindingResult bindingResult = ex.getBindingResult();

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.AuthService;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,8 +57,8 @@ public class JobExecuteUriPermissionInterceptor extends HandlerInterceptorAdapte
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        String username = JobContextUtil.getUsername();
-        AuthResult authResult = authService.auth(username, ActionId.HIGH_RISK_DETECT_RECORD);
+        User user = JobContextUtil.getUser();
+        AuthResult authResult = authService.auth(user, ActionId.HIGH_RISK_DETECT_RECORD);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -28,6 +28,7 @@ import com.tencent.bk.job.crontab.constant.CrontabActionEnum;
 import com.tencent.bk.job.crontab.listener.event.CrontabEvent;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
 import com.tencent.bk.job.crontab.service.CronJobService;
+import com.tencent.bk.job.crontab.service.QuartzService;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,10 +42,12 @@ import org.springframework.stereotype.Component;
 public class CrontabEventListener {
 
     private final CronJobService cronJobService;
+    private final QuartzService quartzService;
 
     @Autowired
-    public CrontabEventListener(CronJobService cronJobService) {
+    public CrontabEventListener(CronJobService cronJobService, QuartzService quartzService) {
         this.cronJobService = cronJobService;
+        this.quartzService = quartzService;
     }
 
 
@@ -86,7 +89,7 @@ public class CrontabEventListener {
         }
         if (cronJobInfoDTO.getEnable()) {
             // 开启定时任务
-            boolean result = cronJobService.addJobToQuartz(cronJobInfoDTO.getAppId(), cronJobInfoDTO.getId());
+            boolean result = cronJobService.checkAndAddJobToQuartz(cronJobInfoDTO.getAppId(), cronJobInfoDTO.getId());
             log.info(
                 "add cronJob({},{}) to quartz, result={}",
                 cronJobInfoDTO.getAppId(),
@@ -95,7 +98,7 @@ public class CrontabEventListener {
             );
         } else {
             // 关闭定时任务
-            boolean result = cronJobService.deleteJobFromQuartz(cronJobInfoDTO.getAppId(), cronJobInfoDTO.getId());
+            boolean result = quartzService.deleteJobFromQuartz(cronJobInfoDTO.getAppId(), cronJobInfoDTO.getId());
             log.info(
                 "delete cronJob({},{}) from quartz, result={}",
                 cronJobInfoDTO.getAppId(),
@@ -107,7 +110,7 @@ public class CrontabEventListener {
 
     private void deleteCronJobFromQuartz(long appId, long cronJobId) {
         // 删除定时任务
-        boolean result = cronJobService.deleteJobFromQuartz(appId, cronJobId);
+        boolean result = quartzService.deleteJobFromQuartz(appId, cronJobId);
         log.info(
             "delete cronJob({},{}) from quartz, result={}",
             appId,

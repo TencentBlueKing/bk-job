@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -39,7 +39,36 @@ public class BkApiGatewayProperties {
 
     private ApiGwConfig bkNotice;
 
+    private ApiGwConfig bkAIDev;
+
     private ApiGwConfig cmdb;
+
+    private ApiGwConfig bkApiGateway;
+
+    /**
+     * 蓝鲸登录相关配置
+     */
+    private ApiGwConfig bkLogin;
+
+    /**
+     * 蓝鲸用户管理相关配置
+     */
+    private ApiGwConfig bkUser;
+
+    /**
+     * 蓝鲸用户管理前端服务相关配置
+     */
+    private ApiGwConfig bkUserWeb;
+
+    /**
+     * 蓝鲸权限中心相关配置
+     */
+    private ApiGwConfig bkIam;
+
+    /**
+     * 消息通知相关配置
+     */
+    private ApiGwConfig cmsi;
 
     @Getter
     @Setter
@@ -49,5 +78,15 @@ public class BkApiGatewayProperties {
          * 蓝鲸Api Gateway url
          */
         private String url;
+
+        /**
+         * 蓝鲸Api Gateway appCode，若配置了则优先使用，覆盖app.code配置项
+         */
+        private String appCode;
+
+        /**
+         * 蓝鲸Api Gateway appSecret，若配置了则优先使用，覆盖app.secret配置项
+         */
+        private String appSecret;
     }
 }

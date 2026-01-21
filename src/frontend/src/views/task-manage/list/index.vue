@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -80,7 +80,7 @@
           ref="search"
           :append-value="searchValue"
           :data="searchData"
-          :placeholder="$t('template.输入 作业模板名、标签名 或 更新人 进行搜索...')"
+          :placeholder="$t('template.输入 作业模板名、标签名 或 更新人 进行搜索')"
           style="width: 420px;"
           @on-change="handleSearch" />
         <bk-button @click="handleMyTask">
@@ -171,7 +171,7 @@
           key="tags"
           align="left"
           class-name="edit-tag-column"
-          :label="$t('template.场景标签.colHead')"
+          :label="$t('template.场景标签_colHead')"
           prop="tags"
           width="200">
           <template slot-scope="{ row }">
@@ -204,7 +204,11 @@
           align="left"
           :label="$t('template.创建人')"
           prop="creator"
-          width="120" />
+          width="120">
+          <template slot-scope="{ row }">
+            <bk-user-display-name :user-id="row.creator" />
+          </template>
+        </bk-table-column>
         <bk-table-column
           v-if="allRenderColumnMap.createTime"
           key="createTime"
@@ -216,9 +220,13 @@
           v-if="allRenderColumnMap.lastModifyUser"
           key="lastModifyUser"
           align="left"
-          :label="$t('template.更新人.colHead')"
+          :label="$t('template.更新人_colHead')"
           prop="lastModifyUser"
-          width="160" />
+          width="160">
+          <template slot-scope="{ row }">
+            <bk-user-display-name :user-id="row.lastModifyUser" />
+          </template>
+        </bk-table-column>
         <bk-table-column
           v-if="allRenderColumnMap.lastModifyTime"
           key="lastModifyTime"
@@ -239,8 +247,9 @@
               :to="{
                 name: 'viewPlan',
                 params: { templateId: row.id },
+                query: { from: 'taskList' },
               }">
-              {{ $t('template.执行方案.label') }}
+              {{ $t('template.执行方案_label') }}
             </router-link>
             <router-link
               v-test="{ type: 'link', value: 'debugTemplate' }"
@@ -460,21 +469,29 @@
           default: true,
         },
         {
-          name: I18n.t('template.场景标签.colHead'),
+          name: I18n.t('template.场景标签_colHead'),
           id: 'tags',
           remoteMethod: TagManageService.fetchTagOfSearch,
         },
         {
-          name: I18n.t('template.更新人.colHead'),
+          name: I18n.t('template.更新人_colHead'),
           id: 'lastModifyUser',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
         {
           name: I18n.t('template.创建人'),
           id: 'creator',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
       ];
       this.tableColumn = [
@@ -489,7 +506,7 @@
         },
         {
           id: 'tags',
-          label: I18n.t('template.场景标签.colHead'),
+          label: I18n.t('template.场景标签_colHead'),
         },
         {
           id: 'statusText',
@@ -505,7 +522,7 @@
         },
         {
           id: 'lastModifyUser',
-          label: I18n.t('template.更新人.colHead'),
+          label: I18n.t('template.更新人_colHead'),
         },
         {
           id: 'lastModifyTime',
@@ -656,7 +673,7 @@
           values: [
             {
               id: currentUserName,
-              name: currentUserName,
+              name: this.currentUser.displayName,
             },
           ],
         };

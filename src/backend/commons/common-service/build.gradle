@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -27,6 +27,7 @@ dependencies {
     api project(':commons:common-task')
     api project(':commons:common-security')
     api project(':commons:common-otel')
+    api project(':commons:common-rabbitmq')
     api 'org.hibernate.validator:hibernate-validator'
     api 'jakarta.validation:jakarta.validation-api'
     api 'org.springframework.boot:spring-boot-starter-actuator'
@@ -52,7 +53,8 @@ dependencies {
     api 'com.fasterxml.jackson.core:jackson-core'
     api 'com.fasterxml.jackson.core:jackson-databind'
     api 'com.fasterxml.jackson.core:jackson-annotations'
-    api 'io.jsonwebtoken:jjwt'
+    api 'io.jsonwebtoken:jjwt-impl'
+    api 'io.jsonwebtoken:jjwt-jackson'
     api 'io.prometheus:simpleclient_pushgateway'
     api 'io.micrometer:micrometer-registry-prometheus'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'

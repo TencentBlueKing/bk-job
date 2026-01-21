@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -52,7 +52,7 @@
           style="height: 100%;"
           :title="$t('template.变量值为空')" />
         <scroll-faker v-else>
-          <ip-selector
+          <jb-ip-selector
             readonly
             show-view
             :value="executeObjectsInfo" />
@@ -107,7 +107,7 @@
         if (this.type) {
           return this.type;
         }
-        return `${I18n.t('template.全局变量.label')} - ${this.name}`;
+        return `${I18n.t('template.全局变量_label')} - ${this.name}`;
       },
       isEmpty() {
         return ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.executeObjectsInfo);

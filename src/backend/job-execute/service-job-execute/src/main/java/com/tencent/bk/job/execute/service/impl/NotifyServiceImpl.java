@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -37,7 +37,7 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
-import com.tencent.bk.job.execute.service.ApplicationService;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.NotifyService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
@@ -88,10 +88,11 @@ public class NotifyServiceImpl implements NotifyService {
     private final JobCommonConfig jobCommonConfig;
     private final ServiceNotificationResource notificationResource;
     private final ServiceUserResource userResource;
-    private final ApplicationService applicationService;
+    private final RemoteAppService remoteAppService;
     private final TaskInstanceService taskInstanceService;
     private final MessageI18nService i18nService;
     private final ScriptExecuteObjectTaskService scriptExecuteObjectTaskService;
+
     private final FileExecuteObjectTaskService fileExecuteObjectTaskService;
     private final TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher;
     private final StepInstanceService stepInstanceService;
@@ -100,7 +101,7 @@ public class NotifyServiceImpl implements NotifyService {
     public NotifyServiceImpl(JobCommonConfig jobCommonConfig,
                              ServiceNotificationResource notificationResource,
                              ServiceUserResource userResource,
-                             ApplicationService applicationService,
+                             RemoteAppService remoteAppService,
                              TaskInstanceService taskInstanceService,
                              MessageI18nService i18nService,
                              ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
@@ -110,7 +111,7 @@ public class NotifyServiceImpl implements NotifyService {
         this.jobCommonConfig = jobCommonConfig;
         this.notificationResource = notificationResource;
         this.userResource = userResource;
-        this.applicationService = applicationService;
+        this.remoteAppService = remoteAppService;
         this.taskInstanceService = taskInstanceService;
         this.i18nService = i18nService;
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
@@ -202,14 +203,16 @@ public class NotifyServiceImpl implements NotifyService {
         } else {
             log.warn("Invalid startup mode!");
         }
+
         trigger.setResourceExecuteStatus(taskNotifyDTO.getResourceExecuteStatus());
         trigger.setResourceType(taskNotifyDTO.getResourceType());
         trigger.setResourceId(taskNotifyDTO.getResourceId());
+        trigger.setCronTaskId(taskNotifyDTO.getCronTaskId());
         return trigger;
     }
 
     private String buildJobExecuteDetailUrl(Long taskInstanceId) {
-        return jobCommonConfig.getJobWebUrl() + "/api_execute/" + taskInstanceId;
+        return jobCommonConfig.getFirstJobWebUrl() + "/api_execute/" + taskInstanceId;
     }
 
     @Override
@@ -244,7 +247,7 @@ public class NotifyServiceImpl implements NotifyService {
         Map<String, String> variablesMap = new HashMap<>();
         variablesMap.put("task.id", taskNotifyDTO.getTaskInstanceId().toString());
         variablesMap.put("task.name", taskNotifyDTO.getTaskInstanceName());
-        variablesMap.put("task.app.name", applicationService.getAppById(taskNotifyDTO.getAppId()).getName());
+        variablesMap.put("task.app.name", remoteAppService.getAppById(taskNotifyDTO.getAppId()).getName());
         variablesMap.put("task.app.id", String.valueOf(taskNotifyDTO.getAppId()));
         String detailUrl = buildJobExecuteDetailUrl(taskNotifyDTO.getTaskInstanceId());
         variablesMap.put("task.detail.url", detailUrl);
@@ -256,7 +259,8 @@ public class NotifyServiceImpl implements NotifyService {
         variablesMap.put("task.step.total_seq_cnt", "" + stepIdList.size());
         long currentStepId = taskInstanceDTO.getCurrentStepInstanceId();
         variablesMap.put("task.step.current_seq_id", "" + (stepIdList.indexOf(currentStepId) + 1));
-        StepInstanceDTO stepInstanceDTO = stepInstanceService.getStepInstanceDetail(currentStepId);
+        StepInstanceDTO stepInstanceDTO = stepInstanceService.getStepInstanceDetail(
+            taskInstanceDTO.getId(), currentStepId);
         if (executeStatus == ExecuteStatusEnum.FAIL || executeStatus == ExecuteStatusEnum.SUCCESS) {
             if (stepInstanceDTO.getTotalTime() != null) {
                 variablesMap.put("task.step.duration", "" + stepInstanceDTO.getTotalTime() / 1000.0);
@@ -271,11 +275,17 @@ public class NotifyServiceImpl implements NotifyService {
             } else {
                 int successIpCount = 0;
                 if (stepInstanceDTO.isScriptStep()) {
-                    successIpCount = scriptExecuteObjectTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
-                        stepInstanceDTO.getExecuteCount());
+                    successIpCount = scriptExecuteObjectTaskService.getSuccessTaskCount(
+                        stepInstanceDTO.getTaskInstanceId(),
+                        stepInstanceDTO.getId(),
+                        stepInstanceDTO.getExecuteCount()
+                    );
                 } else if (stepInstanceDTO.isFileStep()) {
-                    successIpCount = scriptExecuteObjectTaskService.getSuccessTaskCount(stepInstanceDTO.getId(),
-                        stepInstanceDTO.getExecuteCount());
+                    successIpCount = fileExecuteObjectTaskService.getSuccessTaskCount(
+                        stepInstanceDTO.getTaskInstanceId(),
+                        stepInstanceDTO.getId(),
+                        stepInstanceDTO.getExecuteCount()
+                    );
                 }
                 variablesMap.put("task.step.failed_cnt", String.valueOf(totalTargetIpCount - successIpCount));
                 variablesMap.put("task.step.success_cnt", String.valueOf(successIpCount));
@@ -283,7 +293,7 @@ public class NotifyServiceImpl implements NotifyService {
         }
         // 国际化处理
         Long appId = taskNotifyDTO.getAppId();
-        ServiceApplicationDTO applicationDTO = applicationService.getAppById(appId);
+        ServiceApplicationDTO applicationDTO = remoteAppService.getAppById(appId);
         String userLang = JobContextUtil.getUserLang();
         if (userLang == null) {
             String appLang = applicationDTO.getLanguage();
@@ -383,7 +393,8 @@ public class NotifyServiceImpl implements NotifyService {
     @Override
     public void asyncSendMQConfirmNotification(TaskInstanceDTO taskInstance,
                                                StepInstanceBaseDTO stepInstance) {
-        StepInstanceDTO stepInstanceDetail = stepInstanceService.getStepInstanceDetail(stepInstance.getId());
+        StepInstanceDTO stepInstanceDetail = stepInstanceService.getStepInstanceDetail(
+            taskInstance.getId(), stepInstance.getId());
         if (stepInstanceDetail == null) {
             log.warn("StepInstance is not exist, stepInstanceId: {}", stepInstance.getId());
             return;
@@ -400,6 +411,7 @@ public class NotifyServiceImpl implements NotifyService {
         taskNotifyDTO.setNotifyDTO(notifyDTO);
         taskNotifyDTO.setResourceId(String.valueOf(taskInstance.getPlanId()));
         taskNotifyDTO.setResourceType(ResourceTypeEnum.JOB.getType());
+        taskNotifyDTO.setCronTaskId(taskInstance.getCronTaskId());
         taskNotifyDTO.setOperator(stepInstance.getOperator());
         taskExecuteMQEventDispatcher.dispatchNotifyMsg(taskNotifyDTO);
     }
@@ -409,6 +421,7 @@ public class NotifyServiceImpl implements NotifyService {
                                  TaskNotifyDTO taskNotifyDTO) {
         Long taskPlanId = taskInstance.getPlanId();
         taskNotifyDTO.setResourceId(String.valueOf(taskPlanId));
+        taskNotifyDTO.setCronTaskId(taskInstance.getCronTaskId());
         if (taskPlanId == -1L) {
             if (stepInstance.isScriptStep()) {
                 taskNotifyDTO.setResourceType(ResourceTypeEnum.SCRIPT.getType());

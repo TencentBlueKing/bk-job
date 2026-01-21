@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,6 +24,9 @@
 
 package com.tencent.bk.job.common.constant;
 
+/**
+ * Job 通用 http header 定义
+ */
 public interface JobCommonHeaders {
 
     String APP_CODE = "X-AppCode";
@@ -42,4 +45,34 @@ public interface JobCommonHeaders {
      * 蓝鲸网关-JWT
      */
     String BK_GATEWAY_JWT = "X-Bkapi-JWT";
+
+    /**
+     * 蓝鲸网关-从网关来的请求，与ESB请求区分
+     */
+    String BK_GATEWAY_FROM = "X-Bkapi-From";
+
+    /**
+     * 租户 ID
+     */
+    String BK_TENANT_ID = "X-Bk-Tenant-Id";
+
+    /**
+     * 应用态接口传递的用户名Header Key
+     */
+    String KEY_BK_USERNAME = "X-Bk-Username";
+
+    /**
+     * 作业平台-蓝鲸网关上的接口类型
+     */
+    String KEY_BK_JOB_API_TYPE = "X-Bk-Job-Api-Type";
+
+    /**
+     * 作业平台-蓝鲸网关上的接口类型：应用态接口
+     */
+    String VALUE_BK_JOB_API_TYPE_APP = "app";
+
+    /**
+     * 作业平台-蓝鲸网关上的接口类型：用户态接口
+     */
+    String VALUE_BK_JOB_API_TYPE_USER = "user";
 }

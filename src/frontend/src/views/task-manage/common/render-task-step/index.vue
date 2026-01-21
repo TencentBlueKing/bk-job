@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -169,7 +169,7 @@
           <icon
             class="mr5"
             type="plus" />
-          {{ $t('template.作业步骤.add') }}
+          {{ $t('template.作业步骤_add') }}
         </div>
         <div class="create-step-quick">
           <div
@@ -1047,10 +1047,7 @@
 
     .create-step-quick {
       position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
+      inset: 0;
       display: none;
       justify-content: flex-end;
       align-items: center;

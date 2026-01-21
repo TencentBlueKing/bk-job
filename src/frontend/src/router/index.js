@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,6 +24,7 @@
 */
 
 import _ from 'lodash';
+import path from 'path-browserify';
 import Vue, {
   customRef,
 } from 'vue';
@@ -79,6 +80,7 @@ const renderPageWithComponent = (route, component) => {
   }
 };
 
+
 export default ({ appList, isAdmin, scopeType, scopeId }) => {
   // scope 是否有效
   let isValidScope = false;
@@ -102,10 +104,11 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
     ScriptTemplate,
   ];
 
+  const realRootPath = path.join(window.PROJECT_CONFIG.BK_SITE_PATH, rootPath);
   // 生成路由配置
   const routes = [
     {
-      path: rootPath,
+      path: realRootPath,
       component: Entry,
       redirect: {
         name: 'home',
@@ -113,7 +116,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
       children: systemManageRoute,
     },
     {
-      path: noScope ? rootPath : `${rootPath}${scopeType}/${scopeId}`,
+      path: noScope ? realRootPath : `${realRootPath}${scopeType}/${scopeId}`,
       component: Entry,
       redirect: {
         name: 'home',
@@ -134,7 +137,7 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
       ],
     },
     {
-      path: '/api_(execute|execute_step|plan)/:id+',
+      path: `${realRootPath}api_(execute|execute_step|plan)/:id+`,
       component: {
         render() {
           return this._e(); // eslint-disable-line no-underscore-dangle
@@ -148,8 +151,14 @@ export default ({ appList, isAdmin, scopeType, scopeId }) => {
     },
   ];
 
+  if (appList.every(item => !item.hasPermission)) {
+    document.body.classList.add('no-business-permission');
+  }
+
+  window.BUSINESS_PERMISSION = true;
   if (noScope || !hasScopePermission) {
     renderPageWithComponent(routes[1], BusinessPermission);
+    window.BUSINESS_PERMISSION = false;
   } else if (!isValidScope) {
     renderPageWithComponent(routes[1], NotFound);
   }

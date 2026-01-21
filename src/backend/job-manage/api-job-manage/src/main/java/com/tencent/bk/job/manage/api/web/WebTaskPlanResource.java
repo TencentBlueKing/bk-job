@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.web.request.TaskPlanCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.TaskVariableValueUpdateReq;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanBasicInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanSyncInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import io.swagger.annotations.Api;
@@ -271,6 +272,26 @@ public interface WebTaskPlanResource {
         @ApiParam(value = "执行方案 ID 列表，逗号分隔", required = true, example = "1,2,3")
         @QueryParam("ids")
             String planIds
+    );
+
+    @ApiOperation(value = "根据执行方案 ID 批量拉执行方案基础信息", produces = "application/json")
+    @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan/basicInfo"})
+    Response<List<TaskPlanBasicInfoVO>> listTaskPlanBasicInfoByIds(
+        @ApiParam(value = "用户名，网关自动传入")
+        @RequestHeader("username")
+        String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+        AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+        String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+        String scopeId,
+        @ApiParam(value = "执行方案 ID 列表，逗号分隔", required = true, example = "1,2,3")
+        @QueryParam("ids")
+        String planIds
     );
 
     @ApiOperation(value = "检查执行方案名称是否已占用", produces = "application/json")

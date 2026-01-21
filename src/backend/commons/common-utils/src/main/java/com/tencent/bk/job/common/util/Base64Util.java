@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -102,5 +102,29 @@ public class Base64Util {
             log.warn("Decode content fail", e);
             throw e;
         }
+    }
+
+    /**
+     * 根据BASE64编码后的字符串计算原始字节流长度，不用decode字符串
+     *
+     * @param encodedContent 编码后的字符串
+     * @return 原始字符串的长度
+     */
+    public static int calcOriginBytesLength(String encodedContent) {
+        if (StringUtils.isEmpty(encodedContent)) {
+            return 0;
+        }
+
+        // 最多只会填充两个 =
+        int fillCount = 0;
+        for (int i = 0; i <= 1 && encodedContent.length() - 1 - i >= 0; i++) {
+            if (encodedContent.charAt(encodedContent.length() - 1 - i) == '=') {
+                fillCount++;
+            } else {
+                break;
+            }
+        }
+
+        return encodedContent.length() * 3 / 4 - fillCount;
     }
 }

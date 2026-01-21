@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -32,6 +32,8 @@
     <jb-form-item
       :label="notifyOffsetLabel"
       layout="inline"
+      property="notifyOffset"
+      required
       :rules="rules.notifyOffset">
       <bk-select
         class="time-select"
@@ -61,10 +63,13 @@
     </jb-form-item>
     <jb-form-item
       :label="$t('cron.通知对象')"
-      layout="inline">
+      layout="inline"
+      property="notifyUser"
+      required
+      :rules="rules.notifyUser">
       <jb-user-selector
         class="input"
-        :filter-list="['JOB_EXTRA_OBSERVER']"
+        :exclude-role-list="['JOB_EXTRA_OBSERVER']"
         :placeholder="$t('cron.输入通知对象')"
         :role="formData.notifyUser.roleList"
         :user="formData.notifyUser.userList"
@@ -73,6 +78,9 @@
     <jb-form-item
       :label="$t('cron.通知方式')"
       layout="inline"
+      property="notifyChannel"
+      required
+      :rules="rules.notifyChannel"
       style="margin-bottom: 0;">
       <div class="notify-channel-wraper">
         <bk-checkbox
@@ -148,18 +156,37 @@
         notifyOffset: 10,
       });
       this.rules = {
-        notifyOffset: [],
-      };
-      if (this.mode === 'execute-beofre') {
-        this.rules.notifyOffset = [
+        notifyOffset: [
           {
-            // 执行时间 - 执行前通知的时间 > 当前时间
-            validator: () => new Date(this.formData.executeTime).getTime()
-              - parseInt(this.formData.notifyOffset, 10) * 6000 > Date.now(),
-            message: I18n.t('cron.设置的提醒时间已过期'),
+            validator: value => parseInt(value, 10) > 0,
+            message: I18n.t('cron.通知时间必填'),
             trigger: 'change',
           },
-        ];
+        ],
+        notifyUser: [
+          {
+            validator: value => value.roleList.length > 0
+              || value.userList.length > 0,
+            message: I18n.t('cron.通知对象必填'),
+            trigger: 'change',
+          },
+        ],
+        notifyChannel: [
+          {
+            validator: value => value.length > 0,
+            message: I18n.t('cron.通知方式必填'),
+            trigger: 'change',
+          },
+        ],
+      };
+      if (this.mode === 'execute-beofre') {
+        this.rules.notifyOffset.push({
+          // 执行时间 - 执行前通知的时间 > 当前时间
+          validator: () => new Date(this.formData.executeTime).getTime()
+            - parseInt(this.formData.notifyOffset, 10) * 6000 > Date.now(),
+          message: I18n.t('cron.设置的提醒时间已过期'),
+          trigger: 'change',
+        });
       }
     },
     beforeDestroy() {

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -42,6 +42,10 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResultHandleTaskResumeEvent extends Event {
     /**
+     * 作业实例ID
+     */
+    private Long jobInstanceId;
+    /**
      * 步骤实例ID
      */
     private Long stepInstanceId;
@@ -72,12 +76,14 @@ public class ResultHandleTaskResumeEvent extends Event {
      * @param requestId      请求ID,防止重复下发任务
      * @return 事件
      */
-    public static ResultHandleTaskResumeEvent resume(Long stepInstanceId,
+    public static ResultHandleTaskResumeEvent resume(Long jobInstanceId,
+                                                     Long stepInstanceId,
                                                      Integer executeCount,
                                                      Integer batch,
                                                      Long gseTaskId,
                                                      String requestId) {
         ResultHandleTaskResumeEvent event = new ResultHandleTaskResumeEvent();
+        event.setJobInstanceId(jobInstanceId);
         event.setStepInstanceId(stepInstanceId);
         event.setExecuteCount(executeCount);
         event.setBatch(batch);

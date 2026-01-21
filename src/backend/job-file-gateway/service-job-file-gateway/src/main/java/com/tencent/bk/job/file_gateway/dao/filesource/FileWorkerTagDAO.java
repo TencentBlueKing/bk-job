@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -38,4 +38,13 @@ public interface FileWorkerTagDAO {
     List<WorkerTagDTO> listTagByWorkerId(Long workerId);
 
     List<Long> listWorkerIdByTag(Collection<String> tags);
+
+    /**
+     * 根据集群名称和标签列表获取workerId列表
+     *
+     * @param clusterName 集群名称
+     * @param tags        标签列表
+     * @return workerId列表
+     */
+    List<Long> listWorkerIdByClusterNameAndTag(String clusterName, Collection<String> tags);
 }

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -58,6 +58,8 @@ public class IamUtil {
                 return ResourceTypeEnum.BUSINESS;
             case BIZ_SET:
                 return ResourceTypeEnum.BUSINESS_SET;
+            case TENANT_SET:
+                return ResourceTypeEnum.TENANT_SET;
             default:
                 throw new InternalException(ErrorCode.INTERNAL_ERROR);
         }
@@ -76,6 +78,8 @@ public class IamUtil {
             resourceScopeType = ResourceScopeTypeEnum.BIZ;
         } else if (resourceType == ResourceTypeEnum.BUSINESS_SET) {
             resourceScopeType = ResourceScopeTypeEnum.BIZ_SET;
+        } else if (resourceType == ResourceTypeEnum.TENANT_SET) {
+            resourceScopeType = ResourceScopeTypeEnum.TENANT_SET;
         } else {
             log.error("Invalid iam resource type: {}", resourceType);
             throw new InternalException(ErrorCode.INTERNAL_ERROR);

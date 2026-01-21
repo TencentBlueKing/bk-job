@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,7 +25,10 @@
 package com.tencent.bk.job.execute.api.web.impl;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
@@ -35,9 +38,11 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.BusinessAuthService;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.api.web.WebTaskInstanceResource;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
@@ -51,7 +56,9 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.converter.TaskInstanceConverter;
-import com.tencent.bk.job.execute.model.db.RollingConfigDetailDO;
+import com.tencent.bk.job.execute.model.db.ExecuteObjectRollingConfigDetailDO;
+import com.tencent.bk.job.execute.model.db.FileSourceRollingConfigDO;
+import com.tencent.bk.job.execute.model.db.StepFileSourceRollingConfigDO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteApprovalStepVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
@@ -59,16 +66,17 @@ import com.tencent.bk.job.execute.model.web.vo.ExecuteFileStepVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteScriptStepVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteStepVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
+import com.tencent.bk.job.execute.model.web.vo.FileSourceRollingConfigVO;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceDetailVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskInstanceVO;
 import com.tencent.bk.job.execute.model.web.vo.TaskOperationLogVO;
-import com.tencent.bk.job.execute.service.RollingConfigService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.execute.service.TaskOperationLogService;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.execute.util.FileTransferModeUtil;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
@@ -115,16 +123,30 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
 
     @Override
     @AuditEntry(actionId = ActionId.VIEW_HISTORY)
+    @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.11.x",
+        type = CompatibleType.DEPLOY, explain = "发布完成后可以删除")
     public Response<ExecuteStepVO> getStepInstanceDetail(String username,
                                                          AppResourceScope appResourceScope,
                                                          String scopeType,
                                                          String scopeId,
                                                          Long stepInstanceId) {
+        // 兼容代码，部署完成后删除
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstanceById(stepInstanceId);
+        return getStepInstanceDetailV2(username, appResourceScope, scopeType, scopeId,
+            stepInstance.getTaskInstanceId(), stepInstanceId);
+    }
 
-        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
-            appResourceScope.getAppId(), stepInstanceId);
+    @Override
+    @AuditEntry(actionId = ActionId.VIEW_HISTORY)
+    public Response<ExecuteStepVO> getStepInstanceDetailV2(String username,
+                                                           AppResourceScope appResourceScope,
+                                                           String scopeType,
+                                                           String scopeId,
+                                                           Long taskInstanceId,
+                                                           Long stepInstanceId) {
+        StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(taskInstanceId, stepInstanceId);
 
-        taskInstanceAccessProcessor.processBeforeAccess(username,
+        taskInstanceAccessProcessor.processBeforeAccess(JobContextUtil.getUser(),
             appResourceScope.getAppId(), stepInstance.getTaskInstanceId());
 
         ExecuteStepVO stepVO = convertToStepVO(stepInstance);
@@ -136,12 +158,29 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
     private void fillRollingConfigForRollingStep(ExecuteStepVO stepVO, StepInstanceBaseDTO stepInstance) {
         if (stepInstance.isRollingStep()) {
             RollingConfigVO rollingConfigVO = new RollingConfigVO();
-            RollingConfigDTO rollingConfigDTO =
-                rollingConfigService.getRollingConfig(stepInstance.getRollingConfigId());
-            RollingConfigDetailDO rollingConfig = rollingConfigDTO.getConfigDetail();
-            rollingConfigVO.setMode(rollingConfig.getMode());
-            if (rollingConfigDTO.isBatchRollingStep(stepInstance.getId())) {
-                rollingConfigVO.setExpr(rollingConfig.getExpr());
+            RollingConfigDTO rollingConfigDTO = rollingConfigService.getRollingConfig(
+                stepInstance.getTaskInstanceId(),
+                stepInstance.getRollingConfigId()
+            );
+            rollingConfigVO.setName(rollingConfigDTO.getConfigName());
+            rollingConfigVO.setType(rollingConfigDTO.getType());
+            if (rollingConfigDTO.isTargetExecuteObjectRolling()) {
+                ExecuteObjectRollingConfigDetailDO rollingConfig = rollingConfigDTO.getExecuteObjectRollingConfig();
+                rollingConfigVO.setMode(rollingConfig.getMode());
+                if (rollingConfigDTO.isExecuteObjectBatchRollingStep(stepInstance.getId())) {
+                    rollingConfigVO.setExpr(rollingConfig.getExpr());
+                }
+            } else if (rollingConfigDTO.isFileSourceRolling()) {
+                Long stepInstanceId = stepInstance.getId();
+                FileSourceRollingConfigDO stepFileSourceRollingConfigs =
+                    rollingConfigDTO.getStepFileSourceRollingConfigs();
+                StepFileSourceRollingConfigDO stepFRConfig =
+                    stepFileSourceRollingConfigs.getStepFileSourceRollingConfigs().get(stepInstanceId);
+                rollingConfigVO.setMode(stepFRConfig.getMode());
+                FileSourceRollingConfigVO fileSource = new FileSourceRollingConfigVO();
+                fileSource.setMaxExecuteObjectNumInBatch(stepFRConfig.getMaxExecuteObjectNumInBatch());
+                fileSource.setMaxFileNumOfSingleExecuteObject(stepFRConfig.getMaxFileNumOfSingleExecuteObject());
+                rollingConfigVO.setFileSource(fileSource);
             }
             stepVO.setRollingConfig(rollingConfigVO);
             stepVO.setRollingEnabled(true);
@@ -190,7 +229,10 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                 });
                 fileSourceVO.setFileLocation(files);
             }
-            fileSourceVO.setHost(fileSource.getServers().convertToTaskTargetVO());
+            ExecuteTargetDTO servers = fileSource.getServers();
+            if (servers != null) {
+                fileSourceVO.setHost(servers.convertToTaskTargetVO());
+            }
             fileSources.add(fileSourceVO);
         }
         fileStepVO.setFileSourceList(fileSources);
@@ -212,7 +254,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             }
             scriptStepVO.setContent(Base64Util.encodeContentToStr(stepInstance.getScriptContent()));
             if (stepInstance.isSecureParam()) {
-                scriptStepVO.setScriptParam("******");
+                scriptStepVO.setScriptParam(JobConstants.SENSITIVE_FIELD_PLACEHOLDER);
                 scriptStepVO.setSecureParam(1);
             } else {
                 if (StringUtils.isNotEmpty(stepInstance.getResolvedScriptParam())) {
@@ -222,6 +264,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                 }
                 scriptStepVO.setSecureParam(0);
             }
+            scriptStepVO.setWindowsInterpreter(stepInstance.getWindowsInterpreter());
             scriptStepVO.setTimeout(stepInstance.getTimeout());
             scriptStepVO.setScriptLanguage(stepInstance.getScriptType().getValue());
             scriptStepVO.setScriptSource(stepInstance.getScriptSource());
@@ -280,7 +323,8 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                                                                       String scopeId,
                                                                       Long taskInstanceId) {
 
-        taskInstanceAccessProcessor.processBeforeAccess(username, appResourceScope.getAppId(), taskInstanceId);
+        taskInstanceAccessProcessor.processBeforeAccess(JobContextUtil.getUser(),
+            appResourceScope.getAppId(), taskInstanceId);
 
         List<TaskVariableDTO> taskVariables = taskInstanceVariableService.getByTaskInstanceId(taskInstanceId);
         List<ExecuteVariableVO> variableVOS = new ArrayList<>();
@@ -306,7 +350,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                 vo.setTargetValue(taskTargetVO);
             }
         } else if (variable.getType().equals(TaskVariableTypeEnum.CIPHER.getType())) {
-            vo.setValue("******");
+            vo.setValue(JobConstants.SENSITIVE_FIELD_PLACEHOLDER);
         } else {
             vo.setValue(variable.getValue());
         }
@@ -321,7 +365,8 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                                                                           String scopeId,
                                                                           Long taskInstanceId) {
 
-        taskInstanceAccessProcessor.processBeforeAccess(username, appResourceScope.getAppId(), taskInstanceId);
+        taskInstanceAccessProcessor.processBeforeAccess(JobContextUtil.getUser(),
+            appResourceScope.getAppId(), taskInstanceId);
 
         List<OperationLogDTO> operationLogs = taskOperationLogService.listOperationLog(taskInstanceId);
         if (operationLogs == null || operationLogs.isEmpty()) {
@@ -389,7 +434,8 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                                                                 String scopeId,
                                                                 Long taskInstanceId) {
 
-        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstanceDetail(username,
+        User user = JobContextUtil.getUser();
+        TaskInstanceDTO taskInstance = taskInstanceService.getTaskInstanceDetail(user,
             appResourceScope.getAppId(), taskInstanceId);
 
         return Response.buildSuccessResp(convertToTaskInstanceDetailVO(taskInstance));
@@ -422,6 +468,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
 
     @Override
     public Response<TaskInstanceVO> getTaskInstanceBasic(String username, Long taskInstanceId) {
+        User user = JobContextUtil.getUser();
         if (taskInstanceId == null || taskInstanceId <= 0) {
             log.warn("Get task instance basic, task instance id is null or empty!");
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
@@ -431,7 +478,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
         AuthResult authResult = businessAuthService.authAccessBusiness(
-            username, new AppResourceScope(taskInstance.getAppId())
+            user, new AppResourceScope(taskInstance.getAppId())
         );
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);

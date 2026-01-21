@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -33,6 +33,7 @@ import com.tencent.bk.sdk.iam.dto.expression.ExpressionDTO;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import com.tencent.bk.sdk.iam.service.PolicyService;
 import com.tencent.bk.sdk.iam.service.TokenService;
+import com.tencent.bk.sdk.iam.service.TopoPathService;
 import com.tencent.bk.sdk.iam.util.PathBuilder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,9 +45,11 @@ import java.util.Map;
 @Slf4j
 public class BusinessAuthHelper extends AuthHelper {
 
-    public BusinessAuthHelper(TokenService tokenService, PolicyService policyService,
+    public BusinessAuthHelper(TokenService tokenService,
+                              PolicyService policyService,
+                              TopoPathService topoPathService,
                               IamConfiguration iamConfiguration) {
-        super(tokenService, policyService, iamConfiguration);
+        super(tokenService, policyService, topoPathService, iamConfiguration);
     }
 
     private InstanceDTO buildAppResourceScopeInstance(AppResourceScope appResourceScope) {
@@ -54,7 +57,7 @@ public class BusinessAuthHelper extends AuthHelper {
         ResourceTypeEnum resourceType = IamUtil.getIamResourceTypeForResourceScope(appResourceScope);
         if (resourceType == ResourceTypeEnum.BUSINESS) {
             instance.setId(appResourceScope.getId());
-        } else if (resourceType == ResourceTypeEnum.BUSINESS_SET) {
+        } else if (resourceType == ResourceTypeEnum.BUSINESS_SET || resourceType == ResourceTypeEnum.TENANT_SET) {
             instance.setPath(PathBuilder.newBuilder(resourceType.getId(), appResourceScope.getId()).build());
         }
         instance.setSystem(resourceType.getSystemId());

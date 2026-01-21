@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -27,9 +27,14 @@ package com.tencent.bk.job.execute.service.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.DistributeFileSourceHostException;
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.config.GseConfig;
 import com.tencent.bk.job.execute.engine.consts.Consts;
@@ -62,25 +67,28 @@ import java.util.concurrent.TimeUnit;
 public class AgentServiceImpl implements AgentService {
     private final AgentStateClient agentStateClient;
     private final HostService hostService;
+    private final TenantEnvService tenantEnvService;
     private final LoadingCache<String, HostDTO> agentHostCache = CacheBuilder.newBuilder()
         .maximumSize(1).expireAfterWrite(60, TimeUnit.SECONDS).
-            build(new CacheLoader<String, HostDTO>() {
-                      @SuppressWarnings("all")
-                      @Override
-                      public HostDTO load(String key) {
-                          HostDTO agentHost = getAgentBindHost();
-                          log.info("Load agent host and save to cache:{}", agentHost);
-                          return agentHost;
-                      }
+        build(new CacheLoader<String, HostDTO>() {
+                  @SuppressWarnings("all")
+                  @Override
+                  public HostDTO load(String key) {
+                      HostDTO agentHost = getAgentBindHost();
+                      log.info("Load agent host and save to cache:{}", agentHost);
+                      return agentHost;
                   }
-            );
+              }
+        );
 
     @Autowired
     public AgentServiceImpl(@Qualifier(GseConfig.EXECUTE_BEAN_AGENT_STATE_CLIENT)
-                                AgentStateClient agentStateClient,
-                            HostService hostService) {
+                            AgentStateClient agentStateClient,
+                            HostService hostService,
+                            TenantEnvService tenantEnvService) {
         this.agentStateClient = agentStateClient;
         this.hostService = hostService;
+        this.tenantEnvService = tenantEnvService;
     }
 
     @Override
@@ -89,9 +97,14 @@ public class AgentServiceImpl implements AgentService {
             String CACHE_KEY_AGENT_HOST = "agentHost";
             HostDTO host = agentHostCache.get(CACHE_KEY_AGENT_HOST);
             return host == null ? null : host.clone();
-        } catch (ExecutionException e) {
-            log.warn("Fail to load agentHost from cache, try to load directly", e);
-            return getAgentBindHost();
+        } catch (ExecutionException | UncheckedExecutionException | CacheLoader.InvalidCacheLoadException e) {
+            log.error("Fail to load agentHost from cache.", e);
+            Throwable cause = e.getCause();
+            if (cause instanceof ServiceException) {
+                throw (ServiceException) cause;
+            } else {
+                throw new DistributeFileSourceHostException(ErrorCode.TASK_FILE_SOURCE_HOST_NOT_EXIST);
+            }
         }
     }
 
@@ -123,7 +136,10 @@ public class AgentServiceImpl implements AgentService {
             }
             if (host == null) {
                 log.error("Invalid host for ip: {}", physicalMachineMultiIp);
-                return null;
+                throw new DistributeFileSourceHostException(
+                    ErrorCode.TASK_FILE_SOURCE_HOST_NOT_EXIST,
+                    new Object[]{physicalMachineMultiIp}
+                );
             }
             return ServiceHostDTO.toHostDTO(host);
         }
@@ -135,7 +151,10 @@ public class AgentServiceImpl implements AgentService {
             log.warn("Cannot find host by multiIpv4:{}", multiIpv4);
             return null;
         }
-        Map<HostDTO, ServiceHostDTO> map = hostService.batchGetHosts(hostIps);
+        Map<HostDTO, ServiceHostDTO> map = hostService.batchGetHostsFromCacheOrDB(
+            tenantEnvService.getJobMachineTenantId(),
+            hostIps
+        );
         ServiceHostDTO aliveHost = findOneAliveHost(map.values());
         if (aliveHost == null) {
             log.warn("Cannot find alive hosts, use first ip of {}", multiIpv4);
@@ -163,8 +182,14 @@ public class AgentServiceImpl implements AgentService {
         }
         String[] ipv6Arr = multiIpv6.trim().split("[,;]");
         List<ServiceHostDTO> hosts = new ArrayList<>();
+        String jobMachineTenantId = tenantEnvService.getJobMachineTenantId();
         for (String ipv6 : ipv6Arr) {
-            hosts.add(hostService.getHostByCloudIpv6(Consts.DEFAULT_CLOUD_ID, ipv6));
+            ServiceHostDTO serviceHost = hostService.getHostByCloudIpv6(
+                jobMachineTenantId,
+                Consts.DEFAULT_CLOUD_ID,
+                ipv6
+            );
+            hosts.add(serviceHost);
         }
         if (CollectionUtils.isEmpty(hosts)) {
             log.warn("Cannot find host by multiIpv6:{}", multiIpv6);

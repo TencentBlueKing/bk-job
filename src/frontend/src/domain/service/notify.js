@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -49,17 +49,28 @@ export default {
       .then(({ data }) => data);
   },
   /**
-     * @desc 用户搜索的用户列表
-     * @param { String } prefixStr
-     */
+   * @desc 模糊用户搜索的用户列表
+   * @param { String } prefixStr
+   */
   fetchUsersOfSearch(prefixStr = '') {
     return NotifySource.getAllUsers({
-      prefixStr,
-      offset: 0,
-      limit: 10,
-    }).then(({ data }) => data.map(_ => ({
-      id: _.englishName,
-      name: _.englishName,
+      keyword: prefixStr || 'a',
+    }).then(({ data }) => data.map(item => ({
+      id: item.bk_username,
+      name: item.display_name,
+    })));
+  },
+  /**
+   * @desc 通过 bk_username 精确批量用户用户列表
+   * @param { String } prefixStr
+   */
+  fetchBatchUserInfoByBkUsername(keyword) {
+    return NotifySource.getBatchUserInfo({
+      lookups: keyword,
+      lookup_fields: 'bk_username',
+    }).then(({ data }) => data.map(item => ({
+      id: item.bk_username,
+      name: item.display_name,
     })));
   },
   fetchPageTemplate() {

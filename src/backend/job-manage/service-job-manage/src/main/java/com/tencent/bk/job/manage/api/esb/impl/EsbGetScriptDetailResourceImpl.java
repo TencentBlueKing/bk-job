@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -40,7 +40,9 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.ValidateResult;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.esb.EsbGetScriptDetailResource;
 import com.tencent.bk.job.manage.auth.ScriptAuthService;
@@ -98,10 +100,11 @@ public class EsbGetScriptDetailResourceImpl implements EsbGetScriptDetailResourc
         // 审计
         ActionAuditContext.current().setInstanceId(scriptId).setInstanceName(scriptVersion.getName());
 
+        User user = JobContextUtil.getUser();
         // 非公共脚本鉴权
         if (!scriptVersion.isPublicScript()) {
             AuthResult authResult =
-                scriptAuthService.authViewScript(username, request.getAppResourceScope(), scriptId, null);
+                scriptAuthService.authViewScript(user, request.getAppResourceScope(), scriptId, null);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }

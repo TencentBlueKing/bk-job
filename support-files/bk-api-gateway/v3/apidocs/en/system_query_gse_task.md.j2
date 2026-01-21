@@ -1,0 +1,72 @@
+### Function Description
+
+query gse task id by step instance id
+
+### Request Parameters
+
+#### Interface parameters
+
+| Fields           | Type | Required | Description      |
+|------------------|------|----------|------------------|
+| step_instance_id | Int  | 是        | step instance id |
+
+### Example of request
+
+- GET
+
+```json
+/api/v3/system/query_gse_task?step_instance_id=1000001
+```
+
+### Example of response
+
+```json
+{
+    "result": true,
+    "code": 0,
+    "data": [
+        {
+            "bk_scope_type": "biz",
+            "bk_scope_id": "1",
+            "job_instance_id": 1000000,
+            "step_instance_id": 10000001,
+            "retry_count": 0,
+            "batch": 1,
+            "gse_task_id": "aa:aa:aa:aa",
+            "link": [
+                "https://xxx.com"
+            ]
+        },
+        {
+            "bk_scope_type": "biz",
+            "bk_scope_id": "1",
+            "job_instance_id": 1000000,
+            "step_instance_id": 10000001,
+            "retry_count": 0,
+            "batch": 2,
+            "gse_task_id": "aa:aa:aa:aa",
+            "link": [
+                "https://xxx.com"
+            ]
+        }
+    ],
+    "job_request_id": "xxx"
+}
+```
+
+### Response Description
+
+{% include '_generic_response.md.j2' %}
+
+##### data
+
+| Fields           | Type     | Never null | Description                                                                                 |
+|------------------|----------|------------|---------------------------------------------------------------------------------------------|
+| bk_scope_type    | string   | yes        | Resource scope type. Optional values: biz - Business，biz_set - Business Set                 |
+| bk_scope_id      | string   | yes        | Resource scope ID. Corresponds to bk_scope_type, which means business ID or business set ID |
+| job_instance_id  | long     | yes        | Job instance ID                                                                             |
+| step_instance_id | long     | yes        | Step instance ID                                                                            |
+| retry_count      | int      | yes        | Step retry count                                                                            |
+| batch            | int      | yes        | Batch No. Not set to 0 when rolling                                                         |
+| gse_task_id      | string   | no         | Gse task id                                                                                 |
+| link             | string[] | no         | Gse task id corresponding job links                                                         |

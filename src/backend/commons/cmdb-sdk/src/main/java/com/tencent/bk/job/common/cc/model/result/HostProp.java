@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -60,6 +60,10 @@ public class HostProp {
     private String cloudVendorId;
     @JsonProperty("last_time")
     private String lastTime;
+    /**
+     * 租户ID，CMDB响应中不含租户ID，调用方调用结束拿到数据后使用参数传入的租户ID进行设置
+     */
+    private String tenantId;
 
     public ApplicationHostDTO toApplicationHostDTO() {
         ApplicationHostDTO applicationHostDTO = new ApplicationHostDTO();
@@ -83,6 +87,7 @@ public class HostProp {
         if (StringUtils.isNotBlank(lastTime)) {
             applicationHostDTO.setLastTime(TimeUtil.parseIsoZonedTimeToMillis(lastTime));
         }
+        applicationHostDTO.setTenantId(tenantId);
         return applicationHostDTO;
     }
 }

@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -49,7 +49,7 @@
             <td>{{ item.name }}</td>
             <td>{{ item.typeText }}</td>
             <td class="variable-value">
-              {{ item.value }}
+              <span> {{ item.value }}</span>
             </td>
           </tr>
         </tbody>
@@ -65,15 +65,17 @@
     inheritAttrs: false,
     props: {
       name: String,
+      taskInstanceId: {
+        type: Number,
+        required: true,
+      },
       stepInstanceId: {
         type: Number,
         required: true,
       },
-      ip: {
-        type: String,
-      },
-      host: {
+      taskExecuteDetail: {
         type: Object,
+        required: true,
       },
     },
     data() {
@@ -85,7 +87,6 @@
     watch: {
       name: {
         handler() {
-          this.isLoading = true;
           this.fetchStepVariables();
         },
         immediate: true,
@@ -94,14 +95,12 @@
     methods: {
       // 步骤使用的变量
       fetchStepVariables() {
-        if (!this.ip) {
-          this.isLoading = false;
-          return;
-        }
+        this.isLoading = true;
         TaskExecuteService.fetchStepVariables({
+          taskInstanceId: this.taskInstanceId,
           stepInstanceId: this.stepInstanceId,
-          hostId: this.host.hostId,
-          ip: `${this.host.cloudAreaId}:${this.host.ipv4}`,
+          executeObjectType: this.taskExecuteDetail.executeObject.type,
+          executeObjectResourceId: this.taskExecuteDetail.executeObject.executeObjectResourceId,
         }).then((data) => {
           this.variableList = Object.freeze(data);
         })

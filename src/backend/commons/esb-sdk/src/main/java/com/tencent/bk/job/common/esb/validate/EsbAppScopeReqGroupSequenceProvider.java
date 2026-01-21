@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,9 +25,9 @@
 package com.tencent.bk.job.common.esb.validate;
 
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
-import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
+import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureToggle;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.spi.group.DefaultGroupSequenceProvider;
@@ -48,7 +48,7 @@ public class EsbAppScopeReqGroupSequenceProvider implements DefaultGroupSequence
         if (req != null) {
             // 如果不兼容bk_biz_id，那么使用bk_scope_type+bk_scope_id参数校验方式
             if (!FeatureToggle.checkFeature(FeatureIdConstants.FEATURE_BK_BIZ_ID_COMPATIBLE,
-                FeatureExecutionContext.EMPTY)) {
+                ToggleEvaluateContext.EMPTY)) {
                 validationGroups.add(EsbAppScopeReq.UseScopeParam.class);
                 return validationGroups;
             }

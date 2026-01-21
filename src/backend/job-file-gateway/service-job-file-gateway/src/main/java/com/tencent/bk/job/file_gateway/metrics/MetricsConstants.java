@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -31,12 +31,20 @@ public class MetricsConstants {
     public static final String NAME_FILE_WORKER_ONLINE_NUM = "fileWorker.online.num";
     public static final String NAME_FILE_WORKER_RESPONSE_TIME = "fileWorker.response.time";
     public static final String NAME_FILE_GATEWAY_DISPATCH_TIME = "fileGateway.dispatch.time";
+    public static final String NAME_FILE_GATEWAY_REDISPATCH_TIME = "fileGateway.reDispatch.time";
 
     // tag
     public static final String TAG_KEY_MODULE = "module";
+    public static final String TAG_KEY_REQUEST_SOURCE = "requestSource";
+    public static final String TAG_KEY_DISPATCH_RESULT = "dispatchResult";
+    public static final String TAG_KEY_APP_ID = "appId";
 
     // value
     public static final String TAG_VALUE_MODULE_FILE_WORKER = "fileWorker";
     public static final String TAG_VALUE_MODULE_FILE_GATEWAY = "fileGateway";
+    public static final String TAG_VALUE_DISPATCH_RESULT_TRUE = "true";
+    public static final String TAG_VALUE_DISPATCH_RESULT_FALSE = "false";
+    public static final String TAG_VALUE_REDISPATCH_STATUS_SUCCESS = "success";
+    public static final String TAG_VALUE_REDISPATCH_STATUS_ERROR = "error";
 
 }

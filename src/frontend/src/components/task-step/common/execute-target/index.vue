@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -103,22 +103,40 @@
               <dropdown-menu-group>
                 <span>{{ $t('所有 IP') }}</span>
                 <template slot="action">
-                  <dropdown-menu-item @click="handleCopyIPv4">
+                  <dropdown-menu-item @click="() => handleCopyIPv4()">
                     IPv4
                   </dropdown-menu-item>
-                  <dropdown-menu-item @click="handleCopyIPv6">
+                  <dropdown-menu-item @click="() => handleCopyIPv4(true)">
+                    {{ $t('管控区域 ID:IPv4') }}
+                  </dropdown-menu-item>
+                  <dropdown-menu-item @click="() => handleCopyIPv6()">
                     IPv6
+                  </dropdown-menu-item>
+                  <dropdown-menu-item @click="() => handleCopyIPv6(true)">
+                    {{ $t('管控区域 ID:IPv6') }}
+                  </dropdown-menu-item>
+                  <dropdown-menu-item @click="handleCopyHostID">
+                    {{ $t('主机 ID') }}
                   </dropdown-menu-item>
                 </template>
               </dropdown-menu-group>
               <dropdown-menu-group>
                 <span>{{ $t('异常 IP') }}</span>
                 <template slot="action">
-                  <dropdown-menu-item @click="handleCopyAbnormalIPv4">
+                  <dropdown-menu-item @click="() => handleCopyAbnormalIPv4()">
                     IPv4
                   </dropdown-menu-item>
-                  <dropdown-menu-item @click="handleCopyAbnormalIPv6">
+                  <dropdown-menu-item @click="() => handleCopyAbnormalIPv4(true)">
+                    {{ $t('管控区域 ID:IPv4') }}
+                  </dropdown-menu-item>
+                  <dropdown-menu-item @click="() => handleCopyAbnormalIPv6()">
                     IPv6
+                  </dropdown-menu-item>
+                  <dropdown-menu-item @click="() => handleCopyAbnormalIPv6(true)">
+                    {{ $t('管控区域 ID:IPv6') }}
+                  </dropdown-menu-item>
+                  <dropdown-menu-item @click="handleCopyAbnormalHostID">
+                    {{ $t('主机 ID') }}
                   </dropdown-menu-item>
                 </template>
               </dropdown-menu-group>
@@ -144,7 +162,7 @@
           :value="searchText"
           @change="handleHostSearch" />
       </div>
-      <ip-selector
+      <jb-ip-selector
         ref="ipSelector"
         :config="ipSelectorConfig"
         :show-dialog="isShowChooseIp"
@@ -183,6 +201,9 @@
       executeTarget: {
         type: Object,
         required: true,
+      },
+      windowsInterpreter: {
+        type: String,
       },
       variable: {
         type: Array,
@@ -292,18 +313,38 @@
     },
     created() {
       this.ipSelectorConfig = {};
+      // 快速执行场景
+      // 业务集和租户集场景不支持动态分组和容器
       if (this.from === 'execute') {
-        this.ipSelectorConfig = {
-          panelList: [
-            'staticTopo',
-            'dynamicTopo',
-            'dynamicGroup',
-            'manualInput',
-            'containerStaticTopo',
-            'containerManualInput',
-          ],
-        };
+        if (window.PROJECT_CONFIG.SCOPE_TYPE === 'biz_set') {
+          this.ipSelectorConfig = {
+            panelList: [
+              'staticTopo',
+              'dynamicTopo',
+              'manualInput',
+            ],
+          };
+        } else if (window.PROJECT_CONFIG.SCOPE_TYPE === 'tenant_set') {
+          this.ipSelectorConfig = {
+            panelList: [
+              'staticTopo',
+              'manualInput',
+            ],
+          };
+        } else {
+          this.ipSelectorConfig = {
+            panelList: [
+              'staticTopo',
+              'dynamicTopo',
+              'dynamicGroup',
+              'manualInput',
+              'containerStaticTopo',
+              'containerManualInput',
+            ],
+          };
+        }
       }
+
       // 执行目标是主机变量
       if (this.isGolbalVariableType) {
         if (this.localVariable) {
@@ -332,6 +373,55 @@
               return Boolean(this.localVariable);
             }
             return !ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.localExecuteObjectsInfo);
+          },
+          message: I18n.t('目标服务器必填'),
+          trigger: 'blur',
+        },
+        {
+          validator: () => {
+            if (!this.windowsInterpreter) {
+              return true;
+            }
+            return new Promise((resolve) => {
+              this.$refs.ipSelector.getHostList()
+                .then((hostList) => {
+                  const nonWindowsHostList = _.filter(hostList, item => !/windows/i.test(item.os_type));
+                  if (nonWindowsHostList.length < 1) {
+                    return resolve(true);
+                  }
+                  const infoboxHandle = this.$bkInfo({
+                    title: I18n.t('自定义windows解释器路径'),
+                    maskClose: false,
+                    escClose: false,
+                    draggable: false,
+                    showFooter: false,
+                    closeIcon: false,
+                    width: 550,
+                    subHeader: (
+                      <div>
+                        <div style="font-size: 14px; line-height: 22px; color: #63656E; text-align: center">
+                          {I18n.t('执行目标包含 Linux 服务器，但自定义解释器仅对 Windows 有效，请知悉。')}
+                        </div>
+                        <div style="padding: 24px 0 21px; text-align: center">
+                          <bk-button
+                            onClick={() => {
+                              resolve(true);
+                              infoboxHandle.close();
+                            }}
+                            style="width: 96px"
+                            theme="primary">
+                            { I18n.t('好的') }
+                          </bk-button>
+                        </div>
+                      </div>
+                    ),
+                    closeFn: () => {
+                      resolve(true);
+                      infoboxHandle.close();
+                    },
+                  });
+                });
+            });
           },
           message: I18n.t('目标服务器必填'),
           trigger: 'blur',
@@ -390,49 +480,71 @@
       handleCloseIpSelector() {
         this.isShowChooseIp = false;
       },
-      handleCopyIPv4() {
+      handleCopyIPv4(withNet = false) {
         this.isCopyLoading = true;
-        this.$refs.ipSelector.getHostIpv4List().then((hostList) => {
+        this.$refs.ipSelector.getIpv4HostList().then((hostList) => {
           if (hostList.length < 1) {
             this.messageWarn(I18n.t('没有可复制的 IPv4'));
             return;
           }
 
-          execCopy(hostList.join('\n'), `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
+          const ipStr = hostList.map(item => (withNet ? `${item.cloud_area.id}:${item.ip}` : item.ip)).join('\n');
+
+          execCopy(ipStr, `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
         })
           .finally(() => {
             this.isCopyLoading = false;
           });
       },
-      handleCopyIPv6() {
+      handleCopyIPv6(withNet = false) {
         this.isCopyLoading = true;
-        this.$refs.ipSelector.getHostIpv6List().then((hostList) => {
+        this.$refs.ipSelector.getIpv6HostList().then((hostList) => {
           if (hostList.length < 1) {
             this.messageWarn(I18n.t('没有可复制的 IPv6'));
             return;
           }
 
-          execCopy(hostList.join('\n'), `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
+          const ipv6Str = hostList.map(item => (withNet ? `${item.cloud_area.id}:${item.ipv6}` : item.ipv6)).join('\n');
+
+          execCopy(ipv6Str, `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
         })
           .finally(() => {
             this.isCopyLoading = false;
           });
       },
-      handleCopyAbnormalIPv4() {
+      handleCopyHostID() {
         this.isCopyLoading = true;
-        this.$refs.ipSelector.getAbnormalHostIpv4List().then((hostList) => {
+        this.$refs.ipSelector.getHostList().then((hostList) => {
+          if (hostList.length < 1) {
+            this.messageWarn(I18n.t('没有可复制的 Host ID'));
+            return;
+          }
+
+          const hostIdStr = hostList.map(item => item.host_id).join('\n');
+
+          execCopy(hostIdStr, `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个 Host ID')}）`);
+        })
+          .finally(() => {
+            this.isCopyLoading = false;
+          });
+      },
+      handleCopyAbnormalIPv4(withNet = false) {
+        this.isCopyLoading = true;
+        this.$refs.ipSelector.getAbnormalIpv4HostList().then((hostList) => {
           if (hostList.length < 1) {
             this.messageWarn(I18n.t('没有可复制的异常 IPv4'));
             return;
           }
 
-          execCopy(hostList.join('\n'), `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
+          const ipStr = hostList.map(item => (withNet ? `${item.cloud_area.id}:${item.ip}` : item.ip)).join('\n');
+
+          execCopy(ipStr, `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
         })
           .finally(() => {
             this.isCopyLoading = false;
           });
       },
-      handleCopyAbnormalIPv6() {
+      handleCopyAbnormalIPv6(withNet = false) {
         this.isCopyLoading = true;
         this.$refs.ipSelector.getAbnormalHostIpv6List().then((hostList) => {
           if (hostList.length < 1) {
@@ -440,7 +552,26 @@
             return;
           }
 
-          execCopy(hostList.join('\n'), `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
+          const ipv6Str = hostList.map(item => (withNet ? `${item.cloud_area.id}:${item.ipv6}` : item.ipv6)).join('\n');
+
+          execCopy(ipv6Str, `${I18n.t('复制成功')}（${hostList.length}${I18n.t('个IP')}）`);
+        })
+          .finally(() => {
+            this.isCopyLoading = false;
+          });
+      },
+      handleCopyAbnormalHostID() {
+        this.isCopyLoading = true;
+        this.$refs.ipSelector.getHostList().then((hostList) => {
+          const abnormalHostList = hostList.filter(item => item.alive !== 1);
+          if (abnormalHostList.length < 1) {
+            this.messageWarn(I18n.t('没有可复制的 Host ID'));
+            return;
+          }
+
+          const hostIdStr = abnormalHostList.map(item => item.host_id).join('\n');
+
+          execCopy(hostIdStr, `${I18n.t('复制成功')}（${abnormalHostList.length}${I18n.t('个 Host ID')}）`);
         })
           .finally(() => {
             this.isCopyLoading = false;

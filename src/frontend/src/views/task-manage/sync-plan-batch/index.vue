@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -41,7 +41,7 @@
     <div class="render-list-header">
       <div class="list-name">
         <span>{{ $t('template.同步执行方案') }}</span>
-        <span class="total">（{{ $t('template.共') }} {{ data.length }} {{ $t('template.个.total') }}）</span>
+        <span class="total">（{{ $t('template.共') }} {{ data.length }} {{ $t('template.个_total') }}）</span>
       </div>
       <div class="item-status">
         <template v-if="isCronJobLoading">
@@ -67,7 +67,7 @@
         <bk-table-column
           key="name"
           align="left"
-          :label="$t('template.执行方案.colHead')"
+          :label="$t('template.执行方案_colHead')"
           prop="name">
           <template slot-scope="{ row }">
             <auth-router-link
@@ -233,7 +233,7 @@
 
   import I18n from '@/i18n';
 
-  import ConfirmCron from './components/confirm-cron';
+  import ConfirmCron from './components/confirm-cron/index.vue';
 
   const runStepByStep = (data, callback, finishCallback = () => {}) => {
     let startIndex = 0;

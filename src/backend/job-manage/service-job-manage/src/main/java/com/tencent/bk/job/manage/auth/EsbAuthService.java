@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.auth;
 
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 
 import java.util.List;
@@ -35,7 +36,7 @@ import java.util.Map;
  * ESB接口鉴权服务
  */
 public interface EsbAuthService {
-    EsbResp batchAuthJobResources(String username,
+    EsbResp batchAuthJobResources(User user,
                                   String actionId,
                                   AppResourceScope appResourceScope,
                                   ResourceTypeEnum resourceType,

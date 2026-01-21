@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,7 +25,8 @@ apply plugin: 'nu.studer.jooq'
 
 dependencies {
     api "org.jooq:jooq"
-    jooqRuntime "mysql:mysql-connector-java"
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api'
+    jooqGenerator 'com.mysql:mysql-connector-j'
 }
 
 def nameArr = name.split('-')
@@ -47,46 +48,50 @@ def databaseName = moduleName
 def targetPackageName = "com.tencent.bk.job." + simpleModuleName + ".model"
 
 jooq {
-    genenrate(sourceSets.main) {
+    configurations {
+        main {
+            generationTool {
+                jdbc {
+                    driver = 'com.mysql.cj.jdbc.Driver'
+                    def mysqlURL = System.getProperty("mysqlURL")
+                    def mysqlUser = System.getProperty("mysqlUser")
+                    def mysqlPasswd = System.getProperty("mysqlPasswd")
 
-        jdbc {
-            driver = 'com.mysql.cj.jdbc.Driver'
-            def mysqlURL = System.getProperty("mysqlURL")
-            def mysqlUser = System.getProperty("mysqlUser")
-            def mysqlPasswd = System.getProperty("mysqlPasswd")
+                    if (mysqlURL == null) {
+                        // gradle.properties 中的 Jooq DB 配置
+                        mysqlURL = project.findProperty("DB_HOST")
+                        mysqlUser = project.findProperty("DB_USERNAME")
+                        mysqlPasswd = project.findProperty("DB_PASSWORD")
+                    }
 
-            if (mysqlURL == null) {
-                // gradle.properties 中的 Jooq DB 配置
-                mysqlURL = project.findProperty("DB_HOST")
-                mysqlUser = project.findProperty("DB_USERNAME")
-                mysqlPasswd = project.findProperty("DB_PASSWORD")
-            }
+                    println("mysqlURL=" + mysqlURL)
+                    println("mysqlUser=" + mysqlUser)
+                    url = "jdbc:mysql://${mysqlURL}/${databaseName}?useSSL=false&serverTimezone=UTC"
+                    user = mysqlUser
+                    password = mysqlPasswd
+                }
 
-            println("mysqlURL=" + mysqlURL)
-            println("mysqlUser=" + mysqlUser)
-            url = "jdbc:mysql://${mysqlURL}/${databaseName}?useSSL=false&serverTimezone=UTC"
-            user = mysqlUser
-            password = mysqlPasswd
-        }
+                generator {
+                    name = 'org.jooq.codegen.DefaultGenerator'
+                    database {
+                        name = 'org.jooq.meta.mysql.MySQLDatabase'
+                        inputSchema = "${databaseName}"
+                        excludes = "db_migration_history"
+                    }
 
-        generator {
-            name = 'org.jooq.codegen.DefaultGenerator'
-            database {
-                name = 'org.jooq.meta.mysql.MySQLDatabase'
-                inputSchema = "${databaseName}"
-            }
+                    generate {
+                        relations = false
+                        deprecated = false
+                        fluentSetters = true
+                        generatedAnnotation = false
+                        javaTimeTypes = true
+                    }
 
-            generate {
-                relations = false
-                deprecated = false
-                fluentSetters = true
-                generatedAnnotation = false
-                javaTimeTypes = true
-            }
-
-            target {
-                packageName = "${targetPackageName}"
-                encoding = 'UTF-8'
+                    target {
+                        packageName = "${targetPackageName}"
+                        encoding = 'UTF-8'
+                    }
+                }
             }
         }
     }

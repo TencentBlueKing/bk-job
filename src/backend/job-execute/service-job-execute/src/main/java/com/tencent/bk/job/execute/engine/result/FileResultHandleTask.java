@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.engine.result;
 import com.google.common.collect.Sets;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
-import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.gse.constants.GSECode;
 import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResult;
@@ -35,16 +34,15 @@ import com.tencent.bk.job.common.gse.v2.model.AtomicFileTaskResultContent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.gse.v2.model.FileTaskResult;
 import com.tencent.bk.job.common.gse.v2.model.GetTransferFileResultRequest;
-import com.tencent.bk.job.common.util.feature.FeatureExecutionContext;
-import com.tencent.bk.job.common.util.feature.FeatureIdConstants;
-import com.tencent.bk.job.common.util.feature.FeatureToggle;
-import com.tencent.bk.job.common.util.feature.ToggleStrategyContextParams;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import com.tencent.bk.job.common.util.toggle.ToggleEvaluateContext;
+import com.tencent.bk.job.common.util.toggle.ToggleStrategyContextParams;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureIdConstants;
+import com.tencent.bk.job.common.util.toggle.feature.FeatureToggle;
 import com.tencent.bk.job.execute.common.constants.FileDistStatusEnum;
+import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
-import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.FileDest;
 import com.tencent.bk.job.execute.engine.model.FileGseTaskResult;
@@ -53,7 +51,6 @@ import com.tencent.bk.job.execute.engine.model.GseTaskExecuteResult;
 import com.tencent.bk.job.execute.engine.model.GseTaskResult;
 import com.tencent.bk.job.execute.engine.model.JobFile;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.engine.util.GseUtils;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
@@ -61,12 +58,6 @@ import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
-import com.tencent.bk.job.execute.service.GseTaskService;
-import com.tencent.bk.job.execute.service.LogService;
-import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
-import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import lombok.Getter;
@@ -159,22 +150,13 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
      */
     private String taskInfo;
     /**
-     * 是否包含非法文件源
+     * 是否存在不可执行的源执行对象
      */
-    protected boolean hasInvalidSourceExecuteObject;
+    protected boolean existNoExecutableSourceExecuteObject;
 
 
-    public FileResultHandleTask(TaskInstanceService taskInstanceService,
-                                GseTaskService gseTaskService,
-                                LogService logService,
-                                TaskInstanceVariableService taskInstanceVariableService,
-                                StepInstanceVariableValueService stepInstanceVariableValueService,
-                                TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                TaskEvictPolicyExecutor taskEvictPolicyExecutor,
+    public FileResultHandleTask(EngineDependentServiceHolder engineDependentServiceHolder,
                                 FileExecuteObjectTaskService fileExecuteObjectTaskService,
-                                StepInstanceService stepInstanceService,
-                                GseClient gseClient,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 TaskVariablesAnalyzeResult taskVariablesAnalyzeResult,
@@ -184,17 +166,8 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                 Map<JobFile, FileDest> srcDestFileMap,
                                 String requestId,
                                 List<ExecuteObjectTask> executeObjectTasks) {
-        super(taskInstanceService,
-            gseTaskService,
-            logService,
-            taskInstanceVariableService,
-            stepInstanceVariableValueService,
-            taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
-            taskEvictPolicyExecutor,
+        super(engineDependentServiceHolder,
             fileExecuteObjectTaskService,
-            stepInstanceService,
-            gseClient,
             taskInstance,
             stepInstance,
             taskVariablesAnalyzeResult,
@@ -209,10 +182,16 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         initFileTaskNumMap();
         initSourceExecuteObjectGseKeys();
 
+        this.existNoExecutableSourceExecuteObject =
+            executeObjectTasks.stream().anyMatch(
+                executeObjectTask -> !executeObjectTask.isTarget() &&
+                    !executeObjectTask.getExecuteObject().isExecutable());
+
         log.info("InitFileResultHandleTask|stepInstanceId: {}|sourceExecuteObjectGseKeys: {}"
-                + "|targetExecuteObjectGseKeys: {}|fileUploadTaskNumMap: {}|fileDownloadTaskNumMap: {}",
+                + "|targetExecuteObjectGseKeys: {}|fileUploadTaskNumMap: {}|fileDownloadTaskNumMap: {}"
+                + "|existNoExecutableSourceExecuteObject: {}",
             stepInstance.getId(), sourceExecuteObjectGseKeys, targetExecuteObjectGseKeys, fileUploadTaskNumMap,
-            fileDownloadTaskNumMap);
+            fileDownloadTaskNumMap, existNoExecutableSourceExecuteObject);
     }
 
     private void initSrcFilesMap(Collection<JobFile> srcFiles) {
@@ -254,7 +233,6 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     @Override
     GseLogBatchPullResult<FileTaskResult> pullGseTaskResultInBatches() {
         GetTransferFileResultRequest request = new GetTransferFileResultRequest();
-        request.setGseV2Task(gseV2Task);
         request.setTaskId(gseTask.getGseTaskId());
 
         if (CollectionUtils.isNotEmpty(this.analyseFinishedSourceExecuteObjectGseKeys)
@@ -267,10 +245,9 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
         FileTaskResult result = gseClient.getTransferFileResult(request);
         GseLogBatchPullResult<FileTaskResult> pullResult;
         if (result != null) {
-            pullResult = new GseLogBatchPullResult<>(
-                true, true, new FileGseTaskResult(result), null);
+            pullResult = new GseLogBatchPullResult<>(true, new FileGseTaskResult(result));
         } else {
-            pullResult = new GseLogBatchPullResult<>(true, true, null, null);
+            pullResult = new GseLogBatchPullResult<>(true, null);
         }
         return pullResult;
     }
@@ -388,7 +365,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     private boolean isSupportProtocolBeforeV2() {
         return FeatureToggle.checkFeature(
             FeatureIdConstants.GSE_FILE_PROTOCOL_BEFORE_V2,
-            FeatureExecutionContext.builder()
+            ToggleEvaluateContext.builder()
                 .addContextParam(ToggleStrategyContextParams.CTX_PARAM_RESOURCE_SCOPE,
                     GlobalAppScopeMappingService.get().getScopeByAppId(appId))
         );
@@ -558,6 +535,11 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                 this.stepInstanceId);
         }
         return rst;
+    }
+
+    @Override
+    protected boolean existNoExecutableExecuteObject() {
+        return this.existNoExecutableTargetExecuteObject || this.existNoExecutableSourceExecuteObject;
     }
 
     private boolean isAllSourceExecuteObjectTasksDone() {
@@ -752,7 +734,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
                                                 ExecuteObjectTask executeObjectTask) {
         // 文件任务成功数=任务总数
         if (successNum >= fileNum) {
-            if (hasInvalidSourceExecuteObject) {
+            if (existNoExecutableSourceExecuteObject) {
                 // 如果包含了非法的源文件主机，即使GSE任务（已过滤非法主机)执行成功，那么对于这个主机来说，整体上任务状态是失败
                 executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.FAILED);
             } else {
@@ -967,7 +949,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
 
     private void writeFileTaskLogContent(Map<ExecuteObjectCompositeKey, ServiceExecuteObjectLogDTO> executionLogs) {
         if (!executionLogs.isEmpty()) {
-            logService.writeFileLogs(taskInstance.getCreateTime(), new ArrayList<>(executionLogs.values()));
+            logService.writeFileLogs(taskInstance, new ArrayList<>(executionLogs.values()));
         }
     }
 
@@ -1014,7 +996,7 @@ public class FileResultHandleTask extends AbstractResultHandleTask<FileTaskResul
     @Override
     public ScheduleStrategy getScheduleStrategy() {
         if (scheduleStrategy == null) {
-            this.scheduleStrategy = new FileTaskResultHandleScheduleStrategy();
+            this.scheduleStrategy = new FileTaskResultHandleScheduleStrategy(pollingStrategyProperties.getFile());
         }
         return this.scheduleStrategy;
     }

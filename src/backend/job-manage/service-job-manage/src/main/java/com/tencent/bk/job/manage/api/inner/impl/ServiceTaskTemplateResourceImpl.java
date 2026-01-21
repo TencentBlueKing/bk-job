@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -33,11 +33,13 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
 import com.tencent.bk.job.manage.api.inner.ServiceTaskTemplateResource;
 import com.tencent.bk.job.manage.auth.TemplateAuthService;
@@ -56,6 +58,7 @@ import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
 import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
+import com.tencent.bk.job.manage.service.template.impl.TemplateScriptStatusUpdateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,18 +84,30 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
     private final TagService tagService;
     private final AddHostIdForTemplateAndPlanMigrationTask addHostIdService;
 
+    private final TemplateScriptStatusUpdateService templateScriptStatusUpdateService;
+
+    private final TenantService tenantService;
+
+    private final UserLocalCache userLocalCache;
+
     @Autowired
     public ServiceTaskTemplateResourceImpl(
-        TaskTemplateService templateService,
-        @Qualifier("TaskTemplateVariableServiceImpl") AbstractTaskVariableService taskVariableService,
-        TemplateAuthService templateAuthService,
-        TagService tagService,
-        AddHostIdForTemplateAndPlanMigrationTask addHostIdService) {
+            TaskTemplateService templateService,
+            @Qualifier("TaskTemplateVariableServiceImpl") AbstractTaskVariableService taskVariableService,
+            TemplateAuthService templateAuthService,
+            TagService tagService,
+            AddHostIdForTemplateAndPlanMigrationTask addHostIdService,
+            TemplateScriptStatusUpdateService templateScriptStatusUpdateService,
+            UserLocalCache userLocalCache,
+            TenantService tenantService) {
         this.templateService = templateService;
         this.taskVariableService = taskVariableService;
         this.templateAuthService = templateAuthService;
         this.tagService = tagService;
         this.addHostIdService = addHostIdService;
+        this.templateScriptStatusUpdateService = templateScriptStatusUpdateService;
+        this.userLocalCache = userLocalCache;
+        this.tenantService = tenantService;
     }
 
     @Override
@@ -102,18 +117,8 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         Long scriptVersionId,
         Integer status
     ) {
-        return InternalResponse.buildSuccessResp(templateService.updateScriptStatus(appId, scriptId, scriptVersionId,
-            JobResourceStatusEnum.getJobResourceStatus(status)));
-    }
-
-    @Override
-    public InternalResponse<ServiceTaskTemplateDTO> getTemplateById(String username, Long appId, Long templateId) {
-        TaskTemplateInfoDTO templateInfo = templateService.getTaskTemplateById(appId, templateId);
-        if (templateInfo == null) {
-            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
-        }
-        ServiceTaskTemplateDTO serviceTaskTemplateDTO = TaskTemplateInfoDTO.toServiceDTO(templateInfo);
-        return InternalResponse.buildSuccessResp(serviceTaskTemplateDTO);
+        templateScriptStatusUpdateService.refreshTemplateScriptStatusByScript(scriptId, scriptVersionId);
+        return InternalResponse.buildSuccessResp(null);
     }
 
     @Override
@@ -143,12 +148,14 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         Integer requestSource,
         TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq
     ) {
+        User user = userLocalCache.getUser(tenantService.getTenantIdByAppId(appId), username);
+        JobContextUtil.setUser(user);
         JobContextUtil.setAllowMigration(true);
         if (templateId > 0) {
             taskTemplateCreateUpdateReq.setId(templateId);
             if (requestSource != null && requestSource == JobConstants.REQUEST_SOURCE_JOB_BACKUP) {
                 AuthResult authResult =
-                    templateAuthService.authEditJobTemplate(username, new AppResourceScope(appId), templateId);
+                    templateAuthService.authEditJobTemplate(user, new AppResourceScope(appId), templateId);
                 if (!authResult.isPass()) {
                     throw new PermissionDeniedException(authResult);
                 }
@@ -158,7 +165,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         } else {
             if (requestSource != null && requestSource == JobConstants.REQUEST_SOURCE_JOB_BACKUP) {
                 AuthResult authResult =
-                    templateAuthService.authCreateJobTemplate(username, new AppResourceScope(appId));
+                    templateAuthService.authCreateJobTemplate(user, new AppResourceScope(appId));
                 if (!authResult.isPass()) {
                     throw new PermissionDeniedException(authResult);
                 }
@@ -177,7 +184,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         Long finalTemplateId = templateService.saveTaskTemplateForMigration(templateInfo, createTime,
             lastModifyTime, lastModifyUser);
         templateAuthService.registerTemplate(
-            finalTemplateId, taskTemplateCreateUpdateReq.getName(), username);
+            user, finalTemplateId, taskTemplateCreateUpdateReq.getName());
         return InternalResponse.buildSuccessResp(finalTemplateId);
     }
 
@@ -320,5 +327,10 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         resultData.setData(templateListPage.getData().stream().map(TaskTemplateInfoDTO::toServiceDTO)
             .collect(Collectors.toList()));
         return InternalResponse.buildSuccessResp(resultData);
+    }
+
+    @Override
+    public InternalResponse<Integer> countTemplates(Long appId) {
+        return InternalResponse.buildSuccessResp(templateService.countTemplates(appId));
     }
 }

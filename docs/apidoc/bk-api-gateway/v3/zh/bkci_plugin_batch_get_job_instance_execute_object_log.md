@@ -6,33 +6,34 @@
 
 #### Header 参数
 
-| 字段 | 类型 | 必选 | 描述 |
-|-----------|------------|--------|------------|
-| X-Bkapi-Authorization | string | 是 | 认证信息。详情参考[调用网关 API](https://github.com/TencentBlueKing/BKDocs/blob/master/ZH/7.0/APIGateway/apigateway/use-api/use-apigw-api.md) |
-| Accept | string | 是 | 固定值。application/json |
-| Content-Type | string | 是 | 固定值。application/json| 
-
+| 字段                    | 类型     | 必选 | 描述                                                                                                                               |
+|-----------------------|--------|----|----------------------------------------------------------------------------------------------------------------------------------|
+| X-Bkapi-Authorization | string | 是  | 认证信息。详情参考[调用网关 API](https://github.com/TencentBlueKing/BKDocs/blob/master/ZH/7.0/APIGateway/apigateway/use-api/use-apigw-api.md) |
+| Accept                | string | 是  | 固定值。application/json                                                                                                             |
+| Content-Type          | string | 是  | 固定值。application/json                                                                                                             | 
 
 #### Body 参数
 
-| 字段 | 类型 | 必选 | 描述 |
-|-----------|------------|--------|------------|
-| bk_scope_type | string | 是 | 资源范围类型。可选值: biz - 业务，biz_set - 业务集 |
-| bk_scope_id | string | 是 | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
-| job_instance_id | long | 是 | 作业实例ID |
-| step_instance_id | long | 是 | 步骤实例ID |
-| execute_object_list | array | 否 | 执行对象列表，定义见 exeucte_object |
+| 字段                  | 类型     | 必选 | 描述                                                |
+|---------------------|--------|----|---------------------------------------------------|
+| bk_scope_type       | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                |
+| bk_scope_id         | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID           |
+| bk_biz_id           | long   | 是  | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换 |
+| job_instance_id     | long   | 是  | 作业实例ID                                            |
+| step_instance_id    | long   | 是  | 步骤实例ID                                            |
+| execute_object_list | array  | 否  | 执行对象列表，定义见 exeucte_object                         |
 
 ##### exeucte_object
 
-| 字段 | 类型 | 必选 | 描述 |
-| ----------- | ------ | ---- | -------- |
-| type | int | 是 | 执行对象类型, 1 - 主机，2 - 容器 |
-| resource_id | string | 是 | 执行对象资源 ID（比如主机对应的资源 ID 为 bk_host_id) |
+| 字段          | 类型     | 必选 | 描述                                   |
+|-------------|--------|----|--------------------------------------|
+| type        | int    | 是  | 执行对象类型, 1 - 主机，2 - 容器                |
+| resource_id | string | 是  | 执行对象资源 ID（比如主机对应的资源 ID 为 bk_host_id) |
 
 ### 请求参数示例
 
 - Body
+
 ```json
 {
     "bk_scope_type": "biz",
@@ -55,6 +56,7 @@
 ### 返回结果示例
 
 #### 脚本执行步骤
+
 ```json
 {
     "result": true,
@@ -70,7 +72,7 @@
                     "resource_id": "101",
                     "host": {
                         "bk_host_id": 101,
-                        "ip": "10.0.0.1",
+                        "ip": "127.0.0.1",
                         "bk_cloud_id": 0
                     }
                 },
@@ -88,7 +90,8 @@
                 "log_content": "[2018-03-15 14:39:30][PID:16789] job_start\n"
             }
         ]
-    }
+    },
+    "job_request_id": "xxx"
 }
 ```
 
@@ -109,7 +112,7 @@
                     "resource_id": "101",
                     "host": {
                         "bk_host_id": 101,
-                        "ip": "10.0.0.1",
+                        "ip": "127.0.0.1",
                         "bk_cloud_id": 0
                     }
                 },
@@ -131,7 +134,7 @@
                             "resource_id": "101",
                             "host": {
                                 "bk_host_id": 101,
-                                "ip": "10.0.0.1",
+                                "ip": "127.0.0.1",
                                 "bk_cloud_id": 0
                             }
                         },
@@ -176,86 +179,86 @@
                 ]
             }
         ]
-    }
+    },
+    "job_request_id": "xxx"
 }
 ```
-
 
 ### 返回结果说明
 
 #### response
 
-| 字段 | 类型 | 描述 |
-|-----------|-----------|-----------|
-| result       | bool   | 请求成功与否。true:请求成功；false请求失败 |
-| code         | int    | 错误编码。 0表示success，>0表示失败错误 |
-| message      | string | 请求失败返回的错误信息|
-| data         | object | 请求返回的数据|
-| permission   | object | 权限信息|
+| 字段             | 类型     | 是否一定不为null | 描述                         |
+|----------------|--------|------------|----------------------------|
+| result         | bool   | 是          | 请求成功与否。true:请求成功；false请求失败 |
+| code           | int    | 是          | 错误编码。 0表示success，>0表示失败错误  |
+| message        | string | 否          | 请求失败返回的错误信息                |
+| data           | object | 否          | 请求返回的数据，删除操作可能没有值          |
+| job_request_id | string | 否          | 请求ID，请求唯一标识                |
+| permission     | object | 否          | 无权限返回的权限信息                 |
 
 ##### data
 
-| 字段 | 类型 | 描述 |
-|-----------|-----------|-----------|
-| job_instance_id | long | 是 | 作业实例ID |
-| step_instance_id | long | 是 | 步骤实例ID |
-| log_type | int | 日志类型。1-脚本执行任务日志;2-文件分发任务日志 |
-| script_execute_object_task_logs | array | 脚本执行任务日志。定义见 script_execute_object_task_log |
-| file_execute_object_task_logs | array | 文件分发任务日志。定义见 file_execute_object_task_log |
+| 字段                              | 类型    | 是否一定不为null | 描述                                          |
+|---------------------------------|-------|------------|---------------------------------------------|
+| job_instance_id                 | long  | 是          | 作业实例ID                                      |
+| step_instance_id                | int   | 是          | 作业步骤ID                                      |
+| log_type                        | int   | 是          | 日志类型。1-脚本执行任务日志;2-文件分发任务日志                  |
+| script_execute_object_task_logs | array | 否          | 脚本执行任务日志。定义见 script_execute_object_task_log |
+| file_execute_object_task_logs   | array | 否          | 文件分发任务日志。定义见 file_execute_object_task_log   |
 
 ##### script_execute_object_task_log
 
-| 字段 | 类型 | 描述 |
-|-----------|------------|--------|
-| execute_object | object | 执行对象，见 execute_object 定义 |
-| log_content | string | 脚本执行日志内容 |
+| 字段             | 类型     | 是否一定不为null | 描述                       |
+|----------------|--------|------------|--------------------------|
+| execute_object | object | 是          | 执行对象，见 execute_object 定义 |
+| log_content    | string | 是          | 脚本执行日志内容                 |
 
 ##### file_execute_object_task_log
 
-| 字段 | 类型 | 描述 |
-|-----------|------------|--------|
-| execute_object | object | 执行对象，见 execute_object 定义 |
-| file_atomic_task_logs | array | 文件分发原子任务，指一个文件从一个源执行对象分发到一个目标执行对象的任务。定义见 file_atomic_task_log |
-
+| 字段                    | 类型     | 是否一定不为null | 描述                                                            |
+|-----------------------|--------|------------|---------------------------------------------------------------|
+| execute_object        | object | 是          | 执行对象，见 execute_object 定义                                      |
+| file_atomic_task_logs | array  | 是          | 文件分发原子任务，指一个文件从一个源执行对象分发到一个目标执行对象的任务。定义见 file_atomic_task_log |
 
 ##### file_atomic_task_log
 
-| 字段 | 类型 | 描述 |
-|--------------|-----------|-----------|
-| mode | int | 分发模式。0:上传;1:下载 |
-| src_execute_object | object |源文件所在执行对象。定义见 execute_object |
-| src_path | string | 源文件路径 |
-| dest_execute_object | object |文件分发目标执行对象。定义见 execute_object |
-| dest_path | string | 目标路径，mode=1时有值 |
-| status | int | 任务状态。1-等待开始;2-上传中;3-下载中;4-成功;5-失败 |
-| log_content | string | 文件分发日志内容 |
-| size | string | 文件大小 |
-| speed | string | 文件传输速率 |
-| process | string | 文件传输进度 |
+| 字段                  | 类型     | 是否一定不为null | 描述                                |
+|---------------------|--------|------------|-----------------------------------|
+| mode                | int    | 是          | 分发模式。0:上传;1:下载                    |
+| src_execute_object  | object | 是          | 源文件所在执行对象。定义见 execute_object      |
+| src_path            | string | 是          | 源文件路径                             |
+| dest_execute_object | object | 是          | 文件分发目标执行对象。定义见 execute_object     |
+| dest_path           | string | 是          | 目标路径，mode=1时有值                    |
+| status              | int    | 是          | 任务状态。1-等待开始;2-上传中;3-下载中;4-成功;5-失败 |
+| log_content         | string | 是          | 文件分发日志内容                          |
+| size                | string | 是          | 文件大小                              |
+| speed               | string | 是          | 文件传输速率                            |
+| process             | string | 是          | 文件传输进度                            |
 
 ##### execute_object
 
-| 字段 | 类型 | 描述 |
-|-----------|------------|--------|
-| type | int | 执行对象类型, 1 - 主机，2 - 容器 |
-| resource_id | string | 执行对象资源 ID（比如主机对应的资源 ID 为 bk_host_id) |
-| host | object | 主机详情，定义见 host |
-| container | object | 容器详情, 定义见 container |
+| 字段          | 类型     | 是否一定不为null | 描述                                   |
+|-------------|--------|------------|--------------------------------------|
+| type        | int    | 是          | 执行对象类型, 1 - 主机，2 - 容器                |
+| resource_id | string | 是          | 执行对象资源 ID（比如主机对应的资源 ID 为 bk_host_id) |
+| host        | object | 否          | 主机详情，执行对象是主机时存在，定义见 host             |
+| container   | object | 否          | 容器详情，执行对象是容器时存在，定义见 container        |
 
 ##### host
 
-| 字段 | 类型 | 描述 |
-|-----------|------------|--------|
-| bk_host_id | long | 主机 ID (cmdb) |
-| bk_cloud_id | long | 管控区域ID |
-| ip | string | Ipv4 |
+| 字段          | 类型     | 是否一定不为null | 描述           |
+|-------------|--------|------------|--------------|
+| bk_host_id  | long   | 是          | 主机 ID (cmdb) |
+| bk_cloud_id | long   | 是          | 管控区域ID       |
+| ip          | string | 是          | Ipv4         |
 
 ##### container
 
-| 字段 | 类型 | 描述 |
-|-----------|------------|--------|
-| id | long | 容器 ID (cmdb) |
-| container_uid | string | 容器在集群中的唯一 ID (UID) |
-| name | string | 容器名称 |
+| 字段            | 类型     | 是否一定不为null | 描述                 |
+|---------------|--------|------------|--------------------|
+| id            | long   | 是          | 容器 ID (cmdb)       |
+| container_uid | string | 是          | 容器在集群中的唯一 ID (UID) |
+| name          | string | 是          | 容器名称               |
 
 

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -37,7 +37,7 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.model.dto.HostDTO;
-import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.execute.model.AtomicFileTaskLog;
 import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
@@ -52,15 +52,15 @@ import com.tencent.bk.job.execute.model.esb.v3.request.EsbBatchGetJobInstanceIpL
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
+import com.tencent.bk.job.execute.service.impl.HostValidationService;
 import com.tencent.bk.job.execute.util.ExecuteObjectCompositeKeyUtils;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
+import com.tencent.bk.job.logsvr.util.LogFieldUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -71,13 +71,16 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
     private final StepInstanceService stepInstanceService;
     private final LogService logService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
+    private final HostValidationService hostValidationService;
 
     public EsbBatchGetJobInstanceIpLogV3ResourceImpl(LogService logService,
                                                      StepInstanceService stepInstanceService,
-                                                     TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
+                                                     TaskInstanceAccessProcessor taskInstanceAccessProcessor,
+                                                     HostValidationService hostValidationService) {
         this.logService = logService;
         this.stepInstanceService = stepInstanceService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
+        this.hostValidationService = hostValidationService;
     }
 
     @Override
@@ -94,10 +97,11 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
         }
 
         long taskInstanceId = request.getTaskInstanceId();
-        taskInstanceAccessProcessor.processBeforeAccess(username,
+        taskInstanceAccessProcessor.processBeforeAccess(JobContextUtil.getUser(),
             request.getAppResourceScope().getAppId(), taskInstanceId);
 
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(request.getStepInstanceId());
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(
+            request.getTaskInstanceId(), request.getStepInstanceId());
         if (stepInstance == null) {
             throw new NotFoundException(ErrorCode.TASK_INSTANCE_NOT_EXIST);
         }
@@ -131,6 +135,18 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
                 "host_id_list/ip_list");
         }
 
+        ValidateResult validateResult = hostValidationService.validateHostIdsExist(request.getAppId(),
+            request.getHostIdList());
+        if (!validateResult.isPass()) return validateResult;
+
+        if (CollectionUtils.isNotEmpty(request.getIpList())) {
+            validateResult = hostValidationService.validateHostIpsExist(request.getAppId(),
+                request.getIpList().stream()
+                    .map(ip -> new HostDTO(ip.getBkCloudId(), ip.getIp()))
+                    .collect(Collectors.toList()));
+            if (!validateResult.isPass()) return validateResult;
+        }
+
         return ValidateResult.pass();
     }
 
@@ -139,8 +155,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
                                  List<ExecuteObjectCompositeKey> hostKeys) {
         ipLogs.setLogType(LogTypeEnum.SCRIPT.getValue());
 
-        String jobCreateDate = DateUtils.formatUnixTimestamp(stepInstance.getCreateTime(), ChronoUnit.MILLIS,
-            "yyyy_MM_dd", ZoneId.of("UTC"));
+        String jobCreateDate = LogFieldUtil.buildJobCreateDate(stepInstance.getCreateTime());
         List<ScriptExecuteObjectLogContent> hostLogContentList = logService.batchGetScriptExecuteObjectLogContent(
             jobCreateDate, stepInstance, stepInstance.getExecuteCount(), null, hostKeys);
 
@@ -176,7 +191,8 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
         esbIpLogs.setLogType(LogTypeEnum.FILE.getValue());
 
         List<FileExecuteObjectLogContent> ipLogs = logService.batchGetFileExecuteObjectLogContent(
-            stepInstance.getId(), stepInstance.getExecuteCount(), null, null, hostKeys);
+            stepInstance.getTaskInstanceId(), stepInstance.getId(), stepInstance.getExecuteCount(),
+            null, null, hostKeys);
 
         if (CollectionUtils.isEmpty(ipLogs)) {
             return;
@@ -186,6 +202,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
             List<AtomicFileTaskLog> ipFileLogs = ipLog.getFileTaskLogs();
             EsbFileIpLogV3DTO esbFileIpLog = new EsbFileIpLogV3DTO();
             if (CollectionUtils.isNotEmpty(ipFileLogs)) {
+                esbFileIpLog.setHostId(ipLog.getExecuteObject().getHost().getHostId());
                 esbFileIpLog.setCloudAreaId(ipLog.getExecuteObject().getHost().getBkCloudId());
                 esbFileIpLog.setIp(ipLog.getExecuteObject().getHost().getIp());
                 List<EsbFileLogV3DTO> esbFileLogs = ipFileLogs.stream()
@@ -202,7 +219,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
         EsbFileLogV3DTO fileLog = new EsbFileLogV3DTO();
         fileLog.setMode(fileTaskLog.getMode());
         if (fileTaskLog.getSrcExecuteObject() != null) {
-            EsbIpDTO srcIp = EsbIpDTO.fromCloudIp(fileTaskLog.getSrcExecuteObject().getHost().toCloudIp());
+            EsbIpDTO srcIp = EsbIpDTO.fromHost(fileTaskLog.getSrcExecuteObject().getHost());
             if (srcIp != null) {
                 fileLog.setSrcIp(srcIp);
             }
@@ -210,7 +227,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
         fileLog.setSrcPath(fileTaskLog.getDisplaySrcFile());
         if (FileDistModeEnum.DOWNLOAD.getValue().equals(fileTaskLog.getMode())) {
             if (fileTaskLog.getDestExecuteObject() != null) {
-                EsbIpDTO destIp = EsbIpDTO.fromCloudIp(fileTaskLog.getDestExecuteObject().getHost().toCloudIp());
+                EsbIpDTO destIp = EsbIpDTO.fromHost(fileTaskLog.getDestExecuteObject().getHost());
                 if (destIp != null) {
                     fileLog.setDestIp(destIp);
                 }

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -31,6 +31,8 @@ import com.tencent.bk.job.common.iam.util.IamRespUtil;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.api.iam.IamTaskTemplateCallbackResource;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbTemplateInfoV3DTO;
@@ -68,7 +70,10 @@ public class IamTaskTemplateCallbackResourceImpl extends BaseIamCallbackService
 
     @Autowired
     public IamTaskTemplateCallbackResourceImpl(TaskTemplateService templateService,
-                                               ApplicationService applicationService) {
+                                               ApplicationService applicationService,
+                                               AppScopeMappingService appScopeMappingService,
+                                               TenantService tenantService) {
+        super(appScopeMappingService, tenantService);
         this.templateService = templateService;
         this.applicationService = applicationService;
     }
@@ -85,7 +90,7 @@ public class IamTaskTemplateCallbackResourceImpl extends BaseIamCallbackService
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(searchCondition.getStart().intValue());
         baseSearchCondition.setLength(searchCondition.getLength().intValue());
-        Long appId = applicationService.getAppIdByScope(extractResourceScopeCondition(searchCondition));
+        Long appId = getAppIdBySearchCondition(searchCondition);
         return TaskTemplateQuery.builder()
             .appId(appId)
             .baseSearchCondition(baseSearchCondition)
@@ -182,8 +187,8 @@ public class IamTaskTemplateCallbackResourceImpl extends BaseIamCallbackService
     }
 
     @Override
-    public CallbackBaseResponseDTO callback(CallbackRequestDTO callbackRequest) {
-        return baseCallback(callbackRequest);
+    public CallbackBaseResponseDTO callback(String tenantId, CallbackRequestDTO callbackRequest) {
+        return baseCallback(tenantId, callbackRequest);
     }
 
     @Override

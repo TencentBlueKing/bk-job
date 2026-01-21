@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.error.ErrorDetailDTO;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +84,8 @@ public class WebExceptionControllerAdvice extends ExceptionControllerAdviceBase 
         log.info("Handle PermissionDeniedException, uri: {}, authResult: {}",
             request.getRequestURI(), authResult);
         if (StringUtils.isEmpty(authResult.getApplyUrl())) {
-            authResult.setApplyUrl(webAuthService.getApplyUrl(authResult.getRequiredActionResources()));
+            authResult.setApplyUrl(webAuthService.getApplyUrl(JobContextUtil.getTenantId(),
+                authResult.getRequiredActionResources()));
         }
         return Response.buildAuthFailResp(webAuthService.toAuthResultVO(true, ex.getAuthResult()));
     }

@@ -1,0 +1,39 @@
+### Function Description
+
+Delete script version
+
+### Request Parameters
+
+#### Interface parameters
+
+| Fields            | Type   | Required | Description              |
+|-------------------|--------|----------|--------------------------|
+| script_id         | string | yes      | Public script id         |
+| script_version_id | long   | yes      | Public script version id |
+
+### Example of request
+
+```json
+{
+    "script_id": "4537fb49ec0840a1b91cef4179c99f9c",
+    "script_version_id": "1000017"
+}
+```
+
+### Example of responses
+
+```json
+{
+    "code": 0,
+    "result": true,
+    "job_request_id": "xxx"
+}
+```
+
+### Response Description
+
+{% include '_generic_response.md.j2' %}
+
+#### data
+
+null

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -30,6 +30,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 单个文件源的文件任务内容
@@ -42,4 +43,13 @@ public class FileSourceTaskContent {
     Integer fileSourceId;
     @ApiModelProperty(value = "文件路径列表")
     List<String> filePathList;
+
+    /**
+     * 获取去重后的文件路径列表
+     *
+     * @return 去重后的文件路径列表
+     */
+    public List<String> acquireUniqueFilePathList() {
+        return filePathList.stream().distinct().collect(Collectors.toList());
+    }
 }

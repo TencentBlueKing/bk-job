@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -56,11 +56,23 @@ public class JobManageConfig {
     @Value("${bk.feedback.root:}")
     private String bkFeedBackRoot;
 
+    @Value("${bk.sharedResUrl:}")
+    private String bkSharedResUrl;
+
+    @Value("${bk.sharedBaseJsPath:/bk_job/base.js}")
+    private String bkSharedBaseJsPath;
+
     @Value("${bk.ce.root:https://bk.tencent.com}")
     private String bkCERoot;
 
     @Value("${job.manage.sync.app.enabled:true}")
     private boolean enableSyncApp;
+
+    @Value("${job.manage.sync.app.deleteProtect.enabled:false}")
+    private boolean enableAppDeleteProtect;
+
+    @Value("${job.manage.sync.app.deleteProtect.maxRatio:0.5}")
+    private float maxAppDeleteRatio;
 
     @Value("${job.manage.sync.host.enabled:true}")
     private boolean enableSyncHost;
@@ -68,11 +80,23 @@ public class JobManageConfig {
     @Value("${job.manage.sync.agentStatus.enabled:true}")
     private boolean enableSyncAgentStatus;
 
+    /**
+     * Agent状态同步分批大小，默认10000
+     */
+    @Value("${job.manage.sync.agentStatus.batchSize:10000}")
+    private int syncAgentStatusBatchSize;
+
     @Value("${job.manage.sync.resource.watch.enabled:true}")
     private boolean enableResourceWatch;
 
     @Value("${job.manage.sync.hostEvent.handlerNum:3}")
     private int hostEventHandlerNum;
+
+    @Value("${job.manage.sync.hostEvent.queueSize:10000}")
+    private int hostEventQueueSize;
+
+    @Value("${job.manage.sync.hostRelationEvent.queueSize:10000}")
+    private int hostRelationEventQueueSize;
 
     //---------------------------- Cmdb Config ---------------------------------
     @Value("${cmdb.default.supplier.account:0}")

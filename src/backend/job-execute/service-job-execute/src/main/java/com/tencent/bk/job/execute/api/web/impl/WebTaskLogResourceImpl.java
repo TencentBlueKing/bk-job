@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,9 +25,9 @@
 package com.tencent.bk.job.execute.api.web.impl;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
-import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.model.dto.NodeDTO;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.JobConstants;
@@ -74,7 +74,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
     private final StepInstanceService stepInstanceService;
     private final LogExportService logExportService;
     private final ArtifactoryClient artifactoryClient;
-    private final ArtifactoryConfig artifactoryConfig;
+    private final ArtifactoryHelper artifactoryHelper;
     private final LogExportConfig logExportConfig;
 
     @Autowired
@@ -82,14 +82,14 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                                   StorageConfig storageConfig,
                                   LogExportService logExportService,
                                   @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient,
-                                  ArtifactoryConfig artifactoryConfig,
+                                  ArtifactoryHelper artifactoryHelper,
                                   LogExportConfig logExportConfig) {
         this.stepInstanceService = stepInstanceService;
         this.logExportService = logExportService;
         this.logFileDir = NFSUtils.getFileDir(storageConfig.getJobStorageRootPath(),
             FileDirTypeConf.JOB_INSTANCE_PATH);
         this.artifactoryClient = artifactoryClient;
-        this.artifactoryConfig = artifactoryConfig;
+        this.artifactoryHelper = artifactoryHelper;
         this.logExportConfig = logExportConfig;
     }
 
@@ -106,7 +106,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         NodeDTO nodeDTO = null;
         try {
             nodeDTO = artifactoryClient.queryNodeDetail(
-                artifactoryConfig.getArtifactoryJobProject(),
+                artifactoryHelper.getJobRealProject(),
                 logExportConfig.getLogExportRepo(),
                 zipFileName
             );
@@ -133,7 +133,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
             repackage = false;
         }
 
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(taskInstanceId, stepInstanceId);
         if (!stepInstance.getAppId().equals(appResourceScope.getAppId())) {
             throw new NotFoundException(ErrorCode.STEP_INSTANCE_NOT_EXIST);
         }
@@ -193,8 +193,18 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
             throw new InternalException(ErrorCode.EXPORT_STEP_EXECUTION_LOG_FAIL);
         }
 
-        LogExportJobInfoDTO exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId,
-            executeObjectTypeEnum, executeObjectResourceId, executeCount, logFileDir, logFileName, repackage);
+        LogExportJobInfoDTO exportInfo = logExportService.packageLogFile(
+            username,
+            appId,
+            taskInstanceId,
+            stepInstanceId,
+            executeObjectTypeEnum,
+            executeObjectResourceId,
+            executeCount,
+            logFileDir,
+            logFileName,
+            repackage
+        );
         return Response.buildSuccessResp(LogExportJobInfoDTO.toVO(exportInfo));
     }
 
@@ -239,7 +249,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         InputStream ins;
         try {
             nodeDTO = artifactoryClient.queryNodeDetail(
-                artifactoryConfig.getArtifactoryJobProject(),
+                artifactoryHelper.getJobRealProject(),
                 logExportConfig.getLogExportRepo(),
                 exportInfo.getZipFileName()
             );
@@ -249,7 +259,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
         try {
             log.debug("get {} fileInputStream from artifactory", exportInfo.getZipFileName());
             Pair<InputStream, HttpRequestBase> pair = artifactoryClient.getFileInputStream(
-                artifactoryConfig.getArtifactoryJobProject(),
+                artifactoryHelper.getJobRealProject(),
                 logExportConfig.getLogExportRepo(),
                 exportInfo.getZipFileName()
             );
@@ -276,7 +286,7 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                                                                  Long executeObjectResourceId) {
         Long appId = appResourceScope.getAppId();
 
-        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(stepInstanceId);
+        StepInstanceBaseDTO stepInstance = stepInstanceService.getBaseStepInstance(taskInstanceId, stepInstanceId);
         if (!stepInstance.getAppId().equals(appId)) {
             log.info("StepInstance: {} is not in app: {}", stepInstance.getId(), appResourceScope.getAppId());
             return ResponseEntity.notFound().build();
@@ -297,8 +307,18 @@ public class WebTaskLogResourceImpl implements WebTaskLogResource {
                     stepInstanceId, executeObjectType, executeObjectResourceId, executeCount);
                 return ResponseEntity.notFound().build();
             }
-            exportInfo = logExportService.packageLogFile(username, appId, stepInstanceId, executeObjectTypeEnum,
-                executeObjectResourceId, executeCount, logFileDir, logFileName, false);
+            exportInfo = logExportService.packageLogFile(
+                username,
+                appId,
+                taskInstanceId,
+                stepInstanceId,
+                executeObjectTypeEnum,
+                executeObjectResourceId,
+                executeCount,
+                logFileDir,
+                logFileName,
+                false
+            );
         } else {
             exportInfo = logExportService.getExportInfo(appId, stepInstanceId, null, null);
         }

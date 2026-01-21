@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,9 +24,13 @@
 
 package com.tencent.bk.job.execute.engine.result;
 
+import com.tencent.bk.job.execute.common.context.JobExecuteContext;
+import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleLimiter;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
 import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.Tracer;
@@ -70,20 +74,33 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
      */
     private final Span parent;
 
+    private final RunningJobKeepaliveManager runningJobKeepaliveManager;
+    /**
+     * 作业执行上下文信息
+     */
+    @Getter
+    private final JobExecuteContext jobExecuteContext;
+
     /**
      * ScheduledContinuousQueuedTask Constructor
      *
-     * @param sampler             采样器
-     * @param tracer              日志调用链
-     * @param task                任务
-     * @param resultHandleManager resultHandleManager
-     * @param resultHandleLimiter 限流
+     * @param sampler                          采样器
+     * @param tracer                           日志调用链
+     * @param task                             任务
+     * @param resultHandleManager              resultHandleManager
+     * @param resultHandleLimiter              限流
+     * @param resultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager
+     * @param runningJobKeepaliveManager       runningJobKeepaliveManager
+     * @param jobExecuteContext                作业执行上下文
      */
     public ScheduledContinuousResultHandleTask(ResultHandleTaskSampler sampler,
-                                               Tracer tracer, ContinuousScheduledTask task,
+                                               Tracer tracer,
+                                               ContinuousScheduledTask task,
                                                ResultHandleManager resultHandleManager,
                                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                               ResultHandleLimiter resultHandleLimiter) {
+                                               ResultHandleLimiter resultHandleLimiter,
+                                               RunningJobKeepaliveManager runningJobKeepaliveManager,
+                                               JobExecuteContext jobExecuteContext) {
         this.sampler = sampler;
         this.tracer = tracer;
         this.parent = tracer.currentSpan();
@@ -93,6 +110,8 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
         this.tasksQueue = resultHandleManager.getTasksQueue();
         this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
         this.resultHandleLimiter = resultHandleLimiter;
+        this.runningJobKeepaliveManager = runningJobKeepaliveManager;
+        this.jobExecuteContext = jobExecuteContext;
     }
 
     private Span getChildSpan() {
@@ -103,11 +122,13 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
     public void execute() {
         Span span = getChildSpan();
         try (Tracer.SpanInScope ignored = this.tracer.withSpan(span.start())) {
+            JobExecuteContextThreadLocalRepo.set(this.jobExecuteContext);
             doExecute();
         } catch (Exception e) {
             span.error(e);
             throw e;
         } finally {
+            JobExecuteContextThreadLocalRepo.unset();
             span.end();
         }
     }
@@ -157,12 +178,13 @@ public class ScheduledContinuousResultHandleTask extends DelayedTask {
                     resultHandleTaskKeepaliveManager.stopKeepaliveInfoTask(fileTask.getTaskId());
                     sampler.decrementFileTask(fileTask.getAppId());
                 }
+                runningJobKeepaliveManager.stopKeepaliveTask(task.getTaskContext().getJobInstanceId());
                 resultHandleManager.getScheduledTasks().remove(task.getTaskId());
             }
             if (isExecutable) {
                 long end = System.nanoTime();
                 sampler.getMeterRegistry().timer(ExecuteMetricNames.RESULT_HANDLE_TASK_SCHEDULE_PREFIX,
-                    "task_type", task.getTaskType(), "status", status)
+                        "task_type", task.getTaskType(), "status", status)
                     .record(end - start, TimeUnit.NANOSECONDS);
             }
             if (!isReScheduled) {

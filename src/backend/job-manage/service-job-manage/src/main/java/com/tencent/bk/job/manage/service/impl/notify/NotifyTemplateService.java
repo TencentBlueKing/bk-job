@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,16 +24,10 @@
 
 package com.tencent.bk.job.manage.service.impl.notify;
 
-import com.tencent.bk.job.common.cc.constants.CmdbConstants;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
-import com.tencent.bk.job.common.model.dto.ApplicationDTO;
-import com.tencent.bk.job.common.model.dto.ResourceScope;
-import com.tencent.bk.job.common.service.config.JobCommonConfig;
-import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PrefConsts;
 import com.tencent.bk.job.common.util.StringUtil;
-import com.tencent.bk.job.common.util.TypeUtil;
-import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.notify.NotifyTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.notify.NotifyTemplateDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationMessage;
@@ -42,65 +36,19 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @Service
 public class NotifyTemplateService {
 
-    private final ApplicationDAO applicationDAO;
-    private final JobCommonConfig jobCommonConfig;
     private final NotifyTemplateDAO notifyTemplateDAO;
 
     @Autowired
-    public NotifyTemplateService(ApplicationDAO applicationDAO,
-                                 JobCommonConfig jobCommonConfig,
-                                 NotifyTemplateDAO notifyTemplateDAO) {
-        this.applicationDAO = applicationDAO;
-        this.jobCommonConfig = jobCommonConfig;
+    public NotifyTemplateService(NotifyTemplateDAO notifyTemplateDAO) {
         this.notifyTemplateDAO = notifyTemplateDAO;
-    }
-
-    public Map<String, NotifyTemplateDTO> getChannelTemplateMap(String templateCode) {
-        Map<String, NotifyTemplateDTO> channelTemplateMap = new HashMap<>();
-        List<NotifyTemplateDTO> notifyTemplateDTOList = notifyTemplateDAO.listNotifyTemplateByCode(templateCode);
-        if (CollectionUtils.isEmpty(notifyTemplateDTOList)) {
-            log.warn("no valid templates of code:{}", templateCode);
-            return Collections.emptyMap();
-        }
-        // 优先使用自定义模板
-        notifyTemplateDTOList.sort(Comparator.comparingInt(o -> TypeUtil.booleanToInt(o.isDefault())));
-        notifyTemplateDTOList.forEach(notifyTemplateDTO -> channelTemplateMap.putIfAbsent(
-            notifyTemplateDTO.getChannel(), notifyTemplateDTO
-        ));
-        return channelTemplateMap;
-    }
-
-    private String getDisplayIdStr(ResourceScope scope) {
-        return scope.getType().getValue() + ":" + scope.getId();
-    }
-
-    private String getNormalUserLanguage(ApplicationDTO applicationDTO) {
-        String userLang = JobContextUtil.getUserLang();
-        if (userLang == null) {
-            String appLang = applicationDTO.getLanguage();
-            if (CmdbConstants.APP_LANG_VALUE_ZH_CN.equals(appLang)) {
-                userLang = LocaleUtils.LANG_ZH_CN;
-            } else if (CmdbConstants.APP_LANG_VALUE_EN_US.equals(appLang)) {
-                userLang = LocaleUtils.LANG_EN_US;
-            } else {
-                log.warn("appLang=null, use zh_CN, appId={}", applicationDTO.getId());
-                userLang = LocaleUtils.LANG_ZH_CN;
-            }
-        }
-        return LocaleUtils.getNormalLang(userLang);
     }
 
     private Pair<String, String> getTitleAndContentByLanguage(NotifyTemplateDTO templateDTO, String normalLang) {
@@ -122,29 +70,25 @@ public class NotifyTemplateService {
         return Pair.of(title, content);
     }
 
+    /**
+     * 从模板生成通知消息（仅负责模板渲染，不做变量预处理）
+     *
+     * @param templateDTO 通知模板
+     * @param normalLang 标准化的语言（zh_CN 或 en_US）
+     * @param variablesMap 已完成预处理的变量 Map
+     * @return 渲染后的通知消息
+     */
     public ServiceNotificationMessage getNotificationMessageFromTemplate(
-        Long appId,
         NotifyTemplateDTO templateDTO,
+        String normalLang,
         Map<String, String> variablesMap
     ) {
-        ApplicationDTO applicationDTO = applicationDAO.getAppById(appId);
-        if (applicationDTO == null) {
-            log.error("cannot find applicationInfo of appId:{}", appId);
-            return null;
-        }
-        String appName = applicationDTO.getName();
-        String normalLang = getNormalUserLanguage(applicationDTO);
-        //国际化
+        // 国际化
         Pair<String, String> titleAndContent = getTitleAndContentByLanguage(templateDTO, normalLang);
         String title = titleAndContent.getLeft();
         String content = titleAndContent.getRight();
-        //添加默认变量
-        ResourceScope scope = applicationDTO.getScope();
-        variablesMap.putIfAbsent("BASE_HOST", jobCommonConfig.getJobWebUrl());
-        variablesMap.putIfAbsent("APP_ID", getDisplayIdStr(scope));
-        variablesMap.putIfAbsent("task.bk_biz_id", scope.getId());
-        variablesMap.putIfAbsent("APP_NAME", appName);
-        variablesMap.putIfAbsent("task.bk_biz_name", appName);
+
+        // 模板渲染
         String pattern = "(\\{\\{(.*?)\\}\\})";
         StopWatch watch = new StopWatch();
         watch.start("replace title and content");
@@ -164,19 +108,45 @@ public class NotifyTemplateService {
         return new ServiceNotificationMessage(title, content);
     }
 
-    public ServiceNotificationMessage getNotificationMessage(Long appId, String templateCode, String channel,
-                                                             Map<String, String> variablesMap) {
-        //1.查出自定义模板信息
-        NotifyTemplateDTO notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(channel, templateCode, false);
+    /**
+     * 获取通知消息（仅负责查询模板和渲染）
+     * 注意：variablesMap 应该已经完成预处理（添加默认变量、替换 username）
+     *
+     * @param tenantId 租户 ID
+     * @param templateCode 模板代码
+     * @param channel 通知渠道
+     * @param normalLang 标准化的语言
+     * @param variablesMap 已完成预处理的变量 Map
+     * @return 渲染后的通知消息
+     */
+    public ServiceNotificationMessage getNotificationMessage(
+        String tenantId,
+        String templateCode,
+        String channel,
+        String normalLang,
+        Map<String, String> variablesMap
+    ) {
+        // 1.查出自定义模板信息
+        NotifyTemplateDTO notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
+            channel,
+            templateCode,
+            false,
+            tenantId
+        );
         if (notifyTemplateDTO == null) {
-            //2.未配置自定义模板则使用默认模板
-            notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(channel, templateCode, true);
+            // 2.未配置自定义模板则使用默认模板
+            notifyTemplateDTO = notifyTemplateDAO.getNotifyTemplate(
+                channel,
+                templateCode,
+                true,
+                TenantIdConstants.DEFAULT_TENANT_ID);
         }
         if (notifyTemplateDTO == null) {
             log.warn("Cannot find template of templateCode:{},channel:{}, plz config a default template",
                 templateCode, channel);
             return null;
         }
-        return getNotificationMessageFromTemplate(appId, notifyTemplateDTO, variablesMap);
+
+        return getNotificationMessageFromTemplate(notifyTemplateDTO, normalLang, variablesMap);
     }
 }

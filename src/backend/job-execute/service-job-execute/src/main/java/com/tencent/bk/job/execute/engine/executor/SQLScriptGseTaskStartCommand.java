@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,37 +25,22 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import com.google.common.collect.Maps;
-import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.util.ScriptRequestBuilder;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
+import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
-import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
-import com.tencent.bk.job.execute.engine.variable.JobBuildInVariableResolver;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
-import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
-import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
-import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.execute.service.AgentService;
-import com.tencent.bk.job.execute.service.GseTaskService;
-import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
-import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
-import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.cloud.sleuth.Tracer;
 
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -112,52 +97,23 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
         }
     }
 
-    public SQLScriptGseTaskStartCommand(ResultHandleManager resultHandleManager,
-                                        TaskInstanceService taskInstanceService,
-                                        StepInstanceService stepInstanceService,
-                                        GseTaskService gseTaskService,
+    public SQLScriptGseTaskStartCommand(EngineDependentServiceHolder engineDependentServiceHolder,
                                         ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
-                                        AccountService accountService,
-                                        TaskInstanceVariableService taskInstanceVariableService,
-                                        StepInstanceVariableValueService stepInstanceVariableValueService,
-                                        AgentService agentService,
-                                        LogService logService,
-                                        TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                        ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                        ExecuteMonitor executeMonitor,
                                         JobExecuteConfig jobExecuteConfig,
-                                        TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                        GseTasksExceptionCounter gseTasksExceptionCounter,
-                                        JobBuildInVariableResolver jobBuildInVariableResolver,
-                                        Tracer tracer,
-                                        GseClient gseClient,
                                         String requestId,
                                         TaskInstanceDTO taskInstance,
                                         StepInstanceDTO stepInstance,
-                                        GseTaskDTO gseTask) {
-        super(resultHandleManager,
-            taskInstanceService,
-            stepInstanceService,
-            gseTaskService,
+                                        GseTaskDTO gseTask,
+                                        CustomPasswordCache customPasswordCache) {
+        super(
+            engineDependentServiceHolder,
             scriptExecuteObjectTaskService,
-            accountService,
-            taskInstanceVariableService,
-            stepInstanceVariableValueService,
-            agentService,
-            logService,
-            taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
-            executeMonitor,
             jobExecuteConfig,
-            taskEvictPolicyExecutor,
-            gseTasksExceptionCounter,
-            jobBuildInVariableResolver,
-            tracer,
-            gseClient,
             requestId,
             taskInstance,
             stepInstance,
-            gseTask);
+            gseTask,
+                customPasswordCache);
     }
 
     @Override
@@ -166,7 +122,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
         String sqlScriptFileName = buildScriptFileName(stepInstance);
 
         String publicScriptContent = sqlMap.get(stepInstance.getDbType());
-        int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout());
+        int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getAppId(), stepInstance.getTimeout());
         String publicScriptName = this.scriptFileNamePrefix + ScriptTypeEnum.SHELL.getExt();
 
         ScriptRequestBuilder builder = new ScriptRequestBuilder();
@@ -178,9 +134,7 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
         builder.addScriptTask(agentList, scriptFilePath, publicScriptName, buildRunSqlShellParams(sqlScriptFileName),
             timeout);
 
-        ExecuteScriptRequest request = builder.build();
-        request.setGseV2Task(gseV2Task);
-        return request;
+        return builder.build();
     }
 
     private String buildRunSqlShellParams(String sqlScriptFileName) {

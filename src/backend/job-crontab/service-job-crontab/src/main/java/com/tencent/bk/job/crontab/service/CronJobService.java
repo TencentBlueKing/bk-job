@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -27,6 +27,7 @@ package com.tencent.bk.job.crontab.service;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.crontab.model.BatchUpdateCronJobReq;
 import com.tencent.bk.job.crontab.model.dto.CronJobBasicInfoDTO;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
@@ -41,14 +42,14 @@ import java.util.Map;
  */
 public interface CronJobService {
     /**
-     * 分页查询定时任务列表
+     * 分页查询定时任务列表（不含变量）
      *
      * @param cronJobCondition    查询条件
      * @param baseSearchCondition 搜索参数
      * @return 分页后的定时任务列表
      */
-    PageData<CronJobInfoDTO> listPageCronJobInfos(CronJobInfoDTO cronJobCondition,
-                                                  BaseSearchCondition baseSearchCondition);
+    PageData<CronJobInfoDTO> listPageCronJobInfosWithoutVars(CronJobInfoDTO cronJobCondition,
+                                                             BaseSearchCondition baseSearchCondition);
 
     /**
      * 根据 ID 查询定时任务信息
@@ -57,6 +58,14 @@ public interface CronJobService {
      * @return 定时任务信息
      */
     CronJobInfoDTO getCronJobInfoById(Long cronJobId);
+
+    /**
+     * 根据 ID 查询完整的定时任务详情
+     *
+     * @param cronJobId 定时任务 ID
+     * @return 带有自定义消息通知配置定时任务信息
+     */
+    public CronJobInfoDTO getIntegralCronJobInfoById(Long cronJobId);
 
     /**
      * 根据 IDs 查询定时任务信息，返回Map
@@ -78,12 +87,12 @@ public interface CronJobService {
     /**
      * 根据 ID 查询定时任务信息
      *
-     * @param username  用户账号
+     * @param user      用户账号
      * @param appId     业务 ID
      * @param cronJobId 定时任务 ID
      * @return 定时任务信息
      */
-    CronJobInfoDTO getCronJobInfoById(String username, Long appId, Long cronJobId);
+    CronJobInfoDTO getCronJobInfoById(User user, Long appId, Long cronJobId);
 
     /**
      * 根据 ID 查询定时任务错误信息，上次执行状态，错误码，错误次数
@@ -105,40 +114,40 @@ public interface CronJobService {
     /**
      * 创建定时任务
      *
-     * @param username    用户账号
+     * @param user        用户账号
      * @param cronJobInfo 定时任务信息
      * @return 定时任务
      */
-    CronJobInfoDTO createCronJobInfo(String username, CronJobInfoDTO cronJobInfo);
+    CronJobInfoDTO createCronJobInfo(User user, CronJobInfoDTO cronJobInfo);
 
     /**
      * 更新定时任务信息
      *
-     * @param username    用户账号
+     * @param user        用户账号
      * @param cronJobInfo 定时任务信息
      * @return 定时任务
      */
-    CronJobInfoDTO updateCronJobInfo(String username, CronJobInfoDTO cronJobInfo);
+    CronJobInfoDTO updateCronJobInfo(User user, CronJobInfoDTO cronJobInfo);
 
     /**
      * 删除定时任务
      *
-     * @param username  用户账号
+     * @param user      用户账号
      * @param appId     业务 ID
      * @param cronJobId 定时任务 ID
      * @return 是否删除成功
      */
-    Boolean deleteCronJobInfo(String username, Long appId, Long cronJobId);
+    Boolean deleteCronJobInfo(User user, Long appId, Long cronJobId);
 
     /**
      * 启用、禁用定时任务
      *
-     * @param username  用户名
+     * @param user      用户名
      * @param appId     业务 ID
      * @param cronJobId 定时任务 ID
      * @return 是否操作成功
      */
-    Boolean changeCronJobEnableStatus(String username, Long appId, Long cronJobId, Boolean enable);
+    Boolean changeCronJobEnableStatus(User user, Long appId, Long cronJobId, Boolean enable);
 
     /**
      * 禁用过期任务
@@ -210,12 +219,12 @@ public interface CronJobService {
      * <p>
      * 只更新 变量 和 启用 字段
      *
-     * @param username              用户账号
+     * @param user                  用户账号
      * @param appId                 业务 ID
      * @param batchUpdateCronJobReq 批量更新请求
      * @return 是否更新成功
      */
-    Boolean batchUpdateCronJob(String username, Long appId, BatchUpdateCronJobReq batchUpdateCronJobReq);
+    Boolean batchUpdateCronJob(User user, Long appId, BatchUpdateCronJobReq batchUpdateCronJobReq);
 
     /**
      * 带 ID 新建定时任务
@@ -252,14 +261,8 @@ public interface CronJobService {
 
     Integer countCronJob(Long appId, Boolean active, Boolean cron);
 
-    boolean addJobToQuartz(long appId, long cronJobId) throws ServiceException;
-
-    boolean deleteJobFromQuartz(long appId, long cronJobId);
+    boolean checkAndAddJobToQuartz(long appId, long cronJobId) throws ServiceException;
 
     List<CronJobBasicInfoDTO> listEnabledCronBasicInfoForUpdate(int start, int limit);
 
-    /**
-     * 通过业务id禁用定时任务
-     */
-    boolean disableCronJobByAppId(Long appId);
 }

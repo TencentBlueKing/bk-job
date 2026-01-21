@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS `step_instance`
 CREATE TABLE IF NOT EXISTS `step_instance_script`
 (
     `step_instance_id`      bigint(20) NOT NULL,
+    `task_instance_id`      bigint(20) NOT NULL DEFAULT 0,
     `script_content`        mediumtext,
     `script_type`           tinyint(4)          DEFAULT NULL,
     `script_param`          text,
@@ -108,6 +109,7 @@ CREATE TABLE IF NOT EXISTS `step_instance_script`
     `script_id`             varchar(32)         DEFAULT NULL,
     `script_version_id`     bigint(20)          DEFAULT NULL,
     `is_secure_param`       tinyint(1)          DEFAULT 0,
+    `windows_interpreter`   varchar(260)        DEFAULT NULL,
     PRIMARY KEY (`step_instance_id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -115,6 +117,7 @@ CREATE TABLE IF NOT EXISTS `step_instance_script`
 CREATE TABLE IF NOT EXISTS `step_instance_file`
 (
     `step_instance_id`          bigint(20) NOT NULL,
+    `task_instance_id`          bigint(20) NOT NULL DEFAULT 0,
     `file_source`               mediumtext NOT NULL,
     `resolved_file_source`      mediumtext          DEFAULT NULL,
     `file_target_path`          varchar(512)        DEFAULT NULL,
@@ -136,6 +139,7 @@ CREATE TABLE IF NOT EXISTS `step_instance_file`
 CREATE TABLE IF NOT EXISTS `step_instance_confirm`
 (
     `step_instance_id` bigint(20) NOT NULL,
+    `task_instance_id` bigint(20) NOT NULL DEFAULT 0,
     `confirm_message`  text       NOT NULL,
     `confirm_reason`   varchar(256)        DEFAULT NULL,
     `confirm_users`    varchar(1024)       DEFAULT NULL,
@@ -190,6 +194,7 @@ CREATE TABLE IF NOT EXISTS `gse_task_ip_log`
 CREATE TABLE IF NOT EXISTS `gse_task`
 (
     `id`               bigint(20)  NOT NULL AUTO_INCREMENT,
+    `task_instance_id` bigint(20)  NOT NULL DEFAULT 0,
     `step_instance_id` bigint(20)  NOT NULL DEFAULT '0',
     `execute_count`    smallint(6) NOT NULL DEFAULT '0',
     `batch`            smallint(6) NOT NULL DEFAULT '0',
@@ -209,6 +214,7 @@ CREATE TABLE IF NOT EXISTS `gse_task`
 CREATE TABLE IF NOT EXISTS `gse_script_agent_task`
 (
     `id`                   bigint(20)  NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `task_instance_id`     bigint(20)  NOT NULL DEFAULT 0,
     `step_instance_id`     bigint(20)  NOT NULL,
     `execute_count`        smallint(6) NOT NULL DEFAULT '0',
     `actual_execute_count` smallint(6)          DEFAULT NULL,
@@ -234,6 +240,7 @@ CREATE TABLE IF NOT EXISTS `gse_script_agent_task`
 CREATE TABLE IF NOT EXISTS `gse_file_agent_task`
 (
     `id`                   bigint(20)  NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `task_instance_id`     bigint(20)  NOT NULL DEFAULT 0,
     `step_instance_id`     bigint(20)  NOT NULL,
     `execute_count`        smallint(6) NOT NULL DEFAULT '0',
     `actual_execute_count` smallint(6)          DEFAULT NULL,
@@ -302,14 +309,13 @@ CREATE TABLE IF NOT EXISTS `dangerous_record`
     `action`          tinyint(4)    NOT NULL,
     `check_result`    text          NOT NULL,
     `ext_data`        text,
+    `tenant_id`       varchar(32)   NOT NULL DEFAULT 'default',
     PRIMARY KEY (`id`),
-    KEY `idx_create_time_rule_id` (`create_time`, `rule_id`),
-    KEY `idx_create_time_rule_expression` (`create_time`, `rule_expression`),
-    KEY `idx_create_time_app_id` (`create_time`, `app_id`),
-    KEY `idx_create_time_operator` (`create_time`, `operator`),
-    KEY `idx_create_time_startup_mode` (`create_time`, `startup_mode`),
-    KEY `idx_create_time_client` (`create_time`, `client`),
-    KEY `idx_create_time_mode` (`create_time`, `action`)
+    KEY `idx_tenant_id_ctime` (`tenant_id`,`create_time`),
+    KEY `idx_rule_id_ctime` (`rule_id`,`create_time`),
+    KEY `idx_app_id_ctime` (`app_id`,`create_time`),
+    KEY `idx_operator_ctime` (`operator`,`create_time`),
+    KEY `idx_client_ctime` (`client`,`create_time`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
@@ -333,6 +339,7 @@ CREATE TABLE IF NOT EXISTS `rolling_config`
 (
     `id`               bigint(20)   NOT NULL AUTO_INCREMENT,
     `task_instance_id` bigint(20)   NOT NULL DEFAULT '0',
+    `type`             tinyint(4)   NOT NULL DEFAULT 1,
     `config_name`      varchar(128) NOT NULL,
     `config`           longtext     NOT NULL,
     `row_create_time`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -345,6 +352,7 @@ CREATE TABLE IF NOT EXISTS `rolling_config`
 CREATE TABLE IF NOT EXISTS `step_instance_rolling_task`
 (
     `id`               bigint(20)  NOT NULL AUTO_INCREMENT,
+    `task_instance_id` bigint(20)  NOT NULL DEFAULT 0,
     `step_instance_id` bigint(20)  NOT NULL DEFAULT '0',
     `batch`            smallint(6) NOT NULL DEFAULT '0',
     `execute_count`    smallint(6) NOT NULL DEFAULT '0',
@@ -365,6 +373,7 @@ CREATE TABLE IF NOT EXISTS `task_instance_host`
     `host_id`          bigint(20) NOT NULL DEFAULT '0',
     `ip`               varchar(15)         DEFAULT NULL,
     `ipv6`             varchar(46)         DEFAULT NULL,
+    `app_id`           bigint(20) NOT NULL DEFAULT '0',
     `row_create_time`  datetime   NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `row_update_time`  datetime   NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`task_instance_id`, `host_id`),

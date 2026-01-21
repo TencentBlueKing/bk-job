@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -37,9 +37,9 @@ import com.tencent.bk.job.file_gateway.model.dto.FileWorkerDTO;
 import com.tencent.bk.job.file_gateway.model.req.common.ExecuteActionReq;
 import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesDTO;
 import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesVO;
-import com.tencent.bk.job.file_gateway.service.DispatchService;
 import com.tencent.bk.job.file_gateway.service.FileService;
 import com.tencent.bk.job.file_gateway.service.FileSourceService;
+import com.tencent.bk.job.file_gateway.service.dispatch.DispatchService;
 import com.tencent.bk.job.file_gateway.service.remote.FileSourceReqGenService;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
@@ -47,6 +47,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
+/**
+ * 文件服务接口实现
+ */
 @Slf4j
 @Service
 public class FileServiceImpl implements FileService {
@@ -67,34 +70,11 @@ public class FileServiceImpl implements FileService {
         this.jobHttpClient = jobHttpClient;
     }
 
-    private FileWorkerDTO getFileWorker(FileSourceDTO fileSourceDTO) {
+    private FileWorkerDTO getFileWorker(FileSourceDTO fileSourceDTO, String requestSource) {
         if (fileSourceDTO == null) {
             throw new InternalException(ErrorCode.FILE_SOURCE_NOT_EXIST);
         }
-        return dispatchService.findBestFileWorker(fileSourceDTO);
-    }
-
-    @Override
-    public boolean isFileAvailable(String username, Long appId, Integer fileSourceId) {
-        FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(appId, fileSourceId);
-        FileWorkerDTO fileWorkerDTO = getFileWorker(fileSourceDTO);
-        if (fileWorkerDTO == null) {
-            throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
-        }
-        log.info("choose file worker:" + fileWorkerDTO.getBasicDesc());
-        // 访问文件Worker接口，拿到available状态信息
-        HttpReq req = fileSourceReqGenService.genFileAvailableReq(appId, fileWorkerDTO, fileSourceDTO);
-        String respStr;
-        try {
-            respStr = jobHttpClient.post(req);
-            Response<Boolean> resp = JsonUtils.fromJson(respStr,
-                new TypeReference<Response<Boolean>>() {
-                });
-            return resp.getData();
-        } catch (Exception e) {
-            log.error("Fail to request remote worker:", e);
-            return false;
-        }
+        return dispatchService.findBestFileWorker(fileSourceDTO, requestSource);
     }
 
     @Override
@@ -103,7 +83,7 @@ public class FileServiceImpl implements FileService {
         if (name == null) name = "";
         final String finalName = name;
         FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(appId, fileSourceId);
-        FileWorkerDTO fileWorkerDTO = getFileWorker(fileSourceDTO);
+        FileWorkerDTO fileWorkerDTO = getFileWorker(fileSourceDTO, "listFileNode");
         if (fileWorkerDTO == null) {
             throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
         }
@@ -129,7 +109,10 @@ public class FileServiceImpl implements FileService {
     @Override
     public Boolean executeAction(String username, Long appId, Integer fileSourceId, ExecuteActionReq executeActionReq) {
         FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceById(appId, fileSourceId);
-        FileWorkerDTO fileWorkerDTO = getFileWorker(fileSourceDTO);
+        FileWorkerDTO fileWorkerDTO = getFileWorker(
+            fileSourceDTO,
+            "executeAction" + executeActionReq.getActionCode()
+        );
         if (fileWorkerDTO == null) {
             throw new InternalException(ErrorCode.CAN_NOT_FIND_AVAILABLE_FILE_WORKER);
         }

@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -26,18 +26,25 @@
 -->
 
 <template>
-  <jb-form-item :label="$t('脚本参数')">
+  <jb-form-item
+    :label="$t('脚本参数')"
+    :property="paramField"
+    :rules="rules">
     <div
       class="execute-script-params-block"
       :class="{
         'is-secure-field': formData[secureField]
       }">
       <jb-input
-        :maxlength="5000"
+        :maxlength="65536"
         :placeholder="$t('脚本执行时传入的参数，同脚本在终端执行时的传参格式，如：./test.sh xxxx xxx xxx')"
         :type="paramType"
         :value="formData[paramField]"
-        @change="handleParamChange" />
+        @change="handleParamChange">
+        <template #number>
+          64KB
+        </template>
+      </jb-input>
       <bk-checkbox
         class="muti-checkbox"
         :false-value="0"
@@ -50,7 +57,12 @@
   </jb-form-item>
 </template>
 <script>
+  import { getStringByteCount } from '@utils/assist';
+
   import JbInput from '@components/jb-input';
+
+  import I18n from '@/i18n';
+
 
   export default {
     components: {
@@ -69,11 +81,21 @@
         type: Object,
         default: () => ({}),
       },
+
     },
     computed: {
       paramType() {
         return this.formData[this.secureField] ? 'password' : 'text';
       },
+    },
+    created() {
+      this.rules = [
+        {
+          validator: value => getStringByteCount(value) <= 65536,
+          message: I18n.t('脚本参数最大输入为 64KB'),
+          trigger: 'blur',
+        },
+      ];
     },
     methods: {
       handleParamChange(value) {

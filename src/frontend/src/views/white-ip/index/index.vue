@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -64,21 +64,21 @@
         v-if="allRenderColumnMap.scopeText"
         key="scopeText"
         align="left"
-        :label="$t('whiteIP.生效范围.colHead')"
+        :label="$t('whiteIP.生效范围_colHead')"
         prop="scopeText"
         show-overflow-tooltip />
       <bk-table-column
         v-if="allRenderColumnMap.appText"
         key="appText"
         align="left"
-        :label="$t('whiteIP.目标业务.colHead')"
+        :label="$t('whiteIP.目标业务_colHead')"
         prop="appText"
         show-overflow-tooltip />
       <bk-table-column
         v-if="allRenderColumnMap.remark"
         key="remark"
         align="left"
-        :label="$t('whiteIP.备注.colHead')"
+        :label="$t('whiteIP.备注_colHead')"
         prop="remark"
         show-overflow-tooltip />
       <bk-table-column
@@ -87,7 +87,11 @@
         align="left"
         :label="$t('whiteIP.创建人')"
         prop="creator"
-        show-overflow-tooltip />
+        show-overflow-tooltip>
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.creator" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.createTime"
         key="createTime"
@@ -101,7 +105,11 @@
         align="left"
         :label="$t('whiteIP.更新人')"
         prop="lastModifier"
-        show-overflow-tooltip />
+        show-overflow-tooltip>
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.lastModifier" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyTime"
         key="lastModifyTime"
@@ -234,7 +242,7 @@
           default: true,
         },
         {
-          name: I18n.t('whiteIP.生效范围.colHead'),
+          name: I18n.t('whiteIP.生效范围_colHead'),
           id: 'actionScopeStr',
           children: [
             {
@@ -245,24 +253,32 @@
               id: '2',
               name: I18n.t('文件分发'),
             },
-          ]
+          ],
         },
         {
-          name: I18n.t('whiteIP.目标业务.colHead'),
+          name: I18n.t('whiteIP.目标业务_colHead'),
           id: 'appIdStr',
           remoteMethod: this.fetchAppList,
         },
         {
           name: I18n.t('whiteIP.创建人'),
           id: 'creator',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
         {
           name: I18n.t('whiteIP.更新人'),
           id: 'lastModifier',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
       ];
       this.tableColumn = [
@@ -273,17 +289,17 @@
         },
         {
           id: 'scopeText',
-          label: I18n.t('whiteIP.生效范围.colHead'),
+          label: I18n.t('whiteIP.生效范围_colHead'),
           disabled: true,
         },
         {
           id: 'appText',
-          label: I18n.t('whiteIP.目标业务.colHead'),
+          label: I18n.t('whiteIP.目标业务_colHead'),
           disabled: true,
         },
         {
           id: 'remark',
-          label: I18n.t('whiteIP.备注.colHead'),
+          label: I18n.t('whiteIP.备注_colHead'),
         },
         {
           id: 'creator',

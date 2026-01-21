@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -37,7 +37,8 @@ public enum UserOperationEnum {
     CONFIRM_CONTINUE(7, "人工确认-继续"),
     CONFIRM_TERMINATE(8, "人工确认-终止"),
     NEXT_STEP(9, "进入下一步"),
-    CONFIRM_RESTART(10, "重新发起确认");
+    CONFIRM_RESTART(10, "重新发起确认"),
+    CREATE_JOB(11, "创建作业");
 
     private final Integer value;
     private final String name;

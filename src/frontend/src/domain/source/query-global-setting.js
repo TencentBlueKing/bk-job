@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -74,14 +74,6 @@ class QueryGlobalSetting extends ModuleBase {
   // 获取CMDB服务跳转地址
   getCMDBUrl() {
     return Request.get(`${this.module}/cmdbServerUrl`);
-  }
-
-  // 获取Title与Footer
-  getPlatformInfo(params, payload) {
-    return Request.get(`${this.module}/platformInfo`, {
-      cache: true,
-      ...payload,
-    });
   }
 
   // 周边系统跳转路径

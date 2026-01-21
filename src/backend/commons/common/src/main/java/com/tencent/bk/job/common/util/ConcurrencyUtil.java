@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.util;
 
+import com.tencent.bk.job.common.context.JobContext;
 import com.tencent.bk.job.common.exception.SubThreadException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.sleuth.instrument.async.TraceableExecutorService;
@@ -67,9 +68,11 @@ public class ConcurrencyUtil {
             ApplicationContextRegister.getContext(),
             Executors.newFixedThreadPool(threadNum)
         );
-        List<Output> result = getResultWithThreads(inputCollection, threadPoolExecutor, handler);
-        threadPoolExecutor.shutdown();
-        return result;
+        try {
+            return getResultWithThreads(inputCollection, threadPoolExecutor, handler);
+        } finally {
+            threadPoolExecutor.shutdown();
+        }
     }
 
     /**
@@ -92,7 +95,7 @@ public class ConcurrencyUtil {
         List<Future<?>> futures = new ArrayList<>();
         for (Input input : inputCollection) {
             Future<?> future = threadPoolExecutor.submit(new InnerTask<>(resultQueue, input,
-                JobContextUtil.getRequestId(), handler));
+                JobContextUtil.getContext(), handler));
             futures.add(future);
         }
         for (Future<?> future : futures) {
@@ -125,24 +128,30 @@ public class ConcurrencyUtil {
         //结果队列
         LinkedBlockingQueue<Output> resultQueue;
         Input input;
-        String requestId;
+        JobContext jobContext;
         Handler<Input, Output> handler;
 
-        InnerTask(LinkedBlockingQueue<Output> resultQueue, Input input, String requestId,
+        InnerTask(LinkedBlockingQueue<Output> resultQueue,
+                  Input input,
+                  JobContext jobContext,
                   Handler<Input, Output> handler) {
             this.resultQueue = resultQueue;
             this.input = input;
-            this.requestId = requestId;
+            this.jobContext = jobContext;
             this.handler = handler;
         }
 
         @Override
         public void run() {
-            JobContextUtil.setRequestId(requestId);
+            if (jobContext != null) {
+                JobContextUtil.setContext(jobContext);
+            }
             try {
                 resultQueue.addAll(handler.handle(input));
             } catch (Exception e) {
                 log.error("InnerTask fail:", e);
+            } finally {
+                JobContextUtil.unsetContext();
             }
         }
     }

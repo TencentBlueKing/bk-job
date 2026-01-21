@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -30,6 +30,8 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.constants.StepOperationEnum;
 import com.tencent.bk.job.execute.model.StepOperationDTO;
@@ -53,15 +55,17 @@ public class EsbOperateStepInstanceV3ResourceImpl implements EsbOperateStepInsta
     public EsbResp<EsbJobExecuteV3DTO> operateStepInstance(String username,
                                                            String appCode,
                                                            @AuditRequestBody EsbOperateStepInstanceV3Request request) {
+        User user = JobContextUtil.getUser();
         log.info("Operate step instance, request={}", JsonUtils.toJson(request));
         if (!checkRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         StepOperationEnum operationEnum = StepOperationEnum.getStepOperation(request.getOperationCode());
         StepOperationDTO stepOperation = new StepOperationDTO();
+        stepOperation.setTaskInstanceId(request.getTaskInstanceId());
         stepOperation.setStepInstanceId(request.getStepInstanceId());
         stepOperation.setOperation(operationEnum);
-        taskExecuteService.doStepOperation(request.getAppId(), username, stepOperation);
+        taskExecuteService.doStepOperation(request.getAppId(), user, stepOperation);
 
         EsbJobExecuteV3DTO result = new EsbJobExecuteV3DTO();
         result.setTaskInstanceId(request.getTaskInstanceId());

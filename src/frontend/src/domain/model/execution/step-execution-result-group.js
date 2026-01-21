@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,7 +25,7 @@
 
 import _ from 'lodash';
 
-import AgentTaskModel from '@model/execution/agent-task-execution';
+import AgentTaskExecutionModel from '@model/execution/agent-task-execution';
 
 const STATUS_PENDING = 5;
 const STATUS_DOING = 7;
@@ -84,6 +84,6 @@ export default class ResultGroup {
     if (!_.isArray(tasks)) {
       return [];
     }
-    return tasks.map(item => Object.freeze(new AgentTaskModel(item)));
+    return tasks.map(item => Object.freeze(new AgentTaskExecutionModel(item)));
   }
 }

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.model.PermissionResource;
 import com.tencent.bk.job.common.iam.service.ResourceNameQueryService;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.sdk.iam.dto.InstanceDTO;
 import com.tencent.bk.sdk.iam.dto.PathInfoDTO;
 import lombok.extern.slf4j.Slf4j;
@@ -46,9 +47,10 @@ public class BasicAuthService {
         this.resourceNameQueryService = resourceNameQueryService;
     }
 
-    protected AuthResult buildFailAuthResult(String actionId, ResourceTypeEnum resourceType,
+    protected AuthResult buildFailAuthResult(User user,
+                                             String actionId, ResourceTypeEnum resourceType,
                                              Collection<String> resourceIds) {
-        AuthResult authResult = AuthResult.fail();
+        AuthResult authResult = AuthResult.fail(user);
         if (resourceType == null) {
             authResult.addRequiredPermission(actionId, null);
         } else {

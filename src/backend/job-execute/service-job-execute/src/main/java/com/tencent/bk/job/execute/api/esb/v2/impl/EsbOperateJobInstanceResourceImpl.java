@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.api.esb.v2.EsbOperateJobInstanceResource;
 import com.tencent.bk.job.execute.constants.TaskOperationEnum;
@@ -52,12 +54,13 @@ public class EsbOperateJobInstanceResourceImpl implements EsbOperateJobInstanceR
     public EsbResp<EsbJobExecuteDTO> operateJobInstance(String username,
                                                         String appCode,
                                                         EsbOperateJobInstanceRequest request) {
+        User user = JobContextUtil.getUser();
         log.info("Operate task instance, request={}", JsonUtils.toJson(request));
         if (!checkRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
         TaskOperationEnum taskOperation = TaskOperationEnum.getTaskOperation(request.getOperationCode());
-        taskExecuteService.doTaskOperation(request.getAppId(), username,
+        taskExecuteService.doTaskOperation(request.getAppId(), user,
             request.getTaskInstanceId(), taskOperation);
         EsbJobExecuteDTO result = new EsbJobExecuteDTO();
         result.setTaskInstanceId(request.getTaskInstanceId());

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -30,7 +30,9 @@ import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.crypto.Encryptor;
+import com.tencent.bk.job.common.crypto.scenario.SubmitAccountPasswordCryptoService;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -41,6 +43,7 @@ import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.ArrayUtil;
 import com.tencent.bk.job.common.util.Utils;
@@ -60,7 +63,7 @@ import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
 import com.tencent.bk.job.manage.model.web.request.AccountCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRule;
 import com.tencent.bk.job.manage.service.AccountService;
-import com.tencent.bk.job.manage.service.GlobalSettingsService;
+import com.tencent.bk.job.manage.service.globalsetting.GlobalSettingsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,21 +81,25 @@ import java.util.regex.Pattern;
 @Service
 public class AccountServiceImpl implements AccountService {
     public final String DEFAULT_LINUX_ACCOUNT = "root";
-    public final String DEFAULT_WINDOWS_ACCOUNT = "system";
+    public final String DEFAULT_WINDOWS_SYSTEM_ACCOUNT = "system";
+    public final String DEFAULT_WINDOWS_ADMIN_ACCOUNT = "Administrator";
     private final AccountDAO accountDAO;
     private final Encryptor encryptor;
     private final GlobalSettingsService globalSettingsService;
     private final AccountAuthService accountAuthService;
+    private final SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService;
 
     @Autowired
     public AccountServiceImpl(AccountDAO accountDAO,
                               @Qualifier("gseRsaEncryptor") Encryptor encryptor,
                               GlobalSettingsService globalSettingsService,
-                              AccountAuthService accountAuthService) {
+                              AccountAuthService accountAuthService,
+                              SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService) {
         this.accountDAO = accountDAO;
         this.encryptor = encryptor;
         this.globalSettingsService = globalSettingsService;
         this.accountAuthService = accountAuthService;
+        this.submitAccountPasswordCryptoService = submitAccountPasswordCryptoService;
     }
 
     @Override
@@ -142,28 +149,28 @@ public class AccountServiceImpl implements AccountService {
         ),
         content = EventContentConstants.CREATE_ACCOUNT
     )
-    public AccountDTO createAccount(String username, AccountDTO account) {
-        authCreateAccount(username, account.getAppId());
+    public AccountDTO createAccount(User user, AccountDTO account) {
+        authCreateAccount(user, account.getAppId());
         AccountDTO createdAccount = createAccount(account);
         accountAuthService.registerAccount(
-            username,
+            user,
             createdAccount.getId(),
             createdAccount.getAlias()
         );
         return createdAccount;
     }
 
-    private void authCreateAccount(String username, long appId) throws PermissionDeniedException {
-        accountAuthService.authCreateAccount(username, new AppResourceScope(appId)).denyIfNoPermission();
+    private void authCreateAccount(User user, long appId) throws PermissionDeniedException {
+        accountAuthService.authCreateAccount(user, new AppResourceScope(appId)).denyIfNoPermission();
     }
 
-    private void authUseAccount(String username, long appId, long accountId) throws PermissionDeniedException {
-        accountAuthService.authUseAccount(username, new AppResourceScope(appId), accountId, null)
+    private void authUseAccount(User user, long appId, long accountId) throws PermissionDeniedException {
+        accountAuthService.authUseAccount(user, new AppResourceScope(appId), accountId, null)
             .denyIfNoPermission();
     }
 
-    private void authManageAccount(String username, long appId, long accountId) throws PermissionDeniedException {
-        accountAuthService.authManageAccount(username, new AppResourceScope(appId), accountId, null)
+    private void authManageAccount(User user, long appId, long accountId) throws PermissionDeniedException {
+        accountAuthService.authManageAccount(user, new AppResourceScope(appId), accountId, null)
             .denyIfNoPermission();
     }
 
@@ -182,8 +189,8 @@ public class AccountServiceImpl implements AccountService {
         ),
         content = EventContentConstants.USE_ACCOUNT
     )
-    public AccountDTO getAccount(String username, long appId, Long accountId) {
-        authUseAccount(username, appId, accountId);
+    public AccountDTO getAccount(User user, long appId, Long accountId) {
+        authUseAccount(user, appId, accountId);
         return getAccount(appId, accountId);
     }
 
@@ -227,8 +234,8 @@ public class AccountServiceImpl implements AccountService {
         ),
         content = EventContentConstants.EDIT_ACCOUNT
     )
-    public AccountDTO updateAccount(String username, AccountDTO updateAccount) throws ServiceException {
-        authManageAccount(username, updateAccount.getAppId(), updateAccount.getId());
+    public AccountDTO updateAccount(User user, AccountDTO updateAccount) throws ServiceException {
+        authManageAccount(user, updateAccount.getAppId(), updateAccount.getId());
 
         AccountDTO originAccount = getAccount(updateAccount.getAppId(), updateAccount.getId());
         String updateAlias = updateAccount.getAlias();
@@ -284,15 +291,15 @@ public class AccountServiceImpl implements AccountService {
         ),
         content = EventContentConstants.DELETE_ACCOUNT
     )
-    public void deleteAccount(String username, long appId, Long accountId) throws ServiceException {
-        log.info("Delete account, operator={}, appId={}, accountId={}", username, appId, accountId);
+    public void deleteAccount(User user, long appId, Long accountId) throws ServiceException {
+        log.info("Delete account, operator={}, appId={}, accountId={}", user, appId, accountId);
         AccountDTO account = getAccountById(accountId);
         if (account == null) {
             log.info("Account is not exist, accountId={}", accountId);
             throw new NotFoundException(ErrorCode.ACCOUNT_NOT_EXIST);
         }
 
-        authManageAccount(username, account.getAppId(), accountId);
+        authManageAccount(user, account.getAppId(), accountId);
 
         if (isAccountRefByAnyStep(accountId)) {
             log.info("Account:{} is ref by step, should not delete!", accountId);
@@ -424,7 +431,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public AccountDTO buildCreateAccountDTO(String operator, long appId, AccountCreateUpdateReq req) {
+    public AccountDTO buildCreateAccountDTO(String username, long appId, AccountCreateUpdateReq req) {
         AccountDTO accountDTO = new AccountDTO();
         accountDTO.setAppId(appId);
         accountDTO.setAccount(req.getAccount());
@@ -453,9 +460,9 @@ public class AccountServiceImpl implements AccountService {
             accountDTO.setDbSystemAccountId(req.getDbSystemAccountId());
         }
 
-        accountDTO.setCreator(operator);
+        accountDTO.setCreator(username);
         accountDTO.setCreateTime(DateUtils.currentTimeMillis());
-        accountDTO.setLastModifyUser(operator);
+        accountDTO.setLastModifyUser(username);
         accountDTO.setLastModifyTime(DateUtils.currentTimeMillis());
 
         return accountDTO;
@@ -483,14 +490,14 @@ public class AccountServiceImpl implements AccountService {
             }
         }
         AccountDTO windowsSystem = accountDAO.getAccount(appId, AccountCategoryEnum.SYSTEM, AccountTypeEnum.WINDOW,
-            DEFAULT_WINDOWS_ACCOUNT, DEFAULT_WINDOWS_ACCOUNT);
+            DEFAULT_WINDOWS_SYSTEM_ACCOUNT, DEFAULT_WINDOWS_SYSTEM_ACCOUNT);
         if (windowsSystem == null) {
             windowsSystem = new AccountDTO();
             windowsSystem.setAppId(appId);
             windowsSystem.setCategory(AccountCategoryEnum.SYSTEM);
             windowsSystem.setType(AccountTypeEnum.WINDOW);
-            windowsSystem.setAccount(DEFAULT_WINDOWS_ACCOUNT);
-            windowsSystem.setAlias(DEFAULT_WINDOWS_ACCOUNT);
+            windowsSystem.setAccount(DEFAULT_WINDOWS_SYSTEM_ACCOUNT);
+            windowsSystem.setAlias(DEFAULT_WINDOWS_SYSTEM_ACCOUNT);
             windowsSystem.setCreator("admin");
             windowsSystem.setCreateTime(DateUtils.currentTimeMillis());
             windowsSystem.setLastModifyUser("admin");
@@ -501,10 +508,44 @@ public class AccountServiceImpl implements AccountService {
                 log.warn("Fail to create default system account", e);
             }
         }
+        AccountDTO windowsAdmin = accountDAO.getAccount(appId, AccountCategoryEnum.SYSTEM, AccountTypeEnum.WINDOW,
+            DEFAULT_WINDOWS_ADMIN_ACCOUNT, DEFAULT_WINDOWS_ADMIN_ACCOUNT);
+        if (windowsAdmin == null) {
+            windowsAdmin = new AccountDTO();
+            windowsAdmin.setAppId(appId);
+            windowsAdmin.setCategory(AccountCategoryEnum.SYSTEM);
+            windowsAdmin.setType(AccountTypeEnum.WINDOW);
+            windowsAdmin.setAccount(DEFAULT_WINDOWS_ADMIN_ACCOUNT);
+            windowsAdmin.setAlias(DEFAULT_WINDOWS_ADMIN_ACCOUNT);
+            windowsAdmin.setCreator("admin");
+            windowsAdmin.setCreateTime(DateUtils.currentTimeMillis());
+            windowsAdmin.setLastModifyUser("admin");
+            try {
+                accountDAO.saveAccount(windowsAdmin);
+                log.info("administrator account of appId={} created", appId);
+            } catch (Exception e) {
+                log.warn("Fail to create default administrator account", e);
+            }
+        }
     }
 
     @Override
-    public Integer countAccounts(AccountTypeEnum accountType) {
-        return accountDAO.countAccounts(accountType);
+    public void decryptPwdFromReqIfNeeded(AccountCreateUpdateReq req) {
+        if (StringUtils.isNotEmpty(req.getAlgorithm())
+            && StringUtils.isNotEmpty(req.getPassword())
+            && !JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(req.getPassword())) {
+            log.debug("Decrypt account password, algorithm={}", req.getAlgorithm());
+            String decryptedPassword = submitAccountPasswordCryptoService.decryptIfNeeded(req.getAlgorithm(),
+                req.getPassword());
+            req.setPassword(decryptedPassword);
+        }
+        if (StringUtils.isNotEmpty(req.getAlgorithm())
+            && StringUtils.isNotEmpty(req.getDbPassword())
+            && !JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(req.getDbPassword())) {
+            log.debug("Decrypt DB password, algorithm={}", req.getAlgorithm());
+            String decryptedPassword = submitAccountPasswordCryptoService.decryptIfNeeded(req.getAlgorithm(),
+                req.getDbPassword());
+            req.setDbPassword(decryptedPassword);
+        }
     }
 }

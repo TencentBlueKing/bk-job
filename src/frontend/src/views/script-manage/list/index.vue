@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -49,7 +49,7 @@
         <jb-search-select
           ref="search"
           :data="searchSelect"
-          :placeholder="$t('script.搜索脚本名称，类型，场景标签，更新人...')"
+          :placeholder="$t('script.搜索脚本名称，类型，场景标签，更新人')"
           style="width: 420px;"
           @on-change="handleSearch" />
       </template>
@@ -71,7 +71,7 @@
       <bk-table-column
         key="name"
         align="left"
-        :label="$t('script.脚本名称.colHead')"
+        :label="$t('script.脚本名称_colHead')"
         :min-width="300"
         prop="name"
         sortable="custom">
@@ -113,7 +113,7 @@
         key="tags"
         align="left"
         class-name="edit-tag-column"
-        :label="$t('script.场景标签.colHead')"
+        :label="$t('script.场景标签_colHead')"
         prop="tags"
         sortable="custom"
         width="200">
@@ -138,7 +138,7 @@
         v-if="allRenderColumnMap.related"
         key="related"
         align="right"
-        :label="$t('script.被引用.colHead')"
+        :label="$t('script.被引用_colHead')"
         prop="related"
         :render-header="renderHeader"
         width="120">
@@ -172,11 +172,15 @@
         v-if="allRenderColumnMap.creator"
         key="creator"
         align="left"
-        :label="$t('script.创建人.colHead')"
+        :label="$t('script.创建人_colHead')"
         prop="creator"
         show-overflow-tooltip
         sortable="custom"
-        width="140" />
+        width="140">
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.creator" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.createTime"
         key="createTime"
@@ -188,14 +192,18 @@
         v-if="allRenderColumnMap.lastModifyUser"
         key="lastModifyUser"
         align="left"
-        :label="$t('script.更新人.colHead')"
+        :label="$t('script.更新人_colHead')"
         prop="lastModifyUser"
-        width="160" />
+        width="160">
+        <template slot-scope="{ row }">
+          <bk-user-display-name :user-id="row.lastModifyUser" />
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.lastModifyTime"
         key="lastModifyTime"
         align="left"
-        :label="$t('script.更新时间.colHead')"
+        :label="$t('script.更新时间_colHead')"
         prop="lastModifyTime"
         width="180" />
       <bk-table-column
@@ -217,7 +225,7 @@
           </auth-button>
           <span
             class="mr10"
-            :tippy-tips="row.isExecuteDisable ? $t('script.该脚本没有 “线上版本” 可执行，请前往版本管理内设置。') : ''">
+            :tippy-tips="row.isExecuteDisable ? $t('script.该脚本没有_线上版本_可执行，请前往版本管理内设置。') : ''">
             <auth-button
               auth="script/execute"
               :disabled="row.isExecuteDisable"
@@ -265,7 +273,7 @@
       :is-show.sync="showRelated"
       quick-close
       :show-footer="false"
-      :title="$t('script.被引用.label')"
+      :title="$t('script.被引用_label')"
       :width="695">
       <script-related-info
         from="scriptList"
@@ -279,6 +287,8 @@
   import PublicTagManageService from '@service/public-tag-manage';
   import ScriptService from '@service/script-manage';
   import TagManageService from '@service/tag-manage';
+
+  import TaskStepModel from '@model/task/task-step';
 
   import { checkPublicScript } from '@utils/assist';
   import { listColumnsCache } from '@utils/cache-helper';
@@ -297,6 +307,7 @@
   import BatchEditTag from './components/batch-edit-tag';
   import Layout from './components/layout';
   import TagPanel from './components/tag-panel';
+
 
   const TABLE_COLUMN_CACHE = 'script_list_columns';
 
@@ -363,7 +374,7 @@
           description: I18n.t('script.将覆盖其它条件'),
         },
         {
-          name: I18n.t('script.脚本名称.colHead'),
+          name: I18n.t('script.脚本名称_colHead'),
           id: 'name',
           default: true,
         },
@@ -374,27 +385,35 @@
           remoteExecuteImmediate: true,
         },
         {
-          name: I18n.t('script.脚本内容.colHead'),
+          name: I18n.t('script.脚本内容_colHead'),
           id: 'content',
           default: true,
         },
         {
-          name: I18n.t('script.场景标签.colHead'),
+          name: I18n.t('script.场景标签_colHead'),
           id: 'tags',
           remoteMethod: this.tagSericeHandler.fetchTagOfSearch,
           remoteExecuteImmediate: true,
         },
         {
-          name: I18n.t('script.创建人.colHead'),
+          name: I18n.t('script.创建人_colHead'),
           id: 'creator',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
         {
-          name: I18n.t('script.更新人.colHead'),
+          name: I18n.t('script.更新人_colHead'),
           id: 'lastModifyUser',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
       ];
       this.tableColumn = [
@@ -404,12 +423,12 @@
         },
         {
           id: 'name',
-          label: I18n.t('script.脚本名称.colHead'),
+          label: I18n.t('script.脚本名称_colHead'),
           disabled: true,
         },
         {
           id: 'tags',
-          label: I18n.t('script.场景标签.colHead'),
+          label: I18n.t('script.场景标签_colHead'),
           disabled: true,
         },
         {
@@ -418,7 +437,7 @@
         },
         {
           id: 'related',
-          label: I18n.t('script.被引用.colHead'),
+          label: I18n.t('script.被引用_colHead'),
         },
         {
           id: 'version',
@@ -426,7 +445,7 @@
         },
         {
           id: 'creator',
-          label: I18n.t('script.创建人.colHead'),
+          label: I18n.t('script.创建人_colHead'),
         },
         {
           id: 'createTime',
@@ -434,11 +453,11 @@
         },
         {
           id: 'lastModifyUser',
-          label: I18n.t('script.更新人.colHead'),
+          label: I18n.t('script.更新人_colHead'),
         },
         {
           id: 'lastModifyTime',
-          label: I18n.t('script.更新时间.colHead'),
+          label: I18n.t('script.更新时间_colHead'),
         },
       ];
       const columnsCache = listColumnsCache.getItem(TABLE_COLUMN_CACHE);
@@ -611,6 +630,9 @@
               taskInstanceId: 0,
               scriptVersionId: script.scriptVersionId,
             },
+            query: {
+              source: this.isPublicScript ? TaskStepModel.scriptStep.TYPE_SOURCE_PUBLIC : TaskStepModel.scriptStep.TYPE_SOURCE_BUSINESS,
+            },
           });
         });
       },
@@ -646,18 +668,18 @@
        */
       renderHeader(h, data) {
         return (
-                    <span>
-                        <span>{ data.column.label }</span>
-                        <bk-popover>
-                            <icon
-                                type="circle-italics-info"
-                                style="margin-left: 8px; font-size: 12px;" />
-                            <div slot="content">
-                                <div>{ I18n.t('script.显示被作业引用的次数') }</div>
-                                <div>{ I18n.t('script.显示被执行方案引用的次数') }</div>
-                            </div>
-                        </bk-popover>
-                    </span>
+          <span>
+            <span>{ data.column.label }</span>
+            <bk-popover>
+              <icon
+                type="circle-italics-info"
+                style="margin-left: 8px; font-size: 12px;" />
+              <div slot="content">
+                <div>{ I18n.t('script.显示被作业引用的次数') }</div>
+                <div>{ I18n.t('script.显示被执行方案引用的次数') }</div>
+              </div>
+            </bk-popover>
+          </span>
         );
       },
     },

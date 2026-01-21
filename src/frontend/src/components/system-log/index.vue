@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -73,7 +73,6 @@
 </template>
 <script>
   import Tippy from 'bk-magic-vue/lib/utils/tippy';
-  import Cookie from 'js-cookie';
   import * as marked from 'marked';
 
   import WebGlobalService from '@service/web-global';
@@ -114,7 +113,8 @@
       // 对比版本号，每次版本更新自动显示版本日志
       this.isDefaultShow = false;
       const currentVersion = process.env.JOB_VERSION;
-      this.isDefaultShow = !Cookie.get('job_supermen') || Cookie.get('job_supermen') !== currentVersion;
+      this.isDefaultShow = !localStorage.getItem('job_supermen') || localStorage.getItem('job_supermen') !== currentVersion;
+
       if (this.isDefaultShow) {
         this.$emit('input', true);
         this.$emit('change', true);
@@ -126,10 +126,7 @@
        */
       fetchData() {
         this.isLoading = true;
-        const requestHandler = this.$i18n.locale === 'en-US'
-          ? WebGlobalService.fetchVersionENLog
-          : WebGlobalService.fetchVersionLog;
-        requestHandler()
+        WebGlobalService.fetchVersionLog()
           .then((data) => {
             this.list = data;
           })
@@ -159,11 +156,11 @@
           });
         }
         this.popperInstance.setContent(`
-                    <div style="width: 220px; font-size: 12px; line-height: 20px; color: #63656E;">
-                        <div style="color: #979BA5">${I18n.t('Job 小贴士：')}</div>
-                        <div>${I18n.t('想要再次查阅「版本日志」也可以从此处进入喔～')}</div>
-                    </div>
-                `);
+          <div style="width: 220px; font-size: 12px; line-height: 20px; color: #63656E;">
+            <div style="color: #979BA5">${I18n.t('Job 小贴士：')}</div>
+            <div>${I18n.t('想要再次查阅「版本日志」也可以从此处进入喔～')}</div>
+          </div>
+        `);
         this.popperInstance.show();
       },
       /**
@@ -188,7 +185,7 @@
       handleClose() {
         this.$emit('input', false);
         this.$emit('change', false);
-        Cookie.set('job_supermen', process.env.JOB_VERSION, { expires: 3600 });
+        localStorage.setItem('job_supermen', process.env.JOB_VERSION);
 
         const animateTimes = 400;
 

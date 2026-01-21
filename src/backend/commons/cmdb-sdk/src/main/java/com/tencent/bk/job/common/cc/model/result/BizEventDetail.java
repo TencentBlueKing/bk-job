@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -49,15 +49,19 @@ public class BizEventDetail {
     private String timezone;
     @JsonProperty("language")
     private String language;
+    @JsonProperty("default")
+    private Integer deFault = 0;
 
-    public static ApplicationDTO toAppInfoDTO(BizEventDetail bizEventDetail) {
+    public ApplicationDTO toAppInfoDTO() {
         ApplicationDTO applicationDTO = new ApplicationDTO();
-        applicationDTO.setScope(new ResourceScope(ResourceScopeTypeEnum.BIZ,
-            String.valueOf(bizEventDetail.getBizId())));
-        applicationDTO.setName(bizEventDetail.getAppName());
-        applicationDTO.setBkSupplierAccount(bizEventDetail.getSupplierAccount());
-        applicationDTO.setTimeZone(bizEventDetail.getTimezone());
-        applicationDTO.setLanguage(bizEventDetail.getLanguage());
+        applicationDTO.setScope(
+            new ResourceScope(ResourceScopeTypeEnum.BIZ, String.valueOf(bizId))
+        );
+        applicationDTO.setName(appName);
+        applicationDTO.setBkSupplierAccount(supplierAccount);
+        applicationDTO.setTimeZone(timezone);
+        applicationDTO.setLanguage(language);
+        applicationDTO.setDeFault(deFault);
         return applicationDTO;
     }
 }

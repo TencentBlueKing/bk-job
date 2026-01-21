@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.manage.api.web;
 
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.WebAPI;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.AccountNameRulesReq;
 import com.tencent.bk.job.manage.model.web.request.globalsetting.FileUploadSettingReq;
@@ -36,19 +38,16 @@ import com.tencent.bk.job.manage.model.web.request.notify.SetAvailableNotifyChan
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.FileUploadSettingVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
-import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -125,24 +124,6 @@ public interface WebGlobalSettingsResource {
         @RequestHeader("username")
             String username
     );
-
-    @ApiOperation(value = "根据用户英文名前缀拉取用户列表", produces = "application/json")
-    @GetMapping("/users/list")
-    Response<List<UserVO>> listUsers(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiParam("英文名前缀（逗号分隔）")
-        @RequestParam(value = "prefixStr", required = false)
-            String prefixStr,
-        @ApiParam("拉取起始位置")
-        @RequestParam(value = "offset", required = false)
-            Long offset,
-        @ApiParam("拉取数量")
-        @RequestParam(value = "limit", required = false)
-            Long limit
-    );
-
 
     @ApiOperation(value = "获取现有通知黑名单用户列表", produces = "application/json")
     @GetMapping("/notify/users/blacklist")
@@ -233,17 +214,8 @@ public interface WebGlobalSettingsResource {
             String username
     );
 
-    @ApiOperation(value = "设置平台信息", produces = "application/json")
-    @PutMapping("/platformInfo")
-    Response<PlatformInfoVO> savePlatformInfo(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
-        @RequestHeader("username")
-            String username,
-        @ApiParam(value = "设置平台信息请求体", required = true)
-        @RequestBody
-            PlatformInfoVO platformInfoVO
-    );
-
+    @CompatibleImplementation(name = "platform_info", deprecatedVersion = "3.11.x", type = CompatibleType.DEPLOY,
+        explain = "发布完成后可以删除")
     @ApiOperation(value = "获取平台信息-包含默认配置", produces = "application/json")
     @GetMapping("/platformInfoWithDefault")
     Response<PlatformInfoWithDefaultVO> getPlatformInfoWithDefault(

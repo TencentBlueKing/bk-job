@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -59,7 +59,7 @@
           type="edit-2" />
       </div>
     </div>
-    <ip-selector
+    <jb-ip-selector
       :original-value="originalValue"
       :show-dialog="isShowChooseIp"
       :value="executeObjectsInfo"
@@ -68,8 +68,6 @@
   </div>
 </template>
 <script>
-  import _ from 'lodash';
-
   import ExecuteTargetModel from '@model/execute-target';
 
   export default {
@@ -109,7 +107,7 @@
       },
     },
     created() {
-      this.originalValue = _.cloneDeep(this.value.executeObjectsInfo);
+      this.originalValue = ExecuteTargetModel.cloneExecuteObjectsInfo(this.value.executeObjectsInfo);
     },
     methods: {
       handleRemove() {

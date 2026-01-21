@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -63,12 +63,17 @@ public class ScheduledTasks {
     public void disableCronJobOfArchivedScopeTask() {
         log.info(Thread.currentThread().getId() + ":disableCronJobOfArchivedScopeTask start");
         long start = System.currentTimeMillis();
+        boolean result = false;
         try {
-            disableCronJobOfArchivedScopeTask.execute();
+            result = disableCronJobOfArchivedScopeTask.execute();
         } catch (Exception e) {
             log.error("disableCronJobOfArchivedScopeTask fail", e);
         } finally {
-            log.info("disableCronJobOfArchivedScopeTask end, duration={}ms", System.currentTimeMillis() - start);
+            log.info(
+                "disableCronJobOfArchivedScopeTask end, result={}, duration={}ms",
+                result,
+                System.currentTimeMillis() - start
+            );
         }
     }
 }

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.dao;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.SimplePaginationCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -42,21 +43,11 @@ public interface TaskInstanceDAO {
 
     TaskInstanceDTO getTaskInstance(long taskInstanceId);
 
-    List<TaskInstanceDTO> getTaskInstanceByTaskId(long taskId);
-
     void updateTaskStatus(long taskInstanceId, int status);
-
-    void updateTaskStartTime(long taskInstanceId, Long startTime);
-
-    void updateTaskEndTime(long taskInstanceId, Long endTime);
 
     void updateTaskCurrentStepId(Long taskInstanceId, Long stepInstanceId);
 
     void resetTaskStatus(Long taskInstanceId);
-
-    void cleanTaskEndTime(Long taskInstanceId);
-
-    void updateTaskTotalTime(Long taskInstanceId, Long totalTime);
 
     /**
      * 分页查询作业执行实例
@@ -68,8 +59,22 @@ public interface TaskInstanceDAO {
     PageData<TaskInstanceDTO> listPageTaskInstance(TaskInstanceQuery taskQuery,
                                                    BaseSearchCondition baseSearchCondition);
 
+    /**
+     * 根据条件分页查询作业实例
+     */
+    List<TaskInstanceDTO> listJobInstance(TaskInstanceQuery taskQuery,
+                                          SimplePaginationCondition condition);
 
-    void addCallbackUrl(long taskInstanceId, String callBackUrl);
+    /**
+     * 带有IP条件的分页查询
+     */
+    List<TaskInstanceDTO> listJobInstanceWithIpCondition(TaskInstanceQuery taskQuery,
+                                                         SimplePaginationCondition condition);
+
+    /**
+     * 根据条件查总数
+     */
+    int getTaskInstanceCountWithCondition(TaskInstanceQuery taskQuery);
 
     /**
      * 获取定时作业执行情况
@@ -81,8 +86,11 @@ public interface TaskInstanceDAO {
      * @param limit               返回记录个数；如果未NULL,那么不限制返回数量
      * @return 作业实例列表
      */
-    List<TaskInstanceDTO> listLatestCronTaskInstance(long appId, Long cronTaskId,
-                                                     Long latestTimeInSeconds, RunStatusEnum status, Integer limit);
+    List<TaskInstanceDTO> listLatestCronTaskInstance(long appId,
+                                                     Long cronTaskId,
+                                                     Long latestTimeInSeconds,
+                                                     RunStatusEnum status,
+                                                     Integer limit);
 
     /**
      * 更新作业的执行信息
@@ -94,8 +102,12 @@ public interface TaskInstanceDAO {
      * @param endTime        结束时间
      * @param totalTime      总耗时
      */
-    void updateTaskExecutionInfo(long taskInstanceId, RunStatusEnum status, Long currentStepId,
-                                 Long startTime, Long endTime, Long totalTime);
+    void updateTaskExecutionInfo(long taskInstanceId,
+                                 RunStatusEnum status,
+                                 Long currentStepId,
+                                 Long startTime,
+                                 Long endTime,
+                                 Long totalTime);
 
     /**
      * 重置作业执行状态
@@ -131,9 +143,10 @@ public interface TaskInstanceDAO {
     /**
      * 保存作业实例与主机的关系，便于根据ip/ipv6检索作业实例
      *
+     * @param appId          业务 ID
      * @param taskInstanceId 作业实例ID
      * @param hosts          主机列表
      */
-    void saveTaskInstanceHosts(long taskInstanceId, Collection<HostDTO> hosts);
+    void saveTaskInstanceHosts(long appId, long taskInstanceId, Collection<HostDTO> hosts);
 
 }

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,7 +25,9 @@
 package com.tencent.bk.job.execute.service;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
+import com.tencent.bk.job.common.model.SimplePaginationCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.StepExecutionDetailDTO;
 import com.tencent.bk.job.execute.model.StepExecutionRecordDTO;
@@ -52,27 +54,40 @@ public interface TaskResultService {
     PageData<TaskInstanceDTO> listPageTaskInstance(TaskInstanceQuery taskQuery,
                                                    BaseSearchCondition baseSearchCondition);
 
+    /**
+     * 根据偏移量和长度获取作业实例列表
+     * @param taskQuery 任务实例查询条件
+     * @param condition 分页条件
+     * @return 作业实例列表
+     */
+    List<TaskInstanceDTO> listJobInstance(TaskInstanceQuery taskQuery,
+                                          SimplePaginationCondition condition);
+
+    /**
+     * 根据条件查找符合的总数
+     */
+    int countTaskInstance(TaskInstanceQuery taskQuery);
 
     /**
      * 获取作业执行结果
      *
-     * @param username       用户名
+     * @param user           用户
      * @param appId          业务ID
      * @param taskInstanceId 任务实例ID
      * @return 作业执行结果
      */
-    TaskExecuteResultDTO getTaskExecutionResult(String username, Long appId, Long taskInstanceId);
+    TaskExecuteResultDTO getTaskExecutionResult(User user, Long appId, Long taskInstanceId);
 
 
     /**
      * 获取步骤执行详情
      *
-     * @param username 用户名
-     * @param appId    业务ID
-     * @param query    查询条件
+     * @param user  用户
+     * @param appId 业务ID
+     * @param query 查询条件
      * @return 执行详情
      */
-    StepExecutionDetailDTO getStepExecutionResult(String username, Long appId, StepExecutionResultQuery query);
+    StepExecutionDetailDTO getStepExecutionResult(User user, Long appId, StepExecutionResultQuery query);
 
     /**
      * 获取定时任务执行结果统计
@@ -87,8 +102,9 @@ public interface TaskResultService {
     /**
      * 根据执行结果分组获取执行对象信息
      *
-     * @param username       用户名
+     * @param user           用户
      * @param appId          业务ID
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
      * @param executeCount   执行次数
      * @param batch          滚动执行批次;如果传入null或0，忽略该参数
@@ -97,8 +113,9 @@ public interface TaskResultService {
      * @param keyword        脚本日志关键字
      * @return 主机列表
      */
-    List<ExecuteObject> getExecuteObjectsByResultType(String username,
+    List<ExecuteObject> getExecuteObjectsByResultType(User user,
                                                       Long appId,
+                                                      Long taskInstanceId,
                                                       Long stepInstanceId,
                                                       Integer batch,
                                                       Integer executeCount,
@@ -109,14 +126,16 @@ public interface TaskResultService {
     /**
      * 获取步骤执行历史
      *
-     * @param username       用户名
+     * @param user           用户
      * @param appId          业务ID
+     * @param taskInstanceId 作业实例 ID
      * @param stepInstanceId 步骤实例ID
-     * @param batch          滚动执行批次;如果传入，则会按照batch过滤步骤执行历史
+     * @param batch          滚动执行批次，非滚动步骤不需要传入，0表示获取所有批次的数据，null表示获取当前批次数据
      * @return 执行历史
      */
-    List<StepExecutionRecordDTO> listStepExecutionHistory(String username,
+    List<StepExecutionRecordDTO> listStepExecutionHistory(User user,
                                                           Long appId,
+                                                          Long taskInstanceId,
                                                           Long stepInstanceId,
                                                           Integer batch);
 

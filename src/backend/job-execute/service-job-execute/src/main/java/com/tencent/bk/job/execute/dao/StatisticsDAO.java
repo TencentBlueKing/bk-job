@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,55 +25,46 @@
 package com.tencent.bk.job.execute.dao;
 
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
-import org.jooq.DSLContext;
+import com.tencent.bk.job.execute.statistics.StatisticsKey;
 
 import java.util.List;
 
 public interface StatisticsDAO {
-    Long insertStatistics(DSLContext dslContext, StatisticsDTO statisticsDTO);
-
-    Long upsertStatistics(DSLContext dslContext, StatisticsDTO statisticsDTO);
-
-    int updateStatisticsById(DSLContext dslContext, StatisticsDTO statisticsDTO);
-
-    int deleteStatisticsById(DSLContext dslContext, Long id);
 
     int deleteStatisticsByDate(String date);
 
     int deleteOneDayStatistics(Long appId, String date);
 
-    StatisticsDTO getStatisticsById(Long id);
-
     StatisticsDTO getStatistics(Long appId, String resource, String dimension, String dimensionValue, String date);
 
-    List<StatisticsDTO> getStatisticsListByAppId(Long appId, String resource, String dimension, String dimensionValue
-        , String sinceDate);
-
-    List<StatisticsDTO> getStatisticsList(Long appId, String resource, String dimension, String date);
-
-    List<StatisticsDTO> getStatisticsList(List<Long> inAppIdList, String resource, String dimension, String date);
+    /**
+     * 根据条件获取一段时间范围内的统计数据
+     *
+     * @param appId          Job业务ID
+     * @param resource       资源
+     * @param dimension      维度
+     * @param dimensionValue 维度取值
+     * @param startDate      开始日期（含）
+     * @param endDate        结束日期（含）
+     * @return 统计数据列表
+     */
+    List<StatisticsDTO> getStatisticsListBetweenDate(Long appId,
+                                                     String resource,
+                                                     String dimension,
+                                                     String dimensionValue,
+                                                     String startDate,
+                                                     String endDate);
 
     List<StatisticsDTO> getStatisticsList(List<Long> inAppIdList, List<Long> notInAppIdList, String resource,
                                           String dimension, String dimensionValue, String date);
 
-    Long getTotalValueOfStatisticsList(List<Long> inAppIdList, List<Long> notInAppIdList, String resource,
-                                       String dimension, String dimensionValue, String date);
-
-    List<StatisticsDTO> getStatisticsListBetweenDate(List<Long> inAppIdList, List<Long> notInAppIdList,
-                                                     String resource, String dimension, String startDate,
-                                                     String endDate);
-
-    List<StatisticsDTO> getStatisticsListBetweenDate(List<Long> inAppIdList, List<Long> notInAppIdList,
-                                                     String resource, String dimension, String dimensionValue,
-                                                     String startDate, String endDate);
-
-    List<StatisticsDTO> getStatisticsListBetweenDate(Long appId, String resource, String dimension,
-                                                     String dimensionValue, String startDate, String endDate);
-
-    List<StatisticsDTO> listAllStatistics();
-
-    Integer countStatisticsByDate(String date);
-
-    Integer countStatistics(List<Long> inAppIdList, List<Long> notInAppIdList, String resource, String dimension,
-                            String dimensionValue, String date);
+    /**
+     * 增加统计指标的值
+     *
+     * @param date           日期
+     * @param statisticsKey  统计 key
+     * @param incrementValue 增长值
+     * @return affectRows 更新的行数
+     */
+    int increaseStatisticValue(String date, StatisticsKey statisticsKey, Integer incrementValue);
 }

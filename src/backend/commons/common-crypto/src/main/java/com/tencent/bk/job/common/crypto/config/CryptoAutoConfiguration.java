@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,11 +24,13 @@
 
 package com.tencent.bk.job.common.crypto.config;
 
+import com.tencent.bk.job.common.crypto.ASymmetricCryptoService;
 import com.tencent.bk.job.common.crypto.CryptoConfigService;
 import com.tencent.bk.job.common.crypto.EncryptConfig;
 import com.tencent.bk.job.common.crypto.SymmetricCryptoService;
 import com.tencent.bk.job.common.crypto.scenario.CipherVariableCryptoService;
 import com.tencent.bk.job.common.crypto.scenario.DbPasswordCryptoService;
+import com.tencent.bk.job.common.crypto.scenario.SubmitAccountPasswordCryptoService;
 import com.tencent.bk.job.common.crypto.scenario.SensitiveParamCryptoService;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -61,5 +63,17 @@ public class CryptoAutoConfiguration {
     @Bean
     SensitiveParamCryptoService sensitiveParamCryptoService(SymmetricCryptoService symmetricCryptoService) {
         return new SensitiveParamCryptoService(symmetricCryptoService);
+    }
+
+    @Bean
+    ASymmetricCryptoService aSymmetricCryptoService(CryptoConfigService cryptoConfigService) {
+        return new ASymmetricCryptoService(cryptoConfigService);
+    }
+
+    @Bean
+    SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService(
+        ASymmetricCryptoService aSymmetricCryptoService,
+        CryptoConfigService cryptoConfigService) {
+        return new SubmitAccountPasswordCryptoService(aSymmetricCryptoService, cryptoConfigService);
     }
 }

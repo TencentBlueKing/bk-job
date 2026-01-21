@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.esb.sdk;
 
-import com.tencent.bk.job.common.esb.model.EsbResp;
 import lombok.Data;
 
 /**
@@ -40,8 +39,13 @@ public class BkApiContext<T, R> {
      * HTTP 请求方法
      */
     private String method;
+    /**
+     * API名称
+     */
+    private String apiName;
     private String uri;
     private T req;
+    private String queryParams;
     /**
      * 原始的 API 响应
      */
@@ -49,11 +53,20 @@ public class BkApiContext<T, R> {
     /**
      * 反序列化之后的 API 响应
      */
-    private EsbResp<R> resp;
+    private R resp;
     /**
      * API 调用耗时
      */
     private long costTime;
+
+    /**
+     * API 响应耗时
+     */
+    private long requestCostTime;
+    /**
+     * 响应数据反序列化耗时
+     */
+    private long deserializeCostTime;
     /**
      * API 是否调用成功并正确响应
      */
@@ -64,15 +77,19 @@ public class BkApiContext<T, R> {
     private String requestId;
 
     public BkApiContext(String method,
+                        String apiName,
                         String uri,
                         T req,
+                        String queryParams,
                         String originResp,
-                        EsbResp<R> resp,
+                        R resp,
                         long costTime,
                         boolean success) {
         this.method = method;
+        this.apiName = apiName;
         this.uri = uri;
         this.req = req;
+        this.queryParams = queryParams;
         this.originResp = originResp;
         this.resp = resp;
         this.costTime = costTime;

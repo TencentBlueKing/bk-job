@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -35,8 +35,13 @@
       <div class="split-line" />
       <panel-tab
         v-model="activePanel"
-        :is-file="isFile" />
+        :is-file="isFile"
+        :is-task="isTask" />
       <div class="extend-box">
+        <ai-helper
+          v-if="taskExecuteDetail && taskExecuteDetail.result === 'fail'"
+          :get-log="handleGetLog"
+          :task-instance-id="taskInstanceId" />
         <extend-download
           :active-panel="activePanel"
           :execute-object="taskExecuteDetail.executeObject"
@@ -65,7 +70,7 @@
         :font-size="fontSize"
         :line-feed="isScriptLogLineFeed"
         :mode="activePanel"
-        :name="`${stepInstanceId}_${taskExecuteDetail.key}_${executeCount}`"
+        :name="`${stepInstanceId}_${taskExecuteDetail.key}_${executeCount}_${taskExecuteDetail.batch}`"
         :step-instance-id="stepInstanceId"
         :task-execute-detail="taskExecuteDetail"
         :task-instance-id="taskInstanceId"
@@ -83,6 +88,7 @@
 
   import I18n from '@/i18n';
 
+  import AiHelper from './components/ai-helper.vue';
   import ExtendDownload from './components/extend-download.vue';
   import ExtendFont from './components/extend-font.vue';
   import ExtendFullscreen from './components/extend-fullscreen.vue';
@@ -167,6 +173,8 @@
   }, {
     immediate: true,
   });
+
+  const handleGetLog = () => logContentRef.value.getLog();
 
   let infoBoxParentNode;
   const handleFullscreen = () => {

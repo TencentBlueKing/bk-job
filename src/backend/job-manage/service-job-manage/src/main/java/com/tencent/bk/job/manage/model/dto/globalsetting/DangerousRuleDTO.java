@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import com.tencent.bk.job.manage.api.common.constants.EnableStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.RuleMatchHandleActionEnum;
 import com.tencent.bk.job.manage.model.db.DangerousRuleDO;
+import com.tencent.bk.job.manage.model.esb.v3.response.EsbDangerousRuleStatusV3DTO;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbDangerousRuleV3DTO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.DangerousRuleVO;
 import lombok.Data;
@@ -98,9 +99,17 @@ public class DangerousRuleDTO {
      */
     private Integer status;
 
-    public DangerousRuleDTO(Long id, String expression, String description, Integer priority, Integer scriptType,
-                            String creator, Long createTime, String lastModifier, Long lastModifyTime,
-                            Integer action, Integer status) {
+    public DangerousRuleDTO(Long id,
+                            String expression,
+                            String description,
+                            Integer priority,
+                            Integer scriptType,
+                            String creator,
+                            Long createTime,
+                            String lastModifier,
+                            Long lastModifyTime,
+                            Integer action,
+                            Integer status) {
         this.id = id;
         this.expression = expression;
         this.description = description;
@@ -195,8 +204,8 @@ public class DangerousRuleDTO {
         return esbDangerousRuleV3DTO;
     }
 
-    public EsbDangerousRuleV3DTO toEsbManageDangerousRuleV3DTO() {
-        EsbDangerousRuleV3DTO esbManageDangerousRuleV3DTO = new EsbDangerousRuleV3DTO();
+    public EsbDangerousRuleStatusV3DTO toEsbDangerousRuleStatusV3DTO() {
+        EsbDangerousRuleStatusV3DTO esbManageDangerousRuleV3DTO = new EsbDangerousRuleStatusV3DTO();
         esbManageDangerousRuleV3DTO.setId(id);
         esbManageDangerousRuleV3DTO.setStatus(status);
         return esbManageDangerousRuleV3DTO;

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -26,6 +26,7 @@ package com.tencent.bk.job.manage.service;
 
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
@@ -39,11 +40,11 @@ public interface CredentialService {
 
     PageData<CredentialDTO> listCredentialBasicInfo(Long appId, BaseSearchCondition baseSearchCondition);
 
-    CredentialDTO createCredential(String username, Long appId, CredentialCreateUpdateReq createUpdateReq);
+    CredentialDTO createCredential(User user, Long appId, CredentialCreateUpdateReq createUpdateReq);
 
-    CredentialDTO updateCredential(String username, Long appId, CredentialCreateUpdateReq createUpdateReq);
+    CredentialDTO updateCredential(User user, Long appId, CredentialCreateUpdateReq createUpdateReq);
 
-    Integer deleteCredentialById(String username, Long appId, String id);
+    Integer deleteCredentialById(User user, Long appId, String id);
 
     CredentialDTO getCredentialById(Long appId, String id);
 

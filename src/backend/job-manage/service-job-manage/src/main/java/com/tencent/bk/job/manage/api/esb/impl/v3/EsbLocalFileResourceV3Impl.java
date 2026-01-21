@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,9 +24,9 @@
 
 package com.tencent.bk.job.manage.api.esb.impl.v3;
 
-import com.tencent.bk.job.common.artifactory.config.ArtifactoryConfig;
 import com.tencent.bk.job.common.artifactory.model.dto.TempUrlInfo;
 import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryClient;
+import com.tencent.bk.job.common.artifactory.sdk.ArtifactoryHelper;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.constants.EsbConsts;
 import com.tencent.bk.job.common.esb.model.EsbResp;
@@ -54,15 +54,15 @@ import java.util.Map;
 @Slf4j
 public class EsbLocalFileResourceV3Impl implements EsbLocalFileV3Resource {
 
-    private final ArtifactoryConfig artifactoryConfig;
+    private final ArtifactoryHelper artifactoryHelper;
     private final LocalFileConfigForManage localFileConfigForManage;
     private final ArtifactoryClient artifactoryClient;
 
     @Autowired
-    public EsbLocalFileResourceV3Impl(ArtifactoryConfig artifactoryConfig,
+    public EsbLocalFileResourceV3Impl(ArtifactoryHelper artifactoryHelper,
                                       LocalFileConfigForManage localFileConfigForManage,
                                       @Qualifier("jobArtifactoryClient") ArtifactoryClient artifactoryClient) {
-        this.artifactoryConfig = artifactoryConfig;
+        this.artifactoryHelper = artifactoryHelper;
         this.localFileConfigForManage = localFileConfigForManage;
         this.artifactoryClient = artifactoryClient;
     }
@@ -97,7 +97,7 @@ public class EsbLocalFileResourceV3Impl implements EsbLocalFileV3Resource {
             filePathList.add(filePath);
         });
         List<TempUrlInfo> urlInfoList = artifactoryClient.createTempUrls(
-            artifactoryConfig.getArtifactoryJobProject(),
+            artifactoryHelper.getJobRealProject(),
             localFileConfigForManage.getLocalUploadRepo(),
             filePathList
         );

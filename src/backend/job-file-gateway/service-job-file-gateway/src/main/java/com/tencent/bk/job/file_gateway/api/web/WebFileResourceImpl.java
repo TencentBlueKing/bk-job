@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.file_gateway.model.req.common.ExecuteActionReq;
 import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesVO;
 import com.tencent.bk.job.file_gateway.service.FileService;
@@ -65,13 +66,14 @@ public class WebFileResourceImpl implements WebFileResource {
                                               Integer pageSize) {
         try {
             Long appId = appResourceScope.getAppId();
-            AuthResult viewFileSourceAuthResult = webFileSourceResource.checkViewFileSourcePermission(username,
-                appResourceScope, fileSourceId);
+            AuthResult viewFileSourceAuthResult = webFileSourceResource.checkViewFileSourcePermission(
+                JobContextUtil.getUser(), appResourceScope, fileSourceId);
             if (!viewFileSourceAuthResult.isPass()) {
                 throw new PermissionDeniedException(viewFileSourceAuthResult);
             }
             AuthResult manageFileSourceAuthResult =
-                webFileSourceResource.checkManageFileSourcePermission(username, appResourceScope, fileSourceId);
+                webFileSourceResource.checkManageFileSourcePermission(JobContextUtil.getUser(),
+                    appResourceScope, fileSourceId);
             FileNodesVO fileNodesVO = fileService.listFileNode(username, appId, fileSourceId, path, name, start,
                 pageSize);
             for (Map<String, Object> map : fileNodesVO.getPageData().getData()) {
@@ -92,8 +94,8 @@ public class WebFileResourceImpl implements WebFileResource {
                                            ExecuteActionReq req) {
         try {
             Long appId = appResourceScope.getAppId();
-            AuthResult authResult = webFileSourceResource.checkManageFileSourcePermission(username, appResourceScope,
-                fileSourceId);
+            AuthResult authResult = webFileSourceResource.checkManageFileSourcePermission(
+                JobContextUtil.getUser(), appResourceScope, fileSourceId);
             if (!authResult.isPass()) {
                 throw new PermissionDeniedException(authResult);
             }

@@ -16,7 +16,14 @@ plugins {
     id 'java'
     id 'idea'
 }
-
+ext {
+    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
+    set('jacksonVersion', "2.15.4")
+    set('jwtVersion', "0.13.0")
+    set('guavaVersion', "32.0.0-android")
+    set('okHttpVersion', "4.12.0")
+    set('bcprovVersion', "1.78.1")
+}
 apply plugin: "io.freefair.lombok"
 group 'org.tencent.bk.job'
 version '1.0.0'
@@ -39,18 +46,19 @@ allprojects {
 
 dependencies {
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.10.0'
-    testImplementation 'com.fasterxml.jackson.core:jackson-core:2.13.5'
-    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.13.5'
-    testImplementation 'com.fasterxml.jackson.core:jackson-annotations:2.13.5'
-    testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-joda:2.13.5'
-    testImplementation 'io.jsonwebtoken:jjwt:0.9.1'
-    testImplementation 'com.google.guava:guava:28.2-jre'
-    testImplementation 'com.squareup.okhttp3:okhttp:3.10.0'
-    testImplementation 'ch.qos.logback:logback-core:1.2.6'
-    testImplementation 'ch.qos.logback:logback-classic:1.2.6'
+    testImplementation "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
+    testImplementation "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
+    testImplementation "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
+    testImplementation "com.fasterxml.jackson.datatype:jackson-datatype-joda:$jacksonVersion"
+    testImplementation "io.jsonwebtoken:jjwt-impl:$jwtVersion"
+    testImplementation "io.jsonwebtoken:jjwt-jackson:$jwtVersion"
+    testImplementation "com.google.guava:guava:$guavaVersion"
+    testImplementation "com.squareup.okhttp3:okhttp:$okHttpVersion"
+    testImplementation 'ch.qos.logback:logback-core:1.2.13'
+    testImplementation 'ch.qos.logback:logback-classic:1.2.13'
     testImplementation 'org.slf4j:slf4j-api:1.7.30'
     testImplementation("org.apache.commons:commons-collections4:4.4")
-    testImplementation 'org.bouncycastle:bcprov-jdk15on:1.70'
+    testImplementation "org.bouncycastle:bcprov-jdk18on:$bcprovVersion"
     testImplementation 'org.projectlombok:lombok:1.18.8'
     compileOnly 'org.projectlombok:lombok:1.18.8'
     annotationProcessor 'org.projectlombok:lombok'

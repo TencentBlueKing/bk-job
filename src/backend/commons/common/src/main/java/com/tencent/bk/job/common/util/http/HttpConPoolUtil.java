@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -38,6 +38,7 @@ import org.apache.http.config.ConnectionConfig;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ByteArrayEntity;
+import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
@@ -92,7 +93,7 @@ public class HttpConPoolUtil {
      * @param contentType 默认传null则为"application/x-www-form-urlencoded"
      * @return 响应
      */
-    public static String post(String url, String content, String contentType) {
+    public static HttpResponse post(String url, String content, String contentType) {
         return post(url, CHARSET, content, contentType);
     }
 
@@ -105,28 +106,35 @@ public class HttpConPoolUtil {
      * @param contentType 默认传null则为"application/x-www-form-urlencoded"
      * @return 响应
      */
-    public static String post(String url, String charset, String content, String contentType) {
+    public static HttpResponse post(String url, String charset, String content, String contentType) {
         try {
-            byte[] resp = post(url, content.getBytes(charset), contentType);
-            if (null == resp) {
-                return null;
-            }
-            return new String(resp, charset);
+            return post(url, content.getBytes(charset), contentType);
         } catch (IOException e) {
-            log.error("Post request fail", e);
+            log.warn("Post request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         }
     }
 
     /**
-     * 提交POST请求，并返回数据（默认采用encoding常量指定的字符集解析）
+     * 提交POST请求，数据格式为表单数据，并返回响应数据
      *
      * @param url     提交的地址
      * @param content 提交的内容字符串
      * @return 响应
      */
-    public static String post(String url, String content) {
+    public static HttpResponse postFormData(String url, String content) {
         return post(url, CHARSET, content, "application/x-www-form-urlencoded");
+    }
+
+    /**
+     * 提交POST请求，数据格式为JSON数据，并返回响应数据
+     *
+     * @param url     提交的地址
+     * @param content 提交的内容字符串
+     * @return 响应
+     */
+    public static HttpResponse postJson(String url, String content) {
+        return post(url, CHARSET, content, ContentType.APPLICATION_JSON.getMimeType());
     }
 
     /**
@@ -137,7 +145,7 @@ public class HttpConPoolUtil {
      * @param headers 自定义请求头
      * @return 响应
      */
-    public static String post(String url, String content, Header... headers) {
+    public static HttpResponse post(String url, String content, Header... headers) {
         return post(url, CHARSET, content, headers);
     }
 
@@ -150,15 +158,11 @@ public class HttpConPoolUtil {
      * @param headers 自定义请求头
      * @return 响应
      */
-    public static String post(String url, String charset, String content, Header... headers) {
+    public static HttpResponse post(String url, String charset, String content, Header... headers) {
         try {
-            byte[] resp = post(url, new ByteArrayEntity(content.getBytes(charset)), headers);
-            if (null == resp) {
-                return null;
-            }
-            return new String(resp, charset);
+            return post(url, new ByteArrayEntity(content.getBytes(charset)), headers);
         } catch (IOException e) {
-            log.error("Post request fail", e);
+            log.warn("Post request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         }
     }
@@ -171,7 +175,7 @@ public class HttpConPoolUtil {
      * @param contentType 默认传null则为"application/x-www-form-urlencoded"
      * @return 返回字节数组
      */
-    public static byte[] post(String url, byte[] content, String contentType) {
+    public static HttpResponse post(String url, byte[] content, String contentType) {
         return post(url, new ByteArrayEntity(content), contentType);
     }
 
@@ -183,30 +187,32 @@ public class HttpConPoolUtil {
      * @param contentType   默认传null则为"application/x-www-form-urlencoded"
      * @return 返回字节数组
      */
-    public static byte[] post(String url, HttpEntity requestEntity, String contentType) {
+    public static HttpResponse post(String url, HttpEntity requestEntity, String contentType) {
         return post(url, requestEntity,
-            new BasicHeader("Content-Type", contentType == null ? "application/x-www-form-urlencoded" : contentType));
+                new BasicHeader("Content-Type",
+                        contentType == null ? "application/x-www-form-urlencoded" : contentType));
     }
 
-    public static byte[] post(String url, HttpEntity requestEntity, Header... headers) {
+    public static HttpResponse post(String url, HttpEntity requestEntity, Header... headers) {
         HttpPost post = new HttpPost(url);
         // 设置为长连接，服务端判断有此参数就不关闭连接。
         post.setHeader("Connection", "Keep-Alive");
         post.setHeaders(headers);
         post.setEntity(requestEntity);
-        try (CloseableHttpResponse httpResponse = HTTP_CLIENT.execute(post)) {
-            int statusCode = httpResponse.getStatusLine().getStatusCode();
+        try (CloseableHttpResponse response = HTTP_CLIENT.execute(post)) {
+            int statusCode = response.getStatusLine().getStatusCode();
             log.info("Post url: {}, statusCode: {}", url, statusCode);
             if (statusCode != HttpStatus.SC_OK) {
-                String errorMsg = buildErrorMessage("Post", url, statusCode,
-                    httpResponse.getStatusLine().getReasonPhrase());
-                log.error(errorMsg);
-                throw new InternalException(errorMsg, ErrorCode.API_ERROR);
+                String errorMsg = buildErrorMessage("Post",
+                    url,
+                    statusCode,
+                    response.getStatusLine().getReasonPhrase());
+                log.warn(errorMsg);
             }
-            HttpEntity entity = httpResponse.getEntity();
-            return EntityUtils.toByteArray(entity);
+            String entity = response.getEntity() != null ? EntityUtils.toString(response.getEntity()) : null;
+            return new HttpResponse(statusCode, entity, response.getAllHeaders());
         } catch (IOException e) {
-            log.error("Post request fail", e);
+            log.warn("Post request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         }
     }

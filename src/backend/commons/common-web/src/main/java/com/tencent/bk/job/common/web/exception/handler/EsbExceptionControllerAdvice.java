@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -70,7 +70,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolationException;
 
 /**
- * 处理ESB异常
+ * ESB V2/V3 接口异常的全局处理器
  */
 @ControllerAdvice(annotations = {EsbAPI.class})
 @Slf4j
@@ -110,7 +110,10 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     ResponseEntity<?> handleInternalException(HttpServletRequest request, InternalException ex) {
         String errorMsg = "Handle InternalException, uri: " + request.getRequestURI();
         log.error(errorMsg, ex);
-        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex.getErrorCode()), HttpStatus.OK);
+        return new ResponseEntity<>(
+            EsbResp.buildCommonFailResp(ex.getErrorCode(), ex.getErrorParams(), null),
+            HttpStatus.OK
+        );
     }
 
     @ExceptionHandler(PermissionDeniedException.class)

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,26 +25,25 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.gse.GseClient;
 import com.tencent.bk.job.common.gse.util.ScriptRequestBuilder;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteScriptRequest;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.service.VariableResolver;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.common.util.TaskCostCalculator;
 import com.tencent.bk.job.execute.common.util.VariableValueResolver;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
+import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
-import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
-import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
-import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ScriptResultHandleTask;
-import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
+import com.tencent.bk.job.execute.engine.syntax.ShellSyntaxFactory;
+import com.tencent.bk.job.execute.engine.syntax.ShellSyntaxProcessor;
 import com.tencent.bk.job.execute.engine.util.MacroUtil;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.engine.variable.JobBuildInVariableResolver;
@@ -58,23 +57,12 @@ import com.tencent.bk.job.execute.model.StepInstanceBaseDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.model.VariableValueDTO;
-import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
-import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
-import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.execute.service.AgentService;
-import com.tencent.bk.job.execute.service.GseTaskService;
-import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
-import com.tencent.bk.job.execute.service.StepInstanceService;
-import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
-import com.tencent.bk.job.execute.service.TaskInstanceService;
-import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectScriptLogDTO;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.cloud.sleuth.Tracer;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -101,54 +89,53 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
     private final String GSE_SCRIPT_FILE_NAME_PREFIX = "bk_gse_script_";
 
-    public ScriptGseTaskStartCommand(ResultHandleManager resultHandleManager,
-                                     TaskInstanceService taskInstanceService,
-                                     StepInstanceService stepInstanceService,
-                                     GseTaskService gseTaskService,
+    /**
+     * 脚本默认的解释器声明
+     */
+    private static final String DEFAULT_SHEBANG = "#!/bin/bash";
+
+    /**
+     * 从用户脚本提取的解释器声明
+     */
+    private String extractedShebang;
+
+    /**
+     * shell语法差异处理对象
+     */
+    private ShellSyntaxProcessor shellSyntaxProcessor;
+
+    public ScriptGseTaskStartCommand(EngineDependentServiceHolder engineDependentServiceHolder,
                                      ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
-                                     AccountService accountService,
-                                     TaskInstanceVariableService taskInstanceVariableService,
-                                     StepInstanceVariableValueService stepInstanceVariableValueService,
-                                     AgentService agentService,
-                                     LogService logService,
-                                     TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                     ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                     ExecuteMonitor executeMonitor,
                                      JobExecuteConfig jobExecuteConfig,
-                                     TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                     GseTasksExceptionCounter gseTasksExceptionCounter,
-                                     JobBuildInVariableResolver jobBuildInVariableResolver,
-                                     Tracer tracer,
-                                     GseClient gseClient,
                                      String requestId,
                                      TaskInstanceDTO taskInstance,
                                      StepInstanceDTO stepInstance,
-                                     GseTaskDTO gseTask) {
-        super(resultHandleManager,
-            taskInstanceService,
-            gseTaskService,
+                                     GseTaskDTO gseTask,
+                                     CustomPasswordCache customPasswordCache) {
+        super(engineDependentServiceHolder,
             scriptExecuteObjectTaskService,
-            accountService,
-            taskInstanceVariableService,
-            stepInstanceVariableValueService,
-            agentService,
-            logService,
-            taskExecuteMQEventDispatcher,
-            resultHandleTaskKeepaliveManager,
-            executeMonitor,
             jobExecuteConfig,
-            taskEvictPolicyExecutor,
-            gseTasksExceptionCounter,
-            tracer,
-            gseClient,
             requestId,
             taskInstance,
             stepInstance,
             gseTask,
-            stepInstanceService);
+            customPasswordCache);
         this.scriptExecuteObjectTaskService = scriptExecuteObjectTaskService;
-        this.jobBuildInVariableResolver = jobBuildInVariableResolver;
+        this.jobBuildInVariableResolver = engineDependentServiceHolder.getJobBuildInVariableResolver();
         this.scriptFileNamePrefix = buildScriptFileNamePrefix(stepInstance);
+        this.extractedShebang = extractShebang(stepInstance.getScriptContent());
+        this.shellSyntaxProcessor = ShellSyntaxFactory.fromShebang(this.extractedShebang);
+    }
+
+    /**
+     * 提取用户脚本中的解释器申明
+     */
+    private String extractShebang(String scriptContent) {
+        if (StringUtils.isEmpty(scriptContent)) {
+            return DEFAULT_SHEBANG;
+        }
+        String firstLine = scriptContent.split("\\r?\\n", 2)[0].trim();
+        return firstLine.startsWith("#!") ? firstLine : DEFAULT_SHEBANG;
     }
 
     private String buildScriptFileNamePrefix(StepInstanceDTO stepInstance) {
@@ -172,7 +159,6 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         }
     }
 
-
     @Override
     protected GseTaskResponse startGseTask() {
         return gseClient.asyncExecuteScript(buildScriptRequest());
@@ -188,7 +174,6 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         } else {
             request = buildRequestWithoutAnyParam(stepInstance);
         }
-        request.setGseV2Task(gseV2Task);
 
         return request;
     }
@@ -248,6 +233,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         // 只有存在变量解析之后才需要update
         if (!resolvedScriptParam.equals(originParam)) {
             stepInstanceService.updateResolvedScriptParam(
+                stepInstance.getTaskInstanceId(),
                 stepInstance.getId(),
                 stepInstance.isSecureParam(),
                 resolvedScriptParam
@@ -264,7 +250,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         String scriptParam = MacroUtil.resolveDateWithStrfTime(stepInstance.getScriptParam());
         String resolvedScriptParam = resolveScriptParamVariables(scriptParam);
-        int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout());
+        int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getAppId(), stepInstance.getTimeout());
 
         ScriptRequestBuilder builder = new ScriptRequestBuilder();
         builder.addScriptFile(scriptFilePath, scriptFileName, scriptContent);
@@ -272,17 +258,28 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         List<Agent> agents = buildTargetAgents();
 
         builder.addScriptTask(agents, scriptFilePath, scriptFileName, resolvedScriptParam, timeout);
+        builder.setWindowsInterpreter(stepInstance.getWindowsInterpreter());
         return builder.build();
     }
 
     protected List<Agent> buildTargetAgents() {
         AccountDTO account = getAccountBean(stepInstance.getAccountId(), stepInstance.getAccount(),
             stepInstance.getAppId());
-        return gseClient.fillAgentAuthInfo(
-            targetExecuteObjectTaskMap.values().stream().map(executeObjectTask ->
-                executeObjectTask.getExecuteObject().toGseAgent()).collect(Collectors.toList()),
+
+        List<Agent> agentList = targetExecuteObjectTaskMap.values()
+            .stream()
+            .map(executeObjectTask -> executeObjectTask.getExecuteObject().toGseAgent())
+            .collect(Collectors.toList());
+
+        // windows账号优先使用用户传入的自定义密码
+        if (account.isWindowsAccount()) {
+            setCustomPasswordIfPresent(agentList, taskInstanceId);
+        }
+
+        return gseClient.fillAgentAuthInfo(agentList,
             account.getAccount(),
-            account.getPassword());
+            account.getPassword()
+        );
     }
 
     /**
@@ -309,17 +306,18 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         String scriptParam = MacroUtil.resolveDateWithStrfTime(stepInstance.getScriptParam());
         String resolvedScriptParam = resolveScriptParamVariables(scriptParam);
-        int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout());
+        int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getAppId(), stepInstance.getTimeout());
 
         List<Agent> agents = buildTargetAgents();
 
         builder.addScriptTask(agents, scriptFilePath, wrapperScriptFileName, resolvedScriptParam, timeout);
+        builder.setWindowsInterpreter(stepInstance.getWindowsInterpreter());
         return builder.build();
     }
 
     private String buildConstVarDeclareScript(List<TaskVariableDTO> taskVars, List<String> importVariables) {
         StringBuffer sb = new StringBuffer(1024);
-        sb.append("#!/bin/bash\n");
+        sb.append(extractedShebang).append("\n");
         sb.append("set -e\n");
         for (TaskVariableDTO taskVar : taskVars) {
             buildDeclareScript(taskVar, sb);
@@ -335,26 +333,12 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         int varType = var.getType();
         if (varType == TaskVariableTypeEnum.STRING.getType() || varType == TaskVariableTypeEnum.CIPHER.getType()
             || varType == TaskVariableTypeEnum.NAMESPACE.getType()) {
-            appendStringVariableDeclareScript(sb, paramName, paramValue);
+            sb.append(shellSyntaxProcessor.declareVariable(paramName, paramValue, true));
         } else if (varType == TaskVariableTypeEnum.ASSOCIATIVE_ARRAY.getType()) {
-            sb.append("declare -A ").append(paramName);
-            if (StringUtils.isNotBlank(paramValue)) {
-                sb.append("=").append(paramValue);
-            }
-            sb.append("\n");
+            sb.append(shellSyntaxProcessor.declareAssociativeArray(paramName, paramValue, true));
         } else if (varType == TaskVariableTypeEnum.INDEX_ARRAY.getType()) {
-            sb.append("declare -a ");
-            sb.append(paramName);
-            if (StringUtils.isNotBlank(paramValue)) {
-                sb.append("=").append(paramValue);
-            }
-            sb.append("\n");
+            sb.append(shellSyntaxProcessor.declareIndexArray(paramName, paramValue, true));
         }
-    }
-
-    private void appendStringVariableDeclareScript(StringBuffer sb, String variableName, String variableValue) {
-        sb.append("declare ").append(variableName).append("=");
-        sb.append("'").append(escapeSingleQuote(StringUtils.isEmpty(variableValue) ? "" : variableValue)).append("'\n");
     }
 
     private void appendImportVariablesDeclareScript(StringBuffer sb, List<TaskVariableDTO> taskVars,
@@ -389,7 +373,8 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             }
         }
         variableValues.forEach((variableName, variableValue) ->
-            appendStringVariableDeclareScript(sb, variableName, variableValue));
+            sb.append(shellSyntaxProcessor.declareVariable(variableName, variableValue, true))
+        );
     }
 
     private String escapeSingleQuote(String value) {
@@ -405,7 +390,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     @SuppressWarnings({"StringBufferReplaceableByString", "StringBufferMayBeStringBuilder"})
     private String buildWrapperScriptWithConstParamOnly(String declareFileName, String userScriptFileName) {
         StringBuffer sb = new StringBuffer(1024);
-        sb.append("#!/bin/bash\n");
+        sb.append(extractedShebang).append("\n");
         sb.append("BASE_PATH=\"\"\n");
         sb.append("OS_TYPE=`uname -s`\n");
         sb.append("if [ \"`echo ${OS_TYPE}|grep -i 'CYGWIN'`\" ];then\n");
@@ -429,7 +414,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                                                  List<String> importVariables) {
         String scriptParam = MacroUtil.resolveDateWithStrfTime(stepInstance.getScriptParam());
         String resolvedScriptParam = resolveScriptParamVariables(scriptParam);
-        int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getTimeout());
+        int timeout = TimeoutUtils.adjustTaskTimeout(stepInstance.getAppId(), stepInstance.getTimeout());
 
         List<Agent> agents = buildTargetAgents();
 
@@ -465,6 +450,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
         builder.addScriptTask(agents, scriptFilePath, wrapperScriptFileName, resolvedScriptParam, timeout);
         builder.addScriptTask(agents, scriptFilePath, getJobParamScriptFileName, null, timeout);
+        builder.setWindowsInterpreter(stepInstance.getWindowsInterpreter());
         return builder.build();
     }
 
@@ -479,7 +465,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                                    List<String> importVariables) {
         List<TaskVariableDTO> globalVars = taskVariablesAnalyzeResult.getTaskVars();
         StringBuffer sb = new StringBuffer(1024);
-        sb.append("#!/bin/bash\n");
+        sb.append(extractedShebang).append("\n");
         sb.append("set -e\n");
 
         //从作业参数中初始化输入参数
@@ -546,7 +532,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                                                             String allParamsOutputFileName,
                                                             String scriptParam) {
         StringBuilder sb = new StringBuilder(1024);
-        sb.append("#!/bin/bash\n");
+        sb.append(extractedShebang).append("\n");
         sb.append("BASE_PATH=\"\"\n");
         sb.append("OS_TYPE=`uname -s`\n");
         sb.append("if [ \"`echo ${OS_TYPE}|grep -i 'CYGWIN'`\" ];then\n");
@@ -571,7 +557,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         namespaceParamsOutputFileName,
                                                  String allParamsOutputFileName) {
         StringBuilder sb = new StringBuilder();
-        sb.append("function outputVarOnExit(){\n");
+        sb.append("outputVarOnExit(){\n");
         sb.append("  exit_code=$?\n");
         if (taskVariablesAnalyzeResult.isExistAnyVar()) {
             sb.append("  set|egrep '");
@@ -617,7 +603,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     @SuppressWarnings("StringBufferReplaceableByString")
     private String buildGetJobParamsScript(String varOutputFileName) {
         StringBuilder sb = new StringBuilder(1024);
-        sb.append("#!/bin/bash\n");
+        sb.append(extractedShebang).append("\n");
         sb.append("BASE_PATH=\"\"\n");
         sb.append("OS_TYPE=`uname -s`\n");
         sb.append("if [ \"`echo ${OS_TYPE}|grep -i 'CYGWIN'`\" ];then\n");
@@ -625,8 +611,8 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         sb.append("fi\n");
         sb.append("\n");
         String catFilePath = "${BASE_PATH}" + scriptFilePath + File.separator + varOutputFileName;
-        sb.append("declare -i total_time=10\n");
-        sb.append("declare -i cost_time=0\n");
+        sb.append(shellSyntaxProcessor.declareIntVariable("total_time", 10, true));
+        sb.append(shellSyntaxProcessor.declareIntVariable("cost_time", 0, true));
         sb.append("while [ $cost_time -le $total_time ];do\n");
         sb.append("  if [ -f ").append(catFilePath).append(" ];then\n");
         sb.append("    cat ").append(catFilePath).append("\n");
@@ -647,24 +633,16 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     protected final void addResultHandleTask() {
         ScriptResultHandleTask scriptResultHandleTask =
             new ScriptResultHandleTask(
-                taskInstanceService,
-                gseTaskService,
-                logService,
-                taskInstanceVariableService,
-                stepInstanceVariableValueService,
-                taskExecuteMQEventDispatcher,
-                resultHandleTaskKeepaliveManager,
-                taskEvictPolicyExecutor,
+                engineDependentServiceHolder,
                 scriptExecuteObjectTaskService,
-                stepInstanceService,
-                gseClient,
+                jobExecuteConfig,
                 taskInstance,
                 stepInstance,
                 taskVariablesAnalyzeResult,
                 targetExecuteObjectTaskMap,
                 gseTask,
                 requestId,
-                executeObjectTasks);
+                targetExecuteObjectTasks);
         resultHandleManager.handleDeliveredTask(scriptResultHandleTask);
     }
 
@@ -689,14 +667,14 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
                 now);
             scriptLogs.add(scriptLog);
 
-            // AgentTask 结果更新
+            // ExecuteObjectTask 结果更新
             executeObjectTask.setGseTaskId(gseTask.getId());
             executeObjectTask.setStartTime(gseTask.getStartTime());
             executeObjectTask.setEndTime(now);
             executeObjectTask.setTotalTime(TaskCostCalculator.calculate(gseTask.getStartTime(), now, null));
             executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.SUBMIT_FAILED);
         }
-        logService.batchWriteScriptLog(taskInstance.getCreateTime(), stepInstanceId, executeCount, batch, scriptLogs);
+        logService.batchWriteScriptLog(taskInstance, stepInstanceId, executeCount, batch, scriptLogs);
         scriptExecuteObjectTaskService.batchUpdateTasks(targetExecuteObjectTaskMap.values());
     }
 

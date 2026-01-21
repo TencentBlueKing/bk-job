@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -35,7 +35,7 @@
           <div
             class="detail-item-title"
             style="margin-bottom: 8px;">
-            <span>{{ $t('template.全局变量.label') }}</span>
+            <span>{{ $t('template.全局变量_label') }}</span>
             <span>（ {{ selectedVariable.length }} / {{ variableList.length }} ）</span>
           </div>
           <render-global-var
@@ -165,6 +165,8 @@
       fetchData() {
         TaskPlanService.fetchDebugInfo({
           templateId: this.formData.templateId,
+        }, {
+          permission: 'page',
         }).then((data) => {
           this.variableList = Object.freeze(data.variableList);
           this.taskStepList = Object.freeze(data.stepList);

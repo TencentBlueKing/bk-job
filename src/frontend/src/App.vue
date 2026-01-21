@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -47,21 +47,21 @@
         <div slot="content">
           <div
             class="item"
+            :class="{ active: currentLangType === 'lang-zh' }"
+            @click="handleToggleLang('zh-cn')">
+            <icon
+              class="lang-flag"
+              type="lang-zh" />
+            <span>中文</span>
+          </div>
+          <div
+            class="item"
             :class="{ active: currentLangType === 'lang-en' }"
             @click="handleToggleLang('en')">
             <icon
               class="lang-flag"
               type="lang-en" />
             <span>English</span>
-          </div>
-          <div
-            class="item"
-            :class="{ active: currentLangType === 'lang-zh' }"
-            @click="handleToggleLang('zh-CN')">
-            <icon
-              class="lang-flag"
-              type="lang-zh" />
-            <span>中文</span>
           </div>
         </div>
       </bk-popover>
@@ -91,6 +91,11 @@
             @click="handleLocationFeedback">
             {{ $t('问题反馈') }}
           </div>
+          <div
+            class="item"
+            @click="handleLocationOpenSource">
+            {{ $t('开源社区') }}
+          </div>
         </div>
       </bk-popover>
       <bk-popover
@@ -98,7 +103,9 @@
         theme="light site-header-dropdown"
         :tippy-options="{ hideOnClick: false }">
         <div class="user-flag">
-          <span style="margin-right: 5px;">{{ currentUser.username }}</span>
+          <span style="margin-right: 5px;">
+            <bk-user-display-name :user-id="currentUser.username" />
+          </span>
           <i class="bk-icon icon-down-shape" />
         </div>
         <template slot="content">
@@ -112,25 +119,27 @@
     </template>
     <router-view />
     <system-log v-model="showSystemLog" />
+    <jb-ai v-if="isAiEnable && businessPermission" />
   </layout>
 </template>
 <script>
   import Cookie from 'js-cookie';
 
+  import AiService from '@service/ai';
   import EnvService from '@service/env';
-  import LogoutService from '@service/logout';
+  import LanguageService from '@service/language';
   import QueryGlobalSettingService from '@service/query-global-setting';
   import UserService from '@service/user';
-
-  import { jsonp } from '@utils/assist';
-  import EventBus from '@utils/event-bus';
 
   import RouterBack from '@components/router-back';
   import SystemLog from '@components/system-log';
 
-  import I18n, { setLocale } from '@/i18n';
+  import { getPlatformConfig, setDocumentTitle, setShortcutIcon } from '@blueking/platform-config';
+
+  import I18n from '@/i18n';
 
   import Layout from './layout-new';
+
 
   export default {
     name: 'App',
@@ -143,10 +152,6 @@
     data() {
       return {
         loading: true,
-        titleConfig: {
-          titleHead: '',
-          titleSeparator: '',
-        },
         currentUser: {},
         appList: [],
         showSystemLog: false,
@@ -155,6 +160,7 @@
           'esb.url': '',
           bkDomain: '',
         },
+        isAiEnable: false,
       };
     },
     computed: {
@@ -175,9 +181,10 @@
      */
     created() {
       this.fetchUserInfo();
-      this.fetchPlatformInfo();
       this.fetchRelatedSystemUrls();
       this.fetchEnv();
+      this.fetchAiConfig();
+      this.businessPermission = window.BUSINESS_PERMISSION;
     },
     /**
      * @desc 页面渲染完成
@@ -200,31 +207,30 @@
           });
       },
       /**
-       * @desc 获取系统title自定义配置
-       */
-      fetchPlatformInfo() {
-        QueryGlobalSettingService.fetchPlatformInfo()
-          .then((data) => {
-            this.titleConfig = data;
-            window.PROJECT_CONFIG.HELPER_CONTACT_LINK = data.helperContactLink;
-          })
-          .catch(() => {
-            this.titleConfig = {
-              titleHead: I18n.t('蓝鲸作业平台'),
-              titleSeparator: '|',
-            };
-          })
-          .finally(() => {
-            this.updateDocumentTitle();
-          });
-      },
-      /**
        * @desc 获取系统关联的外链
        */
       fetchRelatedSystemUrls() {
         QueryGlobalSettingService.fetchRelatedSystemUrls()
           .then((data) => {
             this.relatedSystemUrls = Object.freeze(data);
+
+            return getPlatformConfig(data.BK_SHARED_RES_BASE_JS_URL, {
+              name: '作业平台',
+              nameEn: 'JOB',
+              appLogo: window.__loadAssetsUrl__('/static/images/logo.png'),
+              brandName: '蓝鲸智云',
+              brandNameEn: 'Tencent BlueKing',
+              favicon: window.__loadAssetsUrl__('/static/images/favicon.ico'),
+              productName: '作业平台', // 产品名称，展示在logo区域 1.0.5版本新增
+              productNameEn: 'JOB',
+              version: process.env.JOB_VERSION,
+            }).then((data) => {
+              window.PROJECT_CONFIG.HELPER_CONTACT_LINK = data.helperLink;
+              this.$store.commit('platformConfig/update', data);
+            });
+          })
+          .finally(() => {
+            this.updateDocumentTitle();
           });
       },
       fetchEnv() {
@@ -233,32 +239,43 @@
             this.envConfig = data;
           });
       },
+      fetchAiConfig() {
+        AiService.fetchConfig()
+          .then((data) => {
+            this.isAiEnable = data.enabled;
+          });
+      },
       /**
        * @desc 更新网站title
        */
       updateDocumentTitle() {
-        const { matched } = this.$route;
-        let title = this.titleConfig.titleHead;
-        matched.forEach((matcheRoute) => {
+        const routeMatchStack = [];
+        this.$route.matched.forEach((matcheRoute) => {
           if (matcheRoute.meta.title) {
-            title = `${title} ${this.titleConfig.titleSeparator} ${matcheRoute.meta.title}`;
+            routeMatchStack.push(matcheRoute.meta.title);
           }
         });
 
-        document.title = title;
+        setDocumentTitle(this.$store.state.platformConfig.i18n, routeMatchStack);
+        setShortcutIcon(this.$store.state.platformConfig.favicon);
       },
       /**
        * @desc 切换语言
        * @param {String} lang 语言类型
        */
       handleToggleLang(lang) {
-        Cookie.remove('blueking_language', { path: '' });
-        Cookie.set('blueking_language', lang.toLocaleLowerCase(), {
-          expires: 3600,
-          domain: this.envConfig.bkDomain,
-        });
-        setLocale(lang);
-        jsonp(`${this.envConfig['esb.url']}/api/c/compapi/v2/usermanage/fe_update_user_language/?language=${lang.toLocaleLowerCase()}`);
+        LanguageService.update({ language: lang })
+          .then(() => {
+            Cookie.remove('blueking_language', { path: '' });
+            Cookie.set('blueking_language', lang.toLocaleLowerCase(), {
+              expires: 365,
+              domain: this.envConfig.bkDomain,
+            });
+            window.location.reload();
+          })
+          .catch(() => {
+            this.messageError(I18n.t('语言切换失败，请稍后重试'));
+          });
       },
       /**
        * @desc 显示版本更新日志
@@ -270,11 +287,11 @@
        * @desc 打开产品文档
        */
       handleLocationDocument() {
-        if (!this.relatedSystemUrls.BK_DOC_CENTER_ROOT_URL) {
+        if (!this.relatedSystemUrls.BK_DOC_JOB_ROOT_URL) {
           this.messageError(I18n.t('网络错误，请刷新页面重试'));
           return;
         }
-        window.open(`${this.relatedSystemUrls.BK_DOC_CENTER_ROOT_URL}/markdown/JOB/UserGuide/Introduction/What-is-Job.md`);
+        window.open(`${this.relatedSystemUrls.BK_DOC_JOB_ROOT_URL}/UserGuide/Introduction/What-is-Job.md`);
       },
       /**
        * @desc 打开问题反馈
@@ -286,6 +303,9 @@
         }
         window.open(this.relatedSystemUrls.BK_FEED_BACK_ROOT_URL);
       },
+      handleLocationOpenSource() {
+        window.open('https://github.com/TencentBlueKing/bk-job');
+      },
       /**
        * @desc 退出登录
        */
@@ -293,8 +313,7 @@
         this.$bkInfo({
           title: I18n.t('确认退出登录？'),
           confirmFn: () => {
-            EventBus.$emit('logout');
-            LogoutService.logout();
+            window.location.href = `${this.relatedSystemUrls.BK_LOGIN_URL}?c_url=${decodeURIComponent(window.location.origin)}`;
           },
         });
       },

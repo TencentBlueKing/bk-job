@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -97,6 +97,11 @@ public class CacheHostDO {
 
     private long cacheTime;
 
+    /**
+     * 租户ID
+     */
+    private String tenantId;
+
     public ApplicationHostDTO toApplicationHostDTO() {
         ApplicationHostDTO host = new ApplicationHostDTO();
         host.setBizId(this.bizId);
@@ -110,6 +115,7 @@ public class CacheHostDO {
         host.setOsName(this.os);
         host.setOsType(this.osType);
         host.setGseAgentStatus(this.gseAgentStatus);
+        host.setTenantId(this.tenantId);
         return host;
     }
 
@@ -126,6 +132,7 @@ public class CacheHostDO {
         cacheHost.setOs(host.getOsName());
         cacheHost.setOsType(host.getOsType());
         cacheHost.setGseAgentStatus(host.getGseAgentStatus());
+        cacheHost.setTenantId(host.getTenantId());
         return cacheHost;
     }
 
@@ -143,6 +150,7 @@ public class CacheHostDO {
             .add("gseAgentStatus=" + gseAgentStatus)
             .add("os='" + os + "'")
             .add("osType='" + osType + "'")
+            .add("tenantId='" + tenantId + "'")
             .add("cacheTime=" + cacheTime)
             .toString();
     }

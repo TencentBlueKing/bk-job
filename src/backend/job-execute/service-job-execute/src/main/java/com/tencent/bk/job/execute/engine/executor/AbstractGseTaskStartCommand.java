@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,21 +25,24 @@
 package com.tencent.bk.job.execute.engine.executor;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import com.tencent.bk.job.common.gse.GseClient;
+import com.tencent.bk.job.common.gse.v2.model.Agent;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.gse.v2.model.GseTaskResponse;
 import com.tencent.bk.job.common.util.date.DateUtils;
+import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
 import com.tencent.bk.job.execute.config.JobExecuteConfig;
-import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
+import com.tencent.bk.job.execute.engine.EngineDependentServiceHolder;
 import com.tencent.bk.job.execute.engine.evict.TaskEvictPolicyExecutor;
 import com.tencent.bk.job.execute.engine.listener.event.EventSource;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
 import com.tencent.bk.job.execute.engine.model.TaskVariablesAnalyzeResult;
+import com.tencent.bk.job.execute.engine.quota.limit.RunningJobKeepaliveManager;
 import com.tencent.bk.job.execute.engine.result.ResultHandleManager;
 import com.tencent.bk.job.execute.engine.result.ha.ResultHandleTaskKeepaliveManager;
+import com.tencent.bk.job.execute.model.AgentCustomPasswordDTO;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
 import com.tencent.bk.job.execute.model.GseTaskDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
@@ -47,22 +50,19 @@ import com.tencent.bk.job.execute.model.StepInstanceVariableValuesDTO;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import com.tencent.bk.job.execute.monitor.metrics.GseTasksExceptionCounter;
-import com.tencent.bk.job.execute.service.AccountService;
-import com.tencent.bk.job.execute.service.AgentService;
 import com.tencent.bk.job.execute.service.ExecuteObjectTaskService;
-import com.tencent.bk.job.execute.service.GseTaskService;
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.StepInstanceVariableValueService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceVariableService;
+import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.util.StopWatch;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,7 +83,9 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     protected final TaskEvictPolicyExecutor taskEvictPolicyExecutor;
     protected final JobExecuteConfig jobExecuteConfig;
     protected final StepInstanceService stepInstanceService;
-
+    protected final RunningJobKeepaliveManager runningJobKeepaliveManager;
+    protected final CustomPasswordCache customPasswordCache;
+    protected final RollingConfigService rollingConfigService;
     /**
      * 任务下发请求ID,防止重复下发任务
      */
@@ -105,55 +107,43 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
      */
     protected Map<String, TaskVariableDTO> globalVariables = new HashMap<>();
     /**
-     * 执行对象任务列表
+     * 目标执行对象任务列表(全量，包含非法的任务)
      */
-    protected List<ExecuteObjectTask> executeObjectTasks;
+    protected List<ExecuteObjectTask> targetExecuteObjectTasks;
 
 
-    AbstractGseTaskStartCommand(ResultHandleManager resultHandleManager,
-                                TaskInstanceService taskInstanceService,
-                                GseTaskService gseTaskService,
+    AbstractGseTaskStartCommand(EngineDependentServiceHolder engineDependentServiceHolder,
                                 ExecuteObjectTaskService executeObjectTaskService,
-                                AccountService accountService,
-                                TaskInstanceVariableService taskInstanceVariableService,
-                                StepInstanceVariableValueService stepInstanceVariableValueService,
-                                AgentService agentService,
-                                LogService logService,
-                                TaskExecuteMQEventDispatcher taskExecuteMQEventDispatcher,
-                                ResultHandleTaskKeepaliveManager resultHandleTaskKeepaliveManager,
-                                ExecuteMonitor executeMonitor,
                                 JobExecuteConfig jobExecuteConfig,
-                                TaskEvictPolicyExecutor taskEvictPolicyExecutor,
-                                GseTasksExceptionCounter gseTasksExceptionCounter,
-                                Tracer tracer,
-                                GseClient gseClient,
                                 String requestId,
                                 TaskInstanceDTO taskInstance,
                                 StepInstanceDTO stepInstance,
                                 GseTaskDTO gseTask,
-                                StepInstanceService stepInstanceService) {
-        super(agentService,
-            accountService,
-            gseTaskService,
+                                CustomPasswordCache customPasswordCache) {
+        super(
+            engineDependentServiceHolder,
             executeObjectTaskService,
-            tracer,
-            gseClient,
             taskInstance,
             stepInstance,
-            gseTask);
-        this.resultHandleManager = resultHandleManager;
-        this.taskInstanceService = taskInstanceService;
-        this.taskInstanceVariableService = taskInstanceVariableService;
-        this.stepInstanceVariableValueService = stepInstanceVariableValueService;
-        this.logService = logService;
-        this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
-        this.resultHandleTaskKeepaliveManager = resultHandleTaskKeepaliveManager;
-        this.executeMonitor = executeMonitor;
+            gseTask
+        );
+
+        this.taskInstanceVariableService = engineDependentServiceHolder.getTaskInstanceVariableService();
+        this.stepInstanceVariableValueService = engineDependentServiceHolder.getStepInstanceVariableValueService();
+        this.logService = engineDependentServiceHolder.getLogService();
+        this.taskExecuteMQEventDispatcher = engineDependentServiceHolder.getTaskExecuteMQEventDispatcher();
+        this.resultHandleTaskKeepaliveManager = engineDependentServiceHolder.getResultHandleTaskKeepaliveManager();
+        this.executeMonitor = engineDependentServiceHolder.getExecuteMonitor();
+        this.taskEvictPolicyExecutor = engineDependentServiceHolder.getTaskEvictPolicyExecutor();
+        this.gseTasksExceptionCounter = engineDependentServiceHolder.getGseTasksExceptionCounter();
+        this.runningJobKeepaliveManager = engineDependentServiceHolder.getRunningJobKeepaliveManager();
+        this.stepInstanceService = engineDependentServiceHolder.getStepInstanceService();
+        this.resultHandleManager = engineDependentServiceHolder.getResultHandleManager();
+        this.taskInstanceService = engineDependentServiceHolder.getTaskInstanceService();
+        this.rollingConfigService = engineDependentServiceHolder.getRollingConfigService();
         this.jobExecuteConfig = jobExecuteConfig;
-        this.taskEvictPolicyExecutor = taskEvictPolicyExecutor;
-        this.gseTasksExceptionCounter = gseTasksExceptionCounter;
+        this.customPasswordCache = customPasswordCache;
         this.requestId = requestId;
-        this.stepInstanceService = stepInstanceService;
     }
 
 
@@ -215,8 +205,17 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                 log.error("[{}] Start gse task fail, response: {}", this.gseTaskInfo, gseTaskResponse);
                 handleStartGseTaskError(gseTaskResponse);
                 gseTasksExceptionCounter.increment();
-                taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
-                    EventSource.buildGseTaskEventSource(stepInstanceId, executeCount, batch, gseTask.getId())));
+                taskExecuteMQEventDispatcher.dispatchStepEvent(
+                    StepEvent.refreshStep(
+                        taskInstanceId,
+                        stepInstanceId,
+                        EventSource.buildGseTaskEventSource(
+                            taskInstanceId,
+                            stepInstanceId,
+                            executeCount,
+                            batch,
+                            gseTask.getId()))
+                );
                 watch.stop();
                 return false;
             } else {
@@ -234,31 +233,17 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
     }
 
     private void initExecuteObjectTasks() {
-        this.executeObjectTasks = executeObjectTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId());
-        updateUninstalledExecuteObjectTasks(this.executeObjectTasks);
+        targetExecuteObjectTasks =
+            executeObjectTaskService.listTasksByGseTaskId(stepInstance, gseTask.getId())
+                .stream()
+                .filter(ExecuteObjectTask::isTarget)
+                .collect(Collectors.toList());
 
-        executeObjectTasks.stream()
-            .filter(ExecuteObjectTask::isTarget)
-            .filter(executeObjectTask -> !executeObjectTask.getExecuteObject().isAgentIdEmpty())
+        targetExecuteObjectTasks.stream()
+            .filter(executeObjectTask -> executeObjectTask.getExecuteObject().isExecutable())
             .forEach(executeObjectTask ->
                 this.targetExecuteObjectTaskMap.put(
                     executeObjectTask.getExecuteObject().toExecuteObjectGseKey(), executeObjectTask));
-    }
-
-    private void updateUninstalledExecuteObjectTasks(Collection<ExecuteObjectTask> executeObjectTasks) {
-        List<ExecuteObjectTask> invalidExecuteObjectTasks = executeObjectTasks.stream()
-            .filter(executeObjectTask -> executeObjectTask.getExecuteObject().isAgentIdEmpty())
-            .collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(invalidExecuteObjectTasks)) {
-            log.warn("{} contains invalid execute object tasks: {}", gseTaskInfo, invalidExecuteObjectTasks);
-            invalidExecuteObjectTasks.forEach(executeObjectTask -> {
-                executeObjectTask.setStatus(ExecuteObjectTaskStatusEnum.AGENT_NOT_INSTALLED);
-                executeObjectTask.setStartTime(System.currentTimeMillis());
-                executeObjectTask.setEndTime(System.currentTimeMillis());
-                executeObjectTask.calculateTotalTime();
-            });
-            executeObjectTaskService.batchUpdateTasks(executeObjectTasks);
-        }
     }
 
     private void initVariables() {
@@ -273,7 +258,7 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
                 return;
             }
             stepInputVariables = stepInstanceVariableValueService.computeInputStepInstanceVariableValues(
-                taskInstance.getId(), stepInstance.getId(), taskVariables);
+                stepInstance, taskVariables);
             log.info("Compute step input variable, stepInputVariables:{}", stepInputVariables);
         } else {
             taskVariablesAnalyzeResult = new TaskVariablesAnalyzeResult(null);
@@ -329,8 +314,47 @@ public abstract class AbstractGseTaskStartCommand extends AbstractGseTaskCommand
 
     private void finishGseTask(RunStatusEnum gseTaskStatus) {
         updateGseTaskExecutionInfo(null, gseTaskStatus, DateUtils.currentTimeMillis());
-        taskExecuteMQEventDispatcher.dispatchStepEvent(StepEvent.refreshStep(stepInstanceId,
-            EventSource.buildGseTaskEventSource(stepInstanceId, executeCount, batch, gseTask.getId())));
+        taskExecuteMQEventDispatcher.dispatchStepEvent(
+            StepEvent.refreshStep(
+                taskInstanceId,
+                stepInstanceId,
+                EventSource.buildGseTaskEventSource(
+                    taskInstanceId,
+                    stepInstanceId,
+                    executeCount,
+                    batch,
+                    gseTask.getId()
+                )));
+    }
+
+    /**
+     * 如果存在自定义密码，给agent设置密码
+     */
+    protected void setCustomPasswordIfPresent(List<Agent> agentList, Long taskInstanceId) {
+        List<AgentCustomPasswordDTO> passwordDTOList = customPasswordCache.getCache(taskInstanceId);
+        if (CollectionUtils.isNotEmpty(passwordDTOList)) {
+            Map<String, AgentCustomPasswordDTO> passwordMap = passwordDTOList.stream()
+                .collect(Collectors.toMap(AgentCustomPasswordDTO::getAgentId, dto -> dto,
+                    (oldValue, newValue) -> newValue));
+            List<Agent> unmatchedAgentList = new ArrayList<>();
+            List<AgentCustomPasswordDTO> emptyPwdList = new ArrayList<>();
+            for (Agent agent : agentList) {
+                AgentCustomPasswordDTO customPasswordDTO = passwordMap.get(agent.getAgentId());
+                if (customPasswordDTO == null) {
+                    unmatchedAgentList.add(agent);
+                    continue;
+                }
+                if (StringUtils.isNotEmpty(customPasswordDTO.getEncryptedPassword())) {
+                    agent.setPwd(customPasswordDTO.getEncryptedPassword());
+                } else {
+                    emptyPwdList.add(customPasswordDTO);
+                }
+            }
+            if (!unmatchedAgentList.isEmpty() || !emptyPwdList.isEmpty()) {
+                log.info("Some agents have no custom password. taskInstanceId={}, unmatchedAgentList={}," +
+                    "emptyPwdAgentList={}", taskInstanceId, unmatchedAgentList, emptyPwdList);
+            }
+        }
     }
 
     /**

@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -31,7 +31,7 @@
     class="export-task-step4-page">
     <div>
       <div class="notice">
-        <img src="/static/images/export.svg">
+        <img :src="exportImage">
         <div class="title">
           <div v-if="isExportSuccess">
             <div>{{ $t('template.作业导出成功！请及时保存并妥善保管。') }}</div>
@@ -170,6 +170,7 @@
       this.autoLoadPackage = taskExport.getItem('templateInfo');
 
       this.pollingQueue = [];
+      this.exportImage = window.__loadAssetsUrl__('/static/images/export.svg');
       taskExport.clearItem();
       window.changeFlag = true;
       this.fetchData();

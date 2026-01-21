@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -42,6 +42,7 @@ import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
+import com.tencent.bk.job.execute.model.inner.ServiceExecuteTargetDTO;
 import com.tencent.bk.job.execute.util.label.selector.LabelSelectorParse;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -104,16 +105,6 @@ public class ExecuteTargetDTO implements Cloneable {
      * 执行对象列表(所有主机+容器）
      */
     private List<ExecuteObject> executeObjects;
-
-    public static ExecuteTargetDTO emptyInstance() {
-        ExecuteTargetDTO executeTargetDTO = new ExecuteTargetDTO();
-        executeTargetDTO.setIpList(Collections.emptyList());
-        executeTargetDTO.setDynamicServerGroups(Collections.emptyList());
-        executeTargetDTO.setStaticIpList(Collections.emptyList());
-        executeTargetDTO.setTopoNodes(Collections.emptyList());
-        executeTargetDTO.setStaticContainerList(Collections.emptyList());
-        return executeTargetDTO;
-    }
 
     public ExecuteTargetDTO clone() {
         ExecuteTargetDTO clone = new ExecuteTargetDTO();
@@ -617,6 +608,27 @@ public class ExecuteTargetDTO implements Cloneable {
      * 执行目标中是否包含容器执行对象
      */
     public boolean hasContainerExecuteObject() {
-        return staticContainerList != null || containerFilters != null;
+        return CollectionUtils.isNotEmpty(staticContainerList) || CollectionUtils.isNotEmpty(containerFilters);
+    }
+
+    /**
+     * 执行目标中是否包含主机执行对象
+     */
+    public boolean hasHostExecuteObject() {
+        return CollectionUtils.isNotEmpty(staticIpList) || CollectionUtils.isNotEmpty(dynamicServerGroups)
+            || CollectionUtils.isNotEmpty(topoNodes);
+    }
+
+    public ServiceExecuteTargetDTO toServiceExecuteTargetDTO() {
+        ServiceExecuteTargetDTO serviceExecuteTargetDTO = new ServiceExecuteTargetDTO();
+        serviceExecuteTargetDTO.setVariable(variable);
+        if (executeObjects != null) {
+            serviceExecuteTargetDTO.setExecuteObjects(
+                executeObjects.stream()
+                    .map(ExecuteObject::toServiceExecuteObject)
+                    .collect(Collectors.toList())
+            );
+        }
+        return serviceExecuteTargetDTO;
     }
 }

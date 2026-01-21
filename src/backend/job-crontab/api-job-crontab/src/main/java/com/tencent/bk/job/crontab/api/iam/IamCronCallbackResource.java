@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,10 +25,13 @@
 package com.tencent.bk.job.crontab.api.iam;
 
 import com.tencent.bk.job.common.annotation.IamCallbackAPI;
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
+import io.swagger.annotations.ApiParam;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
@@ -41,9 +44,13 @@ public interface IamCronCallbackResource {
     /**
      * 权限中心回调
      *
+     * @param tenantId        租户ID
      * @param callbackRequest 回调请求
      * @return 权限中心回调响应
      */
     @PostMapping("/job")
-    CallbackBaseResponseDTO callback(@RequestBody CallbackRequestDTO callbackRequest);
+    CallbackBaseResponseDTO callback(@ApiParam("租户ID，IAM回调时传入")
+                                     @RequestHeader(JobCommonHeaders.BK_TENANT_ID)
+                                     String tenantId,
+                                     @RequestBody CallbackRequestDTO callbackRequest);
 }

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,6 +25,7 @@
 package com.tencent.bk.job.gateway.config;
 
 import com.tencent.bk.job.common.service.config.JobCommonConfig;
+import com.tencent.bk.job.gateway.common.consts.HeaderConsts;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Bean;
@@ -98,7 +99,7 @@ public class CorsConfig {
         corsConfiguration.setAllowedMethods(allowMethods);
 
         List<String> allowHeaders = new ArrayList<>();
-        allowHeaders.add("x-login-url");
+        allowHeaders.add(HeaderConsts.KEY_LOGIN_URL);
         allowHeaders.add("x-csrf-token");
         // 用户preflight OPTIONS请求会携带该header
         allowHeaders.add("Content-Type");
@@ -108,7 +109,7 @@ public class CorsConfig {
         for (String allowOrigin : allowOrigins) {
             corsConfiguration.addAllowedOrigin(allowOrigin);
         }
-        corsConfiguration.addExposedHeader("x-login-url");
+        corsConfiguration.addExposedHeader(HeaderConsts.KEY_LOGIN_URL);
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.setMaxAge(3600L);
         return corsConfiguration;

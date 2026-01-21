@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -38,7 +38,7 @@
         name="local">
         <span>
           <span>
-            <span>{{ $t('已选择.result') }}</span>
+            <span>{{ $t('已选择_result') }}</span>
             <span class="number strong">{{ localFileList.length }}</span>
             <span>{{ $t('个本地文件') }}</span>
           </span>
@@ -64,7 +64,7 @@
         content-hidden-type="hidden"
         name="source">
         <span>
-          <span>{{ $t('已选择.result') }}</span>
+          <span>{{ $t('已选择_result') }}</span>
           <span class="number strong">{{ sourceFileList.length }}</span>
           <span>{{ $t('个源文件文件') }}</span>
         </span>
@@ -81,7 +81,7 @@
         content-hidden-type="hidden"
         name="server">
         <span>
-          <span>{{ $t('已选择.result') }}</span>
+          <span>{{ $t('已选择_result') }}</span>
           <span class="number strong">{{ serverFileList.length }}</span>
           <span>{{ $t('个服务器文件') }}</span>
         </span>

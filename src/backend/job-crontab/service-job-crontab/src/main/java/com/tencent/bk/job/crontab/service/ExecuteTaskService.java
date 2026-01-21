@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -66,7 +66,7 @@ public interface ExecuteTaskService {
      * @throws TaskExecuteAuthFailedException 鉴权失败抛出异常
      */
     void authExecuteTask(
-        long appId, long taskId, long cronTaskId, String cronName,
+        long appId, long taskId, Long cronTaskId, String cronName,
         List<ServiceTaskVariable> variableList, String operator
     ) throws TaskExecuteAuthFailedException;
 }

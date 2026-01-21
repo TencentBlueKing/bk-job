@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.manage.api.common.constants.globalsetting.GlobalSettingKeys;
 import com.tencent.bk.job.manage.dao.ApplicationDAO;
@@ -81,6 +82,7 @@ public class BizSetService {
             .key(GlobalSettingKeys.KEY_IS_BIZSET_MIGRATED_TO_CMDB)
             .value(isMigrated.toString())
             .description("Updated at " + TimeUtil.getCurrentTimeStr())
+            .tenantId(TenantIdConstants.DEFAULT_TENANT_ID)
             .build();
         globalSettingDAO.upsertGlobalSetting(globalSettingDTO);
         log.debug("set " + GlobalSettingKeys.KEY_IS_BIZSET_MIGRATED_TO_CMDB + ":" + isMigrated);

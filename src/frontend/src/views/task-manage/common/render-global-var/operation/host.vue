@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -38,7 +38,7 @@
         <jb-input
           v-model="formData.name"
           :maxlength="30"
-          :placeholder="$t('template.变量名仅支持大小写英文字母或下划线 [必填]')" />
+          :placeholder="$t('template.变量名仅支持大小写英文字母或下划线_必填')" />
       </jb-form-item>
       <jb-form-item
         ref="defaultTargetValue"
@@ -58,7 +58,7 @@
             {{ $t('template.清空') }}
           </bk-button>
         </div>
-        <ip-selector
+        <jb-ip-selector
           :original-value="originalExecuteObjectsInfo"
           :show-dialog="isShowChooseIp"
           show-view
@@ -70,7 +70,7 @@
         <bk-input
           v-model="formData.description"
           maxlength="100"
-          :placeholder="$t('template.这里可以备注变量的用途、使用说明等信息 [可选]')"
+          :placeholder="$t('template.这里可以备注变量的用途、使用说明等信息_可选')"
           type="textarea" />
       </jb-form-item>
       <jb-form-item style="margin-bottom: 0;">
@@ -85,8 +85,6 @@
   </div>
 </template>
 <script>
-  import _ from 'lodash';
-
   import ExecuteTargetModel from '@model/execute-target';
   import TaskGlobalVariableModel from '@model/task/global-variable';
 
@@ -130,7 +128,7 @@
     },
     created() {
       if (this.$route.name !== 'templateCreate') {
-        this.originalExecuteObjectsInfo = _.cloneDeep(this.formData.defaultTargetValue.executeObjectsInfo);
+        this.originalExecuteObjectsInfo = ExecuteTargetModel.cloneExecuteObjectsInfo(this.formData.defaultTargetValue.executeObjectsInfo);
       } else {
         this.originalExecuteObjectsInfo = null;
       }

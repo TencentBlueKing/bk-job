@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -37,8 +37,6 @@ import com.tencent.bk.job.execute.model.web.vo.ExecuteObjectScriptLogVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteObjectVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
 import com.tencent.bk.job.execute.model.web.vo.FileDistributionDetailV2VO;
-import com.tencent.bk.job.execute.model.web.vo.FileDistributionDetailVO;
-import com.tencent.bk.job.execute.model.web.vo.IpFileLogContentVO;
 import com.tencent.bk.job.execute.model.web.vo.IpScriptLogContentVO;
 import com.tencent.bk.job.execute.model.web.vo.StepExecutionDetailV2VO;
 import com.tencent.bk.job.execute.model.web.vo.StepExecutionDetailVO;
@@ -318,40 +316,6 @@ public interface WebTaskExecutionResultResource {
             Integer batch
     );
 
-    @ApiOperation(value = "获取文件分发步骤主机对应的日志(废弃）", produces = "application/json")
-    @GetMapping(value = {"/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/host/{hostId}"})
-    @Deprecated
-    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
-        explain = "发布完成后可以删除")
-    Response<IpFileLogContentVO> getFileLogContentByHost(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId,
-        @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
-        @PathVariable("stepInstanceId")
-            Long stepInstanceId,
-        @ApiParam(value = "执行次数，首次传0", name = "executeCount", required = true)
-        @PathVariable("executeCount")
-            Integer executeCount,
-        @ApiParam(value = "主机ID", name = "hostId")
-        @PathVariable(value = "hostId", required = false) Long hostId,
-        @ApiParam(value = "文件任务上传下载标识,upload-上传,download-下载", name = "mode", required = true)
-        @RequestParam(value = "mode")
-            String mode,
-        @ApiParam(value = "滚动批次，非滚动步骤不需要传入", name = "batch")
-        @RequestParam(value = "batch", required = false)
-            Integer batch
-    );
-
     @ApiOperation(value = "获取文件分发步骤执行对象对应的日志", produces = "application/json")
     @GetMapping(value = {"/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/executeObject" +
         "/{executeObjectType}/{executeObjectResourceId}/fileLog"})
@@ -389,38 +353,6 @@ public interface WebTaskExecutionResultResource {
         @ApiParam(value = "文件任务上传下载标识,0-上传,1-下载", name = "mode", required = true)
         @RequestParam(value = "mode")
             Integer mode
-    );
-
-    @ApiOperation(value = "获取文件分发步骤文件任务ID对应的执行日志（废弃）", produces = "application/json")
-    @PostMapping(value = {"/step-execution-result/log-content/file/{stepInstanceId}/{executeCount}/query-by-ids"})
-    @Deprecated
-    @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
-        explain = "发布完成后可以删除")
-    Response<List<FileDistributionDetailVO>> getFileLogContentByFileTaskIds(
-        @ApiParam("用户名，网关自动传入")
-        @RequestHeader("username")
-            String username,
-        @ApiIgnore
-        @RequestAttribute(value = "appResourceScope")
-            AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
-        @PathVariable(value = "scopeType")
-            String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
-        @PathVariable(value = "scopeId")
-            String scopeId,
-        @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
-        @PathVariable("stepInstanceId")
-            Long stepInstanceId,
-        @ApiParam(value = "执行次数，首次传0", name = "executeCount", required = true)
-        @PathVariable("executeCount")
-            Integer executeCount,
-        @ApiParam(value = "滚动批次，非滚动步骤不需要传入", name = "batch")
-        @RequestParam(value = "batch", required = false)
-            Integer batch,
-        @ApiParam(value = "文件任务ID列表", name = "taskIds", required = true)
-        @RequestBody
-            List<String> taskIds
     );
 
     @ApiOperation(value = "获取文件分发步骤文件任务ID对应的执行日志", produces = "application/json")
@@ -588,6 +520,9 @@ public interface WebTaskExecutionResultResource {
 
     @ApiOperation(value = "获取步骤执行历史", produces = "application/json")
     @GetMapping(value = {"/step-execution-history/{stepInstanceId}"})
+    @Deprecated
+    @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.11.x",
+        type = CompatibleType.DEPLOY, explain = "发布完成后可以删除")
     Response<List<StepExecutionRecordVO>> listStepExecutionHistory(
         @ApiParam("用户名，网关自动传入")
         @RequestHeader("username")
@@ -605,6 +540,33 @@ public interface WebTaskExecutionResultResource {
         @PathVariable("stepInstanceId")
             Long stepInstanceId,
         @ApiParam(value = "滚动批次，非滚动步骤不需要传入", name = "batch")
+        @RequestParam(value = "batch", required = false)
+            Integer batch
+    );
+
+
+    @ApiOperation(value = "获取步骤执行历史", produces = "application/json")
+    @GetMapping(value = {"/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/stepExecutionHistory"})
+    Response<List<StepExecutionRecordVO>> listStepExecutionHistoryV2(
+        @ApiParam("用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "作业实例ID", name = "taskInstanceId", required = true)
+        @PathVariable("taskInstanceId")
+            Long taskInstanceId,
+        @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
+        @PathVariable("stepInstanceId")
+            Long stepInstanceId,
+        @ApiParam(value = "滚动批次，非滚动步骤不需要传入，0表示获取所有批次的数据，不传表示获取当前批次数据", name = "batch")
         @RequestParam(value = "batch", required = false)
             Integer batch
     );

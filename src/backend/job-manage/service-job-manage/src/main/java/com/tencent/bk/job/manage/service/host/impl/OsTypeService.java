@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -26,11 +26,11 @@ package com.tencent.bk.job.manage.service.host.impl;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -40,29 +40,41 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class OsTypeService {
 
-    private final LoadingCache<String, Map<String, String>> osTypeMapCache = Caffeine.newBuilder()
-        .maximumSize(2)
+    private IBizCmdbClient bizCmdbClient;
+    private final LoadingCache<Pair<String, String>, Map<String, String>> osTypeMapCache = Caffeine.newBuilder()
+        .maximumSize(10)
         .expireAfterWrite(30, TimeUnit.MINUTES)
         .recordStats()
-        .build(lang -> {
-            IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient(lang);
-            return bizCmdbClient.getOsTypeIdNameMap();
+        .build(langTenantIdPair -> {
+            String lang = langTenantIdPair.getLeft();
+            JobContextUtil.setUserLang(lang);
+            String tenantId = langTenantIdPair.getRight();
+            return bizCmdbClient.getOsTypeIdNameMap(tenantId);
         });
 
-    private String getOsTypeNameById(String osTypeId) {
-        Map<String, String> osTypeIdNameMap = osTypeMapCache.get(JobContextUtil.getUserLang());
+    public OsTypeService(IBizCmdbClient bizCmdbClient) {
+        this.bizCmdbClient = bizCmdbClient;
+    }
+
+    private String getOsTypeNameById(String tenantId, String osTypeId) {
+        Map<String, String> osTypeIdNameMap = osTypeMapCache.get(
+            Pair.of(
+                JobContextUtil.getUserLang(),
+                tenantId
+            )
+        );
         if (osTypeIdNameMap == null) {
             return JobConstants.UNKNOWN_NAME;
         }
         return osTypeIdNameMap.get(osTypeId);
     }
 
-    public String getOsTypeNameOrDefault(String osTypeId, String defaultValue) {
+    public String getOsTypeNameOrDefault(String tenantId, String osTypeId, String defaultValue) {
         if (osTypeId == null) {
             return defaultValue;
         }
         try {
-            return getOsTypeNameById(osTypeId);
+            return getOsTypeNameById(tenantId, osTypeId);
         } catch (Exception e) {
             log.warn("Fail to getOsTypeNameById", e);
             return defaultValue;

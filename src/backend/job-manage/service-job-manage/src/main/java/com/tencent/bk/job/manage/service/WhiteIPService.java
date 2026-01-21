@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -70,7 +70,7 @@ public interface WhiteIPService {
 
     Long deleteWhiteIPById(String username, Long id);
 
-    List<String> getWhiteIPActionScopes(Long appId, String ip, Long cloudAreaId, Long hostId);
-
     List<ServiceWhiteIPInfo> listWhiteIPInfos();
+
+    List<ServiceWhiteIPInfo> listWhiteIPInfos(String tenantId);
 }

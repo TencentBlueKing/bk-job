@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.analysis.task;
 
+import com.tencent.bk.job.analysis.task.ai.AIChatHistoryCleanTask;
 import com.tencent.bk.job.analysis.task.analysis.AnalysisTaskScheduler;
 import com.tencent.bk.job.analysis.task.statistics.StatisticsTaskScheduler;
 import org.slf4j.Logger;
@@ -40,12 +41,15 @@ public class ScheduledTasks {
     private static final Logger logger = LoggerFactory.getLogger(ScheduledTasks.class);
     private final AnalysisTaskScheduler analysisTaskScheduler;
     private final StatisticsTaskScheduler statisticsTaskScheduler;
+    private final AIChatHistoryCleanTask aiChatHistoryCleanTask;
 
     @Autowired
     public ScheduledTasks(AnalysisTaskScheduler analysisTaskScheduler,
-                          StatisticsTaskScheduler statisticsTaskScheduler) {
+                          StatisticsTaskScheduler statisticsTaskScheduler,
+                          AIChatHistoryCleanTask aiChatHistoryCleanTask) {
         this.analysisTaskScheduler = analysisTaskScheduler;
         this.statisticsTaskScheduler = statisticsTaskScheduler;
+        this.aiChatHistoryCleanTask = aiChatHistoryCleanTask;
     }
 
     /**
@@ -75,6 +79,18 @@ public class ScheduledTasks {
             analysisTaskScheduler.schedule();
         } catch (Exception e) {
             logger.error("analysisTaskSchedulerTask fail", e);
+        }
+    }
+
+    /**
+     * 定时清理用户产生的AI对话记录，1h一次
+     */
+    @Scheduled(cron = "0 20 * * * *")
+    public void aiChatHistoryCleanTask() {
+        try {
+            aiChatHistoryCleanTask.execute();
+        } catch (Exception e) {
+            logger.error("aiChatHistoryCleanTask fail", e);
         }
     }
 }

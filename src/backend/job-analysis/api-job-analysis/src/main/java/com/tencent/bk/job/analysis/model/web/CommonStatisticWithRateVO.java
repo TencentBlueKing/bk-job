@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -52,9 +52,9 @@ public class CommonStatisticWithRateVO {
     private Float momRate;
 
     @ApiModelProperty("同比趋势：1：上升，0：不变，-1：下降")
-    private Long yoyTrend;
+    private Integer yoyTrend;
 
     @ApiModelProperty("环比趋势：1：上升，0：不变，-1：下降")
-    private Long momTrend;
+    private Integer momTrend;
 
 }

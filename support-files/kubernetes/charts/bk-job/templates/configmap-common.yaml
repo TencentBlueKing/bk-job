@@ -27,8 +27,10 @@ data:
             bkDataToken: {{ .Values.job.trace.report.secureKey }}
           config:
             traceIdRatioBased: {{ .Values.job.trace.report.ratio }}
+      {{- include "job.rabbitmq.sslConfig" . | nindent 6 }}
     bk:
       bkDomain: {{ .Values.global.bkDomain }}
+      bkHelperLink: {{ .Values.global.bkHelperLink }}
     app:
       code: {{ .Values.appCode }}
       secret: {{ .Values.appSecret }}
@@ -41,40 +43,36 @@ data:
         url: {{ .Values.bkGseApiGatewayUrl }}
       bkNotice:
         url: {{ .Values.bkNoticeApiGatewayUrl }}
+      bkAIDev:
+        url: {{ .Values.bkAIDevApiGatewayUrl }}
+        appCode: {{ .Values.bkAIDevAppCode }}
+        appSecret: {{ .Values.bkAIDevAppSecret }}
       cmdb:
         url: {{ .Values.bkCmdbApiGatewayUrl }}
+      bkApiGateway:
+        url: {{ .Values.bkApiGatewayConfig.url }}
+      bkUser:
+        url: {{ .Values.bkUserApiGatewayUrl }}
+      bkUserWeb:
+        url: {{ .Values.bkUserWebApiGatewayUrl }}
+      bkLogin:
+        url: {{ .Values.bkLoginApiGatewayUrl }}
+      bkIam:
+        url: {{ .Values.bkIamApiGatewayUrl }}
+      cmsi:
+        url: {{ .Values.bkCmsiApiGatewayUrl }}
     gse:
-      enabled: {{ .Values.gse.enabled }}
-      cache:
-        apiserver:
-          host: {{ .Values.gse.cacheApiServer.host }}
-          port: {{ .Values.gse.cacheApiServer.port }}
-      ssl:
-        enabled: {{ .Values.gse.ssl.enabled }}
-        keystore:
-          password: ${gse.keystore.password}
-          path: "/data/job/cert/gse_job_api_client.keystore"
-        truststore:
-          manager-type: SunX509
-          password: ${gse.truststore.password}
-          store-type: JKS
-          path: "/data/job/cert/gse_job_api_client.truststore"
-      taskserver:
-        host: {{ .Values.gse.taskserver.host }}
-        port: {{ .Values.gse.taskserver.port }}
-      server:
-        discovery:
-          type: {{ .Values.gse.server.discovery.type }}
-        zookeeper:
-          connect:
-            string: {{ .Values.gse.server.zookeeper.connect.string }}
       query:
         {{- toYaml .Values.gse.query | nindent 8 }}
       script:
         rootPath: {{ .Values.gse.script.rootPath }}
+    gseV2:
+      {{- toYaml .Values.gseV2 | nindent 6 }}
+    external-system:
+      retry:
+        {{- toYaml .Values.externalSystemRetry | nindent 8 }}
     iam:
       web-url: {{ .Values.bkIamUrl }}
-      base-url: {{ .Values.bkIamApiUrl }}
       system-id: {{ .Values.iam.systemId }}
     audit:
       enabled: {{ .Values.audit.enabled }}
@@ -90,19 +88,27 @@ data:
           api-url: {{ .Values.login.custom.apiUrl }}
           token-name: {{ .Values.login.custom.tokenName }}
         {{- else }}
+        api-type: {{ .Values.login.apiType }}
         url: {{ .Values.bkLoginUrl }}
         {{- end }}
+    cmsi:
+      api-type: {{ .Values.cmsi.apiType }}
+      voice:
+        uri: {{ .Values.cmsi.voice.uri }}
     bkNotice:
       enabled: {{ .Values.bkNotice.enabled }}
     job:
       security:
         service:
+          enabled: {{ .Values.job.security.enabled }}
           private-key-base64: {{ .Values.job.security.privateKeyBase64 }}
           public-key-base64: {{ .Values.job.security.publicKeyBase64 }}
       edition: {{ .Values.job.edition }}
       encrypt:
         type: {{ .Values.job.encrypt.type }}
         password: {{ .Values.job.encrypt.password }}
+        sm2-public-key: {{.Values.job.encrypt.sm2PublicKey}}
+        sm2-private-key: {{.Values.job.encrypt.sm2PrivateKey}}
       web:
         url: {{ include "job.web.url" . }}
       storage:
@@ -173,3 +179,17 @@ data:
         enabled: {{ .Values.jvmDiagnosticFile.clearByLastModifyTime.enabled }}
         # JVM诊断文件保留的小时数，默认168小时（7天）
         keep-hours: {{ .Values.jvmDiagnosticFile.clearByLastModifyTime.keepHours }}
+    tenant:
+      enabled:  {{ .Values.tenant.enabled }}
+    # MockAPI配置：构造依赖系统（CMDB、IAM等）的Mock数据用于联调前的自测
+    mockApi:
+      {{- toYaml .Values.mockApi | nindent 6 }}
+    # # 调用蓝鲸系统时，使用虚拟账号 bk_admin 的 username
+    virtualAccount:
+      queryAdminUsername: {{ .Values.virtualAccount.queryAdminUsername }}
+    # 服务启动时 依赖组件的健康检查
+    healthCheck:
+      {{- toYaml .Values.healthCheck | nindent 6 }}
+    # 部署集群配置
+    cluster:
+      {{- toYaml .Values.cluster | nindent 6 }}

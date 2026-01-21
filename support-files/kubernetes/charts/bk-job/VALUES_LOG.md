@@ -1,4 +1,591 @@
 # chart values 更新日志
+
+## 0.9.1
+1. 新增外部系统（GSE、CMDB、IAM、BK-Login、BK-User）重试配置，采用指数退避策略
+```yaml
+## 外部系统（GSE、CMDB、IAM、BK-Login、BK-User）重试配置
+## 采用指数退避策略：重试间隔按指数增长（如 500ms → 1s → 2s → 4s → 8s）
+externalSystemRetry:
+  # 全局配置
+  global:
+    # 是否启用外部系统重试（默认开启）
+    enabled: true
+    # 初始重试间隔（毫秒），默认500ms
+    initialIntervalMs: 500
+    # 最大重试次数，默认5次
+    maxAttempts: 5
+    # 最大重试间隔（毫秒），默认30000ms（30秒）
+    maxIntervalMs: 30000
+    # 间隔增长倍数，默认2.0
+    multiplier: 2.0
+    # 是否启用重试指标采集（默认开启）
+    metricsEnabled: true
+    # 熔断器配置
+    circuitBreaker:
+      # 是否启用熔断器（默认关闭）
+      enabled: false
+      # 失败率阈值（百分比），默认80.0%
+      failureRateThreshold: 80.0
+      # 慢调用率阈值（百分比），默认90.0%
+      slowCallRateThreshold: 90.0
+      # 慢调用时长阈值（毫秒），默认30000ms（30秒）
+      slowCallDurationThresholdMs: 30000
+      # 滑动窗口大小，默认100次调用
+      slidingWindowSize: 100
+      # 最小调用次数（达到此次数后才开始计算失败率），默认10次
+      minimumNumberOfCalls: 10
+      # 熔断器开启状态下的等待时间（毫秒），默认30000ms（30秒）
+      waitDurationInOpenStateMs: 30000
+      # HALF_OPEN 状态允许的调用次数，默认10次
+      permittedCallsInHalfOpenState: 10
+      # 熔断器 OPEN 时是否快速失败：true：快速失败（抛出异常），false：继续调用但不重试
+      fastFail: false
+  # 各外部系统单独配置（可选，不配置则使用全局配置）
+  cmdb:
+    circuitBreaker:
+      # 白名单（API名称列表，这些API不参与熔断，一般情况下无需修改）
+      whiteApiList:
+        # CMDB 事件监听接口，正常耗时约 20 秒
+        - "getBizEvents"
+        - "getBizSetEvents"
+        - "getBizSetRelationEvents"
+        - "getHostEvents"
+        - "getHostRelationEvents"
+  # iam:
+  #   enabled: true
+  #   circuitBreaker:
+  #     enabled: true
+  # gse:
+  #   enabled: true
+  #   circuitBreaker:
+  #     enabled: true
+  # bkLogin:
+  #   enabled: true
+  #   circuitBreaker:
+  #     enabled: true
+  # bkUser:
+  #   enabled: true
+  #   circuitBreaker:
+  #     enabled: true
+```
+
+2. 移除旧的 GSE V2 重试配置，统一使用新的外部系统重试配置
+```yaml
+# 被移除的配置项
+gseV2:
+  # 重试策略
+  retry:
+    # 是否开启重试
+    enabled: false
+    # 含重试的最大执行次数
+    maxAttempts: 3
+    # 重试间隔（单位：秒）
+    intervalSeconds: 5
+```
+
+3. 新增前端提给后端账号密码的加密算法配置
+```yaml
+job:
+  encrypt:
+    # SM2加密算法原始公钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PublicKey: ""
+    # SM2加密算法原始私钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PrivateKey: ""
+```
+
+## 0.9.0
+1. 新增 bk-login/bk-user蓝鲸网关配置
+```yaml
+# 蓝鲸登录 API Gateway url
+bkLoginApiGatewayUrl: "http://bkapi.example.com/api/bk-login/prod"
+# 蓝鲸用户管理 API Gateway url
+bkUserApiGatewayUrl: "http://bkapi.example.com/api/bk-user/prod"
+# 蓝鲸用户管理前端服务 API Gateway url
+bkUserWebApiGatewayUrl: "http://bkapi.example.com/api/bk-user-web/prod"
+# 蓝鲸权限中心 API Gateway url
+bkIamApiGatewayUrl: "http://bkapi.example.com/api/bk-iam/prod"
+# 消息通知 API Gateway url
+bkCmsiApiGatewayUrl: "http://bkapi.example.com/api/cmsi/prod"
+```
+
+2. 新增租户配置
+```yaml
+# 多租户配置
+tenant:
+  # 是否启用多租户
+  enabled: false
+```
+
+3. 去除GSE 1.0相关配置项，不再支持使用1.0的Thrift协议调用GSE接口（但是在GSE 2.0服务端兼容1.0 Agent的前提下，作业平台支持用2.0的HTTP协议调用GSE 2.0接口管控1.0的Agent）
+```yaml
+# 被去除的配置项
+gse:
+  # 是否初始化 GSE1.0 Client。如果需要对接GSE1.0(job.features.gseV2.enabled=false), 必须设置gse.enabled=true
+  enabled: true
+  # 已存在的Tls证书Secret名称
+  existingTlsSecret: ""
+  # Agent状态查询接口相关配置
+  cacheApiServer:
+    # 接口地址host
+    host: "gse-api.example.com"
+    # 端口
+    port: 59313
+  # ssl证书相关配置
+  ssl:
+    # 是否开启SSL，默认开启
+    enabled: true
+    keystore:
+      ## 证书keystore文件单行base64编码值，此处默认值为社区版公开的默认证书keystore内容，正式部署请自行修改
+      base64Content: "/u3+7QAAAAIAAAABAAAAAQAWZ3NlX2pvYl9hcGlfY2xpZW50LnAxMgAAAXwXrYW+AAAFAjCCBP4wDgYKKwYBBAEqAhEBAQUABIIE6uLOUZk/hyL3PqGlTbpEDV4u9n1nhWaEmKNr08BMoX/mX2Bb1O4H70nFWN5r9BSpDbx8yMpCiZMcf2EGRF+G7DHiRzxTgNUvBYQ1KzC5GX0S7/40VcQrf/5INYbC/6PqzNY39rjqq2cRmAXmsJvdUZJYGmmZWqNsqVYSRrtSwA/wd3aQxHX5uEp48UVy41+FKg09PGhkqQAihVf98SlxltoHtqASb4foBmj/VI/J4AvgRVCvMrpx74oMeup+4IiGGqgyabvH9PJ17lI5JOXqXz3uexqOQ/J/40RJQikP2k6LC7qtKoHWmZB8bQGZ5cCMZ44snjbXj5p/2jXu71NBKjZ6AVJJ6GF6MIwdNJujbPSKhFxwYN47hp1n9rZs/EBsgFgiSpvbOgb37dmOsNjy0ahfHRzqcP8zvMxH/cX41cut5ZqaG8rSTDEdM7qG6Dciis/Dawe4SqgoOIzx68YSWdIHLLgHBZT8WXLE4PGaF6vfUhevRZJEsA3ecTUvvA9Rp2dcTT9uyuiIqAzlFPlnQFy10CYTS1uYemdK/i1u1hghf7kcWyouMdsaBDp4VROQKbPgMV/+BRh4ELC8ixX/nN+K49XEG4k4v2564NIKtC+ppNavHZ4/+hXkFe09XaXXgY7Fjk13N51PjkFnlmFL01r5plr8biq0Av5jdw58yAoJbg9eB738CsICGGICTyk8qfzIE7sZwnWBfUskLxihiYfsJsF/skS0Bdbx1dSVCayHYj7rsfHt/qg/7zsDhFCWskwLZoZXPLNbgwxcWLnPAJlTqb4lBi9KVMkCfOzVHgF5gZ57gMn3PFqqWwo3rcXsnRXy00yn8CH3opqMssT/hn0/P3SywgeTvTfYETW4t30swbO30Zh6UqNFlWaJdDUOINROUf0Z1YwNPcdpiPq8boCMXRdgtLzdaqs3N22omJDbgo56I7AjYQ/Ruv3Vy9iyGPy8jN6v/I5NEKdFouKXMw87MJDhJj2lFbW5Dw6IzhIaaycrYxi1XDo3amERIvHAYBi4pjNoU7xtt91otMligrt9sEqpApUQPWzJNxsloDgIH68kfEXdzMxG9u3iBFTsygKsxJUApIKziWTIqfQ0eqNpK9i17h/1ORTKSwwyoT9izopsT2geBPOux5G6goYGsv5DBkrCGt/UGlJLYkzYMAl4QyRD4JUaB2JCYs4pfinvSDW/Mla+UUfBaPtPy4lIdW8TfbA6zQJNHfmGCga/gZXQX4yR9Dc7aX9XaN8uC9ilBCi+DJp3dXaEzpaZYSmCp6by5a67kwFFQ0drsFGNi5jcj+vHE6mvu2umz2Zri2HS7ZPvYK6mvnsMDh4N2BKjYbVF+xt9OkE41qp9pN4bl+KcUfpUQQk418F9/DQiZG+VY76l9qKd6gNYKaHZV5kEiiqa5gmc/NOoPhihdMh7dwlnIsztRTh3B98uqRANbCjoiYn7M8/iT7J3p5YY+veFFhgFdD1ED87EmIioyU8Rd352d4cE0mHGa6a3UlSSoBS7xZUzWZwhkmvcUKixjBLU6sQXRvEDG0i8bgifB17AD/tIkcZUtHBCTl93qalVvKepBhlbY96+5fk850XrxJlx6ZNVAekQzGjgJPeHHqOmPz7bk1udNKYlhkJzUQTiyIARjEVaihvJuiWmBV2Elj514UNQuMINoxNrIagAAAACAAVYLjUwOQAAA9AwggPMMIICtKADAgECAhALfFWYdm4J8qBGt2Ser7GxMA0GCSqGSIb3DQEBCwUAMFsxCzAJBgNVBAYTAkNOMQswCQYDVQQIDAJHRDELMAkGA1UEBwwCU1oxDDAKBgNVBAoMA2llZzEQMA4GA1UECwwHYmx1a2luZzESMBAGA1UEAwwJR1NFUk9PVENBMCAXDTIxMDgwNjAyMDg0MFoYDzIwNzEwNzI1MDIwODQwWjBpMQswCQYDVQQGEwJDTjELMAkGA1UECBMCR1oxCzAJBgNVBAcTAlNaMRAwDgYDVQQKEwdUZW5jZW50MREwDwYDVQQLEwhibHVla2luZzEbMBkGA1UEAwwSR1NFX0pPQl9BUElfQ0xJRU5UMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsMwFyZVKTvtPPzPjQl2NUjdLsjlqCPzK4w+Cx4y1lPmHgsJ1IRJY6i+4p7fSoDGGRd1szPoo87/PvONnzTUO3AuERWynT8JpTRVEY7W4eS9gRKAiG9Nz+8sFPyTFrVsTNHVKsSVQxUiHOPi0kjz7C2WXrz7feRKPXUkFCi7wGZ4rogYlln2Hgi0yBlPSIUDQ+IEmQio0kZtpDC26NKow7cqchp7VscFUMyc6DgxoV6Yd4Eq7Fti4i+9bPyQ7ZYVYX15QfFar10vMByA7hLjeCMcYC1Eb4UomN8R/T9ib7nH9YZzUzHckWTJEQxby8C3tMixOMuCW74fnRrRhE8K0+wIDAQABo3wwejAOBgNVHQ8BAf8EBAMCAqQwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwOwYDVR0RBDQwMoISR1NFX0pPQl9BUElfQ0xJRU5Ugglsb2NhbGhvc3SBETUyOjU0OjAwOmMyOmVkOmI4MA0GCSqGSIb3DQEBCwUAA4IBAQBm1HcqIkniQCXD9aU0s/BBiOekUkIZeISGyb/A8Q1QOMgSex+TEC5ngZD8MuLMsbfE/TLjXeWRTaxItPhGH/sHMbWVjzwYe0t57Q7fT6wRI6adN3IqCKLus6qKhwOiBrcEgv14SfaFRVSdH3FazfW7f2sX6XUqvQWWWp9yX3oh6iTdbpSvcz1YStsvFUYKPRFQB5PUfnNB6VXdChyJnuPY4DbAIlWJBlpWUw5cR+kOVQTHWNw0aRhX1tp03G8lYmVq0+5R+Wz83NY4C/SIgqWZxRcb2RilH8yjNj7GfihkUyHviaxM91dzclM5Dc0y4neN8xk1MElOIEL63/hcrZ8QAAVYLjUwOQAAAzgwggM0MIICHAIJALiId3NzIOOhMA0GCSqGSIb3DQEBBQUAMFsxCzAJBgNVBAYTAkNOMQswCQYDVQQIDAJHRDELMAkGA1UEBwwCU1oxDDAKBgNVBAoMA2llZzEQMA4GA1UECwwHYmx1a2luZzESMBAGA1UEAwwJR1NFUk9PVENBMCAXDTE5MDIyNTEwMzIwNFoYDzIxMTkwMjAxMTAzMjA0WjBbMQswCQYDVQQGEwJDTjELMAkGA1UECAwCR0QxCzAJBgNVBAcMAlNaMQwwCgYDVQQKDANpZWcxEDAOBgNVBAsMB2JsdWtpbmcxEjAQBgNVBAMMCUdTRVJPT1RDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANZGwMDUVEWhU8mQsDRcGTdkcWDkIaNUN5kkbDYv5jlIkS38pMHiwt/AgQs7WaV2izpUQO4ZAYCTeDigDyqpjmOtldFFF39tRqfJvUZpeLihcydlpPL64ZlxgdOkjRE+7MgwPl78/n55ywGWcWcDEKMFjYi9+DThC7DFgxJPYi8LLiql965z5Ma+5xlV2xWsi8pWofIIYCZ5G8dwYJuH+LRJSLfQFeWM7L4tUTk+p1aajIUB6UJszIpyUCa/5iGbfw0TxuBqFX1lvzNzizGJTeAarKtdTNMUgjr+F0c/KE1gqeJRbFojsFaR8XInvlok9xrCqEGgsIDhdUUqlQ0EZAcCAwEAATANBgkqhkiG9w0BAQUFAAOCAQEAyettkU8a18cGKj9uXtXVqzw014lYA9GPl0+vZw8EXI8fIBxyLGUuWHTBevUS/IGmYQ1Dc/ci4+r6PfsBwlLhidL/WdxmENl85Ug7Ea+Nowg5MANCPhIgHYUy/bnjVnRjnVZjAM7zHfpgoFUlkpD7FWEUjhmSeRlLuBMbK5gPLwVPTbRiLi58CGBrxnDeq6fdHMT1vRRrxcZ88hW6oHumTkGf76i7/a3p5vaqQQoGj+VGofFZCTWiDYv7u2JuErcPjxYBNk0p3zVKbdFg4ymaOuBXAgb/YUYidahr5V1tW/F0oVLNEEscwwROhyQRBPCYoVP2d5fDE0zmh5P5b5DZCiacIMtUU3WLZmVD9wrL/n46z45N"
+      ## keystore的密码，此处默认值为社区版公开的默认证书keystore的密码，正式部署请自行修改
+      password: "2y#8VI2B4Sm9Dk^J"
+    truststore:
+      ## 证书truststore文件单行base64编码值，此处默认值为社区版公开的默认证书truststore内容，正式部署请自行修改
+      base64Content: "/u3+7QAAAAIAAAABAAAAAgACY2EAAAF8F68PKQAFWC41MDkAAAM4MIIDNDCCAhwCCQC4iHdzcyDjoTANBgkqhkiG9w0BAQUFADBbMQswCQYDVQQGEwJDTjELMAkGA1UECAwCR0QxCzAJBgNVBAcMAlNaMQwwCgYDVQQKDANpZWcxEDAOBgNVBAsMB2JsdWtpbmcxEjAQBgNVBAMMCUdTRVJPT1RDQTAgFw0xOTAyMjUxMDMyMDRaGA8yMTE5MDIwMTEwMzIwNFowWzELMAkGA1UEBhMCQ04xCzAJBgNVBAgMAkdEMQswCQYDVQQHDAJTWjEMMAoGA1UECgwDaWVnMRAwDgYDVQQLDAdibHVraW5nMRIwEAYDVQQDDAlHU0VST09UQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDWRsDA1FRFoVPJkLA0XBk3ZHFg5CGjVDeZJGw2L+Y5SJEt/KTB4sLfwIELO1mldos6VEDuGQGAk3g4oA8qqY5jrZXRRRd/bUanyb1GaXi4oXMnZaTy+uGZcYHTpI0RPuzIMD5e/P5+ecsBlnFnAxCjBY2Ivfg04QuwxYMST2IvCy4qpfeuc+TGvucZVdsVrIvKVqHyCGAmeRvHcGCbh/i0SUi30BXljOy+LVE5PqdWmoyFAelCbMyKclAmv+Yhm38NE8bgahV9Zb8zc4sxiU3gGqyrXUzTFII6/hdHPyhNYKniUWxaI7BWkfFyJ75aJPcawqhBoLCA4XVFKpUNBGQHAgMBAAEwDQYJKoZIhvcNAQEFBQADggEBAMnrbZFPGtfHBio/bl7V1as8NNeJWAPRj5dPr2cPBFyPHyAccixlLlh0wXr1EvyBpmENQ3P3IuPq+j37AcJS4YnS/1ncZhDZfOVIOxGvjaMIOTADQj4SIB2FMv2541Z0Y51WYwDO8x36YKBVJZKQ+xVhFI4ZknkZS7gTGyuYDy8FT020Yi4ufAhga8Zw3qun3RzE9b0Ua8XGfPIVuqB7pk5Bn++ou/2t6eb2qkEKBo/lRqHxWQk1og2L+7tibhK3D48WATZNKd81Sm3RYOMpmjrgVwIG/2FGInWoa+VdbVvxdKFSzRBLHMMETockEQTwmKFT9neXwxNM5oeT+W+Q2QrbpmZGDsc6xjUy7MDM2PvfOjI3OA=="
+      ## truststore的密码，此处默认值为社区版公开的默认证书truststore的密码，正式部署请自行修改
+      password: "2y#8VI2B4Sm9Dk^J"
+  # 任务下发接口相关配置
+  taskserver:
+    # 接口地址host
+    host: "gse-task.example.com"
+    # 端口
+    port: 48673
+  # 服务发现配置
+  server:
+    discovery:
+      # 服务发现模式：取值为zookeeper，不使用zookeeper则无需配置
+      type: zookeeper
+    zookeeper:
+      connect:
+        # zookeeper连接字符串，由host:port构成
+        string: "gse-zk.example.com:2181"
+```
+
+4. 去除权限中心后台接口配置（调用权限中心的请求改为全部走APIGW）
+```yaml
+# 蓝鲸 IAM 后台 url
+bkIamApiUrl: "http://bkiam-api.example.com"
+```
+
+5. 支持按子域名/子路径模式部署
+```yaml
+bkWebSiteAccess:
+  # 可选值：subdomain（子域名）、subpath（子路径）
+  mode: "subdomain"
+  # 子域名模式生效的配置
+  # subdomain:
+    # 请补充可能配置的特性项目，暂无
+  # 子路径模式生效的配置
+  subpath:
+    # 根路径前缀（如 "/app" 则访问路径为 https://www.example.com/app/xxx）
+    rootPrefix: "/job"
+```
+
+## 0.8.13
+1. job-gateway访问日志优化
+```yaml
+gatewayConfig:
+  customAccessLog:
+    # 是否开启自定义访问日志，默认开启
+    enabled: true
+```
+
+## 0.8.12
+1. 升级过程中的SQL更新支持增量更新
+```yaml
+job:
+  migration:
+    mysqlSchema:
+      # 是否开启增量更新模式，默认开启
+      incrementalEnabled: true
+```
+
+## 0.8.11
+1. 支持针对任务历史查询配置复杂查询限制
+```yaml
+## job-execute执行引擎配置
+executeConfig:
+  # 任务历史查询配置
+  taskHistoryQuery:
+    # 复杂查询限制，用于阻止大业务下大时间范围的复杂查询导致慢查询影响整个系统
+    complexQueryLimit:
+      # 是否开启，默认开启
+      enabled: true
+      # 允许查询扫描的最大数据量，默认2000万
+      maxQueryDataNum: 20000000
+      # 样本天数，用于估算平均每天任务量，默认7天
+      sampleDays: 7
+```
+
+## 0.8.9
+1. 支持多集群部署（共享MySQL、MongoDB、Redis、周边系统等基础组件）
+```yaml
+# 部署集群配置，单集群部署时无需修改，多集群部署且共享DB时需要分别指定不同的集群名称，用于避免资源冲突
+cluster:
+  ## 集群名称
+  name: default
+```
+
+## 0.8.6
+1. 文件分发时采用外部的Gse Agent代替Job机器作为源机器分发
+```yaml
+externalGseAgent:
+  ## 默认不使用集群外的GSE Agent分发文件
+  enabled: false
+    ## 与集群外GSE Agent共享文件采用的storageClass名
+  storageClass: nfs-client
+  ## 期望的大小
+  storageSize: 200Gi
+  ## 集群外部已安装 GSE Agent 的机器
+  hosts:
+    - bkCloudId: 0
+      ip: ""
+```
+
+## 0.8.3
+1. 作业执行日志归档配置
+```yaml
+backupConfig:
+  archive:
+    executeLog:
+      # 是否开启执行日志归档
+      enabled: true
+      # 是否试运行，试运行下仅打印日志不会真删除mongodb数据
+      dryRun: true
+      # 归档模式，仅支持删除
+      mode: deleteOnly
+      # 归档任务运行的cron表达式，默认每天凌晨04:00
+      cron : 0 0 4 * * *
+      # 执行日志保留天数(要结合执行历史的保留时间合理配置执行日志保留天数)
+      keepDays: 360
+      # 归档任务并发数量
+      concurrent: 6
+```
+
+## 0.8.2
+1. AI小鲸支持配置使用的大模型
+```yaml
+analysisConfig:
+  # AI相关配置
+  ai:
+    # 使用的大模型类型，默认腾讯混元，支持的取值：hunyuan、hunyuan-turbo、gpt-4、gpt-4o、gpt-4o-mini、gpt-3.5-turbo等，
+    # 平台会将任务相关的脚本、参数、日志等数据发送给大模型，使用大模型时请注意数据安全风险
+    model: hunyuan
+```
+
+2. 调整pod删除时等待优雅关闭的最大时间，从 40s -> 60s
+```yaml
+# pod删除时等待优雅关闭的最大时间，单位为秒（超出后强制删除）
+podTerminationGracePeriodSeconds: 60
+```
+
+## 0.8.0
+1. 增加按主机拓扑路径鉴权相关配置
+```yaml
+executeConfig:
+  # 权限中心相关配置
+  iam:
+    # 按主机拓扑路径鉴权相关配置
+    hostTopoPath:
+      # 主机拓扑路径填充服务是否开启，如果需要使用按主机拓扑路径鉴权功能则必须开启，默认开启
+      enabled : true
+      # 缓存配置
+      cache:
+        # 是否开启，默认开启
+        enabled: true
+        # 过期时间（s）
+        expireSeconds: 10
+```
+## 0.7.4
+1. 增加作业执行结果轮询规则的配置
+
+```yaml
+executeConfig:  
+  result:
+    pollingStrategy:
+      # 脚本执行   
+      script:
+        # 轮询间隔表，间隔不应太短，任务量大会给执行引擎、GSE增加压力，应根据实际情况渐进式调整
+        # Key：轮询次数起点-轮询次数终点，Value：使用的轮询间隔时间，单位为毫秒
+        intervalMap:
+          # 第1-10次轮询（轮询用时<=10s），每1000ms一次
+          1-10: 1000
+          # 第11-35次轮询（轮询用时：10s-1min），每2000ms轮询一次
+          11-35: 2000
+          # 第36-88次轮询（轮询用时：1min-5min），每5000ms轮询一次
+          36-88: 5000
+        # 超出轮询间隔表中配置的轮询次数后使用的统一间隔（单位：毫秒）    
+        finalInterval: 10000
+      # 文件分发  
+      file:
+        intervalMap:
+          # 第1-2次轮询（轮询用时<=2s），每1000ms一次
+          1-2: 1000
+          # 第3-11次轮询（轮询用时：2s-20s），每2000ms轮询一次
+          3-11: 2000
+          # 第12-67次轮询（轮询用时：20s-5min），每5000ms轮询一次
+          12-67: 5000
+        # 超出轮询间隔表中配置的轮询次数后使用的统一间隔（单位：毫秒）    
+        finalInterval: 10000
+```
+
+## 0.7.3
+1. 增加连接外部MariaDB、Redis、RabbitMQ、MongoDB支持TLS相关配置
+```yaml
+externalMariaDB:
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS
+    trustStoreType: "JKS"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.jks"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    keyStoreType: "PKCS12"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
+
+## job-backup备份服务配置
+backupConfig:
+  ## 数据归档配置
+  archive:
+    # 归档使用的MariaDB实例，若开启归档且开启 DB 数据备份，必须配置该项内容
+    mariadb:
+      ## TLS相关配置
+      tls :
+        ## 是否开启tls认证
+        enabled : false
+        ## 存储trustStore与keyStore的secret名称
+        existingSecret : ""
+        ## 单向tls认证配置
+        ## 密钥库类型：支持PKCS12、JKS，默认JKS
+        trustStoreType : "JKS"
+        ## 信任库文件名称（与Secret中的Key一致）
+        trustStoreFilename : "truststore.jks"
+        ## 信任库密码
+        trustStorePassword : ""
+        ## 双向tls认证配置
+        ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+        keyStoreType : "PKCS12"
+        ## 密钥库文件名称（与Secret中的Key一致）
+        keyStoreFilename : ""
+        ## 密钥库密码
+        keyStorePassword : ""
+        ## 是否校验主机名
+        verifyHostname : false
+
+## 应用MySQL表结构Migration时使用的TLS配置
+job:
+  migration:
+    mysqlSchema:
+      ## TLS相关配置
+      tls:
+        ## 是否开启tls认证
+        enabled: false
+        ## 存储证书与私钥文件内容的secret名称
+        existingSecret: ""
+        ## 单向tls认证配置
+        ## 客户端需要信任的服务端CA证书文件（PEM格式）名称（与Secret中的Key一致）
+        certCAFilename: "ca.pem"
+        ## 双向tls认证配置
+        ## 服务端需要信任的客户端证书文件（PEM格式）名称（与Secret中的Key一致）
+        certFilename: ""
+        ## 客户端私钥文件名称（与Secret中的Key一致）
+        certKeyFilename: ""
+        ## 是否校验主机名
+        verifyHostname: false
+
+externalRedis:
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS，注意：连接Redis使用的trustStoreType与keyStoreType必须相同，若不同则以keyStoreType为准
+    trustStoreType: "JKS"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.jks"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS
+    keyStoreType: "JKS"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
+    ## 是否校验主机名
+    verifyHostname: false
+    
+externalRabbitMQ:
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS
+    trustStoreType: "JKS"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.jks"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    keyStoreType: "PKCS12"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
+    ## 是否校验主机名
+    verifyHostname: false
+    
+externalMongoDB:
+  ## TLS相关配置
+  tls:
+    ## 是否开启tls认证
+    enabled: false
+    ## 存储trustStore与keyStore的secret名称
+    existingSecret: ""
+    ## 单向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认JKS
+    trustStoreType: "JKS"
+    ## 信任库文件名称（与Secret中的Key一致）
+    trustStoreFilename: "truststore.jks"
+    ## 信任库密码
+    trustStorePassword: ""
+    ## 双向tls认证配置
+    ## 密钥库类型：支持PKCS12、JKS，默认PKCS12
+    keyStoreType: "PKCS12"
+    ## 密钥库文件名称（与Secret中的Key一致）
+    keyStoreFilename: ""
+    ## 密钥库密码
+    keyStorePassword: ""
+    ## 是否校验主机名
+    verifyHostname: false
+```
+
+2. 修改备份服务热库的保留时间配置项
+```yaml
+backupConfig:
+  archive:
+    execute:
+      # 热库中的数据保留时间（天）
+      keepDays: 30
+```
+
+## 0.7.1
+1. 增加AI相关配置
+
+```yaml
+# 蓝鲸 AIDev API Gateway url
+bkAIDevApiGatewayUrl: "http://bkapi.example.com/api/aidev"
+# 调用蓝鲸AIDev API使用的appCode，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appCode的值
+bkAIDevAppCode: ""
+# 调用蓝鲸AIDev API使用的appSecret，如果AIDev API与当前Job在同一个环境则无需配置，直接使用appSecret的值
+bkAIDevAppSecret: ""
+analysisConfig:
+  # AI相关配置
+  ai:
+    # 是否开启AI功能，默认不开启
+    enabled: false
+    # AI分析错误日志功能相关配置
+    analyzeErrorLog:
+      # 支持分析的错误日志最大长度，单位支持B、KB、MB、GB、TB、PB，默认5MB
+      logMaxLength: "5MB"
+    # AI对话记录相关配置
+    chatHistory:
+      # 最大保留天数，默认31天
+      maxKeepDays: 31
+      # 单个用户最大保留的对话记录数量，默认1000条
+      maxHistoryPerUser: 1000
+```
+
+## 0.7.0
+1. 增加接入蓝鲸网关配置
+
+```yaml
+bkApiGatewayConfig:
+  # 是否自动把API注册到蓝鲸网关
+  sync: false
+  # 是否自动发布资源，true：生成版本且发布资源，false：只生成版本不发布资源
+  autoPublish: true
+  # 是否开启apigw jwt认证
+  enabled: true
+  jwtPublicKey:
+    # jwtPublicKey获取策略，获取失败重试：retry, 获取失败终止启动：abort
+    failPolicy: "retry"
+  # 接入的网关名称，蓝鲸官方网关都是bk-开头
+  gatewayName: "bk-job"
+  # 蓝鲸网关url
+  url: "http://bkapi.example.com/api/bk-apigateway"
+  # 接入环境
+  stage: "prod"
+  # 接入的api资源目录, 默认是/data/apidocs/
+  resourceDir: "/data/apidocs/"
+  # 网关维护人员，仅维护人员有管理网关的权限, 多个维护人员逗号分隔，如:"user1,user2"
+  maintainers: "admin"
+```
+
+## 0.6.5
+1. 增加正在执行中的作业总量的配额限制
+
+```yaml
+job:
+  # 资源配额限制
+  resourceQuotaLimit:
+    resources:
+      # 配额限制资源-正在执行中的作业
+      runningJob:
+        # 是否启用配额限制
+        enabled: true
+        # 正在执行中的作业总量限制
+        capacity: "10000"
+        # 基于资源管理空间(业务/业务集)的配额限制
+        resourceScopeQuotaLimit:
+          # 全局限制，每个资源管理空间默认的配额限制
+          global: "20%"
+          # 自定义配额限制，会覆盖 global
+          custom: "biz:2=1000,biz_set:9991001=50%"
+        # 基于蓝鲸应用的配额限制
+        appQuotaLimit:
+          global: "20%"
+          custom: "bk-nodeman=1000,bk-soap=50%"
+```
+
+## 0.6.4
+1. 增加 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件基础地址与base.js路径
+
+```yaml
+# 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件基础地址，例如：http://bkrepo.example.com/generic/blueking/bk-config，留空则采用前端默认值
+bkSharedResUrl: ""
+# 全局配置（title/footer/name/logo/产品商标）相关的前端资源文件base.js路径
+bkSharedBaseJsPath: "/bk_job/base.js"
+```
+
+## 0.6.2
+1. 增加 GSE 脚本任务执行结果查询 API 请求参数配置
+
+```yaml
+executeConfig:
+  scriptTask:
+    query:
+      # 脚本任务执行，从 GSE 查询结果的 API 单次返回的脚本执行输出内容最大长度。该参数需要合理设置，避免因为输出日志太多导致拉取 GSE 执行结果 API 超时。该参数支持使用不同的单位(KB/MB/GB)
+      contentSizeLimit: 512MB
+```
+
 ## 0.6.0
 1. 增加额外定义的前端页面访问URL
 
@@ -14,6 +601,19 @@ job:
 ```yaml
 # cmdb API Gateway url
 bkCmdbApiGatewayUrl: "http://bkapi.example.com/api/cmdb"
+```
+
+## 0.5.10
+1. 增加MySQL migration的自定义数据库账号和密码
+
+```yaml
+job:
+  migration:
+    mysqlSchema:
+      # mysql数据库migrate时使用的管理员用户名，不填默认是root
+      adminUsername: ""
+      # mysql数据库migrate时使用的管理员密码，不填使用mariadb/externalMariaDB的root密码
+      adminPassword: ""
 ```
 
 ## 0.5.9

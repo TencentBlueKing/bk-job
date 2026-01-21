@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -37,16 +37,16 @@
       :model="formData"
       :rules="rules">
       <jb-form-item
-        :label="$t('cron.任务名称.label')"
+        :label="$t('cron.任务名称_label')"
         property="name"
         required>
         <jb-input
           v-model="formData.name"
           :maxlength="60"
-          :placeholder="$t('cron.推荐按照该定时执行的实际场景来取名...')" />
+          :placeholder="$t('cron.推荐按照该定时执行的实际场景来取名')" />
       </jb-form-item>
       <jb-form-item
-        :label="$t('cron.执行策略.label')"
+        :label="$t('cron.执行策略_label')"
         :property="strategyField"
         required>
         <bk-radio-group
@@ -181,6 +181,9 @@
           </global-variable-layout>
         </render-info-detail>
       </div>
+      <custom-notify
+        :form-data="formData"
+        @on-change="handleFormItemChange" />
     </jb-form>
   </div>
 </template>
@@ -206,6 +209,7 @@
   import RenderInfoDetail from '../render-info-detail';
 
   import Crontab from './crontab';
+  import CustomNotify from './custom-notify';
   import FormItemFactory from './form-item-strategy';
 
   const onceItemList = [
@@ -231,6 +235,21 @@
       roleList: [],
       userList: [],
     },
+    notifyType: 1,
+    customNotifyUser: { // 用户角色列表
+      roleList: [],
+      userList: [],
+    },
+    customNotifyChannel: [
+      {
+        executeStatus: 'SUCCESS',
+        channelList: [],
+      },
+      {
+        executeStatus: 'FAIL',
+        channelList: [],
+      },
+    ],
     taskPlanId: 0, // 关联的执行方案 ID
     taskTemplateId: 0,
     variableValue: [], // 变量信息
@@ -246,6 +265,7 @@
       JbInput,
       FormItemFactory,
       Crontab,
+      CustomNotify,
     },
     props: {
       data: {
@@ -445,6 +465,9 @@
             scriptVersionId,
             taskPlanId,
             taskTemplateId,
+            notifyType,
+            cronJobCustomNotifyVO,
+
           } = cronJob;
 
           if (executeTime) {
@@ -465,7 +488,19 @@
             taskPlanId,
             taskTemplateId,
             variableValue: [],
+            notifyType,
+            customNotifyUser: {
+              roleList: cronJobCustomNotifyVO.roleList,
+              userList: cronJobCustomNotifyVO.extraObserverList,
+            },
           };
+
+          if (Object.keys(cronJobCustomNotifyVO.resourceStatusChannelMap).length > 0) {
+            this.formData.customNotifyChannel = Object.entries(cronJobCustomNotifyVO.resourceStatusChannelMap).map(([executeStatus, channelList]) => ({
+              executeStatus,
+              channelList,
+            }));
+          }
 
           // 使用执行方案的变量
           // 如果定时任务任务中存有变量变量值——拷贝过来
@@ -568,9 +603,9 @@
         this.strategy = strategy;
         if (strategy === 'once') {
           this.$refs.timeTaskForm.clearError('cronExpression');
-          this.formData.executeTime = generatorDefaultCronTime();
+          this.formData.executeTime = this.formData.executeTime || generatorDefaultCronTime();
         } else {
-          this.formData.cronExpression = '* * * * *';
+          this.formData.cronExpression = this.formData.cronExpression || '* * * * *';
         }
         this.formData.endTime = '';
         this.formData.notifyChannel = [];

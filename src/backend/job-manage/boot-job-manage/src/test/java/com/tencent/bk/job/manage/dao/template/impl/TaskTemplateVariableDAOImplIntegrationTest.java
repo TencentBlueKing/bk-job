@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -221,14 +221,14 @@ class TaskTemplateVariableDAOImplIntegrationTest {
 
     @Test
     void givenNewVariableInfoReturnUpdateSuccess() {
-        assertThat(taskVariableDAO.updateVariableById(VARIABLE_1)).isTrue();
+        assertThat(taskVariableDAO.updateVarByParentResourceIdAndTplVarId(VARIABLE_1)).isTrue();
         VARIABLE_1.setName(UUID.randomUUID().toString());
         VARIABLE_1.setType(TaskVariableTypeEnum.STRING);
         VARIABLE_1.setDescription(UUID.randomUUID().toString());
         VARIABLE_1.setDefaultValue(UUID.randomUUID().toString());
         VARIABLE_1.setChangeable(!VARIABLE_1.getChangeable());
         VARIABLE_1.setRequired(!VARIABLE_1.getRequired());
-        assertThat(taskVariableDAO.updateVariableById(VARIABLE_1)).isTrue();
+        assertThat(taskVariableDAO.updateVarByParentResourceIdAndTplVarId(VARIABLE_1)).isTrue();
 
         assertThat(taskVariableDAO.getVariableById(VARIABLE_1.getTemplateId(), VARIABLE_1.getId()))
             .isEqualTo(VARIABLE_1);
@@ -238,13 +238,13 @@ class TaskTemplateVariableDAOImplIntegrationTest {
     void givenWrongVariableInfoReturnUpdateFailed() {
         VARIABLE_1.setId(getRandomPositiveLong());
         VARIABLE_1.setTemplateId(getRandomPositiveLong());
-        assertThat(taskVariableDAO.updateVariableById(VARIABLE_1)).isFalse();
+        assertThat(taskVariableDAO.updateVarByParentResourceIdAndTplVarId(VARIABLE_1)).isFalse();
 
         VARIABLE_2.setTemplateId(getRandomPositiveLong());
-        assertThat(taskVariableDAO.updateVariableById(VARIABLE_2)).isFalse();
+        assertThat(taskVariableDAO.updateVarByParentResourceIdAndTplVarId(VARIABLE_2)).isFalse();
 
         VARIABLE_3.setId(getRandomPositiveLong());
-        assertThat(taskVariableDAO.updateVariableById(VARIABLE_3)).isFalse();
+        assertThat(taskVariableDAO.updateVarByParentResourceIdAndTplVarId(VARIABLE_3)).isFalse();
     }
 
 }

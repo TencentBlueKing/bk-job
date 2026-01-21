@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -29,13 +29,16 @@ import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.FeatureToggleModeEnum;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
@@ -84,9 +87,11 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
                                            @AuditRequestBody AccountCreateUpdateReq accountCreateUpdateReq) {
         accountService.checkCreateParam(accountCreateUpdateReq, true, true);
 
-        AccountDTO newAccount = accountService.buildCreateAccountDTO(username, appResourceScope.getAppId(),
+        User user = JobContextUtil.getUser();
+        accountService.decryptPwdFromReqIfNeeded(accountCreateUpdateReq);
+        AccountDTO newAccount = accountService.buildCreateAccountDTO(user.getUsername(), appResourceScope.getAppId(),
             accountCreateUpdateReq);
-        AccountDTO savedAccount = accountService.createAccount(username, newAccount);
+        AccountDTO savedAccount = accountService.createAccount(user, newAccount);
         return Response.buildSuccessResp(savedAccount.toAccountVO());
     }
 
@@ -103,8 +108,10 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
 
+        User user = JobContextUtil.getUser();
+        accountService.decryptPwdFromReqIfNeeded(accountCreateUpdateReq);
         AccountDTO updateAccount = buildUpdateAccountDTO(username, appResourceScope.getAppId(), accountCreateUpdateReq);
-        AccountDTO savedAccount = accountService.updateAccount(username, updateAccount);
+        AccountDTO savedAccount = accountService.updateAccount(user, updateAccount);
         return Response.buildSuccessResp(savedAccount.toAccountVO());
     }
 
@@ -130,11 +137,13 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         accountDTO.setAlias(req.getAlias());
         accountDTO.setRemark(req.getRemark());
         accountDTO.setGrantees(Utils.concatStringWithSeperator(req.getGrantees(), ","));
-        if (StringUtils.isNotEmpty(req.getPassword()) && !req.getPassword().equals("******")) {
+        if (StringUtils.isNotEmpty(req.getPassword())
+            && !JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(req.getPassword())) {
             // 前端所有的返回密码都是"******"，如果更新接口传给后台的仍然是******，说明密码未改动
             accountDTO.setPassword(req.getPassword());
         }
-        if (StringUtils.isNotEmpty(req.getDbPassword()) && !req.getDbPassword().equals("******")) {
+        if (StringUtils.isNotEmpty(req.getDbPassword())
+            && !JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(req.getDbPassword())) {
             // 前端所有的返回密码都是"******"，如果更新接口传给后台的仍然是******，说明密码未改动
             accountDTO.setDbPassword(req.getDbPassword());
         }
@@ -164,6 +173,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
                                                          String orderField,
                                                          Integer order,
                                                          String keyword) {
+        User user = JobContextUtil.getUser();
         PageData<AccountDTO> pageData;
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         baseSearchCondition.setStart(start);
@@ -203,11 +213,11 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         }
         // 添加权限数据
         List<Long> canManageIdList =
-            accountAuthService.batchAuthManageAccount(username, appResourceScope,
+            accountAuthService.batchAuthManageAccount(user, appResourceScope,
                 accountVOS.stream().map(AccountVO::getId).collect(Collectors.toList()));
         accountVOS.forEach(it -> it.setCanManage(canManageIdList.contains(it.getId())));
         result.setData(accountVOS);
-        result.setCanCreate(checkCreateAccountPermission(username, appResourceScope).isPass());
+        result.setCanCreate(checkCreateAccountPermission(user, appResourceScope).isPass());
         return Response.buildSuccessResp(result);
     }
 
@@ -218,7 +228,8 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
                                   String scopeType,
                                   String scopeId,
                                   Long accountId) {
-        accountService.deleteAccount(username, appResourceScope.getAppId(), accountId);
+        User user = JobContextUtil.getUser();
+        accountService.deleteAccount(user, appResourceScope.getAppId(), accountId);
         return Response.buildSuccessResp(null);
     }
 
@@ -229,7 +240,8 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
                                               String scopeType,
                                               String scopeId,
                                               Long accountId) {
-        AccountDTO account = accountService.getAccount(username, appResourceScope.getAppId(), accountId);
+        User user = JobContextUtil.getUser();
+        AccountDTO account = accountService.getAccount(user, appResourceScope.getAppId(), accountId);
         return Response.buildSuccessResp(account.toAccountVO());
     }
 
@@ -239,6 +251,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
                                                   String scopeType,
                                                   String scopeId,
                                                   Integer category) {
+        User user = JobContextUtil.getUser();
         if (category != null && AccountCategoryEnum.valOf(category) == null) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -255,23 +268,23 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
                 accountVOS.add(accountVO);
             }
             // 批量鉴权
-            List<Long> canManageIdList = accountAuthService.batchAuthManageAccount(username,
+            List<Long> canManageIdList = accountAuthService.batchAuthManageAccount(user,
                 appResourceScope, accountIdList);
             Set<Long> canManageIdSet = new HashSet<>(canManageIdList);
             accountVOS.forEach(accountVO ->
                 accountVO.setCanManage(canManageIdSet.contains(accountVO.getId())));
 
-            setUseAccountPermission(username, appResourceScope, accountVOS);
+            setUseAccountPermission(user, appResourceScope, accountVOS);
         }
         return Response.buildSuccessResp(accountVOS);
     }
 
-    private AuthResult checkCreateAccountPermission(String username, AppResourceScope appResourceScope) {
+    private AuthResult checkCreateAccountPermission(User user, AppResourceScope appResourceScope) {
         // 需要拥有在业务下创建账号的权限
-        return accountAuthService.authCreateAccount(username, appResourceScope);
+        return accountAuthService.authCreateAccount(user, appResourceScope);
     }
 
-    private void setUseAccountPermission(String username,
+    private void setUseAccountPermission(User user,
                                          AppResourceScope appResourceScope,
                                          List<AccountVO> accountVOS) {
         if (CollectionUtils.isEmpty(accountVOS)) {
@@ -279,7 +292,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         }
         if (shouldAuthAccount(appResourceScope.getAppId())) {
             List<Long> accountIdList = accountVOS.stream().map(AccountVO::getId).collect(Collectors.toList());
-            List<Long> allowedIdList = accountAuthService.batchAuthUseAccount(username, appResourceScope,
+            List<Long> allowedIdList = accountAuthService.batchAuthUseAccount(user, appResourceScope,
                 accountIdList);
             Set<Long> allowedIdSet = new HashSet<>(allowedIdList);
             accountVOS.forEach(accountVO ->

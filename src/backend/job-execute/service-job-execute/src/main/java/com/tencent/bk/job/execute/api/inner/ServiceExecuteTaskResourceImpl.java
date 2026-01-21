@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,13 +25,17 @@
 package com.tencent.bk.job.execute.api.inner;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.iam.AuthResultDTO;
+import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
@@ -45,6 +49,7 @@ import com.tencent.bk.job.execute.model.inner.ServiceTargetServers;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskVariable;
 import com.tencent.bk.job.execute.model.inner.request.ServiceTaskExecuteRequest;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.TaskExecuteService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -64,11 +69,18 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
 
     private final WebAuthService webAuthService;
 
+    private final RemoteAppService remoteAppService;
+    private final TenantService tenantService;
+
     @Autowired
     public ServiceExecuteTaskResourceImpl(TaskExecuteService taskExecuteService,
-                                          WebAuthService webAuthService) {
+                                          WebAuthService webAuthService,
+                                          RemoteAppService remoteAppService,
+                                          TenantService tenantService) {
         this.taskExecuteService = taskExecuteService;
         this.webAuthService = webAuthService;
+        this.remoteAppService = remoteAppService;
+        this.tenantService = tenantService;
     }
 
     @Override
@@ -94,11 +106,14 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
 
     private TaskExecuteParam buildExecuteParam(ServiceTaskExecuteRequest request) {
         List<TaskVariableDTO> executeVariableValues = new ArrayList<>();
+        String tenantId = remoteAppService.getTenantIdByAppId(request.getAppId());
+        User user = new User(tenantId, request.getOperator(), request.getOperator());
+        JobContextUtil.setUser(user);
         TaskExecuteParam taskExecuteParam = TaskExecuteParam
             .builder()
             .appId(request.getAppId())
             .planId(request.getPlanId())
-            .operator(request.getOperator())
+            .operator(user)
             .executeVariableValues(executeVariableValues)
             .startupMode(TaskStartupModeEnum.getStartupMode(request.getStartupMode()))
             .cronTaskId(request.getCronTaskId())
@@ -118,7 +133,8 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
                 taskVariableDTO.setValue(serviceTaskVariable.getStringValue());
             } else if (serviceTaskVariable.getType() == CIPHER.getType()) {
                 // 如果密码类型的变量传入为空或者“******”，那么密码使用系统中保存的
-                if (serviceTaskVariable.getStringValue() == null || "******".equals(serviceTaskVariable.getStringValue())) {
+                if (serviceTaskVariable.getStringValue() == null
+                    || JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(serviceTaskVariable.getStringValue())) {
                     continue;
                 } else {
                     taskVariableDTO.setValue(serviceTaskVariable.getStringValue());
@@ -181,6 +197,8 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
     @Override
     public InternalResponse<AuthResultDTO> authExecuteTask(ServiceTaskExecuteRequest request) {
         log.info("Auth execute task, request={}", request);
+        String tenantId = tenantService.getTenantIdByAppId(request.getAppId());
+        JobContextUtil.setUser(new User(tenantId, request.getOperator(), request.getOperator()));
         if (!checkExecuteTaskRequest(request)) {
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
@@ -193,7 +211,8 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
             authResult = AuthResult.toAuthResultDTO(e.getAuthResult());
             log.debug("Insufficient permission, authResult: {}", authResult);
             if (StringUtils.isEmpty(authResult.getApplyUrl())) {
-                authResult.setApplyUrl(webAuthService.getApplyUrl(e.getAuthResult().getRequiredActionResources()));
+                authResult.setApplyUrl(webAuthService.getApplyUrl(
+                    executeParam.getOperator().getTenantId(), e.getAuthResult().getRequiredActionResources()));
             }
         }
         return InternalResponse.buildSuccessResp(authResult);

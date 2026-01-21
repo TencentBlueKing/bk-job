@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -29,15 +29,17 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.web.WebNotifyResource;
 import com.tencent.bk.job.manage.auth.NotificationAuthService;
+import com.tencent.bk.job.manage.model.dto.notify.TriggerPolicyDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceNotificationDTO;
 import com.tencent.bk.job.manage.model.web.request.notify.NotifyPoliciesCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.notify.PageTemplateVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.RoleVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerPolicyVO;
-import com.tencent.bk.job.manage.model.web.vo.notify.UserVO;
 import com.tencent.bk.job.manage.service.LocalPermissionService;
 import com.tencent.bk.job.manage.service.NotifyService;
 import com.tencent.bk.job.manage.service.impl.notify.NotifyUserService;
@@ -46,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.tencent.bk.job.common.constant.ErrorCode.PERMISSION_DENIED;
 
@@ -74,8 +77,22 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
                                                                         AppResourceScope appResourceScope,
                                                                         String scopeType,
                                                                         String scopeId) {
-        return Response.buildSuccessResp(notifyService.listAppDefaultNotifyPolicies(username,
-            appResourceScope.getAppId()));
+        List<TriggerPolicyDTO> triggerPolicyDTOList = notifyService.listAppDefaultNotifyPolicies(
+            username, appResourceScope.getAppId());
+        List<TriggerPolicyVO> resultList = triggerPolicyDTOList.stream()
+            .map(this::convertToTriggerPolicyVO)
+            .collect(Collectors.toList());
+        return Response.buildSuccessResp(resultList);
+    }
+
+    private TriggerPolicyVO convertToTriggerPolicyVO(TriggerPolicyDTO triggerPolicyDTO) {
+        TriggerPolicyVO triggerPolicyVO = new TriggerPolicyVO();
+        triggerPolicyVO.setTriggerType(triggerPolicyDTO.getTriggerType());
+        triggerPolicyVO.setResourceTypeList(triggerPolicyDTO.getResourceTypeList());
+        triggerPolicyVO.setRoleList(triggerPolicyDTO.getRoleList());
+        triggerPolicyVO.setExtraObserverList(triggerPolicyDTO.getExtraObserverList());
+        triggerPolicyVO.setResourceStatusChannelMap(triggerPolicyDTO.getResourceStatusChannelMap());
+        return triggerPolicyVO;
     }
 
     @Override
@@ -85,7 +102,8 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
                                                        String scopeType,
                                                        String scopeId,
                                                        NotifyPoliciesCreateUpdateReq createUpdateReq) {
-        AuthResult authResult = notificationAuthService.authNotificationSetting(username, appResourceScope);
+        User user = JobContextUtil.getUser();
+        AuthResult authResult = notificationAuthService.authNotificationSetting(user, appResourceScope);
         if (!authResult.isPass()) {
             throw new PermissionDeniedException(authResult);
         }
@@ -101,14 +119,6 @@ public class WebNotifyResourceImpl implements WebNotifyResource {
     @Override
     public Response<List<RoleVO>> listRoles(String username) {
         return Response.buildSuccessResp(notifyService.listRole(username));
-    }
-
-    @Override
-    public Response<List<UserVO>> listUsers(String username,
-                                            String prefixStr,
-                                            Long offset,
-                                            Long limit) {
-        return Response.buildSuccessResp(notifyUserService.listUsers(prefixStr, offset, limit, true));
     }
 
     @Override

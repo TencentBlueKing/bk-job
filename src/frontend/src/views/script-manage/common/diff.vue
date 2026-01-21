@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -55,7 +55,7 @@
           @click="handleViewIns">
           <span class="before" />
           <span class="after" />
-          <span>{{ $t('新增.diff') }}（{{ ins }}）</span>
+          <span>{{ $t('新增_diff') }}（{{ ins }}）</span>
         </div>
       </div>
     </div>

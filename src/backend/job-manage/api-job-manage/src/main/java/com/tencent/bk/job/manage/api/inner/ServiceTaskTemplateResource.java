@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -59,13 +59,6 @@ public interface ServiceTaskTemplateResource {
         @ApiParam(value = "脚本状态 1 - 上线 2 - 下线 3 - 禁用", required = true) @RequestParam("status") Integer status);
 
     @ApiOperation(value = "根据模版 ID 获取模版信息", produces = "application/json")
-    @GetMapping("/service/app/{appId}/template/{templateId}")
-    InternalResponse<ServiceTaskTemplateDTO> getTemplateById(
-        @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
-        @ApiParam(value = "模版 ID") @PathVariable("templateId") Long templateId);
-
-    @ApiOperation(value = "根据模版 ID 获取模版信息", produces = "application/json")
     @GetMapping("/service/template/{templateId}")
     InternalResponse<ServiceTaskTemplateDTO> getTemplateById(
         @ApiParam(value = "模版 ID") @PathVariable("templateId") Long templateId);
@@ -114,4 +107,11 @@ public interface ServiceTaskTemplateResource {
         @ApiParam("分页-每页大小")
         @RequestParam(value = "pageSize", required = false)
             Integer pageSize);
+
+    @ApiOperation(value = "获取作业模版数量", produces = "application/json")
+    @GetMapping("/service/app/{appId}/template/count")
+    InternalResponse<Integer> countTemplates(
+        @ApiParam(value = "业务Id", required = true, example = "2")
+        @PathVariable("appId")
+        Long appId);
 }

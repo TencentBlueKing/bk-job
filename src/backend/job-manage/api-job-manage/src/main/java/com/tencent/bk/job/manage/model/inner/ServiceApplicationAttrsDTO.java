@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.model.inner;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.tencent.bk.job.common.model.dto.ApplicationAttrsDO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -47,4 +48,20 @@ public class ServiceApplicationAttrsDTO {
      * cmdb业务集是否包含所有子业务
      */
     private Boolean matchAllBiz;
+
+    /**
+     * cmdb租户集是否包含所有租户
+     */
+    private Boolean matchAllTenant;
+
+    public static ServiceApplicationAttrsDTO fromApplicationAttrsDO(ApplicationAttrsDO attrsDO) {
+        if (attrsDO == null) {
+            return null;
+        }
+        ServiceApplicationAttrsDTO dto = new ServiceApplicationAttrsDTO();
+        dto.setMatchAllBiz(attrsDO.getMatchAllBiz());
+        dto.setMatchAllTenant(attrsDO.getMatchAllTenant());
+        dto.setSubBizIds(attrsDO.getSubBizIds());
+        return dto;
+    }
 }

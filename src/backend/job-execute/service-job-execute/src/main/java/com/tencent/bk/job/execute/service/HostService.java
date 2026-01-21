@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -43,30 +43,33 @@ public interface HostService {
     /**
      * 批量获取主机信息
      *
-     * @param hostIps 主机Ip列表
+     * @param tenantId 租户ID
+     * @param hostIps  主机Ip列表
      * @return 主机信息
      */
-    Map<HostDTO, ServiceHostDTO> batchGetHosts(List<HostDTO> hostIps);
+    Map<HostDTO, ServiceHostDTO> batchGetHostsFromCacheOrDB(String tenantId, List<HostDTO> hostIps);
 
     /**
      * 获取主机信息
      *
-     * @param host 主机
+     * @param tenantId 租户ID
+     * @param host     主机
      * @return 主机信息
      */
-    ServiceHostDTO getHost(HostDTO host);
+    ServiceHostDTO getHostFromCacheOrDB(String tenantId, HostDTO host);
 
     /**
      * 通过云区域ID与IPv6地址获取主机信息
      *
+     * @param tenantId    租户ID
      * @param cloudAreaId 云区域ID
      * @param ipv6        IPv6地址
      * @return 主机信息
      */
-    ServiceHostDTO getHostByCloudIpv6(long cloudAreaId, String ipv6);
+    ServiceHostDTO getHostByCloudIpv6(String tenantId, long cloudAreaId, String ipv6);
 
     /**
-     * 获取业务下的主机列表
+     * 获取业务下的主机列表，被高频调用，需要缓存
      *
      * @param appId          Job业务ID
      * @param hosts          主机列表
@@ -78,22 +81,26 @@ public interface HostService {
     /**
      * 获取动态分组主机
      *
-     * @param appId   业务ID
-     * @param groupId 动态分组ID
+     * @param tenantId 租户ID
+     * @param appId    业务ID
+     * @param groupId  动态分组ID
      * @return 主机列表
      */
-    List<HostDTO> getHostsByDynamicGroupId(long appId, String groupId);
+    List<HostDTO> getHostsByDynamicGroupId(String tenantId, long appId, String groupId);
 
     /**
      * 批量获取动态分组主机，并根据动态分组ID对主机进行分组
      *
+     * @param tenantId 租户ID
      * @param appId    业务ID
      * @param groupIds 动态分组ID列表
      * @return Map, key: 动态分组 value: 动态分组下的主机列表
      */
     Map<DynamicServerGroupDTO, List<HostDTO>> batchGetAndGroupHostsByDynamicGroup(
+        String tenantId,
         long appId,
-        Collection<DynamicServerGroupDTO> groupIds);
+        Collection<DynamicServerGroupDTO> groupIds
+    );
 
 
     /**
@@ -116,4 +123,13 @@ public interface HostService {
         long appId,
         Collection<DynamicServerTopoNodeDTO> topoNodes
     );
+
+    /**
+     * 在给定的主机列表中提取出不存在的主机
+     *
+     * @param hosts 主机列表
+     * @return 不存在的主机列表
+     */
+    List<HostDTO> extractNotExistHosts(Long appId,
+                                       List<HostDTO> hosts);
 }

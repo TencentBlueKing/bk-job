@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -67,13 +67,13 @@ public abstract class AbstractTaskVariableService {
     }
 
     /**
-     * 根据 ID 更新变量
+     * 根据 父资源（作业模板/执行方案）ID+变量ID 更新变量信息
      *
      * @param variable 变量信息
      * @return 是否更新成功
      */
-    public boolean updateVariableById(TaskVariableDTO variable) {
-        return taskVariableDAO.updateVariableById(variable);
+    public boolean updateVarByParentResourceIdAndTplVarId(TaskVariableDTO variable) {
+        return taskVariableDAO.updateVarByParentResourceIdAndTplVarId(variable);
     }
 
     /**

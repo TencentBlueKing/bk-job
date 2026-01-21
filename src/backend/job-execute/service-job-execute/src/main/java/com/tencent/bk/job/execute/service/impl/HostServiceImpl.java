@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.common.cc.model.CcCloudIdDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
-import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -43,6 +42,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostsByCloudIpv6Req;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -69,29 +69,35 @@ public class HostServiceImpl implements HostService {
     private final ServiceHostResource hostResource;
     private final AppScopeMappingService appScopeMappingService;
     private final ExecutorService getHostsByTopoExecutor;
+    private final RemoteAppService remoteAppService;
+    private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
     public HostServiceImpl(ServiceHostResource hostResource,
                            AppScopeMappingService appScopeMappingService,
-                           @Qualifier("getHostsByTopoExecutor") ExecutorService getHostsByTopoExecutor) {
+                           @Qualifier("getHostsByTopoExecutor") ExecutorService getHostsByTopoExecutor,
+                           RemoteAppService remoteAppService,
+                           IBizCmdbClient bizCmdbClient) {
         this.hostResource = hostResource;
         this.appScopeMappingService = appScopeMappingService;
         this.getHostsByTopoExecutor = getHostsByTopoExecutor;
+        this.remoteAppService = remoteAppService;
+        this.bizCmdbClient = bizCmdbClient;
     }
 
     @Override
-    public Map<HostDTO, ServiceHostDTO> batchGetHosts(List<HostDTO> hostIps) {
-        List<ServiceHostDTO> hosts = hostResource.batchGetHosts(
-            new ServiceBatchGetHostsReq(hostIps)).getData();
+    public Map<HostDTO, ServiceHostDTO> batchGetHostsFromCacheOrDB(String tenantId, List<HostDTO> hostIps) {
+        List<ServiceHostDTO> hosts = hostResource.batchGetHostsFromCacheOrDB(
+            new ServiceBatchGetHostsReq(tenantId, hostIps)).getData();
         Map<HostDTO, ServiceHostDTO> hostMap = new HashMap<>();
         hosts.forEach(host -> hostMap.put(new HostDTO(host.getCloudAreaId(), host.getIp()), host));
         return hostMap;
     }
 
     @Override
-    public ServiceHostDTO getHost(HostDTO host) {
-        List<ServiceHostDTO> hosts = hostResource.batchGetHosts(
-            new ServiceBatchGetHostsReq(Collections.singletonList(host))).getData();
+    public ServiceHostDTO getHostFromCacheOrDB(String tenantId, HostDTO host) {
+        List<ServiceHostDTO> hosts = hostResource.batchGetHostsFromCacheOrDB(
+            new ServiceBatchGetHostsReq(tenantId, Collections.singletonList(host))).getData();
         if (CollectionUtils.isEmpty(hosts)) {
             return null;
         }
@@ -99,9 +105,9 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public ServiceHostDTO getHostByCloudIpv6(long cloudAreaId, String ipv6) {
+    public ServiceHostDTO getHostByCloudIpv6(String tenantId, long cloudAreaId, String ipv6) {
         List<ServiceHostDTO> hosts = hostResource.getHostsByCloudIpv6(
-            new ServiceGetHostsByCloudIpv6Req(cloudAreaId, ipv6)
+            new ServiceGetHostsByCloudIpv6Req(tenantId, cloudAreaId, ipv6)
         ).getData();
         if (CollectionUtils.isEmpty(hosts)) {
             log.warn("Cannot find host by (cloudAreaId={}, ipv6={})", cloudAreaId, ipv6);
@@ -129,11 +135,10 @@ public class HostServiceImpl implements HostService {
     }
 
     @Override
-    public List<HostDTO> getHostsByDynamicGroupId(long appId, String groupId) {
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
+    public List<HostDTO> getHostsByDynamicGroupId(String tenantId, long appId, String groupId) {
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         List<DynamicGroupHostPropDTO> cmdbGroupHostList =
-            bizCmdbClient.getDynamicGroupIp(Long.parseLong(resourceScope.getId()), groupId);
+            bizCmdbClient.getDynamicGroupIp(tenantId, Long.parseLong(resourceScope.getId()), groupId);
         List<HostDTO> hostList = new ArrayList<>();
         if (cmdbGroupHostList == null || cmdbGroupHostList.isEmpty()) {
             return hostList;
@@ -167,23 +172,25 @@ public class HostServiceImpl implements HostService {
 
     @Override
     public Map<DynamicServerGroupDTO, List<HostDTO>> batchGetAndGroupHostsByDynamicGroup(
+        String tenantId,
         long appId,
-        Collection<DynamicServerGroupDTO> groups) {
+        Collection<DynamicServerGroupDTO> groups
+    ) {
         if (CollectionUtils.isEmpty(groups)) {
             return new HashMap<>();
         }
 
         Map<DynamicServerGroupDTO, List<HostDTO>> result = new HashMap<>();
-        groups.forEach(group -> result.put(group, getHostsByDynamicGroupId(appId, group.getGroupId())));
+        groups.forEach(group -> result.put(group, getHostsByDynamicGroupId(tenantId, appId, group.getGroupId())));
         return result;
     }
 
     @Override
     public List<HostDTO> getHostsByTopoNodes(long appId, List<CcInstanceDTO> ccInstances) {
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         long bizId = Long.parseLong(resourceScope.getId());
-        List<ApplicationHostDTO> appHosts = bizCmdbClient.getHosts(bizId, ccInstances);
+        String tenantId = remoteAppService.getTenantIdByAppId(appId);
+        List<ApplicationHostDTO> appHosts = bizCmdbClient.getHosts(tenantId, bizId, ccInstances);
         List<HostDTO> ips = new ArrayList<>();
         if (appHosts == null || appHosts.isEmpty()) {
             return ips;
@@ -278,5 +285,13 @@ public class HostServiceImpl implements HostService {
                 latch.countDown();
             }
         }
+    }
+
+    @Override
+    public List<HostDTO> extractNotExistHosts(Long appId,
+                                              List<HostDTO> hosts) {
+        InternalResponse<ServiceListAppHostResultDTO> response = hostResource.batchGetAppHosts(appId,
+            new ServiceBatchGetAppHostsReq(new ArrayList<>(hosts), false));
+        return response.getData().getNotExistHosts();
     }
 }

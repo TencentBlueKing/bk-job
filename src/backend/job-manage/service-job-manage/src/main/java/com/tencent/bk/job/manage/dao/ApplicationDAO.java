@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -48,11 +48,15 @@ public interface ApplicationDAO {
 
     List<ApplicationDTO> listAllApps();
 
-    List<ApplicationDTO> listAllBizApps();
+    List<ApplicationDTO> listAllAppsForTenant(String tenantId);
 
-    List<ApplicationDTO> listAllBizAppsWithDeleted();
+    List<ApplicationDTO> listAllBizApps(String tenantId);
 
-    List<ApplicationDTO> listAllBizSetAppsWithDeleted();
+    List<ApplicationDTO> listAllBizAppsWithDeleted(String tenantId);
+
+    List<ApplicationDTO> listAllBizSetAppsWithDeleted(String tenantId);
+
+    List<ApplicationDTO> listAllTenantSetAppsWithDeleted();
 
     List<ApplicationDTO> listAppsByScopeType(ResourceScopeTypeEnum scopeType);
 
@@ -96,4 +100,16 @@ public interface ApplicationDAO {
      * @return 业务列表
      */
     List<ApplicationDTO> listAllDeletedApps();
+
+    /**
+     * 根据appId获取租户ID
+     */
+    String getTenantIdByAppId(long appId);
+
+    /**
+     * 获取租户下的所有未删除的Job业务ID
+     *
+     * @param tenantId 租户ID
+     */
+    List<Long> listAppIdByTenant(String tenantId);
 }

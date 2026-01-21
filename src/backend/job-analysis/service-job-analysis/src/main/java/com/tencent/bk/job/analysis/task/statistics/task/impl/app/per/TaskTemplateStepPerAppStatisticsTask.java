@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -27,11 +27,13 @@ package com.tencent.bk.job.analysis.task.statistics.task.impl.app.per;
 import com.tencent.bk.job.analysis.api.consts.StatisticsConstants;
 import com.tencent.bk.job.analysis.api.dto.StatisticsDTO;
 import com.tencent.bk.job.analysis.consts.StepTypeEnum;
-import com.tencent.bk.job.analysis.dao.StatisticsDAO;
+import com.tencent.bk.job.analysis.dao.CurrentTenantStatisticsDAO;
+import com.tencent.bk.job.analysis.dao.NoTenantStatisticsDAO;
 import com.tencent.bk.job.analysis.service.BasicServiceManager;
 import com.tencent.bk.job.analysis.task.statistics.anotation.StatisticsTask;
 import com.tencent.bk.job.analysis.task.statistics.task.BasePerAppStatisticsTask;
 import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.tenant.TenantService;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
@@ -56,16 +58,18 @@ public class TaskTemplateStepPerAppStatisticsTask extends BasePerAppStatisticsTa
     private final ServiceMetricsResource manageMetricsResource;
 
     protected TaskTemplateStepPerAppStatisticsTask(BasicServiceManager basicServiceManager,
-                                                   StatisticsDAO statisticsDAO,
+                                                   CurrentTenantStatisticsDAO currentTenantStatisticsDAO,
+                                                   NoTenantStatisticsDAO noTenantStatisticsDAO,
                                                    @Qualifier("job-analysis-dsl-context") DSLContext dslContext,
-                                                   ServiceMetricsResource manageMetricsResource) {
-        super(basicServiceManager, statisticsDAO, dslContext);
+                                                   ServiceMetricsResource manageMetricsResource,
+                                                   TenantService tenantService) {
+        super(basicServiceManager, currentTenantStatisticsDAO, noTenantStatisticsDAO, dslContext, tenantService);
         this.manageMetricsResource = manageMetricsResource;
     }
 
     private StatisticsDTO genTaskTplStepTypeStatistics(String dateStr, Long appId, String value,
                                                        String dimensionValue) {
-        StatisticsDTO statisticsDTO = new StatisticsDTO();
+        StatisticsDTO statisticsDTO = getBasicStatisticsDTO();
         statisticsDTO.setAppId(appId);
         statisticsDTO.setDate(dateStr);
         statisticsDTO.setResource(StatisticsConstants.RESOURCE_TASK_TEMPLATE_STEP);

@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -39,10 +39,17 @@ import java.util.Objects;
 public class NotifyBlackUserInfoDTO {
     private Long id;
     /**
-     * 用户英文名
+     * 租户ID
+     */
+    private String tenantId;
+    /**
+     * 用户uuid（不可读）
      */
     private String username;
-
+    /**
+     * 用户名（可读）
+     */
+    private String displayName;
     /**
      * 创建者
      */

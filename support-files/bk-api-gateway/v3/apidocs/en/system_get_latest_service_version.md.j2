@@ -1,0 +1,40 @@
+### Function Description
+
+Query the latest service version number of the Job
+
+### Request Parameters
+
+#### Interface parameters
+
+null
+
+### Example of request
+
+- GET
+
+```json
+/api/v3/get_latest_service_version
+```
+
+### Example of response
+
+```json
+{
+    "result": true,
+    "code": 0,
+    "data": {
+        "version": "3.6.4"
+    },
+    "job_request_id": "xxx"
+}
+```
+
+### Return Result Description
+
+{% include '_generic_response.md.j2' %}
+
+##### data
+
+| Fields  | Type   | Never null | Description                      |
+|---------|--------|------------|----------------------------------|
+| version | string | yes        | Latest version number of service |

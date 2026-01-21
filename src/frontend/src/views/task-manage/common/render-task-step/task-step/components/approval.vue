@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -36,7 +36,7 @@
       field="name"
       :form-data="formData"
       name="stepName"
-      :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名...')"
+      :placeholder="$t('template.推荐按步骤实际处理的场景行为来取名')"
       @on-change="handleNameChange" />
     <jb-form-item
       :label="$t('template.确认人')"
@@ -44,7 +44,7 @@
       required>
       <jb-user-selector
         class="input"
-        :filter-list="['JOB_EXTRA_OBSERVER']"
+        :exclude-role-listt="['JOB_EXTRA_OBSERVER']"
         :placeholder="$t('template.输入确认人')"
         :role="formData.approvalUser.roleList"
         :user="formData.approvalUser.userList"

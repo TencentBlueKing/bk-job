@@ -1,7 +1,7 @@
 <!--
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -56,7 +56,7 @@
           ref="search"
           :append-value="searchValue"
           :data="searchData"
-          :placeholder="$t('template.输入 ID、执行方案名、作业模板名、更新人 或 创建人 进行搜索...')"
+          :placeholder="$t('template.输入 ID、执行方案名、作业模板名、更新人 或 创建人 进行搜索')"
           style="width: 420px;"
           @on-change="handleSearch" />
         <bk-button @click="handleMyPlan">
@@ -215,9 +215,13 @@
           v-if="allRenderColumnMap.lastModifyUser"
           key="lastModifyUser"
           align="left"
-          :label="$t('template.更新人.colHead')"
+          :label="$t('template.更新人_colHead')"
           prop="lastModifyUser"
-          width="160" />
+          width="160">
+          <template slot-scope="{ row }">
+            <bk-user-display-name :user-id="row.lastModifyUser" />
+          </template>
+        </bk-table-column>
         <bk-table-column
           v-if="allRenderColumnMap.lastModifyTime"
           key="lastModifyTime"
@@ -231,7 +235,11 @@
           align="left"
           :label="$t('template.创建人')"
           prop="creator"
-          width="120" />
+          width="120">
+          <template slot-scope="{ row }">
+            <bk-user-display-name :user-id="row.creator" />
+          </template>
+        </bk-table-column>
         <bk-table-column
           v-if="allRenderColumnMap.createTime"
           key="createTime"
@@ -445,6 +453,7 @@
           edit: PlanEdit,
           create: PlanCreate,
         };
+
         if (!planComMap[this.planComType]) {
           return 'div';
         }
@@ -525,21 +534,29 @@
           },
         },
         {
-          name: I18n.t('template.执行方案.colHead'),
+          name: I18n.t('template.执行方案_colHead'),
           id: 'planName',
           default: true,
         },
         {
-          name: I18n.t('template.更新人.colHead'),
+          name: I18n.t('template.更新人_colHead'),
           id: 'lastModifyUser',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
         {
           name: I18n.t('template.创建人'),
           id: 'creator',
-          remoteMethod: NotifyService.fetchUsersOfSearch,
-          inputInclude: true,
+          remoteMethod: (keyword, isExact) => {
+            if (keyword && isExact) {
+              return NotifyService.fetchBatchUserInfoByBkUsername(keyword);
+            }
+            return NotifyService.fetchUsersOfSearch(keyword);
+          },
         },
       ];
       if (!this.isViewTemplatePlanList) {
@@ -557,7 +574,7 @@
         },
         {
           id: 'name',
-          label: I18n.t('template.执行方案.colHead'),
+          label: I18n.t('template.执行方案_colHead'),
           disabled: true,
         },
         {
@@ -566,7 +583,7 @@
         },
         {
           id: 'lastModifyUser',
-          label: I18n.t('template.更新人.colHead'),
+          label: I18n.t('template.更新人_colHead'),
         },
         {
           id: 'lastModifyTime',
@@ -768,7 +785,7 @@
           values: [
             {
               id: currentUserName,
-              name: currentUserName,
+              name: this.currentUser.displayName,
             },
           ],
         };

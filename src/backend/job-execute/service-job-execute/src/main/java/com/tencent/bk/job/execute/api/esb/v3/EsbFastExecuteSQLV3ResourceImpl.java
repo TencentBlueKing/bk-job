@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -33,8 +33,10 @@ import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.service.MessageI18nService;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.ValidateResult;
 import com.tencent.bk.job.common.util.Base64Util;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.web.metrics.CustomTimed;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -83,6 +85,7 @@ public class EsbFastExecuteSQLV3ResourceImpl
     public EsbResp<EsbJobExecuteV3DTO> fastExecuteSQL(String username,
                                                       String appCode,
                                                       @AuditRequestBody EsbFastExecuteSQLV3Request request) {
+        User user = JobContextUtil.getUser();
         ValidateResult validateResult = checkFastExecuteSQLRequest(request);
         if (!validateResult.isPass()) {
             log.warn("Fast execute sql request is illegal!");
@@ -94,7 +97,12 @@ public class EsbFastExecuteSQLV3ResourceImpl
         TaskInstanceDTO taskInstance = buildFastSQLTaskInstance(username, appCode, request);
         StepInstanceDTO stepInstance = buildFastSQLStepInstance(username, request);
         TaskInstanceDTO executeTaskInstance = taskExecuteService.executeFastTask(
-            FastTaskDTO.builder().taskInstance(taskInstance).stepInstance(stepInstance).build()
+            FastTaskDTO.builder()
+                .taskInstance(taskInstance)
+                .stepInstance(stepInstance)
+                .startTask(request.getStartTask())
+                .operator(user)
+                .build()
         );
 
         EsbJobExecuteV3DTO jobExecuteInfo = new EsbJobExecuteV3DTO();

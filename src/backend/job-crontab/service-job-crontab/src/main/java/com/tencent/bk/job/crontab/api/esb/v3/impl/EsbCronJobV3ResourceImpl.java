@@ -1,7 +1,7 @@
 /*
  * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
  *
- * Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+ * Copyright (C) 2021 Tencent.  All rights reserved.
  *
  * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
  *
@@ -44,6 +44,7 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.api.common.CronCheckUtil;
 import com.tencent.bk.job.crontab.api.esb.v3.EsbCronJobV3Resource;
@@ -191,7 +192,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
                     baseSearchCondition.setLastModifyTimeStart(request.getLastModifyTimeStart());
                     baseSearchCondition.setLastModifyTimeEnd(request.getLastModifyTimeEnd());
                 }
-                PageData<CronJobInfoDTO> cronJobInfoPageData = cronJobService.listPageCronJobInfos(cronJobCondition,
+                PageData<CronJobInfoDTO> cronJobInfoPageData = cronJobService.listPageCronJobInfosWithoutVars(cronJobCondition,
                     baseSearchCondition);
                 List<EsbCronInfoV3DTO> cronInfoV3ResponseData = cronJobInfoPageData.getData().stream()
                     .peek(cronJobInfoDTO -> cronJobInfoDTO.setVariableValue(null))
@@ -216,7 +217,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         Long appId = request.getAppId();
         request.validate();
         AuthResult authResult = cronAuthService.authManageCron(
-            username,
+            JobContextUtil.getUser(),
             new AppResourceScope(request.getScopeType(), request.getScopeId(), request.getAppId()),
             request.getId(),
             null
@@ -227,7 +228,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
 
         Boolean updateResult;
         try {
-            updateResult = cronJobService.changeCronJobEnableStatus(username, appId, request.getId(),
+            updateResult = cronJobService.changeCronJobEnableStatus(JobContextUtil.getUser(), appId, request.getId(),
                 CronStatusEnum.RUNNING.getStatus().equals(request.getStatus()));
         } catch (TaskExecuteAuthFailedException e) {
             throw new PermissionDeniedException(e.getAuthResult());
@@ -322,9 +323,9 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         cronJobInfo.setLastModifyTime(DateUtils.currentTimeSeconds());
         CronJobInfoDTO result;
         if (isUpdate) {
-            result = cronJobService.updateCronJobInfo(username, cronJobInfo);
+            result = cronJobService.updateCronJobInfo(JobContextUtil.getUser(), cronJobInfo);
         } else {
-            result = cronJobService.createCronJobInfo(username, cronJobInfo);
+            result = cronJobService.createCronJobInfo(JobContextUtil.getUser(), cronJobInfo);
         }
         if (result.getId() > 0) {
             esbCronInfoV3DTO =
@@ -341,7 +342,7 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     public EsbResp deleteCron(String username,
                               String appCode,
                               @AuditRequestBody EsbDeleteCronV3Request request) {
-        if (cronJobService.deleteCronJobInfo(username, request.getAppId(), request.getId())) {
+        if (cronJobService.deleteCronJobInfo(JobContextUtil.getUser(), request.getAppId(), request.getId())) {
             return EsbResp.buildSuccessResp(null);
         }
         return EsbResp.buildCommonFailResp(ErrorCode.DELETE_CRON_FAILED);
