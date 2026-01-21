@@ -26,7 +26,7 @@ dependencies {
     api project(':commons:common')
     api project(':commons:common-utils')
     api 'com.tencent.bk.sdk:crypto-java-sdk'
-    implementation 'org.bouncycastle:bcprov-jdk18on'
+    implementation 'org.bouncycastle:bcprov-jdk15on'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
