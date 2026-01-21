@@ -40,7 +40,7 @@
         class="upload-result"
         :class="uploadStatus">
         <div class="file-pic">
-          <img src="/static/images/package.svg">
+          <img :src="packageImage">
         </div>
         <div class="file-info">
           <div class="file-name">
@@ -222,6 +222,7 @@
         ],
       };
       this.uploadRequestCancelSource = null;
+      this.packageImage = window.__loadAssetsUrl__('/static/images/package.svg');
       const { id, uploadFilename } = taskImport.getItem() || {};
       if (id && uploadFilename) {
         this.uploadFilename = uploadFilename;
