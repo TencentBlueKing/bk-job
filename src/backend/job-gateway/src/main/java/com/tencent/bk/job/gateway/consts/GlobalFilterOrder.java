@@ -22,37 +22,17 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.config;
+package com.tencent.bk.job.gateway.consts;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
 
-@Getter
-@Setter
-@Configuration
-public class JobCommonConfig {
+/**
+ * Spring Cloud Gateway的GlobalFilter优先级
+ */
+public class GlobalFilterOrder {
 
-    /**
-     * 作业平台web访问地址，可配置多个，用","分隔
-     */
-    @Value("${job.web.url:}")
-    private String jobWebUrl;
-
-    @Value("${swagger.url:swagger.job.com}")
-    private String swaggerUrl;
-
-    /**
-     * 获取第一个作业平台web访问地址
-     *
-     * @return 第一个作业平台web访问地址
-     */
-    public String getFirstJobWebUrl() {
-        String[] jobWebUrls = jobWebUrl.split(",");
-        if (jobWebUrls.length > 0) {
-            return jobWebUrls[0];
-        }
-        return jobWebUrl;
-    }
+    // 添加Trace数据响应头
+    public static int ADD_TRACE_RESPONSE_HEADER = Ordered.HIGHEST_PRECEDENCE;
+    // 添加JWT认证请求头
+    public static int ADD_JWT_HEADER = Ordered.HIGHEST_PRECEDENCE + 10;
 }

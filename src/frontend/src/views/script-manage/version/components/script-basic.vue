@@ -32,7 +32,7 @@
     class="script-version-basic-box">
     <template v-if="data.id">
       <div class="script-type-flag">
-        <img :src="`/static/images/script/${data.typeName}.svg`">
+        <img :src="scriptTypeImg">
       </div>
       <div
         class="detail-column"
@@ -177,6 +177,11 @@
         isLoading: true,
         data: {},
       };
+    },
+    computed: {
+      scriptTypeImg() {
+        return window.__loadAssetsUrl__(`/static/images/script/${this.data.typeName}.svg`);
+      },
     },
     created() {
       this.publicScript = checkPublicScript(this.$route);

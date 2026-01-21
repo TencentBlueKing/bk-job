@@ -35,11 +35,10 @@
     <div id="app"></div>
     <script>
       window.PROJECT_CONFIG = (function() {
-        const SITE_URL = "/";
-        const BK_STATIC_URL = "/";
-        const REMOTE_STATIC_URL = "";
-        const AJAX_URL_PREFIX = "<%= AJAX_URL_PREFIX %>";
-        const EXTERNAL_THEME = "";
+        var BK_SITE_PATH = "<%= BK_SITE_PATH %>";
+        var BK_STATIC_URL = "<%= BK_STATIC_URL %>";
+        var AJAX_URL_PREFIX = "<%= AJAX_URL_PREFIX %>";
+        var EXTERNAL_THEME = "";
 
         return {
           APP_ID: "",
@@ -47,9 +46,8 @@
           SCOPE_ID: "",
           TENANT_ID: "",
           AJAX_URL_PREFIX: AJAX_URL_PREFIX,
-          SITE_URL: SITE_URL,
+          BK_SITE_PATH: BK_SITE_PATH,
           BK_STATIC_URL: BK_STATIC_URL,
-          REMOTE_STATIC_URL: REMOTE_STATIC_URL,
           EXTERNAL_THEME: EXTERNAL_THEME,
           BK_USER_WEB_API_ROOT_URL: undefined,
           ALL_BIZ_SET_SCOPE_ID: undefined,
@@ -59,6 +57,53 @@
           DEFAULT_DISPLAY_TIME_ZONE: ''
         };
       })();
+
+      window.__loadAssetsUrl__ = function(src){
+        function joinPath(...paths) {
+          // 过滤 null/undefined
+          const validPaths = paths.filter(p => p != null).map(String);
+
+          if (validPaths.length === 0) return '';
+
+          // 检查是否以根路径开头
+          const startsWithRoot = validPaths[0].startsWith('/');
+
+          // 标准化每个路径片段：移除首尾多余斜杠
+          const normalized = validPaths.map((p, i) => {
+            if (i === 0) {
+              // 第一个路径：只移除尾部斜杠（保留开头的 /）
+              return p.replace(/[\/]+$/, '');
+            } else {
+              // 其他路径：移除首尾斜杠
+              return p.replace(/^[\/]+|[\/]+$/g, '');
+            }
+          }).filter(p => p !== '');
+
+          // 拼接
+          let result = normalized.join('/');
+
+          // 如果原始第一个路径是根路径，确保结果以 / 开头
+          if (startsWithRoot && result !== '') {
+            result = '/' + result.replace(/^\/+/, '');
+          }
+
+          return result || (startsWithRoot ? '/' : '');
+        }
+        return joinPath(window.PROJECT_CONFIG.BK_STATIC_URL, src);
+      }
+
+      function loadScript (src) {
+        const script = document.createElement('script');
+        script.src = window.__loadAssetsUrl__(src);
+        document.body.appendChild(script);
+      }
+      function loadStyle (href) {
+        const link = document.createElement('link');
+        link.type = "text/css";
+        link.rel = "stylesheet";
+        link.href = window.__loadAssetsUrl__(href);
+        document.head.appendChild(link);
+      }
     </script>
     <script>
       if (

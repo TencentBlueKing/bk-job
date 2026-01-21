@@ -6,7 +6,7 @@
     @mouseenter="handleShow">
     <span ref="referRef">
       <img
-        src="/static/images/ai.png"
+        :src="aiImage"
         style="width: 16px">
     </span>
     <div
@@ -28,7 +28,7 @@
       class="tool-tips">
       <div class="wrapper">
         <img
-          src="/static/images/blueking.png"
+          :src="bluekingImage"
           style="width: 36px">
         <span class="ml-8">{{ $t('AI 脚本检查已上线！') }}</span>
       </div>
@@ -44,6 +44,8 @@
   const emits = defineEmits(['checkScript']);
 
   const editorAiHelperCacheKey = 'editor_ai_helper';
+  const aiImage = window.__loadAssetsUrl__('/static/images/ai.png');
+  const bluekingImage = window.__loadAssetsUrl__('/static/images/blueking.png');
 
   const referRef = ref();
   const popoverContentRef = ref();

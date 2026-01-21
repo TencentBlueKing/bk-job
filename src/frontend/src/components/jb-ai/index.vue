@@ -6,7 +6,7 @@
       ref="handleRef"
       class="hander-btn"
       :class="{ active: !isBluekingShow && isHandleShow }"
-      src="/static/images/blueking.png"
+      :src="bluekingImage"
       style="width: 64px; height: 64px"
       @click="handleShow">
     <ai-blueking
@@ -46,6 +46,7 @@
 
   let currentRecordId = 0;
   const model = new Model();
+  const bluekingImage = window.__loadAssetsUrl__('/static/images/blueking.png');
 
   const handleRef = ref();
   const aiRef = ref();

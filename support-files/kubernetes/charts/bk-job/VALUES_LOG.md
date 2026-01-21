@@ -167,6 +167,20 @@ gse:
 bkIamApiUrl: "http://bkiam-api.example.com"
 ```
 
+5. 支持按子域名/子路径模式部署
+```yaml
+bkWebSiteAccess:
+  # 可选值：subdomain（子域名）、subpath（子路径）
+  mode: "subdomain"
+  # 子域名模式生效的配置
+  # subdomain:
+    # 请补充可能配置的特性项目，暂无
+  # 子路径模式生效的配置
+  subpath:
+    # 根路径前缀（如 "/app" 则访问路径为 https://www.example.com/app/xxx）
+    rootPrefix: "/job"
+```
+
 ## 0.8.13
 1. job-gateway访问日志优化
 ```yaml

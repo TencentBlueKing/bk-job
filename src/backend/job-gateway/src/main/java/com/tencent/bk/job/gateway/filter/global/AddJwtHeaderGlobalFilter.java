@@ -26,6 +26,7 @@ package com.tencent.bk.job.gateway.filter.global;
 
 import com.tencent.bk.job.common.jwt.JwtManager;
 import com.tencent.bk.job.common.security.consts.JwtConsts;
+import com.tencent.bk.job.gateway.consts.GlobalFilterOrder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -57,6 +58,6 @@ public class AddJwtHeaderGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE + 1;
+        return GlobalFilterOrder.ADD_JWT_HEADER;
     }
 }

@@ -73,22 +73,22 @@
 
       switch (this.type) {
       case '403':
-        image = '/static/images/403.png';
+        image = window.__loadAssetsUrl__('/static/images/403.png');
         message = 'Sorry，您的权限不足！';
         break;
 
       case '404':
-        image = '/static/images/404.png';
+        image = window.__loadAssetsUrl__('/static/images/404.png');
         message = '页面找不到了！';
         break;
 
       case '500':
-        image = '/static/images/500.png';
+        image = window.__loadAssetsUrl__('/static/images/500.png');
         message = '服务器维护中，请稍后重试!';
         break;
 
       case 'building':
-        image = '/static/images/building.png';
+        image = window.__loadAssetsUrl__('/static/images/building.png');
         message = '功能正在建设中···';
         break;
       }
