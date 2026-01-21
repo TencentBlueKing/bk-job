@@ -504,16 +504,6 @@
   dest_path: /api/job/v3/job-manage/delete_account/
   dest_http_method: POST
 
-- path: /v2/jobv3/update_account/
-  name: update_account
-  label: 修改账号
-  label_en: Update account
-  suggest_method: POST
-  api_type: operate
-  comp_codename: generic.v2.jobv3.job_component
-  dest_path: /api/job/v3/job-manage/update_account/
-  dest_http_method: POST
-
 - path: /v2/jobv3/create_dangerous_rule/
   name: create_dangerous_rule
   label: 创建高危语句规则

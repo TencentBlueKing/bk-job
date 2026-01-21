@@ -1845,6 +1845,74 @@ paths:
           userVerifiedRequired: false
           resourcePermissionRequired: true
         descriptionEn: Delete account
+  /api/v3/update_account:
+    post:
+      operationId: update_account
+      description: 修改账号
+      tags: [ 'open' ]
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: true
+        allowApplyPermission: true
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /{env.api_path_prefix}api/job/v3/job-manage/update_account
+          matchSubpath: false
+          timeout: 0
+          upstreams: { }
+          transformHeaders: { }
+        pluginConfigs:
+          # Header转换插件，添加API类型请求头：用户态
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'user'
+              remove: []
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: true
+          resourcePermissionRequired: true
+        descriptionEn: Update account
+  /api/v3/system/update_account:
+    post:
+      operationId: system_update_account
+      description: 修改账号
+      tags: [ 'system' ]
+      responses:
+        default:
+          description: ''
+      x-bk-apigateway-resource:
+        isPublic: false
+        allowApplyPermission: false
+        matchSubpath: false
+        backend:
+          # name: default 支持设置 backend, 默认不配置为 default，和 stage 的 backends 配置的后端服务 name 一致
+          type: HTTP
+          method: post
+          path: /{env.api_path_prefix}api/job/v3/job-manage/update_account
+          matchSubpath: false
+          timeout: 0
+          upstreams: { }
+          transformHeaders: { }
+        pluginConfigs:
+          # Header转换插件，添加API类型请求头：应用态
+          - type: bk-header-rewrite
+            yaml: |-
+              set:
+                - key: X-Bk-Job-Api-Type
+                  value: 'app'
+              remove: []
+        authConfig:
+          appVerifiedRequired: true
+          userVerifiedRequired: false
+          resourcePermissionRequired: true
+        descriptionEn: Update account
   /api/v3/get_account_list:
     get:
       operationId: get_account_list

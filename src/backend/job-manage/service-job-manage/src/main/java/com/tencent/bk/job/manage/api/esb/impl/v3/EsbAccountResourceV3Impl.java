@@ -213,7 +213,7 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
                                                   String appCode,
                                                   @AuditRequestBody EsbUpdateAccountV3Req req) {
         AccountDTO updateAccount = buildUpdateAccountDTO(username, req.getAppId(), req);
-        AccountDTO updatedAccountDTO = accountService.updateAccount(username, updateAccount);
+        AccountDTO updatedAccountDTO = accountService.updateAccount(JobContextUtil.getUser(), updateAccount);
         return EsbResp.buildSuccessResp(updatedAccountDTO.toEsbAccountV3DTO());
     }
 
