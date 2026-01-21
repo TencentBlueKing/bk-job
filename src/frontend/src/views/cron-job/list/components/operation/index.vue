@@ -460,7 +460,7 @@
     methods: {
       getItemRule(name) {
         if (name === 'endTime') {
-          return [{ validator: () => this.compareTimestamp(this.formData.endTime), message: I18n.t('cron.结束时间无效（早于当前时间）'), trigger: 'blur' }];
+          return [{ validator: () => (this.formData.endTime ?  this.compareTimestamp(this.formData.endTime) : true), message: I18n.t('cron.结束时间无效（早于当前时间）'), trigger: 'blur' }];
         }
         return [];
       },
