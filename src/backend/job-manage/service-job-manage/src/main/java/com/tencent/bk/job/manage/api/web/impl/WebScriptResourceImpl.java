@@ -27,6 +27,7 @@ package com.tencent.bk.job.manage.api.web.impl;
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.JobResourceTypeEnum;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -230,7 +231,7 @@ public class WebScriptResourceImpl extends BaseWebScriptResource implements WebS
             boolean canView = allowedViewScriptIdList.contains(script.getId());
             script.setCanView(canView);
             if (!canView) {
-                script.setContent("******");
+                script.setContent(JobConstants.SENSITIVE_FIELD_PLACEHOLDER);
             }
         });
     }

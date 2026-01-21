@@ -100,4 +100,9 @@ public class JobConstants {
      * 未知的资源名称
      */
     public static final String UNKNOWN_NAME = "Unknown";
+
+    /**
+     * 敏感数据占位符，用于表示默认密码、没有密码、前端密码未改动等情况
+     */
+    public static final String SENSITIVE_FIELD_PLACEHOLDER = "******";
 }

@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.api.web.impl;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.NotFoundException;
@@ -212,7 +213,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
             }
             scriptStepVO.setContent(Base64Util.encodeContentToStr(stepInstance.getScriptContent()));
             if (stepInstance.isSecureParam()) {
-                scriptStepVO.setScriptParam("******");
+                scriptStepVO.setScriptParam(JobConstants.SENSITIVE_FIELD_PLACEHOLDER);
                 scriptStepVO.setSecureParam(1);
             } else {
                 if (StringUtils.isNotEmpty(stepInstance.getResolvedScriptParam())) {
@@ -306,7 +307,7 @@ public class WebTaskInstanceResourceImpl implements WebTaskInstanceResource {
                 vo.setTargetValue(taskTargetVO);
             }
         } else if (variable.getType().equals(TaskVariableTypeEnum.CIPHER.getType())) {
-            vo.setValue("******");
+            vo.setValue(JobConstants.SENSITIVE_FIELD_PLACEHOLDER);
         } else {
             vo.setValue(variable.getValue());
         }

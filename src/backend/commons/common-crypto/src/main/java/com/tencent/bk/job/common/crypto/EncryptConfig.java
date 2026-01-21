@@ -49,6 +49,10 @@ public class EncryptConfig {
 
     private String password;
 
+    private String sm2PrivateKey;
+
+    private String sm2PublicKey;
+
     /**
      * 各个场景下使用的加密算法，不配置则使用默认算法
      */

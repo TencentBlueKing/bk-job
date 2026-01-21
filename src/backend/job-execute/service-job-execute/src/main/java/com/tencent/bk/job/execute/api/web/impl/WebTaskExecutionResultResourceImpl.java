@@ -31,6 +31,7 @@ import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.common.constant.Bool;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
@@ -835,7 +836,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         ExecuteVariableVO vo = new ExecuteVariableVO();
         vo.setName(taskVariable.getName());
         if (taskVariable.getType().equals(TaskVariableTypeEnum.CIPHER.getType())) {
-            vo.setValue("******");
+            vo.setValue(JobConstants.SENSITIVE_FIELD_PLACEHOLDER);
         } else {
             vo.setValue(taskVariable.getValue());
         }

@@ -22,11 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:common-utils')
-    api 'com.tencent.bk.sdk:crypto-java-sdk'
-    implementation 'org.bouncycastle:bcprov-jdk18on'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.manage.api.web.impl;
+
+import com.tencent.bk.job.common.crypto.scenario.SubmitAccountPasswordCryptoService;
+import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.manage.api.web.WebSubmitPasswordCryptoResource;
+import com.tencent.bk.job.manage.model.web.vo.EncryptionInfoVO;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@Slf4j
+public class WebSubmitPasswordCryptoResourceImpl implements WebSubmitPasswordCryptoResource {
+
+    private final SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService;
+
+    @Autowired
+    public WebSubmitPasswordCryptoResourceImpl(SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService) {
+        this.submitAccountPasswordCryptoService = submitAccountPasswordCryptoService;
+    }
+
+    @Override
+    public Response<EncryptionInfoVO> getEncryptionInfo(String username) {
+        EncryptionInfoVO encryptionInfoVO = new EncryptionInfoVO();
+        encryptionInfoVO.setPemPublicKey(submitAccountPasswordCryptoService.getPemPublicKey());
+        encryptionInfoVO.setAlgorithm(submitAccountPasswordCryptoService.getAlgorithm());
+        return Response.buildSuccessResp(encryptionInfoVO);
+    }
 }
