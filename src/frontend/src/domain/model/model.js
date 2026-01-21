@@ -22,9 +22,96 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
 */
+import dayjs from 'dayjs';
+
+import timezonesList from '@/utils/world-timezones.json';
+
+const timezone = require('dayjs/plugin/timezone');
+const utc = require('dayjs/plugin/utc');
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default class Model {
   getDefaultValue(value) {
     return value || '--';
+  }
+
+  getTimezoneInfo(defaultTimezone) {
+    const timezone = defaultTimezone || this.getTimeZone();
+    const { country = '', offset = '' } = timezonesList[timezone] || {};
+    return { country, offset };
+  }
+
+  getTimeZone() {
+    const { USER_TIME_ZONE, BUSINESS_TIME_ZONE, DEFAULT_DISPLAY_TIME_ZONE } = window.PROJECT_CONFIG;
+    return USER_TIME_ZONE || BUSINESS_TIME_ZONE || DEFAULT_DISPLAY_TIME_ZONE;
+  }
+
+  getFullTimeZone(defaultTimezone) {
+    const timezone = defaultTimezone || this.getTimeZone();
+    const { country = '', offset = '' } = this.getTimezoneInfo(timezone);
+    return `${timezone} ${country} ${offset}`;
+  }
+
+  // 时间戳转换成日期格式
+  getTime(options) {
+    const {
+      timestamp,
+      timezone,
+      format = 'YYYY-MM-DD HH:mm:ss',
+    } = options;
+
+    if (!timestamp) return '--';
+    return dayjs.tz(timestamp, timezone || this.getTimeZone())
+      .format(format);
+  }
+
+  // 日期格式转换成时间戳 转换的日期格式不能带时区
+  getTimestamp(options) {
+    const {
+      date,
+      timezone,
+    } = options;
+
+    if (!date) return;
+    return dayjs.tz(date, timezone || this.getTimeZone())
+      .valueOf();
+  }
+
+  getTimeTooltip(time) {
+    return `${time} ${this.getFullTimeZone()}`;
+  }
+
+  get createTimeText() {
+    return this.getTime({ timestamp: this.createTime });
+  }
+
+  get lastModifyTimeText() {
+    return this.getTime({ timestamp: this.lastModifyTime });
+  }
+
+  get startTimeText() {
+    return this.getTime({ timestamp: this.startTime });
+  }
+
+  get endTimeText() {
+    return this.getTime({ timestamp: this.endTime });
+  }
+
+  get createTimeTooltipsText() {
+    return this.getTimeTooltip(this.createTimeText);
+  }
+
+  get lastModifyTimeTooltipsText() {
+    return this.getTimeTooltip(this.lastModifyTimeText);
+  }
+
+  get startTimeTooltipsText() {
+    return this.getTimeTooltip(this.startTimeText);
+  }
+
+  get endTimeTooltipsText() {
+    return this.getTimeTooltip(this.endTimeText);
   }
 }

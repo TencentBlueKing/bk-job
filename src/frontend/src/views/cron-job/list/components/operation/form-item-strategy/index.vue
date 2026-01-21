@@ -28,6 +28,8 @@
 <template>
   <component
     :is="com"
+    :rules="rules"
+    :timezone="timezone"
     v-bind="$attrs"
     v-on="$listeners" />
 </template>
@@ -49,6 +51,8 @@
         type: String,
         required: true,
       },
+      rules: Array,
+      timezone: String,
     },
     computed: {
       com() {

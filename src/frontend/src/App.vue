@@ -100,6 +100,38 @@
       </bk-popover>
       <bk-popover
         :arrow="false"
+        placement="bottom-end"
+        style="margin-right: 14px;"
+        theme="light site-header-dropdown"
+        :tippy-options="{ hideOnClick: false }">
+        <div class="flag-box">
+          <icon
+            id="siteSetting"
+            type="deqiu" />
+        </div>
+        <div slot="content">
+          <div class="timezone-info">
+            <div class="title">
+              <span>{{ $t('时区') }}：</span>
+              <span class="timezone">{{ timezone }}</span>
+            </div>
+            <div class="desc">
+              <i18n path="nav时区信息">
+                <bk-link
+                  slot="link"
+                  href="javascript:void(0)"
+                  theme="primary"
+                  @click="handleUserSetting">
+                  {{ $t('个人设置') }}
+                  <icon type="link" />
+                </bk-link>
+              </i18n>
+            </div>
+          </div>
+        </div>
+      </bk-popover>
+      <bk-popover
+        :arrow="false"
         theme="light site-header-dropdown"
         :tippy-options="{ hideOnClick: false }">
         <div class="user-flag">
@@ -109,6 +141,11 @@
           <i class="bk-icon icon-down-shape" />
         </div>
         <template slot="content">
+          <div
+            class="item"
+            @click="handleUserSetting">
+            {{ $t('个人设置') }}
+          </div>
           <div
             class="item"
             @click="handleLogout">
@@ -161,6 +198,7 @@
           bkDomain: '',
         },
         isAiEnable: false,
+        timezone: '',
       };
     },
     computed: {
@@ -198,12 +236,20 @@
     },
     methods: {
       /**
+       * @desc 跳转到用户设置页面
+       */
+      handleUserSetting() {
+        window.open(`${this.relatedSystemUrls.BK_USER_WEB_ROOT_URL}/personal-center`);
+      },
+      /**
        * @desc 获取登录用户信息
        */
       fetchUserInfo() {
         UserService.fetchUserInfo()
           .then((data) => {
             this.currentUser = Object.freeze(data);
+            window.PROJECT_CONFIG.USER_TIME_ZONE = data.timeZone;
+            this.timezone = data.timeZone || 'Asia/Shanghai';
           });
       },
       /**
@@ -385,6 +431,33 @@
     .lang-flag {
       margin-right: 4px;
       font-size: 20px;
+    }
+
+    .timezone-info {
+      width: 268px;
+      padding: 12px;
+
+      .timezone {
+        color: #313238;
+        font-weight: bold;
+      }
+
+      .desc {
+        margin-top: 8px;
+        color: #4D4F56;
+        padding: 4px 8px;
+        border-radius: 2px;
+        background-color: #F5F7FA;
+
+        .bk-link {
+          vertical-align: initial;
+
+          .bk-link-text {
+            font-size: 12px;
+            display: inline-block;
+          }
+        }
+      }
     }
   }
 </style>
