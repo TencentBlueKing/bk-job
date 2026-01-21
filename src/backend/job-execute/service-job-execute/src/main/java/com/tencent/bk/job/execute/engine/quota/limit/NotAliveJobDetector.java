@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.quota.limit;
 
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
@@ -31,7 +32,6 @@ import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -59,7 +59,7 @@ public class NotAliveJobDetector {
     /**
      * 兜底方案。为了防止系统异常、程序 bug 等原因导致 redis 中的作业记录没有被清理，需要定时清理。每10min触发一次
      */
-    @Scheduled(cron = "0 0/10 * * * ?")
+    @ScheduledOnOperationTimeZone(cron = "0 0/10 * * * ?")
     public void detectNotAliveJob() {
         try {
             if (LockUtils.tryGetDistributedLock("job:execute:not:alive:job:detect:lock", requestId, 60000L)) {

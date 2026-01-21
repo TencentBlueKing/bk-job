@@ -151,7 +151,7 @@ public class AtomicFileTaskLog {
         atomicFileTaskLog.setDestExecuteObject(destExecuteObjectProvider.apply(fileTaskLog));
         atomicFileTaskLog.setDestFile(fileTaskLog.getDestFile());
         atomicFileTaskLog.setProcess(fileTaskLog.getProcess());
-        atomicFileTaskLog.setContent(fileTaskLog.getContent());
+        atomicFileTaskLog.setContent(fileTaskLog.getFullContentWithTime());
         atomicFileTaskLog.setSize(fileTaskLog.getSize());
         atomicFileTaskLog.setSpeed(fileTaskLog.getSpeed());
         atomicFileTaskLog.setStatus(fileTaskLog.getStatus());

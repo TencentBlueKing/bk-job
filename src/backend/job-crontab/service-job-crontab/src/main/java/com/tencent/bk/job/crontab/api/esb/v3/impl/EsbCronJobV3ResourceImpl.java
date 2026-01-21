@@ -44,6 +44,7 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.api.common.CronCheckUtil;
@@ -69,6 +70,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -84,16 +86,19 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     private final CronAuthService cronAuthService;
     private final ServiceTaskPlanResource taskPlanResource;
     private final AppScopeMappingService appScopeMappingService;
+    private final CommonAppService commonAppService;
 
     @Autowired
     public EsbCronJobV3ResourceImpl(CronJobService cronJobService,
                                     CronAuthService cronAuthService,
                                     ServiceTaskPlanResource taskPlanResource,
-                                    AppScopeMappingService appScopeMappingService) {
+                                    AppScopeMappingService appScopeMappingService,
+                                    CommonAppService commonAppService) {
         this.cronJobService = cronJobService;
         this.cronAuthService = cronAuthService;
         this.taskPlanResource = taskPlanResource;
         this.appScopeMappingService = appScopeMappingService;
+        this.commonAppService = commonAppService;
     }
 
     @Override
@@ -310,6 +315,15 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
         cronJobInfo.setTaskPlanId(request.getPlanId());
         cronJobInfo.setCronExpression(CronExpressionUtil.fixExpressionForQuartz(request.getCronExpression()));
         cronJobInfo.setExecuteTime(request.getExecuteTime());
+        // 设置时区，缺省时使用 业务时区 > 服务器时区
+        String executeTimeZone = request.getExecuteTimeZone();
+        if (StringUtils.isBlank(executeTimeZone)) {
+            executeTimeZone = commonAppService.getAppTimeZoneById(appId);
+            if (StringUtils.isBlank(executeTimeZone)) {
+                executeTimeZone = ZoneId.systemDefault().getId();
+            }
+        }
+        cronJobInfo.setExecuteTimeZone(executeTimeZone);
         List<EsbGlobalVarV3DTO> globalVarV3DTOList = request.getGlobalVarList();
         if (globalVarV3DTOList != null) {
             checkAndFillGlobalVar(request.getPlanId(), globalVarV3DTOList, cronJobInfo);

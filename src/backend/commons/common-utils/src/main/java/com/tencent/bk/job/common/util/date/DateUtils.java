@@ -51,6 +51,7 @@ import java.util.Map;
  */
 @Slf4j
 public class DateUtils {
+    public static final String FILE_TASK_LOG_FORMAT = "yyyy-MM-dd HH:mm:ss";
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final DateTimeFormatter DATE_FORMATTER_WITH_ZONE =
         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss XXX");

@@ -16,17 +16,18 @@
 
 #### Body参数
 
-| 字段              | 类型     | 必选  | 描述                                                                                |
-|-----------------|--------|-----|-----------------------------------------------------------------------------------|
-| bk_scope_type   | string | 是   | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                                |
-| bk_scope_id     | string | 是   | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                           |
-| bk_biz_id       | long   | 是   | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换                                 |
-| job_plan_id     | long   | 是   | 要定时执行的作业的执行方案 ID                                                                  |
-| id              | long   | 否   | 定时任务 ID，更新定时任务时，必须传这个值                                                            |
-| name            | string | 否   | 定时作业名称，新建时必填，修改时选填                                                                |
-| expression      | string | 否   | 定时任务 crontab 的定时规则，新建时必填，修改时选填，各字段含义为：分 时 日 月 周，如: 0/5 * * * * 表示每5分钟执行一次，注意：不支持? |
-| execute_time    | long   | 否   | 定时任务单次执行的执行时间，Unix时间戳，新建定时任务时不可与expression同时为空                                    |
-| global_var_list | array  | 否   | 全局变量信息，可使用 查询执行方案详情 接口查询方案可设置的变量信息                                                |
+| 字段                | 类型     | 必选 | 描述                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+|-------------------|--------|----|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| bk_scope_type     | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| bk_scope_id       | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID                                                                                                                                                                                                                                                                                                                                                                                                                |
+| bk_biz_id         | long   | 是  | *已弃用*。业务ID。此字段已被弃用并由字段bk_scope_type+bk_scope_id替换                                                                                                                                                                                                                                                                                                                                                                                                      |
+| job_plan_id       | long   | 是  | 要定时执行的作业的执行方案 ID                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| id                | long   | 否  | 定时任务 ID，更新定时任务时，必须传这个值                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| name              | string | 否  | 定时作业名称，新建时必填，修改时选填                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| expression        | string | 否  | 定时任务 crontab 的定时规则，新建时必填，修改时选填，各字段含义为：分 时 日 月 周，如: 0/5 * * * * 表示每5分钟执行一次，注意：不支持?                                                                                                                                                                                                                                                                                                                                                                      |
+| execute_time      | long   | 否  | 定时任务单次执行的执行时间，Unix时间戳，新建定时任务时不可与expression同时为空                                                                                                                                                                                                                                                                                                                                                                                                         |
+| execute_time_zone | string | 否  | 定时任务在哪个时区下的定时表达式或执行时间触发，不传默认采用业务时区，若是业务未配置业务时区，则默认在Asia/Shanghai的时间触发。<br/>**时区ID标准**：必须使用 IANA Time Zone Database 标准时区ID，格式为 `地区/城市`，如 `Asia/Shanghai`、`America/Los_Angeles`。<br/>**常用时区示例**：<br/>- 中国上海：`Asia/Shanghai`<br/>- 美国硅谷：`America/Los_Angeles`<br/>- 美国纽约：`America/New_York`<br/>- 英国伦敦：`Europe/London`<br/>- 日本东京：`Asia/Tokyo`<br/>**完整时区列表查询**：<br/>- [维基百科 - IANA时区数据库列表](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) |
+| global_var_list   | array  | 否  | 全局变量信息，可使用 查询执行方案详情 接口查询方案可设置的变量信息                                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 ##### global_var
 
@@ -72,6 +73,7 @@
     "bk_scope_id": "1",
     "execute_time": 0,
     "expression": "0 0/5 * * *",
+    "execute_time_zone": "Asia/Shanghai",
     "job_plan_id": 1023060,
     "name": "test API",
     "global_var_list": [
@@ -119,6 +121,7 @@
     "bk_scope_id": "1",
     "execute_time": 0,
     "expression": "0 0/5 * * *",
+    "execute_time_zone": "Asia/Shanghai",
     "job_plan_id": 1023060,
     "name": "test API",
     "global_var_list": [
@@ -173,6 +176,7 @@
         "bk_scope_id": "1",
         "job_plan_id": 1023060,
         "expression": "0 0/5 * * *",
+        "execute_time_zone": "Asia/Shanghai",
         "global_var_list": [
             {
                 "id": 1001101,
@@ -242,6 +246,7 @@
         "bk_scope_id": "1",
         "job_plan_id": 1023060,
         "expression": "0 0/5 * * *",
+        "execute_time_zone": "Asia/Shanghai",
         "global_var_list": [
             {
                 "id": 1001101,
@@ -299,31 +304,32 @@
 ### 返回结果参数说明
 
 | 字段             | 类型     | 是否一定不为null | 描述                         |
-|----------------|--------|--------|----------------------------|
-| result         | bool   | 是      | 请求成功与否。true:请求成功；false请求失败 |
-| code           | int    | 是      | 错误编码。 0表示success，>0表示失败错误  |
-| message        | string | 否      | 请求失败返回的错误信息                |
-| data           | object | 否      | 请求返回的数据，删除操作可能没有值          |
-| job_request_id | string | 否      | 请求ID，请求唯一标识                |
-| permission     | object | 否      | 无权限返回的权限信息                 |
+|----------------|--------|------------|----------------------------|
+| result         | bool   | 是          | 请求成功与否。true:请求成功；false请求失败 |
+| code           | int    | 是          | 错误编码。 0表示success，>0表示失败错误  |
+| message        | string | 否          | 请求失败返回的错误信息                |
+| data           | object | 否          | 请求返回的数据，删除操作可能没有值          |
+| job_request_id | string | 否          | 请求ID，请求唯一标识                |
+| permission     | object | 否          | 无权限返回的权限信息                 |
 
 ##### data
 
-| 字段               | 类型     | 是否一定不为null | 描述                                      |
-|------------------|--------|--------|-----------------------------------------|
-| id               | long   | 是      | 定时任务 ID                                 |
-| name             | string | 是      | 定时作业名称                                  |
-| status           | int    | 是      | 定时任务状态                                  |
-| bk_scope_type    | string | 是      | 资源范围类型。可选值: biz - 业务，biz_set - 业务集      |
-| bk_scope_id      | string | 是      | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID |
-| job_plan_id      | long   | 是      | 要定时执行的作业的执行方案 ID                        |
-| creator          | string | 是      | 创建人                                     |
-| create_time      | long   | 是      | 创建时间Unix时间戳（s）                          |
-| last_modify_user | string | 是      | 最近一次修改人                                 |
-| last_modify_time | long   | 是      | 最近一次修改时间Unix时间戳（s）                      |
-| expression       | string | 否      | 定时任务 crontab 的定时规则，                     |
-| execute_time     | long   | 否      | 定时任务单次执行的执行时间，Unix时间戳                   |
-| global_var_list  | array  | 否      | 全局变量信息，定义见global_var                    |
+| 字段                | 类型     | 是否一定不为null | 描述                                       |
+|-------------------|--------|------------|------------------------------------------|
+| id                | long   | 是          | 定时任务 ID                                  |
+| name              | string | 是          | 定时作业名称                                   |
+| status            | int    | 是          | 定时任务状态                                   |
+| bk_scope_type     | string | 是          | 资源范围类型。可选值: biz - 业务，biz_set - 业务集       |
+| bk_scope_id       | string | 是          | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID  |
+| job_plan_id       | long   | 是          | 要定时执行的作业的执行方案 ID                         |
+| creator           | string | 是          | 创建人                                      |
+| create_time       | long   | 是          | 创建时间Unix时间戳（s）                           |
+| last_modify_user  | string | 是          | 最近一次修改人                                  |
+| last_modify_time  | long   | 是          | 最近一次修改时间Unix时间戳（s）                       |
+| expression        | string | 否          | 定时任务 crontab 的定时规则，                      |
+| execute_time      | long   | 否          | 定时任务单次执行的执行时间，Unix时间戳                    |
+| execute_time_zone | string | 是          | 定时任务执行时间所在时区，该时区为IANA格式，例如：Asia/Shanghai |
+| global_var_list   | array  | 否          | 全局变量信息，定义见global_var                     |
 
 ##### global_var
 

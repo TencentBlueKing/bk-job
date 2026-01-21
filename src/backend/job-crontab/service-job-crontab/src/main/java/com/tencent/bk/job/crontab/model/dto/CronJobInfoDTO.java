@@ -122,6 +122,11 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
     private Long executeTime;
 
     /**
+     * 定时任务触发时间、结束时间是哪个时区下的时间
+     */
+    private String executeTimeZone;
+
+    /**
      * 上次执行状态
      */
     private Integer lastExecuteStatus;
@@ -188,7 +193,7 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
     private CustomNotifyDTO customCronJobNotifyDTO = new CustomNotifyDTO();
 
     /**
-     * 周期执行结束时间
+     * 周期执行结束时间，在DB中存储的单位是秒
      */
     private Long endTime = 0L;
 
@@ -218,6 +223,7 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
             cronJobVO.setCronExpression(null);
         }
         cronJobVO.setExecuteTime(cronJobInfo.getExecuteTime());
+        cronJobVO.setExecuteTimeZone(cronJobInfo.getExecuteTimeZone());
         if (cronJobInfo.getVariableValue() != null) {
             cronJobVO.setVariableValue(cronJobInfo.getVariableValue().stream().map(CronJobVariableDTO::toVO)
                 .collect(Collectors.toList()));
@@ -304,6 +310,7 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
             cronJobInfo.setCustomCronJobNotifyDTO(extractCustomNotifyDTOFromReq(cronJobCreateUpdateReq));
         }
         cronJobInfo.setEndTime(cronJobCreateUpdateReq.getEndTime());
+        cronJobInfo.setExecuteTimeZone(cronJobCreateUpdateReq.getExecuteTimeZone());
         return cronJobInfo;
     }
 
@@ -371,6 +378,7 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
         esbCronInfoV3DTO.setLastModifyUser(cronJobInfoDTO.getLastModifyUser());
         esbCronInfoV3DTO
             .setLastModifyTime(cronJobInfoDTO.getLastModifyTime());
+        esbCronInfoV3DTO.setExecuteTimeZone(cronJobInfoDTO.getExecuteTimeZone());
         return esbCronInfoV3DTO;
     }
 
@@ -521,6 +529,7 @@ public class CronJobInfoDTO extends EncryptEnableVariables {
         esbCronInfoResponse.setCreateTime(cronJobInfoDTO.getCreateTime());
         esbCronInfoResponse.setLastModifyUser(cronJobInfoDTO.getLastModifyUser());
         esbCronInfoResponse.setLastModifyTime(cronJobInfoDTO.getLastModifyTime());
+        esbCronInfoResponse.setExecuteTimeZone(cronJobInfoDTO.getExecuteTimeZone());
         if (CollectionUtils.isNotEmpty(cronJobInfoDTO.getVariableValue())) {
             esbCronInfoResponse.setGlobalVarList(cronJobInfoDTO.getVariableValue().stream()
                 .map(CronJobVariableDTO::toEsbGlobalVarV3).collect(Collectors.toList()));

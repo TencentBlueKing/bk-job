@@ -913,6 +913,14 @@ Return the Job Deploy Env Content
   value: {{ .Release.Name }}
 {{- end -}}
 
+{{/*
+Return JVM Timezone Env
+*/}}
+{{- define "job.jvm.timezone.env" -}}
+- name: BK_JOB_JVM_TIMEZONE
+  value: {{ .Values.timezone.default.operation }}
+{{- end -}}
+
 
 {{/*
 Return environment variables for a given micro service
@@ -934,6 +942,7 @@ Return the Job Common Env Content
 {{ include "job.storage.env" . }}
 {{ include "job.config.env" . }}
 {{ include "job.deploy.env" . }}
+{{ include "job.jvm.timezone.env" . }}
 {{- end -}}
 
 {{/*

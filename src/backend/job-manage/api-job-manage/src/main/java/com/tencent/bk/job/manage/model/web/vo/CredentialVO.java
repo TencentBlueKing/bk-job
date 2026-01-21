@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -76,8 +74,7 @@ public class CredentialVO {
     /**
      * 创建时间
      */
-    @ApiModelProperty("创建时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
+    @ApiModelProperty("创建时间，单位毫秒")
     private Long createTime;
     /**
      * 最后修改人
@@ -87,8 +84,7 @@ public class CredentialVO {
     /**
      * 最后修改时间
      */
-    @ApiModelProperty("最后修改时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
+    @ApiModelProperty("最后修改时间，单位毫秒")
     private Long lastModifyTime;
 
     @ApiModelProperty("是否可以管理")

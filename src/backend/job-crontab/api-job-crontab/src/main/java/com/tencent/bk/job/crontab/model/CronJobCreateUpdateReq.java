@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.crontab.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.tencent.bk.job.common.model.dto.notify.StatusNotifyChannel;
 import com.tencent.bk.job.common.model.vo.UserRoleInfoVO;
+import com.tencent.bk.job.common.util.json.ToSecondDeserializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -94,12 +96,19 @@ public class CronJobCreateUpdateReq {
     private String cronExpression;
 
     /**
-     * 单次执行的指定执行时间
+     * 单次执行的指定执行时间，单位毫秒
      * <p>
      * 不可与 cronExpression 同时为空
      */
-    @ApiModelProperty("单次执行的指定执行时间, 不可与 cronExpression 同时为空")
+    @ApiModelProperty("单次执行的指定执行时间, 不可与 cronExpression 同时为空，单位毫秒")
+    @JsonDeserialize(using = ToSecondDeserializer.class)
     private Long executeTime;
+
+    /**
+     * 定时任务触发时间、结束时间是哪个时区下的时间
+     */
+    @ApiModelProperty("定时任务触发时间、结束时间是哪个时区下的时间")
+    private String executeTimeZone;
 
     /**
      * 变量信息
@@ -161,7 +170,8 @@ public class CronJobCreateUpdateReq {
     /**
      * 周期执行的结束时间
      */
-    @ApiModelProperty("周期执行的结束时间")
+    @ApiModelProperty("周期执行的结束时间，单位毫秒")
+    @JsonDeserialize(using = ToSecondDeserializer.class)
     private Long endTime = 0L;
 
 }

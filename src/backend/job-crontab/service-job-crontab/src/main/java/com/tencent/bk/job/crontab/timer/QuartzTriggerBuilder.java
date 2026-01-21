@@ -35,6 +35,7 @@ import org.quartz.TriggerKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
 /**
  * QuartzTrigger to {@link Trigger}
@@ -73,6 +74,8 @@ public class QuartzTriggerBuilder {
 
     private Date endAt;
 
+    private TimeZone timeZone;
+
     private QuartzTriggerBuilder() {
 
     }
@@ -107,6 +110,7 @@ public class QuartzTriggerBuilder {
         quartzTrigger.setRepeatInterval(this.interval);
         quartzTrigger.setCronExpression(this.cronExpression);
         quartzTrigger.setMisfireInstruction(this.misfireInstruction);
+        quartzTrigger.setTimeZone(this.timeZone);
 
         return quartzTrigger;
     }
@@ -194,6 +198,11 @@ public class QuartzTriggerBuilder {
 
     public QuartzTriggerBuilder usingJobData(String key, String value) {
         this.jobData.put(key, value);
+        return this;
+    }
+
+    public QuartzTriggerBuilder withTimeZone(TimeZone timeZone) {
+        this.timeZone = timeZone;
         return this;
     }
 

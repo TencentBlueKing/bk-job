@@ -71,6 +71,7 @@ public class WebDangerousRecordResourceImpl implements WebDangerousRecordResourc
                                                                           String scopeId,
                                                                           Long ruleId,
                                                                           String ruleExpression,
+                                                                          String timezone,
                                                                           String startTime,
                                                                           String endTime,
                                                                           Integer start,
@@ -95,11 +96,11 @@ public class WebDangerousRecordResourceImpl implements WebDangerousRecordResourc
         BaseSearchCondition baseSearchCondition = new BaseSearchCondition();
         if (StringUtils.isNotBlank(startTime)) {
             baseSearchCondition.setCreateTimeStart(DateUtils.convertUnixTimestampFromDateTimeStr(startTime,
-                "yyyy-MM-dd HH:mm:ss", ChronoUnit.MILLIS, ZoneId.systemDefault()));
+                "yyyy-MM-dd HH:mm:ss", ChronoUnit.MILLIS, ZoneId.of(timezone)));
         }
         if (StringUtils.isNotBlank(endTime)) {
             baseSearchCondition.setCreateTimeEnd(DateUtils.convertUnixTimestampFromDateTimeStr(endTime,
-                "yyyy-MM-dd HH:mm:ss", ChronoUnit.MILLIS, ZoneId.systemDefault()));
+                "yyyy-MM-dd HH:mm:ss", ChronoUnit.MILLIS, ZoneId.of(timezone)));
         }
         baseSearchCondition.setStart(start);
         baseSearchCondition.setLength(pageSize);
