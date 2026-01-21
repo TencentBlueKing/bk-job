@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.api.inner;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -132,7 +133,8 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
                 taskVariableDTO.setValue(serviceTaskVariable.getStringValue());
             } else if (serviceTaskVariable.getType() == CIPHER.getType()) {
                 // 如果密码类型的变量传入为空或者“******”，那么密码使用系统中保存的
-                if (serviceTaskVariable.getStringValue() == null || "******".equals(serviceTaskVariable.getStringValue())) {
+                if (serviceTaskVariable.getStringValue() == null
+                    || JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(serviceTaskVariable.getStringValue())) {
                     continue;
                 } else {
                     taskVariableDTO.setValue(serviceTaskVariable.getStringValue());
