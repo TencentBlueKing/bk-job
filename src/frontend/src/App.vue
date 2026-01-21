@@ -263,10 +263,10 @@
             return getPlatformConfig(data.BK_SHARED_RES_BASE_JS_URL, {
               name: '作业平台',
               nameEn: 'JOB',
-              appLogo: '/static/images/logo.png',
+              appLogo: window.__loadAssetsUrl__('/static/images/logo.png'),
               brandName: '蓝鲸智云',
               brandNameEn: 'Tencent BlueKing',
-              favicon: '/static/images/favicon.ico',
+              favicon: window.__loadAssetsUrl__('/static/images/favicon.ico'),
               productName: '作业平台', // 产品名称，展示在logo区域 1.0.5版本新增
               productNameEn: 'JOB',
               version: process.env.JOB_VERSION,

@@ -156,7 +156,7 @@
     },
     created() {
       this.fetchMyFavorList();
-      this.emptyUrl = I18n.locale === 'zh-CN' ? '/static/images/favor-task-empty.png' : '/static/images/favor-task-empty-en.png';
+      this.emptyUrl = I18n.locale === 'zh-CN' ? window.__loadAssetsUrl__('/static/images/favor-task-empty.png') : window.__loadAssetsUrl__('/static/images/favor-task-empty-en.png');
     },
     mounted() {
       this.containerStyle = {

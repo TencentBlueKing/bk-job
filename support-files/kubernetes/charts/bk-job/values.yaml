@@ -811,6 +811,10 @@ job:
     type: "CLASSIC"
     # 用于加密作业平台中存储的数据库密码的密码
     password: "job#2021"
+    # SM2加密算法原始公钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PublicKey: ""
+    # SM2加密算法原始私钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PrivateKey: ""
   features:
     fileManage:
       # 是否开启文件管理特性，容器化环境默认开启
@@ -882,10 +886,8 @@ job:
   # 各微服务Actuator监控端口
   managePort: 19876
   web:
-    # 作业平台主站域名（被前端与Web API使用）
+    # 子域名模式下，作业平台主站域名（被前端与Web API使用）
     domain: "job.example.com"
-    # 作业平台API域名（被上层系统ESB、ApiGW使用）
-    apiDomain: "jobapi.example.com"
   ingress:
     https:
       # ingress是否开启HTTPS
@@ -1071,19 +1073,6 @@ gatewayConfig:
       https: 443
       # http端口号
       http: 80
-  ingress:
-    # 是否开启ingress
-    enabled: false
-    path: "/"
-    pathType: ImplementationSpecific
-    annotations:
-      kubernetes.io/ingress.class: nginx
-      # 开启ingress后的最大请求体大小
-      nginx.ingress.kubernetes.io/proxy-body-size: "10240m"
-    extraHosts: []
-    tls: []
-    extraTls: []
-    secrets: []
   server:
     ssl:
       p12:
@@ -1998,11 +1987,10 @@ frontendConfig:
   ingress:
     enabled: true
     pathType: ImplementationSpecific
-    path: "/"
     annotations:
       kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/use-regex: "true"
       nginx.ingress.kubernetes.io/proxy-body-size: "2048m"
-    extraHosts: []
     tls: []
     extraTls: []
     secrets: []
@@ -2293,3 +2281,14 @@ healthCheck:
   # 默认开启 启动时检查mongodb是否可达且账号密码正确
   mongo:
     enabled: true
+
+bkWebSiteAccess:
+  # 可选值：subdomain（子域名）、subpath（子路径）
+  mode: "subdomain"
+  # 子域名模式生效的配置
+  # subdomain:
+    # 请补充可能配置的特性项目，暂无
+  # 子路径模式生效的配置
+  subpath:
+    # 根路径前缀（如 "/app" 则访问路径为 https://www.example.com/app/xxx）
+    rootPrefix: "/job"

@@ -27,7 +27,7 @@
 
 <template>
   <div
-    v-bkloading="{ isLoading }"
+    v-bkloading="{ isLoading: isLoading || isAccountEncryptionLoading }"
     class="operation-account">
     <jb-form
       :key="`${formData.category}_${formData.type}`"
@@ -68,9 +68,11 @@
 <script>
   import AccountManageService from '@service/account-manage';
   import QueryGlobalSettingService from '@service/query-global-setting';
+  import webGlobal from '@service/web-global';
 
   import AccountModel from '@model/account';
 
+  import { encrypt } from '@utils/assist';
   import { accountAliasNameRule } from '@utils/validator';
 
   import AccountSelect from '@components/account-select';
@@ -114,6 +116,8 @@
         isLoading: true,
         isEdit: false,
         isRulesLoadingError: false,
+        isAccountEncryptionLoading: true,
+        isAccountEncryptionLoadingError: false,
         formData: generatorDefault(),
         currentRules: Object.freeze({
           linux: {
@@ -126,6 +130,7 @@
             expression: '.',
           },
         }),
+        accountEncryption: null,
       };
     },
     computed: {
@@ -277,6 +282,7 @@
     },
     created() {
       this.fetchRules();
+      this.fetchAccountEncryption();
 
       this.categoryList = [
         {
@@ -351,11 +357,30 @@
             this.isLoading = false;
           });
       },
+      fetchAccountEncryption() {
+        this.isAccountEncryptionLoading = true;
+        this.isAccountEncryptionLoadingError = false;
+        webGlobal.fetchAccountEncryption()
+          .then((data) => {
+            this.accountEncryption = data;
+          })
+          .catch(() => {
+            this.isAccountEncryptionLoadingError = true;
+          })
+          .finally(() => {
+            this.isAccountEncryptionLoading = false;
+          });
+      },
       /**
        * @desc 提交新建账号
        */
       createAccount() {
-        const params = { ...this.formData };
+        const params = {
+          ...this.formData,
+          algorithm: this.accountEncryption.algorithm,
+          dbPassword: encrypt(this.accountEncryption.algorithm, this.accountEncryption.pemPublicKey, this.formData.dbPassword),
+          password: encrypt(this.accountEncryption.algorithm, this.accountEncryption.pemPublicKey, this.formData.password),
+        };
         delete params.rePassword;
         return AccountManageService.createAccount(params)
           .then(() => {
@@ -367,7 +392,12 @@
        * @desc 提交编辑账号
        */
       updateAccount() {
-        const params = { ...this.formData };
+        const params = {
+          ...this.formData,
+          algorithm: this.accountEncryption.algorithm,
+          dbPassword: encrypt(this.accountEncryption.algorithm, this.accountEncryption.pemPublicKey, this.formData.dbPassword),
+          password: encrypt(this.accountEncryption.algorithm, this.accountEncryption.pemPublicKey, this.formData.password),
+        };
         delete params.rePassword;
         return AccountManageService.updateAccount(params)
           .then(() => {
@@ -406,6 +436,10 @@
         if (this.isRulesLoadingError) {
           this.messageWarn(I18n.t('account.命名规则请求失败无法执行当前操作，请刷新页面'));
           return Promise.reject(Error('rule error'));
+        }
+        if (this.isAccountEncryptionLoadingError) {
+          this.messageWarn(I18n.t('account.账号加密配置请求失败无法执行当前操作，请刷新页面'));
+          return Promise.reject(Error('account encryption error'));
         }
         return this.$refs.operateAccountForm.validate()
           .then(() => {

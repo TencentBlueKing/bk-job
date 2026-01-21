@@ -63,7 +63,7 @@
         <div class="feature-item">
           <div class="feature-pic">
             <img
-              src="/static/images/guide/permission-apply.svg"
+              :src="permissionApplyImage"
               style="width: 220px; margin: 19px 26px 0 24px;">
           </div>
           <div class="feature-box">
@@ -94,7 +94,7 @@
         <div class="feature-item">
           <div class="feature-pic">
             <img
-              src="/static/images/guide/permission-use.svg"
+              :src="permissionUseImage"
               style="width: 230px; margin: 22px 32px 0 7px;">
           </div>
           <div class="feature-box">
@@ -163,13 +163,15 @@
     created() {
       this.fetchRelatedSystemUrls();
       this.fetchGroupPanel();
+      this.permissionApplyImage = window.__loadAssetsUrl__('/static/images/guide/permission-apply.svg');
+      this.permissionUseImage = window.__loadAssetsUrl__('/static/images/guide/permission-use.svg');
       document.title = I18n.t('无业务权限');
     },
     methods: {
       fetchGroupPanel() {
         AppManageService.fetchGroupPanel()
           .then((data) => {
-            this.canApply = data.can_apply;
+            this.canApply = data.canApply;
           });
       },
       fetchRelatedSystemUrls() {

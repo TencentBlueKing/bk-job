@@ -23,7 +23,11 @@
  * IN THE SOFTWARE.
 */
 
+// eslint-disable-next-line
+import '../static/webpack_public_path';
+
 import Cookie from 'js-cookie';
+
 import _ from 'lodash';
 import Vue from 'vue';
 
@@ -88,9 +92,9 @@ window.routerFlashBack = false;
  * 老版 URL 格式： /${APP_ID}/execute/step/${TASK_ID}，
  * 解析 TASK_ID 拼接 api_execute/TASK_ID 跳转
  */
-const oldExecute = window.location.pathname.match(/^\/\d+\/execute\/step\/(\d+)/);
+const oldExecute = window.location.pathname.match(new RegExp(`^${window.PROJECT_CONFIG.BK_SITE_PATH}\\d+/execute/step/(\\d+)`));
 if (oldExecute) {
-  window.location.href = `/api_execute/${oldExecute[1]}`;
+  window.location.href = `${window.PROJECT_CONFIG.BK_SITE_PATH}api_execute/${oldExecute[1]}`;
 }
 
 /**
@@ -122,8 +126,7 @@ let EntryApp = subEnv ? IframeApp : App;
  * @desc 解析路由 scopeType、scopeId
  */
 entryTask.add((context) => {
-  const pathRoot = window.location.pathname.match(/^\/([^/]+)\/(\d+)\/?/);
-
+  const pathRoot = window.location.pathname.match(new RegExp(`^${window.PROJECT_CONFIG.BK_SITE_PATH}((?!api_)[^/]+)/(\\d+)/?`));
   if (pathRoot) {
     // 路由指定了业务id
     [,
@@ -185,7 +188,7 @@ entryTask.add(() => QueryGlobalSettingService.fetchRelatedSystemUrls().then((dat
 /**
  * @desc 通过第三方系统查看任务执行详情
  */
-const apiExecute = window.location.href.match(/api_execute\/([^/]+)/);
+const apiExecute = window.location.href.match(new RegExp(`${window.PROJECT_CONFIG.BK_SITE_PATH}api_execute/([^/]+)/?`));
 if (apiExecute) {
   // 通过 iframe 访问任务详情入口为 IframeApp
   if (window.frames.length !== parent.frames.length) {
@@ -226,7 +229,7 @@ if (apiExecute) {
 /**
  * @desc 通过第三方系统查看作业任务步骤执行详情
  */
-const apiExecuteStep = window.location.href.match(/api_execute_step\/([^/]+)\/([^/]+)/);
+const apiExecuteStep = window.location.href.match(new RegExp(`${window.PROJECT_CONFIG.BK_SITE_PATH}api_execute_step/([^/]+)/([^/]+)/?`));
 if (apiExecuteStep) {
   // 通过 iframe 访问任务详情入口为 IframeApp
   if (window.frames.length !== parent.frames.length) {
@@ -259,7 +262,7 @@ if (apiExecuteStep) {
 /**
  * @desc 通过第三方系统查看执行方案详情
  */
-const apiPlan = window.location.href.match(/api_plan\/([^/]+)/);
+const apiPlan = window.location.href.match(new RegExp(`${window.PROJECT_CONFIG.BK_SITE_PATH}api_plan/([^/]+)/?`));
 if (apiPlan) {
   entryTask.add(
     context => TaskPlanService.fetchPlanData({

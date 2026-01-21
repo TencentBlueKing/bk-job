@@ -25,13 +25,13 @@
 package com.tencent.bk.job.common.crypto;
 
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,6 +48,10 @@ public class EncryptConfig {
     private CryptoTypeEnum type;
 
     private String password;
+
+    private String sm2PrivateKey;
+
+    private String sm2PublicKey;
 
     /**
      * 各个场景下使用的加密算法，不配置则使用默认算法

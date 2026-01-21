@@ -3,7 +3,7 @@
 2.访问地址
 浏览器访问地址（请确保已配置域名解析）：
 {{- if .Values.frontendConfig.ingress.enabled }}
-{{ $.Values.bkDomainScheme }}://{{ $.Values.job.web.domain }}
+{{ printf "%s" (include "job.url.base" .) }}
 {{- end }}
 
 本机curl访问：

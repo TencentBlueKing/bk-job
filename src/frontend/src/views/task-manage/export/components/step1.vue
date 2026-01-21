@@ -30,7 +30,7 @@
     <div
       v-once
       class="flag">
-      <img src="/static/images/notice.svg">
+      <img :src="noticeImage">
       <div class="title">
         {{ $t('template.用户须知_title') }}
       </div>
@@ -63,6 +63,9 @@
 </template>
 <script>
   export default {
+    created() {
+      this.noticeImage = window.__loadAssetsUrl__('/static/images/notice.svg');
+    },
     methods: {
       handleNext() {
         this.$emit('on-change', 2);

@@ -31,7 +31,7 @@
     class="export-task-step4-page">
     <div>
       <div class="notice">
-        <img src="/static/images/export.svg">
+        <img :src="exportImage">
         <div class="title">
           <div v-if="isExportSuccess">
             <div>{{ $t('template.作业导出成功！请及时保存并妥善保管。') }}</div>
@@ -176,6 +176,7 @@
       this.autoLoadPackage = taskExport.getItem('templateInfo');
 
       this.pollingQueue = [];
+      this.exportImage = window.__loadAssetsUrl__('/static/images/export.svg');
       taskExport.clearItem();
       window.changeFlag = true;
       this.fetchData();

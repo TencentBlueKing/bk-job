@@ -49,7 +49,7 @@
         <div class="feature-item">
           <div class="feature-pic">
             <img
-              src="/static/images/guide/script-new.svg"
+              :src="scriptImage"
               style="width: 220px; margin: 39px 39px 0 31px;">
           </div>
           <div class="feature-box">
@@ -63,7 +63,7 @@
         <div class="feature-item">
           <div class="feature-pic">
             <img
-              src="/static/images/guide/script-version.svg"
+              :src="scriptVersionImage"
               style="width: 230px; margin: 32px 27px 0 7px;">
           </div>
           <div class="feature-box">
@@ -111,6 +111,8 @@
     },
     created() {
       this.fetchRelatedSystemUrls();
+      this.scriptImage = window.__loadAssetsUrl__('/static/images/guide/script-new.svg');
+      this.scriptVersionImage = window.__loadAssetsUrl__('/static/images/guide/script-version.svg');
     },
     methods: {
       fetchRelatedSystemUrls() {

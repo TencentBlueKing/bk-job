@@ -43,4 +43,16 @@ public class JobCommonConfig {
     @Value("${swagger.url:swagger.job.com}")
     private String swaggerUrl;
 
+    /**
+     * 获取第一个作业平台web访问地址
+     *
+     * @return 第一个作业平台web访问地址
+     */
+    public String getFirstJobWebUrl() {
+        String[] jobWebUrls = jobWebUrl.split(",");
+        if (jobWebUrls.length > 0) {
+            return jobWebUrls[0];
+        }
+        return jobWebUrl;
+    }
 }
