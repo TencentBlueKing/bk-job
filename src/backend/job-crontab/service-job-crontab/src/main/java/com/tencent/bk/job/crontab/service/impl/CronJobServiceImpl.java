@@ -215,6 +215,7 @@ public class CronJobServiceImpl implements CronJobService {
         content = EventContentConstants.CREATE_CRON_JOB
     )
     public CronJobInfoDTO createCronJobInfo(String username, CronJobInfoDTO cronJobInfo) {
+        checkCronJobExists(cronJobInfo);
         cronAuthService.authCreateCron(username,
             new AppResourceScope(cronJobInfo.getAppId())).denyIfNoPermission();
 
@@ -243,6 +244,7 @@ public class CronJobServiceImpl implements CronJobService {
         content = EventContentConstants.EDIT_CRON_JOB
     )
     public CronJobInfoDTO updateCronJobInfo(String username, CronJobInfoDTO cronJobInfo) {
+        checkCronJobExists(cronJobInfo);
         cronAuthService.authManageCron(username,
             new AppResourceScope(cronJobInfo.getAppId()), cronJobInfo.getId(), null).denyIfNoPermission();
 
@@ -277,6 +279,21 @@ public class CronJobServiceImpl implements CronJobService {
             .setInstance(CronJobInfoDTO.toEsbCronInfoV3(updateCron));
 
         return updateCron;
+    }
+
+    /**
+     * 检查定时任务存在性，抛出资源已存在异常
+     */
+    private void checkCronJobExists(CronJobInfoDTO cronJobInfo) {
+        Long cronJobId = 0L;
+        if (cronJobInfo.getId() != null && cronJobInfo.getId() > 0) {
+            cronJobId = cronJobInfo.getId();
+        }
+        if (!cronJobDAO.checkCronJobName(cronJobInfo.getAppId(), cronJobId, cronJobInfo.getName())) {
+            log.warn("Cron job exists. appId={}, cronJobId={}, cronJobName={}",
+                cronJobInfo.getAppId(), cronJobId, cronJobInfo.getName());
+            throw new AlreadyExistsException(ErrorCode.CRON_JOB_ALREADY_EXIST, new String[]{cronJobInfo.getName()});
+        }
     }
 
     private void authExecuteTask(CronJobInfoDTO cronJobInfo){

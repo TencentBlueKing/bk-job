@@ -22,46 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.crypto;
+package com.tencent.bk.job.manage.api.web;
 
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import javax.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.Map;
+import com.tencent.bk.job.common.annotation.WebAPI;
+import com.tencent.bk.job.common.model.Response;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * 加密配置
+ * 作业平台版本日志相关Web API
  */
-@ConfigurationProperties(prefix = "job.encrypt")
-@ToString
-@Getter
-@Setter
-@Slf4j
-public class EncryptConfig {
-
-    private CryptoTypeEnum type;
-
-    private String password;
-
-    private String sm2PrivateKey;
-
-    private String sm2PublicKey;
+@Api(tags = {"job-manage:web:version_log"})
+@RequestMapping("/web/versionLog")
+@WebAPI
+public interface WebVersionLogResource {
 
     /**
-     * 各个场景下使用的加密算法，不配置则使用默认算法
+     * 按语言获取版本日志
      */
-    private Map<String, String> scenarioAlgorithms = new HashMap<>();
-
-    @PostConstruct
-    public void print() {
-        if (log.isDebugEnabled()) {
-            log.debug("EncryptConfig init: {}", JsonUtils.toJson(this));
-        }
-    }
+    @ApiOperation(value = "按语言获取版本日志，data字段为json数组，按version倒序排列。"
+        + "返回的data示例：["
+        + "{\"content\":\"新增xxx\n;优化xxx\n;修复xxx\n\",\"version\":\"V3.11.3\",\"time\":\"2025-02-04\"},"
+        + "{\"content\":\"新增xxx\n;优化xxx\n;修复xxx\n\",\"version\":\"V3.10.2\",\"time\":\"2024-11-04\"}"
+        + "]。"
+        + "字段说明："
+        + "content-版本更新日志内容，"
+        + "version-版本号，"
+        + "time-版本发布时间。",
+        produces = "application/json")
+    @GetMapping
+    Response<Object> getVersionLog();
 }

@@ -112,6 +112,8 @@ data:
       encrypt:
         type: {{ .Values.job.encrypt.type }}
         password: {{ .Values.job.encrypt.password }}
+        sm2-public-key: {{.Values.job.encrypt.sm2PublicKey}}
+        sm2-private-key: {{.Values.job.encrypt.sm2PrivateKey}}
       web:
         url: {{ include "job.web.url" . }}
       storage:

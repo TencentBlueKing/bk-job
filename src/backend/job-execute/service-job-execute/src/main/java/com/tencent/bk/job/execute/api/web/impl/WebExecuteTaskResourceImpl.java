@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.api.web.impl;
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
@@ -186,7 +187,8 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                 taskVariableDTO.setValue(webTaskVariable.getValue());
             } else if (webTaskVariable.getType() == CIPHER.getType()) {
                 // 如果密码类型的变量传入为空或者“******”，那么密码使用系统中保存的
-                if (webTaskVariable.getValue() == null || "******".equals(webTaskVariable.getValue())) {
+                if (webTaskVariable.getValue() == null
+                    || JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(webTaskVariable.getValue())) {
                     continue;
                 } else {
                     taskVariableDTO.setValue(webTaskVariable.getValue());

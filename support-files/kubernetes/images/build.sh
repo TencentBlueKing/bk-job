@@ -201,11 +201,6 @@ build_frontend_module () {
     ls $tmp_dir
     echo "=======$tmp_dir  end======="
     cp -rf $FRONTEND_DIR/dist $tmp_dir/frontend/
-    log "Building version logs"
-    cd $VERSION_LOGS_DIR || exit 1
-    python genBundledVersionLog.py
-    cd $WORKING_DIR || exit 1
-    cp $VERSION_LOGS_DIR/bundledVersionLog*.json tmp/frontend/dist/static
 
     docker build -f frontend/frontend.Dockerfile -t $REGISTRY/job-frontend:$VERSION tmp/frontend --network=host
     if [[ $PUSH -eq 1 ]] ; then
@@ -219,6 +214,13 @@ build_backend_modules () {
     log "Building backdend {MODULES} image, version: ${VERSION}..."
     tasks=""
     for MODULE in ${MODULES[@]}; do
+        if [[ "${MODULE}" == "job-manage" ]]; then
+            log "Building version logs for module: ${MODULE}"
+            if ! generate_version_logs; then
+                log "Version logs generation failed, terminate build."
+                exit 1
+            fi
+        fi
         if [[ "${MODULE}" == "job-assemble" ]] || [[ "${MODULE}" == "job-gateway" ]]; then
             tasks+=":${MODULE}:build "
         else
@@ -278,6 +280,32 @@ build_startup_controller_image(){
     if [[ $PUSH -eq 1 ]] ; then
         docker push $REGISTRY/job-tools-$TOOL_NAME:$VERSION
     fi
+}
+
+# Generate version log files
+generate_version_logs() {
+    log "Generating version logs..."
+    if [[ ! -d "$VERSION_LOGS_DIR" ]]; then
+        log "Version log dir not found: $VERSION_LOGS_DIR"
+        return 1
+    fi
+
+    local worker_dir=$(pwd)
+    cd "$VERSION_LOGS_DIR"
+    if ! python genBundledVersionLog.py; then
+        log "genBundledVersionLog.py failed"
+        cd "$worker_dir"
+        return 1
+    fi
+
+    local target_dir="$BACKEND_DIR/job-manage/boot-job-manage/src/main/resources/versionLog"
+    mkdir -p "$target_dir"
+    log "Copy version log files to ${target_dir}"
+    cp bundledVersionLog*.json "$target_dir"
+    log "Version logs copied:"
+    ls -l "$target_dir"/*.json
+    cd "$worker_dir"
+    return 0
 }
 
 # Building
