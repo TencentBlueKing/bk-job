@@ -1,6 +1,10 @@
-FROM nginx:1.18.0
+FROM tencentos/tencentos4-minimal:4.4-v20250805
 
 LABEL maintainer="Tencent BlueKing Job"
+
+RUN dnf -y install nginx && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf
 
 WORKDIR /data/job/job-frontend
 COPY dist/index.html /data/job/job-frontend/

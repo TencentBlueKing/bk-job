@@ -717,6 +717,10 @@ job:
     type: "CLASSIC"
     # 用于加密作业平台中存储的数据库密码的密码
     password: "job#2021"
+    # SM2加密算法原始公钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PublicKey: ""
+    # SM2加密算法原始私钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PrivateKey: ""
   features:
     fileManage:
       # 是否开启文件管理特性，容器化环境默认开启
@@ -1786,8 +1790,8 @@ k8sConfigWatcherConfig:
   enabled: true
   image:
     registry: docker.io
-    repository: springcloud/spring-cloud-kubernetes-configuration-watcher
-    tag: "3.0.0"
+    repository: "bkjob/job-config-watcher"
+    tag: "0.0.1"
     pullPolicy: IfNotPresent
     pullSecrets: []
   hostAliases: []

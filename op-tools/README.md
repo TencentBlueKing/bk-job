@@ -24,3 +24,23 @@ batch-invoke
 #### 适用场景   
 - 强制终止一批异常作业
 - 批量开启/关闭一批定时任务
+
+### 2.生成SM2加解密所需的秘钥对
+
+#### 代码位置
+sm2_keypair
+
+#### 功能简介
+
+用于生成SM2加解密所需的秘钥对，生成的原始秘钥可以直接用于后端SM2Util工具，生成的PEM秘钥可以直接用于前端vue。
+
+> python环境: python3.6
+
+#### 执行
+
+```shell
+# 安装依赖
+pip install bk-crypto-python-sdk
+# 生成秘钥对
+python generate_sm2_keypair.py
+```

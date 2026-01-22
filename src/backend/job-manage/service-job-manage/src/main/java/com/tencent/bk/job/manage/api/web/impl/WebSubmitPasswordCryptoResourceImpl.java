@@ -22,46 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.crypto;
+package com.tencent.bk.job.manage.api.web.impl;
 
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import com.tencent.bk.job.common.crypto.scenario.SubmitAccountPasswordCryptoService;
+import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.manage.api.web.WebSubmitPasswordCryptoResource;
+import com.tencent.bk.job.manage.model.web.vo.EncryptionInfoVO;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.Map;
-
-/**
- * 加密配置
- */
-@ConfigurationProperties(prefix = "job.encrypt")
-@ToString
-@Getter
-@Setter
+@RestController
 @Slf4j
-public class EncryptConfig {
+public class WebSubmitPasswordCryptoResourceImpl implements WebSubmitPasswordCryptoResource {
 
-    private CryptoTypeEnum type;
+    private final SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService;
 
-    private String password;
+    @Autowired
+    public WebSubmitPasswordCryptoResourceImpl(SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService) {
+        this.submitAccountPasswordCryptoService = submitAccountPasswordCryptoService;
+    }
 
-    private String sm2PrivateKey;
-
-    private String sm2PublicKey;
-
-    /**
-     * 各个场景下使用的加密算法，不配置则使用默认算法
-     */
-    private Map<String, String> scenarioAlgorithms = new HashMap<>();
-
-    @PostConstruct
-    public void print() {
-        if (log.isDebugEnabled()) {
-            log.debug("EncryptConfig init: {}", JsonUtils.toJson(this));
-        }
+    @Override
+    public Response<EncryptionInfoVO> getEncryptionInfo(String username) {
+        EncryptionInfoVO encryptionInfoVO = new EncryptionInfoVO();
+        encryptionInfoVO.setPemPublicKey(submitAccountPasswordCryptoService.getPemPublicKey());
+        encryptionInfoVO.setAlgorithm(submitAccountPasswordCryptoService.getAlgorithm());
+        return Response.buildSuccessResp(encryptionInfoVO);
     }
 }

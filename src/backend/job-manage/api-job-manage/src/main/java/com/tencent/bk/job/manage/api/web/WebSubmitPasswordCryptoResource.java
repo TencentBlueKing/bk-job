@@ -22,46 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.crypto;
+package com.tencent.bk.job.manage.api.web;
 
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import javax.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.Map;
+import com.tencent.bk.job.common.annotation.WebAPI;
+import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.manage.model.web.vo.EncryptionInfoVO;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * 加密配置
+ * 前端提交账号密码的加密Web API
  */
-@ConfigurationProperties(prefix = "job.encrypt")
-@ToString
-@Getter
-@Setter
-@Slf4j
-public class EncryptConfig {
-
-    private CryptoTypeEnum type;
-
-    private String password;
-
-    private String sm2PrivateKey;
-
-    private String sm2PublicKey;
-
+@Api(tags = {"job-manage:web:crypto"})
+@RequestMapping("/web/crypto/submit/account/")
+@WebAPI
+public interface WebSubmitPasswordCryptoResource {
     /**
-     * 各个场景下使用的加密算法，不配置则使用默认算法
+     * 获取账号密码的加密信息
      */
-    private Map<String, String> scenarioAlgorithms = new HashMap<>();
-
-    @PostConstruct
-    public void print() {
-        if (log.isDebugEnabled()) {
-            log.debug("EncryptConfig init: {}", JsonUtils.toJson(this));
-        }
-    }
+    @ApiOperation(value = "获取账号密码的加密信息", produces = "application/json")
+    @GetMapping("/encryption")
+    Response<EncryptionInfoVO> getEncryptionInfo(
+        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @RequestHeader("username")
+            String username
+    );
 }
