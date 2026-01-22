@@ -210,7 +210,7 @@
         searchParams: {
           startTime: '',
           endTime: '',
-          timezone: window.PROJECT_CONFIG.USER_TIME_ZONE,
+          timezone: window.PROJECT_CONFIG.USER_TIME_ZONE || window.PROJECT_CONFIG.DEFAULT_DISPLAY_TIME_ZONE,
         },
         defaultDateTime: [
           '', '',
@@ -510,7 +510,7 @@
         const searchParams = {
           startTime: '',
           endTime: '',
-          timezone: window.PROJECT_CONFIG.USER_TIME_ZONE,
+          timezone: window.PROJECT_CONFIG.USER_TIME_ZONE || window.PROJECT_CONFIG.DEFAULT_DISPLAY_TIME_ZONE,
         };
 
         if (Object.prototype.hasOwnProperty.call(this.$route.query, 'startTime')) {
