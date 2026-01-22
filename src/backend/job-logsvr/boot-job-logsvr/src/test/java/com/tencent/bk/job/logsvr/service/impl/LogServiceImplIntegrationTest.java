@@ -49,6 +49,7 @@ import org.springframework.test.context.TestPropertySource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -298,6 +299,9 @@ public class LogServiceImplIntegrationTest {
         @Test
         @DisplayName("测试保存文件分发日志")
         void testSaveFileLog() {
+            Long stepInstanceId = 1L;
+
+            // 第一次写入：写入第一条日志
             FileTaskLogDoc fileTaskLog1 = buildFileTaskDetailLog(
                 FileTaskModeEnum.DOWNLOAD.getValue(),
                 102L,
@@ -315,17 +319,21 @@ public class LogServiceImplIntegrationTest {
                 "Downloading",
                 "100KB/S",
                 "100MB",
-                "50%",
-                "[2020-07-30 11:00:00] Downloading...\n");
+                "50%"
+            );
+            // 设置writeContentList
+            List<FileTaskLogDoc.LogEntry> writeContentList1 = new ArrayList<>();
+            writeContentList1.add(new FileTaskLogDoc.LogEntry(1596078000000L, "Downloading...\n"));
+            fillWriteList(fileTaskLog1, writeContentList1);
 
             List<FileTaskLogDoc> fileTaskLogList = new ArrayList<>();
             fileTaskLogList.add(fileTaskLog1);
-            TaskExecuteObjectLog taskExecuteObjectLog = buildFileTaskHostLog(1L, 0, "2020_07_29", 102L,
+            TaskExecuteObjectLog taskExecuteObjectLog = buildFileTaskHostLog(stepInstanceId, 0, "2020_07_29", 102L,
                 "0:127.0.0.2", "0:::2", fileTaskLogList);
             logService.saveLog(taskExecuteObjectLog);
 
             FileLogQuery searchRequest = FileLogQuery.builder()
-                .stepInstanceId(1L)
+                .stepInstanceId(stepInstanceId)
                 .executeCount(0)
                 .jobCreateDate("2020_07_29")
                 .hostIds(Collections.singletonList(102L))
@@ -349,7 +357,12 @@ public class LogServiceImplIntegrationTest {
             assertThat(resultFileTaskLog1.getSize()).isEqualTo("100MB");
             assertThat(resultFileTaskLog1.getSpeed()).isEqualTo("100KB/S");
             assertThat(resultFileTaskLog1.getProcess()).isEqualTo("50%");
-            assertThat(resultFileTaskLog1.getContent()).isEqualTo("[2020-07-30 11:00:00] Downloading...\n");
+            // 验证contentList包含1个map
+            assertThat(resultFileTaskLog1.getContentList()).hasSize(1);
+            assertThat(resultFileTaskLog1.getContentList().get(0)).isInstanceOf(Map.class);
+            Map<String, Object> logEntry1 = (Map<String, Object>) resultFileTaskLog1.getContentList().get(0);
+            assertThat(logEntry1.get("logTime")).isEqualTo(1596078000000L);
+            assertThat(logEntry1.get("content")).isEqualTo("Downloading...\n");
 
             // 再次插入日志，验证日志更新场景
             fileTaskLog1 = buildFileTaskDetailLog(
@@ -369,11 +382,182 @@ public class LogServiceImplIntegrationTest {
                 "Finished",
                 "0KB/S",
                 "100MB",
-                "100%",
-                "[2020-07-30 11:00:00] Download success\n");
+                "100%"
+            );
+            // 设置writeContentList
+            List<FileTaskLogDoc.LogEntry> writeContentList2 = new ArrayList<>();
+            writeContentList2.add(new FileTaskLogDoc.LogEntry(1596079800000L, "Download success\n"));
+            fillWriteList(fileTaskLog1, writeContentList2);
+            
             fileTaskLogList.clear();
             fileTaskLogList.add(fileTaskLog1);
-            taskExecuteObjectLog = buildFileTaskHostLog(1L, 0, "2020_07_29", 102L, "0:127.0.0.2", "0:::2",
+            taskExecuteObjectLog = buildFileTaskHostLog(stepInstanceId, 0, "2020_07_29", 102L, "0:127.0.0.2", "0:::2",
+                fileTaskLogList);
+            logService.saveLog(taskExecuteObjectLog);
+
+            // 验证第二次写入后的结果
+            fileLogDocs = logService.listFileLogs(searchRequest);
+            assertThat(fileLogDocs).hasSize(1);
+            resultFileTaskLog1 = fileLogDocs.get(0);
+            assertThat(resultFileTaskLog1.getMode()).isEqualTo(FileTaskModeEnum.DOWNLOAD.getValue());
+            assertThat(resultFileTaskLog1.getHostId()).isEqualTo(102L);
+            assertThat(resultFileTaskLog1.getSrcHostId()).isEqualTo(101L);
+            assertThat(resultFileTaskLog1.getSrcIp()).isEqualTo("0:127.0.0.1");
+            assertThat(resultFileTaskLog1.getSrcIpv6()).isEqualTo("0:::1");
+            assertThat(resultFileTaskLog1.getSrcFileType()).isEqualTo(1);
+            assertThat(resultFileTaskLog1.getSrcFile()).isEqualTo("/tmp/1.log");
+            assertThat(resultFileTaskLog1.getDestHostId()).isEqualTo(102L);
+            assertThat(resultFileTaskLog1.getDestIp()).isEqualTo("0:127.0.0.2");
+            assertThat(resultFileTaskLog1.getDestIpv6()).isEqualTo("0:::2");
+            assertThat(resultFileTaskLog1.getDestFile()).isEqualTo("/tmp/2.log");
+            assertThat(resultFileTaskLog1.getStatus()).isEqualTo(4);
+            assertThat(resultFileTaskLog1.getStatusDesc()).isEqualTo("Finished");
+            assertThat(resultFileTaskLog1.getSize()).isEqualTo("100MB");
+            assertThat(resultFileTaskLog1.getSpeed()).isEqualTo("0KB/S");
+            assertThat(resultFileTaskLog1.getProcess()).isEqualTo("100%");
+            // 验证contentList包含2个map
+            assertThat(resultFileTaskLog1.getContentList()).hasSize(2);
+            // 第1条
+            assertThat(resultFileTaskLog1.getContentList().get(0)).isInstanceOf(Map.class);
+            Map<String, Object> logEntry1Final = (Map<String, Object>) resultFileTaskLog1.getContentList().get(0);
+            assertThat(logEntry1Final.get("logTime")).isEqualTo(1596078000000L);
+            assertThat(logEntry1Final.get("content")).isEqualTo("Downloading...\n");
+            // 第2条
+            assertThat(resultFileTaskLog1.getContentList().get(1)).isInstanceOf(Map.class);
+            Map<String, Object> logEntry2 = (Map<String, Object>) resultFileTaskLog1.getContentList().get(1);
+            assertThat(logEntry2.get("logTime")).isEqualTo(1596079800000L);
+            assertThat(logEntry2.get("content")).isEqualTo("Download success\n");
+        }
+
+        @Test
+        @DisplayName("3.12.1时区改造版本添加，测试兼容保存文件分发日志，模拟发布时，新老logsvr实例共存且往同一个任务追加日志的情况")
+        void testCompatiblySaveFileLog() {
+            long stepInstanceId = 2L;
+
+            // 第一次写入：使用老版本方式（只有content字段）
+            FileTaskLogDoc fileTaskLog1 = buildFileTaskDetailLog(
+                FileTaskModeEnum.DOWNLOAD.getValue(),
+                102L,
+                101L,
+                "0:127.0.0.1",
+                "0:::1",
+                1,
+                "/tmp/1.log",
+                "/tmp/1.log",
+                102L,
+                "0:127.0.0.2",
+                "0:::2",
+                "/tmp/2.log",
+                3,
+                "Downloading",
+                "100KB/S",
+                "100MB",
+                "50%");
+            oldFileTaskLogAddContent(fileTaskLog1, "[2020-07-30 11:00:00] Downloading1...\n");
+
+            List<FileTaskLogDoc> fileTaskLogList = new ArrayList<>();
+            fileTaskLogList.add(fileTaskLog1);
+            TaskExecuteObjectLog taskExecuteObjectLog = buildFileTaskHostLog(stepInstanceId, 0, "2020_07_29", 102L,
+                "0:127.0.0.2", "0:::2", fileTaskLogList);
+            logService.saveLog(taskExecuteObjectLog);
+
+            FileLogQuery searchRequest = FileLogQuery.builder()
+                .stepInstanceId(stepInstanceId)
+                .executeCount(0)
+                .jobCreateDate("2020_07_29")
+                .hostIds(Collections.singletonList(102L))
+                .build();
+            List<FileTaskLogDoc> fileLogDocs = logService.listFileLogs(searchRequest);
+            assertThat(fileLogDocs).hasSize(1);
+            FileTaskLogDoc resultFileTaskLog1 = fileLogDocs.get(0);
+            assertThat(resultFileTaskLog1.getMode()).isEqualTo(FileTaskModeEnum.DOWNLOAD.getValue());
+            assertThat(resultFileTaskLog1.getHostId()).isEqualTo(102L);
+            assertThat(resultFileTaskLog1.getSrcHostId()).isEqualTo(101L);
+            assertThat(resultFileTaskLog1.getSrcIp()).isEqualTo("0:127.0.0.1");
+            assertThat(resultFileTaskLog1.getSrcIpv6()).isEqualTo("0:::1");
+            assertThat(resultFileTaskLog1.getSrcFileType()).isEqualTo(1);
+            assertThat(resultFileTaskLog1.getSrcFile()).isEqualTo("/tmp/1.log");
+            assertThat(resultFileTaskLog1.getDestHostId()).isEqualTo(102L);
+            assertThat(resultFileTaskLog1.getDestIp()).isEqualTo("0:127.0.0.2");
+            assertThat(resultFileTaskLog1.getDestIpv6()).isEqualTo("0:::2");
+            assertThat(resultFileTaskLog1.getDestFile()).isEqualTo("/tmp/2.log");
+            assertThat(resultFileTaskLog1.getStatus()).isEqualTo(3);
+            assertThat(resultFileTaskLog1.getStatusDesc()).isEqualTo("Downloading");
+            assertThat(resultFileTaskLog1.getSize()).isEqualTo("100MB");
+            assertThat(resultFileTaskLog1.getSpeed()).isEqualTo("100KB/S");
+            assertThat(resultFileTaskLog1.getProcess()).isEqualTo("50%");
+            // 验证contentList包含老格式数据（字符串）
+            assertThat(resultFileTaskLog1.getContentList()).hasSize(1);
+            assertThat(resultFileTaskLog1.getContentList().get(0)).isInstanceOf(String.class);
+            assertThat(resultFileTaskLog1.getContentList().get(0)).isEqualTo("[2020-07-30 11:00:00] Downloading1...\n");
+
+            // 第二次写入：使用新版本方式（writeContentList字段，包含LogEntry对象）
+            fileTaskLog1 = buildFileTaskDetailLog(
+                FileTaskModeEnum.DOWNLOAD.getValue(),
+                102L,
+                101L,
+                "0:127.0.0.1",
+                "0:::1",
+                1,
+                "/tmp/1.log",
+                "/tmp/1.log",
+                102L,
+                "0:127.0.0.2",
+                "0:::2",
+                "/tmp/2.log",
+                3,
+                "Downloading",
+                "100KB/S",
+                "100MB",
+                "60%");
+            // 设置writeContentList（新版本格式）
+            List<FileTaskLogDoc.LogEntry> writeContentList = new ArrayList<>();
+            // 1596078180000L 对应 东八区时间 2020-07-30 11:03:00
+            writeContentList.add(new FileTaskLogDoc.LogEntry(1596078180000L, "Downloading2...\n"));
+            fillWriteList(fileTaskLog1, writeContentList);
+
+            fileTaskLogList.clear();
+            fileTaskLogList.add(fileTaskLog1);
+            taskExecuteObjectLog = buildFileTaskHostLog(stepInstanceId, 0, "2020_07_29", 102L, "0:127.0.0.2", "0:::2",
+                fileTaskLogList);
+            logService.saveLog(taskExecuteObjectLog);
+
+            fileLogDocs = logService.listFileLogs(searchRequest);
+            assertThat(fileLogDocs).hasSize(1);
+            resultFileTaskLog1 = fileLogDocs.get(0);
+            // 验证contentList包含2条数据：1条老格式（字符串）+ 1条新格式（LogEntry对象）
+            assertThat(resultFileTaskLog1.getContentList()).hasSize(2);
+            assertThat(resultFileTaskLog1.getContentList().get(0)).isInstanceOf(String.class);
+            assertThat(resultFileTaskLog1.getContentList().get(0)).isEqualTo("[2020-07-30 11:00:00] Downloading1...\n");
+            assertThat(resultFileTaskLog1.getContentList().get(1)).isInstanceOf(Map.class);
+            Map<String, Object> logEntry = (Map<String, Object>) resultFileTaskLog1.getContentList().get(1);
+            assertThat(logEntry.get("logTime")).isEqualTo(1596078180000L);
+            assertThat(logEntry.get("content")).isEqualTo("Downloading2...\n");
+
+            // 第三次写入：再次使用老版本方式（只有content字段）
+            fileTaskLog1 = buildFileTaskDetailLog(
+                FileTaskModeEnum.DOWNLOAD.getValue(),
+                102L,
+                101L,
+                "0:127.0.0.1",
+                "0:::1",
+                1,
+                "/tmp/1.log",
+                "/tmp/1.log",
+                102L,
+                "0:127.0.0.2",
+                "0:::2",
+                "/tmp/2.log",
+                4,
+                "Finished",
+                "0KB/S",
+                "100MB",
+                "100%");
+            oldFileTaskLogAddContent(fileTaskLog1, "[2020-07-30 11:30:00] Downloading3...\n");
+
+            fileTaskLogList.clear();
+            fileTaskLogList.add(fileTaskLog1);
+            taskExecuteObjectLog = buildFileTaskHostLog(stepInstanceId, 0, "2020_07_29", 102L, "0:127.0.0.2", "0:::2",
                 fileTaskLogList);
             logService.saveLog(taskExecuteObjectLog);
 
@@ -396,8 +580,20 @@ public class LogServiceImplIntegrationTest {
             assertThat(resultFileTaskLog1.getSize()).isEqualTo("100MB");
             assertThat(resultFileTaskLog1.getSpeed()).isEqualTo("0KB/S");
             assertThat(resultFileTaskLog1.getProcess()).isEqualTo("100%");
-            assertThat(resultFileTaskLog1.getContent()).isEqualTo("[2020-07-30 11:00:00] Downloading...\n[2020-07-30 " +
-                "11:00:00] Download success\n");
+
+            // 验证contentList包含3条数据：老格式 + 新格式 + 老格式
+            assertThat(resultFileTaskLog1.getContentList()).hasSize(3);
+            // 第1条：老格式（字符串）
+            assertThat(resultFileTaskLog1.getContentList().get(0)).isInstanceOf(String.class);
+            assertThat(resultFileTaskLog1.getContentList().get(0)).isEqualTo("[2020-07-30 11:00:00] Downloading1...\n");
+            // 第2条：新格式（LogEntry对象）
+            assertThat(resultFileTaskLog1.getContentList().get(1)).isInstanceOf(Map.class);
+            Map<String, Object> logEntry2 = (Map<String, Object>) resultFileTaskLog1.getContentList().get(1);
+            assertThat(logEntry2.get("logTime")).isEqualTo(1596078180000L);
+            assertThat(logEntry2.get("content")).isEqualTo("Downloading2...\n");
+            // 第3条：老格式（字符串）
+            assertThat(resultFileTaskLog1.getContentList().get(2)).isInstanceOf(String.class);
+            assertThat(resultFileTaskLog1.getContentList().get(2)).isEqualTo("[2020-07-30 11:30:00] Downloading3...\n");
         }
     }
 
@@ -421,6 +617,19 @@ public class LogServiceImplIntegrationTest {
         return taskExecuteObjectLog;
     }
 
+    /**
+     * 老版本添加content
+     * @param doc
+     * @param content
+     */
+    void oldFileTaskLogAddContent(FileTaskLogDoc doc, String content) {
+        doc.setContent(content);
+    }
+
+    void fillWriteList(FileTaskLogDoc doc, List<FileTaskLogDoc.LogEntry> writeContentList) {
+        doc.setWriteContentList(writeContentList);
+    }
+
     FileTaskLogDoc buildFileTaskDetailLog(Integer mode,
                                           Long hostId,
                                           Long srcHostId,
@@ -437,8 +646,7 @@ public class LogServiceImplIntegrationTest {
                                           String statusDesc,
                                           String speed,
                                           String size,
-                                          String process,
-                                          String content) {
+                                          String process) {
         FileTaskLogDoc fileTaskLogDoc = new FileTaskLogDoc();
         fileTaskLogDoc.setMode(mode);
         fileTaskLogDoc.setHostId(hostId);
@@ -460,7 +668,6 @@ public class LogServiceImplIntegrationTest {
         fileTaskLogDoc.setSpeed(speed);
         fileTaskLogDoc.setSize(size);
         fileTaskLogDoc.setProcess(process);
-        fileTaskLogDoc.setContent(content);
         return fileTaskLogDoc;
     }
 }

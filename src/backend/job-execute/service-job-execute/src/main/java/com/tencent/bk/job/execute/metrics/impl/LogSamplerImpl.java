@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.metrics.impl;
 
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.metrics.LogSampler;
+import com.tencent.bk.job.logsvr.model.service.FileTaskTimeAndRawLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceBatchSaveLogRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectScriptLogDTO;
@@ -133,9 +134,13 @@ public class LogSamplerImpl implements LogSampler {
         }
         long totalBytes = 0L;
         for (ServiceFileTaskLogDTO fileTaskLog : fileTaskLogs) {
-            String content = fileTaskLog.getContent();
-            if (content != null) {
-                totalBytes += content.getBytes(StandardCharsets.UTF_8).length;
+            List<FileTaskTimeAndRawLogDTO> logAndTimeList = fileTaskLog.getContentList();
+            if (CollectionUtils.isNotEmpty(logAndTimeList)) {
+                for (FileTaskTimeAndRawLogDTO logAndTime : logAndTimeList) {
+                    // mongodb中，time用单独一个字段
+                    totalBytes += Long.BYTES;
+                    totalBytes += logAndTime.getRawLog().getBytes(StandardCharsets.UTF_8).length;
+                }
             }
         }
         return totalBytes;

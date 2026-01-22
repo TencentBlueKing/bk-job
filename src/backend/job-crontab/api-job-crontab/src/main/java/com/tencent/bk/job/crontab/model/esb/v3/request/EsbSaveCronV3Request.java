@@ -93,5 +93,11 @@ public class EsbSaveCronV3Request extends EsbAppScopeReq {
     @Valid
     private List<EsbGlobalVarV3DTO> globalVarList;
 
+    /**
+     * 定时任务触发时间所在的时区
+     * 默认为 Asia/Shanghai
+     */
+    @JsonProperty("execute_time_zone")
+    private String executeTimeZone;
 
 }

@@ -142,9 +142,11 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
                 TenantIdConstants.DEFAULT_TENANT_ID;
             String username = user.getUsername();
             String targetUsername = getTargetUsername(username);
+
             request = request.mutate()
                 .header("username", targetUsername)
                 .header(JobCommonHeaders.BK_TENANT_ID, tenantId)
+                .header(JobCommonHeaders.BK_USER_TIMEZONE, user.getTimeZone())
                 .build();
             if (targetUsername.equals(username)) {
                 log.info(

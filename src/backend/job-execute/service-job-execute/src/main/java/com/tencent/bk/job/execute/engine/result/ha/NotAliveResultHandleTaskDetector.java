@@ -24,13 +24,13 @@
 
 package com.tencent.bk.job.execute.engine.result.ha;
 
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import com.tencent.bk.job.common.redis.util.LockUtils;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.monitor.metrics.ExecuteMonitor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -56,7 +56,7 @@ public class NotAliveResultHandleTaskDetector {
         this.executeMonitor = executeMonitor;
     }
 
-    @Scheduled(cron = "0/10 * * * * ?")
+    @ScheduledOnOperationTimeZone(cron = "0/10 * * * * ?")
     public void detectAndResumeNotAliveTasks() {
         try {
             if (LockUtils.tryGetDistributedLock("not:alive:task:detect:lock", requestId, 5000L)) {

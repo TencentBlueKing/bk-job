@@ -225,6 +225,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                  Integer status,
                                                                  String operator,
                                                                  Integer taskType,
+                                                                 String timezone,
                                                                  String startTime,
                                                                  String endTime,
                                                                  Integer timeRange,
@@ -236,8 +237,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                  String startupModes,
                                                                  String ip) {
         User user = JobContextUtil.getUser();
-        TaskInstanceQuery taskQuery = buildListTaskInstanceQuery(appResourceScope, taskName, taskInstanceId,
-            status, operator, taskType, startTime, endTime, timeRange, totalTimeType, cronTaskId, startupModes, ip);
+        TaskInstanceQuery taskQuery = buildListTaskInstanceQuery(
+            appResourceScope, taskName, taskInstanceId, status, operator, taskType, timezone, startTime, endTime,
+            timeRange, totalTimeType, cronTaskId, startupModes, ip);
         BaseSearchCondition baseSearchCondition = BaseSearchCondition.pageCondition(
             start,
             pageSize,
@@ -270,6 +272,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                          Integer status,
                                                          String operator,
                                                          Integer taskType,
+                                                         String timezone,
                                                          String startTime,
                                                          String endTime,
                                                          Integer timeRange,
@@ -301,7 +304,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             }
         }
         taskQuery.setIp(ip);
-        taskInstanceQueryValidator.validateAndSetQueryTimeRange(taskQuery, startTime, endTime, timeRange);
+        taskInstanceQueryValidator.validateAndSetQueryTimeRange(taskQuery, timezone, startTime, endTime, timeRange);
         return taskQuery;
     }
 

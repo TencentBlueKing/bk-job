@@ -1,12 +1,13 @@
 FROM tencentos/tencentos4-minimal:4.4-v20250805
 
 LABEL maintainer="Tencent BlueKing Job"
-LABEL dockerfile.version="3.11.11"
+LABEL dockerfile.version="3.12.2"
 
 ENV LANG="en_US.UTF-8"
 
 # 操作系统相关
-RUN ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &&\
+RUN ln -snf /usr/share/zoneinfo/UTC /etc/localtime &&\
+    echo 'UTC' > /etc/timezone && \
     echo 'alias ls="ls --color=auto"' >> ~/.bashrc &&\
     echo 'alias ll="ls -l"' >> ~/.bashrc &&\
     echo 'alias tailf="tail -f"' >> ~/.bashrc
