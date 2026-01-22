@@ -50,9 +50,7 @@
     prettyDateTimeFormat,
   } from '@utils/assist';
 
-  import Model from '@/domain/model/model';
-
-  const model = new Model();
+  import { getTimestamp } from '@/utils/assist/time';
 
   export default {
     name: '',
@@ -76,7 +74,7 @@
       dateOptions() {
         const disabledDate = (date) => {
           const prettyDate = prettyDateTimeFormat(date); // 当前经过格式化的日期 --去除时区
-          return model.getTimestamp({ date: prettyDate, timezone: this.timezone }) < Date.now() - 86400000;
+          return getTimestamp({ date: prettyDate, timezone: this.timezone }) < Date.now() - 86400000;
         };
         return {
           disabledDate,

@@ -23,11 +23,9 @@
  * IN THE SOFTWARE.
 */
 
-import Model from '@/domain/model/model';
+import { getTime } from '@/utils/assist/time';
 
 import AiSource from '../source/ai';
-
-const model = new Model();
 
 export default {
   fetchAnalyzeError(params = {}) {
@@ -58,7 +56,7 @@ export default {
             role: 'user',
             content: item.userInput.content,
             status: '',
-            time: model.getTime({ timestamp: item.userInput.time }),
+            time: getTime({ timestamp: item.userInput.time }),
           });
         }
 
@@ -66,7 +64,7 @@ export default {
           role: 'assistant',
           content: item.aiAnswer.content,
           status: item.aiAnswer.errorCode === '0' ? 'success' : 'error',
-          time: model.getTime({ timestamp: item.aiAnswer.time }),
+          time: getTime({ timestamp: item.aiAnswer.time }),
         });
 
         return result;

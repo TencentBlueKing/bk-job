@@ -36,7 +36,7 @@
 
   import AiBlueking from '@blueking/ai-blueking/vue2';
 
-  import Model from '@/domain/model/model';
+  import { getTime } from '@/utils/assist/time';
 
   import useChatHistory from './use-chat-history';
   import useCloseAnimate from './use-close-animate';
@@ -45,7 +45,6 @@
   import '@blueking/ai-blueking/dist/vue2/style.css';
 
   let currentRecordId = 0;
-  const model = new Model();
   const bluekingImage = window.__loadAssetsUrl__('/static/images/blueking.png');
 
   const handleRef = ref();
@@ -60,8 +59,6 @@
     left: window.innerWidth - window.innerWidth * 0.75,
     right: 0,
   };
-
-  const getTime = timestamp => model.getTime({ timestamp });
 
   const {
     messageList,

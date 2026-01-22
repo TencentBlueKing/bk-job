@@ -35,6 +35,7 @@ import {
 import translate from '@utils/cron/translate';
 
 import I18n from '@/i18n';
+import { getFullTimeZone, getTime } from '@/utils/assist/time';
 
 const STATUS_NOTSTARTED = 0;
 const STATUS_SUCCESS = 1;
@@ -62,10 +63,10 @@ export default class Crontab extends Model {
     this.creator = payload.creator;
     this.createTime = payload.createTime;
     this.cronExpression = payload.cronExpression;
-    this.executeTime = payload.executeTime ? this.getTime({ timestamp: payload.executeTime, timezone: payload.executeTimeZone }) : '';
+    this.executeTime = payload.executeTime ? getTime({ timestamp: payload.executeTime, timezone: payload.executeTimeZone }) : '';
     this.id = payload.id;
     this.enable = payload.enable;
-    this.endTime = payload.endTime ? this.getTime({ timestamp: payload.endTime, timezone: payload.executeTimeZone }) : '';
+    this.endTime = payload.endTime ? getTime({ timestamp: payload.endTime, timezone: payload.executeTimeZone }) : '';
     this.lastExecuteStatus = payload.lastExecuteStatus;
     this.lastModifyTime = payload.lastModifyTime;
     this.lastModifyUser = payload.lastModifyUser;
@@ -121,7 +122,7 @@ export default class Crontab extends Model {
      * @returns { String }
      */
   get executeTimeTips() {
-    const fullTimezone = this.getFullTimeZone(this.executeTimeZone);
+    const fullTimezone = getFullTimeZone(this.executeTimeZone);
     if (this.cronExpression) {
       const [
         minute,
@@ -170,7 +171,7 @@ export default class Crontab extends Model {
       text += minute;
       return `${text} ${fullTimezone}`;
     }
-    return `${this.getTime({
+    return `${getTime({
       timestamp: this.executeTime,
       timezone: this.executeTimeZone,
     })} ${fullTimezone}`;
@@ -200,7 +201,7 @@ export default class Crontab extends Model {
     if (this.cronExpression) {
       return this.cronExpression;
     }
-    return this.getTime({
+    return getTime({
       timestamp: this.executeTime,
       timezone: this.executeTimeZone,
     });

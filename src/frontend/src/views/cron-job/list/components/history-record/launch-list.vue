@@ -158,7 +158,7 @@
           },
         ];
       }
-      this.searchParams.timezone = window.PROJECT_CONFIG.USER_TIME_ZONE;
+      this.searchParams.timezone = window.PROJECT_CONFIG.USER_TIME_ZONE || window.PROJECT_CONFIG.DEFAULT_DISPLAY_TIME_ZONE;
 
       this.searchSelect = [
         {
