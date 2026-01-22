@@ -220,8 +220,8 @@
 
   import { TimezonePicker } from '@blueking/date-picker/vue2';
 
-  import Model from '@/domain/model/model';
   import I18n from '@/i18n';
+  import { getTime, getTimestamp } from '@/utils/assist/time';
 
   import RenderInfoDetail from '../render-info-detail';
 
@@ -231,7 +231,6 @@
 
   import '@blueking/date-picker/vue2/vue2.css';
 
-  const model = new Model();
 
   const onceItemList = [
     'executeBeforeNotify',
@@ -467,9 +466,9 @@
       // 比较选择时间是否比当前时间要早（根据选择的任务时区来）
       compareTimestamp(time) {
         const timezone = this.formData.executeTimeZone; // 当前选择的任务时区
-        const nowDate = model.getTime({ timestamp: new Date().getTime(), timezone }); // 当下所选时区的日期
-        const choseTime = model.getTimestamp({ date: prettyDateTimeFormat(time), timezone }); // 选择的时间根据当前选择的时区转换成时间戳
-        const nowTime = model.getTimestamp({ date: nowDate, timezone }); // 当下所选时区的时间戳
+        const nowDate = getTime({ timestamp: new Date().getTime(), timezone }); // 当下所选时区的日期
+        const choseTime = getTimestamp({ date: prettyDateTimeFormat(time), timezone }); // 选择的时间根据当前选择的时区转换成时间戳
+        const nowTime = getTimestamp({ date: nowDate, timezone }); // 当下所选时区的时间戳
         return choseTime > nowTime; // 返回所选时间是否大于当下时间
       },
       handleTimezoneChange(val) {
@@ -746,14 +745,14 @@
               params.executeTime = '';
             } else {
               params.cronExpression = '';
-              params.executeTime = model.getTimestamp({
+              params.executeTime = getTimestamp({
                 // 去掉原日期格式的时区信息
                 date: prettyDateTimeFormat(new Date(params.executeTime).getTime()),
                 timezone: params.executeTimeZone,
               });
             }
             if (params.endTime) {
-              params.endTime = model.getTimestamp({
+              params.endTime = getTimestamp({
                 date: params.endTime,
                 timezone: params.executeTimeZone,
               });

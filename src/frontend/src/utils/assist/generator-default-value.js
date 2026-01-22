@@ -25,17 +25,15 @@
 
 import Cookie from 'js-cookie';
 
-import Model from '@/domain/model/model';
-import { extractDateTime, formatTimezoneOffset } from '@/utils/assist/time';
+import { extractDateTime, formatTimezoneOffset, getTime, getTimezoneInfo } from '@/utils/assist/time';
 
 export const defaultValue = value => value || '--';
 
 export const getSufixName = () => {
-  const model = new Model();
-  const date = model.getTime({
+  const date = getTime({
     timestamp: new Date().valueOf(),
   });
-  const { offset } = model.getTimezoneInfo();
+  const { offset } = getTimezoneInfo();
   const {
     year,
     month,

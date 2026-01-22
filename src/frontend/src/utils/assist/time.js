@@ -22,6 +22,15 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
 */
+import dayjs from 'dayjs';
+
+import timezonesList from '@/utils/world-timezones.json';
+
+const timezone = require('dayjs/plugin/timezone');
+const utc = require('dayjs/plugin/utc');
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export const prettyDateTimeFormat = (target) => {
   if (!target) {
@@ -138,4 +147,50 @@ export function formatTimezoneOffset(utcOffset) {
   // 如果输入格式不匹配，返回原字符串或抛出错误
   console.warn('输入的时区格式不支持:', utcOffset);
   return utcOffset || '0000';
+}
+
+export function getTimezoneInfo(defaultTimezone) {
+  const timezone = defaultTimezone || getTimeZone();
+  const { country = '', offset = '' } = timezonesList[timezone] || {};
+  return { country, offset };
+}
+
+export function getTimeZone() {
+  const { USER_TIME_ZONE, BUSINESS_TIME_ZONE, DEFAULT_DISPLAY_TIME_ZONE } = window.PROJECT_CONFIG;
+  return USER_TIME_ZONE || BUSINESS_TIME_ZONE || DEFAULT_DISPLAY_TIME_ZONE;
+}
+
+export function getFullTimeZone(defaultTimezone) {
+  const timezone = defaultTimezone || getTimeZone();
+  const { country = '', offset = '' } = getTimezoneInfo(timezone);
+  return `${timezone} ${country} ${offset}`;
+}
+
+// 时间戳转换成日期格式
+export function getTime(options) {
+  const {
+    timestamp,
+    timezone,
+    format = 'YYYY-MM-DD HH:mm:ss',
+  } = options;
+
+  if (!timestamp) return '--';
+  return dayjs.tz(timestamp, timezone || getTimeZone())
+    .format(format);
+}
+
+// 日期格式转换成时间戳 转换的日期格式不能带时区
+export function getTimestamp(options) {
+  const {
+    date,
+    timezone,
+  } = options;
+
+  if (!date) return;
+  return dayjs.tz(date, timezone || getTimeZone())
+    .valueOf();
+}
+
+export function getTimeTooltip(time) {
+  return `${time} ${getFullTimeZone()}`;
 }

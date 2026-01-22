@@ -29,19 +29,18 @@
   <date-picker
     ref="datePicker"
     :model-value="dateValue"
-    :timezone.sync="timezone"
-    @update:modelValue="handleDateChange" />
+    :timezone="props.timezone"
+    @update:modelValue="handleDateChange"
+    @update:timezone="handleTimezoneChange " />
 </template>
 <script setup>
-  import { computed, onMounted, ref } from 'vue';
+  import { onMounted, ref } from 'vue';
 
   import DatePicker from '@blueking/date-picker/vue2';
 
-  import Model from '@/domain/model/model';
+  import { getTime, getTimestamp } from '@/utils/assist/time';
 
   import '@blueking/date-picker/vue2/vue2.css';
-
-  const model = new Model();
 
   const props = defineProps({
     date: {
@@ -59,31 +58,26 @@
 
   const emits = defineEmits(['changeDate', 'changeTimezone']);
 
-  const timezone = computed({
-    get() {
-      return props.timezone;
-    },
-    set(timezone) {
-      emits('changeTimezone', timezone);
-    },
-  });
-
   onMounted(() => {
     const { startTime, endTime } = props.date;
     if (!startTime) {
       const currentTime = new Date().getTime();
-      const startDate = model.getTime({ timestamp: currentTime - props.day * 86400000, timezone: timezone.value });
-      const endDate = model.getTime({ timestamp: currentTime, timezone: timezone.value });
+      const startDate = getTime({ timestamp: currentTime - props.day * 86400000, timezone: props.timezone });
+      const endDate = getTime({ timestamp: currentTime, timezone: props.timezone });
       dateValue.value = [currentTime - props.day * 86400000, currentTime];
       emits('setDate', { startTime: startDate, endTime: endDate });
       return;
     }
-    dateValue.value = [model.getTimestamp({ date: startTime, timezone: timezone.value }), model.getTimestamp({ date: endTime, timezone: timezone.value })];
+    dateValue.value = [getTimestamp({ date: startTime, timezone: props.timezone }), getTimestamp({ date: endTime, timezone: props.timezone })];
   });
 
   const handleDateChange = (date, info) => {
     const [{ formatText: startTime }, { formatText: endTime }] = info;
     dateValue.value = date;
     emits('changeDate', { startTime, endTime });
+  };
+
+  const handleTimezoneChange = (timezone) => {
+    emits('changeTimezone', timezone);
   };
 </script>

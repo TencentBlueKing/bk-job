@@ -124,8 +124,8 @@
   import JbUserSelector from '@components/jb-user-selector';
   import RenderStrategy from '@components/render-strategy';
 
-  import Model from '@/domain/model/model';
   import I18n from '@/i18n';
+  import { getTime, getTimeTooltip } from '@/utils/assist/time';
 
   import InternalVariable from './internal-variable';
 
@@ -147,8 +147,6 @@
     // 消息模板标题
     title: '',
   });
-
-  const model = new Model();
 
   export default {
     components: {
@@ -177,10 +175,10 @@
     },
     computed: {
       lastModifyTimeText() {
-        return model.getTime({ timestamp: this.formData.lastModifyTime });
+        return getTime({ timestamp: this.formData.lastModifyTime });
       },
       lastModifyTooltipsText() {
-        return model.getTimeTooltip(this.lastModifyTimeText);
+        return getTimeTooltip(this.lastModifyTimeText);
       },
     },
     watch: {

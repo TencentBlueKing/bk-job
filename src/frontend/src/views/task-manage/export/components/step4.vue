@@ -77,16 +77,14 @@
     taskExport,
   } from '@utils/cache-helper';
 
-  import Model from '@/domain/model/model';
   import I18n from '@/i18n';
+  import { getTime, getTimeTooltip } from '@/utils/assist/time';
 
   const TASK_STATUS_DEFAULT = 0;
   const TASK_STATUS_DOING = 5;
   const TASK_STATUS_SUCCESS = 6;
   const TASK_STATUS_FAILED = 7;
   const TASK_STATUS_CANCEL = 8;
-
-  const model = new Model();
 
   export default {
     name: 'Exporting',
@@ -188,10 +186,10 @@
 
     methods: {
       getTime(timestamp) {
-        return model.getTime({ timestamp });
+        return getTime({ timestamp });
       },
       getTimeTooltip(timestamp) {
-        return model.getTimeTooltip(this.getTime(timestamp));
+        return getTimeTooltip(this.getTime(timestamp));
       },
       fetchData() {
         if (!this.id) {
