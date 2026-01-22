@@ -26,7 +26,7 @@
 -->
 
 <template>
-  <jb-form-item>
+  <jb-form-item :rules="rules">
     <bk-checkbox
       :value="isEndTime"
       @change="handleChange">
@@ -50,11 +50,18 @@
     prettyDateTimeFormat,
   } from '@utils/assist';
 
+  import { getTimestamp } from '@/utils/assist/time';
+
   export default {
     name: '',
     props: {
+      rules: Array,
       formData: {
         type: Object,
+        required: true,
+      },
+      timezone: {
+        type: String,
         required: true,
       },
     },
@@ -62,6 +69,17 @@
       return {
         isEndTime: false,
       };
+    },
+    computed: {
+      dateOptions() {
+        const disabledDate = (date) => {
+          const prettyDate = prettyDateTimeFormat(date); // 当前经过格式化的日期 --去除时区
+          return getTimestamp({ date: prettyDate, timezone: this.timezone }) < Date.now() - 86400000;
+        };
+        return {
+          disabledDate,
+        };
+      },
     },
     watch: {
       formData: {
@@ -72,13 +90,6 @@
         },
         immediate: true,
       },
-    },
-    created() {
-      this.dateOptions = {
-        disabledDate(date) {
-          return date.valueOf() < Date.now() - 86400000;
-        },
-      };
     },
     methods: {
       handleChange(value) {

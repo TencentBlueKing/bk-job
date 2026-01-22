@@ -574,5 +574,8 @@
   "未分配管控区，请到节点管理重装 Agent": "Unassigned control area. Please reinstall the Agent in the Node Management interface.",
   "去新建": "New",
   "请联系业务运维加入业务": "Please contact the business operation and maintenance to join the business.",
-  "语言切换失败，请稍后重试": "Language switch failed, please try again later."
+  "语言切换失败，请稍后重试": "Language switch failed, please try again later.",
+  "时区": "timezone",
+  "nav时区信息": "The personal time zone you set, the website will display all time-related information based on this. It can be modified in {link}",
+  "个人设置": "Personal Settings"
 }

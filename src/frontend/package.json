@@ -18,6 +18,7 @@
     "@blueking/ai-blueking": "0.2.11",
     "@blueking/bk-user-display-name": "1.0.1",
     "@blueking/bk-user-selector": "0.0.29-beta.8",
+    "@blueking/date-picker": "3.0.4",
     "@blueking/crypto-js-sdk": "0.0.5",
     "@blueking/ip-selector": "1.0.1-beta.21",
     "@blueking/login-modal": "1.0.6",

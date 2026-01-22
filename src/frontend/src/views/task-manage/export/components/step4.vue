@@ -51,7 +51,10 @@
         <div
           v-for="(item, index) in logList"
           :key="index">
-          [{{ item.timestamp }}] {{ item.content }}
+          <span v-bk-tooltips="getTimeTooltip(item.timestamp)">
+            [{{ getTime(item.timestamp) }}]
+          </span>
+          {{ item.content }}
         </div>
       </div>
     </div>
@@ -75,6 +78,7 @@
   } from '@utils/cache-helper';
 
   import I18n from '@/i18n';
+  import { getTime, getTimeTooltip } from '@/utils/assist/time';
 
   const TASK_STATUS_DEFAULT = 0;
   const TASK_STATUS_DOING = 5;
@@ -181,6 +185,12 @@
     },
 
     methods: {
+      getTime(timestamp) {
+        return getTime({ timestamp });
+      },
+      getTimeTooltip(timestamp) {
+        return getTimeTooltip(this.getTime(timestamp));
+      },
       fetchData() {
         if (!this.id) {
           this.isLoading = false;
