@@ -49,7 +49,7 @@ function migrateIamModel(){
   ALL_IAM_MODEL=($(echo ./bkiam/*.json))
   for iam_model in "${ALL_IAM_MODEL[@]}"; do
     sed -i "s,https://job-gateway.service.consul:10503,${BK_JOB_API_URL}," $iam_model
-    python ./bkiam/do_migrate.py -t $BK_IAM_URL -a $BK_JOB_APP_CODE -s $BK_JOB_APP_SECRET -f  $iam_model
+    python3 ./bkiam/do_migrate.py -t $BK_IAM_URL -a $BK_JOB_APP_CODE -s $BK_JOB_APP_SECRET -f  $iam_model
   done
 }
 
