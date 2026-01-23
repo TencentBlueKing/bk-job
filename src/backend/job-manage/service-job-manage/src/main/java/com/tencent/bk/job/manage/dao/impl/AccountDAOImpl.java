@@ -298,7 +298,6 @@ public class AccountDAOImpl implements AccountDAO {
     public void updateAccount(AccountDTO account) {
         UpdateSetMoreStep<AccountRecord> update = ctx.update(TB_ACCOUNT)
             .set(TB_ACCOUNT.GRANTEE, account.getGrantees())
-            .set(TB_ACCOUNT.REMARK, account.getRemark())
             .set(TB_ACCOUNT.DB_PORT, account.getDbPort())
             .set(TB_ACCOUNT.DB_SYSTEM_ACCOUNT_ID, account.getDbSystemAccountId())
             .set(TB_ACCOUNT.LAST_MODIFY_USER, account.getLastModifyUser())
@@ -314,6 +313,9 @@ public class AccountDAOImpl implements AccountDAO {
                 account.getCategory(),
                 account.getDbPassword()
             ));
+        }
+        if (StringUtils.isNotEmpty(account.getRemark())) {
+            update.set(TB_ACCOUNT.REMARK, account.getRemark());
         }
         update.where(TB_ACCOUNT.ID.eq(account.getId()))
             .execute();
