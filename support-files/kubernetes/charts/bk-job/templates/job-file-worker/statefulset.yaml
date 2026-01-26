@@ -97,10 +97,12 @@ spec:
               mountPath: {{ .Values.persistence.localStorage.path }}
             - name: distribute-volume
               mountPath: {{ .Values.fileDistribute.hostPath }}
+            {{- include "job.volumeExtension.volumeMounts" (dict "moduleConfig" .Values.fileWorkerConfig) | nindent 12 }}
       volumes:
         - name: job-storage
           persistentVolumeClaim:
             claimName: {{ include "job.storage.pvc.name" . }}
         - name: distribute-volume
           {{- include "job.distribute.volume.name" . |nindent 10 }}
+        {{- include "job.volumeExtension.volumes" (dict "moduleConfig" .Values.fileWorkerConfig) | nindent 8 }}
 {{- end }}

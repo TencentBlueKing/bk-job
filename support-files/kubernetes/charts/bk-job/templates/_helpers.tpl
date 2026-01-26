@@ -1054,3 +1054,29 @@ Return the Redis certs volume
     secretName: {{ .Values.externalRedis.tls.existingSecret }}
 {{- end -}}
 {{- end -}}
+
+
+{{/*
+Return Extension volumeMounts
+*/}}
+{{- define "job.volumeExtension.volumeMounts" -}}
+{{- $moduleConfig := .moduleConfig | default dict -}}
+{{- $extension := $moduleConfig.volumeExtension | default .Values.volumeExtension | default dict -}}
+{{- $mounts := $extension.volumeMounts | default list -}}
+{{- if $mounts }}
+{{- toYaml $mounts }}
+{{- end }}
+{{- end }}
+
+{{/*
+Return Extension volumes
+*/}}
+{{- define "job.volumeExtension.volumes" -}}
+{{- $moduleConfig := .moduleConfig | default dict -}}
+{{- $extension := $moduleConfig.volumeExtension | default .Values.volumeExtension | default dict -}}
+{{- $volumes := $extension.volumes | default list -}}
+{{- if $volumes }}
+{{- toYaml $volumes }}
+{{- end }}
+{{- end }}
+

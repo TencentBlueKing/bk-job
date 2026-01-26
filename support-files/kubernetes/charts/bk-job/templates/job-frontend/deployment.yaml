@@ -75,6 +75,7 @@ spec:
             - name: web-nginx-config
               mountPath: /etc/nginx/
               readOnly: true
+            {{- include "job.volumeExtension.volumeMounts" (dict "moduleConfig" .Values.frontendConfig) | nindent 12 }}
           ports:
             - name: http
               containerPort: 80
@@ -85,4 +86,5 @@ spec:
         - name: web-nginx-config
           configMap:
             name: {{ include "common.names.fullname" . }}-frontend
+        {{- include "job.volumeExtension.volumes" (dict "moduleConfig" .Values.frontendConfig) | nindent 8 }}
 {{- end }}
