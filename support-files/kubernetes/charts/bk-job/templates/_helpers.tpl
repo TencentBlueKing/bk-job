@@ -1061,12 +1061,15 @@ Return Extension volumeMounts
 */}}
 {{- define "job.volumeExtension.volumeMounts" -}}
 {{- $module := .module | default dict -}}
+{{- $moduleVE := $module.volumeExtension | default dict -}}
+{{- $moduleMounts := $moduleVE.volumeMounts | default list -}}
 {{- $global := .global | default dict -}}
-{{- $extension := $module.volumeExtension | default $global | default dict -}}
-{{- $mounts := $extension.volumeMounts | default list -}}
-{{- if gt (len $mounts) 0 }}
-{{- toYaml $mounts }}
-{{- end }}
+{{- $globalMounts := $global.volumeMounts | default list -}}
+{{- if gt (len $moduleMounts) 0 -}}
+{{- toYaml $moduleMounts -}}
+{{- else if gt (len $globalMounts) 0 -}}
+{{- toYaml $globalMounts -}}
+{{- end -}}
 {{- end }}
 
 {{/*
@@ -1074,11 +1077,14 @@ Return Extension volumes
 */}}
 {{- define "job.volumeExtension.volumes" -}}
 {{- $module := .module | default dict -}}
+{{- $moduleVE := $module.volumeExtension | default dict -}}
+{{- $moduleVolumes := $moduleVE.volumes | default list -}}
 {{- $global := .global | default dict -}}
-{{- $extension := $module.volumeExtension | default $global | default dict -}}
-{{- $volumes := $extension.volumes | default list -}}
-{{- if gt (len $volumes) 0 }}
-{{- toYaml $volumes }}
-{{- end }}
+{{- $globalVolumes := $global.volumes | default list -}}
+{{- if gt (len $moduleVolumes) 0 -}}
+{{- toYaml $moduleVolumes -}}
+{{- else if gt (len $globalVolumes) 0 -}}
+{{- toYaml $globalVolumes -}}
+{{- end -}}
 {{- end }}
 
