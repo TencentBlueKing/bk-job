@@ -1060,10 +1060,11 @@ Return the Redis certs volume
 Return Extension volumeMounts
 */}}
 {{- define "job.volumeExtension.volumeMounts" -}}
-{{- $moduleConfig := .moduleConfig | default dict -}}
-{{- $extension := $moduleConfig.volumeExtension | default .Values.volumeExtension | default dict -}}
+{{- $module := .module | default dict -}}
+{{- $global := .global | default dict -}}
+{{- $extension := $module.volumeExtension | default $global | default dict -}}
 {{- $mounts := $extension.volumeMounts | default list -}}
-{{- if $mounts }}
+{{- if gt (len $mounts) 0 }}
 {{- toYaml $mounts }}
 {{- end }}
 {{- end }}
@@ -1072,10 +1073,11 @@ Return Extension volumeMounts
 Return Extension volumes
 */}}
 {{- define "job.volumeExtension.volumes" -}}
-{{- $moduleConfig := .moduleConfig | default dict -}}
-{{- $extension := $moduleConfig.volumeExtension | default .Values.volumeExtension | default dict -}}
+{{- $module := .module | default dict -}}
+{{- $global := .global | default dict -}}
+{{- $extension := $module.volumeExtension | default $global | default dict -}}
 {{- $volumes := $extension.volumes | default list -}}
-{{- if $volumes }}
+{{- if gt (len $volumes) 0 }}
 {{- toYaml $volumes }}
 {{- end }}
 {{- end }}
