@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
 import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
+import com.tencent.bk.job.common.model.vo.ContainerVO;
 import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
@@ -68,11 +69,17 @@ import java.util.stream.Collectors;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class TaskTargetDTO {
 
+    /**
+     * 当步骤中当执行对象为变量时的变量名，若是手动添加的执行对象，该字段为空
+     */
     @JsonProperty("variable")
     private String variable;
 
     @JsonProperty("hostNodeList")
     private TaskHostNodeDTO hostNodeList;
+
+    @JsonProperty("containerList")
+    private List<TaskTargetContainerDTO> containerList;
 
     public static TaskTargetVO toVO(TaskTargetDTO executeTarget) {
         if (executeTarget == null) {
@@ -80,6 +87,7 @@ public class TaskTargetDTO {
         }
         TaskTargetVO taskTargetVO = new TaskTargetVO();
         taskTargetVO.setVariable(executeTarget.getVariable());
+        // 主机对象
         TaskHostNodeVO taskHostNodeVO = TaskHostNodeDTO.toVO(executeTarget.getHostNodeList());
         if (taskHostNodeVO != null) {
             taskTargetVO.setHostNodeInfo(taskHostNodeVO);
@@ -89,6 +97,21 @@ public class TaskTargetDTO {
             taskExecuteObjectsInfoVO.setDynamicGroupList(taskHostNodeVO.getDynamicGroupList());
             taskTargetVO.setExecuteObjectsInfo(taskExecuteObjectsInfoVO);
         }
+
+        // 容器对象
+        if (CollectionUtils.isNotEmpty(executeTarget.getContainerList())) {
+            List<ContainerVO> containerVOList = executeTarget.getContainerList().stream()
+                .map(TaskTargetContainerDTO::toContainerVO)
+                .collect(Collectors.toList());
+            if (taskTargetVO.getExecuteObjectsInfo() != null) {
+                taskTargetVO.getExecuteObjectsInfo().setContainerList(containerVOList);
+            } else {
+                TaskExecuteObjectsInfoVO taskExecuteObjectsInfoVO = new TaskExecuteObjectsInfoVO();
+                taskExecuteObjectsInfoVO.setContainerList(containerVOList);
+                taskTargetVO.setExecuteObjectsInfo(taskExecuteObjectsInfoVO);
+            }
+        }
+
         return taskTargetVO;
     }
 
@@ -100,7 +123,18 @@ public class TaskTargetDTO {
         if (StringUtils.isNotBlank(taskTargetVO.getVariable())) {
             taskTargetDTO.setVariable(taskTargetVO.getVariable());
         }
+        // 主机对象
         taskTargetDTO.setHostNodeList(TaskHostNodeDTO.fromVO(taskTargetVO.getExecuteObjectsInfoCompatibly()));
+        // 容器对象
+        if (taskTargetVO.getExecuteObjectsInfo() != null
+            && CollectionUtils.isNotEmpty(taskTargetVO.getExecuteObjectsInfo().getContainerList())) {
+            taskTargetDTO.setContainerList(
+                taskTargetVO.getExecuteObjectsInfo().getContainerList()
+                    .stream()
+                    .map(TaskTargetContainerDTO::fromContainerVO)
+                    .collect(Collectors.toList())
+            );
+        }
         fillHostDetail(taskTargetDTO);
         return taskTargetDTO;
     }
@@ -209,6 +243,7 @@ public class TaskTargetDTO {
     public ServiceTaskTargetDTO toServiceTaskTargetDTO() {
         ServiceTaskTargetDTO targetDTO = new ServiceTaskTargetDTO();
         targetDTO.setVariable(variable);
+        // 主机对象
         if (hostNodeList != null) {
             ServiceTaskHostNodeDTO targetServer = new ServiceTaskHostNodeDTO();
             if (CollectionUtils.isNotEmpty(hostNodeList.getNodeInfoList())) {
@@ -232,6 +267,11 @@ public class TaskTargetDTO {
                 targetServer.setHostList(hostInfoDTOS);
             }
             targetDTO.setTargetServer(targetServer);
+        }
+        // 容器对象
+        if (CollectionUtils.isNotEmpty(containerList)) {
+            targetDTO.setContainerList(containerList.stream().map(TaskTargetContainerDTO::toServiceTargetContainerDTO)
+                .collect(Collectors.toList()));
         }
         return targetDTO;
     }
