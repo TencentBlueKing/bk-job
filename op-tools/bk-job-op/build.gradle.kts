@@ -22,6 +22,7 @@ val springAiVersion = "1.0.0-M8"
 val commonsLang3Version = "3.18.0"
 val jacksonVersion = "2.17.2"
 val okhttpVersion = "4.12.0"
+val commonsCollectionsVersion = "4.4"
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
@@ -29,6 +30,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.apache.commons:commons-lang3:$commonsLang3Version")
+    implementation("org.apache.commons:commons-collections4:$commonsCollectionsVersion")
     implementation("com.squareup.okhttp3:okhttp:$okhttpVersion")
     compileOnly("org.projectlombok:lombok:1.18.24")
     annotationProcessor("org.projectlombok:lombok")
