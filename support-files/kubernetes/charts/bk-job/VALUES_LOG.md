@@ -15,7 +15,7 @@ externalGseAgent:
       ip: ""
 ```
 
-2增加作业执行结果轮询规则的配置
+2. 增加作业执行结果轮询规则的配置
 
 ```yaml
 executeConfig:  
@@ -47,7 +47,7 @@ executeConfig:
         finalInterval: 10000
 ```
 
-2. 新增前端提给后端账号密码的加密算法配置
+3. 新增前端提给后端账号密码的加密算法配置
 ```yaml
 job:
   encrypt:
@@ -55,6 +55,16 @@ job:
     sm2PublicKey: ""
     # SM2加密算法原始私钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
     sm2PrivateKey: ""
+```
+
+4. 新增自定义挂载卷(volumes和volumeMounts)
+```yaml
+## 自定义全局挂载卷(volumes和volumeMounts)
+## 用途示例：jvm信任证书、license文件等
+## 注意：如果具体服务模块也定义了volumeExtension，会覆盖此全局配置
+volumeExtension:
+  volumes: []
+  volumeMounts: []
 ```
 
 ## 0.7.3

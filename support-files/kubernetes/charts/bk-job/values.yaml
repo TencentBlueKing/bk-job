@@ -869,6 +869,13 @@ bkLogConfig:
     # e.g: dataId: 3
     dataId: ""
 
+## 自定义全局挂载卷(volumes和volumeMounts)
+## 用途示例：jvm信任证书、license文件等
+## 注意：如果具体服务模块也定义了volumeExtension，会覆盖此全局配置
+volumeExtension:
+  volumes: []
+  volumeMounts: []
+
 ## job-gateway网关配置
 gatewayConfig:
   # 模块是否启用，默认启用
@@ -965,6 +972,10 @@ gatewayConfig:
         password: "mLnuob1**4D74c@F"
   # 运行时JVM参数
   jvmOptions: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC"
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-manage作业管理配置
 manageConfig:
@@ -1032,7 +1043,10 @@ manageConfig:
       # 开启CMDB事件监听时用于处理主机事件的线程数量，一般情况下无须修改
       # 当环境中主机事件平均产生速率较高（>10/s）或主机信息相比于CMDB数据经常性明显滞后（分钟级）时，可增大该数值
       handlerNum: 3
-
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-execute执行引擎配置
 executeConfig:
@@ -1113,6 +1127,10 @@ executeConfig:
   #   # 设置容器使用的 linux arena 内存分配区数量（资源充足的情况下，建议设置 MALLOC_ARENA_MAX=容器使用的 CPU 核数（resources.limits.cpu) * 8
   #   - name: MALLOC_ARENA_MAX
   #     value: 8
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-crontab定时任务配置
 crontabConfig:
@@ -1210,6 +1228,10 @@ crontabConfig:
           connectTimeout: 5000
           # 读取超时，单位：毫秒
           readTimeout: 20000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-logsvr日志服务配置
 logsvrConfig:
@@ -1261,6 +1283,10 @@ logsvrConfig:
     type: ClusterIP
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-backup备份服务配置
 backupConfig:
@@ -1369,6 +1395,10 @@ backupConfig:
     type: ClusterIP
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-analysis统计分析服务配置
 analysisConfig:
@@ -1445,6 +1475,10 @@ analysisConfig:
       maxKeepDays: 31
       # 单个用户最大保留的聊天记录数量，默认1000条
       maxHistoryPerUser: 1000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-file-gateway文件网关服务配置
 fileGatewayConfig:
@@ -1510,6 +1544,10 @@ fileGatewayConfig:
       enabled: true
       # 超时时间（秒）
       timeoutSeconds: 10
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
  ## job-file-worker文件源接入点配置
 fileWorkerConfig:
@@ -1588,6 +1626,10 @@ fileWorkerConfig:
     expireDays: 7
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-frontend前端配置
 frontendConfig:
@@ -1647,6 +1689,10 @@ frontendConfig:
     tls: []
     extraTls: []
     secrets: []
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## 对外暴露API的Ingress配置
 apiConfig:
@@ -1878,6 +1924,10 @@ assembleConfig:
           connectTimeout: 5000
           # 读取超时，单位：毫秒
           readTimeout: 300000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 # pod删除时等待优雅关闭的最大时间，单位为秒（超出后强制删除）
 podTerminationGracePeriodSeconds: 40
