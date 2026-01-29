@@ -80,11 +80,115 @@ paths:
   /api/v3/execute_job_plan:
     post:
       operationId: execute_job_plan
-      description: 执行作业执行方案
+      description: 启动作业执行方案
       tags: ['open']
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                    description: 错误编码。 0表示success，>0表示失败错误
+                  data:
+                    type: object
+                    properties:
+                      job_instance_id:
+                        type: number
+                        description: 作业实例ID
+                      job_instance_name:
+                        type: string
+                        description: 作业实例名称
+                    description: 数据
+                  result:
+                    type: boolean
+                    description: 请求成功与否。true:请求成功；false请求失败
+                  message:
+                    type: string
+                    description: 请求失败返回的错误信息
           description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_id
+              - job_plan_id
+              - bk_scope_type
+              properties:
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                job_plan_id:
+                  type: number
+                  description: 作业执行方案ID
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                global_var_list:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: 全局变量名称
+                      value:
+                        type: string
+                        description: 字符、密码、数组、命名空间类型的全局变量的值
+                      server:
+                        type: object
+                        properties:
+                          ip_list:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                ip:
+                                  type: string
+                                  description: IP地址
+                                bk_cloud_id:
+                                  type: number
+                                  description: 管控区域ID，公司内部直连区域为0，用户未指定情况下可填写0
+                              description: 管控区域ID+IP
+                            description: 静态 IP 列表
+                          host_id_list:
+                            type: array
+                            items:
+                              type: number
+                              description: 主机ID
+                            description: 主机ID列表
+                          topo_node_list:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: number
+                                  description: 动态topo节点ID，对应CMDB API 中的 bk_inst_id
+                                node_type:
+                                  type: string
+                                  description: 动态topo节点类型，对应CMDB API 中的 bk_obj_id,比如"module","set"
+                              description: 单个topo节点
+                            description: 动态topo节点列表
+                          dynamic_group_list:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  description: CMDB动态分组ID
+                              description: 单个动态分组
+                            description: 动态分组列表
+                        description: 主机类型全局变量的值
+                    description: 单个全局变量，可能为字符、密码、数组、命名空间或主机类型。
+                  description: 全局变量。对于作业执行方案中的全局变量值，如果请求参数中包含该变量，则使用传入的变量值；否则使用执行方案当前已配置的默认值。
+        required: false
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -1032,11 +1136,101 @@ paths:
   /api/v3/get_job_plan_detail:
     get:
       operationId: get_job_plan_detail
-      description: 查询执行方案详情
+      description: 根据作业执行方案 ID 查询作业执行方案详情
       tags: ['open']
       responses:
-        default:
-          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                    description: 错误编码。 0表示success，>0表示失败错误
+                  data:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: 作业名称
+                      creator:
+                        type: string
+                        description: 作业创建人账号
+                      step_list:
+                        type: array
+                        properties:
+                          step:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: 作业步骤名称
+                            description: 单个步骤信息
+                        description: 步骤列表
+                      bk_scope_id:
+                        type: string
+                        description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                      create_time:
+                        type: string
+                        description: 创建时间，Unix 时间戳，单位为秒
+                      job_plan_id:
+                        type: string
+                        description: 执行方案 ID
+                      bk_scope_type:
+                        type: string
+                        description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                      global_var_list:
+                        type: array
+                        properties:
+                          global_var:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: 全局变量名
+                              type:
+                                type: string
+                                description: 全局变量类型，1-字符串 2-命名空间 3-主机列表 4-密码 5-关联数组 6-索引数组
+                              description:
+                                type: string
+                                description: 全局变量描述
+                            description: 单个全局变量信息
+                        description: 全局变量列表
+                      last_modify_time:
+                        type: string
+                        description: 最后修改时间，Unix 时间戳，单位为秒
+                      last_modify_user:
+                        type: string
+                        description: 作业修改人账号
+                    description: 请求返回的数据
+                  result:
+                    type: boolean
+                    description: 请求成功与否。true:请求成功；false请求失败
+                  message:
+                    type: string
+                    description: 请求失败返回的错误信息
+                description: 响应数据
+          description: 响应数据
+      parameters:
+      - in: query
+        name: bk_scope_type
+        schema:
+          type: string
+        required: true
+        description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+      - in: query
+        name: bk_scope_id
+        schema:
+          type: string
+        required: true
+        description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+      - in: query
+        name: job_plan_id
+        schema:
+          type: string
+        required: true
+        description: 作业执行方案 ID，实际上是数字，请不要用科学计数法表示！
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -1103,8 +1297,128 @@ paths:
       description: 查询执行方案列表
       tags: ['open']
       responses:
-        default:
-          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                    description: 错误编码。 0表示success，>0表示失败错误
+                  data:
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        properties:
+                          one_data:
+                            type: object
+                            properties:
+                              id:
+                                type: number
+                                description: 执行方案 ID
+                              name:
+                                type: string
+                                description: 执行方案名称
+                              creator:
+                                type: string
+                                description: 创建人帐号
+                              bk_scope_id:
+                                type: string
+                                description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                              create_time:
+                                type: number
+                                description: 创建时间，Unix 时间戳
+                              need_update:
+                                type: boolean
+                                description: 是否需要从作业模版同步
+                              bk_scope_type:
+                                type: string
+                                description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                              job_template_id:
+                                type: number
+                                description: 作业模版 ID
+                              last_modify_time:
+                                type: number
+                                description: 最后修改时间，Unix 时间戳
+                              last_modify_user:
+                                type: string
+                                description: 修改人帐号
+                            description: 单条数据
+                        description: 请求返回的数据列表
+                    description: 请求返回的数据
+                  result:
+                    type: boolean
+                    description: 请求成功与否。true:请求成功；false请求失败
+                  message:
+                    type: string
+                    description: 请求失败返回的错误信息
+                description: 响应对象
+          description: 响应对象
+      parameters:
+      - in: query
+        name: bk_scope_type
+        schema:
+          type: string
+        required: true
+        description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+      - in: query
+        name: bk_scope_id
+        schema:
+          type: string
+        required: true
+        description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+      - in: query
+        name: job_template_id
+        schema:
+          type: string
+        description: 作业模版 ID，实际上是数字，请不要用科学计数法表示！
+      - in: query
+        name: creator
+        schema:
+          type: string
+        description: 作业执行方案创建人帐号
+      - in: query
+        name: name
+        schema:
+          type: string
+        description: 作业执行方案名称，模糊匹配
+      - in: query
+        name: create_time_start
+        schema:
+          type: number
+        description: 创建起始时间，Unix 时间戳，单位为秒
+      - in: query
+        name: create_time_end
+        schema:
+          type: number
+        description: 创建结束时间，Unix 时间戳，单位为秒
+      - in: query
+        name: last_modify_user
+        schema:
+          type: string
+        description: 作业执行方案修改人帐号
+      - in: query
+        name: last_modify_time_start
+        schema:
+          type: number
+        description: 最后修改起始时间，Unix 时间戳，单位为秒
+      - in: query
+        name: last_modify_time_end
+        schema:
+          type: number
+        description: 最后修改结束时间，Unix 时间戳，单位为秒
+      - in: query
+        name: start
+        schema:
+          type: number
+        description: 默认0表示从第1条记录开始返回
+      - in: query
+        name: length
+        schema:
+          type: number
+        description: 单次返回最大记录数，最大1000，不传默认为20
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -4027,8 +4341,135 @@ paths:
       description: 查询业务下定时作业信息
       tags: ['open']
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: number
+                    description: 错误编码。 0表示success，>0表示失败错误
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: number
+                        description: 定时作业 ID
+                      name:
+                        type: string
+                        description: 定时作业名称
+                      status:
+                        type: number
+                        description: 定时作业状态：1.已启动、2.已暂停
+                      creator:
+                        type: string
+                        description: 作业创建人帐号
+                      expression:
+                        type: string
+                        description: '定时任务crontab的定时规则。各字段含义为：分 时 日 月 周，如: 0/5 * * * ? 表示每5分钟执行一次'
+                      bk_scope_id:
+                        type: string
+                        description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                      create_time:
+                        type: number
+                        description: 创建时间，Unix 时间戳(s)
+                      job_plan_id:
+                        type: number
+                        description: 执行方案 ID
+                      bk_scope_type:
+                        type: string
+                        description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                      last_modify_time:
+                        type: number
+                        description: 最后修改时间，Unix 时间戳(s)
+                      last_modify_user:
+                        type: string
+                        description: 作业修改人帐号
+                    description: 请求返回的数据
+                  result:
+                    type: boolean
+                    description: 请求成功与否。true:请求成功；false请求失败
+                  message:
+                    type: string
+                    description: 请求失败返回的错误信息
+                  permission:
+                    type: object
+                    properties:
+                      '':
+                        type: string
+                    description: 权限信息
           description: ''
+      parameters:
+      - in: query
+        name: bk_scope_type
+        schema:
+          type: string
+        required: true
+        description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+      - in: query
+        name: bk_scope_id
+        schema:
+          type: string
+        required: true
+        description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+      - in: query
+        name: name
+        schema:
+          type: string
+        description: 定时作业名称
+      - in: query
+        name: id
+        schema:
+          type: string
+        description: 定时任务 ID，如果存在则忽略其他筛选条件，只查询这个指定的作业信息
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: 定时作业状态：1.已启动、2.已暂停
+      - in: query
+        name: creator
+        schema:
+          type: string
+        description: 定时作业创建人帐号
+      - in: query
+        name: create_time_start
+        schema:
+          type: string
+        description: 创建起始时间，Unix 时间戳(s)
+      - in: query
+        name: create_time_end
+        schema:
+          type: string
+        description: 创建结束时间，Unix 时间戳(s)
+      - in: query
+        name: last_modify_user
+        schema:
+          type: string
+        description: 作业修改人帐号
+      - in: query
+        name: last_modify_time_start
+        schema:
+          type: string
+        description: 最后修改起始时间，Unix 时间戳(s)
+      - in: query
+        name: last_modify_time_end
+        schema:
+          type: string
+        description: 最后修改结束时间，Unix 时间戳(s)
+      - in: query
+        name: start
+        schema:
+          type: number
+          default: 0
+        description: 起始位置，默认值为0表示从第1条记录开始返回
+      - in: query
+        name: length
+        schema:
+          type: number
+          default: 20
+        description: 单次返回最大记录数，最大1000，不传默认为20
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -4707,8 +5148,114 @@ paths:
       description: 快速执行脚本
       tags: [ 'v4' ]
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      job_instance_id:
+                        type: number
+                        description: 作业实例ID
+                      step_instance_id:
+                        type: number
+                        description: 步骤实例ID
+                      job_instance_name:
+                        type: string
+                        description: 作业实例名称
+                    description: 数据
           description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - script_content
+              - account_alias
+              - execute_target
+              properties:
+                timeout:
+                  type: number
+                  default: '7200'
+                  description: 脚本执行超时时间，秒。默认7200，取值范围1-259200
+                task_name:
+                  type: string
+                  description: 自定义作业名称，长度不可超过512字符
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                script_param:
+                  type: string
+                  description: 脚本参数Base64。注意：1.如果有多个参数，比如"param1 param2"这种，需要对"param1 param2"整体进行base64编码，而不是对每个参数进行base64编码再拼接起来。2.非敏感参数编码前长度不能超过64K，敏感参数编码前长度不能超过47K
+                account_alias:
+                  type: string
+                  description: 执行账号别名，一般情况下与机器上账号名称相同，例如user00或root。
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                execute_target:
+                  type: object
+                  properties:
+                    host_list:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          ip:
+                            type: string
+                            description: 主机IP地址。与bk_host_id必须存在一个。当同时存在bk_host_id和ip+bk_cloud_id时，bk_host_id优先。
+                          bk_host_id:
+                            type: number
+                            description: 主机ID。与ip+bk_cloud_id参数必须存在一个。当同时存在bk_host_id和ip+bk_cloud_id时，bk_host_id优先。
+                          bk_cloud_id:
+                            type: number
+                            default: '0'
+                            description: 云区域ID，内部IDC区域通常为0，未指定情况下使用0。与bk_host_id必须存在一个。当同时存在bk_host_id和ip+bk_cloud_id时，bk_host_id优先
+                        description: 一台主机
+                      description: 静态主机列表
+                  description: 执行目标
+                script_content:
+                  type: string
+                  description: Base64编码后的脚本内容。
+                param_sensitive:
+                  type: boolean
+                  default: false
+                  description: 敏感参数将会在执行详情页面上隐藏，默认false
+                script_language:
+                  type: number
+                  default: '1'
+                  description: 脚本语言：1 - shell, 2 - bat, 3 - perl, 4 - python, 5 - powershell。
+        required: true
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -4772,11 +5319,268 @@ paths:
   /api/v4/batch_get_job_instance_execute_object_log:
     post:
       operationId: v4_batch_get_job_instance_execute_object_log
-      description: 根据ip列表批量查询作业执行日志
+      description: 批量获取某些执行目标上的日志
       tags: [ 'v4' ]
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      log_type:
+                        type: number
+                        description: 日志类型。1-脚本执行任务日志;2-文件分发任务日志
+                      job_instance_id:
+                        type: number
+                        description: 作业实例ID
+                      step_instance_id:
+                        type: number
+                        description: 步骤实例ID
+                      file_step_execute_object_logs:
+                        type: array
+                        properties:
+                          file_step_execute_object_log:
+                            type: object
+                            properties:
+                              upload_log:
+                                type: array
+                                properties:
+                                  file_task_log:
+                                    type: object
+                                    properties:
+                                      mode:
+                                        type: number
+                                        description: 文件分发模式。0-上传，1-下载
+                                      size:
+                                        type: string
+                                        description: 文件大小
+                                      speed:
+                                        type: string
+                                        description: 上传/下载速度
+                                      status:
+                                        type: number
+                                        description: 文件传输任务状态。0-从文件源拉取中，1-等待开始，2-上传中，3-下载中，4-完成，5-失败
+                                      process:
+                                        type: string
+                                        description: 上传/下载进度
+                                      src_path:
+                                        type: string
+                                        description: 文件源路径
+                                      dest_path:
+                                        type: string
+                                        description: 文件目标路径。仅在mode=1时存在
+                                      log_content:
+                                        type: string
+                                        description: 文件传输日志内容
+                                      src_execute_object:
+                                        type: object
+                                        properties:
+                                          host:
+                                            type: object
+                                            properties:
+                                              ip:
+                                                type: string
+                                                description: IP地址。
+                                              bk_host_id:
+                                                type: number
+                                                description: 主机ID。
+                                              bk_cloud_id:
+                                                type: number
+                                                description: 云区域ID。
+                                            description: 主机详情，执行对象是主机时存在
+                                          type:
+                                            type: number
+                                            description: 执行对象类型, 1 - 主机，2 - 容器
+                                          container:
+                                            type: object
+                                            properties:
+                                              id:
+                                                type: number
+                                                description: CMDB中的容器 ID
+                                              name:
+                                                type: string
+                                                description: 容器名称
+                                              container_id:
+                                                type: string
+                                                description: Docker容器ID
+                                              node_host_id:
+                                                type: number
+                                                description: 容器所在节点主机ID
+                                            description: 容器详情，执行对象是容器时存在
+                                          resource_id:
+                                            type: string
+                                            description: 执行对象资源 ID（比如主机对应的资源 ID 为 bk_host_id)
+                                        description: 源执行对象（主机/容器）。
+                                      dest_execute_object:
+                                        type: object
+                                        properties:
+                                          host:
+                                            type: object
+                                            properties:
+                                              ip:
+                                                type: string
+                                                description: IP地址。
+                                              bk_host_id:
+                                                type: number
+                                                description: 主机ID。
+                                              bk_cloud_id:
+                                                type: number
+                                                description: 云区域ID。
+                                            description: 主机详情，执行对象是主机时存在
+                                          type:
+                                            type: number
+                                            description: 执行对象类型, 1 - 主机，2 - 容器
+                                          container:
+                                            type: object
+                                            properties:
+                                              id:
+                                                type: number
+                                                description: CMDB中的容器 ID
+                                              name:
+                                                type: string
+                                                description: 容器名称
+                                              container_id:
+                                                type: string
+                                                description: Docker容器ID
+                                              node_host_id:
+                                                type: number
+                                                description: 容器所在节点主机ID
+                                            description: 容器详情，执行对象是容器时存在
+                                          resource_id:
+                                            type: string
+                                            description: 执行对象资源 ID（比如主机对应的资源 ID 为 bk_host_id)
+                                        description: 目标执行对象（主机/容器）。仅在mode=1时存在
+                                    description: 一个源主机+一个目标主机+一个文件的日志
+                                description: 当执行对象是分发任务的源时，上传的日志。
+                              download_log:
+                                type: array
+                                properties:
+                                  file_task_log:
+                                    type: object
+                                    properties:
+                                      '':
+                                        type: string
+                                    description: 一个源主机+一个目标主机+一个文件的日志，数据结构与单条上传日志相同。
+                                description: 当执行对象是分发任务的目标时，下载的日志列表。
+                              execute_object:
+                                type: string
+                                description: 执行对象
+                            description: 文件分发任务日志
+                        description: 文件分发任务日志列表，文件分发任务才有该字段。
+                      script_step_execute_object_logs:
+                        type: array
+                        properties:
+                          script_step_execute_object_log:
+                            type: object
+                            properties:
+                              log_content:
+                                type: string
+                                description: 日志内容
+                              execute_object:
+                                type: object
+                                properties:
+                                  host:
+                                    type: object
+                                    properties:
+                                      ip:
+                                        type: string
+                                        description: IP地址。
+                                      bk_host_id:
+                                        type: number
+                                        description: 主机ID。
+                                      bk_cloud_id:
+                                        type: number
+                                        description: 云区域ID。
+                                    description: 主机详情，执行对象是主机时存在
+                                  type:
+                                    type: number
+                                    description: 执行对象类型, 1 - 主机，2 - 容器
+                                  container:
+                                    type: object
+                                    properties:
+                                      id:
+                                        type: number
+                                        description: CMDB中的容器 ID
+                                      name:
+                                        type: string
+                                        description: 容器名称
+                                      container_id:
+                                        type: string
+                                        description: Docker容器ID
+                                      node_host_id:
+                                        type: number
+                                        description: 容器所在节点主机ID
+                                    description: 容器详情，执行对象是容器时存在
+                                  resource_id:
+                                    type: string
+                                    description: 执行对象资源 ID（比如主机对应的资源 ID 为 bk_host_id)
+                                description: 执行对象
+                            description: 脚本执行任务日志
+                        description: 脚本执行任务日志列表，脚本任务才有该字段。
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
           description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 错误码
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_id
+              - bk_scope_type
+              - job_instance_id
+              - step_instance_id
+              properties:
+                ip_list:
+                  type: array
+                  description: 主机IP列表，最多50个。每个元素定义详见cloud_ip。优先级host_id_list > ip_list > container_id_list
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                host_id_list:
+                  type: array
+                  description: 主机ID列表，最多50个。每个元素为long。优先级host_id_list > ip_list > container_id_list
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                job_instance_id:
+                  type: string
+                  description: 作业实例ID，请传递原始数字，不要用科学计数法表示！
+                step_instance_id:
+                  type: string
+                  description: 步骤实例ID，请传递原始数字，不要用科学计数法表示！
+                container_id_list:
+                  type: array
+                  description: 容器ID列表(CMDB中的容器UID，数字类型)，最多50个。每个元素为long。优先级host_id_list > ip_list > container_id_list
+              description: 请注意：接口任何数字类型的字段都需要传递原始数字，不要用科学计数法表示！
+        required: true
+        description: 请注意：接口任何数字类型的字段都需要传递原始数字，不要用科学计数法表示！
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -4840,11 +5644,202 @@ paths:
   /api/v4/get_job_instance_status:
     get:
       operationId: v4_get_job_instance_status
-      description: 根据作业实例 ID 查询作业执行状态
+      description: 获取作业实例状态
       tags: [ 'v4' ]
       responses:
-        default:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      finished:
+                        type: boolean
+                        description: 作业是否结束
+                      job_instance:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: 作业实例名称
+                          status:
+                            type: number
+                            description: '作业状态码，见 run_status 定义：[1: 等待执行, 2: 正在执行, 3: 执行成功, 4: 执行失败, 5: 跳过, 6: 忽略错误, 7: 等待用户, 8: 手动结束, 9: 状态异常, 10: 强制终止中, 11: 强制终止成功, 13: 确认终止, 14: 被丢弃, 15: 滚动等待]'
+                          end_time:
+                            type: number
+                            description: 执行结束时间，Unix时间戳，单位毫秒
+                          start_time:
+                            type: number
+                            description: 开始执行时间，Unix时间戳，单位毫秒
+                          total_time:
+                            type: number
+                            description: 总耗时，单位毫秒
+                          bk_scope_id:
+                            type: string
+                            description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                          create_time:
+                            type: number
+                            description: 作业创建时间，Unix时间戳，单位毫秒
+                          bk_scope_type:
+                            type: string
+                            description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                          job_instance_id:
+                            type: number
+                            description: 作业实例ID
+                        description: 作业实例基本信息
+                      step_instance_list:
+                        type: array
+                        properties:
+                          step_instance:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                description: 步骤名称
+                              type:
+                                type: number
+                                description: 步骤类型：1.脚本步骤; 2.文件步骤; 3.人工确认步骤; 4.SQL步骤
+                              status:
+                                type: number
+                                description: '作业步骤状态码，见 run_status 定义：[1: 等待执行, 2: 正在执行, 3: 执行成功, 4: 执行失败, 5: 跳过, 6: 忽略错误, 7: 等待用户, 8: 手动结束, 9: 状态异常, 10: 强制终止中, 11: 强制终止成功, 13: 确认终止, 14: 被丢弃, 15: 滚动等待]'
+                              end_time:
+                                type: number
+                                description: 执行结束时间，Unix时间戳，单位毫秒
+                              start_time:
+                                type: number
+                                description: 开始执行时间，Unix时间戳，单位毫秒
+                              total_time:
+                                type: number
+                                description: 总耗时，单位毫秒
+                              create_time:
+                                type: number
+                                description: 作业步骤实例创建时间，Unix时间戳，单位毫秒
+                              execute_count:
+                                type: number
+                                description: 步骤重试次数
+                              step_instance_id:
+                                type: number
+                                description: 作业步骤实例ID
+                              step_execute_object_result_list:
+                                type: array
+                                properties:
+                                  step_execute_object_result:
+                                    type: object
+                                    properties:
+                                      tag:
+                                        type: string
+                                        description: 用户通过job_success/job_fail函数模板自定义输出的结果标签。仅脚本任务存在该字段。
+                                      status:
+                                        type: number
+                                        description: '该执行对象上任务状态，见target_object_status定义：[0: 未知错误, 1: Agent异常, 2: 无效执行对象, 3: 上次已成功, 5: 等待执行, 7: 正在执行, 9: 执行成功, 11: 执行失败, 12: 任务下发失败, 13: 任务超时, 15: 任务日志错误, 16: GSE脚本日志超时, 17: GSE文件日志超时, 18: Agent未安装, 101: 脚本执行失败, 102: 脚本执行超时, 103: 脚本执行被终止, 104: 脚本返回码非零, 202: 文件传输失败, 203: 源文件不存在, 301: 文件任务系统错误-未分类, 303: 文件任务超时, 310: Agent异常, 311: 用户名不存在, 312: 用户密码错误, 320: 文件获取失败, 321: 文件超出限制, 329: 文件传输错误, 399: 任务执行出错, 403: GSE任务强制终止成功, 404: GSE任务强制终止失败, 500: 未知状态]'
+                                      end_time:
+                                        type: number
+                                        description: 执行结束时间，Unix时间戳，单位毫秒
+                                      exit_code:
+                                        type: number
+                                        description: 脚本任务exit code，脚本任务时非空
+                                      start_time:
+                                        type: number
+                                        description: 开始执行时间，Unix时间戳，单位毫秒
+                                      total_time:
+                                        type: number
+                                        description: 总耗时，单位毫秒
+                                      execute_object:
+                                        type: object
+                                        properties:
+                                          host:
+                                            type: object
+                                            properties:
+                                              ip:
+                                                type: string
+                                                description: IP地址。
+                                              bk_host_id:
+                                                type: number
+                                                description: 主机ID。
+                                              bk_cloud_id:
+                                                type: number
+                                                description: 云区域ID。
+                                            description: 主机详情，执行对象是主机时存在
+                                          type:
+                                            type: number
+                                            description: 执行对象类型, 1 - 主机，2 - 容器
+                                          container:
+                                            type: object
+                                            properties:
+                                              id:
+                                                type: number
+                                                description: CMDB中生成的容器ID，通常为数字
+                                              name:
+                                                type: string
+                                                description: 容器名称
+                                              container_id:
+                                                type: string
+                                                description: Docker容器ID，通常为字符串
+                                              node_host_id:
+                                                type: number
+                                                description: 容器所在节点主机ID
+                                            description: 容器详情，执行对象是容器时存在
+                                          resource_id:
+                                            type: string
+                                            description: 执行对象资源 ID（比如主机对应的资源 ID 为 bk_host_id)
+                                        description: 执行对象
+                                    description: 每个执行对象（主机/容器）的任务执行结果
+                                description: 各个执行对象（主机/容器）的任务执行结果，return_execute_object_result参数为true时才可能存在
+                            description: 作业步骤。
+                        description: 作业步骤列表。
+                    description: 响应数据，只有在正常响应时才存在该字段，异常响应时不存在
           description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      data:
+                        type: object
+                        properties:
+                          '':
+                            type: string
+                        description: 具体的错误数据，如无权限时的缺少权限数据
+                      message:
+                        type: string
+                        description: 错误信息
+                    description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
+          description: ''
+      parameters:
+      - in: query
+        name: bk_scope_type
+        schema:
+          type: string
+        required: true
+        description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+      - in: query
+        name: bk_scope_id
+        schema:
+          type: string
+        required: true
+        description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+      - in: query
+        name: job_instance_id
+        schema:
+          type: string
+        required: true
+        description: 作业实例ID，请传递原始数字，不要用科学计数法表示！
+      - in: query
+        name: return_execute_object_result
+        schema:
+          type: boolean
+          default: false
+        description: 是否返回每个执行对象（主机/容器）上的任务详情，对应返回结果中的step_execute_object_result_list。默认为false。
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
