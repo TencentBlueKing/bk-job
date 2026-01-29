@@ -133,9 +133,14 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
 
         User user = JobContextUtil.getUser();
         TaskInstanceDTO taskInstanceDTO = taskExecuteService.executeJobPlan(
-            TaskExecuteParam.builder().appId(appResourceScope.getAppId()).planId(request.getTaskId())
-                .operator(user).executeVariableValues(executeVariableValues)
-                .startupMode(TaskStartupModeEnum.WEB).build());
+            TaskExecuteParam.builder()
+                .appId(appResourceScope.getAppId())
+                .planId(request.getTaskId())
+                .operator(user)
+                .executeVariableValues(executeVariableValues)
+                .startupMode(TaskStartupModeEnum.WEB)
+                .build()
+        );
 
         TaskExecuteVO result = new TaskExecuteVO();
         result.setTaskInstanceId(taskInstanceDTO.getId());
