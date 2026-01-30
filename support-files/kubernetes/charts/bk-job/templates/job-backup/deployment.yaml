@@ -111,6 +111,7 @@ spec:
             {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
             {{- include "job.redis.certsVolumeMount" . | nindent 12 }}
             {{- include "job.mongodb.certsVolumeMount" . | nindent 12 }}
+            {{- include "job.volumeExtension.volumeMounts" (dict "module" .Values.backupConfig "global" .Values.volumeExtension) | nindent 12 }}
       terminationGracePeriodSeconds: 80
       volumes:
         - name: job-storage
@@ -138,4 +139,5 @@ spec:
         {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
         {{- include "job.redis.certsVolume" . | nindent 8 }}
         {{- include "job.mongodb.certsVolume" . | nindent 8 }}
+        {{- include "job.volumeExtension.volumes" (dict "module" .Values.backupConfig "global" .Values.volumeExtension) | nindent 8 }}
 {{- end }}
