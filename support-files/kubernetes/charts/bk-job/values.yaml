@@ -610,6 +610,8 @@ gse:
   script:
     # 执行脚本时临时脚本在目标机器的存放与执行路径
     rootPath: "/tmp/bkjob"
+    # 当脚本在容器上执行时，脚本在容器内目录会在主机目录前再加个前缀
+    containerScriptPathPrefix: "/bktmp"
   query:
     threads:
       # 向GSE查询Agent状态的核心并发数

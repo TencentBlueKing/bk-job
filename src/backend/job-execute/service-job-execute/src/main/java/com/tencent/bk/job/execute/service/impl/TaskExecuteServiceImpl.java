@@ -1587,7 +1587,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
             commonVariable.setId(variable.getId());
             commonVariable.setName(variable.getName());
             commonVariable.setValue(variable.getDefaultValue());
-            if (variable.getType().equals(TaskVariableTypeEnum.HOST_LIST.getType())) {
+            if (variable.getType().equals(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType())) {
                 commonVariable.setExecuteTarget(convertToServersDTO(variable.getDefaultTargetValue()));
             }
             if (variable.getType().equals(TaskVariableTypeEnum.NAMESPACE.getType())) {
@@ -1653,7 +1653,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
     }
 
     private void grantValueForVariable(TaskVariableDTO to, TaskVariableDTO from) {
-        if (TaskVariableTypeEnum.HOST_LIST.getType() == to.getType()) {
+        if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType() == to.getType()) {
             to.setExecuteTarget(from.getExecuteTarget());
         } else {
             to.setValue(from.getValue());

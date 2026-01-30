@@ -75,7 +75,7 @@ class StepRefVariableParserTest {
         var5.setName("var5");
         variables.add(var5);
         TaskVariableDTO host1 = new TaskVariableDTO();
-        host1.setType(TaskVariableTypeEnum.HOST_LIST);
+        host1.setType(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST);
         host1.setName("host1");
         variables.add(host1);
 

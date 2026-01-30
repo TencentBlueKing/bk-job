@@ -572,7 +572,7 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         @Override
         public List<TaskTargetRecord> listTaskTargets(List<Long> appIdList, Long fromRecordId, int maxRecordSize) {
             List<Condition> conditions = new ArrayList<>();
-            conditions.add(TASK_TEMPLATE_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.HOST_LIST.getType())));
+            conditions.add(TASK_TEMPLATE_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType())));
             if (appIdList != null) {
                 conditions.add(TASK_TEMPLATE.APP_ID.in(appIdList));
             }
@@ -604,7 +604,7 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
                 CTX.update(TASK_TEMPLATE_VARIABLE)
                     .set(TASK_TEMPLATE_VARIABLE.DEFAULT_VALUE, convertTargetToJson(record.getTarget()))
                     .where(TASK_TEMPLATE_VARIABLE.ID.eq(ULong.valueOf(record.getId())))
-                    .and(TASK_TEMPLATE_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.HOST_LIST.getType())))
+                    .and(TASK_TEMPLATE_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType())))
                     .execute());
         }
     }
@@ -778,7 +778,7 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
         @Override
         public List<TaskTargetRecord> listTaskTargets(List<Long> appIdList, Long fromRecordId, int maxRecordSize) {
             List<Condition> conditions = new ArrayList<>();
-            conditions.add(TASK_PLAN_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.HOST_LIST.getType())));
+            conditions.add(TASK_PLAN_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType())));
             if (appIdList != null) {
                 conditions.add(TASK_PLAN.APP_ID.in(appIdList));
             }
@@ -810,7 +810,7 @@ public class AddHostIdForTemplateAndPlanMigrationTask {
                 CTX.update(TASK_PLAN_VARIABLE)
                     .set(TASK_PLAN_VARIABLE.DEFAULT_VALUE, convertTargetToJson(record.getTarget()))
                     .where(TASK_PLAN_VARIABLE.ID.eq(ULong.valueOf(record.getId())))
-                    .and(TASK_PLAN_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.HOST_LIST.getType())))
+                    .and(TASK_PLAN_VARIABLE.TYPE.eq(UByte.valueOf(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType())))
                     .execute());
         }
     }

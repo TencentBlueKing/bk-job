@@ -259,7 +259,7 @@ public class TaskInstanceExecuteObjectProcessor {
             stepInstances.forEach(stepInstance -> extractDynamicGroupsAndTopoNodes(stepInstance, groups, topoNodes));
             if (CollectionUtils.isNotEmpty(variables)) {
                 variables.forEach(variable -> {
-                    if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
+                    if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType() == variable.getType()) {
                         extractDynamicGroupsAndTopoNodes(variable.getExecuteTarget(), groups, topoNodes);
                     }
                 });
@@ -363,7 +363,7 @@ public class TaskInstanceExecuteObjectProcessor {
         });
         if (CollectionUtils.isNotEmpty(variables)) {
             variables.forEach(variable -> {
-                if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
+                if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType() == variable.getType()) {
                     setHostsForDynamicGroup(variable.getExecuteTarget(), dynamicGroupHosts);
                 }
             });
@@ -404,7 +404,7 @@ public class TaskInstanceExecuteObjectProcessor {
         });
         if (CollectionUtils.isNotEmpty(variables)) {
             variables.forEach(variable -> {
-                if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()) {
+                if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType() == variable.getType()) {
                     setHostsForTopoNode(variable.getExecuteTarget(), topoNodeHosts);
                 }
             });
@@ -438,7 +438,7 @@ public class TaskInstanceExecuteObjectProcessor {
 
         if (CollectionUtils.isNotEmpty(variables)) {
             variables.forEach(variable -> {
-                if (variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
+                if (variable.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()) {
                     fillHostsDetail(variable.getExecuteTarget(), taskInstanceExecuteObjects);
                 }
             });
@@ -713,7 +713,7 @@ public class TaskInstanceExecuteObjectProcessor {
             stepInstance.buildStepFinalExecuteObjects(isSupportExecuteObjectFeature));
         if (CollectionUtils.isNotEmpty(variables)) {
             variables.forEach(variable -> {
-                if (TaskVariableTypeEnum.HOST_LIST.getType() == variable.getType()
+                if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType() == variable.getType()
                     && variable.getExecuteTarget() != null) {
                     variable.getExecuteTarget().buildMergedExecuteObjects(isSupportExecuteObjectFeature);
                 }
@@ -1012,7 +1012,7 @@ public class TaskInstanceExecuteObjectProcessor {
         }
         if (CollectionUtils.isNotEmpty(variables)) {
             variables.stream()
-                .filter(variable -> variable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()
+                .filter(variable -> variable.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()
                     && variable.getExecuteTarget() != null)
                 .forEach(variable -> hosts.addAll(variable.getExecuteTarget().extractHosts()));
         }

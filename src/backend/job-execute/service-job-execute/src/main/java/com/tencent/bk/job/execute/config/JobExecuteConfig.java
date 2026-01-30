@@ -63,6 +63,12 @@ public class JobExecuteConfig {
     private String gseScriptFileRootPath;
 
     /**
+     * 当脚本在容器上执行时，脚本在容器内目录会在主机目录前再加个前缀
+     */
+    @Value("${gse.script.containerScriptPathPrefix:/bktmp}")
+    private String gseScriptContainerPathPrefix;
+
+    /**
      * GSE 脚本任务执行结果查询 API 单次返回的执行输出内容长度
      * 默认值：512M
      */

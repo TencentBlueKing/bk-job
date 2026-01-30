@@ -698,7 +698,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         List<TaskVariableDTO> changeableVars = new ArrayList<>();
         for (TaskVariableDTO taskVar : taskVars) {
             // 主机变量无需返回
-            if (taskVar.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
+            if (taskVar.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()) {
                 continue;
             }
             if (!taskVar.isChangeable()) {
@@ -724,7 +724,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         StepInstanceVariableValuesDTO inputStepInstanceValues = stepInstanceVariableValueService
             .computeInputStepInstanceVariableValues(stepInstance, changeableVars);
         if (inputStepInstanceValues == null) {
-            changeableVars.stream().filter(var -> !var.getType().equals(TaskVariableTypeEnum.HOST_LIST.getType()) &&
+            changeableVars.stream().filter(var -> !var.getType().equals(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()) &&
                 var.isChangeable()).forEach(var -> taskVariableVOS.add(convertToTaskVariableVO(var)));
             return;
         }
