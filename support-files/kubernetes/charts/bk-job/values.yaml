@@ -1004,6 +1004,13 @@ bkLogConfig:
     #   region: "beijing"
     #   bk_env: "prod"
 
+## 自定义全局挂载卷(volumes和volumeMounts)
+## 用途示例：jvm信任证书、license文件等
+## 注意：如果具体服务模块也定义了volumeExtension，会覆盖此全局配置
+volumeExtension:
+  volumes: []
+  volumeMounts: []
+
 ## job-gateway网关配置
 gatewayConfig:
   # 模块是否启用，默认启用
@@ -1098,6 +1105,10 @@ gatewayConfig:
         password: "mLnuob1**4D74c@F"
   # 运行时JVM参数
   jvmOptions: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC"
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-manage作业管理配置
 manageConfig:
@@ -1196,6 +1207,10 @@ manageConfig:
     daemon:
       # 是否开启
       enabled: true
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-execute执行引擎配置
 executeConfig:
@@ -1384,6 +1399,10 @@ executeConfig:
       enabled: false
     # auto_increment: 自增长;leaf_segment: leaf segment id
     type: auto_increment
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension :
+    volumes : [ ]
+    volumeMounts : [ ]
 
 ## job-crontab定时任务配置
 crontabConfig:
@@ -1495,6 +1514,10 @@ crontabConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-logsvr日志服务配置
 logsvrConfig:
@@ -1546,6 +1569,10 @@ logsvrConfig:
     type: ClusterIP
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-backup备份服务配置
 backupConfig:
@@ -1708,6 +1735,10 @@ backupConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-analysis统计分析服务配置
 analysisConfig:
@@ -1793,6 +1824,10 @@ analysisConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-file-gateway文件网关服务配置
 fileGatewayConfig:
@@ -1868,6 +1903,10 @@ fileGatewayConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
  ## job-file-worker文件源接入点配置
 fileWorkerConfig:
@@ -1946,6 +1985,10 @@ fileWorkerConfig:
     expireDays: 7
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-frontend前端配置
 frontendConfig:
@@ -2004,6 +2047,10 @@ frontendConfig:
     tls: []
     extraTls: []
     secrets: []
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## 对外暴露API的Ingress配置
 apiConfig:
@@ -2277,6 +2324,10 @@ assembleConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 # pod删除时等待优雅关闭的最大时间，单位为秒（超出后强制删除）
 podTerminationGracePeriodSeconds: 60
