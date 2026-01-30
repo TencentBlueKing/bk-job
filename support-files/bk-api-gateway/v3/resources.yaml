@@ -1,6 +1,6 @@
 openapi: 3.0.1
 servers:
-- url: /
+  - url: /
 info:
   version: '0.1'
   title: API Gateway Resources
@@ -4391,9 +4391,7 @@ paths:
                     description: 请求失败返回的错误信息
                   permission:
                     type: object
-                    properties:
-                      '':
-                        type: string
+                    additionalProperties: true
                     description: 权限信息
           description: ''
       parameters:
@@ -5178,9 +5176,7 @@ paths:
                         description: 错误码
                       data:
                         type: object
-                        properties:
-                          '':
-                            type: string
+                        additionalProperties: true
                         description: 具体的错误数据，如无权限时的缺少权限数据
                       message:
                         type: string
@@ -5456,9 +5452,7 @@ paths:
                               type: array
                               items:
                                 type: object
-                                properties:
-                                  '':
-                                    type: string
+                                additionalProperties: true
                                 description: 一个源主机+一个目标主机+一个文件的日志，数据结构与单条上传日志相同。
                               description: 当执行对象是分发任务的目标时，下载的日志列表。
                               execute_object:
@@ -5531,9 +5525,7 @@ paths:
                         description: 错误码
                       data:
                         type: object
-                        properties:
-                          '':
-                            type: string
+                        additionalProperties: true
                         description: 具体的错误数据，如无权限时的缺少权限数据
                       message:
                         type: string
@@ -5795,12 +5787,10 @@ paths:
                     properties:
                       code:
                         type: string
-                        description: 具体的错误数据，如无权限时的缺少权限数据
+                        description: 错误码
                       data:
                         type: object
-                        properties:
-                          '':
-                            type: string
+                        additionalProperties: true
                         description: 具体的错误数据，如无权限时的缺少权限数据
                       message:
                         type: string
