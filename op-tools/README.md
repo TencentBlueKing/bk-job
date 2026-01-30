@@ -111,3 +111,21 @@ pip install bk-crypto-python-sdk
 # 生成秘钥对
 python generate_sm2_keypair.py
 ```
+
+### 6. BK-JOB 3.11.x 迁移至 开启多租户的 3.12.x 环境的迁移工具
+
+#### 代码位置
+
+tenant-migrate
+
+#### 功能介绍
+
+用于将 3.11.x 版本的 BK-JOB 业务数据迁移到**启用了多租户**（`tenant.enabled: true`）的 3.12.x 版本环境。支持全局资源一次性迁移和业务资源按需迁移，确保数据 ID 完全不变。
+
+> **注意**：如果目标 3.12.x 环境未启用多租户（`tenant.enabled: false`），可直接原地升级，无需使用本工具。
+
+**详细文档**：
+- 完整说明：[tenant-migrate/README.md](tenant-migrate/README.md)
+- 快速开始：[tenant-migrate/操作指南-QUICKSTART.md](tenant-migrate/操作指南-QUICKSTART.md)
+
+
