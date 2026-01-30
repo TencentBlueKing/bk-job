@@ -113,6 +113,11 @@ function get_auto_increment() {
   local db_name=$1
   local table_name=$2
   
+  # 先执行 ANALYZE TABLE 刷新 information_schema 中的统计信息缓存
+  # 否则查询到的 AUTO_INCREMENT 可能是旧值
+  mysql -h"${targetMysqlHost}" -P"${targetMysqlPort}" -u"${targetMysqlUser}" -p"${targetMysqlPassword}" \
+    --default-character-set=utf8mb4 -N -e "ANALYZE TABLE \`${db_name}\`.\`${table_name}\`" >/dev/null 2>&1
+  
   local sql="SELECT AUTO_INCREMENT FROM information_schema.tables WHERE table_schema='${db_name}' AND table_name='${table_name}'"
   
   result=$(mysql -h"${targetMysqlHost}" -P"${targetMysqlPort}" -u"${targetMysqlUser}" -p"${targetMysqlPassword}" \

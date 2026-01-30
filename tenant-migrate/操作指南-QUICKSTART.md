@@ -1,15 +1,20 @@
 # 操作指南 - 快速开始
 
-本文档帮助你快速完成从 BK-JOB 3.11.x 到 3.12.x 多租户版本的迁移。
+本文档帮助你快速完成从 BK-JOB 3.11.x 到**启用了多租户**的 3.12.x 版本的迁移。
+
+> **⚠️ 重要：何时需要使用此迁移工具？**
+> 
+> - **需要迁移**：从 3.11.x 迁移到启用了多租户的 3.12.x 环境（即 values 中配置了 `tenant.enabled: true`）
+> - **无需迁移**：如果目标 3.12.x 环境未启用多租户（`tenant.enabled: false`），可以直接从 3.11.x 原地升级，无需使用本迁移工具
 
 > 详细的设计思想、表清单和技术细节请参阅 [README.md](README.md)
 
 ## 前置条件
 
-- **BKCC（蓝鲸配置平台）已完成迁移**，目标环境job_manage.application表已从bkcc同步到业务信息
+- **bk-cmdb（蓝鲸配置平台）已完成迁移**，目标环境job_manage.application表已从bk-cmdb同步到业务信息
 - 源环境（3.11.x）数据库可访问
 - 目标环境（3.12.x）数据库已创建且为空
-- **目标环境数据库已设置自增偏移量**（只能执行一次：`bash tool_set_auto_increment_offset.sh`）
+- **目标环境数据库已设置自增偏移量**（`bash tool_set_auto_increment_offset.sh`）
 - 临时数据库（可以是独立的 MySQL 实例）
 - MySQL 客户端和 mysqldump 工具已安装
 
@@ -23,13 +28,13 @@ cd tenant-migrate
 vim 0_config_common.sh
 ```
 
-### 2. 设置自增偏移量（只能执行一次）
-
-> **[警告] 此脚本只能执行一次！在业务使用后重复执行会导致主键冲突、业务故障。**
+### 2. 设置自增偏移量
 
 ```bash
 bash tool_set_auto_increment_offset.sh
 ```
+
+> 此脚本支持重复执行：设置前会比较当前偏移量与目标偏移量，若当前 >= 目标则跳过该表并打印警告日志。
 
 ### 3. 迁移全局资源到tencent租户（仅执行一次）
 

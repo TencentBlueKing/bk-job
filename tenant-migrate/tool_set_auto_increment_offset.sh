@@ -33,8 +33,6 @@
 # 需要在迁移前设置新环境表的自增偏移量。
 # ##########################################
 
-set -e
-
 # 加载配置
 source 0_config_common.sh
 
@@ -42,7 +40,9 @@ echo "========================================="
 echo "  设置新环境数据库自增偏移量"
 echo "========================================="
 echo ""
-echo "[警告] 此脚本只能执行一次！在业务使用后重复执行会导致主键冲突！"
+echo "[说明] 此脚本会在设置前比较当前偏移量与目标偏移量："
+echo "       - 若当前偏移量 < 目标偏移量：执行设置"
+echo "       - 若当前偏移量 >= 目标偏移量：跳过该表并打印警告"
 echo ""
 echo "目标数据库配置："
 echo "  主机: ${targetMysqlHost}:${targetMysqlPort}"
@@ -113,17 +113,60 @@ declare -A JOB_FILE_GATEWAY_TABLES=(
 )
 
 # ========================================
+# 获取当前表自增偏移量的函数
+# ========================================
+
+function get_current_auto_increment() {
+  local db_name=$1
+  local table_name=$2
+  
+  # 先执行 ANALYZE TABLE 刷新 information_schema 中的统计信息缓存
+  # 否则查询到的 AUTO_INCREMENT 可能是旧值
+  mysql -h"${targetMysqlHost}" -P"${targetMysqlPort}" -u"${targetMysqlUser}" -p"${targetMysqlPassword}" \
+    --default-character-set=utf8mb4 -N -e "ANALYZE TABLE \`${db_name}\`.\`${table_name}\`" >/dev/null 2>&1
+  
+  local sql="SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = '${db_name}' AND TABLE_NAME = '${table_name}'"
+  
+  # 执行 SQL 获取当前 AUTO_INCREMENT 值
+  local current_value=$(mysql -h"${targetMysqlHost}" -P"${targetMysqlPort}" -u"${targetMysqlUser}" -p"${targetMysqlPassword}" \
+    --default-character-set=utf8mb4 -N -e "${sql}" 2>/dev/null)
+  
+  # 如果获取失败或为空，返回 0
+  if [ -z "${current_value}" ] || [ "${current_value}" == "NULL" ]; then
+    echo "0"
+  else
+    echo "${current_value}"
+  fi
+}
+
+# ========================================
 # 设置自增偏移量的函数
+# 返回值：
+#   0 - 设置成功
+#   1 - 设置失败
+#   2 - 跳过（当前偏移量 >= 目标偏移量）
 # ========================================
 
 function set_auto_increment() {
   local db_name=$1
   local table_name=$2
-  local offset=$3
+  local target_offset=$3
   
-  local sql="ALTER TABLE \`${db_name}\`.\`${table_name}\` AUTO_INCREMENT = ${offset}"
+  # 获取当前表的 AUTO_INCREMENT 值
+  local current_offset=$(get_current_auto_increment "${db_name}" "${table_name}")
   
-  echo -n "  设置 ${db_name}.${table_name} AUTO_INCREMENT = ${offset} ... "
+  echo "  [INFO] ${db_name}.${table_name}: 当前偏移量=${current_offset}, 目标偏移量=${target_offset}"
+  
+  # 比较当前偏移量和目标偏移量
+  if [ "${current_offset}" -ge "${target_offset}" ]; then
+    echo "  [WARN] ${db_name}.${table_name}: 当前偏移量(${current_offset}) >= 目标偏移量(${target_offset})，跳过设置。"
+    echo "         请检查：可能是业务数据已增长到该量级，或该表已设置过偏移量。"
+    return 2
+  fi
+  
+  local sql="ALTER TABLE \`${db_name}\`.\`${table_name}\` AUTO_INCREMENT = ${target_offset}"
+  
+  echo -n "  设置 ${db_name}.${table_name} AUTO_INCREMENT = ${target_offset} ... "
   
   # 执行 SQL
   result=$(mysql -h"${targetMysqlHost}" -P"${targetMysqlPort}" -u"${targetMysqlUser}" -p"${targetMysqlPassword}" \
@@ -145,17 +188,31 @@ function set_auto_increment() {
 
 SUCCESS_COUNT=0
 FAIL_COUNT=0
+SKIP_COUNT=0
+
+# 处理 set_auto_increment 返回值的辅助函数
+function handle_set_result() {
+  local ret=$1
+  case $ret in
+    0)
+      SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+      ;;
+    1)
+      FAIL_COUNT=$((FAIL_COUNT + 1))
+      ;;
+    2)
+      SKIP_COUNT=$((SKIP_COUNT + 1))
+      ;;
+  esac
+}
 
 echo "----------------------------------------"
 echo "设置 job_execute 数据库..."
 echo "----------------------------------------"
 for table in "${!JOB_EXECUTE_TABLES[@]}"; do
   offset=${JOB_EXECUTE_TABLES[$table]}
-  if set_auto_increment "${targetJobExecuteDb}" "${table}" "${offset}"; then
-    SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
-  else
-    FAIL_COUNT=$((FAIL_COUNT + 1))
-  fi
+  set_auto_increment "${targetJobExecuteDb}" "${table}" "${offset}"
+  handle_set_result $?
 done
 echo ""
 
@@ -164,11 +221,8 @@ echo "设置 job_manage 数据库..."
 echo "----------------------------------------"
 for table in "${!JOB_MANAGE_TABLES[@]}"; do
   offset=${JOB_MANAGE_TABLES[$table]}
-  if set_auto_increment "${targetJobManageDb}" "${table}" "${offset}"; then
-    SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
-  else
-    FAIL_COUNT=$((FAIL_COUNT + 1))
-  fi
+  set_auto_increment "${targetJobManageDb}" "${table}" "${offset}"
+  handle_set_result $?
 done
 echo ""
 
@@ -177,11 +231,8 @@ echo "设置 job_crontab 数据库..."
 echo "----------------------------------------"
 for table in "${!JOB_CRONTAB_TABLES[@]}"; do
   offset=${JOB_CRONTAB_TABLES[$table]}
-  if set_auto_increment "${targetJobCrontabDb}" "${table}" "${offset}"; then
-    SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
-  else
-    FAIL_COUNT=$((FAIL_COUNT + 1))
-  fi
+  set_auto_increment "${targetJobCrontabDb}" "${table}" "${offset}"
+  handle_set_result $?
 done
 echo ""
 
@@ -190,11 +241,8 @@ echo "设置 job_file_gateway 数据库..."
 echo "----------------------------------------"
 for table in "${!JOB_FILE_GATEWAY_TABLES[@]}"; do
   offset=${JOB_FILE_GATEWAY_TABLES[$table]}
-  if set_auto_increment "${targetJobFileGatewayDb}" "${table}" "${offset}"; then
-    SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
-  else
-    FAIL_COUNT=$((FAIL_COUNT + 1))
-  fi
+  set_auto_increment "${targetJobFileGatewayDb}" "${table}" "${offset}"
+  handle_set_result $?
 done
 echo ""
 
@@ -208,13 +256,21 @@ echo "========================================="
 echo ""
 echo "结果统计："
 echo "  成功: ${SUCCESS_COUNT}"
+echo "  跳过: ${SKIP_COUNT}"
 echo "  失败: ${FAIL_COUNT}"
 echo ""
 
 if [ ${FAIL_COUNT} -gt 0 ]; then
   echo "⚠️  部分表设置失败，请检查错误信息"
   exit 1
-else
+fi
+
+if [ ${SKIP_COUNT} -gt 0 ]; then
+  echo "⚠️  有 ${SKIP_COUNT} 张表因当前偏移量 >= 目标偏移量而被跳过"
+  echo "   请检查上述 [WARN] 日志，确认是业务正常增长还是重复执行导致"
+fi
+
+if [ ${FAIL_COUNT} -eq 0 ]; then
   echo "✓ 自增偏移量设置完成！"
 fi
 
