@@ -35,14 +35,14 @@ const LodashWebpackPlugin = require('lodash-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 // const ESLintPlugin = require('eslint-webpack-plugin');
 // const StylelintPlugin = require('stylelint-webpack-plugin');
+// const ManifestPlugin = require('webpack-manifest-plugin');
 const figlet = require('figlet');
 const marked = require('marked');
-const includes = require('lodash/includes');
 
 const renderer = new marked.Renderer();
 
 const resolve = dir => path.join(__dirname, dir);
-const genAssetPath = dir => path.posix.join('static', `${dir}/[name].[hash:7].[ext]`);
+const genAssetPath = dir => path.posix.join('static', `${dir}/[name].[hash:7][ext]`);
 
 module.exports = function (env) {
   const isDevelopment = env.development;
@@ -235,6 +235,7 @@ module.exports = function (env) {
           type: 'asset',
           generator: {
             filename: genAssetPath('images'),
+            publicPath: isDevelopment ? '/' : './',
           },
         },
         {
@@ -242,6 +243,7 @@ module.exports = function (env) {
           type: 'asset',
           generator: {
             filename: genAssetPath('media'),
+            publicPath: isDevelopment ? '/' : './',
           },
         },
         {
@@ -249,6 +251,7 @@ module.exports = function (env) {
           type: 'asset',
           generator: {
             filename: genAssetPath('fonts'),
+            publicPath: isDevelopment ? '/' : './',
           },
         },
       ],
@@ -275,6 +278,7 @@ module.exports = function (env) {
         '@store': resolve('src/store'),
         '@utils': resolve('src/utils'),
         '@views': resolve('src/views'),
+        '@static': resolve('static'),
       },
     },
     plugins: [
@@ -308,12 +312,14 @@ module.exports = function (env) {
           inject: true,
           templateParameters: {
             AJAX_URL_PREFIX: process.env.AJAX_URL_PREFIX,
+            BK_STATIC_URL: process.env.BK_STATIC_URL || '/',
+            BK_SITE_PATH: process.env.BK_SITE_PATH || '/',
           },
         }
         : {
           filename: 'index.html',
           template: 'index.html',
-          inject: true,
+          inject: false,
           minify: {
             removeComments: true,
             collapseWhitespace: true,
@@ -324,18 +330,7 @@ module.exports = function (env) {
         filename: 'static/css/[name].[contenthash].css',
         ignoreOrder: true,
       }),
-      // isDevelopment && new ESLintPlugin({
-      //   extensions: ['js', 'vue'],
-      //   lintDirtyModulesOnly: true,
-      //   failOnError: false,
-      //   threads: 2,
-      // }),
-      // isDevelopment && new StylelintPlugin({
-      //   files: ['./**/*.vue', './**/*.css'],
-      //   extensions: ['css', 'scss', 'sass', 'postcss'],
-      //   lintDirtyModulesOnly: true,
-      //   emitWarning: true,
-      // }),
+
       new webpack.ProgressPlugin(),
       new VueLoaderPlugin(),
       new LodashWebpackPlugin(),

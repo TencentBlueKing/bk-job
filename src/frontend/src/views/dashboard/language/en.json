@@ -103,5 +103,6 @@
   "Free BSD 数量": "Free BSD",
   "MacOS 数量": "MacOS",
   "未知数量": "Unknown",
-  "执行失败率": "Rate of Execution Failure"
+  "执行失败率": "Rate of Execution Failure",
+  "运营时区提示": "The operation analysis time zone is the operating time zone of the current system: {timezone}"
 }

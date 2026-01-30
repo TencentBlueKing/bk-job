@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.manage.model.web.vo.whiteip;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -62,12 +60,10 @@ public class WhiteIPRecordVO {
     private String remark;
     @ApiModelProperty("创建人")
     private String creator;
-    @ApiModelProperty("创建时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
+    @ApiModelProperty("创建时间，单位毫秒")
     private Long createTime;
     @ApiModelProperty("最后一次更新人")
     private String lastModifier;
-    @ApiModelProperty("最后一次更新时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
+    @ApiModelProperty("最后一次更新时间，单位毫秒")
     private Long lastModifyTime;
 }

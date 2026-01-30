@@ -77,6 +77,8 @@ data:
     audit:
       enabled: {{ .Values.audit.enabled }}
       system-id: {{ .Values.audit.systemId }}
+    bk-user:
+      url: {{ .Values.bkUserUrl }}
     paas:
       server:
         url: {{ .Values.bkPaasUrl }}
@@ -107,6 +109,8 @@ data:
       encrypt:
         type: {{ .Values.job.encrypt.type }}
         password: {{ .Values.job.encrypt.password }}
+        sm2-public-key: {{.Values.job.encrypt.sm2PublicKey}}
+        sm2-private-key: {{.Values.job.encrypt.sm2PrivateKey}}
       web:
         url: {{ include "job.web.url" . }}
       storage:
@@ -182,6 +186,9 @@ data:
     # MockAPI配置：构造依赖系统（CMDB、IAM等）的Mock数据用于联调前的自测
     mockApi:
       {{- toYaml .Values.mockApi | nindent 6 }}
+    # 平台级别时区配置
+    timezone:
+      {{- toYaml .Values.timezone | nindent 6 }}
     # # 调用蓝鲸系统时，使用虚拟账号 bk_admin 的 username
     virtualAccount:
       queryAdminUsername: {{ .Values.virtualAccount.queryAdminUsername }}

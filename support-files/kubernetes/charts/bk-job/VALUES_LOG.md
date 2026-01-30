@@ -83,6 +83,26 @@ gseV2:
     intervalSeconds: 5
 ```
 
+3. 新增前端提给后端账号密码的加密算法配置
+```yaml
+job:
+  encrypt:
+    # SM2加密算法原始公钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PublicKey: ""
+    # SM2加密算法原始私钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PrivateKey: ""
+```
+
+4. 新增自定义挂载卷(volumes和volumeMounts)
+```yaml
+## 自定义全局挂载卷(volumes和volumeMounts)
+## 用途示例：jvm信任证书、license文件等
+## 注意：如果具体服务模块也定义了volumeExtension，会覆盖此全局配置
+volumeExtension:
+  volumes: []
+  volumeMounts: []
+```
+
 ## 0.9.0
 1. 新增 bk-login/bk-user蓝鲸网关配置
 ```yaml
@@ -155,6 +175,20 @@ gse:
 ```yaml
 # 蓝鲸 IAM 后台 url
 bkIamApiUrl: "http://bkiam-api.example.com"
+```
+
+5. 支持按子域名/子路径模式部署
+```yaml
+bkWebSiteAccess:
+  # 可选值：subdomain（子域名）、subpath（子路径）
+  mode: "subdomain"
+  # 子域名模式生效的配置
+  # subdomain:
+    # 请补充可能配置的特性项目，暂无
+  # 子路径模式生效的配置
+  subpath:
+    # 根路径前缀（如 "/app" 则访问路径为 https://www.example.com/app/xxx）
+    rootPrefix: "/job"
 ```
 
 ## 0.8.13

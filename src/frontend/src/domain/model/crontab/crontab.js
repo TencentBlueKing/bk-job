@@ -27,6 +27,7 @@
 import _ from 'lodash';
 
 import CrontabVariableModel from '@model/crontab/variable';
+import Model from '@model/model';
 
 import {
   prettyDateTimeFormat,
@@ -34,12 +35,13 @@ import {
 import translate from '@utils/cron/translate';
 
 import I18n from '@/i18n';
+import { getFullTimeZone, getTime } from '@/utils/assist/time';
 
 const STATUS_NOTSTARTED = 0;
 const STATUS_SUCCESS = 1;
 const STATUS_FAILURE = 2;
 
-export default class Crontab {
+export default class Crontab extends Model {
   static STATUS_MAP = {
     [STATUS_NOTSTARTED]: I18n.t('未开始'),
     [STATUS_SUCCESS]: I18n.t('成功'),
@@ -55,15 +57,16 @@ export default class Crontab {
   };
 
   constructor(payload) {
+    super();
     this.scopeType = payload.scopeType;
     this.scopeId = payload.scopeId;
     this.creator = payload.creator;
     this.createTime = payload.createTime;
     this.cronExpression = payload.cronExpression;
-    this.executeTime = payload.executeTime || '';
+    this.executeTime = payload.executeTime ? getTime({ timestamp: payload.executeTime, timezone: payload.executeTimeZone }) : '';
     this.id = payload.id;
     this.enable = payload.enable;
-    this.endTime = prettyDateTimeFormat(parseInt(payload.endTime, 10) * 1000);
+    this.endTime = payload.endTime ? getTime({ timestamp: payload.endTime, timezone: payload.executeTimeZone }) : '';
     this.lastExecuteStatus = payload.lastExecuteStatus;
     this.lastModifyTime = payload.lastModifyTime;
     this.lastModifyUser = payload.lastModifyUser;
@@ -79,6 +82,7 @@ export default class Crontab {
     this.totalCount = Number(payload.totalCount || 0);
     this.lastFailRecord = payload.lastFailRecord || [];
     this.notifyType = payload.notifyType || 1;
+    this.executeTimeZone = payload.executeTimeZone;
 
     this.variableValue = this.initVariableValue(payload.variableValue);
     this.notifyUser = this.initNotifyUser(payload.notifyUser);
@@ -118,6 +122,7 @@ export default class Crontab {
      * @returns { String }
      */
   get executeTimeTips() {
+    const fullTimezone = getFullTimeZone(this.executeTimeZone);
     if (this.cronExpression) {
       const [
         minute,
@@ -164,9 +169,12 @@ export default class Crontab {
         text += hour;
       }
       text += minute;
-      return text;
+      return `${text} ${fullTimezone}`;
     }
-    return this.executeTime;
+    return `${getTime({
+      timestamp: this.executeTime,
+      timezone: this.executeTimeZone,
+    })} ${fullTimezone}`;
   }
 
   /**
@@ -193,7 +201,10 @@ export default class Crontab {
     if (this.cronExpression) {
       return this.cronExpression;
     }
-    return this.executeTime.slice(0, 19);
+    return getTime({
+      timestamp: this.executeTime,
+      timezone: this.executeTimeZone,
+    });
   }
 
   /**

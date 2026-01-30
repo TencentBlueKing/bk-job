@@ -351,6 +351,7 @@
               for (const scopeItem of groupItem.children) {
                 if (scopeItem.id === currentScopeId) {
                   currentScopeName.value = scopeItem.name;
+                  window.PROJECT_CONFIG.BUSINESS_TIME_ZONE = scopeItem.timeZone;
                   break;
                 }
               }
@@ -446,7 +447,7 @@
       id: scopeId,
     } = appInfo;
 
-    const pathRoot = `/${scopeType}/${scopeId}`;
+    const pathRoot = `${window.PROJECT_CONFIG.BK_SITE_PATH}${scopeType}/${scopeId}`;
     if (!window.PROJECT_CONFIG.SCOPE_TYPE || !window.PROJECT_CONFIG.SCOPE_ID) {
       window.location.href = pathRoot;
       return;
@@ -458,7 +459,7 @@
     });
     const reload = (targetPath) => {
       setTimeout(() => {
-        const path = targetPath.replace(/^\/[^/]+\/\d+/, pathRoot);
+        const path = targetPath.replace(new RegExp(`^${window.PROJECT_CONFIG.BK_SITE_PATH}[^/]+/\\d+`), pathRoot);
         window.location.href = path;
       }, 100);
     };

@@ -22,7 +22,7 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
 */
-
+import Model from '@model/model';
 // 账号分类
 const OS = 1;
 const DB = 2;
@@ -34,7 +34,7 @@ const TYPE_MYSQL = 9;
 const TYPE_ORACLE = 10;
 const TYPE_DB2 = 11;
 
-export default class Account {
+export default class Account extends Model {
   static OS = OS;
   static DB = DB;
 
@@ -53,6 +53,7 @@ export default class Account {
   };
 
   constructor(payload) {
+    super();
     this.id = payload.id;
     this.account = payload.account;
     this.alias = payload.alias;

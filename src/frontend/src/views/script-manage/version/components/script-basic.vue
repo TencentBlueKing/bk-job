@@ -32,7 +32,7 @@
     class="script-version-basic-box">
     <template v-if="data.id">
       <div class="script-type-flag">
-        <img :src="`/static/images/script/${data.typeName}.svg`">
+        <img :src="scriptTypeImg">
       </div>
       <div
         class="detail-column"
@@ -96,9 +96,9 @@
           </div>
           <div class="item-value">
             <div
-              v-bk-overflow-tips
+              v-bk-tooltips="data.lastModifyTimeTooltipsText"
               class="text-box">
-              {{ data.lastModifyTime }}
+              {{ data.lastModifyTimeText }}
             </div>
           </div>
         </div>
@@ -107,10 +107,10 @@
             {{ $t('script.创建时间') }}:
           </div>
           <div
-            v-bk-overflow-tips
+            v-bk-tooltips="data.createTimeTooltipsText"
             class="item-value">
             <div class="text-box">
-              {{ data.createTime }}
+              {{ data.createTimeText }}
             </div>
           </div>
         </div>
@@ -177,6 +177,11 @@
         isLoading: true,
         data: {},
       };
+    },
+    computed: {
+      scriptTypeImg() {
+        return window.__loadAssetsUrl__(`/static/images/script/${this.data.typeName}.svg`);
+      },
     },
     created() {
       this.publicScript = checkPublicScript(this.$route);

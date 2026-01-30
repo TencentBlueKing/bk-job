@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo test",
     "dev": "webpack serve --hot --env development --env mode=development --config ./webpack.config.js",
-    "dev-external": "webpack serve --server-type https --hot --env development --env mode=external --config ./webpack.config.js",
+    "dev:https": "webpack serve --server-type https --hot --env development --env mode=https --config ./webpack.config.js",
     "build": "webpack --env --config ./webpack.config.js",
     "lint:js": "eslint ./src --fix --ext .js --ext .vue",
     "lint:style": "stylelint --fix ./src/**/*.{vue,css} --custom-syntax"
@@ -16,9 +16,11 @@
   "dependencies": {
     "@babel/runtime": "7.27.1",
     "@blueking/ai-blueking": "0.2.11",
-    "@blueking/ip-selector": "1.0.1-beta.21",
     "@blueking/bk-user-display-name": "1.0.1",
     "@blueking/bk-user-selector": "0.0.29-beta.8",
+    "@blueking/date-picker": "3.0.4",
+    "@blueking/crypto-js-sdk": "0.0.5",
+    "@blueking/ip-selector": "1.0.1-beta.21",
     "@blueking/login-modal": "1.0.6",
     "@blueking/notice-component-vue2": "2.0.6-beta.5",
     "@blueking/paas-login": "0.0.11",
@@ -47,6 +49,7 @@
     "marked": "5.1.1",
     "marked-gfm-heading-id": "3.1.3",
     "marked-mangle": "1.1.10",
+    "path-browserify": "1.0.1",
     "tippy.js": "6.3.7",
     "vue": "2.7.8",
     "vue-content-loader": "0.2.2",
@@ -128,6 +131,9 @@
     "webpack-cli": "6.0.1",
     "webpack-dev-server": "5.2.1",
     "webpack-merge": "6.0.1"
+  },
+  "overrides": {
+    "@vue/runtime-core": "3.5.26"
   },
   "engines": {
     "node": ">= 16.6.0",

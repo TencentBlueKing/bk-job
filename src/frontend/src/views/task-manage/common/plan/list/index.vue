@@ -224,11 +224,15 @@
         </bk-table-column>
         <bk-table-column
           v-if="allRenderColumnMap.lastModifyTime"
-          key="lastModifyTime"
+          key="lastModifyTimeText"
           align="left"
           :label="$t('template.更新时间')"
-          prop="lastModifyTime"
-          width="180" />
+          prop="lastModifyTimeText"
+          width="180">
+          <template slot-scope="{ row }">
+            <span v-bk-tooltips="row.lastModifyTimeTooltipsText">{{ row.lastModifyTimeText }}</span>
+          </template>
+        </bk-table-column>
         <bk-table-column
           v-if="allRenderColumnMap.creator"
           key="creator"
@@ -242,11 +246,15 @@
         </bk-table-column>
         <bk-table-column
           v-if="allRenderColumnMap.createTime"
-          key="createTime"
+          key="createTimeText"
           align="left"
           :label="$t('template.创建时间')"
-          prop="createTime"
-          width="180" />
+          prop="createTimeText"
+          width="180">
+          <template slot-scope="{ row }">
+            <span v-bk-tooltips="row.createTimeTooltipsText">{{ row.createTimeText }}</span>
+          </template>
+        </bk-table-column>
         <bk-table-column
           v-if="!isListFlod"
           key="action"

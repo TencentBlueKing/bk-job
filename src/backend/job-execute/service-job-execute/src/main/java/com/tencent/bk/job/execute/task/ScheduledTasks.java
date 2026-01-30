@@ -24,10 +24,10 @@
 
 package com.tencent.bk.job.execute.task;
 
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
@@ -48,7 +48,7 @@ public class ScheduledTasks {
     /**
      * 本地临时文件清理：1h/次
      */
-    @Scheduled(cron = "0 10 * * * ?")
+    @ScheduledOnOperationTimeZone(cron = "0 10 * * * ?")
     public void localTmpFileCleanTask() {
         log.info(Thread.currentThread().getId() + ":localTmpFileCleanTask start");
         try {

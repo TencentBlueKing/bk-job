@@ -35,8 +35,12 @@
         :data="data">
         <bk-table-column
           :label="$t('history.时间')"
-          prop="createTime"
-          width="180" />
+          prop="createTimeText"
+          width="180">
+          <template slot-scope="{ row }">
+            <span v-bk-tooltips="row.createTimeTooltipsText">{{ row.createTimeText }}</span>
+          </template>
+        </bk-table-column>
         <bk-table-column
           :label="$t('history.操作人')"
           prop="operator"

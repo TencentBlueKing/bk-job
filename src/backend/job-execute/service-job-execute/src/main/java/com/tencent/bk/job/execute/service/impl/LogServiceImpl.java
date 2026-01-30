@@ -50,6 +50,7 @@ import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.logsvr.api.ServiceLogResource;
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
+import com.tencent.bk.job.logsvr.model.service.FileTaskTimeAndRawLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceBatchSaveLogRequest;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectScriptLogDTO;
@@ -765,21 +766,19 @@ public class LogServiceImpl implements LogService {
         ));
         request.setLogType(LogTypeEnum.FILE.getValue());
 
-        String logDateTime = "[";
-        if (logTimeInMillSeconds != null) {
-            logDateTime += DateUtils.formatUnixTimestamp(logTimeInMillSeconds, ChronoUnit.MILLIS,
-                "yyyy-MM-dd HH:mm:ss", ZoneId.systemDefault());
-        } else {
-            logDateTime += DateUtils.formatUnixTimestamp(System.currentTimeMillis(), ChronoUnit.MILLIS,
-                "yyyy-MM-dd HH:mm:ss", ZoneId.systemDefault());
-        }
-        logDateTime += "] ";
+        Long actualLogTime = logTimeInMillSeconds != null ? logTimeInMillSeconds : System.currentTimeMillis();
+
+        // 新版本：不再在日志内容中添加时间，而是将时间戳单独存储到logTime字段
         for (ServiceExecuteObjectLogDTO executeObjectFileLog : executeObjectFileLogs) {
             for (ServiceFileTaskLogDTO fileTaskLog : executeObjectFileLog.getFileTaskLogs()) {
-                if (StringUtils.isBlank(fileTaskLog.getContent())) {
+                if (CollectionUtils.isEmpty(fileTaskLog.getContentList())) {
                     continue;
                 }
-                fileTaskLog.setContent(logDateTime + fileTaskLog.getContent() + "\n");
+                // 新版本：时区版本实现，将时间戳和原始日志内容分开存储
+                fileTaskLog.getContentList().forEach(contentWithTimeAndLog -> {
+                    contentWithTimeAndLog.setTime(actualLogTime);
+                    contentWithTimeAndLog.setRawLog(contentWithTimeAndLog.getRawLog() + "\n");
+                });
             }
             request.setLogs(executeObjectFileLogs);
         }
@@ -830,6 +829,11 @@ public class LogServiceImpl implements LogService {
                                                                   String speed,
                                                                   String process,
                                                                   String content) {
+        List<FileTaskTimeAndRawLogDTO> contentList = new ArrayList<>();
+        if (StringUtils.isNotEmpty(content)) {
+            contentList.add(new FileTaskTimeAndRawLogDTO(System.currentTimeMillis(), content));
+        }
+
         if (stepInstance.isSupportExecuteObjectFeature()) {
             return new ServiceFileTaskLogDTO(
                 FileDistModeEnum.UPLOAD.getValue(),
@@ -844,7 +848,7 @@ public class LogServiceImpl implements LogService {
                 status.getName(),
                 speed,
                 process,
-                content
+                contentList
             );
         } else {
             HostDTO sourceHost = executeObject.getHost();
@@ -865,7 +869,7 @@ public class LogServiceImpl implements LogService {
                 status.getName(),
                 speed,
                 process,
-                content
+                contentList
             );
         }
     }
@@ -880,6 +884,10 @@ public class LogServiceImpl implements LogService {
                                                                     String speed,
                                                                     String process,
                                                                     String content) {
+        List<FileTaskTimeAndRawLogDTO> contentList = new ArrayList<>();
+        if (StringUtils.isNotEmpty(content)) {
+            contentList.add(new FileTaskTimeAndRawLogDTO(System.currentTimeMillis(), content));
+        }
         if (stepInstance.isSupportExecuteObjectFeature()) {
             return new ServiceFileTaskLogDTO(
                 FileDistModeEnum.DOWNLOAD.getValue(),
@@ -894,7 +902,7 @@ public class LogServiceImpl implements LogService {
                 status.getName(),
                 speed,
                 process,
-                content
+                contentList
             );
         } else {
             HostDTO sourceHost = srcFile.getExecuteObject().getHost();
@@ -916,7 +924,7 @@ public class LogServiceImpl implements LogService {
                 status.getName(),
                 speed,
                 process,
-                content
+                contentList
             );
         }
     }

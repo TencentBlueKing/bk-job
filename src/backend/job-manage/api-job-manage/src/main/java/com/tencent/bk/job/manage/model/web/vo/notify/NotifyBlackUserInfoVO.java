@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.manage.model.web.vo.notify;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -57,7 +55,6 @@ public class NotifyBlackUserInfoVO {
     /**
      * 更新时间
      */
-    @JsonSerialize(using = LongTimestampSerializer.class)
     private Long lastModifyTime;
 
 }

@@ -50,7 +50,7 @@ public class LogEntityDTO {
     private LogEntityTypeEnum type;
 
     /**
-     * 日志产生时间
+     * 日志产生时间，单位毫秒
      */
     private Long timestamp;
 

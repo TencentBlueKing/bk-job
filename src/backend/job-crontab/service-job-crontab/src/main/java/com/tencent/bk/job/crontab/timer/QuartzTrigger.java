@@ -32,6 +32,7 @@ import org.quartz.TriggerKey;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
+import java.util.TimeZone;
 
 @Data
 public class QuartzTrigger implements Serializable {
@@ -60,6 +61,11 @@ public class QuartzTrigger implements Serializable {
     private long repeatInterval;
 
     private String cronExpression;
+
+    /**
+     * 时区，用于 CronTrigger 的时区设置
+     */
+    private TimeZone timeZone;
 
     /**
      * 任务错过触发时间执行策略

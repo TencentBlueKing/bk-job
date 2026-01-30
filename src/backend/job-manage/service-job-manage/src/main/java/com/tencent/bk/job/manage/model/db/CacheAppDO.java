@@ -68,6 +68,11 @@ public class CacheAppDO {
     private String tenantId;
 
     /**
+     * 业务时区
+     */
+    private String timezone;
+
+    /**
      * 资源（业务/业务集/租户集）类型，1表示内置资源
      */
     private Integer deFault;
@@ -81,6 +86,7 @@ public class CacheAppDO {
         cacheAppDO.setScopeType(application.getScope().getType().getValue());
         cacheAppDO.setScopeId(application.getScope().getId());
         cacheAppDO.setName(application.getName());
+        cacheAppDO.setTimezone(application.getTimeZone());
         cacheAppDO.setAttrs(application.getAttrs());
         cacheAppDO.setTenantId(application.getTenantId());
         cacheAppDO.setDeFault(application.getDeFaultOrDefaultValue());
@@ -96,6 +102,7 @@ public class CacheAppDO {
         application.setScope(new ResourceScope(cacheAppDO.getScopeType(), cacheAppDO.getScopeId()));
         application.setName(cacheAppDO.getName());
         application.setAttrs(cacheAppDO.getAttrs());
+        application.setTimeZone(cacheAppDO.getTimezone());
         application.setTenantId(cacheAppDO.getTenantId());
         application.setDeFault(cacheAppDO.getDeFault());
         return application;

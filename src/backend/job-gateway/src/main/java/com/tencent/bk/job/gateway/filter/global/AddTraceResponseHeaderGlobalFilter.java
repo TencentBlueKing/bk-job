@@ -25,6 +25,7 @@
 package com.tencent.bk.job.gateway.filter.global;
 
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.gateway.consts.GlobalFilterOrder;
 import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +75,6 @@ public class AddTraceResponseHeaderGlobalFilter implements GlobalFilter, Ordered
 
     @Override
     public int getOrder() {
-        return Ordered.HIGHEST_PRECEDENCE;
+        return GlobalFilterOrder.ADD_TRACE_RESPONSE_HEADER;
     }
 }

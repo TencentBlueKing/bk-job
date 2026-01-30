@@ -535,6 +535,8 @@ bkPaasUrl: "http://paas.example.com"
 bkLoginUrl: "http://paas.example.com/login/"
 ## 蓝鲸 cmdb url
 bkCmdbUrl: "http://cmdb.example.com"
+# 用户管理页面 url
+bkUserUrl: "http://bk-user.example.com"
 # 蓝鲸 IAM url
 bkIamUrl: "http://bkiam.example.com"
 # 蓝鲸制品库 url
@@ -594,6 +596,14 @@ mockApi:
   cmsi:
     # 是否启用CMSI Mock API
     enabled: false
+
+# 时区配置
+timezone:
+  default:
+    # 默认展示时区（前端使用，当业务和个人都没有配置时区时使用）
+    display: "Asia/Shanghai"
+    # 运营时区
+    operation: "Asia/Shanghai"
 
 ## 蓝鲸GSE参数配置
 gse:
@@ -811,6 +821,10 @@ job:
     type: "CLASSIC"
     # 用于加密作业平台中存储的数据库密码的密码
     password: "job#2021"
+    # SM2加密算法原始公钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PublicKey: ""
+    # SM2加密算法原始私钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PrivateKey: ""
   features:
     fileManage:
       # 是否开启文件管理特性，容器化环境默认开启
@@ -882,10 +896,8 @@ job:
   # 各微服务Actuator监控端口
   managePort: 19876
   web:
-    # 作业平台主站域名（被前端与Web API使用）
+    # 子域名模式下，作业平台主站域名（被前端与Web API使用）
     domain: "job.example.com"
-    # 作业平台API域名（被上层系统ESB、ApiGW使用）
-    apiDomain: "jobapi.example.com"
   ingress:
     https:
       # ingress是否开启HTTPS
@@ -992,6 +1004,13 @@ bkLogConfig:
     #   region: "beijing"
     #   bk_env: "prod"
 
+## 自定义全局挂载卷(volumes和volumeMounts)
+## 用途示例：jvm信任证书、license文件等
+## 注意：如果具体服务模块也定义了volumeExtension，会覆盖此全局配置
+volumeExtension:
+  volumes: []
+  volumeMounts: []
+
 ## job-gateway网关配置
 gatewayConfig:
   # 模块是否启用，默认启用
@@ -1071,19 +1090,6 @@ gatewayConfig:
       https: 443
       # http端口号
       http: 80
-  ingress:
-    # 是否开启ingress
-    enabled: false
-    path: "/"
-    pathType: ImplementationSpecific
-    annotations:
-      kubernetes.io/ingress.class: nginx
-      # 开启ingress后的最大请求体大小
-      nginx.ingress.kubernetes.io/proxy-body-size: "10240m"
-    extraHosts: []
-    tls: []
-    extraTls: []
-    secrets: []
   server:
     ssl:
       p12:
@@ -1099,6 +1105,10 @@ gatewayConfig:
         password: "mLnuob1**4D74c@F"
   # 运行时JVM参数
   jvmOptions: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC"
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-manage作业管理配置
 manageConfig:
@@ -1197,6 +1207,10 @@ manageConfig:
     daemon:
       # 是否开启
       enabled: true
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-execute执行引擎配置
 executeConfig:
@@ -1385,6 +1399,10 @@ executeConfig:
       enabled: false
     # auto_increment: 自增长;leaf_segment: leaf segment id
     type: auto_increment
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension :
+    volumes : [ ]
+    volumeMounts : [ ]
 
 ## job-crontab定时任务配置
 crontabConfig:
@@ -1496,6 +1514,10 @@ crontabConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-logsvr日志服务配置
 logsvrConfig:
@@ -1547,6 +1569,10 @@ logsvrConfig:
     type: ClusterIP
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-backup备份服务配置
 backupConfig:
@@ -1709,6 +1735,10 @@ backupConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-analysis统计分析服务配置
 analysisConfig:
@@ -1794,6 +1824,10 @@ analysisConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-file-gateway文件网关服务配置
 fileGatewayConfig:
@@ -1869,6 +1903,10 @@ fileGatewayConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
  ## job-file-worker文件源接入点配置
 fileWorkerConfig:
@@ -1947,6 +1985,10 @@ fileWorkerConfig:
     expireDays: 7
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-frontend前端配置
 frontendConfig:
@@ -1998,14 +2040,17 @@ frontendConfig:
   ingress:
     enabled: true
     pathType: ImplementationSpecific
-    path: "/"
     annotations:
       kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/use-regex: "true"
       nginx.ingress.kubernetes.io/proxy-body-size: "2048m"
-    extraHosts: []
     tls: []
     extraTls: []
     secrets: []
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## 对外暴露API的Ingress配置
 apiConfig:
@@ -2279,6 +2324,10 @@ assembleConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 # pod删除时等待优雅关闭的最大时间，单位为秒（超出后强制删除）
 podTerminationGracePeriodSeconds: 60
@@ -2293,3 +2342,14 @@ healthCheck:
   # 默认开启 启动时检查mongodb是否可达且账号密码正确
   mongo:
     enabled: true
+
+bkWebSiteAccess:
+  # 可选值：subdomain（子域名）、subpath（子路径）
+  mode: "subdomain"
+  # 子域名模式生效的配置
+  # subdomain:
+    # 请补充可能配置的特性项目，暂无
+  # 子路径模式生效的配置
+  subpath:
+    # 根路径前缀（如 "/app" 则访问路径为 https://www.example.com/app/xxx）
+    rootPrefix: "/job"

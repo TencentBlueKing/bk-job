@@ -33,6 +33,9 @@ class WebGlobal {
   getVersionENLog() {
     return Request.get('/job-manage/web/versionLog');
   }
+  getAccountEncryption() {
+    return Request.get('/job-manage/web/crypto/submit/account/encryption');
+  }
 }
 
 export default new WebGlobal();

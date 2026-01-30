@@ -116,6 +116,7 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_1.setScriptVersionId(null);
         CRON_JOB_1.setCronExpression("* * * * *");
         CRON_JOB_1.setExecuteTime(null);
+        CRON_JOB_1.setExecuteTimeZone("Asia/Shanghai");
         CRON_JOB_1.setVariableValue(VARIABLE_LIST);
         CRON_JOB_1.setLastExecuteStatus(0);
         CRON_JOB_1.setEnable(true);
@@ -138,6 +139,7 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_2.setScriptVersionId(null);
         CRON_JOB_2.setCronExpression(null);
         CRON_JOB_2.setExecuteTime(LocalDateTime.of(2019, 1, 1, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+        CRON_JOB_2.setExecuteTimeZone("Asia/Colombo");
         CRON_JOB_2.setVariableValue(VARIABLE_LIST);
         CRON_JOB_2.setLastExecuteStatus(1);
         CRON_JOB_2.setEnable(false);
@@ -160,6 +162,7 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_3.setScriptVersionId(null);
         CRON_JOB_3.setCronExpression("* * * * *");
         CRON_JOB_3.setExecuteTime(null);
+        CRON_JOB_3.setExecuteTimeZone("Etc/UTC");
         CRON_JOB_3.setVariableValue(VARIABLE_LIST);
         CRON_JOB_3.setLastExecuteStatus(0);
         CRON_JOB_3.setEnable(true);
@@ -182,6 +185,7 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_4.setScriptVersionId(null);
         CRON_JOB_4.setCronExpression(null);
         CRON_JOB_4.setExecuteTime(LocalDateTime.of(2019, 1, 1, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+        CRON_JOB_4.setExecuteTimeZone("Asia/Shanghai");
         CRON_JOB_4.setVariableValue(VARIABLE_LIST);
         CRON_JOB_4.setLastExecuteStatus(0);
         CRON_JOB_4.setEnable(true);
@@ -204,6 +208,7 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_5.setScriptVersionId(null);
         CRON_JOB_5.setCronExpression("* * * * *");
         CRON_JOB_5.setExecuteTime(null);
+        CRON_JOB_5.setExecuteTimeZone("Asia/Shanghai");
         CRON_JOB_5.setVariableValue(VARIABLE_LIST);
         CRON_JOB_5.setLastExecuteStatus(1);
         CRON_JOB_5.setEnable(true);
@@ -226,6 +231,7 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_6.setScriptVersionId(1L);
         CRON_JOB_6.setCronExpression(null);
         CRON_JOB_6.setExecuteTime(LocalDateTime.of(2019, 1, 1, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+        CRON_JOB_6.setExecuteTimeZone("Asia/Shanghai");
         CRON_JOB_6.setVariableValue(VARIABLE_LIST);
         CRON_JOB_6.setLastExecuteStatus(0);
         CRON_JOB_6.setEnable(true);
@@ -248,6 +254,7 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_7.setScriptVersionId(2L);
         CRON_JOB_7.setCronExpression("* * * * *");
         CRON_JOB_7.setExecuteTime(null);
+        CRON_JOB_7.setExecuteTimeZone("Asia/Shanghai");
         CRON_JOB_7.setVariableValue(VARIABLE_LIST);
         CRON_JOB_7.setLastExecuteStatus(0);
         CRON_JOB_7.setEnable(false);
@@ -270,6 +277,7 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_8.setScriptVersionId(3L);
         CRON_JOB_8.setCronExpression(null);
         CRON_JOB_8.setExecuteTime(LocalDateTime.of(2019, 1, 1, 0, 0, 0).toEpochSecond(ZoneOffset.ofHours(8)));
+        CRON_JOB_8.setExecuteTimeZone("Asia/Shanghai");
         CRON_JOB_8.setVariableValue(VARIABLE_LIST);
         CRON_JOB_8.setLastExecuteStatus(1);
         CRON_JOB_8.setEnable(true);
@@ -292,6 +300,7 @@ public class CronJobDAOImplIntegrationTest {
         CRON_JOB_9.setScriptVersionId(4L);
         CRON_JOB_9.setCronExpression("* * * * *");
         CRON_JOB_9.setExecuteTime(null);
+        CRON_JOB_9.setExecuteTimeZone("Asia/Shanghai");
         CRON_JOB_9.setVariableValue(VARIABLE_LIST);
         CRON_JOB_9.setLastExecuteStatus(0);
         CRON_JOB_9.setEnable(true);

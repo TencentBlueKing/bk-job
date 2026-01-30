@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.api.esb.v3;
 
 import com.tencent.bk.audit.annotations.AuditEntry;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbAccountV3BasicDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbFileDestinationV3DTO;
@@ -108,7 +109,7 @@ public class EsbGetStepInstanceDetailV3ResourceImpl implements EsbGetStepInstanc
                 scriptStepInfo.setLanguage(stepInstance.getScriptType().getValue());
                 if (stepInstance.isSecureParam()) {
                     scriptStepInfo.setSecureParam(1);
-                    scriptStepInfo.setScriptParam("******");
+                    scriptStepInfo.setScriptParam(JobConstants.SENSITIVE_FIELD_PLACEHOLDER);
                 } else {
                     scriptStepInfo.setSecureParam(0);
                     if (StringUtils.isNotEmpty(stepInstance.getResolvedScriptParam())) {

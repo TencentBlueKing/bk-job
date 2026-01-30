@@ -30,7 +30,9 @@ import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.crypto.Encryptor;
+import com.tencent.bk.job.common.crypto.scenario.SubmitAccountPasswordCryptoService;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
@@ -85,16 +87,19 @@ public class AccountServiceImpl implements AccountService {
     private final Encryptor encryptor;
     private final GlobalSettingsService globalSettingsService;
     private final AccountAuthService accountAuthService;
+    private final SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService;
 
     @Autowired
     public AccountServiceImpl(AccountDAO accountDAO,
                               @Qualifier("gseRsaEncryptor") Encryptor encryptor,
                               GlobalSettingsService globalSettingsService,
-                              AccountAuthService accountAuthService) {
+                              AccountAuthService accountAuthService,
+                              SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService) {
         this.accountDAO = accountDAO;
         this.encryptor = encryptor;
         this.globalSettingsService = globalSettingsService;
         this.accountAuthService = accountAuthService;
+        this.submitAccountPasswordCryptoService = submitAccountPasswordCryptoService;
     }
 
     @Override
@@ -233,9 +238,12 @@ public class AccountServiceImpl implements AccountService {
         authManageAccount(user, updateAccount.getAppId(), updateAccount.getId());
 
         AccountDTO originAccount = getAccount(updateAccount.getAppId(), updateAccount.getId());
-
+        String updateAlias = updateAccount.getAlias();
+        if (StringUtils.isEmpty(updateAlias)) {
+            updateAlias = originAccount.getAlias();
+        }
         checkAccountAliasExist(updateAccount.getAppId(), updateAccount.getId(),
-            originAccount.getCategory(), updateAccount.getAlias());
+            originAccount.getCategory(), updateAlias);
 
         if (StringUtils.isNotEmpty(updateAccount.getPassword())) {
             updateAccount.setPassword(encryptor.encrypt(updateAccount.getPassword()));
@@ -521,4 +529,23 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
+    @Override
+    public void decryptPwdFromReqIfNeeded(AccountCreateUpdateReq req) {
+        if (StringUtils.isNotEmpty(req.getAlgorithm())
+            && StringUtils.isNotEmpty(req.getPassword())
+            && !JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(req.getPassword())) {
+            log.debug("Decrypt account password, algorithm={}", req.getAlgorithm());
+            String decryptedPassword = submitAccountPasswordCryptoService.decryptIfNeeded(req.getAlgorithm(),
+                req.getPassword());
+            req.setPassword(decryptedPassword);
+        }
+        if (StringUtils.isNotEmpty(req.getAlgorithm())
+            && StringUtils.isNotEmpty(req.getDbPassword())
+            && !JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(req.getDbPassword())) {
+            log.debug("Decrypt DB password, algorithm={}", req.getAlgorithm());
+            String decryptedPassword = submitAccountPasswordCryptoService.decryptIfNeeded(req.getAlgorithm(),
+                req.getDbPassword());
+            req.setDbPassword(decryptedPassword);
+        }
+    }
 }

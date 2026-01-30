@@ -29,6 +29,7 @@ import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.FeatureToggleModeEnum;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.model.AuthResult;
@@ -87,6 +88,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         accountService.checkCreateParam(accountCreateUpdateReq, true, true);
 
         User user = JobContextUtil.getUser();
+        accountService.decryptPwdFromReqIfNeeded(accountCreateUpdateReq);
         AccountDTO newAccount = accountService.buildCreateAccountDTO(user.getUsername(), appResourceScope.getAppId(),
             accountCreateUpdateReq);
         AccountDTO savedAccount = accountService.createAccount(user, newAccount);
@@ -107,6 +109,7 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         }
 
         User user = JobContextUtil.getUser();
+        accountService.decryptPwdFromReqIfNeeded(accountCreateUpdateReq);
         AccountDTO updateAccount = buildUpdateAccountDTO(username, appResourceScope.getAppId(), accountCreateUpdateReq);
         AccountDTO savedAccount = accountService.updateAccount(user, updateAccount);
         return Response.buildSuccessResp(savedAccount.toAccountVO());
@@ -134,11 +137,13 @@ public class WebAppAccountResourceImpl implements WebAppAccountResource {
         accountDTO.setAlias(req.getAlias());
         accountDTO.setRemark(req.getRemark());
         accountDTO.setGrantees(Utils.concatStringWithSeperator(req.getGrantees(), ","));
-        if (StringUtils.isNotEmpty(req.getPassword()) && !req.getPassword().equals("******")) {
+        if (StringUtils.isNotEmpty(req.getPassword())
+            && !JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(req.getPassword())) {
             // 前端所有的返回密码都是"******"，如果更新接口传给后台的仍然是******，说明密码未改动
             accountDTO.setPassword(req.getPassword());
         }
-        if (StringUtils.isNotEmpty(req.getDbPassword()) && !req.getDbPassword().equals("******")) {
+        if (StringUtils.isNotEmpty(req.getDbPassword())
+            && !JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(req.getDbPassword())) {
             // 前端所有的返回密码都是"******"，如果更新接口传给后台的仍然是******，说明密码未改动
             accountDTO.setDbPassword(req.getDbPassword());
         }
