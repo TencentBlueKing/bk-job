@@ -400,7 +400,7 @@
         {
           name: I18n.t('script.场景标签_colHead'),
           id: 'tags',
-          remoteMethod: this.tagSericeHandler.fetchTagOfSearch,
+          remoteMethod: () => this.tagSericeHandler.fetchTagOfSearch(),
           remoteExecuteImmediate: true,
         },
         {
