@@ -49,14 +49,17 @@
 
 最简单的使用方式，适合快速完成迁移。
 
-#### 1. 配置数据库连接
+#### 1. 配置迁移参数
 
 ```bash
 cd tenant-migrate
 vim 0_config_common.sh
 ```
 
-只需配置数据库连接信息，**不需要修改 `defaultTenantId`**，脚本会自动设置。
+需要配置以下信息：
+- **数据库连接**：源环境、目标环境、临时数据库的连接信息
+- **蓝盾制品库 URL**：如果新老环境使用不同的制品库，需要配置 `sourceBkRepoUrl` 和 `targetBkRepoUrl`，迁移时会自动替换文件源中的制品库地址
+
 
 #### 2. 迁移全局资源到 tencent 租户（只需执行一次）
 
@@ -394,6 +397,25 @@ bash tool_check_auto_increment.sh
 | `notify_black_user_info` | `${defaultTenantId}` |
 | `script`                 | `${defaultTenantId}` |
 | `file_source`            | `${defaultTenantId}` |
+
+### 蓝盾制品库（BK-Repo）URL 替换
+
+`file_source` 表中类型为 `BLUEKING_ARTIFACTORY` 的文件源，其 `custom_info` 字段包含制品库的 URL：
+
+```json
+{"base_url":"http://bkrepo-old.example.com"}
+```
+
+如果新老环境使用不同的制品库，需要在 `0_config_common.sh` 中配置：
+
+```bash
+# 源环境制品库 URL
+sourceBkRepoUrl="http://bkrepo-old.example.com"
+# 目标环境制品库 URL
+targetBkRepoUrl="http://bkrepo-new.example.com"
+```
+
+迁移时会自动将 `custom_info` 中的 URL 从老环境替换为新环境。如果新老环境共用同一个制品库，可以将两个值设为相同，将跳过替换。
 
 ### 并发控制
 

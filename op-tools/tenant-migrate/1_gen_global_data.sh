@@ -106,7 +106,7 @@ echo ""
 tableName="dangerous_rule"
 tmpTableName="${tableName}_global"
 # 检查是否有 tenant_id 列，如果没有则添加
-hasColumn=$(executeSqlInTmpDb "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${globalTmpJobManageDb}' AND table_name='${tmpTableName}' AND column_name='tenant_id';" 2>/dev/null | tail -1)
+hasColumn=$(querySqlInTmpDb "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${globalTmpJobManageDb}' AND table_name='${tmpTableName}' AND column_name='tenant_id';")
 if [[ "${hasColumn}" == "0" || "${hasColumn}" == "" ]]; then
   echo "  - 为 ${tableName} 添加 tenant_id 列..."
   # 与 support-files/sql 保持一致的 ALTER TABLE 语句
@@ -120,7 +120,7 @@ executeSqlInTmpDb "UPDATE \`${globalTmpJobManageDb}\`.\`${tmpTableName}\` SET te
 echo ""
 tableName="notify_black_user_info"
 tmpTableName="${tableName}_global"
-hasColumn=$(executeSqlInTmpDb "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${globalTmpJobManageDb}' AND table_name='${tmpTableName}' AND column_name='tenant_id';" 2>/dev/null | tail -1)
+hasColumn=$(querySqlInTmpDb "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${globalTmpJobManageDb}' AND table_name='${tmpTableName}' AND column_name='tenant_id';")
 if [[ "${hasColumn}" == "0" || "${hasColumn}" == "" ]]; then
   echo "  - 为 ${tableName} 添加 tenant_id 列..."
   # 与 support-files/sql 保持一致的 ALTER TABLE 语句（指定 AFTER id）
@@ -142,7 +142,14 @@ function dumpTableInTmpDb(){
   _tableName="$2"
   _filePath="$3"
   echo "  导出: ${_dbName}.${_tableName} -> ${_filePath}"
-  mysqldump -h${tmpMysqlHost} -P${tmpMysqlPort} -u${tmpMysqlRootUser} -p${tmpMysqlRootPassword} --default-character-set=utf8mb4 --skip-opt --complete-insert -t --compact ${_dbName} ${_tableName} > ${_filePath}
+  mysqldump -h${tmpMysqlHost} -P${tmpMysqlPort} -u${tmpMysqlRootUser} -p${tmpMysqlRootPassword} \
+    --default-character-set=utf8mb4 \
+    --skip-opt \
+    --complete-insert \
+    -t \
+    --compact \
+    --set-gtid-purged=OFF \
+    ${_dbName} ${_tableName} > ${_filePath}
 }
 
 # 创建目标目录

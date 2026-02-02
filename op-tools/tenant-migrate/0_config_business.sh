@@ -99,7 +99,7 @@ echo "源环境业务scopeId: ${sourceScopeId}"
 
 # 从数据库查询 scopeId 对应的 app_id
 echo "查询 scopeId=${sourceScopeId} 对应的 app_id..."
-queryAppIdByScopeIdSql="select app_id from \`${sourceJobManageDb}\`.\`application\` where bk_scope_id='${sourceScopeId}'"
+queryAppIdByScopeIdSql="select app_id from \`${sourceJobManageDb}\`.\`application\` where bk_scope_id='${sourceScopeId}' and is_deleted=0"
 executeSqlInSourceDb "${queryAppIdByScopeIdSql}"
 sourceAppId=$(echo ${dbResult}|awk -F" " '{print $2}')
 
@@ -112,7 +112,7 @@ echo "  源环境 app_id: ${sourceAppId}"
 
 # 从目标环境数据库查询 scopeId 对应的 app_id
 echo "查询 scopeId=${sourceScopeId} 在目标环境中对应的 app_id..."
-queryTargetAppIdByScopeIdSql="select app_id from \`${targetJobManageDb}\`.\`application\` where bk_scope_id='${sourceScopeId}'"
+queryTargetAppIdByScopeIdSql="select app_id from \`${targetJobManageDb}\`.\`application\` where bk_scope_id='${sourceScopeId}' and is_deleted=0"
 executeSqlInTargetDb "${queryTargetAppIdByScopeIdSql}"
 targetAppId=$(echo ${dbResult}|awk -F" " '{print $2}')
 
