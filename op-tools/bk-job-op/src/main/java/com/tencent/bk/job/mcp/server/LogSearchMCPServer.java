@@ -30,6 +30,7 @@ import com.tencent.bk.job.service.JobLogQueryService;
 import com.tencent.bk.job.service.model.PageData;
 import com.tencent.bk.job.service.model.SimpleLogDTO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
@@ -38,6 +39,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -48,8 +51,19 @@ public class LogSearchMCPServer {
 
     /**
      * 通过stepInstance查询主流程日志的 查询语句模板
+     * 根据优先级查找，为防止丢失日志，根据多个模版反复确认
      */
-    private static final String MAIN_PROCESS_QUERY_TEMPLATE = "log:%s AND log: \"Handle job event, event\"";
+    // 最开始出现的，带有stepInstance的日志
+    private static final String MAIN_PROCESS_QUERY_TEMPLATE_0 = "log:%s AND log: \"Begin to dispatch step event\"";
+    // 与上面一个模版不一定在一个实例，防止一起丢失
+    private static final String MAIN_PROCESS_QUERY_TEMPLATE_1 = "log:%s AND log: \"Handle step event\"";
+    private static final String MAIN_PROCESS_QUERY_TEMPLATE_2 = "log:%s AND log: \"Handle gse task event\"";
+
+    private static final List<String> MAIN_PROCESS_QUERY_TEMPLATE_LIST = Arrays.asList(
+        MAIN_PROCESS_QUERY_TEMPLATE_0,
+        MAIN_PROCESS_QUERY_TEMPLATE_1,
+        MAIN_PROCESS_QUERY_TEMPLATE_2
+    );
 
     @Autowired
     public LogSearchMCPServer(JobLogQueryService jobLogQueryService, BkLogProperties bkLogProperties) {
@@ -77,7 +91,11 @@ public class LogSearchMCPServer {
             Integer start,
             @Nullable
             @JsonPropertyDescription("每页返回的日志条数，默认10，建议不超过100") 
-            Integer size) {
+            Integer size,
+            @Nullable
+            @JsonPropertyDescription("是否按时间升序排序，不传默认false（降序）。对于寻找异常的日志，建议使用降序；" +
+                "对于寻找任务启动阶段的日志，建议使用升序")
+            Boolean asc) {
         log.info("[MCP Tool Call] searchLogsByCondition - Input: queryString={}, " +
                 "timeRange={}, startTime={}, endTime={}, start={}, size={}",
                 queryString, timeRange, startTime, endTime, start, size);
@@ -102,7 +120,9 @@ public class LogSearchMCPServer {
                 startTime,
                 endTime,
                 start,
-                size);
+                size,
+                asc
+            );
             
             log.info("[MCP Tool Call] searchLogsByCondition - Output: total={}, pageSize={}, dataCount={}", 
                     result != null ? result.getTotal() : 0,
@@ -123,11 +143,18 @@ public class LogSearchMCPServer {
         log.info("[MCP Tool Call] searchRequestIdByStepInstanceId - Input: stepInstanceId={}", stepInstanceId);
         
         try {
+            PageData<SimpleLogDTO> logs = null;
+
             // 构建特征查询条件：查找包含stepInstanceId且与MQ消费/生产相关的日志
-            String queryString = String.format(MAIN_PROCESS_QUERY_TEMPLATE, stepInstanceId);
-            
-            // 查询最近1天的日志，使用分页查询，只取第一条
-            PageData<SimpleLogDTO> logs = jobLogQueryService.queryLogs(queryString, "7d", null, null, 0, 1);
+            for (String template : MAIN_PROCESS_QUERY_TEMPLATE_LIST) {
+                String queryString = String.format(template, stepInstanceId);
+                // 查询最近7天的日志，使用分页查询，只取第一条
+                logs = jobLogQueryService.queryLogs(
+                    queryString, "7d", null, null, 0, 1, null);
+                if (logs != null && CollectionUtils.isNotEmpty(logs.getData())) {
+                    break;
+                }
+            }
             
             String result;
             if (logs != null && logs.getData() != null && !logs.getData().isEmpty()) {

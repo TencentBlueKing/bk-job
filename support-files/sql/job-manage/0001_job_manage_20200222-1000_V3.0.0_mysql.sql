@@ -663,7 +663,8 @@ CREATE TABLE IF NOT EXISTS `global_setting`
 (
     `key`      varchar(255) CHARACTER SET utf8mb4 NOT NULL,
     `value` text CHARACTER SET utf8mb4 NULL,
-    `decription` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL
+    `decription` varchar(255) CHARACTER SET utf8mb4 NULL DEFAULT NULL,
+    PRIMARY KEY (`key`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4;
 
 
