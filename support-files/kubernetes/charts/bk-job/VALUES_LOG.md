@@ -93,7 +93,17 @@ job:
     sm2PrivateKey: ""
 ```
 
-4. 新增发送通知数量配额限制
+4. 新增自定义挂载卷(volumes和volumeMounts)
+```yaml
+## 自定义全局挂载卷(volumes和volumeMounts)
+## 用途示例：jvm信任证书、license文件等
+## 注意：如果具体服务模块也定义了volumeExtension，会覆盖此全局配置
+volumeExtension:
+  volumes: []
+  volumeMounts: []
+```
+
+5. 新增发送通知数量配额限制
 ```yaml
 job:
   # 资源配额限制
