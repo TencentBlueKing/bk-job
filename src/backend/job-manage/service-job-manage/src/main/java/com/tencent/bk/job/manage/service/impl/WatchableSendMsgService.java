@@ -24,11 +24,18 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
+import com.tencent.bk.job.common.exception.ResourceExhaustedException;
+import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.paas.cmsi.ICmsiClient;
+import com.tencent.bk.job.common.paas.exception.PaasException;
 import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
+import com.tencent.bk.job.common.service.quota.ResourceQuotaCheckResultEnum;
 import com.tencent.bk.job.common.tenant.TenantService;
+import com.tencent.bk.job.manage.GlobalAppScopeMappingService;
 import com.tencent.bk.job.manage.metrics.MetricsConstants;
+import com.tencent.bk.job.manage.quota.limit.SendNotifyResourceQuotaManager;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -49,14 +56,17 @@ public class WatchableSendMsgService {
     private final ICmsiClient cmsiApiClient;
     private final MeterRegistry meterRegistry;
     private final TenantService tenantService;
+    private final SendNotifyResourceQuotaManager sendNotifyResourceQuotaManager;
 
     @Autowired
     public WatchableSendMsgService(ICmsiClient cmsiApiClient,
                                    MeterRegistry meterRegistry,
-                                   TenantService tenantService) {
+                                   TenantService tenantService,
+                                   SendNotifyResourceQuotaManager sendNotifyResourceQuotaManager) {
         this.cmsiApiClient = cmsiApiClient;
         this.meterRegistry = meterRegistry;
         this.tenantService = tenantService;
+        this.sendNotifyResourceQuotaManager = sendNotifyResourceQuotaManager;
     }
 
     @EsbApiTimed
@@ -71,6 +81,11 @@ public class WatchableSendMsgService {
     ) {
         String sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_FAILED;
         try {
+            checkSendNotifyQuotaLimit(
+                appId,
+                sender
+            );
+
             NotifyMessageDTO notifyMessageDTO = buildNotifyMessage(sender, receivers, title, content);
             beginSendMessage(
                 msgType,
@@ -78,6 +93,11 @@ public class WatchableSendMsgService {
                 tenantService.getTenantIdByAppId(appId)
             );
             sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
+        } catch (PaasException e) {
+            sendNotifyLimitRollback(appId, sender);
+            throw e;
+        } catch (Exception e) {
+            throw e;
         } finally {
             recordMetrics(createTimeMillis, msgType, sendStatus, appId);
         }
@@ -94,6 +114,11 @@ public class WatchableSendMsgService {
     ) {
         String sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_FAILED;
         try {
+            checkSendNotifyQuotaLimit(
+                null,
+                sender
+            );
+
             NotifyMessageDTO notifyMessageDTO = buildNotifyMessage(sender, receivers, title, content);
             beginSendMessage(
                 msgType,
@@ -101,6 +126,11 @@ public class WatchableSendMsgService {
                 tenantId
             );
             sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
+        } catch (PaasException e) {
+            sendNotifyLimitRollback(null, sender);
+            throw e;
+        } catch (Exception e) {
+            throw e;
         } finally {
             recordMetrics(createTimeMillis, msgType, sendStatus, null);
         }
@@ -148,5 +178,47 @@ public class WatchableSendMsgService {
             .maximumExpectedValue(Duration.ofSeconds(60L))
             .register(meterRegistry)
             .record(delayMillis, TimeUnit.MILLISECONDS);
+    }
+
+    /*
+     * 检查发送通知配额限制，超过限制抛出异常，不超过限制累加当天计数
+     */
+    private void checkSendNotifyQuotaLimit(Long appId, String triggerUser) {
+        ResourceScope resourceScope = null;
+        if (appId == null) {
+            resourceScope = GlobalAppScopeMappingService.get().getScopeByAppId(appId);
+        }
+        ResourceQuotaCheckResultEnum checkResult = sendNotifyResourceQuotaManager.checkAndIncrement(
+            resourceScope,
+            triggerUser
+        );
+        switch (checkResult) {
+            case NO_LIMIT:
+                break;
+            case RESOURCE_SCOPE_LIMIT:
+                log.warn("Send notify exceed resource scope quota limit, resourceScope: {}",resourceScope);
+                throw new ResourceExhaustedException(ErrorCode.SEND_NOTIFY_EXCEED_RESOURCE_SCOPE_QUOTA_LIMIT);
+            case USER_LIMIT:
+                log.warn("Send notify exceed user quota limit, triggerUser: {}", triggerUser);
+                throw new ResourceExhaustedException(ErrorCode.SEND_NOTIFY_EXCEED_USER_QUOTA_LIMIT);
+            case SYSTEM_LIMIT:
+                log.warn("Send notify exceed system quota limit, resourceScope: {}, triggerUser: {}",
+                    resourceScope, triggerUser);
+                throw new ResourceExhaustedException(ErrorCode.SEND_NOTIFY_EXCEED_SYSTEM_QUOTA_LIMIT);
+        }
+    }
+
+    /*
+     * 因网络等原因发送通知出错，回滚配额限制
+     */
+    private void sendNotifyLimitRollback(Long appId, String triggerUser) {
+        ResourceScope resourceScope = null;
+        if (appId == null) {
+            resourceScope = GlobalAppScopeMappingService.get().getScopeByAppId(appId);
+        }
+        sendNotifyResourceQuotaManager.rollback(
+            resourceScope,
+            triggerUser
+        );
     }
 }

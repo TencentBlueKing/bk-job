@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.service.quota.config.parser;
 import com.tencent.bk.job.common.resource.quota.AppQuotaLimit;
 import com.tencent.bk.job.common.resource.quota.QuotaLimit;
 import com.tencent.bk.job.common.resource.quota.ResourceScopeQuotaLimit;
+import com.tencent.bk.job.common.resource.quota.UserQuotaLimit;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -69,6 +70,20 @@ public abstract class AbstractResourceQuotaConfigParser implements ResourceQuota
         return appQuotaLimit;
     }
 
+    protected UserQuotaLimit parseUserQuotaLimit(Long capacity,
+                                                 String globalLimitExpr,
+                                                 String customLimitExpr) {
+        UserQuotaLimit userQuotaLimit = new UserQuotaLimit(
+            globalLimitExpr,
+            customLimitExpr
+        );
+
+        parseGlobalLimit(userQuotaLimit, capacity, globalLimitExpr);
+        parseCustomLimit(userQuotaLimit, capacity, customLimitExpr);
+
+        return userQuotaLimit;
+    }
+
     private void parseGlobalLimit(QuotaLimit quotaLimit, Long capacity, String globalLimitExpr) {
         long globalLimit = computeLimitValue(capacity, globalLimitExpr);
         quotaLimit.setGlobalLimit(globalLimit);
@@ -79,6 +94,10 @@ public abstract class AbstractResourceQuotaConfigParser implements ResourceQuota
     }
 
     private void parseCustomLimit(AppQuotaLimit quotaLimit, Long capacity, String customLimitExpr) {
+        quotaLimit.setCustomLimits(parseCustomLimit(capacity, customLimitExpr, key -> key));
+    }
+
+    private void parseCustomLimit(UserQuotaLimit quotaLimit, Long capacity, String customLimitExpr) {
         quotaLimit.setCustomLimits(parseCustomLimit(capacity, customLimitExpr, key -> key));
     }
 

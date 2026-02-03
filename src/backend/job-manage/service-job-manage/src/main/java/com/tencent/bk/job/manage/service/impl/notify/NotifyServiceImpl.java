@@ -536,6 +536,7 @@ public class NotifyServiceImpl implements NotifyService {
             notifyMessageMap.get(new ArrayList<>(notifyMessageMap.keySet()).get(0));
         notifySendService.asyncSendNotifyMessages(
             notification.getTriggerDTO().getAppId(),
+            notification.getTriggerDTO().getTriggerUser(),
             channelUsersMap,
             notificationMessage.getTitle(),
             notificationMessage.getContent()
@@ -870,10 +871,18 @@ public class NotifyServiceImpl implements NotifyService {
         );
         // 获取语言
         String normalLang = getNormalUserLanguage(applicationDTO);
-        
+
         // 发送通知
-        sendNotificationToChannels(appId, tenantId, templateCode, channelUsersMap, 
-            finalVariablesMap, normalLang, null);
+        sendNotificationToChannels(
+            appId,
+            tenantId,
+            templateNotificationDTO.getTriggerUser(),
+            templateCode,
+            channelUsersMap,
+            finalVariablesMap,
+            normalLang,
+            null
+        );
         
         return userSet.size();
     }
@@ -932,6 +941,7 @@ public class NotifyServiceImpl implements NotifyService {
         sendNotificationToChannels(
             appId,
             tenantId,
+            triggerTemplateNotification.getTriggerDTO().getTriggerUser(),
             templateCode,
             validChannelUsersMap,
             finalVariablesMap,
@@ -1023,6 +1033,7 @@ public class NotifyServiceImpl implements NotifyService {
     private void sendNotificationToChannels(
         Long appId,
         String tenantId,
+        String sender,
         String templateCode,
         Map<String, Set<String>> channelUsersMap,
         Map<String, String> finalVariablesMap,
@@ -1049,6 +1060,7 @@ public class NotifyServiceImpl implements NotifyService {
             if (notificationMessage != null) {
                 notifySendService.asyncSendUserChannelNotify(
                     appId,
+                    sender,
                     userSet,
                     channel,
                     notificationMessage.getTitle(),

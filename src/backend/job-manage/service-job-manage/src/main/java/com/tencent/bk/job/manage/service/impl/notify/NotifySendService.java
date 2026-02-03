@@ -83,12 +83,14 @@ public class NotifySendService {
     }
 
     private SendNotifyTask buildSendTask(Long appId,
+                                         String sender,
                                          Set<String> receivers,
                                          String channel,
                                          String title,
                                          String content) {
         SendNotifyTask task = SendNotifyTask.builder()
             .appId(appId)
+            .sender(sender)
             .createTimeMillis(System.currentTimeMillis())
             .msgType(channel)
             .receivers(receivers)
@@ -100,8 +102,13 @@ public class NotifySendService {
         return task;
     }
 
-    public void asyncSendUserChannelNotify(Long appId, Set<String> receivers, String channel, String title,
-                                           String content) {
+    public void asyncSendUserChannelNotify(Long appId,
+                                           String sender,
+                                           Set<String> receivers,
+                                           String channel,
+                                           String title,
+                                           String content
+    ) {
         if (CollectionUtils.isEmpty(receivers)) {
             log.warn("receivers is empty of channel {}, do not send notification", channel);
             return;
@@ -113,7 +120,7 @@ public class NotifySendService {
             title,
             content
         );
-        notifySendExecutor.submit(buildSendTask(appId, receivers, channel, title, content));
+        notifySendExecutor.submit(buildSendTask(appId, sender, receivers, channel, title, content));
     }
 
     public void sendUserChannelNotify(Set<String> receivers,
@@ -128,17 +135,20 @@ public class NotifySendService {
             JobContextUtil.getTenantId(),
             System.currentTimeMillis(),
             channel,
-            null,
+            JobContextUtil.getUsername(),
             receivers,
             title,
             content
         );
     }
 
-    public void asyncSendNotifyMessages(Long appId, Map<String, Set<String>> channelUsersMap, String title,
+    public void asyncSendNotifyMessages(Long appId,
+                                        String sender,
+                                        Map<String, Set<String>> channelUsersMap,
+                                        String title,
                                         String content) {
         channelUsersMap.forEach((channel, userSet) ->
-            asyncSendUserChannelNotify(appId, userSet, channel, title, content)
+            asyncSendUserChannelNotify(appId, sender, userSet, channel, title, content)
         );
     }
 }

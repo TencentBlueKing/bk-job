@@ -22,19 +22,32 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.resource.quota;
+package com.tencent.bk.job.common.service.quota;
 
-/**
- * 配额限制的资源 ID 定义
- */
-public interface QuotaResourceId {
-    /**
-     * 当前正在运行的作业实例
-     */
-    String JOB_INSTANCE = "runningJob";
+public enum ResourceQuotaCheckResultEnum {
 
-    /**
-     * 每天发送消息通知数量
-     */
-    String SEND_NOTIFY = "sendNotify";
+    NO_LIMIT("no_limit"),
+    RESOURCE_SCOPE_LIMIT("resource_scope_quota_limit"),
+    APP_LIMIT("app_quota_limit"),
+    SYSTEM_LIMIT("system_quota_limit"),
+    USER_LIMIT("user_quota_limit");
+
+    private final String value;
+
+    ResourceQuotaCheckResultEnum(String value) {
+        this.value = value;
+    }
+
+    public static ResourceQuotaCheckResultEnum valOf(String value) {
+        for (ResourceQuotaCheckResultEnum resultEnum : values()) {
+            if (resultEnum.value.equals(value)) {
+                return resultEnum;
+            }
+        }
+        throw new IllegalArgumentException("No ResourceQuotaCheckResultEnum constant: " + value);
+    }
+
+    public boolean isExceedLimit() {
+        return this != NO_LIMIT;
+    }
 }

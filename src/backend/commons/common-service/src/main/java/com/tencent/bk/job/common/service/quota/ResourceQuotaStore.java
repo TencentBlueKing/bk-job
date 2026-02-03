@@ -118,6 +118,21 @@ public class ResourceQuotaStore implements ConfigRefreshHandler {
 
     }
 
+    /**
+     * 获取用户配额限制
+     *
+     * @param resourceId 资源 ID
+     * @param userId     userId
+     * @return 配额限制
+     */
+    public long getQuotaLimitByUserId(String resourceId, String userId) {
+        ResourceQuotaLimit resourceQuotaLimit = getResourceQuota(resourceId);
+        if (resourceQuotaLimit == null || !resourceQuotaLimit.isEnabled()) {
+            return ResourceQuotaLimit.UNLIMITED_VALUE;
+        }
+        return resourceQuotaLimit.getLimitByBkUserId(userId);
+    }
+
     public Map<String, ResourceQuotaLimit> getAll() {
         checkLoad();
         return resourceQuotas;
@@ -203,6 +218,7 @@ public class ResourceQuotaStore implements ConfigRefreshHandler {
         ResourceQuotaConfigParser configParser;
         switch (resourceId) {
             case QuotaResourceId.JOB_INSTANCE:
+            case QuotaResourceId.SEND_NOTIFY:
                 configParser = new CounterResourceQuotaConfigParser();
                 break;
             default:

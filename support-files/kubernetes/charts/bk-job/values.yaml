@@ -919,6 +919,13 @@ job:
       #   appQuotaLimit:
       #     global: "20%"
       #     custom: "bk-nodeman=1000,bk-soap=50%"
+      # 配额限制资源-通知发送数量
+      sendNotify:
+        enabled: false
+        # resourceScopeQuotaLimit:
+        #   global: "5000"
+        # userQuotaLimit:
+        #   global: "2000"
   # 动态属性配置
   toggle:
     props:
