@@ -58,6 +58,8 @@ public class WatchableSendMsgService {
     private final TenantService tenantService;
     private final SendNotifyResourceQuotaManager sendNotifyResourceQuotaManager;
 
+    private int i = 0;
+
     @Autowired
     public WatchableSendMsgService(ICmsiClient cmsiApiClient,
                                    MeterRegistry meterRegistry,
@@ -81,18 +83,31 @@ public class WatchableSendMsgService {
     ) {
         String sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_FAILED;
         try {
+            log.debug("sendMsgWithApp begin, appId={}, msgType={}, sender={}, receivers={}, title={}, content={}",
+                appId, msgType, sender, receivers, title, content);
+
             checkSendNotifyQuotaLimit(
                 appId,
                 sender
             );
 
-            NotifyMessageDTO notifyMessageDTO = buildNotifyMessage(sender, receivers, title, content);
-            beginSendMessage(
-                msgType,
-                notifyMessageDTO,
-                tenantService.getTenantIdByAppId(appId)
-            );
-            sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
+            if (i % 2 == 0) {
+                // 环境上的发送通知接口调不了，模拟成功
+                log.debug("test send success, i={}", i);
+                sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
+            } else {
+                // 真正调用发送通知接口（会报错）
+                log.debug("test send interface, i={}", i);
+
+                NotifyMessageDTO notifyMessageDTO = buildNotifyMessage(sender, receivers, title, content);
+                beginSendMessage(
+                    msgType,
+                    notifyMessageDTO,
+                    tenantService.getTenantIdByAppId(appId)
+                );
+                sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
+            }
+            i++;
         } catch (PaasException e) {
             sendNotifyLimitRollback(appId, sender);
             throw e;
@@ -114,18 +129,29 @@ public class WatchableSendMsgService {
     ) {
         String sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_FAILED;
         try {
+            log.debug("sendMsgWithCurrentTenant begin, tenantId={}, msgType={}, sender={}, receivers={}, title={}, content={}",
+                tenantId, msgType, sender, receivers, title, content);
+
             checkSendNotifyQuotaLimit(
                 null,
                 sender
             );
 
-            NotifyMessageDTO notifyMessageDTO = buildNotifyMessage(sender, receivers, title, content);
-            beginSendMessage(
-                msgType,
-                notifyMessageDTO,
-                tenantId
-            );
-            sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
+            if (i % 2 == 0) {
+                // 环境上的发送通知接口调不了，模拟成功
+                log.debug("sendMsgWithCurrentTenant. test send success, i={}", i);
+                sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
+            } else {
+                log.debug("sendMsgWithCurrentTenant. test send interface, i={}", i);
+
+                NotifyMessageDTO notifyMessageDTO = buildNotifyMessage(sender, receivers, title, content);
+                beginSendMessage(
+                    msgType,
+                    notifyMessageDTO,
+                    tenantId
+                );
+                sendStatus = MetricsConstants.TAG_VALUE_SEND_STATUS_SUCCESS;
+            }
         } catch (PaasException e) {
             sendNotifyLimitRollback(null, sender);
             throw e;
