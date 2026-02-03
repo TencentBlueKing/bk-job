@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.exception.JobMicroServiceBootException;
 import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.common.metrics.CommonMetricValues;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.resource.quota.ResourceQuotaLimit;
 import com.tencent.bk.job.common.service.quota.ResourceQuotaCheckResultEnum;
 import com.tencent.bk.job.common.service.quota.SendNotifyResourceQuotaStore;
 import com.tencent.bk.job.common.util.date.DateUtils;
@@ -116,8 +117,10 @@ public class SendNotifyResourceQuotaManager {
 
         long startTime = System.currentTimeMillis();
         long systemLimit = sendNotifyResourceQuotaStore.getSystemQuotaLimit();
-        long resourceScopeLimit = sendNotifyResourceQuotaStore.getQuotaLimitByResourceScope(resourceScope);
-        long userLimit = sendNotifyResourceQuotaStore.getQuotaLimitByUserId(userId);
+        long resourceScopeLimit = resourceScope == null ? ResourceQuotaLimit.UNLIMITED_VALUE
+            : sendNotifyResourceQuotaStore.getQuotaLimitByResourceScope(resourceScope);
+        long userLimit = userId == null ? ResourceQuotaLimit.UNLIMITED_VALUE
+            : sendNotifyResourceQuotaStore.getQuotaLimitByUserId(userId);
         String scopeUniqueId = resourceScope != null ? resourceScope.toResourceScopeUniqueId() : null;
 
         String result = redisTemplate.execute(
