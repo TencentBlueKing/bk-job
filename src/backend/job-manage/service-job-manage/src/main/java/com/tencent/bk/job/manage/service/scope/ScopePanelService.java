@@ -31,7 +31,6 @@ import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeEnum;
 import com.tencent.bk.job.common.iam.service.AuthService;
 import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.config.ScopePanelProperties;
 import com.tencent.bk.job.manage.model.web.vo.AppVO;
@@ -57,17 +56,14 @@ import java.util.Map;
 @Service
 public class ScopePanelService {
 
-    private final TenantEnvService tenantEnvService;
     private final ScopePanelProperties scopePanelProperties;
     private final AuthService authService;
     private final MessageI18nService messageI18nService;
 
     @Autowired
-    public ScopePanelService(TenantEnvService tenantEnvService,
-                             ScopePanelProperties scopePanelProperties,
+    public ScopePanelService(ScopePanelProperties scopePanelProperties,
                              AuthService authService,
                              MessageI18nService messageI18nService) {
-        this.tenantEnvService = tenantEnvService;
         this.scopePanelProperties = scopePanelProperties;
         this.authService = authService;
         this.messageI18nService = messageI18nService;
@@ -86,9 +82,24 @@ public class ScopePanelService {
         scopeGroupPanel.setScopeGroupList(scopeGroupList);
         scopeGroupPanel.setCanApply(decideIfUserCanApply(username));
         if (scopeGroupPanel.isCanApply()) {
-            scopeGroupPanel.setApplyUrl(authService.getApplyUrl(ActionId.ACCESS_BUSINESS, ResourceTypeEnum.BUSINESS));
+            String applyUrl = tryToGetApplyUrl();
+            scopeGroupPanel.setApplyUrl(applyUrl);
         }
         return scopeGroupPanel;
+    }
+
+    /**
+     * 尝试获取权限申请链接，如果失败，返回null
+     *
+     * @return 权限申请链接
+     */
+    private String tryToGetApplyUrl() {
+        try {
+            return authService.getApplyUrl(ActionId.ACCESS_BUSINESS, ResourceTypeEnum.BUSINESS);
+        } catch (Throwable t) {
+            log.warn("Fail to getApplyUrl", t);
+            return null;
+        }
     }
 
     /**
