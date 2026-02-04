@@ -44,6 +44,7 @@ public interface JobLogQueryService {
                                      String startTime,
                                      String endTime,
                                      Integer start,
-                                     Integer size);
+                                     Integer size,
+                                     Boolean asc);
 
 }
