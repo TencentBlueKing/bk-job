@@ -152,7 +152,7 @@ public class TaskInstanceExecuteObjectProcessor {
             // 获取并设置主机执行对象
             acquireAndSetHosts(taskInstanceExecuteObjects, taskInstance, stepInstanceList, variables);
             // 获取并设置容器执行对象
-            acquireAndSetContainers(taskInstanceExecuteObjects, taskInstance, stepInstanceList);
+            acquireAndSetContainers(taskInstanceExecuteObjects, taskInstance, stepInstanceList, variables);
             boolean isSupportExecuteObjectFeature = isSupportExecuteObjectFeature(taskInstance);
             // 合并所有执行对象
             mergeExecuteObjects(stepInstanceList, variables, isSupportExecuteObjectFeature);
@@ -437,6 +437,7 @@ public class TaskInstanceExecuteObjectProcessor {
         }
 
         if (CollectionUtils.isNotEmpty(variables)) {
+            // 往“执行目标”变量的对象中填充主机详情
             variables.forEach(variable -> {
                 if (variable.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()) {
                     fillHostsDetail(variable.getExecuteTarget(), taskInstanceExecuteObjects);
@@ -572,11 +573,16 @@ public class TaskInstanceExecuteObjectProcessor {
 
     private void acquireAndSetContainers(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
                                          TaskInstanceDTO taskInstance,
-                                         List<StepInstanceDTO> stepInstances) {
+                                         List<StepInstanceDTO> stepInstances,
+                                         Collection<TaskVariableDTO> variables) {
 
         // 根据静态容器列表方式获取并设置容器执行对象
-        acquireAndSetContainersByStaticContainerList(taskInstanceExecuteObjects,
-            taskInstance, stepInstances);
+        acquireAndSetContainersByStaticContainerList(
+            taskInstanceExecuteObjects,
+            taskInstance,
+            stepInstances,
+            variables
+        );
 
         // 根据 ContainerFilter 方式获取并设置容器执行对象
         acquireAndSetContainersByContainerFilters(taskInstanceExecuteObjects,
@@ -586,12 +592,18 @@ public class TaskInstanceExecuteObjectProcessor {
             CollectionUtils.isNotEmpty(taskInstanceExecuteObjects.getValidContainers()));
 
         // 增加容器 topo 信息（集群 UID，集群名称、命名空间名称等)
-        fillContainerTopoInfo(taskInstance.getAppId(), taskInstanceExecuteObjects.getValidContainers(), stepInstances);
+        fillContainerTopoInfo(
+            taskInstance.getAppId(),
+            taskInstanceExecuteObjects.getValidContainers(),
+            stepInstances,
+            variables
+        );
     }
 
     private void fillContainerTopoInfo(long appId,
                                        Collection<Container> containers,
-                                       List<StepInstanceDTO> stepInstances) {
+                                       List<StepInstanceDTO> stepInstances,
+                                       Collection<TaskVariableDTO> variables) {
         if (CollectionUtils.isEmpty(containers)) {
             return;
         }
@@ -612,22 +624,38 @@ public class TaskInstanceExecuteObjectProcessor {
         Map<Long, KubeNamespaceDTO> namespaceMap = namespaces.stream().collect(
             Collectors.toMap(KubeNamespaceDTO::getId, namespace -> namespace));
 
-        // 填充 cluster、 namespace 信息
+        // 填充步骤实例中容器的 cluster、namespace 信息
         for (StepInstanceDTO stepInstance : stepInstances) {
             stepInstance.forEachExecuteObjects(executeObjects -> {
-                if (CollectionUtils.isNotEmpty(executeObjects.getContainerFilters())) {
-                    executeObjects.getContainerFilters().forEach(containerFilter -> {
-                        if (CollectionUtils.isNotEmpty(containerFilter.getContainers())) {
-                            containerFilter.getContainers().forEach(
-                                container -> addTopoDetail(container, clusterMap, namespaceMap));
-                        }
-                    });
+                fillContainerTopoDetail(executeObjects, clusterMap, namespaceMap);
+            });
+        }
+
+        // 填充变量中容器的 cluster、namespace 信息
+        if (CollectionUtils.isNotEmpty(variables)) {
+            for (TaskVariableDTO variable : variables) {
+                if (variable.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()
+                    && variable.getExecuteTarget() != null) {
+                    fillContainerTopoDetail(variable.getExecuteTarget(), clusterMap, namespaceMap);
                 }
-                if (CollectionUtils.isNotEmpty(executeObjects.getStaticContainerList())) {
-                    executeObjects.getStaticContainerList().forEach(
+            }
+        }
+    }
+
+    private void fillContainerTopoDetail(ExecuteTargetDTO executeTarget,
+                                         Map<Long, KubeClusterDTO> clusterMap,
+                                         Map<Long, KubeNamespaceDTO> namespaceMap) {
+        if (CollectionUtils.isNotEmpty(executeTarget.getContainerFilters())) {
+            executeTarget.getContainerFilters().forEach(containerFilter -> {
+                if (CollectionUtils.isNotEmpty(containerFilter.getContainers())) {
+                    containerFilter.getContainers().forEach(
                         container -> addTopoDetail(container, clusterMap, namespaceMap));
                 }
             });
+        }
+        if (CollectionUtils.isNotEmpty(executeTarget.getStaticContainerList())) {
+            executeTarget.getStaticContainerList().forEach(
+                container -> addTopoDetail(container, clusterMap, namespaceMap));
         }
     }
 
@@ -644,19 +672,34 @@ public class TaskInstanceExecuteObjectProcessor {
 
     private void acquireAndSetContainersByStaticContainerList(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
                                                               TaskInstanceDTO taskInstance,
-                                                              List<StepInstanceDTO> stepInstances) {
+                                                              List<StepInstanceDTO> stepInstances,
+                                                              Collection<TaskVariableDTO> variables) {
         Set<Long> queryContainerIds = new HashSet<>();
+        // 从步骤实例中提取容器ID
         for (StepInstanceDTO stepInstance : stepInstances) {
             queryContainerIds.addAll(
                 stepInstance.extractStaticContainerList().stream()
                     .map(Container::getId)
                     .collect(Collectors.toList()));
         }
+        // 从变量中提取容器ID
+        if (CollectionUtils.isNotEmpty(variables)) {
+            for (TaskVariableDTO variable : variables) {
+                if (variable.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()
+                    && variable.getExecuteTarget() != null
+                    && CollectionUtils.isNotEmpty(variable.getExecuteTarget().getStaticContainerList())) {
+                    queryContainerIds.addAll(
+                        variable.getExecuteTarget().getStaticContainerList().stream()
+                            .map(Container::getId)
+                            .collect(Collectors.toList()));
+                }
+            }
+        }
         if (CollectionUtils.isNotEmpty(queryContainerIds)) {
             List<Container> containers = containerService.listContainerByIds(
                 taskInstance.getAppId(), queryContainerIds);
             if (CollectionUtils.isNotEmpty(containers)) {
-                fillTaskInstanceContainerDetail(taskInstanceExecuteObjects, stepInstances,
+                fillTaskInstanceContainerDetail(taskInstanceExecuteObjects, stepInstances, variables,
                     containers.stream().collect(
                         Collectors.toMap(Container::getId, container -> container, (oldValue, newValue) -> newValue)));
             }
@@ -684,25 +727,45 @@ public class TaskInstanceExecuteObjectProcessor {
 
     private void fillTaskInstanceContainerDetail(TaskInstanceExecuteObjects taskInstanceExecuteObjects,
                                                  List<StepInstanceDTO> stepInstanceList,
+                                                 Collection<TaskVariableDTO> variables,
                                                  Map<Long, Container> containerMap) {
         Set<Long> notExistContainerIds = new HashSet<>();
         taskInstanceExecuteObjects.setNotExistContainerIds(notExistContainerIds);
 
+        // 填充步骤实例中的容器详情
         for (StepInstanceDTO stepInstance : stepInstanceList) {
             stepInstance.forEachExecuteObjects(executeObjects -> {
-                if (CollectionUtils.isNotEmpty(executeObjects.getStaticContainerList())) {
-                    executeObjects.getStaticContainerList()
-                        .forEach(container -> {
-                            Container containDetail = containerMap.get(container.getId());
-                            if (containDetail == null) {
-                                notExistContainerIds.add(container.getId());
-                                return;
-                            }
-                            taskInstanceExecuteObjects.addContainer(containDetail);
-                            container.updatePropsByContainer(containDetail);
-                        });
-                }
+                fillContainerDetail(executeObjects, containerMap, taskInstanceExecuteObjects, notExistContainerIds);
             });
+        }
+
+        // 填充变量中的容器详情
+        if (CollectionUtils.isNotEmpty(variables)) {
+            for (TaskVariableDTO variable : variables) {
+                if (variable.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()
+                    && variable.getExecuteTarget() != null) {
+                    fillContainerDetail(variable.getExecuteTarget(), containerMap,
+                        taskInstanceExecuteObjects, notExistContainerIds);
+                }
+            }
+        }
+    }
+
+    private void fillContainerDetail(ExecuteTargetDTO executeTarget,
+                                     Map<Long, Container> containerMap,
+                                     TaskInstanceExecuteObjects taskInstanceExecuteObjects,
+                                     Set<Long> notExistContainerIds) {
+        if (CollectionUtils.isNotEmpty(executeTarget.getStaticContainerList())) {
+            executeTarget.getStaticContainerList()
+                .forEach(container -> {
+                    Container containerDetail = containerMap.get(container.getId());
+                    if (containerDetail == null) {
+                        notExistContainerIds.add(container.getId());
+                        return;
+                    }
+                    taskInstanceExecuteObjects.addContainer(containerDetail);
+                    container.updatePropsByContainer(containerDetail);
+                });
         }
     }
 

@@ -58,7 +58,7 @@ public class VariableResolveUtils {
 
     /**
      * 格式化容器值
-     * 格式：clusterName:namespace/podName/containerName
+     * 格式：clusterName/namespace/podName/containerName
      *
      * @param containers 容器列表
      * @return 格式化后的容器值
@@ -69,7 +69,7 @@ public class VariableResolveUtils {
         }
         StringJoiner joiner = new StringJoiner(",");
         containers.forEach(container -> {
-            String formatted = StringUtils.defaultString(container.getClusterName(), "") + ":"
+            String formatted = StringUtils.defaultString(container.getClusterName(), "") + "/"
                 + StringUtils.defaultString(container.getNamespace(), "") + "/"
                 + StringUtils.defaultString(container.getPodName(), "") + "/"
                 + StringUtils.defaultString(container.getName(), "");
