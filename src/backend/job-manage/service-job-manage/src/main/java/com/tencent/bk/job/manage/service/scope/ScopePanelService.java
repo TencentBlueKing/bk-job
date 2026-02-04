@@ -97,7 +97,7 @@ public class ScopePanelService {
         try {
             return authService.getApplyUrl(ActionId.ACCESS_BUSINESS, ResourceTypeEnum.BUSINESS);
         } catch (Throwable t) {
-            log.error("Fail to getApplyUrl", t);
+            log.warn("Fail to getApplyUrl", t);
             return null;
         }
     }
