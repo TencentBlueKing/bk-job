@@ -342,6 +342,12 @@ public class ErrorCode {
     public static final int DELETE_REF_CREDENTIAL_FAIL = 1243055;
     // 高危语句规则[{0}]已存在
     public static final int DANGEROUS_RUlE_EXIST = 1243056;
+    // 发送通知总量超过业务配额限制
+    public static final int SEND_NOTIFY_EXCEED_RESOURCE_SCOPE_QUOTA_LIMIT = 1243057;
+    // 发送通知总量超过用户配额限制
+    public static final int SEND_NOTIFY_EXCEED_USER_QUOTA_LIMIT = 1243058;
+    // 发送通知总量超过系统配额限制
+    public static final int SEND_NOTIFY_EXCEED_SYSTEM_QUOTA_LIMIT = 1243059;
     // 作业管理 end
 
     // 作业执行 start

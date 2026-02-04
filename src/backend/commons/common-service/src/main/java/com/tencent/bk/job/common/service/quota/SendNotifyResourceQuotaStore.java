@@ -22,65 +22,52 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.resource.quota;
+package com.tencent.bk.job.common.service.quota;
 
 import com.tencent.bk.job.common.model.dto.ResourceScope;
-import lombok.Data;
+import com.tencent.bk.job.common.resource.quota.QuotaResourceId;
 
 /**
- * 资源配额限制-基础类
+ * 资源配额存储-通知发送数量配额限制
  */
-@Data
-public class ResourceQuotaLimit {
+public class SendNotifyResourceQuotaStore {
 
-    public static final long UNLIMITED_VALUE = Long.MAX_VALUE;
-    /**
-     * 是否启用配额限制
-     */
-    private boolean enabled;
-    /**
-     * 配额容量表达式
-     */
-    private String capacityExpr;
-    /**
-     * 解析后的配额总量限制
-     */
-    private Long capacity;
+    private final ResourceQuotaStore resourceQuotaStore;
 
-    /**
-     * 资源管理空间配额限制
-     */
-    private ResourceScopeQuotaLimit resourceScopeQuotaLimit;
-
-    /**
-     * 应用配额限制
-     */
-    private AppQuotaLimit appQuotaLimit;
-
-    /**
-     * 按用户配额限制
-     */
-    private UserQuotaLimit userQuotaLimit;
-
-    public long getLimitByResourceScope(ResourceScope resourceScope) {
-        if (resourceScopeQuotaLimit == null) {
-            return Long.MAX_VALUE;
-        }
-        return resourceScopeQuotaLimit.getLimit(resourceScope);
+    public SendNotifyResourceQuotaStore(ResourceQuotaStore resourceQuotaStore) {
+        this.resourceQuotaStore = resourceQuotaStore;
     }
 
-    public long getLimitByBkAppCode(String bkAppCode) {
-        if (appQuotaLimit == null) {
-            return Long.MAX_VALUE;
-        }
-        return appQuotaLimit.getLimit(bkAppCode);
+    public boolean isQuotaLimitEnabled() {
+        return resourceQuotaStore.isQuotaLimitEnabled(QuotaResourceId.SEND_NOTIFY);
     }
 
-    public long getLimitByBkUserId(String userId) {
-        if (userQuotaLimit == null) {
-            return Long.MAX_VALUE;
-        }
-        return userQuotaLimit.getLimit(userId);
+    /**
+     * 根据资源管理空间获取消息通知配额限制
+     *
+     * @param resourceScope 资源管理空间
+     * @return 每天最大消息通知限制
+     */
+    public long getQuotaLimitByResourceScope(ResourceScope resourceScope) {
+        return resourceQuotaStore.getQuotaLimitByResourceScope(QuotaResourceId.SEND_NOTIFY, resourceScope);
     }
 
+    /**
+     * 根据用户id获取消息通知配额限制
+     *
+     * @param userId userId
+     * @return 每天最大消息通知限制
+     */
+    public long getQuotaLimitByUserId(String userId) {
+        return resourceQuotaStore.getQuotaLimitByUserId(QuotaResourceId.SEND_NOTIFY, userId);
+    }
+
+    /**
+     * 获取整个Job系统消息通知配额限制
+     *
+     * @return 每天最大消息通知限制
+     */
+    public long getSystemQuotaLimit() {
+        return resourceQuotaStore.getSystemQuotaLimit(QuotaResourceId.SEND_NOTIFY);
+    }
 }

@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.service.quota.config;
 import com.tencent.bk.job.common.service.quota.ResourceQuotaLoadApplicationRunner;
 import com.tencent.bk.job.common.service.quota.ResourceQuotaStore;
 import com.tencent.bk.job.common.service.quota.RunningJobResourceQuotaStore;
+import com.tencent.bk.job.common.service.quota.SendNotifyResourceQuotaStore;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,8 +45,13 @@ public class ResourceQuotaAutoConfiguration {
     }
 
     @Bean
-    public RunningJobResourceQuotaStore resourceScopeResourceQuotaManager(ResourceQuotaStore resourceQuotaStore) {
+    public RunningJobResourceQuotaStore runningJobResourceQuotaStore(ResourceQuotaStore resourceQuotaStore) {
         return new RunningJobResourceQuotaStore(resourceQuotaStore);
+    }
+
+    @Bean
+    public SendNotifyResourceQuotaStore sendNotifyResourceQuotaStore(ResourceQuotaStore resourceQuotaStore) {
+        return new SendNotifyResourceQuotaStore(resourceQuotaStore);
     }
 
     @Bean

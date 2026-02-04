@@ -81,6 +81,8 @@ import com.tencent.bk.job.manage.model.web.vo.notify.RoleVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.TriggerTypeVO;
 import com.tencent.bk.job.manage.service.AppRoleService;
 import com.tencent.bk.job.manage.service.NotifyService;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.collections4.CollectionUtils;
@@ -536,6 +538,7 @@ public class NotifyServiceImpl implements NotifyService {
             notifyMessageMap.get(new ArrayList<>(notifyMessageMap.keySet()).get(0));
         notifySendService.asyncSendNotifyMessages(
             notification.getTriggerDTO().getAppId(),
+            notification.getTriggerDTO().getTriggerUser(),
             channelUsersMap,
             notificationMessage.getTitle(),
             notificationMessage.getContent()
@@ -870,10 +873,20 @@ public class NotifyServiceImpl implements NotifyService {
         );
         // 获取语言
         String normalLang = getNormalUserLanguage(applicationDTO);
-        
+
         // 发送通知
-        sendNotificationToChannels(appId, tenantId, templateCode, channelUsersMap, 
-            finalVariablesMap, normalLang, null);
+        sendNotificationToChannels(
+            SendNotificationContext.builder()
+                .appId(appId)
+                .tenantId(tenantId)
+                .sender(templateNotificationDTO.getTriggerUser())
+                .templateCode(templateCode)
+                .channelUsersMap(channelUsersMap)
+                .variablesMap(finalVariablesMap)
+                .normalLang(normalLang)
+                .watch(null)
+                .build()
+        );
         
         return userSet.size();
     }
@@ -930,13 +943,16 @@ public class NotifyServiceImpl implements NotifyService {
         
         // 发送通知
         sendNotificationToChannels(
-            appId,
-            tenantId,
-            templateCode,
-            validChannelUsersMap,
-            finalVariablesMap,
-            normalLang,
-            watch
+            SendNotificationContext.builder()
+                .appId(appId)
+                .tenantId(tenantId)
+                .sender(triggerTemplateNotification.getTriggerDTO().getTriggerUser())
+                .templateCode(templateCode)
+                .channelUsersMap(validChannelUsersMap)
+                .variablesMap(finalVariablesMap)
+                .normalLang(normalLang)
+                .watch(watch)
+                .build()
         );
         
         return validChannelUsersMap.size();
@@ -1020,25 +1036,18 @@ public class NotifyServiceImpl implements NotifyService {
     /**
      * 发送模板通知的核心逻辑
      */
-    private void sendNotificationToChannels(
-        Long appId,
-        String tenantId,
-        String templateCode,
-        Map<String, Set<String>> channelUsersMap,
-        Map<String, String> finalVariablesMap,
-        String normalLang,
-        StopWatch watch
-    ) {
-        channelUsersMap.forEach((channel, userSet) -> {
+    private void sendNotificationToChannels(SendNotificationContext ctx) {
+        ctx.channelUsersMap.forEach((channel, userSet) -> {
+            StopWatch watch = ctx.getWatch();
             if (watch != null) {
                 watch.start("getNotificationMessage_" + channel);
             }
             ServiceNotificationMessage notificationMessage = notifyTemplateService.getNotificationMessage(
-                tenantId,
-                templateCode,
+                ctx.getTenantId(),
+                ctx.getTemplateCode(),
                 channel,
-                normalLang,
-                finalVariablesMap
+                ctx.getNormalLang(),
+                ctx.getVariablesMap()
             );
             if (watch != null) {
                 watch.stop();
@@ -1048,14 +1057,15 @@ public class NotifyServiceImpl implements NotifyService {
             }
             if (notificationMessage != null) {
                 notifySendService.asyncSendUserChannelNotify(
-                    appId,
+                    ctx.getAppId(),
+                    ctx.getSender(),
                     userSet,
                     channel,
                     notificationMessage.getTitle(),
                     notificationMessage.getContent()
                 );
             } else {
-                log.warn("Cannot find template of templateCode:{},channel:{}, ignore", templateCode, channel);
+                log.warn("Cannot find template of templateCode:{},channel:{}, ignore", ctx.getTemplateCode(), channel);
             }
         });
     }
@@ -1069,5 +1079,18 @@ public class NotifyServiceImpl implements NotifyService {
         } else {
             channelUsersMap.put(channel, userSet);
         }
+    }
+
+    @Getter
+    @Builder
+    private static class SendNotificationContext {
+        private final Long appId;
+        private final String tenantId;
+        private final String sender;
+        private final String templateCode;
+        private final Map<String, Set<String>> channelUsersMap;
+        private final Map<String, String> variablesMap;
+        private final String normalLang;
+        private final StopWatch watch;
     }
 }

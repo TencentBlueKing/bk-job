@@ -71,14 +71,21 @@ public class ResourceQuotaLimitProperties {
          */
         private QuotaLimitProp appQuotaLimit;
 
+        /**
+         * 用户-配额
+         */
+        private QuotaLimitProp userQuotaLimit;
+
         public ResourceQuotaLimitProp(boolean enabled,
                                       String capacity,
                                       QuotaLimitProp resourceScopeQuotaLimit,
-                                      QuotaLimitProp appQuotaLimit) {
+                                      QuotaLimitProp appQuotaLimit,
+                                      QuotaLimitProp userQuotaLimit) {
             this.enabled = enabled;
             this.capacity = capacity;
             this.resourceScopeQuotaLimit = resourceScopeQuotaLimit;
             this.appQuotaLimit = appQuotaLimit;
+            this.userQuotaLimit = userQuotaLimit;
         }
     }
 

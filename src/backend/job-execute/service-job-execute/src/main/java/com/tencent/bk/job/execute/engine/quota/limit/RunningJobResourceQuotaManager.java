@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.exception.JobMicroServiceBootException;
 import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.common.metrics.CommonMetricValues;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
+import com.tencent.bk.job.common.service.quota.ResourceQuotaCheckResultEnum;
 import com.tencent.bk.job.common.service.quota.RunningJobResourceQuotaStore;
 import com.tencent.bk.job.execute.constants.RedisKeys;
 import io.micrometer.core.instrument.MeterRegistry;
