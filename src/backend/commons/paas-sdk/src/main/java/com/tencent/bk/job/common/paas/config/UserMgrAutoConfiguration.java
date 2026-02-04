@@ -75,9 +75,9 @@ public class UserMgrAutoConfiguration {
     }
 
     @Bean
-    UserLocalCache userLocalCache(IUserApiClient userMgrApiClient) {
+    UserLocalCache userLocalCache(IUserApiClient userMgrApiClient, TenantEnvService tenantEnvService) {
         log.info("Init UserLocalCache");
-        return new UserLocalCache(userMgrApiClient);
+        return new UserLocalCache(userMgrApiClient, tenantEnvService);
     }
 
     @Bean

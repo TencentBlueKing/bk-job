@@ -77,6 +77,14 @@ public class ApiGwIamClient extends BkApiV1Client implements IIamClient {
             IAM_API,
             bkApiGatewayProperties.getBkIam().getUrl(),
             HttpHelperFactory.createHttpHelper(
+                5000,
+                5000,
+                5000,
+                500,
+                1000,
+                60,
+                false,
+                null,
                 httpClientBuilder -> httpClientBuilder.addInterceptorLast(getLogBkApiRequestIdInterceptor())
             ),
             tenantEnvService

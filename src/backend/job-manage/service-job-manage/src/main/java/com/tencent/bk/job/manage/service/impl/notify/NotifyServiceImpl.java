@@ -976,7 +976,7 @@ public class NotifyServiceImpl implements NotifyService {
         for (String key : keys) {
             String username = displayVariablesMap.getOrDefault(key, null);
             if (StringUtils.isNotEmpty(username)) {
-                String displayName = userLocalCache.getSingleUser(tenantId, username).getDisplayName();
+                String displayName = userLocalCache.getUser(tenantId, username).getDisplayName();
                 displayVariablesMap.put(key, displayName);
             }
         }
