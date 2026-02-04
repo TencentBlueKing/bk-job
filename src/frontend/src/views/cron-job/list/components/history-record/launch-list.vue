@@ -133,7 +133,9 @@
     },
     data() {
       return {
-        searchParams: {},
+        searchParams: {
+          timezone: window.PROJECT_CONFIG.USER_TIME_ZONE || window.PROJECT_CONFIG.DEFAULT_DISPLAY_TIME_ZONE,
+        },
         searchAppendValue: [],
       };
     },
@@ -158,7 +160,6 @@
           },
         ];
       }
-      this.searchParams.timezone = window.PROJECT_CONFIG.USER_TIME_ZONE || window.PROJECT_CONFIG.DEFAULT_DISPLAY_TIME_ZONE;
 
       this.searchSelect = [
         {
