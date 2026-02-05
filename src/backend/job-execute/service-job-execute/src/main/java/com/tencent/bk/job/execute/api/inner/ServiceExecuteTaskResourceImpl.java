@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.model.dto.Container;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.iam.service.WebAuthService;
@@ -169,6 +170,15 @@ public class ServiceExecuteTaskResourceImpl implements ServiceExecuteTaskResourc
             servers.getTopoNodes().forEach(topoNode -> topoNodes.add(new DynamicServerTopoNodeDTO(topoNode.getId(),
                 topoNode.getNodeType())));
             executeTargetDTO.setTopoNodes(topoNodes);
+        }
+        // 处理容器
+        if (servers.getContainers() != null && !servers.getContainers().isEmpty()) {
+            List<Container> containerList = new ArrayList<>();
+            servers.getContainers().forEach(serviceContainer -> {
+                Container container = serviceContainer.toContainer();
+                containerList.add(container);
+            });
+            executeTargetDTO.setStaticContainerList(containerList);
         }
         return executeTargetDTO;
     }
