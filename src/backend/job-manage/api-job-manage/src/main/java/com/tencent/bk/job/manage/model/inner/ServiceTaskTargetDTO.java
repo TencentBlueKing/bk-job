@@ -30,6 +30,8 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @ApiModel("目标服务器")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -40,6 +42,9 @@ public class ServiceTaskTargetDTO {
 
     @ApiModelProperty(value = "目标服务器")
     private ServiceTaskHostNodeDTO targetServer;
+
+    @ApiModelProperty(value = "目标容器列表")
+    private List<ServiceTargetContainerDTO> containerList;
 
     @Override
     public String toString() {

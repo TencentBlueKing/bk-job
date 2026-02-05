@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.executor;
 
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.gse.util.ScriptRequestBuilder;
 import com.tencent.bk.job.common.gse.v2.model.Agent;
@@ -157,6 +158,31 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         } else {
             return gseScriptFileRootPath + "/" + account;
         }
+    }
+
+    /**
+     * 判断当前步骤是否为容器执行
+     */
+    protected boolean isContainerExecute() {
+        return stepInstance.determineStepExecuteObjectType() == ExecuteObjectTypeEnum.CONTAINER;
+    }
+
+    /**
+     * 获取容器路径前缀
+     */
+    protected String getContainerPathPrefix() {
+        return jobExecuteConfig.getGseScriptContainerPathPrefix();
+    }
+
+    /**
+     * 获取脚本文件路径（容器执行时，gse会添加前缀）
+     * 在脚本内容中使用，为脚本在 容器/主机 内的真实路径
+     */
+    protected String getScriptFilePathWithPrefix() {
+        if (isContainerExecute()) {
+            return jobExecuteConfig.getGseScriptContainerPathPrefix() + scriptFilePath;
+        }
+        return scriptFilePath;
     }
 
     @Override
@@ -348,20 +374,19 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         }
         Map<String, TaskVariableDTO> hostVariableMap = new HashMap<>();
         if (CollectionUtils.isNotEmpty(taskVars)) {
-            taskVars.stream().filter(taskVar -> taskVar.getType() == TaskVariableTypeEnum.HOST_LIST.getType())
+            taskVars.stream().filter(taskVar -> taskVar.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType())
                 .forEach(taskVar -> hostVariableMap.put(taskVar.getName(), taskVar));
         }
         Map<String, String> variableValues = new HashMap<>();
         for (String importVariable : importVariables) {
             if (hostVariableMap.containsKey(importVariable)) {
                 TaskVariableDTO hostVariableValue = hostVariableMap.get(importVariable);
-                String formattedHosts = "";
-                if (hostVariableValue.getExecuteTarget() != null
-                    && hostVariableValue.getExecuteTarget().getExecuteObjectsCompatibly() != null) {
-                    formattedHosts = VariableResolveUtils.formatHosts(
-                        hostVariableValue.getExecuteTarget().getHostsCompatibly());
+                String formattedValue = "";
+                if (hostVariableValue.getExecuteTarget() != null) {
+                    formattedValue = VariableResolveUtils.formatExecuteObjects(
+                        hostVariableValue.getExecuteTarget());
                 }
-                variableValues.put(importVariable, formattedHosts);
+                variableValues.put(importVariable, formattedValue);
             } else {
                 VariableResolveResult resolveResult =
                     jobBuildInVariableResolver.resolve(new VariableResolveContext(taskInstance, stepInstance,
@@ -396,9 +421,9 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         sb.append("if [ \"`echo ${OS_TYPE}|grep -i 'CYGWIN'`\" ];then\n");
         sb.append("BASE_PATH=\"/cygdrive/c\"\n");
         sb.append("fi\n");
-        sb.append(". ").append("${BASE_PATH}").append(scriptFilePath).append(File.separator).
+        sb.append(". ").append("${BASE_PATH}").append(getScriptFilePathWithPrefix()).append(File.separator).
             append(declareFileName).append("\n");
-        sb.append(". ").append("${BASE_PATH}").append(scriptFilePath).
+        sb.append(". ").append("${BASE_PATH}").append(getScriptFilePathWithPrefix()).
             append(File.separator).append(userScriptFileName).append("\n");
         return sb.toString();
     }
@@ -487,7 +512,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
      */
     private void buildInitialGlobalVarScript(List<TaskVariableDTO> taskVars, StringBuffer sb) {
         for (TaskVariableDTO taskVar : taskVars) {
-            if (taskVar.getType() != TaskVariableTypeEnum.HOST_LIST.getType()) {
+            if (taskVar.getType() != TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()) {
                 buildDeclareScript(taskVar, sb);
             }
         }
@@ -510,7 +535,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
     }
 
     private void buildNamespaceParamsDeclareScript(StringBuffer sb) {
-        String namespaceParamFilePath = getNamespaceParamsOutputFilePath();
+        String namespaceParamFilePath = getNamespaceParamsOutputFilePathWithPrefix();
         sb.append("BASE_PATH=\"\"\n");
         sb.append("OS_TYPE=`uname -s`\n");
         sb.append("if [ \"`echo ${OS_TYPE}|grep -i 'CYGWIN'`\" ];then\n");
@@ -541,9 +566,9 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         sb.append(buildOutputVarsOnExitFunction(taskVariablesAnalyzeResult, namespaceParamsOutputFileName,
             allParamsOutputFileName));
         sb.append("trap 'outputVarOnExit;' EXIT\n");
-        sb.append(". ").append("${BASE_PATH}").append(scriptFilePath).append(File.separator).
+        sb.append(". ").append("${BASE_PATH}").append(getScriptFilePathWithPrefix()).append(File.separator).
             append(varInputFileName).append("\n");
-        sb.append(". ").append("${BASE_PATH}").append(scriptFilePath).
+        sb.append(". ").append("${BASE_PATH}").append(getScriptFilePathWithPrefix()).
             append(File.separator).append(scriptFileName);
         if (StringUtils.isNotEmpty(scriptParam)) {
             sb.append(" ").append(scriptParam).append("\n");
@@ -570,12 +595,12 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
             }
 
             sb.append("' > ");
-            sb.append("${BASE_PATH}").append(scriptFilePath).append(File.separator)
+            sb.append("${BASE_PATH}").append(getScriptFilePathWithPrefix()).append(File.separator)
                 .append(allParamsOutputFileName).append("\n");
         }
         if (taskVariablesAnalyzeResult.isExistNamespaceVar()) {
             String namespaceParamOutputPath =
-                "${BASE_PATH}" + scriptFilePath + File.separator + namespaceParamsOutputFileName;
+                "${BASE_PATH}" + getScriptFilePathWithPrefix() + File.separator + namespaceParamsOutputFileName;
             sb.append("  if [ ! -f ").append(namespaceParamOutputPath).append(" ];then\n");
             sb.append("    touch ").append(namespaceParamOutputPath).append("\n");
             sb.append("    chmod 700 ").append(namespaceParamOutputPath).append("\n");
@@ -610,7 +635,7 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
         sb.append("BASE_PATH=\"/cygdrive/c\"\n");
         sb.append("fi\n");
         sb.append("\n");
-        String catFilePath = "${BASE_PATH}" + scriptFilePath + File.separator + varOutputFileName;
+        String catFilePath = "${BASE_PATH}" + getScriptFilePathWithPrefix() + File.separator + varOutputFileName;
         sb.append(shellSyntaxProcessor.declareIntVariable("total_time", 10, true));
         sb.append(shellSyntaxProcessor.declareIntVariable("cost_time", 0, true));
         sb.append("while [ $cost_time -le $total_time ];do\n");
@@ -627,6 +652,10 @@ public class ScriptGseTaskStartCommand extends AbstractGseTaskStartCommand {
 
     private String getNamespaceParamsOutputFilePath() {
         return scriptFilePath + "/" + getNamespaceParamOutputFile();
+    }
+
+    private String getNamespaceParamsOutputFilePathWithPrefix() {
+        return getScriptFilePathWithPrefix() + "/" + getNamespaceParamOutputFile();
     }
 
     @Override

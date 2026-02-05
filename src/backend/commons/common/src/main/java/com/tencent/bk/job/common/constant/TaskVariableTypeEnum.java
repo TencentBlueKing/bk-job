@@ -43,14 +43,13 @@ public enum TaskVariableTypeEnum {
     NAMESPACE(2, true, false, null),
 
     /**
-     * 主机列表
+     * 执行目标列表（主机/容器）
      */
-    HOST_LIST(3, false, false, null),
+    EXECUTE_OBJECT_LIST(3, false, false, null),
 
     /**
      * 密文
      */
-
     CIPHER(4, false, true, JobConstants.SENSITIVE_FIELD_PLACEHOLDER),
 
     /**

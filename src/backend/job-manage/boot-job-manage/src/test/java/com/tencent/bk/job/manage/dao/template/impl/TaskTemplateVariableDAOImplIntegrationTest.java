@@ -93,7 +93,7 @@ class TaskTemplateVariableDAOImplIntegrationTest {
         VARIABLE_3.setId(3L);
         VARIABLE_3.setTemplateId(10000L);
         VARIABLE_3.setName("测试3");
-        VARIABLE_3.setType(TaskVariableTypeEnum.HOST_LIST);
+        VARIABLE_3.setType(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST);
         VARIABLE_3.setDefaultValue("test3");
         VARIABLE_3.setDescription("这是一个测试变量3");
         VARIABLE_3.setChangeable(true);
