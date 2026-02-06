@@ -54,6 +54,12 @@ tmpMysqlRootUser="root"
 tmpMysqlRootPassword="123456"
 tmpMigrationDb="new_migration"
 
+# 蓝盾制品库（BK-Repo）URL 配置
+# 用于替换 file_source 表中 BLUEKING_ARTIFACTORY 类型文件源的 custom_info.base_url
+# 如果不需要替换（新老环境共用同一个制品库），可以将两个值设为相同
+sourceBkRepoUrl="http://bkrepo-old.example.com"
+targetBkRepoUrl="http://bkrepo-new.example.com"
+
 # 要填充的租户ID
 defaultTenantId="tencent"
 
@@ -72,16 +78,31 @@ function executeSqlInTmpDb(){
   showDbResult
 }
 
+# 用于 SELECT 查询并获取结果的函数（不输出 debug 信息，直接返回结果）
+function querySqlInTmpDb(){
+  mysql -h${tmpMysqlHost} -P${tmpMysqlPort} -u${tmpMysqlRootUser} -p${tmpMysqlRootPassword} -N -e "$1" 2>/dev/null
+}
+
 function executeSqlInSourceDb(){
   echo "execute sql: mysql -h${sourceMysqlHost} -P${sourceMysqlPort} -u${sourceMysqlUser} -p${sourceMysqlPassword} -e \"$1\""
   dbResult=$(mysql -h${sourceMysqlHost} -P${sourceMysqlPort} -u${sourceMysqlUser} -p${sourceMysqlPassword} -e "$1")
   showDbResult
 }
 
+# 用于 SELECT 查询并获取结果的函数（不输出 debug 信息，直接返回结果）
+function querySqlInSourceDb(){
+  mysql -h${sourceMysqlHost} -P${sourceMysqlPort} -u${sourceMysqlUser} -p${sourceMysqlPassword} -N -e "$1" 2>/dev/null
+}
+
 function executeSqlInTargetDb(){
   echo "execute sql: mysql -h${targetMysqlHost} -P${targetMysqlPort} -u${targetMysqlUser} -p${targetMysqlPassword} -e \"$1\""
   dbResult=$(mysql -h${targetMysqlHost} -P${targetMysqlPort} -u${targetMysqlUser} -p${targetMysqlPassword} -e "$1")
   showDbResult
+}
+
+# 用于 SELECT 查询并获取结果的函数（不输出 debug 信息，直接返回结果）
+function querySqlInTargetDb(){
+  mysql -h${targetMysqlHost} -P${targetMysqlPort} -u${targetMysqlUser} -p${targetMysqlPassword} -N -e "$1" 2>/dev/null
 }
 
 # 迁移工具名称
