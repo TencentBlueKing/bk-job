@@ -70,7 +70,7 @@
         <keep-alive v-if="contentHeight > 0">
           <component
             :is="contentCom"
-            ref="aceEditor"
+            ref="MonacoEditor"
             :height="contentHeight"
             :lang="scriptInfo.typeName"
             :options="scriptInfo.typeName"
@@ -207,10 +207,10 @@
   } from '@utils/assist';
   import { debugScriptCache } from '@utils/cache-helper';
 
-  import AceEditor from '@components/ace-editor';
   import DetailLayout from '@components/detail-layout';
   import DetailItem from '@components/detail-layout/item';
   import JbPopoverConfirm from '@components/jb-popover-confirm';
+  import MonacoEditor from '@components/monaco-editor';
 
   import I18n from '@/i18n';
 
@@ -221,7 +221,7 @@
   export default {
     name: '',
     components: {
-      AceEditor,
+      MonacoEditor,
       DetailLayout,
       DetailItem,
       JbPopoverConfirm,
@@ -250,7 +250,7 @@
     computed: {
       contentCom() {
         const comMap = {
-          content: AceEditor,
+          content: MonacoEditor,
           log: RenderLog,
         };
         return comMap[this.contentTab];
@@ -301,7 +301,7 @@
       },
       handleFullScreen() {
         if (this.contentTab === 'content') {
-          this.$refs.aceEditor.handleFullScreen();
+          this.$refs.MonacoEditor.handleFullScreen();
         }
       },
       /**

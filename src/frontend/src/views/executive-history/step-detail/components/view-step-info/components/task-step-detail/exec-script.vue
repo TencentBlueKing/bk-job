@@ -46,7 +46,7 @@
     <detail-item
       :label="$t('template.脚本内容：')"
       layout="vertical">
-      <ace-editor
+      <monaco-editor
         :lang="language"
         :options="languageOption"
         readonly
@@ -102,9 +102,9 @@
     formatScriptTypeValue,
   } from '@utils/assist';
 
-  import AceEditor from '@components/ace-editor';
   import DetailItem from '@components/detail-layout/item';
   import JbEditTextarea from '@components/jb-edit/textarea';
+  import MonacoEditor from '@components/monaco-editor';
 
   import {
     containerDetail,
