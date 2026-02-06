@@ -27,7 +27,7 @@
 
 <template>
   <div class="render-script-content">
-    <ace-editor
+    <monaco-editor
       :custom-enable="false"
       :lang="lang"
       :options="[lang]"
@@ -37,13 +37,13 @@
 </template>
 
 <script>
-  import AceEditor from '@components/ace-editor';
+  import MonacoEditor from '@components/monaco-editor';
 
   import { formatScriptTypeValue } from '@/utils/assist';
 
   export default {
     components: {
-      AceEditor,
+      MonacoEditor,
     },
     props: {
       data: {
