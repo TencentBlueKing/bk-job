@@ -40,7 +40,8 @@ public class LogQueryReq {
     private String indices;
 
     /**
-     * 时间标识符["15m", "30m", "1h", "4h", "12h", "1d", "customized"]（非必填，默认15m）
+     * 时间标识符["5m", "10m", "15m", "30m", "1h", "4h", "12h", "1d", "7d", "customized"]（非必填，默认15m）
+     * 不在这个列表的时间范围可能不生效
      */
     @JsonProperty("time_range")
     private String timeRange;
@@ -71,6 +72,7 @@ public class LogQueryReq {
 
     /**
      * 是否使用时间范围
+     * time_range不为空时，该字段为true
      */
     @JsonProperty("use_time_range")
     private Boolean useTimeRange;

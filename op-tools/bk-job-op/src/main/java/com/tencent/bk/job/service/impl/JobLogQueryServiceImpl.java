@@ -98,7 +98,7 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
 
         logQueryReq.setStartTime(startTime);
         logQueryReq.setEndTime(endTime);
-        logQueryReq.setUseTimeRange(startTime != null && endTime != null);
+        logQueryReq.setUseTimeRange(timeRange != null);
         logQueryReq.setTimeRange(timeRange);
         logQueryReq.setQueryString(queryString);
         
