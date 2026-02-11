@@ -31,7 +31,10 @@ import com.tencent.bk.job.service.api.bklog.LogQueryReq;
 import com.tencent.bk.job.service.api.bklog.LogQueryResp;
 import com.tencent.bk.job.service.model.PageData;
 import com.tencent.bk.job.service.model.SimpleLogDTO;
+import com.tencent.bk.job.utils.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -96,10 +99,20 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
         logQueryReq.setIndices(bkLogProperties.getIndices());
         logQueryReq.setIndexSetId(bkLogProperties.getIndexSetId());
 
-        logQueryReq.setStartTime(startTime);
-        logQueryReq.setEndTime(endTime);
-        logQueryReq.setUseTimeRange(timeRange != null);
-        logQueryReq.setTimeRange(timeRange);
+        String startTimeStr = startTime;
+        String endTimeStr = endTime;
+
+        // 优先使用timeRange，转化为毫秒时间戳的startTime和endTime
+        if (StringUtils.isNotBlank(timeRange)) {
+            Pair<Long, Long> startAndEndTime = TimeUtils.getTimesByRelativeTimeFromNow(timeRange);
+            startTimeStr = String.valueOf(startAndEndTime.getLeft());
+            endTimeStr = String.valueOf(startAndEndTime.getRight());
+        }
+
+        // 日志平台openAPI接口只能识别预定义对几个值，所以使用更通用的startTime和endTime
+        logQueryReq.setStartTime(startTimeStr);
+        logQueryReq.setEndTime(endTimeStr);
+        logQueryReq.setUseTimeRange(true);
         logQueryReq.setQueryString(queryString);
         
         // 设置分页参数
