@@ -60,13 +60,20 @@ public class CronHistoryCleanJobExecutor extends AbstractQuartzJobBean {
     }
 
     @Override
-    protected void executeInternalInternal(JobExecutionContext context) throws JobExecutionException {
-        log.debug("Start cleaning cron job execute history...");
+    protected void executeInternalInternal(JobExecutionContext context) {
+        try {
+            cleanCronJobHistory(context);
+        } catch (Exception e) {
+            log.error("Fail to cleanCronJobHistory", e);
+        }
+    }
+
+    protected void cleanCronJobHistory(JobExecutionContext context) {
+        log.info("Start cleaning cron job execute history...");
         long cleanTime = System.currentTimeMillis() - logKeepDay * 24 * 3600 * 1000;
         int jobHistoryCleanCount = cronJobHistoryService.cleanHistory(cleanTime, false);
         int innerJobHistoryCleanCount = innerCronJobHistoryService.cleanHistory(cleanTime, false);
         log.info("Clean success job history before {}|Common {}|Inner {}", cleanTime, jobHistoryCleanCount,
             innerJobHistoryCleanCount);
-        log.debug("Cron job execute history successfully cleaned.");
     }
 }

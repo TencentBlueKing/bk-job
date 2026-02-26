@@ -79,6 +79,7 @@ public class CronJobHistoryServiceImpl implements CronJobHistoryService {
 
     @PostConstruct
     private void addCleanJob() {
+        log.info("begin to addCleanJob");
         try {
             new CronExpression(cleanJobCronExp);
         } catch (ParseException e) {
@@ -110,6 +111,7 @@ public class CronJobHistoryServiceImpl implements CronJobHistoryService {
                 quartzTaskHandler.deleteJob(job.getKey());
             }
             quartzTaskHandler.addJob(job);
+            log.info("addCleanJob finished");
         } catch (SchedulerException e) {
             log.error("Error while add job to quartz!", e);
             throw new InternalException("Add to quartz failed!", e, ErrorCode.INTERNAL_ERROR);
