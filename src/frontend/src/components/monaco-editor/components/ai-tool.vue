@@ -1,6 +1,6 @@
 <template>
   <div
-    class="ace-editor-ai-tool"
+    class="monaco-editor-ai-tool"
     :class="{'is-active': isActive}"
     @click="handleShow"
     @mouseenter="handleShow">
@@ -11,7 +11,7 @@
     </span>
     <div
       ref="popoverContentRef"
-      class="ace-editor-ai-tool-menu">
+      class="monaco-editor-ai-tool-menu">
       <div
         class="item"
         @click="handleCheckScript">
@@ -72,7 +72,7 @@
 
   onMounted(() => {
     instance = Tippy(referRef.value, {
-      theme: 'dark ace-editor-ai-tool',
+      theme: 'dark monaco-editor-ai-tool',
       interactive: true,
       placement: 'bottom-start',
       content: popoverContentRef.value,
@@ -117,7 +117,7 @@
   }
 }
 
-.ace-editor-ai-tool {
+.monaco-editor-ai-tool {
   position: relative;
   display: flex;
   width: 24px;
@@ -171,7 +171,7 @@
   }
 }
 
-.ace-editor-ai-tool-theme{
+.monaco-editor-ai-tool-theme{
   width: 80px;
   padding: 8px 0;
   border: 1px solid #3D3D3D;

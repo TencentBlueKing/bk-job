@@ -51,9 +51,9 @@
   </resizeable-box>
 </template>
 <script>
-  import ace from 'ace/ace';
   import { Base64 } from 'js-base64';
   import _ from 'lodash';
+  import * as monaco from 'monaco-editor';
 
   import ScriptTemplateService from '@service/script-template';
 
@@ -64,8 +64,8 @@
   import ResizeableBox from './resizeable-box';
 
   const LANG_MAP = {
-    Shell: 'sh',
-    Bat: 'batchfile',
+    Shell: 'shell',
+    Bat: 'bat',
     Perl: 'perl',
     Python: 'python',
     Powershell: 'powershell',
@@ -98,11 +98,6 @@
         needRefresh: false,
       };
     },
-    computed: {
-      mode() {
-        return `ace/mode/${LANG_MAP[this.scriptLanguage]}`;
-      },
-    },
     watch: {
       scriptContent: {
         handler() {
@@ -114,10 +109,10 @@
         },
         immediate: true,
       },
-      scriptLanguage() {
+      scriptLanguage(lang) {
         this.fetchRenderScript();
         setTimeout(() => {
-          this.editor.getSession().setMode(this.mode);
+          this.setModelLanguage(LANG_MAP[lang]);
         });
       },
     },
@@ -130,37 +125,77 @@
     },
     methods: {
       /**
+       * @desc 编辑器设置语言
+       */
+      setModelLanguage(lang) {
+        const model = this.editor.getModel();
+        monaco.editor.setModelLanguage(model, lang);
+      },
+      /**
+       * @desc 清除选区
+       */
+      clearSelection() {
+        // 将选区重置到第一行第一列（文档开头）
+        this.editor.setSelection(new monaco.Range(1, 1, 1, 1));
+      },
+      /**
        * 初始化脚本编辑器
        */
       initEditor() {
-        const editor = ace.edit(this.editorId);
-        editor.getSession().setMode(this.mode);
-        editor.setOptions({
+        const $handler = document.querySelector(`#${this.editorId}`);
+        const options = {
+          // 字体与基础显示
           fontSize: 13,
-          enableBasicAutocompletion: true,
-          enableLiveAutocompletion: true,
-          enableSnippets: true,
-          wrapBehavioursEnabled: true,
-          autoScrollEditorIntoView: true,
-          copyWithEmptySelection: true,
-          useElasticTabstops: true,
-          printMarginColumn: true,
-          printMargin: 80,
-          scrollPastEnd: 0.2,
+          lineHeight: 18, // 可选的视觉调整项，用于配合字体大小
+
+          // 自动补全与代码提示
+          quickSuggestions: {
+            comments: true,
+            strings: true,
+            other: true,
+          },
+          suggestOnTriggerCharacters: true,
+          snippetSuggestions: 'inline', // 可选值: "top", "bottom", "inline", "none"
+
+          // 关键配置：固定溢出小部件的位置
+          fixedOverflowWidgets: true,
+
+          // 编辑行为
+          wordWrap: 'on', // 可选值: "off", "on", "bounded"
+
+          // 滚动行为
+          scrollBeyondLastLine: false,  // 为true则能让最后一行代码越过视图区域的顶部
+
+          // 其他常用推荐配置
+          automaticLayout: true, // 非常重要：使编辑器在容器尺寸变化时自动调整布局[5](@ref)
+          minimap: { enabled: false }, // 默认关闭小地图，若需要可开启[4](@ref)
+          lineNumbers: 'on', // 显示行号[4](@ref)
+          scrollbar: { // 精细控制滚动条
+            verticalScrollbarSize: 8,
+            horizontalScrollbarSize: 8,
+          },
+          mouseWheelScrollSensitivity: 3, // 调整鼠标滚轮滚动灵敏度[6](@ref)
+          tabSize: 2, // 设置Tab缩进长度[4](@ref)
+          readOnly: true,  // 设置是否只读
+        };
+        // 创建编辑器实例
+        const editor = monaco.editor.create($handler, {
+          theme: 'vs-dark',
+          ...options,
         });
-        editor.setTheme('ace/theme/monokai');
-        editor.setShowPrintMargin(false);
-        editor.$blockScrolling = Infinity;
-        editor.setReadOnly(true);
+
 
         // 先保存 editor 在设置 value
-        editor.scrollToLine(Infinity);
-        editor.setValue('');
-        editor.clearSelection();
         this.editor = editor;
+        this.setModelLanguage(LANG_MAP[this.scriptLanguage]);
+        // 先保存 editor 在设置 value
+        this.editor.revealLineNearTop(0);
+        this.editor.setValue('');
+        this.clearSelection();
+
         this.$once('hook:beforeDestroy', () => {
-          editor.destroy();
-          editor.container.remove();
+          editor.dispose();
+          editor.getContainerDomNode()?.remove();
         });
       },
       /**
@@ -173,7 +208,7 @@
           scriptLanguage: formatScriptTypeValue(this.scriptLanguage),
         }).then((data) => {
           this.editor.setValue(Base64.decode(data.scriptContent));
-          this.editor.clearSelection();
+          this.clearSelection();
         })
           .finally(() => {
             this.isLoading = false;
@@ -200,10 +235,10 @@
     .preview-content {
       height: calc(100% - 51px);
       /* stylelint-disable selector-class-pattern */
-      &.ace_editor {
+      &.monaco_editor {
         background: #292929;
 
-        .ace_gutter {
+        .margin-view-overlays {
           background: #292929;
         }
       }
