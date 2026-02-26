@@ -24,15 +24,33 @@
 
 package com.tencent.bk.job.crontab.config;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-/**
- * 定时任务服务相关配置
- */
-@Slf4j
-@Configuration
-@EnableConfigurationProperties({JobCrontabProperties.class, CleanHistoryProperties.class})
-public class JobCrontabConfig {
+@Data
+@ConfigurationProperties(prefix = "job.crontab.clean-history")
+@NoArgsConstructor
+public class CleanHistoryProperties {
+
+    /**
+     * 是否开启
+     */
+    private Boolean enabled = true;
+    /**
+     * 保留天数
+     */
+    private Integer keepDays = 31;
+    /**
+     * 触发时间cron表达式
+     */
+    private String cron = "0 02 10 * * *";
+    /**
+     * 每批次删除记录条数，避免一次性删除过多导致 DB 高负载
+     */
+    private Integer batchSize = 10000;
+    /**
+     * 每批次删除后的休眠时间（毫秒），用于降低 DB 压力
+     */
+    private Long sleepMillisBetweenBatches = 1000L;
 }

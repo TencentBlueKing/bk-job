@@ -43,6 +43,13 @@ public abstract class AbstractQuartzTaskHandler {
     protected Scheduler scheduler;
 
     /**
+     * 先等待Scheduler就绪，然后将声明的 QuartzJob 添加到 Scheduler 中
+     *
+     * @param quartzJob 定时任务信息
+     */
+    public abstract void waitSchedulerReadyThenAddJob(QuartzJob quartzJob) throws Exception;
+
+    /**
      * 动态添加任务
      * <p>
      * 将声明的 QuartzJob 添加到 Scheduler 中

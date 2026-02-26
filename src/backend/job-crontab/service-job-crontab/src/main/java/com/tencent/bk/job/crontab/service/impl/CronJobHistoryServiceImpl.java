@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.crontab.config.CleanHistoryProperties;
 import com.tencent.bk.job.crontab.constant.ExecuteStatusEnum;
 import com.tencent.bk.job.crontab.dao.CronJobHistoryDAO;
 import com.tencent.bk.job.crontab.model.dto.CronJobHistoryDTO;
@@ -42,11 +43,9 @@ import com.tencent.bk.job.crontab.timer.executor.CronHistoryCleanJobExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.CronExpression;
-import org.quartz.SchedulerException;
 import org.quartz.SimpleTrigger;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
@@ -68,24 +67,31 @@ public class CronJobHistoryServiceImpl implements CronJobHistoryService {
 
     private final AbstractQuartzTaskHandler quartzTaskHandler;
 
-    @Value("${job.crontab.history.clean.expression:0 25 3 * * ?}")
-    private String cleanJobCronExp;
+    private final CleanHistoryProperties cleanHistoryProperties;
 
     @Autowired
-    public CronJobHistoryServiceImpl(CronJobHistoryDAO cronJobHistoryDAO, AbstractQuartzTaskHandler quartzTaskHandler) {
+    public CronJobHistoryServiceImpl(CronJobHistoryDAO cronJobHistoryDAO,
+                                     AbstractQuartzTaskHandler quartzTaskHandler,
+                                     CleanHistoryProperties cleanHistoryProperties) {
         this.cronJobHistoryDAO = cronJobHistoryDAO;
         this.quartzTaskHandler = quartzTaskHandler;
+        this.cleanHistoryProperties = cleanHistoryProperties;
     }
 
     @PostConstruct
     private void addCleanJob() {
+        if(!cleanHistoryProperties.getEnabled()){
+            log.info("cleanHistory is not enabled, please check config");
+            return;
+        }
         log.info("begin to addCleanJob");
+        String cleanJobCron = cleanHistoryProperties.getCron();
         try {
-            new CronExpression(cleanJobCronExp);
+            new CronExpression(cleanJobCron);
         } catch (ParseException e) {
             String msg = MessageFormatter.format(
                 "Error while adding cron history clean job! Invalid expression|{}",
-                cleanJobCronExp
+                cleanJobCron
             ).getMessage();
             log.warn(msg, e);
             return;
@@ -94,8 +100,8 @@ public class CronJobHistoryServiceImpl implements CronJobHistoryService {
         String cleanJobKey = "cron_history_clean";
         String systemId = "job-crontab";
         QuartzTrigger trigger = QuartzTriggerBuilder.newTrigger().ofType(QuartzTrigger.TriggerType.CRON)
-            .withIdentity(cleanJobKey, systemId).withDescription("Auto clean cron job execute history table")
-            .withCronExpression(cleanJobCronExp)
+            .withIdentity(cleanJobKey, systemId).withDescription("Auto clean cron job history table")
+            .withCronExpression(cleanJobCron)
             .withMisfireInstruction(SimpleTrigger.MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT).build();
 
         if (trigger == null) {
@@ -107,12 +113,9 @@ public class CronJobHistoryServiceImpl implements CronJobHistoryService {
             .build();
 
         try {
-            if (quartzTaskHandler.checkExists(job.getKey())) {
-                quartzTaskHandler.deleteJob(job.getKey());
-            }
-            quartzTaskHandler.addJob(job);
+            quartzTaskHandler.waitSchedulerReadyThenAddJob(job);
             log.info("addCleanJob finished");
-        } catch (SchedulerException e) {
+        } catch (Exception e) {
             log.error("Error while add job to quartz!", e);
             throw new InternalException("Add to quartz failed!", e, ErrorCode.INTERNAL_ERROR);
         }
@@ -200,7 +203,7 @@ public class CronJobHistoryServiceImpl implements CronJobHistoryService {
     }
 
     @Override
-    public int cleanHistory(long cleanBefore, boolean cleanAll) {
-        return cronJobHistoryDAO.cleanHistory(cleanBefore, cleanAll);
+    public int cleanHistory(long cleanBefore, int limit) {
+        return cronJobHistoryDAO.cleanHistory(cleanBefore, limit);
     }
 }
