@@ -22,35 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.config;
+package com.tencent.bk.job.crontab.runner.order;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-
-@Data
-@ConfigurationProperties(prefix = "job.crontab.clean-history")
-@NoArgsConstructor
-public class CleanHistoryProperties {
-
-    /**
-     * 是否开启
-     */
-    private Boolean enabled = true;
-    /**
-     * 保留天数
-     */
-    private Integer keepDays = 31;
-    /**
-     * 触发时间Quartz Cron表达式
-     */
-    private String cron = "0 02 10 * * ?";
-    /**
-     * 每批次删除记录条数，避免一次性删除过多导致 DB 高负载
-     */
-    private Integer batchSize = 10000;
-    /**
-     * 每批次删除后的休眠时间（毫秒），用于降低 DB 压力
-     */
-    private Long sleepMillisBetweenBatches = 1000L;
+/**
+ * 定义多个启动Runner的相对执行顺序
+ */
+public class RunnerOrder {
+    // 优先级最高
+    // 加载定时任务到Quartz进行调度
+    public static final int LOAD_CRON_JOB = Integer.MIN_VALUE;
+    // 添加自动清理任务：清理定时任务执行历史记录
+    public static final int ADD_CLEAN_CRON_HISTORY_JOB = Integer.MAX_VALUE;
+    // 优先级最低
 }
