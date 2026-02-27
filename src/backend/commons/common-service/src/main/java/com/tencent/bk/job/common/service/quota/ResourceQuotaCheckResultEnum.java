@@ -22,14 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.quota.limit;
+package com.tencent.bk.job.common.service.quota;
 
+import lombok.Getter;
+
+/**
+ * 资源配额校验结果枚举
+ * 注意：枚举值的value字段取值必须与Redis Lua脚本返回值严格保持一致
+ */
+@Getter
 public enum ResourceQuotaCheckResultEnum {
 
     NO_LIMIT("no_limit"),
     RESOURCE_SCOPE_LIMIT("resource_scope_quota_limit"),
     APP_LIMIT("app_quota_limit"),
-    SYSTEM_LIMIT("system_quota_limit");
+    SYSTEM_LIMIT("system_quota_limit"),
+    USER_LIMIT("user_quota_limit");
 
     private final String value;
 

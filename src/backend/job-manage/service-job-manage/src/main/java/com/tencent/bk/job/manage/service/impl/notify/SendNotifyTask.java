@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.impl.notify;
 
+import com.tencent.bk.job.common.exception.ResourceExhaustedException;
 import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
 import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.util.ThreadUtils;
@@ -113,6 +114,9 @@ public class SendNotifyTask implements Runnable {
                     content
                 );
                 result = true;
+            } catch (ResourceExhaustedException e) {
+                log.warn("Notification sending has reached the quota limit and will not be retried.", e);
+                break;
             } catch (Exception e) {
                 if (count < NOTIFY_MAX_RETRY_COUNT) {
                     long sleepMills = count * 1000;

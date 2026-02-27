@@ -22,56 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.metrics;
+package com.tencent.bk.job.common.resource.quota;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * 公共监控指标
+ * 配额限制-用户
  */
-public class CommonMetricTags {
-    /**
-     * 名称
-     */
-    public static final String KEY_NAME = "name";
-    /**
-     * Job业务ID
-     */
-    public static final String KEY_APP_ID = "app_id";
-    /**
-     * API类型
-     */
-    public static final String KEY_API_TYPE = "api_type";
-    /**
-     * API类型：未知
-     */
-    public static final String VALUE_API_TYPE_UNKNOWN = "unknown";
+@EqualsAndHashCode(callSuper = true)
+@Data
+@NoArgsConstructor
+public class UserQuotaLimit extends QuotaLimit {
 
     /**
-     * Job 资源管理空间
+     * 解析之后的自定义用户配额限制
      */
-    public static final String KEY_RESOURCE_SCOPE = "resource_scope";
+    private Map<String, Long> customLimits = new HashMap<>();
 
-    /**
-     * 蓝鲸应用 ID
-     */
-    public static final String KEY_APP_CODE = "app_code";
+    public UserQuotaLimit(String globalLimitExpr, String customLimitExpr) {
+        super(globalLimitExpr, customLimitExpr);
+    }
 
-    /**
-     * 用户id
-     */
-    public static final String KEY_USER_ID = "user_id";
-
-    /**
-     * 配额类型
-     */
-    public static final String KEY_QUOTA_TYPE = "quota_type";
-
-    /**
-     * HTTP请求状态
-     */
-    public static final String KEY_HTTP_STATUS = "http_status";
-
-    /**
-     * HTTP请求状态：未知
-     */
-    public static final String VALUE_HTTP_STATUS_UNKNOWN = "unknown";
+    public long getLimit(String userId) {
+        Long limit = customLimits.get(userId);
+        if (limit == null) {
+            limit = getGlobalLimit();
+        }
+        return limit;
+    }
 }
