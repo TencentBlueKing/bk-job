@@ -134,6 +134,8 @@ data:
           {{- toYaml .Values.crontabConfig.loadCronJobToQuartz | nindent 10 }}
         disableCronJobOfArchivedScope:
           {{- toYaml .Values.crontabConfig.disableCronJobOfArchivedScope | nindent 10 }}
+        cleanHistory:
+          {{- toYaml .Values.crontabConfig.cleanHistory | nindent 10 }}
     mysql:
       {{- toYaml .Values.crontabConfig.mysql | nindent 6 }}
     server:
