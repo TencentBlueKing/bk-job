@@ -71,12 +71,15 @@ public class CronHistoryCleanJobExecutor extends AbstractQuartzJobBean {
     private static final String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     protected void cleanCronJobHistory(JobExecutionContext context) {
-        long cleanTime = System.currentTimeMillis() - cleanHistoryProperties.getKeepDays() * 24 * 3600 * 1000;
+        long cleanTime = System.currentTimeMillis() - cleanHistoryProperties.getKeepDays() * 24 * 3600 * 1000L;
         log.info(
-            "Begin to delete cron job history before {}, cleanTime={}, keepDays={}",
+            "Begin to delete cron job history before {}, cleanTime={}, " +
+                "keepDays={}, batchSize={}, sleepMillisBetweenBatches={}",
             TimeUtil.formatTime(cleanTime, TIME_FORMAT),
             cleanTime,
-            cleanHistoryProperties.getKeepDays()
+            cleanHistoryProperties.getKeepDays(),
+            cleanHistoryProperties.getBatchSize(),
+            cleanHistoryProperties.getSleepMillisBetweenBatches()
         );
 
         int jobHistoryCleanCount = cleanHistoryInBatches(cronJobHistoryService, cleanTime);
@@ -119,7 +122,22 @@ public class CronHistoryCleanJobExecutor extends AbstractQuartzJobBean {
             deletedNum = cleanBatch.apply(batchSize);
             totalDeletedNum += deletedNum;
             if (deletedNum > 0) {
-                log.debug("Clean {} batch deleted {} records", tableLabel, deletedNum);
+                // 每删除10w条记录打印一次日志
+                if (totalDeletedNum % 100000 == 0) {
+                    log.info(
+                        "Clean {} batch deleted {} records, totalDeletedNum={}",
+                        tableLabel,
+                        deletedNum,
+                        totalDeletedNum
+                    );
+                } else {
+                    log.debug(
+                        "Clean {} batch deleted {} records, totalDeletedNum={}",
+                        tableLabel,
+                        deletedNum,
+                        totalDeletedNum
+                    );
+                }
                 ThreadUtils.sleep(sleepMillis);
             }
         } while (deletedNum >= batchSize);
