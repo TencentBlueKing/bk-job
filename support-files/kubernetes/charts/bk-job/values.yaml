@@ -1479,6 +1479,18 @@ crontabConfig:
   disableCronJobOfArchivedScope:
     # 是否开启
     enabled: true
+  # 定时任务启动记录清理相关配置
+  cleanHistory:
+    # 是否开启
+    enabled: true
+    # 启动记录保留天数
+    keepDays: 31
+    # 清理动作执行的Quartz Cron表达式，默认在每天10:02（低峰期）执行清理
+    cron: 0 02 10 * * ?
+    # 每批次删除记录条数，避免一次性删除过多导致 DB 高负载
+    batchSize: 10000
+    # 每批次删除后的休眠时间（毫秒），用于降低 DB 压力
+    sleepMillisBetweenBatches: 1000
   # 定时任务服务独立数据库配置，若不配置该项则使用与其他服务共用的公共数据库
   database:
     host: ""

@@ -127,6 +127,24 @@ job:
           custom: "admin=1000,test=10%"
 ```
 
+6. 支持配置定时任务启动记录清理相关参数
+```yaml
+## job-crontab定时任务配置
+crontabConfig:
+  # 定时任务启动记录清理相关配置
+  cleanHistory:
+    # 是否开启
+    enabled: true
+    # 启动记录保留天数
+    keepDays: 31
+    # 清理动作执行的Quartz Cron表达式，默认在每天10:02（低峰期）执行清理
+    cron: 0 02 10 * * ?
+    # 每批次删除记录条数，避免一次性删除过多导致 DB 高负载
+    batchSize: 10000
+    # 每批次删除后的休眠时间（毫秒），用于降低 DB 压力
+    sleepMillisBetweenBatches: 1000
+```
+
 ## 0.9.0
 1. 新增 bk-login/bk-user蓝鲸网关配置
 ```yaml

@@ -169,14 +169,14 @@ public class CronJobHistoryDAOImpl implements CronJobHistoryDAO {
     }
 
     @Override
-    public int cleanHistory(long cleanBefore, boolean cleanAll) {
+    public int cleanHistory(long cleanBefore, int limit) {
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.SCHEDULED_TIME.lessOrEqual(ULong.valueOf(cleanBefore)));
-        if (!cleanAll) {
-            conditions.add(TABLE.STATUS.in(UByte.valueOf(ExecuteStatusEnum.RUNNING.getValue()),
-                UByte.valueOf(ExecuteStatusEnum.SUCCESS.getValue())));
-        }
-        return context.deleteFrom(TABLE).where(conditions).execute();
+        conditions.add(TABLE.SCHEDULED_TIME.lessThan(ULong.valueOf(cleanBefore)));
+        return context.deleteFrom(TABLE)
+            .where(conditions)
+            .orderBy(TABLE.SCHEDULED_TIME.asc())
+            .limit(limit)
+            .execute();
     }
 
     private List<Condition> buildConditionList(CronJobHistoryDTO historyCondition,

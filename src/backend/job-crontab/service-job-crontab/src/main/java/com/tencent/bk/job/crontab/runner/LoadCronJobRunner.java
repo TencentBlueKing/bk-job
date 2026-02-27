@@ -24,11 +24,13 @@
 
 package com.tencent.bk.job.crontab.runner;
 
+import com.tencent.bk.job.crontab.runner.order.RunnerOrder;
 import com.tencent.bk.job.crontab.service.CronJobLoadingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
@@ -39,6 +41,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * 进程启动时立即将DB中的定时任务加载到Quartz
  */
 @Slf4j
+@Order(RunnerOrder.LOAD_CRON_JOB)
 @Component
 public class LoadCronJobRunner implements CommandLineRunner {
 
