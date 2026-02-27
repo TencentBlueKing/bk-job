@@ -22,17 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.config;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+package com.tencent.bk.job.crontab.runner.order;
 
 /**
- * 定时任务服务相关配置
+ * 定义多个启动Runner的相对执行顺序
  */
-@Slf4j
-@Configuration
-@EnableConfigurationProperties({JobCrontabProperties.class, CleanHistoryProperties.class})
-public class JobCrontabConfig {
+public class RunnerOrder {
+    // 优先级最高
+    // 加载定时任务到Quartz进行调度
+    public static final int LOAD_CRON_JOB = Integer.MIN_VALUE;
+    // 添加自动清理任务：清理定时任务执行历史记录
+    public static final int ADD_CLEAN_CRON_HISTORY_JOB = Integer.MAX_VALUE;
+    // 优先级最低
 }

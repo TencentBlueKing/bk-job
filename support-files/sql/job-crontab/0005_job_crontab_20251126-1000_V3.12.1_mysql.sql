@@ -21,6 +21,22 @@ BEGIN
       ALTER TABLE cron_job ADD COLUMN `execute_time_zone` varchar(128) DEFAULT 'Asia/Shanghai' AFTER `execute_time`;
     END IF;
 
+    IF NOT EXISTS(SELECT 1
+                  FROM information_schema.STATISTICS
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'cron_job_history'
+                    AND INDEX_NAME = 'idx_scheduled_time') THEN
+        ALTER TABLE cron_job_history ADD INDEX idx_scheduled_time (scheduled_time) USING BTREE;
+    END IF;
+
+    IF NOT EXISTS(SELECT 1
+                  FROM information_schema.STATISTICS
+                  WHERE TABLE_SCHEMA = db
+                    AND TABLE_NAME = 'inner_cron_job_history'
+                    AND INDEX_NAME = 'idx_scheduled_time') THEN
+        ALTER TABLE inner_cron_job_history ADD INDEX idx_scheduled_time (scheduled_time) USING BTREE;
+    END IF;
+
     COMMIT;
 END <JOB_UBF>
 DELIMITER ;

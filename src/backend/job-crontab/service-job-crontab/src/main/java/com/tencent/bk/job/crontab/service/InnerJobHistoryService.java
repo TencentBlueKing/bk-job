@@ -63,11 +63,11 @@ public interface InnerJobHistoryService {
     boolean updateStatusByIdAndTime(String systemId, String jobKey, long scheduledFireTime, ExecuteStatusEnum status);
 
     /**
-     * 清理内部定时任务执行历史
+     * 分批次清理内部定时任务执行历史，删除 scheduled_time 小于 cleanBefore 的所有状态记录，单次最多删除 limit 条
      *
-     * @param cleanBefore 结束时间
-     * @param cleanAll    是否忽略状态清理全部
-     * @return 删除的记录数量
+     * @param cleanBefore 结束时间（毫秒时间戳）
+     * @param limit       单次最多删除条数
+     * @return 本批次实际删除的记录数量
      */
-    int cleanHistory(long cleanBefore, boolean cleanAll);
+    int cleanHistory(long cleanBefore, int limit);
 }
