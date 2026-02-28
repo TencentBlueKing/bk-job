@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.cc.model.result.HostWithModules;
 import com.tencent.bk.job.common.cc.model.result.ModuleProp;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -37,8 +38,8 @@ import com.tencent.bk.job.common.model.dto.BasicHostDTO;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.common.util.TimeUtil;
-import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.common.watch.SafeWatch;
+import com.tencent.bk.job.manage.dao.ApplicationDAO;
 import com.tencent.bk.job.manage.dao.HostTopoDAO;
 import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
@@ -213,15 +214,29 @@ public class BizHostSyncService {
             );
         }
         BasicHostDTO localHost = localHostsIdMap.get(hostProp.getHostId());
-        if (localHost.getLastTime() >= lastTime) {
+        if (localHost.getLastTime() > lastTime) {
+            // 本地主机的时间戳更新，不需要更新
             log.debug(
-                "local host(hostId={}, lastTime={}) is not older than target host last time({}), ignore update",
+                "local host(hostId={}, lastTime={}) is newer than target host last time({}), ignore update",
                 localHost.getHostId(),
                 localHost.getLastTime(),
                 cmdbHostsFetchTimeMills
             );
             return false;
+        } else if (lastTime.equals(localHost.getLastTime())) {
+            // 本地主机的时间戳与CMDB主机一致，但业务ID字段无有效值，需要更新
+            if (localHost.getBizId() == JobConstants.PUBLIC_APP_ID) {
+                log.info(
+                    "local host(hostId={}, lastTime={}) hasInvalidAppId, need to update",
+                    localHost.getHostId(),
+                    localHost.getLastTime()
+                );
+                return true;
+            }
+            // 本地主机的时间戳与CMDB主机一致，且业务ID字段有有效值，不需要更新
+            return false;
         } else {
+            // 本地主机的时间戳更旧，需要更新
             log.info(
                 "local host(hostId={}, lastTime={}) is older than target host last time({}), need to update",
                 localHost.getHostId(),
@@ -259,6 +274,7 @@ public class BizHostSyncService {
                 }
                 BasicHostDTO cmdbBasicHost = new BasicHostDTO(
                     hostProp.getHostId(),
+                    bizId,
                     lastTimeMills
                 );
                 cmdbBasicHosts.add(cmdbBasicHost);

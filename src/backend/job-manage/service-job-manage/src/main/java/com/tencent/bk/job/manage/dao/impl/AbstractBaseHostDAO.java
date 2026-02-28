@@ -46,6 +46,7 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Record2;
+import org.jooq.Record3;
 import org.jooq.Result;
 import org.jooq.SelectLimitStep;
 import org.jooq.SelectSeekStep1;
@@ -105,6 +106,7 @@ abstract public class AbstractBaseHostDAO {
 
     protected static final TableField<?, ?>[] BASIC_FIELDS = {
         TABLE.HOST_ID,
+        TABLE.APP_ID,
         TABLE.LAST_TIME
     };
 
@@ -505,16 +507,18 @@ abstract public class AbstractBaseHostDAO {
         }
         val query = context.select(
                 TABLE.HOST_ID,
+                TABLE.APP_ID,
                 TABLE.LAST_TIME
             ).from(TABLE)
             .where(conditions);
-        Result<Record2<ULong, Long>> records = query.fetch();
+        Result<Record3<ULong, ULong, Long>> records = query.fetch();
         List<BasicHostDTO> basicHostInfoList = new ArrayList<>();
 
         if (CollectionUtils.isNotEmpty(records)) {
             records.forEach(record -> {
                 BasicHostDTO basicHost = new BasicHostDTO(
                     JooqDataTypeUtil.getLongFromULong(record.get(TABLE.HOST_ID)),
+                    JooqDataTypeUtil.getLongFromULong(record.get(TABLE.APP_ID)),
                     record.get(TABLE.LAST_TIME)
                 );
                 basicHostInfoList.add(basicHost);
@@ -650,6 +654,7 @@ abstract public class AbstractBaseHostDAO {
         }
         BasicHostDTO basicHost = new BasicHostDTO();
         basicHost.setHostId(record.get(TABLE.HOST_ID).longValue());
+        basicHost.setBizId(record.get(TABLE.APP_ID).longValue());
         basicHost.setLastTime(record.get(TABLE.LAST_TIME));
         return basicHost;
     }
