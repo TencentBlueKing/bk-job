@@ -118,10 +118,7 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
             Configuration.setDefaultApiClient(client);
 
             CoreV1Api api = new CoreV1Api();
-            podList = api.listNamespacedPod(
-                namespace, null, null, null,
-                null, null, null, null,
-                null, null, null);
+            podList = api.listNamespacedPod(namespace).execute();
         } catch (ApiException | IOException e) {
             log.error("Fail to get pod info from k8s API", e);
             serviceInstanceInfoDTO.setName(serviceInstance.getInstanceId());
