@@ -44,6 +44,10 @@ export default class Model {
     return getTime({ timestamp: this.endTime });
   }
 
+  get scheduledTimeText() {
+    return getTime({ timestamp: this.scheduledTime });
+  }
+
   get createTimeTooltipsText() {
     return getTimeTooltip(this.createTimeText);
   }
@@ -58,5 +62,9 @@ export default class Model {
 
   get endTimeTooltipsText() {
     return getTimeTooltip(this.endTimeText);
+  }
+
+  get scheduledTimeTooltipsText() {
+    return getTimeTooltip(this.scheduledTimeText);
   }
 }

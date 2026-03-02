@@ -35,7 +35,11 @@
       align="left"
       :label="$t('cron.唤起时间')"
       prop="scheduledTime"
-      width="180" />
+      width="180">
+      <template slot-scope="{ row }">
+        <span v-bk-tooltips="row.scheduledTimeTooltipsText">{{ row.scheduledTime }}</span>
+      </template>
+    </bk-table-column>
     <bk-table-column
       key="executor"
       align="left"
