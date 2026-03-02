@@ -292,9 +292,8 @@ public class StartupController {
     ) {
         String nameFieldSelector = buildFieldSelectorByResourceName(serviceName);
         try {
-            V1EndpointsList endpointsList = api.listNamespacedEndpoints(namespace, null, null,
-                null, nameFieldSelector, null, null,
-                null, null, null, null);
+            V1EndpointsList endpointsList = api.listNamespacedEndpoints(namespace)
+                .fieldSelector(nameFieldSelector).execute();
             List<V1Endpoints> endPoints = endpointsList.getItems();
             if (CollectionUtils.isEmpty(endPoints)) {
                 log.warn(
@@ -461,11 +460,8 @@ public class StartupController {
         String labelSelector = buildServicePodLabelSelector(namespace, serviceName);
         log.info("list pod of service {}/{} using labelSelector:{}", namespace, serviceName, labelSelector);
         try {
-            V1PodList v1PodList = api.listNamespacedPod(
-                namespace, null, null, null,
-                null, labelSelector, null, null,
-                null, null, null
-            );
+            V1PodList v1PodList = api.listNamespacedPod(namespace)
+                .labelSelector(labelSelector).execute();
             List<V1Pod> podList = v1PodList.getItems();
             log.info("{} pod found for {}/{}", podList.size(), namespace, serviceName);
             return podList;
@@ -484,11 +480,8 @@ public class StartupController {
      */
     private static String buildServicePodLabelSelector(String namespace, String serviceName) {
         try {
-            V1ServiceList v1ServiceList = api.listNamespacedService(
-                namespace, null, null, null,
-                buildFieldSelectorByResourceName(serviceName), null, null, null,
-                null, null, null
-            );
+            V1ServiceList v1ServiceList = api.listNamespacedService(namespace)
+                .fieldSelector(buildFieldSelectorByResourceName(serviceName)).execute();
             List<V1Service> serviceList = v1ServiceList.getItems();
             if (CollectionUtils.isEmpty(serviceList)) {
                 log.warn("serviceList is null/empty, service={}/{}", namespace, serviceName);
