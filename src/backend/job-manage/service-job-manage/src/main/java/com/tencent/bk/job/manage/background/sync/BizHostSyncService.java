@@ -755,7 +755,7 @@ public class BizHostSyncService {
 
     private int tryToInsertOneHost(ApplicationHostDTO hostDTO) {
         try {
-            Pair<Boolean, Integer> pair = noTenantHostService.createOrUpdateHostBeforeLastTime(hostDTO);
+            Pair<Boolean, Integer> pair = noTenantHostService.createOrUpdateHostBeforeOrEqualLastTime(hostDTO);
             return pair.getRight();
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format("Fail to insert host={}", hostDTO);
@@ -770,7 +770,7 @@ public class BizHostSyncService {
         try {
             watch.start("batchUpdateHostsBeforeLastTime");
             // 更新主机
-            updateNum = noTenantHostService.batchUpdateHostsBeforeLastTime(updateHostList);
+            updateNum = noTenantHostService.batchUpdateHostsBeforeOrEqualLastTime(updateHostList);
             watch.stop();
         } catch (Exception e) {
             log.error("Fail to batchUpdateHostsBeforeLastTime, try to update one by one", e);
@@ -785,7 +785,7 @@ public class BizHostSyncService {
 
     private int tryToUpdateOneHost(ApplicationHostDTO hostDTO) {
         try {
-            return noTenantHostService.updateHostAttrsBeforeLastTime(hostDTO);
+            return noTenantHostService.updateHostAttrsBeforeOrEqualLastTime(hostDTO);
         } catch (Exception e) {
             FormattingTuple msg = MessageFormatter.format(
                 "Fail to updateHostAttrsBeforeLastTime, host={}",
