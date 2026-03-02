@@ -27,25 +27,25 @@
 
 <template>
   <div
-    ref="aceEditor"
-    class="jd-ace-editor"
+    ref="monacoEditor"
+    class="jd-monaco-editor"
     :style="{ height: `${height}px` }">
     <div
       ref="contentWrapper"
       v-bkloading="{ isLoading: isLoading, opacity: 0.2 }"
-      class="jb-ace-content"
+      class="jb-monaco-content"
       :class="{ readonly }"
       :style="boxStyle">
       <div
         v-if="showTabHeader"
-        class="jb-ace-header">
+        class="jb-monaco-header">
         <div
-          class="jb-ace-title"
+          class="jb-monaco-title"
           :style="{ height: `${tabHeight}px` }">
           <div
             v-for="(val, key) in tabList"
             :key="val"
-            class="jb-ace-mode-item"
+            class="jb-monaco-mode-item"
             :class="{ 'active': currentLang === key }"
             @click="handleLangChange(key)">
             {{ key }}
@@ -54,14 +54,14 @@
         <div
           v-if="tips"
           v-bk-overflow-tips="{ content: tips }"
-          class="jb-ace-tips">
+          class="jb-monaco-tips">
           <icon
             style="margin-right: 4px;"
             type="info" />
           {{ tips }}
         </div>
         <div
-          class="jb-ace-action"
+          class="jb-monaco-action"
           :style="{ height: `${tabHeight}px` }">
           <slot name="action" />
           <ai-tool
@@ -89,8 +89,8 @@
             @click="handleExitFullScreen" />
         </div>
       </div>
-      <div class="jb-ace-main">
-        <div class="ace-edit-content">
+      <div class="jb-monaco-main">
+        <div class="monaco-edit-content">
           <div
             :id="selfId"
             :style="editorStyle" />
@@ -102,7 +102,7 @@
       <div
         v-if="isShowHistoryPanel"
         ref="historyPanel"
-        class="jb-ace-history-panel"
+        class="jb-monaco-history-panel"
         @click.stop="">
         <div class="panel-header">
           <div>{{ $t('历史缓存') }}</div>
@@ -149,9 +149,9 @@
   </div>
 </template>
 <script>
-  import ace from 'ace/ace';
   import { Base64 } from 'js-base64';
   import _ from 'lodash';
+  import * as monaco from 'monaco-editor';
 
   import AiService from '@service/ai';
   import PublicScriptService from '@service/public-script-manage';
@@ -160,7 +160,6 @@
   import UserService from '@service/user';
 
   import {
-    escapeHTML,
     formatScriptTypeValue,
     prettyDateTimeFormat,
   } from '@utils/assist';
@@ -174,35 +173,15 @@
   import AiTool from './components/ai-tool.vue';
   import DefaultScript from './default-script';
 
-  import 'ace/mode-sh';
-  import 'ace/snippets/sh';
-  import 'ace/mode-batchfile';
-  import 'ace/snippets/batchfile';
-  import 'ace/mode-perl';
-  import 'ace/snippets/perl';
-  import 'ace/mode-python';
-  import 'ace/snippets/python';
-  import 'ace/mode-powershell';
-  import 'ace/snippets/powershell';
-  import 'ace/mode-sql';
-  import 'ace/snippets/sql';
-  import 'ace/theme-monokai';
-  import 'ace/ext-error_marker';
-  import 'ace/ext-language_tools';
-  import 'ace/ext-keybinding_menu';
-  import 'ace/ext-elastic_tabstops_lite';
-
   export const builtInScript = Object.keys(DefaultScript).reduce((result, item) => {
     result[item] = Base64.encode(DefaultScript[item]);
     return result;
   }, {});
 
-  const languageTools = ace.require('ace/ext/language_tools');
-
   const TAB_HEIGHT = 40;
   const LANG_MAP = {
-    Shell: 'sh',
-    Bat: 'batchfile',
+    Shell: 'shell',
+    Bat: 'bat',
     Perl: 'perl',
     Python: 'python',
     Powershell: 'powershell',
@@ -210,14 +189,8 @@
   };
   const LOCAL_STORAGE_KEY = 'ace_editor_history';
 
-  const HTMLEncode = (value) => {
-    const temp = document.createElement('textarea');
-    temp.value = value;
-    return temp.value;
-  };
-
   export default {
-    name: 'AceEditor',
+    name: 'MonacoEditor',
     components: {
       ScrollFaker,
       Empty,
@@ -339,22 +312,15 @@
           return res;
         }, {});
       },
-      /**
-       * @desc 脚本编辑器语言模式
-       * @returns {String}
-       */
-      mode() {
-        return `ace/mode/${LANG_MAP[this.currentLang]}`;
-      },
     },
     watch: {
       value: {
         handler(value) {
-          this.editor.getSession().setAnnotations([]);
+          this.setAnnotations();
           // 只读模式没有默认值，直接使用输入值
           if (this.readonly) {
             this.editor.setValue(Base64.decode(value));
-            this.editor.clearSelection();
+            this.clearSelection();
             this.syntaxCheck(value);
             return;
           }
@@ -367,7 +333,7 @@
           // 避免编辑造成的重复更新
           if (this.content !== parseValue) {
             this.editor.setValue(parseValue);
-            this.editor.clearSelection();
+            this.clearSelection();
           }
         },
       },
@@ -375,12 +341,12 @@
         if (this.currentLang !== newLang) {
           this.currentLang = newLang;
           setTimeout(() => {
-            this.editor.getSession().setMode(this.mode);
+            this.setModelLanguage(LANG_MAP[newLang]);
           });
         }
       },
       readonly(readonly) {
-        this.editor.setReadOnly(readonly);
+        this.editor.updateOptions({ readOnly: readonly });
       },
       constants: {
         handler() {
@@ -390,7 +356,7 @@
       },
     },
     created() {
-      this.selfId = `ace_editor_${_.random(1, 1000)}_${Date.now()}`;
+      this.selfId = `monaco_editor_${_.random(1, 1000)}_${Date.now()}`;
       this.valueMemo = {};
       this.hasChanged = false;
       this.historyEnable = false;
@@ -405,34 +371,9 @@
         }).then((data) => {
           // 高危语句报错状态需要全局保存
           this.$store.commit('setScriptCheckError', _.some(data, _ => _.isDangerous));
-          this.editor.getSession().setAnnotations(data);
+          this.setAnnotations('syntax-checker', data);
         });
       }, 300);
-
-      // 自定义语法提示
-      this.completer = {
-        getCompletions: (editor, session, pos, prefix, callback) => {
-          const keywords = this.constants.map(item => ({
-            name: item.name,
-            value: `$\{${item.name}}`,
-            caption: item.name,
-            meta: 'Global Variable',
-            type: item.typeDescription,
-            description: item.description,
-            score: 1000, // 让自定义全局变量排在最上面
-          }));
-          callback(null, keywords);
-        },
-        getDocTooltip(item) {
-          if (item.meta === 'Global Variable' && item.description) {
-            item.docHTML = [
-              '<b>description</b>',
-              '<hr />',
-              escapeHTML(item.description),
-            ].join('');
-          }
-        },
-      };
     },
     beforeDestroy() {
       this.handleExitFullScreen();
@@ -440,7 +381,6 @@
     },
     mounted() {
       this.initEditor();
-      languageTools.addCompleter(this.completer);
       document.body.addEventListener('click', this.handleHideHistory);
       document.body.addEventListener('keyup', this.handleExitByESC);
       this.$once('hook:beforeDestroy', () => {
@@ -448,7 +388,6 @@
         if (this.isChange) {
           this.pushLocalStorage();
         }
-        _.remove(this.editor.completers, _ => _ === this.completer);
         document.body.removeEventListener('click', this.handleHideHistory);
         document.body.removeEventListener('keyup', this.handleExitByESC);
       });
@@ -475,15 +414,14 @@
             return result;
           }, {});
           this.defaultScriptMap = Object.assign({}, DefaultScript, customScriptMap);
-
           // 只读或有传入值默认脚本使用prop.value
           // 其它情况使用脚本编辑器提供的默认值
           this.content = this.readonly || this.value
             ? Base64.decode(this.value || '')
             : this.defaultScriptMap[this.lang];
           this.editor.setValue(this.content);
-          this.editor.scrollToLine(Infinity);
-          this.editor.clearSelection();
+          this.editor.revealLine(Infinity);
+          this.clearSelection();
         })
           .finally(() => {
             this.isLoading = false;
@@ -499,67 +437,111 @@
        * @desc 初始化脚本编辑器
        */
       initEditor() {
-        const editor = ace.edit(this.selfId);
-        editor.getSession().setMode(this.mode);
-        editor.setOptions({
+        const $handler = document.querySelector(`#${this.selfId}`);
+        const options = {
+          // 字体与基础显示
           fontSize: 13,
-          enableBasicAutocompletion: true,
-          enableLiveAutocompletion: true,
-          enableSnippets: true,
-          wrapBehavioursEnabled: true,
-          autoScrollEditorIntoView: true,
-          copyWithEmptySelection: true,
-          useElasticTabstops: true,
-          scrollPastEnd: 0.2,
+          lineHeight: 18, // 可选的视觉调整项，用于配合字体大小
+
+          // 自动补全与代码提示
+          quickSuggestions: {
+            comments: true,
+            strings: true,
+            other: true,
+          },
+          suggestOnTriggerCharacters: true,
+          snippetSuggestions: 'inline', // 可选值: "top", "bottom", "inline", "none"
+
+          // 关键配置：固定溢出小部件的位置
+          fixedOverflowWidgets: true,
+
+          // 编辑行为
+          wordWrap: 'on', // 可选值: "off", "on", "bounded"
+
+          // 滚动行为
+          scrollBeyondLastLine: false,  // 为true则能让最后一行代码越过视图区域的顶部
+
+          // 其他常用推荐配置
+          automaticLayout: true, // 非常重要：使编辑器在容器尺寸变化时自动调整布局[5](@ref)
+          minimap: { enabled: false }, // 默认关闭小地图，若需要可开启[4](@ref)
+          lineNumbers: 'on', // 显示行号[4](@ref)
+          scrollbar: { // 精细控制滚动条
+            verticalScrollbarSize: 8,
+            horizontalScrollbarSize: 8,
+          },
+          mouseWheelScrollSensitivity: 3, // 调整鼠标滚轮滚动灵敏度[6](@ref)
+          tabSize: 2, // 设置Tab缩进长度[4](@ref)
+          readOnly: this.readonly,  // 设置是否只读
+        };
+        // 创建编辑器实例
+        const editor = monaco.editor.create($handler, {
+          theme: 'vs-dark',
+          ...options,
         });
-        editor.setTheme('ace/theme/monokai');
-        editor.setShowPrintMargin(false);
-        editor.$blockScrolling = Infinity;
-        editor.setReadOnly(this.readonly);
 
-        editor.renderer.setScrollMargin(0, 0, 0, 30);
-
-        editor.on('change', () => {
+        // change事件
+        editor.onDidChangeModelContent(() => {
           this.content = editor.getValue();
           const content = Base64.encode(this.content);
           if (this.content && !this.readonly) {
             this.syntaxCheck(content);
           }
-          this.editor.getSession().setAnnotations([]);
+          this.setAnnotations();
           if (this.historyEnable) {
             this.hasChanged = true;
           }
           this.$emit('input', content);
           this.$emit('change', content);
         });
-        editor.on('focus', () => {
+
+        // focus事件
+        editor.onDidFocusEditorText(() => {
           this.historyEnable = true;
         });
-        editor.on('paste', (event) => {
-          event.text = HTMLEncode(event.text);
-        });
+
         // 先保存 editor 在设置 value
         this.editor = editor;
+        this.setModelLanguage(LANG_MAP[this.currentLang]);
 
         this.$once('hook:beforeDestroy', () => {
-          editor.destroy();
-          editor.container.remove();
+          editor.dispose();
+          editor.getContainerDomNode()?.remove();
         });
 
         this.watchEditAction();
 
-        const $handler = document.querySelector(`#${this.selfId}`);
         $handler.addEventListener('keydown', this.handleReadonlyWarning);
         this.$once('hook:beforeDestroy', () => {
           $handler.removeEventListener('keydown', this.handleReadonlyWarning);
         });
       },
       /**
+       * @desc 设置标记/注解
+       */
+      setAnnotations(key = 'syntax-checker', data = []) {
+        const model = this.editor.getModel();
+        monaco.editor.setModelMarkers(model, key, data);
+      },
+      /**
+       * @desc 编辑器设置语言
+       */
+      setModelLanguage(lang) {
+        const model = this.editor.getModel();
+        monaco.editor.setModelLanguage(model, lang);
+      },
+      /**
+       * @desc 清除选区
+       */
+      clearSelection() {
+        // 将选区重置到第一行第一列（文档开头）
+        this.editor.setSelection(new monaco.Range(1, 1, 1, 1));
+      },
+      /**
        * @desc 外部调用
        */
       resize() {
         this.$nextTick(() => {
-          this.editor.resize();
+          this.editor.layout();
         });
       },
       /**
@@ -568,16 +550,16 @@
        */
       setValue(value) {
         this.editor.setValue(Base64.decode(value));
-        this.editor.clearSelection();
-        this.editor.scrollToLine(Infinity);
+        this.clearSelection();
+        this.editor.revealLine(Infinity);
       },
       /**
        * @desc 外部调用-重置脚本编辑内容使用默认脚本
        */
       resetValue() {
         this.editor.setValue(this.defaultScriptMap[this.lang]);
-        this.editor.clearSelection();
-        this.editor.scrollToLine(Infinity);
+        this.clearSelection();
+        this.editor.revealLine(Infinity);
       },
       /**
        * @desc 监听脚本的编辑状态
@@ -678,7 +660,7 @@
             this.valueMemo[this.currentLang] = this.content;
 
             this.currentLang = newLang;
-            this.editor.getSession().setMode(this.mode);
+            this.setModelLanguage(LANG_MAP[newLang]);
             if (Object.prototype.hasOwnProperty.call(this.valueMemo, this.currentLang)) {
               // 使用新脚本语言的上一次缓存内容
               this.editor.setValue(this.valueMemo[this.currentLang]);
@@ -686,7 +668,7 @@
               // 使用新脚本语言的默认内容
               this.editor.setValue(this.defaultScriptMap[this.currentLang]);
             }
-            this.editor.clearSelection();
+            this.clearSelection();
           });
       },
       /**
@@ -716,7 +698,7 @@
         this.$emit('on-mode-change', payload.lang);
         // 更新脚本内容
         this.editor.setValue(Base64.decode(payload.content));
-        this.editor.clearSelection();
+        this.clearSelection();
         this.handleHideHistory();
       },
       /**
@@ -782,7 +764,7 @@
         this.messageInfo(I18n.t('按 Esc 即可退出全屏模式'));
         document.body.appendChild(this.$refs.contentWrapper);
         this.$nextTick(() => {
-          this.editor.resize();
+          this.editor.layout();
         });
       },
       /**
@@ -792,9 +774,9 @@
        */
       handleExitFullScreen() {
         this.isFullScreen = false;
-        this.$refs.aceEditor.appendChild(this.$refs.contentWrapper);
+        this.$refs.monacoEditor.appendChild(this.$refs.contentWrapper);
         this.$nextTick(() => {
-          this.editor.resize();
+          this.editor.layout();
         });
       },
       /**
@@ -818,87 +800,41 @@
 </script>
 <style lang='postcss'>
   /* stylelint-disable */
-  .jd-ace-editor {
+  .jd-monaco-editor {
     position: relative;
     display: flex;
     flex-direction: column;
     width: 100%;
-    .ace_editor {
+    .monaco_editor {
       padding-right: 14px;
       overflow: unset;
       font-family: Menlo, Monaco, Consolas, Courier, monospace;
-
-
-      .ace_scrollbar-v,
-      .ace_scrollbar-h {
-        &::-webkit-scrollbar-thumb {
-          background-color: #3b3c42;
-          border: 1px solid #63656e;
-        }
-
-        &::-webkit-scrollbar-corner {
-          background-color: transparent;
-        }
-      }
-
-      .ace_scrollbar-v {
-        &::-webkit-scrollbar {
-          width: 14px;
-        }
-      }
-
-      .ace_scrollbar-h {
-        &::-webkit-scrollbar {
-          height: 14px;
-        }
-      }
-
-      .ace_gutter-cell {
-        &.ace_info,
-        &.ace_warning,
-        &.ace_error {
-          background-size: 12px;
-          background-position-x: 4px;
-        }
-
-        &.ace_info {
-          background-image: url("/static/images/ace-editor/info.png");
-        }
-
-        &.ace_warning {
-          background-image: url("/static/images/ace-editor/warning.png");
-        }
-
-        &.ace_error {
-          background-image: url("/static/images/ace-editor/error.png");
-        }
-      }
     }
 
     .readonly {
-      .jb-ace-title,
-      .ace_gutter,
-      .ace_content {
+      .jb-monaco-title,
+      .margin-view-overlays,
+      .lines-content {
         filter: grayscale(0%) brightness(80%) saturate(70%) opacity(95%);
       }
 
-      .jb-ace-mode-item {
+      .jb-monaco-mode-item {
         cursor: default;
       }
     }
   }
 
-  .jb-ace-header{
+  .jb-monaco-header{
     display: flex;
     font-size: 14px;
     color: #fff;
     background: #202024;
   }
 
-  .jb-ace-title {
+  .jb-monaco-title {
     display: flex;
 
-    .jb-ace-mode-item {
+    .jb-monaco-mode-item {
       position: relative;
       display: flex;
       padding: 0 22px;
@@ -929,7 +865,7 @@
     }
   }
 
-  .jb-ace-tips{
+  .jb-monaco-tips {
     height: 40px;
     padding-left: 18px;
     overflow: hidden;
@@ -940,7 +876,7 @@
     white-space: nowrap;
   }
 
-  .jb-ace-action {
+  .jb-monaco-action {
     z-index: 1;
     display: flex;
     align-items: center;
@@ -956,11 +892,11 @@
     }
   }
 
-  .jb-ace-main {
+  .jb-monaco-main {
     display: flex;
     background: #272822;
 
-    .ace-edit-content {
+    .monaco-edit-content {
       flex: 1;
       overflow: hidden;
     }
@@ -971,7 +907,7 @@
   }
 
 
-  .jb-ace-history-panel {
+  .jb-monaco-history-panel {
     position: absolute;
     top: 40px;
     right: 10px;

@@ -31,6 +31,13 @@ const ERROR_MAP = {
   3: 'error',
 };
 
+// 接口error type 对应monaco editor的err type
+const MONACO_ERROR_MAP = {
+  info: 2,
+  warning: 4,
+  error: 8,
+};
+
 const ACTION_SCAN = 1;
 // const ACTION_PREVENT = 2;
 export default class ScriptError {
@@ -41,6 +48,10 @@ export default class ScriptError {
     this.type = ERROR_MAP[payload.level];
     this.text = this.initText(payload);
     this.action = payload.action;
+    this.endColumn = 5;
+    this.startLineNumber =  payload.line;
+    this.severity = MONACO_ERROR_MAP[ERROR_MAP[payload.level]];
+    this.message = this.initText(payload);
   }
 
   /**

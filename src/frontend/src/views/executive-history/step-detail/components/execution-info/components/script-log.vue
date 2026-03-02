@@ -75,8 +75,8 @@
   </div>
 </template>
 <script>
-  import ace from 'ace/ace';
   import _ from 'lodash';
+  import * as monaco from 'monaco-editor';
 
   import AiService from '@service/ai';
   import TaskExecuteService from '@service/task-execute';
@@ -89,10 +89,6 @@
   import I18n from '@/i18n';
 
   import mixins from '../../mixins';
-
-  import 'ace/mode-text';
-  import 'ace/theme-monokai';
-  import 'ace/ext-searchbox';
 
   export default {
     mixins: [
@@ -167,14 +163,16 @@
        */
       fontSize: {
         handler(fontSize) {
-          this.editor.setFontSize(fontSize);
+          this.editor.updateOptions({
+            fontSize,
+          });
         },
       },
       lineFeed: {
         handler(lineFeed) {
           setTimeout(() => {
-            this.editor && this.editor.setOptions({
-              wrap: lineFeed ? 'free' : 'none',
+            this.editor && this.editor.updateOptions({
+              wordWrap: lineFeed ? 'on' : 'off',
             });
           });
         },
@@ -213,7 +211,7 @@
           this.isLoading = false;
           if (this.editor) {
             this.editor.setValue('');
-            this.editor.clearSelection();
+            this.clearSelection();
           }
           return;
         }
@@ -234,7 +232,7 @@
             this.logContent = _.trim(logContent || '', '\n');
             this.$nextTick(() => {
               this.editor.setValue(logContent);
-              this.editor.clearSelection();
+              this.clearSelection();
             });
             // 当前主机执行结束
             if (!finished) {
@@ -251,38 +249,50 @@
             this.isAiEnable = data.enabled;
           });
       },
+      /**
+       * @desc 清除选区
+       */
+      clearSelection() {
+        // 将选区重置到第一行第一列（文档开头）
+        this.editor.setSelection(new monaco.Range(1, 1, 1, 1));
+      },
       initEditor() {
-        const editor = ace.edit('executeScriptLog');
-        editor.getSession().setMode('ace/mode/text');
-        editor.setTheme('ace/theme/monokai');
-        editor.setOptions({
+        const $handler = document.querySelector('#executeScriptLog');
+        const options = {
+          // 字体与基础显示
           fontSize: this.fontSize,
-          wrapBehavioursEnabled: true,
-          copyWithEmptySelection: true,
-          useElasticTabstops: true,
-          printMarginColumn: false,
-          printMargin: 80,
-          showPrintMargin: false,
-          scrollPastEnd: 0.05,
-          fixedWidthGutter: true,
-        });
-        editor.$blockScrolling = Infinity;
-        editor.setReadOnly(true);
-        const editorSession = editor.getSession();
-        // 自动换行时不添加缩进
-        editorSession.$indentedSoftWrap = false;
-        editorSession.on('changeScrollTop', (scrollTop) => {
-          const {
-            height,
-            maxHeight,
-          } = editor.renderer.layerConfig;
-          this.isWillAutoScroll = height + scrollTop + 30 >= maxHeight;
+
+          // 编辑行为
+          wordWrap: 'on', // 可选值: "off", "on", "bounded"
+
+          // 滚动行为
+          scrollBeyondLastLine: true,  // 为true则能让最后一行代码越过视图区域的顶部
+
+          // 其他常用推荐配置
+          automaticLayout: true, // 非常重要：使编辑器在容器尺寸变化时自动调整布局[5](@ref)
+          minimap: { enabled: false }, // 默认关闭小地图，若需要可开启[4](@ref)
+          lineNumbers: 'on', // 显示行号[4](@ref)
+          scrollbar: { // 精细控制滚动条
+            verticalScrollbarSize: 8,
+            horizontalScrollbarSize: 8,
+          },
+          mouseWheelScrollSensitivity: 3, // 调整鼠标滚轮滚动灵敏度[6](@ref)
+          tabSize: 2, // 设置Tab缩进长度[4](@ref)
+          readOnly: true,
+
+          renderLineHighlight: 'none',
+        };
+        // 创建编辑器实例
+        const editor = monaco.editor.create($handler, {
+          theme: 'vs-dark',
+          language: 'plaintext', // 设置为纯文本
+          ...options,
         });
 
         this.editor = editor;
         this.$once('hook:beforeDestroy', () => {
-          editor.destroy();
-          editor.container.remove();
+          editor.dispose();
+          editor.getContainerDomNode()?.remove();
         });
       },
       initAiHelper() {
@@ -303,7 +313,7 @@
        */
       resize() {
         this.$nextTick(() => {
-          this.editor.resize();
+          this.editor.layout();
         });
       },
       /**
@@ -326,6 +336,17 @@
         });
       },
       /**
+       * @desc 获取选区内容
+       */
+      getSelectedText() {
+        const selection = this.editor.getSelection(); // 获取当前选区对象
+        // 检查是否有选中内容
+        if (selection && !selection.isEmpty()) {
+          return  this.editor.getModel().getValueInRange(selection);
+        }
+        return '';
+      },
+      /**
        * @desc 日志滚动定时器
        */
       autoScrollTimeout() {
@@ -341,21 +362,27 @@
        * @desc 回到日志顶部
        */
       handleScrollTop() {
-        this.editor.scrollToLine(0);
+        this.editor.revealLineNearTop(0);
       },
       /**
        * @desc 回到日志底部
        */
       handleScrollBottom() {
         this.isWillAutoScroll = true;
-        this.editor.scrollToLine(Infinity);
+        // 获取编辑器的模型（Model）
+        const model = this.editor.getModel();
+        // 获取文档的总行数
+        const lastLineNumber = model.getLineCount();
+        // 滚动到最后一行
+        this.editor.revealLine(lastLineNumber);
       },
       handleMouseUp(event) {
         if (!this.isAiUseable) {
           return;
         }
         setTimeout(() => {
-          if (!this.editor.getSelectedText()) {
+          const selectedText = this.getSelectedText();
+          if (!selectedText) {
             this.aiExtendToolStyle = {};
             return;
           }
@@ -381,7 +408,7 @@
           executeObjectResourceId: this.taskExecuteDetail.executeObject.executeObjectResourceId,
           executeCount: this.executeCount,
           batch: this.taskExecuteDetail.batch,
-          content: this.editor.getSelectedText(),
+          content: this.getSelectedText(),
         });
       },
     },
@@ -416,58 +443,17 @@
     width: 100%;
     padding-right: 20px;
     /* stylelint-disable selector-class-pattern */
-    .ace_editor {
+    .monaco-editor {
       overflow: unset;
       line-height: 1.6;
       color: #c4c6cc;
       background: #1d1d1d;
 
-      .ace_gutter {
+      .margin-view-overlays {
         padding-top: 4px;
         margin-bottom: -4px;
         color: #63656e;
         background: #292929;
-      }
-
-      .ace_scroller {
-        padding-top: 4px;
-        margin-bottom: -4px;
-      }
-
-      .ace_hidden-cursors .ace_cursor {
-        opacity: 0% !important;
-      }
-
-      .ace_selected-word {
-        background: rgb(135 139 145 / 25%);
-      }
-
-      .ace_scrollbar-v,
-      .ace_scrollbar-h {
-        &::-webkit-scrollbar-thumb {
-          background-color: #3b3c42;
-          border: 1px solid #63656e;
-        }
-
-        &::-webkit-scrollbar-corner {
-          background-color: transparent;
-        }
-      }
-
-      .ace_scrollbar-v {
-        margin-right: -20px;
-
-        &::-webkit-scrollbar {
-          width: 14px;
-        }
-      }
-
-      .ace_scrollbar-h {
-        margin-bottom: -20px;
-
-        &::-webkit-scrollbar {
-          height: 14px;
-        }
       }
     }
   }
