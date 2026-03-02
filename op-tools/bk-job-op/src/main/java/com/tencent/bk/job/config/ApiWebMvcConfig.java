@@ -22,35 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.consts;
+package com.tencent.bk.job.config;
+
+import com.tencent.bk.job.consts.InterceptorOrder;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * 拦截器优先级顺序
+ * Web MVC 配置 - API 认证
  */
-public class InterceptorOrder {
+@Slf4j
+@Configuration
+public class ApiWebMvcConfig implements WebMvcConfigurer {
 
-    /**
-     * 认证相关
-     */
-    public static class Auth {
-        /**
-         * MCP认证 Key（最高优先级）
-         */
-        public static final int MCP_AUTH = 1;
+    private final ApiAuthProperties apiAuthProperties;
 
-        /**
-         * API认证 Key
-         */
-        public static final int API_AUTH = 2;
+    @Autowired
+    public ApiWebMvcConfig(ApiAuthProperties apiAuthProperties) {
+        this.apiAuthProperties = apiAuthProperties;
     }
 
-    /**
-     * 日志相关
-     */
-    public static class Logging {
-        /**
-         * 日志拦截器
-         */
-        public static final int MCP_LOGGING = 2;
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        log.info("Registering API authentication interceptor");
+
+        registry.addInterceptor(new ApiAuthInterceptor(apiAuthProperties))
+                .addPathPatterns("/api/**")
+                .order(InterceptorOrder.Auth.API_AUTH);
+
+        log.info("API authentication interceptor registered successfully");
     }
 }

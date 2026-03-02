@@ -22,35 +22,40 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.consts;
+package com.tencent.bk.job.controller;
+
+import com.tencent.bk.job.model.MigrateReq;
+import com.tencent.bk.job.model.MigrateResp;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * 拦截器优先级顺序
+ * 按业务分批迁移环境时使用的相关接口
  */
-public class InterceptorOrder {
+@RequestMapping("/api/migrate")
+public interface MigrateBizResource {
 
     /**
-     * 认证相关
+     * 批量标记业务已完成环境迁移
      */
-    public static class Auth {
-        /**
-         * MCP认证 Key（最高优先级）
-         */
-        public static final int MCP_AUTH = 1;
-
-        /**
-         * API认证 Key
-         */
-        public static final int API_AUTH = 2;
-    }
+    @PostMapping("/add_migrate_biz")
+    MigrateResp addMigrateBiz(@RequestBody MigrateReq req);
 
     /**
-     * 日志相关
+     * 批量取消业务的环境迁移标记
      */
-    public static class Logging {
-        /**
-         * 日志拦截器
-         */
-        public static final int MCP_LOGGING = 2;
-    }
+    @PostMapping("/delete_migrate_biz")
+    MigrateResp deleteMigrateBiz(@RequestBody MigrateReq req);
+
+    /**
+     * 查询某个业务是否已完成环境迁移
+     *
+     * @param bizId 业务ID
+     * @return 是否已完成环境迁移
+     */
+    @GetMapping("/is_migrated")
+    MigrateResp isMigrated(@RequestParam("bizId") String bizId);
 }

@@ -22,35 +22,46 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.consts;
+package com.tencent.bk.job.controller.impl;
 
-/**
- * 拦截器优先级顺序
- */
-public class InterceptorOrder {
+import com.tencent.bk.job.controller.MigrateBizResource;
+import com.tencent.bk.job.model.MigrateReq;
+import com.tencent.bk.job.model.MigrateResp;
+import com.tencent.bk.job.service.MigrateBizService;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.web.bind.annotation.RestController;
 
-    /**
-     * 认证相关
-     */
-    public static class Auth {
-        /**
-         * MCP认证 Key（最高优先级）
-         */
-        public static final int MCP_AUTH = 1;
+import java.util.List;
 
-        /**
-         * API认证 Key
-         */
-        public static final int API_AUTH = 2;
+@RestController
+public class MigrateBizResourceImpl implements MigrateBizResource {
+
+    private final MigrateBizService migrateBizService;
+
+    public MigrateBizResourceImpl(MigrateBizService migrateBizService) {
+        this.migrateBizService = migrateBizService;
     }
 
-    /**
-     * 日志相关
-     */
-    public static class Logging {
-        /**
-         * 日志拦截器
-         */
-        public static final int MCP_LOGGING = 2;
+    @Override
+    public MigrateResp addMigrateBiz(MigrateReq req) {
+        List<String> bizIdList = req.getBizIdList();
+        if (CollectionUtils.isEmpty(bizIdList)) {
+            return new MigrateResp(true);
+        }
+        return new MigrateResp(migrateBizService.addMigrateBiz(bizIdList));
+    }
+
+    @Override
+    public MigrateResp deleteMigrateBiz(MigrateReq req) {
+        List<String> bizIdList = req.getBizIdList();
+        if (CollectionUtils.isEmpty(bizIdList)) {
+            return new MigrateResp(true);
+        }
+        return new MigrateResp(migrateBizService.deleteMigrateBiz(bizIdList));
+    }
+
+    @Override
+    public MigrateResp isMigrated(String bizId) {
+        return new MigrateResp(migrateBizService.isMigrated(bizId));
     }
 }

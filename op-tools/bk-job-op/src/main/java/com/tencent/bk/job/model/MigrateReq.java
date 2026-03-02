@@ -22,35 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.consts;
+package com.tencent.bk.job.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
- * 拦截器优先级顺序
+ * 按业务分批迁移环境时使用的请求体
  */
-public class InterceptorOrder {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class MigrateReq {
 
     /**
-     * 认证相关
+     * 业务ID列表
      */
-    public static class Auth {
-        /**
-         * MCP认证 Key（最高优先级）
-         */
-        public static final int MCP_AUTH = 1;
-
-        /**
-         * API认证 Key
-         */
-        public static final int API_AUTH = 2;
-    }
-
-    /**
-     * 日志相关
-     */
-    public static class Logging {
-        /**
-         * 日志拦截器
-         */
-        public static final int MCP_LOGGING = 2;
-    }
+    private List<String> bizIdList;
 }
