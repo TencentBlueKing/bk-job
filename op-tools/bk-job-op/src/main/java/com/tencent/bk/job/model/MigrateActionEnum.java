@@ -22,35 +22,50 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.consts;
+package com.tencent.bk.job.model;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * 拦截器优先级顺序
+ * 按业务分批迁移环境时的操作类型枚举
  */
-public class InterceptorOrder {
+public enum MigrateActionEnum {
 
-    /**
-     * 认证相关
-     */
-    public static class Auth {
-        /**
-         * MCP认证 Key（最高优先级）
-         */
-        public static final int MCP_AUTH = 1;
+    /** 新增迁移标记 */
+    ADD("add"),
 
-        /**
-         * API认证 Key
-         */
-        public static final int API_AUTH = 2;
+    /** 删除迁移标记 */
+    DELETE("delete");
+
+    /** 存入 DB / JSON 序列化时使用的小写字符串 */
+    private final String type;
+
+    MigrateActionEnum(String type) {
+        this.type = type;
     }
 
     /**
-     * 日志相关
+     * 序列化：JSON 输出 type 字段值
      */
-    public static class Logging {
-        /**
-         * 日志拦截器
-         */
-        public static final int MCP_LOGGING = 2;
+    @JsonValue
+    public String getType() {
+        return type;
+    }
+
+    /**
+     * 反序列化：根据 type 字符串还原枚举
+     */
+    @JsonCreator
+    public static MigrateActionEnum fromType(String type) {
+        if (type == null) {
+            return null;
+        }
+        for (MigrateActionEnum value : values()) {
+            if (value.type.equalsIgnoreCase(type)) {
+                return value;
+            }
+        }
+        throw new IllegalArgumentException("Unknown MigrateActionEnum type: " + type);
     }
 }

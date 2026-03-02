@@ -22,35 +22,49 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.consts;
+package com.tencent.bk.job.dao;
 
-/**
- * 拦截器优先级顺序
- */
-public class InterceptorOrder {
+import org.apache.ibatis.annotations.Delete;
+import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
-    /**
-     * 认证相关
-     */
-    public static class Auth {
-        /**
-         * MCP认证 Key（最高优先级）
-         */
-        public static final int MCP_AUTH = 1;
+import java.util.List;
 
-        /**
-         * API认证 Key
-         */
-        public static final int API_AUTH = 2;
-    }
+@Mapper
+public interface MigrateBizMapper {
 
     /**
-     * 日志相关
+     * 批量插入biz记录（忽略已存在的）
      */
-    public static class Logging {
-        /**
-         * 日志拦截器
-         */
-        public static final int MCP_LOGGING = 2;
-    }
+    @Insert({
+        "<script>",
+        "INSERT IGNORE INTO migrate_biz (biz_id, create_time, row_create_time, row_update_time)",
+        "VALUES",
+        "<foreach collection='bizIdList' item='bizId' separator=','>",
+        "(#{bizId}, #{now}, NOW(), NOW())",
+        "</foreach>",
+        "</script>"
+    })
+    int batchInsert(@Param("bizIdList") List<String> bizIdList, @Param("now") long now);
+
+    /**
+     * 批量删除biz记录
+     */
+    @Delete({
+        "<script>",
+        "DELETE FROM migrate_biz WHERE biz_id IN",
+        "<foreach collection='bizIdList' item='bizId' open='(' separator=',' close=')'>",
+        "#{bizId}",
+        "</foreach>",
+        "</script>"
+    })
+    int batchDelete(@Param("bizIdList") List<String> bizIdList);
+
+    /**
+     * 查询某个bizId是否存在
+     */
+    @Select("SELECT COUNT(1) FROM migrate_biz WHERE biz_id = #{bizId}")
+    int countByBizId(@Param("bizId") String bizId);
 }

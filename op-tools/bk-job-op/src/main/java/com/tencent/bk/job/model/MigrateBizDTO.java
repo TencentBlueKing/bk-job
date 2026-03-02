@@ -22,35 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.consts;
+package com.tencent.bk.job.model;
 
-/**
- * 拦截器优先级顺序
- */
-public class InterceptorOrder {
+import lombok.Data;
+
+@Data
+public class MigrateBizDTO {
+    /**
+     * 业务ID
+     */
+    private String bizId;
 
     /**
-     * 认证相关
+     * 迁移时间（毫秒时间戳）
      */
-    public static class Auth {
-        /**
-         * MCP认证 Key（最高优先级）
-         */
-        public static final int MCP_AUTH = 1;
-
-        /**
-         * API认证 Key
-         */
-        public static final int API_AUTH = 2;
-    }
-
-    /**
-     * 日志相关
-     */
-    public static class Logging {
-        /**
-         * 日志拦截器
-         */
-        public static final int MCP_LOGGING = 2;
-    }
+    private Long createTime;
 }
