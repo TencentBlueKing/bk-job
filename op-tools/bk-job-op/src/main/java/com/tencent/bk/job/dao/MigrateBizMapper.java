@@ -40,10 +40,10 @@ public interface MigrateBizMapper {
      */
     @Insert({
         "<script>",
-        "INSERT IGNORE INTO migrate_biz (biz_id, create_time, row_create_time, row_update_time)",
+        "INSERT IGNORE INTO migrate_biz (biz_id, create_time)",
         "VALUES",
         "<foreach collection='bizIdList' item='bizId' separator=','>",
-        "(#{bizId}, #{now}, NOW(), NOW())",
+        "(#{bizId}, #{now})",
         "</foreach>",
         "</script>"
     })
