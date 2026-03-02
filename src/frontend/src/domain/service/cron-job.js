@@ -115,6 +115,9 @@ export default {
   },
   fetchUnlaunchHistory(params) {
     return CronJobSource.getUnlaunchHistory(params)
-      .then(({ data }) => data);
+      .then(({ data }) => {
+        data.data = data.data.map(item => new CrontabModel(item));
+        return data;
+      });
   },
 };

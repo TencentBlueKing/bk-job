@@ -83,6 +83,13 @@ export default class Crontab extends Model {
     this.lastFailRecord = payload.lastFailRecord || [];
     this.notifyType = payload.notifyType || 1;
     this.executeTimeZone = payload.executeTimeZone;
+    // 任务未启动
+    this.scheduledTime = payload.scheduledTime ? getTime({ timestamp: payload.scheduledTime, timezone: payload.executeTimeZone }) : '';
+    this.executeTime = payload.executeTime ? getTime({ timestamp: payload.executeTime, timezone: payload.executeTimeZone }) : '';
+    this.status = payload.status || 0;
+    this.errorCode = payload.errorCode || 0;
+    this.errorMsg = payload.errorMsg || '';
+    this.executor = payload.executor || '';
 
     this.variableValue = this.initVariableValue(payload.variableValue);
     this.notifyUser = this.initNotifyUser(payload.notifyUser);
