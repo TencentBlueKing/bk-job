@@ -53,6 +53,26 @@ public class DefaultQuartzTaskHandler extends AbstractQuartzTaskHandler {
         this.scheduler = scheduler;
     }
 
+    @Override
+    public void waitSchedulerReadyThenAddJob(QuartzJob quartzJob) throws Exception {
+        if (!scheduler.isStarted()) {
+            waitUtilQuartzStarted();
+        }
+        if (checkExists(quartzJob.getKey())) {
+            deleteJob(quartzJob.getKey());
+        }
+        addJob(quartzJob);
+    }
+
+    @SuppressWarnings("BusyWait")
+    private void waitUtilQuartzStarted() throws Exception {
+        do {
+            log.info("Quartz Scheduler is not started, sleep 1s and retry");
+            Thread.sleep(1000);
+        } while (!scheduler.isStarted());
+        log.info("Quartz Scheduler is started now");
+    }
+
     /**
      * 动态添加任务
      */

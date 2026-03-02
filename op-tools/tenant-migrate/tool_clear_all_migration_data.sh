@@ -50,7 +50,7 @@ echo "========================================="
 # 从目标环境数据库查询 scopeId 对应的 app_id
 # 注意：必须从 targetDb 查询，因为迁移后的数据使用的是 target 环境的 app_id
 echo "从目标环境查询 scopeId=${scopeId} 对应的 app_id..."
-queryAppIdByScopeIdSql="select app_id from \`${targetJobManageDb}\`.\`application\` where bk_scope_id='${scopeId}'"
+queryAppIdByScopeIdSql="select app_id from \`${targetJobManageDb}\`.\`application\` where bk_scope_id='${scopeId}' and is_deleted=0"
 executeSqlInTargetDb "${queryAppIdByScopeIdSql}"
 appId=$(echo ${dbResult}|awk -F" " '{print $2}')
 

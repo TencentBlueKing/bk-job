@@ -22,41 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.service.quota.config;
+package com.tencent.bk.job.common.service.quota;
 
-import com.tencent.bk.job.common.service.quota.ResourceQuotaLoadApplicationRunner;
-import com.tencent.bk.job.common.service.quota.ResourceQuotaStore;
-import com.tencent.bk.job.common.service.quota.RunningJobResourceQuotaStore;
-import com.tencent.bk.job.common.service.quota.SendNotifyResourceQuotaStore;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.Getter;
 
 /**
- * 配额限制 Spring AutoConfiguration
+ * 资源配额校验结果枚举
+ * 注意：枚举值的value字段取值必须与Redis Lua脚本返回值严格保持一致
  */
-@Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties({ResourceQuotaLimitProperties.class})
-public class ResourceQuotaAutoConfiguration {
+@Getter
+public enum ResourceQuotaCheckResultEnum {
 
-    @Bean
-    public ResourceQuotaStore resourceQuotaStore() {
-        return new ResourceQuotaStore();
+    NO_LIMIT("no_limit"),
+    RESOURCE_SCOPE_LIMIT("resource_scope_quota_limit"),
+    APP_LIMIT("app_quota_limit"),
+    SYSTEM_LIMIT("system_quota_limit"),
+    USER_LIMIT("user_quota_limit");
+
+    private final String value;
+
+    ResourceQuotaCheckResultEnum(String value) {
+        this.value = value;
     }
 
-    @Bean
-    public RunningJobResourceQuotaStore runningJobResourceQuotaStore(ResourceQuotaStore resourceQuotaStore) {
-        return new RunningJobResourceQuotaStore(resourceQuotaStore);
+    public static ResourceQuotaCheckResultEnum valOf(String value) {
+        for (ResourceQuotaCheckResultEnum resultEnum : values()) {
+            if (resultEnum.value.equals(value)) {
+                return resultEnum;
+            }
+        }
+        throw new IllegalArgumentException("No ResourceQuotaCheckResultEnum constant: " + value);
     }
 
-    @Bean
-    public SendNotifyResourceQuotaStore sendNotifyResourceQuotaStore(ResourceQuotaStore resourceQuotaStore) {
-        return new SendNotifyResourceQuotaStore(resourceQuotaStore);
-    }
-
-    @Bean
-    public ResourceQuotaLoadApplicationRunner resourceQuotaLoadApplicationRunner(
-            ResourceQuotaStore resourceQuotaStore) {
-        return new ResourceQuotaLoadApplicationRunner(resourceQuotaStore);
+    public boolean isExceedLimit() {
+        return this != NO_LIMIT;
     }
 }

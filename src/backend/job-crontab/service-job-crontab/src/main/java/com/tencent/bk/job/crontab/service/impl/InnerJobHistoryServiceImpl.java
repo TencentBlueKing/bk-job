@@ -63,7 +63,7 @@ public class InnerJobHistoryServiceImpl implements InnerJobHistoryService {
     }
 
     @Override
-    public int cleanHistory(long cleanBefore, boolean cleanAll) {
-        return innerCronJobHistoryDAO.cleanHistory(cleanBefore, cleanAll);
+    public int cleanHistory(long cleanBefore, int limit) {
+        return innerCronJobHistoryDAO.cleanHistory(cleanBefore, limit);
     }
 }

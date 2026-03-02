@@ -20,13 +20,16 @@
 
 ## 一键迁移
 
-### 1. 配置数据库连接
+### 1. 配置迁移参数
 
 ```bash
 cd tenant-migrate
-# 修改数据库配置
 vim 0_config_common.sh
 ```
+
+需要配置：
+- **数据库连接**：源环境、目标环境、临时数据库
+- **蓝盾制品库 URL**：`sourceBkRepoUrl`（老环境）和 `targetBkRepoUrl`（新环境），用于替换文件源中的制品库地址
 
 ### 2. 设置自增偏移量
 

@@ -160,7 +160,7 @@ echo ""
 echo "步骤1: 获取业务 app_id..."
 
 # 从老环境数据库查询 app_id
-querySourceAppIdSql="SELECT app_id FROM \`${sourceJobManageDb}\`.\`application\` WHERE bk_scope_id='${SCOPE_ID}'"
+querySourceAppIdSql="SELECT app_id FROM \`${sourceJobManageDb}\`.\`application\` WHERE bk_scope_id='${SCOPE_ID}' AND is_deleted=0"
 executeSqlInSourceDb "${querySourceAppIdSql}"
 SOURCE_APP_ID=$(echo "${dbResult}" | tail -n +2 | head -1)
 
@@ -171,7 +171,7 @@ fi
 echo "  老环境 app_id: ${SOURCE_APP_ID}"
 
 # 从新环境数据库查询 app_id
-queryTargetAppIdSql="SELECT app_id FROM \`${targetJobManageDb}\`.\`application\` WHERE bk_scope_id='${SCOPE_ID}'"
+queryTargetAppIdSql="SELECT app_id FROM \`${targetJobManageDb}\`.\`application\` WHERE bk_scope_id='${SCOPE_ID}' AND is_deleted=0"
 executeSqlInTargetDb "${queryTargetAppIdSql}"
 TARGET_APP_ID=$(echo "${dbResult}" | tail -n +2 | head -1)
 

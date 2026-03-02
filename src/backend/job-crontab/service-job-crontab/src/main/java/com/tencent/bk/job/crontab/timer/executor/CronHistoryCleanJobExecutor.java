@@ -24,15 +24,18 @@
 
 package com.tencent.bk.job.crontab.timer.executor;
 
+import com.tencent.bk.job.common.util.ThreadUtils;
+import com.tencent.bk.job.common.util.TimeUtil;
+import com.tencent.bk.job.crontab.config.CleanHistoryProperties;
 import com.tencent.bk.job.crontab.service.CronJobHistoryService;
 import com.tencent.bk.job.crontab.service.InnerJobHistoryService;
 import com.tencent.bk.job.crontab.timer.AbstractQuartzJobBean;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+
+import java.util.function.IntFunction;
 
 /**
  * 定时任务启动记录清理作业执行者
@@ -48,11 +51,8 @@ public class CronHistoryCleanJobExecutor extends AbstractQuartzJobBean {
     @Autowired
     InnerJobHistoryService innerCronJobHistoryService;
 
-    /**
-     * 启动记录保存时间
-     */
-    @Value("${job.crontab.history.clean.keep.day:7}")
-    private Long logKeepDay;
+    @Autowired
+    CleanHistoryProperties cleanHistoryProperties;
 
     @Override
     public String name() {
@@ -60,13 +60,87 @@ public class CronHistoryCleanJobExecutor extends AbstractQuartzJobBean {
     }
 
     @Override
-    protected void executeInternalInternal(JobExecutionContext context) throws JobExecutionException {
-        log.debug("Start cleaning cron job execute history...");
-        long cleanTime = System.currentTimeMillis() - logKeepDay * 24 * 3600 * 1000;
-        int jobHistoryCleanCount = cronJobHistoryService.cleanHistory(cleanTime, false);
-        int innerJobHistoryCleanCount = innerCronJobHistoryService.cleanHistory(cleanTime, false);
-        log.info("Clean success job history before {}|Common {}|Inner {}", cleanTime, jobHistoryCleanCount,
-            innerJobHistoryCleanCount);
-        log.debug("Cron job execute history successfully cleaned.");
+    protected void executeInternalInternal(JobExecutionContext context) {
+        try {
+            cleanCronJobHistory(context);
+        } catch (Exception e) {
+            log.error("Fail to cleanCronJobHistory", e);
+        }
+    }
+
+    private static final String TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
+    protected void cleanCronJobHistory(JobExecutionContext context) {
+        long cleanTime = System.currentTimeMillis() - cleanHistoryProperties.getKeepDays() * 24 * 3600 * 1000L;
+        log.info(
+            "Begin to delete cron job history before {}, cleanTime={}, " +
+                "keepDays={}, batchSize={}, sleepMillisBetweenBatches={}",
+            TimeUtil.formatTime(cleanTime, TIME_FORMAT),
+            cleanTime,
+            cleanHistoryProperties.getKeepDays(),
+            cleanHistoryProperties.getBatchSize(),
+            cleanHistoryProperties.getSleepMillisBetweenBatches()
+        );
+
+        int jobHistoryCleanCount = cleanHistoryInBatches(cronJobHistoryService, cleanTime);
+        int innerJobHistoryCleanCount =
+            cleanHistoryInBatches(innerCronJobHistoryService, cleanTime);
+
+        log.info(
+            "Finish to clean cron job history, totalDeletedNum: cron_job_history={}, inner_cron_job_history={}, "
+                + "cleanTime={}",
+            jobHistoryCleanCount,
+            innerJobHistoryCleanCount,
+            TimeUtil.formatTime(cleanTime, TIME_FORMAT)
+        );
+    }
+
+    /**
+     * 分批次清理历史记录，每批次最多删除 batchSize 条，避免一次性删除大量数据导致 DB 高负载
+     */
+    private int cleanHistoryInBatches(CronJobHistoryService service,
+                                      long cleanTime) {
+        return doCleanHistoryInBatches(
+            (limit) -> service.cleanHistory(cleanTime, limit),
+            "cron_job_history"
+        );
+    }
+
+    private int cleanHistoryInBatches(InnerJobHistoryService service, long cleanTime) {
+        return doCleanHistoryInBatches(
+            (limit) -> service.cleanHistory(cleanTime, limit),
+            "inner_cron_job_history"
+        );
+    }
+
+    private int doCleanHistoryInBatches(IntFunction<Integer> cleanBatch, String tableLabel) {
+        int batchSize = cleanHistoryProperties.getBatchSize();
+        long sleepMillis = cleanHistoryProperties.getSleepMillisBetweenBatches();
+        int totalDeletedNum = 0;
+        int deletedNum;
+        do {
+            deletedNum = cleanBatch.apply(batchSize);
+            totalDeletedNum += deletedNum;
+            if (deletedNum > 0) {
+                // 每删除10w条记录打印一次日志
+                if (totalDeletedNum % 100000 == 0) {
+                    log.info(
+                        "Clean {} batch deleted {} records, totalDeletedNum={}",
+                        tableLabel,
+                        deletedNum,
+                        totalDeletedNum
+                    );
+                } else {
+                    log.debug(
+                        "Clean {} batch deleted {} records, totalDeletedNum={}",
+                        tableLabel,
+                        deletedNum,
+                        totalDeletedNum
+                    );
+                }
+                ThreadUtils.sleep(sleepMillis);
+            }
+        } while (deletedNum >= batchSize);
+        return totalDeletedNum;
     }
 }

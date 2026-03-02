@@ -298,7 +298,7 @@ tableName="script"
 tmpTableName="${tableName}_${sourceAppId}"
 dbName="${tmpJobManageDb}"
 # 检查是否有 tenant_id 列，如果没有则添加
-hasColumn=$(executeSqlInTmpDb "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${dbName}' AND table_name='${tmpTableName}' AND column_name='tenant_id';" 2>/dev/null | tail -1)
+hasColumn=$(querySqlInTmpDb "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${dbName}' AND table_name='${tmpTableName}' AND column_name='tenant_id';")
 if [[ "${hasColumn}" == "0" || "${hasColumn}" == "" ]]; then
   echo "  - 为 ${tableName} 添加 tenant_id 列..."
   # 与 support-files/sql 保持一致的 ALTER TABLE 语句
@@ -312,7 +312,7 @@ executeSqlInTmpDb "UPDATE \`${dbName}\`.\`${tmpTableName}\` SET tenant_id='${def
 tableName="file_source"
 tmpTableName="${tableName}_${sourceAppId}"
 dbName="${tmpJobFileGatewayDb}"
-hasColumn=$(executeSqlInTmpDb "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${dbName}' AND table_name='${tmpTableName}' AND column_name='tenant_id';" 2>/dev/null | tail -1)
+hasColumn=$(querySqlInTmpDb "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${dbName}' AND table_name='${tmpTableName}' AND column_name='tenant_id';")
 if [[ "${hasColumn}" == "0" || "${hasColumn}" == "" ]]; then
   echo "  - 为 ${tableName} 添加 tenant_id 列..."
   # 与 support-files/sql 保持一致的 ALTER TABLE 语句（指定 AFTER id）
@@ -321,6 +321,23 @@ fi
 # 无论列是否已存在，都更新 tenant_id 值（幂等操作）
 echo "  - 为 ${tableName} 设置 tenant_id 值..."
 executeSqlInTmpDb "UPDATE \`${dbName}\`.\`${tmpTableName}\` SET tenant_id='${defaultTenantId}';"
+
+# 替换 BLUEKING_ARTIFACTORY 类型文件源的 bkrepo URL
+if [[ -n "${sourceBkRepoUrl}" && -n "${targetBkRepoUrl}" && "${sourceBkRepoUrl}" != "${targetBkRepoUrl}" ]]; then
+  echo ""
+  echo "  - 替换 BLUEKING_ARTIFACTORY 类型文件源的 bkrepo URL..."
+  echo "    源环境 bkrepo URL: ${sourceBkRepoUrl}"
+  echo "    目标环境 bkrepo URL: ${targetBkRepoUrl}"
+  # 使用 REPLACE 函数替换 custom_info 中的 base_url
+  # custom_info 格式: {"base_url":"http://bkrepo-old.example.com"}
+  executeSqlInTmpDb "UPDATE \`${dbName}\`.\`${tmpTableName}\` SET custom_info = REPLACE(custom_info, '${sourceBkRepoUrl}', '${targetBkRepoUrl}') WHERE type = 'BLUEKING_ARTIFACTORY' AND custom_info IS NOT NULL;"
+  # 统计受影响的行数
+  affectedCount=$(querySqlInTmpDb "SELECT COUNT(*) FROM \`${dbName}\`.\`${tmpTableName}\` WHERE type = 'BLUEKING_ARTIFACTORY';")
+  echo "    ✓ 已处理 ${affectedCount} 条 BLUEKING_ARTIFACTORY 类型文件源记录"
+else
+  echo ""
+  echo "  - 跳过 bkrepo URL 替换（未配置或新老环境 URL 相同）"
+fi
 
 ### 2.2 替换 app_id（将 source 环境的 app_id 替换为 target 环境的 app_id）
 echo ""
@@ -400,7 +417,7 @@ else
   for srcAppId in ${distinctAppIds}
   do
     # 2a. 从 sourceDB（老环境）中查询 bk_scope_id
-    queryBkScopeIdSql="SELECT bk_scope_id FROM \`${sourceJobManageDb}\`.\`application\` WHERE app_id=${srcAppId}"
+    queryBkScopeIdSql="SELECT bk_scope_id FROM \`${sourceJobManageDb}\`.\`application\` WHERE app_id=${srcAppId} AND is_deleted=0"
     executeSqlInSourceDb "${queryBkScopeIdSql}"
     bkScopeId=$(echo "${dbResult}" | tail -n +2 | head -1)
     
@@ -412,7 +429,7 @@ else
     fi
     
     # 2b. 从 targetDB 中查询 target_app_id
-    queryTargetAppIdSql="SELECT app_id FROM \`${targetJobManageDb}\`.\`application\` WHERE bk_scope_id='${bkScopeId}'"
+    queryTargetAppIdSql="SELECT app_id FROM \`${targetJobManageDb}\`.\`application\` WHERE bk_scope_id='${bkScopeId}' AND is_deleted=0"
     executeSqlInTargetDb "${queryTargetAppIdSql}"
     tgtAppId=$(echo "${dbResult}" | tail -n +2 | head -1)
     
@@ -453,7 +470,14 @@ function dumpTableInTmpDb(){
   _tableName="$2"
   _filePath="$3"
   echo "  导出: ${_dbName}.${_tableName} -> ${_filePath}"
-  mysqldump -h${tmpMysqlHost} -P${tmpMysqlPort} -u${tmpMysqlRootUser} -p${tmpMysqlRootPassword} --default-character-set=utf8mb4 --skip-opt --complete-insert -t --compact ${_dbName} ${_tableName} > ${_filePath}
+  mysqldump -h${tmpMysqlHost} -P${tmpMysqlPort} -u${tmpMysqlRootUser} -p${tmpMysqlRootPassword} \
+    --default-character-set=utf8mb4 \
+    --skip-opt \
+    --complete-insert \
+    -t \
+    --compact \
+    --set-gtid-purged=OFF \
+    ${_dbName} ${_tableName} > ${_filePath}
 }
 
 function dumpTableInTmpJobManage(){

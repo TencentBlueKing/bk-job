@@ -22,31 +22,16 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.quota.limit;
+package com.tencent.bk.job.crontab.runner.order;
 
-public enum ResourceQuotaCheckResultEnum {
-
-    NO_LIMIT("no_limit"),
-    RESOURCE_SCOPE_LIMIT("resource_scope_quota_limit"),
-    APP_LIMIT("app_quota_limit"),
-    SYSTEM_LIMIT("system_quota_limit");
-
-    private final String value;
-
-    ResourceQuotaCheckResultEnum(String value) {
-        this.value = value;
-    }
-
-    public static ResourceQuotaCheckResultEnum valOf(String value) {
-        for (ResourceQuotaCheckResultEnum resultEnum : values()) {
-            if (resultEnum.value.equals(value)) {
-                return resultEnum;
-            }
-        }
-        throw new IllegalArgumentException("No ResourceQuotaCheckResultEnum constant: " + value);
-    }
-
-    public boolean isExceedLimit() {
-        return this != NO_LIMIT;
-    }
+/**
+ * 定义多个启动Runner的相对执行顺序
+ */
+public class RunnerOrder {
+    // 优先级最高
+    // 加载定时任务到Quartz进行调度
+    public static final int LOAD_CRON_JOB = Integer.MIN_VALUE;
+    // 添加自动清理任务：清理定时任务执行历史记录
+    public static final int ADD_CLEAN_CRON_HISTORY_JOB = Integer.MAX_VALUE;
+    // 优先级最低
 }

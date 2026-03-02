@@ -22,17 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.config;
+package com.tencent.bk.job.common.resource.quota;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * 定时任务服务相关配置
+ * 配额限制-用户
  */
-@Slf4j
-@Configuration
-@EnableConfigurationProperties({JobCrontabProperties.class, CleanHistoryProperties.class})
-public class JobCrontabConfig {
+@EqualsAndHashCode(callSuper = true)
+@Data
+@NoArgsConstructor
+public class UserQuotaLimit extends QuotaLimit {
+
+    /**
+     * 解析之后的自定义用户配额限制
+     */
+    private Map<String, Long> customLimits = new HashMap<>();
+
+    public UserQuotaLimit(String globalLimitExpr, String customLimitExpr) {
+        super(globalLimitExpr, customLimitExpr);
+    }
+
+    public long getLimit(String userId) {
+        Long limit = customLimits.get(userId);
+        if (limit == null) {
+            limit = getGlobalLimit();
+        }
+        return limit;
+    }
 }
