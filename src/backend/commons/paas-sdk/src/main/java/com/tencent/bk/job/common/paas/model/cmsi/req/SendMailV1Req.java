@@ -64,7 +64,8 @@ public class SendMailV1Req extends CmsiSendMsgV1BasicReq {
     public static SendMailV1Req fromNotifyMessageDTO(NotifyMessageDTO notifyMessageDTO) {
         SendMailV1Req sendMailV1Req = new SendMailV1Req();
         sendMailV1Req.setReceiverUsername(notifyMessageDTO.getReceiverUsername());
-        sendMailV1Req.setSender(notifyMessageDTO.getSender());
+        // 使用蓝鲸公共账号发送，不需要传具体的发件人
+        sendMailV1Req.setSender(null);
         sendMailV1Req.setTitle(notifyMessageDTO.getTitle());
         sendMailV1Req.setContent(notifyMessageDTO.getContent());
         return sendMailV1Req;
