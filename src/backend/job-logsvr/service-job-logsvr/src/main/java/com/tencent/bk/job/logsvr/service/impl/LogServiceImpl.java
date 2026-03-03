@@ -624,7 +624,7 @@ public class LogServiceImpl implements LogService {
                         DateUtils.FILE_TASK_LOG_FORMAT,
                         ZoneId.systemDefault()
                     );
-                    contentString = "[" + timeStr + "] " + logEntry.getContent() + "\n";
+                    contentString = "[" + timeStr + "] " + logEntry.getContent();
                 } else {
                     contentString = logEntry.getContent();
                 }

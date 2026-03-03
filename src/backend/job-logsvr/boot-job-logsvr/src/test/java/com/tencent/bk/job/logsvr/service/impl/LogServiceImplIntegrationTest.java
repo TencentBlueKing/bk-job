@@ -523,7 +523,7 @@ public class LogServiceImplIntegrationTest {
                 "60%");
             // 设置writeContentList（新版本格式），timestamp=1596078180000L，对应东八区 2020-07-30 11:03:00
             List<FileTaskLogDoc.LogEntry> writeContentList = new ArrayList<>();
-            writeContentList.add(new FileTaskLogDoc.LogEntry(1596078180000L, "Downloading2..."));
+            writeContentList.add(new FileTaskLogDoc.LogEntry(1596078180000L, "Downloading2...\n"));
             fillWriteList(fileTaskLog1, writeContentList);
 
             fileTaskLogList.clear();
@@ -547,7 +547,7 @@ public class LogServiceImplIntegrationTest {
             assertThat(resultFileTaskLog1.getTimeLogList()).hasSize(1);
             Map<String, Object> logEntry = (Map<String, Object>) resultFileTaskLog1.getTimeLogList().get(0);
             assertThat(logEntry.get("logTime")).isEqualTo(1596078180000L);
-            assertThat(logEntry.get("content")).isEqualTo("Downloading2...");
+            assertThat(logEntry.get("content")).isEqualTo("Downloading2...\n");
             // 验证 toServiceFileTaskLogDTO 兼容读取
             // timeLogList.size(1) != contentList.size(2) → 降级使用contentList，所有time=null
             ServiceFileTaskLogDTO serviceDTO2 = resultFileTaskLog1.toServiceFileTaskLogDTO();
@@ -623,7 +623,7 @@ public class LogServiceImplIntegrationTest {
             @SuppressWarnings("unchecked")
             Map<String, Object> logEntry2 = (Map<String, Object>) resultFileTaskLog1.getTimeLogList().get(0);
             assertThat(logEntry2.get("logTime")).isEqualTo(1596078180000L);
-            assertThat(logEntry2.get("content")).isEqualTo("Downloading2...");
+            assertThat(logEntry2.get("content")).isEqualTo("Downloading2...\n");
 
             // 验证 toServiceFileTaskLogDTO 兼容读取
             // timeLogList.size(1) != contentList.size(3) → 降级使用contentList，所有time=null
