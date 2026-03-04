@@ -57,7 +57,7 @@ export default (messageList, getTime) => {
                   .forEach((item) => {
                     try {
                       const chunkData = JSON.parse(item).data;
-                      latestChatMessage.time = getTime(chunkData.time);
+                      latestChatMessage.time = getTime({ timestamp: chunkData.time });
                       latestChatMessage.content += chunkData.content;
                     } catch {
                       fragment += item;
