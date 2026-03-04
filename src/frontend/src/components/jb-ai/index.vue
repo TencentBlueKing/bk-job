@@ -95,7 +95,7 @@
           role: 'user',
           content: data.userInput.content,
           status: '',
-          time: getTime(data.userInput.time),
+          time: getTime({ timestamp: data.userInput.time }),
         });
         currentRecordId = data.id;
         fetchContent(currentRecordId);
@@ -110,7 +110,7 @@
           role: 'user',
           content: data.userInput.content,
           status: '',
-          time: getTime(data.userInput.time),
+          time: getTime({ timestamp: data.userInput.time }),
         });
         currentRecordId = data.id;
         fetchContent(currentRecordId);
@@ -123,7 +123,7 @@
       role: 'user',
       content,
       status: '',
-      time: getTime(new Date().valueOf()),
+      time: getTime({ timestamp: new Date().valueOf() }),
     });
     AiService.fetchGeneraChat({
       content,
