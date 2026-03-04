@@ -45,7 +45,11 @@
       align="left"
       :label="$t('cron.执行人_colHead')"
       prop="executor"
-      width="180" />
+      width="180">
+      <template slot-scope="{ row }">
+        <bk-user-display-name :user-id="row.executor" />
+      </template>
+    </bk-table-column>
     <bk-table-column
       key="errorMsg"
       align="left"
