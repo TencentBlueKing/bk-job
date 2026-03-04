@@ -32,6 +32,7 @@ import com.tencent.bk.job.logsvr.model.FileTaskLogDoc;
 import com.tencent.bk.job.logsvr.model.ScriptLogQuery;
 import com.tencent.bk.job.logsvr.model.ScriptTaskLogDoc;
 import com.tencent.bk.job.logsvr.model.TaskExecuteObjectLog;
+import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.logsvr.model.service.FileTaskTimeAndRawLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceFileTaskLogDTO;
 import com.tencent.bk.job.logsvr.mongo.FileLogsCollectionLoader;
@@ -48,6 +49,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -455,7 +458,7 @@ public class LogServiceImplIntegrationTest {
                 "100KB/S",
                 "100MB",
                 "50%");
-            oldFileTaskLogAddContent(fileTaskLog1, "[2020-07-30 11:00:00] Downloading1...\n");
+            oldFileTaskLogAddContent(fileTaskLog1, "[" + formatTime(1596078000000L) + "] Downloading1...\n");
 
             List<FileTaskLogDoc> fileTaskLogList = new ArrayList<>();
             fileTaskLogList.add(fileTaskLog1);
@@ -491,7 +494,7 @@ public class LogServiceImplIntegrationTest {
             // 验证contentList包含1条纯String（老版写入）
             assertThat(resultFileTaskLog1.getContentList()).hasSize(1);
             assertThat(resultFileTaskLog1.getContentList().get(0))
-                .isEqualTo("[2020-07-30 11:00:00] Downloading1...\n");
+                .isEqualTo("[" + formatTime(1596078000000L) + "] Downloading1...\n");
             // 验证timeLogList为null（老版不写timeLogList）
             assertThat(resultFileTaskLog1.getTimeLogList()).isNull();
             // 验证 toServiceFileTaskLogDTO 兼容读取（timeLogList为空 → 降级使用contentList，time=null）
@@ -499,7 +502,7 @@ public class LogServiceImplIntegrationTest {
             assertThat(serviceDTO1.getContentList()).hasSize(1);
             assertThat(serviceDTO1.getContentList().get(0).getTime()).isNull();
             assertThat(serviceDTO1.getContentList().get(0).getRawLog())
-                .isEqualTo("[2020-07-30 11:00:00] Downloading1...\n");
+                .isEqualTo("[" + formatTime(1596078000000L) + "] Downloading1...\n");
 
             // === 第二次写入：使用新版本方式（writeContentList字段，包含LogEntry对象） ===
             // 新 logsvr 同时写 timeLogList（LogEntry对象）和 contentList（拼接的纯String）
@@ -521,7 +524,7 @@ public class LogServiceImplIntegrationTest {
                 "100KB/S",
                 "100MB",
                 "60%");
-            // 设置writeContentList（新版本格式），timestamp=1596078180000L，对应东八区 2020-07-30 11:03:00
+            // 设置writeContentList（新版本格式），timestamp=1596078180000L
             List<FileTaskLogDoc.LogEntry> writeContentList = new ArrayList<>();
             writeContentList.add(new FileTaskLogDoc.LogEntry(1596078180000L, "Downloading2...\n"));
             fillWriteList(fileTaskLog1, writeContentList);
@@ -539,10 +542,10 @@ public class LogServiceImplIntegrationTest {
             assertThat(resultFileTaskLog1.getContentList()).hasSize(2);
             // 第1条：老版写入的纯String，原样保留
             assertThat(resultFileTaskLog1.getContentList().get(0))
-                .isEqualTo("[2020-07-30 11:00:00] Downloading1...\n");
-            // 第2条：新版写入时拼接的 "[timestamp转化后的时间] log\n" 格式
+                .isEqualTo("[" + formatTime(1596078000000L) + "] Downloading1...\n");
+            // 第2条：新版写入时拼接的 "[timestamp转化后的时间] log" 格式（content自带换行符）
             assertThat(resultFileTaskLog1.getContentList().get(1))
-                .isEqualTo("[2020-07-30 11:03:00] Downloading2...\n");
+                .isEqualTo("[" + formatTime(1596078180000L) + "] Downloading2...\n");
             // 验证timeLogList包含1条LogEntry（只有新版写入的那条）
             assertThat(resultFileTaskLog1.getTimeLogList()).hasSize(1);
             Map<String, Object> logEntry = (Map<String, Object>) resultFileTaskLog1.getTimeLogList().get(0);
@@ -554,10 +557,10 @@ public class LogServiceImplIntegrationTest {
             assertThat(serviceDTO2.getContentList()).hasSize(2);
             assertThat(serviceDTO2.getContentList().get(0).getTime()).isNull();
             assertThat(serviceDTO2.getContentList().get(0).getRawLog())
-                .isEqualTo("[2020-07-30 11:00:00] Downloading1...\n");
+                .isEqualTo("[" + formatTime(1596078000000L) + "] Downloading1...\n");
             assertThat(serviceDTO2.getContentList().get(1).getTime()).isNull();
             assertThat(serviceDTO2.getContentList().get(1).getRawLog())
-                .isEqualTo("[2020-07-30 11:03:00] Downloading2...\n");
+                .isEqualTo("[" + formatTime(1596078180000L) + "] Downloading2...\n");
 
             // === 第三次写入：再次使用老版本方式（只有content字段） ===
             fileTaskLog1 = buildFileTaskDetailLog(
@@ -578,7 +581,7 @@ public class LogServiceImplIntegrationTest {
                 "0KB/S",
                 "100MB",
                 "100%");
-            oldFileTaskLogAddContent(fileTaskLog1, "[2020-07-30 11:30:00] Downloading3...\n");
+            oldFileTaskLogAddContent(fileTaskLog1, "[" + formatTime(1596079800000L) + "] Downloading3...\n");
 
             fileTaskLogList.clear();
             fileTaskLogList.add(fileTaskLog1);
@@ -610,13 +613,13 @@ public class LogServiceImplIntegrationTest {
             assertThat(resultFileTaskLog1.getContentList()).hasSize(3);
             // 第1条：老版写入的 "[时间] 日志" 格式
             assertThat(resultFileTaskLog1.getContentList().get(0))
-                .isEqualTo("[2020-07-30 11:00:00] Downloading1...\n");
-            // 第2条：新版写入时 timestamp 转化后拼接的 "[时间] 日志\n" 格式
+                .isEqualTo("[" + formatTime(1596078000000L) + "] Downloading1...\n");
+            // 第2条：新版写入时 timestamp 转化后拼接的 "[时间] 日志" 格式（content自带换行符）
             assertThat(resultFileTaskLog1.getContentList().get(1))
-                .isEqualTo("[2020-07-30 11:03:00] Downloading2...\n");
+                .isEqualTo("[" + formatTime(1596078180000L) + "] Downloading2...\n");
             // 第3条：老版写入的 "[时间] 日志" 格式
             assertThat(resultFileTaskLog1.getContentList().get(2))
-                .isEqualTo("[2020-07-30 11:30:00] Downloading3...\n");
+                .isEqualTo("[" + formatTime(1596079800000L) + "] Downloading3...\n");
 
             // 验证timeLogList只包含1条（只有第二次新版写入时才push到timeLogList）
             assertThat(resultFileTaskLog1.getTimeLogList()).hasSize(1);
@@ -633,11 +636,11 @@ public class LogServiceImplIntegrationTest {
                 assertThat(item.getTime()).isNull();
             }
             assertThat(serviceDTO3.getContentList().get(0).getRawLog())
-                .isEqualTo("[2020-07-30 11:00:00] Downloading1...\n");
+                .isEqualTo("[" + formatTime(1596078000000L) + "] Downloading1...\n");
             assertThat(serviceDTO3.getContentList().get(1).getRawLog())
-                .isEqualTo("[2020-07-30 11:03:00] Downloading2...\n");
+                .isEqualTo("[" + formatTime(1596078180000L) + "] Downloading2...\n");
             assertThat(serviceDTO3.getContentList().get(2).getRawLog())
-                .isEqualTo("[2020-07-30 11:30:00] Downloading3...\n");
+                .isEqualTo("[" + formatTime(1596079800000L) + "] Downloading3...\n");
         }
     }
 
@@ -672,6 +675,18 @@ public class LogServiceImplIntegrationTest {
 
     void fillWriteList(FileTaskLogDoc doc, List<FileTaskLogDoc.LogEntry> writeContentList) {
         doc.setWriteContentList(writeContentList);
+    }
+
+    /**
+     * 使用系统默认时区将时间戳格式化为时间字符串，与 pushFileTaskLogContentCompatibly 逻辑一致
+     */
+    private String formatTime(long timestampMillis) {
+        return DateUtils.formatUnixTimestamp(
+            timestampMillis,
+            ChronoUnit.MILLIS,
+            DateUtils.FILE_TASK_LOG_FORMAT,
+            ZoneId.systemDefault()
+        );
     }
 
     FileTaskLogDoc buildFileTaskDetailLog(Integer mode,
