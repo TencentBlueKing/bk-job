@@ -22,53 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.service.ai.context.model;
+package com.tencent.bk.job.analysis.model.esb.v4.resp;
 
-import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
-import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * 任务上下文，用作动态数据填充模板，进而构建向AI提问的Prompt
+ * 任务上下文字段
  */
+@NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class TaskContext {
-
+public class TaskContextField {
     /**
-     * 步骤类型
+     * 字段名称
      */
-    private Integer executeType;
+    private String name;
     /**
-     * 步骤状态
+     * 字段值
      */
-    private Integer status;
+    private String value;
     /**
-     * 步骤创建时间
+     * 字段描述
      */
-    private Long stepCreateTime;
-    /**
-     * 脚本任务上下文
-     */
-    private ScriptTaskContext scriptTaskContext;
-    /**
-     * 文件任务上下文
-     */
-    private FileTaskContext fileTaskContext;
-
-    public boolean isScriptTask() {
-        StepExecuteTypeEnum stepExecuteTypeEnum = StepExecuteTypeEnum.valOf(executeType);
-        return stepExecuteTypeEnum == StepExecuteTypeEnum.EXECUTE_SCRIPT
-            || stepExecuteTypeEnum == StepExecuteTypeEnum.EXECUTE_SQL;
-    }
-
-    public boolean isFileTask() {
-        StepExecuteTypeEnum stepExecuteTypeEnum = StepExecuteTypeEnum.valOf(executeType);
-        return stepExecuteTypeEnum == StepExecuteTypeEnum.SEND_FILE;
-    }
-
-    public boolean isTaskFail() {
-        return RunStatusEnum.FAIL.getValue().equals(status);
-    }
+    private String description;
 }
