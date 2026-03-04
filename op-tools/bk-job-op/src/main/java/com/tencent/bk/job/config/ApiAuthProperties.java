@@ -22,35 +22,22 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.consts;
+package com.tencent.bk.job.config;
+
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 /**
- * 拦截器优先级顺序
+ * API 认证配置属性
  */
-public class InterceptorOrder {
+@Data
+@Component
+@ConfigurationProperties(prefix = "api.auth")
+public class ApiAuthProperties {
 
     /**
-     * 认证相关
+     * API Token，用于校验 /api/ 开头请求的 X-Job-Op-Api-Key 请求头
      */
-    public static class Auth {
-        /**
-         * MCP认证 Key（最高优先级）
-         */
-        public static final int MCP_AUTH = 1;
-
-        /**
-         * API认证 Key
-         */
-        public static final int API_AUTH = 2;
-    }
-
-    /**
-     * 日志相关
-     */
-    public static class Logging {
-        /**
-         * 日志拦截器
-         */
-        public static final int MCP_LOGGING = 2;
-    }
+    private String apiKey;
 }

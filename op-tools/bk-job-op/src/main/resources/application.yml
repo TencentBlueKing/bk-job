@@ -3,11 +3,16 @@ spring:
     name: bk-job-op
   profiles:
     active: dev
+  datasource:
+    url: jdbc:mysql://${GCS_MYSQL_HOST:127.0.0.1}:${GCS_MYSQL_PORT:3306}/${GCS_MYSQL_NAME:job_op}?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
+    username: ${GCS_MYSQL_USER:root}
+    password: ${GCS_MYSQL_PASSWORD:password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
-      host: 127.0.0.1
-      port: 6379
-      password: password
+      host: ${BK_PAAS_REDIS_HOST:127.0.0.1}
+      port: ${BK_PAAS_REDIS_PORT:6379}
+      password: ${BK_PAAS_REDIS_PASSWORD:password}
       database: 0
       lettuce:
         pool:
@@ -52,6 +57,11 @@ mcp:
   auth:
     enabled: true
     apiKey: "api-key"
+
+# API 认证配置
+api:
+  auth:
+    apiKey: "job-op-api-key"
 
 # BK API网关统一配置
 bkApiGateway:

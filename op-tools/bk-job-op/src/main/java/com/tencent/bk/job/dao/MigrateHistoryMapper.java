@@ -22,35 +22,27 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.consts;
+package com.tencent.bk.job.dao;
+
+import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 /**
- * 拦截器优先级顺序
+ * 按业务分批迁移环境时的审计历史记录 Mapper
  */
-public class InterceptorOrder {
+@Mapper
+public interface MigrateHistoryMapper {
 
     /**
-     * 认证相关
+     * 新增一条审计记录
+     *
+     * @param bizId      业务ID
+     * @param action     操作类型
+     * @param createTime 操作时间（毫秒时间戳，由应用层传入）
      */
-    public static class Auth {
-        /**
-         * MCP认证 Key（最高优先级）
-         */
-        public static final int MCP_AUTH = 1;
-
-        /**
-         * API认证 Key
-         */
-        public static final int API_AUTH = 2;
-    }
-
-    /**
-     * 日志相关
-     */
-    public static class Logging {
-        /**
-         * 日志拦截器
-         */
-        public static final int MCP_LOGGING = 2;
-    }
+    @Insert("INSERT INTO migrate_history (biz_id, action, create_time) VALUES (#{bizId}, #{action}, #{createTime})")
+    void insert(@Param("bizId") String bizId,
+                @Param("action") String action,
+                @Param("createTime") long createTime);
 }

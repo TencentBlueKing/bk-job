@@ -22,35 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.consts;
+package com.tencent.bk.job.service;
+
+import java.util.List;
 
 /**
- * 拦截器优先级顺序
+ * 按业务分批迁移环境时使用的服务接口
  */
-public class InterceptorOrder {
+public interface MigrateBizService {
 
     /**
-     * 认证相关
+     * 批量标记业务已完成环境迁移
+     *
+     * @param bizIdList 业务ID列表
+     * @return 是否成功
      */
-    public static class Auth {
-        /**
-         * MCP认证 Key（最高优先级）
-         */
-        public static final int MCP_AUTH = 1;
-
-        /**
-         * API认证 Key
-         */
-        public static final int API_AUTH = 2;
-    }
+    boolean addMigrateBiz(List<String> bizIdList);
 
     /**
-     * 日志相关
+     * 批量取消业务的环境迁移标记
+     *
+     * @param bizIdList 业务ID列表
+     * @return 是否成功
      */
-    public static class Logging {
-        /**
-         * 日志拦截器
-         */
-        public static final int MCP_LOGGING = 2;
-    }
+    boolean deleteMigrateBiz(List<String> bizIdList);
+
+    /**
+     * 查询某个业务是否已完成环境迁移
+     *
+     * @param bizId 业务ID
+     * @return 是否已完成环境迁移
+     */
+    boolean isMigrated(String bizId);
 }

@@ -180,9 +180,9 @@ public interface NoTenantHostDAO {
 
     int updateHostAttrsByHostId(ApplicationHostDTO applicationHostDTO);
 
-    int updateHostAttrsBeforeLastTime(ApplicationHostDTO applicationHostDTO);
+    int updateHostAttrsBeforeOrEqualLastTime(ApplicationHostDTO applicationHostDTO);
 
-    int batchUpdateHostsBeforeLastTime(List<ApplicationHostDTO> applicationHostDTOList);
+    int batchUpdateHostsBeforeOrEqualLastTime(List<ApplicationHostDTO> applicationHostDTOList);
 
     int syncHostTopo(Long hostId);
 

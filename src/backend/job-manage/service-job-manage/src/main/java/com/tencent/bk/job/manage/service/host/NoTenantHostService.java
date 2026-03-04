@@ -61,7 +61,7 @@ public interface NoTenantHostService {
      * @param hostInfoList 主机信息
      * @return 成功更新的主机数量
      */
-    int batchUpdateHostsBeforeLastTime(List<ApplicationHostDTO> hostInfoList);
+    int batchUpdateHostsBeforeOrEqualLastTime(List<ApplicationHostDTO> hostInfoList);
 
     /**
      * 创建或更新主机（仅更新时间戳在当前数据之前的数据）
@@ -69,7 +69,7 @@ public interface NoTenantHostService {
      * @param hostInfoDTO 主机信息
      * @return Pair<是否创建 ， 受影响主机数量>
      */
-    Pair<Boolean, Integer> createOrUpdateHostBeforeLastTime(ApplicationHostDTO hostInfoDTO);
+    Pair<Boolean, Integer> createOrUpdateHostBeforeOrEqualLastTime(ApplicationHostDTO hostInfoDTO);
 
     int updateHostAttrsByHostId(ApplicationHostDTO hostInfoDTO);
 
@@ -79,7 +79,7 @@ public interface NoTenantHostService {
      * @param hostInfoDTO 主机信息
      * @return 成功更新的主机数量
      */
-    int updateHostAttrsBeforeLastTime(ApplicationHostDTO hostInfoDTO);
+    int updateHostAttrsBeforeOrEqualLastTime(ApplicationHostDTO hostInfoDTO);
 
     /**
      * 删除主机（仅删除时间戳等于或在当前数据之前的数据）

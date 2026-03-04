@@ -212,7 +212,8 @@ public class CmsiEsbClient extends BkApiV1Client implements ICmsiClient {
             title = "Default Title";
         }
         req.setMsgType(msgType);
-        req.setSender(sender);
+        // 使用蓝鲸公共账号发送，不需要传具体的发件人
+        req.setSender(null);
         req.setReceiverUsername(String.join(",", receivers));
         req.setTitle(title);
         req.setContent(content);
