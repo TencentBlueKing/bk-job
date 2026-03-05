@@ -57,6 +57,9 @@
       getAbnormalIpv6HostList() {
         return this.$refs.ipSelector.getAbnormalIpv6HostList();
       },
+      getContainerList() {
+        return this.$refs.ipSelector.getContainerList();
+      },
       resetValue() {
         this.$refs.ipSelector.resetValue();
       },
