@@ -54,21 +54,25 @@ All feature requests, bug reports and improvement suggestions should be tracked 
 
 ### Main Branches
 
-| Branch          | Description                                                                                 | Stability        |
-|-----------------|---------------------------------------------------------------------------------------------|------------------|
-| **master**      | Main branch (stable), contains release-ready code                                           | ⭐⭐⭐ Highest      |
-| **dev**         | Integration branch, used for multi-feature integration testing and environment verification | ⭐⭐ Medium        |
-| **feature/xxx** | Feature development branch, created from master, merged back to master when complete        | ⭐ In Development |
+| Branch          | Description                                                                                                          | Stability      |
+|-----------------|----------------------------------------------------------------------------------------------------------------------|----------------|
+| **3.x.x**       | Release branch for each major version, contains production-ready code                                                | ⭐⭐⭐ Highest    |
+| **master**      | Main branch, contains the latest version code that has passed development, testing and review, UAT-ready at any time | ⭐⭐ High        |
+| **tenant-dev**  | Integration branch, used for multi-feature integration testing and environment verification                          | ⭐ Medium       |
+| **feature/xxx** | Feature development branch, created from master, merged back to master when complete                                 | In Development |
 
-### Branch Naming Convention
+### Branch Naming Suggestions
+
+There are no strict requirements for contributor branch naming — just ensure the branch name aligns with the intent of the PR. Here are some common naming patterns for reference:
 
 | Branch Type     | Naming Format                  | Example                  |
 |-----------------|--------------------------------|--------------------------|
 | Feature branch  | `feature/<short-description>`  | `feature/add-user-auth`  |
 | Fix branch      | `fix/<short-description>`      | `fix/login-timeout`      |
 | Refactor branch | `refactor/<short-description>` | `refactor/task-executor` |
+| Issue related   | `issue_<number>`               | `issue_123`              |
 
-> **Note**: Branch names should use lowercase English letters, with words separated by hyphens `-`. Names should be concise and descriptive.
+> **Tip**: It is recommended to use lowercase English letters for branch names, with words separated by hyphens `-`. Keep names concise and descriptive so others can easily understand the branch purpose.
 
 ## Development Workflow
 
@@ -80,19 +84,19 @@ flowchart TD
     A0["🔀 Fork to personal repo<br/>and sync latest master"]
     B["Create feature branch in personal repo<br/><code>git checkout -b feature/xxx</code>"]
     C["🟢 feature/xxx<br/>Develop and commit on personal repo's feature branch"]
-    D{"Development complete<br/>Ready to merge into dev for integration testing"}
-    E["Switch to dev integration branch<br/><code>git checkout dev</code><br/><code>git pull upstream dev</code>"]
-    F["Merge feature branch into dev<br/><code>git merge feature/xxx</code>"]
+    D{"Development complete<br/>Ready to merge into tenant-dev for integration testing"}
+    E["Switch to tenant-dev integration branch<br/><code>git checkout tenant-dev</code><br/><code>git pull upstream tenant-dev</code>"]
+    F["Merge feature branch into tenant-dev<br/><code>git merge feature/xxx</code>"]
     G{"Any conflicts?"}
-    H["⚠️ Resolve conflicts on dev integration branch<br/><code>Manually edit conflict files</code><br/><code>git add .</code><br/><code>git commit</code>"]
-    I["Push to main repo dev integration branch<br/><code>git push upstream dev</code>"]
-    J["🟡 Dev integration environment verification"]
+    H["⚠️ Resolve conflicts on tenant-dev integration branch<br/><code>Manually edit conflict files</code><br/><code>git add .</code><br/><code>git commit</code>"]
+    I["Push to main repo tenant-dev integration branch<br/><code>git push upstream tenant-dev</code>"]
+    J["🟡 tenant-dev integration environment verification"]
     K{"Verification passed?"}
-    L["Go back to personal repo's feature branch to fix<br/>Re-merge into dev after fixing"]
-    N["Sync latest master on feature branch<br/><code>git fetch upstream</code><br/><code>git rebase upstream/master</code>"]
+    L["Go back to personal repo's feature branch to fix<br/>Re-merge into tenant-dev after fixing"]
+    N["Sync latest master on feature branch<br/><code>git fetch upstream</code><br/><code>git rebase or merge upstream/master</code>"]
     N1{"Any conflicts?"}
-    N2["⚠️ Resolve conflicts on feature branch<br/><code>Manually edit conflict files</code><br/><code>git add .</code><br/><code>git rebase --continue</code>"]
-    M["✅ Personal repo feature branch → Main repo master<br/>(Via PR + Code Review)<br/><b>⚠️ Note: personal repo feature → main repo master<br/>NOT dev → master<br/>To avoid unverified commits entering master</b>"]
+    N2["⚠️ Resolve conflicts on feature branch<br/><code>Manually edit conflict files</code><br/><code>git add . → rebase --continue or commit</code>"]
+    M["✅ Personal repo feature branch → Main repo master<br/>(Via PR + Code Review)<br/><b>⚠️ Note: personal repo feature → main repo master<br/>NOT tenant-dev → master<br/>To avoid unverified commits entering master</b>"]
 
     A --> A0
     A0 -->|"git checkout -b"| B
@@ -150,40 +154,44 @@ git add .
 git commit -m 'feat: add xxx feature #123'
 ```
 
-#### 3. Merge into dev Branch for Integration Testing
+#### 3. Merge into tenant-dev Branch for Integration Testing
 
-After development is complete, merge the feature branch into the main repository's `dev` integration branch for integration testing and environment verification:
+After development is complete, merge the feature branch into the main repository's `tenant-dev` integration branch for integration testing and environment verification:
 
 ```shell
-# Switch to dev branch and pull latest dev code from upstream
-git checkout dev
-git pull upstream dev
+# Switch to tenant-dev branch and pull latest tenant-dev code from upstream
+git checkout tenant-dev
+git pull upstream tenant-dev
 
-# Merge feature branch into dev
+# Merge feature branch into tenant-dev
 git merge feature/xxx
 ```
 
-If conflicts occur, **resolve them on the dev branch**:
+If conflicts occur, **resolve them on the tenant-dev branch**:
 
 ```shell
 # Manually edit conflict files and resolve conflicts
 git add .
-git commit -m 'merge: resolve conflicts merging feature/xxx into dev'
+git commit -m 'merge: resolve conflicts merging feature/xxx into tenant-dev'
 
-# Push to main repo's dev integration branch
-git push upstream dev
+# Push to main repo's tenant-dev integration branch
+git push upstream tenant-dev
 ```
 
-#### 4. Dev Environment Verification
+#### 4. tenant-dev Environment Verification
 
-Perform functional verification and integration testing in the dev environment:
+Perform functional verification and integration testing in the tenant-dev environment:
 
 - ✅ **Verification passed**: Proceed to the next step, submit PR to merge into main repo's master
-- ❌ **Verification failed**: Go back to the feature branch in your personal repository to fix issues, then re-merge into the dev integration branch for verification
+- ❌ **Verification failed**: Go back to the feature branch in your personal repository to fix issues, then re-merge into the tenant-dev integration branch for verification
 
 #### 5. Sync Latest Master and Resolve Conflicts
 
-After verification passes, before submitting a PR, sync the latest master code from the main repository on your feature branch. During your development, other feature branches may have been merged into master, and submitting a PR directly may cause conflicts:
+After verification passes, before submitting a PR, sync the latest master code from the main repository on your feature branch. During your development, other feature branches may have been merged into master, and submitting a PR directly may cause conflicts.
+
+There are two ways to sync master: `rebase` (recommended) and `merge`. Developers can choose based on their situation.
+
+**Option 1: Using rebase (recommended for simple tasks with fewer commits)**
 
 ```shell
 # Switch to feature branch
@@ -194,7 +202,7 @@ git fetch upstream
 git rebase upstream/master
 ```
 
-If conflicts occur, **resolve them on the feature branch**:
+If conflicts occur, resolve them on the feature branch:
 
 ```shell
 # Manually edit conflict files and resolve conflicts
@@ -203,27 +211,53 @@ git rebase --continue
 # If multiple commits have conflicts, repeat the above steps until rebase is complete
 ```
 
-> 💡 **Tip**: Use `rebase` instead of `merge` to sync master. This keeps the feature branch's commit history linear and clean, making Code Review easier.
+**Option 2: Using merge (suitable for large tasks with many commits and frequent master syncs)**
+
+```shell
+# Switch to feature branch
+git checkout feature/xxx
+
+# Fetch latest code from upstream and merge
+git fetch upstream
+git merge upstream/master
+```
+
+If conflicts occur, resolve them on the feature branch:
+
+```shell
+# Manually edit conflict files and resolve conflicts
+git add .
+git commit
+```
+
+> 💡 **How to choose**:
+> - `rebase` keeps the commit history linear and clean, making Code Review easier. **Recommended for simple tasks with fewer commits.**
+> - For large tasks with many commits, especially when you need to sync master frequently and merge into tenant-dev repeatedly for verification, the cost of `rebase` can be high (each rebase may require resolving conflicts commit by commit). In such cases, `merge` is more efficient.
+> - **Developers can choose freely based on their actual situation. This is not a mandatory requirement.**
 
 #### 6. Merge into Master (via PR/MR)
 
 After resolving conflicts, push the feature branch from your personal repository to remote, then create a Pull Request on GitHub from **your personal repository's feature branch** to **the main repository (TencentBlueKing/bk-job) `master`**:
 
 ```shell
-# Push feature branch to your personal remote repository (force push needed after rebase)
+# Push feature branch to your personal remote repository
+# If you used rebase to sync master, force push is needed
 git push origin feature/xxx --force-with-lease
+
+# If you used merge to sync master, a normal push is sufficient
+git push origin feature/xxx
 ```
 
 Then create a PR on GitHub:
 - **Source**: `<your-username>/bk-job` : `feature/xxx`
 - **Target**: `TencentBlueKing/bk-job` : `master`
 
-> ⚠️ **Important**: The PR should be from your personal repository's `feature/xxx` → main repository's `master`, **NOT** `dev` → `master`.
-> The `dev` integration branch is only for integration testing and verification, and should not be merged directly into master. Since the dev branch may contain code from multiple feature branches, some of which may not have passed verification, merging dev directly into master would bring **unverified commits into the main branch**. Therefore, PRs must be submitted individually from verified feature branches.
+> ⚠️ **Important**: The PR should be from your personal repository's `feature/xxx` → main repository's `master`, **NOT** `tenant-dev` → `master`.
+> The `tenant-dev` integration branch is only for integration testing and verification, and should not be merged directly into master. Since the tenant-dev branch may contain code from multiple feature branches, some of which may not have passed verification, merging tenant-dev directly into master would bring **unverified commits into the main branch**. Therefore, PRs must be submitted individually from verified feature branches.
 
 Before submitting a PR, please ensure:
 
-- Use `git rebase` to clean up commits (refer to [Commit Convention](./commit-spec.en.md))
+- Consider using `git rebase -i` to clean up commits (refer to [Commit Convention](./commit-spec.en.md)), not mandatory
 - Code passes Code Review (refer to [Review Process](./review.en.md))
 - Unit tests pass
 - Related documentation is updated
@@ -262,9 +296,9 @@ git commit -m 'fix: fix file distribution timeout issue #789'
 ## Important Notes
 
 1. **Never push code directly to the master branch**. All changes must go through PR/MR + Code Review.
-2. **The dev integration branch is only for integration testing and verification**. Do not merge from dev to master (dev may contain unverified commits; merging directly into master would compromise the stability of the main branch).
-3. Before submitting a PR/MR, use `git rebase -i` to squash and organize commits for a clean commit history.
-4. Merge conflicts should be resolved on the dev integration branch. Do not pollute the feature branch.
+2. **The tenant-dev integration branch is only for integration testing and verification**. Do not merge from tenant-dev to master (tenant-dev may contain unverified commits; merging directly into master would compromise the stability of the main branch).
+3. Before submitting a PR/MR, consider using `git rebase -i` to squash and organize commits for a clean commit history (not mandatory; use your discretion for large tasks with many commits).
+4. Merge conflicts should be resolved on the tenant-dev integration branch. Do not pollute the feature branch.
 5. Feature branches should have a short lifecycle. Clean up merged branches promptly.
 6. Link Issues: Each commit and PR/MR should reference the corresponding [GitHub Issue](https://github.com/TencentBlueKing/bk-job/issues).
 
