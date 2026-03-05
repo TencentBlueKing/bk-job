@@ -28,6 +28,12 @@ If you want to contribute functionalities and features to BK-JOB project, please
 
 If you want to contribute your code, it is recommended to refer to existing documentation about features and development environment setup.
 
+## GIT Development Workflow
+
+BK-JOB adopts the **Fork + Pull Request** collaboration model. For the complete Git development workflow, including branch management, integration testing process and PR submission guidelines, please refer to:
+
+👉 [BK-JOB Git Development Workflow](./docs/specification/git-workflow.en.md)
+
 ## GIT Commit Specifications
 
 Since different projects of different teams have different code commit comments, in order to standardize the commit message of different teams in the open source environment, different marks are used to differentiate committed changes.
