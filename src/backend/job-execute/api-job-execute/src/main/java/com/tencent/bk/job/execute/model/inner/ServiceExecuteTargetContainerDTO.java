@@ -24,29 +24,30 @@
 
 package com.tencent.bk.job.execute.model.inner;
 
-import com.tencent.bk.job.common.model.dto.CmdbTopoNodeDTO;
-import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.model.dto.Container;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.util.List;
-
-@ApiModel("目标服务器")
+/**
+ * 用于服务间调用的容器目标 DTO
+ * <p>
+ * 只包含容器 ID，完整的容器信息会在任务执行时从 CMDB 获取
+ */
+@ApiModel("容器目标")
 @Data
-public class ServiceTargetServers {
-    @ApiModelProperty("如果目标服务器是通过全局变量-主机列表定义的，variable 表示变量 name")
-    private String variable;
+public class ServiceExecuteTargetContainerDTO {
 
-    @ApiModelProperty(value = "服务器ip列表（静态）", required = false)
-    private List<HostDTO> ips;
+    @ApiModelProperty(value = "容器在 CMDB 注册的 ID", required = true)
+    private Long id;
 
-    @ApiModelProperty(value = "动态分组ID列表，格式：业务id:动态分组ID", required = false)
-    private List<String> dynamicGroupIds;
-
-    @ApiModelProperty(value = "分布式拓扑节点列表", required = false)
-    private List<CmdbTopoNodeDTO> topoNodes;
-
-    @ApiModelProperty(value = "容器列表（静态）", required = false)
-    private List<ServiceExecuteTargetContainerDTO> containers;
+    /**
+     * 转换为通用 Container 对象
+     */
+    public Container toContainer() {
+        Container container = new Container();
+        container.setId(id);
+        return container;
+    }
 }
+

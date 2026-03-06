@@ -22,31 +22,53 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.inner;
+package com.tencent.bk.job.crontab.model.inner;
 
-import com.tencent.bk.job.common.model.dto.CmdbTopoNodeDTO;
-import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.model.vo.ContainerVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
-
-@ApiModel("目标服务器")
+/**
+ * 定时任务容器信息 DTO
+ */
 @Data
-public class ServiceTargetServers {
-    @ApiModelProperty("如果目标服务器是通过全局变量-主机列表定义的，variable 表示变量 name")
-    private String variable;
+@NoArgsConstructor
+@PersistenceObject
+@ApiModel("容器信息")
+@AllArgsConstructor
+public class CronJobContainerDTO implements Cloneable {
 
-    @ApiModelProperty(value = "服务器ip列表（静态）", required = false)
-    private List<HostDTO> ips;
+    @ApiModelProperty("CMDB中存的容器 ID")
+    private Long id;
 
-    @ApiModelProperty(value = "动态分组ID列表，格式：业务id:动态分组ID", required = false)
-    private List<String> dynamicGroupIds;
+    public static CronJobContainerDTO fromContainerVO(ContainerVO containerVO) {
+        if (containerVO == null) {
+            return null;
+        }
+        CronJobContainerDTO dto = new CronJobContainerDTO();
+        dto.setId(containerVO.getId());
+        return dto;
+    }
 
-    @ApiModelProperty(value = "分布式拓扑节点列表", required = false)
-    private List<CmdbTopoNodeDTO> topoNodes;
+    public static ContainerVO toContainerVO(CronJobContainerDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        ContainerVO vo = new ContainerVO();
+        vo.setId(dto.getId());
+        return vo;
+    }
 
-    @ApiModelProperty(value = "容器列表（静态）", required = false)
-    private List<ServiceExecuteTargetContainerDTO> containers;
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
+    @Override
+    public CronJobContainerDTO clone() {
+        CronJobContainerDTO clone = new CronJobContainerDTO();
+        clone.setId(this.id);
+        return clone;
+    }
 }
+

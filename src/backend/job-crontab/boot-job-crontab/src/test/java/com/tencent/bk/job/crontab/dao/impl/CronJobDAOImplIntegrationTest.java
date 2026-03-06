@@ -94,7 +94,7 @@ public class CronJobDAOImplIntegrationTest {
     void initTest() {
         VARIABLE_1.setName("a");
         VARIABLE_1.setValue("b");
-        VARIABLE_1.setType(TaskVariableTypeEnum.HOST_LIST);
+        VARIABLE_1.setType(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST);
 
         VARIABLE_2.setName("b");
         VARIABLE_2.setValue("c");
