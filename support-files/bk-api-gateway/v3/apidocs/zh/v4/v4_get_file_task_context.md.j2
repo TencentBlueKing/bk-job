@@ -1,0 +1,79 @@
+### 功能描述
+
+获取文件任务上下文信息，包括任务失败的主要原因、源文件上传失败信息及目标机器下载失败信息等，用于AI智能分析。
+
+### 请求参数
+
+#### Query参数
+
+| 字段                         | 类型     | 必选 | 描述                                        |
+|----------------------------|--------|----|-------------------------------------------|
+| bk_scope_type              | string | 是  | 资源范围类型。可选值: biz - 业务，biz_set - 业务集        |
+| bk_scope_id                | string | 是  | 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID   |
+| job_instance_id            | long   | 是  | 作业实例ID                                    |
+| step_instance_id           | long   | 是  | 步骤实例ID                                    |
+| execute_count              | int    | 是  | 执行次数（重试次数，首次执行为0）                         |
+| batch                      | int    | 否  | 滚动执行批次，非滚动步骤不需要传入                         |
+| execute_object_type        | int    | 是  | 执行对象类型，1 - 主机，2 - 容器                      |
+| execute_object_resource_id | long   | 是  | 执行对象资源ID（如主机对应的bk_host_id）                |
+| mode                       | int    | 是  | 文件任务上传下载标识，0 - 上传，1 - 下载                  |
+
+### 请求参数示例
+
+- GET
+
+```json
+/api/v4/get_file_task_context?bk_scope_type=biz&bk_scope_id=1&job_instance_id=100&step_instance_id=200&execute_count=0&execute_object_type=1&execute_object_resource_id=101&mode=1
+```
+
+### 返回结果示例
+
+#### 失败示例
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### 成功示例
+
+```json
+# http status=200
+{
+  "data": {
+    "field_list": [
+      {
+        "name": "errorSource",
+        "value": "源文件上传出错导致的任务失败",
+        "description": "当前任务失败的主要原因"
+      },
+      {
+        "name": "uploadFileErrorData",
+        "value": "[{\"sourceExecuteObjectType\":\"HOST\",\"sourceHostDescription\":{\"cloudIp\":\"0:127.0.0.1\"},\"sourceFilePath\":\"/tmp/test.txt\",\"errorLog\":\"upload failed: No such file\"}]",
+        "description": "源文件上传失败的机器与报错信息"
+      },
+      {
+        "name": "downloadFileErrorData",
+        "value": "[]",
+        "description": "目标机器下载失败的机器与报错信息"
+      }
+    ]
+  }
+}
+```
+
+### 返回结果参数说明
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| 字段         | 类型    | 是否一定存在 | 描述                              |
+|------------|-------|--------|---------------------------------|
+| field_list | array | 是      | 上下文字段列表，每个元素为一条上下文数据，见field_list元素说明 |
+
+#### field_list 元素说明
+
+| 字段          | 类型     | 是否一定存在 | 描述                 |
+|-------------|--------|--------|--------------------|
+| name        | string | 是      | 一条上下文数据的名称，用于标识数据项 |
+| value       | string | 是      | 一条上下文数据的取值         |
+| description | string | 是      | 一条上下文数据的描述，说明该数据项的含义 |
+
