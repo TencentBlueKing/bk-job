@@ -52,9 +52,8 @@ public class BizEventDetail {
     @JsonProperty("default")
     private Integer deFault = 0;
 
-    public ApplicationDTO toAppInfoDTO(String tenantId) {
+    public ApplicationDTO toAppInfoDTO() {
         ApplicationDTO applicationDTO = new ApplicationDTO();
-        applicationDTO.setTenantId(tenantId);
         applicationDTO.setScope(
             new ResourceScope(ResourceScopeTypeEnum.BIZ, String.valueOf(bizId))
         );

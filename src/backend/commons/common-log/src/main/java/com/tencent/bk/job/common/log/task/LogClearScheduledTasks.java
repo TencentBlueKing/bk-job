@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.common.log.task;
 
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import com.tencent.bk.job.common.log.config.LogClearByVolumeUsageProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
 
 @Slf4j
 public class LogClearScheduledTasks {
@@ -50,7 +50,7 @@ public class LogClearScheduledTasks {
     /**
      * 清理：每20分钟根据磁盘使用量清理一次日志文件
      */
-    @Scheduled(cron = "50 0/20 * * * ?")
+    @ScheduledOnOperationTimeZone(cron = "50 0/20 * * * ?")
     public void clearLogFileByVolumeUsage() {
         if (clearLogFileByVolumeUsageTask == null) {
             log.debug("clearLogFileByVolumeUsage not enabled, ignore clearLogFile");

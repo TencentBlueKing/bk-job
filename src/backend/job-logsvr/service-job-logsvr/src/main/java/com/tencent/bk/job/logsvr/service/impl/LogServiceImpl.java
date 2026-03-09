@@ -30,8 +30,11 @@ import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
+import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.StringUtil;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
@@ -55,6 +58,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -174,6 +179,7 @@ public class LogServiceImpl implements LogService {
         }
     }
 
+    // 上层只有集成测试用例
     private void writeFileLog(TaskExecuteObjectLog taskExecuteObjectLog) {
         if (taskExecuteObjectLog.getFileTaskLogs().size() == 1) {
             taskExecuteObjectLog.getFileTaskLogs().forEach(
@@ -324,9 +330,9 @@ public class LogServiceImpl implements LogService {
         if (StringUtils.isNotEmpty(fileTaskLog.getProcess())) {
             setDBObject.append(FileTaskLogDocField.PROCESS, fileTaskLog.getProcess());
         }
-        if (StringUtils.isNotEmpty(fileTaskLog.getContent())) {
-            pushDBObject.append(FileTaskLogDocField.CONTENT_LIST, fileTaskLog.getContent());
-        }
+        
+        // 处理日志内容写入（兼容逻辑）
+        pushFileTaskLogContentCompatibly(fileTaskLog, pushDBObject);
 
         update.put("$set", setDBObject);
         if (pushDBObject.size() > 0) {
@@ -402,10 +408,6 @@ public class LogServiceImpl implements LogService {
             Query query = buildFileLogMongoQuery(getLogRequest);
 
             List<FileTaskLogDoc> fileTaskLogs = mongoTemplate.find(query, FileTaskLogDoc.class, collectionName);
-            if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
-                fileTaskLogs.forEach(fileTaskLog ->
-                    fileTaskLog.setContent(StringUtils.join(fileTaskLog.getContentList(), null)));
-            }
             return fileTaskLogs;
         } finally {
             long cost = (System.currentTimeMillis() - start);
@@ -513,10 +515,6 @@ public class LogServiceImpl implements LogService {
                 query.addCriteria(Criteria.where(FileTaskLogDocField.BATCH).is(batch));
             }
             List<FileTaskLogDoc> fileTaskLogs = mongoTemplate.find(query, FileTaskLogDoc.class, collectionName);
-            if (CollectionUtils.isNotEmpty(fileTaskLogs)) {
-                fileTaskLogs.forEach(taskTaskLog ->
-                    taskTaskLog.setContent(StringUtils.join(taskTaskLog.getContentList(), null)));
-            }
             return fileTaskLogs;
         } finally {
             long cost = (System.currentTimeMillis() - start);
@@ -588,5 +586,67 @@ public class LogServiceImpl implements LogService {
             .map(ScriptTaskLogDoc::getExecuteObjectId)
             .distinct()
             .collect(Collectors.toList());
+    }
+
+    /**
+     * 兼容写入文件任务日志内容。
+     * 发布过程中新老版本 logsvr 并存，为保证老版本 logsvr/job-execute 仍能正常读取日志内容，
+     * 写入时需要同时维护两个字段：
+     *   timeLogList（新字段）：存储 LogEntry 对象（含精确时间戳 + 原始日志内容），供新版本读取
+     *   contentList（旧字段）：存储拼接好时间前缀的纯 String，供老版本读取
+     * 全量部署新版本后，可移除对 contentList 的双写逻辑，只保留 timeLogList 的写入。
+     */
+    @CompatibleImplementation(
+        name = "dual_write_time_log_and_content",
+        deprecatedVersion = "3.12.1",
+        type = CompatibleType.DEPLOY,
+        explain = "发布期间新老 logsvr 并存时，同时写入 timeLogList 和 contentList 两个字段。"
+            + "全量部署新版本后，可移除对 contentList 的双写，只保留 timeLogList 的写入。"
+    )
+    private void pushFileTaskLogContentCompatibly(FileTaskLogDoc fileTaskLog,
+                                                  BasicDBObject pushDBObject) {
+        if (CollectionUtils.isNotEmpty(fileTaskLog.getWriteContentList())) {
+            // 新版本 job-execute → 新 logsvr：同时 push 两个字段
+            for (FileTaskLogDoc.LogEntry logEntry : fileTaskLog.getWriteContentList()) {
+                // 1. push LogEntry 对象到 timeLogList（新字段，新 logsvr 以后都使用这个字段）
+                BasicDBObject logEntryDoc = new BasicDBObject();
+                logEntryDoc.append(FileTaskLogDocField.FILE_TASK_LOG_TIME, logEntry.getLogTime());
+                logEntryDoc.append(FileTaskLogDocField.FILE_TASK_CONTENT, logEntry.getContent());
+                pushDBObject.append(FileTaskLogDocField.TIME_LOG_LIST, logEntryDoc);
+
+                // 2. 从 LogEntry 的 logTime + content 现场拼接纯 String，push 到 contentList
+                //    兼容旧 job-execute 和旧 logsvr 读取
+                String contentString;
+                if (logEntry.getLogTime() != null) {
+                    String timeStr = DateUtils.formatUnixTimestamp(
+                        logEntry.getLogTime(),
+                        ChronoUnit.MILLIS,
+                        DateUtils.FILE_TASK_LOG_FORMAT,
+                        ZoneId.systemDefault()
+                    );
+                    contentString = "[" + timeStr + "] " + logEntry.getContent();
+                } else {
+                    contentString = logEntry.getContent();
+                }
+                pushDBObject.append(FileTaskLogDocField.CONTENT_LIST, contentString);
+            }
+        } else if (StringUtils.isNotEmpty(fileTaskLog.getContent())) {
+            // 旧 job-execute → 新 logsvr：只写 contentList（纯 String），不写 timeLogList
+            // 读取时 timeLogList 为空/size 不一致 → 自动降级用 contentList
+            handleLegacyContentFieldCompatibly(fileTaskLog.getContent(), pushDBObject);
+        }
+    }
+
+    @CompatibleImplementation(
+        name = "legacy_content_field",
+        deprecatedVersion = "3.12.1",
+        type = com.tencent.bk.job.common.constant.CompatibleType.HISTORY_LOGIC,
+        explain = "兼容老版本（3.12.1之前）使用content字段写入日志的逻辑，新版本使用writeContentList。"
+            + "上层 FileTaskLogDoc.convert 已经打印了兼容代码被调用的日志，发布完成后，观察到没有新日志后可以删除兼容代码。"
+    )
+    private void handleLegacyContentFieldCompatibly(String fileTaskLogContent,
+                                                    BasicDBObject pushDBObject) {
+        // 兼容老的job-execute，直接push字符串（内容中已包含时间）
+        pushDBObject.append(FileTaskLogDocField.CONTENT_LIST, fileTaskLogContent);
     }
 }

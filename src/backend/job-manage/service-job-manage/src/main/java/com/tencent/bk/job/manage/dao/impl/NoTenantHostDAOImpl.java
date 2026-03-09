@@ -483,11 +483,11 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
     }
 
     @Override
-    public int updateHostAttrsBeforeLastTime(ApplicationHostDTO applicationHostDTO) {
+    public int updateHostAttrsBeforeOrEqualLastTime(ApplicationHostDTO applicationHostDTO) {
         checkHostId(applicationHostDTO);
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())));
-        conditions.add(TABLE.LAST_TIME.lessThan(applicationHostDTO.getLastTime()));
+        conditions.add(TABLE.LAST_TIME.lessOrEqual(applicationHostDTO.getLastTime()));
         return updateHostAttrsByConditions(applicationHostDTO, conditions);
     }
 
@@ -552,7 +552,7 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
     }
 
     @Override
-    public int batchUpdateHostsBeforeLastTime(List<ApplicationHostDTO> hostList) {
+    public int batchUpdateHostsBeforeOrEqualLastTime(List<ApplicationHostDTO> hostList) {
         int batchSize = 1000;
         int size = hostList.size();
         int start = 0;
@@ -566,7 +566,7 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
             for (ApplicationHostDTO host : subList) {
                 List<Condition> conditions = new ArrayList<>();
                 conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(host.getHostId())));
-                conditions.add(TABLE.LAST_TIME.lessThan(host.getLastTime()));
+                conditions.add(TABLE.LAST_TIME.lessOrEqual(host.getLastTime()));
                 queryList.add(buildQueryWithHostAndConditions(host, conditions));
             }
             int[] results = context.batch(queryList).execute();
@@ -683,6 +683,21 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
     public List<HostSimpleDTO> listAllHostSimpleInfo() {
         val query = context.select(SIMPLE_FIELDS)
             .from(TABLE);
+        Result<Record> records = query.fetch();
+        List<HostSimpleDTO> hostInfoList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(records)) {
+            records.map(record -> hostInfoList.add(extractSimpleData(record)));
+        }
+        return hostInfoList;
+    }
+
+    @Override
+    public List<HostSimpleDTO> listHostSimpleInfoByHostIdRange(Long startHostId, int limit) {
+        val query = context.select(SIMPLE_FIELDS)
+            .from(TABLE)
+            .where(TABLE.HOST_ID.gt(ULong.valueOf(startHostId)))
+            .orderBy(TABLE.HOST_ID.asc())
+            .limit(limit);
         Result<Record> records = query.fetch();
         List<HostSimpleDTO> hostInfoList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(records)) {

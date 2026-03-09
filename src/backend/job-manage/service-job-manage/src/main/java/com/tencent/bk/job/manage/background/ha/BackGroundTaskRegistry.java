@@ -24,45 +24,45 @@
 
 package com.tencent.bk.job.manage.background.ha;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 后台任务注册仓库
+ * 后台任务注册仓库接口
  */
-@Slf4j
 @Service
-public class BackGroundTaskRegistry implements IBackGroundTaskRegistry {
-    private final Map<String, IBackGroundTask> taskMap = new ConcurrentHashMap<>();
+public interface BackGroundTaskRegistry {
 
-    @Override
-    public boolean existsTask(String uniqueCode) {
-        return taskMap.containsKey(uniqueCode);
-    }
+    /**
+     * 判断任务是否存在
+     *
+     * @param uniqueCode 任务编码
+     * @return 布尔值
+     */
+    boolean existsTask(String uniqueCode);
 
-    @Override
-    public boolean registerTask(String uniqueCode, IBackGroundTask task) {
-        if (taskMap.containsKey(uniqueCode)) {
-            log.warn("task already registered, code={}, ignore", uniqueCode);
-            return false;
-        }
-        task.setRegistry(this);
-        taskMap.put(uniqueCode, task);
-        return true;
-    }
+    /**
+     * 注册任务
+     *
+     * @param uniqueCode 任务编码
+     * @param task       后台任务
+     * @return 是否注册成功
+     */
+    boolean registerTask(String uniqueCode, BackGroundTask task);
 
-    @Override
-    public IBackGroundTask removeTask(String uniqueCode) {
-        return taskMap.remove(uniqueCode);
-    }
+    /**
+     * 移除任务
+     *
+     * @param uniqueCode 任务编码
+     * @return 被移除的任务
+     */
+    BackGroundTask removeTask(String uniqueCode);
 
-    @Override
-    public Map<String, IBackGroundTask> getTaskMap() {
-        return taskMap;
-    }
-
-
+    /**
+     * 获取所有任务Map
+     *
+     * @return Map<任务编码, 任务对象>
+     */
+    Map<String, BackGroundTask> getTaskMap();
 }

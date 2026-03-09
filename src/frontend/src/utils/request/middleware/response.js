@@ -23,6 +23,8 @@
  * IN THE SOFTWARE.
 */
 
+import path from 'path-browserify';
+
 import AuthResultModel from '@model/auth-result';
 
 import EventBus from '@utils/event-bus';
@@ -98,7 +100,7 @@ export default (interceptors) => {
       case 401:
         if (hasLogined) {
           showLoginModal({
-            loginUrl: `${error.message}is_from_logout=1&c_url=${decodeURIComponent(`${window.location.origin}/static/login_success.html`)}`,
+            loginUrl: `${error.message}is_from_logout=1&c_url=${decodeURIComponent(path.join(window.location.origin, window.PROJECT_CONFIG.BK_SITE_PATH, 'static/login_success.html'))}`,
           });
         } else {
           window.location.href = `${error.message}is_from_logout=1&c_url=${decodeURIComponent(window.location.href)}`;

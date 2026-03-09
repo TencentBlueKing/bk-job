@@ -54,7 +54,7 @@
         <div class="feature-item">
           <div class="feature-pic">
             <img
-              src="/static/images/guide/task-template.svg"
+              :src="taskTemplateImage"
               style="width: 223px; margin: 28px 25px 0 22px;">
           </div>
           <div class="feature-box">
@@ -74,7 +74,7 @@
         <div class="feature-item">
           <div class="feature-pic">
             <img
-              src="/static/images/guide/task-plan.svg"
+              :src="taskPlanImage"
               style="width: 230px; margin: 20px 36px 0 7px;">
           </div>
           <div class="feature-box">
@@ -110,6 +110,8 @@
     },
     created() {
       this.fetchRelatedSystemUrls();
+      this.taskTemplateImage = window.__loadAssetsUrl__('/static/images/guide/task-template.svg');
+      this.taskPlanImage = window.__loadAssetsUrl__('/static/images/guide/task-plan.svg');
     },
     methods: {
       fetchRelatedSystemUrls() {

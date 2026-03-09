@@ -1,4 +1,150 @@
 # chart values 更新日志
+
+## 0.9.1
+1. 新增外部系统（GSE、CMDB、IAM、BK-Login、BK-User）重试配置，采用指数退避策略
+```yaml
+## 外部系统（GSE、CMDB、IAM、BK-Login、BK-User）重试配置
+## 采用指数退避策略：重试间隔按指数增长（如 500ms → 1s → 2s → 4s → 8s）
+externalSystemRetry:
+  # 全局配置
+  global:
+    # 是否启用外部系统重试（默认开启）
+    enabled: true
+    # 初始重试间隔（毫秒），默认500ms
+    initialIntervalMs: 500
+    # 最大重试次数，默认5次
+    maxAttempts: 5
+    # 最大重试间隔（毫秒），默认30000ms（30秒）
+    maxIntervalMs: 30000
+    # 间隔增长倍数，默认2.0
+    multiplier: 2.0
+    # 是否启用重试指标采集（默认开启）
+    metricsEnabled: true
+    # 熔断器配置
+    circuitBreaker:
+      # 是否启用熔断器（默认关闭）
+      enabled: false
+      # 失败率阈值（百分比），默认80.0%
+      failureRateThreshold: 80.0
+      # 慢调用率阈值（百分比），默认90.0%
+      slowCallRateThreshold: 90.0
+      # 慢调用时长阈值（毫秒），默认30000ms（30秒）
+      slowCallDurationThresholdMs: 30000
+      # 滑动窗口大小，默认100次调用
+      slidingWindowSize: 100
+      # 最小调用次数（达到此次数后才开始计算失败率），默认10次
+      minimumNumberOfCalls: 10
+      # 熔断器开启状态下的等待时间（毫秒），默认30000ms（30秒）
+      waitDurationInOpenStateMs: 30000
+      # HALF_OPEN 状态允许的调用次数，默认10次
+      permittedCallsInHalfOpenState: 10
+      # 熔断器 OPEN 时是否快速失败：true：快速失败（抛出异常），false：继续调用但不重试
+      fastFail: false
+  # 各外部系统单独配置（可选，不配置则使用全局配置）
+  cmdb:
+    circuitBreaker:
+      # 白名单（API名称列表，这些API不参与熔断，一般情况下无需修改）
+      whiteApiList:
+        # CMDB 事件监听接口，正常耗时约 20 秒
+        - "getBizEvents"
+        - "getBizSetEvents"
+        - "getBizSetRelationEvents"
+        - "getHostEvents"
+        - "getHostRelationEvents"
+  # iam:
+  #   enabled: true
+  #   circuitBreaker:
+  #     enabled: true
+  # gse:
+  #   enabled: true
+  #   circuitBreaker:
+  #     enabled: true
+  # bkLogin:
+  #   enabled: true
+  #   circuitBreaker:
+  #     enabled: true
+  # bkUser:
+  #   enabled: true
+  #   circuitBreaker:
+  #     enabled: true
+```
+
+2. 移除旧的 GSE V2 重试配置，统一使用新的外部系统重试配置
+```yaml
+# 被移除的配置项
+gseV2:
+  # 重试策略
+  retry:
+    # 是否开启重试
+    enabled: false
+    # 含重试的最大执行次数
+    maxAttempts: 3
+    # 重试间隔（单位：秒）
+    intervalSeconds: 5
+```
+
+3. 新增前端提给后端账号密码的加密算法配置
+```yaml
+job:
+  encrypt:
+    # SM2加密算法原始公钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PublicKey: ""
+    # SM2加密算法原始私钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PrivateKey: ""
+```
+
+4. 新增自定义挂载卷(volumes和volumeMounts)
+```yaml
+## 自定义全局挂载卷(volumes和volumeMounts)
+## 用途示例：jvm信任证书、license文件等
+## 注意：如果具体服务模块也定义了volumeExtension，会覆盖此全局配置
+volumeExtension:
+  volumes: []
+  volumeMounts: []
+```
+
+5. 新增发送通知数量配额限制
+```yaml
+job:
+  # 资源配额限制
+  resourceQuotaLimit:
+    resources:
+      # 配额限制资源-发送通知数量
+      sendNotify:
+        # 是否启用配额限制
+        enabled: false
+        # 通知发送总量限制
+        capacity: "10000"
+        # 基于资源管理空间(业务/业务集)的配额限制
+        resourceScopeQuotaLimit:
+          # 全局限制，每个资源管理空间默认的配额限制
+          global: "5000"
+          # 自定义配额限制，会覆盖global
+          custom: "biz:2=1000,biz_set:9991001=50%"
+        # 基于用户的配额限制
+        userQuotaLimit:
+          global: "2000"
+          custom: "admin=1000,test=10%"
+```
+
+6. 支持配置定时任务启动记录清理相关参数
+```yaml
+## job-crontab定时任务配置
+crontabConfig:
+  # 定时任务启动记录清理相关配置
+  cleanHistory:
+    # 是否开启
+    enabled: true
+    # 启动记录保留天数
+    keepDays: 31
+    # 清理动作执行的Quartz Cron表达式，默认在每天10:02（低峰期）执行清理
+    cron: 0 02 10 * * ?
+    # 每批次删除记录条数，避免一次性删除过多导致 DB 高负载
+    batchSize: 10000
+    # 每批次删除后的休眠时间（毫秒），用于降低 DB 压力
+    sleepMillisBetweenBatches: 1000
+```
+
 ## 0.9.0
 1. 新增 bk-login/bk-user蓝鲸网关配置
 ```yaml
@@ -71,6 +217,20 @@ gse:
 ```yaml
 # 蓝鲸 IAM 后台 url
 bkIamApiUrl: "http://bkiam-api.example.com"
+```
+
+5. 支持按子域名/子路径模式部署
+```yaml
+bkWebSiteAccess:
+  # 可选值：subdomain（子域名）、subpath（子路径）
+  mode: "subdomain"
+  # 子域名模式生效的配置
+  # subdomain:
+    # 请补充可能配置的特性项目，暂无
+  # 子路径模式生效的配置
+  subpath:
+    # 根路径前缀（如 "/app" 则访问路径为 https://www.example.com/app/xxx）
+    rootPrefix: "/job"
 ```
 
 ## 0.8.13

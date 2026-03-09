@@ -58,7 +58,7 @@ const sacnDialog = (resolve, reject) => {
           <span>{ I18n.t('脚本中出现高危语句') }</span>
           <span>（</span>
           <span>{ I18n.t('详见编辑框左侧') } </span>
-          <img src="/static/images/ace-editor/error-tips.png" style="width: 14px; vertical-align: middle;" />
+          <img src={window.__loadAssetsUrl__('/static/images/ace-editor/error-tips.png')} style="width: 14px; vertical-align: middle;" />
           <span> { I18n.t('图标的提示') }</span>
           <span>）</span>
           <span> { I18n.t('请确定是否要继续操作？') }</span>
@@ -106,7 +106,7 @@ const preventDialog = (resolve, reject) => {
       <div>
         <div style="font-size: 14px; line-height: 22px; color: #63656E; text-align: center">
           <span>{ I18n.t('请按脚本编辑框左侧') } </span>
-          <img src="/static/images/ace-editor/error-tips.png" style="width: 14px; vertical-align: middle;" />
+          <img src={window.__loadAssetsUrl__('/static/images/ace-editor/error-tips.png')} style="width: 14px; vertical-align: middle;" />
           <span> { I18n.t('图标的提示处理后重试') }</span>
         </div>
         <div style="padding: 24px 0 21px; text-align: center">

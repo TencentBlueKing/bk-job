@@ -1,7 +1,7 @@
-FROM bkjob/os:3.11.11
+FROM bkjob/os:3.12.2
 
 LABEL maintainer="Tencent BlueKing Job"
-LABEL dockerfile.version="3.11.11"
+LABEL dockerfile.version="3.12.2"
 
 RUN mkdir -p /data && \
     cd /data/ &&\

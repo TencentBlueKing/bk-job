@@ -24,8 +24,6 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -55,8 +53,9 @@ public class AppVO {
     @ApiModelProperty("是否收藏")
     private Boolean favor;
     @ApiModelProperty("收藏时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
     private Long favorTime;
+    @ApiModelProperty("业务的时区")
+    private String timeZone;
 
     public AppVO(Long id,
                  String scopeType,
@@ -65,6 +64,7 @@ public class AppVO {
                  boolean allBizSet,
                  String name,
                  Boolean hasPermission,
+                 String timeZone,
                  Boolean favor,
                  Long favorTime) {
         this.id = id;
@@ -74,6 +74,7 @@ public class AppVO {
         this.allBizSet = allBizSet;
         this.name = name;
         this.hasPermission = hasPermission;
+        this.timeZone = timeZone;
         this.favor = favor;
         this.favorTime = favorTime;
     }

@@ -23,6 +23,10 @@
  * IN THE SOFTWARE.
 */
 
+import DOMPurify from 'dompurify';
+
+import Model from '@model/model';
+
 import {
   transformTimeFriendly,
 } from '@utils/assist';
@@ -99,12 +103,13 @@ const calcStatusGroup = (status) => {
 
 // 执行历史列表
 // 任务实例信息
-export default class TaskInstance {
+export default class TaskInstance extends Model {
   static STATUS_ICON_TYPE = {
 
   };
 
   constructor(payload) {
+    super();
     this.id = payload.id;
     this.taskId = payload.taskId;
     this.cronTaskId = payload.cronTaskId;
@@ -181,7 +186,7 @@ export default class TaskInstance {
       disabled: '#C4C6CC',
       evicted: '#EA3636',
     };
-    return `<span style="color: ${statusColorMap[calcStatusGroup(this.status)]}">${this.statusDesc}</span>`;
+    return DOMPurify.sanitize(`<span style="color: ${statusColorMap[calcStatusGroup(this.status)]}">${this.statusDesc}</span>`);
   }
 
   /**

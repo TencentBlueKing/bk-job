@@ -12,5 +12,6 @@ public interface CommonAppService extends AppScopeMappingService {
 
     BasicApp getApp(Long appId);
 
+    String getAppTimeZoneById(Long appId);
 
 }

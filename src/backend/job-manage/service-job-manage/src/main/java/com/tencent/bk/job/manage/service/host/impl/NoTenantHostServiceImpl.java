@@ -107,14 +107,14 @@ public class NoTenantHostServiceImpl extends BaseHostService implements NoTenant
     }
 
     @Override
-    public int batchUpdateHostsBeforeLastTime(List<ApplicationHostDTO> hostInfoList) {
+    public int batchUpdateHostsBeforeOrEqualLastTime(List<ApplicationHostDTO> hostInfoList) {
         if (CollectionUtils.isEmpty(hostInfoList)) {
             return 0;
         }
         StopWatch watch = new StopWatch();
         watch.start("batchUpdateHostsBeforeLastTime to DB");
         // 批量更新主机
-        int affectedNum = noTenantHostDAO.batchUpdateHostsBeforeLastTime(hostInfoList);
+        int affectedNum = noTenantHostDAO.batchUpdateHostsBeforeOrEqualLastTime(hostInfoList);
         log.info("try to update {} hosts, {} updated", hostInfoList.size(), affectedNum);
         watch.stop();
         watch.start("listHostInfoByHostIds");
@@ -227,12 +227,12 @@ public class NoTenantHostServiceImpl extends BaseHostService implements NoTenant
 
     @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
-    public Pair<Boolean, Integer> createOrUpdateHostBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
+    public Pair<Boolean, Integer> createOrUpdateHostBeforeOrEqualLastTime(ApplicationHostDTO hostInfoDTO) {
         boolean needToCreate = false;
         try {
             if (noTenantHostDAO.existAppHostInfoByHostId(hostInfoDTO.getHostId())) {
                 // 只更新事件中的主机属性与agent状态
-                int affectedNum = noTenantHostDAO.updateHostAttrsBeforeLastTime(hostInfoDTO);
+                int affectedNum = noTenantHostDAO.updateHostAttrsBeforeOrEqualLastTime(hostInfoDTO);
                 if (affectedNum == 0) {
                     ApplicationHostDTO hostInDB = noTenantHostDAO.getHostById(hostInfoDTO.getHostId());
                     if (hostInDB != null) {
@@ -265,7 +265,7 @@ public class NoTenantHostServiceImpl extends BaseHostService implements NoTenant
             int affectedNum = noTenantHostDAO.syncHostTopo(hostInfoDTO.getHostId());
             log.info("hostTopo synced: hostId={}, affectedNum={}", hostInfoDTO.getHostId(), affectedNum);
             // 更新缓存
-            updateDbHostToCache(hostInfoDTO.getHostId());
+            loadHostFromDbToCache(hostInfoDTO.getHostId());
         }
     }
 
@@ -273,8 +273,8 @@ public class NoTenantHostServiceImpl extends BaseHostService implements NoTenant
         return noTenantHostDAO.updateHostAttrsByHostId(hostInfoDTO);
     }
 
-    public int updateHostAttrsBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
-        return noTenantHostDAO.updateHostAttrsBeforeLastTime(hostInfoDTO);
+    public int updateHostAttrsBeforeOrEqualLastTime(ApplicationHostDTO hostInfoDTO) {
+        return noTenantHostDAO.updateHostAttrsBeforeOrEqualLastTime(hostInfoDTO);
     }
 
     @Override
@@ -296,7 +296,7 @@ public class NoTenantHostServiceImpl extends BaseHostService implements NoTenant
         return affectedRowNum;
     }
 
-    public void updateDbHostToCache(Long hostId) {
+    public void loadHostFromDbToCache(Long hostId) {
         ApplicationHostDTO hostInfoDTO = noTenantHostDAO.getHostById(hostId);
         if (hostInfoDTO.getBizId() != null && hostInfoDTO.getBizId() > 0) {
             // 只更新常规业务的主机到缓存
@@ -372,5 +372,13 @@ public class NoTenantHostServiceImpl extends BaseHostService implements NoTenant
     @Override
     public List<Long> listHostIdOfNotAliveHostInDB(Collection<Long> hostIds){
         return noTenantHostDAO.listHostIdOfStatus(hostIds, AgentAliveStatusEnum.NOT_ALIVE.getStatusValue());
+    }
+
+    public int syncHostTopo(Long hostId) {
+        return noTenantHostDAO.syncHostTopo(hostId);
+    }
+
+    public ApplicationHostDTO getHostById(Long hostId) {
+        return noTenantHostDAO.getHostById(hostId);
     }
 }

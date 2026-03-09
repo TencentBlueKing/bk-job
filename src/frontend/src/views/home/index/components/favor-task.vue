@@ -72,8 +72,12 @@
         </bk-table-column>
         <bk-table-column
           :label="$t('home.更新时间')"
-          prop="lastModifyTime"
-          width="180" />
+          prop="lastModifyTimeText"
+          width="180">
+          <template slot-scope="{ row }">
+            <span v-bk-tooltips="row.lastModifyTimeTooltipsText">{{ row.lastModifyTimeText }}</span>
+          </template>
+        </bk-table-column>
         <bk-table-column
           class-name="task-action"
           :label="$t('home.操作')"
@@ -152,7 +156,7 @@
     },
     created() {
       this.fetchMyFavorList();
-      this.emptyUrl = I18n.locale === 'zh-CN' ? '/static/images/favor-task-empty.png' : '/static/images/favor-task-empty-en.png';
+      this.emptyUrl = I18n.locale === 'zh-CN' ? window.__loadAssetsUrl__('/static/images/favor-task-empty.png') : window.__loadAssetsUrl__('/static/images/favor-task-empty-en.png');
     },
     mounted() {
       this.containerStyle = {

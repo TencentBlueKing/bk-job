@@ -23,8 +23,11 @@
  * IN THE SOFTWARE.
 */
 
-export default class DangerousRule {
+import Model from '@model/model';
+
+export default class DangerousRule extends Model {
   constructor(payload) {
+    super();
     this.action = payload.action;
     this.createTime = payload.createTime;
     this.creator = payload.creator;

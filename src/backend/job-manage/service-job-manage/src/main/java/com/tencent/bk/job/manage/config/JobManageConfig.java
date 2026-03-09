@@ -80,11 +80,23 @@ public class JobManageConfig {
     @Value("${job.manage.sync.agentStatus.enabled:true}")
     private boolean enableSyncAgentStatus;
 
+    /**
+     * Agent状态同步分批大小，默认10000
+     */
+    @Value("${job.manage.sync.agentStatus.batchSize:10000}")
+    private int syncAgentStatusBatchSize;
+
     @Value("${job.manage.sync.resource.watch.enabled:true}")
     private boolean enableResourceWatch;
 
     @Value("${job.manage.sync.hostEvent.handlerNum:3}")
     private int hostEventHandlerNum;
+
+    @Value("${job.manage.sync.hostEvent.queueSize:10000}")
+    private int hostEventQueueSize;
+
+    @Value("${job.manage.sync.hostRelationEvent.queueSize:10000}")
+    private int hostRelationEventQueueSize;
 
     //---------------------------- Cmdb Config ---------------------------------
     @Value("${cmdb.default.supplier.account:0}")
@@ -113,4 +125,17 @@ public class JobManageConfig {
      */
     @Value("${job.encrypt.password}")
     private String encryptPassword;
+
+    //------------------------------ BK-User ----------------------------------------------
+
+    /**
+     * bk-user saas web页面地址
+     */
+    @Value("${bk-user.url:bk-user.example.com}")
+    private String bkUserWebUrl;
+
+    //------------------------------- BK-IAM ----------------------------------------------
+
+    @Value("${iam.web-url:bkiam.example.com}")
+    private String bkIamWebUrl;
 }

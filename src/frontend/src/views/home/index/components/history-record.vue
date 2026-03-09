@@ -51,7 +51,7 @@
                 v-html="record.statusDescHtml" />
             </div>
             <div class="item-body">
-              <span>{{ record.startTime }}</span>
+              <span v-bk-tooltips="record.startTimeTooltipsText">{{ record.startTimeText }}</span>
               <span class="record-operator">
                 <bk-user-display-name :user-id="record.operator" />
               </span>

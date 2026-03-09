@@ -149,6 +149,15 @@ public interface NoTenantHostDAO {
     List<HostSimpleDTO> listAllHostSimpleInfo();
 
     /**
+     * 基于主键游标分页查询主机简要信息
+     *
+     * @param startHostId 起始主机ID（不包含），首次查询传0
+     * @param limit       每批查询的数量
+     * @return 主机列表，按host_id升序排列
+     */
+    List<HostSimpleDTO> listHostSimpleInfoByHostIdRange(Long startHostId, int limit);
+
+    /**
      * 查询全部主机，主机对象只有基础属性
      *
      * @return 主机列表
@@ -171,9 +180,9 @@ public interface NoTenantHostDAO {
 
     int updateHostAttrsByHostId(ApplicationHostDTO applicationHostDTO);
 
-    int updateHostAttrsBeforeLastTime(ApplicationHostDTO applicationHostDTO);
+    int updateHostAttrsBeforeOrEqualLastTime(ApplicationHostDTO applicationHostDTO);
 
-    int batchUpdateHostsBeforeLastTime(List<ApplicationHostDTO> applicationHostDTOList);
+    int batchUpdateHostsBeforeOrEqualLastTime(List<ApplicationHostDTO> applicationHostDTOList);
 
     int syncHostTopo(Long hostId);
 

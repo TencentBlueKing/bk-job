@@ -23,6 +23,7 @@
  * IN THE SOFTWARE.
 */
 
+import path from 'path-browserify';
 import Vue from 'vue';
 
 import {
@@ -116,7 +117,7 @@ export const loginDialog = (url) => {
   }
   loginInstance = new Vue(PassLogin).$mount();
   loginInstance.loginUrl = loginUrl;
-  loginInstance.successUrl = decodeURIComponent(`${window.location.origin}/static/login_success.html`);
+  loginInstance.successUrl = decodeURIComponent(path.join(window.location.origin, window.PROJECT_CONFIG.BK_SITE_PATH, 'static/login_success.html'));
   loginInstance.$nextTick(() => {
     document.body.appendChild(loginInstance.$el);
     loginInstance.show();

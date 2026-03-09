@@ -1,5 +1,6 @@
 package com.tencent.bk.job.common.util;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.regex.Pattern;
@@ -7,35 +8,51 @@ import java.util.regex.Pattern;
 /**
  * 文件路径合法性校验工具类
  */
+@Slf4j
 public class FilePathValidateUtil {
     // 传统DOS正则表达式
-    private static final String CONVENTIONAL_DOS_PATH_REGEX = "(^[A-Za-z]:\\\\([^\\\\])(([^\\\\/:*?\"<>|])*\\\\?)*)|" +
-        "(^[A-Za-z]:[\\\\])";
+    private static final String CONVENTIONAL_DOS_PATH_REGEX = "(^[A-Za-z]:\\\\([^\\\\])(([^\\\\/:?\"<>|]" +
+        "|REGEX:(.*))*\\\\?)*)|(^[A-Za-z]:[\\\\])";
+
     // Linux路径正则表达式
     private static final String LINUX_PATH_REGEX = "^/(((../)*|(./)*)|(\\.?[^.].*/{0,1}))+";
+
+    // 内置变量或全局变量正则表达式
+    private static final String VARIABLE_REGEX = "(([A-Za-z]:\\\\)|(/)).*\\[[a-zA-Z0-9:/_-]*\\].*" +
+        "|.*\\$\\{[a-zA-Z_][a-zA-Z0-9_-]*\\}.*";
 
     // 传统DOS Pattern
     private static final Pattern CONVENTIONAL_DOS_PATH_PATTERN = Pattern.compile(CONVENTIONAL_DOS_PATH_REGEX);
     // Linux路径Pattern
     private static final Pattern LINUX_PATH_PATTERN = Pattern.compile(LINUX_PATH_REGEX);
+    // 内置变量或全局变量Pattern
+    private static final Pattern VARIABLE_PATTERN = Pattern.compile(VARIABLE_REGEX);
 
     /**
      * 验证文件系统绝对路径的合法性
-     *
      * @param path 绝对路径
      * @return boolean true合法，false非法
      */
     public static boolean validateFileSystemAbsolutePath(String path) {
-        // 临时规避，后续补齐校验逻辑；目前只判断路径非空
-//        if (StringUtils.isBlank(path)) {
-//            return false;
-//        }
-//        if (isLinuxAbsolutePath(path)) {
-//            return validateLinuxFileSystemAbsolutePath(path);
-//        } else {
-//            return validateWindowsFileSystemAbsolutePath(path);
-//        }
-        return StringUtils.isNotBlank(path);
+        if (StringUtils.isBlank(path)) {
+            return false;
+        }
+
+        // 路径中有合法的内置变量或全局变量通过校验
+        if (validateVariable(path)) {
+            return true;
+        }
+
+        boolean result;
+        if (isLinuxAbsolutePath(path)) {
+            result = validateLinuxFileSystemAbsolutePath(path);
+        } else {
+            result = validateWindowsFileSystemAbsolutePath(path);
+        }
+        if (!result) {
+            log.warn("The path {} is invalid and the verification fails", path);
+        }
+        return result;
     }
 
     /**
@@ -77,6 +94,21 @@ public class FilePathValidateUtil {
      */
     private static boolean validateLinuxFileSystemAbsolutePath(String path) {
         if (LINUX_PATH_PATTERN.matcher(path).matches()) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 验证路径中变量合法性
+     * 1 ${全局变量}，其中变量只能是英文字符、下划线开头；只允许英文字符、数字、下划线、和-
+     * 2 [内置变量]，根路径开头
+     *
+     * @param path
+     * @return boolean
+     */
+    private static boolean validateVariable(String path) {
+        if (VARIABLE_PATTERN.matcher(path).matches()) {
             return true;
         }
         return false;

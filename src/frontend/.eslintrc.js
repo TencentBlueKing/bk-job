@@ -74,6 +74,9 @@ module.exports = {
     'max-len': 'off',
     'vue/multi-word-component-names': 'off',
     'no-unused-vars': 'error',
+    'no-underscore-dangle': ['error', {
+      allow: ['__loadAssetsUrl__'],
+    }],
   },
   overrides: [
     {

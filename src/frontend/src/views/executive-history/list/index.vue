@@ -35,17 +35,12 @@
         style="width: 600px;"
         @on-change="handleSearch" />
       <template #right>
-        <bk-date-picker
-          ref="datePicker"
-          :clearable="false"
-          :placeholder="$t('history.选择日期')"
-          shortcut-close
-          :shortcuts="shortcuts"
-          type="datetimerange"
-          up-to-now
-          use-shortcut-text
-          :value="defaultDateTime"
-          @change="handleDateChange" />
+        <jb-date-picker
+          :date="datePickerTime"
+          :timezone="searchParams.timezone"
+          @changeDate="handleDateChange"
+          @changeTimezone="handleChangeTimezone"
+          @setDate="handleSetDate" />
       </template>
     </list-action-layout>
     <render-list
@@ -126,11 +121,15 @@
       </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.createTime"
-        key="createTime"
+        key="createTimeText"
         align="left"
         :label="$t('history.开始时间_colHead')"
-        prop="createTime"
-        width="180" />
+        prop="createTimeText"
+        width="180">
+        <template slot-scope="{ row }">
+          <span v-bk-tooltips="row.createTimeTooltipsText">{{ row.createTimeText }}</span>
+        </template>
+      </bk-table-column>
       <bk-table-column
         v-if="allRenderColumnMap.totalTimeText"
         key="totalTimeText"
@@ -187,7 +186,6 @@
   import NotifyService from '@service/notify';
   import TaskExecuteService from '@service/task-execute';
 
-  import { prettyDateTimeFormat } from '@utils/assist';
   import { listColumnsCache } from '@utils/cache-helper';
   import { IPRule } from '@utils/validator';
 
@@ -212,6 +210,7 @@
         searchParams: {
           startTime: '',
           endTime: '',
+          timezone: window.PROJECT_CONFIG.USER_TIME_ZONE || window.PROJECT_CONFIG.DEFAULT_DISPLAY_TIME_ZONE,
         },
         defaultDateTime: [
           '', '',
@@ -222,6 +221,10 @@
       };
     },
     computed: {
+      datePickerTime() {
+        const { startTime, endTime } = this.searchParams;
+        return { startTime, endTime };
+      },
       isSkeletonLoading() {
         return this.$refs.list.isLoading;
       },
@@ -504,38 +507,24 @@
        * @desc 列表默认的执行时间筛选值
        */
       parseDefaultDateTime() {
-        const defaultDateTime = [
-          '', '',
-        ];
         const searchParams = {
           startTime: '',
           endTime: '',
+          timezone: window.PROJECT_CONFIG.USER_TIME_ZONE || window.PROJECT_CONFIG.DEFAULT_DISPLAY_TIME_ZONE,
         };
 
-        const currentTime = new Date().getTime();
-
         if (Object.prototype.hasOwnProperty.call(this.$route.query, 'startTime')) {
-          defaultDateTime[0] = this.$route.query.startTime;
-        } else {
-          defaultDateTime[0] = prettyDateTimeFormat(currentTime - 86400000);
+          searchParams.startTime = this.$route.query.startTime;
         }
-
-        searchParams.startTime = defaultDateTime[0]; // eslint-disable-line prefer-destructuring
 
         if (Object.prototype.hasOwnProperty.call(this.$route.query, 'endTime')) {
-          defaultDateTime[1] = this.$route.query.endTime;
           searchParams.endTime = this.$route.query.endTime;
-        } else {
-          defaultDateTime[1] = prettyDateTimeFormat(currentTime);
-          searchParams.endTime = '';
         }
-        this.defaultDateTime = defaultDateTime;
+
+        if (Object.prototype.hasOwnProperty.call(this.$route.query, 'timezone')) {
+          searchParams.timezone = this.$route.query.timezone;
+        }
         this.searchParams = searchParams;
-        if (!searchParams.endTime) {
-          setTimeout(() => {
-            this.setToNowText(this.defaultDateTime);
-          });
-        }
       },
       /**
        * @desc 自定义表格显示
@@ -553,35 +542,32 @@
        * @param {Object} params 筛选值
        */
       handleSearch(params) {
-        const { startTime, endTime } = this.searchParams;
+        const { startTime, endTime, timezone } = this.searchParams;
         this.searchParams = {
           ...params,
           startTime,
           endTime,
+          timezone,
         };
         this.fetchData();
+      },
+      handleChangeTimezone(timezone) {
+        this.searchParams.timezone = timezone;
       },
       /**
        * @desc 筛选时间
-       * @param {Array} date 时间值
-       * @param {String} type 选择类型
+       * @param {Object} date 时间值 {startTime, endTime]
        */
-      handleDateChange(date, type) {
-        if (type === 'upToNow') {
-          this.setToNowText(date);
-        }
-        this.searchParams.startTime = date[0];// eslint-disable-line prefer-destructuring
-        this.searchParams.endTime = type === 'upToNow' ? '' : date[1];
+      handleDateChange(date) {
+        const { startTime, endTime } = date;
+        this.searchParams.startTime = startTime;
+        this.searchParams.endTime = endTime;
         this.fetchData();
       },
-      /**
-       * @desc 日期值显示为至今
-       * @param {Array} date 日期值
-       */
-      setToNowText(date) {
-        this.$refs.datePicker.shortcut = {
-          text: `${date[0]} ${I18n.t('history.至今')}`,
-        };
+      handleSetDate(date) {
+        const { startTime, endTime } = date;
+        this.searchParams.startTime = startTime;
+        this.searchParams.endTime = endTime;
       },
       /**
        * @desc 调整执行详情页面

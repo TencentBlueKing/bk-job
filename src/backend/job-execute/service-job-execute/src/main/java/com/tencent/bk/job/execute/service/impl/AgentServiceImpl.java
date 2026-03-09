@@ -27,6 +27,10 @@ package com.tencent.bk.job.execute.service.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.DistributeFileSourceHostException;
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.gse.service.AgentStateClient;
 import com.tencent.bk.job.common.gse.service.model.HostAgentStateQuery;
 import com.tencent.bk.job.common.model.dto.HostDTO;
@@ -93,9 +97,14 @@ public class AgentServiceImpl implements AgentService {
             String CACHE_KEY_AGENT_HOST = "agentHost";
             HostDTO host = agentHostCache.get(CACHE_KEY_AGENT_HOST);
             return host == null ? null : host.clone();
-        } catch (ExecutionException e) {
-            log.warn("Fail to load agentHost from cache, try to load directly", e);
-            return getAgentBindHost();
+        } catch (ExecutionException | UncheckedExecutionException | CacheLoader.InvalidCacheLoadException e) {
+            log.error("Fail to load agentHost from cache.", e);
+            Throwable cause = e.getCause();
+            if (cause instanceof ServiceException) {
+                throw (ServiceException) cause;
+            } else {
+                throw new DistributeFileSourceHostException(ErrorCode.TASK_FILE_SOURCE_HOST_NOT_EXIST);
+            }
         }
     }
 
@@ -127,7 +136,10 @@ public class AgentServiceImpl implements AgentService {
             }
             if (host == null) {
                 log.error("Invalid host for ip: {}", physicalMachineMultiIp);
-                return null;
+                throw new DistributeFileSourceHostException(
+                    ErrorCode.TASK_FILE_SOURCE_HOST_NOT_EXIST,
+                    new Object[]{physicalMachineMultiIp}
+                );
             }
             return ServiceHostDTO.toHostDTO(host);
         }

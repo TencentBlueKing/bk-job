@@ -27,11 +27,14 @@ import Request from '@utils/request';
 
 class WebGlobal {
   getVersionLog() {
-    return Request.get(`${window.location.origin}/static/bundledVersionLog.json`);
+    return Request.get('/job-manage/web/versionLog');
   }
 
   getVersionENLog() {
-    return Request.get(`${window.location.origin}/static/bundledVersionLog_en.json`);
+    return Request.get('/job-manage/web/versionLog');
+  }
+  getAccountEncryption() {
+    return Request.get('/job-manage/web/crypto/submit/account/encryption');
   }
 }
 

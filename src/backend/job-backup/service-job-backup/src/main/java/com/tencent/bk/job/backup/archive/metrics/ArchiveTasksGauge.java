@@ -27,9 +27,9 @@ package com.tencent.bk.job.backup.archive.metrics;
 import com.tencent.bk.job.backup.archive.service.ArchiveTaskService;
 import com.tencent.bk.job.backup.constant.ArchiveTaskStatusEnum;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
-import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.Arrays;
 import java.util.List;
@@ -91,7 +91,7 @@ public class ArchiveTasksGauge {
     /**
      * 触发指标查询
      */
-    @Scheduled(cron = "0 0/2 * * * *")
+    @ScheduledOnOperationTimeZone(cron = "0 0/2 * * * *")
     public void loadMetrics() {
         this.archiveTaskCountByStatus = archiveTaskService.countTaskByStatus(
             ArchiveTaskTypeEnum.JOB_INSTANCE, MONITOR_STATUS_LIST);

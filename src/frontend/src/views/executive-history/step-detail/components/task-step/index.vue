@@ -43,7 +43,7 @@
       <img
         v-if="data.isDoing"
         class="loading-progress"
-        src="/static/images/task-loading.png">
+        :src="taskLoadingImage">
     </div>
     <icon
       class="step-next"
@@ -109,6 +109,9 @@
           'z-index': zIndex,
         };
       },
+    },
+    created() {
+      this.taskLoadingImage = window.__loadAssetsUrl__('/static/images/task-loading.png');
     },
     beforeDestroy() {
       this.destroyePopover();

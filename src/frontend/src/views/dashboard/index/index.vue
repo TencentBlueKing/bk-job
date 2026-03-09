@@ -37,8 +37,18 @@
       </div>
       <div class="date-setting">
         <div class="date-info">
-          <p>{{ $t('dashboard.数据初始时间') }}：{{ dateInfo.STATISTICS_DATA_START_DATE }}</p>
-          <p>{{ $t('dashboard.最近更新时间') }}：{{ dateInfo.STATISTICS_DATA_UPDATE_TIME }}</p>
+          <bk-popover>
+            <icon
+              style="cursor: pointer; font-size: 14px;"
+              type="circle-italics-info" />
+            <div slot="content">
+              {{ $t('dashboard.运营时区提示', { timezone: operationTimezone }) }}
+            </div>
+          </bk-popover>
+          <div>
+            <p>{{ $t('dashboard.数据初始时间') }}：{{ dateInfo.STATISTICS_DATA_START_DATE }}</p>
+            <p>{{ $t('dashboard.最近更新时间') }}：{{ dateInfo.STATISTICS_DATA_UPDATE_TIME }}</p>
+          </div>
         </div>
         <bk-date-picker
           class="date-picker"
@@ -151,6 +161,9 @@
       isSkeletonLoading() {
         return this.isLoading;
       },
+      operationTimezone() {
+        return window.PROJECT_CONFIG.OPERATION_TIME_ZONE;
+      },
     },
     created() {
       this.fetchDateInfo();
@@ -249,6 +262,9 @@
             color: #c4c6cc;
             transform-origin: right center;
             transform: scale(0.85);
+            display: flex;
+            align-items: center;
+            gap: 8px;
           }
 
           .date-picker {

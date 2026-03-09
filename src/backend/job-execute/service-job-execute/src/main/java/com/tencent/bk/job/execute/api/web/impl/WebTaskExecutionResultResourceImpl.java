@@ -30,6 +30,7 @@ import com.google.common.cache.LoadingCache;
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.job.common.constant.Bool;
 import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
@@ -224,6 +225,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                  Integer status,
                                                                  String operator,
                                                                  Integer taskType,
+                                                                 String timezone,
                                                                  String startTime,
                                                                  String endTime,
                                                                  Integer timeRange,
@@ -235,8 +237,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                                  String startupModes,
                                                                  String ip) {
         User user = JobContextUtil.getUser();
-        TaskInstanceQuery taskQuery = buildListTaskInstanceQuery(appResourceScope, taskName, taskInstanceId,
-            status, operator, taskType, startTime, endTime, timeRange, totalTimeType, cronTaskId, startupModes, ip);
+        TaskInstanceQuery taskQuery = buildListTaskInstanceQuery(
+            appResourceScope, taskName, taskInstanceId, status, operator, taskType, timezone, startTime, endTime,
+            timeRange, totalTimeType, cronTaskId, startupModes, ip);
         BaseSearchCondition baseSearchCondition = BaseSearchCondition.pageCondition(
             start,
             pageSize,
@@ -269,6 +272,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
                                                          Integer status,
                                                          String operator,
                                                          Integer taskType,
+                                                         String timezone,
                                                          String startTime,
                                                          String endTime,
                                                          Integer timeRange,
@@ -300,7 +304,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
             }
         }
         taskQuery.setIp(ip);
-        taskInstanceQueryValidator.validateAndSetQueryTimeRange(taskQuery, startTime, endTime, timeRange);
+        taskInstanceQueryValidator.validateAndSetQueryTimeRange(taskQuery, timezone, startTime, endTime, timeRange);
         return taskQuery;
     }
 
@@ -799,7 +803,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         ExecuteVariableVO vo = new ExecuteVariableVO();
         vo.setName(taskVariable.getName());
         if (taskVariable.getType().equals(TaskVariableTypeEnum.CIPHER.getType())) {
-            vo.setValue("******");
+            vo.setValue(JobConstants.SENSITIVE_FIELD_PLACEHOLDER);
         } else {
             vo.setValue(taskVariable.getValue());
         }

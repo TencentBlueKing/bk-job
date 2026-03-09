@@ -40,6 +40,7 @@ CREATE TABLE `cron_job`
     `script_version_id`   BIGINT(20) UNSIGNED          DEFAULT NULL,
     `cron_expression`     VARCHAR(512)                 DEFAULT NULL,
     `execute_time`        BIGINT(20) UNSIGNED          DEFAULT NULL,
+    `execute_time_zone`   VARCHAR(128)                 DEFAULT 'Asia/Shanghai',
     `variable_value`      LONGTEXT            NOT NULL,
     `last_execute_status` TINYINT(2) UNSIGNED NOT NULL DEFAULT '0',
     `is_enable`           TINYINT(1) UNSIGNED NOT NULL DEFAULT '0',

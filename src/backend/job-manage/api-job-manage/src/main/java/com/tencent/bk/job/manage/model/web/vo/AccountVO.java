@@ -24,10 +24,6 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.tencent.bk.job.common.util.json.LongTimestampDeserializer;
-import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -116,13 +112,13 @@ public class AccountVO {
      */
     @ApiModelProperty("最后修改人")
     private String lastModifyUser;
+
     /**
      * 最后修改时间
      */
-    @ApiModelProperty("最后修改时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
-    @JsonDeserialize(using = LongTimestampDeserializer.class)
+    @ApiModelProperty("最后修改时间，单位毫秒")
     private Long lastModifyTime;
+
     /**
      * 创建人
      */
@@ -132,9 +128,7 @@ public class AccountVO {
     /**
      * 创建时间
      */
-    @ApiModelProperty("创建时间")
-    @JsonSerialize(using = LongTimestampSerializer.class)
-    @JsonDeserialize(using = LongTimestampDeserializer.class)
+    @ApiModelProperty("创建时间，单位毫秒")
     private Long createTime;
 
     @ApiModelProperty("是否可以管理")

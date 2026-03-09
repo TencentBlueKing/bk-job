@@ -27,6 +27,9 @@ package com.tencent.bk.job.execute.engine.prepare.third;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.exception.DistributeFileSourceHostException;
 import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.ip.IpUtils;
@@ -74,9 +77,13 @@ public class FileWorkerHostService {
     public HostDTO parseFileWorkerHostWithCache(Long cloudAreaId, String ipProtocol, String ip) {
         try {
             return fileWorkerHostCache.get(buildCacheKey(cloudAreaId, ipProtocol, ip));
-        } catch (ExecutionException e) {
-            log.error("Fail to parseFileWorkerHostWithCache", e);
-            return null;
+        } catch (ExecutionException | UncheckedExecutionException | CacheLoader.InvalidCacheLoadException e) {
+            log.error("Fail to parseFileWorkerHostWithCache. cloudAreaId: {}, ipProtocol: {}, ip: {}.",
+                cloudAreaId, ipProtocol, ip, e);
+            throw new DistributeFileSourceHostException(
+                ErrorCode.TASK_FILE_SOURCE_HOST_NOT_EXIST,
+                new Object[]{cloudAreaId + ":" + ip}
+            );
         }
     }
 

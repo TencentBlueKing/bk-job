@@ -60,7 +60,7 @@
           required>
           <div class="script-version">
             <jb-input
-              :maxlength="30"
+              :maxlength="60"
               :placeholder="$t('script.输入版本号')"
               property="version"
               :value="formData.version"

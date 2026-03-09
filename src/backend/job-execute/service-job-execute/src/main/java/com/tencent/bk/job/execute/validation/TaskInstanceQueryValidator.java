@@ -68,6 +68,7 @@ public class TaskInstanceQueryValidator {
      * @param timeRange         耗时范围
      */
     public void validateAndSetQueryTimeRange(TaskInstanceQuery taskInstanceQuery,
+                                             String timezone,
                                              String startTime,
                                              String endTime,
                                              Integer timeRange) {
@@ -87,11 +88,11 @@ public class TaskInstanceQueryValidator {
         } else {
             if (StringUtils.isNotBlank(startTime)) {
                 start = DateUtils.convertUnixTimestampFromDateTimeStr(startTime, "yyyy-MM-dd HH:mm:ss",
-                    ChronoUnit.MILLIS, ZoneId.systemDefault());
+                    ChronoUnit.MILLIS, ZoneId.of(timezone));
             }
             if (StringUtils.isNotBlank(endTime)) {
                 end = DateUtils.convertUnixTimestampFromDateTimeStr(endTime, "yyyy-MM-dd HH:mm:ss",
-                    ChronoUnit.MILLIS, ZoneId.systemDefault());
+                    ChronoUnit.MILLIS, ZoneId.of(timezone));
             }
 
             if (start == null) {

@@ -57,6 +57,11 @@ public class ResourceQuotaLimit {
      */
     private AppQuotaLimit appQuotaLimit;
 
+    /**
+     * 按用户配额限制
+     */
+    private UserQuotaLimit userQuotaLimit;
+
     public long getLimitByResourceScope(ResourceScope resourceScope) {
         if (resourceScopeQuotaLimit == null) {
             return Long.MAX_VALUE;
@@ -69,6 +74,13 @@ public class ResourceQuotaLimit {
             return Long.MAX_VALUE;
         }
         return appQuotaLimit.getLimit(bkAppCode);
+    }
+
+    public long getLimitByBkUserId(String userId) {
+        if (userQuotaLimit == null) {
+            return Long.MAX_VALUE;
+        }
+        return userQuotaLimit.getLimit(userId);
     }
 
 }

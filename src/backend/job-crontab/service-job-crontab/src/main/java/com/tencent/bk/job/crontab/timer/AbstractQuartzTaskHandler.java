@@ -43,6 +43,13 @@ public abstract class AbstractQuartzTaskHandler {
     protected Scheduler scheduler;
 
     /**
+     * 先等待Scheduler就绪，然后将声明的 QuartzJob 添加到 Scheduler 中
+     *
+     * @param quartzJob 定时任务信息
+     */
+    public abstract void waitSchedulerReadyThenAddJob(QuartzJob quartzJob) throws Exception;
+
+    /**
      * 动态添加任务
      * <p>
      * 将声明的 QuartzJob 添加到 Scheduler 中
@@ -241,6 +248,11 @@ public abstract class AbstractQuartzTaskHandler {
         } else {
             CronScheduleBuilder cronScheduleBuilder =
                 CronScheduleBuilder.cronSchedule(quartzTrigger.getCronExpression());
+
+            // 设置时区
+            if (quartzTrigger.getTimeZone() != null) {
+                cronScheduleBuilder.inTimeZone(quartzTrigger.getTimeZone());
+            }
 
             // 以当前时间为触发频率立刻触发一次执行，然后按照Cron频率依次执行
             if (quartzTrigger.getMisfireInstruction() == CronTrigger.MISFIRE_INSTRUCTION_FIRE_ONCE_NOW) {

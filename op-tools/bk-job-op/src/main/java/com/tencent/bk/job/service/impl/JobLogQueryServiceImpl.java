@@ -57,11 +57,12 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
                                             String startTime,
                                             String endTime,
                                             Integer start,
-                                            Integer size) {
+                                            Integer size,
+                                            Boolean asc) {
         try {
             LogQueryReq logQueryReq = buildLogQueryReq(queryString, timeRange, startTime, endTime, start, size);
-            // 按照时间降序
-            fillReqWithTimeSort(logQueryReq, false);
+
+            fillReqWithTimeSort(logQueryReq, asc);
             
             LogQueryResp logQueryResp = bkLogApi.logSearch(logQueryReq);
 

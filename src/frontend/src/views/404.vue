@@ -29,7 +29,7 @@
   <div class="exception-box">
     <img
       alt=""
-      src="/static/images/404.png">
+      :src="notFoundImage">
     <p>{{ $t('没找到页面！') }}</p>
     <div>
       <p v-if="$i18n.locale === 'en-US'">
@@ -61,6 +61,7 @@
   import { useRouter } from '@router';
 
 
+  const notFoundImage = window.__loadAssetsUrl__('/static/images/404.png');
   const router = useRouter();
   const timeout = ref(4);
 

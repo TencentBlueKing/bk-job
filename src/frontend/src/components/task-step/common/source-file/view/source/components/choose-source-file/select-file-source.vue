@@ -108,7 +108,7 @@
       </bk-table-column>
       <bk-table-column
         :label="$t('更新时间')"
-        prop="lastModifyTime" />
+        prop="lastModifyTimeText" />
     </bk-table>
   </div>
 </template>

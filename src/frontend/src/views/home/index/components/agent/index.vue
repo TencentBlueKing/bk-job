@@ -37,14 +37,14 @@
     <div class="agent-statistics-detail">
       <div
         class="detail-item normal"
-        @click="handleShowAgentDetail('normal', agentInfo.aliveCount)"
+        @click="handleShowAgentDetail(1, agentInfo.aliveCount)"
         @mouseover="handlePieScale($t('home.正常'))">
         <span>{{ $t('home.正常') }}</span>
         <span class="detail-value">{{ agentInfo.aliveCount }}</span>
       </div>
       <div
         class="detail-item fail"
-        @click="handleShowAgentDetail('fail', agentInfo.notAliveCount)"
+        @click="handleShowAgentDetail(0, agentInfo.notAliveCount)"
         @mouseover="handlePieScale($t('home.异常'))">
         <span>{{ $t('home.异常') }}</span>
         <span class="detail-value">{{ agentInfo.notAliveCount }}</span>
@@ -57,15 +57,9 @@
         {{ listTitle }}
       </div>
       <div slot="desc">
-        <action-extend>
-          <div
-            class="action-item"
-            @click="handleCopyAll">
-            {{ $t('home.复制全部') }}
-          </div>
-        </action-extend>
+        <action-extend :agent-status="agentStatus" />
       </div>
-      <host-list :status-type="statusType" />
+      <host-list :agent-status="agentStatus" />
     </sideslider-box>
   </div>
 </template>
@@ -95,18 +89,18 @@
       return {
         isLoading: false,
         isShow: false,
-        statusType: '',
         allHostList: [],
         agentInfo: {},
+        agentStatus: -1,
       };
     },
     computed: {
       listTitle() {
         const statusListMap = {
-          normal: I18n.t('home.Agent 正常的机器列表：'),
-          fail: I18n.t('home.Agent 异常的机器列表：'),
+          1: I18n.t('home.Agent 正常的机器列表：'),
+          0: I18n.t('home.Agent 异常的机器列表：'),
         };
-        return statusListMap[this.statusType];
+        return statusListMap[this.agentStatus];
       },
       defaultHighlight() {
         return (this.agentInfo.notAliveCount || !this.agentInfo.aliveCount)
@@ -134,8 +128,7 @@
           return;
         }
         this.isShow = true;
-        this.statusType = status;
-        this.fetchAllAgentStatus();
+        this.agentStatus = status;
       },
       handleClose() {
         this.isShow = false;
@@ -143,14 +136,6 @@
       handleCopyAll() {
         const allIP = this.allHostList.map(_ => _.split(':').pop());
         execCopy(allIP.join('\n'), `${I18n.t('home.复制成功')}（${allIP.length}${I18n.t('home.个IP')}）`);
-      },
-      fetchAllAgentStatus() {
-        const agentStatus = this.statusType === 'fail' ? 0 : 1;
-        HomeService.fetchAllAgentStatus({
-          agentStatus,
-        }).then((data) => {
-          this.allHostList = data.data;
-        });
       },
       handlePieScale(curName) {
         const statusMap = [
@@ -215,7 +200,7 @@
               data: [
                 {
                   value: this.agentInfo.aliveCount,
-                  key: 'normal',
+                  key: 1,
                   name: this.$t('home.正常'),
                   itemStyle: {
                     color: '#2DCB9D',
@@ -228,7 +213,7 @@
                 },
                 {
                   value: this.agentInfo.notAliveCount,
-                  key: 'fail',
+                  key: 0,
                   name: this.$t('home.异常'),
                   itemStyle: {
                     color: '#FF565C',

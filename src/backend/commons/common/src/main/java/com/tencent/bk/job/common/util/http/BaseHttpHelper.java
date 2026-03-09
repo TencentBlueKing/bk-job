@@ -72,7 +72,7 @@ public class BaseHttpHelper implements HttpHelper {
         try {
             return Pair.of(get, httpClient.execute(get));
         } catch (IOException e) {
-            log.error("Get request fail", e);
+            log.warn("Get request fail", e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         } finally {
             if (log.isDebugEnabled()) {
@@ -224,7 +224,7 @@ public class BaseHttpHelper implements HttpHelper {
                 httpStatusCode,
                 contentLength
             ).getMessage();
-            log.error(message, e);
+            log.warn(message, e);
             throw new InternalException(e, ErrorCode.API_ERROR);
         } finally {
             httpClientRequest.releaseConnection();

@@ -30,17 +30,17 @@ import lombok.extern.slf4j.Slf4j;
  * 抽象的后台任务，封装部分公共逻辑
  */
 @Slf4j
-public abstract class AbstractBackGroundTask extends Thread implements IBackGroundTask {
+public abstract class AbstractBackGroundTask extends Thread implements BackGroundTask {
 
-    private IBackGroundTaskRegistry registry;
+    private BackGroundTaskRegistry registry;
 
     @Override
-    public void setRegistry(IBackGroundTaskRegistry registry) {
+    public void setRegistry(BackGroundTaskRegistry registry) {
         this.registry = registry;
     }
 
     public void deregister() {
-        IBackGroundTask backGroundTask = registry.removeTask(getUniqueCode());
+        BackGroundTask backGroundTask = registry.removeTask(getUniqueCode());
         log.info("deregister backGroundTask({}), result={}", getUniqueCode(), backGroundTask != null);
     }
 

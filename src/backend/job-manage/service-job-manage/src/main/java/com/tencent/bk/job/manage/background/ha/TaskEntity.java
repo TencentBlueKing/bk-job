@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.background.ha;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
+import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
 import lombok.Data;
 
 /**
@@ -34,9 +34,9 @@ import lombok.Data;
 @Data
 public class TaskEntity {
     /**
-     * 任务编码
+     * 任务类型
      */
-    private String taskCode;
+    private EventWatchTaskTypeEnum taskType;
     /**
      * 租户ID
      */
@@ -44,11 +44,75 @@ public class TaskEntity {
 
     @JsonIgnore
     public String getUniqueCode() {
-        return taskCode + ":" + tenantId;
+        return taskType.getType() + ":" + tenantId;
     }
 
-    public TaskEntity(String taskCode, String tenantId) {
-        this.taskCode = taskCode;
+    public TaskEntity(EventWatchTaskTypeEnum taskType, String tenantId) {
+        if (taskType == null) {
+            throw new IllegalArgumentException("taskType cannot be null");
+        }
+        this.taskType = taskType;
         this.tenantId = tenantId;
+    }
+
+    /**
+     * 快速构建监听业务事件任务实体
+     *
+     * @param tenantId 租户ID
+     * @return 任务实体
+     */
+    public static TaskEntity ofWatchBiz(String tenantId) {
+        return of(EventWatchTaskTypeEnum.WATCH_BIZ, tenantId);
+    }
+
+    /**
+     * 快速构建监听业务集事件任务实体
+     *
+     * @param tenantId 租户ID
+     * @return 任务实体
+     */
+    public static TaskEntity ofWatchBizSet(String tenantId) {
+        return of(EventWatchTaskTypeEnum.WATCH_BIZ_SET, tenantId);
+    }
+
+    /**
+     * 快速构建监听业务集关系事件任务实体
+     *
+     * @param tenantId 租户ID
+     * @return 任务实体
+     */
+    public static TaskEntity ofWatchBizSetRelation(String tenantId) {
+        return of(EventWatchTaskTypeEnum.WATCH_BIZ_SET_RELATION, tenantId);
+    }
+
+    /**
+     * 快速构建监听主机事件任务实体
+     *
+     * @param tenantId 租户ID
+     * @return 任务实体
+     */
+    public static TaskEntity ofWatchHost(String tenantId) {
+        return of(EventWatchTaskTypeEnum.WATCH_HOST, tenantId);
+    }
+
+    /**
+     * 快速构建监听主机关系事件任务实体
+     *
+     * @param tenantId 租户ID
+     * @return 任务实体
+     */
+    public static TaskEntity ofWatchHostRelation(String tenantId) {
+        return of(EventWatchTaskTypeEnum.WATCH_HOST_RELATION, tenantId);
+    }
+
+    /**
+     * 快速构建任务实体
+     *
+     * @param taskType 任务类型枚举
+     * @param tenantId 租户ID
+     * @return 任务实体
+     */
+    private static TaskEntity of(EventWatchTaskTypeEnum taskType, String tenantId) {
+        return new TaskEntity(taskType, tenantId);
     }
 }

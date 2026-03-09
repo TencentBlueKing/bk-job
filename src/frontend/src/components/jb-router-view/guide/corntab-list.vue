@@ -50,7 +50,7 @@
         <div class="feature-item">
           <div class="feature-pic">
             <img
-              src="/static/images/guide/cron-plan.svg"
+              :src="cronPlanImage"
               style="width: 220px; margin: 24px 25px 0;">
           </div>
           <div class="feature-box">
@@ -64,7 +64,7 @@
         <div class="feature-item">
           <div class="feature-pic">
             <img
-              src="/static/images/guide/cron-clock.svg"
+              :src="cronClockImage"
               style="width: 246px; margin: 21px 8px 0 16px;">
           </div>
           <div class="feature-box">
@@ -80,6 +80,10 @@
 </template>
 <script>
   export default {
+    created() {
+      this.cronPlanImage = window.__loadAssetsUrl__('/static/images/guide/cron-plan.svg');
+      this.cronClockImage = window.__loadAssetsUrl__('/static/images/guide/cron-clock.svg');
+    },
     methods: {
       handleCreateCron() {
         this.$router.push({

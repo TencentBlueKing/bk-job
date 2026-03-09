@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine.quota.limit;
 
 
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.execute.constants.RedisKeys;
 import lombok.AllArgsConstructor;
@@ -40,7 +41,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -122,7 +122,7 @@ public class RunningJobKeepaliveManager {
     /**
      * 定时刷新作业存活心跳。 1min周期
      */
-    @Scheduled(cron = "0 * * * * ?")
+    @ScheduledOnOperationTimeZone(cron = "0 * * * * ?")
     public void refreshTaskKeepaliveInfo() {
         log.info("Refresh running job keepalive task start...");
         if (runningJobKeepaliveTasks.isEmpty()) {

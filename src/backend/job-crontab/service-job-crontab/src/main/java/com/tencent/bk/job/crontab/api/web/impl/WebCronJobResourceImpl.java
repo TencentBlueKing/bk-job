@@ -27,13 +27,18 @@ package com.tencent.bk.job.crontab.api.web.impl;
 import com.google.common.base.CaseFormat;
 import com.tencent.bk.audit.annotations.AuditEntry;
 import com.tencent.bk.audit.annotations.AuditRequestBody;
+import com.tencent.bk.job.common.annotation.CompatibleImplementation;
+import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.i18n.zone.InvalidTimeZoneException;
+import com.tencent.bk.job.common.i18n.zone.TimeZoneUtils;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
@@ -80,16 +85,19 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     private final CronJobHistoryService cronJobHistoryService;
     private final CronAuthService cronAuthService;
     private final CronJobExecuteResultService cronJobExecuteResultService;
+    private final CommonAppService commonAppService;
 
     @Autowired
     public WebCronJobResourceImpl(CronJobService cronJobService,
                                   CronJobHistoryService cronJobHistoryService,
                                   CronAuthService cronAuthService,
-                                  CronJobExecuteResultService cronJobExecuteResultService) {
+                                  CronJobExecuteResultService cronJobExecuteResultService,
+                                  CommonAppService commonAppService) {
         this.cronJobService = cronJobService;
         this.cronJobHistoryService = cronJobHistoryService;
         this.cronAuthService = cronAuthService;
         this.cronJobExecuteResultService = cronJobExecuteResultService;
+        this.commonAppService = commonAppService;
     }
 
     @Override
@@ -350,7 +358,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
                                              @AuditRequestBody CronJobCreateUpdateReq cronJobCreateUpdateReq) {
 
         Long appId = appResourceScope.getAppId();
-        checkCronName(cronJobCreateUpdateReq);
+        checkReqAndProcess(appId, cronJobCreateUpdateReq);
         CronJobInfoDTO cronJobInfoDTO = CronJobInfoDTO.fromReq(username, appId, cronJobCreateUpdateReq);
         if (cronJobInfoDTO.validate()) {
             CronJobInfoDTO createdCronJob = cronJobService.createCronJobInfo(JobContextUtil.getUser(), cronJobInfoDTO);
@@ -372,8 +380,7 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
 
         Long appId = appResourceScope.getAppId();
         cronJobCreateUpdateReq.setId(cronJobId);
-
-        checkCronName(cronJobCreateUpdateReq);
+        checkReqAndProcess(appId, cronJobCreateUpdateReq);
         CronJobInfoDTO cronJobInfoDTO = CronJobInfoDTO.fromReq(username, appId, cronJobCreateUpdateReq);
         if (cronJobInfoDTO.validate()) {
             CronJobInfoDTO updatedCronJob = cronJobService.updateCronJobInfo(JobContextUtil.getUser(), cronJobInfoDTO);
@@ -384,6 +391,12 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         }
     }
 
+    private void checkReqAndProcess(Long appId, CronJobCreateUpdateReq cronJobCreateUpdateReq) {
+        checkCronName(cronJobCreateUpdateReq);
+        processExecuteTimeZone(appId, cronJobCreateUpdateReq);
+        checkTimeZoneValid(cronJobCreateUpdateReq);
+    }
+
     private void checkCronName(CronJobCreateUpdateReq cronJobCreateUpdateReq) {
         try {
             StringCheckHelper stringCheckHelper = new StringCheckHelper(new TrimChecker(), new NotEmptyChecker(),
@@ -392,6 +405,53 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
         } catch (StringCheckException e) {
             log.warn("Cron Job Name is invalid:", e);
             throw new InvalidParamException(e, ErrorCode.ILLEGAL_PARAM);
+        }
+    }
+
+    /**
+     * 校验时区非空且合法（是存在的IANA形式）
+     */
+    private void checkTimeZoneValid(CronJobCreateUpdateReq cronJobCreateUpdateReq) {
+        try {
+            TimeZoneUtils.checkTimeZoneValid(cronJobCreateUpdateReq.getExecuteTimeZone());
+        } catch (InvalidTimeZoneException e) {
+            String errMsg = null;
+            if (cronJobCreateUpdateReq.getId() != null) {
+                errMsg = MessageFormatter.format(
+                    "Update CronJob {} has invalid time zone: {}",
+                    cronJobCreateUpdateReq.getId(),
+                    cronJobCreateUpdateReq.getExecuteTimeZone()
+                ).getMessage();
+            } else {
+                errMsg = MessageFormatter.format(
+                    "Create CronJob time zone is invalid: {}",
+                    cronJobCreateUpdateReq.getExecuteTimeZone()
+                ).getMessage();
+            }
+            log.warn(errMsg, e);
+            throw new InvalidParamException(
+                e,
+                ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new Object[]{"timeZone", "timeZone input:" + cronJobCreateUpdateReq.getExecuteTimeZone()});
+        }
+    }
+
+    /**
+     * 填充时区，如果时区为空则默认设置为该业务的时区
+     * @param appId 业务ID
+     * @param cronJobCreateUpdateReq 请求体
+     */
+    @CompatibleImplementation(
+        deprecatedVersion = "3.12.1",
+        name = "processExecuteTimeZone",
+        type = CompatibleType.DEPLOY,
+        explain = "兼容旧版本，如果请求体中时区为空，则默认使用业务时区，新版本前端会传executeTimeZone字段，发布后可删"
+    )
+    private void processExecuteTimeZone(Long appId, CronJobCreateUpdateReq cronJobCreateUpdateReq) {
+        if (cronJobCreateUpdateReq.getExecuteTimeZone() == null) {
+            // 缺省默认使用业务时区
+            String appTimeZone = commonAppService.getAppTimeZoneById(appId);
+            cronJobCreateUpdateReq.setExecuteTimeZone(appTimeZone);
         }
     }
 

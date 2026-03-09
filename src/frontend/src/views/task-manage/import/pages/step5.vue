@@ -30,7 +30,7 @@
     v-bkloading="{ isLoading }"
     class="task-import-step5">
     <div class="flag">
-      <img src="/static/images/import.svg">
+      <img :src="importImage">
     </div>
     <div class="title">
       <span v-if="isImportSuccess">{{ $t('template.作业导入完成（全部成功），请及时检查确认。') }}</span>
@@ -130,6 +130,7 @@
     created() {
       this.id = taskImport.getItem('id');
       this.pollingQueue = [];
+      this.importImage = window.__loadAssetsUrl__('/static/images/import.svg');
       taskImport.clearItem();
       this.fetchData();
       this.startTimer();

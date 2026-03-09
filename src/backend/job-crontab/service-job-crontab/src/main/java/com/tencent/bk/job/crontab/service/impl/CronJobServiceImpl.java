@@ -223,6 +223,7 @@ public class CronJobServiceImpl implements CronJobService {
         content = EventContentConstants.CREATE_CRON_JOB
     )
     public CronJobInfoDTO createCronJobInfo(User user, CronJobInfoDTO cronJobInfo) {
+        checkCronJobExists(cronJobInfo);
         cronAuthService.authCreateCron(user,
             new AppResourceScope(cronJobInfo.getAppId())).denyIfNoPermission();
 
@@ -266,6 +267,7 @@ public class CronJobServiceImpl implements CronJobService {
         content = EventContentConstants.EDIT_CRON_JOB
     )
     public CronJobInfoDTO updateCronJobInfo(User user, CronJobInfoDTO cronJobInfo) {
+        checkCronJobExists(cronJobInfo);
         cronAuthService.authManageCron(user,
             new AppResourceScope(cronJobInfo.getAppId()), cronJobInfo.getId(), null).denyIfNoPermission();
 
@@ -303,6 +305,21 @@ public class CronJobServiceImpl implements CronJobService {
             .setInstance(CronJobInfoDTO.toEsbCronInfoV3(updateCron));
 
         return updateCron;
+    }
+
+    /**
+     * 检查定时任务存在性，抛出资源已存在异常
+     */
+    private void checkCronJobExists(CronJobInfoDTO cronJobInfo) {
+        Long cronJobId = 0L;
+        if (cronJobInfo.getId() != null && cronJobInfo.getId() > 0) {
+            cronJobId = cronJobInfo.getId();
+        }
+        if (!cronJobDAO.checkCronJobName(cronJobInfo.getAppId(), cronJobId, cronJobInfo.getName())) {
+            log.warn("Cron job exists. appId={}, cronJobId={}, cronJobName={}",
+                cronJobInfo.getAppId(), cronJobId, cronJobInfo.getName());
+            throw new AlreadyExistsException(ErrorCode.CRON_JOB_ALREADY_EXIST, new String[]{cronJobInfo.getName()});
+        }
     }
 
     private void fillCronJobInfoWithCustomNotifyPolicy(Long cronJobId, CronJobInfoDTO cronJobInfo) {
@@ -472,12 +489,9 @@ public class CronJobServiceImpl implements CronJobService {
             .setInstanceName(originCronJobInfo.getName())
             .addAttribute(OPERATION, enable ? "Switch on" : "Switch off");
 
-        CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
-        cronJobInfo.setAppId(appId);
-        cronJobInfo.setId(cronJobId);
-        cronJobInfo.setEnable(enable);
-        cronJobInfo.setLastModifyUser(user.getUsername());
-        cronJobInfo.setLastModifyTime(DateUtils.currentTimeSeconds());
+        originCronJobInfo.setEnable(enable);
+        originCronJobInfo.setLastModifyUser(user.getUsername());
+        originCronJobInfo.setLastModifyTime(DateUtils.currentTimeSeconds());
         if (enable) {
             try {
                 List<ServiceTaskVariable> taskVariables = null;
@@ -488,7 +502,7 @@ public class CronJobServiceImpl implements CronJobService {
                 }
                 executeTaskService.authExecuteTask(appId, originCronJobInfo.getTaskPlanId(),
                     cronJobId, originCronJobInfo.getName(), taskVariables, user.getUsername());
-                if (cronJobDAO.updateCronJobById(cronJobInfo)) {
+                if (cronJobDAO.updateCronJobById(originCronJobInfo)) {
                     return informAllToAddJobToQuartz(appId, cronJobId);
                 } else {
                     return false;
@@ -498,7 +512,7 @@ public class CronJobServiceImpl implements CronJobService {
                 throw e;
             }
         } else {
-            if (cronJobDAO.updateCronJobById(cronJobInfo)) {
+            if (cronJobDAO.updateCronJobById(originCronJobInfo)) {
                 return informAllToDeleteJobFromQuartz(appId, cronJobId);
             } else {
                 return false;
@@ -509,9 +523,11 @@ public class CronJobServiceImpl implements CronJobService {
 
     @Override
     public Boolean disableExpiredCronJob(Long appId, Long cronJobId, String lastModifyUser, Long lastModifyTime) {
-        CronJobInfoDTO cronJobInfo = new CronJobInfoDTO();
-        cronJobInfo.setAppId(appId);
-        cronJobInfo.setId(cronJobId);
+        CronJobInfoDTO cronJobInfo = getCronJobInfoById(appId, cronJobId);
+        if (cronJobInfo == null) {
+            log.warn("CronJob not found when disableExpiredCronJob, appId: {}, cronJobId: {}", appId, cronJobId);
+            return false;
+        }
         cronJobInfo.setLastModifyUser(lastModifyUser);
         cronJobInfo.setLastModifyTime(lastModifyTime);
         cronJobInfo.setEnable(false);
@@ -665,7 +681,7 @@ public class CronJobServiceImpl implements CronJobService {
     public Boolean batchUpdateCronJob(User user,
                                       Long appId,
                                       BatchUpdateCronJobReq batchUpdateCronJobReq) {
-        // 更新DB中的数据
+        // 更新DB中的数据，只更新 变量 和 启用 字段
         NeedScheduleCronInfo needScheduleCronInfo = batchCronJobService.batchUpdateCronJob(
             user,
             appId,
@@ -681,20 +697,6 @@ public class CronJobServiceImpl implements CronJobService {
             needDeleteCronIdList.forEach(cronId -> informAllToDeleteJobFromQuartz(appId, cronId));
         }
         return true;
-    }
-
-    @Override
-    public Long insertCronJobInfoWithId(CronJobInfoDTO cronJobInfo) {
-        checkCronJobPlanOrScript(cronJobInfo);
-        CronJobInfoDTO cronJobById = cronJobDAO.getCronJobById(cronJobInfo.getAppId(), cronJobInfo.getId());
-        if (cronJobById != null) {
-            throw new AlreadyExistsException(ErrorCode.CRON_JOB_ALREADY_EXIST);
-        }
-        if (cronJobDAO.insertCronJobWithId(cronJobInfo)) {
-            return cronJobInfo.getId();
-        } else {
-            throw new InternalException(ErrorCode.INSERT_CRON_JOB_FAILED);
-        }
     }
 
     @Override

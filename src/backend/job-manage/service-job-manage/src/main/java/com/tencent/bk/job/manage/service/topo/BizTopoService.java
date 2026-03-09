@@ -30,9 +30,11 @@ import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
 import java.util.List;
 
 public interface BizTopoService {
-    List<List<InstanceTopologyDTO>> queryBizNodePaths(Long bizId,
+    List<List<InstanceTopologyDTO>> queryBizNodePaths(String tenantId,
+                                                      Long bizId,
                                                       List<InstanceTopologyDTO> nodeList);
 
-    List<Long> findAllModuleIdsOfNodes(Long bizId,
+    List<Long> findAllModuleIdsOfNodes(String tenantId,
+                                       Long bizId,
                                        List<BizTopoNode> appTopoNodeList);
 }

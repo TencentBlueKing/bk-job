@@ -22,9 +22,49 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
 */
-
+import { getTime, getTimeTooltip } from '@/utils/assist/time';
 export default class Model {
   getDefaultValue(value) {
     return value || '--';
+  }
+
+  get createTimeText() {
+    return getTime({ timestamp: this.createTime });
+  }
+
+  get lastModifyTimeText() {
+    return getTime({ timestamp: this.lastModifyTime });
+  }
+
+  get startTimeText() {
+    return getTime({ timestamp: this.startTime });
+  }
+
+  get endTimeText() {
+    return getTime({ timestamp: this.endTime });
+  }
+
+  get scheduledTimeText() {
+    return getTime({ timestamp: this.scheduledTime });
+  }
+
+  get createTimeTooltipsText() {
+    return getTimeTooltip(this.createTimeText);
+  }
+
+  get lastModifyTimeTooltipsText() {
+    return getTimeTooltip(this.lastModifyTimeText);
+  }
+
+  get startTimeTooltipsText() {
+    return getTimeTooltip(this.startTimeText);
+  }
+
+  get endTimeTooltipsText() {
+    return getTimeTooltip(this.endTimeText);
+  }
+
+  get scheduledTimeTooltipsText() {
+    return getTimeTooltip(this.scheduledTimeText);
   }
 }

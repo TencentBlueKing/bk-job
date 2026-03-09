@@ -58,7 +58,7 @@
       @click="handleSelectedAnalyzeError"
       @mousedown.stop>
       <img
-        src="/static/images/ai.png"
+        :src="aiImage"
         style="width: 16px">
     </div>
   </div>
@@ -163,6 +163,7 @@
       this.timer = null;
       // 日志列表中是否包含日志内容标记，如果不包含需要异步获取日志内容
       this.includingLogContent = '';
+      this.aiImage = window.__loadAssetsUrl__('/static/images/ai.png');
 
       this.fetchAiConfig();
     },

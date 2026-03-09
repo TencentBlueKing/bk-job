@@ -75,7 +75,7 @@
     <img
       v-if="data.isDoing"
       class="loading-progress"
-      src="/static/images/task-loading.png">
+      :src="taskLoadingImage">
     <div
       class="step-action"
       @click.stop="">
@@ -109,6 +109,9 @@
       handleChangeStatus: {
         type: Function,
       },
+    },
+    created() {
+      this.taskLoadingImage = window.__loadAssetsUrl__('/static/images/task-loading.png');
     },
   };
 </script>

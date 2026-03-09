@@ -51,6 +51,7 @@ public class AgentStatusSyncService {
 
     private static final String machineIp = IpUtils.getFirstMachineIP();
     private volatile boolean enableSyncAgentStatus;
+    private final int batchSize;
 
     @SuppressWarnings("FieldCanBeLocal")
     private final String REDIS_KEY_SYNC_AGENT_STATUS_MACHINE = "sync-agent-status-machine";
@@ -70,6 +71,7 @@ public class AgentStatusSyncService {
         this.agentStatusService = agentStatusService;
         this.redisTemplate = redisTemplate;
         this.enableSyncAgentStatus = jobManageConfig.isEnableSyncAgentStatus();
+        this.batchSize = jobManageConfig.getSyncAgentStatusBatchSize();
     }
 
     public void syncAgentStatus() {
@@ -120,45 +122,94 @@ public class AgentStatusSyncService {
         long gseInterfaceTimeConsuming = 0L;
         long writeToDBTimeConsuming = 0L;
         StopWatch hostAgentStatusWatch = new StopWatch();
-        hostAgentStatusWatch.start("listAllHostInfo");
-        List<HostSimpleDTO> localHosts = noTenantHostDAO.listAllHostSimpleInfo();
+
+        long totalHostCount = 0L;
+        long totalStatusChangedCount = 0L;
+        long totalUpdatedCount = 0L;
+        int batchCount = 0;
+        long lastHostId = 0L;
+
+        hostAgentStatusWatch.start("syncHostAgentStatus");
+
+        // 分批查询和处理
+        while (true) {
+            batchCount++;
+            long batchStartTime = System.currentTimeMillis();
+
+            // 1. 分批查询主机数据（基于主键游标分页）
+            List<HostSimpleDTO> batchHosts = noTenantHostDAO.listHostSimpleInfoByHostIdRange(lastHostId, batchSize);
+            if (batchHosts.isEmpty()) {
+                // 没有更多数据，退出循环
+                break;
+            }
+
+            int batchHostCount = batchHosts.size();
+            totalHostCount += batchHostCount;
+
+            // 更新游标位置（取当前批次最后一条记录的hostId）
+            lastHostId = batchHosts.get(batchHosts.size() - 1).getHostId();
+
+            // 2. 调用 GSE 接口查询 Agent 状态
+            long gseStartTime = System.currentTimeMillis();
+            List<HostSimpleDTO> statusChangedHosts = agentStatusService.findStatusChangedHosts(batchHosts);
+            gseInterfaceTimeConsuming += (System.currentTimeMillis() - gseStartTime);
+
+            int batchStatusChangedCount = statusChangedHosts.size();
+            totalStatusChangedCount += batchStatusChangedCount;
+
+            // 3. 更新数据库
+            long dbStartTime = System.currentTimeMillis();
+            int updatedHostNum = noTenantHostService.updateHostsStatus(statusChangedHosts);
+            writeToDBTimeConsuming += (System.currentTimeMillis() - dbStartTime);
+            totalUpdatedCount += updatedHostNum;
+
+            long batchTimeConsuming = System.currentTimeMillis() - batchStartTime;
+
+            // 4. 记录批次日志
+            log.info(
+                "syncHostAgentStatus batch#{}: batchHosts={}, statusChanged={}, updated={}, "
+                    + "lastHostId={}, timeConsuming={}ms",
+                batchCount,
+                batchHostCount,
+                batchStatusChangedCount,
+                updatedHostNum,
+                lastHostId,
+                batchTimeConsuming
+            );
+
+            // 显式释放当前批次数据的引用，帮助 GC
+            batchHosts.clear();
+            statusChangedHosts.clear();
+
+            // 如果当前批次数据量小于 batchSize，说明已经是最后一批
+            if (batchHostCount < batchSize) {
+                break;
+            }
+        }
+
         hostAgentStatusWatch.stop();
-        hostAgentStatusWatch.start("getAgentStatus from GSE");
-        long startTime = System.currentTimeMillis();
-        List<HostSimpleDTO> statusChangedHosts = agentStatusService.findStatusChangedHosts(localHosts);
-        gseInterfaceTimeConsuming += (System.currentTimeMillis() - startTime);
-        hostAgentStatusWatch.stop();
-        hostAgentStatusWatch.start("updateHosts to local DB");
-        startTime = System.currentTimeMillis();
-        int updatedHostNum = noTenantHostService.updateHostsStatus(statusChangedHosts);
-        writeToDBTimeConsuming += (System.currentTimeMillis() - startTime);
-        hostAgentStatusWatch.stop();
+
+        // 记录总体统计日志
         if (hostAgentStatusWatch.getTotalTimeMillis() > 180000) {
             log.warn(
-                "syncHostAgentStatus too slow, totalHosts={}, statusChangedHosts={}, "
-                    + "updatedHostNum={}, timeConsume={}",
-                localHosts.size(),
-                statusChangedHosts.size(),
-                updatedHostNum,
+                "syncHostAgentStatus too slow, totalHosts={}, totalBatches={}, statusChangedHosts={}, "
+                    + "updatedHostNum={}, batchSize={}, timeConsume={}",
+                totalHostCount,
+                batchCount,
+                totalStatusChangedCount,
+                totalUpdatedCount,
+                batchSize,
                 hostAgentStatusWatch.prettyPrint()
             );
-        }
-        if (statusChangedHosts.size() == updatedHostNum) {
-            log.info(
-                "syncHostAgentStatus Performance,totalHosts={}, " +
-                    "statusChangedHosts={}, updatedHostNum={}, timeConsume={}",
-                localHosts.size(),
-                statusChangedHosts.size(),
-                updatedHostNum,
-                hostAgentStatusWatch
-            );
         } else {
-            log.warn(
-                "syncHostAgentStatus Performance,totalHosts={}, " +
-                    "statusChangedHosts={}, updatedHostNum={}, timeConsume={}",
-                localHosts.size(),
-                statusChangedHosts.size(),
-                updatedHostNum,
+            log.info(
+                "syncHostAgentStatus finished, totalHosts={}, totalBatches={}, "
+                    + "statusChangedHosts={}, updatedHostNum={}, batchSize={}, timeConsume={}",
+                totalHostCount,
+                batchCount,
+                totalStatusChangedCount,
+                totalUpdatedCount,
+                batchSize,
                 hostAgentStatusWatch
             );
         }

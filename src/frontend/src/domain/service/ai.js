@@ -23,6 +23,8 @@
  * IN THE SOFTWARE.
 */
 
+import { getTime } from '@/utils/assist/time';
+
 import AiSource from '../source/ai';
 
 export default {
@@ -54,7 +56,7 @@ export default {
             role: 'user',
             content: item.userInput.content,
             status: '',
-            time: item.userInput.time,
+            time: getTime({ timestamp: item.userInput.time }),
           });
         }
 
@@ -62,7 +64,7 @@ export default {
           role: 'assistant',
           content: item.aiAnswer.content,
           status: item.aiAnswer.errorCode === '0' ? 'success' : 'error',
-          time: item.aiAnswer.time,
+          time: getTime({ timestamp: item.aiAnswer.time }),
         });
 
         return result;

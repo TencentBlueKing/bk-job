@@ -27,33 +27,53 @@
 
 <template>
   <div
+    v-if="allHostList.length > 0"
     class="server-panel-action-extend"
     @click.stop=""
     @mouseleave="handleHide">
-    <icon type="more" />
+    <div v-bk-tooltips="$t('复制所有')">
+      <icon type="more" />
+    </div>
     <div
       ref="popoverContent"
       class="server-action-extend-content"
       @click="handleWraperClick"
       @mouseleave="handleClose"
       @mouseover="handleShow">
-      <template v-if="copyable">
-        <div
-          class="action-item"
-          @click="handleCopyAll">
-          {{ $t('复制所有 IP') }}
-        </div>
-        <div
-          class="action-item"
-          @click="handleCopyFail">
-          {{ $t('复制异常 IP') }}
-        </div>
-      </template>
-      <slot />
+      <div
+        class="action-item"
+        @click="() => handleCopyIPv4()">
+        IPV4
+      </div>
+      <div
+        class="action-item"
+        @click="() => handleCopyIPv4(true)">
+        {{ $t('管控区域 ID:IPv4') }}
+      </div>
+      <div
+        class="action-item"
+        @click="() => handleCopyIPv6()">
+        IPV6
+      </div>
+      <div
+        class="action-item"
+        @click="() => handleCopyIPv6(true)">
+        {{ $t('管控区域 ID:IPv6') }}
+      </div>
+      <div
+        class="action-item"
+        @click="handleCopyHostId">
+        {{ $t('主机 ID') }}
+      </div>
     </div>
   </div>
 </template>
 <script>
+
+  import _ from 'lodash';
+
+  import HomeService from '@service/home';
+
   import {
     execCopy,
   } from '@utils/assist';
@@ -69,26 +89,45 @@
         type: Array,
         default: () => [],
       },
-      invalidList: {
-        type: Array,
-        default: () => [],
+      agentStatus: {
+        type: Number,
       },
-      copyable: {
-        type: Boolean,
-        default: false,
+    },
+    data() {
+      return {
+        allHostList: [],
+      };
+    },
+    watch: {
+      agentStatus: {
+        handler() {
+          if (this.agentStatus > -1) {
+            this.fetchData();
+          }
+        },
+        immediate: true,
       },
     },
     created() {
       this.id = `action_extend_${Math.random()}_${Math.random()}`;
-    },
-    mounted() {
-      this.init();
     },
     beforeDestroy() {
       instanceMap[this.id].hide();
       delete instanceMap[this.id];
     },
     methods: {
+      fetchData() {
+        HomeService.fetchAgentStatus({
+          agentStatus: this.agentStatus,
+        }).then((data) => {
+          this.allHostList = data.data;
+          if (this.allHostList.length > 0) {
+            setTimeout(() => {
+              this.init();
+            });
+          }
+        });
+      },
       /**
        * @desc 弹层面板初始化
        */
@@ -123,44 +162,36 @@
           this.handleClose();
         }, 3000);
       },
-      /**
-       * @desc 复制所有主机
-       */
-      handleCopyAll() {
-        if (this.list.length < 1 && this.invalidList.length < 1) {
-          this.messageWarn(I18n.t('你还未选择执行目标'));
+
+      handleCopyIPv4(withNet = false) {
+        const allIP = _.filter(this.allHostList.map(host => (withNet ? `${host.cloudArea.id}:${host.ip}` : host.ip)), item => !!item);
+
+        if (allIP.length < 1) {
+          this.messageWarn(I18n.t('home.没有可复制的 IPv4'));
           return;
         }
-        let allIP = this.list.map(host => host.ip);
-        const allInvalidList = this.invalidList.map(host => host.ip);
-        allIP = [
-          ...allIP, ...allInvalidList,
-        ];
-        execCopy(allIP.join('\n'), `${I18n.t('复制成功')}（${allIP.length}${I18n.t('个IP')}）`);
+        execCopy(allIP.join('\n'), `${I18n.t('home.复制成功')}（${allIP.length}${I18n.t('home.个IP')}）`);
+      },
+      handleCopyIPv6(withNet = false) {
+        const ipv6HostList = _.filter(this.allHostList, host => !!host.ipv6);
+        if (ipv6HostList.length < 1) {
+          this.messageWarn(I18n.t('home.没有可复制的 IPv6'));
+          return;
+        }
+        const allIP = _.filter(ipv6HostList.map(host => (withNet ? `${host.cloudArea.id}:${host.ipv6}` : host.ipv6)), item => !!item);
+
+        execCopy(allIP.join('\n'), `${I18n.t('home.复制成功')}（${allIP.length}${I18n.t('home.个IP')}）`);
       },
       /**
-       * @desc 复制异常主机
+       * @desc 复制主机ID
        */
-      handleCopyFail() {
-        if (this.list.length < 1 && this.invalidList.length < 1) {
-          this.messageWarn(I18n.t('你还未选择执行目标'));
+      handleCopyHostId() {
+        const allHostId = this.allHostList.map(host => host.hostId);
+        if (allHostId.length < 1) {
+          this.messageWarn(I18n.t('home.没有可复制的主机ID'));
           return;
         }
-        let allFailIp = [];
-        this.list.forEach((currentHost) => {
-          if (!currentHost.alive) {
-            allFailIp.push(currentHost.ip);
-          }
-        });
-        if (allFailIp.length < 1 && this.invalidList.length < 1) {
-          this.messageWarn(I18n.t('暂无异常主机'));
-          return;
-        }
-        const allInvalidList = this.invalidList.map(host => host.ip);
-        allFailIp = [
-          ...allFailIp, ...allInvalidList,
-        ];
-        execCopy(allFailIp.join('\n'), `${I18n.t('复制成功')}（${allFailIp.length}${I18n.t('个异常IP')}）`);
+        execCopy(allHostId.join('\n'), `${I18n.t('home.复制成功')}（${allHostId.length}${I18n.t('home.个主机ID')}）`);
       },
       handleShow() {
         clearTimeout(this.leaveTimer);
@@ -172,12 +203,6 @@
   };
 </script>
 <style lang="postcss">
-  html[lang="en-US"] {
-    .server-action-extend-content {
-      width: 154px;
-    }
-  }
-
   .server-panel-action-extend {
     position: absolute;
     top: 50%;
@@ -212,8 +237,7 @@
     }
 
     .server-action-extend-content {
-      width: 93px;
-      font-size: 14px;
+      font-size: 12px;
       line-height: 32px;
       color: #63656e;
       background: #fff;
@@ -221,8 +245,9 @@
       box-shadow: 0 2px 1px 0 rgb(185 203 222 / 50%);
 
       .action-item {
-        padding-left: 15px;
+        padding: 0 15px;
         cursor: pointer;
+
 
         &:hover {
           color: #3a84ff;

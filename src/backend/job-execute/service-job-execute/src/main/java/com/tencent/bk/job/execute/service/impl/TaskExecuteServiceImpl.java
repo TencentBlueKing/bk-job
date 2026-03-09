@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.audit.JobAuditExtendDataKeys;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.AccountCategoryEnum;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AbortedException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
@@ -75,7 +76,7 @@ import com.tencent.bk.job.execute.engine.listener.event.JobEvent;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
 import com.tencent.bk.job.execute.engine.listener.event.TaskExecuteMQEventDispatcher;
 import com.tencent.bk.job.execute.engine.model.TaskVariableDTO;
-import com.tencent.bk.job.execute.engine.quota.limit.ResourceQuotaCheckResultEnum;
+import com.tencent.bk.job.common.service.quota.ResourceQuotaCheckResultEnum;
 import com.tencent.bk.job.execute.engine.quota.limit.RunningJobResourceQuotaManager;
 import com.tencent.bk.job.execute.engine.util.TimeoutUtils;
 import com.tencent.bk.job.execute.model.AccountDTO;
@@ -1022,7 +1023,8 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         TaskInstanceDTO taskInstance = fastTask.getTaskInstance();
         StepInstanceDTO stepInstance = fastTask.getStepInstance();
         long taskInstanceId = taskInstance.getId();
-        if (StringUtils.isNotEmpty(stepInstance.getScriptParam()) && stepInstance.getScriptParam().equals("******")) {
+        if (StringUtils.isNotEmpty(stepInstance.getScriptParam())
+            && stepInstance.getScriptParam().equals(JobConstants.SENSITIVE_FIELD_PLACEHOLDER)) {
             // 重做快速任务，如果是敏感参数，并且用户未修改脚本参数值(******为与前端的约定，表示用户未修改脚本参数值)，需要从原始任务取值
             StepInstanceDTO originStepInstance = stepInstanceService.getStepInstanceByTaskInstanceId(taskInstanceId);
             if (originStepInstance == null) {

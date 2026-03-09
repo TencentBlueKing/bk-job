@@ -50,6 +50,9 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .job-icon-history:before {
 	content: "\e184";
 }
+.job-icon-copy-link:before {
+	content: "\e228";
+}
 .job-icon-set:before {
 	content: "\e154";
 }
@@ -664,4 +667,13 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 }
 .job-icon-os-unix:before {
 	content: "\e21f";
+}
+.job-icon-deqiu:before {
+	content: "\e225";
+}
+.job-icon-bangding:before {
+	content: "\e226";
+}
+.job-icon-jiechubangding:before {
+	content: "\e227";
 }

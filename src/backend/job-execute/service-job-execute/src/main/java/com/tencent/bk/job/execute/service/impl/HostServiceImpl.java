@@ -27,7 +27,6 @@ package com.tencent.bk.job.execute.service.impl;
 import com.tencent.bk.job.common.cc.model.CcCloudIdDTO;
 import com.tencent.bk.job.common.cc.model.CcInstanceDTO;
 import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
-import com.tencent.bk.job.common.cc.sdk.CmdbClientFactory;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -36,7 +35,6 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.execute.model.DynamicServerGroupDTO;
 import com.tencent.bk.job.execute.model.DynamicServerTopoNodeDTO;
-import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.HostService;
 import com.tencent.bk.job.manage.api.inner.ServiceHostResource;
 import com.tencent.bk.job.manage.model.inner.ServiceHostDTO;
@@ -44,6 +42,7 @@ import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetAppHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceBatchGetHostsReq;
 import com.tencent.bk.job.manage.model.inner.request.ServiceGetHostsByCloudIpv6Req;
+import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -71,16 +70,19 @@ public class HostServiceImpl implements HostService {
     private final AppScopeMappingService appScopeMappingService;
     private final ExecutorService getHostsByTopoExecutor;
     private final RemoteAppService remoteAppService;
+    private final IBizCmdbClient bizCmdbClient;
 
     @Autowired
     public HostServiceImpl(ServiceHostResource hostResource,
                            AppScopeMappingService appScopeMappingService,
                            @Qualifier("getHostsByTopoExecutor") ExecutorService getHostsByTopoExecutor,
-                           RemoteAppService remoteAppService) {
+                           RemoteAppService remoteAppService,
+                           IBizCmdbClient bizCmdbClient) {
         this.hostResource = hostResource;
         this.appScopeMappingService = appScopeMappingService;
         this.getHostsByTopoExecutor = getHostsByTopoExecutor;
         this.remoteAppService = remoteAppService;
+        this.bizCmdbClient = bizCmdbClient;
     }
 
     @Override
@@ -134,7 +136,6 @@ public class HostServiceImpl implements HostService {
 
     @Override
     public List<HostDTO> getHostsByDynamicGroupId(String tenantId, long appId, String groupId) {
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         List<DynamicGroupHostPropDTO> cmdbGroupHostList =
             bizCmdbClient.getDynamicGroupIp(tenantId, Long.parseLong(resourceScope.getId()), groupId);
@@ -186,7 +187,6 @@ public class HostServiceImpl implements HostService {
 
     @Override
     public List<HostDTO> getHostsByTopoNodes(long appId, List<CcInstanceDTO> ccInstances) {
-        IBizCmdbClient bizCmdbClient = CmdbClientFactory.getCmdbClient();
         ResourceScope resourceScope = appScopeMappingService.getScopeByAppId(appId);
         long bizId = Long.parseLong(resourceScope.getId());
         String tenantId = remoteAppService.getTenantIdByAppId(appId);

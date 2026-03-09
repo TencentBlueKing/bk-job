@@ -92,7 +92,7 @@
     <div style="display: none">
       <div ref="tips">
         <img
-          src="/static/images/bk-tips.png"
+          :src="bkTips"
           style="float: left; width: 40px; height: 40px;">
         <div style="display: inline-block; padding-left: 4px;">
           <template v-if="$i18n.locale === 'zh-CN'">
@@ -204,6 +204,9 @@
         immediate: true,
         deep: true,
       },
+    },
+    created() {
+      this.bkTips = window.__loadAssetsUrl__('/static/images/bk-tips.png');
     },
     beforeDestroy() {
       if (this.popperInstance) {

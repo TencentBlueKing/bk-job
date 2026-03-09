@@ -27,13 +27,17 @@ package com.tencent.bk.job.common.web.interceptor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.tencent.bk.job.common.annotation.JobInterceptor;
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.HttpRequestSourceEnum;
 import com.tencent.bk.job.common.constant.InterceptorOrder;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
+import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.i18n.locale.LocaleUtils;
+import com.tencent.bk.job.common.i18n.zone.InvalidTimeZoneException;
+import com.tencent.bk.job.common.i18n.zone.TimeZoneConstants;
+import com.tencent.bk.job.common.i18n.zone.TimeZoneUtils;
 import com.tencent.bk.job.common.model.User;
-import com.tencent.bk.job.common.paas.model.SimpleUserInfo;
-import com.tencent.bk.job.common.paas.user.IUserApiClient;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.RequestUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -51,6 +55,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.time.ZoneId;
 
 /**
  * Job通用拦截器
@@ -60,12 +65,12 @@ import javax.servlet.http.HttpServletResponse;
 public class JobCommonInterceptor implements AsyncHandlerInterceptor {
 
     private final Tracer tracer;
-    private final IUserApiClient userApiClient;
+    private final UserLocalCache userLocalCache;
     private Tracer.SpanInScope spanInScope = null;
 
-    public JobCommonInterceptor(Tracer tracer, IUserApiClient userApiClient) {
+    public JobCommonInterceptor(Tracer tracer, UserLocalCache userLocalCache) {
         this.tracer = tracer;
-        this.userApiClient = userApiClient;
+        this.userLocalCache = userLocalCache;
     }
 
     @Override
@@ -84,6 +89,7 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
 
         addUser(request);
         addLang(request);
+        addTimeZone(request);
 
         return true;
     }
@@ -137,8 +143,8 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
             return username;
         }
         try {
-            SimpleUserInfo userInfo = userApiClient.getUserByUsername(tenantId, username);
-            return userInfo.getDisplayName();
+            User user = userLocalCache.getUser(tenantId, username);
+            return user.getDisplayName();
         } catch (Throwable t) {
             String message = MessageFormatter.format(
                 "FailToGetUserDisplayName: tenantId={}, username={}, use username directly",
@@ -168,6 +174,36 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
         } else {
             JobContextUtil.setUserLang(LocaleUtils.LANG_ZH_CN);
         }
+    }
+
+    /**
+     * 从 HTTP Header 中获取用户时区（由job-gateway添加）并设置到 JobContext
+     * 如果 Header 中没有时区信息，则使用默认时区（Asia/Shanghai）
+     * 
+     * @throws InvalidParamException 当时区参数无效时抛出
+     */
+    private void addTimeZone(HttpServletRequest request) {
+        String userTimeZone = request.getHeader(JobCommonHeaders.BK_USER_TIMEZONE);
+        
+        ZoneId zoneId;
+        if (StringUtils.isNotBlank(userTimeZone)) {
+            try {
+                zoneId = TimeZoneUtils.checkTimeZoneValid(userTimeZone);
+                log.debug("Set user timezone from header: {}", userTimeZone);
+            } catch (InvalidTimeZoneException e) {
+                log.warn("Invalid user timezone, user: {}, user's timezone: {}",
+                    JobContextUtil.getUser(), userTimeZone);
+                throw new InvalidParamException(
+                    ErrorCode.INVALID_USER_TIMEZONE,
+                    new Object[]{userTimeZone}
+                );
+            }
+        } else {
+            zoneId = TimeZoneConstants.DEFAULT_ZONE_ID_CN;
+            log.debug("No user timezone in header, use default timezone: {}", zoneId);
+        }
+        
+        JobContextUtil.setTimeZone(zoneId);
     }
 
     private String parseUsernameFromQueryStringOrBody(HttpServletRequest request) {
@@ -214,10 +250,14 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
                            @NonNull Object handler,
                            ModelAndView modelAndView) {
         if (log.isDebugEnabled()) {
-            log.debug("Post handler|{}|{}|{}|{}|{}", JobContextUtil.getRequestId(),
+            log.debug(
+                "Post handler|{}|{}|{}|{}|{}",
+                JobContextUtil.getRequestId(),
                 JobContextUtil.getApp(),
-                JobContextUtil.getUsername(), System.currentTimeMillis() - JobContextUtil.getStartTime(),
-                request.getRequestURI());
+                JobContextUtil.getUsername(),
+                JobContextUtil.calcTimeMillisFromStart(),
+                request.getRequestURI()
+            );
         }
     }
 
@@ -236,7 +276,7 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
                     JobContextUtil.getRequestId(),
                     response.getStatus(),
                     JobContextUtil.getUsername(),
-                    System.currentTimeMillis() - JobContextUtil.getStartTime(),
+                    JobContextUtil.calcTimeMillisFromStart(),
                     request.getRequestURI(),
                     ex.getMessage()
                 );
@@ -246,7 +286,7 @@ public class JobCommonInterceptor implements AsyncHandlerInterceptor {
                     JobContextUtil.getRequestId(),
                     response.getStatus(),
                     JobContextUtil.getUsername(),
-                    System.currentTimeMillis() - JobContextUtil.getStartTime(),
+                    JobContextUtil.calcTimeMillisFromStart(),
                     request.getRequestURI()
                 );
             }

@@ -26,7 +26,6 @@ package com.tencent.bk.job.gateway.web.server;
 
 import com.tencent.bk.job.gateway.web.server.provider.AccessLogMetadataProvider;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import reactor.netty.http.server.logging.AccessLogArgProvider;
 
 import java.util.LinkedHashMap;
@@ -46,7 +45,6 @@ public class AccessLogMetadataCollector {
 
     private final List<AccessLogMetadataProvider> providers;
 
-    @Autowired
     public AccessLogMetadataCollector(List<AccessLogMetadataProvider> providers) {
         this.providers = providers;
     }

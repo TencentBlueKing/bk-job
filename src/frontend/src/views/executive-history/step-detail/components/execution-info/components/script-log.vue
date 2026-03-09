@@ -69,7 +69,7 @@
       @click="handleSelectedAnalyzeError"
       @mousedown.stop>
       <img
-        src="/static/images/ai.png"
+        :src="aiImage"
         style="width: 16px">
     </div>
   </div>
@@ -197,6 +197,7 @@
         theme: 'light',
       };
       this.logContent = '';
+      this.aiImage = window.__loadAssetsUrl__('/static/images/ai.png');
       this.fetchAiConfig();
     },
     mounted() {

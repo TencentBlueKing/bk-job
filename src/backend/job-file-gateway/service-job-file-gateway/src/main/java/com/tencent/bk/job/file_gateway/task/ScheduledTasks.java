@@ -30,8 +30,8 @@ import com.tencent.bk.job.file_gateway.task.worker.WorkerOnlineStatusUpdateTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component("jobFileGatewayScheduledTasks")
@@ -56,7 +56,7 @@ public class ScheduledTasks {
     /**
      * 文件源状态更新：3s/次
      */
-    @Scheduled(fixedDelay = 3 * 1000L)
+    @ScheduledOnOperationTimeZone(fixedDelay = 3 * 1000L)
     public void refreshFileSourceStatus() {
         logger.info(Thread.currentThread().getId() + ":refreshFileSourceStatus start");
         try {
@@ -69,7 +69,7 @@ public class ScheduledTasks {
     /**
      * Worker在线状态更新：3s/次
      */
-    @Scheduled(fixedDelay = 3 * 1000L, initialDelay = 2 * 1000L)
+    @ScheduledOnOperationTimeZone(fixedDelay = 3 * 1000L, initialDelay = 2 * 1000L)
     public void refreshWorkerOnlineStatus() {
         logger.info(Thread.currentThread().getId() + ":refreshWorkerOnlineStatus start");
         try {
@@ -82,7 +82,7 @@ public class ScheduledTasks {
     /**
      * 任务超时重调度：10s/次
      */
-    @Scheduled(fixedDelay = 10000L, initialDelay = 3 * 1000L)
+    @ScheduledOnOperationTimeZone(fixedDelay = 10000L, initialDelay = 3 * 1000L)
     public void reDispatchTimeoutFileSourceTask() {
         logger.info(Thread.currentThread().getId() + ":reDispatchTimeoutFileSourceTask start");
         try {

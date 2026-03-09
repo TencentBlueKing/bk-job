@@ -24,6 +24,8 @@
 */
 
 /* eslint-disable no-underscore-dangle */
+import Model from '@model/model';
+
 import I18n from '@/i18n';
 
 const STATUS_CRON_JOB_LOADING = -1;
@@ -38,7 +40,7 @@ const STATUS_SYNC_FAILED = 8;
 const STATUS_SYNCED = 9;
 const STATUS_PERMISSION = 10;
 
-export default class SyncPlan {
+export default class SyncPlan extends Model {
   static STATUS_CRON_JOB_LOADING = STATUS_CRON_JOB_LOADING;
   static STATUS_DEFAULT = STATUS_DEFAULT;
   static STATUS_CONFIRM_QUEUE = STATUS_CONFIRM_QUEUE;
@@ -80,6 +82,7 @@ export default class SyncPlan {
   };
 
   constructor(payload) {
+    super();
     this.id = payload.id;
     this.name = payload.name;
     this.createTime = payload.createTime;

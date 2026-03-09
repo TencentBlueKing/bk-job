@@ -319,7 +319,7 @@ public class ScopeHostServiceImpl implements ScopeHostService {
         } else {
             // 普通业务
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
-            moduleIds = bizTopoService.findAllModuleIdsOfNodes(bizId, appTopoNodeList);
+            moduleIds = bizTopoService.findAllModuleIdsOfNodes(applicationDTO.getTenantId(), bizId, appTopoNodeList);
         }
 
         List<String> searchContents = null;

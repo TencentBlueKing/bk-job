@@ -24,7 +24,6 @@
  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
 -->
-
 <!DOCTYPE html>
 <html>
   <head>
@@ -35,9 +34,10 @@
     <div id="app"></div>
     <script>
       window.PROJECT_CONFIG = (function() {
-        const REMOTE_STATIC_URL = "";
+        const BK_SITE_PATH = "{{BK_SITE_PATH}}";
+        const BK_STATIC_URL = "{{BK_STATIC_URL}}";
         const AJAX_URL_PREFIX = "{{JOB_API_GATEWAY_URL}}";
-        const EXTERNAL_THEME = "{{JOB_EXTERNAL_THEME}}";
+        const EXTERNAL_THEME = "";
 
         return {
           APP_ID: "",
@@ -45,9 +45,8 @@
           SCOPE_ID: "",
           TENANT_ID: "",
           AJAX_URL_PREFIX: AJAX_URL_PREFIX,
-          SITE_URL: "/",
-          BK_STATIC_URL: "/",
-          REMOTE_STATIC_URL: '',
+          BK_SITE_PATH: BK_SITE_PATH,
+          BK_STATIC_URL: BK_STATIC_URL,
           EXTERNAL_THEME: EXTERNAL_THEME,
           HELPER_CONTACT_LINK: '',
           BK_USER_WEB_API_ROOT_URL: undefined,
@@ -55,6 +54,59 @@
           BUSINESS_PERMISSION: false
         };
       })();
+      window.__loadAssetsUrl__ = function(src){
+        function joinPath(...paths) {
+          // 过滤 null/undefined
+          const validPaths = paths.filter(p => p != null).map(String);
+
+          if (validPaths.length === 0) return '';
+
+          // 检查是否以根路径开头
+          const startsWithRoot = validPaths[0].startsWith('/');
+
+          // 标准化每个路径片段：移除首尾多余斜杠
+          const normalized = validPaths.map((p, i) => {
+            if (i === 0) {
+              // 第一个路径：只移除尾部斜杠（保留开头的 /）
+              return p.replace(/[\/]+$/, '');
+            } else {
+              // 其他路径：移除首尾斜杠
+              return p.replace(/^[\/]+|[\/]+$/g, '');
+            }
+          }).filter(p => p !== '');
+
+          // 拼接
+          let result = normalized.join('/');
+
+          // 如果原始第一个路径是根路径，确保结果以 / 开头
+          if (startsWithRoot && result !== '') {
+            result = '/' + result.replace(/^\/+/, '');
+          }
+
+          return result || (startsWithRoot ? '/' : '');
+        }
+        return joinPath(window.PROJECT_CONFIG.BK_STATIC_URL, src);
+      }
+      function loadScript (src) {
+        const script = document.createElement('script');
+        script.src = window.__loadAssetsUrl__(src);
+        document.body.appendChild(script);
+      }
+      function loadStyle (href) {
+        const link = document.createElement('link');
+        link.type = "text/css";
+        link.rel = "stylesheet";
+        link.href = window.__loadAssetsUrl__(href);
+        document.head.appendChild(link);
+      }
+    </script>
+    <script>
+      <% for (var chunk of htmlWebpackPlugin.files.js) { %>
+        loadScript("<%= chunk %>");
+      <% } %>
+      <% for (var chunk of htmlWebpackPlugin.files.css) { %>
+        loadStyle("<%= chunk %>");
+      <% } %>
     </script>
     <script>
       // 通过 URL 直接访问时 chrome 默认使用 https 协议，强制前端系统协议和 AJAX_URL_PREFIX 保持一直

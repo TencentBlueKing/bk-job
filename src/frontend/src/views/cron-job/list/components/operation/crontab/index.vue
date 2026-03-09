@@ -105,6 +105,7 @@
   import Translate from '@utils/cron/translate';
 
   import I18n from '@/i18n';
+  import { getTime } from '@/utils/assist/time';
 
   import renderTextCn from './components/render-text-cn.vue';
   import renderTextEn from './components/render-text-en.vue';
@@ -129,6 +130,10 @@
         type: String,
         default: '',
       },
+      timezone: {
+        type: String,
+        require: true,
+      },
     },
     data() {
       return {
@@ -146,6 +151,11 @@
         return I18n.locale === 'zh-CN' ? renderTextCn : renderTextEn;
       },
     },
+    watch: {
+      timezone() {
+        this.checkAndTranslate(this.nativeValue);
+      },
+    },
     mounted() {
       if (!this.nativeValue) {
         return;
@@ -158,7 +168,7 @@
        */
       checkAndTranslate(value) {
         const interval = CronExpression.parse(`0 ${value.trim()}`, {
-          currentDate: new Date(),
+          currentDate: getTime({ timestamp: new Date().valueOf(), timezone: this.timezone }),  // 根据当前时区的时间
         });
 
         let i = 5;

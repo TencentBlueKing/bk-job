@@ -7,7 +7,7 @@
       style="cursor: pointer;"
       @click="handleClick">
       <img
-        src="/static/images/ai.png"
+        :src="aiImage"
         style="width: 16px">
     </span>
     <div
@@ -31,7 +31,7 @@
       class="guide-tips">
       <div class="wrapper">
         <img
-          src="/static/images/blueking.png"
+          :src="bluekingImage"
           style="width: 36px">
         <span class="ml-8">{{ $t('history.报错日志看不懂？来提问小鲸吧～') }}</span>
       </div>
@@ -54,7 +54,8 @@
     },
   });
 
-
+  const aiImage = window.__loadAssetsUrl__('/static/images/ai.png');
+  const bluekingImage = window.__loadAssetsUrl__('/static/images/blueking.png');
   const referRef = ref();
   const popoverContentRef = ref();
 

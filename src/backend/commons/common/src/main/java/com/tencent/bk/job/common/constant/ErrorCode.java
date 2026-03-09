@@ -62,6 +62,8 @@ public class ErrorCode {
     public static final int TENANT_ID_CANNOT_BE_BLANK = 1210005;
     // 禁止跨租户访问数据，当前租户ID：{0}，尝试访问的资源：{1}，资源所属租户ID：{2}
     public static final int ACCESS_CROSS_TENANT_FORBIDDEN = 1210006;
+    // 版本日志文件[{0}]不存在
+    public static final int VERSION_LOG_FILE_NOT_FOUND = 1210007;
 
     // CMDB错误
     // CMDB服务状态不可达 - 地址配置错误或者地址无法正确解析
@@ -306,7 +308,7 @@ public class ErrorCode {
     public static final int DELETE_TEMPLATE_FAILED_PLAN_USING_BY_CRON = 1243038;
     // 脚本版本ID已存在
     public static final int SCRIPT_VERSION_ID_EXIST = 1243039;
-    // 模版已存在
+    // 模版[{0}]已存在
     public static final int TEMPLATE_NAME_EXIST = 1243040;
     // 获取模版编辑锁失败
     public static final int TEMPLATE_LOCK_ACQUIRE_FAILED = 1243041;
@@ -338,6 +340,14 @@ public class ErrorCode {
     public static final int DELETE_REF_SCRIPT_FAIL = 1243054;
     // 凭证被引用不支持删除
     public static final int DELETE_REF_CREDENTIAL_FAIL = 1243055;
+    // 高危语句规则[{0}]已存在
+    public static final int DANGEROUS_RUlE_EXIST = 1243056;
+    // 发送通知总量超过业务配额限制
+    public static final int SEND_NOTIFY_EXCEED_RESOURCE_SCOPE_QUOTA_LIMIT = 1243057;
+    // 发送通知总量超过用户配额限制
+    public static final int SEND_NOTIFY_EXCEED_USER_QUOTA_LIMIT = 1243058;
+    // 发送通知总量超过系统配额限制
+    public static final int SEND_NOTIFY_EXCEED_SYSTEM_QUOTA_LIMIT = 1243059;
     // 作业管理 end
 
     // 作业执行 start
@@ -410,6 +420,8 @@ public class ErrorCode {
     public static final int FILE_SOURCE_ROLLING_ONLY_SUPPORT_SERVER_FILE = 1244035;
     // 当前业务下任务量较大，允许的复杂查询（按名称搜索、2个及以上条件组合搜索等）最大时间范围为：{0}天
     public static final int TASK_HISTORY_QUERY_RANGE_TOO_LARGE = 1244036;
+    // 文件分发，文件源主机[{0}]不存在CMDB中
+    public static final int TASK_FILE_SOURCE_HOST_NOT_EXIST = 1244037;
     // 作业执行 end
 
     // 定时作业 start
@@ -419,7 +431,7 @@ public class ErrorCode {
     public static final int UPDATE_CRON_JOB_FAILED = 1245002;
     // 插入定时任务错误
     public static final int INSERT_CRON_JOB_FAILED = 1245003;
-    // 定时任务已存在
+    // 定时任务[{0}]已存在
     public static final int CRON_JOB_ALREADY_EXIST = 1245004;
     public static final int ACQUIRE_CRON_JOB_LOCK_FAILED = 1245005;
     public static final int CRON_JOB_TIME_PASSED = 1245006;
@@ -446,6 +458,8 @@ public class ErrorCode {
     public static final int USER_ACCESS_APP_FORBIDDEN = 1247403;
     // 缺少有效的AppCode
     public static final int MISSING_APP_CODE = 1247004;
+    // 用户时区配置错误，配置了无效的时区：{0}
+    public static final int INVALID_USER_TIMEZONE = 1247005;
     // 网关服务 end
 
     // 业务网关 start

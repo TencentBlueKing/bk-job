@@ -24,47 +24,28 @@
 
 package com.tencent.bk.job.manage.background.event.cmdb;
 
+import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
+
+/**
+ * CMDB事件管理器
+ */
 public interface CmdbEventManager {
 
     /**
-     * 初始化
+     * 开启事件监听
+     *
+     * @param taskType 任务类型
+     * @return 开启的事件监听器数量
      */
-    void init();
+    Integer enableWatch(EventWatchTaskTypeEnum taskType);
 
     /**
-     * 获取某个租户下的主机事件监听器
+     * 禁用事件监听
      *
-     * @return 租户主机事件监听器
+     * @param taskType 任务类型
+     * @return 禁用的事件监听器数量
      */
-    TenantHostEventWatcher getTenantHostEventWatcher(String tenantId);
-
-    /**
-     * 开启业务事件监听
-     *
-     * @return 操作是否成功
-     */
-    Boolean enableBizWatch();
-
-    /**
-     * 禁用业务事件监听
-     *
-     * @return 操作是否成功
-     */
-    Boolean disableBizWatch();
-
-    /**
-     * 开启主机事件监听
-     *
-     * @return 操作是否成功
-     */
-    Boolean enableHostWatch();
-
-    /**
-     * 禁用主机事件监听
-     *
-     * @return 操作是否成功
-     */
-    Boolean disableHostWatch();
+    Integer disableWatch(EventWatchTaskTypeEnum taskType);
 
     /**
      * 判断业务事件监听是否在运行
@@ -112,7 +93,7 @@ public interface CmdbEventManager {
      * @param tenantId 租户ID
      * @return 是否监听成功
      */
-    boolean watchBizEvent(String tenantId);
+    boolean startWatchBizEvent(String tenantId);
 
     /**
      * 监听业务集事件
@@ -120,7 +101,7 @@ public interface CmdbEventManager {
      * @param tenantId 租户ID
      * @return 是否监听成功
      */
-    boolean watchBizSetEvent(String tenantId);
+    boolean startWatchBizSetEvent(String tenantId);
 
     /**
      * 监听业务集关系事件
@@ -128,7 +109,7 @@ public interface CmdbEventManager {
      * @param tenantId 租户ID
      * @return 是否监听成功
      */
-    boolean watchBizSetRelationEvent(String tenantId);
+    boolean startWatchBizSetRelationEvent(String tenantId);
 
     /**
      * 监听主机事件
@@ -136,7 +117,7 @@ public interface CmdbEventManager {
      * @param tenantId 租户ID
      * @return 是否监听成功
      */
-    boolean watchHostEvent(String tenantId);
+    boolean startWatchHostEvent(String tenantId);
 
     /**
      * 监听主机关系事件
@@ -144,5 +125,5 @@ public interface CmdbEventManager {
      * @param tenantId 租户ID
      * @return 是否监听成功
      */
-    boolean watchHostRelationEvent(String tenantId);
+    boolean startWatchHostRelationEvent(String tenantId);
 }

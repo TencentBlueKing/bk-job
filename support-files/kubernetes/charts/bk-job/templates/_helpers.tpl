@@ -752,13 +752,63 @@ Return the Job Web Scheme
 {{- end -}}
 
 {{/*
+Return the Job Web Domain
+SubPath: example.com
+SubDomain: job.example.com
+*/}}
+{{- define "job.web.domain" -}}
+{{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
+{{ .Values.global.bkDomain }}
+{{- else -}}
+{{ .Values.job.web.domain }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Job Web Host
+SubPath: http(s)://example.com
+SubDomain: http(s)://job.example.com
+*/}}
+{{- define "job.web.host" -}}
+{{ printf "%s://%s" (include "job.web.scheme" .) (include "job.web.domain" .) }}
+{{- end -}}
+
+{{/*
+Return the Job API Path Prefix
+SubPath: "job/"
+SubDomain: ""
+*/}}
+{{- define "job.api.path.prefix" -}}
+{{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
+{{- $rootPrefix := .Values.bkWebSiteAccess.subpath.rootPrefix | trimPrefix "/" -}}
+{{- $finalPath := printf "%s/" $rootPrefix -}}
+{{ $finalPath }}
+{{- else -}}
+{{ printf "" }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Job URL Base
+SubPath: http(s)://example.com/job
+SubDomain: http(s)://job.example.com
+*/}}
+{{- define "job.url.base" -}}
+{{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
+{{ printf "%s%s" (include "job.web.host" .) .Values.bkWebSiteAccess.subpath.rootPrefix }}
+{{- else -}}
+{{ include "job.web.host" . }}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return the Job Web URL
 */}}
 {{- define "job.web.url" -}}
 {{- if .Values.job.web.extraWebUrls -}}
-{{ printf "%s://%s" (include "job.web.scheme" .) .Values.job.web.domain }}{{ printf ",%s" .Values.job.web.extraWebUrls }}
+{{ printf "%s,%s" (include "job.url.base" .) .Values.job.web.extraWebUrls }}
 {{- else -}}
-{{ printf "%s://%s" (include "job.web.scheme" .) .Values.job.web.domain }}
+{{ printf "%s" (include "job.url.base" .) }}
 {{- end -}}
 {{- end -}}
 
@@ -766,7 +816,53 @@ Return the Job Web URL
 Return the Job Web API URL
 */}}
 {{- define "job.web.api.url" -}}
-{{ printf "%s://%s" (include "job.web.scheme" .) .Values.job.web.domain }}
+{{ printf "%s" (include "job.url.base" .) }}
+{{- end -}}
+
+{{/*
+Return the Job Frontend BK Static URL
+*/}}
+{{- define "job.frontend.bk.static.url" -}}
+{{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
+{{ printf "%s/" .Values.bkWebSiteAccess.subpath.rootPrefix }}
+{{- else -}}
+{{ printf "/" }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Job Frontend BK Site Path
+*/}}
+{{- define "job.frontend.bk.site.path" -}}
+{{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
+{{ printf "%s/" .Values.bkWebSiteAccess.subpath.rootPrefix }}
+{{- else -}}
+{{ printf "/" }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Job Url Path Root Prefix
+SubPath: "/job"
+SubDomain: ""
+*/}}
+{{- define "job.url.pathRootPrefix" -}}
+{{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
+{{ printf "%s" .Values.bkWebSiteAccess.subpath.rootPrefix }}
+{{- else -}}
+{{ printf "" }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Return the Job Frontend Ingress Path
+*/}}
+{{- define "job.frontend.ingress.path" -}}
+{{- if eq "subpath" .Values.bkWebSiteAccess.mode -}}
+{{ printf "%s/(.*)" .Values.bkWebSiteAccess.subpath.rootPrefix }}
+{{- else -}}
+{{ printf "/" }}
+{{- end -}}
 {{- end -}}
 
 {{/*
@@ -817,6 +913,14 @@ Return the Job Deploy Env Content
   value: {{ .Release.Name }}
 {{- end -}}
 
+{{/*
+Return JVM Timezone Env
+*/}}
+{{- define "job.jvm.timezone.env" -}}
+- name: BK_JOB_JVM_TIMEZONE
+  value: {{ .Values.timezone.default.operation }}
+{{- end -}}
+
 
 {{/*
 Return environment variables for a given micro service
@@ -838,6 +942,7 @@ Return the Job Common Env Content
 {{ include "job.storage.env" . }}
 {{ include "job.config.env" . }}
 {{ include "job.deploy.env" . }}
+{{ include "job.jvm.timezone.env" . }}
 {{- end -}}
 
 {{/*
@@ -849,21 +954,7 @@ tls: {{- include "common.tplvalues.render" ( dict "value" .Values.frontendConfig
 {{- else -}}
 tls:
 - hosts:
-    - {{ .Values.job.web.domain }}
-  secretName: {{ include "common.names.fullname" . }}-ingress-tls
-{{- end -}}
-{{- end -}}
-
-{{/*
-Return the Job Ingress Gateway TLS Config
-*/}}
-{{- define "job.ingress.gateway.tls" -}}
-{{- if .Values.gatewayConfig.ingress.tls -}}
-tls: {{- include "common.tplvalues.render" ( dict "value" .Values.gatewayConfig.ingress.tls "context" $) | nindent 0 -}}
-{{- else -}}
-tls:
-- hosts:
-    - {{ .Values.job.web.apiDomain }}
+    - {{ include "job.web.domain" . }}
   secretName: {{ include "common.names.fullname" . }}-ingress-tls
 {{- end -}}
 {{- end -}}
@@ -1059,3 +1150,35 @@ Return the Redis certs volume
     secretName: {{ .Values.externalRedis.tls.existingSecret }}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Return Extension volumeMounts
+*/}}
+{{- define "job.volumeExtension.volumeMounts" -}}
+{{- $module := .module | default dict -}}
+{{- $moduleVE := $module.volumeExtension | default dict -}}
+{{- $moduleMounts := $moduleVE.volumeMounts | default list -}}
+{{- $global := .global | default dict -}}
+{{- $globalMounts := $global.volumeMounts | default list -}}
+{{- if gt (len $moduleMounts) 0 -}}
+{{- toYaml $moduleMounts -}}
+{{- else if gt (len $globalMounts) 0 -}}
+{{- toYaml $globalMounts -}}
+{{- end -}}
+{{- end }}
+
+{{/*
+Return Extension volumes
+*/}}
+{{- define "job.volumeExtension.volumes" -}}
+{{- $module := .module | default dict -}}
+{{- $moduleVE := $module.volumeExtension | default dict -}}
+{{- $moduleVolumes := $moduleVE.volumes | default list -}}
+{{- $global := .global | default dict -}}
+{{- $globalVolumes := $global.volumes | default list -}}
+{{- if gt (len $moduleVolumes) 0 -}}
+{{- toYaml $moduleVolumes -}}
+{{- else if gt (len $globalVolumes) 0 -}}
+{{- toYaml $globalVolumes -}}
+{{- end -}}
+{{- end }}

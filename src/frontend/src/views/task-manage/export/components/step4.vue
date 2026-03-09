@@ -31,7 +31,7 @@
     class="export-task-step4-page">
     <div>
       <div class="notice">
-        <img src="/static/images/export.svg">
+        <img :src="exportImage">
         <div class="title">
           <div v-if="isExportSuccess">
             <div>{{ $t('template.作业导出成功！请及时保存并妥善保管。') }}</div>
@@ -51,7 +51,10 @@
         <div
           v-for="(item, index) in logList"
           :key="index">
-          [{{ item.timestamp }}] {{ item.content }}
+          <span v-bk-tooltips="getTimeTooltip(item.timestamp)">
+            [{{ getTime(item.timestamp) }}]
+          </span>
+          {{ item.content }}
         </div>
       </div>
     </div>
@@ -75,6 +78,7 @@
   } from '@utils/cache-helper';
 
   import I18n from '@/i18n';
+  import { getTime, getTimeTooltip } from '@/utils/assist/time';
 
   const TASK_STATUS_DEFAULT = 0;
   const TASK_STATUS_DOING = 5;
@@ -170,6 +174,7 @@
       this.autoLoadPackage = taskExport.getItem('templateInfo');
 
       this.pollingQueue = [];
+      this.exportImage = window.__loadAssetsUrl__('/static/images/export.svg');
       taskExport.clearItem();
       window.changeFlag = true;
       this.fetchData();
@@ -180,6 +185,12 @@
     },
 
     methods: {
+      getTime(timestamp) {
+        return getTime({ timestamp });
+      },
+      getTimeTooltip(timestamp) {
+        return getTimeTooltip(this.getTime(timestamp));
+      },
       fetchData() {
         if (!this.id) {
           this.isLoading = false;

@@ -61,6 +61,7 @@ public class ScopeTopoServiceImpl implements ScopeTopoService {
             return Collections.emptyList();
         }
         return bizTopoService.queryBizNodePaths(
+            appDTO.getTenantId(),
             appDTO.getBizIdIfBizApp(),
             targetNodeVOList.stream().map(it -> {
                 InstanceTopologyDTO instanceTopologyDTO = new InstanceTopologyDTO();

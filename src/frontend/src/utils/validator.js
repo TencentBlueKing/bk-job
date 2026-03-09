@@ -31,7 +31,7 @@ export const scriptNameRule = {
 };
 
 export const scriptVersionRule = {
-  validator: value => /^[A-Za-z0-9\-_#@.]{1,30}$/.test(value),
+  validator: value => /^[A-Za-z0-9\-_#@.]{1,60}$/.test(value),
   message: `${I18n.t('只允许包含这些字符')}：A-Z a-z 0-9 _ - # @ .`,
 };
 

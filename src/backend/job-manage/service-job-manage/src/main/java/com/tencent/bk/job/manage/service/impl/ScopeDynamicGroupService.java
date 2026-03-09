@@ -68,9 +68,9 @@ public class ScopeDynamicGroupService {
             // 普通业务
             Long bizId = Long.parseLong(applicationDTO.getScope().getId());
             if (ids == null) {
-                return bizDynamicGroupService.listDynamicGroup(bizId);
+                return bizDynamicGroupService.listDynamicGroup(applicationDTO.getTenantId(), bizId);
             }
-            return bizDynamicGroupService.listDynamicGroup(bizId, ids);
+            return bizDynamicGroupService.listDynamicGroup(applicationDTO.getTenantId(), bizId, ids);
         }
     }
 
