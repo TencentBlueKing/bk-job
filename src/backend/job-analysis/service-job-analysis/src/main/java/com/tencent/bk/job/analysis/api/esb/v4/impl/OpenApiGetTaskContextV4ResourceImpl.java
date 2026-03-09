@@ -25,6 +25,8 @@
 package com.tencent.bk.job.analysis.api.esb.v4.impl;
 
 import com.tencent.bk.job.analysis.api.esb.v4.OpenApiGetTaskContextV4Resource;
+import com.tencent.bk.job.analysis.model.esb.v4.req.V4GetFileTaskContextRequest;
+import com.tencent.bk.job.analysis.model.esb.v4.req.V4GetScriptTaskContextRequest;
 import com.tencent.bk.job.analysis.model.esb.v4.resp.TaskContextField;
 import com.tencent.bk.job.analysis.model.esb.v4.resp.TaskContextForSingleExecuteObjectDTO;
 import com.tencent.bk.job.analysis.service.ai.context.TaskContextService;
@@ -71,25 +73,18 @@ public class OpenApiGetTaskContextV4ResourceImpl implements OpenApiGetTaskContex
     public EsbV4Response<TaskContextForSingleExecuteObjectDTO> getScriptTaskContext(
         String username,
         String appCode,
-        String scopeType,
-        String scopeId,
-        Long taskInstanceId,
-        Long stepInstanceId,
-        Integer executeCount,
-        Integer batch,
-        Integer executeObjectType,
-        Long executeObjectResourceId,
-        String content
+        V4GetScriptTaskContextRequest request
     ) {
-        Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
+        request.fillAppResourceScope(appScopeMappingService);
+        Long appId = request.getAppId();
         TaskContextQuery contextQuery = TaskContextQuery.builder()
             .appId(appId)
-            .taskInstanceId(taskInstanceId)
-            .stepInstanceId(stepInstanceId)
-            .executeCount(executeCount)
-            .batch(batch)
-            .executeObjectType(executeObjectType)
-            .executeObjectResourceId(executeObjectResourceId)
+            .taskInstanceId(request.getTaskInstanceId())
+            .stepInstanceId(request.getStepInstanceId())
+            .executeCount(request.getExecuteCount())
+            .batch(request.getBatch())
+            .executeObjectType(request.getExecuteObjectType())
+            .executeObjectResourceId(request.getExecuteObjectResourceId())
             .build();
         TaskContext taskContext = taskContextService.getTaskContext(username, contextQuery);
         ScriptTaskContext scriptTaskContext = taskContext.getScriptTaskContext();
@@ -116,7 +111,7 @@ public class OpenApiGetTaskContextV4ResourceImpl implements OpenApiGetTaskContex
             "脚本参数"
         ));
 
-        String errorLog = resolveScriptErrorLog(content, taskContext, contextQuery);
+        String errorLog = resolveScriptErrorLog(request.getContent(), taskContext, contextQuery);
         fieldList.add(new TaskContextField(
             "errorLog",
             errorLog,
@@ -164,26 +159,19 @@ public class OpenApiGetTaskContextV4ResourceImpl implements OpenApiGetTaskContex
     public EsbV4Response<TaskContextForSingleExecuteObjectDTO> getFileTaskContext(
         String username,
         String appCode,
-        String scopeType,
-        String scopeId,
-        Long taskInstanceId,
-        Long stepInstanceId,
-        Integer executeCount,
-        Integer batch,
-        Integer executeObjectType,
-        Long executeObjectResourceId,
-        Integer mode
+        V4GetFileTaskContextRequest request
     ) {
-        Long appId = appScopeMappingService.getAppIdByScope(scopeType, scopeId);
+        request.fillAppResourceScope(appScopeMappingService);
+        Long appId = request.getAppId();
         TaskContextQuery contextQuery = TaskContextQuery.builder()
             .appId(appId)
-            .taskInstanceId(taskInstanceId)
-            .stepInstanceId(stepInstanceId)
-            .executeCount(executeCount)
-            .batch(batch)
-            .executeObjectType(executeObjectType)
-            .executeObjectResourceId(executeObjectResourceId)
-            .mode(mode)
+            .taskInstanceId(request.getTaskInstanceId())
+            .stepInstanceId(request.getStepInstanceId())
+            .executeCount(request.getExecuteCount())
+            .batch(request.getBatch())
+            .executeObjectType(request.getExecuteObjectType())
+            .executeObjectResourceId(request.getExecuteObjectResourceId())
+            .mode(request.getMode())
             .build();
         TaskContext taskContext = taskContextService.getTaskContext(username, contextQuery);
         FileTaskContext fileTaskContext = taskContext.getFileTaskContext();

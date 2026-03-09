@@ -4,7 +4,7 @@ Get file task context information, including main failure reason, source file up
 
 ### Request Parameters
 
-#### Query Parameters
+#### Body Parameters
 
 | Field                      | Type   | Required | Description                                                                          |
 |----------------------------|--------|----------|--------------------------------------------------------------------------------------|
@@ -20,10 +20,19 @@ Get file task context information, including main failure reason, source file up
 
 ### Request Example
 
-- GET
+- POST
 
 ```json
-/api/v4/get_file_task_context?bk_scope_type=biz&bk_scope_id=1&job_instance_id=100&step_instance_id=200&execute_count=0&execute_object_type=1&execute_object_resource_id=101&mode=1
+{
+  "bk_scope_type": "biz",
+  "bk_scope_id": "1",
+  "job_instance_id": 100,
+  "step_instance_id": 200,
+  "execute_count": 0,
+  "execute_object_type": 1,
+  "execute_object_resource_id": 101,
+  "mode": 1
+}
 ```
 
 ### Response Examples
@@ -76,4 +85,3 @@ Get file task context information, including main failure reason, source file up
 | name        | string | Yes      | Name of a context data entry, used to identify the data item |
 | value       | string | Yes      | Value of a context data entry                                |
 | description | string | Yes      | Description of a context data entry, explaining its meaning  |
-

@@ -6021,7 +6021,7 @@ paths:
           resourcePermissionRequired: true
         descriptionEn: Update account
   /api/v4/get_script_task_context:
-    get:
+    post:
       operationId: v4_get_script_task_context
       description: 获取脚本任务上下文信息
       tags:
@@ -6076,61 +6076,49 @@ paths:
                         description: 错误信息
                     description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
           description: ''
-      parameters:
-      - in: query
-        name: bk_scope_type
-        schema:
-          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - job_instance_id
+              - step_instance_id
+              - execute_count
+              - execute_object_type
+              - execute_object_resource_id
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                job_instance_id:
+                  type: number
+                  description: 作业实例ID
+                step_instance_id:
+                  type: number
+                  description: 步骤实例ID
+                execute_count:
+                  type: number
+                  description: 执行次数
+                batch:
+                  type: number
+                  description: 滚动执行批次，非滚动步骤不需要传入
+                execute_object_type:
+                  type: number
+                  description: 执行对象类型，1 - 主机，2 - 容器
+                execute_object_resource_id:
+                  type: number
+                  description: 执行对象资源ID（如主机对应的bk_host_id）
+                content:
+                  type: string
+                  description: 用户选中的错误日志内容。如果不为空则直接作为报错信息返回，为空时将自动查询该执行对象的任务日志
         required: true
-        description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
-      - in: query
-        name: bk_scope_id
-        schema:
-          type: string
-        required: true
-        description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
-      - in: query
-        name: job_instance_id
-        schema:
-          type: number
-        required: true
-        description: 作业实例ID
-      - in: query
-        name: step_instance_id
-        schema:
-          type: number
-        required: true
-        description: 步骤实例ID
-      - in: query
-        name: execute_count
-        schema:
-          type: number
-        required: true
-        description: 执行次数
-      - in: query
-        name: batch
-        schema:
-          type: number
-        required: false
-        description: 滚动执行批次，非滚动步骤不需要传入
-      - in: query
-        name: execute_object_type
-        schema:
-          type: number
-        required: true
-        description: 执行对象类型，1 - 主机，2 - 容器
-      - in: query
-        name: execute_object_resource_id
-        schema:
-          type: number
-        required: true
-        description: 执行对象资源ID（如主机对应的bk_host_id）
-      - in: query
-        name: content
-        schema:
-          type: string
-        required: false
-        description: 用户选中的错误日志内容。如果不为空则直接作为报错信息返回，为空时将自动查询该执行对象的任务日志
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -6138,7 +6126,7 @@ paths:
         enableWebsocket: false
         backend:
           name: default
-          method: get
+          method: post
           path: /{env.api_path_prefix}api/job/v4/job-analysis/get_script_task_context
           matchSubpath: false
           timeout: 0
@@ -6155,7 +6143,7 @@ paths:
           resourcePermissionRequired: true
         descriptionEn: Get script task context
   /api/v4/get_file_task_context:
-    get:
+    post:
       operationId: v4_get_file_task_context
       description: 获取文件任务上下文信息
       tags:
@@ -6210,61 +6198,50 @@ paths:
                         description: 错误信息
                     description: 错误信息，只有在异常响应时（HTTP状态码!=2xx）才存在该字段（权限不足、参数错误等），正常响应时不存在
           description: ''
-      parameters:
-      - in: query
-        name: bk_scope_type
-        schema:
-          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - bk_scope_type
+              - bk_scope_id
+              - job_instance_id
+              - step_instance_id
+              - execute_count
+              - execute_object_type
+              - execute_object_resource_id
+              - mode
+              properties:
+                bk_scope_type:
+                  type: string
+                  description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
+                bk_scope_id:
+                  type: string
+                  description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
+                job_instance_id:
+                  type: number
+                  description: 作业实例ID
+                step_instance_id:
+                  type: number
+                  description: 步骤实例ID
+                execute_count:
+                  type: number
+                  description: 执行次数
+                batch:
+                  type: number
+                  description: 滚动执行批次，非滚动步骤不需要传入
+                execute_object_type:
+                  type: number
+                  description: 执行对象类型，1 - 主机，2 - 容器
+                execute_object_resource_id:
+                  type: number
+                  description: 执行对象资源ID（如主机对应的bk_host_id）
+                mode:
+                  type: number
+                  description: 文件任务上传下载标识，0 - 上传，1 - 下载
         required: true
-        description: '资源范围类型。可选值: biz - 业务，biz_set - 业务集'
-      - in: query
-        name: bk_scope_id
-        schema:
-          type: string
-        required: true
-        description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
-      - in: query
-        name: job_instance_id
-        schema:
-          type: number
-        required: true
-        description: 作业实例ID
-      - in: query
-        name: step_instance_id
-        schema:
-          type: number
-        required: true
-        description: 步骤实例ID
-      - in: query
-        name: execute_count
-        schema:
-          type: number
-        required: true
-        description: 执行次数
-      - in: query
-        name: batch
-        schema:
-          type: number
-        required: false
-        description: 滚动执行批次，非滚动步骤不需要传入
-      - in: query
-        name: execute_object_type
-        schema:
-          type: number
-        required: true
-        description: 执行对象类型，1 - 主机，2 - 容器
-      - in: query
-        name: execute_object_resource_id
-        schema:
-          type: number
-        required: true
-        description: 执行对象资源ID（如主机对应的bk_host_id）
-      - in: query
-        name: mode
-        schema:
-          type: number
-        required: true
-        description: 文件任务上传下载标识，0 - 上传，1 - 下载
+        description: ''
       x-bk-apigateway-resource:
         isPublic: true
         allowApplyPermission: true
@@ -6272,7 +6249,7 @@ paths:
         enableWebsocket: false
         backend:
           name: default
-          method: get
+          method: post
           path: /{env.api_path_prefix}api/job/v4/job-analysis/get_file_task_context
           matchSubpath: false
           timeout: 0
