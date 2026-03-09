@@ -77,8 +77,7 @@ import '@blueking/ip-selector/dist/styles/vue2.6.x.css';
 
 const IpSelector = createIpSelector({
   version: '8',
-  // panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput', 'containerStaticTopo', 'containerManualInput'],
-  panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput'],
+  panelList: ['staticTopo', 'dynamicTopo', 'dynamicGroup', 'manualInput', 'containerStaticTopo', 'containerManualInput'],
   unqiuePanelValue: false,
   nameStyle: 'camelCase',
   hostTableDefaultSelectAllMode: true,

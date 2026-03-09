@@ -50,7 +50,7 @@
             class="mr10"
             @click="handleOpenChooseIp">
             <icon type="plus" />
-            {{ $t('template.选择主机') }}
+            {{ $t('template.执行目标') }}
           </bk-button>
           <bk-button
             v-if="isShowClear"
