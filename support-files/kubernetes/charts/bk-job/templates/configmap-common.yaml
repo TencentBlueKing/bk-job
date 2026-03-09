@@ -66,6 +66,7 @@ data:
         {{- toYaml .Values.gse.query | nindent 8 }}
       script:
         rootPath: {{ .Values.gse.script.rootPath }}
+        containerScriptPathPrefix: {{ .Values.gse.script.containerScriptPathPrefix }}
     gseV2:
       {{- toYaml .Values.gseV2 | nindent 6 }}
     external-system:
