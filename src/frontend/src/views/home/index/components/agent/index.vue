@@ -200,7 +200,7 @@
               data: [
                 {
                   value: this.agentInfo.aliveCount,
-                  key: 'normal',
+                  key: 1,
                   name: this.$t('home.正常'),
                   itemStyle: {
                     color: '#2DCB9D',
@@ -213,7 +213,7 @@
                 },
                 {
                   value: this.agentInfo.notAliveCount,
-                  key: 'fail',
+                  key: 0,
                   name: this.$t('home.异常'),
                   itemStyle: {
                     color: '#FF565C',
