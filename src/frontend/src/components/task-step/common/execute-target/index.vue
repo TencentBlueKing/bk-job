@@ -351,17 +351,6 @@
             'manualInput',
           ],
         };
-      } else {
-        this.ipSelectorConfig = {
-          panelList: [
-            'staticTopo',
-            'dynamicTopo',
-            'dynamicGroup',
-            'manualInput',
-            'containerStaticTopo',
-            'containerManualInput',
-          ],
-        };
       }
 
       // 执行目标是主机变量
