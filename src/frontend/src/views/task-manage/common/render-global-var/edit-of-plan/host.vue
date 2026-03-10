@@ -48,6 +48,7 @@
         </bk-button>
       </section>
       <jb-ip-selector
+        :config="ipSelectorConfig"
         :original-value="originalExecuteObjectsInfoInfo"
         :show-dialog="isShowChooseIp"
         show-view
@@ -75,8 +76,6 @@
   </jb-form>
 </template>
 <script>
-  import _ from 'lodash';
-
   import ExecuteTargetModel from '@model/execute-target';
   import TaskGlobalVariableModel from '@model/task/global-variable';
 
@@ -124,6 +123,24 @@
       },
     },
     created() {
+      this.ipSelectorConfig = {};
+      // 业务集和租户集场景不支持动态分组和容器
+      if (window.PROJECT_CONFIG.SCOPE_TYPE === 'biz_set') {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'dynamicTopo',
+            'manualInput',
+          ],
+        };
+      } else if (window.PROJECT_CONFIG.SCOPE_TYPE === 'tenant_set') {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'manualInput',
+          ],
+        };
+      }
       this.originalExecuteObjectsInfoInfo = ExecuteTargetModel.cloneExecuteObjectsInfo(this.formData.defaultTargetValue.executeObjectsInfo);
     },
     methods: {
