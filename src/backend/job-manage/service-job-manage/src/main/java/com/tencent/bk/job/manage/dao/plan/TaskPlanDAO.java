@@ -217,4 +217,6 @@ public interface TaskPlanDAO {
     Integer countTaskPlans(Long appId);
 
     List<Long> listAllPlanId();
+
+    boolean batchUpdatePlanVersionByIds(List<Long> planIds, String version, String userName, Long modifyTime);
 }

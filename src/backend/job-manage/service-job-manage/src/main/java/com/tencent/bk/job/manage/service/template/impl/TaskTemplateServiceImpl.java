@@ -503,6 +503,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 throw new InternalException(ErrorCode.UPDATE_TEMPLATE_FAILED);
             }
             templateId = taskTemplateInfo.getId();
+            // 如果有执行方案，进一步判断作业变量的默认值是否有变更，如果有变更，执行方案生成新版本号
+            taskPlanService.updatePlanVersionIfVarValueChanged(taskTemplateInfo, bumpVersion);
         }
         return templateId;
     }

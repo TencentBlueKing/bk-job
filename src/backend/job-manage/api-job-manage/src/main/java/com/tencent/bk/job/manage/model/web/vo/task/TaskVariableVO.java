@@ -74,6 +74,9 @@ public class TaskVariableVO {
     @Schema(description = "删除 0-不删除 1-删除，仅在删除时填写")
     private Integer delete;
 
+    @ApiModelProperty(value = "执行方案变量值是否跟随作业模版的变量值 0-否 1-是")
+    private Integer followTemplate = 0;
+
     public void validate(boolean isCreate) throws InvalidParamException {
         if (isCreate && !JobContextUtil.isAllowMigration()) {
             if (id != null && id > 0) {

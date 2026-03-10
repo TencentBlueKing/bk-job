@@ -109,4 +109,9 @@ public interface TaskVariableDAO {
     boolean batchInsertVariableWithId(List<TaskVariableDTO> variableList);
 
     boolean updateVariableByName(TaskVariableDTO variable);
+
+    /**
+     * 根据作业模版变量ID查询变量列表
+     */
+    List<TaskVariableDTO> listVariablesByTemplateVarId(List<Long> templateVarIds);
 }
