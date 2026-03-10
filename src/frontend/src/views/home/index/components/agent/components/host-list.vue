@@ -64,9 +64,9 @@
 
   export default {
     props: {
-      statusType: {
-        type: String,
-        default: '',
+      agentStatus: {
+        type: Number,
+        required: true,
       },
     },
     data() {
@@ -88,7 +88,7 @@
         const pageSize = this.pagination.limit;
         const start = parseInt(this.pagination.current - 1, 10) * pageSize;
         const params = {
-          agentStatus: this.statusType === 'fail' ? 0 : 1,
+          agentStatus: this.agentStatus,
           start,
           pageSize,
         };

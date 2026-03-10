@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.service.quota.config.parser;
 import com.tencent.bk.job.common.resource.quota.AppQuotaLimit;
 import com.tencent.bk.job.common.resource.quota.ResourceQuotaLimit;
 import com.tencent.bk.job.common.resource.quota.ResourceScopeQuotaLimit;
+import com.tencent.bk.job.common.resource.quota.UserQuotaLimit;
 import com.tencent.bk.job.common.service.quota.ResourceQuotaConfigParseException;
 import com.tencent.bk.job.common.service.quota.config.ResourceQuotaLimitProperties;
 import org.apache.commons.lang3.StringUtils;
@@ -67,6 +68,17 @@ public class CounterResourceQuotaConfigParser extends AbstractResourceQuotaConfi
                     appQuotaLimitProp.getCustom()
                 );
                 resourceQuota.setAppQuotaLimit(appQuotaLimit);
+            }
+
+            ResourceQuotaLimitProperties.QuotaLimitProp userQuotaLimitProp
+                = resourceQuotaLimitProp.getUserQuotaLimit();
+            if (resourceQuotaLimitProp.getUserQuotaLimit() != null) {
+                UserQuotaLimit userQuotaLimit = parseUserQuotaLimit(
+                    capacity,
+                    userQuotaLimitProp.getGlobal(),
+                    userQuotaLimitProp.getCustom()
+                );
+                resourceQuota.setUserQuotaLimit(userQuotaLimit);
             }
 
             return resourceQuota;

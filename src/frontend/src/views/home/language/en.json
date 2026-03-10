@@ -53,5 +53,9 @@
   "个IP": "Host IP copied.",
   "暂无收藏的作业": "Your favorite job list is empty",
   "将鼠标悬浮到作业模板行，点击收藏图标": "Mouse hover on the job list row and click the favorite icon",
-  "暂无执行记录": "No record"
+  "暂无执行记录": "No record",
+  "个主机ID": "Host ID copied.",
+  "没有可复制的 IPv4": "No IPv4 to copy",
+  "没有可复制的 IPv6": "No IPv6 to copy",
+  "没有可复制的主机ID": "No Host ID to copy"
 }

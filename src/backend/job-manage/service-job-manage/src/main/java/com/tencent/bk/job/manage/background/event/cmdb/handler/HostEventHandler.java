@@ -154,7 +154,7 @@ public class HostEventHandler extends AsyncEventHandler<HostEventDetail> {
         // 尝试设置Agent状态
         Integer agentStatus = tryToUpdateAgentStatus(hostInfoDTO);
         // 更新DB与缓存中的主机数据
-        Pair<Boolean, Integer> pair = noTenantHostService.createOrUpdateHostBeforeLastTime(hostInfoDTO);
+        Pair<Boolean, Integer> pair = noTenantHostService.createOrUpdateHostBeforeOrEqualLastTime(hostInfoDTO);
         int affectedNum = pair.getRight();
         if (affectedNum > 0) {
             log.info("{} host affected, created:{}", affectedNum, pair.getLeft());

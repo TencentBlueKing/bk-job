@@ -37,6 +37,11 @@ public class InterceptorOrder {
          * MCP认证 Key（最高优先级）
          */
         public static final int MCP_AUTH = 1;
+
+        /**
+         * API认证 Key
+         */
+        public static final int API_AUTH = 2;
     }
 
     /**
