@@ -164,7 +164,7 @@
           wordWrap: 'on', // 可选值: "off", "on", "bounded"
 
           // 滚动行为
-          scrollBeyondLastLine: false,  // 为true则能让最后一行代码越过视图区域的顶部
+          scrollBeyondLastLine: true,  // 为true则能让最后一行代码越过视图区域的顶部
 
           // 其他常用推荐配置
           automaticLayout: true, // 非常重要：使编辑器在容器尺寸变化时自动调整布局[5](@ref)
