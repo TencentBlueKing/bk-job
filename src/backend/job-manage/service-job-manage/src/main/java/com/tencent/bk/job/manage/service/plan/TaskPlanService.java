@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanBasicInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 
 import java.util.Collection;
 import java.util.List;
@@ -308,4 +309,11 @@ public interface TaskPlanService {
     Set<String> listLocalFiles();
 
     boolean batchUpdatePlanVariable(List<TaskPlanInfoDTO> planInfoList);
+
+    /**
+     * 更新执行方案的版本号
+     * 作业执行方案的变量是否跟随作业模板变量，如果是，且执行方案变量默认值跟作业模板的不一样，
+     * 该执行方案生成新版本号，产生差异，后续可以去同步
+     */
+    void updatePlanVersionIfVarValueChanged(TaskTemplateInfoDTO taskTemplateInfo, Boolean changed);
 }
