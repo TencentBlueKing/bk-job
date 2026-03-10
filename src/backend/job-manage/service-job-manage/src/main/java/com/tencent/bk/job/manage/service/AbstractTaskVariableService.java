@@ -126,4 +126,9 @@ public abstract class AbstractTaskVariableService {
     }
 
     public abstract boolean batchUpdateVariableByName(List<TaskVariableDTO> variableList);
+
+    /**
+     * 根据作业模板的变量id查询变量列表
+     */
+    public abstract List<TaskVariableDTO> listVariablesByTemplateVarId(List<Long> templateVarIds);
 }
