@@ -14,6 +14,17 @@
 
 ---
 
+## 环境参数
+
+以下是当前环境的配置参数，在调用 MCP 工具时使用这些实际值替换 Skill 和示例中的占位符：
+
+| 占位符 | 实际值  | 说明 |
+|-------|------|------|
+| `<app_name>` | `<>` | APM 应用名称，用于 `search_spans` 工具的 `app_name` 参数 |
+| `<bk_biz_id>` | `<>` | 蓝鲸业务 ID，用于 `search_spans` 工具的 `bk_biz_id` 参数 |
+
+---
+
 ## 系统架构知识
 
 ### 作业执行模型
@@ -372,8 +383,8 @@ com.tencent.bk.job.common.exception.InternalException: null
 
 | 参数 | 必填 | 说明 |
 |------|------|------|
-| `app_name` | ✅ | APM 应用名称，如 `bk_job_cloud`（从上下文获取） |
-| `bk_biz_id` | ✅ | 蓝鲸业务 ID，如 `"7"`（从上下文获取） |
+| `app_name` | ✅ | APM 应用名称（从下方「环境参数」部分获取 `<app_name>` 的实际值） |
+| `bk_biz_id` | ✅ | 蓝鲸业务 ID（从下方「环境参数」部分获取 `<bk_biz_id>` 的实际值） |
 | `start_time` | ✅ | 开始时间戳（秒），根据上下文自行确定合适的时间，与 `end_time` 差值 ≤ 86400 |
 | `end_time` | ✅ | 结束时间戳（秒），根据上下文自行确定合适的时间，与 `start_time` 差值 ≤ 86400 |
 | `filters` | 否 | 过滤条件数组 |
@@ -384,8 +395,8 @@ com.tencent.bk.job.common.exception.InternalException: null
 ```json
 {
   "body_param": {
-    "app_name": "bk_job_cloud",
-    "bk_biz_id": "7",
+    "app_name": "<app_name>",
+    "bk_biz_id": "<bk_biz_id>",
     "start_time": "{根据上下文确定}",
     "end_time": "{根据上下文确定}",
     "filters": [
@@ -404,8 +415,8 @@ com.tencent.bk.job.common.exception.InternalException: null
 ```json
 {
   "body_param": {
-    "app_name": "bk_job_cloud",
-    "bk_biz_id": "7",
+    "app_name": "<app_name>",
+    "bk_biz_id": "<bk_biz_id>",
     "start_time": "{根据上下文确定}",
     "end_time": "{根据上下文确定}",
     "filters": [

@@ -7,8 +7,8 @@
 ```json
 {
   "body_param": {
-    "app_name": "bk_job_cloud",
-    "bk_biz_id": "7",
+    "app_name": "<app_name>",
+    "bk_biz_id": "<bk_biz_id>",
     "start_time": "1770566400",
     "end_time": "1770652800",
     "filters": [
@@ -86,8 +86,8 @@
 ```json
 {
   "body_param": {
-    "app_name": "bk_job_cloud",
-    "bk_biz_id": "7",
+    "app_name": "<app_name>",
+    "bk_biz_id": "<bk_biz_id>",
     "start_time": "1770566400",
     "end_time": "1770652800",
     "filters": [
@@ -166,8 +166,8 @@
 ```json
 {
   "body_param": {
-    "app_name": "bk_job_cloud",
-    "bk_biz_id": "7",
+    "app_name": "<app_name>",
+    "bk_biz_id": "<bk_biz_id>",
     "start_time": "1770566400",
     "end_time": "1770652800",
     "filters": [
@@ -189,8 +189,8 @@
 ```json
 {
   "body_param": {
-    "app_name": "bk_job_cloud",
-    "bk_biz_id": "7",
+    "app_name": "<app_name>",
+    "bk_biz_id": "<bk_biz_id>",
     "start_time": "1770566400",
     "end_time": "1770652800",
     "filters": [
@@ -220,8 +220,8 @@
 ```json
 {
   "body_param": {
-    "app_name": "bk_job_cloud",
-    "bk_biz_id": "7",
+    "app_name": "<app_name>",
+    "bk_biz_id": "<bk_biz_id>",
     "start_time": "1770566400",
     "end_time": "1770652800",
     "filters": [
@@ -281,8 +281,8 @@
 ```json
 {
   "body_param": {
-    "app_name": "bk_job_cloud",
-    "bk_biz_id": "7",
+    "app_name": "<app_name>",
+    "bk_biz_id": "<bk_biz_id>",
     "start_time": "1770566400",
     "end_time": "1770652800",
     "filters": [
