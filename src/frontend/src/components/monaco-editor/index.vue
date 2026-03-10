@@ -168,6 +168,10 @@
                     :src="scriptTypeImg(item.type)"
                     style="width: 14px; vertical-align: middle;">
                   {{ item.message }}
+                  <span>
+                    ({{ item.startLineNumber }})
+                    [{{ item.startColumn }}, {{ item.endColumn }}]
+                  </span>
                 </li>
               </ul>
             </div>
@@ -448,6 +452,8 @@
             const lastData = this.checkListTypeInfo[i - 1];
             if (lastData.num > 0 || lastData.showComma) {
               this.checkListTypeInfo[i].showComma = true;
+            } else {
+              this.checkListTypeInfo[i].showComma = false;
             }
           }
           this.checkList = data;
@@ -1114,6 +1120,20 @@
 
       .check-list-info {
         padding-left: 10px;
+        max-height: 150px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+
+        ::-webkit-scrollbar {
+          width: 14px;
+        }
+
+        li {
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          overflow: hidden;
+          line-height: 30px;
+        }
       }
     }
   }
