@@ -149,25 +149,23 @@
           <bk-collapse-item>
             <div class="check-list-title">
               <span>共</span>
-              <span v-if="errorLength"><span class="errorLength"> {{ errorLength }} </span>个错误</span>
-              <span v-if="errorLength && warningLength">，</span>
-              <span v-if="warningLength"><span class="warningLength"> {{ warningLength }} </span>个警告</span>
+              <template
+                v-for="(item, index) in checkListTypeInfo">
+                <span
+                  v-if="item.num"
+                  :key="index">
+                  <span v-if="item.showComma">，</span>
+                  <span :class="`${item.type}Length`"> {{ item.num }} </span>个{{ item.name }}
+                </span>
+              </template>
             </div>
             <div slot="content">
               <ul class="check-list-info">
                 <li
-                  v-for="(item, index) in checkList.error"
+                  v-for="(item, index) in checkList"
                   :key="index">
                   <img
-                    :src="scriptTypeImg('error')"
-                    style="width: 14px; vertical-align: middle;">
-                  {{ item.message }}
-                </li>
-                <li
-                  v-for="(item, index) in checkList.warning"
-                  :key="index">
-                  <img
-                    :src="scriptTypeImg('warning')"
+                    :src="scriptTypeImg(item.type)"
                     style="width: 14px; vertical-align: middle;">
                   {{ item.message }}
                 </li>
@@ -294,10 +292,23 @@
         historyList: [],
         currentUser: {},
         isAiEnable: false,
-        checkList: {
-          error: [],
-          warning: [],
-        },
+        checkList: [],
+        checkListTypeInfo: [{
+          num: 0,
+          showComma: false,
+          type: 'info',
+          name: '信息提示',
+        }, {
+          num: 0,
+          showComma: false,
+          type: 'warning',
+          name: '警告',
+        }, {
+          num: 0,
+          showComma: false,
+          type: 'error',
+          name: '错误',
+        }],
       };
     },
     computed: {
@@ -307,11 +318,14 @@
       warningLength() {
         return this.checkList.warning.length;
       },
+      infoLength() {
+        return this.checkList.info.length;
+      },
       /**
        * 是否显示错误详情
        */
       showCheckPanel() {
-        return this.errorLength > 0 || this.warningLength > 0;
+        return this.checkList.length > 0;
       },
       /**
        * @desc 脚本编辑器块的样式
@@ -421,22 +435,22 @@
           content,
           scriptType: formatScriptTypeValue(this.currentLang),
         }).then((data) => {
-          const error = [];
-          const warning = [];
+          this.initCheckListTypeNum();
           data.forEach((item) => {
-            if (item.level === 2) {
-              // warning 级别
-              warning.push(item);
-            }
-            if (item.level === 3) {
-              // error 级别
-              error.push(item);
+            this.checkListTypeInfo[item.level - 1].num = this.checkListTypeInfo[item.level - 1].num + 1;
+            if (!item.endColumn) {
+              // 如果没有这个属性，则说明是warning level = 2，没有matchContent，则将整行划线
+              const content = this.editor.getModel().getLineContent(item.startLineNumber);
+              item.endColumn = item.startColumn + content.length;
             }
           });
-          this.checkList = {
-            error,
-            warning,
-          };
+          for (let i = 1;i < this.checkListTypeInfo.length; i++) {
+            const lastData = this.checkListTypeInfo[i - 1];
+            if (lastData.num > 0 || lastData.showComma) {
+              this.checkListTypeInfo[i].showComma = true;
+            }
+          }
+          this.checkList = data;
           // 高危语句报错状态需要全局保存
           this.$store.commit('setScriptCheckError', _.some(data, _ => _.isDangerous));
           this.setAnnotations('syntax-checker', data);
@@ -461,6 +475,9 @@
       });
     },
     methods: {
+      initCheckListTypeNum() {
+        this.checkListTypeInfo.forEach(item => item.num = 0);
+      },
       scriptTypeImg(type) {
         return window.__loadAssetsUrl__(`/static/images/monaco-editor/${type}.png`);
       },
@@ -530,7 +547,7 @@
           wordWrap: 'on', // 可选值: "off", "on", "bounded"
 
           // 滚动行为
-          scrollBeyondLastLine: false,  // 为true则能让最后一行代码越过视图区域的顶部
+          scrollBeyondLastLine: true,  // 为true则能让最后一行代码越过视图区域的顶部
 
           // 其他常用推荐配置
           automaticLayout: true, // 非常重要：使编辑器在容器尺寸变化时自动调整布局[5](@ref)
@@ -1089,6 +1106,9 @@
         }
         .errorLength {
           color: #B34747;
+        }
+        .infoLength {
+          color: #699DF4;
         }
       }
 

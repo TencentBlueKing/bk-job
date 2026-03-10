@@ -43,14 +43,15 @@ const ACTION_SCAN = 1;
 export default class ScriptError {
   constructor(payload) {
     this.row = payload.line - 1;
-    this.column = 1;
     this.level = payload.level;
     this.type = ERROR_MAP[payload.level];
     this.text = this.initText(payload);
     this.action = payload.action;
-    this.endColumn = 5;
     this.startLineNumber =  payload.line;
     this.severity = MONACO_ERROR_MAP[ERROR_MAP[payload.level]];
+    const [column, endColumn] = this.initColumn(payload);
+    this.startColumn = column;
+    this.endColumn = endColumn;
     this.message = this.initText(payload);
   }
 
@@ -72,5 +73,15 @@ export default class ScriptError {
       text = `${I18n.t('检测到代码存在高危语句：')}\n${payload.matchContent}\n\n${I18n.t('详细说明：')}\n`;
     }
     return `${text}${payload.description}`;
+  }
+
+  initColumn(payload) {
+    const { lineContent = '', matchContent = '' } = payload;
+    if (matchContent) {
+      const { length } = matchContent;
+      const start = lineContent.indexOf(matchContent) + 1;
+      return [start, start + length];
+    }
+    return [1];
   }
 }
