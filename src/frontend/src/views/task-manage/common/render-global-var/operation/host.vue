@@ -59,6 +59,7 @@
           </bk-button>
         </div>
         <jb-ip-selector
+          :config="ipSelectorConfig"
           :original-value="originalExecuteObjectsInfo"
           :show-dialog="isShowChooseIp"
           show-view
@@ -127,6 +128,24 @@
       },
     },
     created() {
+      this.ipSelectorConfig = {};
+      // 业务集和租户集场景不支持动态分组和容器
+      if (window.PROJECT_CONFIG.SCOPE_TYPE === 'biz_set') {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'dynamicTopo',
+            'manualInput',
+          ],
+        };
+      } else if (window.PROJECT_CONFIG.SCOPE_TYPE === 'tenant_set') {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'manualInput',
+          ],
+        };
+      }
       if (this.$route.name !== 'templateCreate') {
         this.originalExecuteObjectsInfo = ExecuteTargetModel.cloneExecuteObjectsInfo(this.formData.defaultTargetValue.executeObjectsInfo);
       } else {
