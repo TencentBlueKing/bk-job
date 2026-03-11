@@ -8,14 +8,16 @@
 ai_agent/
 ├── README.md                    # 本说明文件
 ├── agents/                      # Agent 列表目录
-│   └── agent-{name}/            # 单个 Agent 的配置目录
-│       ├── prompt-{name}.md     # Agent 的 Prompt 配置
-│       └── sub-agent/           # 子 Agent（如有）
-│           └── prompt-*.md
+│   ├── agent-{name}/            # 普通 Agent 的配置目录
+│   │   ├── README.md            # Agent 说明文档
+│   │   └── prompt.md            # Agent 的 Prompt 配置
+│   └── subAgent-{name}/         # 子 Agent 的配置目录（命名以 subAgent- 为前缀）
+│       ├── README.md            # Agent 说明文档
+│       └── prompt.md            # Agent 的 Prompt 配置
 ├── rules/                       # 可复用的 Rules 规则库
 │   └── *.md                     # 规则文件
 └── skills/                      # 可复用的 Skills 技能库
-    └── skill-{name}/            # 单个 Skill 目录
+    └── {skill-name}/            # 单个 Skill 目录
         ├── SKILL.md             # Skill 主配置文件
         ├── references/          # 参考资料
         ├── examples/            # 示例文件
@@ -29,17 +31,12 @@ ai_agent/
 **用途**：存放 Agent 列表及其对应的 Prompt 配置
 
 **说明**：
-- 每个 Agent 以 `agent-{name}` 的形式命名一个子目录
-- 目录内包含该 Agent 的 Prompt 模板（`prompt-*.md`）
-- 如果 Agent 需要调用子 Agent，子 Agent 的 Prompt 放在 `sub-agent/` 子目录中
+- 每个 Agent 创建一个子目录，普通 Agent 以 `agent-` 为前缀，子 Agent 以 `subAgent-` 为前缀
+- 目录内包含该 Agent 的 Prompt 配置（`prompt.md`）和说明文档（`README.md`）
+- 普通 Agent 和子 Agent 在 `agents/` 目录下同级存放，通过命名前缀区分
 - Agent 的 Prompt 中可以引用 `rules/` 和 `skills/` 中的公共资源
 
-**当前 Agent 列表**：
-
-| Agent 名称 | 目录 | 描述 |
-|-----------|------|------|
-| alert-handle | `agent-alert-handle/` | 告警处理入口 Agent，负责接收告警、分析错误日志、调度子 Agent 进行深度分析 |
-| log-analyze | `agent-log-analyze/` | 日志分析 Agent，负责日志查询和分析 |
+**详细列表**：参见 [agents/README.md](./agents/README.md)
 
 ---
 
@@ -74,10 +71,10 @@ ai_agent/
 
 ### 创建新 Agent
 
-1. 在 `agents/` 下创建 `agent-{name}/` 目录
-2. 编写 `prompt-{name}.md` Prompt 配置文件
-3. 如需子 Agent，在 `sub-agent/` 下添加对应 Prompt
-4. 在平台上创建 Agent 时，复制 Prompt 内容到配置中
+1. 在 `agents/` 下创建 `agent-{name}/` 目录（子 Agent 使用 `subAgent-{name}/` 前缀）
+2. 编写 `prompt.md` Prompt 配置文件和 `README.md` 说明文档
+3. 在平台上创建 Agent 时，复制 Prompt 内容到配置中
+4. 更新 `agents/README.md` 中的 Agent 列表
 
 ### 创建新 Rule
 
