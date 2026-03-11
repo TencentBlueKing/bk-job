@@ -25,16 +25,12 @@
 
   AiService.fetchConfig()
     .then((data) => {
-      console.log('AI config: ', data);
       apiUrl.value = data.agentRootUrl;
     });
 
   const handleShowBlueking = async (commandName, params) => {
-    console.log('Original AI command: ', aiRef.value?.agentInfo?.conversationSettings?.commands);
-
     const originalCommand = _.find((aiRef.value?.agentInfo?.conversationSettings?.commands || []), item => item.id === commandName);
 
-    console.log('Original command: ', originalCommand);
 
     if (!originalCommand?.components) {
       console.error('AI 命令配置不完整', aiRef.value?.agentInfo);
@@ -49,10 +45,9 @@
       })),
     };
 
-    console.log('commandcommandcommand = ', command);
 
     try {
-      await aiRef.value?.handleShow(undefined, { isTemporary: true });
+      await aiRef.value?.handleShow(undefined, { isTemporary: true, showFirst: true });
       aiRef.value?.handleShortcutClick({
         shortcut: command,
         source: 'popup',
@@ -64,29 +59,27 @@
 
 
   eventBus.$on('ai:generaChat', () => {
-    console.log('Received ai:generaChat event');
-    handleShowBlueking();
+    aiRef.value?.handleShow();
   });
 
   eventBus.$on('ai:checkScript', (params) => {
-    console.log('Received ai:checkScript event with params: ', params);
     handleShowBlueking('checkScript', params);
   });
 
-  eventBus.$on('ai:analyzeError', (params) => {
-    console.log('Received ai:analyzeError event with params: ', params);
-    handleShowBlueking();
-  });
-
   eventBus.$on('ai:analyzeScriptTaskError', (params) => {
-    console.log('Received ai:analyzeError event with params: ', params);
     handleShowBlueking('analyzeScriptTaskError', params);
   });
 
   eventBus.$on('ai:analyzeFileTaskError', (params) => {
-    console.log('Received ai:analyzeError event with params: ', params);
     handleShowBlueking('analyzeFileTaskError', params);
   });
 
 </script>
+<style lang="postcss">
+.ai-blueking-wrapper{
+  .shortcuts-bar{
+    display: none;
+  }
+}
+</style>
 
