@@ -270,12 +270,15 @@
           return Promise.reject();
         }
         return Promise.resolve().then(() => {
-          eventBus.$emit('ai:analyzeError', {
-            taskInstanceId: this.taskInstanceId,
-            stepInstanceId: this.stepInstanceId,
-            executeObjectType: this.taskExecuteDetail.executeObject.type,
-            executeObjectResourceId: this.taskExecuteDetail.executeObject.executeObjectResourceId,
-            executeCount: this.executeCount,
+          eventBus.$emit('ai:analyzeFileTaskError', {
+            scope_type: window.PROJECT_CONFIG.SCOPE_TYPE,
+            scope_id: window.PROJECT_CONFIG.SCOPE_ID,
+            task_instance_id: this.taskInstanceId,
+            step_instance_id: this.stepInstanceId,
+            step_execute_type: '',
+            execute_object_type: this.taskExecuteDetail.executeObject.type,
+            execute_object_resource_id: this.taskExecuteDetail.executeObject.executeObjectResourceId,
+            execute_count: this.executeCount,
             batch: this.taskExecuteDetail.batch,
             mode: this.mode === 'download' ? 1 : 0,
             content: logContent,
@@ -345,12 +348,15 @@
       },
       handleSelectedAnalyzeError() {
         this.aiExtendToolStyle = {};
-        eventBus.$emit('ai:analyzeError', {
-          taskInstanceId: this.taskInstanceId,
-          stepInstanceId: this.stepInstanceId,
-          executeObjectType: this.taskExecuteDetail.executeObject.type,
-          executeObjectResourceId: this.taskExecuteDetail.executeObject.executeObjectResourceId,
-          executeCount: this.executeCount,
+        eventBus.$emit('ai:analyzeFileTaskError', {
+          scope_type: window.PROJECT_CONFIG.SCOPE_TYPE,
+          scope_id: window.PROJECT_CONFIG.SCOPE_ID,
+          task_instance_id: this.taskInstanceId,
+          step_instance_id: this.stepInstanceId,
+          step_execute_type: '',
+          execute_object_type: this.taskExecuteDetail.executeObject.type,
+          execute_object_resource_id: this.taskExecuteDetail.executeObject.executeObjectResourceId,
+          execute_count: this.executeCount,
           batch: this.taskExecuteDetail.batch,
           mode: this.mode === 'download' ? 1 : 0,
           content: document.getSelection().toString(),
