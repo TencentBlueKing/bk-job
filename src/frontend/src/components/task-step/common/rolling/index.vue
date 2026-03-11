@@ -249,10 +249,10 @@
           this.popperInstance.setContent(this.$refs.tips);
         }
         const {
-          dynamicGroupList,
-          hostList,
-          nodeList,
-          containerList,
+          dynamicGroupList = [],
+          hostList = [],
+          nodeList = [],
+          containerList = [],
         } = this.formData[this.serverField].executeObjectsInfo;
 
         // 选中的主机或者容器大于 100 时直接显示
