@@ -579,5 +579,6 @@
   "语言切换失败，请稍后重试": "Language switch failed, please try again later.",
   "时区": "timezone",
   "nav时区信息": "The personal time zone you set, the website will display all time-related information based on this. It can be modified in {link}",
-  "个人设置": "Personal Settings"
+  "个人设置": "Personal Settings",
+  "个容器 ID": "Container ID(s)"
 }

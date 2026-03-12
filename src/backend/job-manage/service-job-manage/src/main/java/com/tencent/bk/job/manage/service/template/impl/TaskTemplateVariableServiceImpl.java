@@ -27,10 +27,12 @@ package com.tencent.bk.job.manage.service.template.impl;
 import com.tencent.bk.job.manage.dao.TaskVariableDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,5 +59,13 @@ public class TaskTemplateVariableServiceImpl extends AbstractTaskVariableService
     @Override
     public TaskVariableDTO getVariableByName(Long parentId, String name) {
         return taskVariableDAO.getVariableByName(parentId, name);
+    }
+
+    @Override
+    public List<TaskVariableDTO> listVariablesByTemplateVarId(List<Long> templateVarIds) {
+        if (CollectionUtils.isEmpty(templateVarIds)) {
+            return new ArrayList<>();
+        }
+        return taskVariableDAO.listVariablesByTemplateVarId(templateVarIds);
     }
 }
