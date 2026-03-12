@@ -66,6 +66,8 @@ public class TaskVariableDTO {
 
     private Boolean delete;
 
+    private Boolean followTemplate;
+
     public static TaskVariableVO toVO(TaskVariableDTO variableInfo) {
         TaskVariableVO taskVariable = new TaskVariableVO();
         taskVariable.setId(variableInfo.getId());
@@ -84,6 +86,7 @@ public class TaskVariableDTO {
         taskVariable.setDescription(variableInfo.getDescription());
         taskVariable.setChangeable(variableInfo.getChangeable() ? 1 : 0);
         taskVariable.setRequired(variableInfo.getRequired() ? 1 : 0);
+        taskVariable.setFollowTemplate(variableInfo.getFollowTemplate() ? 1 : 0);
         return taskVariable;
     }
 
@@ -119,6 +122,7 @@ public class TaskVariableDTO {
             variableInfo.setChangeable(variableVO.getChangeable() == 1);
         }
         variableInfo.setRequired(variableVO.getRequired() == 1);
+        variableInfo.setFollowTemplate(variableVO.getFollowTemplate() != null && variableVO.getFollowTemplate() == 1);
         return variableInfo;
     }
 

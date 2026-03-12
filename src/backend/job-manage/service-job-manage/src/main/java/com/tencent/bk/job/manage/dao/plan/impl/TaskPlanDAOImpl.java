@@ -526,4 +526,15 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
             return new ArrayList<>();
         }
     }
+
+    @Override
+    public boolean batchUpdatePlanVersionByIds(List<Long> planIds, String version, String userName, Long modifyTime) {
+        int affected = context.update(TABLE)
+            .set(TABLE.VERSION, version)
+            .set(TABLE.LAST_MODIFY_USER, userName)
+            .set(TABLE.LAST_MODIFY_TIME, ULong.valueOf(modifyTime))
+            .where(TABLE.ID.in(planIds))
+            .execute();
+        return affected > 0;
+    }
 }

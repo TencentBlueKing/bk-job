@@ -153,7 +153,19 @@
             {{ $t('刷新状态') }}
           </bk-button>
         </template>
-
+        <template v-if="isShowContainerAction">
+          <bk-button
+            class="mr10"
+            type="primary"
+            @click="handleCopyContainerID">
+            {{ $t('复制容器 ID') }}
+          </bk-button>
+          <bk-button
+            class="mr10"
+            @click="handleClearAll">
+            <span>{{ $t('清空') }}</span>
+          </bk-button>
+        </template>
         <bk-input
           v-if="isShowHostSearchInput"
           class="ip-search"
@@ -260,7 +272,17 @@
         if (this.isGolbalVariableType) {
           return false;
         }
-        return !ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.localExecuteObjectsInfo);
+        return this.localExecuteObjectsInfo.containerList?.length < 1 && !ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.localExecuteObjectsInfo);
+      },
+      /**
+       * @desc 是否显示容器结果快捷操作
+       * @returns {Boolean}
+       */
+      isShowContainerAction() {
+        if (this.isGolbalVariableType) {
+          return false;
+        }
+        return this.localExecuteObjectsInfo.containerList?.length > 0;
       },
       /**
        * @desc 清除异常主机是否可用
@@ -320,7 +342,6 @@
           this.ipSelectorConfig = {
             panelList: [
               'staticTopo',
-              'dynamicTopo',
               'manualInput',
             ],
           };
@@ -576,6 +597,12 @@
           .finally(() => {
             this.isCopyLoading = false;
           });
+      },
+      handleCopyContainerID() {
+        this.$refs.ipSelector.getContainerList().then((containList) => {
+          const containerIdStr = containList.map(item => item.uid).join('\n');
+          execCopy(containerIdStr, `${I18n.t('复制成功')}（${containList.length}${I18n.t('个容器 ID')}）`);
+        });
       },
       /**
        * @desc 复制所有主机数据
