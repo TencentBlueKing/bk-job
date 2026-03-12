@@ -1,11 +1,13 @@
-# AI Agent 配置
+# AI Agent 配置（运营/运维）
 
-本目录用于存放在平台上快速创建 AI Agents 的相关配置、Prompt 模板和资源文件。
+本目录（`ai_agent/op/`）专门用于存放**蓝鲸作业平台（bk-job）运营、运维场景**相关的 AI Agent 配置、Prompt 模板和资源文件。
+
+> **目录定位**：项目根目录下的 `ai_agent/` 按业务场景划分子目录，`op/` 子目录聚焦于运营和运维领域，包括但不限于：日志排查、任务执行分析、告警处理、平台运维诊断等场景的 Agent。
 
 ## 目录结构
 
 ```
-ai_agent/
+ai_agent/op/
 ├── README.md                    # 本说明文件
 ├── agents/                      # Agent 列表目录
 │   ├── agent-{name}/            # 普通 Agent 的配置目录
