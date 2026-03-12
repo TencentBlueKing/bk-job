@@ -94,7 +94,7 @@ import java.util.List;
 
 import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.ASSOCIATIVE_ARRAY;
 import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.CIPHER;
-import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.HOST_LIST;
+import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.EXECUTE_OBJECT_LIST;
 import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.INDEX_ARRAY;
 import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.NAMESPACE;
 import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.STRING;
@@ -133,9 +133,14 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
 
         User user = JobContextUtil.getUser();
         TaskInstanceDTO taskInstanceDTO = taskExecuteService.executeJobPlan(
-            TaskExecuteParam.builder().appId(appResourceScope.getAppId()).planId(request.getTaskId())
-                .operator(user).executeVariableValues(executeVariableValues)
-                .startupMode(TaskStartupModeEnum.WEB).build());
+            TaskExecuteParam.builder()
+                .appId(appResourceScope.getAppId())
+                .planId(request.getTaskId())
+                .operator(user)
+                .executeVariableValues(executeVariableValues)
+                .startupMode(TaskStartupModeEnum.WEB)
+                .build()
+        );
 
         TaskExecuteVO result = new TaskExecuteVO();
         result.setTaskInstanceId(taskInstanceDTO.getId());
@@ -204,7 +209,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                 } else {
                     taskVariableDTO.setValue(webTaskVariable.getValue());
                 }
-            } else if (webTaskVariable.getType() == HOST_LIST.getType()) {
+            } else if (webTaskVariable.getType() == EXECUTE_OBJECT_LIST.getType()) {
                 TaskTargetVO taskTarget = webTaskVariable.getTargetValue();
                 ExecuteTargetDTO executeTargetDTO = ExecuteTargetDTO.fromTaskTargetVO(taskTarget);
                 taskVariableDTO.setExecuteTarget(executeTargetDTO);
