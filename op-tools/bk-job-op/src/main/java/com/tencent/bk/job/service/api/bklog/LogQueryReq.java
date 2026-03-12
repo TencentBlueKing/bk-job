@@ -40,12 +40,6 @@ public class LogQueryReq {
     private String indices;
 
     /**
-     * 时间标识符["15m", "30m", "1h", "4h", "12h", "1d", "customized"]（非必填，默认15m）
-     */
-    @JsonProperty("time_range")
-    private String timeRange;
-
-    /**
      * 索引集ID
      */
     @JsonProperty("index_set_id")
@@ -71,9 +65,10 @@ public class LogQueryReq {
 
     /**
      * 是否使用时间范围
+     * 一般情况下都为true
      */
     @JsonProperty("use_time_range")
-    private Boolean useTimeRange;
+    private Boolean useTimeRange = true;
 
     /**
      * 时间字段（非必填，bkdata内部为dtEventTimeStamp，外部如果传入时间范围需要指定时间字段）
@@ -82,13 +77,13 @@ public class LogQueryReq {
     private String timeField;
 
     /**
-     * 开始时间
+     * 开始时间。可以为毫秒时间戳，也可以为时间字符串，格式为：yyyy-MM-dd HH:mm:ss
      */
     @JsonProperty("start_time")
     private String startTime;
 
     /**
-     * 结束时间
+     * 结束时间。可以为毫秒时间戳，也可以为时间字符串，格式为：yyyy-MM-dd HH:mm:ss
      */
     @JsonProperty("end_time")
     private String endTime;
