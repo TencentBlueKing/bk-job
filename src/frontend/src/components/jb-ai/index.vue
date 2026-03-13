@@ -47,7 +47,7 @@
 
 
     try {
-      await aiRef.value?.handleShow(undefined, { isTemporary: true, showFirst: true });
+      await aiRef.value?.handleShow(undefined, {  showFirst: true });
       aiRef.value?.handleShortcutClick({
         shortcut: command,
         source: 'popup',
