@@ -3,6 +3,7 @@
     <ai-blueking
       v-show="isBluekingShow"
       ref="aiRef"
+      :default-width="defaultWidth"
       :url="apiUrl" />
   </div>
 </template>
@@ -19,6 +20,7 @@
   import '@blueking/ai-blueking/dist/vue2/style.css';
 
 
+  const defaultWidth = window.innerWidth * 0.33;
   const aiRef = ref();
   const apiUrl = ref('');
   const isBluekingShow = ref(false);
