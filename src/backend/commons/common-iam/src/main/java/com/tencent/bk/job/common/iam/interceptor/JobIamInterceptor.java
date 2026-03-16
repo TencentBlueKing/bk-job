@@ -29,10 +29,10 @@ package com.tencent.bk.job.common.iam.interceptor;
 
 import com.tencent.bk.job.common.annotation.JobInterceptor;
 import com.tencent.bk.job.common.constant.InterceptorOrder;
+import com.tencent.bk.job.common.iam.util.JavaxServletRequestBridge;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -50,21 +50,14 @@ public class JobIamInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-
         if (!shouldFilter(request)) {
             return true;
         }
-        return authHelper.validRequest(request);
+        return authHelper.validRequest(JavaxServletRequestBridge.toJavax(request));
     }
 
     private boolean shouldFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
         return uri.startsWith("/iam/api/v1/resources/");
-    }
-
-
-    @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
-                           ModelAndView modelAndView) {
     }
 }
