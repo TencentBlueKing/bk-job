@@ -98,10 +98,9 @@ ext {
     set('jacksonVersion', "2.15.4")
     set('jaxrsVersion', "3.1.0")
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-core
-    // logback 1.3+/1.4+/1.5+ 与 Spring Boot 2.7.x 不兼容，需先升级 Spring Boot 到 3.x
-    set('logbackVersion', "1.2.13")
+    set('logbackVersion', "1.5.16")
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-api
-    set('slf4jVersion', "1.7.30")
+    set('slf4jVersion', "2.0.16")
     // servletVersion 已移除，统一使用 jakarta.servlet (jakartaServletVersion)
     // apache commons
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
