@@ -37,8 +37,8 @@ public class GetDayFromHourPropertyDefiner extends PropertyDefinerBase {
     @Override
     public String getPropertyValue() {
         // 无限期存储
-        if (hours == CoreConstants.UNBOUNDED_HISTORY) {
-            return String.valueOf(CoreConstants.UNBOUNDED_HISTORY);
+        if (hours == CoreConstants.UNBOUND_HISTORY) {
+            return String.valueOf(CoreConstants.UNBOUND_HISTORY);
         }
         int days = new Double(Math.ceil(hours / 24.0)).intValue();
         // 不足1天按1天算
