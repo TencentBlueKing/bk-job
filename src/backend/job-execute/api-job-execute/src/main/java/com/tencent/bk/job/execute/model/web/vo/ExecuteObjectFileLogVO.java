@@ -32,10 +32,10 @@ import java.util.List;
 @Schema(description = "文件任务-执行对象执行日志")
 @Data
 public class ExecuteObjectFileLogVO {
-    @Schema(name = "isIncludingLogContent", value = "是否包含日志内容")
+    @Schema(name = "isIncludingLogContent", description = "是否包含日志内容")
     private boolean includingLogContent;
     @Schema(description = "文件分发执行详情")
     private List<FileDistributionDetailV2VO> fileDistributionDetails;
-    @Schema(name = "finished", value = "日志是否拉取完成")
+    @Schema(name = "finished", description = "日志是否拉取完成")
     private boolean finished;
 }

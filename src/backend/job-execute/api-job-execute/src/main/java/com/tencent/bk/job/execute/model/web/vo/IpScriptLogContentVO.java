@@ -39,6 +39,6 @@ public class IpScriptLogContentVO {
     private String displayIp;
     @Schema(description = "日志内容")
     private String logContent;
-    @Schema(name = "finished", value = "日志是否拉取完成")
+    @Schema(name = "finished", description = "日志是否拉取完成")
     private boolean finished;
 }

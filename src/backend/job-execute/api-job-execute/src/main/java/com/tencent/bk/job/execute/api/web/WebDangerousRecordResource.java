@@ -51,7 +51,7 @@ public interface WebDangerousRecordResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Parameter(name = "id", value = "记录ID")
+        @Parameter(name = "id", description = "记录ID")
         @RequestParam(value = "id", required = false)
             Long id,
         @Parameter(description = "资源范围类型")

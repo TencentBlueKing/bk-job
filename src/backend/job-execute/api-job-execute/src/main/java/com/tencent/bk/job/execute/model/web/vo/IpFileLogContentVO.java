@@ -37,10 +37,10 @@ import java.util.List;
 @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
     explain = "使用 ExecuteObjectFileLogVO 替换。发布完成后可以删除")
 public class IpFileLogContentVO {
-    @Schema(name = "isIncludingLogContent", value = "是否包含日志内容")
+    @Schema(name = "isIncludingLogContent", description = "是否包含日志内容")
     private boolean includingLogContent;
     @Schema(description = "文件分发执行详情")
     private List<FileDistributionDetailVO> fileDistributionDetails;
-    @Schema(name = "finished", value = "日志是否拉取完成")
+    @Schema(name = "finished", description = "日志是否拉取完成")
     private boolean finished;
 }

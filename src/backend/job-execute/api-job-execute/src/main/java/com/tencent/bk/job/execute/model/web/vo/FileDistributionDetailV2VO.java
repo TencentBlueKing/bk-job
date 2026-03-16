@@ -32,11 +32,11 @@ import lombok.Data;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class FileDistributionDetailV2VO implements Comparable<FileDistributionDetailV2VO> {
-    @Schema(name = "taskId", value = "文件任务ID,用于检索单个文件分发的结果")
+    @Schema(name = "taskId", description = "文件任务ID,用于检索单个文件分发的结果")
     private String taskId;
-    @Schema(name = "srcExecuteObject", value = "文件源执行对象")
+    @Schema(name = "srcExecuteObject", description = "文件源执行对象")
     private ExecuteObjectVO srcExecuteObject;
-    @Schema(name = "destExecuteObject", value = "目标执行对象")
+    @Schema(name = "destExecuteObject", description = "目标执行对象")
     private ExecuteObjectVO destExecuteObject;
     @Schema(description = "文件名称")
     private String fileName;

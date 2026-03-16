@@ -37,15 +37,15 @@ import lombok.Data;
 @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
     explain = "使用 FileDistributionDetailV2VO 替换。发布完成后可以删除")
 public class FileDistributionDetailVO implements Comparable<FileDistributionDetailVO> {
-    @Schema(name = "taskId", value = "文件任务ID,用于检索单个文件分发的结果")
+    @Schema(name = "taskId", description = "文件任务ID,用于检索单个文件分发的结果")
     private String taskId;
-    @Schema(name = "destIp", value = "下载目标IPv4")
+    @Schema(name = "destIp", description = "下载目标IPv4")
     private String destIp;
-    @Schema(name = "destIpv6", value = "下载目标IPv6")
+    @Schema(name = "destIpv6", description = "下载目标IPv6")
     private String destIpv6;
-    @Schema(name = "srcIp", value = "上传源IPv4")
+    @Schema(name = "srcIp", description = "上传源IPv4")
     private String srcIp;
-    @Schema(name = "srcIpv6", value = "上传源IPv6")
+    @Schema(name = "srcIpv6", description = "上传源IPv6")
     private String srcIpv6;
     @Schema(description = "文件名称")
     private String fileName;

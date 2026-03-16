@@ -42,6 +42,6 @@ public class RollingStepBatchTaskVO {
         "，8-手动结束，9-状态异常，10-强制终止中，11-强制终止成功，12-强制终止失败，13-确认终止，14-被丢弃，15-滚动等待")
     private Integer status;
 
-    @Schema(name = "isLatestBatch", value = "是否最新批次的滚动任务")
+    @Schema(name = "isLatestBatch", description = "是否最新批次的滚动任务")
     private boolean latestBatch;
 }
