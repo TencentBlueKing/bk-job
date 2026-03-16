@@ -67,7 +67,7 @@ public interface WebTaskTemplateResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -120,7 +120,7 @@ public interface WebTaskTemplateResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -141,7 +141,7 @@ public interface WebTaskTemplateResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -162,7 +162,7 @@ public interface WebTaskTemplateResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -186,7 +186,7 @@ public interface WebTaskTemplateResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -206,7 +206,7 @@ public interface WebTaskTemplateResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -223,7 +223,7 @@ public interface WebTaskTemplateResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -246,7 +246,7 @@ public interface WebTaskTemplateResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -266,7 +266,7 @@ public interface WebTaskTemplateResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -286,7 +286,7 @@ public interface WebTaskTemplateResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -309,7 +309,7 @@ public interface WebTaskTemplateResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -329,7 +329,7 @@ public interface WebTaskTemplateResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)

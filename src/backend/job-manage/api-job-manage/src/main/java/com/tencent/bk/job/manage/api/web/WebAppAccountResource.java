@@ -62,7 +62,7 @@ public interface WebAppAccountResource {
         @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -82,7 +82,7 @@ public interface WebAppAccountResource {
         @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -105,7 +105,7 @@ public interface WebAppAccountResource {
         @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -161,7 +161,7 @@ public interface WebAppAccountResource {
         @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -181,7 +181,7 @@ public interface WebAppAccountResource {
         @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -201,7 +201,7 @@ public interface WebAppAccountResource {
         @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)

@@ -66,7 +66,7 @@ public interface WebTagResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -103,7 +103,7 @@ public interface WebTagResource {
     Response<List<TagVO>> listTagsBasic(
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username") String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -122,7 +122,7 @@ public interface WebTagResource {
     Response<Boolean> updateTagInfo(
         @Parameter(description = "用户名，网关自动传入") @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -145,7 +145,7 @@ public interface WebTagResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -165,7 +165,7 @@ public interface WebTagResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -186,7 +186,7 @@ public interface WebTagResource {
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
@@ -208,7 +208,7 @@ public interface WebTagResource {
     Response<Boolean> checkTagName(
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username") String username,
-        @Hidden
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
         @Parameter(description = "资源范围类型", required = true)
