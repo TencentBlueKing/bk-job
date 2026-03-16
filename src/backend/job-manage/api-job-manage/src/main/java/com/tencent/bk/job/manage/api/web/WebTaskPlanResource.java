@@ -58,7 +58,7 @@ import java.util.List;
 @WebAPI
 public interface WebTaskPlanResource {
 
-    @Operation(summary = "获取业务下的执行方案列表", produces = "application/json")
+    @Operation(summary = "获取业务下的执行方案列表")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan/list"})
     Response<PageData<TaskPlanVO>> listAllPlans(
         @Parameter(description = "用户名，网关自动传入")
@@ -99,7 +99,7 @@ public interface WebTaskPlanResource {
             Integer pageSize
     );
 
-    @Operation(summary = "获取执行方案基本信息列表", produces = "application/json")
+    @Operation(summary = "获取执行方案基本信息列表")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan/{templateId}"})
     Response<List<TaskPlanVO>> listPlans(
         @Parameter(description = "用户名，网关自动传入")
@@ -119,7 +119,7 @@ public interface WebTaskPlanResource {
             Long templateId
     );
 
-    @Operation(summary = "批量获取执行方案基本信息", produces = "application/json")
+    @Operation(summary = "批量获取执行方案基本信息")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan:batchGet"})
     Response<List<TaskPlanVO>> batchGetPlans(
         @Parameter(description = "用户名，网关自动传入")
@@ -139,7 +139,7 @@ public interface WebTaskPlanResource {
             String templateIds
     );
 
-    @Operation(summary = "根据执行方案 ID 获取执行方案信息", produces = "application/json")
+    @Operation(summary = "根据执行方案 ID 获取执行方案信息")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}"})
     Response<TaskPlanVO> getPlanById(
         @Parameter(description = "用户名，网关自动传入")
@@ -162,7 +162,7 @@ public interface WebTaskPlanResource {
             Long planId
     );
 
-    @Operation(summary = "获取模版对应的调试方案信息", produces = "application/json")
+    @Operation(summary = "获取模版对应的调试方案信息")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan/{templateId}/debug"})
     Response<TaskPlanVO> getDebugPlan(
         @Parameter(description = "用户名，网关自动传入")
@@ -182,7 +182,7 @@ public interface WebTaskPlanResource {
             Long templateId
     );
 
-    @Operation(summary = "更新执行方案", produces = "application/json")
+    @Operation(summary = "更新执行方案")
     @PutMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}")
     Response<TaskPlanVO> updatePlan(
         @Parameter(description = "用户名，网关自动传入")
@@ -208,7 +208,7 @@ public interface WebTaskPlanResource {
             TaskPlanCreateUpdateReq taskPlanCreateUpdateReq
     );
 
-    @Operation(summary = "新增执行方案", produces = "application/json")
+    @Operation(summary = "新增执行方案")
     @PostMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}")
     Response<TaskPlanVO> createPlan(
         @Parameter(description = "用户名，网关自动传入")
@@ -231,7 +231,7 @@ public interface WebTaskPlanResource {
             TaskPlanCreateUpdateReq taskPlanCreateUpdateReq
     );
 
-    @Operation(summary = "删除执行方案", produces = "application/json")
+    @Operation(summary = "删除执行方案")
     @DeleteMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}")
     Response<Boolean> deletePlan(
         @Parameter(description = "用户名，网关自动传入")
@@ -254,7 +254,7 @@ public interface WebTaskPlanResource {
             Long planId
     );
 
-    @Operation(summary = "根据执行方案 ID 批量拉基础信息", produces = "application/json")
+    @Operation(summary = "根据执行方案 ID 批量拉基础信息")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan"})
     Response<List<TaskPlanVO>> listPlanBasicInfoByIds(
         @Parameter(description = "用户名，网关自动传入")
@@ -274,7 +274,7 @@ public interface WebTaskPlanResource {
             String planIds
     );
 
-    @Operation(summary = "根据执行方案 ID 批量拉执行方案基础信息", produces = "application/json")
+    @Operation(summary = "根据执行方案 ID 批量拉执行方案基础信息")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task/plan/basicInfo"})
     Response<List<TaskPlanBasicInfoVO>> listTaskPlanBasicInfoByIds(
         @Parameter(description = "用户名，网关自动传入")
@@ -294,7 +294,7 @@ public interface WebTaskPlanResource {
         String planIds
     );
 
-    @Operation(summary = "检查执行方案名称是否已占用", produces = "application/json")
+    @Operation(summary = "检查执行方案名称是否已占用")
     @GetMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/check_name")
     Response<Boolean> checkPlanName(
         @Parameter(description = "用户名，网关自动传入")
@@ -320,7 +320,7 @@ public interface WebTaskPlanResource {
             String name
     );
 
-    @Operation(summary = "获取执行方案同步信息", produces = "application/json")
+    @Operation(summary = "获取执行方案同步信息")
     @GetMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/sync_info")
     Response<TaskPlanSyncInfoVO> syncInfo(
         @Parameter(description = "用户名，网关自动传入")
@@ -343,7 +343,7 @@ public interface WebTaskPlanResource {
             Long planId
     );
 
-    @Operation(summary = "同步执行方案", produces = "application/json")
+    @Operation(summary = "同步执行方案")
     @PostMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/sync")
     Response<Boolean> syncConfirm(
         @Parameter(description = "用户名，网关自动传入")
@@ -369,7 +369,7 @@ public interface WebTaskPlanResource {
             String templateVersion
     );
 
-    @Operation(summary = "新增收藏", produces = "application/json")
+    @Operation(summary = "新增收藏")
     @PutMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/favorite")
     Response<Boolean> addFavorite(
         @Parameter(description = "用户名，网关自动传入")
@@ -392,7 +392,7 @@ public interface WebTaskPlanResource {
             Long planId
     );
 
-    @Operation(summary = "删除收藏", produces = "application/json")
+    @Operation(summary = "删除收藏")
     @DeleteMapping("/scope/{scopeType}/{scopeId}/task/plan/{templateId}/{planId}/favorite")
     Response<Boolean> removeFavorite(
         @Parameter(description = "用户名，网关自动传入")
@@ -415,7 +415,7 @@ public interface WebTaskPlanResource {
             Long planId
     );
 
-    @Operation(summary = "根据执行方案 ID 拉基本信息", produces = "application/json")
+    @Operation(summary = "根据执行方案 ID 拉基本信息")
     @GetMapping("/task/plan/{planId}")
     Response<TaskPlanVO> getPlanBasicInfoById(
         @Parameter(description = "用户名，网关自动传入")
@@ -426,7 +426,7 @@ public interface WebTaskPlanResource {
             Long planId
     );
 
-    @Operation(summary = "批量根据变量名更新执行方案变量值", produces = "application/json")
+    @Operation(summary = "批量根据变量名更新执行方案变量值")
     @PostMapping("/scope/{scopeType}/{scopeId}/task/plan/batch_update_variable")
     Response<Boolean> batchUpdatePlanVariableValueByName(
         @Parameter(description = "用户名，网关自动传入")

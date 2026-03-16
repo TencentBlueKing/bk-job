@@ -37,7 +37,7 @@ public class ExecuteActionReq {
      * 要执行的指令类型Code
      */
     @Schema(
-        value = "要执行的指令类型Code，取值来源于listFileNode接口返回数据中的metaData.properties.action.actionCode"
+        description = "要执行的指令类型Code，取值来源于listFileNode接口返回数据中的metaData.properties.action.actionCode"
     )
     String actionCode;
 

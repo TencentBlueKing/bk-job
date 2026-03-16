@@ -61,7 +61,7 @@ import java.util.List;
 @WebAPI
 public interface WebTaskTemplateResource {
 
-    @Operation(summary = "获取模版基本信息列表", produces = "application/json")
+    @Operation(summary = "获取模版基本信息列表")
     @GetMapping
     Response<PageData<TaskTemplateVO>> listPageTemplates(
         @Parameter(description = "用户名，网关自动传入")
@@ -114,7 +114,7 @@ public interface WebTaskTemplateResource {
             Integer order
     );
 
-    @Operation(summary = "根据模版 ID 获取模版信息", produces = "application/json")
+    @Operation(summary = "根据模版 ID 获取模版信息")
     @GetMapping("/{templateId}")
     Response<TaskTemplateVO> getTemplateById(
         @Parameter(description = "用户名，网关自动传入")
@@ -135,7 +135,7 @@ public interface WebTaskTemplateResource {
     );
 
 
-    @Operation(summary = "新建模版", produces = "application/json")
+    @Operation(summary = "新建模版")
     @PostMapping
     Response<TaskTemplateVO> createTemplate(
         @Parameter(description = "用户名，网关自动传入")
@@ -156,7 +156,7 @@ public interface WebTaskTemplateResource {
             TaskTemplateCreateUpdateReq request
     );
 
-    @Operation(summary = "更新模版", produces = "application/json")
+    @Operation(summary = "更新模版")
     @PutMapping("/{templateId}")
     Response<TaskTemplateVO> updateTemplate(
         @Parameter(description = "用户名，网关自动传入")
@@ -180,7 +180,7 @@ public interface WebTaskTemplateResource {
             TaskTemplateCreateUpdateReq request
     );
 
-    @Operation(summary = "删除模版", produces = "application/json")
+    @Operation(summary = "删除模版")
     @DeleteMapping("/{templateId}")
     Response<Boolean> deleteTemplate(
         @Parameter(description = "用户名，网关自动传入")
@@ -200,7 +200,7 @@ public interface WebTaskTemplateResource {
             Long templateId
     );
 
-    @Operation(summary = "获取业务下标签关联的模版数量", produces = "application/json")
+    @Operation(summary = "获取业务下标签关联的模版数量")
     @GetMapping("/tag/count")
     Response<TagCountVO> getTagTemplateCount(
         @Parameter(description = "用户名，网关自动传入")
@@ -217,7 +217,7 @@ public interface WebTaskTemplateResource {
             String scopeId
     );
 
-    @Operation(summary = "更新模版元数据，如模版描述、名称、标签", produces = "application/json")
+    @Operation(summary = "更新模版元数据，如模版描述、名称、标签")
     @PutMapping("/{templateId}/basic")
     Response<Boolean> updateTemplateBasicInfo(
         @Parameter(description = "用户名，网关自动传入")
@@ -240,7 +240,7 @@ public interface WebTaskTemplateResource {
             TemplateBasicInfoUpdateReq request
     );
 
-    @Operation(summary = "新增收藏", produces = "application/json")
+    @Operation(summary = "新增收藏")
     @PutMapping("/{templateId}/favorite")
     Response<Boolean> addFavorite(
         @Parameter(description = "用户名，网关自动传入")
@@ -260,7 +260,7 @@ public interface WebTaskTemplateResource {
             Long templateId
     );
 
-    @Operation(summary = "删除收藏", produces = "application/json")
+    @Operation(summary = "删除收藏")
     @DeleteMapping("/{templateId}/favorite")
     Response<Boolean> removeFavorite(
         @Parameter(description = "用户名，网关自动传入")
@@ -280,7 +280,7 @@ public interface WebTaskTemplateResource {
             Long templateId
     );
 
-    @Operation(summary = "检查作业模版名称是否已占用", produces = "application/json")
+    @Operation(summary = "检查作业模版名称是否已占用")
     @GetMapping("/{templateId}/check_name")
     Response<Boolean> checkTemplateName(
         @Parameter(description = "用户名，网关自动传入")
@@ -303,7 +303,7 @@ public interface WebTaskTemplateResource {
             String name
     );
 
-    @Operation(summary = "根据 ID 批量获取模版基本信息列表", produces = "application/json")
+    @Operation(summary = "根据 ID 批量获取模版基本信息列表")
     @GetMapping("/basic")
     Response<List<TaskTemplateVO>> listTemplateBasicInfoByIds(
         @Parameter(description = "用户名，网关自动传入")
@@ -323,7 +323,7 @@ public interface WebTaskTemplateResource {
             List<Long> templateIds
     );
 
-    @Operation(summary = "批量更新模板标签-Patch方式", produces = "application/json")
+    @Operation(summary = "批量更新模板标签-Patch方式")
     @PutMapping("/tag")
     Response<Boolean> batchPatchTemplateTags(
         @Parameter(description = "用户名，网关自动传入")

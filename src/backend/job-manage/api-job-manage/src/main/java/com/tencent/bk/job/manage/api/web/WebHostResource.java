@@ -109,7 +109,7 @@ public interface WebHostResource {
     );
 
     // 标准接口1
-    @Operation(summary = "获取拓扑树（含各节点主机数）", produces = "application/json")
+    @Operation(summary = "获取拓扑树（含各节点主机数）")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/hostCount"})
     Response<List<CcTopologyNodeVO>> listTopologyHostCountTrees(
         @Parameter(description = "用户名，网关自动传入")
@@ -130,7 +130,7 @@ public interface WebHostResource {
     );
 
     // 标准接口2
-    @Operation(summary = "获取多个节点的拓扑路径", produces = "application/json")
+    @Operation(summary = "获取多个节点的拓扑路径")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/nodes/queryPath"})
     Response<List<List<CcTopologyNodeVO>>> queryNodePaths(
         @Parameter(description = "用户名，网关自动传入")
@@ -151,7 +151,7 @@ public interface WebHostResource {
     );
 
     // 标准接口3
-    @Operation(summary = "IP选择器根据拓扑节点集合获取机器列表", produces = "application/json")
+    @Operation(summary = "IP选择器根据拓扑节点集合获取机器列表")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/hosts/nodes"})
     Response<PageData<HostInfoVO>> listHostByBizTopologyNodes(
         @Parameter(description = "用户名，网关自动传入")
@@ -173,7 +173,7 @@ public interface WebHostResource {
 
     // 标准接口4
     @Operation(summary = "IP选择器根据拓扑节点集合获取机器hostIds"
-        , produces = "application/json")
+        )
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/topology/hostIds/nodes"})
     Response<PageData<HostIdWithMeta>> listHostIdByBizTopologyNodes(
         @Parameter(description = "用户名，网关自动传入")
@@ -194,7 +194,7 @@ public interface WebHostResource {
     );
 
     // 标准接口5
-    @Operation(summary = "获取多个节点下的主机统计信息", produces = "application/json")
+    @Operation(summary = "获取多个节点下的主机统计信息")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/host/agentStatistics/nodes"})
     Response<List<NodeHostStatisticsVO>> getHostAgentStatisticsByNodes(
         @Parameter(description = "用户名，网关自动传入")
@@ -236,7 +236,7 @@ public interface WebHostResource {
     );
 
     // 标准接口7
-    @Operation(summary = "获取多个动态分组下的主机Agent状态统计信息", produces = "application/json")
+    @Operation(summary = "获取多个动态分组下的主机Agent状态统计信息")
     @PostMapping(value = {"/scope/{scopeType}/{scopeId}/host/agentStatistics/dynamicGroups"})
     Response<List<DynamicGroupHostStatisticsVO>> getHostAgentStatisticsByDynamicGroups(
         @Parameter(description = "用户名，网关自动传入")

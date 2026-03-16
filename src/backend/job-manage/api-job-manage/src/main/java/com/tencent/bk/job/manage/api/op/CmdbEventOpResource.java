@@ -48,7 +48,7 @@ public interface CmdbEventOpResource {
      * @return 开启的事件监听器数量
      */
     @PutMapping("/enableWatch")
-    @Operation(summary = "开启某一类事件监听", produces = "application/json")
+    @Operation(summary = "开启某一类事件监听")
     InternalResponse<Integer> enableWatch(
         @Parameter(description = "事件监听操作请求体", required = true) @RequestBody EventWatchOpReq req
     );
@@ -59,7 +59,7 @@ public interface CmdbEventOpResource {
      * @return 关闭的事件监听器数量
      */
     @PutMapping("/disableWatch")
-    @Operation(summary = "关闭某一类事件监听", produces = "application/json")
+    @Operation(summary = "关闭某一类事件监听")
     InternalResponse<Integer> disableWatch(
         @Parameter(description = "事件监听操作请求体", required = true) @RequestBody EventWatchOpReq req
     );

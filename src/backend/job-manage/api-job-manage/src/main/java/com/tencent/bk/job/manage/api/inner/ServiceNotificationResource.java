@@ -51,20 +51,20 @@ import java.util.List;
 @InternalAPI
 public interface ServiceNotificationResource {
 
-    @Operation(summary = "触发模板消息通知", produces = "application/json")
+    @Operation(summary = "触发模板消息通知")
     @PostMapping("/service/notification/triggerTemplateNotification")
     InternalResponse<Integer> triggerTemplateNotification(
         @RequestBody ServiceTriggerTemplateNotificationDTO triggerTemplateNotification
     );
 
-    @Operation(summary = "根据模板发送消息通知", produces = "application/json")
+    @Operation(summary = "根据模板发送消息通知")
     @PostMapping("/service/notification/sendTemplateNotification")
     InternalResponse<Integer> sendTemplateNotification(
         @Parameter(description = "根据模板发送消息通知")
         @RequestBody ServiceTemplateNotificationDTO templateNotificationDTO
     );
 
-    @Operation(summary = "获取通知角色列表", produces = "application/json")
+    @Operation(summary = "获取通知角色列表")
     @GetMapping("/service/notification/getNotifyRoles")
     InternalResponse<List<ServiceAppRoleDTO>> getNotifyRoles(
         @Parameter(description = "租户ID")
@@ -75,7 +75,7 @@ public interface ServiceNotificationResource {
         String lang
     );
 
-    @Operation(summary = "获取通知渠道", produces = "application/json")
+    @Operation(summary = "获取通知渠道")
     @GetMapping("/service/notification/getNotifyChannels")
     InternalResponse<List<ServiceNotifyChannelDTO>> getNotifyChannels(
         @Parameter(description = "语言")
@@ -86,7 +86,7 @@ public interface ServiceNotificationResource {
         String tenantId
     );
 
-    @Operation(summary = "创建或更新特定资源消息通知策略", produces = "application/json")
+    @Operation(summary = "创建或更新特定资源消息通知策略")
     @PostMapping("/service/notification/notifyPolicy")
     InternalResponse<Boolean> createOrUpdateSpecificResourceNotifyPolicy(
         @Parameter(description = "操作人")
@@ -100,7 +100,7 @@ public interface ServiceNotificationResource {
         ServiceSpecificResourceNotifyPolicyDTO serviceNotifyPolicyDTO
     );
 
-    @Operation(summary = "删除特定资源通知策略", produces = "application/json")
+    @Operation(summary = "删除特定资源通知策略")
     @DeleteMapping("/service/notification/resourceNotifyPolicy/resourceType/{resourceType}/resourceId/{resourceId}")
     InternalResponse<Integer> deleteSpecificResourceNotifyPolicy(
         @Parameter(description = "业务id")
@@ -114,7 +114,7 @@ public interface ServiceNotificationResource {
         String resourceId
     );
 
-    @Operation(summary = "获取特定资源通知策略", produces = "application/json")
+    @Operation(summary = "获取特定资源通知策略")
     @GetMapping("/service/notification/resourceNotifyPolicy/resourceType/{resourceType}/resourceId/{resourceId}"
         + "/triggerType/{triggerType}")
     InternalResponse<CustomNotifyDTO> getSpecificResourceNotifyPolicy(

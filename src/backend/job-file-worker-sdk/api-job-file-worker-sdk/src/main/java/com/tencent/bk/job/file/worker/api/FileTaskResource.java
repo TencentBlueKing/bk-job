@@ -44,19 +44,19 @@ import org.springframework.web.bind.annotation.RestController;
 public interface FileTaskResource {
 
     // 子路径与gateway转发请求子路径保持一致
-    @Operation(summary = "从文件源下载文件至本地", produces = "application/json")
+    @Operation(summary = "从文件源下载文件至本地")
     @PostMapping("/downloadFiles/start")
     Response<Integer> downloadFiles(
         @Parameter(description = "文件下载任务", required = true) @RequestBody DownloadFilesTaskReq req
     );
 
-    @Operation(summary = "停止正在进行中的任务", produces = "application/json")
+    @Operation(summary = "停止正在进行中的任务")
     @PostMapping("/downloadFiles/stop")
     Response<Integer> stopTasks(
         @Parameter(description = "停止任务请求", required = true) @RequestBody StopTasksReq req
     );
 
-    @Operation(summary = "删除文件任务下载到本地的文件", produces = "application/json")
+    @Operation(summary = "删除文件任务下载到本地的文件")
     @PostMapping("/clearFiles")
     Response<Integer> clearFiles(
         @Parameter(description = "删除请求", required = true) @RequestBody ClearTaskFilesReq req

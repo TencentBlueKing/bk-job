@@ -48,51 +48,51 @@ import java.util.List;
 @InternalAPI
 public interface ServiceTaskPlanResource {
 
-    @Operation(summary = "根据执行方案ID获取执行方案信息", produces = "application/json")
+    @Operation(summary = "根据执行方案ID获取执行方案信息")
     @GetMapping("/service/app/{appId}/plan/planId/{planId}/basic")
     InternalResponse<ServiceTaskPlanDTO> getPlanBasicInfoById(
         @Parameter(description = "业务ID", required = true) @PathVariable("appId") Long appId,
         @Parameter(description = "执行方案ID", required = true) @PathVariable("planId") Long planId);
 
-    @Operation(summary = "根据执行方案ID获取执行方案信息", produces = "application/json")
+    @Operation(summary = "根据执行方案ID获取执行方案信息")
     @GetMapping("/service/plan/{planId}/planName")
     InternalResponse<String> getPlanName(
         @Parameter(description = "执行方案ID", required = true) @PathVariable("planId") Long planId);
 
-    @Operation(summary = "根据执行方案全局变量name获取id", produces = "application/json")
+    @Operation(summary = "根据执行方案全局变量name获取id")
     @GetMapping("/service/plan/{planId}/globalVar/getIdByName/{globalVarName}")
     InternalResponse<Long> getGlobalVarIdByName(
         @Parameter(description = "执行方案ID", required = true) @PathVariable("planId") Long planId,
         @Parameter(description = "全局变量名称", required = true) @PathVariable("globalVarName") String globalVarName
     );
 
-    @Operation(summary = "根据执行方案全局变量name获取实例", produces = "application/json")
+    @Operation(summary = "根据执行方案全局变量name获取实例")
     @GetMapping("/service/plan/{planId}/globalVar/name/{globalVarName}")
     InternalResponse<ServiceTaskVariableDTO> getGlobalVarByName(
         @Parameter(description = "执行方案ID", required = true) @PathVariable("planId") Long planId,
         @Parameter(description = "全局变量名称", required = true) @PathVariable("globalVarName") String globalVarName
     );
 
-    @Operation(summary = "根据执行方案全局变量id获取name", produces = "application/json")
+    @Operation(summary = "根据执行方案全局变量id获取name")
     @GetMapping("/service/plan/{planId}/globalVar/getNameById/{globalVarId}")
     InternalResponse<String> getGlobalVarNameById(
         @Parameter(description = "执行方案ID", required = true) @PathVariable("planId") Long planId,
         @Parameter(description = "全局变量ID", required = true) @PathVariable("globalVarId") Long globalVarId
     );
 
-    @Operation(summary = "根据执行方案全局变量id获取实例", produces = "application/json")
+    @Operation(summary = "根据执行方案全局变量id获取实例")
     @GetMapping("/service/plan/{planId}/globalVar/id/{globalVarId}")
     InternalResponse<ServiceTaskVariableDTO> getGlobalVarById(
         @Parameter(description = "执行方案ID", required = true) @PathVariable("planId") Long planId,
         @Parameter(description = "全局变量ID", required = true) @PathVariable("globalVarId") Long globalVarId
     );
 
-    @Operation(summary = "根据执行方案ID获取执行方案业务Id", produces = "application/json")
+    @Operation(summary = "根据执行方案ID获取执行方案业务Id")
     @GetMapping("/service/plan/{planId}/planAppId")
     InternalResponse<Long> getPlanAppId(
         @Parameter(description = "执行方案ID", required = true) @PathVariable("planId") Long planId);
 
-    @Operation(summary = "根据执行方案ID获取执行方案信息", produces = "application/json")
+    @Operation(summary = "根据执行方案ID获取执行方案信息")
     @GetMapping("/service/app/{appId}/plan/planId/{planId}")
     InternalResponse<ServiceTaskPlanDTO> getPlanById(
         @Parameter(description = "业务ID", required = true)
@@ -110,7 +110,7 @@ public interface ServiceTaskPlanResource {
         @Parameter(description = "执行方案 ID") @RequestParam("planId") Long planId,
         @Parameter(description = "执行方案名称", required = true) @RequestParam("planName") String name);
 
-    @Operation(summary = "导入执行方案", produces = "application/json")
+    @Operation(summary = "导入执行方案")
     @PutMapping("/service/app/{appId}/plan/{templateId}/savePlanForImport")
     InternalResponse<Long> savePlanForImport(
         @Parameter(description = "用户名，网关自动传入") @RequestHeader("username") String username,
@@ -126,14 +126,14 @@ public interface ServiceTaskPlanResource {
         @Parameter(description = "模版 ID") @PathVariable("templateId") Long templateId,
         @Parameter(description = "执行方案 ID") @PathVariable("planId") Long planId);
 
-    @Operation(summary = "获取执行方案基本信息列表", produces = "application/json")
+    @Operation(summary = "获取执行方案基本信息列表")
     @GetMapping("/service/{templateId}")
     InternalResponse<List<ServiceTaskPlanDTO>> listPlans(
         @Parameter(description = "用户名，网关自动传入") @RequestHeader("username") String username,
         @Parameter(description = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @Parameter(description = "模版 ID", required = true) @PathVariable(value = "templateId") Long templateId);
 
-    @Operation(summary = "获取模板对应的执行方案Id", produces = "application/json")
+    @Operation(summary = "获取模板对应的执行方案Id")
     @GetMapping("/service/plan/planIds/template/{templateId}")
     InternalResponse<List<Long>> listPlanIds(
         @Parameter(description = "模版 ID", required = true) @PathVariable(value = "templateId") Long templateId);

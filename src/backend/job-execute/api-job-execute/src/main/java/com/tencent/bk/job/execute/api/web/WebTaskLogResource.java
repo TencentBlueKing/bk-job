@@ -53,7 +53,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @WebAPI
 public interface WebTaskLogResource {
 
-    @Operation(summary = "请求下载执行日志文件", produces = "application/json")
+    @Operation(summary = "请求下载执行日志文件")
     @GetMapping("/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/requestDownloadLogFile")
     Response<LogExportJobInfoVO> requestDownloadLogFile(
         @Parameter(description = "用户名，网关自动传入")
@@ -85,7 +85,7 @@ public interface WebTaskLogResource {
             Boolean repackage
     );
 
-    @Operation(summary = "下载执行日志文件", produces = "application/json")
+    @Operation(summary = "下载执行日志文件")
     @GetMapping("/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/downloadLogFile")
     ResponseEntity<StreamingResponseBody> downloadLogFile(
         HttpServletResponse response,

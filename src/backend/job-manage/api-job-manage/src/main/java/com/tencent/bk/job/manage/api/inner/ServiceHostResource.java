@@ -54,14 +54,14 @@ import java.util.List;
 @InternalAPI
 public interface ServiceHostResource {
 
-    @Operation(summary = "查询节点下的主机状态", produces = "application/json")
+    @Operation(summary = "查询节点下的主机状态")
     @PostMapping("/service/app/{appId}/host/status/nodes")
     InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByNode(
         @PathVariable("appId") Long appId,
         @RequestBody ServiceGetHostStatusByNodeReq req
     );
 
-    @Operation(summary = "查询动态分组下的主机状态", produces = "application/json")
+    @Operation(summary = "查询动态分组下的主机状态")
     @PostMapping("/service/app/{appId}/host/status/dynamicGroups")
     InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByDynamicGroup(
         @PathVariable("appId") Long appId,
@@ -75,14 +75,14 @@ public interface ServiceHostResource {
         deprecatedVersion = "3.12.x",
         type = CompatibleType.DEPLOY
     )
-    @Operation(summary = "查询主机对应的主机状态", produces = "application/json")
+    @Operation(summary = "查询主机对应的主机状态")
     @PostMapping("/service/app/{appId}/host/status/hosts")
     InternalResponse<List<ServiceHostStatusDTO>> getHostStatusByHost(
         @PathVariable("appId") Long appId,
         @RequestBody ServiceGetHostStatusByHostReq req
     );
 
-    @Operation(summary = "通过缓存数据（非接口实时数据）判断是否存在Agent状态不正常的主机", produces = "application/json")
+    @Operation(summary = "通过缓存数据（非接口实时数据）判断是否存在Agent状态不正常的主机")
     @PostMapping("/service/existNotAliveHostByCache")
     InternalResponse<Boolean> existNotAliveHostByCache(
         @RequestBody ServiceExistNotAliveHostByCacheReq req
@@ -94,7 +94,7 @@ public interface ServiceHostResource {
      * @param appId Job业务ID
      * @param req   请求
      */
-    @Operation(summary = "查询业务下的主机", produces = "application/json")
+    @Operation(summary = "查询业务下的主机")
     @PostMapping("/service/app/{appId}/host/batchGet")
     InternalResponse<ServiceListAppHostResultDTO> batchGetAppHosts(
         @PathVariable("appId") Long appId,
@@ -107,7 +107,7 @@ public interface ServiceHostResource {
      * @param req 请求
      * @return 主机信息
      */
-    @Operation(summary = "从缓存或DB批量获取主机信息", produces = "application/json")
+    @Operation(summary = "从缓存或DB批量获取主机信息")
     @PostMapping("/service/hosts/batchGet")
     InternalResponse<List<ServiceHostDTO>> batchGetHostsFromCacheOrDB(
         @RequestBody
@@ -119,7 +119,7 @@ public interface ServiceHostResource {
      * @param req 请求
      * @return 主机信息
      */
-    @Operation(summary = "通过云区域ID与Ipv6地址查询主机信息", produces = "application/json")
+    @Operation(summary = "通过云区域ID与Ipv6地址查询主机信息")
     @PostMapping("/service/hosts/getByCloudIpv6")
     InternalResponse<List<ServiceHostDTO>> getHostsByCloudIpv6(
         @RequestBody
@@ -131,7 +131,7 @@ public interface ServiceHostResource {
      * @param req 请求
      * @return 主机拓扑信息
      */
-    @Operation(summary = "批量获取主机拓扑信息", produces = "application/json")
+    @Operation(summary = "批量获取主机拓扑信息")
     @PostMapping("/service/hostTopos/batchGet")
     InternalResponse<List<ServiceHostTopoDTO>> batchGetHostTopos(
         @RequestBody

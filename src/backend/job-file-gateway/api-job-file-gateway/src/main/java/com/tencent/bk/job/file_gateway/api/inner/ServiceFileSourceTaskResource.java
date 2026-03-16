@@ -48,14 +48,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 @InternalAPI
 public interface ServiceFileSourceTaskResource {
 
-    @Operation(summary = "清理任务已下载的文件", produces = "application/json")
+    @Operation(summary = "清理任务已下载的文件")
     @PostMapping("/service/fileSource/filetask/clearFiles")
     InternalResponse<Integer> clearTaskFiles(
         @Parameter(description = "文件源下载任务请求")
         @RequestBody ClearTaskFilesReq req
     );
 
-    @Operation(summary = "创建并启动批量文件下载任务", produces = "application/json")
+    @Operation(summary = "创建并启动批量文件下载任务")
     @PostMapping("/service/fileSource/filetask/batch/downloadFiles/start")
     InternalResponse<BatchTaskInfoDTO> startFileSourceBatchDownloadTask(
         @Parameter(description = "用户名")
@@ -65,14 +65,14 @@ public interface ServiceFileSourceTaskResource {
         @RequestBody FileSourceBatchDownloadTaskReq req
     );
 
-    @Operation(summary = "清理批量任务已下载的文件", produces = "application/json")
+    @Operation(summary = "清理批量任务已下载的文件")
     @PostMapping("/service/fileSource/filetask/batch/downloadFiles/stop")
     InternalResponse<Integer> stopBatchTasks(
         @Parameter(description = "文件源下载任务请求")
         @RequestBody StopBatchTaskReq req
     );
 
-    @Operation(summary = "获取文件批量任务状态", produces = "application/json")
+    @Operation(summary = "获取文件批量任务状态")
     @GetMapping("/service/fileSource/filetask/batch/batchTaskIds/{batchTaskId}/status")
     InternalResponse<BatchTaskStatusDTO> getBatchTaskStatusAndLogs(
         @Parameter(description = "任务Id")

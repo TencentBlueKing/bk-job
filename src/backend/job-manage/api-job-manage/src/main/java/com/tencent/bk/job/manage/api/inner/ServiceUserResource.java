@@ -40,7 +40,7 @@ import java.util.Set;
 @InternalAPI
 public interface ServiceUserResource {
 
-    @Operation(summary = "根据业务Id与角色获取用户信息", produces = "application/json")
+    @Operation(summary = "根据业务Id与角色获取用户信息")
     @GetMapping("/service/user/getUsersByRoles")
     InternalResponse<Set<String>> getUsersByRoles(
         @Parameter(description = "业务Id")

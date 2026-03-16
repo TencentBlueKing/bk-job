@@ -45,17 +45,17 @@ import java.util.List;
 @RemoteAPI
 public interface RemoteFileWorkerResource {
 
-    @Operation(summary = "Worker心跳", produces = "application/json")
+    @Operation(summary = "Worker心跳")
     @PostMapping("/heartBeat")
     Response<Long> heartBeat(
         @Parameter(description = "Worker心跳请求") @RequestBody HeartBeatReq heartBeatReq);
 
-    @Operation(summary = "Worker上报任务状态信息", produces = "application/json")
+    @Operation(summary = "Worker上报任务状态信息")
     @PostMapping("/task/update")
     Response<String> updateFileSourceTask(
         @Parameter(description = "Worker上报任务状态信息请求") @RequestBody UpdateFileSourceTaskReq updateFileSourceTaskReq);
 
-    @Operation(summary = "Worker下线并且重调度其任务", produces = "application/json")
+    @Operation(summary = "Worker下线并且重调度其任务")
     @PostMapping("/offLineAndReDispatch")
     Response<List<String>> offLineAndReDispatch(
         @Parameter(description = "Worker下线携带的需要重调度的任务信息") @RequestBody OffLineAndReDispatchReq offLineAndReDispatchReq);

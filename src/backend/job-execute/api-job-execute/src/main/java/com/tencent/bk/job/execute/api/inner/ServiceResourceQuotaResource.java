@@ -44,11 +44,11 @@ import java.util.Map;
 @InternalAPI
 @RequestMapping("/service/resourceQuota")
 public interface ServiceResourceQuotaResource {
-    @Operation(summary = "获取配额限制配置", produces = "application/json")
+    @Operation(summary = "获取配额限制配置")
     @GetMapping("/config")
     InternalResponse<Map<String, ResourceQuotaLimit>> getResourceQuotaConfig();
 
-    @Operation(summary = "获取正在执行中的作业配额使用情况", produces = "application/json")
+    @Operation(summary = "获取正在执行中的作业配额使用情况")
     @GetMapping("/runningJob/quotaUsage")
     InternalResponse<RunningJobQuotaUsage> getRunningJobQuotaUsage();
 }

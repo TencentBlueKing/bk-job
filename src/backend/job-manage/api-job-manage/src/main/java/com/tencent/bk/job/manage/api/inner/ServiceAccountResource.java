@@ -56,7 +56,7 @@ public interface ServiceAccountResource {
      * @return
      */
     @GetMapping("/service/account/{accountId}")
-    @Operation(summary = "根据账号id获取账号信息", produces = "application/json")
+    @Operation(summary = "根据账号id获取账号信息")
     InternalResponse<ServiceAccountDTO>
     getAccountByAccountId(@Parameter(description = "账号ID", required = true) @PathVariable("accountId") Long accountId);
 
@@ -68,7 +68,7 @@ public interface ServiceAccountResource {
      * @return
      */
     @GetMapping("/service/account/app/{appId}/accounts/{account}")
-    @Operation(summary = "根据账号名获取账号信息", produces = "application/json")
+    @Operation(summary = "根据账号名获取账号信息")
     InternalResponse<ServiceAccountDTO>
     getAccountByAccountName(
         @Parameter(description = "业务ID", required = true) @PathVariable("appId") Long appId,
@@ -84,7 +84,7 @@ public interface ServiceAccountResource {
      * @return
      */
     @GetMapping("/service/account/app/{appId}/category/{category}/alias/{alias}")
-    @Operation(summary = "根据账号别名获取业务下的账号信息", produces = "application/json")
+    @Operation(summary = "根据账号别名获取业务下的账号信息")
     InternalResponse<ServiceAccountDTO> getAccountByCategoryAndAliasInApp(
         @Parameter(description = "业务ID", required = true) @PathVariable("appId") Long appId,
         @Parameter(description = "账号用途，1-系统账号，2-DB账号", required = true) @PathVariable("category") Integer category,
@@ -98,7 +98,7 @@ public interface ServiceAccountResource {
         @Parameter(description = "最后修改人") @RequestHeader(value = "X-Update-User", required = false) String lastModifyUser,
         @PathVariable("appId") Long appId, @RequestBody AccountCreateUpdateReq accountCreateUpdateReq);
 
-    @Operation(summary = "新增账号", produces = "application/json")
+    @Operation(summary = "新增账号")
     @PostMapping(value = "/service/account/app/{appId}/account")
     Response<Long> saveAccount(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -111,7 +111,7 @@ public interface ServiceAccountResource {
             AccountCreateUpdateReq accountCreateUpdateReq
     );
 
-    @Operation(summary = "获取业务下的账号列表，返回简单的账号信息", produces = "application/json")
+    @Operation(summary = "获取业务下的账号列表，返回简单的账号信息")
     @GetMapping("/service/account/account/app/{appId}/accounts")
     Response<List<ServiceAccountDTO>> listAccounts(
         @Parameter(description = "业务ID", required = true)

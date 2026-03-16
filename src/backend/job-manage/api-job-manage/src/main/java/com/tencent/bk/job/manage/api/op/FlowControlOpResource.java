@@ -44,14 +44,14 @@ import java.util.Map;
 @RestController
 public interface FlowControlOpResource {
 
-    @Operation(summary = "查询当前流控配置", produces = "application/json")
+    @Operation(summary = "查询当前流控配置")
     @GetMapping("/config")
     Response<Map<String, Long>> getCurrentFlowControlConfig(
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username") String username
     );
 
-    @Operation(summary = "更新流控配置", produces = "application/json")
+    @Operation(summary = "更新流控配置")
     @PostMapping("/config")
     Response<Integer> configFlowControl(
         @Parameter(description = "用户名，网关自动传入")
@@ -59,14 +59,14 @@ public interface FlowControlOpResource {
         @Parameter(description = "流控配置参数", required = true) @RequestBody ConfigFlowControlReq req
     );
 
-    @Operation(summary = "查询当前所有资源使用速率", produces = "application/json")
+    @Operation(summary = "查询当前所有资源使用速率")
     @GetMapping("/currentRateMap")
     Response<Map<String, Long>> getCurrentRateMap(
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username") String username
     );
 
-    @Operation(summary = "查询当前某资源使用速率", produces = "application/json")
+    @Operation(summary = "查询当前某资源使用速率")
     @GetMapping("/currentRate")
     Response<Long> getCurrentRate(
         @Parameter(description = "用户名，网关自动传入")

@@ -64,7 +64,7 @@ public class TaskFileStepVO {
      * 传输模式
      */
     @Schema(
-        value = "传输模式： 1 - 严谨模式； 2 - 强制模式；3 - 安全模式(FILESRCIP)；4 - 安全模式(YYYY-MM-DD)",
+        description = "传输模式： 1 - 严谨模式； 2 - 强制模式；3 - 安全模式(FILESRCIP)；4 - 安全模式(YYYY-MM-DD)",
         required = true)
     private Integer transferMode;
 

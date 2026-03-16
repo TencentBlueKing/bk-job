@@ -84,13 +84,13 @@ public interface ServiceApplicationResource {
                                           @Parameter(description = "资源范围ID", required = true)
                                           @PathVariable("scopeId") String scopeId);
 
-    @Operation(summary = "获取业务列表", produces = "application/json")
+    @Operation(summary = "获取业务列表")
     @GetMapping("/service/app/list")
     InternalResponse<List<ServiceApplicationDTO>> listApps(
         @Parameter(description = "资源范围类型", allowableValues = "1-业务,2-业务集")
         @RequestParam(value = "scopeType", required = false) String scopeType);
 
-    @Operation(summary = "获取所有已归档的业务(集)id", produces = "application/json")
+    @Operation(summary = "获取所有已归档的业务(集)id")
     @GetMapping("/service/app/listArchived")
     InternalResponse<List<Long>> listAllAppIdOfArchivedScope();
 
@@ -99,14 +99,14 @@ public interface ServiceApplicationResource {
     InternalResponse<Boolean> existsAppById(@Parameter(description = "Job业务ID", required = true)
                                        @PathVariable("appId") Long appId);
 
-    @Operation(summary = "获取租户下所有未删除的Job业务ID", produces = "application/json")
+    @Operation(summary = "获取租户下所有未删除的Job业务ID")
     @GetMapping("/service/app/listAppIdByTenant")
     InternalResponse<List<Long>> listAppIdByTenant(
         @RequestHeader(value = JobCommonHeaders.BK_TENANT_ID, required = false)
         String tenantId
     );
 
-    @Operation(summary = "获取租户下所有未删除的Job业务", produces = "application/json")
+    @Operation(summary = "获取租户下所有未删除的Job业务")
     @GetMapping("/service/app/listAppByTenant")
     InternalResponse<List<ServiceApplicationDTO>> listAppByTenant(
         @RequestHeader(value = JobCommonHeaders.BK_TENANT_ID, required = false)

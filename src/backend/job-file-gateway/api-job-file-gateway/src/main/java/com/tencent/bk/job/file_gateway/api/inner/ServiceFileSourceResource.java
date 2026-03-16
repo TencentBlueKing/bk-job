@@ -38,13 +38,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 @InternalAPI
 public interface ServiceFileSourceResource {
 
-    @Operation(summary = "获取文件源ID", produces = "application/json")
+    @Operation(summary = "获取文件源ID")
     @GetMapping("/service/app/{appId}/fileSource/getFileSourceIdByCode/codes/{code}")
     InternalResponse<Integer> getFileSourceIdByCode(
         @Parameter(description = "Job业务ID", required = true) @PathVariable("appId") Long appId,
         @Parameter(description = "文件源标识", required = true) @PathVariable("code") String code);
 
-    @Operation(summary = "判断是否存在文件源引用了指定凭证", produces = "application/json")
+    @Operation(summary = "判断是否存在文件源引用了指定凭证")
     @GetMapping("/service/app/{appId}/fileSource/existsFileSourceUsingCredential/credentialIds/{credentialId}")
     InternalResponse<Boolean> existsFileSourceUsingCredential(
         @Parameter(description = "Job业务ID", required = true) @PathVariable("appId") Long appId,

@@ -49,7 +49,7 @@ import java.util.List;
 @WebAPI
 public interface WebFileWorkerResource {
 
-    @Operation(summary = "获取文件接入点列表", produces = "application/json")
+    @Operation(summary = "获取文件接入点列表")
     @GetMapping("/scope/{scopeType}/{scopeId}/list")
     Response<List<FileWorkerVO>> listFileWorker(
         @Parameter(description = "用户名，网关自动传入")

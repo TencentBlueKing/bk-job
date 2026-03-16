@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @WebAPI
 public interface WebDangerousRecordResource {
-    @Operation(summary = "分页获取高危检测记录", produces = "application/json")
+    @Operation(summary = "分页获取高危检测记录")
     @GetMapping("/list")
     Response<PageData<DangerousRecordVO>> pageListDangerousRecords(
         @Parameter(description = "用户名，网关自动传入")

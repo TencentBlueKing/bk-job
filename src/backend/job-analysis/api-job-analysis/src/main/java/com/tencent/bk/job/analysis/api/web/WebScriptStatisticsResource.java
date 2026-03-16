@@ -44,7 +44,7 @@ import java.util.List;
 @WebAPI
 public interface WebScriptStatisticsResource {
 
-    @Operation(summary = "查询脚本引用统计信息", produces = "application/json")
+    @Operation(summary = "查询脚本引用统计信息")
     @GetMapping("/citeInfo")
     Response<ScriptCiteStatisticVO> scriptCiteInfo(
         @Parameter(description = "用户名，网关自动传入")

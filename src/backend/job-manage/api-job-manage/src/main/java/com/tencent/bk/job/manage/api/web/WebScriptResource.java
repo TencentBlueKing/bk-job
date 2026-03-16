@@ -75,7 +75,7 @@ import java.util.List;
 @WebAPI
 public interface WebScriptResource {
 
-    @Operation(summary = "根据脚本版本ID获取脚本版本详情", produces = "application/json")
+    @Operation(summary = "根据脚本版本ID获取脚本版本详情")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/scriptVersion/{scriptVersionId}"})
     Response<ScriptVO> getScriptVersionDetail(
         @Parameter(description = "用户名，网关自动传入")
@@ -95,7 +95,7 @@ public interface WebScriptResource {
             Long scriptVersionId
     );
 
-    @Operation(summary = "根据脚本ID获取脚本详情", produces = "application/json")
+    @Operation(summary = "根据脚本ID获取脚本详情")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/script/{scriptId}"})
     Response<ScriptVO> getScript(
         @Parameter(description = "用户名，网关自动传入")
@@ -114,7 +114,7 @@ public interface WebScriptResource {
         @PathVariable("scriptId")
             String scriptId);
 
-    @Operation(summary = "根据脚本ID获取脚本基本信息", produces = "application/json")
+    @Operation(summary = "根据脚本ID获取脚本基本信息")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/script/basic/{scriptId}"})
     Response<BasicScriptVO> getScriptBasicInfo(
         @Parameter(description = "用户名，网关自动传入")
@@ -134,7 +134,7 @@ public interface WebScriptResource {
             String scriptId
     );
 
-    @Operation(summary = "根据脚本ID获取已上线脚本", produces = "application/json")
+    @Operation(summary = "根据脚本ID获取已上线脚本")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/scriptVersion/online/{scriptId}"})
     Response<ScriptVO> getOnlineScriptVersionByScriptId(
         @Parameter(description = "用户名，网关自动传入")
@@ -153,7 +153,7 @@ public interface WebScriptResource {
         @PathVariable("scriptId") String scriptId
     );
 
-    @Operation(summary = "获取脚本列表", produces = "application/json")
+    @Operation(summary = "获取脚本列表")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/script/list"})
     Response<PageData<ScriptVO>> listPageScript(
         @Parameter(description = "用户名，网关自动传入")
@@ -208,7 +208,7 @@ public interface WebScriptResource {
             Integer order
     );
 
-    @Operation(summary = "获取脚本列表(仅包含基础信息)", produces = "application/json")
+    @Operation(summary = "获取脚本列表(仅包含基础信息)")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/script/basic/list"})
     Response<List<ScriptVO>> listScriptBasicInfo(
         @Parameter(description = "用户名，网关自动传入")
@@ -228,7 +228,7 @@ public interface WebScriptResource {
             List<String> scriptIds
     );
 
-    @Operation(summary = "获取脚本的所有版本", produces = "application/json")
+    @Operation(summary = "获取脚本的所有版本")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/script/{scriptId}/scriptVersion/list"})
     Response<List<ScriptVO>> listScriptVersion(
         @Parameter(description = "用户名，网关自动传入")
@@ -248,7 +248,7 @@ public interface WebScriptResource {
             String scriptId
     );
 
-    @Operation(summary = "更新脚本元数据，比如脚本描述、名称、标签", produces = "application/json")
+    @Operation(summary = "更新脚本元数据，比如脚本描述、名称、标签")
     @PutMapping("/scope/{scopeType}/{scopeId}/script/{scriptId}/info")
     Response<ScriptVO> updateScriptInfo(
         @Parameter(description = "用户名，网关自动传入")
@@ -272,7 +272,7 @@ public interface WebScriptResource {
     );
 
 
-    @Operation(summary = "创建脚本", produces = "application/json")
+    @Operation(summary = "创建脚本")
     @PostMapping("/scope/{scopeType}/{scopeId}/script")
     Response<ScriptVO> saveScript(
         @Parameter(description = "用户名，网关自动传入")
@@ -292,7 +292,7 @@ public interface WebScriptResource {
             ScriptCreateReq request
     );
 
-    @Operation(summary = "新增脚本版本", produces = "application/json")
+    @Operation(summary = "新增脚本版本")
     @PostMapping("/scope/{scopeType}/{scopeId}/script/{scriptId}/scriptVersion")
     Response<ScriptVO> saveScriptVersion(
         @Parameter(description = "用户名，网关自动传入")
@@ -315,7 +315,7 @@ public interface WebScriptResource {
             ScriptVersionCreateUpdateReq request
     );
 
-    @Operation(summary = "更新脚本版本", produces = "application/json")
+    @Operation(summary = "更新脚本版本")
     @PutMapping("/scope/{scopeType}/{scopeId}/script/{scriptId}/scriptVersion/{scriptVersionId}")
     Response<ScriptVO> updateScriptVersion(
         @Parameter(description = "用户名，网关自动传入")
@@ -340,7 +340,7 @@ public interface WebScriptResource {
             ScriptVersionCreateUpdateReq request
     );
 
-    @Operation(summary = "上线脚本", produces = "application/json")
+    @Operation(summary = "上线脚本")
     @PutMapping("/scope/{scopeType}/{scopeId}/script/{scriptId}/scriptVersion/{scriptVersionId}/publish")
     Response publishScriptVersion(
         @Parameter(description = "用户名，网关自动传入")
@@ -363,7 +363,7 @@ public interface WebScriptResource {
             Long scriptVersionId
     );
 
-    @Operation(summary = "禁用脚本", produces = "application/json")
+    @Operation(summary = "禁用脚本")
     @PutMapping("/scope/{scopeType}/{scopeId}/script/{scriptId}/scriptVersion/{scriptVersionId}/disable")
     Response disableScriptVersion(
         @Parameter(description = "用户名，网关自动传入")
@@ -386,7 +386,7 @@ public interface WebScriptResource {
             Long scriptVersionId
     );
 
-    @Operation(summary = "删除脚本", produces = "application/json")
+    @Operation(summary = "删除脚本")
     @DeleteMapping("/scope/{scopeType}/{scopeId}/script/{scriptId}")
     Response deleteScriptByScriptId(
         @Parameter(description = "用户名，网关自动传入")
@@ -406,7 +406,7 @@ public interface WebScriptResource {
             String scriptId
     );
 
-    @Operation(summary = "删除某个版本的脚本", produces = "application/json")
+    @Operation(summary = "删除某个版本的脚本")
     @DeleteMapping("/scope/{scopeType}/{scopeId}/scriptVersion/{scriptVersionId}")
     Response deleteScriptByScriptVersionId(
         @Parameter(description = "用户名，网关自动传入")
@@ -426,7 +426,7 @@ public interface WebScriptResource {
             Long scriptVersionId
     );
 
-    @Operation(summary = "根据条件查询业务下的脚本名称列表", produces = "application/json")
+    @Operation(summary = "根据条件查询业务下的脚本名称列表")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/scriptNames"})
     Response<List<String>> listAppScriptNames(
         @Parameter(description = "用户名，网关自动传入")
@@ -446,7 +446,7 @@ public interface WebScriptResource {
             String scriptName
     );
 
-    @Operation(summary = "获取业务下面的已在线业务脚本列表", produces = "application/json")
+    @Operation(summary = "获取业务下面的已在线业务脚本列表")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/scripts/online"})
     Response<List<BasicScriptVO>> listScriptOnline(
         @Parameter(description = "用户名，网关自动传入")
@@ -463,7 +463,7 @@ public interface WebScriptResource {
             String scopeId
     );
 
-    @Operation(summary = "检查脚本内容", produces = "application/json")
+    @Operation(summary = "检查脚本内容")
     @PutMapping("/check")
     Response<List<ScriptCheckResultItemVO>> checkScript(
         @Parameter(description = "用户名，网关自动传入")
@@ -474,7 +474,7 @@ public interface WebScriptResource {
             ScriptCheckReq scriptCheckReq
     );
 
-    @Operation(summary = "上传脚本获取内容", produces = "application/json")
+    @Operation(summary = "上传脚本获取内容")
     @PostMapping("/upload")
     Response<ScriptVO> uploadScript(
         @Parameter(description = "用户名，网关自动传入")
@@ -485,7 +485,7 @@ public interface WebScriptResource {
             MultipartFile scriptFile
     );
 
-    @Operation(summary = "获取脚本可以同步的模板与步骤信息", produces = "application/json")
+    @Operation(summary = "获取脚本可以同步的模板与步骤信息")
     @GetMapping(value =
         "/scope/{scopeType}/{scopeId}/script/{scriptId}/scriptVersion/{scriptVersionId}/syncTemplateSteps")
     Response<List<ScriptRelatedTemplateStepVO>> listScriptSyncTemplateSteps(
@@ -509,7 +509,7 @@ public interface WebScriptResource {
             Long scriptVersionId
     );
 
-    @Operation(summary = "同步脚本", produces = "application/json")
+    @Operation(summary = "同步脚本")
     @PostMapping("/scope/{scopeType}/{scopeId}/script/{scriptId}/scriptVersion/{scriptVersionId}/sync")
     Response<List<ScriptSyncResultVO>> syncScripts(
         @Parameter(description = "用户名，网关自动传入")
@@ -534,7 +534,7 @@ public interface WebScriptResource {
             ScriptSyncReq scriptSyncReq
     );
 
-    @Operation(summary = "根据脚本ID/脚本版本ID获取脚本被引次数", produces = "application/json")
+    @Operation(summary = "根据脚本ID/脚本版本ID获取脚本被引次数")
     @GetMapping("/scope/{scopeType}/{scopeId}/citeCount")
     Response<ScriptCiteCountVO> getScriptCiteCount(
         @Parameter(description = "用户名，网关自动传入")
@@ -557,7 +557,7 @@ public interface WebScriptResource {
             Long scriptVersionId
     );
 
-    @Operation(summary = "根据脚本ID/脚本版本ID获取脚本引用信息", produces = "application/json")
+    @Operation(summary = "根据脚本ID/脚本版本ID获取脚本引用信息")
     @GetMapping("/scope/{scopeType}/{scopeId}/citeInfo")
     Response<ScriptCiteInfoVO> getScriptCiteInfo(
         @Parameter(description = "用户名，网关自动传入")
@@ -578,7 +578,7 @@ public interface WebScriptResource {
             Long scriptVersionId
     );
 
-    @Operation(summary = "批量更新脚本标签-Patch方式", produces = "application/json")
+    @Operation(summary = "批量更新脚本标签-Patch方式")
     @PutMapping("/scope/{scopeType}/{scopeId}/tag")
     Response<?> batchUpdateScriptTags(
         @Parameter(description = "用户名，网关自动传入")
@@ -598,7 +598,7 @@ public interface WebScriptResource {
             ScriptTagBatchPatchReq tagBatchUpdateReq
     );
 
-    @Operation(summary = "获取业务下标签关联的脚本数量", produces = "application/json")
+    @Operation(summary = "获取业务下标签关联的脚本数量")
     @GetMapping("/scope/{scopeType}/{scopeId}/tag/count")
     Response<TagCountVO> getTagScriptCount(
         @Parameter(description = "用户名，网关自动传入")

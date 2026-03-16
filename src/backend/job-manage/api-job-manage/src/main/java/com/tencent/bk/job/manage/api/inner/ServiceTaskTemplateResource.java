@@ -50,7 +50,7 @@ import java.util.List;
 @InternalAPI
 public interface ServiceTaskTemplateResource {
 
-    @Operation(summary = "同步脚本更新消息", produces = "application/json")
+    @Operation(summary = "同步脚本更新消息")
     @PostMapping("/service/app/{appId}/template/script/{scriptId}/update_message")
     InternalResponse<Boolean> sendScriptUpdateMessage(
         @Parameter(description = "业务 ID", required = true) @PathVariable("appId") Long appId,
@@ -58,17 +58,17 @@ public interface ServiceTaskTemplateResource {
         @Parameter(description = "脚本版本 ID", required = true) @RequestParam("scriptVersionId") Long scriptVersionId,
         @Parameter(description = "脚本状态 1 - 上线 2 - 下线 3 - 禁用", required = true) @RequestParam("status") Integer status);
 
-    @Operation(summary = "根据模版 ID 获取模版信息", produces = "application/json")
+    @Operation(summary = "根据模版 ID 获取模版信息")
     @GetMapping("/service/template/{templateId}")
     InternalResponse<ServiceTaskTemplateDTO> getTemplateById(
         @Parameter(description = "模版 ID") @PathVariable("templateId") Long templateId);
 
-    @Operation(summary = "根据模版 ID 获取模版名称", produces = "application/json")
+    @Operation(summary = "根据模版 ID 获取模版名称")
     @GetMapping("/service/template/{templateId}/templateName")
     InternalResponse<String> getTemplateNameById(
         @Parameter(description = "模版 ID") @PathVariable("templateId") Long templateId);
 
-    @Operation(summary = "更新模版", produces = "application/json")
+    @Operation(summary = "更新模版")
     @PutMapping("/service/app/{appId}/template/{templateId}/saveTemplateWithVariableId")
     InternalResponse<Long> saveTemplateForMigration(
         @Parameter(description = "用户名，网关自动传入") @RequestHeader("username") String username,
@@ -81,21 +81,21 @@ public interface ServiceTaskTemplateResource {
         @Parameter(description = "新增/更新的模版对象", name = "templateCreateUpdateReq",
             required = true) @RequestBody TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq);
 
-    @Operation(summary = "校验模版 ID 和名称", produces = "application/json")
+    @Operation(summary = "校验模版 ID 和名称")
     @GetMapping("/service/app/{appId}/template/check")
     InternalResponse<ServiceIdNameCheckDTO> checkIdAndName(
         @Parameter(description = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @Parameter(description = "模版 ID") @RequestParam("templateId") Long templateId,
         @Parameter(description = "模版名称", required = true) @RequestParam("templateName") String name);
 
-    @Operation(summary = "根据模版 ID 获取模版变量信息", produces = "application/json")
+    @Operation(summary = "根据模版 ID 获取模版变量信息")
     @GetMapping("/service/app/{appId}/template/{templateId}/variable")
     InternalResponse<List<ServiceTaskVariableDTO>> getTemplateVariable(
         @Parameter(description = "用户名，网关自动传入") @RequestHeader("username") String username,
         @Parameter(description = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
         @Parameter(description = "模版 ID") @PathVariable("templateId") Long templateId);
 
-    @Operation(summary = "获取模版信息列表", produces = "application/json")
+    @Operation(summary = "获取模版信息列表")
     @GetMapping("/service/app/{appId}/template/list")
     InternalResponse<PageData<ServiceTaskTemplateDTO>> listPageTaskTemplates(
         @Parameter(description = "业务 ID", required = true, example = "2")
@@ -108,7 +108,7 @@ public interface ServiceTaskTemplateResource {
         @RequestParam(value = "pageSize", required = false)
             Integer pageSize);
 
-    @Operation(summary = "获取作业模版数量", produces = "application/json")
+    @Operation(summary = "获取作业模版数量")
     @GetMapping("/service/app/{appId}/template/count")
     InternalResponse<Integer> countTemplates(
         @Parameter(description = "业务Id", required = true, example = "2")

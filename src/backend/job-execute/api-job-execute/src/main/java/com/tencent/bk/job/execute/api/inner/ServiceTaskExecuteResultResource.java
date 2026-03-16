@@ -51,12 +51,12 @@ public interface ServiceTaskExecuteResultResource {
      * @param request 定时任务结果统计请求
      * @return Map<定时任务ID, 统计信息>
      */
-    @Operation(summary = "获取定时作业执行结果统计", produces = "application/json")
+    @Operation(summary = "获取定时作业执行结果统计")
     @PostMapping("/service/execution/task-execution-history/execute-result-statistics/cron")
     InternalResponse<Map<Long, ServiceCronTaskExecuteResultStatistics>> getCronTaskExecuteResultStatistics(
         @Parameter(description = "获取定时作业执行结果统计") @RequestBody ServiceGetCronTaskExecuteStatisticsRequest request);
 
-    @Operation(summary = "获取作业执行历史条数", produces = "application/json")
+    @Operation(summary = "获取作业执行历史条数")
     @GetMapping("/service/execution/app/{appId}/task-execution-history/count")
     InternalResponse<Integer> getTaskExecuteCount(
         @Parameter(description = "业务ID", required = true, example = "1")

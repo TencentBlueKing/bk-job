@@ -47,7 +47,7 @@ import java.util.List;
 @WebAPI
 public interface WebPublicTagResource {
 
-    @Operation(summary = "根据条件获取业务下的所有标签", produces = "application/json")
+    @Operation(summary = "根据条件获取业务下的所有标签")
     @GetMapping("/list")
     Response<List<TagVO>> listTags(
         @Parameter(description = "用户名，网关自动传入")

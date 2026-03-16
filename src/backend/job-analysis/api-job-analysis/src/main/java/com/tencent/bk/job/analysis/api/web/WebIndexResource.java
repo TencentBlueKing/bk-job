@@ -48,7 +48,7 @@ import java.util.List;
 @WebAPI
 public interface WebIndexResource {
 
-    @Operation(summary = "获取分析结果列表", produces = "application/json")
+    @Operation(summary = "获取分析结果列表")
     @GetMapping("/analysis/result/list")
     Response<List<AnalysisResultVO>> listAnalysisResult(
         @Parameter(description = "用户名，网关自动传入")

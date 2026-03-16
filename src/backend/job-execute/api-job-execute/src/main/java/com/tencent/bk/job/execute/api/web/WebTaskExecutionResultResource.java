@@ -68,7 +68,7 @@ import java.util.List;
 @RestController
 @WebAPI
 public interface WebTaskExecutionResultResource {
-    @Operation(summary = "获取作业执行历史列表", produces = "application/json")
+    @Operation(summary = "获取作业执行历史列表")
     @GetMapping(value = {"/task-execution-history/list"})
     Response<PageData<TaskInstanceVO>> getTaskHistoryList(
         @Parameter(description = "用户名，网关自动传入")
@@ -152,7 +152,7 @@ public interface WebTaskExecutionResultResource {
             Long taskInstanceId
     );
 
-    @Operation(summary = "获取作业步骤执行信息（废弃）", produces = "application/json")
+    @Operation(summary = "获取作业步骤执行信息（废弃）")
     @GetMapping(value = {
         "/step-execution-result/{stepInstanceId}/{executeCount}",
         "/step-execution-result/{stepInstanceId}"
@@ -203,7 +203,7 @@ public interface WebTaskExecutionResultResource {
             Integer order
     );
 
-    @Operation(summary = "获取作业步骤执行信息", produces = "application/json")
+    @Operation(summary = "获取作业步骤执行信息")
     @GetMapping(value = {
         "/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/stepExecutionResult"
     })
@@ -253,7 +253,7 @@ public interface WebTaskExecutionResultResource {
             Integer order
     );
 
-    @Operation(summary = "获取主机对应的脚本日志内容（废弃）", produces = "application/json")
+    @Operation(summary = "获取主机对应的脚本日志内容（废弃）")
     @GetMapping(value = {"/step-execution-result/log-content/{stepInstanceId}/{executeCount}/host/{hostId}"})
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
@@ -283,7 +283,7 @@ public interface WebTaskExecutionResultResource {
         @RequestParam(value = "batch", required = false) Integer batch
     );
 
-    @Operation(summary = "获取执行对象对应的脚本日志内容", produces = "application/json")
+    @Operation(summary = "获取执行对象对应的脚本日志内容")
     @GetMapping(value = {"/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/executeObject" +
         "/{executeObjectType}/{executeObjectResourceId}/scriptLog"})
     Response<ExecuteObjectScriptLogVO> getScriptLogContentByExecuteObject(
@@ -319,7 +319,7 @@ public interface WebTaskExecutionResultResource {
             Integer batch
     );
 
-    @Operation(summary = "获取文件分发步骤执行对象对应的日志", produces = "application/json")
+    @Operation(summary = "获取文件分发步骤执行对象对应的日志")
     @GetMapping(value = {"/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/executeObject" +
         "/{executeObjectType}/{executeObjectResourceId}/fileLog"})
     Response<ExecuteObjectFileLogVO> getFileLogContentByExecuteObject(
@@ -358,7 +358,7 @@ public interface WebTaskExecutionResultResource {
             Integer mode
     );
 
-    @Operation(summary = "获取文件分发步骤文件任务ID对应的执行日志", produces = "application/json")
+    @Operation(summary = "获取文件分发步骤文件任务ID对应的执行日志")
     @PostMapping(value = {"/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/fileLog/queryByIds"})
     Response<List<FileDistributionDetailV2VO>> getFileLogContentByFileTaskIds(
         @Parameter(description = "用户名，网关自动传入")
@@ -390,7 +390,7 @@ public interface WebTaskExecutionResultResource {
             List<String> taskIds
     );
 
-    @Operation(summary = "获取执行步骤-主机对应的变量列表（废弃）", produces = "application/json")
+    @Operation(summary = "获取执行步骤-主机对应的变量列表（废弃）")
     @GetMapping(value = {"/step-execution-result/step/{stepInstanceId}/variables"})
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
@@ -419,7 +419,7 @@ public interface WebTaskExecutionResultResource {
             String ip
     );
 
-    @Operation(summary = "获取执行步骤-执行对象对应的变量列表", produces = "application/json")
+    @Operation(summary = "获取执行步骤-执行对象对应的变量列表")
     @GetMapping(value = {"/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/executeObject" +
         "/{executeObjectType}/{executeObjectResourceId}/variables"})
     Response<List<ExecuteVariableVO>> getStepVariableByExecuteObject(
@@ -449,7 +449,7 @@ public interface WebTaskExecutionResultResource {
             Long executeObjectResourceId
     );
 
-    @Operation(summary = "获取执行结果分组下的主机列表（废弃）", produces = "application/json")
+    @Operation(summary = "获取执行结果分组下的主机列表（废弃）")
     @GetMapping(value = {"/step-execution-result/hosts/{stepInstanceId}/{executeCount}"})
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
@@ -485,7 +485,7 @@ public interface WebTaskExecutionResultResource {
             String keyword
     );
 
-    @Operation(summary = "获取执行结果分组下的执行对象列表", produces = "application/json")
+    @Operation(summary = "获取执行结果分组下的执行对象列表")
     @GetMapping(value = {"/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/{executeCount}/executeObjects"})
     Response<List<ExecuteObjectVO>> getExecuteObjectsByResultType(
         @Parameter(description = "用户名，网关自动传入")
@@ -521,7 +521,7 @@ public interface WebTaskExecutionResultResource {
             String keyword
     );
 
-    @Operation(summary = "获取步骤执行历史", produces = "application/json")
+    @Operation(summary = "获取步骤执行历史")
     @GetMapping(value = {"/step-execution-history/{stepInstanceId}"})
     @Deprecated
     @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.11.x",
@@ -548,7 +548,7 @@ public interface WebTaskExecutionResultResource {
     );
 
 
-    @Operation(summary = "获取步骤执行历史", produces = "application/json")
+    @Operation(summary = "获取步骤执行历史")
     @GetMapping(value = {"/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/stepExecutionHistory"})
     Response<List<StepExecutionRecordVO>> listStepExecutionHistoryV2(
         @Parameter(description = "用户名，网关自动传入")

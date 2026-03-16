@@ -54,7 +54,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 @WebAPI
 public interface WebAppResource {
 
-    @Operation(summary = "获取用户的业务列表（带收藏标识、分页），IP白名单相关场景选择业务使用", produces = "application/json")
+    @Operation(summary = "获取用户的业务列表（带收藏标识、分页），IP白名单相关场景选择业务使用")
     @GetMapping(value = {"/app/list/favor", "/scope/list/favor"})
     Response<PageData<AppVO>> listPagedAppWithFavor(
         @Parameter(description = "用户名，网关自动传入")
@@ -68,7 +68,7 @@ public interface WebAppResource {
             Integer pageSize
     );
 
-    @Operation(summary = "获取用户的资源范围分组面板数据（含分组列表（带收藏标识、权限标识）、申请按钮状态等数据）", produces = "application/json")
+    @Operation(summary = "获取用户的资源范围分组面板数据（含分组列表（带收藏标识、权限标识）、申请按钮状态等数据）")
     @GetMapping(value = {"/scopeGroupPanel"})
     Response<ScopeGroupPanel> getScopeGroupPanel(
         @Parameter(description = "用户名，网关自动传入")
@@ -76,7 +76,7 @@ public interface WebAppResource {
         String username
     );
 
-    @Operation(summary = "收藏业务", produces = "application/json")
+    @Operation(summary = "收藏业务")
     @PostMapping(value = "/scope/{scopeType}/{scopeId}/favor")
     Response<Integer> favorApp(
         @Parameter(description = "用户名，网关自动传入")
@@ -94,7 +94,7 @@ public interface WebAppResource {
         @RequestBody FavorAppReq favorAppReq
     );
 
-    @Operation(summary = "取消收藏业务", produces = "application/json")
+    @Operation(summary = "取消收藏业务")
     @PostMapping(value = "/scope/{scopeType}/{scopeId}/cancelFavor")
     Response<Integer> cancelFavorApp(
         @Parameter(description = "用户名，网关自动传入")

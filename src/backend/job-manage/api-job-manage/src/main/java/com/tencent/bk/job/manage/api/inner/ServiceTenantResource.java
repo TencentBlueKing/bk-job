@@ -40,11 +40,11 @@ import java.util.List;
 @InternalAPI
 public interface ServiceTenantResource {
 
-    @Operation(summary = "获取启用的租户信息", produces = "application/json")
+    @Operation(summary = "获取启用的租户信息")
     @GetMapping("/service/tenant/listEnabledTenant")
     InternalResponse<List<TenantDTO>> listEnabledTenant();
 
-    @Operation(summary = "根据appId获取租户Id", produces = "application/json")
+    @Operation(summary = "根据appId获取租户Id")
     @GetMapping("/service/tenant/getTenantIdByAppId")
     InternalResponse<String> getTenantIdByAppId(@RequestParam(value = "appId")
                                                 long appId);

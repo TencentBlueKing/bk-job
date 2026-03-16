@@ -40,19 +40,18 @@ import org.springframework.web.bind.annotation.RestController;
 @InternalAPI
 public interface ServiceTaskEvictPolicyResource {
 
-    @Operation(summary = "获取当前使用的任务驱逐策略", produces = "application/json")
+    @Operation(summary = "获取当前使用的任务驱逐策略")
     @GetMapping("/service/task-evict-policys/current")
     InternalResponse<ComposedTaskEvictPolicyDTO> getCurrentPolicy();
 
     @Operation(summary = "设置任务驱逐策略，参考值：{\"@type\":\"ComposedTaskEvictPolicy\",\"operator\":\"OR\"," +
         "\"policyList\":[{\"@type\":\"TaskInstanceIdEvictPolicy\",\"taskInstanceIdsToEvict\":[1001,1002]}," +
         "{\"@type\":\"AppIdTaskEvictPolicy\",\"appIdsToEvict\":[2,3]},{\"@type\":\"AppCodeTaskEvictPolicy\"," +
-        "\"appCodesToEvict\":[\"appCode1\",\"appCode2\"]}]}",
-        produces = "application/json")
+        "\"appCodesToEvict\":[\"appCode1\",\"appCode2\"]}]}")
     @PutMapping("/service/task-evict-policys")
     InternalResponse<Boolean> setPolicy(@RequestBody ComposedTaskEvictPolicyDTO policyDTO);
 
-    @Operation(summary = "清除所有任务驱逐策略", produces = "application/json")
+    @Operation(summary = "清除所有任务驱逐策略")
     @DeleteMapping("/service/task-evict-policys/clear")
     InternalResponse<Boolean> clearPolicy();
 

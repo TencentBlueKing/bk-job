@@ -56,7 +56,7 @@ import java.util.List;
 @WebAPI
 public interface WebFileSourceResource {
 
-    @Operation(summary = "检查文件源别名是否已存在（可用返回true）", produces = "application/json")
+    @Operation(summary = "检查文件源别名是否已存在（可用返回true）")
     @GetMapping("/checkAlias")
     Response<Boolean> checkAlias(
         @Parameter(description = "用户名，网关自动传入")
@@ -78,7 +78,7 @@ public interface WebFileSourceResource {
             Integer fileSourceId
     );
 
-    @Operation(summary = "新增文件源", produces = "application/json")
+    @Operation(summary = "新增文件源")
     @PostMapping("")
     Response<FileSourceVO> saveFileSource(
         @Parameter(description = "用户名，网关自动传入")
@@ -99,7 +99,7 @@ public interface WebFileSourceResource {
             FileSourceCreateUpdateReq fileSourceCreateUpdateReq
     );
 
-    @Operation(summary = "更新文件源", produces = "application/json")
+    @Operation(summary = "更新文件源")
     @PutMapping("/{id}")
     Response<FileSourceVO> updateFileSource(
         @Parameter(description = "用户名，网关自动传入")
@@ -123,7 +123,7 @@ public interface WebFileSourceResource {
             FileSourceCreateUpdateReq fileSourceCreateUpdateReq
     );
 
-    @Operation(summary = "删除文件源", produces = "application/json")
+    @Operation(summary = "删除文件源")
     @DeleteMapping("/ids/{id}")
     Response<Integer> deleteFileSource(
         @Parameter(description = "用户名，网关自动传入")
@@ -142,7 +142,7 @@ public interface WebFileSourceResource {
         @PathVariable("id")
             Integer id);
 
-    @Operation(summary = "启用/禁用文件源", produces = "application/json")
+    @Operation(summary = "启用/禁用文件源")
     @PutMapping("/ids/{id}/enable")
     Response<Boolean> enableFileSource(
         @Parameter(description = "用户名，网关自动传入")
@@ -165,7 +165,7 @@ public interface WebFileSourceResource {
             Boolean enableFlag
     );
 
-    @Operation(summary = "获取文件源详情", produces = "application/json")
+    @Operation(summary = "获取文件源详情")
     @GetMapping("/ids/{id}")
     Response<FileSourceVO> getFileSourceDetail(
         @Parameter(description = "用户名，网关自动传入")
@@ -184,7 +184,7 @@ public interface WebFileSourceResource {
         @PathVariable("id")
             Integer id);
 
-    @Operation(summary = "获取可使用的文件源列表", produces = "application/json")
+    @Operation(summary = "获取可使用的文件源列表")
     @GetMapping("/available/list")
     Response<PageData<FileSourceVO>> listAvailableFileSource(
         @Parameter(description = "用户名，网关自动传入")
@@ -212,7 +212,7 @@ public interface WebFileSourceResource {
         @RequestParam(value = "pageSize", required = false)
             Integer pageSize);
 
-    @Operation(summary = "获取可管理的工作台文件源列表", produces = "application/json")
+    @Operation(summary = "获取可管理的工作台文件源列表")
     @GetMapping("/workTable/list")
     Response<PageData<FileSourceVO>> listWorkTableFileSource(
         @Parameter(description = "用户名，网关自动传入")
@@ -241,7 +241,7 @@ public interface WebFileSourceResource {
             Integer pageSize
     );
 
-    @Operation(summary = "获取文件源类型的静态参数", produces = "application/json")
+    @Operation(summary = "获取文件源类型的静态参数")
     @GetMapping("/fileSourceParams")
     Response<List<FileSourceStaticParam>> getFileSourceParams(
         @Parameter(description = "用户名，网关自动传入")

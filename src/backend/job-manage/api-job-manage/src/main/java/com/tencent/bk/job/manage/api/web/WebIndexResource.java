@@ -54,7 +54,7 @@ import java.util.List;
 public interface WebIndexResource {
 
     @Deprecated
-    @Operation(summary = "获取问候语列表", produces = "application/json")
+    @Operation(summary = "获取问候语列表")
     @GetMapping("/analysis/greeting/list")
     Response<List<GreetingVO>> listGreeting(
         @Parameter(description = "用户名，网关自动传入")
@@ -71,7 +71,7 @@ public interface WebIndexResource {
             String scopeId
     );
 
-    @Operation(summary = "获取Agent统计数据", produces = "application/json")
+    @Operation(summary = "获取Agent统计数据")
     @GetMapping("/statistics/agent")
     Response<AgentStatistics> getAgentStatistics(
         @Parameter(description = "用户名，网关自动传入")
@@ -88,7 +88,7 @@ public interface WebIndexResource {
             String scopeId
     );
 
-    @Operation(summary = "根据Agent状态获取主机分页列表，agentStatus：0为异常，1为正常", produces = "application/json")
+    @Operation(summary = "根据Agent状态获取主机分页列表，agentStatus：0为异常，1为正常")
     @GetMapping("/hosts/agentStatus/{agentStatus}")
     Response<PageData<HostInfoVO>> listHostsByAgentStatus(
         @Parameter(description = "用户名，网关自动传入")
@@ -114,7 +114,7 @@ public interface WebIndexResource {
             Long pageSize
     );
 
-    @Operation(summary = "根据Agent状态获取IP分页列表，agentStatus：0为异常，1为正常", produces = "application/json")
+    @Operation(summary = "根据Agent状态获取IP分页列表，agentStatus：0为异常，1为正常")
     @GetMapping("/IPs/agentStatus/{agentStatus}")
     Response<PageData<String>> listIPsByAgentStatus(
         @Parameter(description = "用户名，网关自动传入")
@@ -140,7 +140,7 @@ public interface WebIndexResource {
             Long pageSize
     );
 
-    @Operation(summary = "获取作业与脚本统计数据", produces = "application/json")
+    @Operation(summary = "获取作业与脚本统计数据")
     @GetMapping("/statistics/jobAndScript")
     Response<JobAndScriptStatistics> getJobAndScriptStatistics(
         @Parameter(description = "用户名，网关自动传入")
@@ -157,7 +157,7 @@ public interface WebIndexResource {
             String scopeId
     );
 
-    @Operation(summary = "获取我收藏的作业", produces = "application/json")
+    @Operation(summary = "获取我收藏的作业")
     @GetMapping("/jobs/myFavorList")
     Response<List<TaskTemplateVO>> listMyFavorTasks(
         @Parameter(description = "用户名，网关自动传入")

@@ -48,7 +48,7 @@ import java.util.List;
 @RestController
 public interface FileSourceWhiteInfoOpResource {
 
-    @Operation(summary = "添加蓝鲸制品库地址白名单", produces = "application/json")
+    @Operation(summary = "添加蓝鲸制品库地址白名单")
     @PostMapping("/addBkArtifactoryWhiteBaseUrl")
     Response<Integer> addBkArtifactoryWhiteBaseUrl(
         @Parameter(description = "用户名")
@@ -58,7 +58,7 @@ public interface FileSourceWhiteInfoOpResource {
         AddBkArtifactoryWhiteBaseUrlReq req
     );
 
-    @Operation(summary = "查询白名单列表", produces = "application/json")
+    @Operation(summary = "查询白名单列表")
     @GetMapping("/list")
     Response<List<FileSourceWhiteInfoVO>> list(
         @Parameter(description = "用户名")
@@ -70,7 +70,7 @@ public interface FileSourceWhiteInfoOpResource {
         Integer length
     );
 
-    @Operation(summary = "批量删除白名单", produces = "application/json")
+    @Operation(summary = "批量删除白名单")
     @DeleteMapping("/batchDelete")
     Response<Integer> batchDelete(
         @Parameter(description = "用户名")

@@ -45,17 +45,17 @@ import org.springframework.web.bind.annotation.RestController;
 @WorkerAPI
 public interface FileResource {
 
-    @Operation(summary = "测试文件源是否可用", produces = "application/json")
+    @Operation(summary = "测试文件源是否可用")
     @PostMapping("/available")
     InternalResponse<Boolean> isFileAvailable(
         @Parameter(description = "文件源是否可用", required = true) @RequestBody BaseReq req);
 
-    @Operation(summary = "获取文件源/FileNode下的子FileNode列表", produces = "application/json")
+    @Operation(summary = "获取文件源/FileNode下的子FileNode列表")
     @PostMapping("/listFileNode")
     InternalResponse<FileNodesDTO> listFileNode(
         @Parameter(description = "获取文件源/FileNode下的子FileNode列表", required = true) @RequestBody ListFileNodeReq req);
 
-    @Operation(summary = "文件源操作", produces = "application/json")
+    @Operation(summary = "文件源操作")
     @PostMapping("/executeAction")
     InternalResponse<Boolean> executeAction(
         @Parameter(description = "文件源操作", required = true) @RequestBody ExecuteActionReq req

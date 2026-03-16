@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public interface TenantOpResource {
 
-    @Operation(summary = "初始化租户", produces = "application/json")
+    @Operation(summary = "初始化租户")
     @PostMapping("/init")
     Response<Object> initTenant(@Parameter(description = "初始化租户请求", required = true)
                               @RequestBody

@@ -43,7 +43,7 @@ import java.util.List;
 @WebAPI
 public interface WebServiceInfoResource {
 
-    @Operation(summary = "获取所有服务信息", produces = "application/json")
+    @Operation(summary = "获取所有服务信息")
     @GetMapping("/listAll")
     Response<List<ServiceInfoVO>> listServiceInfo(
         @Parameter(description = "用户名，网关自动传入")

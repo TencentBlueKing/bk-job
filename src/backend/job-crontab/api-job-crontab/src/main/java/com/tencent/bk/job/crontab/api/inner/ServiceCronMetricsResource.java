@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @EsbAPI
 public interface ServiceCronMetricsResource {
 
-    @Operation(summary = "定时任务总量", produces = "application/json")
+    @Operation(summary = "定时任务总量")
     @GetMapping("/service/metrics/count")
     InternalResponse<Integer> countCronJob(
         @Parameter(description = "业务Id")

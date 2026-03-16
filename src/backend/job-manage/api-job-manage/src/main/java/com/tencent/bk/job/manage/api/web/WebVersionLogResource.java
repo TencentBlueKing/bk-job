@@ -50,8 +50,7 @@ public interface WebVersionLogResource {
         + "字段说明："
         + "content-版本更新日志内容，"
         + "version-版本号，"
-        + "time-版本发布时间。",
-        produces = "application/json")
+        + "time-版本发布时间。")
     @GetMapping
     Response<Object> getVersionLog();
 }

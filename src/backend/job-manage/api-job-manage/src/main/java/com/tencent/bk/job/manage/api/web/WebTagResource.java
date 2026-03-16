@@ -60,7 +60,7 @@ import java.util.List;
 @WebAPI
 public interface WebTagResource {
 
-    @Operation(summary = "根据条件获取业务下的所有标签", produces = "application/json")
+    @Operation(summary = "根据条件获取业务下的所有标签")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/tag/list"})
     Response<PageData<TagVO>> listPageTags(
         @Parameter(description = "用户名，网关自动传入")
@@ -98,7 +98,7 @@ public interface WebTagResource {
             Integer order
     );
 
-    @Operation(summary = "根据条件获取业务下的所有标签,仅返回基础信息(id/name/description)", produces = "application/json")
+    @Operation(summary = "根据条件获取业务下的所有标签,仅返回基础信息(id/name/description)")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/tag/basic/list"})
     Response<List<TagVO>> listTagsBasic(
         @Parameter(description = "用户名，网关自动传入")
@@ -117,7 +117,7 @@ public interface WebTagResource {
             String name
     );
 
-    @Operation(summary = "更新标签名称", produces = "application/json")
+    @Operation(summary = "更新标签名称")
     @PutMapping("/scope/{scopeType}/{scopeId}/tag/{tagId}")
     Response<Boolean> updateTagInfo(
         @Parameter(description = "用户名，网关自动传入") @RequestHeader("username")
@@ -139,7 +139,7 @@ public interface WebTagResource {
             TagCreateUpdateReq tagCreateUpdateReq
     );
 
-    @Operation(summary = "创建标签", produces = "application/json")
+    @Operation(summary = "创建标签")
     @PostMapping("/scope/{scopeType}/{scopeId}/tag")
     Response<TagVO> saveTagInfo(
         @Parameter(description = "用户名，网关自动传入")
@@ -159,7 +159,7 @@ public interface WebTagResource {
             TagCreateUpdateReq tagCreateUpdateReq
     );
 
-    @Operation(summary = "删除标签", produces = "application/json")
+    @Operation(summary = "删除标签")
     @DeleteMapping("/scope/{scopeType}/{scopeId}/tag/{tagId}")
     Response<Boolean> deleteTag(
         @Parameter(description = "用户名，网关自动传入")
@@ -180,7 +180,7 @@ public interface WebTagResource {
     );
 
 
-    @Operation(summary = "批量流转标签", produces = "application/json")
+    @Operation(summary = "批量流转标签")
     @PutMapping("/scope/{scopeType}/{scopeId}/tag/{tagId}/resources")
     Response<?> patchTagRefResourceTags(
         @Parameter(description = "用户名，网关自动传入")
@@ -203,7 +203,7 @@ public interface WebTagResource {
             BatchPatchResourceTagReq tagBatchUpdateReq
     );
 
-    @Operation(summary = "检查标签名称是否合法", produces = "application/json")
+    @Operation(summary = "检查标签名称是否合法")
     @GetMapping("/scope/{scopeType}/{scopeId}/tag/{tagId}/checkName")
     Response<Boolean> checkTagName(
         @Parameter(description = "用户名，网关自动传入")

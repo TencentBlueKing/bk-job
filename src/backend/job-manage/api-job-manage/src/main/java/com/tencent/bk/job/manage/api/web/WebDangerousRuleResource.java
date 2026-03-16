@@ -52,7 +52,7 @@ import java.util.List;
 @WebAPI
 public interface WebDangerousRuleResource {
 
-    @Operation(summary = "获取高危语句规则列表", produces = "application/json")
+    @Operation(summary = "获取高危语句规则列表")
     @GetMapping("/list")
     Response<List<DangerousRuleVO>> listDangerousRules(
         @Parameter(description = "用户名，网关自动传入")
@@ -73,7 +73,7 @@ public interface WebDangerousRuleResource {
     );
 
 
-    @Operation(summary = "创建高危语句规则", produces = "application/json")
+    @Operation(summary = "创建高危语句规则")
     @PostMapping
     Response<DangerousRuleVO> createDangerousRule(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -84,7 +84,7 @@ public interface WebDangerousRuleResource {
         @Validated AddOrUpdateDangerousRuleReq req
     );
 
-    @Operation(summary = "修改高危语句规则", produces = "application/json")
+    @Operation(summary = "修改高危语句规则")
     @PutMapping("/{id}")
     Response<DangerousRuleVO> updateDangerousRule(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -99,7 +99,7 @@ public interface WebDangerousRuleResource {
     );
 
 
-    @Operation(summary = "移动高危语句规则", produces = "application/json")
+    @Operation(summary = "移动高危语句规则")
     @PutMapping("/move")
     Response<Integer> moveDangerousRule(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -111,7 +111,7 @@ public interface WebDangerousRuleResource {
     );
 
 
-    @Operation(summary = "删除高危语句规则", produces = "application/json")
+    @Operation(summary = "删除高危语句规则")
     @DeleteMapping("/{id}")
     Response<Integer> deleteDangerousRuleById(
         @Parameter(description = "用户名，网关自动传入")

@@ -50,7 +50,7 @@ import java.util.List;
 @RestController
 @WebAPI
 public interface WebFileUploadResource {
-    @Operation(summary = "上传本地文件", produces = "application/json")
+    @Operation(summary = "上传本地文件")
     @PostMapping("/localFile")
     Response<List<UploadLocalFileResultVO>> uploadLocalFile(
         @Parameter(description = "用户名，网关自动传入")
@@ -60,7 +60,7 @@ public interface WebFileUploadResource {
         @RequestParam("uploadFiles")
             MultipartFile[] uploadFiles);
 
-    @Operation(summary = "生成上传目标地址信息", produces = "application/json")
+    @Operation(summary = "生成上传目标地址信息")
     @PostMapping("/genUploadTarget")
     Response<UploadTargetVO> genUploadTarget(
         @Parameter(description = "用户名，网关自动传入")

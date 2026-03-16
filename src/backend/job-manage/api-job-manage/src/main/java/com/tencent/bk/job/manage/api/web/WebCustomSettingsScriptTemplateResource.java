@@ -49,7 +49,7 @@ import java.util.List;
 @WebAPI
 public interface WebCustomSettingsScriptTemplateResource {
 
-    @Operation(summary = "获取用户自定义的脚本模板", produces = "application/json")
+    @Operation(summary = "获取用户自定义的脚本模板")
     @GetMapping
     Response<List<ScriptTemplateVO>> listUserCustomScriptTemplate(
         @Parameter(description = "用户名，网关自动传入")
@@ -59,7 +59,7 @@ public interface WebCustomSettingsScriptTemplateResource {
         @RequestParam(value = "scriptLanguages", required = false)
             String scriptLanguages);
 
-    @Operation(summary = "获取渲染后的用户自定义的脚本模板", produces = "application/json")
+    @Operation(summary = "获取渲染后的用户自定义的脚本模板")
     @GetMapping("/rendered")
     Response<List<ScriptTemplateVO>> listRenderedUserCustomScriptTemplate(
         @Parameter(description = "用户名，网关自动传入")
@@ -76,7 +76,7 @@ public interface WebCustomSettingsScriptTemplateResource {
             String scopeId
     );
 
-    @Operation(summary = "保存用户自定义的脚本模板", produces = "application/json")
+    @Operation(summary = "保存用户自定义的脚本模板")
     @PostMapping
     Response saveScriptTemplate(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -87,7 +87,7 @@ public interface WebCustomSettingsScriptTemplateResource {
             ScriptTemplateCreateUpdateReq req
     );
 
-    @Operation(summary = "渲染自定义的脚本模板", produces = "application/json")
+    @Operation(summary = "渲染自定义的脚本模板")
     @PostMapping("/render")
     Response<ScriptTemplateVO> renderScriptTemplate(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -98,7 +98,7 @@ public interface WebCustomSettingsScriptTemplateResource {
             ScriptTemplateRenderReq req
     );
 
-    @Operation(summary = "获取用户自定义的脚本模板变量", produces = "application/json")
+    @Operation(summary = "获取用户自定义的脚本模板变量")
     @GetMapping("/variables")
     Response<List<ScriptTemplateVariableVO>> listScriptTemplateVariables(
         @Parameter(description = "用户名，网关自动传入")

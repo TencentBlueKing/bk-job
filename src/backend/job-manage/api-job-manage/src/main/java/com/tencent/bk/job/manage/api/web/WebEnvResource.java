@@ -51,7 +51,7 @@ public interface WebEnvResource {
      * @param username 用户名
      * @return Map, key: 属性名, value: 属性值
      */
-    @Operation(summary = "获取Job环境的属性", produces = "application/json")
+    @Operation(summary = "获取Job环境的属性")
     @GetMapping("/properties")
     Response<Map<String, String>> getJobEnvProperties(
         @Hidden

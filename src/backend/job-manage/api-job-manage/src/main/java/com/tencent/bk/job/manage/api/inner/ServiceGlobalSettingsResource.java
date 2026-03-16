@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @InternalAPI
 public interface ServiceGlobalSettingsResource {
 
-    @Operation(summary = "获取文档中心Job文档基础Url", produces = "application/json")
+    @Operation(summary = "获取文档中心Job文档基础Url")
     @GetMapping("/service/globalSettings/docJobRootUrl")
     InternalResponse<String> getDocJobRootUrl();
 

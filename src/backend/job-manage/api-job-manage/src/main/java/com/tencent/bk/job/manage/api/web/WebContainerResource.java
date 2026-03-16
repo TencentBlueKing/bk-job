@@ -59,7 +59,7 @@ import java.util.List;
 public interface WebContainerResource {
 
     // 容器选择器标准接口-1
-    @Operation(summary = "获取容器拓扑树（含各节点容器数）", produces = "application/json")
+    @Operation(summary = "获取容器拓扑树（含各节点容器数）")
     @PostMapping(value = {"/topology/container"})
     Response<List<ContainerTopologyNodeVO>> listTopologyTrees(
         @Parameter(description = "用户名，网关自动传入")
@@ -80,7 +80,7 @@ public interface WebContainerResource {
     );
 
     // 容器选择器标准接口-2
-    @Operation(summary = "容器选择器根据拓扑节点集合获取容器列表", produces = "application/json")
+    @Operation(summary = "容器选择器根据拓扑节点集合获取容器列表")
     @PostMapping(value = {"/topology/containers/nodes"})
     Response<PageData<ContainerVO>> listContainerByTopologyNodes(
         @Parameter(description = "用户名，网关自动传入")
@@ -102,7 +102,7 @@ public interface WebContainerResource {
 
     // 容器选择器标准接口-3
     @Operation(summary = "容器选择器根据拓扑节点集合获取容器资源ID列表，用于跨页全选容器功能"
-        , produces = "application/json")
+        )
     @PostMapping(value = {"/topology/containerIds/nodes"})
     Response<PageData<ContainerIdWithMeta>> listContainerIdByTopologyNodes(
         @Parameter(description = "用户名，网关自动传入")

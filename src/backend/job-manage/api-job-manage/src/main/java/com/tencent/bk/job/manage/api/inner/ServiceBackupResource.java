@@ -44,7 +44,7 @@ import java.util.List;
 @SmartFeignClient(value = "job-manage", contextId = "backupResource")
 @InternalAPI
 public interface ServiceBackupResource {
-    @Operation(summary = "根据模版 ID 获取模版信息", produces = "application/json")
+    @Operation(summary = "根据模版 ID 获取模版信息")
     @GetMapping("/service/app/{appId}/template/{templateId}")
     Response<TaskTemplateVO> getTemplateById(
         @PathVariable(value = "appId")
@@ -53,7 +53,7 @@ public interface ServiceBackupResource {
         Long templateId
     );
 
-    @Operation(summary = "根据执行方案 ID 获取执行方案信息", produces = "application/json")
+    @Operation(summary = "根据执行方案 ID 获取执行方案信息")
     @GetMapping("/service/app/{appId}/task/plan/{templateId}/{planId}")
     Response<TaskPlanVO> getPlanById(
         @PathVariable(value = "appId")
@@ -66,7 +66,7 @@ public interface ServiceBackupResource {
         Long planId
     );
 
-    @Operation(summary = "获取执行方案基本信息列表", produces = "application/json")
+    @Operation(summary = "获取执行方案基本信息列表")
     @GetMapping("/service/app/{appId}/task/plan/{templateId}")
     Response<List<TaskPlanVO>> listPlans(
         @PathVariable(value = "appId")

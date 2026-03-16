@@ -41,7 +41,7 @@ import java.util.List;
 @InternalAPI
 public interface ServiceTagResource {
 
-    @Operation(summary = "获取业务下的所有标签", produces = "application/json")
+    @Operation(summary = "获取业务下的所有标签")
     @GetMapping("/service/tag/list")
     InternalResponse<List<ServiceTagDTO>> listTags(
         @Parameter(description = "业务Id")
@@ -49,7 +49,7 @@ public interface ServiceTagResource {
             Long appId
     );
 
-    @Operation(summary = "获取所有公共标签", produces = "application/json")
+    @Operation(summary = "获取所有公共标签")
     @GetMapping("/service/tag/list/public")
     InternalResponse<List<ServiceTagDTO>> listPublicTags();
 

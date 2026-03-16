@@ -59,7 +59,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 @WebAPI
 public interface WebExecuteTaskResource {
 
-    @Operation(summary = "执行作业", produces = "application/json")
+    @Operation(summary = "执行作业")
     @PostMapping(value = {"/task-execution"})
     Response<TaskExecuteVO> executeTask(
         @Parameter(description = "用户名，网关自动传入")
@@ -79,7 +79,7 @@ public interface WebExecuteTaskResource {
             WebTaskExecuteRequest request
     );
 
-    @Operation(summary = "重新执行作业", produces = "application/json")
+    @Operation(summary = "重新执行作业")
     @PostMapping(value = {"/task-execution/redo-task"})
     Response<TaskExecuteVO> redoTask(
         @Parameter(description = "用户名，网关自动传入")
@@ -99,7 +99,7 @@ public interface WebExecuteTaskResource {
             RedoTaskRequest request
     );
 
-    @Operation(summary = "快速执行脚本", produces = "application/json")
+    @Operation(summary = "快速执行脚本")
     @PostMapping(value = {"/fast-execute-script"})
     Response<StepExecuteVO> fastExecuteScript(
         @Parameter(description = "用户名，网关自动传入")
@@ -120,7 +120,7 @@ public interface WebExecuteTaskResource {
             WebFastExecuteScriptRequest request
     );
 
-    @Operation(summary = "快速分发文件", produces = "application/json")
+    @Operation(summary = "快速分发文件")
     @PostMapping(value = {"/fast-push-file"})
     Response<StepExecuteVO> fastPushFile(
         @Parameter(description = "用户名，网关自动传入")
@@ -141,7 +141,7 @@ public interface WebExecuteTaskResource {
             WebFastPushFileRequest request
     );
 
-    @Operation(summary = "执行作业步骤操作", produces = "application/json")
+    @Operation(summary = "执行作业步骤操作")
     @PostMapping(value = {"/do-step-operation/stepInstanceId/{stepInstanceId}"})
     @Deprecated
     @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.11.x",
@@ -167,7 +167,7 @@ public interface WebExecuteTaskResource {
         WebStepOperation operation
     );
 
-    @Operation(summary = "执行作业步骤操作", produces = "application/json")
+    @Operation(summary = "执行作业步骤操作")
     @PostMapping(value = {"/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/operate"})
     Response<StepOperationVO> doStepOperationV2(
         @Parameter(description = "用户名，网关自动传入")
@@ -193,7 +193,7 @@ public interface WebExecuteTaskResource {
             WebStepOperation operation
     );
 
-    @Operation(summary = "终止作业", produces = "application/json")
+    @Operation(summary = "终止作业")
     @PostMapping(value = {"/taskInstance/{taskInstanceId}/terminate"})
     Response terminateJob(
         @Parameter(description = "用户名，网关自动传入")

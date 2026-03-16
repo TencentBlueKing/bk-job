@@ -55,7 +55,7 @@ import java.util.List;
 @WebAPI
 public interface WebNotifyResource {
 
-    @Operation(summary = "获取业务通知策略列表", produces = "application/json")
+    @Operation(summary = "获取业务通知策略列表")
     @GetMapping("/scope/{scopeType}/{scopeId}/policies/listDefault")
     Response<List<TriggerPolicyVO>> listAppDefaultNotifyPolicies(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -73,7 +73,7 @@ public interface WebNotifyResource {
     );
 
 
-    @Operation(summary = "保存业务下默认通知策略", produces = "application/json")
+    @Operation(summary = "保存业务下默认通知策略")
     @PostMapping("/scope/{scopeType}/{scopeId}/saveAppDefaultPolicies")
     Response<Long> saveAppDefaultNotifyPolicies(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -94,7 +94,7 @@ public interface WebNotifyResource {
     );
 
 
-    @Operation(summary = "页面模板", produces = "application/json")
+    @Operation(summary = "页面模板")
     @GetMapping("/pageTemplate")
     Response<PageTemplateVO> getPageTemplate(
         @Parameter(description = "用户名，网关自动传入")
@@ -102,7 +102,7 @@ public interface WebNotifyResource {
             String username
     );
 
-    @Operation(summary = "角色列表", produces = "application/json")
+    @Operation(summary = "角色列表")
     @GetMapping("/roles/list")
     Response<List<RoleVO>> listRoles(
         @Parameter(description = "用户名，网关自动传入")
@@ -110,7 +110,7 @@ public interface WebNotifyResource {
             String username
     );
 
-    @Operation(summary = "后台自测调试用接口：发送消息通知", produces = "application/json")
+    @Operation(summary = "后台自测调试用接口：发送消息通知")
     @PostMapping("/notifications/send")
     Response<?> sendNotification(
         @Parameter(description = "用户名，网关自动传入")

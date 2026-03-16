@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 public interface OpResource {
 
     // 文件网关自有资源请求
-    @Operation(summary = "获取当前重调度线程数", produces = "application/json")
+    @Operation(summary = "获取当前重调度线程数")
     @GetMapping("/threadsNum/reDispatch")
     Response<Integer> getReDispatchThreadsNum(
         @Parameter(description = "用户名")

@@ -48,7 +48,7 @@ import java.util.List;
 @WebAPI
 public interface WebFileSourceTypeResource {
 
-    @Operation(summary = "获取文件源类型列表", produces = "application/json")
+    @Operation(summary = "获取文件源类型列表")
     @GetMapping("/list")
     Response<List<FileSourceTypeVO>> listFileSourceType(
         @Parameter(description = "用户名，网关自动传入")

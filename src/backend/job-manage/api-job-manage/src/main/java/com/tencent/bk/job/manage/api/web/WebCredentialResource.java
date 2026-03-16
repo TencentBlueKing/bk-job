@@ -53,7 +53,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 @WebAPI
 public interface WebCredentialResource {
 
-    @Operation(summary = "获取凭证列表", produces = "application/json")
+    @Operation(summary = "获取凭证列表")
     @GetMapping("/list")
     Response<PageData<CredentialVO>> listCredentials(
         @Parameter(description = "用户名，网关自动传入")
@@ -91,7 +91,7 @@ public interface WebCredentialResource {
             Integer pageSize
     );
 
-    @Operation(summary = "分页获取凭证基础信息", produces = "application/json")
+    @Operation(summary = "分页获取凭证基础信息")
     @GetMapping("/basicInfo/list")
     Response<PageData<CredentialBasicVO>> listCredentialBasicInfo(
         @Parameter(description = "用户名，网关自动传入")
@@ -115,7 +115,7 @@ public interface WebCredentialResource {
     );
 
 
-    @Operation(summary = "新增凭证", produces = "application/json")
+    @Operation(summary = "新增凭证")
     @PostMapping
     Response<CredentialVO> createCredential(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -135,7 +135,7 @@ public interface WebCredentialResource {
             CredentialCreateUpdateReq createUpdateReq
     );
 
-    @Operation(summary = "更新凭证", produces = "application/json")
+    @Operation(summary = "更新凭证")
     @PutMapping("/{credentialId}")
     Response<CredentialVO> updateCredential(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -159,7 +159,7 @@ public interface WebCredentialResource {
     );
 
 
-    @Operation(summary = "删除凭证", produces = "application/json")
+    @Operation(summary = "删除凭证")
     @DeleteMapping("/ids/{id}")
     Response<Integer> deleteCredentialById(
         @Parameter(description = "用户名，网关自动传入")

@@ -48,7 +48,7 @@ public interface WebFeatureToggleResource {
     /**
      * 获取特性开关配置
      */
-    @Operation(summary = "获取Job功能特性开关配置", produces = "application/json")
+    @Operation(summary = "获取Job功能特性开关配置")
     @GetMapping("/list")
     Response<Map<String, Boolean>> listFeatureToggle(
         @Hidden

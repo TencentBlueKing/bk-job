@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 @InternalAPI
 public interface ServiceCredentialResource {
 
-    @Operation(summary = "获取凭证详情", produces = "application/json")
+    @Operation(summary = "获取凭证详情")
     @GetMapping("/service/credentials/app/{appId}/ids/{id}")
     InternalResponse<ServiceCredentialDTO> getCredentialById(
         @Parameter(description = "业务ID", required = true)

@@ -62,7 +62,7 @@ import java.util.List;
 @WebAPI
 public interface WebGlobalSettingsResource {
 
-    @Operation(summary = "获取通知渠道列表及生效状态", produces = "application/json")
+    @Operation(summary = "获取通知渠道列表及生效状态")
     @GetMapping("/notify/listChannels")
     Response<List<NotifyChannelWithIconVO>> listNotifyChannel(
         @Parameter(description = "用户名，网关自动传入")
@@ -70,7 +70,7 @@ public interface WebGlobalSettingsResource {
             String username
     );
 
-    @Operation(summary = "超级管理员设置启用的通知渠道", produces = "application/json")
+    @Operation(summary = "超级管理员设置启用的通知渠道")
     @PostMapping("/notify/setAvailableChannels")
     Response<Integer> setAvailableNotifyChannel(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -81,7 +81,7 @@ public interface WebGlobalSettingsResource {
             SetAvailableNotifyChannelReq req
     );
 
-    @Operation(summary = "超级管理员保存消息模板", produces = "application/json")
+    @Operation(summary = "超级管理员保存消息模板")
     @PostMapping("/notify/channelTemplate")
     Response<Integer> saveChannelTemplate(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -92,7 +92,7 @@ public interface WebGlobalSettingsResource {
             ChannelTemplateReq req
     );
 
-    @Operation(summary = "消息发送预览", produces = "application/json")
+    @Operation(summary = "消息发送预览")
     @PostMapping("/notify/channelTemplate/send")
     Response<Integer> sendChannelTemplate(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -103,7 +103,7 @@ public interface WebGlobalSettingsResource {
             ChannelTemplatePreviewReq req
     );
 
-    @Operation(summary = "消息模板详情", produces = "application/json")
+    @Operation(summary = "消息模板详情")
     @GetMapping("/notify/channelTemplate/detail")
     Response<ChannelTemplateDetailWithDefaultVO> getChannelTemplateDetail(
         @Parameter(description = "用户名，网关自动传入")
@@ -117,7 +117,7 @@ public interface WebGlobalSettingsResource {
             String messageTypeCode
     );
 
-    @Operation(summary = "查询各渠道消息模板配置状态", produces = "application/json")
+    @Operation(summary = "查询各渠道消息模板配置状态")
     @GetMapping("/notify/channelTemplate/configStatus")
     Response<List<ChannelTemplateStatusVO>> listChannelTemplateStatus(
         @Parameter(description = "用户名，网关自动传入")
@@ -125,7 +125,7 @@ public interface WebGlobalSettingsResource {
             String username
     );
 
-    @Operation(summary = "获取现有通知黑名单用户列表", produces = "application/json")
+    @Operation(summary = "获取现有通知黑名单用户列表")
     @GetMapping("/notify/users/blacklist")
     Response<List<NotifyBlackUserInfoVO>> listNotifyBlackUsers(
         @Parameter(description = "用户名，网关自动传入")
@@ -140,7 +140,7 @@ public interface WebGlobalSettingsResource {
     );
 
 
-    @Operation(summary = "设置通知黑名单", produces = "application/json")
+    @Operation(summary = "设置通知黑名单")
     @PostMapping("/notify/users/blacklist")
     Response<List<String>> saveNotifyBlackUsers(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -152,7 +152,7 @@ public interface WebGlobalSettingsResource {
     );
 
 
-    @Operation(summary = "获取执行历史保留时间", produces = "application/json")
+    @Operation(summary = "获取执行历史保留时间")
     @GetMapping("/history/expireTime")
     Response<Long> getHistoryExpireTime(
         @Parameter(description = "用户名，网关自动传入")
@@ -161,7 +161,7 @@ public interface WebGlobalSettingsResource {
     );
 
 
-    @Operation(summary = "设置执行历史保留时间", produces = "application/json")
+    @Operation(summary = "设置执行历史保留时间")
     @PostMapping("/history/expireTime")
     Response<Integer> setHistoryExpireTime(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -173,7 +173,7 @@ public interface WebGlobalSettingsResource {
     );
 
 
-    @Operation(summary = "获取账号命名规则", produces = "application/json")
+    @Operation(summary = "获取账号命名规则")
     @GetMapping("/account/nameRules")
     Response<AccountNameRulesWithDefaultVO> getAccountNameRules(
         @Parameter(description = "用户名，网关自动传入")
@@ -182,7 +182,7 @@ public interface WebGlobalSettingsResource {
     );
 
 
-    @Operation(summary = "设置账号命名规则", produces = "application/json")
+    @Operation(summary = "设置账号命名规则")
     @PostMapping("/account/setNameRules")
     Response<Boolean> setAccountNameRules(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -193,7 +193,7 @@ public interface WebGlobalSettingsResource {
             AccountNameRulesReq req
     );
 
-    @Operation(summary = "设置文件上传设置", produces = "application/json")
+    @Operation(summary = "设置文件上传设置")
     @PostMapping("/file/upload")
     Response<Boolean> saveFileUploadSettings(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -206,7 +206,7 @@ public interface WebGlobalSettingsResource {
     );
 
 
-    @Operation(summary = "获取文件上传设置", produces = "application/json")
+    @Operation(summary = "获取文件上传设置")
     @GetMapping("/file/upload")
     Response<FileUploadSettingVO> getFileUploadSettings(
         @Parameter(description = "用户名，网关自动传入")
@@ -216,7 +216,7 @@ public interface WebGlobalSettingsResource {
 
     @CompatibleImplementation(name = "platform_info", deprecatedVersion = "3.11.x", type = CompatibleType.DEPLOY,
         explain = "发布完成后可以删除")
-    @Operation(summary = "获取平台信息-包含默认配置", produces = "application/json")
+    @Operation(summary = "获取平台信息-包含默认配置")
     @GetMapping("/platformInfoWithDefault")
     Response<PlatformInfoWithDefaultVO> getPlatformInfoWithDefault(
         @Parameter(description = "用户名，网关自动传入", required = true)

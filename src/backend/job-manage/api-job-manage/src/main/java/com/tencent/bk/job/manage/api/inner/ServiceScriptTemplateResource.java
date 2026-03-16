@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @InternalAPI
 public interface ServiceScriptTemplateResource {
 
-    @Operation(summary = "获取脚本模板", produces = "application/json")
+    @Operation(summary = "获取脚本模板")
     @GetMapping("/service/scriptTemplate")
     InternalResponse<String> getScriptTemplate(@RequestParam("type") Integer type);
 }

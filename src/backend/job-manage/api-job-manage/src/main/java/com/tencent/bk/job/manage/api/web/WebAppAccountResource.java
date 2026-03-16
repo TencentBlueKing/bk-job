@@ -56,7 +56,7 @@ import java.util.List;
 @WebAPI
 public interface WebAppAccountResource {
 
-    @Operation(summary = "新增账号", produces = "application/json")
+    @Operation(summary = "新增账号")
     @PostMapping(value = "/scope/{scopeType}/{scopeId}/account")
     Response<AccountVO> saveAccount(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -76,7 +76,7 @@ public interface WebAppAccountResource {
             AccountCreateUpdateReq accountCreateUpdateReq
     );
 
-    @Operation(summary = "更新账号", produces = "application/json")
+    @Operation(summary = "更新账号")
     @PutMapping(value = "/scope/{scopeType}/{scopeId}/account/{accountId}")
     Response<AccountVO> updateAccount(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -99,7 +99,7 @@ public interface WebAppAccountResource {
             AccountCreateUpdateReq accountCreateUpdateReq
     );
 
-    @Operation(summary = "根据条件获取业务下的所有账号", produces = "application/json")
+    @Operation(summary = "根据条件获取业务下的所有账号")
     @GetMapping({"/scope/{scopeType}/{scopeId}/accounts/page"})
     Response<PageData<AccountVO>> listAppAccounts(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -155,7 +155,7 @@ public interface WebAppAccountResource {
             String keyword
     );
 
-    @Operation(summary = "删除账号", produces = "application/json")
+    @Operation(summary = "删除账号")
     @DeleteMapping(value = "/scope/{scopeType}/{scopeId}/account/{accountId}")
     Response deleteAccount(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -175,7 +175,7 @@ public interface WebAppAccountResource {
             Long accountId
     );
 
-    @Operation(summary = "获取账号详情", produces = "application/json")
+    @Operation(summary = "获取账号详情")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/account/{accountId}"})
     Response<AccountVO> getAccountById(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -195,7 +195,7 @@ public interface WebAppAccountResource {
             Long accountId
     );
 
-    @Operation(summary = "获取业务下的账号列表，返回简单的账号信息", produces = "application/json")
+    @Operation(summary = "获取业务下的账号列表，返回简单的账号信息")
     @GetMapping({"/scope/{scopeType}/{scopeId}/accounts"})
     Response<List<AccountVO>> listAccounts(
         @Parameter(description = "用户名，网关自动传入", required = true)

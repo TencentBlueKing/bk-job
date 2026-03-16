@@ -54,7 +54,7 @@ import java.util.Map;
 @WebAPI
 public interface WebStatisticsResource {
 
-    @Operation(summary = "查询某个统计量的统计信息", produces = "application/json")
+    @Operation(summary = "查询某个统计量的统计信息")
     @GetMapping("/total/metrics/{metric}")
     Response<CommonStatisticWithRateVO> totalStatistics(
         @Parameter(description = "用户名，网关自动传入")
@@ -79,7 +79,7 @@ public interface WebStatisticsResource {
             String date
     );
 
-    @Operation(summary = "查询某个统计量的趋势", produces = "application/json")
+    @Operation(summary = "查询某个统计量的趋势")
     @GetMapping("/trends/metrics/{metric}")
     Response<List<CommonTrendElementVO>> trends(
         @Parameter(description = "用户名，网关自动传入")
@@ -110,7 +110,7 @@ public interface WebStatisticsResource {
             String endDate
     );
 
-    @Operation(summary = "查询某个统计量的逐业务统计列表", produces = "application/json")
+    @Operation(summary = "查询某个统计量的逐业务统计列表")
     @GetMapping("/listByPerApp/metrics/{metric}")
     Response<List<PerAppStatisticVO>> listByPerApp(
         @Parameter(description = "用户名，网关自动传入")
@@ -135,7 +135,7 @@ public interface WebStatisticsResource {
             String date
     );
 
-    @Operation(summary = "查询某个统计量的分布信息", produces = "application/json")
+    @Operation(summary = "查询某个统计量的分布信息")
     @GetMapping("/distribution/metrics/{metric}")
     Response<CommonDistributionVO> distributionStatistics(
         @Parameter(description = "用户名，网关自动传入")
@@ -161,7 +161,7 @@ public interface WebStatisticsResource {
             String date
     );
 
-    @Operation(summary = "查询某种资源某个维度下的每日统计详情", produces = "application/json")
+    @Operation(summary = "查询某种资源某个维度下的每日统计详情")
     @GetMapping("/resources/{resource}/dimensions/{dimension}")
     Response<List<DayDistributionElementVO>> dayDetailStatistics(
         @Parameter(description = "用户名，网关自动传入")
@@ -198,7 +198,7 @@ public interface WebStatisticsResource {
     );
 
     @Operation(summary = "查询统计数据起始日期、更新时间等信息（可能的Key：{起始日期:STATISTICS_DATA_START_DATE, " +
-        "更新时间:STATISTICS_DATA_UPDATE_TIME}）", produces = "application/json")
+        "更新时间:STATISTICS_DATA_UPDATE_TIME}）")
     @GetMapping("/info")
     Response<Map<String, String>> getStatisticsDataInfo(
         @Parameter(description = "用户名，网关自动传入")

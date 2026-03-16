@@ -61,7 +61,7 @@ public interface WebCustomSettingsResource {
         deprecatedVersion = "3.12.x",
         type = CompatibleType.DEPLOY
     )
-    @Operation(summary = "保存多个配置项，返回成功保存的配置项内容", produces = "application/json")
+    @Operation(summary = "保存多个配置项，返回成功保存的配置项内容")
     @PostMapping("/scope/{scopeType}/{scopeId}")
     Response<Map<String, Map<String, Object>>> saveCustomSettingsForScope(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -82,7 +82,7 @@ public interface WebCustomSettingsResource {
     );
 
     // 标准接口19
-    @Operation(summary = "保存多个配置项，返回成功保存的配置项内容", produces = "application/json")
+    @Operation(summary = "保存多个配置项，返回成功保存的配置项内容")
     @PostMapping("")
     Response<Map<String, Map<String, Object>>> saveCustomSettings(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -101,7 +101,7 @@ public interface WebCustomSettingsResource {
         deprecatedVersion = "3.12.x",
         type = CompatibleType.DEPLOY
     )
-    @Operation(summary = "批量获取多个配置项内容，返回配置项内容Map，Key为配置模块", produces = "application/json")
+    @Operation(summary = "批量获取多个配置项内容，返回配置项内容Map，Key为配置模块")
     @PostMapping("/scope/{scopeType}/{scopeId}/batchGet")
     Response<Map<String, Map<String, Object>>> batchGetCustomSettingsForScope(
         @Parameter(description = "用户名，网关自动传入")
@@ -121,7 +121,7 @@ public interface WebCustomSettingsResource {
         BatchGetCustomSettingsReq req);
 
     // 标准接口20
-    @Operation(summary = "批量获取多个配置项内容，返回配置项内容Map，Key为配置模块", produces = "application/json")
+    @Operation(summary = "批量获取多个配置项内容，返回配置项内容Map，Key为配置模块")
     @PostMapping("/batchGet")
     Response<Map<String, Map<String, Object>>> batchGetCustomSettings(
         @Parameter(description = "用户名，网关自动传入")
@@ -139,7 +139,7 @@ public interface WebCustomSettingsResource {
         deprecatedVersion = "3.12.x",
         type = CompatibleType.DEPLOY
     )
-    @Operation(summary = "删除多个模块配置项内容，返回删除成功的模块配置数量", produces = "application/json")
+    @Operation(summary = "删除多个模块配置项内容，返回删除成功的模块配置数量")
     @DeleteMapping("/scope/{scopeType}/{scopeId}")
     Response<Integer> deleteCustomSettingsForScope(
         @Parameter(description = "用户名，网关自动传入")
@@ -159,7 +159,7 @@ public interface WebCustomSettingsResource {
         DeleteCustomSettingsReq req);
 
     // 标准接口21
-    @Operation(summary = "删除多个模块配置项内容，返回删除成功的模块配置数量", produces = "application/json")
+    @Operation(summary = "删除多个模块配置项内容，返回删除成功的模块配置数量")
     @DeleteMapping("")
     Response<Integer> deleteCustomSettings(
         @Parameter(description = "用户名，网关自动传入")

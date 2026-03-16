@@ -50,7 +50,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 public interface WebFileResource {
 
     // 子路径与FileWorker子路径保持一致
-    @Operation(summary = "获取文件源某个节点下的子节点列表", produces = "application/json")
+    @Operation(summary = "获取文件源某个节点下的子节点列表")
     @GetMapping("/listFileNode")
     Response<FileNodesVO> listFileNode(
         @Parameter(description = "用户名，网关自动传入")
@@ -82,7 +82,7 @@ public interface WebFileResource {
             Integer pageSize
     );
 
-    @Operation(summary = "执行动作", produces = "application/json")
+    @Operation(summary = "执行动作")
     @PostMapping("/executeAction")
     Response<Boolean> executeAction(
         @Parameter(description = "用户名，网关自动传入")

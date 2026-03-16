@@ -78,8 +78,7 @@ public interface WebAIResource {
     )
     @Operation(summary = "获取AI相关的配置参数，取值：\n" +
         "enabled：表示是否启用AI功能；\n" +
-        "analyzeErrorLogMaxLength：表示分析报错信息时支持的最大日志长度，单位为字符；",
-        produces = "application/json")
+        "analyzeErrorLogMaxLength：表示分析报错信息时支持的最大日志长度，单位为字符；")
     @GetMapping("/scope/{scopeType}/{scopeId}/config")
     Response<Map<String, Object>> getAIConfigOfScope(
         @Parameter(description = "用户名，网关自动传入")
@@ -98,8 +97,7 @@ public interface WebAIResource {
 
     @Operation(summary = "获取AI相关的配置参数，取值：\n" +
         "enabled：表示是否启用AI功能；\n" +
-        "analyzeErrorLogMaxLength：表示分析报错信息时支持的最大日志长度，单位为字符；",
-        produces = "application/json")
+        "analyzeErrorLogMaxLength：表示分析报错信息时支持的最大日志长度，单位为字符；")
     @GetMapping("/config")
     Response<Map<String, Object>> getAIConfig(
         @Parameter(description = "用户名，网关自动传入")
@@ -107,7 +105,7 @@ public interface WebAIResource {
         String username
     );
 
-    @Operation(summary = "获取最近的AI对话记录历史（按产生时间倒序排列）", produces = "application/json")
+    @Operation(summary = "获取最近的AI对话记录历史（按产生时间倒序排列）")
     @GetMapping("/scope/{scopeType}/{scopeId}/latestChatHistoryList")
     Response<List<AIChatRecord>> getLatestChatHistoryList(
         @Parameter(description = "用户名，网关自动传入")
@@ -132,7 +130,7 @@ public interface WebAIResource {
         Integer length
     );
 
-    @Operation(summary = "通用对话接口", produces = "application/json")
+    @Operation(summary = "通用对话接口")
     @PostMapping("/scope/{scopeType}/{scopeId}/general/chat")
     Response<AIChatRecord> generalChat(
         @Parameter(description = "用户名，网关自动传入")
@@ -152,7 +150,7 @@ public interface WebAIResource {
         @RequestBody AIGeneralChatReq req
     );
 
-    @Operation(summary = "检查脚本", produces = "application/json")
+    @Operation(summary = "检查脚本")
     @PostMapping("/scope/{scopeType}/{scopeId}/checkScript")
     Response<AIChatRecord> checkScript(
         @Parameter(description = "用户名，网关自动传入")
@@ -172,7 +170,7 @@ public interface WebAIResource {
         @RequestBody AICheckScriptReq req
     );
 
-    @Operation(summary = "分析报错信息", produces = "application/json")
+    @Operation(summary = "分析报错信息")
     @PostMapping("/scope/{scopeType}/{scopeId}/analyzeError")
     Response<AIChatRecord> analyzeError(
         @Parameter(description = "用户名，网关自动传入")
@@ -195,7 +193,7 @@ public interface WebAIResource {
     @Operation(summary = "获取单次对话流式数据（流式接口），返回换行符分隔的多条JSON数据，可分块读取，单条JSON数据格式：{\"success\":true,\"code\":0," +
         "\"errorMsg\":\"成功\",\"data\":{\"errorCode\":\"0\",\"errorMessage\":null,\"content\":\"hello world\"," +
         "\"time\":\"2024-08-14 12:00:00\"},\"requestId\":\"fb991170da868b2a1eb5835bc426e992\",\"authResult\": null," +
-        "\"errorDetail\": null}", produces = "application/json")
+        "\"errorDetail\": null}")
     @PostMapping("/scope/{scopeType}/{scopeId}/chatStream")
     ResponseEntity<StreamingResponseBody> generateChatStream(
         @Parameter(description = "用户名，网关自动传入")
@@ -215,7 +213,7 @@ public interface WebAIResource {
         @RequestBody GenerateChatStreamReq req
     );
 
-    @Operation(summary = "终止对话", produces = "application/json")
+    @Operation(summary = "终止对话")
     @PutMapping("/scope/{scopeType}/{scopeId}/terminateChat")
     Response<Boolean> terminateChat(
         @Parameter(description = "用户名，网关自动传入")
@@ -235,7 +233,7 @@ public interface WebAIResource {
         @RequestBody TerminateChatReq req
     );
 
-    @Operation(summary = "清空对话记录", produces = "application/json")
+    @Operation(summary = "清空对话记录")
     @DeleteMapping("/scope/{scopeType}/{scopeId}/clearChatHistory")
     Response<ClearChatHistoryResp> clearChatHistory(
         @Parameter(description = "用户名，网关自动传入")

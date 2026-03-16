@@ -50,7 +50,7 @@ import java.util.Map;
 @WebAPI
 public interface WebGlobalSettingsQueryResource {
 
-    @Operation(summary = "获取通知渠道列表及生效状态", produces = "application/json")
+    @Operation(summary = "获取通知渠道列表及生效状态")
     @GetMapping("/notify/listChannels")
     Response<List<NotifyChannelWithIconVO>> listNotifyChannel(
         @Parameter(description = "用户名，网关自动传入")
@@ -59,7 +59,7 @@ public interface WebGlobalSettingsQueryResource {
     );
 
 
-    @Operation(summary = "获取账号命名规则", produces = "application/json")
+    @Operation(summary = "获取账号命名规则")
     @GetMapping("/account/nameRules")
     Response<AccountNameRulesWithDefaultVO> getAccountNameRules(
         @Parameter(description = "用户名，网关自动传入")
@@ -67,7 +67,7 @@ public interface WebGlobalSettingsQueryResource {
             String username
     );
 
-    @Operation(summary = "判断用户是否为超级管理员", produces = "application/json")
+    @Operation(summary = "判断用户是否为超级管理员")
     @GetMapping("/isAdmin")
     Response<Boolean> isAdmin(
         @Parameter(description = "用户名，网关自动传入")
@@ -76,7 +76,7 @@ public interface WebGlobalSettingsQueryResource {
     );
 
 
-    @Operation(summary = "获取CMDB服务跳转地址", produces = "application/json")
+    @Operation(summary = "获取CMDB服务跳转地址")
     @GetMapping("/cmdbServerUrl")
     Response<String> getCMDBServerUrl(
         @Parameter(description = "用户名，网关自动传入")
@@ -85,7 +85,7 @@ public interface WebGlobalSettingsQueryResource {
     );
 
 
-    @Operation(summary = "获取申请业务权限跳转地址", produces = "application/json")
+    @Operation(summary = "获取申请业务权限跳转地址")
     @GetMapping("/applyBusinessUrl")
     Response<String> getApplyBusinessUrl(
         @Parameter(description = "用户名，网关自动传入")
@@ -100,7 +100,7 @@ public interface WebGlobalSettingsQueryResource {
     );
 
 
-    @Operation(summary = "获取CMDB业务首页地址", produces = "application/json")
+    @Operation(summary = "获取CMDB业务首页地址")
     @GetMapping("/scope/{scopeType}/{scopeId}/cmdbAppIndexUrl")
     Response<String> getCMDBAppIndexUrl(
         @Parameter(description = "用户名，网关自动传入")
@@ -117,12 +117,12 @@ public interface WebGlobalSettingsQueryResource {
 
     @CompatibleImplementation(name = "platform_info", deprecatedVersion = "3.11.x", type = CompatibleType.DEPLOY,
         explain = "发布完成后可以删除")
-    @Operation(summary = "获取渲染后的平台设置", produces = "application/json")
+    @Operation(summary = "获取渲染后的平台设置")
     @GetMapping("/platformInfo")
     Response<PlatformInfoVO> getRenderedPlatformInfo();
 
 
-    @Operation(summary = "获取文档中心根路径", produces = "application/json")
+    @Operation(summary = "获取文档中心根路径")
     @GetMapping("/docCenterBaseUrl")
     Response<String> getDocCenterBaseUrl(
         @Parameter(description = "用户名，网关自动传入")
@@ -131,7 +131,7 @@ public interface WebGlobalSettingsQueryResource {
     );
 
 
-    @Operation(summary = "周边系统跳转路径", produces = "application/json")
+    @Operation(summary = "周边系统跳转路径")
     @GetMapping("/relatedSystemUrls")
     Response<Map<String, String>> getRelatedSystemUrls(
         @Parameter(description = "用户名，网关自动传入")
@@ -140,7 +140,7 @@ public interface WebGlobalSettingsQueryResource {
     );
 
 
-    @Operation(summary = "作业平台公开配置", produces = "application/json")
+    @Operation(summary = "作业平台公开配置")
     @GetMapping("/jobConfig")
     Response<Map<String, Object>> getJobConfig(
         @Parameter(description = "用户名，网关自动传入")
@@ -148,7 +148,7 @@ public interface WebGlobalSettingsQueryResource {
             String username
     );
 
-    @Operation(summary = "获取配置的默认时区", produces = "application/json")
+    @Operation(summary = "获取配置的默认时区")
     @GetMapping("/defaultTimezoneConfig")
     Response<Map<String, String>> getDefaultDisplayTimezone(
         @Parameter(description = "用户名，网关自动传入")

@@ -46,14 +46,14 @@ import java.util.List;
 @InternalAPI
 public interface ServiceMetricsResource {
 
-    @Operation(summary = "接入（执行过一次任务）的业务Id列表", produces = "application/json")
+    @Operation(summary = "接入（执行过一次任务）的业务Id列表")
     @GetMapping("/app/joined")
     InternalResponse<List<Long>> getJoinedAppIdList(
         @RequestHeader(value = JobCommonHeaders.BK_TENANT_ID, required = false)
         String tenantId
     );
 
-    @Operation(summary = "是否有执行记录", produces = "application/json")
+    @Operation(summary = "是否有执行记录")
     @GetMapping("/service/metrics/app/hasExecuteHistory")
     InternalResponse<Boolean> hasExecuteHistory(
         @Parameter(description = "业务Id", required = false)
@@ -66,7 +66,7 @@ public interface ServiceMetricsResource {
         @RequestParam(value = "toTime", required = false) Long toTime
     );
 
-    @Operation(summary = "获取统计数据", produces = "application/json")
+    @Operation(summary = "获取统计数据")
     @GetMapping("/service/metrics/statistics")
     InternalResponse<StatisticsDTO> getStatistics(
         @Parameter(description = "业务Id", required = true)
@@ -81,7 +81,7 @@ public interface ServiceMetricsResource {
         @RequestParam(value = "dateStr", required = true) String dateStr
     );
 
-    @Operation(summary = "触发指定时间的数据统计", produces = "application/json")
+    @Operation(summary = "触发指定时间的数据统计")
     @PostMapping("/service/metrics/statistics/trigger")
     InternalResponse<Boolean> triggerStatistics(
         @Parameter(description = "统计日期(yyyy-MM-dd)", required = false)

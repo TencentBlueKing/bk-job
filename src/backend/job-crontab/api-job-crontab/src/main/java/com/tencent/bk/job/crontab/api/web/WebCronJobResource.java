@@ -75,7 +75,7 @@ public interface WebCronJobResource {
      * @param order            排序顺序
      * @return 带分页信息的定时任务列表
      */
-    @Operation(summary = "获取定时任务列表", produces = "application/json")
+    @Operation(summary = "获取定时任务列表")
     @GetMapping
     Response<PageData<CronJobVO>> listCronJobs(
         @Parameter(description = "用户名，网关自动传入")
@@ -129,7 +129,7 @@ public interface WebCronJobResource {
      * @param cronJobId        定时任务 ID 列表
      * @return 定时任务执行状态信息列表
      */
-    @Operation(summary = "获取定时任务执行状态信息列表", produces = "application/json")
+    @Operation(summary = "获取定时任务执行状态信息列表")
     @GetMapping("/statistic")
     Response<List<CronJobVO>> listCronJobStatistic(
         @Parameter(description = "用户名，网关自动传入")
@@ -159,7 +159,7 @@ public interface WebCronJobResource {
      * @param cronJobId        定时任务 ID
      * @return 定时任务信息
      */
-    @Operation(summary = "获取定时任务信息", produces = "application/json")
+    @Operation(summary = "获取定时任务信息")
     @GetMapping("/{cronJobId}")
     Response<CronJobVO> getCronJobById(
         @Parameter(description = "用户名，网关自动传入")
@@ -189,7 +189,7 @@ public interface WebCronJobResource {
      * @param cronJobCreateUpdateReq 定时任务信息
      * @return 定时任务
      */
-    @Operation(summary = "创建定时任务", produces = "application/json")
+    @Operation(summary = "创建定时任务")
     @PostMapping
     Response<CronJobVO> createCronJob(
         @Parameter(description = "用户名，网关自动传入")
@@ -220,7 +220,7 @@ public interface WebCronJobResource {
      * @param cronJobCreateUpdateReq 定时任务信息
      * @return 定时任务
      */
-    @Operation(summary = "更新定时任务", produces = "application/json")
+    @Operation(summary = "更新定时任务")
     @PutMapping("/{cronJobId}")
     Response<CronJobVO> updateCronJob(
         @Parameter(description = "用户名，网关自动传入")
@@ -253,7 +253,7 @@ public interface WebCronJobResource {
      * @param cronJobId        定时任务 ID
      * @return 删除是否成功
      */
-    @Operation(summary = "删除定时任务", produces = "application/json")
+    @Operation(summary = "删除定时任务")
     @DeleteMapping("/{cronJobId}")
     Response<Boolean> deleteCronJob(
         @Parameter(description = "用户名，网关自动传入")
@@ -284,7 +284,7 @@ public interface WebCronJobResource {
      * @param enable           状态
      * @return 修改是否成功
      */
-    @Operation(summary = "启用、禁用定时任务", produces = "application/json")
+    @Operation(summary = "启用、禁用定时任务")
     @PutMapping("/{cronJobId}/status")
     Response<Boolean> changeCronJobEnableStatus(
         @Parameter(description = "用户名，网关自动传入")
@@ -319,7 +319,7 @@ public interface WebCronJobResource {
      * @param pageSize         每页大小
      * @return 带分页信息的定时任务启动记录列表
      */
-    @Operation(summary = "定时任务启动记录", produces = "application/json")
+    @Operation(summary = "定时任务启动记录")
     @GetMapping("/{cronJobId}/history")
     Response<PageData<CronJobLaunchHistoryVO>> getCronJobLaunchHistory(
         @Parameter(description = "用户名，网关自动传入")
@@ -356,7 +356,7 @@ public interface WebCronJobResource {
      * @param name             定时任务名称
      * @return 是否可用
      */
-    @Operation(summary = "检查定时任务名称是否可用", produces = "application/json")
+    @Operation(summary = "检查定时任务名称是否可用")
     @GetMapping("/{cronJobId}/check_name")
     Response<Boolean> checkCronJobName(
         @Parameter(description = "用户名，网关自动传入")
@@ -391,7 +391,7 @@ public interface WebCronJobResource {
      * @return 是否更新成功
      */
     @Deprecated
-    @Operation(summary = "批量更新定时任务信息 只更新 变量 和 启用 字段", produces = "application/json")
+    @Operation(summary = "批量更新定时任务信息 只更新 变量 和 启用 字段")
     @PostMapping("/batch_update")
     Response<Boolean> batchUpdateCronJob(
         @Parameter(description = "用户名，网关自动传入")
@@ -421,7 +421,7 @@ public interface WebCronJobResource {
      * @param planId           执行方案 ID
      * @return 定时任务信息列表
      */
-    @Operation(summary = "根据执行方案 ID 查询定时任务信息", produces = "application/json")
+    @Operation(summary = "根据执行方案 ID 查询定时任务信息")
     @GetMapping("/plan/{planId}")
     Response<List<CronJobVO>> getCronJobListByPlanId(
         @Parameter(description = "用户名，网关自动传入")
@@ -451,7 +451,7 @@ public interface WebCronJobResource {
      * @param planIdList       执行方案 ID 列表
      * @return 执行方案 ID 与定时任务信息列表对应表
      */
-    @Operation(summary = "根据执行方案 ID 列表查询定时任务信息", produces = "application/json")
+    @Operation(summary = "根据执行方案 ID 列表查询定时任务信息")
     @GetMapping("/plans/{planId}")
     Response<Map<Long, List<CronJobVO>>> getCronJobListByPlanIdList(
         @Parameter(description = "用户名，网关自动传入")

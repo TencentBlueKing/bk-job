@@ -48,14 +48,14 @@ import java.util.List;
 @RestController
 public interface OpResource {
 
-    @Operation(summary = "查询统计配置", produces = "application/json")
+    @Operation(summary = "查询统计配置")
     @GetMapping("/config")
     Response<String> getStatisticsConfig(
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username") String username
     );
 
-    @Operation(summary = "更新统计配置", produces = "application/json")
+    @Operation(summary = "更新统计配置")
     @PostMapping("/config")
     Response<Boolean> configStatistics(
         @Parameter(description = "用户名，网关自动传入")
@@ -63,7 +63,7 @@ public interface OpResource {
         @Parameter(description = "统计配置参数", required = true) @RequestBody ConfigStatisticsReq req
     );
 
-    @Operation(summary = "清理某些日期的统计数据", produces = "application/json")
+    @Operation(summary = "清理某些日期的统计数据")
     @PostMapping("/clear")
     Response<Integer> clearStatistics(
         @Parameter(description = "用户名，网关自动传入")
@@ -71,7 +71,7 @@ public interface OpResource {
         @Parameter(description = "清理参数", required = true) @RequestBody ClearStatisticsReq req
     );
 
-    @Operation(summary = "调整统计线程数量", produces = "application/json")
+    @Operation(summary = "调整统计线程数量")
     @PostMapping("/config/threads")
     Response<Boolean> configThreads(
         @Parameter(description = "用户名，网关自动传入")
@@ -79,7 +79,7 @@ public interface OpResource {
         @Parameter(description = "线程数量参数", required = true) @RequestBody ConfigThreadsReq req
     );
 
-    @Operation(summary = "开始某些统计任务", produces = "application/json")
+    @Operation(summary = "开始某些统计任务")
     @PostMapping("/start")
     Response<List<String>> startTasks(
         @Parameter(description = "用户名，网关自动传入")
@@ -87,14 +87,14 @@ public interface OpResource {
         @Parameter(description = "开始任务参数", required = true) @RequestBody StartTasksReq req
     );
 
-    @Operation(summary = "取消全部统计任务", produces = "application/json")
+    @Operation(summary = "取消全部统计任务")
     @PostMapping("/cancelAll")
     Response<List<String>> cancelAllTasks(
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username") String username
     );
 
-    @Operation(summary = "取消某些统计任务", produces = "application/json")
+    @Operation(summary = "取消某些统计任务")
     @PostMapping("/cancel")
     Response<List<String>> cancelTasks(
         @Parameter(description = "用户名，网关自动传入")
@@ -102,14 +102,14 @@ public interface OpResource {
         @Parameter(description = "取消任务参数", required = true) @RequestBody CancelTasksReq req
     );
 
-    @Operation(summary = "查询所有统计任务", produces = "application/json")
+    @Operation(summary = "查询所有统计任务")
     @PostMapping("/taskList")
     Response<List<String>> taskList(
         @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username") String username
     );
 
-    @Operation(summary = "查询当前正在跑的统计任务", produces = "application/json")
+    @Operation(summary = "查询当前正在跑的统计任务")
     @PostMapping("/taskList/arranged")
     Response<List<Pair<String, Integer>>> arrangedTaskList(
         @Parameter(description = "用户名，网关自动传入")

@@ -37,7 +37,7 @@ import java.util.Map;
 public class SaveCustomSettingsReq {
 
     @Schema(
-        value = "要保存的配置项Map：key：（字符串，表示配置模块），value：（Map<String,Object>，包含多个配置项内容）",
+        description = "要保存的配置项Map：key：（字符串，表示配置模块），value：（Map<String,Object>，包含多个配置项内容）",
         required = true)
     private Map<String, Map<String, Object>> settingsMap;
 

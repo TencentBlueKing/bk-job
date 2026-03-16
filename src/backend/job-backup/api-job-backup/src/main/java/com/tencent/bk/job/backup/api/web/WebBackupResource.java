@@ -58,7 +58,7 @@ import io.swagger.v3.oas.annotations.Hidden;
 @WebAPI
 public interface WebBackupResource {
 
-    @Operation(summary = "开始导出", produces = "application/json")
+    @Operation(summary = "开始导出")
     @PostMapping("/export")
     Response<ExportInfoVO> startExport(
         @Parameter(description = "用户名，网关自动传入")
@@ -79,7 +79,7 @@ public interface WebBackupResource {
             ExportRequest exportRequest
     );
 
-    @Operation(summary = "获取导出任务信息", produces = "application/json")
+    @Operation(summary = "获取导出任务信息")
     @GetMapping("/export/{id}")
     Response<ExportInfoVO> getExportInfo(
         @Parameter(description = "用户名，网关自动传入")
@@ -99,7 +99,7 @@ public interface WebBackupResource {
             String jobId
     );
 
-    @Operation(summary = "下载导出文件", produces = "application/zip")
+    @Operation(summary = "下载导出文件")
     @GetMapping("/export/{id}/download")
     ResponseEntity<StreamingResponseBody> getExportFile(
         @Parameter(description = "用户名，网关自动传入")
@@ -119,7 +119,7 @@ public interface WebBackupResource {
             String jobId
     );
 
-    @Operation(summary = "完成导出任务", produces = "application/json")
+    @Operation(summary = "完成导出任务")
     @PostMapping("/export/{id}/complete")
     Response<Boolean> completeExport(
         @Parameter(description = "用户名，网关自动传入")
@@ -138,7 +138,7 @@ public interface WebBackupResource {
             String jobId
     );
 
-    @Operation(summary = "终止导出任务", produces = "application/json")
+    @Operation(summary = "终止导出任务")
     @DeleteMapping("/export/{id}")
     Response<Boolean> abortExport(
         @Parameter(description = "用户名，网关自动传入")
@@ -158,7 +158,7 @@ public interface WebBackupResource {
             String jobId
     );
 
-    @Operation(summary = "上传导入文件并获取导入文件信息", produces = "application/json")
+    @Operation(summary = "上传导入文件并获取导入文件信息")
     @PostMapping("/import/file")
     Response<ImportInfoVO> getImportFileInfo(
         @Parameter(description = "用户名，网关自动传入")
@@ -178,7 +178,7 @@ public interface WebBackupResource {
             MultipartFile uploadFile
     );
 
-    @Operation(summary = "校验密码", produces = "application/json")
+    @Operation(summary = "校验密码")
     @PostMapping("/import/{id}/password")
     Response<Boolean> checkPassword(
         @Parameter(description = "用户名，网关自动传入")
@@ -201,7 +201,7 @@ public interface WebBackupResource {
             CheckPasswordRequest passwordRequest
     );
 
-    @Operation(summary = "开始导入", produces = "application/json")
+    @Operation(summary = "开始导入")
     @PostMapping("/import/{id}")
     Response<Boolean> startImport(
         @Parameter(description = "用户名，网关自动传入")
@@ -224,7 +224,7 @@ public interface WebBackupResource {
             ImportRequest importRequest
     );
 
-    @Operation(summary = "获取导入信息", produces = "application/json")
+    @Operation(summary = "获取导入信息")
     @GetMapping("/import/{id}")
     Response<ImportInfoVO> getImportInfo(
         @Parameter(description = "用户名，网关自动传入")
@@ -244,7 +244,7 @@ public interface WebBackupResource {
             String jobId
     );
 
-    @Operation(summary = "获取当前用户的导入/导出任务列表", produces = "application/json")
+    @Operation(summary = "获取当前用户的导入/导出任务列表")
     @GetMapping
     Response<BackupJobInfoVO> getCurrentJob(
         @Parameter(description = "用户名，网关自动传入")

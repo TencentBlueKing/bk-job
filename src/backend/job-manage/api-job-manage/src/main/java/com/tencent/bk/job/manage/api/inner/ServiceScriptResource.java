@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @SmartFeignClient(value = "job-manage", contextId = "scriptResource")
 @InternalAPI
 public interface ServiceScriptResource {
-    @Operation(summary = "根据业务ID、脚本版本ID获取脚本", produces = "application/json")
+    @Operation(summary = "根据业务ID、脚本版本ID获取脚本")
     @GetMapping("/service/script/app/{appId}/scriptVersion/{scriptVersionId}")
     InternalResponse<ServiceScriptDTO> getScriptByAppIdAndScriptVersionId(@RequestHeader("username")
                                                                           String username,
@@ -47,12 +47,12 @@ public interface ServiceScriptResource {
                                                                           @PathVariable("scriptVersionId")
                                                                           Long scriptVersionId);
 
-    @Operation(summary = "根据脚本版本ID获取脚本", produces = "application/json")
+    @Operation(summary = "根据脚本版本ID获取脚本")
     @GetMapping("/service/script/scriptVersion/{scriptVersionId}")
     InternalResponse<ServiceScriptDTO> getScriptByScriptVersionId(@PathVariable("scriptVersionId")
                                                                   Long scriptVersionId);
 
-    @Operation(summary = "获取已上线版本", produces = "application/json")
+    @Operation(summary = "获取已上线版本")
     @GetMapping("/service/script/scriptVersion/online/{scriptId}")
     InternalResponse<ServiceScriptDTO> getOnlineScriptVersion(@PathVariable("scriptId") String scriptId);
 }

@@ -44,7 +44,7 @@ public interface WebSubmitPasswordCryptoResource {
     /**
      * 获取账号密码的加密信息
      */
-    @Operation(summary = "获取账号密码的加密信息", produces = "application/json")
+    @Operation(summary = "获取账号密码的加密信息")
     @GetMapping("/encryption")
     Response<EncryptionInfoVO> getEncryptionInfo(
         @Parameter(description = "用户名，网关自动传入", required = true)

@@ -48,7 +48,7 @@ import java.util.Map;
 @InternalAPI
 public interface ServiceMetricsResource {
 
-    @Operation(summary = "作业模板量", produces = "application/json")
+    @Operation(summary = "作业模板量")
     @GetMapping("/service/metrics/templates/count")
     InternalResponse<Integer> countTemplates(
         @Parameter(description = "业务Id")
@@ -56,7 +56,7 @@ public interface ServiceMetricsResource {
             Long appId
     );
 
-    @Operation(summary = "执行方案量", produces = "application/json")
+    @Operation(summary = "执行方案量")
     @GetMapping("/service/metrics/taskPlans/count")
     InternalResponse<Integer> countTaskPlans(
         @Parameter(description = "业务Id")
@@ -64,7 +64,7 @@ public interface ServiceMetricsResource {
             Long appId
     );
 
-    @Operation(summary = "作业模板的步骤量", produces = "application/json")
+    @Operation(summary = "作业模板的步骤量")
     @GetMapping("/service/metrics/templates/step/count")
     InternalResponse<Integer> countTemplateSteps(
         @Parameter(description = "业务Id")
@@ -81,7 +81,7 @@ public interface ServiceMetricsResource {
             TaskFileTypeEnum fileType
     );
 
-    @Operation(summary = "脚本总量", produces = "application/json")
+    @Operation(summary = "脚本总量")
     @GetMapping("/service/metrics/script/count")
     InternalResponse<Integer> countScripts(
         @Parameter(description = "业务Id")
@@ -95,7 +95,7 @@ public interface ServiceMetricsResource {
             JobResourceStatusEnum jobResourceStatusEnum
     );
 
-    @Operation(summary = "被引用的脚本总量", produces = "application/json")
+    @Operation(summary = "被引用的脚本总量")
     @GetMapping("/service/metrics/script/cited/count")
     InternalResponse<Integer> countCiteScripts(
         @Parameter(description = "业务Id")
@@ -103,7 +103,7 @@ public interface ServiceMetricsResource {
             Long appId
     );
 
-    @Operation(summary = "引用脚本的步骤总量", produces = "application/json")
+    @Operation(summary = "引用脚本的步骤总量")
     @GetMapping("/service/metrics/step/citeScript/count")
     InternalResponse<Integer> countCiteScriptSteps(
         @Parameter(description = "业务Id")
@@ -111,7 +111,7 @@ public interface ServiceMetricsResource {
             Long appId
     );
 
-    @Operation(summary = "脚本版本总量", produces = "application/json")
+    @Operation(summary = "脚本版本总量")
     @GetMapping("/service/metrics/scriptVersions/count")
     InternalResponse<Integer> countScriptVersions(
         @Parameter(description = "业务Id")
@@ -125,7 +125,7 @@ public interface ServiceMetricsResource {
             JobResourceStatusEnum jobResourceStatusEnum
     );
 
-    @Operation(summary = "账号总量", produces = "application/json")
+    @Operation(summary = "账号总量")
     @GetMapping("/service/metrics/accounts/count")
     InternalResponse<Integer> countAccounts(
         @RequestHeader(value = JobCommonHeaders.BK_TENANT_ID, required = false)
@@ -135,14 +135,14 @@ public interface ServiceMetricsResource {
             AccountTypeEnum accountType
     );
 
-    @Operation(summary = "主机的操作系统类型分布数据", produces = "application/json")
+    @Operation(summary = "主机的操作系统类型分布数据")
     @GetMapping("/service/metrics/hosts/groupByOsType")
     InternalResponse<Map<String, Integer>> groupHostByOsType(
         @RequestHeader(value = JobCommonHeaders.BK_TENANT_ID, required = false)
         String tenantId
     );
 
-    @Operation(summary = "某个标签在某业务下的被引数量", produces = "application/json")
+    @Operation(summary = "某个标签在某业务下的被引数量")
     @GetMapping("/service/metrics/tags/citedCount")
     InternalResponse<Long> tagCitedCount(
         @Parameter(description = "业务Id")

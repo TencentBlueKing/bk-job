@@ -50,11 +50,11 @@ public interface ServiceWhiteIPResource {
         deprecatedVersion = "3.12.x",
         type = CompatibleType.DEPLOY
     )
-    @Operation(summary = "获取白名单内IP详情信息", produces = "application/json")
+    @Operation(summary = "获取白名单内IP详情信息")
     @GetMapping("/service/whiteip/listWhiteIPInfos")
     InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfos();
 
-    @Operation(summary = "获取某个租户下白名单内IP详情信息", produces = "application/json")
+    @Operation(summary = "获取某个租户下白名单内IP详情信息")
     @GetMapping("/service/whiteip/listWhiteIPInfosByTenantId")
     InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfosByTenantId(
         @Parameter(description = "租户ID")

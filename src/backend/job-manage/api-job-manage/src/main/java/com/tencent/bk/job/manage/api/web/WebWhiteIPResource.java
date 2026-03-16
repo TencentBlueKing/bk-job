@@ -54,7 +54,7 @@ import java.util.List;
 @WebAPI
 public interface WebWhiteIPResource {
 
-    @Operation(summary = "获取IP白名单列表", produces = "application/json")
+    @Operation(summary = "获取IP白名单列表")
     @GetMapping("/list")
     Response<PageDataWithManagePermission<WhiteIPRecordVO>> listWhiteIP(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -93,7 +93,7 @@ public interface WebWhiteIPResource {
     );
 
 
-    @Operation(summary = "新增IP白名单", produces = "application/json")
+    @Operation(summary = "新增IP白名单")
     @PostMapping
     Response<WhiteIPRecordVO> createWhiteIP(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -105,7 +105,7 @@ public interface WebWhiteIPResource {
             WhiteIPRecordCreateUpdateReq createUpdateReq
     );
 
-    @Operation(summary = "更新IP白名单", produces = "application/json")
+    @Operation(summary = "更新IP白名单")
     @PutMapping("/{id}")
     Response<WhiteIPRecordVO> updateWhiteIP(
         @Parameter(description = "用户名，网关自动传入", required = true)
@@ -120,7 +120,7 @@ public interface WebWhiteIPResource {
             WhiteIPRecordCreateUpdateReq createUpdateReq
     );
 
-    @Operation(summary = "获取IP白名单记录详情", produces = "application/json")
+    @Operation(summary = "获取IP白名单记录详情")
     @GetMapping("/ids/{id}")
     Response<WhiteIPRecordVO> getWhiteIPDetailById(
         @Parameter(description = "用户名，网关自动传入")
@@ -131,7 +131,7 @@ public interface WebWhiteIPResource {
             Long id
     );
 
-    @Operation(summary = "获取业务下云区域列表", produces = "application/json")
+    @Operation(summary = "获取业务下云区域列表")
     @GetMapping("/cloudAreas/list")
     Response<List<CloudAreaInfoVO>> listCloudAreas(
         @Parameter(description = "用户名，网关自动传入")
@@ -139,7 +139,7 @@ public interface WebWhiteIPResource {
             String username
     );
 
-    @Operation(summary = "获取生效范围列表", produces = "application/json")
+    @Operation(summary = "获取生效范围列表")
     @GetMapping("/actionScope/list")
     Response<List<ActionScopeVO>> listActionScope(
         @Parameter(description = "用户名，网关自动传入")
@@ -147,7 +147,7 @@ public interface WebWhiteIPResource {
             String username
     );
 
-    @Operation(summary = "删除IP白名单", produces = "application/json")
+    @Operation(summary = "删除IP白名单")
     @DeleteMapping("/ids/{id}")
     Response<Long> deleteWhiteIPById(
         @Parameter(description = "用户名，网关自动传入")

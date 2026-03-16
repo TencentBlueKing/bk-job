@@ -42,11 +42,11 @@ import java.util.Map;
 @RestController
 public interface SwitchableTopoPathResource {
 
-    @Operation(summary = "根据hostId获取主机拓扑路径信息", produces = "application/json")
+    @Operation(summary = "根据hostId获取主机拓扑路径信息")
     @PostMapping("/batchGet")
     Response<Map<String, List<String>>> getTopoPathByHostIds(@RequestBody List<String> hostIdList);
 
-    @Operation(summary = "切换主机拓扑路径服务状态", produces = "application/json")
+    @Operation(summary = "切换主机拓扑路径服务状态")
     @PostMapping("/switch")
     Response<Boolean> switchStatus(@RequestBody SwitchStatusReq req);
 }

@@ -44,7 +44,7 @@ import java.util.List;
 @WorkerAPI
 public interface OpResource {
 
-    @Operation(summary = "Worker下线", produces = "application/json")
+    @Operation(summary = "Worker下线")
     @PostMapping("/offline")
     Response<List<String>> offLine(
         @Parameter(description = "用户名，网关自动传入")
@@ -52,7 +52,7 @@ public interface OpResource {
         @Parameter(description = "文件下线参数", required = true) @RequestBody WorkerOffLineReq req
     );
 
-    @Operation(summary = "查询Worker当前正在跑的任务", produces = "application/json")
+    @Operation(summary = "查询Worker当前正在跑的任务")
     @PostMapping("/taskList")
     Response<List<String>> taskList(
         @Parameter(description = "用户名，网关自动传入")

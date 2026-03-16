@@ -41,13 +41,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 @InternalAPI
 public interface ServiceRealProjectNameResource {
 
-    @Operation(summary = "查询真实项目名称", produces = "application/json")
+    @Operation(summary = "查询真实项目名称")
     @GetMapping("/service/realProjectName/query")
     InternalResponse<String> queryRealProjectName(@Parameter(description = "用于存储真实项目名称的Key")
                                                   @RequestParam(value = "saveKey")
                                                   String saveKey);
 
-    @Operation(summary = "保存真实项目名称", produces = "application/json")
+    @Operation(summary = "保存真实项目名称")
     @PostMapping("/service/realProjectName/save")
     InternalResponse<Void> saveRealProjectName(@Parameter(description = "存储真实项目名称请求体", required = true)
                                                @RequestBody

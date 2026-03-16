@@ -46,7 +46,7 @@ import java.util.List;
 @RestController
 @WebAPI
 public interface WebSearchToolsResource {
-    @Operation(summary = "查询任务链接", produces = "application/json")
+    @Operation(summary = "查询任务链接")
     @GetMapping(value = {"/queryJobInstance/gseTaskIds/{gseTaskId}"})
     Response<TaskLinkVO> getTaskLink(
         @Parameter(description = "用户名，网关自动传入")
@@ -57,7 +57,7 @@ public interface WebSearchToolsResource {
             String gseTaskId
     );
 
-    @Operation(summary = "根据作业步骤ID获取任务链接", produces = "application/json")
+    @Operation(summary = "根据作业步骤ID获取任务链接")
     @GetMapping(value = {"/queryJobInstance/stepInstanceIds/{stepInstanceId}"})
     Response<List<TaskLinkVO>> getTaskLinkByStepId(
         @Parameter(description = "用户名，网关自动传入")

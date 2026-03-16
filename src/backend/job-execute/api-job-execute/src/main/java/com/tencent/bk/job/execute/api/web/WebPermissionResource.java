@@ -52,7 +52,7 @@ public interface WebPermissionResource {
      * @param req      操作鉴权请求
      * @return 鉴权结果
      */
-    @Operation(summary = "检查操作权限", produces = "application/json")
+    @Operation(summary = "检查操作权限")
     @PostMapping("/check")
     Response<AuthResultVO> checkOperationPermission(
         @Parameter(description = "用户名，网关自动传入")
@@ -73,7 +73,7 @@ public interface WebPermissionResource {
      * @param returnPermissionDetail 是否返回详细的权限信息
      * @return 鉴权结果
      */
-    @Operation(summary = "检查操作权限", produces = "application/json")
+    @Operation(summary = "检查操作权限")
     @GetMapping("/check")
     Response<AuthResultVO> checkOperationPermission(
         @Parameter(description = "用户名，网关自动传入")

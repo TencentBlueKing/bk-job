@@ -54,7 +54,7 @@ public interface SyncOpResource {
      * @return 主机列表数据
      */
     @GetMapping("/host/app/{appId}")
-    @Operation(summary = "根据业务ID获取主机", produces = "application/json")
+    @Operation(summary = "根据业务ID获取主机")
     InternalResponse<List<ServiceHostInfoDTO>> getHostByAppId(
         @Parameter(description = "业务ID", required = true)
         @PathVariable("appId") Long appId);
@@ -65,7 +65,7 @@ public interface SyncOpResource {
      * @return 是否操作成功
      */
     @PutMapping("/syncApp")
-    @Operation(summary = "同步所有租户下的业务、业务集等", produces = "application/json")
+    @Operation(summary = "同步所有租户下的业务、业务集等")
     InternalResponse<Boolean> syncApp();
 
     /**
@@ -74,7 +74,7 @@ public interface SyncOpResource {
      * @return 是否操作成功
      */
     @PutMapping("/syncHost")
-    @Operation(summary = "触发指定租户下的所有业务的主机同步", produces = "application/json")
+    @Operation(summary = "触发指定租户下的所有业务的主机同步")
     InternalResponse<Void> syncHost(@Parameter(description = "租户ID")
                                     @RequestHeader(JobCommonHeaders.BK_TENANT_ID) String tenantId);
 
@@ -85,7 +85,7 @@ public interface SyncOpResource {
      * @return 是否操作成功
      */
     @PutMapping("/syncHost/biz/{bizId}")
-    @Operation(summary = "根据业务ID同步主机", produces = "application/json")
+    @Operation(summary = "根据业务ID同步主机")
     InternalResponse<Boolean> syncHostByBizId(@Parameter(description = "业务ID", required = true)
                                               @PathVariable("bizId") Long bizId);
 
@@ -95,7 +95,7 @@ public interface SyncOpResource {
      * @return 是否操作成功
      */
     @PutMapping("/syncApp/enable")
-    @Operation(summary = "开启业务同步", produces = "application/json")
+    @Operation(summary = "开启业务同步")
     InternalResponse<Boolean> enableSyncApp();
 
     /**
@@ -104,7 +104,7 @@ public interface SyncOpResource {
      * @return 是否操作成功
      */
     @PutMapping("/syncApp/disable")
-    @Operation(summary = "关闭业务同步", produces = "application/json")
+    @Operation(summary = "关闭业务同步")
     InternalResponse<Boolean> disableSyncApp();
 
     /**
@@ -113,7 +113,7 @@ public interface SyncOpResource {
      * @return 是否操作成功
      */
     @PutMapping("/syncHost/enable")
-    @Operation(summary = "开启主机同步", produces = "application/json")
+    @Operation(summary = "开启主机同步")
     InternalResponse<Boolean> enableSyncHost();
 
     /**
@@ -122,7 +122,7 @@ public interface SyncOpResource {
      * @return 是否操作成功
      */
     @PutMapping("/syncHost/disable")
-    @Operation(summary = "关闭主机同步", produces = "application/json")
+    @Operation(summary = "关闭主机同步")
     InternalResponse<Boolean> disableSyncHost();
 
     /**
@@ -131,7 +131,7 @@ public interface SyncOpResource {
      * @return 是否操作成功
      */
     @PutMapping("/syncAgentStatus/enable")
-    @Operation(summary = "开启主机状态同步", produces = "application/json")
+    @Operation(summary = "开启主机状态同步")
     InternalResponse<Boolean> enableSyncAgentStatus();
 
     /**
@@ -140,6 +140,6 @@ public interface SyncOpResource {
      * @return 是否操作成功
      */
     @PutMapping("/syncAgentStatus/disable")
-    @Operation(summary = "关闭主机状态同步", produces = "application/json")
+    @Operation(summary = "关闭主机状态同步")
     InternalResponse<Boolean> disableSyncAgentStatus();
 }

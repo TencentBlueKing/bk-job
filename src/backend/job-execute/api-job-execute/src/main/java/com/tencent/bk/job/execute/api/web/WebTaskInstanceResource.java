@@ -58,7 +58,7 @@ public interface WebTaskInstanceResource {
     @Deprecated
     @CompatibleImplementation(name = "dao_add_task_instance_id", deprecatedVersion = "3.11.x",
         type = CompatibleType.DEPLOY, explain = "发布完成后可以删除")
-    @Operation(summary = "获取作业步骤实例详情", produces = "application/json")
+    @Operation(summary = "获取作业步骤实例详情")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task-instance/step_instance/{stepInstanceId}"})
     Response<ExecuteStepVO> getStepInstanceDetail(
         @Parameter(description = "用户名，网关自动传入")
@@ -78,7 +78,7 @@ public interface WebTaskInstanceResource {
         Long stepInstanceId
     );
 
-    @Operation(summary = "获取作业步骤实例详情", produces = "application/json")
+    @Operation(summary = "获取作业步骤实例详情")
     @GetMapping(value = {
         "/scope/{scopeType}/{scopeId}/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}/detail"})
     Response<ExecuteStepVO> getStepInstanceDetailV2(
@@ -102,7 +102,7 @@ public interface WebTaskInstanceResource {
         Long stepInstanceId
     );
 
-    @Operation(summary = "获取作业实例全局参数", produces = "application/json")
+    @Operation(summary = "获取作业实例全局参数")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task-instance/task-variables/{taskInstanceId}"})
     Response<List<ExecuteVariableVO>> getTaskInstanceVariables(
         @Parameter(description = "用户名，网关自动传入")
@@ -122,7 +122,7 @@ public interface WebTaskInstanceResource {
         Long taskInstanceId
     );
 
-    @Operation(summary = "获取作业操作日志", produces = "application/json")
+    @Operation(summary = "获取作业操作日志")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task-instance/operation-log/{taskInstanceId}"})
     Response<List<TaskOperationLogVO>> getTaskInstanceOperationLog(
         @Parameter(description = "用户名，网关自动传入")
@@ -142,7 +142,7 @@ public interface WebTaskInstanceResource {
         Long taskInstanceId
     );
 
-    @Operation(summary = "获取作业实例详情,包括步骤列表和全局变量列表", produces = "application/json")
+    @Operation(summary = "获取作业实例详情,包括步骤列表和全局变量列表")
     @GetMapping(value = {"/scope/{scopeType}/{scopeId}/task-instance/{taskInstanceId}"})
     Response<TaskInstanceDetailVO> getTaskInstanceDetail(
         @Parameter(description = "用户名，网关自动传入")
@@ -162,7 +162,7 @@ public interface WebTaskInstanceResource {
         Long taskInstanceId
     );
 
-    @Operation(summary = "获取作业实例基本信息", produces = "application/json")
+    @Operation(summary = "获取作业实例基本信息")
     @GetMapping("/task_instance/{taskInstanceId}")
     Response<TaskInstanceVO> getTaskInstanceBasic(
         @Parameter(description = "用户名，网关自动传入")

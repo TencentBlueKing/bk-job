@@ -50,7 +50,7 @@ import java.util.List;
 @WebAPI
 public interface WebNoticeResource {
 
-    @Operation(summary = "获获取公告列表（返回码1217001表示消息通知中心API不存在，该环境未对接消息通知中心，需要兼容处理）", produces = "application/json")
+    @Operation(summary = "获获取公告列表（返回码1217001表示消息通知中心API不存在，该环境未对接消息通知中心，需要兼容处理）")
     @GetMapping(value = {"/announcement/currentAnnouncements"})
     Response<List<AnnouncementVO>> getCurrentAnnouncements(
         @Parameter(description = "用户名，网关自动传入")
