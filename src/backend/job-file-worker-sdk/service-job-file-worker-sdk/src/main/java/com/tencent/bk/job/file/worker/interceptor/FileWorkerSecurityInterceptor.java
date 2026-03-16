@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.security.consts.JwtConsts;
 import com.tencent.bk.job.common.security.exception.ServiceNoAuthException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,7 +41,7 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 @Slf4j
 @JobInterceptor(pathPatterns = "/**", order = InterceptorOrder.Init.CHECK_VALID)
-public class FileWorkerSecurityInterceptor extends HandlerInterceptorAdapter {
+public class FileWorkerSecurityInterceptor implements HandlerInterceptor {
 
     private final JwtManager jwtManager;
 
