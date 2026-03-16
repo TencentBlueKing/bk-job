@@ -40,7 +40,7 @@ data:
       service:
         url: {{ .Values.bkComponentApiUrl }}
         publicUrl: {{ .Values.bkComponentApiUrl }}
-    bkApiGateway:
+    bk-api-gateway:
       gse:
         url: {{ .Values.bkGseApiGatewayUrl }}
       bkNotice:
