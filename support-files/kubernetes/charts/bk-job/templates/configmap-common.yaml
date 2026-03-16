@@ -17,16 +17,18 @@ data:
           name: {{ .Values.job.security.actuator.user.name }}
           password: {{ .Values.job.security.actuator.user.password }}
           roles: ENDPOINT_ADMIN
-      sleuth:
-        otel:
-          exporter:
-            enabled: {{ .Values.job.trace.report.enabled }}
-            otlp:
-              endpoint: {{ .Values.job.trace.report.pushUrl }}
-          resource:
-            bkDataToken: {{ .Values.job.trace.report.secureKey }}
-          config:
-            traceIdRatioBased: {{ .Values.job.trace.report.ratio }}
+    job:
+      tracing:
+        exporter:
+          enabled: {{ .Values.job.trace.report.enabled }}
+        bk-data-token: {{ .Values.job.trace.report.secureKey }}
+    management:
+      tracing:
+        sampling:
+          probability: {{ .Values.job.trace.report.ratio }}
+      otlp:
+        tracing:
+          endpoint: {{ .Values.job.trace.report.pushUrl }}
       {{- include "job.rabbitmq.sslConfig" . | nindent 6 }}
     bk:
       bkDomain: {{ .Values.global.bkDomain }}

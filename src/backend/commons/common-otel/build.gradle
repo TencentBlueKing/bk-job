@@ -23,7 +23,9 @@
  */
 
 dependencies {
+    api 'org.springframework.boot:spring-boot-starter'
     api 'io.micrometer:micrometer-tracing-bridge-otel'
+    api 'io.opentelemetry:opentelemetry-sdk'
     api "io.opentelemetry.instrumentation:opentelemetry-jdbc"
     api "io.opentelemetry:opentelemetry-exporter-otlp"
 }
