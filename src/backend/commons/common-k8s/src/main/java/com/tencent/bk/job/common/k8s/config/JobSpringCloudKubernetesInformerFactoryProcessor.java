@@ -29,9 +29,10 @@ import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
-import io.kubernetes.client.spring.extended.controller.KubernetesInformerFactoryProcessor;
-import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformer;
-import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformers;
+import io.kubernetes.client.openapi.models.V1Endpoints;
+import io.kubernetes.client.openapi.models.V1EndpointsList;
+import io.kubernetes.client.openapi.models.V1Service;
+import io.kubernetes.client.openapi.models.V1ServiceList;
 import io.kubernetes.client.util.Namespaces;
 import io.kubernetes.client.util.generic.GenericKubernetesApi;
 import org.slf4j.Logger;
@@ -40,6 +41,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.core.ResolvableType;
@@ -47,81 +49,88 @@ import org.springframework.core.ResolvableType;
 import java.time.Duration;
 
 /**
- * SpringCloudKubernetesInformerFactoryProcessor为非公开类，此处将其设置为公开类便于覆盖Bean时使用
+ * 编程式 Kubernetes Informer 工厂处理器。
+ * Kubernetes Java Client 19.x 移除了注解式 Informer 配置
+ * ({@code @KubernetesInformers}/{@code @KubernetesInformer}/{@code @GroupVersionResource})
+ * 和 {@code KubernetesInformerFactoryProcessor}，改为编程式注册。
  */
-public class JobSpringCloudKubernetesInformerFactoryProcessor extends KubernetesInformerFactoryProcessor {
+public class JobSpringCloudKubernetesInformerFactoryProcessor implements BeanDefinitionRegistryPostProcessor {
 
-	private static final Logger log = LoggerFactory.getLogger(JobSpringCloudKubernetesInformerFactoryProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(JobSpringCloudKubernetesInformerFactoryProcessor.class);
 
-	private BeanDefinitionRegistry beanDefinitionRegistry;
+    private BeanDefinitionRegistry beanDefinitionRegistry;
 
-	private final ApiClient apiClient;
+    private final ApiClient apiClient;
 
-	private final SharedInformerFactory sharedInformerFactory;
+    private final SharedInformerFactory sharedInformerFactory;
 
-	private final boolean allNamespaces;
+    private final boolean allNamespaces;
 
-	private final KubernetesNamespaceProvider kubernetesNamespaceProvider;
+    private final KubernetesNamespaceProvider kubernetesNamespaceProvider;
 
     JobSpringCloudKubernetesInformerFactoryProcessor(KubernetesNamespaceProvider kubernetesNamespaceProvider,
                                                      ApiClient apiClient,
                                                      SharedInformerFactory sharedInformerFactory,
                                                      boolean allNamespaces) {
-        super();
         this.apiClient = apiClient;
         this.sharedInformerFactory = sharedInformerFactory;
         this.kubernetesNamespaceProvider = kubernetesNamespaceProvider;
         this.allNamespaces = allNamespaces;
     }
 
-	@Override
-	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		String namespace = allNamespaces ? Namespaces.NAMESPACE_ALL : kubernetesNamespaceProvider.getNamespace() == null
-				? Namespaces.NAMESPACE_DEFAULT : kubernetesNamespaceProvider.getNamespace();
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        String namespace = allNamespaces ? Namespaces.NAMESPACE_ALL
+            : kubernetesNamespaceProvider.getNamespace() == null
+            ? Namespaces.NAMESPACE_DEFAULT : kubernetesNamespaceProvider.getNamespace();
 
-		this.apiClient.setHttpClient(this.apiClient.getHttpClient().newBuilder().readTimeout(Duration.ZERO).build());
+        this.apiClient.setHttpClient(this.apiClient.getHttpClient().newBuilder().readTimeout(Duration.ZERO).build());
 
-		KubernetesInformers kubernetesInformers = sharedInformerFactory.getClass()
-				.getAnnotation(KubernetesInformers.class);
-		if (kubernetesInformers == null || kubernetesInformers.value().length == 0) {
-			log.info("No informers registered in the sharedInformerFactory..");
-			return;
-		}
-		for (KubernetesInformer kubernetesInformer : kubernetesInformers.value()) {
-			final GenericKubernetesApi api = new GenericKubernetesApi(kubernetesInformer.apiTypeClass(),
-					kubernetesInformer.apiListTypeClass(), kubernetesInformer.groupVersionResource().apiGroup(),
-					kubernetesInformer.groupVersionResource().apiVersion(),
-					kubernetesInformer.groupVersionResource().resourcePlural(), apiClient);
-			SharedIndexInformer sharedIndexInformer = sharedInformerFactory.sharedIndexInformerFor(api,
-					kubernetesInformer.apiTypeClass(), kubernetesInformer.resyncPeriodMillis(),
-					kubernetesInformer.namespace().equals(Namespaces.NAMESPACE_ALL) ? namespace
-							: kubernetesInformer.namespace());
-			ResolvableType informerType = ResolvableType.forClassWithGenerics(SharedInformer.class,
-					kubernetesInformer.apiTypeClass());
-			RootBeanDefinition informerBean = new RootBeanDefinition();
-			informerBean.setTargetType(informerType);
-			informerBean.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
-			informerBean.setAutowireCandidate(true);
-			String informerBeanName = informerType.toString();
-			this.beanDefinitionRegistry.registerBeanDefinition(informerBeanName, informerBean);
-			beanFactory.registerSingleton(informerBeanName, sharedIndexInformer);
+        registerInformer(beanFactory, V1Service.class, V1ServiceList.class,
+            "", "v1", "services", 0L, namespace);
+        registerInformer(beanFactory, V1Endpoints.class, V1EndpointsList.class,
+            "", "v1", "endpoints", 0L, namespace);
+    }
 
-			Lister lister = new Lister(sharedIndexInformer.getIndexer());
-			ResolvableType listerType = ResolvableType.forClassWithGenerics(Lister.class,
-					kubernetesInformer.apiTypeClass());
-			RootBeanDefinition listerBean = new RootBeanDefinition();
-			listerBean.setTargetType(listerType);
-			listerBean.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
-			listerBean.setAutowireCandidate(true);
-			String listerBeanName = listerType.toString();
-			this.beanDefinitionRegistry.registerBeanDefinition(listerBeanName, listerBean);
-			beanFactory.registerSingleton(listerBeanName, lister);
-		}
-	}
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void registerInformer(
+        ConfigurableListableBeanFactory beanFactory,
+        Class apiTypeClass,
+        Class apiListTypeClass,
+        String apiGroup,
+        String apiVersion,
+        String resourcePlural,
+        long resyncPeriodMillis,
+        String namespace) {
 
-	@Override
-	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-		this.beanDefinitionRegistry = registry;
-	}
+        final GenericKubernetesApi api = new GenericKubernetesApi(
+            apiTypeClass, apiListTypeClass, apiGroup, apiVersion, resourcePlural, apiClient);
+        SharedIndexInformer sharedIndexInformer = sharedInformerFactory.sharedIndexInformerFor(
+            api, apiTypeClass, resyncPeriodMillis, namespace);
+
+        ResolvableType informerType = ResolvableType.forClassWithGenerics(SharedInformer.class, apiTypeClass);
+        RootBeanDefinition informerBean = new RootBeanDefinition();
+        informerBean.setTargetType(informerType);
+        informerBean.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
+        informerBean.setAutowireCandidate(true);
+        String informerBeanName = informerType.toString();
+        this.beanDefinitionRegistry.registerBeanDefinition(informerBeanName, informerBean);
+        beanFactory.registerSingleton(informerBeanName, sharedIndexInformer);
+
+        Lister lister = new Lister(sharedIndexInformer.getIndexer());
+        ResolvableType listerType = ResolvableType.forClassWithGenerics(Lister.class, apiTypeClass);
+        RootBeanDefinition listerBean = new RootBeanDefinition();
+        listerBean.setTargetType(listerType);
+        listerBean.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
+        listerBean.setAutowireCandidate(true);
+        String listerBeanName = listerType.toString();
+        this.beanDefinitionRegistry.registerBeanDefinition(listerBeanName, listerBean);
+        beanFactory.registerSingleton(listerBeanName, lister);
+    }
+
+    @Override
+    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+        this.beanDefinitionRegistry = registry;
+    }
 
 }

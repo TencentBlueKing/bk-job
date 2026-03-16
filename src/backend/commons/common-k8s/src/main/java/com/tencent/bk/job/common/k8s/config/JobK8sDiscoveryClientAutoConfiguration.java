@@ -30,27 +30,21 @@ import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.models.V1Endpoints;
-import io.kubernetes.client.openapi.models.V1EndpointsList;
 import io.kubernetes.client.openapi.models.V1Service;
-import io.kubernetes.client.openapi.models.V1ServiceList;
-import io.kubernetes.client.spring.extended.controller.annotation.GroupVersionResource;
-import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformer;
-import io.kubernetes.client.spring.extended.controller.annotation.KubernetesInformers;
-import io.kubernetes.client.spring.extended.controller.config.KubernetesInformerAutoConfiguration;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
 import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
-import org.springframework.cloud.kubernetes.client.discovery.ConditionalOnKubernetesDiscoveryEnabled;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
 import org.springframework.cloud.kubernetes.commons.PodUtils;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
@@ -65,12 +59,9 @@ import org.springframework.core.env.Environment;
  * 注意：该类用于使用部分自定义Bean实例覆盖KubernetesDiscoveryClientAutoConfiguration类的配置内容，框架升级时需要同步更新！！！
  */
 @Configuration(proxyBeanMethods = false)
-@ConditionalOnKubernetesDiscoveryEnabled
-@ConditionalOnKubernetesEnabled
-@AutoConfigureBefore({SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class,
-    // So that CatalogSharedInformerFactory can be processed in prior to the default
-    // factory
-    KubernetesInformerAutoConfiguration.class})
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
+@ConditionalOnDiscoveryEnabled
+@AutoConfigureBefore({SimpleDiscoveryClientAutoConfiguration.class, CommonsClientAutoConfiguration.class})
 @AutoConfigureAfter({KubernetesClientAutoConfiguration.class})
 @EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 public class JobK8sDiscoveryClientAutoConfiguration {
@@ -135,15 +126,7 @@ public class JobK8sDiscoveryClientAutoConfiguration {
         );
     }
 
-    @KubernetesInformers({
-        @KubernetesInformer(apiTypeClass = V1Service.class, apiListTypeClass = V1ServiceList.class,
-            groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
-                resourcePlural = "services")),
-        @KubernetesInformer(apiTypeClass = V1Endpoints.class, apiListTypeClass = V1EndpointsList.class,
-            groupVersionResource = @GroupVersionResource(apiGroup = "", apiVersion = "v1",
-                resourcePlural = "endpoints"))})
     class JobCatalogSharedInformerFactory extends SharedInformerFactory {
-        // TODO: optimization to ease memory pressure from continuous list&watch.
     }
 }
 
