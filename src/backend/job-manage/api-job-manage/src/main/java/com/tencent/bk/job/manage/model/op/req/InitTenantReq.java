@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.model.op.req;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * 初始化租户请求体

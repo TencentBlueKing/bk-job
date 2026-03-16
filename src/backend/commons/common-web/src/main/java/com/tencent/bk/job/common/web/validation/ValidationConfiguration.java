@@ -45,7 +45,7 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.validation.beanvalidation.MessageSourceResourceBundleLocator;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
@@ -80,7 +80,7 @@ public class ValidationConfiguration {
         }
 
         @Override
-        protected void postProcessConfiguration(javax.validation.Configuration<?> configuration) {
+        protected void postProcessConfiguration(jakarta.validation.Configuration<?> configuration) {
             if (configuration instanceof HibernateValidatorConfiguration) {
                 HibernateValidatorConfiguration hibernateValidatorConfiguration =
                     (HibernateValidatorConfiguration) configuration;

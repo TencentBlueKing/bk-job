@@ -27,7 +27,7 @@ package com.tencent.bk.job.common.model.openapi.v3;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * 动态分组
