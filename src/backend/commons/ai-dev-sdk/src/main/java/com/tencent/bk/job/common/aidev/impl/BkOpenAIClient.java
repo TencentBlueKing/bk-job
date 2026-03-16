@@ -49,9 +49,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.helpers.MessageFormatter;
 import io.micrometer.tracing.Span;
-import io.micrometer.tracing.SpanNamer;
 import io.micrometer.tracing.Tracer;
-// TraceRunnable removed - use ContextSnapshot for trace propagation
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -77,7 +75,6 @@ public class BkOpenAIClient implements IBkOpenAIClient {
     private static final int MAX_LOG_LENGTH = 500 * 1024;
 
     private final Tracer tracer;
-    private final SpanNamer spanNamer;
     private final MeterRegistry meterRegistry;
     private final AppProperties appProperties;
     private final BkApiGatewayProperties.ApiGwConfig bkAIDevConfig;
@@ -86,14 +83,12 @@ public class BkOpenAIClient implements IBkOpenAIClient {
     private final String model;
 
     public BkOpenAIClient(Tracer tracer,
-                          SpanNamer spanNamer,
                           MeterRegistry meterRegistry,
                           AppProperties appProperties,
                           CustomPaasLoginProperties customPaasLoginProperties,
                           BkApiGatewayProperties bkApiGatewayProperties,
                           String model) {
         this.tracer = tracer;
-        this.spanNamer = spanNamer;
         this.meterRegistry = meterRegistry;
         this.appProperties = appProperties;
         this.bkAIDevUrl = getBkAIDevUrlSafely(bkApiGatewayProperties);
@@ -231,7 +226,15 @@ public class BkOpenAIClient implements IBkOpenAIClient {
             logRespStr(username, respStr);
             future.complete(respStr);
         };
-        Runnable tracedStreamingCompletionCallback = new TraceRunnable(tracer, spanNamer, streamingCompletionCallback);
+        Span parentSpanForCallback = tracer.currentSpan();
+        Runnable tracedStreamingCompletionCallback = () -> {
+            Span childSpan = tracer.nextSpan(parentSpanForCallback).start();
+            try (Tracer.SpanInScope ignored = tracer.withSpan(childSpan)) {
+                streamingCompletionCallback.run();
+            } finally {
+                childSpan.end();
+            }
+        };
         // 构造错误处理器
         Consumer<Throwable> errorHandler = throwable -> {
             recordAIRespAllBlockDelay(

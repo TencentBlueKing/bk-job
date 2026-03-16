@@ -32,7 +32,6 @@ import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import io.micrometer.tracing.SpanNamer;
 import io.micrometer.tracing.Tracer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,14 +44,12 @@ public class AIDevAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public BkOpenAIClient bkOpenAIClient(Tracer tracer,
-                                         SpanNamer spanNamer,
                                          MeterRegistry meterRegistry,
                                          AppProperties appProperties,
                                          CustomPaasLoginProperties customPaasLoginProperties,
                                          BkApiGatewayProperties bkApiGatewayProperties) {
         return new BkOpenAIClient(
             tracer,
-            spanNamer,
             meterRegistry,
             appProperties,
             customPaasLoginProperties,

@@ -73,35 +73,38 @@ public abstract class AbstractQuartzJobBean extends QuartzJobBean {
     @Override
     protected void executeInternal(@NotNull JobExecutionContext context) {
         scheduleMeasureService.recordCronScheduleDelay(name(), context);
-        ScopedSpan span = tracer.startScopedSpan("executeCronJob");
-        JobContextUtil.setRequestId(span.context().traceId());
-        String executeId = JobContextUtil.getRequestId();
-        long startTimeMills = System.currentTimeMillis();
-        boolean redisLockGotten = false;
-        try {
-            if (log.isDebugEnabled()) {
-                log.debug("{}|Job {} key {} start execute ...", executeId, name(), getLockKey(context));
-            }
-            redisLockGotten = LockUtils.tryGetDistributedLock(getLockKey(context), executeId, 90000L);
-            if (redisLockGotten) {
-                executeInternalInternal(context);
-            } else {
+        Span span = tracer.nextSpan().name("executeCronJob").start();
+        try (Tracer.SpanInScope ignored = tracer.withSpan(span)) {
+            JobContextUtil.setRequestId(span.context().traceId());
+            String executeId = JobContextUtil.getRequestId();
+            long startTimeMills = System.currentTimeMillis();
+            boolean redisLockGotten = false;
+            try {
                 if (log.isDebugEnabled()) {
-                    log.debug(
-                        "{}|Job {} key {} execute aborted. Acquire lock failed!",
-                        executeId,
-                        name(),
-                        getLockKey(context)
-                    );
+                    log.debug("{}|Job {} key {} start execute ...", executeId, name(), getLockKey(context));
                 }
+                redisLockGotten = LockUtils.tryGetDistributedLock(getLockKey(context), executeId, 90000L);
+                if (redisLockGotten) {
+                    executeInternalInternal(context);
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug(
+                            "{}|Job {} key {} execute aborted. Acquire lock failed!",
+                            executeId,
+                            name(),
+                            getLockKey(context)
+                        );
+                    }
+                }
+                if (log.isDebugEnabled()) {
+                    log.debug("{}|Job {} key {} execute finished.", executeId, name(), getLockKey(context));
+                }
+            } catch (JobExecutionException e) {
+                log.error("fail to executeInternal", e);
+            } finally {
+                recordCronTimeConsuming(context, redisLockGotten, startTimeMills);
             }
-            if (log.isDebugEnabled()) {
-                log.debug("{}|Job {} key {} execute finished.", executeId, name(), getLockKey(context));
-            }
-        } catch (JobExecutionException e) {
-            log.error("fail to executeInternal", e);
         } finally {
-            recordCronTimeConsuming(context, redisLockGotten, startTimeMills);
             span.end();
         }
     }
