@@ -130,6 +130,19 @@ fi
 echo "  - 为 ${tableName} 设置 tenant_id 值..."
 executeSqlInTmpDb "UPDATE \`${globalTmpJobManageDb}\`.\`${tmpTableName}\` SET tenant_id='${defaultTenantId}';"
 
+# script 表补充 tenant_id
+echo ""
+tableName="script"
+tmpTableName="${tableName}_global"
+hasColumn=$(querySqlInTmpDb "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema='${globalTmpJobManageDb}' AND table_name='${tmpTableName}' AND column_name='tenant_id';")
+if [[ "${hasColumn}" == "0" || "${hasColumn}" == "" ]]; then
+  echo "  - 为 ${tableName} 添加 tenant_id 列..."
+  executeSqlInTmpDb "ALTER TABLE \`${globalTmpJobManageDb}\`.\`${tmpTableName}\` ADD COLUMN tenant_id VARCHAR(32) NOT NULL DEFAULT '${defaultTenantId}';"
+fi
+# 无论列是否已存在，都更新 tenant_id 值（幂等操作）
+echo "  - 为 ${tableName} 设置 tenant_id 值..."
+executeSqlInTmpDb "UPDATE \`${globalTmpJobManageDb}\`.\`${tmpTableName}\` SET tenant_id='${defaultTenantId}';"
+
 echo ""
 echo "步骤3完成: 数据处理完成"
 
