@@ -93,7 +93,7 @@ ext {
     set('swaggerVersion', "3.0.0")
     set('junitVersion', "5.5.2")
     // https://mvnrepository.com/artifact/org.projectlombok/lombok
-    set('lombokVersion', "1.18.24")
+    set('lombokVersion', "1.18.36")
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
     set('jacksonVersion', "2.15.4")
     set('jaxrsVersion', "3.1.0")
@@ -119,20 +119,20 @@ ext {
     set('jooqVersion', "3.19.1")
     set('xmlBindVersion', "4.0.0")
     set('annotationApiVersion', "2.1.1")
-    set('h2Version', "1.4.199")
+    set('h2Version', "2.3.232")
     set('gradleJooqVersion', "2.0.11")
     // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
     set('apacheHttpClientVersion', "4.5.13")
-    set('apacheThriftVersion', "0.15.0")
+    set('apacheThriftVersion', "0.21.0")
     // Fix CVE-2024-47554 CVE-2021-29425 2.6->2.14.0
     set('commonsIOVersion', "2.14.0")
-    set('jakartaServletVersion', "6.1.0")
+    set('jakartaServletVersion', "6.0.0")
     // Fix CVE-2023-2976 CVE-2020-8908 28.2-jre->32.0.0-android
-    set('guavaVersion', "32.0.0-android")
+    set('guavaVersion', "33.4.0-jre")
     set('caffeineVersion', "3.1.8")
     set('jjwtVersion', "0.13.0")
     set('hibernateValidatorVersion', "8.0.2.Final")
-    set('flapdoodleEmbeddedMongdbDBVersion', "4.4.0")
+    set('flapdoodleEmbeddedMongdbDBVersion', "4.20.0")
     set('jodaTimeVersion', "2.10.5")
     set('bcprovVersion', "1.78.1")
     set('reflectionsVersion', "0.10.2")
@@ -141,7 +141,7 @@ ext {
     set('commonsValidatorVersion', "1.6")
     set('okHttpVersion', "4.12.0")
     set('jcommanderVersion', "1.72")
-    set('kubernetesJavaClientVersion', "13.0.2")
+    set('kubernetesJavaClientVersion', "19.0.0")
     set('springCloudKubernetesVersion', "3.2.1")
     set('cryptoJavaSDKVersion', "1.1.3")
     // Fix CVE-2019-10086,CVE-2014-0114
@@ -154,7 +154,7 @@ ext {
         println "bkjobVersion:" + bkjobVersion
     }
     set('bkAuditJavaSdkVersion', "1.0.9")
-    set('mockitoVersion', "4.0.0")
+    set('mockitoVersion', "5.14.2")
     set('embeddedRedisVersion', "0.6")
     set('openai4jVersion', "0.18.0")
     set('shardingJdbcVersion', "5.4.1")
@@ -369,7 +369,7 @@ subprojects {
             dependency "com.beust:jcommander:$jcommanderVersion"
             dependency "com.tencent.bk.sdk:crypto-java-sdk:$cryptoJavaSDKVersion"
             dependency "com.tencent.bk.sdk:spring-boot-bk-audit-starter:$bkAuditJavaSdkVersion"
-            dependency "org.mockito:mockito-inline:$mockitoVersion"
+            dependency "org.mockito:mockito-core:$mockitoVersion"
             dependency "com.github.kstyrc:embedded-redis:$embeddedRedisVersion"
             dependency "dev.ai4j:openai4j:$openai4jVersion"
             dependency "org.apache.shardingsphere:shardingsphere-jdbc-core:$shardingJdbcVersion"
