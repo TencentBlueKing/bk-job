@@ -32,7 +32,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import io.swagger.v3.oas.annotations.Hidden;
+
 
 import java.util.Map;
 
@@ -51,8 +51,7 @@ public interface WebFeatureToggleResource {
     @Operation(summary = "获取Job功能特性开关配置")
     @GetMapping("/list")
     Response<Map<String, Boolean>> listFeatureToggle(
-        @Hidden
-        @Parameter(description = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true, hidden = true)
         @RequestHeader("username")
         String username
     );

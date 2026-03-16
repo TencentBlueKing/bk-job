@@ -79,7 +79,7 @@ public interface ServiceApplicationResource {
      */
     @Operation(summary = "根据资源范围查询业务")
     @RequestMapping("/service/app/scope/{scopeType}/{scopeId}")
-    ServiceApplicationDTO queryAppByScope(@Parameter(description = "资源范围类型", allowableValues = "1-业务,2-业务集", required = true)
+    ServiceApplicationDTO queryAppByScope(@Parameter(description = "资源范围类型", required = true)
                                           @PathVariable("scopeType") String scopeType,
                                           @Parameter(description = "资源范围ID", required = true)
                                           @PathVariable("scopeId") String scopeId);
@@ -87,7 +87,7 @@ public interface ServiceApplicationResource {
     @Operation(summary = "获取业务列表")
     @GetMapping("/service/app/list")
     InternalResponse<List<ServiceApplicationDTO>> listApps(
-        @Parameter(description = "资源范围类型", allowableValues = "1-业务,2-业务集")
+        @Parameter(description = "资源范围类型")
         @RequestParam(value = "scopeType", required = false) String scopeType);
 
     @Operation(summary = "获取所有已归档的业务(集)id")

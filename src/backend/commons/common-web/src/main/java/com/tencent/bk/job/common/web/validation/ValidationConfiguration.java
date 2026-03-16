@@ -36,7 +36,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.PrioritizedParameterNameDiscoverer;
 import org.springframework.core.StandardReflectionParameterNameDiscoverer;
@@ -107,7 +106,6 @@ public class ValidationConfiguration {
         public CustomParameterNameDiscoverer() {
             this.addDiscoverer(new ReqParamNamesDiscoverer());
             this.addDiscoverer(new StandardReflectionParameterNameDiscoverer());
-            this.addDiscoverer(new LocalVariableTableParameterNameDiscoverer());
         }
     }
 

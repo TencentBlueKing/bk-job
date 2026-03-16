@@ -34,8 +34,8 @@ dependencies {
     implementation "net.sf.dozer:dozer"
     implementation 'org.apache.commons:commons-collections4'
     implementation 'net.sourceforge.jchardet:jchardet'
-    implementation 'org.aspectj:aspectjrt'
-    implementation 'org.aspectj:aspectjweaver'
+    api 'org.aspectj:aspectjrt'
+    api 'org.aspectj:aspectjweaver'
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'org.apache.httpcomponents:httpclient'
     implementation 'org.hibernate.validator:hibernate-validator'

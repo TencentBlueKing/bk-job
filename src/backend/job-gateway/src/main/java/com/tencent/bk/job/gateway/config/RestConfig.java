@@ -25,16 +25,13 @@
 package com.tencent.bk.job.gateway.config;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -58,25 +55,21 @@ public class RestConfig {
             HttpComponentsClientHttpRequestFactory();
         factory.setConnectionRequestTimeout(10000);
         factory.setConnectTimeout(10000);
-        factory.setReadTimeout(10000);
         // https
         try {
-            SSLContextBuilder builder = new SSLContextBuilder();
-            builder.loadTrustMaterial(null, (X509Certificate[] x509Certificates, String s) -> true);
-            SSLConnectionSocketFactory socketFactory = new SSLConnectionSocketFactory(
-                builder.build(),
-                null,
-                null,
-                NoopHostnameVerifier.INSTANCE
-            );
-            Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
-                .register("http", new PlainConnectionSocketFactory())
-                .register("https", socketFactory).build();
-            PoolingHttpClientConnectionManager phccm = new PoolingHttpClientConnectionManager(registry);
-            phccm.setMaxTotal(200);
-            CloseableHttpClient httpClient =
-                HttpClients.custom().setSSLSocketFactory(socketFactory).setConnectionManager(phccm)
-                    .setConnectionManagerShared(true).build();
+            javax.net.ssl.SSLContext sslContext = new SSLContextBuilder()
+                .loadTrustMaterial(null, (X509Certificate[] x509Certificates, String s) -> true)
+                .build();
+            HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
+                    .setSslContext(sslContext)
+                    .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+                    .build())
+                .setMaxConnTotal(200)
+                .build();
+            CloseableHttpClient httpClient = HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .build();
             factory.setHttpClient(httpClient);
         } catch (Exception e) {
             log.error("Fail to init httpClient", e);

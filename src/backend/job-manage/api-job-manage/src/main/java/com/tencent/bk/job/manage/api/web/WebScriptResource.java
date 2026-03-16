@@ -69,7 +69,7 @@ import java.util.List;
  *
  * @date 2019/09/19
  */
-@Tag(value = "脚本管理", tags = {"job-manage:web:Script_Management"})
+@Tag(name = "job-manage:web:Script_Management", description = "脚本管理")
 @RequestMapping("/web/script")
 @RestController
 @WebAPI

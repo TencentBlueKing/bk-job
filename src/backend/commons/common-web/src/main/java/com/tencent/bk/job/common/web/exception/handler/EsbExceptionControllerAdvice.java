@@ -46,6 +46,7 @@ import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -176,7 +177,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-                                                                  HttpHeaders headers, HttpStatus status,
+                                                                  HttpHeaders headers, HttpStatusCode statusCode,
                                                                   WebRequest request) {
         ErrorDetailDTO errorDetail = buildErrorDetail(ex);
         log.warn("HandleMethodArgumentNotValid - errorDetail: {}", errorDetail);
@@ -208,7 +209,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException ex,
-                                                                         HttpHeaders headers, HttpStatus status,
+                                                                         HttpHeaders headers, HttpStatusCode statusCode,
                                                                          WebRequest request) {
         log.warn("Handle HttpRequestMethodNotSupportedException", ex);
         EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
@@ -218,7 +219,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex,
-                                                                     HttpHeaders headers, HttpStatus status,
+                                                                     HttpHeaders headers, HttpStatusCode statusCode,
                                                                      WebRequest request) {
         log.warn("Handle HttpMediaTypeNotSupportedException", ex);
         EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
@@ -228,7 +229,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleHttpMediaTypeNotAcceptable(HttpMediaTypeNotAcceptableException ex,
-                                                                      HttpHeaders headers, HttpStatus status,
+                                                                      HttpHeaders headers, HttpStatusCode statusCode,
                                                                       WebRequest request) {
         log.warn("Handle HttpMediaTypeNotAcceptableException", ex);
         EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
@@ -238,7 +239,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleMissingPathVariable(MissingPathVariableException ex, HttpHeaders headers,
-                                                               HttpStatus status, WebRequest request) {
+                                                               HttpStatusCode statusCode, WebRequest request) {
         log.warn("Handle MissingPathVariableException", ex);
         EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
@@ -247,7 +248,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleMissingServletRequestParameter(MissingServletRequestParameterException ex,
-                                                                          HttpHeaders headers, HttpStatus status,
+                                                                          HttpHeaders headers, HttpStatusCode statusCode,
                                                                           WebRequest request) {
         log.warn("Handle MissingServletRequestParameterException", ex);
         EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
@@ -257,7 +258,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleServletRequestBindingException(ServletRequestBindingException ex,
-                                                                          HttpHeaders headers, HttpStatus status,
+                                                                          HttpHeaders headers, HttpStatusCode statusCode,
                                                                           WebRequest request) {
         log.warn("Handle ServletRequestBindingException", ex);
         EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
@@ -267,7 +268,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleConversionNotSupported(ConversionNotSupportedException ex,
-                                                                  HttpHeaders headers, HttpStatus status,
+                                                                  HttpHeaders headers, HttpStatusCode statusCode,
                                                                   WebRequest request) {
         log.warn("Handle ConversionNotSupportedException", ex);
         EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
@@ -277,7 +278,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleTypeMismatch(TypeMismatchException ex, HttpHeaders headers,
-                                                        HttpStatus status, WebRequest request) {
+                                                        HttpStatusCode statusCode, WebRequest request) {
         log.warn("Handle TypeMismatchException", ex);
         EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
@@ -286,7 +287,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
-                                                                  HttpHeaders headers, HttpStatus status,
+                                                                  HttpHeaders headers, HttpStatusCode statusCode,
                                                                   WebRequest request) {
         log.warn("Handle HttpMessageNotReadableException", ex);
         EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
@@ -296,7 +297,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleHttpMessageNotWritable(HttpMessageNotWritableException ex,
-                                                                  HttpHeaders headers, HttpStatus status,
+                                                                  HttpHeaders headers, HttpStatusCode statusCode,
                                                                   WebRequest request) {
         log.warn("Handle HttpMessageNotWritableException", ex);
         EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
@@ -306,16 +307,15 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleMissingServletRequestPart(MissingServletRequestPartException ex,
-                                                                     HttpHeaders headers, HttpStatus status,
+                                                                     HttpHeaders headers, HttpStatusCode statusCode,
                                                                      WebRequest request) {
         log.warn("Handle MissingServletRequestPartException", ex);
         EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
-    @Override
     @SuppressWarnings("all")
-    protected ResponseEntity<Object> handleBindException(BindException ex, HttpHeaders headers, HttpStatus status,
+    protected ResponseEntity<Object> handleBindException(BindException ex, HttpHeaders headers, HttpStatusCode statusCode,
                                                          WebRequest request) {
         log.warn("Handle BindException", ex);
         EsbResp resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
@@ -325,7 +325,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleNoHandlerFoundException(NoHandlerFoundException ex, HttpHeaders headers,
-                                                                   HttpStatus status, WebRequest request) {
+                                                                   HttpStatusCode statusCode, WebRequest request) {
         log.warn("Handle NoHandlerFoundException", ex);
         EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.BAD_REQUEST);
         return new ResponseEntity<>(resp, HttpStatus.OK);
@@ -334,7 +334,7 @@ public class EsbExceptionControllerAdvice extends ExceptionControllerAdviceBase 
     @Override
     @SuppressWarnings("all")
     protected ResponseEntity<Object> handleAsyncRequestTimeoutException(AsyncRequestTimeoutException ex,
-                                                                        HttpHeaders headers, HttpStatus status,
+                                                                        HttpHeaders headers, HttpStatusCode statusCode,
                                                                         WebRequest webRequest) {
         log.error("Handle AsyncRequestTimeoutException", ex);
         EsbResp<?> resp = EsbResp.buildCommonFailResp(ErrorCode.INTERNAL_ERROR);

@@ -39,9 +39,9 @@ VALUES
 (3, 2, 'job_template_2_step_2', 1, 3, 0),
 (4, 3, 'job_template_3_step_1', 1, 4, 1);
 
-INSERT INTO `task_template_step_script` (id, template_id, step_id, script_type, language, script_id, script_version_id, script_timeout, execute_account)
+INSERT INTO `task_template_step_script` (id, template_id, step_id, script_type, language, script_id, script_version_id, script_timeout, execute_account, ignore_error)
 VALUES
-(1, 1, 1, 2, 1, 'scriptid1', 1, 1000, 1),
-(2, 2, 2, 2, 1, 'scriptid1', 2, 1000, 1),
-(3, 2, 3, 2, 1, 'scriptid2', 3, 1000, 1),
-(4, 3, 4, 2, 1, 'scriptid1', 1, 1000, 1);
+(1, 1, 1, 2, 1, 'scriptid1', 1, 1000, 1, 0),
+(2, 2, 2, 2, 1, 'scriptid1', 2, 1000, 1, 0),
+(3, 2, 3, 2, 1, 'scriptid2', 3, 1000, 1, 0),
+(4, 3, 4, 2, 1, 'scriptid1', 1, 1000, 1, 0);

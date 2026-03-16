@@ -61,7 +61,7 @@ import java.util.List;
 /**
  * 公共脚本管理API-前端调用
  */
-@Tag(value = "公共脚本管理", tags = {"job-manage:web:Public_Script_Management"})
+@Tag(name = "job-manage:web:Public_Script_Management", description = "公共脚本管理")
 @RequestMapping("/web/public_script")
 @RestController
 @WebAPI

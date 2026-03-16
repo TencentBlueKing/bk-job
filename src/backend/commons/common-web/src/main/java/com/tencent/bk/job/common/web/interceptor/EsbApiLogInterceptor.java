@@ -156,8 +156,7 @@ public class EsbApiLogInterceptor implements HandlerInterceptor {
         } catch (Throwable e) {
             log.warn("Handle after completion fail", e);
         } finally {
-
-            super.afterCompletion(request, response, handler, ex);
+            // HandlerInterceptor.afterCompletion default impl is no-op
         }
     }
 

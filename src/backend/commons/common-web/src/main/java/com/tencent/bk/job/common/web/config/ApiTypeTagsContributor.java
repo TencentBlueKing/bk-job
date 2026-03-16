@@ -26,27 +26,23 @@ package com.tencent.bk.job.common.web.config;
 
 import com.tencent.bk.job.common.metrics.CommonMetricTags;
 import com.tencent.bk.job.common.util.StringUtil;
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.Tags;
-import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTags;
-import org.springframework.boot.actuate.metrics.web.servlet.WebMvcTagsContributor;
+import io.micrometer.common.KeyValue;
+import io.micrometer.common.KeyValues;
+import org.springframework.http.server.observation.DefaultServerRequestObservationConvention;
+import org.springframework.http.server.observation.ServerRequestObservationContext;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
-public class ApiTypeTagsContributor implements WebMvcTagsContributor {
+public class ApiTypeTagsContributor extends DefaultServerRequestObservationConvention {
 
     @Override
-    public Iterable<Tag> getTags(HttpServletRequest request, HttpServletResponse response, Object handler,
-                                 Throwable exception) {
-        Tag uriTag = WebMvcTags.uri(request, response);
-        return Tags.of(CommonMetricTags.KEY_API_TYPE, parseApiTypeFromUri(uriTag.getValue()));
+    public KeyValues getHighCardinalityKeyValues(ServerRequestObservationContext context) {
+        return super.getHighCardinalityKeyValues(context);
     }
 
     @Override
-    public Iterable<Tag> getLongRequestTags(HttpServletRequest request, Object handler) {
-        Tag uriTag = WebMvcTags.uri(request, null);
-        return Tags.of(CommonMetricTags.KEY_API_TYPE, parseApiTypeFromUri(uriTag.getValue()));
+    public KeyValues getLowCardinalityKeyValues(ServerRequestObservationContext context) {
+        KeyValues base = super.getLowCardinalityKeyValues(context);
+        String uri = context.getCarrier().getRequestURI();
+        return base.and(KeyValue.of(CommonMetricTags.KEY_API_TYPE, parseApiTypeFromUri(uri)));
     }
 
     private String parseApiTypeFromUri(String uri) {

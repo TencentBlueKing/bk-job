@@ -42,6 +42,7 @@ import com.tencent.bk.job.common.model.error.ErrorType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -141,7 +142,7 @@ public class ServiceExceptionControllerAdvice extends ExceptionControllerAdviceB
     @SuppressWarnings("all")
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-                                                                  HttpHeaders headers, HttpStatus status,
+                                                                  HttpHeaders headers, HttpStatusCode statusCode,
                                                                   WebRequest request) {
         ErrorDetailDTO errorDetail = buildErrorDetail(ex);
         log.warn("HandleMethodArgumentNotValid - errorDetail: {}", errorDetail);

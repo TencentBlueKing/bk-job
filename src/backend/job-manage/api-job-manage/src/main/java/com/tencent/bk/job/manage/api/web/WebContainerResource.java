@@ -52,7 +52,7 @@ import java.util.List;
 /**
  * 容器管理 WEB API
  */
-@Tag(tags = "job-manage:web:Container_Management")
+@Tag(name = "job-manage:web:Container_Management")
 @RequestMapping("/web/scope/{scopeType}/{scopeId}/")
 @RestController
 @WebAPI
