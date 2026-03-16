@@ -48,10 +48,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.helpers.MessageFormatter;
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.SpanNamer;
-import org.springframework.cloud.sleuth.Tracer;
-import org.springframework.cloud.sleuth.instrument.async.TraceRunnable;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.SpanNamer;
+import io.micrometer.tracing.Tracer;
+// TraceRunnable removed - use ContextSnapshot for trace propagation
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;

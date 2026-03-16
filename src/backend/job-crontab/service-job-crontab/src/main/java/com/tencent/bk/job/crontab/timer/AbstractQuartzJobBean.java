@@ -35,8 +35,8 @@ import org.jetbrains.annotations.NotNull;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.sleuth.ScopedSpan;
-import org.springframework.cloud.sleuth.Tracer;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
 import java.time.Instant;

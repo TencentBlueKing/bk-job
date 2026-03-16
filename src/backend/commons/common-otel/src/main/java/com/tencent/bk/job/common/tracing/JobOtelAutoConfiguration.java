@@ -43,10 +43,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.cloud.sleuth.autoconfig.otel.OtelAutoConfiguration;
-import org.springframework.cloud.sleuth.autoconfig.otel.OtelProcessorProperties;
-import org.springframework.cloud.sleuth.autoconfig.otel.SpanProcessorProvider;
-import org.springframework.cloud.sleuth.otel.bridge.SpanExporterCustomizer;
+// OtelAutoConfiguration from Sleuth removed - use Micrometer Tracing bridge
+// OtelProcessorProperties from Sleuth removed
+// SpanProcessorProvider from Sleuth removed
+// SpanExporterCustomizer from Sleuth removed
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;

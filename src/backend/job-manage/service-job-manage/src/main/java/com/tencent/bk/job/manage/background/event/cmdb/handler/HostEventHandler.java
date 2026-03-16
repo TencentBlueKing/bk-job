@@ -45,7 +45,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cloud.sleuth.Tracer;
+import io.micrometer.tracing.Tracer;
 
 import java.util.Collections;
 import java.util.List;

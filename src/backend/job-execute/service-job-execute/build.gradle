@@ -42,7 +42,7 @@ dependencies {
     api("org.springframework.boot:spring-boot-starter-jdbc")
     api "org.springframework.boot:spring-boot-starter-jooq"
     implementation "org.springframework.cloud:spring-cloud-stream"
-    implementation "org.springframework.cloud:spring-cloud-starter-sleuth"
+    implementation 'io.micrometer:micrometer-tracing-bridge-otel'
     implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
     implementation "ch.qos.logback:logback-core"

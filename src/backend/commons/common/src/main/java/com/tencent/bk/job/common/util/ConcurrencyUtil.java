@@ -27,7 +27,7 @@ package com.tencent.bk.job.common.util;
 import com.tencent.bk.job.common.context.JobContext;
 import com.tencent.bk.job.common.exception.SubThreadException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.sleuth.instrument.async.TraceableExecutorService;
+// TraceableExecutorService removed - use ContextExecutorService
 
 import java.util.ArrayList;
 import java.util.Collection;
