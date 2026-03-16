@@ -24,20 +24,19 @@
 
 package com.tencent.bk.job.file_gateway.model.req.common;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.Map;
 
 @Data
-@ApiModel("执行动作请求体，当前仅在listFileNode接口返回数据中的metaData.properties.action.type为WORKER_ACTION时用到")
+@Schema(description = "执行动作请求体，当前仅在listFileNode接口返回数据中的metaData.properties.action.type为WORKER_ACTION时用到")
 public class ExecuteActionReq {
 
     /**
      * 要执行的指令类型Code
      */
-    @ApiModelProperty(
+    @Schema(
         value = "要执行的指令类型Code，取值来源于listFileNode接口返回数据中的metaData.properties.action.actionCode"
     )
     String actionCode;
@@ -45,6 +44,6 @@ public class ExecuteActionReq {
     /**
      * 要执行的指令参数
      */
-    @ApiModelProperty(value = "要执行的指令类型参数，取值来源于listFileNode接口返回数据中的metaData.properties.action.params")
+    @Schema(description = "要执行的指令类型参数，取值来源于listFileNode接口返回数据中的metaData.properties.action.params")
     Map<String, Object> params;
 }

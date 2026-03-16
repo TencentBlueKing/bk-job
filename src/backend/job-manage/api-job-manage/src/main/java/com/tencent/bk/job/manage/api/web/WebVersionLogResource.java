@@ -26,15 +26,15 @@ package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * 作业平台版本日志相关Web API
  */
-@Api(tags = {"job-manage:web:version_log"})
+@Tag(name = "job-manage:web:version_log")
 @RequestMapping("/web/versionLog")
 @WebAPI
 public interface WebVersionLogResource {
@@ -42,7 +42,7 @@ public interface WebVersionLogResource {
     /**
      * 按语言获取版本日志
      */
-    @ApiOperation(value = "按语言获取版本日志，data字段为json数组，按version倒序排列。"
+    @Operation(summary = "按语言获取版本日志，data字段为json数组，按version倒序排列。"
         + "返回的data示例：["
         + "{\"content\":\"新增xxx\n;优化xxx\n;修复xxx\n\",\"version\":\"V3.11.3\",\"time\":\"2025-02-04\"},"
         + "{\"content\":\"新增xxx\n;优化xxx\n;修复xxx\n\",\"version\":\"V3.10.2\",\"time\":\"2024-11-04\"}"

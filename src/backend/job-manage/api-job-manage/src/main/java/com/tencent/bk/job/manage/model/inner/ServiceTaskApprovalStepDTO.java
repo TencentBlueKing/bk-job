@@ -24,26 +24,25 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("任务审批步骤信息")
+@Schema(description = "任务审批步骤信息")
 public class ServiceTaskApprovalStepDTO {
 
-    @ApiModelProperty(value = "审批类型 暂未启用 1-任意人审批 2-所有人审批")
+    @Schema(description = "审批类型 暂未启用 1-任意人审批 2-所有人审批")
     private Integer approvalType;
 
-    @ApiModelProperty("审批人")
+    @Schema(description = "审批人")
     private ServiceTaskApprovalUserDTO approvalUser;
 
-    @ApiModelProperty("审批消息")
+    @Schema(description = "审批消息")
     private String approvalMessage;
 
-    @ApiModelProperty("通知渠道")
+    @Schema(description = "通知渠道")
     private List<String> channels;
 
 }

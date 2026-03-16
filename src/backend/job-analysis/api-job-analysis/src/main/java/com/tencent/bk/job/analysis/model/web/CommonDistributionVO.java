@@ -24,17 +24,16 @@
 
 package com.tencent.bk.job.analysis.model.web;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.Map;
 
-@ApiModel("通用统计量分布信息")
+@Schema(description = "通用统计量分布信息")
 @Data
 public class CommonDistributionVO {
 
-    @ApiModelProperty("Map元素为：（标签:数量）")
+    @Schema(description = "Map元素为：（标签:数量）")
     private Map<String, Long> labelAmountMap;
 
 }

@@ -30,9 +30,9 @@ import com.tencent.bk.job.manage.model.web.request.customsetting.ScriptTemplateC
 import com.tencent.bk.job.manage.model.web.request.customsetting.ScriptTemplateRenderReq;
 import com.tencent.bk.job.manage.model.web.vo.customsetting.ScriptTemplateVO;
 import com.tencent.bk.job.manage.model.web.vo.customsetting.ScriptTemplateVariableVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,65 +43,65 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Api(tags = {"job-manage:web:CustomSettings_ScriptTemplate"})
+@Tag(name = "job-manage:web:CustomSettings_ScriptTemplate")
 @RequestMapping("/web/customSettings/scriptTemplate")
 @RestController
 @WebAPI
 public interface WebCustomSettingsScriptTemplateResource {
 
-    @ApiOperation(value = "获取用户自定义的脚本模板", produces = "application/json")
+    @Operation(summary = "获取用户自定义的脚本模板", produces = "application/json")
     @GetMapping
     Response<List<ScriptTemplateVO>> listUserCustomScriptTemplate(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("脚本类型，1:shell,2:bat,3:perl,4:python,5:PowerShell,6:sql;支持传入多个,用英文逗号分隔;如果不传入任何值，默认返回全部脚本类型的模板")
+        @Parameter(description = "脚本类型，1:shell,2:bat,3:perl,4:python,5:PowerShell,6:sql;支持传入多个,用英文逗号分隔;如果不传入任何值，默认返回全部脚本类型的模板")
         @RequestParam(value = "scriptLanguages", required = false)
             String scriptLanguages);
 
-    @ApiOperation(value = "获取渲染后的用户自定义的脚本模板", produces = "application/json")
+    @Operation(summary = "获取渲染后的用户自定义的脚本模板", produces = "application/json")
     @GetMapping("/rendered")
     Response<List<ScriptTemplateVO>> listRenderedUserCustomScriptTemplate(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("脚本类型，1:shell,2:bat,3:perl,4:python,5:PowerShell,6:sql;支持传入多个,用英文逗号分隔;如果不传入任何值，默认返回全部脚本类型的模板")
+        @Parameter(description = "脚本类型，1:shell,2:bat,3:perl,4:python,5:PowerShell,6:sql;支持传入多个,用英文逗号分隔;如果不传入任何值，默认返回全部脚本类型的模板")
         @RequestParam(value = "scriptLanguages", required = false)
             String scriptLanguages,
-        @ApiParam(value = "资源范围类型")
+        @Parameter(description = "资源范围类型")
         @RequestParam(value = "scopeType", required = false)
             String scopeType,
-        @ApiParam(value = "资源范围ID")
+        @Parameter(description = "资源范围ID")
         @RequestParam(value = "scopeId", required = false)
             String scopeId
     );
 
-    @ApiOperation(value = "保存用户自定义的脚本模板", produces = "application/json")
+    @Operation(summary = "保存用户自定义的脚本模板", produces = "application/json")
     @PostMapping
     Response saveScriptTemplate(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "创建或更新请求体", required = true)
+        @Parameter(description = "创建或更新请求体", required = true)
         @RequestBody
             ScriptTemplateCreateUpdateReq req
     );
 
-    @ApiOperation(value = "渲染自定义的脚本模板", produces = "application/json")
+    @Operation(summary = "渲染自定义的脚本模板", produces = "application/json")
     @PostMapping("/render")
     Response<ScriptTemplateVO> renderScriptTemplate(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "脚本模板渲染请求", required = true)
+        @Parameter(description = "脚本模板渲染请求", required = true)
         @RequestBody
             ScriptTemplateRenderReq req
     );
 
-    @ApiOperation(value = "获取用户自定义的脚本模板变量", produces = "application/json")
+    @Operation(summary = "获取用户自定义的脚本模板变量", produces = "application/json")
     @GetMapping("/variables")
     Response<List<ScriptTemplateVariableVO>> listScriptTemplateVariables(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );

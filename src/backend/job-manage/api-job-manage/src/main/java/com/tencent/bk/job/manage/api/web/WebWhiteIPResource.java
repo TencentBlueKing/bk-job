@@ -31,9 +31,9 @@ import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.ActionScopeVO;
 import com.tencent.bk.job.manage.model.web.vo.whiteip.WhiteIPRecordVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,112 +48,112 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Api(tags = {"job-manage:web:WhiteIP"})
+@Tag(name = "job-manage:web:WhiteIP")
 @RequestMapping("/web/whiteIP")
 @RestController
 @WebAPI
 public interface WebWhiteIPResource {
 
-    @ApiOperation(value = "获取IP白名单列表", produces = "application/json")
+    @Operation(summary = "获取IP白名单列表", produces = "application/json")
     @GetMapping("/list")
     Response<PageDataWithManagePermission<WhiteIPRecordVO>> listWhiteIP(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam("IP（英文逗号分隔）：模糊搜索")
+        @Parameter(description = "IP（英文逗号分隔）：模糊搜索")
         @RequestParam(value = "ipStr", required = false)
             String ipStr,
-        @ApiParam("业务Id（英文逗号分隔）：精确过滤")
+        @Parameter(description = "业务Id（英文逗号分隔）：精确过滤")
         @RequestParam(value = "appIdStr", required = false)
             String appIdStr,
-        @ApiParam("业务名称（英文逗号分隔）：模糊搜索")
+        @Parameter(description = "业务名称（英文逗号分隔）：模糊搜索")
         @RequestParam(value = "appNameStr", required = false)
             String appNameStr,
-        @ApiParam("生效范围：SCRIPT_EXECUTE/FILE_DISTRIBUTION（英文逗号分隔）：精确过滤")
+        @Parameter(description = "生效范围：SCRIPT_EXECUTE/FILE_DISTRIBUTION（英文逗号分隔）：精确过滤")
         @RequestParam(value = "actionScopeStr", required = false)
             String actionScopeStr,
-        @ApiParam("创建人：模糊搜索")
+        @Parameter(description = "创建人：模糊搜索")
         @RequestParam(value = "creator", required = false)
             String creator,
-        @ApiParam("更新人：模糊搜索")
+        @Parameter(description = "更新人：模糊搜索")
         @RequestParam(value = "lastModifier", required = false)
             String lastModifier,
-        @ApiParam("分页-开始")
+        @Parameter(description = "分页-开始")
         @RequestParam(value = "start", required = false)
             Integer start,
-        @ApiParam("分页-每页大小")
+        @Parameter(description = "分页-每页大小")
         @RequestParam(value = "pageSize", required = false)
             Integer pageSize,
-        @ApiParam("排序字段,脚本名:name,脚本类型:type,标签:tags,创建人:creator")
+        @Parameter(description = "排序字段,脚本名:name,脚本类型:type,标签:tags,创建人:creator")
         @RequestParam(value = "orderField", required = false)
             String orderField,
-        @ApiParam("排序顺序,0:降序;1:升序")
+        @Parameter(description = "排序顺序,0:降序;1:升序")
         @RequestParam(value = "order", required = false)
             Integer order
     );
 
 
-    @ApiOperation(value = "新增IP白名单", produces = "application/json")
+    @Operation(summary = "新增IP白名单", produces = "application/json")
     @PostMapping
     Response<WhiteIPRecordVO> createWhiteIP(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "创建或更新请求体", required = true)
+        @Parameter(description = "创建或更新请求体", required = true)
         @Validated
         @RequestBody
             WhiteIPRecordCreateUpdateReq createUpdateReq
     );
 
-    @ApiOperation(value = "更新IP白名单", produces = "application/json")
+    @Operation(summary = "更新IP白名单", produces = "application/json")
     @PutMapping("/{id}")
     Response<WhiteIPRecordVO> updateWhiteIP(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam("IP白名单记录ID")
+        @Parameter(description = "IP白名单记录ID")
         @PathVariable("id")
             Long id,
-        @ApiParam(value = "创建或更新请求体", required = true)
+        @Parameter(description = "创建或更新请求体", required = true)
         @Validated
         @RequestBody
             WhiteIPRecordCreateUpdateReq createUpdateReq
     );
 
-    @ApiOperation(value = "获取IP白名单记录详情", produces = "application/json")
+    @Operation(summary = "获取IP白名单记录详情", produces = "application/json")
     @GetMapping("/ids/{id}")
     Response<WhiteIPRecordVO> getWhiteIPDetailById(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("IP白名单记录ID")
+        @Parameter(description = "IP白名单记录ID")
         @PathVariable("id")
             Long id
     );
 
-    @ApiOperation(value = "获取业务下云区域列表", produces = "application/json")
+    @Operation(summary = "获取业务下云区域列表", produces = "application/json")
     @GetMapping("/cloudAreas/list")
     Response<List<CloudAreaInfoVO>> listCloudAreas(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );
 
-    @ApiOperation(value = "获取生效范围列表", produces = "application/json")
+    @Operation(summary = "获取生效范围列表", produces = "application/json")
     @GetMapping("/actionScope/list")
     Response<List<ActionScopeVO>> listActionScope(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );
 
-    @ApiOperation(value = "删除IP白名单", produces = "application/json")
+    @Operation(summary = "删除IP白名单", produces = "application/json")
     @DeleteMapping("/ids/{id}")
     Response<Long> deleteWhiteIPById(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("IP白名单记录ID")
+        @Parameter(description = "IP白名单记录ID")
         @PathVariable("id")
             Long id
     );

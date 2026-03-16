@@ -27,9 +27,9 @@ package com.tencent.bk.job.execute.api.web;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.execute.model.web.vo.TaskLinkVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -41,29 +41,29 @@ import java.util.List;
 /**
  * 自助查询API-前端调用
  */
-@Api(tags = {"job-execute:web:Search_Tools"})
+@Tag(name = "job-execute:web:Search_Tools")
 @RequestMapping("/web/tools")
 @RestController
 @WebAPI
 public interface WebSearchToolsResource {
-    @ApiOperation(value = "查询任务链接", produces = "application/json")
+    @Operation(summary = "查询任务链接", produces = "application/json")
     @GetMapping(value = {"/queryJobInstance/gseTaskIds/{gseTaskId}"})
     Response<TaskLinkVO> getTaskLink(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "GSE任务ID", required = true)
+        @Parameter(description = "GSE任务ID", required = true)
         @PathVariable(value = "gseTaskId")
             String gseTaskId
     );
 
-    @ApiOperation(value = "根据作业步骤ID获取任务链接", produces = "application/json")
+    @Operation(summary = "根据作业步骤ID获取任务链接", produces = "application/json")
     @GetMapping(value = {"/queryJobInstance/stepInstanceIds/{stepInstanceId}"})
     Response<List<TaskLinkVO>> getTaskLinkByStepId(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "任务步骤ID", required = true)
+        @Parameter(description = "任务步骤ID", required = true)
         @PathVariable(value = "stepInstanceId")
             Long stepInstanceId
     );

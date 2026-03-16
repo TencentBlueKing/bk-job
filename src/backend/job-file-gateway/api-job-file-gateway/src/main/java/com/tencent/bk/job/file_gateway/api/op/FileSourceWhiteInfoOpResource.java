@@ -28,9 +28,9 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.file_gateway.model.req.op.AddBkArtifactoryWhiteBaseUrlReq;
 import com.tencent.bk.job.file_gateway.model.req.op.BatchDeleteFileSourceWhiteInfoReq;
 import com.tencent.bk.job.file_gateway.model.resp.op.FileSourceWhiteInfoVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,25 +43,25 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 
-@Api(tags = {"job-file-gateway:OP:文件源白名单OP管理接口"})
+@Tag(name = "job-file-gateway:OP:文件源白名单OP管理接口")
 @RequestMapping("/op/fileSourceWhiteInfo")
 @RestController
 public interface FileSourceWhiteInfoOpResource {
 
-    @ApiOperation(value = "添加蓝鲸制品库地址白名单", produces = "application/json")
+    @Operation(summary = "添加蓝鲸制品库地址白名单", produces = "application/json")
     @PostMapping("/addBkArtifactoryWhiteBaseUrl")
     Response<Integer> addBkArtifactoryWhiteBaseUrl(
-        @ApiParam("用户名")
+        @Parameter(description = "用户名")
         @RequestHeader("username")
         String username,
         @RequestBody
         AddBkArtifactoryWhiteBaseUrlReq req
     );
 
-    @ApiOperation(value = "查询白名单列表", produces = "application/json")
+    @Operation(summary = "查询白名单列表", produces = "application/json")
     @GetMapping("/list")
     Response<List<FileSourceWhiteInfoVO>> list(
-        @ApiParam("用户名")
+        @Parameter(description = "用户名")
         @RequestHeader("username")
         String username,
         @RequestParam(value = "start", required = false, defaultValue = "0")
@@ -70,10 +70,10 @@ public interface FileSourceWhiteInfoOpResource {
         Integer length
     );
 
-    @ApiOperation(value = "批量删除白名单", produces = "application/json")
+    @Operation(summary = "批量删除白名单", produces = "application/json")
     @DeleteMapping("/batchDelete")
     Response<Integer> batchDelete(
-        @ApiParam("用户名")
+        @Parameter(description = "用户名")
         @RequestHeader("username")
         String username,
         @RequestBody

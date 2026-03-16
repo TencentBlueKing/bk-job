@@ -28,8 +28,8 @@ import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.execute.model.inner.ServiceStepInstanceDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 /**
  * 步骤实例API-服务内部调用
  */
-@Api(tags = {"StepInstance"})
+@Tag(name = "StepInstance")
 @SmartFeignClient(value = "job-execute", contextId = "stepInstanceResource")
 @InternalAPI
 public interface ServiceStepInstanceResource {
@@ -45,13 +45,13 @@ public interface ServiceStepInstanceResource {
     InternalResponse<ServiceStepInstanceDTO> getStepInstance(
         @RequestHeader("username")
         String username,
-        @ApiParam(value = "作业平台业务ID", required = true)
+        @Parameter(description = "作业平台业务ID", required = true)
         @PathVariable(value = "appId")
         Long appId,
-        @ApiParam(value = "作业实例ID", name = "taskInstanceId", required = true)
+        @Parameter(description = "作业实例ID", name = "taskInstanceId", required = true)
         @PathVariable("taskInstanceId")
         Long taskInstanceId,
-        @ApiParam(value = "步骤实例ID", name = "stepInstanceId", required = true)
+        @Parameter(description = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
         Long stepInstanceId);
 }

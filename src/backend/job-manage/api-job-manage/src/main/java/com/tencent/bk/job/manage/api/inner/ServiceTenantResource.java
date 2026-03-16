@@ -28,23 +28,23 @@ import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.tenant.TenantDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@Api(tags = {"job-manage:service:Tenant"})
+@Tag(name = "job-manage:service:Tenant")
 @SmartFeignClient(value = "job-manage", contextId = "tenantResource")
 @InternalAPI
 public interface ServiceTenantResource {
 
-    @ApiOperation(value = "获取启用的租户信息", produces = "application/json")
+    @Operation(summary = "获取启用的租户信息", produces = "application/json")
     @GetMapping("/service/tenant/listEnabledTenant")
     InternalResponse<List<TenantDTO>> listEnabledTenant();
 
-    @ApiOperation(value = "根据appId获取租户Id", produces = "application/json")
+    @Operation(summary = "根据appId获取租户Id", produces = "application/json")
     @GetMapping("/service/tenant/getTenantIdByAppId")
     InternalResponse<String> getTenantIdByAppId(@RequestParam(value = "appId")
                                                 long appId);

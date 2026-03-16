@@ -27,26 +27,26 @@ package com.tencent.bk.job.file_gateway.api.inner;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@Api(tags = {"job-file-gateway:service:FileSource"})
+@Tag(name = "job-file-gateway:service:FileSource")
 @SmartFeignClient(value = "job-file-gateway", contextId = "fileSourceResource")
 @InternalAPI
 public interface ServiceFileSourceResource {
 
-    @ApiOperation(value = "获取文件源ID", produces = "application/json")
+    @Operation(summary = "获取文件源ID", produces = "application/json")
     @GetMapping("/service/app/{appId}/fileSource/getFileSourceIdByCode/codes/{code}")
     InternalResponse<Integer> getFileSourceIdByCode(
-        @ApiParam(value = "Job业务ID", required = true) @PathVariable("appId") Long appId,
-        @ApiParam(value = "文件源标识", required = true) @PathVariable("code") String code);
+        @Parameter(description = "Job业务ID", required = true) @PathVariable("appId") Long appId,
+        @Parameter(description = "文件源标识", required = true) @PathVariable("code") String code);
 
-    @ApiOperation(value = "判断是否存在文件源引用了指定凭证", produces = "application/json")
+    @Operation(summary = "判断是否存在文件源引用了指定凭证", produces = "application/json")
     @GetMapping("/service/app/{appId}/fileSource/existsFileSourceUsingCredential/credentialIds/{credentialId}")
     InternalResponse<Boolean> existsFileSourceUsingCredential(
-        @ApiParam(value = "Job业务ID", required = true) @PathVariable("appId") Long appId,
-        @ApiParam(value = "凭证ID", required = true) @PathVariable("credentialId") String credentialId);
+        @Parameter(description = "Job业务ID", required = true) @PathVariable("appId") Long appId,
+        @Parameter(description = "凭证ID", required = true) @PathVariable("credentialId") String credentialId);
 }

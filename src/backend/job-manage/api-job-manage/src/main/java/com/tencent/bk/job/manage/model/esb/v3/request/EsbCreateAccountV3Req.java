@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.util.json.SkipLogFields;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -40,7 +40,7 @@ import jakarta.validation.constraints.NotEmpty;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ApiModel("账号创建请求")
+@Schema(description = "账号创建请求")
 @ToString(exclude = {"password"})
 public class EsbCreateAccountV3Req extends EsbAppScopeReq {
 

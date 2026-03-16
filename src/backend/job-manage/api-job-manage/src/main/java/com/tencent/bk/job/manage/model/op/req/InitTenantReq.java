@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.op.req;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import jakarta.validation.constraints.NotBlank;
@@ -35,7 +35,7 @@ import jakarta.validation.constraints.NotBlank;
 @Data
 public class InitTenantReq {
 
-    @ApiModelProperty(value = "需要初始化的租户ID", required = true)
+    @Schema(description = "需要初始化的租户ID", required = true)
     @NotBlank(message = "{validation.constraints.TenantIdCannotBeBlank.message}")
     private String tenantId;
 

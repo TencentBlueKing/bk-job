@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbJobReq;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -39,7 +39,7 @@ import jakarta.validation.constraints.NotNull;
  * 高危脚本检测请求
  */
 @Data
-@ApiModel("高危脚本检测请求报文")
+@Schema(description = "高危脚本检测请求报文")
 @EqualsAndHashCode(callSuper = true)
 public class EsbCheckScriptV3Req extends EsbJobReq {
     /**

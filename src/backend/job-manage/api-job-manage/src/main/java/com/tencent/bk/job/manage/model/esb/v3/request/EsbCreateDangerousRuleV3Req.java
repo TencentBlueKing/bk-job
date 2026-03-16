@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.esb.model.EsbJobReq;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.ValidRegexPattern;
 import com.tencent.bk.job.manage.api.common.constants.rule.HighRiskGrammarActionEnum;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.validator.constraints.Length;
@@ -42,7 +42,7 @@ import java.util.List;
  * 创建高危语句规则请求
  */
 @Data
-@ApiModel("创建高危语句规则请求报文")
+@Schema(description = "创建高危语句规则请求报文")
 @EqualsAndHashCode(callSuper = true)
 public class EsbCreateDangerousRuleV3Req extends EsbJobReq {
     /**

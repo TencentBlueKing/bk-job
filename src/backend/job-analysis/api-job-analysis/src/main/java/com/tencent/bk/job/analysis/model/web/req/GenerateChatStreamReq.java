@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.analysis.model.web.req;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,10 +34,10 @@ import jakarta.validation.constraints.Min;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel("生成流式响应请求体")
+@Schema(description = "生成流式响应请求体")
 @Data
 public class GenerateChatStreamReq {
-    @ApiParam(value = "对话记录ID")
+    @Parameter(description = "对话记录ID")
     @Min(value = 1L, message = "{validation.constraints.AIInvalidRecordId.message}")
     Long recordId;
 }

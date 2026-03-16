@@ -29,9 +29,9 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.file_gateway.model.req.inner.HeartBeatReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.OffLineAndReDispatchReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.UpdateFileSourceTaskReq;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,25 +39,25 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Api(tags = {"job-file-gateway:remote:FileWorker"})
+@Tag(name = "job-file-gateway:remote:FileWorker")
 @RequestMapping("/remote/fileWorker")
 @RestController
 @RemoteAPI
 public interface RemoteFileWorkerResource {
 
-    @ApiOperation(value = "Worker心跳", produces = "application/json")
+    @Operation(summary = "Worker心跳", produces = "application/json")
     @PostMapping("/heartBeat")
     Response<Long> heartBeat(
-        @ApiParam(value = "Worker心跳请求") @RequestBody HeartBeatReq heartBeatReq);
+        @Parameter(description = "Worker心跳请求") @RequestBody HeartBeatReq heartBeatReq);
 
-    @ApiOperation(value = "Worker上报任务状态信息", produces = "application/json")
+    @Operation(summary = "Worker上报任务状态信息", produces = "application/json")
     @PostMapping("/task/update")
     Response<String> updateFileSourceTask(
-        @ApiParam(value = "Worker上报任务状态信息请求") @RequestBody UpdateFileSourceTaskReq updateFileSourceTaskReq);
+        @Parameter(description = "Worker上报任务状态信息请求") @RequestBody UpdateFileSourceTaskReq updateFileSourceTaskReq);
 
-    @ApiOperation(value = "Worker下线并且重调度其任务", produces = "application/json")
+    @Operation(summary = "Worker下线并且重调度其任务", produces = "application/json")
     @PostMapping("/offLineAndReDispatch")
     Response<List<String>> offLineAndReDispatch(
-        @ApiParam(value = "Worker下线携带的需要重调度的任务信息") @RequestBody OffLineAndReDispatchReq offLineAndReDispatchReq);
+        @Parameter(description = "Worker下线携带的需要重调度的任务信息") @RequestBody OffLineAndReDispatchReq offLineAndReDispatchReq);
 
 }

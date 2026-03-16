@@ -25,25 +25,25 @@
 package com.tencent.bk.job.file_gateway.api.op;
 
 import com.tencent.bk.job.common.model.Response;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
-@Api(tags = {"job-file-gateway:OP:OP管理接口"})
+@Tag(name = "job-file-gateway:OP:OP管理接口")
 @RequestMapping("/op")
 @RestController
 public interface OpResource {
 
     // 文件网关自有资源请求
-    @ApiOperation(value = "获取当前重调度线程数", produces = "application/json")
+    @Operation(summary = "获取当前重调度线程数", produces = "application/json")
     @GetMapping("/threadsNum/reDispatch")
     Response<Integer> getReDispatchThreadsNum(
-        @ApiParam("用户名")
+        @Parameter(description = "用户名")
         @RequestHeader("username")
             String username
     );

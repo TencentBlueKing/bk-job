@@ -25,8 +25,7 @@
 package com.tencent.bk.job.analysis.model.web;
 
 import com.tencent.bk.job.analysis.model.inner.AnalysisTaskResultItemLocation;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,15 +37,15 @@ import lombok.NoArgsConstructor;
  */
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel("后台任务分析结果子项")
+@Schema(description = "后台任务分析结果子项")
 @Data
 public class AnalysisResultItemVO {
-    @ApiModelProperty("被分析的资源类型Code（作业模板：TEMPLATE，执行计划：TASK_PLAN，定时任务：TIMER_TASK）")
+    @Schema(description = "被分析的资源类型Code（作业模板：TEMPLATE，执行计划：TASK_PLAN，定时任务：TIMER_TASK）")
     String type;
 
-    @ApiModelProperty("被分析的资源定位信息")
+    @Schema(description = "被分析的资源定位信息")
     AnalysisTaskResultItemLocation location;
 
-    @ApiModelProperty("分析结果子项描述内容")
+    @Schema(description = "分析结果子项描述内容")
     String content;
 }

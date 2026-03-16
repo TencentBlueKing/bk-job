@@ -26,8 +26,7 @@ package com.tencent.bk.job.manage.model.web.request;
 
 import com.tencent.bk.job.common.validation.Create;
 import com.tencent.bk.job.common.validation.Update;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
@@ -38,20 +37,20 @@ import jakarta.validation.constraints.Pattern;
  * 脚本版本新增、更新请求
  */
 @Data
-@ApiModel("脚本版本新增、更新请求报文")
+@Schema(description = "脚本版本新增、更新请求报文")
 public class ScriptVersionCreateUpdateReq {
 
     /**
      * 脚本内容
      */
-    @ApiModelProperty(value = "脚本内容,新增脚本/脚本版本时需要传入，BASE64编码")
+    @Schema(description = "脚本内容,新增脚本/脚本版本时需要传入，BASE64编码")
     @NotEmpty(message = "{validation.constraints.ScriptContent_empty.message}", groups = {Create.class, Update.class})
     private String content;
 
     /**
      * 脚本的版本号
      */
-    @ApiModelProperty(value = "版本号，新增脚本版本时需要传入")
+    @Schema(description = "版本号，新增脚本版本时需要传入")
     @NotEmpty(message = "{validation.constraints.ScriptVersion_empty.message}", groups = Create.class)
     @Length(max = 60, message = "{validation.constraints.ScriptVersion_outOfLength.message}", groups = Create.class)
     @Pattern(regexp = "^[A-Za-z0-9_\\-#@.]+$", message = "{validation.constraints.ScriptVersion_illegal.message}",
@@ -61,7 +60,7 @@ public class ScriptVersionCreateUpdateReq {
     /**
      * 脚本版本描述
      */
-    @ApiModelProperty(value = "脚本版本描述")
+    @Schema(description = "脚本版本描述")
     private String versionDesc;
 
 }

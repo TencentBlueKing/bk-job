@@ -24,29 +24,28 @@
 
 package com.tencent.bk.job.manage.model.web.request.chooser.host;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.Parameter;
 import lombok.Data;
 
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 
 @Data
-@ApiModel("根据动态分组分页查询主机请求体")
+@Schema(description = "根据动态分组分页查询主机请求体")
 public class PageListHostsByDynamicGroupReq {
 
-    @ApiModelProperty(value = "动态分组ID，若传多个请使用英文逗号分隔", required = true)
+    @Schema(description = "动态分组ID，若传多个请使用英文逗号分隔", required = true)
     @NotNull(message = "{validation.constraints.emptyDynamicGroupId.message}")
     String id;
 
-    @ApiModelProperty(value = "动态分组元数据")
+    @Schema(description = "动态分组元数据")
     Map<String, Object> meta;
 
-    @ApiParam(value = "数据起始位置，不传默认为0")
+    @Parameter(description = "数据起始位置，不传默认为0")
     Long start = 0L;
 
-    @ApiParam(value = "拉取的数据量，不传默认拉取全量")
+    @Parameter(description = "拉取的数据量，不传默认拉取全量")
     Long pageSize = -1L;
 
 }

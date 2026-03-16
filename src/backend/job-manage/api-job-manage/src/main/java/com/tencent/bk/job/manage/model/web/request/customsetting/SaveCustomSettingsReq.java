@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request.customsetting;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.Map;
@@ -34,10 +33,10 @@ import java.util.Map;
  * 用户自定义配置项新增、更新请求
  */
 @Data
-@ApiModel("用户自定义配置项新增、更新请求")
+@Schema(description = "用户自定义配置项新增、更新请求")
 public class SaveCustomSettingsReq {
 
-    @ApiModelProperty(
+    @Schema(
         value = "要保存的配置项Map：key：（字符串，表示配置模块），value：（Map<String,Object>，包含多个配置项内容）",
         required = true)
     private Map<String, Map<String, Object>> settingsMap;

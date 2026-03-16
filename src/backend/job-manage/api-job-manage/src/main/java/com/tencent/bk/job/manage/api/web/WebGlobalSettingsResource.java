@@ -42,9 +42,9 @@ import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoWithDefa
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateDetailWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.ChannelTemplateStatusVO;
 import com.tencent.bk.job.manage.model.web.vo.notify.NotifyBlackUserInfoVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,170 +56,170 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Api(tags = {"job-manage:web:GlobalSettings"})
+@Tag(name = "job-manage:web:GlobalSettings")
 @RequestMapping("/web/globalSettings")
 @RestController
 @WebAPI
 public interface WebGlobalSettingsResource {
 
-    @ApiOperation(value = "获取通知渠道列表及生效状态", produces = "application/json")
+    @Operation(summary = "获取通知渠道列表及生效状态", produces = "application/json")
     @GetMapping("/notify/listChannels")
     Response<List<NotifyChannelWithIconVO>> listNotifyChannel(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );
 
-    @ApiOperation(value = "超级管理员设置启用的通知渠道", produces = "application/json")
+    @Operation(summary = "超级管理员设置启用的通知渠道", produces = "application/json")
     @PostMapping("/notify/setAvailableChannels")
     Response<Integer> setAvailableNotifyChannel(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "创建或更新请求体", required = true)
+        @Parameter(description = "创建或更新请求体", required = true)
         @RequestBody
             SetAvailableNotifyChannelReq req
     );
 
-    @ApiOperation(value = "超级管理员保存消息模板", produces = "application/json")
+    @Operation(summary = "超级管理员保存消息模板", produces = "application/json")
     @PostMapping("/notify/channelTemplate")
     Response<Integer> saveChannelTemplate(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "设置通知渠道消息模板请求体", required = true)
+        @Parameter(description = "设置通知渠道消息模板请求体", required = true)
         @RequestBody
             ChannelTemplateReq req
     );
 
-    @ApiOperation(value = "消息发送预览", produces = "application/json")
+    @Operation(summary = "消息发送预览", produces = "application/json")
     @PostMapping("/notify/channelTemplate/send")
     Response<Integer> sendChannelTemplate(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "消息预览请求体", required = true)
+        @Parameter(description = "消息预览请求体", required = true)
         @RequestBody
             ChannelTemplatePreviewReq req
     );
 
-    @ApiOperation(value = "消息模板详情", produces = "application/json")
+    @Operation(summary = "消息模板详情", produces = "application/json")
     @GetMapping("/notify/channelTemplate/detail")
     Response<ChannelTemplateDetailWithDefaultVO> getChannelTemplateDetail(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("渠道Code")
+        @Parameter(description = "渠道Code")
         @RequestParam(value = "channelCode")
             String channelCode,
-        @ApiParam("消息类型Code")
+        @Parameter(description = "消息类型Code")
         @RequestParam(value = "messageTypeCode")
             String messageTypeCode
     );
 
-    @ApiOperation(value = "查询各渠道消息模板配置状态", produces = "application/json")
+    @Operation(summary = "查询各渠道消息模板配置状态", produces = "application/json")
     @GetMapping("/notify/channelTemplate/configStatus")
     Response<List<ChannelTemplateStatusVO>> listChannelTemplateStatus(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );
 
-    @ApiOperation(value = "获取现有通知黑名单用户列表", produces = "application/json")
+    @Operation(summary = "获取现有通知黑名单用户列表", produces = "application/json")
     @GetMapping("/notify/users/blacklist")
     Response<List<NotifyBlackUserInfoVO>> listNotifyBlackUsers(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("分页-开始")
+        @Parameter(description = "分页-开始")
         @RequestParam(value = "start", required = false)
             Integer start,
-        @ApiParam("分页-每页大小")
+        @Parameter(description = "分页-每页大小")
         @RequestParam(value = "pageSize", required = false)
             Integer pageSize
     );
 
 
-    @ApiOperation(value = "设置通知黑名单", produces = "application/json")
+    @Operation(summary = "设置通知黑名单", produces = "application/json")
     @PostMapping("/notify/users/blacklist")
     Response<List<String>> saveNotifyBlackUsers(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "创建或更新请求体", required = true)
+        @Parameter(description = "创建或更新请求体", required = true)
         @RequestBody
             NotifyBlackUsersReq req
     );
 
 
-    @ApiOperation(value = "获取执行历史保留时间", produces = "application/json")
+    @Operation(summary = "获取执行历史保留时间", produces = "application/json")
     @GetMapping("/history/expireTime")
     Response<Long> getHistoryExpireTime(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );
 
 
-    @ApiOperation(value = "设置执行历史保留时间", produces = "application/json")
+    @Operation(summary = "设置执行历史保留时间", produces = "application/json")
     @PostMapping("/history/expireTime")
     Response<Integer> setHistoryExpireTime(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "创建或更新请求体", required = true)
+        @Parameter(description = "创建或更新请求体", required = true)
         @RequestBody
             HistoryExpireReq req
     );
 
 
-    @ApiOperation(value = "获取账号命名规则", produces = "application/json")
+    @Operation(summary = "获取账号命名规则", produces = "application/json")
     @GetMapping("/account/nameRules")
     Response<AccountNameRulesWithDefaultVO> getAccountNameRules(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );
 
 
-    @ApiOperation(value = "设置账号命名规则", produces = "application/json")
+    @Operation(summary = "设置账号命名规则", produces = "application/json")
     @PostMapping("/account/setNameRules")
     Response<Boolean> setAccountNameRules(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "创建或更新请求体", required = true)
+        @Parameter(description = "创建或更新请求体", required = true)
         @RequestBody
             AccountNameRulesReq req
     );
 
-    @ApiOperation(value = "设置文件上传设置", produces = "application/json")
+    @Operation(summary = "设置文件上传设置", produces = "application/json")
     @PostMapping("/file/upload")
     Response<Boolean> saveFileUploadSettings(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "创建或更新请求体", required = true)
+        @Parameter(description = "创建或更新请求体", required = true)
         @RequestBody
         @Validated
             FileUploadSettingReq req
     );
 
 
-    @ApiOperation(value = "获取文件上传设置", produces = "application/json")
+    @Operation(summary = "获取文件上传设置", produces = "application/json")
     @GetMapping("/file/upload")
     Response<FileUploadSettingVO> getFileUploadSettings(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );
 
     @CompatibleImplementation(name = "platform_info", deprecatedVersion = "3.11.x", type = CompatibleType.DEPLOY,
         explain = "发布完成后可以删除")
-    @ApiOperation(value = "获取平台信息-包含默认配置", produces = "application/json")
+    @Operation(summary = "获取平台信息-包含默认配置", produces = "application/json")
     @GetMapping("/platformInfoWithDefault")
     Response<PlatformInfoWithDefaultVO> getPlatformInfoWithDefault(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username
     );

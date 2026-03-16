@@ -24,13 +24,12 @@
 
 package com.tencent.bk.job.manage.model.web.vo.customsetting;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@ApiModel("用户自定义脚本模板变量列表")
+@Schema(description = "用户自定义脚本模板变量列表")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -38,18 +37,18 @@ public class ScriptTemplateVariableVO {
     /**
      * 变量名称
      */
-    @ApiModelProperty(value = "变量名称", required = true)
+    @Schema(description = "变量名称", required = true)
     private String name;
 
     /**
      * 变量说明
      */
-    @ApiModelProperty(value = "变量说明", required = true)
+    @Schema(description = "变量说明", required = true)
     private String description;
 
     /**
      * 示例
      */
-    @ApiModelProperty(value = "示例", required = true)
+    @Schema(description = "示例", required = true)
     private String demo;
 }

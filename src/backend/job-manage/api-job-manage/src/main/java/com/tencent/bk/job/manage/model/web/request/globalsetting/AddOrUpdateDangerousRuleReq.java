@@ -30,8 +30,7 @@ import com.tencent.bk.job.common.validation.ValidRegexPattern;
 import com.tencent.bk.job.manage.api.common.constants.rule.HighRiskGrammarActionEnum;
 import com.tencent.bk.job.manage.api.common.constants.rule.HighRiskGrammarRuleStatusEnum;
 import com.tencent.bk.job.manage.validation.provider.DangerousRuleGroupSequenceProvider;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -46,29 +45,29 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@ApiModel("新增、更新高危语句规则")
+@Schema(description = "新增、更新高危语句规则")
 public class AddOrUpdateDangerousRuleReq {
     /**
      * 内部字段
      */
     private Long id;
-    @ApiModelProperty("表达式")
+    @Schema(description = "表达式")
     @NotEmpty(message = "{validation.constraints.InvalidJobHighRiskGrammarRegex_empty.message}")
     @Length(max = 250, message = "{validation.constraints.InvalidJobHighRiskGrammarRegex_outOfLength.message}")
     @ValidRegexPattern(message = "{validation.constraints.InvalidJobHighRiskGrammarRegex_wrongExpr.message}")
     private String expression;
-    @ApiModelProperty("脚本类型：SHELL(1), BAT(2), PERL(3), PYTHON(4),POWERSHELL(5), SQL(6)")
+    @Schema(description = "脚本类型：SHELL(1), BAT(2), PERL(3), PYTHON(4),POWERSHELL(5), SQL(6)")
     @NotEmpty(message = "{validation.constraints.ScriptTypeList_empty.message}")
     private List<Byte> scriptTypeList;
-    @ApiModelProperty("描述")
+    @Schema(description = "描述")
     @Length(max = 1000, message = "{validation.constraints.InvalidHighRiskRegularDescription_outOfLength.message}")
     private String description;
-    @ApiModelProperty("处理动作,1:扫描,2:拦截")
+    @Schema(description = "处理动作,1:扫描,2:拦截")
     @NotNull(message = "{validation.constraints.InvalidHighRiskGrammarHandleAction.message}")
     @CheckEnum(enumClass = HighRiskGrammarActionEnum.class, enumMethod = "isValid",
         message = "{validation.constraints.InvalidHighRiskGrammarHandleAction.message}")
     private Integer action;
-    @ApiModelProperty("规则启停状态，1:启用,0:停止")
+    @Schema(description = "规则启停状态，1:启用,0:停止")
     @NotNull(message = "{validation.constraints.InvalidHighRiskRegularStatus.message}", groups = {Update.class})
     @CheckEnum(enumClass = HighRiskGrammarRuleStatusEnum.class, enumMethod = "isValid",
         message = "{validation.constraints.InvalidHighRiskRegularStatus.message}", groups = {Update.class})

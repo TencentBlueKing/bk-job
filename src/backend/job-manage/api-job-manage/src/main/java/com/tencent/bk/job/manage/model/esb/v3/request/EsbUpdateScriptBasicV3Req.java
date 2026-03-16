@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.validation.Create;
 import com.tencent.bk.job.common.validation.Update;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.validator.constraints.Length;
@@ -41,7 +41,7 @@ import jakarta.validation.constraints.Pattern;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@ApiModel("更新业务脚本基础信息请求报文")
+@Schema(description = "更新业务脚本基础信息请求报文")
 public class EsbUpdateScriptBasicV3Req extends EsbAppScopeReq {
 
     /**

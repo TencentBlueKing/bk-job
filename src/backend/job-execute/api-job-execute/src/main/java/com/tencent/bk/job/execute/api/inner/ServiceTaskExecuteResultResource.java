@@ -29,9 +29,9 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.execute.model.inner.ServiceCronTaskExecuteResultStatistics;
 import com.tencent.bk.job.execute.model.inner.request.ServiceGetCronTaskExecuteStatisticsRequest;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,7 +43,7 @@ import java.util.Map;
 /**
  * 作业执行结果API-服务内部调用
  */
-@Api(tags = {"job-execute:service:Task_Execution_Result"})
+@Tag(name = "job-execute:service:Task_Execution_Result")
 @SmartFeignClient(value = "job-execute", contextId = "taskExecuteResultResource")
 @InternalAPI
 public interface ServiceTaskExecuteResultResource {
@@ -51,42 +51,42 @@ public interface ServiceTaskExecuteResultResource {
      * @param request 定时任务结果统计请求
      * @return Map<定时任务ID, 统计信息>
      */
-    @ApiOperation(value = "获取定时作业执行结果统计", produces = "application/json")
+    @Operation(summary = "获取定时作业执行结果统计", produces = "application/json")
     @PostMapping("/service/execution/task-execution-history/execute-result-statistics/cron")
     InternalResponse<Map<Long, ServiceCronTaskExecuteResultStatistics>> getCronTaskExecuteResultStatistics(
-        @ApiParam("获取定时作业执行结果统计") @RequestBody ServiceGetCronTaskExecuteStatisticsRequest request);
+        @Parameter(description = "获取定时作业执行结果统计") @RequestBody ServiceGetCronTaskExecuteStatisticsRequest request);
 
-    @ApiOperation(value = "获取作业执行历史条数", produces = "application/json")
+    @Operation(summary = "获取作业执行历史条数", produces = "application/json")
     @GetMapping("/service/execution/app/{appId}/task-execution-history/count")
     InternalResponse<Integer> getTaskExecuteCount(
-        @ApiParam(value = "业务ID", required = true, example = "1")
+        @Parameter(description = "业务ID", required = true, example = "1")
         @PathVariable("appId")
         Long appId,
-        @ApiParam(value = "任务名称", name = "taskName", required = false)
+        @Parameter(description = "任务名称", name = "taskName", required = false)
         @RequestParam(value = "taskName", required = false)
         String taskName,
-        @ApiParam(value = "任务ID", name = "taskInstanceId", required = false)
+        @Parameter(description = "任务ID", name = "taskInstanceId", required = false)
         @RequestParam(value = "taskInstanceId", required = false)
         Long taskInstanceId,
-        @ApiParam(value = "任务状态", name = "status", required = false)
+        @Parameter(description = "任务状态", name = "status", required = false)
         @RequestParam(value = "status", required = false)
         Integer status,
-        @ApiParam(value = "执行人", name = "operator", required = false)
+        @Parameter(description = "执行人", name = "operator", required = false)
         @RequestParam(value = "operator", required = false)
         String operator,
-        @ApiParam(value = "执行方式", name = "startupMode", required = false)
+        @Parameter(description = "执行方式", name = "startupMode", required = false)
         @RequestParam(value = "startupMode", required = false)
         Integer startupMode,
-        @ApiParam(value = "任务类型", name = "taskType", required = false)
+        @Parameter(description = "任务类型", name = "taskType", required = false)
         @RequestParam(value = "taskType", required = false)
         Integer taskType,
-        @ApiParam(value = "开始时间", name = "startTime", required = false)
+        @Parameter(description = "开始时间", name = "startTime", required = false)
         @RequestParam(value = "startTime", required = false)
         String startTime,
-        @ApiParam(value = "结束时间", name = "endTime", required = false)
+        @Parameter(description = "结束时间", name = "endTime", required = false)
         @RequestParam(value = "endTime", required = false)
         String endTime,
-        @ApiParam(value = "定时任务ID", required = false)
+        @Parameter(description = "定时任务ID", required = false)
         @RequestParam(value = "cronTaskId", required = false)
         Long cronTaskId
     );

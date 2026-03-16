@@ -27,9 +27,9 @@ package com.tencent.bk.job.manage.api.web;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.vo.notice.AnnouncementVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -44,16 +44,16 @@ import java.util.List;
  * 对接蓝鲸消息中心相关的 WEB API
  */
 @Validated
-@Api(tags = {"job-manage:web:Notice"})
+@Tag(name = "job-manage:web:Notice")
 @RequestMapping("/web/notice")
 @RestController
 @WebAPI
 public interface WebNoticeResource {
 
-    @ApiOperation(value = "获获取公告列表（返回码1217001表示消息通知中心API不存在，该环境未对接消息通知中心，需要兼容处理）", produces = "application/json")
+    @Operation(summary = "获获取公告列表（返回码1217001表示消息通知中心API不存在，该环境未对接消息通知中心，需要兼容处理）", produces = "application/json")
     @GetMapping(value = {"/announcement/currentAnnouncements"})
     Response<List<AnnouncementVO>> getCurrentAnnouncements(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
         @Min(message = "{validation.constraints.InvalidAnnouncementsOffset.message}", value = 0L)

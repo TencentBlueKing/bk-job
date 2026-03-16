@@ -24,17 +24,16 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("脚本任务-执行对象执行日志")
+@Schema(description = "脚本任务-执行对象执行日志")
 @Data
 public class ExecuteObjectScriptLogVO {
-    @ApiModelProperty("执行对象")
+    @Schema(description = "执行对象")
     ExecuteObjectVO executeObject;
-    @ApiModelProperty("日志内容")
+    @Schema(description = "日志内容")
     private String logContent;
-    @ApiModelProperty(name = "finished", value = "日志是否拉取完成")
+    @Schema(name = "finished", value = "日志是否拉取完成")
     private boolean finished;
 }

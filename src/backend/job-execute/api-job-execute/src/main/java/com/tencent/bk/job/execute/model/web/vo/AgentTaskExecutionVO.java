@@ -29,65 +29,64 @@ import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.util.json.DecimalFormatJsonSerializer;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("Agent任务执行信息")
+@Schema(description = "Agent任务执行信息")
 @Data
 @Deprecated
 @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
     explain = "使用 ExecuteObjectTaskVO 替换。发布完成后可以删除")
 public class AgentTaskExecutionVO {
-    @ApiModelProperty("执行次数")
+    @Schema(description = "执行次数")
     private Integer retryCount;
 
-    @ApiModelProperty("滚动批次")
+    @Schema(description = "滚动批次")
     private Integer batch;
 
-    @ApiModelProperty("Agent对应的主机ID")
+    @Schema(description = "Agent对应的主机ID")
     private Long hostId;
 
-    @ApiModelProperty("Agent ID")
+    @Schema(description = "Agent ID")
     private String agentId;
 
-    @ApiModelProperty("Agent ipv4")
+    @Schema(description = "Agent ipv4")
     private String ipv4;
 
-    @ApiModelProperty("Agent ipv6")
+    @Schema(description = "Agent ipv6")
     private String ipv6;
 
-    @ApiModelProperty("Agent任务执行状态")
+    @Schema(description = "Agent任务执行状态")
     private Integer status;
 
-    @ApiModelProperty("Agent任务执行状态描述")
+    @Schema(description = "Agent任务执行状态描述")
     private String statusDesc;
 
-    @ApiModelProperty("开始时间")
+    @Schema(description = "开始时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long startTime;
 
-    @ApiModelProperty("结束时间")
+    @Schema(description = "结束时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long endTime;
 
-    @ApiModelProperty("耗时")
+    @Schema(description = "耗时")
     @JsonSerialize(using = DecimalFormatJsonSerializer.class)
     private Long totalTime;
 
-    @ApiModelProperty("脚本返回码")
+    @Schema(description = "脚本返回码")
     private Integer exitCode;
 
-    @ApiModelProperty("脚本错误码")
+    @Schema(description = "脚本错误码")
     private Integer errorCode;
 
-    @ApiModelProperty("脚本执行输出")
+    @Schema(description = "脚本执行输出")
     private String tag;
 
-    @ApiModelProperty("云区域ID")
+    @Schema(description = "云区域ID")
     private Long cloudAreaId;
 
-    @ApiModelProperty("云区域名称")
+    @Schema(description = "云区域名称")
     private String cloudAreaName;
 
 }

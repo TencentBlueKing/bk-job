@@ -33,8 +33,7 @@ import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskStepTypeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -43,41 +42,41 @@ import jakarta.validation.Valid;
 import java.util.List;
 
 @Data
-@ApiModel("任务步骤信息")
+@Schema(description = "任务步骤信息")
 @Slf4j
 public class TaskStepVO {
 
-    @ApiModelProperty("步骤 ID 仅在更新、删除时填写")
+    @Schema(description = "步骤 ID 仅在更新、删除时填写")
     private Long id;
 
-    @ApiModelProperty("步骤类型 1-脚本 2-文件 3-人工确认")
+    @Schema(description = "步骤类型 1-脚本 2-文件 3-人工确认")
     private Integer type;
 
-    @ApiModelProperty("步骤名称")
+    @Schema(description = "步骤名称")
     private String name;
 
-    @ApiModelProperty("模版中的步骤 ID 用于模版步骤匹配、同步")
+    @Schema(description = "模版中的步骤 ID 用于模版步骤匹配、同步")
     private Long templateStepId;
 
-    @ApiModelProperty("脚本步骤信息")
+    @Schema(description = "脚本步骤信息")
     @Valid
     private TaskScriptStepVO scriptStepInfo;
 
-    @ApiModelProperty("文件步骤信息")
+    @Schema(description = "文件步骤信息")
     @Valid
     private TaskFileStepVO fileStepInfo;
 
-    @ApiModelProperty("审批步骤信息")
+    @Schema(description = "审批步骤信息")
     @Valid
     private TaskApprovalStepVO approvalStepInfo;
 
-    @ApiModelProperty(value = "删除 0-不删除 1-删除，仅在删除时填写")
+    @Schema(description = "删除 0-不删除 1-删除，仅在删除时填写")
     private Integer delete;
 
-    @ApiModelProperty(value = "是否启用 0-未启用 1-启用")
+    @Schema(description = "是否启用 0-未启用 1-启用")
     private Integer enable;
 
-    @ApiModelProperty(value = "引用的全局变量")
+    @Schema(description = "引用的全局变量")
     private List<String> refVariables;
 
     public void validate(boolean isCreate) throws InvalidParamException {

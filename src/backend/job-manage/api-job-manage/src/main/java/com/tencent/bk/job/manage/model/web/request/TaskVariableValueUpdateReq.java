@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.request;
 
 import com.tencent.bk.job.manage.model.web.vo.task.TaskVariableVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -35,15 +34,15 @@ import java.util.List;
  * @since 3/3/2021 16:22
  */
 @Data
-@ApiModel("全局变量值更新请求")
+@Schema(description = "全局变量值更新请求")
 public class TaskVariableValueUpdateReq {
 
-    @ApiModelProperty(value = "模版 ID", required = true)
+    @Schema(description = "模版 ID", required = true)
     private Long templateId;
 
-    @ApiModelProperty(value = "执行方案 ID", required = true)
+    @Schema(description = "执行方案 ID", required = true)
     private Long planId;
 
-    @ApiModelProperty(value = "全局变量信息 只要 name type defaultValue defaultTargetValue", required = true)
+    @Schema(description = "全局变量信息 只要 name type defaultValue defaultTargetValue", required = true)
     private List<TaskVariableVO> variableInfoList;
 }

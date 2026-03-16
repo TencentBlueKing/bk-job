@@ -62,7 +62,7 @@ springBoot {
 }
 
 configurations {
-    all*.exclude module : 'springfox-boot-starter'
+    // springfox-boot-starter 排除已移除（已迁移至 springdoc）
 }
 
 apply from: "$rootDir/task_job_package.gradle"

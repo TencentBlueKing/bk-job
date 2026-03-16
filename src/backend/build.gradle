@@ -90,7 +90,8 @@ ext {
     set("springBootVersion", "3.4.4")
     // https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-dependencies
     set('springCloudVersion', "2024.0.1")
-    set('swaggerVersion', "3.0.0")
+    // SpringFox 已移除，使用 SpringDoc OpenAPI (springdoc-openapi-starter-webmvc-ui)
+    set('springDocVersion', "2.8.4")
     set('junitVersion', "5.5.2")
     // https://mvnrepository.com/artifact/org.projectlombok/lombok
     set('lombokVersion', "1.18.36")
@@ -303,7 +304,7 @@ subprojects {
             dependency "org.projectlombok:lombok:$lombokVersion"
             dependency "jakarta.ws.rs:jakarta.ws.rs-api:$jaxrsVersion"
             dependency "org.slf4j:slf4j-api:$slf4jVersion"
-            dependency "io.springfox:springfox-boot-starter:$swaggerVersion"
+            dependency "org.springdoc:springdoc-openapi-starter-webmvc-ui:$springDocVersion"
             // apache commons
             dependency "org.apache.commons:commons-collections4:$apacheCommonsCollectionVersion"
             dependency "org.apache.commons:commons-pool2:$apacheCommonsPoolVersion"

@@ -33,9 +33,9 @@ import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
 import com.tencent.bk.job.manage.model.web.vo.index.GreetingVO;
 import com.tencent.bk.job.manage.model.web.vo.index.JobAndScriptStatistics;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -43,136 +43,136 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import springfox.documentation.annotations.ApiIgnore;
+import io.swagger.v3.oas.annotations.Hidden;
 
 import java.util.List;
 
-@Api(tags = {"job-manage:web:Index"})
+@Tag(name = "job-manage:web:Index")
 @RequestMapping("/web/index/scope/{scopeType}/{scopeId}")
 @RestController
 @WebAPI
 public interface WebIndexResource {
 
     @Deprecated
-    @ApiOperation(value = "获取问候语列表", produces = "application/json")
+    @Operation(summary = "获取问候语列表", produces = "application/json")
     @GetMapping("/analysis/greeting/list")
     Response<List<GreetingVO>> listGreeting(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Hidden
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId
     );
 
-    @ApiOperation(value = "获取Agent统计数据", produces = "application/json")
+    @Operation(summary = "获取Agent统计数据", produces = "application/json")
     @GetMapping("/statistics/agent")
     Response<AgentStatistics> getAgentStatistics(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Hidden
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId
     );
 
-    @ApiOperation(value = "根据Agent状态获取主机分页列表，agentStatus：0为异常，1为正常", produces = "application/json")
+    @Operation(summary = "根据Agent状态获取主机分页列表，agentStatus：0为异常，1为正常", produces = "application/json")
     @GetMapping("/hosts/agentStatus/{agentStatus}")
     Response<PageData<HostInfoVO>> listHostsByAgentStatus(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Hidden
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam("Agent状态")
+        @Parameter(description = "Agent状态")
         @PathVariable("agentStatus")
             Integer agentStatus,
-        @ApiParam("起始位置")
+        @Parameter(description = "起始位置")
         @RequestParam(value = "start", required = false)
             Long start,
-        @ApiParam("分页大小")
+        @Parameter(description = "分页大小")
         @RequestParam(value = "pageSize", required = false)
             Long pageSize
     );
 
-    @ApiOperation(value = "根据Agent状态获取IP分页列表，agentStatus：0为异常，1为正常", produces = "application/json")
+    @Operation(summary = "根据Agent状态获取IP分页列表，agentStatus：0为异常，1为正常", produces = "application/json")
     @GetMapping("/IPs/agentStatus/{agentStatus}")
     Response<PageData<String>> listIPsByAgentStatus(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Hidden
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam("Agent状态")
+        @Parameter(description = "Agent状态")
         @PathVariable("agentStatus")
             Integer agentStatus,
-        @ApiParam("起始位置")
+        @Parameter(description = "起始位置")
         @RequestParam(value = "start", required = false)
             Long start,
-        @ApiParam("分页大小")
+        @Parameter(description = "分页大小")
         @RequestParam(value = "pageSize", required = false)
             Long pageSize
     );
 
-    @ApiOperation(value = "获取作业与脚本统计数据", produces = "application/json")
+    @Operation(summary = "获取作业与脚本统计数据", produces = "application/json")
     @GetMapping("/statistics/jobAndScript")
     Response<JobAndScriptStatistics> getJobAndScriptStatistics(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Hidden
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId
     );
 
-    @ApiOperation(value = "获取我收藏的作业", produces = "application/json")
+    @Operation(summary = "获取我收藏的作业", produces = "application/json")
     @GetMapping("/jobs/myFavorList")
     Response<List<TaskTemplateVO>> listMyFavorTasks(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Hidden
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam("拉取数量，不传为拉全量")
+        @Parameter(description = "拉取数量，不传为拉全量")
         @RequestParam(value = "limit", required = false)
             Long limit
     );

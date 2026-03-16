@@ -29,7 +29,7 @@ import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.Create;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.validator.constraints.Length;
@@ -43,7 +43,7 @@ import jakarta.validation.constraints.Pattern;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@ApiModel("创建业务脚本请求报文")
+@Schema(description = "创建业务脚本请求报文")
 public class EsbCreateScriptV3Req extends EsbAppScopeReq {
 
     /**

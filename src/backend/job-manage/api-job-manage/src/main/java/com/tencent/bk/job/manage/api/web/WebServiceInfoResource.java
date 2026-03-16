@@ -27,9 +27,9 @@ package com.tencent.bk.job.manage.api.web;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInfoVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,16 +37,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Api(tags = {"job-manage:web:ServiceInfo"})
+@Tag(name = "job-manage:web:ServiceInfo")
 @RequestMapping("/web/serviceInfo")
 @RestController
 @WebAPI
 public interface WebServiceInfoResource {
 
-    @ApiOperation(value = "获取所有服务信息", produces = "application/json")
+    @Operation(summary = "获取所有服务信息", produces = "application/json")
     @GetMapping("/listAll")
     Response<List<ServiceInfoVO>> listServiceInfo(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );

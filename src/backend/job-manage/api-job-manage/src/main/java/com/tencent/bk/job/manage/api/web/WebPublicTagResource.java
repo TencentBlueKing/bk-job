@@ -27,9 +27,9 @@ package com.tencent.bk.job.manage.api.web;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,19 +41,19 @@ import java.util.List;
 /**
  * 公共标签管理API-前端调用
  */
-@Api(tags = {"job-manage:web:Public_Tag_Management"})
+@Tag(name = "job-manage:web:Public_Tag_Management")
 @RequestMapping("/web/public_tag")
 @RestController
 @WebAPI
 public interface WebPublicTagResource {
 
-    @ApiOperation(value = "根据条件获取业务下的所有标签", produces = "application/json")
+    @Operation(summary = "根据条件获取业务下的所有标签", produces = "application/json")
     @GetMapping("/list")
     Response<List<TagVO>> listTags(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("标签名称")
+        @Parameter(description = "标签名称")
         @RequestParam(value = "name", required = false)
             String name
     );

@@ -28,28 +28,28 @@ import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.request.ServiceSaveRealProjectNameReq;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@Api(tags = {"job-manage:service:RealProjectName"})
+@Tag(name = "job-manage:service:RealProjectName")
 @SmartFeignClient(value = "job-manage", contextId = "realProjectNameResource")
 @InternalAPI
 public interface ServiceRealProjectNameResource {
 
-    @ApiOperation(value = "查询真实项目名称", produces = "application/json")
+    @Operation(summary = "查询真实项目名称", produces = "application/json")
     @GetMapping("/service/realProjectName/query")
-    InternalResponse<String> queryRealProjectName(@ApiParam(value = "用于存储真实项目名称的Key")
+    InternalResponse<String> queryRealProjectName(@Parameter(description = "用于存储真实项目名称的Key")
                                                   @RequestParam(value = "saveKey")
                                                   String saveKey);
 
-    @ApiOperation(value = "保存真实项目名称", produces = "application/json")
+    @Operation(summary = "保存真实项目名称", produces = "application/json")
     @PostMapping("/service/realProjectName/save")
-    InternalResponse<Void> saveRealProjectName(@ApiParam(value = "存储真实项目名称请求体", required = true)
+    InternalResponse<Void> saveRealProjectName(@Parameter(description = "存储真实项目名称请求体", required = true)
                                                @RequestBody
                                                ServiceSaveRealProjectNameReq req);
 

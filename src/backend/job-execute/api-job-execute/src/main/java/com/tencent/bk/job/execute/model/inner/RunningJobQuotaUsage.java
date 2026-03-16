@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.execute.model.inner;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.Map;
@@ -33,22 +32,22 @@ import java.util.Map;
 /**
  * 正在执行中的作业配额使用情况
  */
-@ApiModel("正在执行中的作业配额使用情况")
+@Schema(description = "正在执行中的作业配额使用情况")
 @Data
 public class RunningJobQuotaUsage {
     /**
      * 作业总量
      */
-    @ApiModelProperty("作业总量")
+    @Schema(description = "作业总量")
     private Long total;
     /**
      * 按应用维度统计的作业数量
      */
-    @ApiModelProperty("按应用维度统计的作业数量")
+    @Schema(description = "按应用维度统计的作业数量")
     private Map<String, Long> appCount;
     /**
      * 按资源管理空间统计的作业数量
      */
-    @ApiModelProperty("按资源管理空间统计的作业数量")
+    @Schema(description = "按资源管理空间统计的作业数量")
     private Map<String, Long> resourceScopeCount;
 }

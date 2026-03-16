@@ -29,40 +29,39 @@ import com.tencent.bk.job.common.constant.RollingTypeEnum;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.execute.validation.RollingConfigVOGroupSequenceProvider;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.hibernate.validator.group.GroupSequenceProvider;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-@ApiModel("滚动执行配置")
+@Schema(description = "滚动执行配置")
 @Data
 @GroupSequenceProvider(RollingConfigVOGroupSequenceProvider.class)
 public class RollingConfigVO {
     /**
      * 滚动配置名称
      */
-    @ApiModelProperty(value = "滚动配置名称")
+    @Schema(description = "滚动配置名称")
     private String name;
 
-    @ApiModelProperty(value = "滚动对象：1-传输目标，2-源文件，不传默认为1")
+    @Schema(description = "滚动对象：1-传输目标，2-源文件，不传默认为1")
     @CheckEnum(enumClass = RollingTypeEnum.class, message = "{validation.constraints.RollingType_illegal.message}")
     private Integer type = RollingTypeEnum.TARGET_EXECUTE_OBJECT.getValue();
 
-    @ApiModelProperty(value = "滚动机制：1-执行失败则暂停，2-忽略失败，自动滚动下一批，3-人工确认，不传默认为1")
+    @Schema(description = "滚动机制：1-执行失败则暂停，2-忽略失败，自动滚动下一批，3-人工确认，不传默认为1")
     @CheckEnum(enumClass = RollingModeEnum.class, message = "{validation.constraints.RollingMode_illegal.message}")
     private Integer mode = RollingModeEnum.PAUSE_IF_FAIL.getValue();
 
-    @ApiModelProperty(value = "滚动对象为【传输目标】时的滚动分批策略表达式")
+    @Schema(description = "滚动对象为【传输目标】时的滚动分批策略表达式")
     @NotBlank(
         groups = ValidationGroups.RollingType.TargetExecuteObject.class,
         message = "{validation.constraints.RollingExpression_NotBlank.message}"
     )
     private String expr;
 
-    @ApiModelProperty(value = "滚动对象为【源文件】时的源文件滚动配置")
+    @Schema(description = "滚动对象为【源文件】时的源文件滚动配置")
     @NotNull(
         groups = ValidationGroups.RollingType.FileSource.class,
         message = "{validation.constraints.RollingFileSource_NotNull.message}"

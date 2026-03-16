@@ -28,16 +28,16 @@ import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceFileUploadSettingDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.GetMapping;
 
-@Api(tags = {"job-manage:service:GlobalSettings"})
+@Tag(name = "job-manage:service:GlobalSettings")
 @SmartFeignClient(value = "job-manage", contextId = "globalSettingsResource")
 @InternalAPI
 public interface ServiceGlobalSettingsResource {
 
-    @ApiOperation(value = "获取文档中心Job文档基础Url", produces = "application/json")
+    @Operation(summary = "获取文档中心Job文档基础Url", produces = "application/json")
     @GetMapping("/service/globalSettings/docJobRootUrl")
     InternalResponse<String> getDocJobRootUrl();
 

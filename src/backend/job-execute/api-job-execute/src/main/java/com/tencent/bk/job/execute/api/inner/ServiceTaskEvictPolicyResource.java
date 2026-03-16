@@ -27,24 +27,24 @@ package com.tencent.bk.job.execute.api.inner;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.execute.model.inner.ComposedTaskEvictPolicyDTO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-@Api(tags = {"job-execute:service:TaskEvictPolicys"})
+@Tag(name = "job-execute:service:TaskEvictPolicys")
 @RestController
 @InternalAPI
 public interface ServiceTaskEvictPolicyResource {
 
-    @ApiOperation(value = "获取当前使用的任务驱逐策略", produces = "application/json")
+    @Operation(summary = "获取当前使用的任务驱逐策略", produces = "application/json")
     @GetMapping("/service/task-evict-policys/current")
     InternalResponse<ComposedTaskEvictPolicyDTO> getCurrentPolicy();
 
-    @ApiOperation(value = "设置任务驱逐策略，参考值：{\"@type\":\"ComposedTaskEvictPolicy\",\"operator\":\"OR\"," +
+    @Operation(summary = "设置任务驱逐策略，参考值：{\"@type\":\"ComposedTaskEvictPolicy\",\"operator\":\"OR\"," +
         "\"policyList\":[{\"@type\":\"TaskInstanceIdEvictPolicy\",\"taskInstanceIdsToEvict\":[1001,1002]}," +
         "{\"@type\":\"AppIdTaskEvictPolicy\",\"appIdsToEvict\":[2,3]},{\"@type\":\"AppCodeTaskEvictPolicy\"," +
         "\"appCodesToEvict\":[\"appCode1\",\"appCode2\"]}]}",
@@ -52,7 +52,7 @@ public interface ServiceTaskEvictPolicyResource {
     @PutMapping("/service/task-evict-policys")
     InternalResponse<Boolean> setPolicy(@RequestBody ComposedTaskEvictPolicyDTO policyDTO);
 
-    @ApiOperation(value = "清除所有任务驱逐策略", produces = "application/json")
+    @Operation(summary = "清除所有任务驱逐策略", produces = "application/json")
     @DeleteMapping("/service/task-evict-policys/clear")
     InternalResponse<Boolean> clearPolicy();
 

@@ -28,17 +28,17 @@ import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceScriptDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@Api(tags = {"job-manage:service:Script_Management"})
+@Tag(name = "job-manage:service:Script_Management")
 @SmartFeignClient(value = "job-manage", contextId = "scriptResource")
 @InternalAPI
 public interface ServiceScriptResource {
-    @ApiOperation(value = "根据业务ID、脚本版本ID获取脚本", produces = "application/json")
+    @Operation(summary = "根据业务ID、脚本版本ID获取脚本", produces = "application/json")
     @GetMapping("/service/script/app/{appId}/scriptVersion/{scriptVersionId}")
     InternalResponse<ServiceScriptDTO> getScriptByAppIdAndScriptVersionId(@RequestHeader("username")
                                                                           String username,
@@ -47,12 +47,12 @@ public interface ServiceScriptResource {
                                                                           @PathVariable("scriptVersionId")
                                                                           Long scriptVersionId);
 
-    @ApiOperation(value = "根据脚本版本ID获取脚本", produces = "application/json")
+    @Operation(summary = "根据脚本版本ID获取脚本", produces = "application/json")
     @GetMapping("/service/script/scriptVersion/{scriptVersionId}")
     InternalResponse<ServiceScriptDTO> getScriptByScriptVersionId(@PathVariable("scriptVersionId")
                                                                   Long scriptVersionId);
 
-    @ApiOperation(value = "获取已上线版本", produces = "application/json")
+    @Operation(summary = "获取已上线版本", produces = "application/json")
     @GetMapping("/service/script/scriptVersion/online/{scriptId}")
     InternalResponse<ServiceScriptDTO> getOnlineScriptVersion(@PathVariable("scriptId") String scriptId);
 }

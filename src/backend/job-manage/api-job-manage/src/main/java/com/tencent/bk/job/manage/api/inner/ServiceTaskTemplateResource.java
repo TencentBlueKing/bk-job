@@ -32,9 +32,9 @@ import com.tencent.bk.job.manage.model.inner.ServiceTaskTemplateDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTaskVariableDTO;
 import com.tencent.bk.job.manage.model.web.request.TaskTemplateCreateUpdateReq;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,73 +45,73 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@Api(tags = {"job-manage:service:Task_Template_Management"})
+@Tag(name = "job-manage:service:Task_Template_Management")
 @SmartFeignClient(value = "job-manage", contextId = "taskTemplateResource")
 @InternalAPI
 public interface ServiceTaskTemplateResource {
 
-    @ApiOperation(value = "同步脚本更新消息", produces = "application/json")
+    @Operation(summary = "同步脚本更新消息", produces = "application/json")
     @PostMapping("/service/app/{appId}/template/script/{scriptId}/update_message")
     InternalResponse<Boolean> sendScriptUpdateMessage(
-        @ApiParam(value = "业务 ID", required = true) @PathVariable("appId") Long appId,
-        @ApiParam(value = "脚本 ID", required = true) @PathVariable("scriptId") String scriptId,
-        @ApiParam(value = "脚本版本 ID", required = true) @RequestParam("scriptVersionId") Long scriptVersionId,
-        @ApiParam(value = "脚本状态 1 - 上线 2 - 下线 3 - 禁用", required = true) @RequestParam("status") Integer status);
+        @Parameter(description = "业务 ID", required = true) @PathVariable("appId") Long appId,
+        @Parameter(description = "脚本 ID", required = true) @PathVariable("scriptId") String scriptId,
+        @Parameter(description = "脚本版本 ID", required = true) @RequestParam("scriptVersionId") Long scriptVersionId,
+        @Parameter(description = "脚本状态 1 - 上线 2 - 下线 3 - 禁用", required = true) @RequestParam("status") Integer status);
 
-    @ApiOperation(value = "根据模版 ID 获取模版信息", produces = "application/json")
+    @Operation(summary = "根据模版 ID 获取模版信息", produces = "application/json")
     @GetMapping("/service/template/{templateId}")
     InternalResponse<ServiceTaskTemplateDTO> getTemplateById(
-        @ApiParam(value = "模版 ID") @PathVariable("templateId") Long templateId);
+        @Parameter(description = "模版 ID") @PathVariable("templateId") Long templateId);
 
-    @ApiOperation(value = "根据模版 ID 获取模版名称", produces = "application/json")
+    @Operation(summary = "根据模版 ID 获取模版名称", produces = "application/json")
     @GetMapping("/service/template/{templateId}/templateName")
     InternalResponse<String> getTemplateNameById(
-        @ApiParam(value = "模版 ID") @PathVariable("templateId") Long templateId);
+        @Parameter(description = "模版 ID") @PathVariable("templateId") Long templateId);
 
-    @ApiOperation(value = "更新模版", produces = "application/json")
+    @Operation(summary = "更新模版", produces = "application/json")
     @PutMapping("/service/app/{appId}/template/{templateId}/saveTemplateWithVariableId")
     InternalResponse<Long> saveTemplateForMigration(
-        @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
-        @ApiParam(value = "模版 ID 新建填 0", required = true) @PathVariable("templateId") Long templateId,
-        @ApiParam(value = "创建时间") @RequestHeader(value = "X-Create-Time", required = false) Long createTime,
-        @ApiParam(value = "修改时间") @RequestHeader(value = "X-Update-Time", required = false) Long lastModifyTime,
-        @ApiParam(value = "最后修改人") @RequestHeader(value = "X-Update-User", required = false) String lastModifyUser,
-        @ApiParam(value = "来源") @RequestHeader(value = "X-Request-Source", required = false) Integer requestSource,
-        @ApiParam(value = "新增/更新的模版对象", name = "templateCreateUpdateReq",
+        @Parameter(description = "用户名，网关自动传入") @RequestHeader("username") String username,
+        @Parameter(description = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
+        @Parameter(description = "模版 ID 新建填 0", required = true) @PathVariable("templateId") Long templateId,
+        @Parameter(description = "创建时间") @RequestHeader(value = "X-Create-Time", required = false) Long createTime,
+        @Parameter(description = "修改时间") @RequestHeader(value = "X-Update-Time", required = false) Long lastModifyTime,
+        @Parameter(description = "最后修改人") @RequestHeader(value = "X-Update-User", required = false) String lastModifyUser,
+        @Parameter(description = "来源") @RequestHeader(value = "X-Request-Source", required = false) Integer requestSource,
+        @Parameter(description = "新增/更新的模版对象", name = "templateCreateUpdateReq",
             required = true) @RequestBody TaskTemplateCreateUpdateReq taskTemplateCreateUpdateReq);
 
-    @ApiOperation(value = "校验模版 ID 和名称", produces = "application/json")
+    @Operation(summary = "校验模版 ID 和名称", produces = "application/json")
     @GetMapping("/service/app/{appId}/template/check")
     InternalResponse<ServiceIdNameCheckDTO> checkIdAndName(
-        @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
-        @ApiParam(value = "模版 ID") @RequestParam("templateId") Long templateId,
-        @ApiParam(value = "模版名称", required = true) @RequestParam("templateName") String name);
+        @Parameter(description = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
+        @Parameter(description = "模版 ID") @RequestParam("templateId") Long templateId,
+        @Parameter(description = "模版名称", required = true) @RequestParam("templateName") String name);
 
-    @ApiOperation(value = "根据模版 ID 获取模版变量信息", produces = "application/json")
+    @Operation(summary = "根据模版 ID 获取模版变量信息", produces = "application/json")
     @GetMapping("/service/app/{appId}/template/{templateId}/variable")
     InternalResponse<List<ServiceTaskVariableDTO>> getTemplateVariable(
-        @ApiParam(value = "用户名，网关自动传入") @RequestHeader("username") String username,
-        @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
-        @ApiParam(value = "模版 ID") @PathVariable("templateId") Long templateId);
+        @Parameter(description = "用户名，网关自动传入") @RequestHeader("username") String username,
+        @Parameter(description = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
+        @Parameter(description = "模版 ID") @PathVariable("templateId") Long templateId);
 
-    @ApiOperation(value = "获取模版信息列表", produces = "application/json")
+    @Operation(summary = "获取模版信息列表", produces = "application/json")
     @GetMapping("/service/app/{appId}/template/list")
     InternalResponse<PageData<ServiceTaskTemplateDTO>> listPageTaskTemplates(
-        @ApiParam(value = "业务 ID", required = true, example = "2")
+        @Parameter(description = "业务 ID", required = true, example = "2")
         @PathVariable("appId")
             Long appId,
-        @ApiParam("分页-开始")
+        @Parameter(description = "分页-开始")
         @RequestParam(value = "start", required = false)
             Integer start,
-        @ApiParam("分页-每页大小")
+        @Parameter(description = "分页-每页大小")
         @RequestParam(value = "pageSize", required = false)
             Integer pageSize);
 
-    @ApiOperation(value = "获取作业模版数量", produces = "application/json")
+    @Operation(summary = "获取作业模版数量", produces = "application/json")
     @GetMapping("/service/app/{appId}/template/count")
     InternalResponse<Integer> countTemplates(
-        @ApiParam(value = "业务Id", required = true, example = "2")
+        @Parameter(description = "业务Id", required = true, example = "2")
         @PathVariable("appId")
         Long appId);
 }

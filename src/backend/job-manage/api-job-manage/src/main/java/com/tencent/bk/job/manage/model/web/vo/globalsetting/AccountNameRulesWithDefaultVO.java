@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.globalsetting;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,11 +36,11 @@ import java.util.List;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("账号命名规则列表（含默认规则）")
+@Schema(description = "账号命名规则列表（含默认规则）")
 @Data
 public class AccountNameRulesWithDefaultVO {
-    @ApiModelProperty("当前已设置的命名规则列表")
+    @Schema(description = "当前已设置的命名规则列表")
     private List<AccountNameRuleVO> currentRules;
-    @ApiModelProperty("默认规则列表")
+    @Schema(description = "默认规则列表")
     private List<AccountNameRuleVO> defaultRules;
 }

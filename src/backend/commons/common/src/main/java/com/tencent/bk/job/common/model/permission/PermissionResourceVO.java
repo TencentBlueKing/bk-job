@@ -24,24 +24,23 @@
 
 package com.tencent.bk.job.common.model.permission;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.ToString;
 
 @Data
 @ToString
-@ApiModel("鉴权对应的资源-前端")
+@Schema(description = "鉴权对应的资源-前端")
 public class PermissionResourceVO {
     /**
      * 资源类型 - 名称
      */
-    @ApiModelProperty("资源类型")
+    @Schema(description = "资源类型")
     private String resourceTypeName;
     /**
      * 资源实例名称
      */
-    @ApiModelProperty("资源实例名称")
+    @Schema(description = "资源实例名称")
     private String resourceName;
 
     public PermissionResourceVO() {

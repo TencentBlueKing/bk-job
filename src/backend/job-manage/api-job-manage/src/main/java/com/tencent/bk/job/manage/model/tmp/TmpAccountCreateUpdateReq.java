@@ -25,12 +25,12 @@
 package com.tencent.bk.job.manage.model.tmp;
 
 import com.tencent.bk.job.manage.model.web.request.AccountCreateUpdateReq;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@ApiModel("迁移数据用：账号创建、更新请求")
+@Schema(description = "迁移数据用：账号创建、更新请求")
 @EqualsAndHashCode(callSuper = true)
 public class TmpAccountCreateUpdateReq extends AccountCreateUpdateReq {
 }

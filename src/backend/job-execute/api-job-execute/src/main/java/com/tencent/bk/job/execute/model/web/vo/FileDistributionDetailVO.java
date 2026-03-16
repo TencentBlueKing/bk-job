@@ -27,42 +27,41 @@ package com.tencent.bk.job.execute.model.web.vo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("文件分发执行详情")
+@Schema(description = "文件分发执行详情")
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Deprecated
 @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
     explain = "使用 FileDistributionDetailV2VO 替换。发布完成后可以删除")
 public class FileDistributionDetailVO implements Comparable<FileDistributionDetailVO> {
-    @ApiModelProperty(name = "taskId", value = "文件任务ID,用于检索单个文件分发的结果")
+    @Schema(name = "taskId", value = "文件任务ID,用于检索单个文件分发的结果")
     private String taskId;
-    @ApiModelProperty(name = "destIp", value = "下载目标IPv4")
+    @Schema(name = "destIp", value = "下载目标IPv4")
     private String destIp;
-    @ApiModelProperty(name = "destIpv6", value = "下载目标IPv6")
+    @Schema(name = "destIpv6", value = "下载目标IPv6")
     private String destIpv6;
-    @ApiModelProperty(name = "srcIp", value = "上传源IPv4")
+    @Schema(name = "srcIp", value = "上传源IPv4")
     private String srcIp;
-    @ApiModelProperty(name = "srcIpv6", value = "上传源IPv6")
+    @Schema(name = "srcIpv6", value = "上传源IPv6")
     private String srcIpv6;
-    @ApiModelProperty("文件名称")
+    @Schema(description = "文件名称")
     private String fileName;
-    @ApiModelProperty("文件大小")
+    @Schema(description = "文件大小")
     private String fileSize;
-    @ApiModelProperty("状态,0-Pulling,1-Waiting,2-Uploading,3-Downloading,4-Finished,5-Failed")
+    @Schema(description = "状态,0-Pulling,1-Waiting,2-Uploading,3-Downloading,4-Finished,5-Failed")
     private Integer status;
-    @ApiModelProperty("状态描述")
+    @Schema(description = "状态描述")
     private String statusDesc;
-    @ApiModelProperty("速率")
+    @Schema(description = "速率")
     private String speed;
-    @ApiModelProperty("进度")
+    @Schema(description = "进度")
     private String progress;
-    @ApiModelProperty("文件任务上传下载标识,0-上传,1-下载")
+    @Schema(description = "文件任务上传下载标识,0-上传,1-下载")
     private Integer mode;
-    @ApiModelProperty("日志内容")
+    @Schema(description = "日志内容")
     private String logContent;
 
     @Override

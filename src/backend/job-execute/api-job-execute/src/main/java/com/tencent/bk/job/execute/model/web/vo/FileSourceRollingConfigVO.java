@@ -25,8 +25,7 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.tencent.bk.job.common.validation.ValidationGroups;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import jakarta.validation.constraints.Positive;
@@ -34,7 +33,7 @@ import jakarta.validation.constraints.Positive;
 /**
  * 源文件滚动配置
  */
-@ApiModel("源文件滚动配置")
+@Schema(description = "源文件滚动配置")
 @Data
 public class FileSourceRollingConfigVO {
     /**
@@ -44,7 +43,7 @@ public class FileSourceRollingConfigVO {
         groups = ValidationGroups.RollingType.FileSource.class,
         message = "{validation.constraints.RollingFileSourceMaxExecuteObjectNumInBatch_Positive.message}"
     )
-    @ApiModelProperty(value = "单批次最大源执行对象数，不传表示不限制")
+    @Schema(description = "单批次最大源执行对象数，不传表示不限制")
     private Integer maxExecuteObjectNumInBatch;
 
     /**
@@ -54,6 +53,6 @@ public class FileSourceRollingConfigVO {
         groups = ValidationGroups.RollingType.FileSource.class,
         message = "{validation.constraints.RollingFileSourceMaxFileNumOfExecuteObject_Positive.message}"
     )
-    @ApiModelProperty(value = "单个执行对象的最大并发文件数，不传表示不限制")
+    @Schema(description = "单个执行对象的最大并发文件数，不传表示不限制")
     private Integer maxFileNumOfSingleExecuteObject;
 }

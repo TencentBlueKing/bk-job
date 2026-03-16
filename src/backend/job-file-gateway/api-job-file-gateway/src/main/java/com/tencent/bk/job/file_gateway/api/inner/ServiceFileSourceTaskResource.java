@@ -32,9 +32,9 @@ import com.tencent.bk.job.file_gateway.model.req.inner.StopBatchTaskReq;
 import com.tencent.bk.job.file_gateway.model.resp.inner.BatchTaskInfoDTO;
 import com.tencent.bk.job.file_gateway.model.resp.inner.BatchTaskStatusDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,45 +43,45 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
 
-@Api(tags = {"job-file-gateway:service:FileSourceTask"})
+@Tag(name = "job-file-gateway:service:FileSourceTask")
 @SmartFeignClient(value = "job-file-gateway", contextId = "fileSourceTaskResource")
 @InternalAPI
 public interface ServiceFileSourceTaskResource {
 
-    @ApiOperation(value = "清理任务已下载的文件", produces = "application/json")
+    @Operation(summary = "清理任务已下载的文件", produces = "application/json")
     @PostMapping("/service/fileSource/filetask/clearFiles")
     InternalResponse<Integer> clearTaskFiles(
-        @ApiParam("文件源下载任务请求")
+        @Parameter(description = "文件源下载任务请求")
         @RequestBody ClearTaskFilesReq req
     );
 
-    @ApiOperation(value = "创建并启动批量文件下载任务", produces = "application/json")
+    @Operation(summary = "创建并启动批量文件下载任务", produces = "application/json")
     @PostMapping("/service/fileSource/filetask/batch/downloadFiles/start")
     InternalResponse<BatchTaskInfoDTO> startFileSourceBatchDownloadTask(
-        @ApiParam("用户名")
+        @Parameter(description = "用户名")
         @RequestHeader("username")
         String username,
-        @ApiParam("文件源下载任务请求")
+        @Parameter(description = "文件源下载任务请求")
         @RequestBody FileSourceBatchDownloadTaskReq req
     );
 
-    @ApiOperation(value = "清理批量任务已下载的文件", produces = "application/json")
+    @Operation(summary = "清理批量任务已下载的文件", produces = "application/json")
     @PostMapping("/service/fileSource/filetask/batch/downloadFiles/stop")
     InternalResponse<Integer> stopBatchTasks(
-        @ApiParam("文件源下载任务请求")
+        @Parameter(description = "文件源下载任务请求")
         @RequestBody StopBatchTaskReq req
     );
 
-    @ApiOperation(value = "获取文件批量任务状态", produces = "application/json")
+    @Operation(summary = "获取文件批量任务状态", produces = "application/json")
     @GetMapping("/service/fileSource/filetask/batch/batchTaskIds/{batchTaskId}/status")
     InternalResponse<BatchTaskStatusDTO> getBatchTaskStatusAndLogs(
-        @ApiParam("任务Id")
+        @Parameter(description = "任务Id")
         @PathVariable("batchTaskId")
         String batchTaskId,
-        @ApiParam("日志开始位置")
+        @Parameter(description = "日志开始位置")
         @RequestParam(value = "logStart", required = false)
         Long logStart,
-        @ApiParam("获取日志数量")
+        @Parameter(description = "获取日志数量")
         @RequestParam(value = "logLength", required = false)
         Long logLength
     );

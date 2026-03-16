@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.model.esb.v3.request;
 
 import com.tencent.bk.job.common.esb.model.EsbJobReq;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -35,7 +35,7 @@ import jakarta.validation.constraints.NotNull;
  * 启停、删除高危语句规则请求，
  */
 @Data
-@ApiModel("启停、删除高危语句规则请求报文")
+@Schema(description = "启停、删除高危语句规则请求报文")
 @EqualsAndHashCode(callSuper = true)
 public class EsbManageDangerousRuleV3Req extends EsbJobReq {
     /**

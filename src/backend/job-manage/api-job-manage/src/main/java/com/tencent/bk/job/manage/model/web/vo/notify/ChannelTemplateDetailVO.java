@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.notify;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -40,20 +40,20 @@ import lombok.ToString;
 @Setter
 @ToString
 public class ChannelTemplateDetailVO {
-    @ApiModelProperty("渠道code")
+    @Schema(description = "渠道code")
     private String code;
-    @ApiModelProperty("渠道名称")
+    @Schema(description = "渠道名称")
     private String name;
-    @ApiModelProperty("消息类型")
+    @Schema(description = "消息类型")
     private String messageTypeCode;
-    @ApiModelProperty("消息类型名称")
+    @Schema(description = "消息类型名称")
     private String messageTypeLabel;
-    @ApiModelProperty("消息模板标题")
+    @Schema(description = "消息模板标题")
     private String title;
-    @ApiModelProperty("消息模板正文")
+    @Schema(description = "消息模板正文")
     private String content;
-    @ApiModelProperty("最近修改人")
+    @Schema(description = "最近修改人")
     private String lastModifier;
-    @ApiModelProperty("最近修改时间，单位毫秒")
+    @Schema(description = "最近修改时间，单位毫秒")
     private Long lastModifyTime;
 }

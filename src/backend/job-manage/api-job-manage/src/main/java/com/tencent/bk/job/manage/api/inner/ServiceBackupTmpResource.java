@@ -29,9 +29,9 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -42,11 +42,11 @@ import java.util.List;
  * TODO 后续需要优化
  * 临时提供给job-backup的API
  */
-@Api(tags = {"job-manage:service:tmp_for_backup"})
+@Tag(name = "job-manage:service:tmp_for_backup")
 @SmartFeignClient(value = "job-manage", contextId = "tmpBackupResource")
 @InternalAPI
 public interface ServiceBackupTmpResource {
-    @ApiOperation(value = "根据模版 ID 获取模版信息", produces = "application/json")
+    @Operation(summary = "根据模版 ID 获取模版信息", produces = "application/json")
     @GetMapping("/service/tmp/app/{appId}/template/{templateId}")
     Response<TaskTemplateVO> getTemplateById(
         @RequestHeader("username")
@@ -57,31 +57,31 @@ public interface ServiceBackupTmpResource {
             Long templateId
     );
 
-    @ApiOperation(value = "根据执行方案 ID 获取执行方案信息", produces = "application/json")
+    @Operation(summary = "根据执行方案 ID 获取执行方案信息", produces = "application/json")
     @GetMapping("/service/tmp/app/{appId}/task/plan/{templateId}/{planId}")
     Response<TaskPlanVO> getPlanById(
-        @ApiParam(value = "用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
         @PathVariable(value = "appId")
             Long appId,
-        @ApiParam(value = "模版 ID", required = true)
+        @Parameter(description = "模版 ID", required = true)
         @PathVariable("templateId")
             Long templateId,
-        @ApiParam(value = "执行方案 ID", required = true)
+        @Parameter(description = "执行方案 ID", required = true)
         @PathVariable("planId")
             Long planId
     );
 
-    @ApiOperation(value = "获取执行方案基本信息列表", produces = "application/json")
+    @Operation(summary = "获取执行方案基本信息列表", produces = "application/json")
     @GetMapping("/service/tmp/app/{appId}/task/plan/{templateId}")
     Response<List<TaskPlanVO>> listPlans(
-        @ApiParam(value = "用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
         @PathVariable(value = "appId")
             Long appId,
-        @ApiParam(value = "模版 ID", required = true)
+        @Parameter(description = "模版 ID", required = true)
         @PathVariable(value = "templateId")
             Long templateId
     );

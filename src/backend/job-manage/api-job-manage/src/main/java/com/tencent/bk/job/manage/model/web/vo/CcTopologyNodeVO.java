@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.model.web.vo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -48,10 +48,10 @@ public class CcTopologyNodeVO {
     private Boolean lazy = false;
     private List<CcTopologyNodeVO> child;
 
-    @ApiModelProperty("节点包含的 IP 列表")
+    @Schema(description = "节点包含的 IP 列表")
     private List<String> ipList;
 
-    @ApiModelProperty("节点内主机状态信息")
+    @Schema(description = "节点内主机状态信息")
     private List<HostInfoVO> ipListStatus;
     @JsonIgnore
     private Set<Long> hostIdSet;

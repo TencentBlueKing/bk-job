@@ -26,8 +26,7 @@ package com.tencent.bk.job.manage.model.web.request;
 
 import com.tencent.bk.job.common.model.dto.CommonCredential;
 import com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import static com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum.APP_ID_SECRET_KEY;
@@ -36,43 +35,43 @@ import static com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum.
 import static com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum.USERNAME_PASSWORD;
 
 @Data
-@ApiModel("凭证创建/更新请求")
+@Schema(description = "凭证创建/更新请求")
 public class CredentialCreateUpdateReq {
 
     /**
      * 凭证ID
      */
-    @ApiModelProperty(value = "凭证 ID", hidden = true)
+    @Schema(description = "凭证 ID", hidden = true)
     private String id;
     /**
      * 名称
      */
-    @ApiModelProperty("名称")
+    @Schema(description = "名称")
     private String name;
     /**
      * 类型
      */
-    @ApiModelProperty("类型")
+    @Schema(description = "类型")
     private CredentialTypeEnum type;
     /**
      * 描述
      */
-    @ApiModelProperty("描述")
+    @Schema(description = "描述")
     private String description;
     /**
      * 值1
      */
-    @ApiModelProperty("值1")
+    @Schema(description = "值1")
     private String value1;
     /**
      * 值2
      */
-    @ApiModelProperty("值2")
+    @Schema(description = "值2")
     private String value2;
     /**
      * 值3
      */
-    @ApiModelProperty("值3")
+    @Schema(description = "值3")
     private String value3;
 
     public CommonCredential toCommonCredential() {

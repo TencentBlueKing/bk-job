@@ -31,9 +31,9 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.file_gateway.model.req.common.FileSourceStaticParam;
 import com.tencent.bk.job.file_gateway.model.req.web.FileSourceCreateUpdateReq;
 import com.tencent.bk.job.file_gateway.model.resp.web.FileSourceVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,217 +46,217 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import springfox.documentation.annotations.ApiIgnore;
+import io.swagger.v3.oas.annotations.Hidden;
 
 import java.util.List;
 
-@Api(tags = {"job-file-gateway:web:FileSource"})
+@Tag(name = "job-file-gateway:web:FileSource")
 @RequestMapping("/web/fileSource/scope/{scopeType}/{scopeId}")
 @RestController
 @WebAPI
 public interface WebFileSourceResource {
 
-    @ApiOperation(value = "检查文件源别名是否已存在（可用返回true）", produces = "application/json")
+    @Operation(summary = "检查文件源别名是否已存在（可用返回true）", produces = "application/json")
     @GetMapping("/checkAlias")
     Response<Boolean> checkAlias(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Hidden
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "文件源别名")
+        @Parameter(description = "文件源别名")
         @RequestParam String alias,
-        @ApiParam(value = "文件源 ID")
+        @Parameter(description = "文件源 ID")
         @RequestParam(value = "fileSourceId", required = false)
             Integer fileSourceId
     );
 
-    @ApiOperation(value = "新增文件源", produces = "application/json")
+    @Operation(summary = "新增文件源", produces = "application/json")
     @PostMapping("")
     Response<FileSourceVO> saveFileSource(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Hidden
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "创建文件源请求")
+        @Parameter(description = "创建文件源请求")
         @Validated
         @RequestBody
             FileSourceCreateUpdateReq fileSourceCreateUpdateReq
     );
 
-    @ApiOperation(value = "更新文件源", produces = "application/json")
+    @Operation(summary = "更新文件源", produces = "application/json")
     @PutMapping("/{id}")
     Response<FileSourceVO> updateFileSource(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Hidden
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "文件源 ID", required = true)
+        @Parameter(description = "文件源 ID", required = true)
         @PathVariable("id")
             Integer id,
-        @ApiParam(value = "更新文件源请求")
+        @Parameter(description = "更新文件源请求")
         @Validated
         @RequestBody
             FileSourceCreateUpdateReq fileSourceCreateUpdateReq
     );
 
-    @ApiOperation(value = "删除文件源", produces = "application/json")
+    @Operation(summary = "删除文件源", produces = "application/json")
     @DeleteMapping("/ids/{id}")
     Response<Integer> deleteFileSource(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Hidden
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "文件源 ID", required = true)
+        @Parameter(description = "文件源 ID", required = true)
         @PathVariable("id")
             Integer id);
 
-    @ApiOperation(value = "启用/禁用文件源", produces = "application/json")
+    @Operation(summary = "启用/禁用文件源", produces = "application/json")
     @PutMapping("/ids/{id}/enable")
     Response<Boolean> enableFileSource(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Hidden
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "文件源 ID", required = true)
+        @Parameter(description = "文件源 ID", required = true)
         @PathVariable("id")
             Integer id,
-        @ApiParam(value = "是否开启", required = true)
+        @Parameter(description = "是否开启", required = true)
         @RequestParam("flag")
             Boolean enableFlag
     );
 
-    @ApiOperation(value = "获取文件源详情", produces = "application/json")
+    @Operation(summary = "获取文件源详情", produces = "application/json")
     @GetMapping("/ids/{id}")
     Response<FileSourceVO> getFileSourceDetail(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Hidden
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "文件源 ID", required = true)
+        @Parameter(description = "文件源 ID", required = true)
         @PathVariable("id")
             Integer id);
 
-    @ApiOperation(value = "获取可使用的文件源列表", produces = "application/json")
+    @Operation(summary = "获取可使用的文件源列表", produces = "application/json")
     @GetMapping("/available/list")
     Response<PageData<FileSourceVO>> listAvailableFileSource(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Hidden
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam("凭证ID")
+        @Parameter(description = "凭证ID")
         @RequestParam(value = "credentialId", required = false)
             String credentialId,
-        @ApiParam("别名")
+        @Parameter(description = "别名")
         @RequestParam(value = "alias", required = false)
             String alias,
-        @ApiParam("分页-开始")
+        @Parameter(description = "分页-开始")
         @RequestParam(value = "start", required = false)
             Integer start,
-        @ApiParam("分页-每页大小")
+        @Parameter(description = "分页-每页大小")
         @RequestParam(value = "pageSize", required = false)
             Integer pageSize);
 
-    @ApiOperation(value = "获取可管理的工作台文件源列表", produces = "application/json")
+    @Operation(summary = "获取可管理的工作台文件源列表", produces = "application/json")
     @GetMapping("/workTable/list")
     Response<PageData<FileSourceVO>> listWorkTableFileSource(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Hidden
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam("凭证ID")
+        @Parameter(description = "凭证ID")
         @RequestParam(value = "credentialId", required = false)
             String credentialId,
-        @ApiParam("别名")
+        @Parameter(description = "别名")
         @RequestParam(value = "alias", required = false)
             String alias,
-        @ApiParam("分页-开始")
+        @Parameter(description = "分页-开始")
         @RequestParam(value = "start", required = false)
             Integer start,
-        @ApiParam("分页-每页大小")
+        @Parameter(description = "分页-每页大小")
         @RequestParam(value = "pageSize", required = false)
             Integer pageSize
     );
 
-    @ApiOperation(value = "获取文件源类型的静态参数", produces = "application/json")
+    @Operation(summary = "获取文件源类型的静态参数", produces = "application/json")
     @GetMapping("/fileSourceParams")
     Response<List<FileSourceStaticParam>> getFileSourceParams(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Hidden
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "文件源类型Code，来源于fileSourceType的list接口返回中的code字段", required = true)
+        @Parameter(description = "文件源类型Code，来源于fileSourceType的list接口返回中的code字段", required = true)
         @RequestParam(value = "fileSourceTypeCode")
             String fileSourceTypeCode
     );
