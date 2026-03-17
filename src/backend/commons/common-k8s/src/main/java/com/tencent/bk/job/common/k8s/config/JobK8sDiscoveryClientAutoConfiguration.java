@@ -28,31 +28,23 @@ package com.tencent.bk.job.common.k8s.config;
 import io.kubernetes.client.informer.SharedInformer;
 import io.kubernetes.client.informer.SharedInformerFactory;
 import io.kubernetes.client.informer.cache.Lister;
-import io.kubernetes.client.openapi.ApiClient;
 import io.kubernetes.client.openapi.models.V1Endpoints;
 import io.kubernetes.client.openapi.models.V1Service;
-import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.CommonsClientAutoConfiguration;
 import org.springframework.cloud.client.ConditionalOnDiscoveryEnabled;
-import org.springframework.cloud.client.ConditionalOnDiscoveryHealthIndicatorEnabled;
 import org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.KubernetesClientAutoConfiguration;
 import org.springframework.cloud.kubernetes.client.discovery.KubernetesInformerDiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.KubernetesNamespaceProvider;
-import org.springframework.cloud.kubernetes.commons.PodUtils;
-import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryClientHealthIndicatorInitializer;
 import org.springframework.cloud.kubernetes.commons.discovery.KubernetesDiscoveryProperties;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 /**
  * 负载均衡相关的自定义Bean配置
@@ -66,67 +58,25 @@ import org.springframework.core.env.Environment;
 @EnableConfigurationProperties(KubernetesDiscoveryProperties.class)
 public class JobK8sDiscoveryClientAutoConfiguration {
 
-    @ConditionalOnClass({HealthIndicator.class})
-    @ConditionalOnDiscoveryEnabled
-    @ConditionalOnDiscoveryHealthIndicatorEnabled
-    @Configuration
-    public static class KubernetesDiscoveryClientHealthIndicatorConfiguration {
-
-        @Bean
-        public KubernetesDiscoveryClientHealthIndicatorInitializer indicatorInitializer(
-            ApplicationEventPublisher applicationEventPublisher, PodUtils podUtils) {
-            return new KubernetesDiscoveryClientHealthIndicatorInitializer(podUtils, applicationEventPublisher);
-        }
-
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public JobSpringCloudKubernetesInformerFactoryProcessor discoveryInformerConfigurer(
-        KubernetesNamespaceProvider kubernetesNamespaceProvider,
-        ApiClient apiClient,
-        JobCatalogSharedInformerFactory sharedInformerFactory,
-        Environment environment) {
-        // Injecting KubernetesDiscoveryProperties here would cause it to be
-        // initialize too early
-        // Instead get the all-namespaces property value from the Environment directly
-        boolean allNamespaces = environment.getProperty("spring.cloud.kubernetes.discovery.all-namespaces",
-            Boolean.class, false);
-        return new JobSpringCloudKubernetesInformerFactoryProcessor(
-            kubernetesNamespaceProvider,
-            apiClient,
-            sharedInformerFactory,
-            allNamespaces
-        );
-    }
-
-    @Bean
-    public JobCatalogSharedInformerFactory jobCatalogSharedInformerFactory(ApiClient apiClient) {
-        return new JobCatalogSharedInformerFactory();
-    }
-
     @Bean
     public KubernetesInformerDiscoveryClient kubernetesInformerDiscoveryClient(
         KubernetesNamespaceProvider kubernetesNamespaceProvider,
-        JobCatalogSharedInformerFactory jobCatalogSharedInformerFactory,
-        Lister<V1Service> serviceLister,
-        Lister<V1Endpoints> endpointsLister,
-        SharedInformer<V1Service> serviceInformer,
-        SharedInformer<V1Endpoints> endpointsInformer,
+        SharedInformerFactory sharedInformerFactory,
+        @Qualifier("servicesLister") Lister<V1Service> serviceLister,
+        @Qualifier("endpointsLister") Lister<V1Endpoints> endpointsLister,
+        @Qualifier("servicesSharedIndexInformer") SharedInformer<V1Service> serviceInformer,
+        @Qualifier("endpointsSharedIndexInformer") SharedInformer<V1Endpoints> endpointsInformer,
         KubernetesDiscoveryProperties properties
     ) {
         return new JobKubernetesInformerDiscoveryClient(
             kubernetesNamespaceProvider.getNamespace(),
-            jobCatalogSharedInformerFactory,
+            sharedInformerFactory,
             serviceLister,
             endpointsLister,
             serviceInformer,
             endpointsInformer,
             properties
         );
-    }
-
-    class JobCatalogSharedInformerFactory extends SharedInformerFactory {
     }
 }
 

@@ -1,6 +1,7 @@
 spring:
   main:
     allow-bean-definition-overriding: true
+    web-application-type: reactive
   profiles:
     active: default
   # sleuth 配置已移除，迁移至 management.tracing
