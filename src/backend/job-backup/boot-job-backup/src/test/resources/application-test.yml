@@ -8,7 +8,6 @@ spring:
     config:
       enabled: false
     kubernetes:
-      enabled: false
       discovery:
         enabled: false
   datasource:
