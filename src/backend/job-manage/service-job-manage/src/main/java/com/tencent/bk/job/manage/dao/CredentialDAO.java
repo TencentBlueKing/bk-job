@@ -46,4 +46,6 @@ public interface CredentialDAO {
     PageData<CredentialDTO> listCredentials(CredentialDTO credentialQuery, BaseSearchCondition baseSearchCondition);
 
     PageData<CredentialDTO> listCredentialBasicInfo(Long appId, BaseSearchCondition baseSearchCondition);
+
+    boolean checkCredentialName(Long appId, String credentialId, String credentialName);
 }

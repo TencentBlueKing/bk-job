@@ -51,4 +51,6 @@ public interface CredentialService {
     CredentialDTO getCredentialById(String id);
 
     List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(Collection<String> ids);
+
+    boolean checkCredentialName(Long appId, String credentialId, String name);
 }

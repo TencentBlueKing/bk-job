@@ -30,6 +30,8 @@ import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.JobConstants;
+import com.tencent.bk.job.common.crypto.scenario.SubmitAccountPasswordCryptoService;
+import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
@@ -40,6 +42,7 @@ import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.mysql.JobTransactional;
 import com.tencent.bk.job.file_gateway.api.inner.ServiceFileSourceResource;
+import com.tencent.bk.job.manage.api.common.constants.CredentialTypeEnum;
 import com.tencent.bk.job.manage.auth.TicketAuthService;
 import com.tencent.bk.job.manage.dao.CredentialDAO;
 import com.tencent.bk.job.manage.model.dto.CredentialDTO;
@@ -47,6 +50,7 @@ import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDisplayDTO;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 import com.tencent.bk.job.manage.service.CredentialService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -61,14 +65,17 @@ public class CredentialServiceImpl implements CredentialService {
     private final CredentialDAO credentialDAO;
     private final TicketAuthService ticketAuthService;
     private final ServiceFileSourceResource fileSourceService;
+    private final SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService;
 
     @Autowired
     public CredentialServiceImpl(CredentialDAO credentialDAO,
                                  TicketAuthService ticketAuthService,
-                                 ServiceFileSourceResource fileSourceService) {
+                                 ServiceFileSourceResource fileSourceService,
+                                 SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService) {
         this.credentialDAO = credentialDAO;
         this.ticketAuthService = ticketAuthService;
         this.fileSourceService = fileSourceService;
+        this.submitAccountPasswordCryptoService = submitAccountPasswordCryptoService;
     }
 
     @Override
@@ -82,6 +89,17 @@ public class CredentialServiceImpl implements CredentialService {
     @Override
     public PageData<CredentialDTO> listCredentialBasicInfo(Long appId, BaseSearchCondition baseSearchCondition) {
         return credentialDAO.listCredentialBasicInfo(appId, baseSearchCondition);
+    }
+
+    @Override
+    public boolean checkCredentialName(Long appId, String credentialId, String name) {
+        if (credentialId == null) {
+            return false;
+        }
+        if (StringUtils.isBlank(name)) {
+            return false;
+        }
+        return credentialDAO.checkCredentialName(appId, credentialId, name);
     }
 
     @Override
@@ -102,6 +120,8 @@ public class CredentialServiceImpl implements CredentialService {
                                           Long appId,
                                           CredentialCreateUpdateReq createUpdateReq) {
         authCreateTicket(user, appId);
+        checkCredentialExists(appId, "0", createUpdateReq.getName());
+        decryptCredentialSecretIfNeeded(createUpdateReq);
 
         CredentialDTO credentialDTO = buildCredentialDTO(user.getUsername(), appId, createUpdateReq);
         credentialDTO.setCreator(user.getUsername());
@@ -138,6 +158,8 @@ public class CredentialServiceImpl implements CredentialService {
                                           CredentialCreateUpdateReq createUpdateReq) {
         String id = createUpdateReq.getId();
         authManageTicket(user, appId, id);
+        checkCredentialExists(appId, id, createUpdateReq.getName());
+        decryptCredentialSecretIfNeeded(createUpdateReq);
 
         CredentialDTO credentialDTO = buildCredentialDTO(user.getUsername(), appId, createUpdateReq);
         CredentialDTO originCredentialDTO = credentialDAO.getCredentialById(id);
@@ -221,6 +243,33 @@ public class CredentialServiceImpl implements CredentialService {
     @Override
     public List<ServiceCredentialDisplayDTO> listCredentialDisplayInfoByIds(Collection<String> ids) {
         return credentialDAO.listCredentialDisplayInfoByIds(ids);
+    }
+
+    private void checkCredentialExists(Long appId, String credentialId, String name) {
+        if (!checkCredentialName(appId, credentialId, name)) {
+            throw new AlreadyExistsException(ErrorCode.CREDENTIAL_NAME_EXIST, new String[]{name});
+        }
+    }
+
+    private void decryptCredentialSecretIfNeeded(CredentialCreateUpdateReq req) {
+        if (StringUtils.isBlank(req.getAlgorithm()) || req.getType() == null) {
+            return;
+        }
+        if (CredentialTypeEnum.PASSWORD == req.getType()
+            || CredentialTypeEnum.SECRET_KEY == req.getType()) {
+            req.setValue1(decryptFieldIfNeeded(req.getAlgorithm(), req.getValue1()));
+        } else if (CredentialTypeEnum.USERNAME_PASSWORD == req.getType()
+            || CredentialTypeEnum.APP_ID_SECRET_KEY == req.getType()) {
+            req.setValue2(decryptFieldIfNeeded(req.getAlgorithm(), req.getValue2()));
+        }
+    }
+
+    private String decryptFieldIfNeeded(String algorithm, String encryptedValue) {
+        if (StringUtils.isBlank(encryptedValue)
+            || JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(encryptedValue)) {
+            return encryptedValue;
+        }
+        return submitAccountPasswordCryptoService.decryptIfNeeded(algorithm, encryptedValue);
     }
 
     private CredentialDTO buildCredentialDTO(String username, Long appId, CredentialCreateUpdateReq createUpdateReq) {

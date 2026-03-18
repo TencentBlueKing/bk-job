@@ -248,6 +248,21 @@ public class CredentialDAOImpl implements CredentialDAO {
         return listPageCredentialBasicInfoByConditions(baseSearchCondition, conditions, count);
     }
 
+    @Override
+    public boolean checkCredentialName(Long appId, String credentialId, String credentialName) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.APP_ID.eq(appId));
+        conditions.add(defaultTable.NAME.eq(credentialName));
+        if (StringUtils.isNotBlank(credentialId) && !"0".equals(credentialId)) {
+            conditions.add(defaultTable.ID.notEqual(credentialId));
+        }
+        Integer count = dslContext.selectCount()
+            .from(defaultTable)
+            .where(conditions)
+            .fetchOne(0, Integer.class);
+        return count != null && count == 0;
+    }
+
     public PageData<CredentialDTO> listPageCredentialBasicInfoByConditions(
         BaseSearchCondition baseSearchCondition,
         Collection<Condition> conditions,

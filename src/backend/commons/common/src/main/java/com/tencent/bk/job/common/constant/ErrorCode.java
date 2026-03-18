@@ -348,6 +348,8 @@ public class ErrorCode {
     public static final int SEND_NOTIFY_EXCEED_USER_QUOTA_LIMIT = 1243058;
     // 发送通知总量超过系统配额限制
     public static final int SEND_NOTIFY_EXCEED_SYSTEM_QUOTA_LIMIT = 1243059;
+    // 凭证名称{0}已存在
+    public static final int CREDENTIAL_NAME_EXIST = 1243060;
     // 作业管理 end
 
     // 作业执行 start
