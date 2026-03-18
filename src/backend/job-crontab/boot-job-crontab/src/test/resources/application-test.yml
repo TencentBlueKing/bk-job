@@ -32,11 +32,12 @@ spring:
         max-active: ${job.crontab.redis.lettuce.pool.max-idle:8}
         max-wait: ${job.crontab.redis.lettuce.pool.max-wait:1ms}
       shutdown-timeout: ${job.crontab.redis.lettuce.shutdown-timeout:100ms}
+  main:
+    cloud-platform: NONE
   cloud:
     config:
       enabled: false
     kubernetes:
-      enabled: false
       discovery:
         enabled: false
   quartz:

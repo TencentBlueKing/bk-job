@@ -25,11 +25,12 @@ spring:
     port: 6379
     password: job
     database: 0
+  main:
+    cloud-platform: NONE
   cloud:
     config:
       enabled: false
     kubernetes:
-      enabled: false
       discovery:
         enabled: false
 

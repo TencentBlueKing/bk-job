@@ -2,13 +2,14 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+  main:
+    cloud-platform: NONE
   cloud:
     refresh:
       extra-refreshable: javax.sql.DataSource
     config:
       enabled: false
     kubernetes:
-      enabled: false
       discovery:
         enabled: false
   datasource:

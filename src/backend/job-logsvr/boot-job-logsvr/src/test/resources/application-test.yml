@@ -5,11 +5,12 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+  main:
+    cloud-platform: NONE
   cloud:
     config:
       enabled: false
     kubernetes:
-      enabled: false
       discovery:
         enabled: false
 de:

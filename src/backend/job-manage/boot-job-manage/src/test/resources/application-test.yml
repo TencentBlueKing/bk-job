@@ -15,11 +15,12 @@ spring:
       idle-timeout: 600000
       poolName: "job-manage"
       validationTimeout: 5000
+  main:
+    cloud-platform: NONE
   cloud:
     config:
       enabled: false
     kubernetes:
-      enabled: false
       discovery:
         enabled: false
 job:
