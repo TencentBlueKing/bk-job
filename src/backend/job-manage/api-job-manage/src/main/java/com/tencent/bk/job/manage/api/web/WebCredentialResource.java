@@ -114,6 +114,29 @@ public interface WebCredentialResource {
             Integer pageSize
     );
 
+    @ApiOperation(value = "检查凭证名称是否可用", produces = "application/json")
+    @GetMapping("/{credentialId}/check_name")
+    Response<Boolean> checkCredentialName(
+        @ApiParam(value = "用户名，网关自动传入")
+        @RequestHeader("username")
+            String username,
+        @ApiIgnore
+        @RequestAttribute(value = "appResourceScope")
+            AppResourceScope appResourceScope,
+        @ApiParam(value = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+            String scopeType,
+        @ApiParam(value = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+            String scopeId,
+        @ApiParam(value = "凭证ID，新建时填0", required = true)
+        @PathVariable(value = "credentialId")
+            String credentialId,
+        @ApiParam(value = "名称", required = true)
+        @RequestParam(value = "name")
+            String name
+    );
+
 
     @ApiOperation(value = "新增凭证", produces = "application/json")
     @PostMapping
