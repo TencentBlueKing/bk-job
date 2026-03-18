@@ -27,35 +27,35 @@ package com.tencent.bk.job.manage.api.inner;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Set;
 
-@Api(tags = {"job-manage:service:User"})
+@Tag(name = "job-manage:service:User")
 @SmartFeignClient(value = "job-manage", contextId = "userResource")
 @InternalAPI
 public interface ServiceUserResource {
 
-    @ApiOperation(value = "根据业务Id与角色获取用户信息", produces = "application/json")
+    @Operation(summary = "根据业务Id与角色获取用户信息")
     @GetMapping("/service/user/getUsersByRoles")
     InternalResponse<Set<String>> getUsersByRoles(
-        @ApiParam("业务Id")
+        @Parameter(description = "业务Id")
         @RequestParam(value = "appId", required = true)
             Long appId,
-        @ApiParam("触发者")
+        @Parameter(description = "触发者")
         @RequestParam(value = "triggerUser", required = true)
             String triggerUser,
-        @ApiParam("资源类型")
+        @Parameter(description = "资源类型")
         @RequestParam(value = "resourceType", required = true)
             Integer resourceType,
-        @ApiParam("资源Id")
+        @Parameter(description = "资源Id")
         @RequestParam(value = "resourceId", required = true)
             String resourceId,
-        @ApiParam("角色Code集合")
+        @Parameter(description = "角色Code集合")
         @RequestParam(value = "roleSet", required = true)
             Set<String> roleSet
     );

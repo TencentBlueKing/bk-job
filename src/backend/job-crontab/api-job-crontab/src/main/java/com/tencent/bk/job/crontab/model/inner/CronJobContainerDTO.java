@@ -26,8 +26,7 @@ package com.tencent.bk.job.crontab.model.inner;
 
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.vo.ContainerVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,11 +37,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @PersistenceObject
-@ApiModel("容器信息")
+@Schema(description = "容器信息")
 @AllArgsConstructor
 public class CronJobContainerDTO implements Cloneable {
 
-    @ApiModelProperty("CMDB中存的容器 ID")
+    @Schema(description = "CMDB中存的容器 ID")
     private Long id;
 
     public static CronJobContainerDTO fromContainerVO(ContainerVO containerVO) {

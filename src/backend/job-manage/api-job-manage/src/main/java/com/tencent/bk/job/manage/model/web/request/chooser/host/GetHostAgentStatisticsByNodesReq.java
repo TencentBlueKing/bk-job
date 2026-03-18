@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.request.chooser.host;
 
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,9 +35,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@ApiModel("通过拓扑节点集合获取主机Agent状态统计信息")
+@Schema(description = "通过拓扑节点集合获取主机Agent状态统计信息")
 public class GetHostAgentStatisticsByNodesReq {
 
-    @ApiModelProperty(value = "拓扑节点列表", required = true)
+    @Schema(description = "拓扑节点列表", required = true)
     List<TargetNodeVO> nodeList;
 }

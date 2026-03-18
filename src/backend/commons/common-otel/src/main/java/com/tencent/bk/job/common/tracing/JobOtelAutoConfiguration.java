@@ -24,60 +24,41 @@
 
 package com.tencent.bk.job.common.tracing;
 
-import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
-import io.opentelemetry.context.propagation.ContextPropagators;
-import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
-import io.opentelemetry.sdk.trace.SdkTracerProvider;
-import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
-import io.opentelemetry.sdk.trace.SpanLimits;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
-import io.opentelemetry.sdk.trace.export.BatchSpanProcessorBuilder;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
-import io.opentelemetry.sdk.trace.samplers.Sampler;
-import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.cloud.sleuth.autoconfig.otel.OtelAutoConfiguration;
-import org.springframework.cloud.sleuth.autoconfig.otel.OtelProcessorProperties;
-import org.springframework.cloud.sleuth.autoconfig.otel.SpanProcessorProvider;
-import org.springframework.cloud.sleuth.otel.bridge.SpanExporterCustomizer;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
- * Otel 配置
+ * OTel 配置（Spring Boot 3.x + Micrometer Tracing）
  *
- * <p>在跑测试用例启动时，会启动spring容器，会多次初始化OtelConfiguration。由于OtelConfiguration.otel()->OtelConfiguration.otel()
- * .buildAndRegisterGlobal()-> GlobalOpenTelemetry.set多次调用，从而抛出异常"Failed to instantiate [io
- * .opentelemetry.api.OpenTelemetry]: Factory method 'otel' threw exception; nested exception is java.lang
- * .IllegalStateException: GlobalOpenTelemetry.set has already been called. GlobalOpenTelemetry.set must be called
- * only once before any calls to GlobalOpenTelemetry.get"</p>
+ * <p>在跑测试用例启动时，会启动spring容器，会多次初始化OtelConfiguration。
+ * 通过 @Profile("!test") 排除测试环境避免 GlobalOpenTelemetry 重复设置问题。</p>
  *
- * @see io.opentelemetry.api.GlobalOpenTelemetry
+ * <p>Spring Boot 3.x 通过 micrometer-tracing-bridge-otel 自动配置 OTel SDK，
+ * 本配置类仅提供 BK-JOB 定制的 Resource（bkDataToken）和条件化的 SpanProcessor。</p>
  */
 @Slf4j
 @Configuration(proxyBeanMethods = false)
 @Profile("!test")
-@AutoConfigureBefore(OtelAutoConfiguration.class)
 class JobOtelAutoConfiguration {
 
-    @Value("${spring.sleuth.otel.exporter.enabled:false}")
+    @Value("${job.tracing.exporter.enabled:false}")
     private boolean exporterEnabled;
 
-    @Value("${spring.sleuth.otel.resource.bkDataToken:}")
+    @Value("${job.tracing.bk-data-token:}")
     private String bkDataToken;
 
     @Bean
@@ -85,72 +66,27 @@ class JobOtelAutoConfiguration {
         return this::buildResource;
     }
 
-    Resource buildResource() {
+    @Bean
+    Resource otelBkDataTokenResource() {
+        return buildResource();
+    }
+
+    private Resource buildResource() {
         AttributesBuilder attributes = Attributes.builder();
         attributes.put("bk.data.token", bkDataToken);
-        return Resource.create(attributes.build(), ResourceAttributes.SCHEMA_URL);
+        return Resource.create(attributes.build());
     }
 
     @Bean
-    SdkTracerProvider otelTracerProvider(SpanLimits spanLimits,
-                                         ObjectProvider<List<SpanProcessor>> spanProcessors,
-                                         SpanExporterCustomizer spanExporterCustomizer,
-                                         ObjectProvider<List<SpanExporter>> spanExporters,
-                                         Sampler sampler,
-                                         Resource resource,
-                                         SpanProcessorProvider spanProcessorProvider) {
-        log.debug("exporterEnabled={},bkDataToken={}", exporterEnabled, bkDataToken);
-        SdkTracerProviderBuilder sdkTracerProviderBuilder = SdkTracerProvider.builder().setResource(resource)
-            .setSampler(sampler).setSpanLimits(spanLimits);
-        List<SpanProcessor> processors = spanProcessors.getIfAvailable(ArrayList::new);
-        if (exporterEnabled) {
-            processors.addAll(spanExporters.getIfAvailable(ArrayList::new).stream()
-                .map(e -> spanProcessorProvider.toSpanProcessor(spanExporterCustomizer.customize(e)))
-                .collect(Collectors.toList()));
+    @ConditionalOnProperty(name = "job.tracing.exporter.enabled", havingValue = "true")
+    SpanProcessor otelBatchSpanProcessor(ObjectProvider<List<SpanExporter>> spanExporters) {
+        log.info("OTel exporter enabled, bkDataToken={}", bkDataToken);
+        List<SpanExporter> exporters = spanExporters.getIfAvailable(List::of);
+        if (exporters.isEmpty()) {
+            log.warn("No SpanExporter available, skip batch span processor creation");
+            return SpanProcessor.composite();
         }
-        processors.forEach(sdkTracerProviderBuilder::addSpanProcessor);
-        return sdkTracerProviderBuilder.build();
-    }
-
-    @Bean
-    SpanProcessorProvider otelBatchSpanProcessorProvider(OtelProcessorProperties otelProcessorProperties) {
-        return new SpanProcessorProvider() {
-            @Override
-            public SpanProcessor toSpanProcessor(SpanExporter spanExporter) {
-                BatchSpanProcessorBuilder builder = BatchSpanProcessor.builder(spanExporter);
-                setBuilderProperties(otelProcessorProperties, builder);
-                return builder.build();
-            }
-
-            private void setBuilderProperties(OtelProcessorProperties otelProcessorProperties,
-                                              BatchSpanProcessorBuilder builder) {
-                if (otelProcessorProperties.getBatch().getExporterTimeout() != null) {
-                    builder.setExporterTimeout(otelProcessorProperties.getBatch().getExporterTimeout(),
-                        TimeUnit.MILLISECONDS);
-                }
-                if (otelProcessorProperties.getBatch().getMaxExportBatchSize() != null) {
-                    builder.setMaxExportBatchSize(otelProcessorProperties.getBatch().getMaxExportBatchSize());
-                }
-                if (otelProcessorProperties.getBatch().getMaxQueueSize() != null) {
-                    builder.setMaxQueueSize(otelProcessorProperties.getBatch().getMaxQueueSize());
-                }
-                if (otelProcessorProperties.getBatch().getScheduleDelay() != null) {
-                    builder.setScheduleDelay(otelProcessorProperties.getBatch().getScheduleDelay(),
-                        TimeUnit.MILLISECONDS);
-                }
-            }
-        };
-    }
-
-    @Bean
-    OpenTelemetry otel(SdkTracerProvider tracerProvider, ContextPropagators contextPropagators) {
-        OpenTelemetry openTelemetry =
-            OpenTelemetrySdk
-                .builder()
-                .setTracerProvider(tracerProvider)
-                .setPropagators(contextPropagators)
-                .buildAndRegisterGlobal();
-        log.info("GlobalOpenTelemetry has been set");
-        return openTelemetry;
+        SpanExporter compositeExporter = SpanExporter.composite(exporters);
+        return BatchSpanProcessor.builder(compositeExporter).build();
     }
 }

@@ -17,17 +17,39 @@ data:
           name: {{ .Values.job.security.actuator.user.name }}
           password: {{ .Values.job.security.actuator.user.password }}
           roles: ENDPOINT_ADMIN
-      sleuth:
-        otel:
-          exporter:
-            enabled: {{ .Values.job.trace.report.enabled }}
-            otlp:
-              endpoint: {{ .Values.job.trace.report.pushUrl }}
-          resource:
-            bkDataToken: {{ .Values.job.trace.report.secureKey }}
-          config:
-            traceIdRatioBased: {{ .Values.job.trace.report.ratio }}
+    job:
+      tracing:
+        exporter:
+          enabled: {{ .Values.job.trace.report.enabled }}
+        bk-data-token: {{ .Values.job.trace.report.secureKey }}
+      security:
+        service:
+          enabled: {{ .Values.job.security.enabled }}
+          private-key-base64: {{ .Values.job.security.privateKeyBase64 }}
+          public-key-base64: {{ .Values.job.security.publicKeyBase64 }}
+      edition: {{ .Values.job.edition }}
+      encrypt:
+        type: {{ .Values.job.encrypt.type }}
+        password: {{ .Values.job.encrypt.password }}
+        sm2-public-key: {{.Values.job.encrypt.sm2PublicKey}}
+        sm2-private-key: {{.Values.job.encrypt.sm2PrivateKey}}
+      web:
+        url: {{ include "job.web.url" . }}
+      storage:
+        root-path: {{ .Values.persistence.localStorage.path }}/local
+    management:
+      tracing:
+        sampling:
+          probability: {{ .Values.job.trace.report.ratio }}
+      {{- if .Values.job.trace.report.pushUrl }}
+      otlp:
+        tracing:
+          endpoint: {{ .Values.job.trace.report.pushUrl }}
+      {{- end }}
       {{- include "job.rabbitmq.sslConfig" . | nindent 6 }}
+      metrics:
+        tags:
+          application: ${spring.application.name}
     bk:
       bkDomain: {{ .Values.global.bkDomain }}
       bkHelperLink: {{ .Values.global.bkHelperLink }}
@@ -38,7 +60,7 @@ data:
       service:
         url: {{ .Values.bkComponentApiUrl }}
         publicUrl: {{ .Values.bkComponentApiUrl }}
-    bkApiGateway:
+    bk-api-gateway:
       gse:
         url: {{ .Values.bkGseApiGatewayUrl }}
       bkNotice:
@@ -100,22 +122,6 @@ data:
         uri: {{ .Values.cmsi.voice.uri }}
     bkNotice:
       enabled: {{ .Values.bkNotice.enabled }}
-    job:
-      security:
-        service:
-          enabled: {{ .Values.job.security.enabled }}
-          private-key-base64: {{ .Values.job.security.privateKeyBase64 }}
-          public-key-base64: {{ .Values.job.security.publicKeyBase64 }}
-      edition: {{ .Values.job.edition }}
-      encrypt:
-        type: {{ .Values.job.encrypt.type }}
-        password: {{ .Values.job.encrypt.password }}
-        sm2-public-key: {{.Values.job.encrypt.sm2PublicKey}}
-        sm2-private-key: {{.Values.job.encrypt.sm2PrivateKey}}
-      web:
-        url: {{ include "job.web.url" . }}
-      storage:
-        root-path: {{ .Values.persistence.localStorage.path }}/local
     cmdb:
       default:
         supplier:
@@ -162,10 +168,6 @@ data:
       expire-days: {{ .Values.localFile.expireDays }}
     swagger:
       url: {{ .Values.swagger.url }}
-    management:
-      metrics:
-        tags:
-          application: ${spring.application.name}
     log:
       # 服务后台日志保留的小时数，默认48小时（2天）
       keep-hours: {{ .Values.log.keepHours }}

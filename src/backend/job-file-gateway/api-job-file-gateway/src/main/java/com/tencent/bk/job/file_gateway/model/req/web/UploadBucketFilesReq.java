@@ -25,26 +25,25 @@
 package com.tencent.bk.job.file_gateway.model.req.web;
 
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @Data
-@ApiModel("上传文件至Bucket请求内容")
+@Schema(description = "上传文件至Bucket请求内容")
 public class UploadBucketFilesReq {
 
     /**
      * 上传目标路径列表
      */
-    @ApiModelProperty(value = "上传目标路径列表，不传默认为：根目录/文件名")
+    @Schema(description = "上传目标路径列表，不传默认为：根目录/文件名")
     private List<String> pathList;
 
     /**
      * 文件内容列表
      */
-    @ApiModelProperty(value = "文件内容列表")
+    @Schema(description = "文件内容列表")
     private List<MultipartFile> uploadFileList;
 }

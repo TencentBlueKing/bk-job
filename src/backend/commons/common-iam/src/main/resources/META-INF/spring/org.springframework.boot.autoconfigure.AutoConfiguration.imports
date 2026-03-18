@@ -1,0 +1,2 @@
+com.tencent.bk.job.common.iam.config.IamAutoConfiguration
+com.tencent.bk.job.common.iam.config.IamRetryAutoConfiguration

@@ -27,47 +27,46 @@ package com.tencent.bk.job.execute.model.web.vo;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.DecimalFormatJsonSerializer;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("执行对象任务执行信息")
+@Schema(description = "执行对象任务执行信息")
 @Data
 public class ExecuteObjectTaskVO {
-    @ApiModelProperty("执行次数")
+    @Schema(description = "执行次数")
     private Integer executeCount;
 
-    @ApiModelProperty("滚动批次")
+    @Schema(description = "滚动批次")
     private Integer batch;
 
-    @ApiModelProperty("执行对象类型")
+    @Schema(description = "执行对象类型")
     private ExecuteObjectVO executeObject;
 
-    @ApiModelProperty("执行对象任务执行状态")
+    @Schema(description = "执行对象任务执行状态")
     private Integer status;
 
-    @ApiModelProperty("执行对象任务执行状态描述")
+    @Schema(description = "执行对象任务执行状态描述")
     private String statusDesc;
 
-    @ApiModelProperty("开始时间")
+    @Schema(description = "开始时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long startTime;
 
-    @ApiModelProperty("结束时间")
+    @Schema(description = "结束时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long endTime;
 
-    @ApiModelProperty("耗时")
+    @Schema(description = "耗时")
     @JsonSerialize(using = DecimalFormatJsonSerializer.class)
     private Long totalTime;
 
-    @ApiModelProperty("脚本返回码")
+    @Schema(description = "脚本返回码")
     private Integer exitCode;
 
-    @ApiModelProperty("脚本错误码")
+    @Schema(description = "脚本错误码")
     private Integer errorCode;
 
-    @ApiModelProperty("脚本执行输出")
+    @Schema(description = "脚本执行输出")
     private String tag;
 
 }

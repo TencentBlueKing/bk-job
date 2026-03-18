@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.sleuth.Tracer;
+import io.micrometer.tracing.Tracer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

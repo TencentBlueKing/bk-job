@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.backup.model.web;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.Map;
@@ -38,12 +38,12 @@ public class IdNameInfoVO {
     /**
      * 模版名称对应关系表
      */
-    @ApiModelProperty("模版名称对应关系表")
+    @Schema(description = "模版名称对应关系表")
     private Map<Long, String> templateNameMap;
 
     /**
      * 执行方案名称对应关系表
      */
-    @ApiModelProperty("执行方案名称对应关系表")
+    @Schema(description = "执行方案名称对应关系表")
     private Map<Long, String> planNameMap;
 }

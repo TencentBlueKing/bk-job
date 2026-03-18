@@ -25,33 +25,32 @@
 package com.tencent.bk.job.execute.model.inner;
 
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("步骤实例")
+@Schema(description = "步骤实例")
 @Data
 public class ServiceStepInstanceDTO {
 
-    @ApiModelProperty("步骤实例ID")
+    @Schema(description = "步骤实例ID")
     private Long id;
 
-    @ApiModelProperty("步骤实例名称")
+    @Schema(description = "步骤实例名称")
     private String name;
 
-    @ApiModelProperty("步骤类型")
+    @Schema(description = "步骤类型")
     private Integer executeType;
 
-    @ApiModelProperty("步骤状态")
+    @Schema(description = "步骤状态")
     private Integer status;
 
-    @ApiModelProperty("创建时间")
+    @Schema(description = "创建时间")
     private Long createTime;
 
-    @ApiModelProperty("脚本任务步骤")
+    @Schema(description = "脚本任务步骤")
     private ServiceScriptStepInstanceDTO scriptStepInstance;
 
-    @ApiModelProperty("文件任务步骤")
+    @Schema(description = "文件任务步骤")
     private ServiceFileStepInstanceDTO fileStepInstance;
 
     public boolean isScriptStep() {

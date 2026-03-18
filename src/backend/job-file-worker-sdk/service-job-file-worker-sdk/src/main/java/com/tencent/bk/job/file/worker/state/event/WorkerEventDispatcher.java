@@ -32,8 +32,8 @@ import com.tencent.bk.job.file.worker.state.event.handler.OffLineEventHandler;
 import com.tencent.bk.job.file.worker.state.event.handler.WaitAccessEventHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.Tracer;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;

@@ -28,8 +28,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.FilePathValidateUtil;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
@@ -40,35 +39,35 @@ import java.util.List;
  * @since 16/10/2019 15:45
  */
 @Data
-@ApiModel("步骤源文件信息")
+@Schema(description = "步骤源文件信息")
 @Slf4j
 public class TaskFileSourceInfoVO {
 
-    @ApiModelProperty(value = "文件 ID 新建填 0")
+    @Schema(description = "文件 ID 新建填 0")
     private Long id;
 
-    @ApiModelProperty(value = "文件类型 1-服务器文件 2-本地文件 3-文件源文件")
+    @Schema(description = "文件类型 1-服务器文件 2-本地文件 3-文件源文件")
     private Integer fileType;
 
-    @ApiModelProperty("文件路径")
+    @Schema(description = "文件路径")
     private List<String> fileLocation;
 
-    @ApiModelProperty(value = "文件 Hash 值 仅本地文件有")
+    @Schema(description = "文件 Hash 值 仅本地文件有")
     private String fileHash;
 
-    @ApiModelProperty(value = "文件大小 仅本地文件有")
+    @Schema(description = "文件大小 仅本地文件有")
     private String fileSize;
 
-    @ApiModelProperty(value = "主机列表")
+    @Schema(description = "主机列表")
     private TaskTargetVO host;
 
-    @ApiModelProperty(value = "主机账号")
+    @Schema(description = "主机账号")
     private Long account;
 
-    @ApiModelProperty(value = "主机账号名称")
+    @Schema(description = "主机账号名称")
     private String accountName;
 
-    @ApiModelProperty(value = "文件源ID，来自文件源的文件需要传入")
+    @Schema(description = "文件源ID，来自文件源的文件需要传入")
     private Integer fileSourceId;
 
     public void validate(boolean isCreate) throws InvalidParamException {

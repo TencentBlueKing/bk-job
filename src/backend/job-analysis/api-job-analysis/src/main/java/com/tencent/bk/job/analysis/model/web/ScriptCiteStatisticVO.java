@@ -24,24 +24,23 @@
 
 package com.tencent.bk.job.analysis.model.web;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@ApiModel("脚本引用相关统计量")
+@Schema(description = "脚本引用相关统计量")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class ScriptCiteStatisticVO {
 
-    @ApiModelProperty("被引用的脚本总量，（脚本引用比例=被引用的脚本总量/脚本总量，版本复用率=引用了脚本的步骤总量/被引用的脚本总量）")
+    @Schema(description = "被引用的脚本总量，（脚本引用比例=被引用的脚本总量/脚本总量，版本复用率=引用了脚本的步骤总量/被引用的脚本总量）")
     private Long citedScriptCount;
 
-    @ApiModelProperty("脚本总量")
+    @Schema(description = "脚本总量")
     private Long scriptCount;
 
-    @ApiModelProperty("引用了脚本的步骤总量")
+    @Schema(description = "引用了脚本的步骤总量")
     private Long citedScriptStepCount;
 }

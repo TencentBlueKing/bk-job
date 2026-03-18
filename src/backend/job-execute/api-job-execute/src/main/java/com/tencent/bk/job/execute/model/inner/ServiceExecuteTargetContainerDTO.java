@@ -25,8 +25,7 @@
 package com.tencent.bk.job.execute.model.inner;
 
 import com.tencent.bk.job.common.model.dto.Container;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -34,11 +33,11 @@ import lombok.Data;
  * <p>
  * 只包含容器 ID，完整的容器信息会在任务执行时从 CMDB 获取
  */
-@ApiModel("容器目标")
+@Schema(description = "容器目标")
 @Data
 public class ServiceExecuteTargetContainerDTO {
 
-    @ApiModelProperty(value = "容器在 CMDB 注册的 ID", required = true)
+    @Schema(description = "容器在 CMDB 注册的 ID", required = true)
     private Long id;
 
     /**

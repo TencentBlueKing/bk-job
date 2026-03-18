@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("作业下发结果")
+@Schema(description = "作业下发结果")
 public class TaskExecuteVO {
     private Long taskInstanceId;
     private String name;

@@ -25,24 +25,23 @@
 package com.tencent.bk.job.manage.model.inner;
 
 import com.tencent.bk.job.common.constant.CcNodeTypeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
  * @since 12/12/2019 22:41
  */
 @Data
-@ApiModel("节点详细信息")
+@Schema(description = "节点详细信息")
 public class ServiceTaskNodeInfoDTO {
 
-    @ApiModelProperty("节点 ID")
+    @Schema(description = "节点 ID")
     private Long id;
 
     /**
      * @see CcNodeTypeEnum
      */
-    @ApiModelProperty("节点类型")
+    @Schema(description = "节点类型")
     private String type;
 
 }

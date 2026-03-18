@@ -24,45 +24,10 @@
 
 package com.tencent.bk.job.gateway.config;
 
-import com.tencent.bk.job.common.service.config.JobCommonConfig;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.oas.annotations.EnableOpenApi;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
 
-import java.util.Arrays;
-import java.util.HashSet;
-
-/**
- * Swagger 配置
- */
 @Configuration
-@EnableOpenApi
 @Profile({"dev", "local"})
 public class SwaggerConfig {
-
-    private final JobCommonConfig jobCommonConfig;
-
-    @Autowired
-    public SwaggerConfig(JobCommonConfig jobCommonConfig) {
-        this.jobCommonConfig = jobCommonConfig;
-    }
-
-    @Bean
-    public Docket api() {
-        return new Docket(DocumentationType.OAS_30)
-            .host(jobCommonConfig.getSwaggerUrl())
-            .pathMapping("job-gateway")
-            .protocols(new HashSet<>(Arrays.asList("http", "https")))
-            .select()
-            .apis(RequestHandlerSelectors.basePackage("com.tencent.bk.job.gateway.api"))
-            .paths(PathSelectors.any())
-            .build();
-    }
 }
-

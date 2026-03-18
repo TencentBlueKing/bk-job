@@ -25,36 +25,35 @@
 package com.tencent.bk.job.manage.model.inner.resp;
 
 import com.tencent.bk.job.common.model.dto.CommonCredential;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("凭证")
+@Schema(description = "凭证")
 @Data
 public class ServiceCredentialDTO {
     /**
      * 主键Id
      */
-    @ApiModelProperty("主键Id")
+    @Schema(description = "主键Id")
     private String id;
     /**
      * 业务Id
      */
-    @ApiModelProperty("业务Id")
+    @Schema(description = "业务Id")
     private Long appId;
     /**
      * 名称
      */
-    @ApiModelProperty("名称")
+    @Schema(description = "名称")
     private String name;
     /**
      * 类型
      */
-    @ApiModelProperty("类型")
+    @Schema(description = "类型")
     private String type;
     /**
      * 凭证
      */
-    @ApiModelProperty("凭证")
+    @Schema(description = "凭证")
     private CommonCredential credential;
 }

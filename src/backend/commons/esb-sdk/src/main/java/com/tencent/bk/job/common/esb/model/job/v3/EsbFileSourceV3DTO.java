@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.util.ListUtil;
 import lombok.Data;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 
 /**

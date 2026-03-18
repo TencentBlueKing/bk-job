@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -33,18 +32,18 @@ import java.util.List;
 /**
  * 滚动任务
  */
-@ApiModel("滚动任务")
+@Schema(description = "滚动任务")
 @Data
 public class RollingTaskVO {
-    @ApiModelProperty("滚动配置(任务)名称")
+    @Schema(description = "滚动配置(任务)名称")
     private String name;
-    @ApiModelProperty("总批次")
+    @Schema(description = "总批次")
     private Integer totalBatch;
-    @ApiModelProperty("滚动区间包含的步骤实例ID, 按步骤先后排序")
+    @Schema(description = "滚动区间包含的步骤实例ID, 按步骤先后排序")
     private List<Long> includeStepInstanceIdList;
-    @ApiModelProperty("当前执行批次")
+    @Schema(description = "当前执行批次")
     private Integer currentBatch;
-    @ApiModelProperty("分批滚动任务")
+    @Schema(description = "分批滚动任务")
     private List<RollingBatchTaskVO> rollingBatchTaskList;
 
 }

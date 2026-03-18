@@ -30,8 +30,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -45,50 +44,50 @@ import java.util.Objects;
 @Slf4j
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("主机信息")
+@Schema(description = "主机信息")
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class HostInfoVO {
 
-    @ApiModelProperty(value = "主机ID", required = true)
+    @Schema(description = "主机ID", required = true)
     private Long hostId;
 
-    @ApiModelProperty("主机 IP")
+    @Schema(description = "主机 IP")
     private String ip;
 
-    @ApiModelProperty("主机 IPv6")
+    @Schema(description = "主机 IPv6")
     private String ipv6;
 
-    @ApiModelProperty("展示用的IP，主要针对多内网IP问题")
+    @Schema(description = "展示用的IP，主要针对多内网IP问题")
     private String displayIp;
 
-    @ApiModelProperty("主机名称")
+    @Schema(description = "主机名称")
     private String hostName;
 
     // agent状态：-2：未找到，-1：查询失败，0：初始安装，1：启动中，2：运行中，3：有损状态，4：繁忙，5：升级中，6：停止中，7：解除安装
     @JsonIgnore
     private Integer agentStatus;
 
-    @ApiModelProperty("agent 状态 0-异常 1-正常")
+    @Schema(description = "agent 状态 0-异常 1-正常")
     private Integer alive;
 
-    @ApiModelProperty("云区域信息")
+    @Schema(description = "云区域信息")
     private CloudAreaInfoVO cloudArea;
 
     /**
      * 操作系统
      */
-    @ApiModelProperty("操作系统")
+    @Schema(description = "操作系统")
     private String osName;
 
-    @ApiModelProperty("系统类型")
+    @Schema(description = "系统类型")
     @JsonProperty("osType")
     private String osTypeName;
 
-    @ApiModelProperty("AgentId")
+    @Schema(description = "AgentId")
     private String agentId;
 
-    @ApiModelProperty("所属云厂商")
+    @Schema(description = "所属云厂商")
     @JsonProperty("cloudVendor")
     private String cloudVendorName;
 

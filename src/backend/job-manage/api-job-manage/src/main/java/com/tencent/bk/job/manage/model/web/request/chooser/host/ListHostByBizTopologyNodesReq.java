@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request.chooser.host;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -39,34 +38,34 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@ApiModel("通过拓扑节点集合获取主机集合")
+@Schema(description = "通过拓扑节点集合获取主机集合")
 public class ListHostByBizTopologyNodesReq {
 
-    @ApiModelProperty(value = "拓扑节点列表", required = true)
+    @Schema(description = "拓扑节点列表", required = true)
     List<BizTopoNode> nodeList;
 
-    @ApiModelProperty(value = "搜索内容（同时对主机IP/IPv6/主机名称/操作系统名称/云区域名称进行模糊搜索）")
+    @Schema(description = "搜索内容（同时对主机IP/IPv6/主机名称/操作系统名称/云区域名称进行模糊搜索）")
     String searchContent;
 
-    @ApiModelProperty(value = "筛选条件：ip关键字列表，ip与列表中任意一个关键字相似即命中")
+    @Schema(description = "筛选条件：ip关键字列表，ip与列表中任意一个关键字相似即命中")
     List<String> ipKeyList;
 
-    @ApiModelProperty(value = "筛选条件：ipv6关键字列表，ipv6与列表中任意一个关键字相似即命中")
+    @Schema(description = "筛选条件：ipv6关键字列表，ipv6与列表中任意一个关键字相似即命中")
     List<String> ipv6KeyList;
 
-    @ApiModelProperty(value = "筛选条件：主机名称关键字列表，主机名称与列表中任意一个关键字相似即命中")
+    @Schema(description = "筛选条件：主机名称关键字列表，主机名称与列表中任意一个关键字相似即命中")
     List<String> hostNameKeyList;
 
-    @ApiModelProperty(value = "筛选条件：操作系统名称关键字列表，操作系统名称与列表中任意一个关键字相似即命中")
+    @Schema(description = "筛选条件：操作系统名称关键字列表，操作系统名称与列表中任意一个关键字相似即命中")
     List<String> osNameKeyList;
 
-    @ApiModelProperty(value = "筛选条件：alive：0为Agent异常，1为Agent正常，不传则不筛选")
+    @Schema(description = "筛选条件：alive：0为Agent异常，1为Agent正常，不传则不筛选")
     Integer alive;
 
-    @ApiModelProperty(value = "数据起始位置")
+    @Schema(description = "数据起始位置")
     Long start;
 
-    @ApiModelProperty(value = "拉取数量")
+    @Schema(description = "拉取数量")
     Long pageSize;
 
     /**

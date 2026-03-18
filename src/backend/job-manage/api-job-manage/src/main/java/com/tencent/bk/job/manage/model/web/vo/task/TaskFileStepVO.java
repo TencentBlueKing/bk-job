@@ -31,8 +31,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.NotExistPathHandlerEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.util.FilePathValidateUtil;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
@@ -40,36 +39,36 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 
 @Data
-@ApiModel("步骤文件信息")
+@Schema(description = "步骤文件信息")
 @Slf4j
 public class TaskFileStepVO {
 
-    @ApiModelProperty("源文件列表")
+    @Schema(description = "源文件列表")
     private List<TaskFileSourceInfoVO> fileSourceList;
 
-    @ApiModelProperty("目标信息")
+    @Schema(description = "目标信息")
     private TaskFileDestinationInfoVO fileDestination;
 
-    @ApiModelProperty("超时")
+    @Schema(description = "超时")
     private Long timeout;
 
-    @ApiModelProperty("上传文件限速")
+    @Schema(description = "上传文件限速")
     @JsonProperty("uploadSpeedLimit")
     private Long originSpeedLimit;
 
-    @ApiModelProperty("下载文件限速")
+    @Schema(description = "下载文件限速")
     @JsonProperty("downloadSpeedLimit")
     private Long targetSpeedLimit;
 
     /**
      * 传输模式
      */
-    @ApiModelProperty(
-        value = "传输模式： 1 - 严谨模式； 2 - 强制模式；3 - 安全模式(FILESRCIP)；4 - 安全模式(YYYY-MM-DD)",
+    @Schema(
+        description = "传输模式： 1 - 严谨模式； 2 - 强制模式；3 - 安全模式(FILESRCIP)；4 - 安全模式(YYYY-MM-DD)",
         required = true)
     private Integer transferMode;
 
-    @ApiModelProperty("忽略错误 0 - 不忽略 1 - 忽略")
+    @Schema(description = "忽略错误 0 - 不忽略 1 - 忽略")
     private Integer ignoreError;
 
     public static Integer getTransferMode(DuplicateHandlerEnum duplicateHandlerEnum,

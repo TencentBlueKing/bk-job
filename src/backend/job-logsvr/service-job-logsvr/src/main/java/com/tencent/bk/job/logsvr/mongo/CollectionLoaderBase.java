@@ -74,7 +74,7 @@ public class CollectionLoaderBase implements CollectionLoader {
             }
 
             log.info("Shard collection {} start...", collectionName);
-            MongoDatabase adminDB = mongoTemplate.getMongoDbFactory().getMongoDatabase("admin");
+            MongoDatabase adminDB = mongoTemplate.getMongoDatabaseFactory().getMongoDatabase("admin");
             String collection = logDb + "." + collectionName;
             adminDB.runCommand(new Document("enableSharding", logDb));
             Document shardCmd = new Document("shardCollection", collection)

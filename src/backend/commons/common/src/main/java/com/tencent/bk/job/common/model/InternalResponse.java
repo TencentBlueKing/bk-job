@@ -32,8 +32,7 @@ import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.model.iam.AuthResultDTO;
 import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -46,32 +45,32 @@ import org.apache.commons.lang3.StringUtils;
 @Setter
 @ToString
 @NoArgsConstructor
-@ApiModel("job内部微服务间调用通用返回结构")
+@Schema(description = "job内部微服务间调用通用返回结构")
 public class InternalResponse<T> {
 
-    @ApiModelProperty("是否成功")
+    @Schema(description = "是否成功")
     private boolean success;
 
-    @ApiModelProperty("返回码")
+    @Schema(description = "返回码")
     private Integer code;
 
-    @ApiModelProperty("错误类型")
+    @Schema(description = "错误类型")
     private Integer errorType;
 
-    @ApiModelProperty("错误信息")
+    @Schema(description = "错误信息")
     private String errorMsg;
 
-    @ApiModelProperty("请求成功返回的数据")
+    @Schema(description = "请求成功返回的数据")
     private T data;
 
-    @ApiModelProperty("请求 ID")
+    @Schema(description = "请求 ID")
     private String requestId;
 
-    @ApiModelProperty("鉴权结果，当返回码为1238001时，该字段有值")
+    @Schema(description = "鉴权结果，当返回码为1238001时，该字段有值")
     @JsonProperty("authResult")
     private AuthResultDTO authResult;
 
-    @ApiModelProperty("错误详情")
+    @Schema(description = "错误详情")
     @JsonProperty("errorDetail")
     private ErrorDetailDTO errorDetail;
 

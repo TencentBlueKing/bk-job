@@ -25,28 +25,27 @@
 package com.tencent.bk.job.file_gateway.model.resp.common;
 
 import com.tencent.bk.job.file_gateway.consts.WorkerActionTypeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@ApiModel("Worker动作")
+@Schema(description = "Worker动作")
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class WorkerAction extends PropertyAction {
 
     public static final String classType = "WORKER_ACTION";
 
-    @ApiModelProperty("显示类别，取值：Confirm(二次确认)，Button(普通按钮)")
+    @Schema(description = "显示类别，取值：Confirm(二次确认)，Button(普通按钮)")
     private String displayType;
 
-    @ApiModelProperty("动作Code")
+    @Schema(description = "动作Code")
     private String actionCode;
 
-    @ApiModelProperty("动作类型（增删查改）")
+    @Schema(description = "动作类型（增删查改）")
     private WorkerActionTypeEnum actionType;
 
-    @ApiModelProperty("动作参数")
+    @Schema(description = "动作参数")
     private String params;
 
 }

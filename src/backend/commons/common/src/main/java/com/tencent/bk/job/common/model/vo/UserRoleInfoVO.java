@@ -27,8 +27,7 @@ package com.tencent.bk.job.common.model.vo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -39,14 +38,14 @@ import java.util.List;
  * @since 28/4/2020 18:02
  */
 @Data
-@ApiModel("用户角色列表")
+@Schema(description = "用户角色列表")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Slf4j
 public class UserRoleInfoVO {
-    @ApiModelProperty("用户列表")
+    @Schema(description = "用户列表")
     private List<String> userList;
 
-    @ApiModelProperty("角色列表")
+    @Schema(description = "角色列表")
     private List<String> roleList;
 
     public void validate() throws InvalidParamException {

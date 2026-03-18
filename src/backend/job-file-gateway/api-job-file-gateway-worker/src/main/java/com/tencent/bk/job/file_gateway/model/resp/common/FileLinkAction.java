@@ -24,21 +24,20 @@
 
 package com.tencent.bk.job.file_gateway.model.resp.common;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@ApiModel("文件链接动作")
+@Schema(description = "文件链接动作")
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class FileLinkAction extends PropertyAction {
 
     public static final String classType = "FILE_LINK";
 
-    @ApiModelProperty("动作目标链接")
+    @Schema(description = "动作目标链接")
     private String target;
 
-    @ApiModelProperty("Action生效所要满足的条件，不满足则无法点击进入目标链接")
+    @Schema(description = "Action生效所要满足的条件，不满足则无法点击进入目标链接")
     private CompositeExpression rely;
 }

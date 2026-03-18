@@ -40,7 +40,7 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cloud.sleuth.annotation.NewSpan;
+import io.micrometer.tracing.annotation.NewSpan;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
