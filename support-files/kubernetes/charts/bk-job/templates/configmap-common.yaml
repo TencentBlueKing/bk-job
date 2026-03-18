@@ -41,9 +41,11 @@ data:
       tracing:
         sampling:
           probability: {{ .Values.job.trace.report.ratio }}
+      {{- if .Values.job.trace.report.pushUrl }}
       otlp:
         tracing:
           endpoint: {{ .Values.job.trace.report.pushUrl }}
+      {{- end }}
       {{- include "job.rabbitmq.sslConfig" . | nindent 6 }}
       metrics:
         tags:
