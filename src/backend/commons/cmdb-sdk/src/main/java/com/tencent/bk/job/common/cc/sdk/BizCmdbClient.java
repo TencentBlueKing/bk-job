@@ -1134,7 +1134,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
 
     @Override
     public List<CcObjAttributeDTO> getObjAttributeList(String tenantId, String objId) {
-        GetObjAttributeReq req = makeCmdbBaseReq(GetObjAttributeReq.class);
+        // issue#4146，不传bk_supplier_account，否则cmdb返回的结果不全
+        GetObjAttributeReq req = new GetObjAttributeReq();
         req.setObjId(objId);
         EsbResp<List<CcObjAttributeDTO>> esbResp = requestCmdbApi(
             tenantId,
