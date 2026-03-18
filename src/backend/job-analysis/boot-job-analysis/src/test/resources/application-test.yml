@@ -15,8 +15,6 @@ spring:
       idle-timeout: 600000
       poolName: "job-analysis"
       validationTimeout: 5000
-  main:
-    cloud-platform: NONE
   cloud:
     config:
       enabled: false
