@@ -125,8 +125,8 @@ ext {
     // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
     set('apacheHttpClientVersion', "4.5.13")
     set('apacheThriftVersion', "0.21.0")
-    // Fix CVE-2024-47554 CVE-2021-29425 2.6->2.14.0
-    set('commonsIOVersion', "2.14.0")
+    // Fix CVE-2024-47554 CVE-2021-29425 2.6->2.16.1
+    set('commonsIOVersion', "2.16.1")
     set('jakartaServletVersion', "6.0.0")
     // Fix CVE-2023-2976 CVE-2020-8908 28.2-jre->32.0.0-android
     set('guavaVersion', "33.4.0-jre")
