@@ -77,7 +77,7 @@ public class MockBusinessAuthHelper extends BusinessAuthHelper {
     }
 
     @Override
-    public boolean validRequest(javax.servlet.http.HttpServletRequest request) {
+    public boolean validRequest(jakarta.servlet.http.HttpServletRequest request) {
         return true;
     }
 

@@ -29,8 +29,6 @@ dependencies {
     api project(":commons:paas-sdk")
     api 'org.springframework:spring-context'
     compileOnly 'org.springframework.boot:spring-boot-starter-web'
-    // IAM SDK still uses javax.servlet; keep on classpath for bridging
-    implementation 'javax.servlet:javax.servlet-api:4.0.1'
     implementation 'org.apache.httpcomponents:httpclient'
     implementation 'org.aspectj:aspectjweaver'
     implementation 'io.micrometer:micrometer-registry-prometheus'

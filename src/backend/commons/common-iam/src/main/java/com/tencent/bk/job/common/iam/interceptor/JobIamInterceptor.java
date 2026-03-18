@@ -29,7 +29,6 @@ package com.tencent.bk.job.common.iam.interceptor;
 
 import com.tencent.bk.job.common.annotation.JobInterceptor;
 import com.tencent.bk.job.common.constant.InterceptorOrder;
-import com.tencent.bk.job.common.iam.util.JavaxServletRequestBridge;
 import com.tencent.bk.sdk.iam.helper.AuthHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -53,7 +52,7 @@ public class JobIamInterceptor implements HandlerInterceptor {
         if (!shouldFilter(request)) {
             return true;
         }
-        return authHelper.validRequest(JavaxServletRequestBridge.toJavax(request));
+        return authHelper.validRequest(request);
     }
 
     private boolean shouldFilter(HttpServletRequest request) {
