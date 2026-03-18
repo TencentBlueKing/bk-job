@@ -16,7 +16,7 @@ de:
   flapdoodle:
     mongodb:
       embedded:
-        version: 7.0.0
+        version: 4.0.0
 bk-api-gateway:
   gse:
     url: gse.apigw.com
