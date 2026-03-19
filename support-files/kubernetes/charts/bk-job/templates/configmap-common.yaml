@@ -165,6 +165,11 @@ data:
         repo: {{ .Values.localFile.artifactory.repo }}
       expire-delete: {{ .Values.localFile.expireDelete }}
       expire-days: {{ .Values.localFile.expireDays }}
+    springdoc:
+      swagger-ui:
+        config-url: /${spring.application.name}/v3/api-docs/swagger-config
+        url: /${spring.application.name}/v3/api-docs
+        disable-swagger-default-url: true
     swagger:
       url: {{ .Values.swagger.url }}
     log:
