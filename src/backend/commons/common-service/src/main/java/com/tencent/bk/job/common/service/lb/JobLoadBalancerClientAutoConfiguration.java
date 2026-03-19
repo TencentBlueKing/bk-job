@@ -32,9 +32,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.loadbalancer.AsyncLoadBalancerAutoConfiguration;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerProperties;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClients;
 import org.springframework.cloud.loadbalancer.blocking.client.BlockingLoadBalancerClient;
@@ -56,7 +54,7 @@ import java.util.Map;
 @LoadBalancerClients
 @AutoConfigureAfter(LoadBalancerAutoConfiguration.class)
 @AutoConfigureBefore({org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration.class,
-    AsyncLoadBalancerAutoConfiguration.class, BlockingLoadBalancerClientAutoConfiguration.class})
+    BlockingLoadBalancerClientAutoConfiguration.class})
 @ConditionalOnClass(RestTemplate.class)
 @Slf4j
 public class JobLoadBalancerClientAutoConfiguration {
@@ -65,16 +63,14 @@ public class JobLoadBalancerClientAutoConfiguration {
     @ConditionalOnBean(LoadBalancerClientFactory.class)
     @ConditionalOnMissingBean
     @Primary
-    public LoadBalancerClient blockingLoadBalancerClient(LoadBalancerClientFactory loadBalancerClientFactory,
-                                                         LoadBalancerProperties properties) {
+    public LoadBalancerClient blockingLoadBalancerClient(LoadBalancerClientFactory loadBalancerClientFactory) {
         log.info("Init JobLoadBalancerClient.");
-        return new JobLoadBalancerClient(loadBalancerClientFactory, properties);
+        return new JobLoadBalancerClient(loadBalancerClientFactory);
     }
 
     private static class JobLoadBalancerClient extends BlockingLoadBalancerClient {
-        public JobLoadBalancerClient(LoadBalancerClientFactory loadBalancerClientFactory,
-                                     LoadBalancerProperties properties) {
-            super(loadBalancerClientFactory, properties);
+        public JobLoadBalancerClient(LoadBalancerClientFactory loadBalancerClientFactory) {
+            super(loadBalancerClientFactory);
         }
 
         @Override

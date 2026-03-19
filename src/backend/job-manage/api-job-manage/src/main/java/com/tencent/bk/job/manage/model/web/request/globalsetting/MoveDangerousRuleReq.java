@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request.globalsetting;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,10 +37,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@ApiModel("移动高危语句请求体")
+@Schema(description = "移动高危语句请求体")
 public class MoveDangerousRuleReq {
-    @ApiModelProperty("高危语句规则Id")
+    @Schema(description = "高危语句规则Id")
     private Long id;
-    @ApiModelProperty("移动方向：向上为-1，向下为1")
+    @Schema(description = "移动方向：向上为-1，向下为1")
     private int dir;
 }

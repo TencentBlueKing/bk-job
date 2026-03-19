@@ -27,40 +27,39 @@ package com.tencent.bk.job.analysis.model.web.resp;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.analysis.consts.AIConsts;
 import com.tencent.bk.job.common.util.json.SecondToMillisSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel("AI回答内容")
+@Schema(description = "AI回答内容")
 @Data
 public class AIAnswer {
 
     /**
      * 错误码
      */
-    @ApiModelProperty(value = "错误码")
+    @Schema(description = "错误码")
     private String errorCode;
 
     /**
      * 错误信息
      */
-    @ApiModelProperty(value = "错误信息")
+    @Schema(description = "错误信息")
     private String errorMessage;
 
     /**
      * 内容
      */
-    @ApiModelProperty(value = "内容")
+    @Schema(description = "内容")
     private String content;
 
     /**
      * 回答时间
      */
-    @ApiModelProperty("回答时间，单位毫秒")
+    @Schema(description = "回答时间，单位毫秒")
     @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long time;
 

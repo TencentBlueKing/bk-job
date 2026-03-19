@@ -26,8 +26,7 @@ package com.tencent.bk.job.file_gateway.model.resp.common;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -35,20 +34,20 @@ import lombok.EqualsAndHashCode;
 @JsonSubTypes({
     @JsonSubTypes.Type(value = FileLinkAction.class, name = FileLinkAction.classType),
     @JsonSubTypes.Type(value = WorkerAction.class, name = WorkerAction.classType)})
-@ApiModel("属性动作")
+@Schema(description = "属性动作")
 @Data
 @EqualsAndHashCode
 public class PropertyAction {
 
-    @ApiModelProperty("动作类型")
+    @Schema(description = "动作类型")
     private String type;
 
-    @ApiModelProperty("展示出的标签")
+    @Schema(description = "展示出的标签")
     private String label;
 
-    @ApiModelProperty("标签英文版")
+    @Schema(description = "标签英文版")
     private String labelEn;
 
-    @ApiModelProperty("Action生效所要满足的条件")
+    @Schema(description = "Action生效所要满足的条件")
     private CompositeExpression rely;
 }

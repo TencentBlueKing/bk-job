@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.analysis.model.dto;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -38,20 +38,20 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AnalysisTaskInstanceWithTpl {
-    @ApiModelProperty("Id")
+    @Schema(description = "Id")
     private Long id;
-    @ApiModelProperty("任务代码")
+    @Schema(description = "任务代码")
     private String taskCode;
-    @ApiModelProperty("分析结果总体描述模板")
+    @Schema(description = "分析结果总体描述模板")
     private String resultDescriptionTemplate;
-    @ApiModelProperty("分析结果总体描述英文模板")
+    @Schema(description = "分析结果总体描述英文模板")
     private String resultDescriptionTemplateEn;
-    @ApiModelProperty("每条分析结果模板")
+    @Schema(description = "每条分析结果模板")
     private String resultItemTemplate;
-    @ApiModelProperty("每条分析结果英文模板")
+    @Schema(description = "每条分析结果英文模板")
     private String resultItemTemplateEn;
-    @ApiModelProperty("分析结果数据")
+    @Schema(description = "分析结果数据")
     private String resultData;
-    @ApiModelProperty("优先级")
+    @Schema(description = "优先级")
     private Integer priority;
 }

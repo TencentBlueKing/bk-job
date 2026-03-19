@@ -27,9 +27,9 @@ package com.tencent.bk.job.manage.api.op;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.op.req.EventWatchOpReq;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * CMDB事件监听相关的OP接口
  */
-@Api(tags = {"job-manage:api:CmdbEvent-OP"})
+@Tag(name = "job-manage:api:CmdbEvent-OP")
 @RequestMapping("/op/cmdbEvent")
 @InternalAPI
 public interface CmdbEventOpResource {
@@ -48,9 +48,9 @@ public interface CmdbEventOpResource {
      * @return 开启的事件监听器数量
      */
     @PutMapping("/enableWatch")
-    @ApiOperation(value = "开启某一类事件监听", produces = "application/json")
+    @Operation(summary = "开启某一类事件监听")
     InternalResponse<Integer> enableWatch(
-        @ApiParam(value = "事件监听操作请求体", required = true) @RequestBody EventWatchOpReq req
+        @Parameter(description = "事件监听操作请求体", required = true) @RequestBody EventWatchOpReq req
     );
 
     /**
@@ -59,8 +59,8 @@ public interface CmdbEventOpResource {
      * @return 关闭的事件监听器数量
      */
     @PutMapping("/disableWatch")
-    @ApiOperation(value = "关闭某一类事件监听", produces = "application/json")
+    @Operation(summary = "关闭某一类事件监听")
     InternalResponse<Integer> disableWatch(
-        @ApiParam(value = "事件监听操作请求体", required = true) @RequestBody EventWatchOpReq req
+        @Parameter(description = "事件监听操作请求体", required = true) @RequestBody EventWatchOpReq req
     );
 }

@@ -24,15 +24,14 @@
 
 package com.tencent.bk.job.execute.model.op;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("切换状态请求请求报文")
+@Schema(description = "切换状态请求请求报文")
 public class SwitchStatusReq {
 
-    @ApiModelProperty(value = "目标状态，是否开启", required = true)
+    @Schema(description = "目标状态，是否开启", required = true)
     private boolean status;
 
 }

@@ -26,7 +26,7 @@ package com.tencent.bk.job.common.web.utils;
 
 import org.apache.commons.lang3.StringUtils;
 
-import javax.servlet.ServletRequest;
+import jakarta.servlet.ServletRequest;
 
 
 /**

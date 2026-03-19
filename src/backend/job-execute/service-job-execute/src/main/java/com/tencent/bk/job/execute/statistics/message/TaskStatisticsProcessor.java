@@ -24,18 +24,11 @@
 
 package com.tencent.bk.job.execute.statistics.message;
 
-import org.springframework.cloud.stream.annotation.Input;
-import org.springframework.cloud.stream.annotation.Output;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.SubscribableChannel;
-
+/**
+ * Spring Cloud Stream 4.x removed annotation-based programming model (@Input/@Output).
+ * This interface now only holds channel name constants for functional-style bindings.
+ */
 public interface TaskStatisticsProcessor {
     String INPUT = "taskStatisticsInput";
     String OUTPUT = "taskStatisticsOutput";
-
-    @Input(TaskStatisticsProcessor.INPUT)
-    SubscribableChannel input();
-
-    @Output(TaskStatisticsProcessor.OUTPUT)
-    MessageChannel output();
 }

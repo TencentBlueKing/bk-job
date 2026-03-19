@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.backup.model.web;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -34,13 +33,13 @@ import java.util.List;
  * @since 21/7/2020 21:17
  */
 @Data
-@ApiModel("作业导入信息")
+@Schema(description = "作业导入信息")
 public class ImportInfoVO {
 
     /**
      * 导出任务 ID
      */
-    @ApiModelProperty("导出任务 ID")
+    @Schema(description = "导出任务 ID")
     private String id;
 
     /**
@@ -48,7 +47,7 @@ public class ImportInfoVO {
      *
      * @see com.tencent.bk.job.backup.constant.BackupJobStatusEnum
      */
-    @ApiModelProperty("作业状态 0-初始状态, 1-解析成功, 2-需要密码, 3-密码错误, 4-已提交, 5-处理中, 6-处理成功, 7-处理失败, 8-已取消")
+    @Schema(description = "作业状态 0-初始状态, 1-解析成功, 2-需要密码, 3-密码错误, 4-已提交, 5-处理中, 6-处理成功, 7-处理失败, 8-已取消")
     private Integer status;
 
     /**
@@ -56,7 +55,7 @@ public class ImportInfoVO {
      *
      * @see BackupTemplateInfoVO
      */
-    @ApiModelProperty(value = "需要导入的模版信息")
+    @Schema(description = "需要导入的模版信息")
     private List<BackupTemplateInfoVO> templateInfo;
 
     /**
@@ -64,7 +63,7 @@ public class ImportInfoVO {
      *
      * @see LogEntityVO
      */
-    @ApiModelProperty("日志信息")
+    @Schema(description = "日志信息")
     private List<LogEntityVO> log;
 
     /**
@@ -72,6 +71,6 @@ public class ImportInfoVO {
      *
      * @see IdNameInfoVO
      */
-    @ApiModelProperty(value = "ID 名称的对应信息")
+    @Schema(description = "ID 名称的对应信息")
     private IdNameInfoVO idNameInfo;
 }

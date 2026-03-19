@@ -24,18 +24,17 @@
 
 package com.tencent.bk.job.manage.model.web.request.chooser.host;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@ApiModel("主机详情请求报文")
+@Schema(description = "主机详情请求报文")
 public class HostDetailReq {
 
-    @ApiModelProperty(value = "hostId及元数据列表", required = true)
+    @Schema(description = "hostId及元数据列表", required = true)
     List<HostIdWithMeta> hostList = new ArrayList<>();
 
 }
