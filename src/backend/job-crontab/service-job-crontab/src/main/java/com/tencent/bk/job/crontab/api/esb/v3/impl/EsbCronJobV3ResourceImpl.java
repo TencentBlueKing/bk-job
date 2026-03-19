@@ -46,6 +46,11 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.check.IlegalCharChecker;
+import com.tencent.bk.job.common.util.check.MaxLengthChecker;
+import com.tencent.bk.job.common.util.check.StringCheckHelper;
+import com.tencent.bk.job.common.util.check.TrimChecker;
+import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.crontab.api.common.CronCheckUtil;
 import com.tencent.bk.job.crontab.api.esb.v3.EsbCronJobV3Resource;
@@ -363,6 +368,17 @@ public class EsbCronJobV3ResourceImpl implements EsbCronJobV3Resource {
     }
 
     private void checkRequest(EsbSaveCronV3Request request) {
+        // 定时任务名称合法性校验
+        if (StringUtils.isNotBlank(request.getName())) {
+            try {
+                StringCheckHelper stringCheckHelper = new StringCheckHelper(
+                    new TrimChecker(), new IlegalCharChecker(), new MaxLengthChecker(60));
+                request.setName(stringCheckHelper.checkAndGetResult(request.getName()));
+            } catch (StringCheckException e) {
+                log.warn("Cron Job Name is invalid:", e);
+                throw new InvalidParamException(e, ErrorCode.ILLEGAL_PARAM);
+            }
+        }
         // 定时任务表达式有效性校验
         if (StringUtils.isNotBlank(request.getCronExpression())) {
             CronCheckUtil.checkCronExpression(request.getCronExpression(), "expression");
