@@ -25,19 +25,18 @@
 package com.tencent.bk.job.manage.model.web.request.chooser.container;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@ApiModel("容器检查请求报文")
+@Schema(description = "容器检查请求报文")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ContainerCheckReq {
 
-    @ApiModelProperty(value = "容器Uid列表", required = true)
+    @Schema(description = "容器Uid列表", required = true)
     private List<String> uidList = new ArrayList<>();
 
 }

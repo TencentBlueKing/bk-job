@@ -30,7 +30,7 @@ import com.tencent.bk.job.common.model.iam.AuthResultDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceTaskExecuteResult;
 import com.tencent.bk.job.execute.model.inner.request.ServiceTaskExecuteRequest;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RequestBody;
  *
  * @date 2019/09/18
  */
-@Api(tags = {"Task_Execute"})
+@Tag(name = "Task_Execute")
 @SmartFeignClient(value = "job-execute", contextId = "executeTaskResource")
 @InternalAPI
 public interface ServiceExecuteTaskResource {

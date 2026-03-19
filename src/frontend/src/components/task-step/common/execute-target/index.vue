@@ -272,7 +272,7 @@
         if (this.isGolbalVariableType) {
           return false;
         }
-        return Object.keys(this.localExecuteObjectsInfo.containerList).length < 1 && !ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.localExecuteObjectsInfo);
+        return this.localExecuteObjectsInfo.containerList?.length < 1 && !ExecuteTargetModel.isExecuteObjectsInfoEmpty(this.localExecuteObjectsInfo);
       },
       /**
        * @desc 是否显示容器结果快捷操作
@@ -282,7 +282,7 @@
         if (this.isGolbalVariableType) {
           return false;
         }
-        return Object.keys(this.localExecuteObjectsInfo.containerList).length > 0;
+        return this.localExecuteObjectsInfo.containerList?.length > 0;
       },
       /**
        * @desc 清除异常主机是否可用
@@ -342,7 +342,6 @@
           this.ipSelectorConfig = {
             panelList: [
               'staticTopo',
-              'dynamicTopo',
               'manualInput',
             ],
           };

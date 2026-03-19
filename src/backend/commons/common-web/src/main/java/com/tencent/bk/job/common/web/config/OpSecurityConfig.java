@@ -30,7 +30,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * OP接口安全配置
@@ -41,12 +40,13 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class OpSecurityConfig {
     @Bean
     SecurityFilterChain opChain(HttpSecurity http) throws Exception {
-        http.csrf().disable();
-        http.requestMatcher(new AntPathRequestMatcher("/op/**"))
-            .authorizeHttpRequests()
-            .anyRequest().authenticated()
-            .and()
-            .httpBasic();
+        http
+            .securityMatcher("/op/**")
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .anyRequest().authenticated()
+            )
+            .httpBasic(httpBasic -> {});
         return http.build();
     }
 }

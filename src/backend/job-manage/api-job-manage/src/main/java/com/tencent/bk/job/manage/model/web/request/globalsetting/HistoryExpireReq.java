@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request.globalsetting;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,8 +32,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@ApiModel("设置执行历史保留天数")
+@Schema(description = "设置执行历史保留天数")
 public class HistoryExpireReq {
-    @ApiModelProperty(value = "保留天数", required = true)
+    @Schema(description = "保留天数", required = true)
     private Long days;
 }

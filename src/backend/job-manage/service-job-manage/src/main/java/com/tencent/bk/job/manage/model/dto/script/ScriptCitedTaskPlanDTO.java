@@ -28,8 +28,7 @@ import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.manage.model.web.vo.ScriptCitedTaskPlanVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -37,21 +36,21 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@ApiModel("引用脚本的作业执行方案")
+@Schema(description = "引用脚本的作业执行方案")
 public class ScriptCitedTaskPlanDTO {
-    @ApiModelProperty("业务ID")
+    @Schema(description = "业务ID")
     private Long appId;
-    @ApiModelProperty("脚本版本号")
+    @Schema(description = "脚本版本号")
     private String scriptVersion;
-    @ApiModelProperty("脚本状态")
+    @Schema(description = "脚本状态")
     private Integer scriptStatus;
-    @ApiModelProperty("脚本状态描述")
+    @Schema(description = "脚本状态描述")
     private String scriptStatusDesc;
-    @ApiModelProperty("作业执行方案对应的作业模板ID")
+    @Schema(description = "作业执行方案对应的作业模板ID")
     private Long taskTemplateId;
-    @ApiModelProperty("作业执行方案ID")
+    @Schema(description = "作业执行方案ID")
     private Long taskPlanId;
-    @ApiModelProperty("作业执行方案名称")
+    @Schema(description = "作业执行方案名称")
     private String taskPlanName;
 
     public ScriptCitedTaskPlanVO toVO() {

@@ -27,8 +27,7 @@ package com.tencent.bk.job.manage.model.web.vo.ipchooser;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.manage.model.web.vo.common.AgentStatistics;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -39,16 +38,16 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel("节点主机Agent状态统计信息")
+@Schema(description = "节点主机Agent状态统计信息")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class NodeHostStatisticsVO {
     /**
      * 云区域 ID
      */
-    @ApiModelProperty(value = "节点信息", required = true)
+    @Schema(description = "节点信息", required = true)
     private TargetNodeVO node;
 
-    @ApiModelProperty(value = "主机Agent状态统计信息", required = true)
+    @Schema(description = "主机Agent状态统计信息", required = true)
     private AgentStatistics agentStatistics;
 
 }

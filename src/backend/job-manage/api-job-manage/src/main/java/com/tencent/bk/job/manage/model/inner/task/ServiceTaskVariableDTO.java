@@ -26,8 +26,7 @@ package com.tencent.bk.job.manage.model.inner.task;
 
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
@@ -35,34 +34,34 @@ import org.apache.commons.lang3.StringUtils;
  * @since 16/10/2019 10:50
  */
 @Data
-@ApiModel("全局变量信息")
+@Schema(description = "全局变量信息")
 public class ServiceTaskVariableDTO {
 
-    @ApiModelProperty(value = "变量 ID 新增时无需填写，删除时仅需填写 id 和 delete")
+    @Schema(description = "变量 ID 新增时无需填写，删除时仅需填写 id 和 delete")
     private Long id;
 
-    @ApiModelProperty(value = "变量名")
+    @Schema(description = "变量名")
     private String name;
 
-    @ApiModelProperty(value = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码")
+    @Schema(description = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码")
     private Integer type;
 
-    @ApiModelProperty(value = "默认值")
+    @Schema(description = "默认值")
     private String defaultValue;
 
-    @ApiModelProperty(value = "主机列表默认值")
+    @Schema(description = "主机列表默认值")
     private TaskTargetVO defaultTargetValue;
 
-    @ApiModelProperty(value = "变量描述")
+    @Schema(description = "变量描述")
     private String description;
 
-    @ApiModelProperty(value = "赋值可变 0-不可变 1-可变")
+    @Schema(description = "赋值可变 0-不可变 1-可变")
     private Integer changeable;
 
-    @ApiModelProperty(value = "必填 0-非必填 1-必填")
+    @Schema(description = "必填 0-非必填 1-必填")
     private Integer required;
 
-    @ApiModelProperty(value = "删除 0-不删除 1-删除，仅在删除时填写")
+    @Schema(description = "删除 0-不删除 1-删除，仅在删除时填写")
     private Integer delete;
 
     public boolean validate(boolean isCreate) {

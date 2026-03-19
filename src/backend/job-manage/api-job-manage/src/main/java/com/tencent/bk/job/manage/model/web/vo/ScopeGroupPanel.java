@@ -24,23 +24,22 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@ApiModel("资源范围分组面板")
+@Schema(description = "资源范围分组面板")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ScopeGroupPanel {
-    @ApiModelProperty(value = "资源范围分组列表")
+    @Schema(description = "资源范围分组列表")
     private List<ScopeGroup> scopeGroupList;
-    @ApiModelProperty(value = "是否展示申请资源范围权限的按钮")
+    @Schema(description = "是否展示申请资源范围权限的按钮")
     private boolean canApply = true;
-    @ApiModelProperty(value = "申请资源范围权限的跳转链接地址")
+    @Schema(description = "申请资源范围权限的跳转链接地址")
     private String applyUrl;
 }

@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request.customsetting;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -34,10 +33,10 @@ import java.util.List;
  * 删除用户自定义配置项请求
  */
 @Data
-@ApiModel("删除用户自定义配置项请求")
+@Schema(description = "删除用户自定义配置项请求")
 public class DeleteCustomSettingsReq {
 
-    @ApiModelProperty(value = "要删除配置项的模块列表，不传表示删除所有模块配置项")
+    @Schema(description = "要删除配置项的模块列表，不传表示删除所有模块配置项")
     private List<String> moduleList;
 
 }

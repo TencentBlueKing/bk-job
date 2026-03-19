@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.vo.chooser.container;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -40,27 +39,27 @@ import java.util.List;
 @Setter
 @ToString
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@ApiModel("容器拓扑节点")
+@Schema(description = "容器拓扑节点")
 public class ContainerTopologyNodeVO {
-    @ApiModelProperty("节点实例 ID")
+    @Schema(description = "节点实例 ID")
     private Long instanceId;
 
-    @ApiModelProperty("节点实例名称")
+    @Schema(description = "节点实例名称")
     private String instanceName;
 
-    @ApiModelProperty("节点类型 ID")
+    @Schema(description = "节点类型 ID")
     private String objectId;
 
-    @ApiModelProperty("节点类型名称")
+    @Schema(description = "节点类型名称")
     private String objectName;
 
     // 当前层级节点数据是否使用懒加载，作业平台目前不涉及，取值一直为false即可
-    @ApiModelProperty("当前层级节点数据是否使用懒加载")
+    @Schema(description = "当前层级节点数据是否使用懒加载")
     private Boolean lazy = false;
 
-    @ApiModelProperty("子节点")
+    @Schema(description = "子节点")
     private List<ContainerTopologyNodeVO> child;
 
-    @ApiModelProperty("节点包含的容器数量")
+    @Schema(description = "节点包含的容器数量")
     private int count;
 }

@@ -39,8 +39,8 @@ import org.springframework.boot.web.server.WebServer;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.http.server.reactive.HttpHandler;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 /**
  * Job Gateway Spring Boot Application

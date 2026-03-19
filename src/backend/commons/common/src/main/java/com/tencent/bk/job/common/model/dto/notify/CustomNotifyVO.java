@@ -24,29 +24,28 @@
 
 package com.tencent.bk.job.common.model.dto.notify;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
 
 @Data
-@ApiModel("定时任务级别的自定义通知配置")
+@Schema(description = "定时任务级别的自定义通知配置")
 public class CustomNotifyVO {
 
     /**
      * 自定义通知角色
      */
-    @ApiModelProperty(value = "任务角色（通知对象）列表", required = true)
+    @Schema(description = "任务角色（通知对象）列表", required = true)
     private List<String> roleList;
 
     /**
      * 自定义额外通知人
      */
-    @ApiModelProperty(value = "额外通知人列表", required = false)
+    @Schema(description = "额外通知人列表", required = false)
     private List<String> extraObserverList;
 
-    @ApiModelProperty(value = "状态通知渠道列表，key:执行状态(SUCCESS,FAIL),value:通知渠道列表", required = true)
+    @Schema(description = "状态通知渠道列表，key:执行状态(SUCCESS,FAIL),value:通知渠道列表", required = true)
     private Map<String, List<String>> resourceStatusChannelMap;
 }
