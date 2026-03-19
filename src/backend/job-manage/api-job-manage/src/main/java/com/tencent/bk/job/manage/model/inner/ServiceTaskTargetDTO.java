@@ -42,7 +42,7 @@ public class ServiceTaskTargetDTO {
     @Schema(description = "目标服务器")
     private ServiceTaskHostNodeDTO targetServer;
 
-    @ApiModelProperty(value = "目标容器列表")
+    @Schema(description = "目标容器列表")
     private List<ServiceTargetContainerDTO> containerList;
 
     @Override

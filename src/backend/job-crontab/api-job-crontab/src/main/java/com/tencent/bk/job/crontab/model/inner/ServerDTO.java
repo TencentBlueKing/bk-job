@@ -81,7 +81,7 @@ public class ServerDTO implements Cloneable {
     /**
      * 静态容器列表
      */
-    @ApiModelProperty(value = "容器列表（静态）")
+    @Schema(description = "容器列表（静态）")
     private List<CronJobContainerDTO> containers;
 
     public static TaskTargetVO toTargetVO(ServerDTO server) {
