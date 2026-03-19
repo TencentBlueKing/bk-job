@@ -24,13 +24,28 @@
 
 package com.tencent.bk.job.common.web.config;
 
+import io.swagger.v3.oas.models.servers.Server;
+import org.springdoc.core.customizers.OpenApiCustomizer;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Spring Boot 3.x + SpringDoc OpenAPI no longer needs the
- * WebMvcEndpointHandlerMapping workaround that was required
- * for Spring Boot 2.6 + SpringFox compatibility.
- */
+import java.util.List;
+
 @Configuration
 public class SwaggerAdapterConfig {
+
+    /**
+     * 通过网关访问 Swagger UI 时，API 调用需要带上服务名前缀
+     * （网关路由使用 StripPrefix=1 剥离前缀再转发到后端服务）。
+     * 设置 OpenAPI server URL 为 /${appName}，使 Swagger UI
+     * 生成的请求路径包含服务名前缀，如 /job-analysis/op/taskList。
+     */
+    @Bean
+    public OpenApiCustomizer gatewayServerUrlCustomizer(
+        @Value("${spring.application.name}") String appName) {
+        return openApi -> openApi.servers(List.of(
+            new Server().url("/" + appName).description("Gateway proxy")
+        ));
+    }
 }
