@@ -41,6 +41,7 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 
+import javax.net.ssl.SSLContext;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -57,7 +58,7 @@ public class RestConfig {
         factory.setConnectTimeout(10000);
         // https
         try {
-            javax.net.ssl.SSLContext sslContext = new SSLContextBuilder()
+            SSLContext sslContext = new SSLContextBuilder()
                 .loadTrustMaterial(null, (X509Certificate[] x509Certificates, String s) -> true)
                 .build();
             HttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
