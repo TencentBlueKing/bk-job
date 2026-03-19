@@ -37,7 +37,7 @@ import lombok.Data;
 @Data
 public class ServiceExecuteTargetContainerDTO {
 
-    @Schema(description = "容器在 CMDB 注册的 ID", required = true)
+    @Schema(description = "容器在 CMDB 注册的 ID", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long id;
 
     /**
