@@ -27,26 +27,25 @@ package com.tencent.bk.job.execute.model.web.vo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
  * 步骤操作结果
  */
 @Data
-@ApiModel("步骤操作结果")
+@Schema(description = "步骤操作结果")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class StepOperationVO {
-    @ApiModelProperty("步骤实例ID")
+    @Schema(description = "步骤实例ID")
     private Long stepInstanceId;
 
-    @ApiModelProperty(value = "重试次数", hidden = true)
+    @Schema(description = "重试次数", hidden = true)
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
         explain = "使用 executeCount 参数替换。发布完成后可以删除")
     private Integer retryCount;
 
-    @ApiModelProperty("执行次数")
+    @Schema(description = "执行次数")
     private Integer executeCount;
 
     public StepOperationVO(Long stepInstanceId, Integer executeCount) {

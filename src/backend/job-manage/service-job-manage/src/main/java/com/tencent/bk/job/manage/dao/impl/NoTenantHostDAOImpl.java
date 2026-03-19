@@ -40,7 +40,6 @@ import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import lombok.var;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.BatchBindStep;
 import org.jooq.Condition;
@@ -483,11 +482,11 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
     }
 
     @Override
-    public int updateHostAttrsBeforeLastTime(ApplicationHostDTO applicationHostDTO) {
+    public int updateHostAttrsBeforeOrEqualLastTime(ApplicationHostDTO applicationHostDTO) {
         checkHostId(applicationHostDTO);
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())));
-        conditions.add(TABLE.LAST_TIME.lessThan(applicationHostDTO.getLastTime()));
+        conditions.add(TABLE.LAST_TIME.lessOrEqual(applicationHostDTO.getLastTime()));
         return updateHostAttrsByConditions(applicationHostDTO, conditions);
     }
 
@@ -552,7 +551,7 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
     }
 
     @Override
-    public int batchUpdateHostsBeforeLastTime(List<ApplicationHostDTO> hostList) {
+    public int batchUpdateHostsBeforeOrEqualLastTime(List<ApplicationHostDTO> hostList) {
         int batchSize = 1000;
         int size = hostList.size();
         int start = 0;
@@ -566,7 +565,7 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
             for (ApplicationHostDTO host : subList) {
                 List<Condition> conditions = new ArrayList<>();
                 conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(host.getHostId())));
-                conditions.add(TABLE.LAST_TIME.lessThan(host.getLastTime()));
+                conditions.add(TABLE.LAST_TIME.lessOrEqual(host.getLastTime()));
                 queryList.add(buildQueryWithHostAndConditions(host, conditions));
             }
             int[] results = context.batch(queryList).execute();

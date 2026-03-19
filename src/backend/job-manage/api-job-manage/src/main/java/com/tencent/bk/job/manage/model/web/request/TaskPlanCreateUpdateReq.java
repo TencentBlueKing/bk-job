@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.request;
 
 import com.tencent.bk.job.manage.model.web.vo.task.TaskVariableVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -35,38 +34,38 @@ import java.util.List;
  * @since 15/10/2019 20:27
  */
 @Data
-@ApiModel("作业执行方案新增、更新请求报文")
+@Schema(description = "作业执行方案新增、更新请求报文")
 public class TaskPlanCreateUpdateReq {
     /**
      * 执行方案 ID
      */
     @Deprecated
-    @ApiModelProperty(value = "执行方案 ID", hidden = true)
+    @Schema(description = "执行方案 ID", hidden = true)
     private Long id;
 
     /**
      * 模版 ID
      */
     @Deprecated
-    @ApiModelProperty(value = "模版 ID", hidden = true)
+    @Schema(description = "模版 ID", hidden = true)
     private Long templateId;
 
     /**
      * 执行方案名称
      */
-    @ApiModelProperty(value = "执行方案名称", required = true)
+    @Schema(description = "执行方案名称", required = true)
     private String name;
 
     /**
      * 启用的步骤列表
      */
-    @ApiModelProperty(value = "启用的步骤列表，新增、修改时需要传入", required = true)
+    @Schema(description = "启用的步骤列表，新增、修改时需要传入", required = true)
     private List<Long> enableSteps;
 
     /**
      * 执行方案变量
      */
-    @ApiModelProperty(value = "执行方案变量，新增、修改时需要传入", required = true)
+    @Schema(description = "执行方案变量，新增、修改时需要传入", required = true)
     private List<TaskVariableVO> variables;
 
 }

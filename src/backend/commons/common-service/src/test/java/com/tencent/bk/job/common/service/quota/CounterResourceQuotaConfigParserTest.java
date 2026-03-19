@@ -42,9 +42,16 @@ class CounterResourceQuotaConfigParserTest {
             new ResourceQuotaLimitProperties.QuotaLimitProp("1%", "biz:2=10%,biz:3=15%");
         ResourceQuotaLimitProperties.QuotaLimitProp appQuotaLimit =
             new ResourceQuotaLimitProperties.QuotaLimitProp("2%", "bk-soap=20%,bk-nodeman=10%");
+        ResourceQuotaLimitProperties.QuotaLimitProp userQuotaLimit =
+            new ResourceQuotaLimitProperties.QuotaLimitProp("10%", "admin=20%,user1=1%");
         ResourceQuotaLimitProperties.ResourceQuotaLimitProp resourceQuotaLimitProp =
-            new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(true, "1000", resourceScopeQuotaLimit,
-                    appQuotaLimit);
+            new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(
+                true,
+                "1000",
+                resourceScopeQuotaLimit,
+                appQuotaLimit,
+                userQuotaLimit
+            );
 
         ResourceQuotaLimit resourceQuota = parser.parse(resourceQuotaLimitProp);
 
@@ -65,13 +72,27 @@ class CounterResourceQuotaConfigParserTest {
         assertThat(resourceQuota.getAppQuotaLimit().getCustomLimits().get("bk-soap")).isEqualTo(200L);
         assertThat(resourceQuota.getAppQuotaLimit().getCustomLimits().get("bk-nodeman")).isEqualTo(100L);
 
+        assertThat(resourceQuota.getUserQuotaLimit().getGlobalLimitExpr()).isEqualTo("10%");
+        assertThat(resourceQuota.getUserQuotaLimit().getCustomLimitExpr()).isEqualTo("admin=20%,user1=1%");
+        assertThat(resourceQuota.getUserQuotaLimit().getGlobalLimit()).isEqualTo(100L);
+        assertThat(resourceQuota.getUserQuotaLimit().getCustomLimits()).isNotEmpty();
+        assertThat(resourceQuota.getUserQuotaLimit().getCustomLimits().get("admin")).isEqualTo(200L);
+        assertThat(resourceQuota.getUserQuotaLimit().getCustomLimits().get("user1")).isEqualTo(10L);
+
         resourceScopeQuotaLimit =
             new ResourceQuotaLimitProperties.QuotaLimitProp("10%", "biz:2=20%");
         appQuotaLimit =
             new ResourceQuotaLimitProperties.QuotaLimitProp("20%", "bk-soap=40%");
+        userQuotaLimit =
+            new ResourceQuotaLimitProperties.QuotaLimitProp("10%", "admin=10%");
         resourceQuotaLimitProp =
-            new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(true, "16", resourceScopeQuotaLimit,
-                appQuotaLimit);
+            new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(
+                true,
+                "16",
+                resourceScopeQuotaLimit,
+                appQuotaLimit,
+                userQuotaLimit
+            );
         resourceQuota = parser.parse(resourceQuotaLimitProp);
 
         assertThat(resourceQuota.getCapacityExpr()).isEqualTo("16");
@@ -84,6 +105,9 @@ class CounterResourceQuotaConfigParserTest {
         assertThat(resourceQuota.getAppQuotaLimit().getGlobalLimitExpr()).isEqualTo("20%");
         assertThat(resourceQuota.getAppQuotaLimit().getGlobalLimit()).isEqualTo(3L);
         assertThat(resourceQuota.getAppQuotaLimit().getCustomLimits().get("bk-soap")).isEqualTo(6L);
+        assertThat(resourceQuota.getUserQuotaLimit().getGlobalLimitExpr()).isEqualTo("10%");
+        assertThat(resourceQuota.getUserQuotaLimit().getGlobalLimit()).isEqualTo(1L);
+        assertThat(resourceQuota.getUserQuotaLimit().getCustomLimits().get("admin")).isEqualTo(1L);
     }
 
     @Test
@@ -94,8 +118,16 @@ class CounterResourceQuotaConfigParserTest {
             new ResourceQuotaLimitProperties.QuotaLimitProp("10", "biz:2=100,biz:3=150");
         ResourceQuotaLimitProperties.QuotaLimitProp appQuotaLimit =
             new ResourceQuotaLimitProperties.QuotaLimitProp("20", "bk-soap=100,bk-nodeman=150");
+        ResourceQuotaLimitProperties.QuotaLimitProp userQuotaLimit =
+            new ResourceQuotaLimitProperties.QuotaLimitProp("10", "admin=100,user1=20");
         ResourceQuotaLimitProperties.ResourceQuotaLimitProp resourceQuotaLimitProp =
-            new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(true, null, resourceScopeQuotaLimit, appQuotaLimit);
+            new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(
+                true,
+                null,
+                resourceScopeQuotaLimit,
+                appQuotaLimit,
+                userQuotaLimit
+            );
 
         ResourceQuotaLimit resourceQuota = parser.parse(resourceQuotaLimitProp);
 
@@ -115,6 +147,13 @@ class CounterResourceQuotaConfigParserTest {
         assertThat(resourceQuota.getAppQuotaLimit().getCustomLimits()).isNotEmpty();
         assertThat(resourceQuota.getAppQuotaLimit().getCustomLimits().get("bk-soap")).isEqualTo(100L);
         assertThat(resourceQuota.getAppQuotaLimit().getCustomLimits().get("bk-nodeman")).isEqualTo(150L);
+
+        assertThat(resourceQuota.getUserQuotaLimit().getGlobalLimitExpr()).isEqualTo("10");
+        assertThat(resourceQuota.getUserQuotaLimit().getCustomLimitExpr()).isEqualTo("admin=100,user1=20");
+        assertThat(resourceQuota.getUserQuotaLimit().getGlobalLimit()).isEqualTo(10L);
+        assertThat(resourceQuota.getUserQuotaLimit().getCustomLimits()).isNotEmpty();
+        assertThat(resourceQuota.getUserQuotaLimit().getCustomLimits().get("admin")).isEqualTo(100L);
+        assertThat(resourceQuota.getUserQuotaLimit().getCustomLimits().get("user1")).isEqualTo(20L);
     }
 
     @Test
@@ -126,6 +165,7 @@ class CounterResourceQuotaConfigParserTest {
                 true,
                 "",
                 new ResourceQuotaLimitProperties.QuotaLimitProp("2%", null),
+                null,
                 null)))
             .isInstanceOf(ResourceQuotaConfigParseException.class);
 
@@ -133,6 +173,16 @@ class CounterResourceQuotaConfigParserTest {
             new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(
                 true,
                 "",
+                null,
+                new ResourceQuotaLimitProperties.QuotaLimitProp("2%", null),
+                null)))
+            .isInstanceOf(ResourceQuotaConfigParseException.class);
+
+        assertThatThrownBy(() -> parser.parse(
+            new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(
+                true,
+                "",
+                null,
                 null,
                 new ResourceQuotaLimitProperties.QuotaLimitProp("2%", null))))
             .isInstanceOf(ResourceQuotaConfigParseException.class);
@@ -142,6 +192,7 @@ class CounterResourceQuotaConfigParserTest {
                 true,
                 "1000",
                 new ResourceQuotaLimitProperties.QuotaLimitProp("2%", "error_custom_settings"),
+                null,
                 null)))
             .isInstanceOf(ResourceQuotaConfigParseException.class);
 
@@ -149,6 +200,16 @@ class CounterResourceQuotaConfigParserTest {
             new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(
                 true,
                 "1000",
+                null,
+                new ResourceQuotaLimitProperties.QuotaLimitProp("2%", "error_custom_settings"),
+                null)))
+            .isInstanceOf(ResourceQuotaConfigParseException.class);
+
+        assertThatThrownBy(() -> parser.parse(
+            new ResourceQuotaLimitProperties.ResourceQuotaLimitProp(
+                true,
+                "1000",
+                null,
                 null,
                 new ResourceQuotaLimitProperties.QuotaLimitProp("2%", "error_custom_settings"))))
             .isInstanceOf(ResourceQuotaConfigParseException.class);
@@ -158,7 +219,8 @@ class CounterResourceQuotaConfigParserTest {
                 true,
                 "1000G",
                 null,
-                new ResourceQuotaLimitProperties.QuotaLimitProp("2%", null))))
+                new ResourceQuotaLimitProperties.QuotaLimitProp("2%", null),
+                null)))
             .isInstanceOf(ResourceQuotaConfigParseException.class);
     }
 }

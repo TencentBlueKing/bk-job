@@ -25,7 +25,7 @@
 package com.tencent.bk.job.common.web.config;
 
 import com.tencent.bk.job.common.jwt.JwtManager;
-import com.tencent.bk.job.common.paas.user.IUserApiClient;
+import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.common.security.annotation.ConditionalOnSecurityEnabled;
 import com.tencent.bk.job.common.service.SpringProfile;
 import com.tencent.bk.job.common.web.interceptor.ControllerInfoInterceptor;
@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.web.interceptor.EsbApiLogInterceptor;
 import com.tencent.bk.job.common.web.interceptor.JobCommonInterceptor;
 import com.tencent.bk.job.common.web.interceptor.ServiceSecurityInterceptor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.sleuth.Tracer;
+import io.micrometer.tracing.Tracer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -45,8 +45,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 public class WebInterceptorAutoConfiguration {
     @Bean
-    public JobCommonInterceptor jobCommonInterceptor(Tracer tracer, IUserApiClient userApiClient) {
-        return new JobCommonInterceptor(tracer, userApiClient);
+    public JobCommonInterceptor jobCommonInterceptor(Tracer tracer, UserLocalCache userLocalCache) {
+        return new JobCommonInterceptor(tracer, userLocalCache);
     }
 
     @Bean

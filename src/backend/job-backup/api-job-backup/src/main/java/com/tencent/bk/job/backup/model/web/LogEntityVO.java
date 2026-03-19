@@ -24,15 +24,14 @@
 
 package com.tencent.bk.job.backup.model.web;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
  * @since 23/7/2020 15:57
  */
 @Data
-@ApiModel("作业日志信息")
+@Schema(description = "作业日志信息")
 public class LogEntityVO {
 
     /**
@@ -40,42 +39,42 @@ public class LogEntityVO {
      *
      * @see com.tencent.bk.job.backup.constant.LogEntityTypeEnum
      */
-    @ApiModelProperty("日志类型 1-普通文字 2-错误 3-普通链接 4-关联模版 5-关联执行方案 6-提示输入密码 7-提示重新输入密码")
+    @Schema(description = "日志类型 1-普通文字 2-错误 3-普通链接 4-关联模版 5-关联执行方案 6-提示输入密码 7-提示重新输入密码")
     private Integer type;
 
     /**
      * 日志产生时间
      */
-    @ApiModelProperty("日志时间戳，单位毫秒")
+    @Schema(description = "日志时间戳，单位毫秒")
     private Long timestamp;
 
     /**
      * 日志内容
      */
-    @ApiModelProperty("日志消息")
+    @Schema(description = "日志消息")
     private String content;
 
     /**
      * 日志关联模版 ID
      */
-    @ApiModelProperty("该行关联模版 ID")
+    @Schema(description = "该行关联模版 ID")
     private Long templateId;
 
     /**
      * 日志关联执行方案 ID
      */
-    @ApiModelProperty("该行关联执行方案 ID")
+    @Schema(description = "该行关联执行方案 ID")
     private Long planId;
 
     /**
      * 链接文字
      */
-    @ApiModelProperty("链接文字")
+    @Schema(description = "链接文字")
     private String linkText;
 
     /**
      * 链接地址
      */
-    @ApiModelProperty("链接地址")
+    @Schema(description = "链接地址")
     private String linkUrl;
 }

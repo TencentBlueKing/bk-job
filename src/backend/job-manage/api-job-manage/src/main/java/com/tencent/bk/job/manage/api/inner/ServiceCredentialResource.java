@@ -28,23 +28,23 @@ import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceCredentialDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@Api(tags = {"job-manage:service:Credential"})
+@Tag(name = "job-manage:service:Credential")
 @SmartFeignClient(value = "job-manage", contextId = "credentialResource")
 @InternalAPI
 public interface ServiceCredentialResource {
 
-    @ApiOperation(value = "获取凭证详情", produces = "application/json")
+    @Operation(summary = "获取凭证详情")
     @GetMapping("/service/credentials/app/{appId}/ids/{id}")
     InternalResponse<ServiceCredentialDTO> getCredentialById(
-        @ApiParam(value = "业务ID", required = true)
+        @Parameter(description = "业务ID", required = true)
         @PathVariable("appId") Long appId,
-        @ApiParam("凭证ID")
+        @Parameter(description = "凭证ID")
         @PathVariable("id")
             String id
     );

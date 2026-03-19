@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,16 +32,16 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("本地文件上传返回结果")
+@Schema(description = "本地文件上传返回结果")
 public class UploadLocalFileResultVO {
-    @ApiModelProperty("文件名称")
+    @Schema(description = "文件名称")
     private String fileName;
-    @ApiModelProperty("文件存储路径")
+    @Schema(description = "文件存储路径")
     private String filePath;
-    @ApiModelProperty("文件大小")
+    @Schema(description = "文件大小")
     private long fileSize;
-    @ApiModelProperty("文件上传状态,0-成功，其他-失败")
+    @Schema(description = "文件上传状态,0-成功，其他-失败")
     private Integer status;
-    @ApiModelProperty("文件md5")
+    @Schema(description = "文件md5")
     private String md5;
 }

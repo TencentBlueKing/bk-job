@@ -39,8 +39,7 @@ import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.execute.model.inner.ServiceExecuteTargetContainerDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceTargetServers;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -50,7 +49,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @PersistenceObject
-@ApiModel("目标服务器，四个不可同时为空")
+@Schema(description = "目标服务器，四个不可同时为空")
 @Data
 public class ServerDTO implements Cloneable {
     /**
@@ -58,25 +57,25 @@ public class ServerDTO implements Cloneable {
      * <p>
      * 表示引用全局变量定义的主机列表，忽略其他字段
      */
-    @ApiModelProperty("如果目标服务器是通过全局变量-主机列表定义的，variable 表示变量 name")
+    @Schema(description = "如果目标服务器是通过全局变量-主机列表定义的，variable 表示变量 name")
     private String variable;
 
     /**
      * 静态服务器 IP 列表
      */
-    @ApiModelProperty(value = "服务器ip列表（静态）")
+    @Schema(description = "服务器ip列表（静态）")
     private List<HostDTO> ips;
 
     /**
      * 动态分组 ID 列表
      */
-    @ApiModelProperty(value = "动态分组ID列表")
+    @Schema(description = "动态分组ID列表")
     private List<String> dynamicGroupIds;
 
     /**
      * 拓扑节点列表
      */
-    @ApiModelProperty(value = "分布式拓扑节点列表")
+    @Schema(description = "分布式拓扑节点列表")
     private List<CmdbTopoNodeDTO> topoNodes;
 
     /**

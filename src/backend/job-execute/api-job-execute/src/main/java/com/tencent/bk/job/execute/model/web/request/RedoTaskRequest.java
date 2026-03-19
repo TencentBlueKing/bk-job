@@ -25,8 +25,7 @@
 package com.tencent.bk.job.execute.model.web.request;
 
 import com.tencent.bk.job.execute.model.web.vo.ExecuteVariableVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -35,18 +34,18 @@ import java.util.List;
  * 作业执行请求
  */
 @Data
-@ApiModel("作业执行请求报文")
+@Schema(description = "作业执行请求报文")
 public class RedoTaskRequest {
     /**
      * 执行方案ID
      */
-    @ApiModelProperty(value = "作业执行实例ID", required = true)
+    @Schema(description = "作业执行实例ID", required = true)
     private Long taskInstanceId;
 
     /**
      * 全局变量
      */
-    @ApiModelProperty(value = "全局变量", required = false)
+    @Schema(description = "全局变量", required = false)
     private List<ExecuteVariableVO> taskVariables;
 
 }

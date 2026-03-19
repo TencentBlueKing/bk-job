@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -33,19 +32,19 @@ import lombok.NoArgsConstructor;
  * 资源范围VO
  */
 @NoArgsConstructor
-@ApiModel("资源范围")
+@Schema(description = "资源范围")
 @Data
 public class ScopeVO {
-    @ApiModelProperty(value = "ID")
+    @Schema(description = "ID")
     private String id;
-    @ApiModelProperty("业务名称")
+    @Schema(description = "业务名称")
     private String name;
-    @ApiModelProperty("是否有权限")
+    @Schema(description = "是否有权限")
     private Boolean hasPermission;
-    @ApiModelProperty("是否收藏")
+    @Schema(description = "是否收藏")
     private Boolean favor;
-    @ApiModelProperty("收藏时间")
+    @Schema(description = "收藏时间")
     private Long favorTime;
-    @ApiModelProperty("业务时区")
+    @Schema(description = "业务时区")
     private String timeZone;
 }

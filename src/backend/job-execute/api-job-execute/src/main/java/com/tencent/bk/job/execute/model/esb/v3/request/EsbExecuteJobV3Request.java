@@ -31,7 +31,7 @@ import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 
 /**

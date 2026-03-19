@@ -27,4 +27,6 @@ package com.tencent.bk.job.consts;
 public class CommonHeader {
 
     public static final String MCP_AUTH_HEADER_KEY = "X-JOB-OP-KEY";
+
+    public static final String OP_API_AUTH_HEADER_KEY = "X-Job-Op-Api-Key";
 }

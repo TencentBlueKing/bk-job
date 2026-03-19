@@ -27,8 +27,8 @@ package com.tencent.bk.job.common.validation;
 import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteTargetDTO;
 import org.apache.commons.collections4.CollectionUtils;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class ExecuteTargetNotEmptyValidator
     implements ConstraintValidator<ExecuteTargetNotEmpty, OpenApiExecuteTargetDTO> {

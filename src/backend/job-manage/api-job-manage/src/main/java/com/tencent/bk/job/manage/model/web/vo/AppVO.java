@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -33,28 +32,28 @@ import lombok.NoArgsConstructor;
  * 业务VO
  */
 @NoArgsConstructor
-@ApiModel("业务")
+@Schema(description = "业务")
 @Data
 public class AppVO {
-    @ApiModelProperty(value = "Job业务ID", hidden = true)
+    @Schema(description = "Job业务ID", hidden = true)
     private Long id;
-    @ApiModelProperty("资源范围类型")
+    @Schema(description = "资源范围类型")
     private String scopeType;
-    @ApiModelProperty("资源范围ID")
+    @Schema(description = "资源范围ID")
     private String scopeId;
-    @ApiModelProperty("是否为系统内置的资源")
+    @Schema(description = "是否为系统内置的资源")
     private boolean builtIn;
-    @ApiModelProperty("是否为全业务")
+    @Schema(description = "是否为全业务")
     private boolean allBizSet;
-    @ApiModelProperty("业务名称")
+    @Schema(description = "业务名称")
     private String name;
-    @ApiModelProperty("是否有权限")
+    @Schema(description = "是否有权限")
     private Boolean hasPermission;
-    @ApiModelProperty("是否收藏")
+    @Schema(description = "是否收藏")
     private Boolean favor;
-    @ApiModelProperty("收藏时间")
+    @Schema(description = "收藏时间")
     private Long favorTime;
-    @ApiModelProperty("业务的时区")
+    @Schema(description = "业务的时区")
     private String timeZone;
 
     public AppVO(Long id,

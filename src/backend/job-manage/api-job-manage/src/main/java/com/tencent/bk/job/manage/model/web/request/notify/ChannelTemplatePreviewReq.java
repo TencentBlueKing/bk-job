@@ -24,22 +24,21 @@
 
 package com.tencent.bk.job.manage.model.web.request.notify;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("通知预览发送模板")
+@Schema(description = "通知预览发送模板")
 public class ChannelTemplatePreviewReq {
-    @ApiModelProperty(value = "渠道code", required = true)
+    @Schema(description = "渠道code", required = true)
     private String channelCode;
-    @ApiModelProperty(value = "消息类型code(人工确认：confirmation，执行成功：executeSuccess，执行失败：executeFailure" +
+    @Schema(description = "消息类型code(人工确认：confirmation，执行成功：executeSuccess，执行失败：executeFailure" +
         "，定时执行前：beforeCronJobExecute，定时结束前：beforeCronJobEnd)", required = true)
     private String messageTypeCode;
-    @ApiModelProperty(value = "消息Title", required = true)
+    @Schema(description = "消息Title", required = true)
     private String title;
-    @ApiModelProperty(value = "消息内容", required = true)
+    @Schema(description = "消息内容", required = true)
     private String content;
-    @ApiModelProperty(value = "接收人：逗号分隔的用户名", required = true)
+    @Schema(description = "接收人：逗号分隔的用户名", required = true)
     private String receiverStr;
 }

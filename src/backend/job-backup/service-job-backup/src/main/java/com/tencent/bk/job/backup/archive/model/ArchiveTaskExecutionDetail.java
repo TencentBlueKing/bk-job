@@ -24,11 +24,11 @@
 
 package com.tencent.bk.job.backup.archive.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import lombok.Data;
 import lombok.ToString;
-import net.minidev.json.annotate.JsonIgnore;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -175,7 +175,7 @@ echo "步骤3: 验证临时数据库..."
 # 验证临时数据库中的表数量
 function verifyTmpDb() {
   tmpDb=$1
-  tableCount=$(executeSqlInTmpDb "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${tmpDb}';" 2>/dev/null | tail -1)
+  tableCount=$(querySqlInTmpDb "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='${tmpDb}';")
   echo "  - ${tmpDb}: ${tableCount} 张表"
 }
 

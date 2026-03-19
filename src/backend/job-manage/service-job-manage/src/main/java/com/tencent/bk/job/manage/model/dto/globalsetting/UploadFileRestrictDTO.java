@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto.globalsetting;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -40,10 +40,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UploadFileRestrictDTO {
-    @ApiModelProperty("限制最大上传大小")
+    @Schema(description = "限制最大上传大小")
     private String maxSize;
-    @ApiModelProperty("限制模式")
+    @Schema(description = "限制模式")
     private Integer restrictMode;
-    @ApiModelProperty("后缀列表")
+    @Schema(description = "后缀列表")
     private List<String> suffixList;
 }

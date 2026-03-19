@@ -40,6 +40,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -52,7 +53,7 @@ public class FileTaskLogDoc {
 
     /**
      * 日志条目 - 用于新版本日志存储
-     * MongoDB中存储为：{logTime: 1733616182000, content: "FileName: ..."}
+     * 写入时存储到 MongoDB 的 timeLogList 字段：[{logTime: 1733616182000, content: "FileName: ..."}, ...]
      */
     @Data
     public static class LogEntry {
@@ -236,17 +237,27 @@ public class FileTaskLogDoc {
     private String process;
 
     /**
-     * 日志内容在mongodb中按照list的方式存储
-     * 支持两种格式：
-     * 1. 老格式：String - "[2025-12-08 08:03:02] FileName: ..."
-     * 2. 新格式：Object - {logTime: 1733616182000, content: "FileName: ..."}
+     * 日志内容在mongodb中按照list的方式存储，每个元素为带时间前缀的完整日志行字符串。
+     * 例如："[2025-12-08 08:03:02] FileName: test.txt Speed: 10MB/s FileSize: 100MB\n"
+     * 该字段始终为纯 String 列表，用于兼容旧版本 logsvr/job-execute 读取。
+     * 新版本优先从 timeLogList 字段读取带时间戳的结构化数据。
      */
     @Field(FileTaskLogDocField.CONTENT_LIST)
-    private List<Object> contentList;
+    private List<String> contentList;
 
     /**
-     * 时区改造时添加，包含原始的日志内容和时间戳
-     * 仅在写入的时候使用，读取的时候会读到contentList中
+     * 时区改造：新增的时间日志列表字段，存储 LogEntry 对象（含时间戳）
+     * MongoDB中存储为：[{logTime: 1733616182000, content: "FileName: ..."}, ...]
+     */
+    @Field(FileTaskLogDocField.TIME_LOG_LIST)
+    private List<Object> timeLogList;
+
+    /**
+     * 时区改造时添加，包含原始的日志内容和时间戳，仅在写入时使用。
+     * 写入MongoDB时，会同时用于：
+     * 1. push LogEntry 对象到 timeLogList 字段
+     * 2. 从 LogEntry 的 logTime + content 现场拼接纯字符串 push 到 contentList 字段
+     * 读取时从 timeLogList 字段读取 LogEntry 对象
      */
     private List<LogEntry> writeContentList;
 
@@ -308,22 +319,66 @@ public class FileTaskLogDoc {
     }
 
     /**
-     * 将新老格式的单个日志对象转换为FileTaskTimeAndRawLogDTO
-     * mongodb中有存量老数据，兼容读取部分代码短时间内不可删除
-     * @param contentDocObj 老格式：字符串 或 新格式：LogEntry对象
+     * 兼容读取 contentList 字段。
+     * 发布过程中新老 logsvr 实例可能并存，同一条文件任务日志可能由不同版本的 logsvr 写入：
+     *   新 logsvr 写入时会同时 push timeLogList（LogEntry 对象）和 contentList（纯 String）
+     *   老 logsvr 写入时只 push contentList（纯 String）
+     * 因此读取时通过比较 timeLogList 与 contentList 的 size 是否一致来判断数据完整性：
+     *   一致 → 纯新 logsvr 产生的数据，使用 timeLogList（可提取精确时间戳 Long 和原始日志内容）
+     *   不一致或 timeLogList 为空 → 降级使用 contentList（纯 String，time 设为 null）
+     * 发布完成、所有实例均为新版本后，可移除降级逻辑，直接使用 timeLogList。
+     *
+     * @return 构建好的 FileTaskTimeAndRawLogDTO 列表，如果无数据则返回 null
+     */
+    @CompatibleImplementation(
+        name = "build_content_list",
+        deprecatedVersion = "3.12.1",
+        type = CompatibleType.DEPLOY,
+        explain = "发布过程中新老 logsvr 并存的兼容逻辑：通过 timeLogList 与 contentList 的 size 比较决定读取哪个字段。" +
+            "全量部署新版本后，可移除降级分支，直接使用 timeLogList"
+    )
+    private List<FileTaskTimeAndRawLogDTO> buildContentListCompatibly() {
+        // 判断 timeLogList 与 contentList 的 size 是否一致，决定使用哪个字段
+        boolean useTimeLogList = CollectionUtils.isNotEmpty(timeLogList)
+            && CollectionUtils.isNotEmpty(contentList)
+            && timeLogList.size() == contentList.size();
+
+        if (useTimeLogList) {
+            // 纯新 logsvr 产生的数据（timeLogList 和 contentList 条数一致）：
+            // 使用 timeLogList，可从中提取精确的时间戳（Long）和原始日志内容
+            List<FileTaskTimeAndRawLogDTO> timeAndRawLogList = new ArrayList<>();
+            for (Object item : timeLogList) {
+                FileTaskTimeAndRawLogDTO timeAndRawLog = buildTimeAndRawLogFromLogEntry(item);
+                timeAndRawLogList.add(timeAndRawLog);
+            }
+            return timeAndRawLogList;
+        } else if (CollectionUtils.isNotEmpty(contentList)) {
+            // 降级：新老 logsvr 混合写入或纯老数据（timeLogList 为空或与 contentList 条数不一致）
+            // 使用 contentList（纯 String，带时间前缀的完整字符串），time 设为 null
+            List<FileTaskTimeAndRawLogDTO> timeAndRawLogList = new ArrayList<>();
+            for (String item : contentList) {
+                FileTaskTimeAndRawLogDTO timeAndRawLog = new FileTaskTimeAndRawLogDTO();
+                timeAndRawLog.setTime(null);
+                timeAndRawLog.setRawLog(item);
+                timeAndRawLogList.add(timeAndRawLog);
+            }
+            return timeAndRawLogList;
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * 从 timeLogList 中的单个元素（MongoDB 读出为 Map）提取 logTime 和 content，
+     * 构建 FileTaskTimeAndRawLogDTO
+     *
+     * @param logEntryObj timeLogList 中的元素（MongoDB 读出为 Map）
      * @return FileTaskTimeAndRawLogDTO
      */
-    private FileTaskTimeAndRawLogDTO compatiblyBuildContentFromDoc(Object contentDocObj) {
+    @SuppressWarnings("unchecked")
+    private FileTaskTimeAndRawLogDTO buildTimeAndRawLogFromLogEntry(Object logEntryObj) {
         FileTaskTimeAndRawLogDTO timeAndRawLog = new FileTaskTimeAndRawLogDTO();
-
-        if (contentDocObj instanceof String) {
-            // 老格式：字符串，已包含时间戳，time字段为null
-            timeAndRawLog.setTime(null);
-            timeAndRawLog.setRawLog((String) contentDocObj);
-        } else if (contentDocObj instanceof Map) {
-            // 新格式：LogEntry对象，提取logTime和content
-            @SuppressWarnings("unchecked")
-            Map<String, Object> logEntry = (Map<String, Object>) contentDocObj;
+        if (logEntryObj instanceof Map) {
+            Map<String, Object> logEntry = (Map<String, Object>) logEntryObj;
             Object logTimeObj = logEntry.get(FileTaskLogDocField.FILE_TASK_LOG_TIME);
             Object logContentObj = logEntry.get(FileTaskLogDocField.FILE_TASK_CONTENT);
 
@@ -341,24 +396,15 @@ public class FileTaskLogDoc {
                 timeAndRawLog.setRawLog(logContentObj.toString());
             }
         }
-
         return timeAndRawLog;
     }
 
     public ServiceFileTaskLogDTO toServiceFileTaskLogDTO() {
         ServiceFileTaskLogDTO fileLog = new ServiceFileTaskLogDTO();
         fileLog.setTaskId(getTaskId());
-        
-        // 填充contentList字段，包含时间戳和原始日志
-        if (CollectionUtils.isNotEmpty(contentList)) {
-            List<FileTaskTimeAndRawLogDTO> timeAndRawLogList =
-                new ArrayList<>();
-            for (Object item : contentList) {
-                FileTaskTimeAndRawLogDTO timeAndRawLog = compatiblyBuildContentFromDoc(item);
-                timeAndRawLogList.add(timeAndRawLog);
-            }
-            fileLog.setContentList(timeAndRawLogList);
-        }
+
+        // 兼容读取：根据 timeLogList 与 contentList 的情况，构建 contentList
+        fileLog.setContentList(buildContentListCompatibly());
         
         // 兼容旧逻辑：使用contentList填充content字段，将时间戳转化为系统时区的时间字符串
         fillContentCompatibly(fileLog);

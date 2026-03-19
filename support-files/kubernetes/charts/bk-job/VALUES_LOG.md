@@ -103,6 +103,48 @@ volumeExtension:
   volumeMounts: []
 ```
 
+5. 新增发送通知数量配额限制
+```yaml
+job:
+  # 资源配额限制
+  resourceQuotaLimit:
+    resources:
+      # 配额限制资源-发送通知数量
+      sendNotify:
+        # 是否启用配额限制
+        enabled: false
+        # 通知发送总量限制
+        capacity: "10000"
+        # 基于资源管理空间(业务/业务集)的配额限制
+        resourceScopeQuotaLimit:
+          # 全局限制，每个资源管理空间默认的配额限制
+          global: "5000"
+          # 自定义配额限制，会覆盖global
+          custom: "biz:2=1000,biz_set:9991001=50%"
+        # 基于用户的配额限制
+        userQuotaLimit:
+          global: "2000"
+          custom: "admin=1000,test=10%"
+```
+
+6. 支持配置定时任务启动记录清理相关参数
+```yaml
+## job-crontab定时任务配置
+crontabConfig:
+  # 定时任务启动记录清理相关配置
+  cleanHistory:
+    # 是否开启
+    enabled: true
+    # 启动记录保留天数
+    keepDays: 31
+    # 清理动作执行的Quartz Cron表达式，默认在每天10:02（低峰期）执行清理
+    cron: 0 02 10 * * ?
+    # 每批次删除记录条数，避免一次性删除过多导致 DB 高负载
+    batchSize: 10000
+    # 每批次删除后的休眠时间（毫秒），用于降低 DB 压力
+    sleepMillisBetweenBatches: 1000
+```
+
 ## 0.9.0
 1. 新增 bk-login/bk-user蓝鲸网关配置
 ```yaml

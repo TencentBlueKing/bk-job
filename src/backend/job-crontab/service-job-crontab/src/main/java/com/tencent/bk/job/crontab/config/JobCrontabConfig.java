@@ -33,6 +33,6 @@ import org.springframework.context.annotation.Configuration;
  */
 @Slf4j
 @Configuration
-@EnableConfigurationProperties(JobCrontabProperties.class)
+@EnableConfigurationProperties({JobCrontabProperties.class, CleanHistoryProperties.class})
 public class JobCrontabConfig {
 }
