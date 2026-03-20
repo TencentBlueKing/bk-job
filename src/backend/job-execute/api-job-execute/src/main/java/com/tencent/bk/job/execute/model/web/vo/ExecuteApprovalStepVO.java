@@ -24,14 +24,13 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("人工确认步骤信息")
+@Schema(description = "人工确认步骤信息")
 public class ExecuteApprovalStepVO {
 
-    @ApiModelProperty("确认消息")
+    @Schema(description = "确认消息")
     private String approvalMessage;
 }

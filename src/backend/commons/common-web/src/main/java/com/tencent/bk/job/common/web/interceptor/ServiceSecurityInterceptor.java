@@ -33,17 +33,17 @@ import com.tencent.bk.job.common.service.SpringProfile;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * 服务间调用请求认证拦截器
  */
 @Slf4j
 @JobInterceptor(pathPatterns = "/**", order = InterceptorOrder.Init.CHECK_VALID)
-public class ServiceSecurityInterceptor extends HandlerInterceptorAdapter {
+public class ServiceSecurityInterceptor implements HandlerInterceptor {
     private final SpringProfile springProfile;
     private final JwtManager jwtManager;
 

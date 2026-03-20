@@ -113,7 +113,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
+import org.springframework.lang.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -150,9 +150,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         .maximumSize(10)
         .expireAfterWrite(10, TimeUnit.MINUTES)
         .build(new CacheLoader<Pair<String, String>, Map<String, String>>() {
-                   @NotNull
+                   @NonNull
                    @Override
-                   public Map<String, String> load(@NotNull Pair<String, String> langTenantIdPair) {
+                   public Map<String, String> load(@NonNull Pair<String, String> langTenantIdPair) {
                        String lang = langTenantIdPair.getLeft();
                        String tenantId = langTenantIdPair.getRight();
                        InternalResponse<List<ServiceAppRoleDTO>> resp = notifyResource.getNotifyRoles(tenantId, lang);
@@ -171,9 +171,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     private final LoadingCache<String, Map<String, String>> channelCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
         build(new CacheLoader<String, Map<String, String>>() {
-                  @NotNull
+                  @NonNull
                   @Override
-                  public Map<String, String> load(@NotNull String key) {
+                  public Map<String, String> load(@NonNull String key) {
                       List<String> l = Arrays.asList(key.split(CHANNEL_CACHE_DELIMITER));
                       String tenantId = l.get(CHANNEL_CACHE_INDEX_TENANT_ID);
                       String lang = l.get(CHANNEL_CACHE_INDEX_LANG);

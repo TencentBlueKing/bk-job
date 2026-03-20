@@ -24,22 +24,21 @@
 
 package com.tencent.bk.job.manage.model.web.request;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("作业模板标签批量更新请求")
+@Schema(description = "作业模板标签批量更新请求")
 public class TemplateTagBatchPatchReq {
 
-    @ApiModelProperty(value = "模版 ID 列表", required = true)
+    @Schema(description = "模版 ID 列表", required = true)
     private List<Long> idList;
 
-    @ApiModelProperty(value = "新增的标签ID列表")
+    @Schema(description = "新增的标签ID列表")
     private List<Long> addTagIdList;
 
-    @ApiModelProperty(value = "新增的标签ID列表")
+    @Schema(description = "新增的标签ID列表")
     private List<Long> deleteTagIdList;
 }

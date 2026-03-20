@@ -35,9 +35,9 @@ import com.tencent.bk.job.analysis.model.web.DayDistributionElementVO;
 import com.tencent.bk.job.analysis.model.web.PerAppStatisticVO;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -48,19 +48,19 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
-@Api(tags = {"job-analysis:web:统计量统计接口"})
+@Tag(name = "job-analysis:web:统计量统计接口")
 @RequestMapping("/web/statistics")
 @RestController
 @WebAPI
 public interface WebStatisticsResource {
 
-    @ApiOperation(value = "查询某个统计量的统计信息", produces = "application/json")
+    @Operation(summary = "查询某个统计量的统计信息")
     @GetMapping("/total/metrics/{metric}")
     Response<CommonStatisticWithRateVO> totalStatistics(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("统计量Code，取值：(\n" +
+        @Parameter(description = "统计量Code，取值：(\n" +
             "APP_COUNT:接入业务量\n" +
             "ACTIVE_APP_COUNT:活跃业务量\n" +
             "TASK_TEMPLATE_COUNT:作业模板量\n" +
@@ -71,21 +71,21 @@ public interface WebStatisticsResource {
             ")")
         @PathVariable(value = "metric", required = true)
             TotalMetricEnum metric,
-        @ApiParam("资源范围列表，不传为全部业务；传入参数格式如下{scopeType}:{scopeId}")
+        @Parameter(description = "资源范围列表，不传为全部业务；传入参数格式如下{scopeType}:{scopeId}")
         @RequestParam(value = "scopes", required = false)
             List<String> scopes,
-        @ApiParam("统计日期，例如：2020-12-16，不传默认为今天")
+        @Parameter(description = "统计日期，例如：2020-12-16，不传默认为今天")
         @RequestParam(value = "date", required = false)
             String date
     );
 
-    @ApiOperation(value = "查询某个统计量的趋势", produces = "application/json")
+    @Operation(summary = "查询某个统计量的趋势")
     @GetMapping("/trends/metrics/{metric}")
     Response<List<CommonTrendElementVO>> trends(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("统计量Code，取值：(\n" +
+        @Parameter(description = "统计量Code，取值：(\n" +
             "APP_COUNT:接入业务量\n" +
             "ACTIVE_APP_COUNT:活跃业务量\n" +
             "TASK_TEMPLATE_COUNT:作业模板量\n" +
@@ -96,27 +96,27 @@ public interface WebStatisticsResource {
             ")")
         @PathVariable(value = "metric", required = true)
             TotalMetricEnum metric,
-        @ApiParam("资源范围列表，不传为全部业务；传入参数格式如下{scopeType}:{scopeId}")
+        @Parameter(description = "资源范围列表，不传为全部业务；传入参数格式如下{scopeType}:{scopeId}")
         @RequestParam(value = "scopes", required = false)
             List<String> scopes,
-        @ApiParam("统计起始日期，例如：2019-01-30，本期需求先不传这个参数，按默认最小值处理")
+        @Parameter(description = "统计起始日期，例如：2019-01-30，本期需求先不传这个参数，按默认最小值处理")
         @RequestParam(value = "dataStartDate", required = false)
             String dataStartDate,
-        @ApiParam("查询起始日期，不传默认为今天，例如：2019-01-30")
+        @Parameter(description = "查询起始日期，不传默认为今天，例如：2019-01-30")
         @RequestParam(value = "startDate", required = false)
             String startDate,
-        @ApiParam("查询终止日期，不传默认为今天，例如：2019-01-30")
+        @Parameter(description = "查询终止日期，不传默认为今天，例如：2019-01-30")
         @RequestParam(value = "endDate", required = false)
             String endDate
     );
 
-    @ApiOperation(value = "查询某个统计量的逐业务统计列表", produces = "application/json")
+    @Operation(summary = "查询某个统计量的逐业务统计列表")
     @GetMapping("/listByPerApp/metrics/{metric}")
     Response<List<PerAppStatisticVO>> listByPerApp(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("统计量Code，取值：(\n" +
+        @Parameter(description = "统计量Code，取值：(\n" +
             "APP_COUNT:接入业务量\n" +
             "ACTIVE_APP_COUNT:活跃业务量\n" +
             "TASK_TEMPLATE_COUNT:作业模板量\n" +
@@ -127,21 +127,21 @@ public interface WebStatisticsResource {
             ")")
         @PathVariable(value = "metric", required = true)
             TotalMetricEnum metric,
-        @ApiParam("资源范围列表，不传为全部业务；传入参数格式如下{scopeType}:{scopeId}")
+        @Parameter(description = "资源范围列表，不传为全部业务；传入参数格式如下{scopeType}:{scopeId}")
         @RequestParam(value = "scopes", required = false)
             List<String> scopes,
-        @ApiParam("统计日期，不传默认为今天，例如：2020-12-17")
+        @Parameter(description = "统计日期，不传默认为今天，例如：2020-12-17")
         @RequestParam(value = "date", required = false)
             String date
     );
 
-    @ApiOperation(value = "查询某个统计量的分布信息", produces = "application/json")
+    @Operation(summary = "查询某个统计量的分布信息")
     @GetMapping("/distribution/metrics/{metric}")
     Response<CommonDistributionVO> distributionStatistics(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("统计量Code，取值：(\n" +
+        @Parameter(description = "统计量Code，取值：(\n" +
             "HOST_SYSTEM_TYPE:主机操作系统类型（结果label取值：LINUX，WINDOWS，AIX，UNIX，SOLARIS，FREEBSD，MACOS，OTHERS）\n" +
             "STEP_TYPE:作业步骤类型（结果label取值：FILE_LOCAL，FILE_SERVER，SCRIPT_MANUAL，SCRIPT_REF，CONFIRM）\n" +
             "SCRIPT_TYPE:脚本类型（结果label取值：Bat，Shell，Perl，Powershell，Python，SQL）\n" +
@@ -153,21 +153,21 @@ public interface WebStatisticsResource {
             ")")
         @PathVariable(value = "metric", required = true)
             DistributionMetricEnum metric,
-        @ApiParam("资源范围列表，不传为全部业务；传入参数格式如下{scopeType}:{scopeId}")
+        @Parameter(description = "资源范围列表，不传为全部业务；传入参数格式如下{scopeType}:{scopeId}")
         @RequestParam(value = "scopes", required = false)
             List<String> scopes,
-        @ApiParam("统计日期，例如：2020-12-16，不传默认为今天")
+        @Parameter(description = "统计日期，例如：2020-12-16，不传默认为今天")
         @RequestParam(value = "date", required = false)
             String date
     );
 
-    @ApiOperation(value = "查询某种资源某个维度下的每日统计详情", produces = "application/json")
+    @Operation(summary = "查询某种资源某个维度下的每日统计详情")
     @GetMapping("/resources/{resource}/dimensions/{dimension}")
     Response<List<DayDistributionElementVO>> dayDetailStatistics(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam("资源类型，取值：(\n" +
+        @Parameter(description = "资源类型，取值：(\n" +
             "EXECUTED_TASK:执行过的任务（包含快速执行脚本、快速分发文件、作业）（对应dimension取值：TASK_STARTUP_MODE，TASK_TYPE，TASK_TIME_CONSUMING" +
             "）\n" +
             "EXECUTED_ROLLING_TASK:滚动执行过的任务（包含快速执行脚本、快速分发文件、作业）（对应dimension取值：TASK_TYPE" +
@@ -177,7 +177,7 @@ public interface WebStatisticsResource {
             ")")
         @PathVariable(value = "resource", required = true)
             ResourceEnum resource,
-        @ApiParam("维度，取值：(\n" +
+        @Parameter(description = "维度，取值：(\n" +
             "TASK_STARTUP_MODE:任务启动方式\n" +
             "TASK_TYPE:任务类型\n" +
             "TASK_TIME_CONSUMING:任务耗时\n" +
@@ -186,22 +186,22 @@ public interface WebStatisticsResource {
             ")")
         @PathVariable(value = "dimension", required = true)
             DimensionEnum dimension,
-        @ApiParam("资源范围列表，不传为全部业务；传入参数格式如下{scopeType}:{scopeId}")
+        @Parameter(description = "资源范围列表，不传为全部业务；传入参数格式如下{scopeType}:{scopeId}")
         @RequestParam(value = "scopes", required = false)
             List<String> scopes,
-        @ApiParam("查询起始日期，不传默认为今天，例如：2019-01-30")
+        @Parameter(description = "查询起始日期，不传默认为今天，例如：2019-01-30")
         @RequestParam(value = "startDate", required = false)
             String startDate,
-        @ApiParam("查询终止日期，不传默认为今天，例如：2019-01-30")
+        @Parameter(description = "查询终止日期，不传默认为今天，例如：2019-01-30")
         @RequestParam(value = "endDate", required = false)
             String endDate
     );
 
-    @ApiOperation(value = "查询统计数据起始日期、更新时间等信息（可能的Key：{起始日期:STATISTICS_DATA_START_DATE, " +
-        "更新时间:STATISTICS_DATA_UPDATE_TIME}）", produces = "application/json")
+    @Operation(summary = "查询统计数据起始日期、更新时间等信息（可能的Key：{起始日期:STATISTICS_DATA_START_DATE, " +
+        "更新时间:STATISTICS_DATA_UPDATE_TIME}）")
     @GetMapping("/info")
     Response<Map<String, String>> getStatisticsDataInfo(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );

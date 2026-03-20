@@ -39,13 +39,14 @@ import org.springframework.security.web.SecurityFilterChain;
 public class ActuatorSecurityConfig {
     @Bean
     SecurityFilterChain actuatorChain(HttpSecurity http) throws Exception {
-        http.csrf().disable();
-        http.requestMatcher(EndpointRequest.toAnyEndpoint())
-            .authorizeHttpRequests()
-            .antMatchers("/actuator/health/**", "/actuator/info").permitAll()
-            .antMatchers("/actuator/**").authenticated()
-            .and()
-            .httpBasic();
+        http
+            .securityMatcher(EndpointRequest.toAnyEndpoint())
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
+                .requestMatchers("/actuator/**").authenticated()
+            )
+            .httpBasic(httpBasic -> {});
         return http.build();
     }
 }

@@ -24,15 +24,14 @@
 
 package com.tencent.bk.job.manage.model.web.request.whiteip;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("IP白名单记录删除请求")
+@Schema(description = "IP白名单记录删除请求")
 public class WhiteIPRecordDeleteReq {
 
-    @ApiModelProperty(value = "ID", required = true)
+    @Schema(description = "ID", required = true)
     private int id;
 
 }

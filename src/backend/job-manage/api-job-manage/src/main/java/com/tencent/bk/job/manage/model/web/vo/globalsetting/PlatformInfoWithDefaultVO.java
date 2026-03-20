@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.globalsetting;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,11 +34,11 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("平台信息VO(含默认配置)")
+@Schema(description = "平台信息VO(含默认配置)")
 @Data
 public class PlatformInfoWithDefaultVO {
-    @ApiModelProperty("当前已设置的平台信息")
+    @Schema(description = "当前已设置的平台信息")
     private PlatformInfoVO currentPlatformInfo;
-    @ApiModelProperty("默认的平台信息")
+    @Schema(description = "默认的平台信息")
     private PlatformInfoVO defaultPlatformInfo;
 }

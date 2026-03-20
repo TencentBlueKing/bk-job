@@ -35,8 +35,7 @@ import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.common.util.json.SecondToMillisSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -54,134 +53,134 @@ import java.util.Set;
 @Getter
 @Setter
 @ToString
-@ApiModel("执行方案信息")
+@Schema(description = "执行方案信息")
 public class TaskPlanVO {
 
     /**
      * 执行方案 ID
      */
-    @ApiModelProperty(value = "执行方案 ID")
+    @Schema(description = "执行方案 ID")
     private Long id;
 
     /**
      * 资源范围类型
      */
-    @ApiModelProperty(value = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
+    @Schema(description = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
     private String scopeType;
 
     /**
      * 资源范围ID
      */
-    @ApiModelProperty("资源范围ID")
+    @Schema(description = "资源范围ID")
     private String scopeId;
     /**
      * 模版 ID
      */
-    @ApiModelProperty(value = "模版 ID")
+    @Schema(description = "模版 ID")
     private Long templateId;
 
     /**
      * 执行方案名称
      */
-    @ApiModelProperty(value = "执行方案名称")
+    @Schema(description = "执行方案名称")
     private String name;
 
     /**
      * 模板名称
      */
-    @ApiModelProperty(value = "模板名称")
+    @Schema(description = "模板名称")
     private String templateName;
 
     /**
      * 创建者
      */
-    @ApiModelProperty(value = "创建者")
+    @Schema(description = "创建者")
     private String creator;
 
     /**
      * 创建时间
      */
-    @ApiModelProperty(value = "创建时间，单位毫秒")
+    @Schema(description = "创建时间，单位毫秒")
     @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long createTime;
 
     /**
      * 最后修改人
      */
-    @ApiModelProperty(value = "最后更新者")
+    @Schema(description = "最后更新者")
     private String lastModifyUser;
 
     /**
      * 最后修改时间
      */
-    @ApiModelProperty(value = "最后更新时间，单位毫秒")
+    @Schema(description = "最后更新时间，单位毫秒")
     @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long lastModifyTime;
 
     /**
      * 是否收藏
      */
-    @ApiModelProperty(value = "是否收藏 0 - 未收藏 1 - 收藏")
+    @Schema(description = "是否收藏 0 - 未收藏 1 - 收藏")
     private Integer favored;
 
     /**
      * 是否需要更新
      */
-    @ApiModelProperty(value = "是否需要更新")
+    @Schema(description = "是否需要更新")
     private Boolean needUpdate;
 
     /**
      * 是否关联定时任务
      */
-    @ApiModelProperty(value = "是否关联定时任务")
+    @Schema(description = "是否关联定时任务")
     private Boolean hasCronJob;
 
     /**
      * 执行方案变量列表
      */
-    @ApiModelProperty(value = "执行方案变量列表 详细信息独有")
+    @Schema(description = "执行方案变量列表 详细信息独有")
     private List<TaskVariableVO> variableList;
 
     /**
      * 执行方案脚本列表
      */
-    @ApiModelProperty(value = "执行方案脚本列表 详细信息独有")
+    @Schema(description = "执行方案脚本列表 详细信息独有")
     private List<TaskStepVO> stepList;
 
     /**
      * 执行方案版本
      */
-    @ApiModelProperty(value = "执行方案版本")
+    @Schema(description = "执行方案版本")
     private String version;
 
     /**
      * 作业模版版本
      */
-    @ApiModelProperty(value = "作业模版版本")
+    @Schema(description = "作业模版版本")
     private String templateVersion;
 
     /**
      * 关联定时任务数量
      */
-    @ApiModelProperty(value = "关联定时任务数量")
+    @Schema(description = "关联定时任务数量")
     private Long cronJobCount;
 
     /**
      * 是否有查看权限
      */
-    @ApiModelProperty(value = "是否有查看权限")
+    @Schema(description = "是否有查看权限")
     private Boolean canView;
 
     /**
      * 是否有编辑权限
      */
-    @ApiModelProperty(value = "是否有编辑权限")
+    @Schema(description = "是否有编辑权限")
     private Boolean canEdit;
 
     /**
      * 是否有删除权限
      */
-    @ApiModelProperty(value = "是否有删除权限")
+    @Schema(description = "是否有删除权限")
     private Boolean canDelete;
 
     public void validateForImport() throws InvalidParamException {

@@ -98,6 +98,7 @@ public class StepInstanceRollingTaskDAOImplIntegrationTest {
     @DisplayName("保存步骤滚动任务")
     void saveRollingTask() {
         StepInstanceRollingTaskDTO rollingTask = new StepInstanceRollingTaskDTO();
+        rollingTask.setTaskInstanceId(100L);
         rollingTask.setStepInstanceId(100L);
         rollingTask.setExecuteCount(0);
         rollingTask.setBatch(1);

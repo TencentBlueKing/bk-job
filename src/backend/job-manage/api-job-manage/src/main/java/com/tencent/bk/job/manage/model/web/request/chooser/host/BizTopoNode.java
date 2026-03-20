@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.request.chooser.host;
 
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,17 +36,17 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@ApiModel("业务拓扑节点信息")
+@Schema(description = "业务拓扑节点信息")
 public class BizTopoNode {
-    @ApiModelProperty(value = "节点类型Id", required = true)
+    @Schema(description = "节点类型Id", required = true)
     private String objectId;
-    @ApiModelProperty(value = "节点类型名称")
+    @Schema(description = "节点类型名称")
     private String objectName;
-    @ApiModelProperty(value = "节点实例Id", required = true)
+    @Schema(description = "节点实例Id", required = true)
     private Long instanceId;
-    @ApiModelProperty(value = "节点实例名称")
+    @Schema(description = "节点实例名称")
     private String instanceName;
-    @ApiModelProperty(value = "子节点列表")
+    @Schema(description = "子节点列表")
     private List<BizTopoNode> childs;
 
     public static BizTopoNode fromTargetNodeVO(TargetNodeVO targetNodeVO) {

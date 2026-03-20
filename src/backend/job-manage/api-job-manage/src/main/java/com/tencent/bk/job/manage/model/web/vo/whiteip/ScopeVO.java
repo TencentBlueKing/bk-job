@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.whiteip;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -33,14 +32,14 @@ import lombok.NoArgsConstructor;
  * 资源范围VO
  */
 @NoArgsConstructor
-@ApiModel("资源范围")
+@Schema(description = "资源范围")
 @Data
 public class ScopeVO {
-    @ApiModelProperty("资源范围类型")
+    @Schema(description = "资源范围类型")
     private String scopeType;
-    @ApiModelProperty("资源范围ID")
+    @Schema(description = "资源范围ID")
     private String scopeId;
-    @ApiModelProperty("业务名称")
+    @Schema(description = "业务名称")
     private String name;
 
     public ScopeVO(String scopeType, String scopeId, String name) {

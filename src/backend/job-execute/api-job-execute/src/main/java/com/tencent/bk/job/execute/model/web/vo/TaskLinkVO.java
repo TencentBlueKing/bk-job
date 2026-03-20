@@ -24,66 +24,65 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
-@ApiModel("任务链接")
+@Schema(description = "任务链接")
 @Data
 public class TaskLinkVO {
     /**
      * 资源范围类型
      */
-    @ApiModelProperty(value = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
+    @Schema(description = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
     private String scopeType;
 
     /**
      * 资源范围ID
      */
-    @ApiModelProperty("资源范围ID")
+    @Schema(description = "资源范围ID")
     private String scopeId;
 
     /**
      * 业务ID
      */
-    @ApiModelProperty("业务ID")
+    @Schema(description = "业务ID")
     private Long appId;
 
     /**
      * 任务ID
      */
-    @ApiModelProperty("任务ID")
+    @Schema(description = "任务ID")
     private Long jobInstanceId;
 
     /**
      * 步骤ID
      */
-    @ApiModelProperty("步骤ID")
+    @Schema(description = "步骤ID")
     private Long stepInstanceId;
 
     /**
      * 执行次数
      */
-    @ApiModelProperty("重试次数")
+    @Schema(description = "重试次数")
     private Integer retryCount;
 
     /**
      * 批次
      */
-    @ApiModelProperty("批次")
+    @Schema(description = "批次")
     private Integer batch;
 
     /**
      * gse任务ID
      */
-    @ApiModelProperty("gse任务ID")
+    @Schema(description = "gse任务ID")
     private String gseTaskId;
 
     /**
      * web访问链接
      */
-    @ApiModelProperty("web访问链接")
+    @Schema(description = "web访问链接")
     private List<String> link;
 }

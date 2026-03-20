@@ -27,15 +27,14 @@ package com.tencent.bk.job.manage.model.web.request.globalsetting;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.manage.api.common.constants.globalsetting.RestrictModeEnum;
 import com.tencent.bk.job.manage.api.common.constants.globalsetting.StorageUnitEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Positive;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import java.util.List;
 
 /**
@@ -46,22 +45,22 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@ApiModel("文件上传参数")
+@Schema(description = "文件上传参数")
 public class FileUploadSettingReq {
-    @ApiModelProperty("数量")
+    @Schema(description = "数量")
     @NotNull(message = "{validation.constraints.InvalidFileUploadSettingAmount.message}")
     @Positive(message = "{validation.constraints.InvalidFileUploadSettingAmount.message}")
     private Float amount;
 
-    @ApiModelProperty("单位:可选B/KB/MB/GB/TB/PB")
+    @Schema(description = "单位:可选B/KB/MB/GB/TB/PB")
     private StorageUnitEnum unit;
 
-    @ApiModelProperty("限制模式，0:禁止范围，1：允许范围，-1：不限制")
+    @Schema(description = "限制模式，0:禁止范围，1：允许范围，-1：不限制")
     @CheckEnum(enumClass = RestrictModeEnum.class, enumMethod = "isValid",
         message = "{validation.constraints.InvalidUploadFileRestrictMode.message}")
     private Integer restrictMode;
 
-    @ApiModelProperty("后缀列表")
+    @Schema(description = "后缀列表")
     private List<@Pattern(regexp = "^(\\.[A-Za-z0-9_-]{1,24})+$",
         message = "{validation.constraints.InvalidUploadFileSuffix.message}") String> suffixList;
 

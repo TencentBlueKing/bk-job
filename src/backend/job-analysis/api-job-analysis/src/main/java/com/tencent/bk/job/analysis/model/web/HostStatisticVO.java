@@ -24,15 +24,14 @@
 
 package com.tencent.bk.job.analysis.model.web;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("接入主机统计量")
+@Schema(description = "接入主机统计量")
 @Data
 public class HostStatisticVO {
 
-    @ApiModelProperty("数量")
+    @Schema(description = "数量")
     private Integer count;
 
 }

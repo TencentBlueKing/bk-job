@@ -24,25 +24,24 @@
 
 package com.tencent.bk.job.file_gateway.model.req.web;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("web页面操作预鉴权请求")
+@Schema(description = "web页面操作预鉴权请求")
 public class OperationPermissionReq {
-    @ApiModelProperty("操作ID,取值为: [file_source/view,file_source/create,file_source/edit,file_source/delete]")
+    @Schema(description = "操作ID,取值为: [file_source/view,file_source/create,file_source/edit,file_source/delete]")
     private String operation;
 
-    @ApiModelProperty("资源ID,比如文件源ID;对于部分不需要资源ID的操作(新建),不需要传参")
+    @Schema(description = "资源ID,比如文件源ID;对于部分不需要资源ID的操作(新建),不需要传参")
     private String resourceId;
 
-    @ApiModelProperty("资源范围类型:biz/business_set")
+    @Schema(description = "资源范围类型:biz/business_set")
     private String scopeType;
 
-    @ApiModelProperty("资源范围ID")
+    @Schema(description = "资源范围ID")
     private String scopeId;
 
-    @ApiModelProperty("是否返回详细的权限信息(依赖的权限，申请URL)。默认为false")
+    @Schema(description = "是否返回详细的权限信息(依赖的权限，申请URL)。默认为false")
     private boolean returnPermissionDetail;
 }

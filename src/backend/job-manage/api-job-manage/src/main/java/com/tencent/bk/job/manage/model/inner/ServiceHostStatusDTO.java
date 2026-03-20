@@ -26,21 +26,20 @@ package com.tencent.bk.job.manage.model.inner;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.constant.JobConstants;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.Objects;
 
-@ApiModel("主机状态信息")
+@Schema(description = "主机状态信息")
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ServiceHostStatusDTO {
 
-    @ApiModelProperty("服务器ID")
+    @Schema(description = "服务器ID")
     private Long hostId;
 
-    @ApiModelProperty("GSE Agent状态")
+    @Schema(description = "GSE Agent状态")
     private int alive;
 
     @Override

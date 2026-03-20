@@ -24,21 +24,20 @@
 
 package com.tencent.bk.job.analysis.model.web.resp;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel("清空对话记录响应数据")
+@Schema(description = "清空对话记录响应数据")
 @Data
 public class ClearChatHistoryResp {
 
     /**
      * 被清空的对话记录数量
      */
-    @ApiModelProperty(value = "被清空的对话记录数量")
+    @Schema(description = "被清空的对话记录数量")
     private Integer count;
 }
