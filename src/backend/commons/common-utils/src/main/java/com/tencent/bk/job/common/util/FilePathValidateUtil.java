@@ -10,15 +10,15 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 public class FilePathValidateUtil {
-    // 传统DOS正则表达式
-    private static final String CONVENTIONAL_DOS_PATH_REGEX = "(^[A-Za-z]:\\\\([^\\\\])(([^\\\\/:?\"<>|]" +
-        "|REGEX:(.*))*\\\\?)*)|(^[A-Za-z]:[\\\\])";
+    // 传统DOS正则表达式（兼容斜杠与反斜杠作为目录分隔符，以及混合使用的情况）
+    private static final String CONVENTIONAL_DOS_PATH_REGEX = "(^[A-Za-z]:[/\\\\]([^/\\\\])(([^/\\\\:?\"<>|]" +
+        "|REGEX:(.*))*[/\\\\]?)*)|(^[A-Za-z]:[/\\\\])";
 
     // Linux路径正则表达式
     private static final String LINUX_PATH_REGEX = "^/(((../)*|(./)*)|(\\.?[^.].*/{0,1}))+";
 
     // 内置变量或全局变量正则表达式
-    private static final String VARIABLE_REGEX = "(([A-Za-z]:\\\\)|(/)).*\\[[a-zA-Z0-9:/_-]*\\].*" +
+    private static final String VARIABLE_REGEX = "(([A-Za-z]:[/\\\\])|(/)).*\\[[a-zA-Z0-9:/_-]*\\].*" +
         "|.*\\$\\{[a-zA-Z_][a-zA-Z0-9_-]*\\}.*";
 
     // 传统DOS Pattern
