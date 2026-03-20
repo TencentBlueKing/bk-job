@@ -290,6 +290,7 @@
 
     .sync-content {
       height: calc(100vh - 199px);
+      padding-bottom: 72px;
 
       .sync-before,
       .sync-after {
