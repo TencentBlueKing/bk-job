@@ -22,31 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner;
+package com.tencent.bk.job.execute.model.inner;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.util.json.JsonMapper;
+import com.tencent.bk.job.common.model.dto.Container;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.util.List;
-
+/**
+ * 用于服务间调用的容器目标 DTO
+ * <p>
+ * 只包含容器 ID，完整的容器信息会在任务执行时从 CMDB 获取
+ */
+@Schema(description = "容器目标")
 @Data
-@Schema(description = "目标服务器")
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class ServiceTaskTargetDTO {
+public class ServiceExecuteTargetContainerDTO {
 
-    @Schema(description = "通过全局变量-主机列表指定目标服务器，对应的全局变量名")
-    private String variable;
+    @Schema(description = "容器在 CMDB 注册的 ID", requiredMode = Schema.RequiredMode.REQUIRED)
+    private Long id;
 
-    @Schema(description = "目标服务器")
-    private ServiceTaskHostNodeDTO targetServer;
-
-    @Schema(description = "目标容器列表")
-    private List<ServiceTargetContainerDTO> containerList;
-
-    @Override
-    public String toString() {
-        return JsonMapper.nonEmptyMapper().toJson(this);
+    /**
+     * 转换为通用 Container 对象
+     */
+    public Container toContainer() {
+        Container container = new Container();
+        container.setId(id);
+        return container;
     }
 }
+

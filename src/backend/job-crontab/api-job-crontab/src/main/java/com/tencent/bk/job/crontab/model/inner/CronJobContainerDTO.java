@@ -22,31 +22,52 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.inner;
+package com.tencent.bk.job.crontab.model.inner;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tencent.bk.job.common.util.json.JsonMapper;
+import com.tencent.bk.job.common.annotation.PersistenceObject;
+import com.tencent.bk.job.common.model.vo.ContainerVO;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
-
+/**
+ * 定时任务容器信息 DTO
+ */
 @Data
-@Schema(description = "目标服务器")
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class ServiceTaskTargetDTO {
+@NoArgsConstructor
+@PersistenceObject
+@Schema(description = "容器信息")
+@AllArgsConstructor
+public class CronJobContainerDTO implements Cloneable {
 
-    @Schema(description = "通过全局变量-主机列表指定目标服务器，对应的全局变量名")
-    private String variable;
+    @Schema(description = "CMDB中存的容器 ID")
+    private Long id;
 
-    @Schema(description = "目标服务器")
-    private ServiceTaskHostNodeDTO targetServer;
+    public static CronJobContainerDTO fromContainerVO(ContainerVO containerVO) {
+        if (containerVO == null) {
+            return null;
+        }
+        CronJobContainerDTO dto = new CronJobContainerDTO();
+        dto.setId(containerVO.getId());
+        return dto;
+    }
 
-    @Schema(description = "目标容器列表")
-    private List<ServiceTargetContainerDTO> containerList;
+    public static ContainerVO toContainerVO(CronJobContainerDTO dto) {
+        if (dto == null) {
+            return null;
+        }
+        ContainerVO vo = new ContainerVO();
+        vo.setId(dto.getId());
+        return vo;
+    }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
-    public String toString() {
-        return JsonMapper.nonEmptyMapper().toJson(this);
+    public CronJobContainerDTO clone() {
+        CronJobContainerDTO clone = new CronJobContainerDTO();
+        clone.setId(this.id);
+        return clone;
     }
 }
+
