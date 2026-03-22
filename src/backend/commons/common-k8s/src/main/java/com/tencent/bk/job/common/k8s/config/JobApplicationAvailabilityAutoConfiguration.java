@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.k8s.availability.JobApplicationAvailabilityBean
 import com.tencent.bk.job.common.k8s.availability.ServiceInstanceAvailabilityController;
 import com.tencent.bk.job.common.k8s.availability.SwitchableReadinessHealthIndicator;
 import org.springframework.boot.availability.ApplicationAvailabilityBean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -40,11 +41,12 @@ public class JobApplicationAvailabilityAutoConfiguration {
     }
 
     /**
-     * 可切换的 Readiness 健康检查指示器，用于支持柔性上下线
+     * 可切换的 Readiness 状态管理器，用于支持柔性上下线
      */
     @Bean
-    public SwitchableReadinessHealthIndicator switchableReadinessHealthIndicator() {
-        return new SwitchableReadinessHealthIndicator();
+    public SwitchableReadinessHealthIndicator switchableReadinessHealthIndicator(
+        ApplicationEventPublisher eventPublisher) {
+        return new SwitchableReadinessHealthIndicator(eventPublisher);
     }
 
     /**

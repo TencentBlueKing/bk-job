@@ -25,37 +25,36 @@
 package com.tencent.bk.job.common.k8s.availability;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.availability.AvailabilityChangeEvent;
+import org.springframework.boot.availability.ReadinessState;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * 可切换的 Readiness 健康检查指示器。
+ * 可切换的 Readiness 状态管理器。
  * <p>
- * 通过编程方式控制 Readiness 探针状态，实现服务实例的柔性上下线：
+ * 通过发布 {@link AvailabilityChangeEvent} 直接驱动 Spring Boot 的 Readiness 状态变更，
+ * 使 K8S 的 {@code /actuator/health/readiness} 探针能够感知上下线操作：
  * <ul>
- *   <li>下线：将状态置为 OUT_OF_SERVICE，K8S 将停止向该 Pod 调度流量</li>
- *   <li>上线：将状态恢复为 UP，K8S 将重新向该 Pod 调度流量</li>
+ *   <li>下线：发布 {@link ReadinessState#REFUSING_TRAFFIC}，K8S 停止向该 Pod 调度流量</li>
+ *   <li>上线：发布 {@link ReadinessState#ACCEPTING_TRAFFIC}，K8S 重新向该 Pod 调度流量</li>
  * </ul>
- * Pod 本身不会被删除或重启，仅流量调度受到影响。
+ * Pod 本身不会被删除或重启，仅流量调度受影响。
  * </p>
  */
 @Slf4j
-public class SwitchableReadinessHealthIndicator implements HealthIndicator {
+public class SwitchableReadinessHealthIndicator {
 
     /**
      * 服务实例是否在线（true=在线/接受流量，false=下线/不接受流量）
      */
     private final AtomicBoolean online = new AtomicBoolean(true);
 
-    @Override
-    public Health health() {
-        if (online.get()) {
-            return Health.up().build();
-        } else {
-            return Health.outOfService().build();
-        }
+    private final ApplicationEventPublisher eventPublisher;
+
+    public SwitchableReadinessHealthIndicator(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -64,8 +63,9 @@ public class SwitchableReadinessHealthIndicator implements HealthIndicator {
     public void goOnline() {
         boolean prev = online.getAndSet(true);
         if (!prev) {
-            log.info("Service instance is going ONLINE, readiness probe will return UP.");
+            log.info("Service instance is going ONLINE, publishing ReadinessState.ACCEPTING_TRAFFIC.");
         }
+        AvailabilityChangeEvent.publish(eventPublisher, this, ReadinessState.ACCEPTING_TRAFFIC);
     }
 
     /**
@@ -74,8 +74,9 @@ public class SwitchableReadinessHealthIndicator implements HealthIndicator {
     public void goOffline() {
         boolean prev = online.getAndSet(false);
         if (prev) {
-            log.info("Service instance is going OFFLINE, readiness probe will return OUT_OF_SERVICE.");
+            log.info("Service instance is going OFFLINE, publishing ReadinessState.REFUSING_TRAFFIC.");
         }
+        AvailabilityChangeEvent.publish(eventPublisher, this, ReadinessState.REFUSING_TRAFFIC);
     }
 
     /**
