@@ -55,6 +55,11 @@ import java.util.stream.Stream;
 public class FileUtil {
 
     /**
+     * 磁盘写/网络读阻塞告警阈值（毫秒），超过该值则打印告警日志
+     */
+    private static final long IO_BLOCK_WARN_THRESHOLD_MS = 5000L;
+
+    /**
      * 创建文件的父目录
      *
      * @param path 文件路径
@@ -170,8 +175,29 @@ public class FileUtil {
             int batchSize = 20480;
             byte[] content = new byte[batchSize];
             int length;
-            while ((length = ins.read(content)) > 0) {
+            long readStart;
+            long readCost;
+            long writeStart;
+            long writeCost;
+            while (true) {
+                // 计算网络read延迟
+                readStart = System.currentTimeMillis();
+                length = ins.read(content);
+                readCost = System.currentTimeMillis() - readStart;
+                if (readCost > IO_BLOCK_WARN_THRESHOLD_MS) {
+                    log.warn("Network read blocked for {}ms, targetPath:{}", readCost, targetPath);
+                }
+                if (length <= 0) {
+                    break;
+                }
+                // 计算磁盘写延迟
+                writeStart = System.currentTimeMillis();
                 fos.write(content, 0, length);
+                writeCost = System.currentTimeMillis() - writeStart;
+                if (writeCost > IO_BLOCK_WARN_THRESHOLD_MS) {
+                    log.warn("Disk write blocked for {}ms, targetPath:{}, writeBytes:{}",
+                        writeCost, targetPath, length);
+                }
                 Thread.sleep(0);
             }
             closeFos(fos);
@@ -229,8 +255,30 @@ public class FileUtil {
             long lastSpeedWatchFileSize = totalLength;
             long currentSpeedWatchTime;
             long timeDelta = 0;
-            while ((length = ins.read(content)) > 0) {
+            long readStart;
+            long readCost;
+            long writeStart;
+            long writeCost;
+            while (true) {
+                // 计算网络read延迟
+                readStart = System.currentTimeMillis();
+                length = ins.read(content);
+                readCost = System.currentTimeMillis() - readStart;
+                if (readCost > IO_BLOCK_WARN_THRESHOLD_MS) {
+                    log.warn("Network read blocked for {}ms, targetPath:{}, progress: {}KB/{}KB",
+                        readCost, targetPath, totalLength / 1000, fileSize / 1000);
+                }
+                if (length <= 0) {
+                    break;
+                }
+                // 计算磁盘写延迟
+                writeStart = System.currentTimeMillis();
                 fos.write(content, 0, length);
+                writeCost = System.currentTimeMillis() - writeStart;
+                if (writeCost > IO_BLOCK_WARN_THRESHOLD_MS) {
+                    log.warn("Disk write blocked for {}ms, targetPath:{}, writeBytes:{}, progress: {}KB/{}KB",
+                        writeCost, targetPath, length, totalLength / 1000, fileSize / 1000);
+                }
                 totalLength += length;
                 process.set((int) (totalLength / (float) fileSize * 100));
                 currentSpeedWatchTime = System.currentTimeMillis();
