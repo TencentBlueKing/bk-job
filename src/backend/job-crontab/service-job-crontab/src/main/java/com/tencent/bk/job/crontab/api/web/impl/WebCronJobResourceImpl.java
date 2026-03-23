@@ -40,11 +40,11 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.CommonAppService;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.check.IlegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
+import com.tencent.bk.job.common.util.check.XssChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.crontab.api.web.WebCronJobResource;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
@@ -400,11 +400,12 @@ public class WebCronJobResourceImpl implements WebCronJobResource {
     private void checkCronName(CronJobCreateUpdateReq cronJobCreateUpdateReq) {
         try {
             StringCheckHelper stringCheckHelper = new StringCheckHelper(new TrimChecker(), new NotEmptyChecker(),
-                new IlegalCharChecker(), new MaxLengthChecker(60));
+                new XssChecker(), new MaxLengthChecker(60));
             cronJobCreateUpdateReq.setName(stringCheckHelper.checkAndGetResult(cronJobCreateUpdateReq.getName()));
         } catch (StringCheckException e) {
             log.warn("Cron Job Name is invalid:", e);
-            throw new InvalidParamException(e, ErrorCode.ILLEGAL_PARAM);
+            throw new InvalidParamException(e, ErrorCode.ILLEGAL_PARAM_WITH_PARAM_NAME_AND_REASON,
+                new Object[]{"name", e.getMessage()});
         }
     }
 
