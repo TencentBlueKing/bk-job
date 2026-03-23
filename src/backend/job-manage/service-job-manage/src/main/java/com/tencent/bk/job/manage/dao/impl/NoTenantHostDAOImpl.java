@@ -735,8 +735,8 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
 
     @Override
     public int syncHostTopo(Long hostId) {
-        ApplicationHostDTO hostInfoDTO = getHostById(hostId);
-        if (hostInfoDTO != null) {
+        boolean existHost = existAppHostInfoByHostId(hostId);
+        if (existHost) {
             List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByHostId(hostId);
             return buildHostTopoUpdateQuery(hostId, hostTopoDTOList).execute();
         }
@@ -785,12 +785,17 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
             }
         } catch (Exception e) {
             log.warn("Fail to batch syncHostTopo, try one by one, size={}", queryList.size(), e);
+            int failedNum = 0;
             for (Query query : queryList) {
                 try {
                     affectedNum += query.execute();
                 } catch (Exception ex) {
+                    failedNum++;
                     log.warn("Fail to syncHostTopo one by one, SQL={}", query.getSQL(ParamType.INLINED), ex);
                 }
+            }
+            if (failedNum > 0) {
+                log.warn("syncHostTopo one by one finished, total={}, failed={}", queryList.size(), failedNum);
             }
         }
         return affectedNum;
