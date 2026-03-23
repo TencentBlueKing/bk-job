@@ -633,6 +633,19 @@ iam:
   # 作业平台注册到IAM的系统ID
   systemId: bk_job
 
+## 蓝鲸GSE V2参数配置
+gseV2:
+  # 是否初始化 GSE2.0 Client
+  enabled: true
+  # 重试策略
+  retry:
+    # 是否开启重试
+    enabled: false
+    # 含重试的最大执行次数
+    maxAttempts: 3
+    # 重试间隔（单位：秒）
+    intervalSeconds: 5
+
 ## 操作审计配置
 audit:
   # 是否开启操作审计

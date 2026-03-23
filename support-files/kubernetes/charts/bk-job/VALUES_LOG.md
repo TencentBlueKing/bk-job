@@ -67,6 +67,19 @@ volumeExtension:
   volumeMounts: []
 ```
 
+5. 增加GSE V2重试配置
+```yaml
+gseV2:
+  # 重试策略
+  retry:
+    # 是否开启重试
+    enabled: false
+    # 含重试的最大执行次数
+    maxAttempts: 3
+    # 重试间隔（单位：秒）
+    intervalSeconds: 5
+```
+
 ## 0.7.3
 1. 增加连接外部MariaDB、Redis、RabbitMQ、MongoDB支持TLS相关配置
 ```yaml
