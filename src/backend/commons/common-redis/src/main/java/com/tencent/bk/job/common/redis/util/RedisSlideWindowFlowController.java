@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.util.FlowController;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
 
@@ -46,7 +47,7 @@ import java.util.TimerTask;
  * 基于Redis的分布式实时滑动窗口限流器
  */
 @Slf4j
-public class RedisSlideWindowFlowController implements FlowController {
+public class RedisSlideWindowFlowController implements FlowController, DisposableBean {
 
     private static final String checkScript = "return redis.call('llen',KEYS[1])";
 
@@ -326,5 +327,25 @@ public class RedisSlideWindowFlowController implements FlowController {
             log.warn("Redis lua script return an unexpected value:{}, do not limit rate for {}", result, resourceId);
             return true;
         }
+    }
+
+    /**
+     * 服务停机时停止内部定时任务，避免 Redis 连接关闭后持续报错
+     */
+    @Override
+    public void destroy() {
+        log.info("RedisSlideWindowFlowController destroying, cancelling timer task");
+        isReady = false;
+        try {
+            clearTask.cancel();
+        } catch (Exception e) {
+            log.warn("Failed to cancel clearTask", e);
+        }
+        try {
+            timer.cancel();
+        } catch (Exception e) {
+            log.warn("Failed to cancel timer", e);
+        }
+        log.info("RedisSlideWindowFlowController destroyed.");
     }
 }
