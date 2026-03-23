@@ -169,7 +169,8 @@ public class AuthResult {
     public AuthResult mergeAuthResult(AuthResult otherAuthResult) {
         AuthResult authResult = new AuthResult();
         boolean isPass = this.pass && otherAuthResult.isPass();
-        authResult.setUser(user);
+        // Use the non-null user from either result to ensure user info is always available
+        authResult.setUser(this.user != null ? this.user : otherAuthResult.getUser());
         authResult.setPass(isPass);
         if (!isPass) {
             List<PermissionActionResource> requiredActionResourceList = new ArrayList<>();
