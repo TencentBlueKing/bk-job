@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.model.web.vo.task;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.util.check.IlegalCharChecker;
+import com.tencent.bk.job.common.util.check.IllegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
@@ -95,7 +95,7 @@ public class TaskStepVO {
         }
         try {
             StringCheckHelper stepCheckHelper = new StringCheckHelper(new TrimChecker(), new NotEmptyChecker(),
-                new IlegalCharChecker(), new MaxLengthChecker(60));
+                                                                      new IllegalCharChecker(), new MaxLengthChecker(60));
             this.name = stepCheckHelper.checkAndGetResult(name);
         } catch (StringCheckException e) {
             log.warn("Step name is invalid, stepName: {}", name);

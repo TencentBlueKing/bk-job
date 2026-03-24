@@ -29,33 +29,22 @@ import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class IlegalCharChecker implements IStringCheckStrategy {
+/**
+ * 默认的非法字符检查器，将以下字符视为非法字符：\|/:*<>"?
+ * 主要用于某些资源（脚本、执行方案、文件源等）的名称、别名等字段校验
+ */
+public class IllegalCharChecker implements IStringCheckStrategy {
 
     public static final String DEFAULT_PATTERN = "\\\\|/:*<>\"?";
-    private String patternStr;
+    private final String patternStr;
     private Pattern pattern;
 
-    public IlegalCharChecker() {
+    public IllegalCharChecker() {
         this.patternStr = DEFAULT_PATTERN;
     }
 
-    public IlegalCharChecker(String patternStr) {
+    public IllegalCharChecker(String patternStr) {
         this.patternStr = patternStr;
-    }
-
-    public static void main(String[] args) {
-        IStringCheckStrategy checkStrategy = new IlegalCharChecker();
-        System.out.println(checkStrategy.checkAndGetResult("aaa"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa\\"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa|"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa/"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa:"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa*"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa<"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa>"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa\""));
-        System.out.println(checkStrategy.checkAndGetResult("aaa?"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa="));
     }
 
     @Override
