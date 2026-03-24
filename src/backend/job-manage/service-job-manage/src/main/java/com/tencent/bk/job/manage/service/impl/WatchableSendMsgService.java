@@ -196,13 +196,13 @@ public class WatchableSendMsgService {
             case NO_LIMIT:
                 break;
             case RESOURCE_SCOPE_LIMIT:
-                log.warn("Send notify exceed resource scope quota limit, resourceScope: {}",resourceScope);
+                log.info("Send notify exceed resource scope quota limit, resourceScope: {}",resourceScope);
                 throw new ResourceExhaustedException(ErrorCode.SEND_NOTIFY_EXCEED_RESOURCE_SCOPE_QUOTA_LIMIT);
             case USER_LIMIT:
-                log.warn("Send notify exceed user quota limit, triggerUser: {}", triggerUser);
+                log.info("Send notify exceed user quota limit, triggerUser: {}", triggerUser);
                 throw new ResourceExhaustedException(ErrorCode.SEND_NOTIFY_EXCEED_USER_QUOTA_LIMIT);
             case SYSTEM_LIMIT:
-                log.warn("Send notify exceed system quota limit, resourceScope: {}, triggerUser: {}",
+                log.info("Send notify exceed system quota limit, resourceScope: {}, triggerUser: {}",
                     resourceScope, triggerUser);
                 throw new ResourceExhaustedException(ErrorCode.SEND_NOTIFY_EXCEED_SYSTEM_QUOTA_LIMIT);
         }
