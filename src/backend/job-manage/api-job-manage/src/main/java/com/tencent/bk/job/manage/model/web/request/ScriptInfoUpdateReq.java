@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.model.web.request;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.util.check.IlegalCharChecker;
+import com.tencent.bk.job.common.util.check.IllegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
@@ -62,7 +62,7 @@ public class ScriptInfoUpdateReq {
     public void validateScriptName() {
         try {
             StringCheckHelper stringCheckHelper = new StringCheckHelper(new TrimChecker(),
-                new NotEmptyChecker(), new IlegalCharChecker(), new MaxLengthChecker(60));
+                                                                        new NotEmptyChecker(), new IllegalCharChecker(), new MaxLengthChecker(60));
             this.scriptName = stringCheckHelper.checkAndGetResult(scriptName);
         } catch (StringCheckException e) {
             log.warn("scriptName is invalid:", e);

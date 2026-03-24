@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.common.validation;
 
-import com.tencent.bk.job.common.util.check.IllegalCharChecker;
-import com.tencent.bk.job.common.util.check.StringCheckHelper;
+import com.tencent.bk.job.common.util.check.XssChecker;
 import org.apache.commons.lang3.StringUtils;
 
 import jakarta.validation.Constraint;
@@ -44,23 +43,28 @@ import static java.lang.annotation.ElementType.TYPE_USE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * 特殊字符校验
+ * XSS 攻击字符校验：禁止字段值包含 HTML 标签相关字符（{@code < > " '}），防止 XSS 注入攻击。
  */
 @Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE})
-@Constraint(validatedBy = NotContainSpecialChar.Validator.class)
+@Constraint(validatedBy = NoXss.Validator.class)
 @Documented
 @Retention(RUNTIME)
-public @interface NotContainSpecialChar {
+public @interface NoXss {
 
-    String message() default "{fieldName} {validation.constraints.NotContainSpecialChar.message}";
+    String message() default "{fieldName} {validation.constraints.NoXss.message}";
 
     Class<?>[] groups() default {};
 
     Class<? extends Payload>[] payload() default {};
 
-    String fieldName();
+    /**
+     * 字段名称，用于错误信息展示
+     */
+    String fieldName() default "field";
 
-    class Validator implements ConstraintValidator<NotContainSpecialChar, String> {
+    class Validator implements ConstraintValidator<NoXss, String> {
+
+        private static final XssChecker XSS_CHECKER = new XssChecker();
 
         @Override
         public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {
@@ -68,8 +72,7 @@ public @interface NotContainSpecialChar {
                 return true;
             }
             try {
-                StringCheckHelper stringCheckHelper = new StringCheckHelper(new IllegalCharChecker());
-                stringCheckHelper.checkAndGetResult(value);
+                XSS_CHECKER.checkAndGetResult(value);
                 return true;
             } catch (Exception e) {
                 return false;
