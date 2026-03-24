@@ -315,13 +315,23 @@ public class HostTopoDAOImpl implements HostTopoDAO {
 
     @Override
     public List<HostTopoDTO> listHostTopoByHostIds(Collection<Long> hostIds) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(defaultTable.HOST_ID.in(
-            hostIds.stream()
-                .map(JooqDataTypeUtil::buildULong)
-                .collect(Collectors.toList())
-        ));
-        return listHostTopoByConditions(conditions);
+        if (CollectionUtils.isEmpty(hostIds)) {
+            return Collections.emptyList();
+        }
+        // 分批查询，避免IN条件过长
+        int batchSize = 2000;
+        List<List<Long>> subListList = CollectionUtil.partitionList(new ArrayList<>(hostIds), batchSize);
+        List<HostTopoDTO> resultList = new ArrayList<>();
+        for (List<Long> subList : subListList) {
+            List<Condition> conditions = new ArrayList<>();
+            conditions.add(defaultTable.HOST_ID.in(
+                subList.stream()
+                    .map(JooqDataTypeUtil::buildULong)
+                    .collect(Collectors.toList())
+            ));
+            resultList.addAll(listHostTopoByConditions(conditions));
+        }
+        return resultList;
     }
 
     @Override
