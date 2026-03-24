@@ -34,3 +34,6 @@ openspec/
 pre-*-bkcodeai
 
 tests/openapi/bin/
+
+# Claude Code
+.claude/
