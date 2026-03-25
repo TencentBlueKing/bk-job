@@ -41,7 +41,7 @@ Default job logback configuration provided for import
         <encoder class="com.tencent.bk.job.common.log.pojo.encoder.SpecificLoggerAdjustLevelEncoder">
             <pattern>${FILE_LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
-            <targetLogger>io.opentelemetry.exporter.internal.grpc.OkHttpGrpcExporter</targetLogger>
+            <targetLogger>io.opentelemetry.exporter.internal.http.HttpExporter</targetLogger>
             <originLoggingLevel>ERROR</originLoggingLevel>
             <targetLoggingLevel>WARN</targetLoggingLevel>
         </encoder>
@@ -181,7 +181,7 @@ Default job logback configuration provided for import
         </filter>
         <!-- 因为这个过滤器需要走HashSet匹配，考虑性能，所以放在后面 -->
         <filter class="com.tencent.bk.job.common.log.pojo.filter.LoggerExclusionFilter">
-            <exclusiveLogger>io.opentelemetry.exporter.internal.grpc.OkHttpGrpcExporter</exclusiveLogger>
+            <exclusiveLogger>io.opentelemetry.exporter.internal.http.HttpExporter</exclusiveLogger>
             <onMatch>DENY</onMatch>
             <onMismatch>ACCEPT</onMismatch>
         </filter>
