@@ -22,27 +22,33 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.retry;
+package com.tencent.bk.job.common.cc.exception;
+
+import com.tencent.bk.job.common.model.error.ErrorType;
 
 /**
- * 重试策略接口
+ * CMDB 动态分组不存在异常。
+ * <p>
+ * 当 CMDB 接口返回"未找到相关数据"（错误码 1199019）时抛出此异常，
+ * 表示动态分组在 CMDB 中已被删除或不存在。这是一种已知的业务数据异常，
+ * 不应触发重试，也不应打印 ERROR 日志；由上层业务逻辑决定如何处理（通常忽略并打印 INFO 日志）。
  */
-public interface RetryPolicy {
+public class CmdbDynamicGroupNotFoundException extends CmdbException {
 
     /**
-     * 计算下一次重试的等待时间
-     *
-     * @param attemptNumber 当前重试次数（从1开始）
-     * @return 等待时间（毫秒）
+     * 动态分组 ID
      */
-    long getWaitTimeMs(int attemptNumber);
+    private final String dynamicGroupId;
 
-    /**
-     * 判断是否应该重试
-     *
-     * @param attemptNumber 当前已执行次数
-     * @param exception     异常
-     * @return 是否重试
-     */
-    boolean shouldRetry(int attemptNumber, Exception exception);
+    public CmdbDynamicGroupNotFoundException(ErrorType errorType,
+                                             Integer errorCode,
+                                             Object[] errorParams,
+                                             String dynamicGroupId) {
+        super(errorType, errorCode, errorParams);
+        this.dynamicGroupId = dynamicGroupId;
+    }
+
+    public String getDynamicGroupId() {
+        return dynamicGroupId;
+    }
 }
