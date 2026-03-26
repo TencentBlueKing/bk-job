@@ -31,6 +31,7 @@
       {{ $t('script.新建脚本') }}
     </div>
     <template slot="sub-header">
+      <ai-tool :data="formData" />
       <icon
         v-bk-tooltips="$t('上传脚本')"
         v-test="{ type: 'button', value: 'uploadScript' }"
@@ -138,6 +139,7 @@
 
   import I18n from '@/i18n';
 
+  import AiTool from './components/ai-tool';
   import Layout from './components/layout';
 
   const genDefaultFormData = () => ({
@@ -155,6 +157,7 @@
       JbInput,
       AceEditor,
       Layout,
+      AiTool,
     },
     inheritAttrs: false,
     props: {

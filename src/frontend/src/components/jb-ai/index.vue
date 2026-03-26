@@ -1,15 +1,15 @@
 <template>
-  <div>
-    <ai-blueking
-      v-show="isBluekingShow"
-      ref="aiRef"
-      :default-width="defaultWidth"
-      :url="apiUrl" />
-  </div>
+  <ai-blueking
+    v-show="false"
+    ref="aiRef"
+    :default-width="defaultWidth"
+    :url="apiUrl" />
 </template>
 <script setup>
   import _ from 'lodash';
-  import { ref } from 'vue';
+  import { onMounted, ref } from 'vue';
+
+  import { useRoute } from '@router';
 
   import AiService from '@service/ai';
 
@@ -21,16 +21,18 @@
 
 
   const defaultWidth = window.innerWidth * 0.33;
+  const route = useRoute();
+
   const aiRef = ref();
   const apiUrl = ref('');
-  const isBluekingShow = ref(false);
+
 
   AiService.fetchConfig()
     .then((data) => {
       apiUrl.value = data.agentRootUrl;
     });
 
-  const handleShowBlueking = async (commandName, params) => {
+  const handleShowBlueking = async (commandName, params, sessionCode) => {
     const originalCommand = _.find((aiRef.value?.agentInfo?.conversationSettings?.commands || []), item => item.id === commandName);
 
 
@@ -48,32 +50,90 @@
     };
 
 
-    try {
-      await aiRef.value?.handleShow(undefined, {  showFirst: true });
-      aiRef.value?.handleShortcutClick({
-        shortcut: command,
-        source: 'popup',
-      }, true);
-    } catch (error) {
-      console.error('AI 分析失败:', error);
-    }
+    await aiRef.value?.handleShow(sessionCode, {  showFirst: true });
+    aiRef.value?.handleShortcutClick({
+      shortcut: command,
+      source: 'popup',
+    }, true);
   };
 
 
-  eventBus.$on('ai:generaChat', () => {
-    aiRef.value?.handleShow();
+  eventBus.$on('ai:generaChat', async () => {
+    const curentScope =  `${window.PROJECT_CONFIG.SCOPE_TYPE}/${window.PROJECT_CONFIG.SCOPE_ID}`;
+    const sceneType = 2;
+    const sessionMemo = await AiService.fetchChatSession({
+      sceneType,
+      sceneResourceId: curentScope,
+    });
+    aiRef.value?.handleShow(sessionMemo?.aiSessionId);
+    if (!sessionMemo?.aiSessionId) {
+      const sessionList = await aiRef.value?.getSessionList();
+      AiService.updateChatSession({
+        sceneType,
+        sceneResourceId: curentScope,
+        aiSessionId: sessionList[0]?.sessionCode,
+        sessionName: sessionList[0]?.sessionName,
+      });
+    }
   });
 
   eventBus.$on('ai:checkScript', (params) => {
     handleShowBlueking('checkScript', params);
   });
 
-  eventBus.$on('ai:analyzeScriptTaskError', (params) => {
-    handleShowBlueking('analyzeScriptTaskError', params);
+  eventBus.$on('ai:checkScriptVersion', async (params) => {
+    const currentScriptVersionId = route.value.params.id;
+    const sceneType = 2;
+    const sessionMemo = await AiService.fetchChatSession({
+      sceneType,
+      sceneResourceId: currentScriptVersionId,
+    });
+    await handleShowBlueking('checkScript', params, sessionMemo?.aiSessionId);
+    if (!sessionMemo?.aiSessionId) {
+      const sessionList = await aiRef.value?.getSessionList();
+      AiService.updateChatSession({
+        sceneType,
+        sceneResourceId: currentScriptVersionId,
+        aiSessionId: sessionList[0]?.sessionCode,
+        sessionName: sessionList[0]?.sessionName,
+      });
+    }
   });
 
-  eventBus.$on('ai:analyzeFileTaskError', (params) => {
-    handleShowBlueking('analyzeFileTaskError', params);
+  eventBus.$on('ai:analyzeScriptTaskError', async (params) => {
+    const currrentStepInstanceId = route.value.query.stepInstanceId;
+    const sessionMemo = await AiService.fetchChatSession({
+      sceneType: 1,
+      sceneResourceId: currrentStepInstanceId,
+    });
+    await handleShowBlueking('analyzeScriptTaskError', params, sessionMemo?.aiSessionId);
+    if (!sessionMemo?.aiSessionId) {
+      const sessionList = await aiRef.value?.getSessionList();
+      AiService.updateChatSession({
+        sceneType: 1,
+        sceneResourceId: currrentStepInstanceId,
+        aiSessionId: sessionList[0]?.sessionCode,
+        sessionName: sessionList[0]?.sessionName,
+      });
+    }
+  });
+
+  eventBus.$on('ai:analyzeFileTaskError', async (params) => {
+    const currrentStepInstanceId = route.value.query.stepInstanceId;
+    const sessionMemo = await AiService.fetchChatSession({
+      sceneType: 1,
+      sceneResourceId: currrentStepInstanceId,
+    });
+    await handleShowBlueking('analyzeFileTaskError', params, sessionMemo?.aiSessionId);
+    if (!sessionMemo?.aiSessionId) {
+      const sessionList = await aiRef.value?.getSessionList();
+      AiService.updateChatSession({
+        sceneType: 1,
+        sceneResourceId: currrentStepInstanceId,
+        aiSessionId: sessionList[0]?.sessionCode,
+        sessionName: sessionList[0]?.sessionName,
+      });
+    }
   });
 
 </script>
