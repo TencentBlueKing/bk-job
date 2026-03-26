@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.cc.sdk;
 
+import com.tencent.bk.job.common.cc.exception.CmdbDynamicGroupNotFoundException;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.cc.model.CcCloudAreaInfoDTO;
 import com.tencent.bk.job.common.cc.model.CcDynamicGroupDTO;
@@ -162,10 +163,15 @@ public class RetryableBizCmdbClient implements IBizCmdbClient {
 
     @Override
     public List<DynamicGroupHostPropDTO> getDynamicGroupIp(String tenantId, long bizId, String groupId) {
-        return retryExecutor.executeWithRetry(
-            () -> delegate.getDynamicGroupIp(tenantId, bizId, groupId),
-            "getDynamicGroupIp"
-        );
+        try {
+            return retryExecutor.executeWithRetry(
+                () -> delegate.getDynamicGroupIp(tenantId, bizId, groupId),
+                "getDynamicGroupIp"
+            );
+        } catch (CmdbDynamicGroupNotFoundException e) {
+            // 动态分组不存在属于已知数据异常，直接向上抛出，不触发重试
+            throw e;
+        }
     }
 
     @Override
