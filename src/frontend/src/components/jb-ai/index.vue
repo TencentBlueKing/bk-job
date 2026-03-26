@@ -60,7 +60,7 @@
 
   eventBus.$on('ai:generaChat', async () => {
     const curentScope =  `${window.PROJECT_CONFIG.SCOPE_TYPE}/${window.PROJECT_CONFIG.SCOPE_ID}`;
-    const sceneType = 2;
+    const sceneType = 3;
     const sessionMemo = await AiService.fetchChatSession({
       sceneType,
       sceneResourceId: curentScope,
