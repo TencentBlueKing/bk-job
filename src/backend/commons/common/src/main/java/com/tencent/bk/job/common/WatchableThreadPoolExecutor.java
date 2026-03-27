@@ -119,11 +119,11 @@ public class WatchableThreadPoolExecutor extends ThreadPoolExecutor {
             getTags(),
             this,
             threadPoolExecutor -> (double) threadPoolExecutor.getMaximumPoolSize());
-        meterRegistry.gauge("job_thread_pool_task_total",
+        meterRegistry.gauge("job_thread_pool_task_count",
             getTags(),
             this,
             threadPoolExecutor -> (double) threadPoolExecutor.getTaskCount());
-        meterRegistry.gauge("job_thread_pool_completed_task_total",
+        meterRegistry.gauge("job_thread_pool_completed_task_count",
             getTags(),
             this,
             threadPoolExecutor -> (double) threadPoolExecutor.getCompletedTaskCount());
