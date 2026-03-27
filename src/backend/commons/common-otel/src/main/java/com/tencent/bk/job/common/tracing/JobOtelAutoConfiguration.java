@@ -39,7 +39,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * OTel 配置（Spring Boot 3.x + Micrometer Tracing）
@@ -48,39 +47,52 @@ import java.util.function.Supplier;
  * 通过 @Profile("!test") 排除测试环境避免 GlobalOpenTelemetry 重复设置问题。</p>
  *
  * <p>Spring Boot 3.x 通过 micrometer-tracing-bridge-otel 自动配置 OTel SDK，
- * 本配置类仅提供 BK-JOB 定制的 Resource（bkDataToken）和条件化的 SpanProcessor。</p>
+ * 本配置类提供 BK-JOB 定制的 Resource 和条件化的 SpanProcessor。</p>
+ *
+ * <p><b>重要</b>：自定义 {@link Resource} Bean 会导致 Spring Boot 的自动配置 Resource 退让
+ * （含 service.name、telemetry.sdk.* 以及 management.opentelemetry.resource-attributes）。
+ * 因此本类的 Resource Bean 必须以 {@link Resource#getDefault()} 为基础进行合并，
+ * 确保 telemetry.sdk.* 等标准属性不丢失，并显式设置 service.name 与 K8s 等运行环境属性。</p>
  */
 @Slf4j
 @Configuration(proxyBeanMethods = false)
 @Profile("!test")
 class JobOtelAutoConfiguration {
 
-    @Value("${job.tracing.exporter.enabled:false}")
-    private boolean exporterEnabled;
-
     @Value("${job.tracing.bk-data-token:}")
     private String bkDataToken;
 
-    @Bean
-    Supplier<Resource> otelBkDataTokenResourceProvider() {
-        return this::buildResource;
-    }
+    @Value("${spring.application.name:unknown}")
+    private String applicationName;
+
+    @Value("${KUBERNETES_NAMESPACE:}")
+    private String k8sNamespace;
+
+    @Value("${BK_JOB_POD_NAME:}")
+    private String k8sPodName;
 
     @Bean
-    Resource otelBkDataTokenResource() {
-        return buildResource();
+    Resource otelJobResource() {
+        AttributesBuilder attrs = Attributes.builder();
+        attrs.put("bk.data.token", bkDataToken);
+        attrs.put("service.name", applicationName);
+        putIfNotBlank(attrs, "k8s.namespace.name", k8sNamespace);
+        putIfNotBlank(attrs, "k8s.pod.name", k8sPodName);
+
+        Resource resource = Resource.getDefault().merge(Resource.create(attrs.build()));
+        log.debug("OTel Resource: {}", resource.getAttributes());
+        return resource;
     }
 
-    private Resource buildResource() {
-        AttributesBuilder attributes = Attributes.builder();
-        attributes.put("bk.data.token", bkDataToken);
-        return Resource.create(attributes.build());
+    private static void putIfNotBlank(AttributesBuilder builder, String key, String value) {
+        if (value != null && !value.isBlank()) {
+            builder.put(key, value);
+        }
     }
 
     @Bean
     @ConditionalOnProperty(name = "job.tracing.exporter.enabled", havingValue = "true")
     SpanProcessor otelBatchSpanProcessor(ObjectProvider<List<SpanExporter>> spanExporters) {
-        log.info("OTel exporter enabled, bkDataToken={}", bkDataToken);
         List<SpanExporter> exporters = spanExporters.getIfAvailable(List::of);
         if (exporters.isEmpty()) {
             log.warn("No SpanExporter available, skip batch span processor creation");
