@@ -7,7 +7,7 @@
 </template>
 <script setup>
   import _ from 'lodash';
-  import { onMounted, ref } from 'vue';
+  import { ref } from 'vue';
 
   import { useRoute } from '@router';
 
@@ -32,7 +32,7 @@
       apiUrl.value = data.agentRootUrl;
     });
 
-  const handleShowBlueking = async (commandName, params, sessionCode) => {
+  const handleShowBlueking = async (commandName, params, sessionCode, showOptions = {}) => {
     const originalCommand = _.find((aiRef.value?.agentInfo?.conversationSettings?.commands || []), item => item.id === commandName);
 
 
@@ -49,8 +49,14 @@
       })),
     };
 
+    const sessionList = await aiRef.value?.getSessionList();
+    if (!_.find(sessionList, item => item.sessionCode === sessionCode)) {
+      // 存在会话，无需创建
+      await aiRef.value?.addNewSession();
+    }
 
-    await aiRef.value?.handleShow(sessionCode, {  showFirst: true });
+
+    await aiRef.value?.handleShow(sessionCode, {  showFirst: true, ...showOptions });
     aiRef.value?.handleShortcutClick({
       shortcut: command,
       source: 'popup',
@@ -78,7 +84,9 @@
   });
 
   eventBus.$on('ai:checkScript', (params) => {
-    handleShowBlueking('checkScript', params);
+    handleShowBlueking('checkScript', params, undefined, {
+      isTemporary: false,
+    });
   });
 
   eventBus.$on('ai:checkScriptVersion', async (params) => {
