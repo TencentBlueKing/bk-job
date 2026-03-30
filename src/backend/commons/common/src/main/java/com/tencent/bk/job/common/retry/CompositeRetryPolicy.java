@@ -24,25 +24,45 @@
 
 package com.tencent.bk.job.common.retry;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
- * 重试策略接口
+ * 组合重试策略。
+ * <p>
+ * 将多个 {@link RetryPolicy} 组合为一个策略：
+ * <ul>
+ *     <li>等待时间取所有策略的最大值</li>
+ *     <li>是否重试取所有策略的"与"运算——任一策略判定不重试则不重试</li>
+ * </ul>
  */
-public interface RetryPolicy {
+public class CompositeRetryPolicy implements RetryPolicy {
 
-    /**
-     * 计算下一次重试的等待时间
-     *
-     * @param attemptNumber 当前重试次数（从1开始）
-     * @return 等待时间（毫秒）
-     */
-    long getWaitTimeMs(int attemptNumber);
+    private final List<RetryPolicy> policies;
 
-    /**
-     * 判断是否应该重试
-     *
-     * @param attemptNumber 当前已执行次数
-     * @param exception     异常
-     * @return 是否重试
-     */
-    boolean shouldRetry(int attemptNumber, Exception exception);
+    public CompositeRetryPolicy(RetryPolicy... policies) {
+        if (policies == null || policies.length == 0) {
+            throw new IllegalArgumentException("At least one RetryPolicy is required");
+        }
+        this.policies = Arrays.asList(policies);
+    }
+
+    @Override
+    public long getWaitTimeMs(int attemptNumber) {
+        long maxWaitTime = 0;
+        for (RetryPolicy policy : policies) {
+            maxWaitTime = Math.max(maxWaitTime, policy.getWaitTimeMs(attemptNumber));
+        }
+        return maxWaitTime;
+    }
+
+    @Override
+    public boolean shouldRetry(int attemptNumber, Exception exception) {
+        for (RetryPolicy policy : policies) {
+            if (!policy.shouldRetry(attemptNumber, exception)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

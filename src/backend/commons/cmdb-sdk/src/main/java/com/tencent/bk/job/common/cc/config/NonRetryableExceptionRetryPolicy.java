@@ -22,27 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.retry;
+package com.tencent.bk.job.common.cc.config;
+
+import com.tencent.bk.job.common.retry.RetryPolicy;
+
+import java.util.Collections;
+import java.util.Set;
 
 /**
- * 重试策略接口
+ * 基于异常类型的不可重试策略。
+ * <p>
+ * 当捕获到的异常属于已知的、不应重试的异常类型时，立即终止重试。
+ * 通常与 {@link com.tencent.bk.job.common.retry.CompositeRetryPolicy} 组合使用，
+ * 与指数退避等通用策略共同决定重试行为。
+ * </p>
  */
-public interface RetryPolicy {
+public class NonRetryableExceptionRetryPolicy implements RetryPolicy {
 
-    /**
-     * 计算下一次重试的等待时间
-     *
-     * @param attemptNumber 当前重试次数（从1开始）
-     * @return 等待时间（毫秒）
-     */
-    long getWaitTimeMs(int attemptNumber);
+    private final Set<Class<? extends Exception>> nonRetryableExceptionTypes;
 
-    /**
-     * 判断是否应该重试
-     *
-     * @param attemptNumber 当前已执行次数
-     * @param exception     异常
-     * @return 是否重试
-     */
-    boolean shouldRetry(int attemptNumber, Exception exception);
+    public NonRetryableExceptionRetryPolicy(Set<Class<? extends Exception>> nonRetryableExceptionTypes) {
+        this.nonRetryableExceptionTypes = Collections.unmodifiableSet(nonRetryableExceptionTypes);
+    }
+
+    @Override
+    public long getWaitTimeMs(int attemptNumber) {
+        return 0;
+    }
+
+    @Override
+    public boolean shouldRetry(int attemptNumber, Exception exception) {
+        for (Class<? extends Exception> nonRetryableType : nonRetryableExceptionTypes) {
+            if (nonRetryableType.isInstance(exception)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

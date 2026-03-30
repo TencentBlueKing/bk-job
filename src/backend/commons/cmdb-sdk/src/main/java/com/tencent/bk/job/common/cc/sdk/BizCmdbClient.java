@@ -30,6 +30,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
+import com.tencent.bk.job.common.cc.exception.CmdbDynamicGroupNotFoundException;
 import com.tencent.bk.job.common.cc.exception.CmdbException;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.cc.model.BriefTopologyDTO;
@@ -157,6 +158,11 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
+
+    /**
+     * CMDB动态分组不存在错误码
+     */
+    private static final Integer CMDB_DYNAMIC_GROUP_NOT_FOUND_CODE = 1199019;
 
     private static final ConcurrentHashMap<Long, Pair<InstanceTopologyDTO, Long>> bizInstTopoMap =
         new ConcurrentHashMap<>();
@@ -878,6 +884,16 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
                 });
             ExecuteDynamicGroupHostResult ccRespData = esbResp.getData();
             if (!esbResp.getResult()) {
+                if (CMDB_DYNAMIC_GROUP_NOT_FOUND_CODE.equals(esbResp.getCode())) {
+                    // 动态分组在CMDB已被删除或不存在，属于已知数据异常，不触发重试
+                    log.info("DynamicGroup(id={}) not found in cmdb", groupId);
+                    throw new CmdbDynamicGroupNotFoundException(
+                        ErrorType.FAILED_PRECONDITION,
+                        ErrorCode.FAIL_TO_FIND_HOST_BY_DYNAMIC_GROUP,
+                        new String[]{groupId, esbResp.getMessage()},
+                        groupId
+                    );
+                }
                 // 由于参数问题导致的CMDB返回数据异常
                 throw new CmdbException(
                     ErrorType.FAILED_PRECONDITION,
