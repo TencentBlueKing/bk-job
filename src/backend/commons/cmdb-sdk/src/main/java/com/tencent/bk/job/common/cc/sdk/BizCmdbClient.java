@@ -886,6 +886,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             if (!esbResp.getResult()) {
                 if (CMDB_DYNAMIC_GROUP_NOT_FOUND_CODE.equals(esbResp.getCode())) {
                     // 动态分组在CMDB已被删除或不存在，属于已知数据异常，不触发重试
+                    log.info("DynamicGroup(id={}) not found in cmdb", groupId);
                     throw new CmdbDynamicGroupNotFoundException(
                         ErrorType.FAILED_PRECONDITION,
                         ErrorCode.FAIL_TO_FIND_HOST_BY_DYNAMIC_GROUP,
