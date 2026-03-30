@@ -134,7 +134,12 @@ public class ScopeDynamicGroupHostServiceImpl implements ScopeDynamicGroupHostSe
             dynamicGroupHostList = bizCmdbClient.getDynamicGroupIp(tenantId, bizId, id);
         } catch (CmdbDynamicGroupNotFoundException e) {
             // 动态分组在CMDB已被删除或不存在，属于已知数据异常，忽略并返回空列表
-            log.info("Dynamic group not found in CMDB, skip. tenantId={}, bizId={}, dynamicGroupId={}", tenantId, bizId, id);
+            log.info(
+                "Dynamic group not found in CMDB, skip. tenantId={}, bizId={}, dynamicGroupId={}",
+                tenantId,
+                bizId,
+                id
+            );
             return Collections.emptyList();
         }
         if (CollectionUtils.isEmpty(dynamicGroupHostList)) {
