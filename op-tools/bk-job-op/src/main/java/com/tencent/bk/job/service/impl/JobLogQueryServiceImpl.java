@@ -55,7 +55,8 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
     }
 
     @Override
-    public PageData<SimpleLogDTO> queryLogs(String queryString,
+    public PageData<SimpleLogDTO> queryLogs(String source,
+                                            String queryString,
                                             String timeRange,
                                             String startTime,
                                             String endTime,
@@ -63,23 +64,24 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
                                             Integer size,
                                             Boolean asc) {
         try {
-            LogQueryReq logQueryReq = buildLogQueryReq(queryString, timeRange, startTime, endTime, start, size);
+            BkLogProperties.LogSource logSource = bkLogProperties.getSource(source);
+            LogQueryReq logQueryReq = buildLogQueryReq(
+                logSource, queryString, timeRange, startTime, endTime, start, size);
 
             fillReqWithTimeSort(logQueryReq, asc);
-            
+
             LogQueryResp logQueryResp = bkLogApi.logSearch(logQueryReq);
 
-            // 总记录数
             Integer total = 0;
             if (logQueryResp != null && logQueryResp.getHits() != null) {
                 total = logQueryResp.getHits().getTotal();
             }
-            
+
             List<SimpleLogDTO> data = convertToSimpleLogDTOs(logQueryResp);
-            
+
             return new PageData<>(total, start, size, data);
         } catch (Exception e) {
-            log.error("query job log with pagination fail ", e);
+            log.error("query job log with pagination fail, source={}", source, e);
             throw new RuntimeException("query job log with pagination fail", e);
         }
     }
@@ -87,17 +89,17 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
     /**
      * 构建LogQueryReq对象
      */
-    private LogQueryReq buildLogQueryReq(String queryString,
+    private LogQueryReq buildLogQueryReq(BkLogProperties.LogSource logSource,
+                                         String queryString,
                                          String timeRange,
                                          String startTime,
                                          String endTime,
                                          Integer start,
                                          Integer size) {
         LogQueryReq logQueryReq = new LogQueryReq();
-        
-        // 查job的日志，从配置文件读取索引相关信息
-        logQueryReq.setIndices(bkLogProperties.getIndices());
-        logQueryReq.setIndexSetId(bkLogProperties.getIndexSetId());
+
+        logQueryReq.setIndices(logSource.getIndices());
+        logQueryReq.setIndexSetId(logSource.getIndexSetId());
 
         String startTimeStr = startTime;
         String endTimeStr = endTime;
@@ -132,7 +134,6 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
         String orderStr = Boolean.TRUE.equals(orderByAsc) ? "asc" : "desc";
         sorts.add(List.of("log_time", orderStr));
         logQueryReq.setSortList(sorts);
-
     }
 
     /**
@@ -140,8 +141,8 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
      */
     private List<SimpleLogDTO> convertToSimpleLogDTOs(LogQueryResp logQueryResp) {
         List<SimpleLogDTO> simpleLogs = new ArrayList<>();
-        
-        if (logQueryResp == null || logQueryResp.getHits() == null || 
+
+        if (logQueryResp == null || logQueryResp.getHits() == null ||
             logQueryResp.getHits().getHits() == null) {
             return simpleLogs;
         }
@@ -152,7 +153,7 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
                 simpleLogs.add(simpleLog);
             }
         }
-        
+
         return simpleLogs;
     }
 

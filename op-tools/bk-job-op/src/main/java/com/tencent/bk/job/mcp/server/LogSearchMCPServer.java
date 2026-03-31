@@ -27,8 +27,10 @@ package com.tencent.bk.job.mcp.server;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.config.BkLogProperties;
 import com.tencent.bk.job.service.JobLogQueryService;
+import com.tencent.bk.job.service.model.LogSourceInfo;
 import com.tencent.bk.job.service.model.PageData;
 import com.tencent.bk.job.service.model.SimpleLogDTO;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.ai.tool.annotation.Tool;
@@ -40,7 +42,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -71,8 +75,16 @@ public class LogSearchMCPServer {
         this.bkLogProperties = bkLogProperties;
     }
 
-    @Tool(description = "通过requestId搜索日志（支持分页与时间范围指定）")
+    @PostConstruct
+    private void init() {
+        log.info("LogSearchMCPServer initialized, available sources: {}", bkLogProperties.getSources().keySet());
+    }
+
+    @Tool(description = "通过requestId搜索日志（支持分页与时间范围指定），支持指定日志源查询不同索引集的日志")
     public PageData<SimpleLogDTO> searchLogsByRequestId(
+            @Nullable
+            @JsonPropertyDescription("日志源key。不传使用默认日志源。可通过listAvailableLogSources获取可选值。")
+            String source,
             @JsonPropertyDescription("作业平台请求的requestId，某些场景下也称traceId")
             String requestId,
             @Nullable
@@ -92,19 +104,22 @@ public class LogSearchMCPServer {
             @Nullable
             @JsonPropertyDescription("每页返回的日志条数，默认10，建议不超过100")
             Integer size) {
-        log.info("[MCP Tool Call] searchLogsByCondition - Input: requestId={}, " +
+        log.info("[MCP Tool Call] searchLogsByRequestId - Input: source={}, requestId={}, " +
                 "timeRange={}, startTime={}, endTime={}, start={}, size={}",
-            requestId, timeRange, startTime, endTime, start, size);
+            source, requestId, timeRange, startTime, endTime, start, size);
         String requestIdKql = buildRequestIdKql(requestId);
-        return searchLogsByCondition(requestIdKql, timeRange, startTime, endTime, start, size, false);
+        return searchLogsByCondition(source, requestIdKql, timeRange, startTime, endTime, start, size, false);
     }
 
     private String buildRequestIdKql(String requestId) {
         return "request_id: " + requestId;
     }
 
-    @Tool(description = "通过时间、符合KQL语法的查询语句 搜索日志（支持分页）")
+    @Tool(description = "通过时间、符合KQL语法的查询语句搜索日志（支持分页），支持指定日志源查询不同索引集的日志")
     public PageData<SimpleLogDTO> searchLogsByCondition(
+            @Nullable
+            @JsonPropertyDescription("日志源key。不传使用默认日志源。可通过listAvailableLogSources获取可选值。")
+            String source,
             @JsonPropertyDescription("KQL语法的查询语句")
             String queryString,
             @Nullable
@@ -122,41 +137,37 @@ public class LogSearchMCPServer {
             @JsonPropertyDescription("分页起始位置，从0开始，默认0")
             Integer start,
             @Nullable
-            @JsonPropertyDescription("每页返回的日志条数，默认10，建议不超过100") 
+            @JsonPropertyDescription("每页返回的日志条数，默认10，建议不超过100")
             Integer size,
             @Nullable
             @JsonPropertyDescription("是否按时间升序排序，不传默认false（降序）。对于寻找异常的日志，建议使用降序；" +
                 "对于寻找任务启动阶段的日志，建议使用升序")
             Boolean asc) {
-        log.info("[MCP Tool Call] searchLogsByCondition - Input: queryString={}, " +
+        log.info("[MCP Tool Call] searchLogsByCondition - Input: source={}, queryString={}, " +
                 "timeRange={}, startTime={}, endTime={}, start={}, size={}",
-                queryString, timeRange, startTime, endTime, start, size);
+                source, queryString, timeRange, startTime, endTime, start, size);
 
         try {
+            BkLogProperties.LogSource logSource = bkLogProperties.getSource(source);
+
             if (timeRange == null && startTime == null && endTime == null) {
-                timeRange = "1d"; // 默认查询最近1天
+                timeRange = "1d";
             }
 
-            validateTimeParameters(timeRange, startTime, endTime);
+            validateTimeParameters(logSource, timeRange, startTime, endTime);
 
             if (start == null || start < 0) {
                 start = 0;
             }
             if (size == null || size <= 0) {
-                size = 10; // 默认每页10条
+                size = 10;
             }
 
             PageData<SimpleLogDTO> result = jobLogQueryService.queryLogs(
-                queryString,
-                timeRange,
-                startTime,
-                endTime,
-                start,
-                size,
-                asc
+                source, queryString, timeRange, startTime, endTime, start, size, asc
             );
-            
-            log.info("[MCP Tool Call] searchLogsByCondition - Output: total={}, pageSize={}, dataCount={}", 
+
+            log.info("[MCP Tool Call] searchLogsByCondition - Output: total={}, pageSize={}, dataCount={}",
                     result != null ? result.getTotal() : 0,
                     result != null ? result.getSize() : 0,
                     result != null && result.getData() != null ? result.getData().size() : 0);
@@ -168,11 +179,15 @@ public class LogSearchMCPServer {
         }
     }
 
-    @Tool(description = "通过step_instance_id 搜索该任务的 request_id")
+    @Tool(description = "通过step_instance_id搜索该任务的request_id，支持指定日志源")
     public String searchRequestIdByStepInstanceId(
+            @Nullable
+            @JsonPropertyDescription("日志源key。不传使用默认日志源。可通过listAvailableLogSources获取可选值。")
+            String source,
             @JsonPropertyDescription("作业步骤实例ID")
             String stepInstanceId) {
-        log.info("[MCP Tool Call] searchRequestIdByStepInstanceId - Input: stepInstanceId={}", stepInstanceId);
+        log.info("[MCP Tool Call] searchRequestIdByStepInstanceId - Input: source={}, stepInstanceId={}",
+            source, stepInstanceId);
 
         try {
             PageData<SimpleLogDTO> logs = null;
@@ -182,12 +197,12 @@ public class LogSearchMCPServer {
                 String queryString = String.format(template, stepInstanceId);
                 // 查询最近7天的日志，使用分页查询，只取第一条
                 logs = jobLogQueryService.queryLogs(
-                    queryString, "7d", null, null, 0, 1, null);
+                    source, queryString, "7d", null, null, 0, 1, null);
                 if (logs != null && CollectionUtils.isNotEmpty(logs.getData())) {
                     break;
                 }
             }
-            
+
             String result;
             if (logs != null && logs.getData() != null && !logs.getData().isEmpty()) {
                 // 返回第一个匹配日志的requestId
@@ -206,11 +221,34 @@ public class LogSearchMCPServer {
         }
     }
 
+    @Tool(description = "列出当前可用的日志源（key、名称、是否默认、日志保留天数），" +
+        "在不确定要查询哪个日志源时，应先调用此工具获取列表")
+    public Map<String, LogSourceInfo> listAvailableLogSources() {
+        log.info("[MCP Tool Call] listAvailableLogSources");
+        String defaultSource = bkLogProperties.getDefaultSource();
+        Map<String, LogSourceInfo> result = new LinkedHashMap<>();
+        for (Map.Entry<String, BkLogProperties.LogSource> entry : bkLogProperties.getSources().entrySet()) {
+            String key = entry.getKey();
+            BkLogProperties.LogSource source = entry.getValue();
+            result.put(key, new LogSourceInfo(
+                source.getLabel(),
+                key.equals(defaultSource),
+                source.getExpireTime()
+            ));
+        }
+        log.info("[MCP Tool Call] listAvailableLogSources - Output: {}", result);
+        return result;
+    }
+
     /**
      * 时间参数校验
      */
-    private void validateTimeParameters(String timeRange, String startTime, String endTime) {
+    private void validateTimeParameters(BkLogProperties.LogSource logSource,
+                                        String timeRange,
+                                        String startTime,
+                                        String endTime) {
         // 如果提供了自定义时间范围，进行校验
+        int expireTime = logSource.getExpireTime();
         if (startTime != null || endTime != null) {
             if (startTime == null || endTime == null) {
                 throw new IllegalArgumentException("开始时间和结束时间必须同时提供");
@@ -226,9 +264,9 @@ public class LogSearchMCPServer {
                 }
 
                 // 校验开始时间不能早于配置的天数前
-                LocalDateTime expireDaysAgo = LocalDateTime.now().minusDays(bkLogProperties.getExpireTime());
+                LocalDateTime expireDaysAgo = LocalDateTime.now().minusDays(expireTime);
                 if (start.isBefore(expireDaysAgo)) {
-                    throw new IllegalArgumentException("开始时间不能早于" + bkLogProperties.getExpireTime() + "天前");
+                    throw new IllegalArgumentException("开始时间不能早于" + expireTime + "天前");
                 }
 
             } catch (DateTimeParseException e) {
@@ -237,8 +275,8 @@ public class LogSearchMCPServer {
         } else if (timeRange != null) {
             // 校验预定义时间天数范围超限
             long days = parseTimeRange(timeRange);
-            if (days > bkLogProperties.getExpireTime()) {
-                throw new IllegalArgumentException("查询时间范围不能超过" + bkLogProperties.getExpireTime() + "天");
+            if (days > expireTime) {
+                throw new IllegalArgumentException("查询时间范围不能超过" + expireTime + "天");
             }
         }
     }

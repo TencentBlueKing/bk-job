@@ -76,11 +76,27 @@ bkApiGateway:
     retry-interval: 3
 
 bk:
-  # BK-Log配置
+  # BK-Log配置（多日志源）
   log:
-    # 日志索引名称
-    indices: ""
-    # 索引集ID
-    indexSetId: 100
-    # 日志保存时间
-    expireTime: 7
+    defaultSource: prod-service
+    sources:
+      prod-service:
+        label: "生产环境-微服务日志"
+        indices: ""
+        indexSetId: 100
+        expireTime: 7
+#      prod-gateway-access:
+#        label: "生产环境-网关Access日志"
+#        indices: ""
+#        indexSetId: 101
+#        expireTime: 7
+#      prod-stdout:
+#        label: "生产环境-标准输出日志"
+#        indices: ""
+#        indexSetId: 102
+#        expireTime: 7
+#      stag-service:
+#        label: "预发布环境-微服务日志"
+#        indices: ""
+#        indexSetId: 200
+#        expireTime: 7
