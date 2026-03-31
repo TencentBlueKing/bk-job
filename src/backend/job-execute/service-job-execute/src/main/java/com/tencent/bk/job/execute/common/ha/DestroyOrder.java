@@ -29,6 +29,8 @@ public interface DestroyOrder {
     int GLOBAL_HANDLER = 1000;
     // GSE 任务下发
     int GSE_TASK_HANDLER = 100;
-    // GSE 任务结果处理
+    // GSE 任务结果处理（含任务转移）
     int GSE_TASK_RESULT_HANDLER = 99;
+    // 统计数据刷盘（需在任务转移完成后再停止）
+    int STATISTICS_FLUSH = 50;
 }
