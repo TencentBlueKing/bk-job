@@ -64,7 +64,7 @@ public class RedisKeyHeartBeatThread extends Thread {
             Boolean result = redisTemplate.delete(redisKey);
             log.debug("stopAtOnce, delete redis key:{}, result={}", redisKey, result);
         } catch (Exception e) {
-            log.debug("stopAtOnce, failed to delete redis key:{}, likely shutting down", redisKey, e);
+            log.warn("stopAtOnce, failed to delete redis key:{}, wait it to expire", redisKey, e);
         }
         interrupt();
     }
