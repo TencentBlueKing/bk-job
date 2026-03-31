@@ -25,14 +25,10 @@
 package com.tencent.bk.job.service.model;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import lombok.Getter;
-import lombok.ToString;
 
 /**
  * 日志源信息
  */
-@Getter
-@ToString
 public record LogSourceInfo(@JsonPropertyDescription("日志源显示名称") String label,
                             @JsonPropertyDescription("是否为默认日志源") boolean defaultSource,
                             @JsonPropertyDescription("日志保留天数") int expireTimeDays) {
