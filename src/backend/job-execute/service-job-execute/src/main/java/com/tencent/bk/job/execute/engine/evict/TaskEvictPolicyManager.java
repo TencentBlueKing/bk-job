@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -44,7 +45,7 @@ import jakarta.annotation.PostConstruct;
  */
 @Slf4j
 @Component
-public class TaskEvictPolicyManager {
+public class TaskEvictPolicyManager implements DisposableBean {
 
     // 策略更新时间间隔：10s
     private final int POLICY_UPDATE_INTERVAL_MILLS = 10000;
@@ -52,6 +53,8 @@ public class TaskEvictPolicyManager {
     private String policyJsonStr = null;
     // 组合策略
     private volatile ComposedTaskEvictPolicy policy = null;
+    // 控制后台轮询线程的运行状态
+    private volatile boolean running = true;
 
     // Redis操作模板接口
     private final RedisTemplate<String, String> redisTemplate;
@@ -96,11 +99,14 @@ public class TaskEvictPolicyManager {
     @PostConstruct
     private void init() {
         Thread taskEvictPolicyLoader = new Thread(() -> {
-            while (true) {
-                // 每隔一定时间更新驱逐策略
+            while (running) {
                 try {
                     updatePolicy();
                 } catch (Exception e) {
+                    if (!running) {
+                        log.info("TaskEvictPolicyManager is shutting down, stop loading policy");
+                        return;
+                    }
                     log.error("Fail to update taskEvictPolicy", e);
                 } finally {
                     ThreadUtils.sleep(POLICY_UPDATE_INTERVAL_MILLS);
@@ -108,8 +114,13 @@ public class TaskEvictPolicyManager {
             }
         });
         taskEvictPolicyLoader.setName("taskEvictPolicyLoader");
-        // 设为守护线程，不阻塞进程退出
         taskEvictPolicyLoader.setDaemon(true);
         taskEvictPolicyLoader.start();
+    }
+
+    @Override
+    public void destroy() {
+        log.info("TaskEvictPolicyManager destroying, stopping policy loader");
+        running = false;
     }
 }
