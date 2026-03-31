@@ -22,32 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.config;
+package com.tencent.bk.job.common.mq.metrics;
 
-import com.tencent.bk.job.crontab.listener.CrontabEventListener;
-import com.tencent.bk.job.crontab.listener.event.CrontabEvent;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.Message;
+import org.springframework.cloud.stream.config.ListenerContainerCustomizer;
 
-import java.util.function.Consumer;
+import java.util.List;
 
 /**
- * spring cloud function 定义
- * <p>
- * 注意：方法名与配置文件中的spring.cloud.function.definition对应，修改需要注意！！！
+ * 为listener container绑定MQ消费者线程指标
  */
-@Configuration
 @Slf4j
-public class JobFunctionConfiguration {
-    @Bean
-    public Consumer<Message<CrontabEvent>> handleCrontabFanoutEvent(
-        @Autowired CrontabEventListener crontabEventListener
-    ) {
-        log.info("Init handleCrontabFanoutEvent consumer");
-        return crontabEventListener::handleEvent;
+public class MqListenerContainerMetricsCustomizer implements ListenerContainerCustomizer<Object> {
+
+    private final List<MqConsumerMetricsCollector> mqConsumerMetricsCollectors;
+
+    public MqListenerContainerMetricsCustomizer(List<MqConsumerMetricsCollector> mqConsumerMetricsCollectors) {
+        this.mqConsumerMetricsCollectors = mqConsumerMetricsCollectors;
     }
 
+    @Override
+    public void configure(Object container, String bindingName, String group) {
+        for (MqConsumerMetricsCollector collector : mqConsumerMetricsCollectors) {
+            if (collector.supports(container)) {
+                collector.collect(container, bindingName, group);
+                log.info("Bind mq consumer thread metrics, bindingName: {}, group: {}", bindingName, group);
+                return;
+            }
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("No mq consumer metrics collector found for container: {}", container.getClass().getName());
+        }
+    }
 }

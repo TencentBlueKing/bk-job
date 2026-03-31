@@ -8,7 +8,7 @@
  * License for BK-JOB蓝鲸智云作业平台:
  * --------------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software'), to deal in the Software without restriction, including without limitation
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
  * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
@@ -22,10 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common-utils')
-    api "org.springframework.boot:spring-boot-autoconfigure"
-    implementation 'org.springframework.amqp:spring-rabbit'
-    implementation 'org.springframework.cloud:spring-cloud-stream'
-    implementation 'io.micrometer:micrometer-core'
+package com.tencent.bk.job.execute.engine.listener;
+
+/**
+ * execute模块MQ输入binding名称常量
+ */
+public class MqBindingNames {
+    /**
+     * 作业事件输入binding名称
+     */
+    public static final String HANDLE_JOB_EVENT = "handleJobEvent-in-0";
+    /**
+     * 步骤事件输入binding名称
+     */
+    public static final String HANDLE_STEP_EVENT = "handleStepEvent-in-0";
+    /**
+     * GSE任务事件输入binding名称
+     */
+    public static final String HANDLE_GSE_TASK_EVENT = "handleGseTaskEvent-in-0";
+    /**
+     * 执行结果重新调度事件输入binding名称
+     */
+    public static final String HANDLE_RESULT_HANDLE_RESUME_EVENT = "handleResultHandleResumeEvent-in-0";
+    /**
+     * 通知消息输入binding名称
+     */
+    public static final String HANDLE_NOTIFY_MSG = "handleNotifyMsg-in-0";
+    /**
+     * 回调消息输入binding名称
+     */
+    public static final String HANDLE_CALLBACK_MSG = "handleCallbackMsg-in-0";
+
 }

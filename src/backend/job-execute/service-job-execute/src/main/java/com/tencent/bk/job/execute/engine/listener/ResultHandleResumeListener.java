@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
 import com.tencent.bk.job.common.gse.v2.model.ExecuteObjectGseKey;
 import com.tencent.bk.job.common.util.FilePathUtils;
 import com.tencent.bk.job.execute.common.constants.RunStatusEnum;
@@ -98,7 +99,9 @@ public class ResultHandleResumeListener extends BaseJobMqListener {
                                       ScriptExecuteObjectTaskService scriptExecuteObjectTaskService,
                                       FileExecuteObjectTaskService fileExecuteObjectTaskService,
                                       StepInstanceService stepInstanceService,
-                                      JobExecuteConfig jobExecuteConfig) {
+                                      JobExecuteConfig jobExecuteConfig,
+                                      MqConsumeDelayRecorder mqConsumeDelayRecorder) {
+        super(mqConsumeDelayRecorder);
         this.engineDependentServiceHolder = engineDependentServiceHolder;
         this.taskInstanceService = taskInstanceService;
         this.resultHandleManager = resultHandleManager;
@@ -111,6 +114,10 @@ public class ResultHandleResumeListener extends BaseJobMqListener {
         this.jobExecuteConfig = jobExecuteConfig;
     }
 
+    @Override
+    protected String getBindingName() {
+        return MqBindingNames.HANDLE_RESULT_HANDLE_RESUME_EVENT;
+    }
 
     /**
      * 恢复被中断的作业结果处理任务

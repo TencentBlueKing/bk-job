@@ -26,6 +26,12 @@ package com.tencent.bk.job.common.rabbitmq.config;
 
 import com.rabbitmq.client.impl.CredentialsProvider;
 import com.rabbitmq.client.impl.CredentialsRefreshService;
+import com.tencent.bk.job.common.mq.metrics.MqConsumerMetricsCollector;
+import com.tencent.bk.job.common.mq.metrics.MqListenerContainerMetricsCustomizer;
+import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
+import com.tencent.bk.job.common.mq.metrics.MqSendTimeChannelInterceptor;
+import com.tencent.bk.job.common.rabbitmq.metrics.RabbitMqConsumerThreadMetricsCollector;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -33,14 +39,16 @@ import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitConnectionFactoryBeanConfigurer;
 import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.stream.config.ListenerContainerCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResourceLoader;
+import java.util.List;
 
 @Slf4j
 @Configuration
 @AutoConfigureBefore(RabbitAutoConfiguration.class)
-@EnableConfigurationProperties(RabbitProperties.class)
+@EnableConfigurationProperties({RabbitProperties.class, MqMetricsProperties.class})
 public class JobRabbitMQAutoConfig {
 
     @Bean
@@ -58,5 +66,31 @@ public class JobRabbitMQAutoConfig {
         configurer.setCredentialsRefreshService(credentialsRefreshService.getIfUnique());
         log.info("rabbitConnectionFactoryBeanConfigurer init");
         return configurer;
+    }
+
+    /**
+     * 注册MQ消息发送时间拦截器
+     */
+    @Bean
+    MqSendTimeChannelInterceptor mqSendTimeChannelInterceptor() {
+        return new MqSendTimeChannelInterceptor();
+    }
+
+    /**
+     * 注册RabbitMQ消费者线程指标收集器
+     */
+    @Bean
+    MqConsumerMetricsCollector mqConsumerMetricsCollector(MeterRegistry meterRegistry) {
+        return new RabbitMqConsumerThreadMetricsCollector(meterRegistry);
+    }
+
+    /**
+     * 注册MQ listener container监控指标收集器
+     */
+    @Bean
+    ListenerContainerCustomizer<Object> mqListenerContainerMetricsCustomizer(
+        List<MqConsumerMetricsCollector> mqConsumerMetricsCollectors
+    ) {
+        return new MqListenerContainerMetricsCustomizer(mqConsumerMetricsCollectors);
     }
 }

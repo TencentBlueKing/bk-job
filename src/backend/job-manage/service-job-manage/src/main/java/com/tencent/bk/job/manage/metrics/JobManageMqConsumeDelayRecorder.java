@@ -8,7 +8,7 @@
  * License for BK-JOB蓝鲸智云作业平台:
  * --------------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software'), to deal in the Software without restriction, including without limitation
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
  * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
@@ -22,10 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common-utils')
-    api "org.springframework.boot:spring-boot-autoconfigure"
-    implementation 'org.springframework.amqp:spring-rabbit'
-    implementation 'org.springframework.cloud:spring-cloud-stream'
-    implementation 'io.micrometer:micrometer-core'
+package com.tencent.bk.job.manage.metrics;
+
+import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.stereotype.Component;
+
+/**
+ * manage模块MQ延迟消费记录器
+ */
+@Component
+public class JobManageMqConsumeDelayRecorder extends MqConsumeDelayRecorder {
+
+    public JobManageMqConsumeDelayRecorder(MeterRegistry meterRegistry, MqMetricsProperties mqMetricsProperties) {
+        super(meterRegistry, mqMetricsProperties);
+    }
+
+    @Override
+    protected MqMetricsProperties.ConsumerMetric getConsumeMetric() {
+        return mqMetricsProperties.getConsumer().getJobManage();
+    }
 }

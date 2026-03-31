@@ -22,32 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.config;
+package com.tencent.bk.job.common.mq.metrics;
 
-import com.tencent.bk.job.crontab.listener.CrontabEventListener;
-import com.tencent.bk.job.crontab.listener.event.CrontabEvent;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.messaging.Message;
-
-import java.util.function.Consumer;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.MessageBuilder;
 
 /**
- * spring cloud function 定义
- * <p>
- * 注意：方法名与配置文件中的spring.cloud.function.definition对应，修改需要注意！！！
+ * 统一为MQ出站消息补充发送时间
  */
-@Configuration
 @Slf4j
-public class JobFunctionConfiguration {
-    @Bean
-    public Consumer<Message<CrontabEvent>> handleCrontabFanoutEvent(
-        @Autowired CrontabEventListener crontabEventListener
-    ) {
-        log.info("Init handleCrontabFanoutEvent consumer");
-        return crontabEventListener::handleEvent;
+@GlobalChannelInterceptor(patterns = MqMetricsConstants.PATTERN_OUTBOUND_CHANNEL)
+public class MqSendTimeChannelInterceptor implements ChannelInterceptor {
+    /**
+     * 为出站消息补充发送时间头
+     *
+     * @param message 原始消息
+     * @param channel 当前通道
+     * @return 处理后的消息
+     */
+    @Override
+    public Message<?> preSend(Message<?> message, MessageChannel channel) {
+        if (message.getHeaders().containsKey(MqMetricsConstants.HEADER_NAME_SEND_TIME_MS)) {
+            return ChannelInterceptor.super.preSend(message, channel);
+        }
+        Message<?> newMessage = MessageBuilder.fromMessage(message)
+            .setHeader(MqMetricsConstants.HEADER_NAME_SEND_TIME_MS, System.currentTimeMillis())
+            .build();
+        log.debug("Set mq send timestamp header for channel: {}", channel);
+        return ChannelInterceptor.super.preSend(newMessage, channel);
     }
-
 }

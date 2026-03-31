@@ -22,32 +22,66 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.config;
+package com.tencent.bk.job.common.mq.metrics;
 
-import com.tencent.bk.job.crontab.listener.CrontabEventListener;
-import com.tencent.bk.job.crontab.listener.event.CrontabEvent;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.Message;
-
-import java.util.function.Consumer;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * spring cloud function 定义
- * <p>
- * 注意：方法名与配置文件中的spring.cloud.function.definition对应，修改需要注意！！！
+ * MQ性能监控指标配置
  */
-@Configuration
-@Slf4j
-public class JobFunctionConfiguration {
-    @Bean
-    public Consumer<Message<CrontabEvent>> handleCrontabFanoutEvent(
-        @Autowired CrontabEventListener crontabEventListener
-    ) {
-        log.info("Init handleCrontabFanoutEvent consumer");
-        return crontabEventListener::handleEvent;
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "job.mq.metrics")
+public class MqMetricsProperties {
+    /**
+     * 是否开启MQ指标采集
+     */
+    private boolean enabled = true;
+
+    /**
+     * 消费者指标配置
+     */
+    private Consumer consumer = new Consumer();
+
+    /**
+     * MQ消费者指标配置
+     */
+    @Getter
+    @Setter
+    public static class Consumer {
+        /**
+         * 默认延迟消费阈值，单位毫秒
+         */
+        private long defaultDelayMs = 1000;
+        /**
+         * execute消费者指标配置
+         */
+        private ConsumerMetric jobExecute;
+        /**
+         * manage消费者指标配置
+         */
+        private ConsumerMetric jobManage;
+        /**
+         * crontab消费者指标配置
+         */
+        private ConsumerMetric jobCrontab;
+        /**
+         * analysis消费者指标配置
+         */
+        private ConsumerMetric jobAnalysis;
     }
 
+    /**
+     * 消费者指标配置
+     */
+    @Getter
+    @Setter
+    public static class ConsumerMetric {
+        /**
+         * 延迟消费阈值，单位毫秒
+         */
+        private long delayMs;
+    }
 }

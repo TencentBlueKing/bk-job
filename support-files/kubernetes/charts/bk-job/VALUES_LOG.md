@@ -145,6 +145,30 @@ crontabConfig:
     sleepMillisBetweenBatches: 1000
 ```
 
+7. 新增MQ可观测性配置
+```yaml
+job:
+  mq:
+    metrics:
+      # 是否开启MQ指标采集，默认开启
+      enabled: true
+      consumer:
+        # 默认延迟消费阈值，单位毫秒,默认1000ms
+        defaultDelayMs: 1000
+        # execute模块延迟消费阈值，不配置使用defaultDelayMs
+        jobExecute:
+          delayMs: 1000
+        # manage模块延迟消费阈值，不配置使用defaultDelayMs  
+        jobManage:
+          delayMs: 1000
+        # crontab模块延迟消费阈值，不配置使用defaultDelayMs
+        jobCrontab:
+          delayMs: 1000
+        # analysis模块延迟消费阈值，不配置使用defaultDelayMs
+        jobAnalysis:
+          delayMs: 1000
+```
+
 ## 0.9.0
 1. 新增 bk-login/bk-user蓝鲸网关配置
 ```yaml

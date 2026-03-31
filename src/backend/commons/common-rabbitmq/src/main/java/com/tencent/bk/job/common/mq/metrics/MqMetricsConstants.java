@@ -22,32 +22,51 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.crontab.config;
-
-import com.tencent.bk.job.crontab.listener.CrontabEventListener;
-import com.tencent.bk.job.crontab.listener.event.CrontabEvent;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.Message;
-
-import java.util.function.Consumer;
+package com.tencent.bk.job.common.mq.metrics;
 
 /**
- * spring cloud function 定义
- * <p>
- * 注意：方法名与配置文件中的spring.cloud.function.definition对应，修改需要注意！！！
+ * MQ监控指标常量
  */
-@Configuration
-@Slf4j
-public class JobFunctionConfiguration {
-    @Bean
-    public Consumer<Message<CrontabEvent>> handleCrontabFanoutEvent(
-        @Autowired CrontabEventListener crontabEventListener
-    ) {
-        log.info("Init handleCrontabFanoutEvent consumer");
-        return crontabEventListener::handleEvent;
-    }
+public class MqMetricsConstants {
+    /**
+     * MQ消费延迟指标名
+     */
+    public static final String NAME_JOB_MQ_CONSUME_DELAY = "job.mq.consume.delay";
+    /**
+     * MQ延迟消费次数
+     */
+    public static final String NAME_JOB_MQ_CONSUME_DELAY_COUNT = "job.mq.consume.delay.count";
+    /**
+     * MQ消息发送时间头
+     */
+    public static final String HEADER_NAME_SEND_TIME_MS = "job_send_time_ms";
+    /**
+     * MQ消费线程活跃数
+     */
+    public static final String NAME_JOB_MQ_CONSUMER_ACTIVE_COUNT = "job.mq.consumer.active.count";
+    /**
+     * MQ消费线程配置数
+     */
+    public static final String NAME_JOB_MQ_CONSUMER_CONFIGURED_COUNT = "job.mq.consumer.configured.count";
+    /**
+     * MQ消费线程最大数
+     */
+    public static final String NAME_JOB_MQ_CONSUMER_MAX_COUNT = "job.mq.consumer.max.count";
 
+    /**
+     * group标签
+     */
+    public static final String TAG_KEY_GROUP = "group";
+    /**
+     * binding标签
+     */
+    public static final String TAG_KEY_BINDING = "binding";
+    /**
+     * 消息名称标签
+     */
+    public static final String TAG_KEY_MESSAGE_NAME = "message_name";
+    /**
+     * MQ出站通道匹配模式
+     */
+    public static final String PATTERN_OUTBOUND_CHANNEL = "*-out-*";
 }
