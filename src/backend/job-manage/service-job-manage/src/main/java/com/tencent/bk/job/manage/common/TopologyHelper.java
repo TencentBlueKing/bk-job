@@ -179,8 +179,8 @@ public class TopologyHelper {
     @PostConstruct
     private void initCache() {
         TopologyNameCacheThread topologyNameCacheThread = new TopologyNameCacheThread();
+        topologyNameCacheThread.setDaemon(true);
         topologyNameCacheThread.start();
-
     }
 
     public InstanceTopologyDTO getTopologyTreeByApplication(ApplicationDTO applicationInfo) {
@@ -256,16 +256,16 @@ public class TopologyHelper {
     }
 
     class TopologyNameCacheThread extends Thread {
-        @SuppressWarnings("InfiniteLoopStatement")
         @Override
         public void run() {
             this.setName("Topology-Name-Update-Thread");
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 try {
                     InstanceTopologyDTO topology = TOPOLOGY_INFO_QUEUE.take();
                     processTopologyNodeName(topology, null);
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    log.info("TopologyNameCacheThread interrupted, exiting");
+                    return;
                 } catch (Exception e) {
                     log.error("Error while process topology name!", e);
                 }

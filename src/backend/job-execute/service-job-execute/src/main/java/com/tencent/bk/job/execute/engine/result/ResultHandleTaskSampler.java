@@ -31,6 +31,7 @@ import io.micrometer.core.instrument.Tag;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,8 +46,9 @@ import java.util.function.ToDoubleFunction;
  */
 @Slf4j
 @Component
-public class ResultHandleTaskSampler {
+public class ResultHandleTaskSampler implements DisposableBean {
     private final MeterRegistry meterRegistry;
+    private UpdateStatisticsThread updateStatisticsThread;
     /**
      * 正在处理任务结果的文件任务数（各业务）
      */
@@ -88,7 +90,7 @@ public class ResultHandleTaskSampler {
 
     class UpdateStatisticsThread extends Thread {
 
-        boolean runFlag = true;
+        volatile boolean runFlag = true;
 
         private ToDoubleFunction<AtomicLong> debugFunctionByCounter(AtomicLong counter) {
             return new ToDoubleFunction() {
@@ -195,7 +197,11 @@ public class ResultHandleTaskSampler {
                     measureFinishedFileTasksByApp();
                     measureFinishedScriptTasksByApp();
                 } catch (InterruptedException e) {
-                    log.info("sleep interrupted");
+                    if (!runFlag) {
+                        log.info("UpdateStatisticsThread interrupted during shutdown, exiting");
+                        return;
+                    }
+                    log.info("UpdateStatisticsThread sleep interrupted");
                 } catch (Exception e) {
                     log.warn("UpdateStatisticsThread error", e);
                 }
@@ -205,8 +211,20 @@ public class ResultHandleTaskSampler {
 
     @PostConstruct
     private void init() {
-        log.debug("UpdateStatisticsThread init");
-        new UpdateStatisticsThread().start();
+        log.info("UpdateStatisticsThread init");
+        updateStatisticsThread = new UpdateStatisticsThread();
+        updateStatisticsThread.setName("UpdateStatisticsThread");
+        updateStatisticsThread.setDaemon(true);
+        updateStatisticsThread.start();
+    }
+
+    @Override
+    public void destroy() {
+        log.info("ResultHandleTaskSampler destroying, stopping UpdateStatisticsThread");
+        if (updateStatisticsThread != null) {
+            updateStatisticsThread.runFlag = false;
+            updateStatisticsThread.interrupt();
+        }
     }
 
     private void incrementAppReceiveTask(long appId) {
