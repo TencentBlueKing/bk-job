@@ -86,7 +86,7 @@ public class TaskVariableDTO {
         taskVariable.setDescription(variableInfo.getDescription());
         taskVariable.setChangeable(variableInfo.getChangeable() ? 1 : 0);
         taskVariable.setRequired(variableInfo.getRequired() ? 1 : 0);
-        taskVariable.setFollowTemplate(variableInfo.getFollowTemplate() ? 1 : 0);
+        taskVariable.setFollowTemplate(Boolean.TRUE.equals(variableInfo.getFollowTemplate()) ? 1 : 0);
         return taskVariable;
     }
 
@@ -156,7 +156,7 @@ public class TaskVariableDTO {
         esbGlobalVar.setName(taskVariable.getName());
         esbGlobalVar.setType(taskVariable.getType().getType());
         esbGlobalVar.setDescription(taskVariable.getDescription());
-        esbGlobalVar.setRequired(taskVariable.getRequired() ? 1 : 0);
+        esbGlobalVar.setRequired(Boolean.TRUE.equals(taskVariable.getRequired()) ? 1 : 0);
 
         if (TaskVariableTypeEnum.HOST_LIST == taskVariable.getType()) {
             esbGlobalVar.setServer(
