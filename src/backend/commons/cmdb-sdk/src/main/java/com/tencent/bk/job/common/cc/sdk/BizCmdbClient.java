@@ -29,7 +29,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.tencent.bk.job.common.annotation.DuringDev;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
 import com.tencent.bk.job.common.cc.exception.CmdbDynamicGroupNotFoundException;
 import com.tencent.bk.job.common.cc.exception.CmdbException;
@@ -169,8 +168,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
      */
     private static final Integer CMDB_DYNAMIC_GROUP_NOT_FOUND_CODE = 1199019;
 
-    @DuringDev(description = "开发环境验证，页大小设置为50")
-    private static final int CMDB_CONTAINER_QUERY_PAGE_SIZE = 50;
+    private static final int CMDB_CONTAINER_QUERY_PAGE_SIZE = 500;
 
     private static final ConcurrentHashMap<Long, Pair<InstanceTopologyDTO, Long>> bizInstTopoMap =
         new ConcurrentHashMap<>();
@@ -1496,11 +1494,10 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
      * pageSize=500（与 CMDB 分页大小一致），浅中层阈值 20000，中深层阈值 50000。
      * 浅层区工作线程 5，中层区工作线程 3，中层区每任务 20 页。
      */
-    @DuringDev(description = "浅层阈值500")
     private static final TieredPageQueryConfig CONTAINER_TIERED_PAGE_QUERY_CONFIG =
         TieredPageQueryConfig.builder()
             .pageSize(CMDB_CONTAINER_QUERY_PAGE_SIZE)
-            .shallowThreshold(500)
+            .shallowThreshold(20000)
             .deepThreshold(50000)
             .shallowConcurrency(5)
             .middleConcurrency(3)
@@ -1525,25 +1522,6 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
                 .distinct()
                 .collect(Collectors.toList());
         }
-    }
-
-    @DuringDev(description = "开发环境验证，暂时保留")
-    private List<ContainerDetailDTO> loopPageListKubeContainerByTopo(ListKubeContainerByTopoReq req) {
-        return PageUtil.queryAllWithLoopPageQueryInOrder(
-            500,
-            (ContainerDetailDTO latestElement) -> {
-                if (latestElement == null) {
-                    // 第一页使用原始的请求
-                    return req;
-                } else {
-                    // 从第二页开始，需要构造 offset 条件，避免由于分页查询期间数据变更导致返回数据重复或者遗漏
-                    return buildNextPageListKubeContainerByTopoReq(req, latestElement.getContainer().getId());
-                }
-            },
-            pageReq -> listPageKubeContainerByTopo(pageReq, false),
-            PageData::getData,
-            container -> container
-        );
     }
 
     /**
@@ -1698,7 +1676,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         return ConcurrencyUtil.getResultWithThreads(
             containerFieldValueBatches,
             10,
-            (ConcurrencyUtil.Handler<List<T>, ContainerDetailDTO>) containerFieldValueBatch -> {
+            containerFieldValueBatch -> {
                 ListKubeContainerByTopoReq req = makeCmdbBaseReq(ListKubeContainerByTopoReq.class);
 
                 // 查询条件
