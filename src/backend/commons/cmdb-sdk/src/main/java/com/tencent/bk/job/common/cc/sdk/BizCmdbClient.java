@@ -121,6 +121,8 @@ import com.tencent.bk.job.common.util.CollectionUtil;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
+import com.tencent.bk.job.common.util.TieredPageQueryConfig;
+import com.tencent.bk.job.common.util.TieredPageQueryUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.Utils;
@@ -1480,18 +1482,28 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     /**
-     * 根据容器拓扑获取container信息
-     *
-     * @param req 请求
-     * @return 容器列表
+     * 三区分页查询配置（用于容器拓扑查询）。
+     * <p>
+     * pageSize=500（与 CMDB 分页大小一致），浅中层阈值 20000，中深层阈值 50000。
+     * 浅层区工作线程 5，中层区工作线程 3，中层区每任务 20 页。
      */
+    private static final TieredPageQueryConfig CONTAINER_TIERED_PAGE_QUERY_CONFIG =
+        TieredPageQueryConfig.builder()
+            .pageSize(500)
+            .shallowThreshold(20000)
+            .deepThreshold(50000)
+            .shallowConcurrency(5)
+            .middleConcurrency(3)
+            .middlePagesPerTask(20)
+            .build();
+
     @Override
     public List<ContainerDetailDTO> listKubeContainerByTopo(ListKubeContainerByTopoReq req) {
         setSupplierAccount(req);
         req.setContainerFields(ContainerDTO.Fields.ALL);
         req.setPodFields(PodDTO.Fields.ALL);
         // 根据容器 ID 升序排列返回的数据，避免由于分页查询期间数据变更导致返回数据重复或者遗漏
-        req.setPage(new Page(0, 500, ContainerDTO.Fields.ID));
+        req.setPage(new Page(0, 50, ContainerDTO.Fields.ID)); // 开发环境验证，设置页大小为50
 
         if (req.getNodeIdList() == null || req.getNodeIdList().size() <= 200) {
             return loopPageListKubeContainerByTopo(req);
@@ -1505,9 +1517,10 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         }
     }
 
+    // 开发环境验证，暂时保留
     private List<ContainerDetailDTO> loopPageListKubeContainerByTopo(ListKubeContainerByTopoReq req) {
         return PageUtil.queryAllWithLoopPageQueryInOrder(
-            500,
+            50, // 开发环境资源较少，所以缩小页，增加页数
             (ContainerDetailDTO latestElement) -> {
                 if (latestElement == null) {
                     // 第一页使用原始的请求
@@ -1521,6 +1534,71 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
             PageData::getData,
             container -> container
         );
+    }
+
+    /**
+     * 使用三区分页查询工具类拉取全量容器数据。
+     * <p>
+     * 根据数据总量自动选择最优的分页策略（浅层区 offset 并行 / 中层区 keyset 段间并行 / 深层区 keyset 串行），
+     * 替代原来的串行 keyset 分页查询，大幅提升大数据量场景下的查询性能。
+     *
+     * @param req 容器拓扑查询请求（已设置好 supplierAccount、containerFields、podFields、page）
+     * @return 全量容器列表
+     */
+    private List<ContainerDetailDTO> tieredPageListKubeContainerByTopo(ListKubeContainerByTopoReq req) {
+        return TieredPageQueryUtil.queryAll(
+            CONTAINER_TIERED_PAGE_QUERY_CONFIG,
+            null,
+            // countQuery: 通过 CMDB 的 enableCount 分页查询获取总数
+            () -> {
+                ListKubeContainerByTopoReq countReq = copyListKubeContainerByTopoReq(req);
+                countReq.setPage(Page.buildQueryCountPage());
+                EsbResp<BaseCcSearchResult<ContainerDetailDTO>> countResp = requestCmdbApiUseContextTenantId(
+                    HttpMethodEnum.POST,
+                    LIST_KUBE_CONTAINER_BY_TOPO,
+                    LIST_KUBE_CONTAINER_BY_TOPO,
+                    null,
+                    countReq,
+                    new TypeReference<EsbResp<BaseCcSearchResult<ContainerDetailDTO>>>() {
+                    });
+                return countResp.getData().getCount();
+            },
+            // pageReqBuilder: 构造 offset 分页请求
+            (start, limit) -> {
+                ListKubeContainerByTopoReq pageReq = copyListKubeContainerByTopoReq(req);
+                pageReq.setPage(new Page(start, limit, ContainerDTO.Fields.ID));
+                return pageReq;
+            },
+            // pageQuery: 执行分页查询
+            pageReq -> listPageKubeContainerByTopo(pageReq, false),
+            // resultExtractor: 从查询结果中提取数据列表
+            PageData::getData,
+            // lastIdExtractor: 从容器元素中提取 ID（用于 keyset 分页）
+            container -> container.getContainer().getId(),
+            // keysetReqBuilder: 构造 keyset 分页请求（id > lastId）
+            (lastId, limit) -> {
+                ListKubeContainerByTopoReq keysetReq =
+                    buildNextPageListKubeContainerByTopoReq(req, lastId);
+                keysetReq.getPage().setLimit(limit);
+                return keysetReq;
+            }
+        );
+    }
+
+    /**
+     * 复制 ListKubeContainerByTopoReq 请求对象（用于并发场景下避免共享同一个请求对象）
+     */
+    private ListKubeContainerByTopoReq copyListKubeContainerByTopoReq(ListKubeContainerByTopoReq req) {
+        ListKubeContainerByTopoReq newReq = new ListKubeContainerByTopoReq();
+        newReq.setBkSupplierAccount(req.getBkSupplierAccount());
+        newReq.setBizId(req.getBizId());
+        newReq.setNodeIdList(req.getNodeIdList());
+        newReq.setContainerFilter(req.getContainerFilter());
+        newReq.setPodFilter(req.getPodFilter());
+        newReq.setPage(req.getPage());
+        newReq.setContainerFields(req.getContainerFields());
+        newReq.setPodFields(req.getPodFields());
+        return newReq;
     }
 
     private List<ListKubeContainerByTopoReq> partitionListKubeContainerByTopoReq(ListKubeContainerByTopoReq req) {
