@@ -72,6 +72,14 @@ public abstract class MqConsumeDelayRecorder {
         long delayMs = Math.max(consumeTimeMs - sendTimeMs, 0L);
         long thresholdMs = getDelayThresholdMs();
         if (delayMs < thresholdMs) {
+            log.debug(
+                "Ignore mq consume delay record because delay is below threshold, binding: {}, " +
+                    "messageName: {}, delayMs: {}, thresholdMs: {}",
+                binding,
+                messageName,
+                delayMs,
+                thresholdMs
+            );
             return;
         }
         Tags tags = Tags.of(

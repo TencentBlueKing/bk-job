@@ -22,40 +22,39 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.common.mq.metrics;
+package com.tencent.bk.job.common.rabbitmq.metrics;
 
+import com.tencent.bk.job.common.mq.metrics.MqConsumerMetricsCollector;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.cloud.stream.config.ListenerContainerCustomizer;
 
-import java.util.List;
-
 /**
- * 为listener container绑定MQ消费者线程指标
+ * 为RabbitMQ listener container绑定消费者线程指标
  */
 @Slf4j
-public class MqListenerContainerMetricsCustomizer implements ListenerContainerCustomizer<Object> {
+public class RabbitMqListenerContainerMetricsCustomizer
+    implements ListenerContainerCustomizer<MessageListenerContainer> {
 
-    private final List<MqConsumerMetricsCollector> mqConsumerMetricsCollectors;
+    private final MqConsumerMetricsCollector mqConsumerMetricsCollector;
 
-    public MqListenerContainerMetricsCustomizer(List<MqConsumerMetricsCollector> mqConsumerMetricsCollectors) {
-        this.mqConsumerMetricsCollectors = mqConsumerMetricsCollectors;
+    public RabbitMqListenerContainerMetricsCustomizer(MqConsumerMetricsCollector mqConsumerMetricsCollector) {
+        this.mqConsumerMetricsCollector = mqConsumerMetricsCollector;
     }
 
     @Override
-    public void configure(Object container, String bindingName, String group) {
+    public void configure(MessageListenerContainer container, String bindingName, String group) {
         log.info(
-            "Customize mq listener container metrics, container: {}, bindingName: {}, group: {}",
+            "Customize rabbitmq listener container metrics, container: {}, bindingName: {}, group: {}",
             container.getClass().getName(),
             bindingName,
             group
         );
-        for (MqConsumerMetricsCollector collector : mqConsumerMetricsCollectors) {
-            if (collector.supports(container)) {
-                collector.collect(container, bindingName, group);
-                log.info("Bind mq consumer thread metrics, bindingName: {}, group: {}", bindingName, group);
-                return;
-            }
+        if (!mqConsumerMetricsCollector.supports(container)) {
+            log.info("No rabbitmq consumer metrics collector found for container: {}", container.getClass().getName());
+            return;
         }
-        log.info("No mq consumer metrics collector found for container: {}", container.getClass().getName());
+        mqConsumerMetricsCollector.collect(container, bindingName, group);
+        log.info("Bind rabbitmq consumer thread metrics, bindingName: {}, group: {}", bindingName, group);
     }
 }

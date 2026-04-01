@@ -45,12 +45,23 @@ public class MqSendTimeChannelInterceptor implements ChannelInterceptor {
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         if (message.getHeaders().containsKey(MqMetricsConstants.HEADER_NAME_SEND_TIME_MS)) {
+            log.debug("Skip mq send timestamp header because it already exists, channel: {}",
+                channel.getClass().getName());
             return ChannelInterceptor.super.preSend(message, channel);
         }
+        long sendTimeMs = System.currentTimeMillis();
         Message<?> newMessage = MessageBuilder.fromMessage(message)
-            .setHeader(MqMetricsConstants.HEADER_NAME_SEND_TIME_MS, System.currentTimeMillis())
+            .setHeader(MqMetricsConstants.HEADER_NAME_SEND_TIME_MS, sendTimeMs)
             .build();
-        log.debug("Set mq send timestamp header for channel: {}", channel);
+        if (log.isDebugEnabled()) {
+            log.debug("Set mq send timestamp header, channelType: {}, payloadType: {}, sendTimeMs: {}",
+                channel.getClass().getName(), resolvePayloadType(message), sendTimeMs);
+        }
         return ChannelInterceptor.super.preSend(newMessage, channel);
+    }
+
+    private String resolvePayloadType(Message<?> message) {
+        Object payload = message.getPayload();
+        return payload == null ? "null" : payload.getClass().getName();
     }
 }

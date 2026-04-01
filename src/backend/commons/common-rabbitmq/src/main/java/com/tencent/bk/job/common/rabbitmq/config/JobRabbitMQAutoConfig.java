@@ -27,13 +27,14 @@ package com.tencent.bk.job.common.rabbitmq.config;
 import com.rabbitmq.client.impl.CredentialsProvider;
 import com.rabbitmq.client.impl.CredentialsRefreshService;
 import com.tencent.bk.job.common.mq.metrics.MqConsumerMetricsCollector;
-import com.tencent.bk.job.common.mq.metrics.MqListenerContainerMetricsCustomizer;
 import com.tencent.bk.job.common.mq.metrics.MqMetricsConstants;
 import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
 import com.tencent.bk.job.common.mq.metrics.MqSendTimeChannelInterceptor;
+import com.tencent.bk.job.common.rabbitmq.metrics.RabbitMqListenerContainerMetricsCustomizer;
 import com.tencent.bk.job.common.rabbitmq.metrics.RabbitMqConsumerThreadMetricsCollector;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
@@ -45,7 +46,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResourceLoader;
 import org.springframework.integration.config.GlobalChannelInterceptor;
-import java.util.List;
 
 @Slf4j
 @Configuration
@@ -93,11 +93,10 @@ public class JobRabbitMQAutoConfig {
      * 注册MQ listener container监控指标收集器
      */
     @Bean
-    ListenerContainerCustomizer<Object> mqListenerContainerMetricsCustomizer(
-        List<MqConsumerMetricsCollector> mqConsumerMetricsCollectors
+    ListenerContainerCustomizer<MessageListenerContainer> mqListenerContainerMetricsCustomizer(
+        MqConsumerMetricsCollector mqConsumerMetricsCollector
     ) {
-        log.info("Init mq listener container metrics customizer, collectorCount: {}",
-            mqConsumerMetricsCollectors.size());
-        return new MqListenerContainerMetricsCustomizer(mqConsumerMetricsCollectors);
+        log.info("Init rabbitmq listener container metrics customizer");
+        return new RabbitMqListenerContainerMetricsCustomizer(mqConsumerMetricsCollector);
     }
 }
