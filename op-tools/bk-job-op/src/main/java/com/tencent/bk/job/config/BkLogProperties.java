@@ -115,6 +115,10 @@ public class BkLogProperties {
          * 日志源显示名称
          */
         private String label;
+        /**
+         * 日志源排序字段
+         */
+        private String sortField;
 
         /**
          * 日志索引名称

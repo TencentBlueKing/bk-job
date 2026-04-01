@@ -68,7 +68,7 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
             LogQueryReq logQueryReq = buildLogQueryReq(
                 logSource, queryString, timeRange, startTime, endTime, start, size);
 
-            fillReqWithTimeSort(logQueryReq, asc);
+            fillReqWithSortField(logQueryReq, logSource.getSortField(), asc);
 
             LogQueryResp logQueryResp = bkLogApi.logSearch(logQueryReq);
 
@@ -126,13 +126,18 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
 
     /**
      * 添加排序字段，默认降序
+     *
      * @param logQueryReq 请求
-     * @param orderByAsc 是否升序
+     * @param sortField   排序字段
+     * @param orderByAsc  是否升序
      */
-    private void fillReqWithTimeSort(LogQueryReq logQueryReq, Boolean orderByAsc) {
+    private void fillReqWithSortField(LogQueryReq logQueryReq, String sortField, Boolean orderByAsc) {
         List<List<String>> sorts = new ArrayList<>();
         String orderStr = Boolean.TRUE.equals(orderByAsc) ? "asc" : "desc";
-        sorts.add(List.of("log_time", orderStr));
+        if (StringUtils.isBlank(sortField)) {
+            sortField = "log_time";
+        }
+        sorts.add(List.of(sortField, orderStr));
         logQueryReq.setSortList(sorts);
     }
 
