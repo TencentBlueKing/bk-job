@@ -89,8 +89,8 @@ public class RedisSlideWindowFlowController implements FlowController, Disposabl
     private Integer defaultMaxRate = 1000;
     private Integer precision = 10;
     private int suppressCount = 0;
-    private boolean isReady = false;
-    public Timer timer = new Timer();
+    private volatile boolean isReady = false;
+    public Timer timer = new Timer("RedisSlideWindowFlowController", true);
     public TimerTask clearTask = new TimerTask() {
         @Override
         public void run() {
@@ -120,11 +120,16 @@ public class RedisSlideWindowFlowController implements FlowController, Disposabl
     }
 
     private void tryToClearSlideWindows() {
+        if (!isReady) {
+            return;
+        }
         try {
             long timeStart = System.currentTimeMillis();
-            // 清理Redis中的各个window内容
             Object[] keys = slideWindowKeys.toArray();
             for (Object windowKey : keys) {
+                if (!isReady) {
+                    return;
+                }
                 clear((String) windowKey, System.currentTimeMillis());
             }
             long duration = System.currentTimeMillis() - timeStart;
@@ -137,7 +142,11 @@ public class RedisSlideWindowFlowController implements FlowController, Disposabl
                 logDurationWithSuppress(Level.INFO, duration);
             }
         } catch (Exception e) {
-            log.error("Exception when clear slideWindows", e);
+            if (!isReady) {
+                log.info("Exception when clear slideWindows during shutdown, ignored");
+            } else {
+                log.error("Exception when clear slideWindows", e);
+            }
         }
     }
 
