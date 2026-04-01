@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.common.util;
 
+import com.tencent.bk.job.common.context.JobContext;
+import com.tencent.bk.job.common.context.JobContextThreadLocal;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
@@ -113,8 +115,9 @@ public class TieredPageQueryUtil {
         TieredPageQueryConfig.Tier maxTier = config.getTier(totalCount);
         log.info("TieredPageQuery start: totalCount={}, maxTier={}, config={}", totalCount, maxTier, config);
 
-        // 在主线程捕获当前 Span，用于传递给异步线程
+        // 在主线程捕获当前 Span 和 JobContext，用于传递给异步线程
         Span parentSpan = (tracer != null) ? tracer.currentSpan() : null;
+        JobContext parentJobContext = JobContextThreadLocal.get();
 
         int pageSize = config.getPageSize();
         int totalPages = (int) Math.ceil((double) totalCount / pageSize);
@@ -140,7 +143,7 @@ public class TieredPageQueryUtil {
             ExecutorService shallowExecutor = createExecutor(config.getShallowConcurrency(), "shallow-worker");
             executorsToShutdown.add(shallowExecutor);
             submitShallowTasks(
-                config, tracer, parentSpan, shallowEndPage,
+                config, tracer, parentSpan, parentJobContext, shallowEndPage,
                 pageReqBuilder, pageQuery, resultExtractor,
                 shallowExecutor, shallowPageResults, allFutures);
         }
@@ -158,7 +161,7 @@ public class TieredPageQueryUtil {
             ExecutorService middleExecutor = createExecutor(config.getMiddleConcurrency(), "middle-worker");
             executorsToShutdown.add(middleExecutor);
             submitMiddleTasks(
-                config, tracer, parentSpan, shallowEndPage, middleEndPage,
+                config, tracer, parentSpan, parentJobContext, shallowEndPage, middleEndPage,
                 pageReqBuilder, pageQuery, resultExtractor, lastIdExtractor, keysetReqBuilder,
                 middleExecutor, middleTaskResults, allFutures);
         }
@@ -170,7 +173,7 @@ public class TieredPageQueryUtil {
                 ExecutorService deepExecutor = createExecutor(1, "deep-worker");
                 executorsToShutdown.add(deepExecutor);
                 submitDeepTask(
-                    config, tracer, parentSpan, deepStartPage,
+                    config, tracer, parentSpan, parentJobContext, deepStartPage,
                     pageReqBuilder, pageQuery, resultExtractor, lastIdExtractor, keysetReqBuilder,
                     deepExecutor, deepResult, allFutures);
             }
@@ -232,6 +235,7 @@ public class TieredPageQueryUtil {
         TieredPageQueryConfig config,
         Tracer tracer,
         Span parentSpan,
+        JobContext parentJobContext,
         int endPage,
         BiFunction<Integer, Integer, Q> pageReqBuilder,
         Function<Q, R> pageQuery,
@@ -247,7 +251,7 @@ public class TieredPageQueryUtil {
             int start = page * pageSize;
             int pageIndex = page;
             Future<?> future = executor.submit(() -> {
-                runWithTrace(tracer, parentSpan, "shallow-page-" + pageIndex, () -> {
+                runWithContext(tracer, parentSpan, parentJobContext, "shallow-page-" + pageIndex, () -> {
                     try {
                         Q req = pageReqBuilder.apply(start, pageSize);
                         R result = pageQuery.apply(req);
@@ -281,6 +285,7 @@ public class TieredPageQueryUtil {
         TieredPageQueryConfig config,
         Tracer tracer,
         Span parentSpan,
+        JobContext parentJobContext,
         int startPage,
         int endPage,
         BiFunction<Integer, Integer, Q> pageReqBuilder,
@@ -307,7 +312,7 @@ public class TieredPageQueryUtil {
             int tIdx = taskIndex;
 
             Future<?> future = executor.submit(() -> {
-                runWithTrace(tracer, parentSpan, "middle-task-" + tIdx, () -> {
+                runWithContext(tracer, parentSpan, parentJobContext, "middle-task-" + tIdx, () -> {
                     try {
                         List<T> taskData = new ArrayList<>(taskPageCount * pageSize);
 
@@ -397,6 +402,7 @@ public class TieredPageQueryUtil {
         TieredPageQueryConfig config,
         Tracer tracer,
         Span parentSpan,
+        JobContext parentJobContext,
         int deepStartPage,
         BiFunction<Integer, Integer, Q> pageReqBuilder,
         Function<Q, R> pageQuery,
@@ -411,7 +417,7 @@ public class TieredPageQueryUtil {
         log.info("[DeepTier] Using serial keyset pagination from page {}, pageSize={}", deepStartPage, pageSize);
 
         Future<?> future = executor.submit(() -> {
-            runWithTrace(tracer, parentSpan, "deep-tier", () -> {
+            runWithContext(tracer, parentSpan, parentJobContext, "deep-tier", () -> {
                 try {
                     // 步骤1：通过 start=deepStartPage*pageSize, limit=1 获取深层区起始基准 ID
                     int anchorStart = deepStartPage * pageSize;
@@ -454,28 +460,46 @@ public class TieredPageQueryUtil {
     }
 
     /**
-     * 在异步线程中执行任务，并传递主线程的 trace 上下文。
+     * 在异步线程中执行任务，并传递主线程的 trace 上下文和 JobContext。
      * <p>
      * 基于主线程捕获的 parentSpan 创建 child Span，使异步线程的日志与主线程保持同一条 trace 链路。
+     * 同时将主线程的 JobContext（包含 tenantId 等信息）传递到异步线程的 ThreadLocal 中，
+     * 确保异步线程中能正确获取上下文信息（如 tenantId）。
+     * <p>
+     * 每个任务执行前 set，执行后 unset，避免线程池复用线程时上下文串扰。
      *
-     * @param tracer     日志调用链tracer，为null时直接执行任务不创建Span
-     * @param parentSpan 主线程捕获的父Span
-     * @param spanName   子Span名称
-     * @param task       要执行的任务
+     * @param tracer           日志调用链tracer，为null时不创建Span
+     * @param parentSpan       主线程捕获的父Span
+     * @param parentJobContext 主线程捕获的JobContext（包含tenantId等），为null时不传递
+     * @param spanName         子Span名称
+     * @param task             要执行的任务
      */
-    private static void runWithTrace(Tracer tracer, Span parentSpan, String spanName, Runnable task) {
-        if (tracer == null) {
-            task.run();
-            return;
+    private static void runWithContext(Tracer tracer,
+                                       Span parentSpan,
+                                       JobContext parentJobContext,
+                                       String spanName,
+                                       Runnable task) {
+        // 设置 JobContext 到异步线程的 ThreadLocal
+        if (parentJobContext != null) {
+            JobContextThreadLocal.set(parentJobContext);
         }
-        Span childSpan = tracer.nextSpan(parentSpan).name(spanName);
-        try (Tracer.SpanInScope ignored = tracer.withSpan(childSpan.start())) {
-            task.run();
-        } catch (Throwable e) {
-            childSpan.error(e);
-            throw e;
+        try {
+            if (tracer == null) {
+                task.run();
+                return;
+            }
+            Span childSpan = tracer.nextSpan(parentSpan).name(spanName);
+            try (Tracer.SpanInScope ignored = tracer.withSpan(childSpan.start())) {
+                task.run();
+            } catch (Throwable e) {
+                childSpan.error(e);
+                throw e;
+            } finally {
+                childSpan.end();
+            }
         } finally {
-            childSpan.end();
+            // 清理异步线程的 JobContext，防止线程池复用时上下文串扰
+            JobContextThreadLocal.unset();
         }
     }
 

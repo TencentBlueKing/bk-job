@@ -131,6 +131,7 @@ import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -179,6 +180,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     private static final ConcurrentHashMap<Long, ReentrantLock> bizInternalTopoLockMap = new ConcurrentHashMap<>();
     private final ThreadPoolExecutor threadPoolExecutor;
     private final ThreadPoolExecutor longTermThreadPoolExecutor;
+    private final Tracer tracer;
 
     private final LoadingCache<Pair<String, Long>, InstanceTopologyDTO> bizInstCompleteTopologyCache =
         CacheBuilder.newBuilder()
@@ -201,7 +203,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
                          FlowController flowController,
                          MeterRegistry meterRegistry,
                          TenantEnvService tenantEnvService,
-                         IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+                         IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                         Tracer tracer) {
         super(
             flowController,
             appProperties,
@@ -213,6 +216,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         );
         this.threadPoolExecutor = threadPoolExecutor;
         this.longTermThreadPoolExecutor = longTermThreadPoolExecutor;
+        this.tracer = tracer;
     }
 
     @Override
@@ -1554,7 +1558,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     private List<ContainerDetailDTO> tieredPageListKubeContainerByTopo(ListKubeContainerByTopoReq req) {
         return TieredPageQueryUtil.queryAll(
             CONTAINER_TIERED_PAGE_QUERY_CONFIG,
-            null,
+            tracer,
             // countQuery: 通过 CMDB 的 enableCount 分页查询获取总数
             () -> {
                 ListKubeContainerByTopoReq countReq = copyListKubeContainerByTopoReq(req);
