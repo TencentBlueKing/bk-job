@@ -43,6 +43,12 @@ public class MqListenerContainerMetricsCustomizer implements ListenerContainerCu
 
     @Override
     public void configure(Object container, String bindingName, String group) {
+        log.info(
+            "Customize mq listener container metrics, container: {}, bindingName: {}, group: {}",
+            container.getClass().getName(),
+            bindingName,
+            group
+        );
         for (MqConsumerMetricsCollector collector : mqConsumerMetricsCollectors) {
             if (collector.supports(container)) {
                 collector.collect(container, bindingName, group);
@@ -50,8 +56,6 @@ public class MqListenerContainerMetricsCustomizer implements ListenerContainerCu
                 return;
             }
         }
-        if (log.isDebugEnabled()) {
-            log.debug("No mq consumer metrics collector found for container: {}", container.getClass().getName());
-        }
+        log.info("No mq consumer metrics collector found for container: {}", container.getClass().getName());
     }
 }

@@ -75,8 +75,15 @@ public class RabbitMqConsumerThreadMetricsCollector implements MqConsumerMetrics
         String groupTagValue = group == null ? "" : group;
         String metricKey = bindingName + ':' + groupTagValue;
         if (!registeredMetricKeys.add(metricKey)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Skip rabbitmq consumer thread metrics because metric key already registered, " +
+                    "bindingName: {}, group: {}", bindingName, group);
+            }
             return;
         }
+
+        log.info("Collect rabbitmq consumer thread metrics, container: {}, bindingName: {}, group: {}",
+            container.getClass().getName(), bindingName, group);
 
         Iterable<Tag> tags = Tags.of(
             Tag.of(MqMetricsConstants.TAG_KEY_GROUP, groupTagValue),

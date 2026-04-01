@@ -25,7 +25,6 @@
 package com.tencent.bk.job.common.mq.metrics;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.integration.config.GlobalChannelInterceptor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ChannelInterceptor;
@@ -35,7 +34,6 @@ import org.springframework.messaging.support.MessageBuilder;
  * 统一为MQ出站消息补充发送时间
  */
 @Slf4j
-@GlobalChannelInterceptor(patterns = MqMetricsConstants.PATTERN_OUTBOUND_CHANNEL)
 public class MqSendTimeChannelInterceptor implements ChannelInterceptor {
     /**
      * 为出站消息补充发送时间头

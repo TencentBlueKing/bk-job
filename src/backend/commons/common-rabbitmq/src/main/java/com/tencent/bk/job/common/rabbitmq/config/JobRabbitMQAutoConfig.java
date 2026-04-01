@@ -28,6 +28,7 @@ import com.rabbitmq.client.impl.CredentialsProvider;
 import com.rabbitmq.client.impl.CredentialsRefreshService;
 import com.tencent.bk.job.common.mq.metrics.MqConsumerMetricsCollector;
 import com.tencent.bk.job.common.mq.metrics.MqListenerContainerMetricsCustomizer;
+import com.tencent.bk.job.common.mq.metrics.MqMetricsConstants;
 import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
 import com.tencent.bk.job.common.mq.metrics.MqSendTimeChannelInterceptor;
 import com.tencent.bk.job.common.rabbitmq.metrics.RabbitMqConsumerThreadMetricsCollector;
@@ -43,6 +44,7 @@ import org.springframework.cloud.stream.config.ListenerContainerCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResourceLoader;
+import org.springframework.integration.config.GlobalChannelInterceptor;
 import java.util.List;
 
 @Slf4j
@@ -69,19 +71,22 @@ public class JobRabbitMQAutoConfig {
     }
 
     /**
-     * 注册MQ消息发送时间拦截器
-     */
-    @Bean
-    MqSendTimeChannelInterceptor mqSendTimeChannelInterceptor() {
-        return new MqSendTimeChannelInterceptor();
-    }
-
-    /**
      * 注册RabbitMQ消费者线程指标收集器
      */
     @Bean
     MqConsumerMetricsCollector mqConsumerMetricsCollector(MeterRegistry meterRegistry) {
+        log.info("Init rabbitmq consumer thread metrics collector");
         return new RabbitMqConsumerThreadMetricsCollector(meterRegistry);
+    }
+
+    /**
+     * 注册MQ消息发送时间拦截器
+     */
+    @Bean
+    @GlobalChannelInterceptor(patterns = MqMetricsConstants.PATTERN_OUTBOUND_CHANNEL)
+    MqSendTimeChannelInterceptor mqSendTimeChannelInterceptor() {
+        log.info("Init mq send time channel interceptor, patterns: {}", MqMetricsConstants.PATTERN_OUTBOUND_CHANNEL);
+        return new MqSendTimeChannelInterceptor();
     }
 
     /**
@@ -91,6 +96,8 @@ public class JobRabbitMQAutoConfig {
     ListenerContainerCustomizer<Object> mqListenerContainerMetricsCustomizer(
         List<MqConsumerMetricsCollector> mqConsumerMetricsCollectors
     ) {
+        log.info("Init mq listener container metrics customizer, collectorCount: {}",
+            mqConsumerMetricsCollectors.size());
         return new MqListenerContainerMetricsCustomizer(mqConsumerMetricsCollectors);
     }
 }
