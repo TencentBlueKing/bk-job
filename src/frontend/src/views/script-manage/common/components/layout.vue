@@ -120,7 +120,7 @@
       z-index: 0;
       display: flex;
 
-      .left {
+      >.left {
         position: relative;
         width: 312px;
         padding: 12px 16px;
@@ -200,20 +200,16 @@
       }
     }
     /* stylelint-disable selector-class-pattern */
-    .jd-ace-editor {
-      .ace_editor {
+    .jd-monaco-editor {
+      .monaco_editor {
         background: #1a1a1a;
-
-        .ace_gutter {
-          background: #1a1a1a;
-        }
       }
 
-      .jb-ace-action {
+      .jb-monaco-action {
         display: none;
       }
 
-      .jb-ace-history-panel {
+      .jb-monaco-history-panel {
         top: 0;
         right: 42px;
       }
