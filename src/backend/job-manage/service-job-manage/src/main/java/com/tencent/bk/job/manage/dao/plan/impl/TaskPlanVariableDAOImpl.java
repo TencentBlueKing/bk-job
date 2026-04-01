@@ -105,7 +105,8 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
         taskVariable.setDescription(record.get(TABLE.DESCRIPTION));
         taskVariable.setChangeable(Bool.isTrue(record.get(TABLE.IS_CHANGEABLE).byteValue()));
         taskVariable.setRequired(Bool.isTrue(record.get(TABLE.IS_REQUIRED).byteValue()));
-        taskVariable.setFollowTemplate(Bool.isTrue(record.get(TABLE.IS_FOLLOW_TEMPLATE).byteValue()));
+        UByte isFollowTemplate = record.get(TABLE.IS_FOLLOW_TEMPLATE);
+        taskVariable.setFollowTemplate(isFollowTemplate == null ? false : Bool.isTrue(isFollowTemplate.byteValue()));
         return taskVariable;
     }
 
