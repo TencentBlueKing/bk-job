@@ -1583,7 +1583,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         newReq.setNodeIdList(req.getNodeIdList());
         newReq.setContainerFilter(req.getContainerFilter());
         newReq.setPodFilter(req.getPodFilter());
-        newReq.setPage(req.getPage());
+        newReq.setPage(new Page(req.getPage()));
         newReq.setContainerFields(req.getContainerFields());
         newReq.setPodFields(req.getPodFields());
         return newReq;
@@ -1613,7 +1613,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         long lastIdForCurrentPage
     ) {
         ListKubeContainerByTopoReq nextPageReq = new ListKubeContainerByTopoReq();
-        nextPageReq.setPage(originReq.getPage());
+        nextPageReq.setPage(new Page(originReq.getPage()));
         nextPageReq.setNodeIdList(originReq.getNodeIdList());
         nextPageReq.setPodFilter(originReq.getPodFilter());
         nextPageReq.setBizId(originReq.getBizId());
