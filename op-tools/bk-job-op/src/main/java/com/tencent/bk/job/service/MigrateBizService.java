@@ -22,31 +22,36 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.engine.quota.limit;
+package com.tencent.bk.job.service;
 
-public enum ResourceQuotaCheckResultEnum {
+import java.util.List;
 
-    NO_LIMIT("no_limit"),
-    RESOURCE_SCOPE_LIMIT("resource_scope_quota_limit"),
-    APP_LIMIT("app_quota_limit"),
-    SYSTEM_LIMIT("system_quota_limit");
+/**
+ * 按业务分批迁移环境时使用的服务接口
+ */
+public interface MigrateBizService {
 
-    private final String value;
+    /**
+     * 批量标记业务已完成环境迁移
+     *
+     * @param bizIdList 业务ID列表
+     * @return 是否成功
+     */
+    boolean addMigrateBiz(List<String> bizIdList);
 
-    ResourceQuotaCheckResultEnum(String value) {
-        this.value = value;
-    }
+    /**
+     * 批量取消业务的环境迁移标记
+     *
+     * @param bizIdList 业务ID列表
+     * @return 是否成功
+     */
+    boolean deleteMigrateBiz(List<String> bizIdList);
 
-    public static ResourceQuotaCheckResultEnum valOf(String value) {
-        for (ResourceQuotaCheckResultEnum resultEnum : values()) {
-            if (resultEnum.value.equals(value)) {
-                return resultEnum;
-            }
-        }
-        throw new IllegalArgumentException("No ResourceQuotaCheckResultEnum constant: " + value);
-    }
-
-    public boolean isExceedLimit() {
-        return this != NO_LIMIT;
-    }
+    /**
+     * 查询某个业务是否已完成环境迁移
+     *
+     * @param bizId 业务ID
+     * @return 是否已完成环境迁移
+     */
+    boolean isMigrated(String bizId);
 }

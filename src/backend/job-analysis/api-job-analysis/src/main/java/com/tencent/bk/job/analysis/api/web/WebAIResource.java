@@ -36,9 +36,9 @@ import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.hibernate.validator.constraints.Range;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -54,9 +54,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import springfox.documentation.annotations.ApiIgnore;
+import io.swagger.v3.oas.annotations.Hidden;
 
-import javax.validation.constraints.Min;
+import jakarta.validation.constraints.Min;
 import java.util.List;
 import java.util.Map;
 
@@ -64,7 +64,7 @@ import java.util.Map;
  * Web端使用的AI功能相关接口定义
  */
 @Validated
-@Api(tags = {"job-analysis:web:AI"})
+@Tag(name = "job-analysis:web:AI")
 @RequestMapping("/web/ai")
 @RestController
 @WebAPI
@@ -76,178 +76,176 @@ public interface WebAIResource {
         type = CompatibleType.DEPLOY,
         explain = "兼容 API， 发布完成后前端使用 getAIConfig 接口，该接口可删除"
     )
-    @ApiOperation(value = "获取AI相关的配置参数，取值：\n" +
+    @Operation(summary = "获取AI相关的配置参数，取值：\n" +
         "enabled：表示是否启用AI功能；\n" +
-        "analyzeErrorLogMaxLength：表示分析报错信息时支持的最大日志长度，单位为字符；",
-        produces = "application/json")
+        "analyzeErrorLogMaxLength：表示分析报错信息时支持的最大日志长度，单位为字符；")
     @GetMapping("/scope/{scopeType}/{scopeId}/config")
     Response<Map<String, Object>> getAIConfigOfScope(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
         String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
         AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
         String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
         String scopeId
     );
 
-    @ApiOperation(value = "获取AI相关的配置参数，取值：\n" +
+    @Operation(summary = "获取AI相关的配置参数，取值：\n" +
         "enabled：表示是否启用AI功能；\n" +
-        "analyzeErrorLogMaxLength：表示分析报错信息时支持的最大日志长度，单位为字符；",
-        produces = "application/json")
+        "analyzeErrorLogMaxLength：表示分析报错信息时支持的最大日志长度，单位为字符；")
     @GetMapping("/config")
     Response<Map<String, Object>> getAIConfig(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
         String username
     );
 
-    @ApiOperation(value = "获取最近的AI对话记录历史（按产生时间倒序排列）", produces = "application/json")
+    @Operation(summary = "获取最近的AI对话记录历史（按产生时间倒序排列）")
     @GetMapping("/scope/{scopeType}/{scopeId}/latestChatHistoryList")
     Response<List<AIChatRecord>> getLatestChatHistoryList(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
         String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
         AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
         String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
         String scopeId,
-        @ApiParam(value = "对话记录起始位置，不传默认为0")
+        @Parameter(description = "对话记录起始位置，不传默认为0")
         @RequestParam(value = "start", defaultValue = "0")
         @Min(value = 0L, message = "{validation.constraints.AIInvalidHistoryStart.message}")
         Integer start,
-        @ApiParam(value = "需要获取的对话记录条数，最大200条，不传默认20条")
+        @Parameter(description = "需要获取的对话记录条数，最大200条，不传默认20条")
         @RequestParam(value = "length", defaultValue = "20")
         @Range(max = 200L, message = "{validation.constraints.AIInvalidHistoryLength.message}")
         Integer length
     );
 
-    @ApiOperation(value = "通用对话接口", produces = "application/json")
+    @Operation(summary = "通用对话接口")
     @PostMapping("/scope/{scopeType}/{scopeId}/general/chat")
     Response<AIChatRecord> generalChat(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
         String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
         AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
         String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
         String scopeId,
-        @ApiParam(value = "AI通用对话参数", required = true)
+        @Parameter(description = "AI通用对话参数", required = true)
         @Validated
         @RequestBody AIGeneralChatReq req
     );
 
-    @ApiOperation(value = "检查脚本", produces = "application/json")
+    @Operation(summary = "检查脚本")
     @PostMapping("/scope/{scopeType}/{scopeId}/checkScript")
     Response<AIChatRecord> checkScript(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
         String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
         AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
         String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
         String scopeId,
-        @ApiParam(value = "AI检查脚本参数", required = true)
+        @Parameter(description = "AI检查脚本参数", required = true)
         @Validated
         @RequestBody AICheckScriptReq req
     );
 
-    @ApiOperation(value = "分析报错信息", produces = "application/json")
+    @Operation(summary = "分析报错信息")
     @PostMapping("/scope/{scopeType}/{scopeId}/analyzeError")
     Response<AIChatRecord> analyzeError(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
         String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
         AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
         String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
         String scopeId,
-        @ApiParam(value = "AI分析报错信息参数", required = true)
+        @Parameter(description = "AI分析报错信息参数", required = true)
         @Validated
         @RequestBody AIAnalyzeErrorReq req
     );
 
-    @ApiOperation(value = "获取单次对话流式数据（流式接口），返回换行符分隔的多条JSON数据，可分块读取，单条JSON数据格式：{\"success\":true,\"code\":0," +
+    @Operation(summary = "获取单次对话流式数据（流式接口），返回换行符分隔的多条JSON数据，可分块读取，单条JSON数据格式：{\"success\":true,\"code\":0," +
         "\"errorMsg\":\"成功\",\"data\":{\"errorCode\":\"0\",\"errorMessage\":null,\"content\":\"hello world\"," +
         "\"time\":\"2024-08-14 12:00:00\"},\"requestId\":\"fb991170da868b2a1eb5835bc426e992\",\"authResult\": null," +
-        "\"errorDetail\": null}", produces = "application/json")
+        "\"errorDetail\": null}")
     @PostMapping("/scope/{scopeType}/{scopeId}/chatStream")
     ResponseEntity<StreamingResponseBody> generateChatStream(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
         String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
         AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
         String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
         String scopeId,
-        @ApiParam(value = "生成流式响应数据请求参数", required = true)
+        @Parameter(description = "生成流式响应数据请求参数", required = true)
         @Validated
         @RequestBody GenerateChatStreamReq req
     );
 
-    @ApiOperation(value = "终止对话", produces = "application/json")
+    @Operation(summary = "终止对话")
     @PutMapping("/scope/{scopeType}/{scopeId}/terminateChat")
     Response<Boolean> terminateChat(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
         String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
         AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
         String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
         String scopeId,
-        @ApiParam(value = "终止对话请求参数", required = true)
+        @Parameter(description = "终止对话请求参数", required = true)
         @Validated
         @RequestBody TerminateChatReq req
     );
 
-    @ApiOperation(value = "清空对话记录", produces = "application/json")
+    @Operation(summary = "清空对话记录")
     @DeleteMapping("/scope/{scopeType}/{scopeId}/clearChatHistory")
     Response<ClearChatHistoryResp> clearChatHistory(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
         String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
         AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
         String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
         String scopeId
     );

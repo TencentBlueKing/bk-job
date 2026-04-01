@@ -56,6 +56,16 @@ public class CommonMetricTags {
     public static final String KEY_APP_CODE = "app_code";
 
     /**
+     * 用户id
+     */
+    public static final String KEY_USER_ID = "user_id";
+
+    /**
+     * 配额类型
+     */
+    public static final String KEY_QUOTA_TYPE = "quota_type";
+
+    /**
      * HTTP请求状态
      */
     public static final String KEY_HTTP_STATUS = "http_status";

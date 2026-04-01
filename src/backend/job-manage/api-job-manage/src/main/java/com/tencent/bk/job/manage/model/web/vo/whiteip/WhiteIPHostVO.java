@@ -25,29 +25,28 @@
 package com.tencent.bk.job.manage.model.web.vo.whiteip;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("IP白名单中的主机信息")
+@Schema(description = "IP白名单中的主机信息")
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class WhiteIPHostVO {
 
-    @ApiModelProperty(value = "服务器 ID", required = true)
+    @Schema(description = "服务器 ID", required = true)
     private Long hostId;
 
-    @ApiModelProperty("云区域ID")
+    @Schema(description = "云区域ID")
     private Long cloudAreaId;
 
-    @ApiModelProperty("主机 IP")
+    @Schema(description = "主机 IP")
     private String ip;
 
-    @ApiModelProperty("主机 IPv6")
+    @Schema(description = "主机 IPv6")
     private String ipv6;
 
 }

@@ -26,44 +26,43 @@ package com.tencent.bk.job.manage.model.web.request;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.util.check.IlegalCharChecker;
+import com.tencent.bk.job.common.util.check.IllegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.manage.model.web.vo.TagVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
 @Data
-@ApiModel("脚本元数据更新请求报文")
+@Schema(description = "脚本元数据更新请求报文")
 @Slf4j
 public class ScriptInfoUpdateReq {
     /**
      * 脚本更新的字段，目前支持：scriptName/scriptDesc/scriptTags
      */
-    @ApiModelProperty(value = "脚本更新的字段，目前支持：scriptName/scriptDesc/scriptTags", required = true, example = "scriptName")
+    @Schema(description = "脚本更新的字段，目前支持：scriptName/scriptDesc/scriptTags", required = true, example = "scriptName")
     private String updateField;
 
-    @ApiModelProperty(value = "脚本名称", required = false)
+    @Schema(description = "脚本名称", required = false)
     private String scriptName;
 
-    @ApiModelProperty(value = "脚本描述", required = false)
+    @Schema(description = "脚本描述", required = false)
     private String scriptDesc;
 
-    @ApiModelProperty(value = "脚本标签", required = false)
+    @Schema(description = "脚本标签", required = false)
     private List<TagVO> scriptTags;
 
 
     public void validateScriptName() {
         try {
             StringCheckHelper stringCheckHelper = new StringCheckHelper(new TrimChecker(),
-                new NotEmptyChecker(), new IlegalCharChecker(), new MaxLengthChecker(60));
+                                                                        new NotEmptyChecker(), new IllegalCharChecker(), new MaxLengthChecker(60));
             this.scriptName = stringCheckHelper.checkAndGetResult(scriptName);
         } catch (StringCheckException e) {
             log.warn("scriptName is invalid:", e);

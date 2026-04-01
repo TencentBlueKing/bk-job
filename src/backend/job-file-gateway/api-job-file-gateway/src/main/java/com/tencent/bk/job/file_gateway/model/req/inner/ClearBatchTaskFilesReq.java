@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.model.req.inner;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,12 +34,12 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel
+@Schema
 public class ClearBatchTaskFilesReq {
     /**
      * 批量任务Id列表
      */
-    @ApiModelProperty(value = "批量任务Id列表", required = true)
+    @Schema(description = "批量任务Id列表", required = true)
     private List<String> batchTaskIdList;
 
 }

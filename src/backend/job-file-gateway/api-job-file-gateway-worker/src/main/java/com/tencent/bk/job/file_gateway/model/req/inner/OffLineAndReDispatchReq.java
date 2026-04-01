@@ -27,7 +27,7 @@ package com.tencent.bk.job.file_gateway.model.req.inner;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.util.json.SkipLogFields;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,22 +40,22 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 public class OffLineAndReDispatchReq {
-    @ApiModelProperty(value = "worker所在的集群", required = true)
+    @Schema(description = "worker所在的集群", required = true)
     String clusterName;
-    @ApiModelProperty(value = "访问worker使用的host", required = true)
+    @Schema(description = "访问worker使用的host", required = true)
     String accessHost;
-    @ApiModelProperty(value = "访问worker使用的port", required = true)
+    @Schema(description = "访问worker使用的port", required = true)
     Integer accessPort;
-    @ApiModelProperty(value = "业务ID", required = true)
+    @Schema(description = "业务ID", required = true)
     Long appId;
     @SkipLogFields
-    @ApiModelProperty(value = "密钥", required = true)
+    @Schema(description = "密钥", required = true)
     String token;
-    @ApiModelProperty(value = "需要重调度的任务Id列表", required = true)
+    @Schema(description = "需要重调度的任务Id列表", required = true)
     List<String> taskIdList;
-    @ApiModelProperty(value = "重调度初始延迟时间/ms，默认为0")
+    @Schema(description = "重调度初始延迟时间/ms，默认为0")
     Long initDelayMills = 0L;
-    @ApiModelProperty(value = "重调度间隔时间/ms，默认3000ms")
+    @Schema(description = "重调度间隔时间/ms，默认3000ms")
     Long intervalMills = 3000L;
 
     @CompatibleImplementation(

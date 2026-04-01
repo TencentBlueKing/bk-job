@@ -32,4 +32,9 @@ public interface QuotaResourceId {
      * 当前正在运行的作业实例
      */
     String JOB_INSTANCE = "runningJob";
+
+    /**
+     * 每天发送消息通知数量
+     */
+    String SEND_NOTIFY = "sendNotify";
 }

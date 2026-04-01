@@ -30,13 +30,6 @@ package com.tencent.bk.job.common.retry;
 public interface RetryPolicy {
 
     /**
-     * 获取最大重试次数
-     *
-     * @return 最大重试次数
-     */
-    int getMaxAttempts();
-
-    /**
      * 计算下一次重试的等待时间
      *
      * @param attemptNumber 当前重试次数（从1开始）

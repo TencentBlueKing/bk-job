@@ -26,24 +26,23 @@ package com.tencent.bk.job.manage.model.inner.request;
 
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 /**
  * 检查脚本集请求
  */
 @Data
-@ApiModel("检查脚本集请求")
+@Schema(description = "检查脚本集请求")
 @NoArgsConstructor
 public class ServiceCheckScriptRequest {
     /**
      * 脚本内容
      */
-    @ApiModelProperty("脚本内容")
+    @Schema(description = "脚本内容")
     @NotBlank
     private String scriptContent;
     /**
@@ -51,14 +50,14 @@ public class ServiceCheckScriptRequest {
      *
      * @see com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum
      */
-    @ApiModelProperty("脚本类型")
+    @Schema(description = "脚本类型")
     @CheckEnum(enumClass = ScriptTypeEnum.class, enumMethod = "isValid")
     private Integer scriptType;
 
     /**
      * 租户 ID
      */
-    @ApiModelProperty("租户 ID")
+    @Schema(description = "租户 ID")
     @NotBlank
     private String tenantId;
 

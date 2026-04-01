@@ -32,7 +32,7 @@ import com.tencent.bk.job.backup.config.JobLogArchiveProperties;
 import com.tencent.bk.job.backup.constant.ArchiveTaskTypeEnum;
 import com.tencent.bk.job.backup.metrics.ArchiveErrorTaskCounter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.sleuth.Tracer;
+import io.micrometer.tracing.Tracer;
 
 import java.util.List;
 import java.util.Map;

@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine.result;
 
 import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
+import io.micrometer.core.instrument.FunctionCounter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
@@ -34,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -156,31 +157,29 @@ public class ResultHandleTaskSampler {
         }
 
         private void measureFinishedFileTasksByApp() {
-            finishedFileTaskCounterMap.forEach((appId, counter) -> {
-                meterRegistry.gauge(
+            finishedFileTaskCounterMap.forEach((appId, counter) ->
+                FunctionCounter.builder(
                     ExecuteMetricNames.GSE_FINISHED_TASKS_TOTAL,
-                    Arrays.asList(
-                        Tag.of("appId", appId.toString()),
-                        Tag.of("type", "file")
-                    ),
                     counter,
-                    getFunctionByCounter(counter)
-                );
-            });
+                    AtomicLong::doubleValue
+                ).tags(Arrays.asList(
+                    Tag.of("appId", appId.toString()),
+                    Tag.of("type", "file")
+                )).register(meterRegistry)
+            );
         }
 
         private void measureFinishedScriptTasksByApp() {
-            finishedScriptTaskCounterMap.forEach((appId, counter) -> {
-                meterRegistry.gauge(
+            finishedScriptTaskCounterMap.forEach((appId, counter) ->
+                FunctionCounter.builder(
                     ExecuteMetricNames.GSE_FINISHED_TASKS_TOTAL,
-                    Arrays.asList(
-                        Tag.of("appId", appId.toString()),
-                        Tag.of("type", "script")
-                    ),
                     counter,
-                    getFunctionByCounter(counter)
-                );
-            });
+                    AtomicLong::doubleValue
+                ).tags(Arrays.asList(
+                    Tag.of("appId", appId.toString()),
+                    Tag.of("type", "script")
+                )).register(meterRegistry)
+            );
         }
 
         @Override

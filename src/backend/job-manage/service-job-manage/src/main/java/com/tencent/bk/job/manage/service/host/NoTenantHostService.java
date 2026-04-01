@@ -61,7 +61,7 @@ public interface NoTenantHostService {
      * @param hostInfoList 主机信息
      * @return 成功更新的主机数量
      */
-    int batchUpdateHostsBeforeLastTime(List<ApplicationHostDTO> hostInfoList);
+    int batchUpdateHostsBeforeOrEqualLastTime(List<ApplicationHostDTO> hostInfoList);
 
     /**
      * 创建或更新主机（仅更新时间戳在当前数据之前的数据）
@@ -69,7 +69,7 @@ public interface NoTenantHostService {
      * @param hostInfoDTO 主机信息
      * @return Pair<是否创建 ， 受影响主机数量>
      */
-    Pair<Boolean, Integer> createOrUpdateHostBeforeLastTime(ApplicationHostDTO hostInfoDTO);
+    Pair<Boolean, Integer> createOrUpdateHostBeforeOrEqualLastTime(ApplicationHostDTO hostInfoDTO);
 
     int updateHostAttrsByHostId(ApplicationHostDTO hostInfoDTO);
 
@@ -79,7 +79,7 @@ public interface NoTenantHostService {
      * @param hostInfoDTO 主机信息
      * @return 成功更新的主机数量
      */
-    int updateHostAttrsBeforeLastTime(ApplicationHostDTO hostInfoDTO);
+    int updateHostAttrsBeforeOrEqualLastTime(ApplicationHostDTO hostInfoDTO);
 
     /**
      * 删除主机（仅删除时间戳等于或在当前数据之前的数据）
@@ -148,6 +148,16 @@ public interface NoTenantHostService {
      * @return 受影响行数
      */
     int syncHostTopo(Long hostId);
+
+    /**
+     * 批量同步主机拓扑数据至主机表冗余字段。
+     * 用于全量同步场景中，在 host_topo 表发生增删改后，
+     * 批量刷新受影响主机的 host 表冗余字段（app_id、set_ids、module_ids、module_type）。
+     *
+     * @param hostIds 需要刷新拓扑冗余字段的主机ID集合
+     * @return 成功同步的主机数量
+     */
+    int batchSyncHostTopo(Collection<Long> hostIds);
 
     /**
      * 根据主机ID获取主机数据

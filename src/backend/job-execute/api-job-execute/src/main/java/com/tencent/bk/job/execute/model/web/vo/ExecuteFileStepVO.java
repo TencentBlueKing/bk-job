@@ -25,41 +25,40 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("步骤文件信息")
+@Schema(description = "步骤文件信息")
 public class ExecuteFileStepVO {
 
-    @ApiModelProperty("源文件列表")
+    @Schema(description = "源文件列表")
     @JsonProperty("fileSourceList")
     private List<ExecuteFileSourceInfoVO> fileSourceList;
 
-    @ApiModelProperty("目标信息")
+    @Schema(description = "目标信息")
     @JsonProperty("fileDestination")
     private ExecuteFileDestinationInfoVO fileDestination;
 
-    @ApiModelProperty("超时")
+    @Schema(description = "超时")
     private Integer timeout;
 
-    @ApiModelProperty("上传文件限速")
+    @Schema(description = "上传文件限速")
     @JsonProperty("uploadSpeedLimit")
     private Integer originSpeedLimit;
 
-    @ApiModelProperty("下载文件限速")
+    @Schema(description = "下载文件限速")
     @JsonProperty("downloadSpeedLimit")
     private Integer targetSpeedLimit;
 
     /**
      * 传输模式
      */
-    @ApiModelProperty(value = "传输模式： 1 - 严谨模式； 2 - 强制模式；3 - 安全模式", required = true)
+    @Schema(description = "传输模式： 1 - 严谨模式； 2 - 强制模式；3 - 安全模式", required = true)
     private Integer transferMode;
 
-    @ApiModelProperty("忽略错误 0 - 不忽略 1 - 忽略")
+    @Schema(description = "忽略错误 0 - 不忽略 1 - 忽略")
     private Integer ignoreError;
 }

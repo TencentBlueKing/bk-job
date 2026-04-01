@@ -24,115 +24,114 @@
 
 package com.tencent.bk.job.execute.model.inner;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("作业实例")
+@Schema(description = "作业实例")
 @Data
 public class ServiceTaskInstanceDTO {
     /**
      * id
      */
-    @ApiModelProperty("任务 ID")
+    @Schema(description = "任务 ID")
     private Long id;
 
     /**
      * 执行方案id
      */
-    @ApiModelProperty("执行方案 ID")
+    @Schema(description = "执行方案 ID")
     private Long taskId;
 
     /**
      * id
      */
-    @ApiModelProperty("定时任务 ID")
+    @Schema(description = "定时任务 ID")
     private Long cronTaskId;
 
     /**
      * 执行方案id
      */
-    @ApiModelProperty("作业模板 ID")
+    @Schema(description = "作业模板 ID")
     private Long templateId;
 
     /**
      * 是否调试执行方案
      */
-    @ApiModelProperty("是否调试执行方案")
+    @Schema(description = "是否调试执行方案")
     private Boolean debugTask;
 
     /**
      * 业务id
      */
-    @ApiModelProperty("业务ID")
+    @Schema(description = "业务ID")
     private Long appId;
 
     /**
      * 名称
      */
-    @ApiModelProperty("任务名称")
+    @Schema(description = "任务名称")
     private String name;
 
     /**
      * 执行人
      */
-    @ApiModelProperty("执行人")
+    @Schema(description = "执行人")
     private String operator;
 
     /**
      * 启动方式
      */
-    @ApiModelProperty("启动方式，1-页面执行、2-API调用、3-定时执行")
+    @Schema(description = "启动方式，1-页面执行、2-API调用、3-定时执行")
     private Integer startupMode;
 
     /**
      * 启动方式
      */
-    @ApiModelProperty("启动方式名称")
+    @Schema(description = "启动方式名称")
     private String startupModeDesc;
 
     /**
      * 状态
      */
-    @ApiModelProperty("任务状态")
+    @Schema(description = "任务状态")
     private Integer status;
 
     /**
      * 任务状态描述
      */
-    @ApiModelProperty("任务状态描述")
+    @Schema(description = "任务状态描述")
     private String statusDesc;
 
     /**
      * 开始时间
      */
-    @ApiModelProperty("开始时间")
+    @Schema(description = "开始时间")
     private Long startTime;
 
     /**
      * 结束时间
      */
-    @ApiModelProperty("结束时间")
+    @Schema(description = "结束时间")
     private Long endTime;
 
     /**
      * 总耗时，单位：秒
      */
-    @ApiModelProperty("总耗时")
+    @Schema(description = "总耗时")
     private float totalTime;
 
     /**
      * 创建时间
      */
-    @ApiModelProperty("创建时间")
+    @Schema(description = "创建时间")
     private Long createTime;
 
     /**
      * 作业执行类型
      */
-    @ApiModelProperty("任务类型,0-作业执行,1-脚本执行,2-文件分发")
+    @Schema(description = "任务类型,0-作业执行,1-脚本执行,2-文件分发")
     private Integer type;
 
-    @ApiModelProperty("任务类型描述")
+    @Schema(description = "任务类型描述")
     private String typeDesc;
 }

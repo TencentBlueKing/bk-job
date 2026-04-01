@@ -35,13 +35,21 @@
       align="left"
       :label="$t('cron.唤起时间')"
       prop="scheduledTime"
-      width="180" />
+      width="180">
+      <template slot-scope="{ row }">
+        <span v-bk-tooltips="row.scheduledTimeTooltipsText">{{ row.scheduledTime }}</span>
+      </template>
+    </bk-table-column>
     <bk-table-column
       key="executor"
       align="left"
       :label="$t('cron.执行人_colHead')"
       prop="executor"
-      width="180" />
+      width="180">
+      <template slot-scope="{ row }">
+        <bk-user-display-name :user-id="row.executor" />
+      </template>
+    </bk-table-column>
     <bk-table-column
       key="errorMsg"
       align="left"

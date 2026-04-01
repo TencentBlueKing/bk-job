@@ -58,8 +58,9 @@ BK-JOB provides quick execution, task arrangement, cron job, and a wide range of
 For more information, please check Blueking's official website [Platform Product Overview](https://bk.tencent.com/docs/document/6.0/125/5748)
 
 ## Getting started
-- [Download and Compile](docs/overview/source_compile.en.md)
-- [Install and Operation](docs/overview/operation_en.md)
+- [Docs for Normal User: Ability Boundaries and Limitations](docs/overview/ability_boundaries_and_limitations.en.md)
+- [Docs for Developer and Operator: Download and Compile](docs/overview/source_compile.en.md)
+- [Docs for Developer and Operator: Install and Operation](docs/overview/operation_en.md)
 
 ## Support
 1. [GitHub Community](https://github.com/Tencent/bk-job/discussions)

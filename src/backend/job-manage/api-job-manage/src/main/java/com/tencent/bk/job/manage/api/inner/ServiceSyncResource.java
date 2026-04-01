@@ -27,7 +27,7 @@ package com.tencent.bk.job.manage.api.inner;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.manage.model.inner.resp.ServiceApplicationDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * 同步业务、主机资源服务
  */
-@Api(tags = {"job-manage:service:App_Management"})
+@Tag(name = "job-manage:service:App_Management")
 @SmartFeignClient(value = "job-manage", contextId = "syncResource")
 @InternalAPI
 public interface ServiceSyncResource {

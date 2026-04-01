@@ -610,6 +610,8 @@ gse:
   script:
     # 执行脚本时临时脚本在目标机器的存放与执行路径
     rootPath: "/tmp/bkjob"
+    # 当脚本在容器上执行时，脚本在容器内目录会在主机目录前再加个前缀
+    containerScriptPathPrefix: "/bktmp"
   query:
     threads:
       # 向GSE查询Agent状态的核心并发数
@@ -919,6 +921,13 @@ job:
       #   appQuotaLimit:
       #     global: "20%"
       #     custom: "bk-nodeman=1000,bk-soap=50%"
+      # 配额限制资源-通知发送数量
+      sendNotify:
+        enabled: false
+        # resourceScopeQuotaLimit:
+        #   global: "5000"
+        # userQuotaLimit:
+        #   global: "2000"
   # 动态属性配置
   toggle:
     props:
@@ -1003,6 +1012,13 @@ bkLogConfig:
     #   cluster: "bcs-cluster-001"
     #   region: "beijing"
     #   bk_env: "prod"
+
+## 自定义全局挂载卷(volumes和volumeMounts)
+## 用途示例：jvm信任证书、license文件等
+## 注意：如果具体服务模块也定义了volumeExtension，会覆盖此全局配置
+volumeExtension:
+  volumes: []
+  volumeMounts: []
 
 ## job-gateway网关配置
 gatewayConfig:
@@ -1098,6 +1114,10 @@ gatewayConfig:
         password: "mLnuob1**4D74c@F"
   # 运行时JVM参数
   jvmOptions: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC"
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-manage作业管理配置
 manageConfig:
@@ -1196,6 +1216,10 @@ manageConfig:
     daemon:
       # 是否开启
       enabled: true
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-execute执行引擎配置
 executeConfig:
@@ -1384,6 +1408,10 @@ executeConfig:
       enabled: false
     # auto_increment: 自增长;leaf_segment: leaf segment id
     type: auto_increment
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension :
+    volumes : [ ]
+    volumeMounts : [ ]
 
 ## job-crontab定时任务配置
 crontabConfig:
@@ -1453,6 +1481,18 @@ crontabConfig:
   disableCronJobOfArchivedScope:
     # 是否开启
     enabled: true
+  # 定时任务启动记录清理相关配置
+  cleanHistory:
+    # 是否开启
+    enabled: true
+    # 启动记录保留天数
+    keepDays: 31
+    # 清理动作执行的Quartz Cron表达式，默认在每天10:02（低峰期）执行清理
+    cron: 0 02 10 * * ?
+    # 每批次删除记录条数，避免一次性删除过多导致 DB 高负载
+    batchSize: 10000
+    # 每批次删除后的休眠时间（毫秒），用于降低 DB 压力
+    sleepMillisBetweenBatches: 1000
   # 定时任务服务独立数据库配置，若不配置该项则使用与其他服务共用的公共数据库
   database:
     host: ""
@@ -1495,6 +1535,10 @@ crontabConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-logsvr日志服务配置
 logsvrConfig:
@@ -1546,6 +1590,10 @@ logsvrConfig:
     type: ClusterIP
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-backup备份服务配置
 backupConfig:
@@ -1708,6 +1756,10 @@ backupConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-analysis统计分析服务配置
 analysisConfig:
@@ -1793,6 +1845,10 @@ analysisConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-file-gateway文件网关服务配置
 fileGatewayConfig:
@@ -1868,6 +1924,10 @@ fileGatewayConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
  ## job-file-worker文件源接入点配置
 fileWorkerConfig:
@@ -1946,6 +2006,10 @@ fileWorkerConfig:
     expireDays: 7
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-frontend前端配置
 frontendConfig:
@@ -2004,6 +2068,10 @@ frontendConfig:
     tls: []
     extraTls: []
     secrets: []
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## 对外暴露API的Ingress配置
 apiConfig:
@@ -2277,6 +2345,10 @@ assembleConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 # pod删除时等待优雅关闭的最大时间，单位为秒（超出后强制删除）
 podTerminationGracePeriodSeconds: 60

@@ -26,20 +26,19 @@ package com.tencent.bk.job.manage.model.web.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("批量获取执行方案请求报文")
+@Schema(description = "批量获取执行方案请求报文")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BatchGetPlanReq {
     /**
      * 作业模板ID列表
      */
-    @ApiModelProperty(value = "作业模板ID列表", required = true)
+    @Schema(description = "作业模板ID列表", required = true)
     @JsonProperty("templateIdList")
     private List<Long> templateIdList;
 

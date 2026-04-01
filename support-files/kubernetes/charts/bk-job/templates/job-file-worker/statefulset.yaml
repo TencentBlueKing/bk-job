@@ -85,6 +85,8 @@ spec:
               value: "job-file-worker-headless"
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-file-worker
+            - name: JOB_COMMON_REFRESHABLE_CONFIGMAP_NAME
+              value: {{ include "common.names.fullname" . }}-common-refreshable
           ports:
             - name: http
               containerPort: {{ .Values.fileWorkerConfig.containerPort }}
@@ -97,10 +99,12 @@ spec:
               mountPath: {{ .Values.persistence.localStorage.path }}
             - name: distribute-volume
               mountPath: {{ .Values.fileDistribute.hostPath }}
+            {{- include "job.volumeExtension.volumeMounts" (dict "module" .Values.fileWorkerConfig "global" .Values.volumeExtension) | nindent 12 }}
       volumes:
         - name: job-storage
           persistentVolumeClaim:
             claimName: {{ include "job.storage.pvc.name" . }}
         - name: distribute-volume
           {{- include "job.distribute.volume.name" . |nindent 10 }}
+        {{- include "job.volumeExtension.volumes" (dict "module" .Values.fileWorkerConfig "global" .Values.volumeExtension) | nindent 8 }}
 {{- end }}

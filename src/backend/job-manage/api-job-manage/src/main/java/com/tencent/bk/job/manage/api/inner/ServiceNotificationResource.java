@@ -34,9 +34,9 @@ import com.tencent.bk.job.manage.model.inner.ServiceNotifyChannelDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTemplateNotificationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceTriggerTemplateNotificationDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,88 +46,88 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.List;
 
-@Api(tags = {"job-manage:service:Notification"})
+@Tag(name = "job-manage:service:Notification")
 @SmartFeignClient(value = "job-manage", contextId = "notificationResource")
 @InternalAPI
 public interface ServiceNotificationResource {
 
-    @ApiOperation(value = "触发模板消息通知", produces = "application/json")
+    @Operation(summary = "触发模板消息通知")
     @PostMapping("/service/notification/triggerTemplateNotification")
     InternalResponse<Integer> triggerTemplateNotification(
         @RequestBody ServiceTriggerTemplateNotificationDTO triggerTemplateNotification
     );
 
-    @ApiOperation(value = "根据模板发送消息通知", produces = "application/json")
+    @Operation(summary = "根据模板发送消息通知")
     @PostMapping("/service/notification/sendTemplateNotification")
     InternalResponse<Integer> sendTemplateNotification(
-        @ApiParam("根据模板发送消息通知")
+        @Parameter(description = "根据模板发送消息通知")
         @RequestBody ServiceTemplateNotificationDTO templateNotificationDTO
     );
 
-    @ApiOperation(value = "获取通知角色列表", produces = "application/json")
+    @Operation(summary = "获取通知角色列表")
     @GetMapping("/service/notification/getNotifyRoles")
     InternalResponse<List<ServiceAppRoleDTO>> getNotifyRoles(
-        @ApiParam("租户ID")
+        @Parameter(description = "租户ID")
         @RequestHeader(value = JobCommonHeaders.BK_TENANT_ID, required = false)
         String tenantId,
-        @ApiParam("语言")
+        @Parameter(description = "语言")
         @RequestHeader("lang")
         String lang
     );
 
-    @ApiOperation(value = "获取通知渠道", produces = "application/json")
+    @Operation(summary = "获取通知渠道")
     @GetMapping("/service/notification/getNotifyChannels")
     InternalResponse<List<ServiceNotifyChannelDTO>> getNotifyChannels(
-        @ApiParam("语言")
+        @Parameter(description = "语言")
         @RequestHeader("lang")
         String lang,
-        @ApiParam("租户ID")
+        @Parameter(description = "租户ID")
         @RequestHeader("tenant_id")
         String tenantId
     );
 
-    @ApiOperation(value = "创建或更新特定资源消息通知策略", produces = "application/json")
+    @Operation(summary = "创建或更新特定资源消息通知策略")
     @PostMapping("/service/notification/notifyPolicy")
     InternalResponse<Boolean> createOrUpdateSpecificResourceNotifyPolicy(
-        @ApiParam("操作人")
+        @Parameter(description = "操作人")
         @RequestHeader("username")
         String username,
-        @ApiParam("业务id")
+        @Parameter(description = "业务id")
         @RequestHeader("appId")
         Long appId,
-        @ApiParam("消息通知策略")
+        @Parameter(description = "消息通知策略")
         @RequestBody
         ServiceSpecificResourceNotifyPolicyDTO serviceNotifyPolicyDTO
     );
 
-    @ApiOperation(value = "删除特定资源通知策略", produces = "application/json")
+    @Operation(summary = "删除特定资源通知策略")
     @DeleteMapping("/service/notification/resourceNotifyPolicy/resourceType/{resourceType}/resourceId/{resourceId}")
     InternalResponse<Integer> deleteSpecificResourceNotifyPolicy(
-        @ApiParam("业务id")
+        @Parameter(description = "业务id")
         @RequestHeader("appId")
         Long appId,
-        @ApiParam("资源类型")
+        @Parameter(description = "资源类型")
         @PathVariable("resourceType")
         Integer resourceType,
-        @ApiParam("资源id")
+        @Parameter(description = "资源id")
         @PathVariable("resourceId")
         String resourceId
     );
 
-    @ApiOperation(value = "获取特定资源通知策略", produces = "application/json")
+    @Operation(summary = "获取特定资源通知策略")
     @GetMapping("/service/notification/resourceNotifyPolicy/resourceType/{resourceType}/resourceId/{resourceId}"
         + "/triggerType/{triggerType}")
     InternalResponse<CustomNotifyDTO> getSpecificResourceNotifyPolicy(
-        @ApiParam("业务id")
+        @Parameter(description = "业务id")
         @RequestHeader("appId")
         Long appId,
-        @ApiParam("资源类型")
+        @Parameter(description = "资源类型")
         @PathVariable("resourceType")
         Integer resourceType,
-        @ApiParam("资源id")
+        @Parameter(description = "资源id")
         @PathVariable("resourceId")
         String resourceId,
-        @ApiParam("触发类型")
+        @Parameter(description = "触发类型")
         @PathVariable("triggerType")
         Integer triggerType
     );

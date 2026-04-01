@@ -22,13 +22,19 @@ val springAiVersion = "1.0.0-M8"
 val commonsLang3Version = "3.18.0"
 val jacksonVersion = "2.17.2"
 val okhttpVersion = "4.12.0"
+val commonsCollectionsVersion = "4.4"
+val mybatisSpringBootVersion = "3.0.3"
+val mysqlConnectorVersion = "8.0.33"
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.mybatis.spring.boot:mybatis-spring-boot-starter:$mybatisSpringBootVersion")
+    runtimeOnly("com.mysql:mysql-connector-j:$mysqlConnectorVersion")
     implementation("org.apache.commons:commons-lang3:$commonsLang3Version")
+    implementation("org.apache.commons:commons-collections4:$commonsCollectionsVersion")
     implementation("com.squareup.okhttp3:okhttp:$okhttpVersion")
     compileOnly("org.projectlombok:lombok:1.18.24")
     annotationProcessor("org.projectlombok:lombok")

@@ -88,10 +88,12 @@ public class RetryExecutor {
      */
     public <T> T executeWithRetry(Callable<T> task, String apiName) {
         int attemptNumber = 0;
+        // 硬限制最大重试次数，避免策略异常导致死循环
+        int maxAttemptNumber = 16;
         Exception lastException = null;
         long startTime = System.currentTimeMillis();
         CircuitBreaker circuitBreaker = circuitBreakerFactory.getOrCreateCircuitBreaker(apiName);
-        while (attemptNumber < retryPolicy.getMaxAttempts()) {
+        while (attemptNumber < maxAttemptNumber) {
             try {
                 // 首先判断是否需要被熔断器处理执行
                 T circuitBreakerResult = executeWithCircuitBreaker(circuitBreaker, apiName, task);
@@ -120,8 +122,8 @@ public class RetryExecutor {
                 }
 
                 attemptNumber++;
-                // 检查是否应该重试
-                if (attemptNumber >= retryPolicy.getMaxAttempts() || !retryPolicy.shouldRetry(attemptNumber, e)) {
+                // 由重试策略决定是否继续重试
+                if (!retryPolicy.shouldRetry(attemptNumber, e)) {
                     break;
                 }
 
@@ -130,12 +132,11 @@ public class RetryExecutor {
             }
         }
 
-        // 如果达到最大重试次数，记录失败指标并抛出异常
-        if (lastException != null) {
-            recordMetrics(apiName, attemptNumber, false);
-            wrapAndThrowIfNecessary(lastException);
-        }
-        throw new RetryAbortedException("maxAttempts is invalid: " + retryPolicy.getMaxAttempts());
+        // 所有重试耗尽或策略决定不再重试，记录失败指标并抛出异常
+        recordMetrics(apiName, attemptNumber, false);
+        wrapAndThrowIfNecessary(lastException);
+        // unreachable, wrapAndThrowIfNecessary always throws
+        throw new RetryAbortedException("Unexpected state after retry exhaustion");
     }
 
     /**

@@ -58,8 +58,9 @@ bk-job 提供了快速执行、任务编排、定时执行等核心服务，多�
 详情可见蓝鲸官网[作业平台产品白皮书](https://bk.tencent.com/docs/document/6.0/125/5748)
 
 ## Getting started
-- [下载与编译](docs/overview/source_compile.md)
-- [部署与运维](docs/overview/operation.md)
+- [普通用户使用前必读：能力边界与限制](docs/overview/ability_boundaries_and_limitations.md)
+- [开发维护者文档：下载与编译](docs/overview/source_compile.md)
+- [开发维护者文档：部署与运维](docs/overview/operation.md)
 
 ## Support
 1. [GitHub讨论区](https://github.com/Tencent/bk-job/discussions)

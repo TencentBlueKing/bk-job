@@ -26,8 +26,7 @@ package com.tencent.bk.job.manage.model.web.vo.index;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,18 +36,18 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("执行记录")
+@Schema(description = "执行记录")
 @Data
 public class ExecuteRecord {
-    @ApiModelProperty("作业/脚本Id")
+    @Schema(description = "作业/脚本Id")
     private Long id;
-    @ApiModelProperty("作业/脚本名称")
+    @Schema(description = "作业/脚本名称")
     private String name;
-    @ApiModelProperty("状态")
+    @Schema(description = "状态")
     private int status;
-    @ApiModelProperty("启动时间")
+    @Schema(description = "启动时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long startTime;
-    @ApiModelProperty("启动用户")
+    @Schema(description = "启动用户")
     private String startUser;
 }

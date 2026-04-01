@@ -40,7 +40,6 @@ import com.tencent.bk.job.manage.dao.NoTenantHostDAO;
 import com.tencent.bk.job.manage.model.dto.HostTopoDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import lombok.var;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jooq.BatchBindStep;
 import org.jooq.Condition;
@@ -59,7 +58,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -483,11 +484,11 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
     }
 
     @Override
-    public int updateHostAttrsBeforeLastTime(ApplicationHostDTO applicationHostDTO) {
+    public int updateHostAttrsBeforeOrEqualLastTime(ApplicationHostDTO applicationHostDTO) {
         checkHostId(applicationHostDTO);
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(applicationHostDTO.getHostId())));
-        conditions.add(TABLE.LAST_TIME.lessThan(applicationHostDTO.getLastTime()));
+        conditions.add(TABLE.LAST_TIME.lessOrEqual(applicationHostDTO.getLastTime()));
         return updateHostAttrsByConditions(applicationHostDTO, conditions);
     }
 
@@ -552,7 +553,7 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
     }
 
     @Override
-    public int batchUpdateHostsBeforeLastTime(List<ApplicationHostDTO> hostList) {
+    public int batchUpdateHostsBeforeOrEqualLastTime(List<ApplicationHostDTO> hostList) {
         int batchSize = 1000;
         int size = hostList.size();
         int start = 0;
@@ -566,7 +567,7 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
             for (ApplicationHostDTO host : subList) {
                 List<Condition> conditions = new ArrayList<>();
                 conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(host.getHostId())));
-                conditions.add(TABLE.LAST_TIME.lessThan(host.getLastTime()));
+                conditions.add(TABLE.LAST_TIME.lessOrEqual(host.getLastTime()));
                 queryList.add(buildQueryWithHostAndConditions(host, conditions));
             }
             int[] results = context.batch(queryList).execute();
@@ -734,42 +735,100 @@ public class NoTenantHostDAOImpl extends AbstractBaseHostDAO implements NoTenant
 
     @Override
     public int syncHostTopo(Long hostId) {
-        ApplicationHostDTO hostInfoDTO = getHostById(hostId);
-        if (hostInfoDTO != null) {
+        boolean existHost = existAppHostInfoByHostId(hostId);
+        if (existHost) {
             List<HostTopoDTO> hostTopoDTOList = hostTopoDAO.listHostTopoByHostId(hostId);
-            List<Long> setIds =
-                hostTopoDTOList.stream().map(HostTopoDTO::getSetId).collect(Collectors.toList());
-            List<Long> moduleIds =
-                hostTopoDTOList.stream().map(HostTopoDTO::getModuleId).collect(Collectors.toList());
-            List<Long> moduleTypes = moduleIds.stream().map(it -> 1L).collect(Collectors.toList());
-            if (!hostTopoDTOList.isEmpty()) {
-                hostInfoDTO.setBizId(hostTopoDTOList.get(0).getBizId());
-            } else {
-                hostInfoDTO.setBizId(JobConstants.PUBLIC_APP_ID);
-            }
-            hostInfoDTO.setSetId(setIds);
-            hostInfoDTO.setModuleId(moduleIds);
-            hostInfoDTO.setModuleType(moduleTypes);
-            return updateHostTopoAttrsByHostId(hostInfoDTO);
+            return buildHostTopoUpdateQuery(hostId, hostTopoDTOList).execute();
         }
         return -1;
     }
 
-    private int updateHostTopoAttrsByHostId(ApplicationHostDTO host) {
-        List<Condition> conditions = new ArrayList<>();
-        conditions.add(TABLE.HOST_ID.eq(ULong.valueOf(host.getHostId())));
-        val query = context.update(TABLE)
-            .set(TABLE.APP_ID, ULong.valueOf(host.getBizId()))
-            .set(TABLE.SET_IDS, host.getSetIdsStr())
-            .set(TABLE.MODULE_IDS, host.getModuleIdsStr())
-            .set(TABLE.MODULE_TYPE, host.getModuleTypeStr())
-            .where(conditions);
-        try {
-            return query.execute();
-        } catch (Throwable t) {
-            log.info("SQL=" + query.getSQL(ParamType.INLINED));
-            throw t;
+    @Override
+    public int batchSyncHostTopo(Collection<Long> hostIds) {
+        if (CollectionUtils.isEmpty(hostIds)) {
+            return 0;
         }
+        // 批量查询 host_topo 表，按 hostId 分组
+        List<HostTopoDTO> allHostTopoList = hostTopoDAO.listHostTopoByHostIds(hostIds);
+        Map<Long, List<HostTopoDTO>> hostIdTopoListMap = new HashMap<>();
+        for (HostTopoDTO hostTopo : allHostTopoList) {
+            hostIdTopoListMap.computeIfAbsent(hostTopo.getHostId(), k -> new ArrayList<>()).add(hostTopo);
+        }
+
+        // 为每个 hostId 构造 UPDATE 语句，分批执行
+        int batchSize = 1000;
+        List<Long> hostIdList = new ArrayList<>(hostIds);
+        int size = hostIdList.size();
+        int start = 0;
+        int end;
+        int affectedNum = 0;
+        do {
+            end = Math.min(start + batchSize, size);
+            List<Long> subList = hostIdList.subList(start, end);
+            List<Query> queryList = new ArrayList<>();
+            for (Long hostId : subList) {
+                List<HostTopoDTO> hostTopoList = hostIdTopoListMap.getOrDefault(hostId, new ArrayList<>());
+                queryList.add(buildHostTopoUpdateQuery(hostId, hostTopoList));
+            }
+            affectedNum += executeBatchQueries(queryList);
+            start += batchSize;
+        } while (end < size);
+        return affectedNum;
+    }
+
+    private int executeBatchQueries(List<Query> queryList) {
+        int affectedNum = 0;
+        try {
+            int[] results = context.batch(queryList).execute();
+            for (int result : results) {
+                affectedNum += result;
+            }
+        } catch (Exception e) {
+            log.warn("Fail to batch syncHostTopo, try one by one, size={}", queryList.size(), e);
+            int failedNum = 0;
+            for (Query query : queryList) {
+                try {
+                    affectedNum += query.execute();
+                } catch (Exception ex) {
+                    failedNum++;
+                    log.warn("Fail to syncHostTopo one by one, SQL={}", query.getSQL(ParamType.INLINED), ex);
+                }
+            }
+            if (failedNum > 0) {
+                log.warn("syncHostTopo one by one finished, total={}, failed={}", queryList.size(), failedNum);
+            }
+        }
+        return affectedNum;
+    }
+
+    /**
+     * 根据 hostId 和对应的拓扑信息，构造更新 host 表中冗余拓扑字段的 UPDATE 语句
+     */
+    private Query buildHostTopoUpdateQuery(Long hostId, List<HostTopoDTO> hostTopoList) {
+        Long bizId;
+        String setIdsStr;
+        String moduleIdsStr;
+        String moduleTypeStr;
+        if (!hostTopoList.isEmpty()) {
+            bizId = hostTopoList.get(0).getBizId();
+            setIdsStr = hostTopoList.stream()
+                .map(t -> String.valueOf(t.getSetId())).collect(Collectors.joining(","));
+            moduleIdsStr = hostTopoList.stream()
+                .map(t -> String.valueOf(t.getModuleId())).collect(Collectors.joining(","));
+            moduleTypeStr = hostTopoList.stream()
+                .map(t -> "1").collect(Collectors.joining(","));
+        } else {
+            bizId = JobConstants.PUBLIC_APP_ID;
+            setIdsStr = null;
+            moduleIdsStr = null;
+            moduleTypeStr = null;
+        }
+        return context.update(TABLE)
+            .set(TABLE.APP_ID, ULong.valueOf(bizId))
+            .set(TABLE.SET_IDS, setIdsStr)
+            .set(TABLE.MODULE_IDS, moduleIdsStr)
+            .set(TABLE.MODULE_TYPE, moduleTypeStr)
+            .where(TABLE.HOST_ID.eq(ULong.valueOf(hostId)));
     }
 
     private List<Condition> buildHostIdsCondition(Collection<Long> hostIds) {

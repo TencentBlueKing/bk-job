@@ -28,6 +28,12 @@ build.yml
 AGENTS.md
 CODEBUDDY.md
 .codebuddy/
+.cursor/
 openspec/
 
 pre-*-bkcodeai
+
+tests/openapi/bin/
+
+# Claude Code
+.claude/

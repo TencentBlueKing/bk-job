@@ -107,14 +107,14 @@ public class NoTenantHostServiceImpl extends BaseHostService implements NoTenant
     }
 
     @Override
-    public int batchUpdateHostsBeforeLastTime(List<ApplicationHostDTO> hostInfoList) {
+    public int batchUpdateHostsBeforeOrEqualLastTime(List<ApplicationHostDTO> hostInfoList) {
         if (CollectionUtils.isEmpty(hostInfoList)) {
             return 0;
         }
         StopWatch watch = new StopWatch();
         watch.start("batchUpdateHostsBeforeLastTime to DB");
         // 批量更新主机
-        int affectedNum = noTenantHostDAO.batchUpdateHostsBeforeLastTime(hostInfoList);
+        int affectedNum = noTenantHostDAO.batchUpdateHostsBeforeOrEqualLastTime(hostInfoList);
         log.info("try to update {} hosts, {} updated", hostInfoList.size(), affectedNum);
         watch.stop();
         watch.start("listHostInfoByHostIds");
@@ -227,12 +227,12 @@ public class NoTenantHostServiceImpl extends BaseHostService implements NoTenant
 
     @JobTransactional(transactionManager = "jobManageTransactionManager")
     @Override
-    public Pair<Boolean, Integer> createOrUpdateHostBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
+    public Pair<Boolean, Integer> createOrUpdateHostBeforeOrEqualLastTime(ApplicationHostDTO hostInfoDTO) {
         boolean needToCreate = false;
         try {
             if (noTenantHostDAO.existAppHostInfoByHostId(hostInfoDTO.getHostId())) {
                 // 只更新事件中的主机属性与agent状态
-                int affectedNum = noTenantHostDAO.updateHostAttrsBeforeLastTime(hostInfoDTO);
+                int affectedNum = noTenantHostDAO.updateHostAttrsBeforeOrEqualLastTime(hostInfoDTO);
                 if (affectedNum == 0) {
                     ApplicationHostDTO hostInDB = noTenantHostDAO.getHostById(hostInfoDTO.getHostId());
                     if (hostInDB != null) {
@@ -273,8 +273,8 @@ public class NoTenantHostServiceImpl extends BaseHostService implements NoTenant
         return noTenantHostDAO.updateHostAttrsByHostId(hostInfoDTO);
     }
 
-    public int updateHostAttrsBeforeLastTime(ApplicationHostDTO hostInfoDTO) {
-        return noTenantHostDAO.updateHostAttrsBeforeLastTime(hostInfoDTO);
+    public int updateHostAttrsBeforeOrEqualLastTime(ApplicationHostDTO hostInfoDTO) {
+        return noTenantHostDAO.updateHostAttrsBeforeOrEqualLastTime(hostInfoDTO);
     }
 
     @Override
@@ -376,6 +376,33 @@ public class NoTenantHostServiceImpl extends BaseHostService implements NoTenant
 
     public int syncHostTopo(Long hostId) {
         return noTenantHostDAO.syncHostTopo(hostId);
+    }
+
+    @Override
+    public int batchSyncHostTopo(Collection<Long> hostIds) {
+        if (CollectionUtils.isEmpty(hostIds)) {
+            return 0;
+        }
+        StopWatch watch = new StopWatch();
+        watch.start("batchSyncHostTopo");
+        int syncedCount = noTenantHostDAO.batchSyncHostTopo(hostIds);
+        watch.stop();
+        if (watch.getTotalTimeMillis() > 10_000L) {
+            log.warn(
+                "Performance:batchSyncHostTopo: totalHostIds={}, syncedCount={}, cost={}ms",
+                hostIds.size(),
+                syncedCount,
+                watch.getTotalTimeMillis()
+            );
+        } else {
+            log.info(
+                "batchSyncHostTopo: totalHostIds={}, syncedCount={}, cost={}ms",
+                hostIds.size(),
+                syncedCount,
+                watch.getTotalTimeMillis()
+            );
+        }
+        return syncedCount;
     }
 
     public ApplicationHostDTO getHostById(Long hostId) {
