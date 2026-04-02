@@ -28,6 +28,10 @@ spring:
         version: 1.0.0                # 服务器版本号
         type: ASYNC #异步
         stdio: false
+        protocol: STREAMABLE
+        streamable-http:
+          mcp-endpoint: /mcp
+          keep-alive-interval: 15s
 
 # HTTP客户端配置
 http:
