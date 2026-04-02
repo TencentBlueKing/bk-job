@@ -22,6 +22,7 @@
     "@blueking/date-picker": "3.0.4",
     "@blueking/ip-selector": "1.0.1-beta.32",
     "@blueking/login-modal": "1.0.6",
+    "@blueking/login-userinfo": "0.0.11",
     "@blueking/notice-component-vue2": "2.0.6-beta.5",
     "@blueking/paas-login": "0.0.11",
     "@blueking/platform-config": "1.0.5",

@@ -590,5 +590,6 @@
   "推荐写法：": "Recommended:",
   "在脚本开头显式加载所需配置，例如：": "Explicitly load required configs at the beginning of the script, for example:",
   "# 如需特定的 ulimit 设置，也请在脚本中显式声明": "# If specific ulimit settings are needed, please explicitly declare them in the script",
-  "# 您的业务脚本内容...": "# Your business script content..."
+  "# 您的业务脚本内容...": "# Your business script content...",
+  "权限中心": "BK IAM"
 }
