@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.rabbitmq.metrics;
 
 import com.tencent.bk.job.common.mq.metrics.MqConsumerMetricsCollector;
+import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.cloud.stream.config.ListenerContainerCustomizer;
@@ -37,13 +38,23 @@ public class RabbitMqListenerContainerMetricsCustomizer
     implements ListenerContainerCustomizer<MessageListenerContainer> {
 
     private final MqConsumerMetricsCollector mqConsumerMetricsCollector;
+    private final MqMetricsProperties mqMetricsProperties;
 
-    public RabbitMqListenerContainerMetricsCustomizer(MqConsumerMetricsCollector mqConsumerMetricsCollector) {
+    public RabbitMqListenerContainerMetricsCustomizer(
+        MqConsumerMetricsCollector mqConsumerMetricsCollector,
+        MqMetricsProperties mqMetricsProperties
+    ) {
         this.mqConsumerMetricsCollector = mqConsumerMetricsCollector;
+        this.mqMetricsProperties = mqMetricsProperties;
     }
 
     @Override
     public void configure(MessageListenerContainer container, String bindingName, String group) {
+        if (!mqMetricsProperties.isEnabled()) {
+            log.debug("Ignore rabbitmq consumer thread metrics because metrics are disabled, bindingName: {}",
+                bindingName);
+            return;
+        }
         log.info(
             "Customize rabbitmq listener container metrics, container: {}, bindingName: {}, group: {}",
             container.getClass().getName(),

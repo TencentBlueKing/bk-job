@@ -94,9 +94,10 @@ public class JobRabbitMQAutoConfig {
      */
     @Bean
     ListenerContainerCustomizer<MessageListenerContainer> mqListenerContainerMetricsCustomizer(
-        MqConsumerMetricsCollector mqConsumerMetricsCollector
+        MqConsumerMetricsCollector mqConsumerMetricsCollector,
+        MqMetricsProperties mqMetricsProperties
     ) {
         log.info("Init rabbitmq listener container metrics customizer");
-        return new RabbitMqListenerContainerMetricsCustomizer(mqConsumerMetricsCollector);
+        return new RabbitMqListenerContainerMetricsCustomizer(mqConsumerMetricsCollector, mqMetricsProperties);
     }
 }

@@ -61,6 +61,7 @@ public abstract class MqConsumeDelayRecorder {
      */
     public void recordConsumeDelay(String binding, String messageName, Message<?> message) {
         if (!mqMetricsProperties.isEnabled()) {
+            log.debug("Ignore mq consume delay record because metrics are disabled, binding: {}", binding);
             return;
         }
         Long sendTimeMs = parseSendTimestamp(message.getHeaders().get(MqMetricsConstants.HEADER_NAME_SEND_TIME_MS));
