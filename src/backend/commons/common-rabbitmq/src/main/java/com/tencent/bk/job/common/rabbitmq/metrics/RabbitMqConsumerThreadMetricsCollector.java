@@ -46,6 +46,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class RabbitMqConsumerThreadMetricsCollector implements MqConsumerMetricsCollector {
 
+    private static final String ANONYMOUS_GROUP = "anonymous";
     private final MeterRegistry meterRegistry;
     private final Set<String> registeredMetricKeys = ConcurrentHashMap.newKeySet();
 
@@ -72,7 +73,7 @@ public class RabbitMqConsumerThreadMetricsCollector implements MqConsumerMetrics
     @Override
     public void collect(Object container, String bindingName, String group) {
         AbstractMessageListenerContainer listenerContainer = (AbstractMessageListenerContainer) container;
-        String groupTagValue = group == null ? "" : group;
+        String groupTagValue = group == null ? ANONYMOUS_GROUP : group;
         String metricKey = bindingName + ':' + groupTagValue;
         if (!registeredMetricKeys.add(metricKey)) {
             if (log.isDebugEnabled()) {
@@ -82,13 +83,9 @@ public class RabbitMqConsumerThreadMetricsCollector implements MqConsumerMetrics
             return;
         }
 
-        log.info("Collect rabbitmq consumer thread metrics, container: {}, bindingName: {}, group: {}",
-            container.getClass().getName(), bindingName, group);
-
         Iterable<Tag> tags = Tags.of(
-            Tag.of(MqMetricsConstants.TAG_KEY_GROUP, groupTagValue),
             Tag.of(MqMetricsConstants.TAG_KEY_BINDING, bindingName),
-            Tag.of(MqMetricsConstants.TAG_KEY_MESSAGE_NAME, bindingName)
+            Tag.of(MqMetricsConstants.TAG_KEY_GROUP, groupTagValue)
         );
         Gauge.builder(MqMetricsConstants.NAME_JOB_MQ_CONSUMER_ACTIVE_COUNT,
                 listenerContainer,
@@ -157,9 +154,6 @@ public class RabbitMqConsumerThreadMetricsCollector implements MqConsumerMetrics
 
     /**
      * 读取listener container中的数值字段
-     * <p>
-     * Gauge是动态采样的，因此这里只是注册字段读取逻辑，真正采样时会读取container当前状态
-     * 当前依赖版本下，相关配置值并未以统一父类getter暴露，因此对Rabbit的两种container做显式兼容
      *
      * @param target listener container
      * @param fieldName 字段名
