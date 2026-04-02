@@ -22,33 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.service;
+package com.tencent.bk.job.service.model;
 
-import com.tencent.bk.job.service.model.PageData;
-import com.tencent.bk.job.service.model.SimpleLogDTO;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 
-public interface JobLogQueryService {
-
-    /**
-     * 查询日志（支持分页）
-     *
-     * @param source      日志源 key，为空时使用默认日志源
-     * @param queryString 查询语句
-     * @param timeRange   时间范围
-     * @param startTime   开始时间
-     * @param endTime     结束时间
-     * @param start       查询起始位置
-     * @param size        每页大小
-     * @param asc         是否按时间升序
-     * @return 分页的日志数据
-     */
-    PageData<SimpleLogDTO> queryLogs(String source,
-                                     String queryString,
-                                     String timeRange,
-                                     String startTime,
-                                     String endTime,
-                                     Integer start,
-                                     Integer size,
-                                     Boolean asc);
-
+/**
+ * 日志源信息
+ */
+public record LogSourceInfo(@JsonPropertyDescription("日志源显示名称") String label,
+                            @JsonPropertyDescription("是否为默认日志源") boolean defaultSource,
+                            @JsonPropertyDescription("日志保留天数") int expireTimeDays) {
+    public LogSourceInfo(String label, boolean defaultSource, int expireTimeDays) {
+        this.label = label;
+        this.defaultSource = defaultSource;
+        this.expireTimeDays = expireTimeDays;
+    }
 }
