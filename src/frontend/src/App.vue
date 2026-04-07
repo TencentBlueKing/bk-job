@@ -184,10 +184,9 @@
         timezone: '',
         loginUserinfo: {
           name: '',
-          email: 'admin@gmail.com',
+          email: '',
           organization: '',
-          timezone: 'Asia/Shanghai (UTC+08:00)',
-          avatar: 'H',
+          timezone: '',
         },
       };
     },
@@ -202,7 +201,7 @@
         return [
           {
             text: I18n.t('权限中心'),
-            icon: 'job-icon job-icon-yonghu',
+            icon: 'job-icon job-icon-quanxianzhongxin',
             href: this.relatedSystemUrls.BK_IAM_WEB_URL,
             target: '_blank',
           },
@@ -214,7 +213,7 @@
           },
           {
             text: I18n.t('退出登录'),
-            onClick: this.handleLogout,
+            handle: this.handleLogout,
             icon: 'job-icon job-icon-tuichu',
             theme: 'danger',
           },
