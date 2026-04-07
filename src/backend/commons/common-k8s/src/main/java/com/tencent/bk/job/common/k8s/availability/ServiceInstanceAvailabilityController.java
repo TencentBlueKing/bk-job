@@ -47,7 +47,7 @@ import java.util.Map;
  */
 @Slf4j
 @RestController
-@RequestMapping("/manage/service/availability")
+@RequestMapping("/service/manage/availability")
 public class ServiceInstanceAvailabilityController {
 
     private final SwitchableReadinessHealthIndicator switchableReadinessHealthIndicator;
