@@ -4,6 +4,7 @@ import com.tencent.bk.job.common.annotation.IamCallbackAPI;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.sdk.iam.constants.CommonResponseCode;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
@@ -41,6 +42,16 @@ public class IamCallbackExceptionControllerAdvice extends ExceptionControllerAdv
         responseDTO.setCode(CommonResponseCode.PARAMS_INVALID);
         responseDTO.setMessage(ex.getI18nMessage());
         return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseBody
+    ResponseEntity<?> handleNotFoundException(HttpServletRequest request, NotFoundException ex) {
+        log.info("Handle NotFoundException in iam callback", ex);
+        CallbackBaseResponseDTO responseDTO = new CallbackBaseResponseDTO();
+        responseDTO.setCode(CommonResponseCode.NOT_FOUND);
+        responseDTO.setMessage(ex.getI18nMessage());
+        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
 
 }
