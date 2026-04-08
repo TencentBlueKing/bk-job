@@ -266,27 +266,27 @@ public class TaskPlanInfoDTO {
             }
         });
 
-        Map<Long, String> variableDefaultValueMap = new ConcurrentHashMap<>();
+        Map<Long, TaskVariableDTO> requestVariableMap = new ConcurrentHashMap<>();
         if (CollectionUtils.isNotEmpty(planInfo.getVariableList())) {
-            planInfo.getVariableList().forEach(taskVariableDTO -> {
-                if (taskVariableDTO.getDefaultValue() == null) {
-                    // No default value in request, skip
-                    return;
-                } else if (taskVariableDTO.getType().getMask() != null
-                    && taskVariableDTO.getType().getMask().equals(taskVariableDTO.getDefaultValue())) {
-                    // Type have mask and value equals mask, skip
-                    return;
-                }
-                // Has default value in request and do not equal mask, keep
-                variableDefaultValueMap.put(taskVariableDTO.getId(), taskVariableDTO.getDefaultValue());
-            });
+            planInfo.getVariableList().forEach(taskVariableDTO ->
+                requestVariableMap.put(taskVariableDTO.getId(), taskVariableDTO));
         }
 
         planInfo.setVariableList(templateInfo.getVariableList());
         planInfo.getVariableList().forEach(taskVariable -> {
             taskVariable.setTemplateId(null);
-            if (variableDefaultValueMap.containsKey(taskVariable.getId())) {
-                taskVariable.setDefaultValue(variableDefaultValueMap.get(taskVariable.getId()));
+            TaskVariableDTO requestVariable = requestVariableMap.get(taskVariable.getId());
+            if (requestVariable == null) {
+                return;
+            }
+            taskVariable.setFollowTemplate(requestVariable.getFollowTemplate());
+
+            if ((requestVariable.getDefaultValue() == null) ||
+                (requestVariable.getType().getMask() != null
+                    && requestVariable.getType().getMask().equals(requestVariable.getDefaultValue()))) {
+                // No default value in request, skip or Has default value in request and do not equal mask, keep
+            } else {
+                taskVariable.setDefaultValue(requestVariable.getDefaultValue());
             }
         });
         planInfo.setVersion(templateInfo.getVersion());
