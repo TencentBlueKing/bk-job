@@ -263,9 +263,12 @@
           .then((data) => {
             this.currentUser = Object.freeze(data);
             window.PROJECT_CONFIG.USER_TIME_ZONE = data.timeZone;
-            this.timezone = data.timeZone || 'Asia/Shanghai';
-            this.loginUserinfo.timezone = this.timezone;
-            this.loginUserinfo.organization = data.tenantId;
+            this.timezone = data.timeZone;
+            this.loginUserinfo = {
+              ...this.loginUserinfo,
+              timezone: `${data.timeZone}`,
+              organization: `${data.tenantId}`,
+            };
           });
       },
       /**
