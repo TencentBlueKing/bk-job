@@ -975,7 +975,12 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                     throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
                 }
 
-                if (taskPlanVariableService.batchUpdateVariableByName(planInfo.getVariableList())) {
+                List<TaskVariableDTO> updatableVariables = filterUpdatableVariables(originPlan, planInfo);
+                if (CollectionUtils.isEmpty(updatableVariables)) {
+                    continue;
+                }
+
+                if (taskPlanVariableService.batchUpdateVariableByName(updatableVariables)) {
                     if (taskPlanDAO.updateTaskPlanById(planInfo)) {
                         // 添加审计
                         TaskPlanInfoDTO updatedPlan = getTaskPlanById(planInfo.getId());
@@ -1000,6 +1005,40 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             }
         }
         return true;
+    }
+
+    /**
+     * 过滤出允许修改的执行方案变量；跟随模板的变量跳过并记录日志。
+     */
+    private List<TaskVariableDTO> filterUpdatableVariables(TaskPlanInfoDTO originPlan, TaskPlanInfoDTO planInfo) {
+        Map<String, TaskVariableDTO> originPlanVariableMap = originPlan.getVariableList().stream()
+            .collect(Collectors.toMap(
+                TaskVariableDTO::getName,
+                Function.identity(),
+                (first, second) -> first)
+            );
+        List<TaskVariableDTO> updatableVariables = new ArrayList<>();
+        List<String> skippedVariableNames = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(planInfo.getVariableList())) {
+            for (TaskVariableDTO variable : planInfo.getVariableList()) {
+                TaskVariableDTO originVariable = originPlanVariableMap.get(variable.getName());
+                if (originVariable == null || !Boolean.TRUE.equals(originVariable.getFollowTemplate())) {
+                    updatableVariables.add(variable);
+                } else {
+                    skippedVariableNames.add(variable.getName());
+                }
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(skippedVariableNames)) {
+            log.warn("Skip update follow template plan variables, planId={}, templateId={}, variables={}",
+                planInfo.getId(), planInfo.getTemplateId(), skippedVariableNames);
+        }
+        if (CollectionUtils.isEmpty(updatableVariables)) {
+            log.info("Skip batch update plan variables because no variables can be updated, planId={}, templateId={}",
+                planInfo.getId(), planInfo.getTemplateId());
+        }
+        return updatableVariables;
     }
 
     /**
