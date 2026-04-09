@@ -68,6 +68,7 @@
           :list="globalVariableList"
           mode="editOfPlan"
           :select-value="selectedVariable"
+          :show-follow-template="(name) => selectedVariable.includes(name)"
           @on-change="handleVariableChange" />
       </jb-form-item>
       <jb-form-item

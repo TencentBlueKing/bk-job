@@ -71,6 +71,7 @@ export default class GlobalVariable {
     this.delete = payload.delete || 0;
     this.value = payload.value || '';
     this.targetValue = new ExecuteTargetModel(payload.targetValue || {});
+    this.followTemplate = payload.followTemplate || 0;  // 变量值是否跟随作业模版
   }
 
   /**

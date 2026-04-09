@@ -36,12 +36,15 @@
     </jb-form-item>
     <jb-form-item :label="$t('template.变量值')">
       <section>
-        <bk-button @click="handleShowChooseIp">
+        <bk-button
+          :disabled="valDisabled"
+          @click="handleShowChooseIp">
           <icon type="plus" />
           {{ $t('template.执行目标') }}
         </bk-button>
         <bk-button
           v-if="isShowClear"
+          :disabled="valDisabled"
           style="margin-left: 10px;"
           @click="handleClear">
           {{ $t('template.清空') }}
@@ -51,7 +54,7 @@
         :config="ipSelectorConfig"
         :original-value="originalExecuteObjectsInfoInfo"
         :show-dialog="isShowChooseIp"
-        show-view
+        :show-view="!valDisabled"
         :value="formData.defaultTargetValue.executeObjectsInfo"
         @change="handleExecuteObjectsInfoChange"
         @close-dialog="handleCloseIPSelector" />
@@ -101,6 +104,10 @@
       data: {
         type: Object,
         default: () => ({}),
+      },
+      valDisabled: {
+        type: Boolean,
+        default: false,
       },
     },
     data() {
