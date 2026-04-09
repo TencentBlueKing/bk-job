@@ -29,8 +29,8 @@ import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.crontab.model.CronJobVO;
 import com.tencent.bk.job.crontab.model.inner.ServiceCronJobDTO;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,7 +41,7 @@ import java.util.Map;
 /**
  * 定时任务 Resource API
  */
-@Api(tags = {"Cron_Job"})
+@Tag(name = "Cron_Job")
 @SmartFeignClient(value = "job-crontab", contextId = "cronJobResource")
 @InternalAPI
 public interface ServiceCronJobResource {
@@ -55,8 +55,8 @@ public interface ServiceCronJobResource {
      */
     @GetMapping("/service/app/{appId}/cron/job")
     InternalResponse<List<ServiceCronJobDTO>> listCronJobs(
-        @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
-        @ApiParam(value = "是否开启", required = false, example = "true") @RequestParam("enable") Boolean enable
+        @Parameter(description = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
+        @Parameter(description = "是否开启", required = false, example = "true") @RequestParam("enable") Boolean enable
     );
 
     /**
@@ -68,7 +68,7 @@ public interface ServiceCronJobResource {
      */
     @GetMapping("/service/app/{appId}/cron/job/plan")
     InternalResponse<Map<Long, List<CronJobVO>>> batchListCronJobByPlanIds(
-        @ApiParam(value = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
-        @ApiParam(value = "执行方案 ID 列表", required = true) @RequestParam(value = "planId") List<Long> planIdList
+        @Parameter(description = "业务 ID", required = true, example = "2") @PathVariable("appId") Long appId,
+        @Parameter(description = "执行方案 ID 列表", required = true) @RequestParam(value = "planId") List<Long> planIdList
     );
 }

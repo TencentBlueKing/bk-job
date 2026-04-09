@@ -78,7 +78,7 @@ public class CronJobVariableDTO implements Cloneable {
         taskVariable.setId(variableInfo.getId());
         taskVariable.setName(variableInfo.getName());
         taskVariable.setType(variableInfo.getType().getType());
-        if (TaskVariableTypeEnum.HOST_LIST == variableInfo.getType()) {
+        if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST == variableInfo.getType()) {
             taskVariable.setTargetValue(ServerDTO.toTargetVO(variableInfo.getServer()));
         } else {
             if (variableInfo.getType().needMask()) {
@@ -98,7 +98,7 @@ public class CronJobVariableDTO implements Cloneable {
         if (variableInfo.getType() == null) {
             throw new InvalidParamException(ErrorCode.WRONG_VARIABLE_TYPE);
         }
-        if (TaskVariableTypeEnum.HOST_LIST == variableInfo.getType()) {
+        if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST == variableInfo.getType()) {
             variableInfo.setServer(ServerDTO.fromTargetVO(variableVO.getTargetValue()));
         } else {
             variableInfo.setValue(variableVO.getValue());
@@ -123,7 +123,7 @@ public class CronJobVariableDTO implements Cloneable {
             case NAMESPACE:
                 taskVariable.setNamespaceValue(variableInfo.getValue());
                 break;
-            case HOST_LIST:
+            case EXECUTE_OBJECT_LIST:
                 taskVariable.setServerValue(ServerDTO.toServiceServer(variableInfo.getServer()));
                 break;
             default:

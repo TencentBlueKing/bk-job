@@ -34,23 +34,24 @@
         <bk-button
           v-bk-tooltips="descPopover"
           class="mr10"
-          :disabled="readonly"
+          :disabled="readonly || disabled"
           @click="handleChooseIp">
           <icon type="plus" />
           {{ $t('添加服务器') }}
         </bk-button>
         <bk-button
           v-show="isNotEmpty"
-          :disabled="readonly"
+          :disabled="readonly || disabled"
           @click="handleClear">
           {{ $t('清空') }}
         </bk-button>
       </div>
       <jb-ip-selector
         ref="ipSelector"
+        :config="ipSelectorConfig"
         :original-value="originalExecuteObjectsInfo"
         :show-dialog="isShowChooseIp"
-        show-view
+        :show-view="!disabled"
         :show-view-diff="showViewDiff"
         :value="executeObjectsInfo"
         @change="handleChange"
@@ -78,6 +79,10 @@
         required: true,
       },
       readonly: {
+        type: Boolean,
+        default: false,
+      },
+      disabled: {
         type: Boolean,
         default: false,
       },
@@ -126,6 +131,26 @@
         },
         immediate: true,
       },
+    },
+    created() {
+      this.ipSelectorConfig = {};
+      // 业务集和租户集场景不支持动态分组和容器
+      if (window.PROJECT_CONFIG.SCOPE_TYPE === 'biz_set') {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'dynamicTopo',
+            'manualInput',
+          ],
+        };
+      } else if (window.PROJECT_CONFIG.SCOPE_TYPE === 'tenant_set') {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'manualInput',
+          ],
+        };
+      }
     },
     methods: {
       /**

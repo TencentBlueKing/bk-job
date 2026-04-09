@@ -1047,8 +1047,11 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         if (CollectionUtils.isNotEmpty(taskTemplateInfo.getTags())) {
             List<ResourceTagDTO> tags =
                 taskTemplateInfo.getTags().stream()
-                    .map(tag -> new ResourceTagDTO(JobResourceTypeEnum.TEMPLATE.getValue(),
-                        String.valueOf(templateId), tag.getId())).collect(Collectors.toList());
+                    .map(tag -> new ResourceTagDTO(
+                        JobResourceTypeEnum.TEMPLATE.getValue(),
+                        String.valueOf(templateId),
+                        tag.getId()))
+                    .collect(Collectors.toList());
             tagService.batchSaveResourceTags(tags);
         }
         return templateId;

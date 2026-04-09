@@ -189,7 +189,7 @@ echo ""
 echo "步骤2: 获取老环境中开启的定时任务..."
 
 # 查询老环境中 is_enable=1 的定时任务
-queryEnabledCronJobsSql="SELECT id, name FROM \`${sourceJobCrontabDb}\`.\`cron_job\` WHERE app_id=${SOURCE_APP_ID} AND is_enable=1"
+queryEnabledCronJobsSql="SELECT id, name FROM \`${sourceJobCrontabDb}\`.\`cron_job\` WHERE app_id=${SOURCE_APP_ID} AND is_enable=1 AND is_deleted=0"
 executeSqlInSourceDb "${queryEnabledCronJobsSql}"
 
 # 解析结果

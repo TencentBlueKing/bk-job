@@ -23,6 +23,8 @@
  * IN THE SOFTWARE.
 */
 
+import DOMPurify from 'dompurify';
+
 import Model from '@model/model';
 
 import {
@@ -184,7 +186,7 @@ export default class TaskInstance extends Model {
       disabled: '#C4C6CC',
       evicted: '#EA3636',
     };
-    return `<span style="color: ${statusColorMap[calcStatusGroup(this.status)]}">${this.statusDesc}</span>`;
+    return DOMPurify.sanitize(`<span style="color: ${statusColorMap[calcStatusGroup(this.status)]}">${this.statusDesc}</span>`);
   }
 
   /**

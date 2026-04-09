@@ -24,31 +24,30 @@
 
 package com.tencent.bk.job.file.worker.model.req;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
 @Data
-@ApiModel
+@Schema
 @EqualsAndHashCode(callSuper = true)
 public class DownloadFilesTaskReq extends BaseReq {
     /**
      * 任务Id
      */
-    @ApiModelProperty(value = "任务Id", required = true)
+    @Schema(description = "任务Id", required = true)
     private String taskId;
     /**
      * 文件名前缀
      */
-    @ApiModelProperty(value = "文件名前缀", required = true)
+    @Schema(description = "文件名前缀", required = true)
     private String filePrefix = "";
     /**
      * 文件路径列表
      */
-    @ApiModelProperty(value = "文件列表", required = true)
+    @Schema(description = "文件列表", required = true)
     private List<String> filePathList;
 
 }

@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.analysis.model.web;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,19 +36,19 @@ import java.util.List;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("后台任务分析结果")
+@Schema(description = "后台任务分析结果")
 @Data
 public class AnalysisResultVO {
-    @ApiModelProperty("Id")
+    @Schema(description = "Id")
     private Long id;
-    @ApiModelProperty("分析任务代码【DefaultTipsProvider：默认文本提示；ForbiddenScriptFinder" +
+    @Schema(description = "分析任务代码【DefaultTipsProvider：默认文本提示；ForbiddenScriptFinder" +
         "：寻找在作业模板/执行方案中使用的禁用脚本；TaskPlanTargetChecker：寻找执行方案中是否有无效IP/Agent异常/Agent未安装的情况；TimerTaskFailRateWatcher" +
         "：寻找周期内定时任务失败率超过60%的定时任务；TimerTaskFailWatcher：寻找周期内执行失败的定时任务】")
     private String analysisTaskCode;
-    @ApiModelProperty("优先级")
+    @Schema(description = "优先级")
     private int priority;
-    @ApiModelProperty("任务结果总体描述")
+    @Schema(description = "任务结果总体描述")
     private String description;
-    @ApiModelProperty("具体子条目内容")
+    @Schema(description = "具体子条目内容")
     private List<AnalysisResultItemVO> contents;
 }

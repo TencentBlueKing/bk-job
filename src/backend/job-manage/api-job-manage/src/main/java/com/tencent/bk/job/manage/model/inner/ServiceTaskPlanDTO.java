@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -38,48 +37,48 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-@ApiModel("执行方案信息")
+@Schema(description = "执行方案信息")
 public class ServiceTaskPlanDTO {
 
     /**
      * 执行方案 ID
      */
-    @ApiModelProperty(value = "执行方案 ID")
+    @Schema(description = "执行方案 ID")
     private Long id;
 
     /**
      * 执行方案类型
      */
-    @ApiModelProperty(value = "是否调试执行方案")
+    @Schema(description = "是否调试执行方案")
     private boolean debugTask;
 
     /**
      * 执行方案 ID
      */
-    @ApiModelProperty(value = "作业模板 ID")
+    @Schema(description = "作业模板 ID")
     private Long taskTemplateId;
 
     /**
      * 执行方案名称
      */
-    @ApiModelProperty(value = "执行方案名称")
+    @Schema(description = "执行方案名称")
     private String name;
 
     /**
      * 创建者
      */
-    @ApiModelProperty(value = "创建者")
+    @Schema(description = "创建者")
     private String creator;
 
     /**
      * 执行方案变量列表
      */
-    @ApiModelProperty(value = "执行方案变量列表 详细信息独有")
+    @Schema(description = "执行方案变量列表 详细信息独有")
     private List<ServiceTaskVariableDTO> variableList;
 
     /**
      * 执行方案脚本列表
      */
-    @ApiModelProperty(value = "执行方案脚本列表 详细信息独有")
+    @Schema(description = "执行方案脚本列表 详细信息独有")
     private List<ServiceTaskStepDTO> stepList;
 }

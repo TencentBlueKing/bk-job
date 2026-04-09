@@ -40,7 +40,7 @@ import com.tencent.bk.job.common.model.vo.TaskTargetVO;
 import com.tencent.bk.job.common.util.DataSizeConverter;
 import com.tencent.bk.job.common.util.FilePathValidateUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.check.IlegalCharChecker;
+import com.tencent.bk.job.common.util.check.IllegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
@@ -94,7 +94,7 @@ import java.util.List;
 
 import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.ASSOCIATIVE_ARRAY;
 import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.CIPHER;
-import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.HOST_LIST;
+import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.EXECUTE_OBJECT_LIST;
 import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.INDEX_ARRAY;
 import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.NAMESPACE;
 import static com.tencent.bk.job.common.constant.TaskVariableTypeEnum.STRING;
@@ -133,9 +133,14 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
 
         User user = JobContextUtil.getUser();
         TaskInstanceDTO taskInstanceDTO = taskExecuteService.executeJobPlan(
-            TaskExecuteParam.builder().appId(appResourceScope.getAppId()).planId(request.getTaskId())
-                .operator(user).executeVariableValues(executeVariableValues)
-                .startupMode(TaskStartupModeEnum.WEB).build());
+            TaskExecuteParam.builder()
+                .appId(appResourceScope.getAppId())
+                .planId(request.getTaskId())
+                .operator(user)
+                .executeVariableValues(executeVariableValues)
+                .startupMode(TaskStartupModeEnum.WEB)
+                .build()
+        );
 
         TaskExecuteVO result = new TaskExecuteVO();
         result.setTaskInstanceId(taskInstanceDTO.getId());
@@ -204,7 +209,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
                 } else {
                     taskVariableDTO.setValue(webTaskVariable.getValue());
                 }
-            } else if (webTaskVariable.getType() == HOST_LIST.getType()) {
+            } else if (webTaskVariable.getType() == EXECUTE_OBJECT_LIST.getType()) {
                 TaskTargetVO taskTarget = webTaskVariable.getTargetValue();
                 ExecuteTargetDTO executeTargetDTO = ExecuteTargetDTO.fromTaskTargetVO(taskTarget);
                 taskVariableDTO.setExecuteTarget(executeTargetDTO);
@@ -270,7 +275,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             StringCheckHelper stringCheckHelper = new StringCheckHelper(
                 new TrimChecker(),
                 new NotEmptyChecker(),
-                new IlegalCharChecker(),
+                new IllegalCharChecker(),
                 new MaxLengthChecker(60)
             );
             request.setName(stringCheckHelper.checkAndGetResult(request.getName()));
@@ -405,7 +410,7 @@ public class WebExecuteTaskResourceImpl implements WebExecuteTaskResource {
             StringCheckHelper stringCheckHelper = new StringCheckHelper(
                 new TrimChecker(),
                 new NotEmptyChecker(),
-                new IlegalCharChecker(),
+                new IllegalCharChecker(),
                 new MaxLengthChecker(60)
             );
             request.setName(stringCheckHelper.checkAndGetResult(request.getName()));

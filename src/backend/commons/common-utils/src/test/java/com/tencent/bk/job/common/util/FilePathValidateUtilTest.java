@@ -28,8 +28,15 @@ public class FilePathValidateUtilTest {
         assertThat(FilePathValidateUtil.validateFileSystemAbsolutePath("C:\\user\\abc|a")).isFalse();
         assertThat(FilePathValidateUtil.validateFileSystemAbsolutePath("C:\\user\\abc?a")).isFalse();
         assertThat(FilePathValidateUtil.validateFileSystemAbsolutePath("C:\\user\\abc<a")).isFalse();
-        assertThat(FilePathValidateUtil.validateFileSystemAbsolutePath("C:\\logs/logs")).isFalse();
+        assertThat(FilePathValidateUtil.validateFileSystemAbsolutePath("C:\\logs/logs")).isTrue();
         assertThat(FilePathValidateUtil.validateFileSystemAbsolutePath("C:\\logs\\log*.log")).isTrue();
+        // 兼容斜杠作为目录分隔符的Windows路径
+        assertThat(FilePathValidateUtil.validateFileSystemAbsolutePath("C:/cygwinroot/tmp")).isTrue();
+        assertThat(FilePathValidateUtil.validateFileSystemAbsolutePath("E:/")).isTrue();
+        assertThat(FilePathValidateUtil.validateFileSystemAbsolutePath("D:\\xxx1/xxx2.MD5")).isTrue();
+        assertThat(FilePathValidateUtil.validateFileSystemAbsolutePath("D:/Download/")).isTrue();
+        assertThat(FilePathValidateUtil.validateFileSystemAbsolutePath("C:/logs/access.log")).isTrue();
+        assertThat(FilePathValidateUtil.validateFileSystemAbsolutePath("C:/")).isTrue();
         assertThat(FilePathValidateUtil.validateFileSystemAbsolutePath("C:\\tmp\\REGEX:myfile-[A-Za-z]{0,10}.tar.gz")).isTrue();
         assertThat(FilePathValidateUtil.validateFileSystemAbsolutePath("C:\\tmp\\REGE:a|b")).isFalse();
         assertThat(FilePathValidateUtil.validateFileSystemAbsolutePath("C:\\tmp\\REGEX:a|b")).isTrue();

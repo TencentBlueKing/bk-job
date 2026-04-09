@@ -55,6 +55,7 @@
     <jb-form-item :label="$t('template.变量值')">
       <bk-input
         v-model="formData.defaultValue"
+        :disabled="valDisabled"
         :native-attributes="{ autofocus: 'autofocus' }" />
     </jb-form-item>
     <jb-form-item :label="$t('template.变量描述')">
@@ -108,6 +109,10 @@
         default() {
           return {};
         },
+      },
+      valDisabled: {
+        type: Boolean,
+        default: false,
       },
     },
     data() {

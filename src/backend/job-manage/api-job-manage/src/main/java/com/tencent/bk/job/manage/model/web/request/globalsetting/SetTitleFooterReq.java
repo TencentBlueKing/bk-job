@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request.globalsetting;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,14 +32,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@ApiModel("设置Title与Footer")
+@Schema(description = "设置Title与Footer")
 public class SetTitleFooterReq {
-    @ApiModelProperty("Title固定头部")
+    @Schema(description = "Title固定头部")
     private String titleHead;
-    @ApiModelProperty("Title分隔符")
+    @Schema(description = "Title分隔符")
     private String titleSeparator;
-    @ApiModelProperty("Footer第一行联系方式等内容，Markdown格式")
+    @Schema(description = "Footer第一行联系方式等内容，Markdown格式")
     private String footerLink;
-    @ApiModelProperty("Footer第二行copyright内容，Markdown格式")
+    @Schema(description = "Footer第二行copyright内容，Markdown格式")
     private String footerCopyRight;
 }

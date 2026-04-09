@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.model.req.inner;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,14 +35,14 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 public class FileSourceDownloadTaskReq {
-    @ApiModelProperty(value = "业务ID")
+    @Schema(description = "业务ID")
     Long appId;
-    @ApiModelProperty(value = "步骤实例ID")
+    @Schema(description = "步骤实例ID")
     Long stepInstanceId;
-    @ApiModelProperty(value = "重试次数")
+    @Schema(description = "重试次数")
     Integer executeCount;
-    @ApiModelProperty(value = "文件源ID")
+    @Schema(description = "文件源ID")
     Integer fileSourceId;
-    @ApiModelProperty(value = "文件路径列表")
+    @Schema(description = "文件路径列表")
     List<String> filePathList;
 }

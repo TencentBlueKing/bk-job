@@ -30,6 +30,7 @@
     <bk-input
       ref="input"
       v-bk-tooltips="descPopover"
+      :disabled="disabled"
       :readonly="readonly"
       type="password"
       :value="value"
@@ -53,6 +54,10 @@
         required: true,
       },
       readonly: {
+        type: Boolean,
+        default: false,
+      },
+      disabled: {
         type: Boolean,
         default: false,
       },
