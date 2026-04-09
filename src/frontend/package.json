@@ -15,7 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@babel/runtime": "7.27.1",
-    "@blueking/ai-blueking": "1.3.4-beta.2",
+    "@blueking/ai-blueking": "2.0.0-beta.12",
     "@blueking/bk-user-display-name": "1.0.1",
     "@blueking/bk-user-selector": "0.0.29-beta.8",
     "@blueking/date-picker": "3.0.4",

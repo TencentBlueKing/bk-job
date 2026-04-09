@@ -1,13 +1,13 @@
 <template>
   <ai-blueking
-    v-show="false"
+    v-if="apiUrl"
     ref="aiRef"
     :default-width="defaultWidth"
     :url="apiUrl" />
 </template>
 <script setup>
   import _ from 'lodash';
-  import { ref } from 'vue';
+  import { onMounted, ref } from 'vue';
 
   import { useRoute } from '@router';
 
@@ -30,11 +30,16 @@
   AiService.fetchConfig()
     .then((data) => {
       apiUrl.value = data.agentRootUrl;
+      setTimeout(() => {
+        console.log('AI 组件已挂载', aiRef.value);
+      }, 1000);
     });
 
   const handleShowBlueking = async (commandName, params, sessionCode, showOptions = {}) => {
-    const originalCommand = _.find((aiRef.value?.agentInfo?.conversationSettings?.commands || []), item => item.id === commandName);
+    const chatHelper = aiRef.value?.getChatHelper?.();
+    const originalCommand = chatHelper?.agent.info.value?.conversationSettings?.commands;
 
+    console.log('原始命令配置', aiRef.value.getChatHelper(), originalCommand);
 
     if (!originalCommand?.components) {
       console.error('AI 命令配置不完整', aiRef.value?.agentInfo);
@@ -144,6 +149,9 @@
     }
   });
 
+  onMounted(() => {
+    console.log('AI 组件已挂载', aiRef.value);
+  });
 </script>
 <style lang="postcss">
 .ai-blueking-wrapper{
