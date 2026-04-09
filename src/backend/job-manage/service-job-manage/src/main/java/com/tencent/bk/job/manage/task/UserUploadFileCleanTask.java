@@ -198,7 +198,8 @@ public class UserUploadFileCleanTask {
                 localFileConfigForManage.getLocalUploadRepo(),
                 node.getFullPath(),
                 pageNumber,
-                pageSize
+                pageSize,
+                false
             );
             if (isEmpty(nodePage)) {
                 break;
@@ -250,7 +251,8 @@ public class UserUploadFileCleanTask {
             localFileConfigForManage.getLocalUploadRepo(),
             dirNode.getFullPath(),
             1,
-            1
+            1,
+            false
         );
         return nodePage != null && (nodePage.getRecords() == null || nodePage.getRecords().isEmpty());
     }
