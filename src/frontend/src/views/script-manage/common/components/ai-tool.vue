@@ -7,7 +7,7 @@
     <span ref="referRef">
       <img
         :src="aiImage"
-        style="width: 16px">
+        style="width: 24px">
     </span>
     <div
       ref="popoverContentRef"
@@ -50,7 +50,7 @@
   });
 
   const editorAiHelperCacheKey = 'editor_ai_helper';
-  const aiImage = window.__loadAssetsUrl__('/static/images/ai.png');
+  const aiImage = window.__loadAssetsUrl__('/static/images/ai-01.png');
   const bluekingImage = window.__loadAssetsUrl__('/static/images/blueking.png');
 
   const referRef = ref();

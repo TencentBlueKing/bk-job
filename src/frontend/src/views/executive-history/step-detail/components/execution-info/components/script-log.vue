@@ -197,7 +197,7 @@
         theme: 'light',
       };
       this.logContent = '';
-      this.aiImage = window.__loadAssetsUrl__('/static/images/ai.png');
+      this.aiImage = window.__loadAssetsUrl__('/static/images/ai-01.png');
       this.fetchAiConfig();
     },
     mounted() {
