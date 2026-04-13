@@ -326,7 +326,7 @@ public class ErrorCode {
     public static final int SCRIPT_VERSION_NOT_EXIST = 1243047;
     // 凭证不存在
     public static final int CREDENTIAL_NOT_EXIST = 1243048;
-    // 业务/业务集不存在
+    // 业务/业务集不存在或已被归档
     public static final int APP_NOT_EXIST = 1243049;
     // 文件后缀不允许
     public static final int UPLOAD_FILE_SUFFIX_NOT_ALLOW = 1243050;

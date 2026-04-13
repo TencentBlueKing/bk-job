@@ -8,14 +8,13 @@ import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.sdk.iam.constants.CommonResponseCode;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * 处理权限中心回调接口异常
@@ -38,20 +37,15 @@ public class IamCallbackExceptionControllerAdvice extends ExceptionControllerAdv
     @ResponseBody
     ResponseEntity<?> handleServiceException(HttpServletRequest request, InvalidParamException ex) {
         log.info("Handle InvalidParamException", ex);
-        CallbackBaseResponseDTO responseDTO = new CallbackBaseResponseDTO();
-        responseDTO.setCode(CommonResponseCode.PARAMS_INVALID);
-        responseDTO.setMessage(ex.getI18nMessage());
+        // EsbResp拥有CallbackBaseResponseDTO所需的全部字段，且有requestId用于帮助排查问题，因此直接使用EsbResp
         return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NotFoundException.class)
     @ResponseBody
     ResponseEntity<?> handleNotFoundException(HttpServletRequest request, NotFoundException ex) {
-        log.info("Handle NotFoundException in iam callback", ex);
-        CallbackBaseResponseDTO responseDTO = new CallbackBaseResponseDTO();
-        responseDTO.setCode(CommonResponseCode.NOT_FOUND);
-        responseDTO.setMessage(ex.getI18nMessage());
-        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+        log.info("Handle NotFoundException", ex);
+        return new ResponseEntity<>(EsbResp.buildCommonFailResp(ex), HttpStatus.NOT_FOUND);
     }
 
 }
