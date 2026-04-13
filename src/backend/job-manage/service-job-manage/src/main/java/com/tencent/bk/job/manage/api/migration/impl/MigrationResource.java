@@ -55,7 +55,7 @@ import java.util.Map;
 /**
  * 微服务升级
  */
-@RequestMapping("/manage/migration")
+@RequestMapping("/service/manage/migration")
 @Slf4j
 @RestController("jobManageMigrationResource")
 public class MigrationResource {

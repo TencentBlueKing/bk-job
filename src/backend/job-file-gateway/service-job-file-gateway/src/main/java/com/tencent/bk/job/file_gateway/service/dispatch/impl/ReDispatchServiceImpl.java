@@ -33,7 +33,6 @@ import com.tencent.bk.job.file_gateway.service.FileWorkerService;
 import com.tencent.bk.job.file_gateway.service.dispatch.ReDispatchService;
 import com.tencent.bk.job.file_gateway.service.dispatch.ReDispatchTaskService;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -102,7 +101,7 @@ public class ReDispatchServiceImpl implements ReDispatchService {
                 log.warn("reDispatch thread reach MAX_NUM:{}, do not reDispatch {}", MAX_THREAD_NUM_REDISPATCH, taskId);
                 continue;
             }
-            Timer timer = new Timer();
+            Timer timer = new Timer("ReDispatchTimer-" + taskId);
             ReDispatchTask reDispatchTask = buildReDispatchTask(taskId, intervalMills);
             timer.schedule(reDispatchTask, initDelayMills);
         }
@@ -128,7 +127,7 @@ public class ReDispatchServiceImpl implements ReDispatchService {
                 fileSourceTaskId);
             return false;
         }
-        Timer timer = new Timer();
+        Timer timer = new Timer("ReDispatchTimer-" + fileSourceTaskId);
         ReDispatchTask reDispatchTask = buildReDispatchTask(fileSourceTaskId, intervalMills);
         timer.schedule(reDispatchTask, initDelayMills);
         return true;

@@ -83,9 +83,9 @@
     </div>
     <div ref="content">
       <jb-form :model="formData">
-        <ace-editor
+        <monaco-editor
           v-if="contentHeight > 0"
-          ref="aceEditor"
+          ref="monacoEditor"
           v-model="formData.content"
           :height="contentHeight"
           :lang="formData.typeName"
@@ -134,8 +134,8 @@
   import { debugScriptCache } from '@utils/cache-helper';
   import { scriptVersionRule } from '@utils/validator';
 
-  import AceEditor from '@components/ace-editor';
   import JbInput from '@components/jb-input';
+  import MonacoEditor from '@components/monaco-editor';
 
   import I18n from '@/i18n';
 
@@ -155,7 +155,7 @@
     name: '',
     components: {
       JbInput,
-      AceEditor,
+      MonacoEditor,
       Layout,
       AiTool,
     },
@@ -275,13 +275,13 @@
         this.contentHeight = window.innerHeight - contentOffsetTop - 66;
       },
       handleUploadScript() {
-        this.$refs.aceEditor.handleUploadScript();
+        this.$refs.monacoEditor.handleUploadScript();
       },
       handleShowHistory() {
-        this.$refs.aceEditor.handleShowHistory();
+        this.$refs.monacoEditor.handleShowHistory();
       },
       handleFullScreen() {
-        this.$refs.aceEditor.handleFullScreen();
+        this.$refs.monacoEditor.handleFullScreen();
       },
       /**
        * @desc 脚本版本修改

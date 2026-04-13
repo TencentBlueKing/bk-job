@@ -150,6 +150,16 @@ public interface NoTenantHostService {
     int syncHostTopo(Long hostId);
 
     /**
+     * 批量同步主机拓扑数据至主机表冗余字段。
+     * 用于全量同步场景中，在 host_topo 表发生增删改后，
+     * 批量刷新受影响主机的 host 表冗余字段（app_id、set_ids、module_ids、module_type）。
+     *
+     * @param hostIds 需要刷新拓扑冗余字段的主机ID集合
+     * @return 成功同步的主机数量
+     */
+    int batchSyncHostTopo(Collection<Long> hostIds);
+
+    /**
      * 根据主机ID获取主机数据
      *
      * @param hostId 主机ID

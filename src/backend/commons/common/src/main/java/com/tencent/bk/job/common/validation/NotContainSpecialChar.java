@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.common.validation;
 
-import com.tencent.bk.job.common.util.check.IlegalCharChecker;
+import com.tencent.bk.job.common.util.check.IllegalCharChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -68,7 +68,7 @@ public @interface NotContainSpecialChar {
                 return true;
             }
             try {
-                StringCheckHelper stringCheckHelper = new StringCheckHelper(new IlegalCharChecker());
+                StringCheckHelper stringCheckHelper = new StringCheckHelper(new IllegalCharChecker());
                 stringCheckHelper.checkAndGetResult(value);
                 return true;
             } catch (Exception e) {

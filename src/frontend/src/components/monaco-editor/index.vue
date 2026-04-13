@@ -1,0 +1,1140 @@
+<!--
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 Tencent.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ *
+ *
+ * Terms of the MIT License:
+ * ---------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+-->
+
+<template>
+  <div
+    ref="monacoEditor"
+    class="jd-monaco-editor"
+    :style="{ height: `${height}px` }">
+    <div
+      ref="contentWrapper"
+      v-bkloading="{ isLoading: isLoading, opacity: 0.2 }"
+      class="jb-monaco-content"
+      :class="{ readonly }"
+      :style="boxStyle">
+      <div
+        v-if="showTabHeader"
+        class="jb-monaco-header">
+        <div
+          class="jb-monaco-title"
+          :style="{ height: `${tabHeight}px` }">
+          <div
+            v-for="(val, key) in tabList"
+            :key="val"
+            class="jb-monaco-mode-item"
+            :class="{ 'active': currentLang === key }"
+            @click="handleLangChange(key)">
+            {{ key }}
+          </div>
+        </div>
+        <div
+          v-if="tips"
+          v-bk-overflow-tips="{ content: tips }"
+          class="jb-monaco-tips">
+          <icon
+            style="margin-right: 4px;"
+            type="info" />
+          {{ tips }}
+        </div>
+        <div
+          class="jb-monaco-action"
+          :style="{ height: `${tabHeight}px` }">
+          <slot name="action" />
+          <ai-tool
+            v-if="isAiEnable"
+            @checkScript="handleCheckScript" />
+          <template v-if="!readonly && !isFullScreen">
+            <icon
+              v-bk-tooltips="$t('上传脚本')"
+              type="upload"
+              @click="handleUploadScript" />
+            <icon
+              v-bk-tooltips="$t('历史缓存')"
+              type="history"
+              @click.stop="handleShowHistory" />
+          </template>
+          <icon
+            v-if="!isFullScreen"
+            v-bk-tooltips="$t('全屏')"
+            type="full-screen"
+            @click="handleFullScreen" />
+          <icon
+            v-if="isFullScreen"
+            v-bk-tooltips="$t('还原')"
+            type="un-full-screen"
+            @click="handleExitFullScreen" />
+        </div>
+      </div>
+      <div class="jb-monaco-main">
+        <div class="monaco-edit-content">
+          <div
+            :id="selfId"
+            :style="editorStyle" />
+        </div>
+        <div class="right-side-panel">
+          <slot name="side" />
+        </div>
+      </div>
+      <div
+        v-if="isShowHistoryPanel"
+        ref="historyPanel"
+        class="jb-monaco-history-panel"
+        @click.stop="">
+        <div class="panel-header">
+          <div>{{ $t('历史缓存') }}</div>
+          <div
+            class="save-btn"
+            @click.stop="handleSaveHistory">
+            {{ $t('手动保存') }}
+          </div>
+        </div>
+        <div
+          v-if="historyList.length > 0"
+          style="max-height: 250px;">
+          <scroll-faker>
+            <div class="panel-body">
+              <div
+                v-for="item in historyList"
+                :key="item.name"
+                class="item">
+                <div
+                  v-bk-overflow-tips
+                  class="history-name">
+                  {{ item.name }}
+                </div>
+                <div
+                  class="history-action"
+                  @click="handleChangeValueFromHistory(item)">
+                  {{ $t('载入') }}
+                </div>
+              </div>
+            </div>
+          </scroll-faker>
+        </div>
+        <empty
+          v-else
+          class="history-empty"
+          :width="100" />
+      </div>
+      <!--报错列表-->
+      <div
+        v-if="showCheckPanel"
+        class="jb-monaco-error-panel">
+        <bk-collapse
+          class="check-list">
+          <bk-collapse-item>
+            <div class="check-list-title">
+              <span>共</span>
+              <template
+                v-for="(item, index) in checkListTypeInfo">
+                <span
+                  v-if="item.num"
+                  :key="index">
+                  <span v-if="item.showComma">，</span>
+                  <span :class="`${item.type}Length`"> {{ item.num }} </span>个{{ item.name }}
+                </span>
+              </template>
+            </div>
+            <div slot="content">
+              <ul class="check-list-info">
+                <li
+                  v-for="(item, index) in checkList"
+                  :key="index">
+                  <img
+                    :src="scriptTypeImg(item.type)"
+                    style="width: 14px; vertical-align: middle;">
+                  {{ item.message }}
+                  <span>
+                    ({{ item.startLineNumber }})
+                    [{{ item.startColumn }}, {{ item.endColumn }}]
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </bk-collapse-item>
+        </bk-collapse>
+      </div>
+      <input
+        ref="upload"
+        style="position: absolute; width: 0; height: 0;"
+        type="file"
+        @change="handleStartUpload">
+    </div>
+  </div>
+</template>
+<script>
+  import { Base64 } from 'js-base64';
+  import _ from 'lodash';
+  import * as monaco from 'monaco-editor';
+
+  import AiService from '@service/ai';
+  import PublicScriptService from '@service/public-script-manage';
+  import ScriptService from '@service/script-manage';
+  import ScriptTemplateService from '@service/script-template';
+  import UserService from '@service/user';
+
+  import {
+    formatScriptTypeValue,
+    prettyDateTimeFormat,
+  } from '@utils/assist';
+
+  import Empty from '@components/empty';
+  import ScrollFaker from '@components/scroll-faker';
+
+  import I18n from '@/i18n';
+  import eventBus from '@/utils/event-bus';
+
+  import AiTool from './components/ai-tool.vue';
+  import DefaultScript from './default-script';
+
+  export const builtInScript = Object.keys(DefaultScript).reduce((result, item) => {
+    result[item] = Base64.encode(DefaultScript[item]);
+    return result;
+  }, {});
+
+  const TAB_HEIGHT = 40;
+  const LANG_MAP = {
+    Shell: 'shell',
+    Bat: 'bat',
+    Perl: 'perl',
+    Python: 'python',
+    Powershell: 'powershell',
+    SQL: 'sql',
+  };
+  const LOCAL_STORAGE_KEY = 'ace_editor_history';
+
+  export default {
+    name: 'MonacoEditor',
+    components: {
+      ScrollFaker,
+      Empty,
+      AiTool,
+    },
+    inheritAttrs: false,
+    props: {
+      // 脚本内容
+      value: {
+        type: String,
+      },
+      height: {
+        type: Number,
+        default: 480,
+      },
+      // 只读模式
+      readonly: {
+        type: Boolean,
+        default: false,
+      },
+      readonlyTips: {
+        type: String,
+        default: I18n.t('只读模式不支持编辑'),
+      },
+      // 当前的脚本语言
+      lang: {
+        type: String,
+        required: true,
+      },
+      // 可支持切换的脚本类型（array：显示tab; string: 不显示tab）
+      options: {
+        type: [
+          String,
+          Array,
+        ],
+        default: () => Object.keys(LANG_MAP),
+      },
+      // 默认脚本是否显示用户自定义内容，默认为 true
+      customEnable: {
+        type: Boolean,
+        default: true,
+      },
+      // 自定义全局变量
+      constants: {
+        type: Array,
+        default: () => [],
+      },
+      // 切换脚本语言前的确认动作
+      beforeLangChange: {
+        type: Function,
+        default: () => Promise.resolve(),
+      },
+      tips: {
+        type: String,
+      },
+    },
+    data() {
+      return {
+        isLoading: false,
+        content: '',
+        currentLang: this.lang,
+        isFullScreen: false,
+        isShowHistoryPanel: false,
+        tabHeight: TAB_HEIGHT,
+        historyList: [],
+        currentUser: {},
+        isAiEnable: false,
+        checkList: [],
+        checkListTypeInfo: [{
+          num: 0,
+          showComma: false,
+          type: 'info',
+          name: '信息提示',
+        }, {
+          num: 0,
+          showComma: false,
+          type: 'warning',
+          name: '警告',
+        }, {
+          num: 0,
+          showComma: false,
+          type: 'error',
+          name: '错误',
+        }],
+      };
+    },
+    computed: {
+      errorLength() {
+        return this.checkList.error.length;
+      },
+      warningLength() {
+        return this.checkList.warning.length;
+      },
+      infoLength() {
+        return this.checkList.info.length;
+      },
+      /**
+       * 是否显示错误详情
+       */
+      showCheckPanel() {
+        return this.checkList.length > 0;
+      },
+      /**
+       * @desc 脚本编辑器块的样式
+       * @returns {Object}
+       */
+      boxStyle() {
+        const style = {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+        };
+        if (this.isFullScreen) {
+          style.position = 'fixed';
+          style.zIndex = window.__bk_zIndex_manager.nextZIndex(); // eslint-disable-line no-underscore-dangle
+          style.height = '100vh';
+        }
+        return style;
+      },
+      /**
+       * @desc 脚本输入区的样式
+       * @returns {Object}
+       */
+      editorStyle() {
+        const tabHeight = this.showTabHeader ? TAB_HEIGHT : 0;
+        return {
+          height: this.isFullScreen ? `calc(100vh - ${tabHeight}px)` : `${this.height - tabHeight}px`,
+        };
+      },
+      /**
+       * @desc 是否显示脚本类型切换 TAB, 当options 配置 String 时不显示
+       * @returns {Boolean}
+       */
+      showTabHeader() {
+        return typeof this.options !== 'string';
+      },
+      /**
+       * @desc 显示类型显示列表
+       * @returns {Object}
+       */
+      tabList() {
+        if (!Array.isArray(this.options)) {
+          return [];
+        }
+        return this.options.reduce((res, item) => {
+          if (Object.prototype.hasOwnProperty.call(LANG_MAP, item)) {
+            res[item] = LANG_MAP[item];
+          }
+          return res;
+        }, {});
+      },
+    },
+    watch: {
+      value: {
+        handler(value) {
+          this.setAnnotations();
+          // 只读模式没有默认值，直接使用输入值
+          if (this.readonly) {
+            this.editor.setValue(Base64.decode(value));
+            this.clearSelection();
+            this.syntaxCheck(value);
+            return;
+          }
+          // 外部传入空置直接清空编辑器
+          if (value === '' && this.content !== '') {
+            this.editor.setValue('');
+            return;
+          }
+          const parseValue = Base64.decode(value);
+          // 避免编辑造成的重复更新
+          if (this.content !== parseValue) {
+            this.editor.setValue(parseValue);
+            this.clearSelection();
+          }
+        },
+      },
+      lang(newLang) {
+        if (this.currentLang !== newLang) {
+          this.currentLang = newLang;
+          setTimeout(() => {
+            this.setModelLanguage(LANG_MAP[newLang]);
+          });
+        }
+      },
+      readonly(readonly) {
+        this.editor.updateOptions({ readOnly: readonly });
+      },
+      constants: {
+        handler() {
+
+        },
+        immediate: true,
+      },
+    },
+    created() {
+      this.selfId = `monaco_editor_${_.random(1, 1000)}_${Date.now()}`;
+      this.valueMemo = {};
+      this.hasChanged = false;
+      this.historyEnable = false;
+      this.historyTimer = '';
+      this.fetchUserInfo();
+      this.fetchTemplate();
+      this.fetchAiConfig();
+      this.syntaxCheck = _.debounce((content) => {
+        ScriptService.getScriptValidation({
+          content,
+          scriptType: formatScriptTypeValue(this.currentLang),
+        }).then((data) => {
+          this.initCheckListTypeNum();
+          data.forEach((item) => {
+            this.checkListTypeInfo[item.level - 1].num = this.checkListTypeInfo[item.level - 1].num + 1;
+            if (!item.endColumn) {
+              // 如果没有这个属性，则说明是warning level = 2，没有matchContent，则将整行划线
+              const content = this.editor.getModel().getLineContent(item.startLineNumber);
+              item.endColumn = item.startColumn + content.length;
+            }
+          });
+          for (let i = 1;i < this.checkListTypeInfo.length; i++) {
+            const lastData = this.checkListTypeInfo[i - 1];
+            if (lastData.num > 0 || lastData.showComma) {
+              this.checkListTypeInfo[i].showComma = true;
+            } else {
+              this.checkListTypeInfo[i].showComma = false;
+            }
+          }
+          this.checkList = data;
+          // 高危语句报错状态需要全局保存
+          this.$store.commit('setScriptCheckError', _.some(data, _ => _.isDangerous));
+          this.setAnnotations('syntax-checker', data);
+        });
+      }, 300);
+    },
+    beforeDestroy() {
+      this.handleExitFullScreen();
+      this.$store.commit('setScriptCheckError', null);
+    },
+    mounted() {
+      this.initEditor();
+      document.body.addEventListener('click', this.handleHideHistory);
+      document.body.addEventListener('keyup', this.handleExitByESC);
+      this.$once('hook:beforeDestroy', () => {
+        clearTimeout(this.historyTimer);
+        if (this.isChange) {
+          this.pushLocalStorage();
+        }
+        document.body.removeEventListener('click', this.handleHideHistory);
+        document.body.removeEventListener('keyup', this.handleExitByESC);
+      });
+    },
+    methods: {
+      initCheckListTypeNum() {
+        this.checkListTypeInfo.forEach(item => item.num = 0);
+      },
+      scriptTypeImg(type) {
+        return window.__loadAssetsUrl__(`/static/images/monaco-editor/${type}.png`);
+      },
+      /**
+       * @desc 获取登录用户信息
+       */
+      fetchUserInfo() {
+        UserService.fetchUserInfo()
+          .then((data) => {
+            this.currentUser = Object.freeze(data);
+          });
+      },
+      /**
+       * @desc 获取默认脚本
+       */
+      fetchTemplate() {
+        this.isLoading = true;
+        const handlePromise = this.customEnable ? ScriptTemplateService.fetchTemplate() : Promise.resolve([]);
+        handlePromise.then((data) => {
+          const customScriptMap = data.reduce((result, item) => {
+            result[formatScriptTypeValue(item.scriptLanguage)] = Base64.decode(item.scriptContent);
+            return result;
+          }, {});
+          this.defaultScriptMap = Object.assign({}, DefaultScript, customScriptMap);
+          // 只读或有传入值默认脚本使用prop.value
+          // 其它情况使用脚本编辑器提供的默认值
+          this.content = this.readonly || this.value
+            ? Base64.decode(this.value || '')
+            : this.defaultScriptMap[this.lang];
+          this.editor.setValue(this.content);
+          this.editor.revealLine(Infinity);
+          this.clearSelection();
+        })
+          .finally(() => {
+            this.isLoading = false;
+          });
+      },
+      fetchAiConfig() {
+        AiService.fetchConfig()
+          .then((data) => {
+            this.isAiEnable = data.enabled;
+          });
+      },
+      /**
+       * @desc 初始化脚本编辑器
+       */
+      initEditor() {
+        const $handler = document.querySelector(`#${this.selfId}`);
+        const options = {
+          // 字体与基础显示
+          fontSize: 13,
+          lineHeight: 18, // 可选的视觉调整项，用于配合字体大小
+
+          // 自动补全与代码提示
+          quickSuggestions: {
+            comments: true,
+            strings: true,
+            other: true,
+          },
+          suggestOnTriggerCharacters: true,
+          snippetSuggestions: 'inline', // 可选值: "top", "bottom", "inline", "none"
+
+          // 关键配置：固定溢出小部件的位置
+          fixedOverflowWidgets: true,
+
+          // 编辑行为
+          wordWrap: 'on', // 可选值: "off", "on", "bounded"
+
+          // 滚动行为
+          scrollBeyondLastLine: true,  // 为true则能让最后一行代码越过视图区域的顶部
+
+          // 其他常用推荐配置
+          automaticLayout: true, // 非常重要：使编辑器在容器尺寸变化时自动调整布局[5](@ref)
+          minimap: { enabled: false }, // 默认关闭小地图，若需要可开启[4](@ref)
+          lineNumbers: 'on', // 显示行号[4](@ref)
+          scrollbar: { // 精细控制滚动条
+            verticalScrollbarSize: 8,
+            horizontalScrollbarSize: 8,
+          },
+          mouseWheelScrollSensitivity: 3, // 调整鼠标滚轮滚动灵敏度[6](@ref)
+          tabSize: 2, // 设置Tab缩进长度[4](@ref)
+          readOnly: this.readonly,  // 设置是否只读
+        };
+        // 创建编辑器实例
+        const editor = monaco.editor.create($handler, {
+          theme: 'vs-dark',
+          ...options,
+        });
+
+        // change事件
+        editor.onDidChangeModelContent(() => {
+          this.content = editor.getValue();
+          const content = Base64.encode(this.content);
+          if (this.content && !this.readonly) {
+            this.syntaxCheck(content);
+          }
+          this.setAnnotations();
+          if (this.historyEnable) {
+            this.hasChanged = true;
+          }
+          this.$emit('input', content);
+          this.$emit('change', content);
+        });
+
+        // focus事件
+        editor.onDidFocusEditorText(() => {
+          this.historyEnable = true;
+        });
+
+        // 先保存 editor 在设置 value
+        this.editor = editor;
+        this.setModelLanguage(LANG_MAP[this.currentLang]);
+
+        this.$once('hook:beforeDestroy', () => {
+          editor.dispose();
+          editor.getContainerDomNode()?.remove();
+        });
+
+        this.watchEditAction();
+
+        $handler.addEventListener('keydown', this.handleReadonlyWarning);
+        this.$once('hook:beforeDestroy', () => {
+          $handler.removeEventListener('keydown', this.handleReadonlyWarning);
+        });
+      },
+      /**
+       * @desc 设置标记/注解
+       */
+      setAnnotations(key = 'syntax-checker', data = []) {
+        const model = this.editor.getModel();
+        monaco.editor.setModelMarkers(model, key, data);
+      },
+      /**
+       * @desc 编辑器设置语言
+       */
+      setModelLanguage(lang) {
+        const model = this.editor.getModel();
+        monaco.editor.setModelLanguage(model, lang);
+      },
+      /**
+       * @desc 清除选区
+       */
+      clearSelection() {
+        // 将选区重置到第一行第一列（文档开头）
+        this.editor.setSelection(new monaco.Range(1, 1, 1, 1));
+      },
+      /**
+       * @desc 外部调用
+       */
+      resize() {
+        this.$nextTick(() => {
+          this.editor.layout();
+        });
+      },
+      /**
+       * @desc 外部调用-设置脚本编辑器内容
+       * @param {String} 经过 base64 编码的脚本内容
+       */
+      setValue(value) {
+        this.editor.setValue(Base64.decode(value));
+        this.clearSelection();
+        this.editor.revealLine(Infinity);
+      },
+      /**
+       * @desc 外部调用-重置脚本编辑内容使用默认脚本
+       */
+      resetValue() {
+        this.editor.setValue(this.defaultScriptMap[this.lang]);
+        this.clearSelection();
+        this.editor.revealLine(Infinity);
+      },
+      /**
+       * @desc 监听脚本的编辑状态
+       *
+       * 每分钟自动缓存一次
+       */
+      watchEditAction() {
+        if (this.readonly) {
+          return;
+        }
+        this.historyTimer = setTimeout(() => {
+          if (this.historyEnable && this.hasChanged) {
+            this.pushLocalStorage();
+          }
+          this.hasChanged = false;
+          this.watchEditAction();
+        }, 60000);
+      },
+      /**
+       * @desc 缓存脚本内容
+       * @param {String} type 缓存类型（自动缓存、手动缓存）
+       */
+      pushLocalStorage(type = I18n.t('自动保存'), isAuto = true) {
+        // 当前脚本内容为空不缓存
+        if (!this.content) {
+          return;
+        }
+        // eslint-disable-next-line max-len
+        const newCacheKey = `${type}_${window.PROJECT_CONFIG.SCOPE_TYPE}_${window.PROJECT_CONFIG.SCOPE_ID}_${this.currentUser.username}_${prettyDateTimeFormat(Date.now())}`;
+        let historyList = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+        if (!_.isArray(historyList)) {
+          historyList = [];
+        }
+        if (historyList.length > 0) {
+          // 最新缓存内容和上一次缓存内容相同不缓存
+          if (historyList[0].content === this.value && isAuto) {
+            return;
+          }
+        }
+        historyList.unshift({
+          name: newCacheKey,
+          content: this.value,
+          lang: this.lang,
+        });
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(historyList.slice(0, 25)));
+      },
+      /**
+       * @desc readonly模式下键盘操作提示
+       * @param {Object} event keydown事件
+       */
+      handleReadonlyWarning(event) {
+        if (!this.readonly) {
+          return true;
+        }
+        const { target } = event;
+        // 脚本编辑器获得焦点的状态
+        if (target.type !== 'textarea') {
+          return true;
+        }
+
+        if ([
+          'Escape',
+          'Meta',
+          'ShiftLeft',
+          'ShiftRight',
+          'ControlLeft',
+          'ControlRight',
+          'AltLeft',
+          'AltRight',
+        ].includes(event.code)) {
+          return true;
+        }
+        if ((event.metaKey || event.ctrlKey)
+          && !['KeyV', 'KeyX'].includes(event.code)) {
+          return true;
+        }
+        this.messageWarn(this.readonlyTips);
+      },
+      /**
+       * @desc 脚本语言切换
+       * @param {String} newLang 脚本语言
+       */
+      handleLangChange(newLang) {
+        if (this.readonly || this.currentLang === newLang) {
+          return;
+        }
+        const result = this.beforeLangChange();
+        Promise.resolve()
+          .then(() => {
+            if (typeof result.then === 'function') {
+              return result;
+            }
+            return result ? Promise.resolve() : Promise.reject(new Error('error'));
+          })
+          .then(() => {
+            this.$emit('on-mode-change', newLang);
+            // 切换语言时缓存上一语言的脚本内容
+            this.valueMemo[this.currentLang] = this.content;
+
+            this.currentLang = newLang;
+            this.setModelLanguage(LANG_MAP[newLang]);
+            if (Object.prototype.hasOwnProperty.call(this.valueMemo, this.currentLang)) {
+              // 使用新脚本语言的上一次缓存内容
+              this.editor.setValue(this.valueMemo[this.currentLang]);
+            } else {
+              // 使用新脚本语言的默认内容
+              this.editor.setValue(this.defaultScriptMap[this.currentLang]);
+            }
+            this.clearSelection();
+          });
+      },
+      /**
+       * @desc 显示脚本缓存面板
+       */
+      handleShowHistory() {
+        const historyList = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+        if (_.isArray(historyList)) {
+          this.historyList = Object.freeze(historyList);
+        } else {
+          this.historyList = [];
+        }
+        this.isShowHistoryPanel = true;
+      },
+      /**
+       * @desc 隐藏脚本缓存面板
+       */
+      handleHideHistory() {
+        this.isShowHistoryPanel = false;
+      },
+      /**
+       * @desc 使用缓存的脚本内容
+       * @param {Object} payload 缓存的脚本信息
+       */
+      handleChangeValueFromHistory(payload) {
+        // 切换脚本类型tab
+        this.$emit('on-mode-change', payload.lang);
+        // 更新脚本内容
+        this.editor.setValue(Base64.decode(payload.content));
+        this.clearSelection();
+        this.handleHideHistory();
+      },
+      /**
+       * @desc 手动缓存脚本内容
+       */
+      handleSaveHistory: _.debounce(function () {
+        this.pushLocalStorage(I18n.t('手动保存'), false);
+        this.messageSuccess(I18n.t('已成功保存到历史缓存！'));
+        this.handleShowHistory();
+      }, 300),
+      /**
+       * @desc 触发脚本上传
+       */
+      handleUploadScript() {
+        this.$refs.upload.click();
+      },
+      /**
+       * @desc 开始上传
+       * @param {Object} event input文件选中事件
+       */
+      handleStartUpload(event) {
+        const { files } = event.target;
+        if (!files.length) {
+          return;
+        }
+        const fileName = files[0].name;
+        const fileSuffixes = fileName.substr(fileName.lastIndexOf('.') + 1);
+        const langMap = {
+          sh: 'Shell',
+          bat: 'Bat',
+          pl: 'Perl',
+          py: 'Python',
+          ps1: 'powershell',
+          sql: 'SQL',
+        };
+        if (!langMap[fileSuffixes]) {
+          this.$bkMessage({
+            theme: 'error',
+            message: I18n.t('脚本类型不支持'),
+          });
+          return;
+        }
+        this.isLoading = true;
+        const params = new FormData();
+        params.append('script', files[0]);
+        PublicScriptService.getUploadContent(params)
+          .then((data) => {
+            this.handleLangChange(langMap[fileSuffixes]);
+            this.editor.setValue(Base64.decode(data.content));
+          })
+          .finally(() => {
+            this.isLoading = false;
+          });
+        this.$refs.upload.value = '';
+      },
+      /**
+       * @desc 切换编辑的全屏状态
+       *
+       * 全屏时需要把dom移动到body下面
+       */
+      handleFullScreen() {
+        this.isFullScreen = true;
+        this.messageInfo(I18n.t('按 Esc 即可退出全屏模式'));
+        document.body.appendChild(this.$refs.contentWrapper);
+        this.$nextTick(() => {
+          this.editor.layout();
+        });
+      },
+      /**
+       * @desc 退出编辑的全屏状态
+       *
+       * 退出全屏时需要要把dom还原到原有位置
+       */
+      handleExitFullScreen() {
+        this.isFullScreen = false;
+        this.$refs.monacoEditor.appendChild(this.$refs.contentWrapper);
+        this.$nextTick(() => {
+          this.editor.layout();
+        });
+      },
+      /**
+       * @desc esc快捷键退出编辑的全屏状态
+       */
+      handleExitByESC(event) {
+        if (event.code !== 'Escape' || !this.isFullScreen) {
+          return true;
+        }
+        this.handleExitFullScreen();
+      },
+
+      handleCheckScript() {
+        eventBus.$emit('ai:checkScript', {
+          type: formatScriptTypeValue(this.currentLang),
+          content: this.editor.getValue(),
+        });
+      },
+    },
+  };
+</script>
+<style lang='postcss'>
+  /* stylelint-disable */
+  .jd-monaco-editor {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    .monaco_editor {
+      padding-right: 14px;
+      overflow: unset;
+      font-family: Menlo, Monaco, Consolas, Courier, monospace;
+    }
+
+    .readonly {
+      .jb-monaco-title,
+      .margin-view-overlays,
+      .lines-content {
+        filter: grayscale(0%) brightness(80%) saturate(70%) opacity(95%);
+      }
+
+      .jb-monaco-mode-item {
+        cursor: default;
+      }
+    }
+  }
+
+  .jb-monaco-header{
+    display: flex;
+    font-size: 14px;
+    color: #fff;
+    background: #202024;
+  }
+
+  .jb-monaco-title {
+    display: flex;
+
+    .jb-monaco-mode-item {
+      position: relative;
+      display: flex;
+      padding: 0 22px;
+      color: #979ba5;
+      cursor: pointer;
+      border-top: 2px solid transparent;
+      user-select: none;
+      align-items: center;
+
+      &.active {
+        color: #fff;
+        background: #313238;
+        border-top: 2px solid #3a84ff;
+
+        &::after{
+          content: none;
+        }
+      }
+
+      &::after{
+        position: absolute;
+        right: -1px;
+        width: 1px;
+        height: 20px;
+        background: #45464D;
+        content: '';
+      }
+    }
+  }
+
+  .jb-monaco-tips {
+    height: 40px;
+    padding-left: 18px;
+    overflow: hidden;
+    font-size: 12px;
+    line-height: 40px;
+    color: #979BA5;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .jb-monaco-action {
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    padding-right: 9px;
+    margin-left: auto;
+    font-size: 16px;
+    line-height: 1;
+    color: #c4c6cc;
+
+    .job-icon {
+      padding: 10px 9px;
+      cursor: pointer;
+    }
+  }
+
+  .jb-monaco-main {
+    display: flex;
+    background: #272822;
+
+    .monaco-edit-content {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .bk-loading {
+      background: "rgba(0, 0, 0, 80%)" !important;
+    }
+  }
+
+
+  .jb-monaco-history-panel {
+    position: absolute;
+    top: 40px;
+    right: 10px;
+    width: 350px;
+    background: #fff;
+    border-radius: 2px;
+    user-select: none;
+
+    &::before {
+      position: absolute;
+      top: -4px;
+      right: 45px;
+      width: 10px;
+      height: 10px;
+      background: inherit;
+      content: "";
+      transform: rotateZ(-45deg);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      height: 60px;
+      padding: 0 20px;
+      font-size: 14px;
+      color: #313238;
+      border-bottom: 1px solid #e7e7e7;
+
+      .save-btn {
+        display: flex;
+        width: 86px;
+        height: 32px;
+        margin-left: auto;
+        color: #63656e;
+        cursor: pointer;
+        background: #fff;
+        border: 1px solid #c4c6cc;
+        border-radius: 2px;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    .panel-body {
+      padding: 10px 20px;
+      font-family: 'MicrosoftYaHei'; /* stylelint-disable-line */
+      font-size: 12px;
+      color: #4f5050;
+      background: #fafbfd;
+
+      .item {
+        display: flex;
+        height: 32px;
+        align-items: center;
+      }
+
+      .history-name {
+        width: 255px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .history-action {
+        margin-left: auto;
+        color: #3a84ff;
+        cursor: pointer;
+      }
+    }
+
+    .history-empty {
+      padding-top: 44px;
+      padding-bottom: 85px;
+    }
+  }
+
+  .jb-monaco-error-panel {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #313238;
+    color: #DCDEE5;
+
+    &::before {
+      content: '';
+      height: 100%;
+      width: 5px;
+      background-color: #B34747;
+      display: block;
+      position: absolute;
+    }
+
+    .bk-collapse-item-hover {
+      &:hover {
+        color: #DCDEE5;
+      }
+    }
+
+    .check-list {
+      color: #DCDEE5;
+
+      .check-list-title {
+        padding-left: 10px;
+
+        .warningLength {
+          color: #cca700;
+        }
+        .errorLength {
+          color: #B34747;
+        }
+        .infoLength {
+          color: #699DF4;
+        }
+      }
+
+      .check-list-info {
+        padding-left: 10px;
+        max-height: 150px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+
+        ::-webkit-scrollbar {
+          width: 14px;
+        }
+
+        li {
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          overflow: hidden;
+          line-height: 30px;
+        }
+      }
+    }
+  }
+</style>
