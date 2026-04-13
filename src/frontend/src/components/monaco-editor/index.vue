@@ -885,8 +885,8 @@
 
       handleCheckScript() {
         eventBus.$emit('ai:checkScript', {
-          type: formatScriptTypeValue(this.currentLang),
-          content: this.editor.getValue(),
+          script_type: formatScriptTypeValue(this.currentLang),
+          script_content: this.editor.getValue(),
         });
       },
     },
@@ -899,6 +899,11 @@
     display: flex;
     flex-direction: column;
     width: 100%;
+
+    .monaco-mouse-cursor-text {
+      cursor: text !important;
+    }
+
     .monaco_editor {
       padding-right: 14px;
       overflow: unset;
