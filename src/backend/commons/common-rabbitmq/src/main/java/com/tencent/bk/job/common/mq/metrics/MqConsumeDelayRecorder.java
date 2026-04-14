@@ -25,7 +25,6 @@
 package com.tencent.bk.job.common.mq.metrics;
 
 import com.tencent.bk.job.common.util.date.DateUtils;
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -34,12 +33,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * MQ延迟消费记录器
  */
 @Slf4j
 public abstract class MqConsumeDelayRecorder {
+    /**
+     * 时钟偏差阈值(ms)
+     */
+    private static final long CLOCK_SKEW_THRESHOLD_MS = -1000L;
+    /**
+     * 出现时针偏差记录日志的时间间隔(ms)
+     */
+    private static final long CLOCK_SKEW_LOG_INTERVAL_MS = 60_000L;
+    /**
+     * 上次时钟偏差打印警告日志时间
+     */
+    private final AtomicLong lastClockSkewWarnLogTimeMs = new AtomicLong(0L);
     private static final String TIME_FORMATTER = "yyyy-MM-dd HH:mm:ss.SSS";
     protected final MeterRegistry meterRegistry;
     protected final MqMetricsProperties mqMetricsProperties;
@@ -60,6 +72,14 @@ public abstract class MqConsumeDelayRecorder {
      * @param message 消息体
      */
     public void recordConsumeDelay(String binding, String messageName, Message<?> message) {
+        try {
+            doRecordConsumeDelay(binding, messageName, message);
+        } catch (Exception e) {
+            log.error("Record mq consume delay failed, binding: {}, messageName: {}", binding, messageName, e);
+        }
+    }
+
+    private void doRecordConsumeDelay(String binding, String messageName, Message<?> message) {
         if (!mqMetricsProperties.isEnabled()) {
             log.debug("Ignore mq consume delay record because metrics are disabled, binding: {}", binding);
             return;
@@ -69,8 +89,13 @@ public abstract class MqConsumeDelayRecorder {
             log.debug("Ignore mq consume delay record because send time header is missing, binding: {}", binding);
             return;
         }
+
         long consumeTimeMs = System.currentTimeMillis();
-        long delayMs = Math.max(consumeTimeMs - sendTimeMs, 0L);
+        long rawDelayMs  = consumeTimeMs - sendTimeMs;
+        if (rawDelayMs <= CLOCK_SKEW_THRESHOLD_MS) {
+            logClockSkewIfNecessary(binding, messageName, sendTimeMs, consumeTimeMs, rawDelayMs);
+        }
+        long delayMs = Math.max(rawDelayMs, 0L);
         long thresholdMs = getDelayThresholdMs();
         if (delayMs < thresholdMs) {
             log.debug(
@@ -98,6 +123,34 @@ public abstract class MqConsumeDelayRecorder {
             delayMs,
             thresholdMs
         );
+    }
+
+    /**
+     * 当消费端时间比发送端时间早1s以上时，说明机器间可能存在较大时钟偏差
+     * 间歇打印warn日志
+     */
+    private void logClockSkewIfNecessary (
+        String binding,
+        String messageName,
+        long sendTimeMs,
+        long consumeTimeMs,
+        long rawDelayMs
+    ) {
+        long now = System.currentTimeMillis();
+        long lastWarnTimeMs = lastClockSkewWarnLogTimeMs.get();
+        if (now - lastWarnTimeMs < CLOCK_SKEW_LOG_INTERVAL_MS) {
+            return;
+        }
+        if (lastClockSkewWarnLogTimeMs.compareAndSet(lastWarnTimeMs, now)) {
+            log.warn(
+                "Larger clock skew, binding: {}, messageName: {}, sendTime: {}, consumeTime: {}, rawDelayMs: {}",
+                binding,
+                messageName,
+                DateUtils.getDateStrFromUnixTimeMills(sendTimeMs, TIME_FORMATTER),
+                DateUtils.getDateStrFromUnixTimeMills(consumeTimeMs, TIME_FORMATTER),
+                rawDelayMs
+            );
+        }
     }
 
     /**
@@ -131,10 +184,6 @@ public abstract class MqConsumeDelayRecorder {
             .tags(tags)
             .register(meterRegistry)
             .record(delayMs, TimeUnit.MILLISECONDS);
-        Counter.builder(MqMetricsConstants.NAME_JOB_MQ_CONSUME_DELAY_COUNT)
-            .tags(tags)
-            .register(meterRegistry)
-            .increment();
     }
 
     /**

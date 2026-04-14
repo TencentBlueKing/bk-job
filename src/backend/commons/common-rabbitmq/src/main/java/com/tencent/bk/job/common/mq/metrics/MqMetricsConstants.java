@@ -33,10 +33,6 @@ public class MqMetricsConstants {
      */
     public static final String NAME_JOB_MQ_CONSUME_DELAY = "job.mq.consume.delay";
     /**
-     * MQ延迟消费次数
-     */
-    public static final String NAME_JOB_MQ_CONSUME_DELAY_COUNT = "job.mq.consume.delay.count";
-    /**
      * MQ消息发送时间头
      */
     public static final String HEADER_NAME_SEND_TIME_MS = "job_send_time_ms";

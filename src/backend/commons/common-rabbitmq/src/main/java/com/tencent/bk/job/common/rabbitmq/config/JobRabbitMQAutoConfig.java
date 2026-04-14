@@ -84,9 +84,9 @@ public class JobRabbitMQAutoConfig {
      */
     @Bean
     @GlobalChannelInterceptor(patterns = MqMetricsConstants.PATTERN_OUTBOUND_CHANNEL)
-    MqSendTimeChannelInterceptor mqSendTimeChannelInterceptor() {
+    MqSendTimeChannelInterceptor mqSendTimeChannelInterceptor(MqMetricsProperties mqMetricsProperties) {
         log.info("Init mq send time channel interceptor, patterns: {}", MqMetricsConstants.PATTERN_OUTBOUND_CHANNEL);
-        return new MqSendTimeChannelInterceptor();
+        return new MqSendTimeChannelInterceptor(mqMetricsProperties);
     }
 
     /**

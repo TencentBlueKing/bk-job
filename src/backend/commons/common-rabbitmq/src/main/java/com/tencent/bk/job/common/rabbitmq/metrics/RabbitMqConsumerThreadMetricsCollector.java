@@ -164,6 +164,8 @@ public class RabbitMqConsumerThreadMetricsCollector implements MqConsumerMetrics
         try {
             Field field = ReflectionUtils.findField(target.getClass(), fieldName);
             if (field == null) {
+                log.error("Get rabbitmq listener container metric value failed because field is missing, " +
+                    "containerType: {}, fieldName: {}", target.getClass().getName(), fieldName);
                 return 0D;
             }
             ReflectionUtils.makeAccessible(field);

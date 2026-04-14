@@ -35,6 +35,12 @@ import org.springframework.messaging.support.MessageBuilder;
  */
 @Slf4j
 public class MqSendTimeChannelInterceptor implements ChannelInterceptor {
+    private final MqMetricsProperties mqMetricsProperties;
+
+    public MqSendTimeChannelInterceptor(MqMetricsProperties mqMetricsProperties) {
+        this.mqMetricsProperties = mqMetricsProperties;
+    }
+
     /**
      * 为出站消息补充发送时间头
      *
@@ -44,6 +50,12 @@ public class MqSendTimeChannelInterceptor implements ChannelInterceptor {
      */
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
+        if (!mqMetricsProperties.isEnabled()) {
+            log.debug("Skip mq send time header because metrics are disabled, channel: {}",
+                channel.getClass().getName());
+            return ChannelInterceptor.super.preSend(message, channel);
+        }
+
         if (message.getHeaders().containsKey(MqMetricsConstants.HEADER_NAME_SEND_TIME_MS)) {
             log.debug("Skip mq send timestamp header because it already exists, channel: {}",
                 channel.getClass().getName());
