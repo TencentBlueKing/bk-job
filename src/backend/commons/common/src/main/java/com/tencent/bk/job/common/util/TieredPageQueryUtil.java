@@ -24,8 +24,10 @@
 
 package com.tencent.bk.job.common.util;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.context.JobContext;
 import com.tencent.bk.job.common.context.JobContextThreadLocal;
+import com.tencent.bk.job.common.exception.TieredPageQueryException;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +36,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -98,16 +101,8 @@ public class TieredPageQueryUtil {
         long startTime = System.currentTimeMillis();
 
         // 1. 查询总数
-        int totalCount;
-        try {
-            totalCount = countQuery.get();
-        } catch (Exception e) {
-            log.error("Failed to query total count", e);
-            return Collections.emptyList();
-        }
-
+        int totalCount = queryTotalCount(countQuery);
         if (totalCount <= 0) {
-            log.info("Total count is {}, return empty list", totalCount);
             return Collections.emptyList();
         }
 
@@ -130,80 +125,130 @@ public class TieredPageQueryUtil {
         List<ExecutorService> executorsToShutdown = new ArrayList<>();
         // 收集所有 Future，用于主线程统一等待
         List<Future<?>> allFutures = new ArrayList<>();
-
-        // 浅层区结果容器：按页号索引存储，保证顺序
+        // 各区域结果容器
         List<List<T>> shallowPageResults = new ArrayList<>(Collections.nCopies(shallowEndPage, null));
-        // 中层区结果容器：按任务索引存储，保证顺序
-        int middleTaskCount = 0;
-        // 深层区结果容器
+        int middleTaskCount = computeMiddleTaskCount(config, maxTier, shallowEndPage, middleEndPage);
+        List<List<T>> middleTaskResults = new ArrayList<>(Collections.nCopies(middleTaskCount, null));
         List<T> deepResult = Collections.synchronizedList(new ArrayList<>());
 
-        // ===== 浅层区：主线程直接提交每页任务到浅层区线程池 =====
-        if (shallowEndPage > 0) {
-            ExecutorService shallowExecutor = createExecutor(config.getShallowConcurrency(), "shallow-worker");
-            executorsToShutdown.add(shallowExecutor);
-            submitShallowTasks(
-                config, tracer, parentSpan, parentJobContext, shallowEndPage,
-                pageReqBuilder, pageQuery, resultExtractor,
-                shallowExecutor, shallowPageResults, allFutures);
+        try {
+            // 4. 提交所有区域的任务
+            // ===== 浅层区：主线程直接提交每页任务到浅层区线程池 =====
+            if (shallowEndPage > 0) {
+                ExecutorService shallowExecutor = createExecutor(config.getShallowConcurrency(), "shallow-worker");
+                executorsToShutdown.add(shallowExecutor);
+                submitShallowTasks(
+                    config, tracer, parentSpan, parentJobContext, shallowEndPage,
+                    pageReqBuilder, pageQuery, resultExtractor,
+                    shallowExecutor, shallowPageResults, allFutures);
+            }
+
+            // ===== 中层区：主线程直接提交每段任务到中层区线程池 =====
+            if (middleTaskCount > 0) {
+                ExecutorService middleExecutor = createExecutor(config.getMiddleConcurrency(), "middle-worker");
+                executorsToShutdown.add(middleExecutor);
+                submitMiddleTasks(
+                    config, tracer, parentSpan, parentJobContext, shallowEndPage, middleEndPage,
+                    pageReqBuilder, pageQuery, resultExtractor, lastIdExtractor, keysetReqBuilder,
+                    middleExecutor, middleTaskResults, allFutures);
+            }
+
+            // ===== 深层区：主线程直接提交一个串行任务到深层区线程池 =====
+            if (maxTier == TieredPageQueryConfig.Tier.DEEP) {
+                int deepStartPage = middleEndPage;
+                if (deepStartPage < totalPages) {
+                    ExecutorService deepExecutor = createExecutor(1, "deep-worker");
+                    executorsToShutdown.add(deepExecutor);
+                    submitDeepTask(
+                        config, tracer, parentSpan, parentJobContext, deepStartPage,
+                        pageReqBuilder, pageQuery, resultExtractor, lastIdExtractor, keysetReqBuilder,
+                        deepExecutor, deepResult, allFutures);
+                }
+            }
+
+            // 5. 主线程统一等待所有任务完成
+            waitForFutures(allFutures, "AllTasks");
+        } finally {
+            // 6. 在 finally 块中关闭所有线程池，防止异常时线程泄露
+            for (ExecutorService executor : executorsToShutdown) {
+                shutdownExecutor(executor, "tiered");
+            }
         }
 
-        // ===== 中层区：主线程直接提交每段任务到中层区线程池 =====
+        // 7. 按区域顺序合并结果：浅层区 -> 中层区 -> 深层区
+        List<T> result = mergeResults(totalCount, shallowPageResults, middleTaskResults, deepResult);
+
+        // 8. 打印汇总日志
+        logSummary(startTime, totalCount, maxTier, shallowPageResults, middleTaskResults, deepResult, result);
+
+        return result;
+    }
+
+    /**
+     * 查询总数
+     */
+    private static int queryTotalCount(Supplier<Integer> countQuery) {
+        int totalCount;
+        try {
+            totalCount = countQuery.get();
+        } catch (Exception e) {
+            log.warn("Failed to query total count", e);
+            throw new TieredPageQueryException("Failed to query total count", e, ErrorCode.INTERNAL_ERROR);
+        }
+        if (totalCount <= 0) {
+            log.info("Total count is {}, return empty list", totalCount);
+        }
+        return totalCount;
+    }
+
+    /**
+     * 计算中层区任务数
+     */
+    private static int computeMiddleTaskCount(TieredPageQueryConfig config,
+                                              TieredPageQueryConfig.Tier maxTier,
+                                              int shallowEndPage,
+                                              int middleEndPage) {
         if (maxTier == TieredPageQueryConfig.Tier.MIDDLE || maxTier == TieredPageQueryConfig.Tier.DEEP) {
             int middlePageCount = middleEndPage - shallowEndPage;
             if (middlePageCount > 0) {
-                int middlePagesPerTask = config.getMiddlePagesPerTask();
-                middleTaskCount = (int) Math.ceil((double) middlePageCount / middlePagesPerTask);
+                return (int) Math.ceil((double) middlePageCount / config.getMiddlePagesPerTask());
             }
         }
-        List<List<T>> middleTaskResults = new ArrayList<>(Collections.nCopies(middleTaskCount, null));
-        if (middleTaskCount > 0) {
-            ExecutorService middleExecutor = createExecutor(config.getMiddleConcurrency(), "middle-worker");
-            executorsToShutdown.add(middleExecutor);
-            submitMiddleTasks(
-                config, tracer, parentSpan, parentJobContext, shallowEndPage, middleEndPage,
-                pageReqBuilder, pageQuery, resultExtractor, lastIdExtractor, keysetReqBuilder,
-                middleExecutor, middleTaskResults, allFutures);
-        }
+        return 0;
+    }
 
-        // ===== 深层区：主线程直接提交一个串行任务到深层区线程池 =====
-        if (maxTier == TieredPageQueryConfig.Tier.DEEP) {
-            int deepStartPage = middleEndPage;
-            if (deepStartPage < totalPages) {
-                ExecutorService deepExecutor = createExecutor(1, "deep-worker");
-                executorsToShutdown.add(deepExecutor);
-                submitDeepTask(
-                    config, tracer, parentSpan, parentJobContext, deepStartPage,
-                    pageReqBuilder, pageQuery, resultExtractor, lastIdExtractor, keysetReqBuilder,
-                    deepExecutor, deepResult, allFutures);
-            }
-        }
-
-        // 4. 主线程统一等待所有任务完成
-        waitForFutures(allFutures, "AllTasks");
-
-        // 5. 关闭所有线程池
-        for (ExecutorService executor : executorsToShutdown) {
-            shutdownExecutor(executor, "tiered");
-        }
-
-        // 6. 按区域顺序合并结果：浅层区 -> 中层区 -> 深层区
+    /**
+     * 按区域顺序合并结果：浅层区 -> 中层区 -> 深层区
+     */
+    private static <T> List<T> mergeResults(int totalCount,
+                                            List<List<T>> shallowPageResults,
+                                            List<List<T>> middleTaskResults,
+                                            List<T> deepResult) {
         List<T> result = new ArrayList<>(totalCount);
-        // 浅层区：按页号顺序合并
         for (List<T> pageResult : shallowPageResults) {
             if (CollectionUtils.isNotEmpty(pageResult)) {
                 result.addAll(pageResult);
             }
         }
-        // 中层区：按任务顺序合并
         for (List<T> taskResult : middleTaskResults) {
             if (CollectionUtils.isNotEmpty(taskResult)) {
                 result.addAll(taskResult);
             }
         }
-        // 深层区
         result.addAll(deepResult);
+        return result;
+    }
 
+    /**
+     * 打印汇总日志
+     */
+    private static <T> void logSummary(long startTime,
+                                       int totalCount,
+                                       TieredPageQueryConfig.Tier maxTier,
+                                       List<List<T>> shallowPageResults,
+                                       List<List<T>> middleTaskResults,
+                                       List<T> deepResult,
+                                       List<T> result) {
         long costTime = System.currentTimeMillis() - startTime;
         int shallowSize = 0;
         for (List<T> pageResult : shallowPageResults) {
@@ -217,8 +262,6 @@ public class TieredPageQueryUtil {
                 "shallowResults={}, middleResults={}, deepResults={}, totalResults={}, costTime={}ms",
             totalCount, maxTier,
             shallowSize, middleSize, deepResult.size(), result.size(), costTime);
-
-        return result;
     }
 
     /**
@@ -252,14 +295,10 @@ public class TieredPageQueryUtil {
             int pageIndex = page;
             Future<?> future = executor.submit(() -> {
                 runWithContext(tracer, parentSpan, parentJobContext, "shallow-page-" + pageIndex, () -> {
-                    try {
-                        Q req = pageReqBuilder.apply(start, pageSize);
-                        R result = pageQuery.apply(req);
-                        List<T> data = resultExtractor.apply(result);
-                        pageResults.set(pageIndex, data);
-                    } catch (Exception e) {
-                        log.error("[ShallowTier] Failed to query page, start={}, limit={}", start, pageSize, e);
-                    }
+                    Q req = pageReqBuilder.apply(start, pageSize);
+                    R result = pageQuery.apply(req);
+                    List<T> data = resultExtractor.apply(result);
+                    pageResults.set(pageIndex, data);
                 });
             });
             allFutures.add(future);
@@ -302,8 +341,8 @@ public class TieredPageQueryUtil {
         int middlePageCount = endPage - startPage;
         int middleTaskCount = (int) Math.ceil((double) middlePageCount / middlePagesPerTask);
 
-        log.info("[MiddleTier] pages=[{}, {}), middleTaskCount={}, concurrency={}",
-            startPage, endPage, middleTaskCount, config.getMiddleConcurrency());
+        log.info("[MiddleTier] startOffset={}, endOffset={}, middleTaskCount={}, concurrency={}",
+            startPage * pageSize, endPage * pageSize, middleTaskCount, config.getMiddleConcurrency());
 
         for (int taskIndex = 0; taskIndex < middleTaskCount; taskIndex++) {
             int taskStartPage = startPage + taskIndex * middlePagesPerTask;
@@ -313,78 +352,93 @@ public class TieredPageQueryUtil {
 
             Future<?> future = executor.submit(() -> {
                 runWithContext(tracer, parentSpan, parentJobContext, "middle-task-" + tIdx, () -> {
-                    try {
-                        List<T> taskData = new ArrayList<>(taskPageCount * pageSize);
-
-                        // 步骤1：通过 start=taskStartPage*pageSize, limit=1 获取该段的起始基准 ID
-                        int anchorStart = taskStartPage * pageSize;
-                        Q anchorReq = pageReqBuilder.apply(anchorStart, 1);
-                        R anchorResult = pageQuery.apply(anchorReq);
-                        List<T> anchorData = resultExtractor.apply(anchorResult);
-
-                        if (CollectionUtils.isEmpty(anchorData)) {
-                            log.warn("[MiddleTier-Keyset] Anchor query returned empty, taskStartPage={}",
-                                taskStartPage);
-                            middleTaskResults.set(tIdx, taskData);
-                            return;
-                        }
-
-                        // 获取基准元素的 ID，作为 keyset 分页的起始 lastId
-                        // 注意：基准元素本身不包含在后续 keyset 查询中（因为 keyset 用的是 > lastId），
-                        // 所以需要先把基准元素加入结果
-                        T anchorElement = anchorData.get(0);
-                        taskData.add(anchorElement);
-                        long lastId = lastIdExtractor.apply(anchorElement);
-
-                        // 步骤2：段内串行 keyset 分页拉取剩余数据
-                        // 第一页已经拉了1条（基准元素），还需要拉 pageSize-1 条来补齐第一页，
-                        // 之后每页拉 pageSize 条
-                        int remainingForFirstPage = pageSize - 1;
-                        if (remainingForFirstPage > 0) {
-                            Q firstKeysetReq = keysetReqBuilder.apply(lastId, remainingForFirstPage);
-                            R firstKeysetResult = pageQuery.apply(firstKeysetReq);
-                            List<T> firstKeysetData = resultExtractor.apply(firstKeysetResult);
-                            if (CollectionUtils.isNotEmpty(firstKeysetData)) {
-                                taskData.addAll(firstKeysetData);
-                                lastId = lastIdExtractor.apply(firstKeysetData.get(firstKeysetData.size() - 1));
-
-                                if (firstKeysetData.size() < remainingForFirstPage) {
-                                    // 数据已拉完
-                                    middleTaskResults.set(tIdx, taskData);
-                                    return;
-                                }
-                            } else {
-                                // 没有更多数据
-                                middleTaskResults.set(tIdx, taskData);
-                                return;
-                            }
-                        }
-
-                        // 拉取剩余页（从第2页开始到任务结束）
-                        for (int p = 1; p < taskPageCount; p++) {
-                            Q keysetReq = keysetReqBuilder.apply(lastId, pageSize);
-                            R keysetResult = pageQuery.apply(keysetReq);
-                            List<T> keysetData = resultExtractor.apply(keysetResult);
-
-                            if (CollectionUtils.isEmpty(keysetData)) {
-                                break;
-                            }
-                            taskData.addAll(keysetData);
-                            lastId = lastIdExtractor.apply(keysetData.get(keysetData.size() - 1));
-
-                            if (keysetData.size() < pageSize) {
-                                break;
-                            }
-                        }
-
-                        middleTaskResults.set(tIdx, taskData);
-                    } catch (Exception e) {
-                        log.error("[MiddleTier-Keyset] Failed to query task, taskIndex={}", tIdx, e);
-                    }
+                    List<T> taskData = executeMiddleTask(
+                        taskStartPage, taskPageCount, pageSize,
+                        pageReqBuilder, pageQuery, resultExtractor, lastIdExtractor, keysetReqBuilder);
+                    middleTaskResults.set(tIdx, taskData);
                 });
             });
             allFutures.add(future);
         }
+    }
+
+    /**
+     * 执行中层区单个任务的核心逻辑。
+     * <p>
+     * 先通过 offset 定位该段的起始基准 ID，然后在段内通过 keyset 串行分页拉取数据。
+     *
+     * @param taskStartPage  任务起始页号
+     * @param taskPageCount  任务包含的页数
+     * @param pageSize       每页大小
+     * @return 该任务拉取到的所有数据
+     */
+    private static <Q, R, T> List<T> executeMiddleTask(
+        int taskStartPage,
+        int taskPageCount,
+        int pageSize,
+        BiFunction<Integer, Integer, Q> pageReqBuilder,
+        Function<Q, R> pageQuery,
+        Function<R, List<T>> resultExtractor,
+        Function<T, Long> lastIdExtractor,
+        BiFunction<Long, Integer, Q> keysetReqBuilder
+    ) {
+        List<T> taskData = new ArrayList<>(taskPageCount * pageSize);
+
+        // 步骤1：通过 start=taskStartPage*pageSize, limit=1 获取该段的起始基准 ID
+        int anchorStart = taskStartPage * pageSize;
+        Q anchorReq = pageReqBuilder.apply(anchorStart, 1);
+        R anchorResult = pageQuery.apply(anchorReq);
+        List<T> anchorData = resultExtractor.apply(anchorResult);
+
+        if (CollectionUtils.isEmpty(anchorData)) {
+            log.info("[MiddleTier-Keyset] Anchor query returned empty, anchorStart={}", anchorStart);
+            return taskData;
+        }
+
+        // 获取基准元素的 ID，作为 keyset 分页的起始 lastId
+        // 注意：基准元素本身不包含在后续 keyset 查询中（因为 keyset 用的是 > lastId），
+        // 所以需要先把基准元素加入结果
+        T anchorElement = anchorData.get(0);
+        taskData.add(anchorElement);
+        long lastId = lastIdExtractor.apply(anchorElement);
+
+        // 步骤2：段内串行 keyset 分页拉取剩余数据
+        // 第一页已经拉了1条（基准元素），还需要拉 pageSize-1 条来补齐第一页
+        int remainingForFirstPage = pageSize - 1;
+        if (remainingForFirstPage > 0) {
+            Q firstKeysetReq = keysetReqBuilder.apply(lastId, remainingForFirstPage);
+            R firstKeysetResult = pageQuery.apply(firstKeysetReq);
+            List<T> firstKeysetData = resultExtractor.apply(firstKeysetResult);
+            if (CollectionUtils.isNotEmpty(firstKeysetData)) {
+                taskData.addAll(firstKeysetData);
+                lastId = lastIdExtractor.apply(firstKeysetData.get(firstKeysetData.size() - 1));
+
+                if (firstKeysetData.size() < remainingForFirstPage) {
+                    return taskData;
+                }
+            } else {
+                return taskData;
+            }
+        }
+
+        // 拉取剩余页（从第2页开始到任务结束）
+        for (int p = 1; p < taskPageCount; p++) {
+            Q keysetReq = keysetReqBuilder.apply(lastId, pageSize);
+            R keysetResult = pageQuery.apply(keysetReq);
+            List<T> keysetData = resultExtractor.apply(keysetResult);
+
+            if (CollectionUtils.isEmpty(keysetData)) {
+                break;
+            }
+            taskData.addAll(keysetData);
+            lastId = lastIdExtractor.apply(keysetData.get(keysetData.size() - 1));
+
+            if (keysetData.size() < pageSize) {
+                break;
+            }
+        }
+
+        return taskData;
     }
 
     /**
@@ -414,49 +468,72 @@ public class TieredPageQueryUtil {
         List<Future<?>> allFutures
     ) {
         int pageSize = config.getPageSize();
-        log.info("[DeepTier] Using serial keyset pagination from page {}, pageSize={}", deepStartPage, pageSize);
+        int deepStartOffset = deepStartPage * pageSize;
+        log.info("[DeepTier] Using serial keyset pagination from startOffset={}, pageSize={}", deepStartOffset, pageSize);
 
         Future<?> future = executor.submit(() -> {
             runWithContext(tracer, parentSpan, parentJobContext, "deep-tier", () -> {
-                try {
-                    // 步骤1：通过 start=deepStartPage*pageSize, limit=1 获取深层区起始基准 ID
-                    int anchorStart = deepStartPage * pageSize;
-                    Q anchorReq = pageReqBuilder.apply(anchorStart, 1);
-                    R anchorResult = pageQuery.apply(anchorReq);
-                    List<T> anchorData = resultExtractor.apply(anchorResult);
-
-                    if (CollectionUtils.isEmpty(anchorData)) {
-                        log.warn("[DeepTier] Anchor query returned empty, deepStartPage={}", deepStartPage);
-                        return;
-                    }
-
-                    T anchorElement = anchorData.get(0);
-                    deepResult.add(anchorElement);
-                    long lastId = lastIdExtractor.apply(anchorElement);
-
-                    // 步骤2：逐页串行 keyset 拉取剩余数据
-                    while (true) {
-                        Q req = keysetReqBuilder.apply(lastId, pageSize);
-                        R result = pageQuery.apply(req);
-                        List<T> data = resultExtractor.apply(result);
-
-                        if (CollectionUtils.isEmpty(data)) {
-                            break;
-                        }
-
-                        deepResult.addAll(data);
-                        lastId = lastIdExtractor.apply(data.get(data.size() - 1));
-
-                        if (data.size() < pageSize) {
-                            break;
-                        }
-                    }
-                } catch (Exception e) {
-                    log.error("[DeepTier] Failed to query deep tier, deepStartPage={}", deepStartPage, e);
-                }
+                List<T> data = executeDeepTask(
+                    deepStartPage, pageSize,
+                    pageReqBuilder, pageQuery, resultExtractor, lastIdExtractor, keysetReqBuilder);
+                deepResult.addAll(data);
             });
         });
         allFutures.add(future);
+    }
+
+    /**
+     * 执行深层区串行 keyset 分页的核心逻辑。
+     *
+     * @param deepStartPage 深层区起始页号
+     * @param pageSize      每页大小
+     * @return 深层区拉取到的所有数据
+     */
+    private static <Q, R, T> List<T> executeDeepTask(
+        int deepStartPage,
+        int pageSize,
+        BiFunction<Integer, Integer, Q> pageReqBuilder,
+        Function<Q, R> pageQuery,
+        Function<R, List<T>> resultExtractor,
+        Function<T, Long> lastIdExtractor,
+        BiFunction<Long, Integer, Q> keysetReqBuilder
+    ) {
+        List<T> result = new ArrayList<>();
+
+        // 步骤1：通过 start=deepStartPage*pageSize, limit=1 获取深层区起始基准 ID
+        int anchorStart = deepStartPage * pageSize;
+        Q anchorReq = pageReqBuilder.apply(anchorStart, 1);
+        R anchorResult = pageQuery.apply(anchorReq);
+        List<T> anchorData = resultExtractor.apply(anchorResult);
+
+        if (CollectionUtils.isEmpty(anchorData)) {
+            log.info("[DeepTier] Anchor query returned empty, anchorStart={}", anchorStart);
+            return result;
+        }
+
+        T anchorElement = anchorData.get(0);
+        result.add(anchorElement);
+        long lastId = lastIdExtractor.apply(anchorElement);
+
+        // 步骤2：逐页串行 keyset 拉取剩余数据
+        while (true) {
+            Q req = keysetReqBuilder.apply(lastId, pageSize);
+            R queryResult = pageQuery.apply(req);
+            List<T> data = resultExtractor.apply(queryResult);
+
+            if (CollectionUtils.isEmpty(data)) {
+                break;
+            }
+
+            result.addAll(data);
+            lastId = lastIdExtractor.apply(data.get(data.size() - 1));
+
+            if (data.size() < pageSize) {
+                break;
+            }
+        }
+
+        return result;
     }
 
     /**
@@ -467,6 +544,8 @@ public class TieredPageQueryUtil {
      * 确保异步线程中能正确获取上下文信息（如 tenantId）。
      * <p>
      * 每个任务执行前 set，执行后 unset，避免线程池复用线程时上下文串扰。
+     * <p>
+     * 任务中抛出的异常会被捕获并向上传播（通过 Future.get() 抛出），不会被静默吞掉。
      *
      * @param tracer           日志调用链tracer，为null时不创建Span
      * @param parentSpan       主线程捕获的父Span
@@ -523,15 +602,65 @@ public class TieredPageQueryUtil {
     }
 
     /**
-     * 等待所有 Future 完成
+     * 等待所有 Future 完成，支持快速失败。
+     * <p>
+     * 采用非阻塞轮询方式：每隔 {@code POLL_INTERVAL_SECONDS} 秒扫描一遍所有 Future，
+     * 一旦发现某个子任务抛出异常，立即取消所有剩余 Future 并抛出异常。
+     * 线程池的关闭由外层 try-catch-finally 统一负责。
+     * <p>
+     * 相比阻塞式 future.get()，非阻塞轮询能更快地发现任意位置的子任务异常，
+     * 不会因为前面的 Future 仍在执行而阻塞对后面已失败 Future 的检测。
      */
-    private static void waitForFutures(List<Future<?>> futures, String tierName) {
-        for (Future<?> future : futures) {
-            try {
-                future.get();
-            } catch (Exception e) {
-                log.error("[{}] Error waiting for page query task to complete", tierName, e);
+    private static final int POLL_INTERVAL_SECONDS = 2;
+
+    private static void waitForFutures(List<Future<?>> futures,
+                                       String tierName) {
+        while (true) {
+            boolean allDone = true;
+            for (Future<?> future : futures) {
+                if (future.isDone()) {
+                    // 已完成的 Future，检查是否有异常
+                    try {
+                        future.get();
+                    } catch (ExecutionException e) {
+                        // 子任务异常，使用 warn 级别记录（上层业务方会打 error）
+                        log.warn("[{}] Sub-task failed, cancelling remaining futures", tierName, e);
+                        cancelAllFutures(futures);
+                        throw new TieredPageQueryException(
+                            "TieredPageQuery sub-task failed", e.getCause(), ErrorCode.INTERNAL_ERROR);
+                    } catch (InterruptedException e) {
+                        log.warn("[{}] Interrupted while checking future result", tierName, e);
+                        Thread.currentThread().interrupt();
+                        cancelAllFutures(futures);
+                        throw new TieredPageQueryException(
+                            "TieredPageQuery interrupted", e, ErrorCode.INTERNAL_ERROR);
+                    }
+                } else {
+                    allDone = false;
+                }
             }
+            if (allDone) {
+                return;
+            }
+            // 等待一个轮询间隔后再次扫描
+            try {
+                TimeUnit.SECONDS.sleep(POLL_INTERVAL_SECONDS);
+            } catch (InterruptedException e) {
+                log.warn("[{}] Interrupted while polling futures", tierName, e);
+                Thread.currentThread().interrupt();
+                cancelAllFutures(futures);
+                throw new TieredPageQueryException(
+                    "TieredPageQuery interrupted", e, ErrorCode.INTERNAL_ERROR);
+            }
+        }
+    }
+
+    /**
+     * 取消所有未完成的 Future
+     */
+    private static void cancelAllFutures(List<Future<?>> futures) {
+        for (Future<?> f : futures) {
+            f.cancel(true);
         }
     }
 

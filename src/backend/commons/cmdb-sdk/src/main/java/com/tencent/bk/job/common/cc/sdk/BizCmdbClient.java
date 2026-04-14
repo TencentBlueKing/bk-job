@@ -110,6 +110,7 @@ import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.TieredPageQueryException;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -1534,43 +1535,48 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
      * @return 全量容器列表
      */
     private List<ContainerDetailDTO> tieredPageListKubeContainerByTopo(ListKubeContainerByTopoReq req) {
-        return TieredPageQueryUtil.queryAll(
-            CONTAINER_TIERED_PAGE_QUERY_CONFIG,
-            tracer,
-            // countQuery: 通过 CMDB 的 enableCount 分页查询获取总数
-            () -> {
-                ListKubeContainerByTopoReq countReq = copyListKubeContainerByTopoReq(req);
-                countReq.setPage(Page.buildQueryCountPage());
-                EsbResp<BaseCcSearchResult<ContainerDetailDTO>> countResp = requestCmdbApiUseContextTenantId(
-                    HttpMethodEnum.POST,
-                    LIST_KUBE_CONTAINER_BY_TOPO,
-                    LIST_KUBE_CONTAINER_BY_TOPO,
-                    null,
-                    countReq,
-                    new TypeReference<EsbResp<BaseCcSearchResult<ContainerDetailDTO>>>() {
-                    });
-                return countResp.getData().getCount();
-            },
-            // pageReqBuilder: 构造 offset 分页请求
-            (start, limit) -> {
-                ListKubeContainerByTopoReq pageReq = copyListKubeContainerByTopoReq(req);
-                pageReq.setPage(new Page(start, limit, ContainerDTO.Fields.ID));
-                return pageReq;
-            },
-            // pageQuery: 执行分页查询
-            pageReq -> listPageKubeContainerByTopo(pageReq, false),
-            // resultExtractor: 从查询结果中提取数据列表
-            PageData::getData,
-            // lastIdExtractor: 从容器元素中提取 ID（用于 keyset 分页）
-            container -> container.getContainer().getId(),
-            // keysetReqBuilder: 构造 keyset 分页请求（id > lastId）
-            (lastId, limit) -> {
-                ListKubeContainerByTopoReq keysetReq =
-                    buildNextPageListKubeContainerByTopoReq(req, lastId);
-                keysetReq.getPage().setLimit(limit);
-                return keysetReq;
-            }
-        );
+        try {
+            return TieredPageQueryUtil.queryAll(
+                CONTAINER_TIERED_PAGE_QUERY_CONFIG,
+                tracer,
+                // countQuery: 通过 CMDB 的 enableCount 分页查询获取总数
+                () -> {
+                    ListKubeContainerByTopoReq countReq = copyListKubeContainerByTopoReq(req);
+                    countReq.setPage(Page.buildQueryCountPage());
+                    EsbResp<BaseCcSearchResult<ContainerDetailDTO>> countResp = requestCmdbApiUseContextTenantId(
+                        HttpMethodEnum.POST,
+                        LIST_KUBE_CONTAINER_BY_TOPO,
+                        LIST_KUBE_CONTAINER_BY_TOPO,
+                        null,
+                        countReq,
+                        new TypeReference<EsbResp<BaseCcSearchResult<ContainerDetailDTO>>>() {
+                        });
+                    return countResp.getData().getCount();
+                },
+                // pageReqBuilder: 构造 offset 分页请求
+                (start, limit) -> {
+                    ListKubeContainerByTopoReq pageReq = copyListKubeContainerByTopoReq(req);
+                    pageReq.setPage(new Page(start, limit, ContainerDTO.Fields.ID));
+                    return pageReq;
+                },
+                // pageQuery: 执行分页查询
+                pageReq -> listPageKubeContainerByTopo(pageReq, false),
+                // resultExtractor: 从查询结果中提取数据列表
+                PageData::getData,
+                // lastIdExtractor: 从容器元素中提取 ID（用于 keyset 分页）
+                container -> container.getContainer().getId(),
+                // keysetReqBuilder: 构造 keyset 分页请求（id > lastId）
+                (lastId, limit) -> {
+                    ListKubeContainerByTopoReq keysetReq =
+                        buildNextPageListKubeContainerByTopoReq(req, lastId);
+                    keysetReq.getPage().setLimit(limit);
+                    return keysetReq;
+                }
+            );
+        } catch (TieredPageQueryException e) {
+            log.error("Failed to tiered page list kube container by topo", e);
+            throw new InternalCmdbException(e.getMessage(), e.getCause(), ErrorCode.CMDB_API_DATA_ERROR);
+        }
     }
 
     /**

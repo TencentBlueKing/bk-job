@@ -39,6 +39,8 @@ import java.util.stream.LongStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.tencent.bk.job.common.exception.TieredPageQueryException;
+
 /**
  * {@link TieredPageQueryUtil} 单元测试
  */
@@ -549,10 +551,10 @@ public class TieredPageQueryUtilTest {
     class ExceptionHandlingTest {
 
         @Test
-        @DisplayName("count 查询失败时返回空列表")
-        void shouldReturnEmptyListWhenCountQueryFails() {
+        @DisplayName("count 查询失败时应抛出异常")
+        void shouldThrowExceptionWhenCountQueryFails() {
             TieredPageQueryConfig config = smallConfig();
-            List<MockElement> result = TieredPageQueryUtil.queryAll(
+            assertThatThrownBy(() -> TieredPageQueryUtil.queryAll(
                 config,
                 null,
                 () -> {
@@ -563,18 +565,17 @@ public class TieredPageQueryUtilTest {
                 MockPageResult::data,
                 MockElement::getId,
                 UnifiedPageReq::new
-            );
-
-            assertThat(result).isEmpty();
+            ))
+                .isInstanceOf(TieredPageQueryException.class);
         }
 
         @Test
-        @DisplayName("浅层区某页查询失败时其他页数据不受影响")
-        void shouldReturnPartialResultsWhenShallowPageFails() {
+        @DisplayName("浅层区某页查询失败时整次查询应抛出异常")
+        void shouldThrowExceptionWhenShallowPageFails() {
             TieredPageQueryConfig config = smallConfig();
             List<MockElement> dataSource = createDataSource(10);
 
-            List<MockElement> result = TieredPageQueryUtil.queryAll(
+            assertThatThrownBy(() -> TieredPageQueryUtil.queryAll(
                 config,
                 null,
                 dataSource::size,
@@ -588,10 +589,8 @@ public class TieredPageQueryUtilTest {
                 MockPageResult::data,
                 MockElement::getId,
                 UnifiedPageReq::new
-            );
-
-            // 第2页（start=5）失败，第1页（0-4）的5条数据应该正常返回
-            assertThat(result).hasSize(5);
+            ))
+                .isInstanceOf(TieredPageQueryException.class);
         }
     }
 }
