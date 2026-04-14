@@ -25,6 +25,9 @@
 dependencies {
     api 'org.springframework.boot:spring-boot-starter'
     api 'io.micrometer:micrometer-tracing-bridge-otel'
+    // Reactor Context 与 ThreadLocal 之间的自动 trace 传播桥接，
+    // SpringBoot 3.x 检测到该库后会自动调用 Hooks.enableAutomaticContextPropagation()
+    api 'io.micrometer:context-propagation'
     api 'io.opentelemetry:opentelemetry-sdk'
     api "io.opentelemetry.instrumentation:opentelemetry-jdbc"
     api "io.opentelemetry:opentelemetry-exporter-otlp"
