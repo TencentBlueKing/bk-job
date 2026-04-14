@@ -78,7 +78,7 @@ public class CredentialCreateUpdateReq {
      * 凭证敏感字段(密码/SecretKey)加密算法
      * 若有值表示敏感字段是密文传输，将使用该算法解密；如果没有值则表示明文传输
      */
-    @ApiModelProperty(value = "加密算法")
+    @Schema(description = "加密算法")
     private String algorithm;
 
     public CommonCredential toCommonCredential() {

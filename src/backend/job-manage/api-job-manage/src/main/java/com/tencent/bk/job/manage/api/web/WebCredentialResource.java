@@ -31,9 +31,9 @@ import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.manage.model.web.request.CredentialCreateUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.CredentialBasicVO;
 import com.tencent.bk.job.manage.model.web.vo.CredentialVO;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,7 +45,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import io.swagger.v3.oas.annotations.Hidden;
 
 @Tag(name = "job-ticket:web:Credential")
 @RequestMapping("/web/credentials/scope/{scopeType}/{scopeId}")
@@ -114,29 +113,28 @@ public interface WebCredentialResource {
             Integer pageSize
     );
 
-    @ApiOperation(value = "检查凭证名称是否可用", produces = "application/json")
+    @Operation(summary = "检查凭证名称是否可用")
     @GetMapping("/{credentialId}/check_name")
     Response<Boolean> checkCredentialName(
-        @ApiParam(value = "用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "凭证ID，新建时填0", required = true)
+        @Parameter(description = "凭证ID，新建时填0", required = true)
         @PathVariable(value = "credentialId")
             String credentialId,
-        @ApiParam(value = "名称", required = true)
+        @Parameter(description = "名称", required = true)
         @RequestParam(value = "name")
             String name
     );
-
 
     @Operation(summary = "新增凭证")
     @PostMapping
