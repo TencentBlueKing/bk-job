@@ -32,6 +32,7 @@
     <bk-input
       ref="input"
       v-bk-tooltips="descPopover"
+      :disabled="disabled"
       :readonly="readonly"
       :value="value"
       @change="handleChange" />
@@ -54,6 +55,10 @@
         required: true,
       },
       readonly: {
+        type: Boolean,
+        default: false,
+      },
+      disabled: {
         type: Boolean,
         default: false,
       },

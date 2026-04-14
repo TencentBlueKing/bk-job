@@ -37,6 +37,7 @@
     <jb-form-item :label="$t('template.变量值')">
       <bk-input
         v-model="formData.defaultValue"
+        :disabled="valDisabled"
         :native-attributes="{ autofocus: 'autofocus' }"
         :password-icon="[]"
         type="password" />
@@ -81,6 +82,10 @@
         default() {
           return {};
         },
+      },
+      valDisabled: {
+        type: Boolean,
+        default: false,
       },
     },
     data() {

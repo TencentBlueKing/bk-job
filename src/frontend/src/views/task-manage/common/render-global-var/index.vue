@@ -80,6 +80,50 @@
                   {{ item.valueText }}
                 </div>
               </div>
+              <bk-popover
+                v-if="showFollowTemplate(item.name)"
+                class="variable-operate-popover"
+                placement="top"
+                :tippy-options="{
+                  theme: 'light'
+                }">
+                <div
+                  class="variable-operate"
+                  :class="[item.followTemplate === 0 ? 'out-sync' : 'sync']">
+                  <icon
+                    class="variable-change-switch"
+                    type="global-var-line"
+                    @click.stop="handleSwitchVariable(item.id)" />
+                </div>
+                <div
+                  slot="content">
+                  <div class="varialbe-status-popover">
+                    <bk-tag
+                      class="varialbe-status"
+                      theme="info">
+                      {{ $t('template.当前状态') }}
+                    </bk-tag>
+                    <div class="varialbe-status-item">
+                      <div class="varialbe-status-title">
+                        {{ item.followTemplate === 0 ? $t('template.不跟随作业') : $t('template.跟随作业') }}
+                      </div>
+                      <div class="varialbe-status-desc">
+                        {{ item.followTemplate === 0 ? $t('template.不跟随作业描述') : $t('template.跟随作业描述') }}
+                      </div>
+                    </div>
+                    <div
+                      v-if="isEditOfPlan"
+                      class="varialbe-status-item">
+                      <div class="varialbe-status-title">
+                        {{ item.followTemplate === 0 ? $t('template.不跟随作业切换标题') : $t('template.跟随作业切换标题') }}
+                      </div>
+                      <div class="varialbe-status-desc">
+                        {{ item.followTemplate === 0 ? $t('template.不跟随作业切换描述') : $t('template.跟随作业切换描述') }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </bk-popover>
               <icon
                 v-if="isOperation"
                 class="variable-delete-btn"
@@ -239,6 +283,10 @@
         type: Object,
         default: () => ({}),
       },
+      showFollowTemplate: {
+        type: Function,
+        default: (() => false),
+      },
     },
     data() {
       return {
@@ -282,6 +330,13 @@
         return this.mode === 'select' || this.mode === 'editOfPlan';
       },
       /**
+       * @desc 查看执行方案中的全局变量
+       * @returns { Boolean }
+       */
+      isViewOfPlan() {
+        return this.mode === 'viewOfPlan';
+      },
+      /**
        * @desc 编辑执行方案中的全局变量
        * @returns { Boolean }
        */
@@ -293,7 +348,7 @@
        * @returns { Boolean }
        */
       isView() {
-        return !this.mode;
+        return !this.mode || this.isViewOfPlan;
       },
       /**
        * @desc 插卡全局变量同步对比差异
@@ -376,11 +431,24 @@
         this.isShowBatchEditOfPlan = true;
       },
       /**
+       * @desc 切换变量值是否跟随属性
+       * @param {id} id 变量ID
+       */
+      handleSwitchVariable(id) {
+        if (!this.isEditOfPlan) return;
+        const index = this.variableList.findIndex(item => item.id === id);
+        if (~index) {
+          this.variableList[index].followTemplate = +!this.variableList[index].followTemplate;
+        }
+      },
+      /**
        * @desc 点击全局变量
        * @param {Object} variableInfo 全局变量详情
        * @param {Index} index 点击变量的索引
        */
       handlerOperation(variableInfo, index) {
+        // 当前不可更改全局变量值 在已经引用并且当前是跟随变量的情况下
+        variableInfo.disableEditVal = this.selectValue.includes(variableInfo.name) && variableInfo.followTemplate === 1;
         this.currentData = variableInfo;
         if (this.isView) {
           this.detailMedia = variableInfo.type === VariableModel.TYPE_HOST ? [960] : [600, 660, 720, 780];
@@ -484,6 +552,30 @@
     },
   };
 </script>
+<style scoped lang="postcss">
+  .varialbe-status-popover {
+    width: 300px;
+
+    .varialbe-status {
+      margin: -7px -12px 5px;
+      padding: 0 18px;
+      width: 90px;
+    }
+
+    .varialbe-status-item {
+      font-size: 12px;
+
+      &:first-of-type {
+        margin-bottom: 15px;
+      }
+
+      .varialbe-status-desc{
+        color: #979ba5;
+        margin-top: 3px
+      }
+    }
+  }
+</style>
 <style lang='postcss' scoped>
   @import url("@/css/mixins/media");
 
@@ -596,6 +688,36 @@
         white-space: nowrap;
       }
     }
+    .variable-operate-popover {
+        margin-left: auto;
+
+      .variable-operate {
+        width: 25px;
+        height: 25px;
+        background: #eaebf0;
+        text-align: center;
+        line-height: 25px;
+        border-radius: 5px;
+
+        .variable-change-switch {
+          font-size: 18px;
+        }
+
+        &.sync {
+          background: #deecff;
+          color: #3a84ff;
+        }
+
+        &:hover {
+          background: #dcdee5;
+
+          &.sync {
+            background: #c9e0ff;
+          }
+        }
+      }
+    }
+
 
     .global-variable-new {
       position: relative;

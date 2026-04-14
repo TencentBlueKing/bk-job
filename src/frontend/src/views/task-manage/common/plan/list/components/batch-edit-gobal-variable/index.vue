@@ -265,6 +265,7 @@
             variableInfoList,
           };
           currentPlan.variableList.forEach((variableData) => {
+            if (variableData.followTemplate === 1) return;
             const variableKey = genGlobalVariableKey(variableData);
             if (Object.prototype.hasOwnProperty.call(this.globalVariableValueMap, variableKey)) {
               if (variableData.isHost) {
