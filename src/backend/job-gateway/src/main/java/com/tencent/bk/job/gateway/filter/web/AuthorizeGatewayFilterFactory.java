@@ -189,8 +189,7 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
         DataBuffer dataBuffer = response.bufferFactory().wrap(bodyBytes);
         response.getHeaders().setContentLength(bodyBytes.length);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-        response.writeWith(Mono.just(dataBuffer)).subscribe();
-        return response.setComplete();
+        return response.writeWith(Mono.just(dataBuffer));
     }
 
     private BkUserDTO getUserByTokenList(List<String> bkTokenList, String lang) {
