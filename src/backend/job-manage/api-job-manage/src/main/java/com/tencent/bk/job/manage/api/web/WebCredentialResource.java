@@ -136,7 +136,6 @@ public interface WebCredentialResource {
             String name
     );
 
-
     @Operation(summary = "新增凭证")
     @PostMapping
     Response<CredentialVO> createCredential(
