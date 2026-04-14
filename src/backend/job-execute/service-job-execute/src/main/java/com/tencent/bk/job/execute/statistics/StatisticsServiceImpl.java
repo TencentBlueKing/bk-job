@@ -42,12 +42,13 @@ import com.tencent.bk.job.manage.remote.RemoteAppService;
 import com.tencent.bk.job.execute.service.rolling.RollingConfigService;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
+import com.tencent.bk.job.execute.common.ha.DestroyOrder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
-import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -58,9 +59,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
-public class StatisticsServiceImpl implements StatisticsService {
+public class StatisticsServiceImpl implements StatisticsService, SmartLifecycle {
 
     private final Object writeLock = new Object();
+    private StatisticsFlushThread flushThread;
+    private volatile boolean running = false;
     private final TaskInstanceService taskInstanceService;
     private final RemoteAppService remoteAppService;
     private final StepInstanceDAO stepInstanceDAO;
@@ -88,11 +91,39 @@ public class StatisticsServiceImpl implements StatisticsService {
         this.rollingConfigService = rollingConfigService;
     }
 
-    @PostConstruct
-    public void init() {
-        StatisticsFlushThread flushThread = new StatisticsFlushThread(statisticsDAO, flushQueue);
+    @Override
+    public void start() {
+        log.info("StatisticsServiceImpl starting flush thread");
+        flushThread = new StatisticsFlushThread(statisticsDAO, flushQueue);
         flushThread.setName("flushThread");
+        flushThread.setDaemon(true);
         flushThread.start();
+        running = true;
+    }
+
+    @Override
+    public void stop() {
+        log.info("StatisticsServiceImpl stopping flush thread (phase={})", getPhase());
+        running = false;
+        if (flushThread != null) {
+            flushThread.shutdown();
+            try {
+                flushThread.join(10_000);
+            } catch (InterruptedException e) {
+                log.warn("Interrupted while waiting for flush thread to finish");
+            }
+        }
+        log.info("StatisticsServiceImpl flush thread stopped");
+    }
+
+    @Override
+    public boolean isRunning() {
+        return running;
+    }
+
+    @Override
+    public int getPhase() {
+        return DestroyOrder.STATISTICS_FLUSH;
     }
 
     private void updateExecutedTaskCount(

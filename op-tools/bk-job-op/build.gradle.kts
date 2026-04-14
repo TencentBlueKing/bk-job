@@ -18,7 +18,7 @@ repositories {
     mavenCentral()
 }
 
-val springAiVersion = "1.0.0-M8"
+val springAiVersion = "1.1.4"
 val commonsLang3Version = "3.18.0"
 val jacksonVersion = "2.17.2"
 val okhttpVersion = "4.12.0"

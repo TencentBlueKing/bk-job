@@ -22,33 +22,23 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.service;
+package com.tencent.bk.job.common.exception;
 
-import com.tencent.bk.job.service.model.PageData;
-import com.tencent.bk.job.service.model.SimpleLogDTO;
+import lombok.Getter;
+import lombok.ToString;
 
-public interface JobLogQueryService {
+/**
+ * 三区分页查询异常。
+ * <p>
+ * 当 {@link com.tencent.bk.job.common.util.TieredPageQueryUtil} 在执行分页查询过程中发生异常时抛出，
+ * 方便上层调用方通过 catch 该异常进行针对性处理。
+ */
+@Getter
+@ToString
+public class TieredPageQueryException extends InternalException {
 
-    /**
-     * 查询日志（支持分页）
-     *
-     * @param source      日志源 key，为空时使用默认日志源
-     * @param queryString 查询语句
-     * @param timeRange   时间范围
-     * @param startTime   开始时间
-     * @param endTime     结束时间
-     * @param start       查询起始位置
-     * @param size        每页大小
-     * @param asc         是否按时间升序
-     * @return 分页的日志数据
-     */
-    PageData<SimpleLogDTO> queryLogs(String source,
-                                     String queryString,
-                                     String timeRange,
-                                     String startTime,
-                                     String endTime,
-                                     Integer start,
-                                     Integer size,
-                                     Boolean asc);
+    public TieredPageQueryException(String message, Throwable cause, Integer errorCode) {
+        super(message, cause, errorCode);
+    }
 
 }

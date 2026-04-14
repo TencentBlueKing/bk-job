@@ -25,12 +25,14 @@
 package com.tencent.bk.job.execute.engine.result;
 
 import com.tencent.bk.job.execute.monitor.ExecuteMetricNames;
+import io.micrometer.core.instrument.FunctionCounter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,8 +47,9 @@ import java.util.function.ToDoubleFunction;
  */
 @Slf4j
 @Component
-public class ResultHandleTaskSampler {
+public class ResultHandleTaskSampler implements DisposableBean {
     private final MeterRegistry meterRegistry;
+    private UpdateStatisticsThread updateStatisticsThread;
     /**
      * 正在处理任务结果的文件任务数（各业务）
      */
@@ -88,7 +91,7 @@ public class ResultHandleTaskSampler {
 
     class UpdateStatisticsThread extends Thread {
 
-        boolean runFlag = true;
+        volatile boolean runFlag = true;
 
         private ToDoubleFunction<AtomicLong> debugFunctionByCounter(AtomicLong counter) {
             return new ToDoubleFunction() {
@@ -156,31 +159,29 @@ public class ResultHandleTaskSampler {
         }
 
         private void measureFinishedFileTasksByApp() {
-            finishedFileTaskCounterMap.forEach((appId, counter) -> {
-                meterRegistry.gauge(
+            finishedFileTaskCounterMap.forEach((appId, counter) ->
+                FunctionCounter.builder(
                     ExecuteMetricNames.GSE_FINISHED_TASKS_TOTAL,
-                    Arrays.asList(
-                        Tag.of("appId", appId.toString()),
-                        Tag.of("type", "file")
-                    ),
                     counter,
-                    getFunctionByCounter(counter)
-                );
-            });
+                    AtomicLong::doubleValue
+                ).tags(Arrays.asList(
+                    Tag.of("appId", appId.toString()),
+                    Tag.of("type", "file")
+                )).register(meterRegistry)
+            );
         }
 
         private void measureFinishedScriptTasksByApp() {
-            finishedScriptTaskCounterMap.forEach((appId, counter) -> {
-                meterRegistry.gauge(
+            finishedScriptTaskCounterMap.forEach((appId, counter) ->
+                FunctionCounter.builder(
                     ExecuteMetricNames.GSE_FINISHED_TASKS_TOTAL,
-                    Arrays.asList(
-                        Tag.of("appId", appId.toString()),
-                        Tag.of("type", "script")
-                    ),
                     counter,
-                    getFunctionByCounter(counter)
-                );
-            });
+                    AtomicLong::doubleValue
+                ).tags(Arrays.asList(
+                    Tag.of("appId", appId.toString()),
+                    Tag.of("type", "script")
+                )).register(meterRegistry)
+            );
         }
 
         @Override
@@ -195,7 +196,11 @@ public class ResultHandleTaskSampler {
                     measureFinishedFileTasksByApp();
                     measureFinishedScriptTasksByApp();
                 } catch (InterruptedException e) {
-                    log.info("sleep interrupted");
+                    if (!runFlag) {
+                        log.info("UpdateStatisticsThread interrupted during shutdown, exiting");
+                        return;
+                    }
+                    log.info("UpdateStatisticsThread sleep interrupted");
                 } catch (Exception e) {
                     log.warn("UpdateStatisticsThread error", e);
                 }
@@ -205,8 +210,20 @@ public class ResultHandleTaskSampler {
 
     @PostConstruct
     private void init() {
-        log.debug("UpdateStatisticsThread init");
-        new UpdateStatisticsThread().start();
+        log.info("UpdateStatisticsThread init");
+        updateStatisticsThread = new UpdateStatisticsThread();
+        updateStatisticsThread.setName("UpdateStatisticsThread");
+        updateStatisticsThread.setDaemon(true);
+        updateStatisticsThread.start();
+    }
+
+    @Override
+    public void destroy() {
+        log.info("ResultHandleTaskSampler destroying, stopping UpdateStatisticsThread");
+        if (updateStatisticsThread != null) {
+            updateStatisticsThread.runFlag = false;
+            updateStatisticsThread.interrupt();
+        }
     }
 
     private void incrementAppReceiveTask(long appId) {
