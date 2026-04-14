@@ -33,9 +33,9 @@ import com.tencent.bk.job.backup.model.web.ImportInfoVO;
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -50,213 +50,213 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import springfox.documentation.annotations.ApiIgnore;
+import io.swagger.v3.oas.annotations.Hidden;
 
-@Api(tags = {"job-backup:web:Backup"})
+@Tag(name = "job-backup:web:Backup")
 @RequestMapping("/web/scope/{scopeType}/{scopeId}/backup")
 @RestController
 @WebAPI
 public interface WebBackupResource {
 
-    @ApiOperation(value = "开始导出", produces = "application/json")
+    @Operation(summary = "开始导出")
     @PostMapping("/export")
     Response<ExportInfoVO> startExport(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "作业导出请求", required = true)
+        @Parameter(description = "作业导出请求", required = true)
         @Validated
         @RequestBody
             ExportRequest exportRequest
     );
 
-    @ApiOperation(value = "获取导出任务信息", produces = "application/json")
+    @Operation(summary = "获取导出任务信息")
     @GetMapping("/export/{id}")
     Response<ExportInfoVO> getExportInfo(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "导出任务 ID", required = true)
+        @Parameter(description = "导出任务 ID", required = true)
         @PathVariable("id")
             String jobId
     );
 
-    @ApiOperation(value = "下载导出文件", produces = "application/zip")
+    @Operation(summary = "下载导出文件")
     @GetMapping("/export/{id}/download")
     ResponseEntity<StreamingResponseBody> getExportFile(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "导出任务 ID", required = true)
+        @Parameter(description = "导出任务 ID", required = true)
         @PathVariable("id")
             String jobId
     );
 
-    @ApiOperation(value = "完成导出任务", produces = "application/json")
+    @Operation(summary = "完成导出任务")
     @PostMapping("/export/{id}/complete")
     Response<Boolean> completeExport(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "导出任务 ID", required = true) @PathVariable("id")
+        @Parameter(description = "导出任务 ID", required = true) @PathVariable("id")
             String jobId
     );
 
-    @ApiOperation(value = "终止导出任务", produces = "application/json")
+    @Operation(summary = "终止导出任务")
     @DeleteMapping("/export/{id}")
     Response<Boolean> abortExport(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "导出任务 ID", required = true)
+        @Parameter(description = "导出任务 ID", required = true)
         @PathVariable("id")
             String jobId
     );
 
-    @ApiOperation(value = "上传导入文件并获取导入文件信息", produces = "application/json")
+    @Operation(summary = "上传导入文件并获取导入文件信息")
     @PostMapping("/import/file")
     Response<ImportInfoVO> getImportFileInfo(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "待导入文件", required = true)
+        @Parameter(description = "待导入文件", required = true)
         @RequestParam("uploadFile")
             MultipartFile uploadFile
     );
 
-    @ApiOperation(value = "校验密码", produces = "application/json")
+    @Operation(summary = "校验密码")
     @PostMapping("/import/{id}/password")
     Response<Boolean> checkPassword(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "导入任务 ID", required = true)
+        @Parameter(description = "导入任务 ID", required = true)
         @PathVariable("id")
             String jobId,
-        @ApiParam(value = "密码", required = true)
+        @Parameter(description = "密码", required = true)
         @RequestBody
             CheckPasswordRequest passwordRequest
     );
 
-    @ApiOperation(value = "开始导入", produces = "application/json")
+    @Operation(summary = "开始导入")
     @PostMapping("/import/{id}")
     Response<Boolean> startImport(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "导入任务 ID", required = true)
+        @Parameter(description = "导入任务 ID", required = true)
         @PathVariable("id")
             String jobId,
-        @ApiParam(value = "导入任务设置", required = true)
+        @Parameter(description = "导入任务设置", required = true)
         @RequestBody
             ImportRequest importRequest
     );
 
-    @ApiOperation(value = "获取导入信息", produces = "application/json")
+    @Operation(summary = "获取导入信息")
     @GetMapping("/import/{id}")
     Response<ImportInfoVO> getImportInfo(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "导入任务 ID", required = true)
+        @Parameter(description = "导入任务 ID", required = true)
         @PathVariable("id")
             String jobId
     );
 
-    @ApiOperation(value = "获取当前用户的导入/导出任务列表", produces = "application/json")
+    @Operation(summary = "获取当前用户的导入/导出任务列表")
     @GetMapping
     Response<BackupJobInfoVO> getCurrentJob(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId
     );

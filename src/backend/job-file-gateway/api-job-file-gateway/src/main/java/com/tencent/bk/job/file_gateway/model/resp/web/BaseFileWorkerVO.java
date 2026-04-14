@@ -24,57 +24,56 @@
 
 package com.tencent.bk.job.file_gateway.model.resp.web;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("文件接入点")
+@Schema(description = "文件接入点")
 @Data
 public class BaseFileWorkerVO {
     /**
      * id
      */
-    @ApiModelProperty("id")
+    @Schema(description = "id")
     private Long id;
     /**
      * 名称
      */
-    @ApiModelProperty("名称")
+    @Schema(description = "名称")
     private String name;
     /**
      * 所在机器云区域Id
      */
-    @ApiModelProperty("所在机器云区域Id")
+    @Schema(description = "所在机器云区域Id")
     private Long cloudAreaId;
     /**
      * 内网IP
      */
-    @ApiModelProperty("内网IP")
+    @Schema(description = "内网IP")
     private String innerIp;
     /**
      * Ping延迟
      */
-    @ApiModelProperty("Ping延迟")
+    @Schema(description = "Ping延迟")
     private Integer latency;
     /**
      * CPU负载
      */
-    @ApiModelProperty("CPU负载")
+    @Schema(description = "CPU负载")
     private Float cpuOverload;
     /**
      * 内存使用率
      */
-    @ApiModelProperty("内存使用率")
+    @Schema(description = "内存使用率")
     private Float memRate;
     /**
      * Worker版本
      */
-    @ApiModelProperty("Worker版本")
+    @Schema(description = "Worker版本")
     private String version;
     /**
      * Worker在线状态
      */
-    @ApiModelProperty("Worker在线状态")
+    @Schema(description = "Worker在线状态")
     private Byte onlineStatus;
 }
 

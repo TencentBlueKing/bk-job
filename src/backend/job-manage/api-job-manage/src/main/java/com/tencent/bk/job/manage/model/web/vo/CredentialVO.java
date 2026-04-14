@@ -24,72 +24,71 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("凭证")
+@Schema(description = "凭证")
 @Data
 public class CredentialVO {
     /**
      * 主键Id
      */
-    @ApiModelProperty("主键Id")
+    @Schema(description = "主键Id")
     private String id;
     /**
      * 名称
      */
-    @ApiModelProperty("名称")
+    @Schema(description = "名称")
     private String name;
     /**
      * 类型
      */
-    @ApiModelProperty("类型")
+    @Schema(description = "类型")
     private String type;
     /**
      * 描述
      */
-    @ApiModelProperty("描述")
+    @Schema(description = "描述")
     private String description;
     /**
      * 值1
      */
-    @ApiModelProperty("值1")
+    @Schema(description = "值1")
     private String value1;
     /**
      * 值2
      */
-    @ApiModelProperty("值2")
+    @Schema(description = "值2")
     private String value2;
     /**
      * 值3
      */
-    @ApiModelProperty("值3")
+    @Schema(description = "值3")
     private String value3;
     /**
      * 创建人
      */
-    @ApiModelProperty("创建人")
+    @Schema(description = "创建人")
     private String creator;
     /**
      * 创建时间
      */
-    @ApiModelProperty("创建时间，单位毫秒")
+    @Schema(description = "创建时间，单位毫秒")
     private Long createTime;
     /**
      * 最后修改人
      */
-    @ApiModelProperty("最后修改人")
+    @Schema(description = "最后修改人")
     private String lastModifyUser;
     /**
      * 最后修改时间
      */
-    @ApiModelProperty("最后修改时间，单位毫秒")
+    @Schema(description = "最后修改时间，单位毫秒")
     private Long lastModifyTime;
 
-    @ApiModelProperty("是否可以管理")
+    @Schema(description = "是否可以管理")
     private Boolean canManage;
 
-    @ApiModelProperty("是否可以使用")
+    @Schema(description = "是否可以使用")
     private Boolean canUse;
 }

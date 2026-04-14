@@ -49,7 +49,7 @@
           class="item"
           :disabled="isTypeDisabled"
           value="host">
-          {{ $t('template.主机列表') }}
+          {{ $t('template.执行目标') }}
         </bk-radio-button>
         <bk-radio-button
           class="item"
@@ -69,6 +69,7 @@
       :is="globalVarCom"
       ref="handler"
       :data="data"
+      :val-disabled="valDisabled"
       :variable="variable" />
   </jb-form>
 </template>
@@ -110,6 +111,9 @@
       };
     },
     computed: {
+      valDisabled() {
+        return this.data.disableEditVal;
+      },
       globalVarCom() {
         const globalVarMap = {
           string: VarString,

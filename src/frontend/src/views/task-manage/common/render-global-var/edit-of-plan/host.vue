@@ -36,21 +36,25 @@
     </jb-form-item>
     <jb-form-item :label="$t('template.变量值')">
       <section>
-        <bk-button @click="handleShowChooseIp">
+        <bk-button
+          :disabled="valDisabled"
+          @click="handleShowChooseIp">
           <icon type="plus" />
-          {{ $t('template.选择主机') }}
+          {{ $t('template.执行目标') }}
         </bk-button>
         <bk-button
           v-if="isShowClear"
+          :disabled="valDisabled"
           style="margin-left: 10px;"
           @click="handleClear">
           {{ $t('template.清空') }}
         </bk-button>
       </section>
       <jb-ip-selector
+        :config="ipSelectorConfig"
         :original-value="originalExecuteObjectsInfoInfo"
         :show-dialog="isShowChooseIp"
-        show-view
+        :show-view="!valDisabled"
         :value="formData.defaultTargetValue.executeObjectsInfo"
         @change="handleExecuteObjectsInfoChange"
         @close-dialog="handleCloseIPSelector" />
@@ -75,8 +79,6 @@
   </jb-form>
 </template>
 <script>
-  import _ from 'lodash';
-
   import ExecuteTargetModel from '@model/execute-target';
   import TaskGlobalVariableModel from '@model/task/global-variable';
 
@@ -103,6 +105,10 @@
         type: Object,
         default: () => ({}),
       },
+      valDisabled: {
+        type: Boolean,
+        default: false,
+      },
     },
     data() {
       return {
@@ -124,6 +130,24 @@
       },
     },
     created() {
+      this.ipSelectorConfig = {};
+      // 业务集和租户集场景不支持动态分组和容器
+      if (window.PROJECT_CONFIG.SCOPE_TYPE === 'biz_set') {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'dynamicTopo',
+            'manualInput',
+          ],
+        };
+      } else if (window.PROJECT_CONFIG.SCOPE_TYPE === 'tenant_set') {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'manualInput',
+          ],
+        };
+      }
       this.originalExecuteObjectsInfoInfo = ExecuteTargetModel.cloneExecuteObjectsInfo(this.formData.defaultTargetValue.executeObjectsInfo);
     },
     methods: {

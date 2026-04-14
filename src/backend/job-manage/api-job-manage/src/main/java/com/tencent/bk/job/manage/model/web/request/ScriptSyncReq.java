@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.request;
 
 import com.tencent.bk.job.manage.model.web.vo.TemplateStepIDVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -36,8 +35,8 @@ import java.util.List;
  */
 
 @Data
-@ApiModel("脚本同步请求报文")
+@Schema(description = "脚本同步请求报文")
 public class ScriptSyncReq {
-    @ApiModelProperty(value = "模板步骤", required = true)
+    @Schema(description = "模板步骤", required = true)
     private List<TemplateStepIDVO> steps;
 }

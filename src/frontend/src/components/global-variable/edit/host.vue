@@ -34,14 +34,14 @@
         <bk-button
           v-bk-tooltips="descPopover"
           class="mr10"
-          :disabled="readonly"
+          :disabled="readonly || disabled"
           @click="handleChooseIp">
           <icon type="plus" />
           {{ $t('添加服务器') }}
         </bk-button>
         <bk-button
           v-show="isNotEmpty"
-          :disabled="readonly"
+          :disabled="readonly || disabled"
           @click="handleClear">
           {{ $t('清空') }}
         </bk-button>
@@ -51,7 +51,7 @@
         :config="ipSelectorConfig"
         :original-value="originalExecuteObjectsInfo"
         :show-dialog="isShowChooseIp"
-        show-view
+        :show-view="!disabled"
         :show-view-diff="showViewDiff"
         :value="executeObjectsInfo"
         @change="handleChange"
@@ -79,6 +79,10 @@
         required: true,
       },
       readonly: {
+        type: Boolean,
+        default: false,
+      },
+      disabled: {
         type: Boolean,
         default: false,
       },

@@ -24,38 +24,37 @@
 
 package com.tencent.bk.job.file_gateway.model.resp.common;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("文件源信息简单版")
+@Schema(description = "文件源信息简单版")
 @Data
 public class SimpleFileSourceVO {
     /**
      * id
      */
-    @ApiModelProperty("id")
+    @Schema(description = "id")
     private Integer id;
     /**
      * 资源范围类型
      */
-    @ApiModelProperty(value = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
+    @Schema(description = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
     private String scopeType;
 
     /**
      * 资源范围ID
      */
-    @ApiModelProperty("资源范围ID")
+    @Schema(description = "资源范围ID")
     private String scopeId;
     /**
      * 文件源标识
      */
-    @ApiModelProperty("文件源标识")
+    @Schema(description = "文件源标识")
     private String code;
     /**
      * 文件源别名
      */
-    @ApiModelProperty("文件源别名")
+    @Schema(description = "文件源别名")
     private String alias;
 }
 

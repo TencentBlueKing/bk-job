@@ -26,23 +26,23 @@ package com.tencent.bk.job.manage.api.op;
 
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.op.req.InitTenantReq;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Api(tags = {"job-manage:api:Tenant-OP"})
+@Tag(name = "job-manage:api:Tenant-OP")
 @RequestMapping("/op/tenant")
 @RestController
 public interface TenantOpResource {
 
-    @ApiOperation(value = "初始化租户", produces = "application/json")
+    @Operation(summary = "初始化租户")
     @PostMapping("/init")
-    Response<Object> initTenant(@ApiParam(value = "初始化租户请求", required = true)
+    Response<Object> initTenant(@Parameter(description = "初始化租户请求", required = true)
                               @RequestBody
                               @Validated
                               InitTenantReq req);

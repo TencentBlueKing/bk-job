@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.request.notify;
 
 import com.tencent.bk.job.manage.api.common.constants.notify.ExecuteStatusEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,13 +37,13 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@ApiModel("资源状态通知渠道")
+@Schema(description = "资源状态通知渠道")
 public class ResourceStatusChannel {
 
-    @ApiModelProperty(value = "资源状态Code", required = true)
+    @Schema(description = "资源状态Code", required = true)
     private ExecuteStatusEnum executeStatus;
 
-    @ApiModelProperty(value = "通知渠道Code列表", required = true)
+    @Schema(description = "通知渠道Code列表", required = true)
     private List<String> channelList;
 
     public static ResourceStatusChannel fromKV(Integer key, List<String> value) {

@@ -26,8 +26,7 @@ package com.tencent.bk.job.manage.model.web.vo.index;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,18 +36,18 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("我收藏的作业")
+@Schema(description = "我收藏的作业")
 @Data
 public class MyFavorJobVO {
-    @ApiModelProperty("作业模板Id")
+    @Schema(description = "作业模板Id")
     private Long id;
-    @ApiModelProperty("作业模板名称")
+    @Schema(description = "作业模板名称")
     private String name;
-    @ApiModelProperty("作业模板状态(0：新创建，1：审核中，2：已发布，3：未通过)")
+    @Schema(description = "作业模板状态(0：新创建，1：审核中，2：已发布，3：未通过)")
     private int status;
-    @ApiModelProperty("更新人")
+    @Schema(description = "更新人")
     private String lastModifyUser;
-    @ApiModelProperty("最近更新时间")
+    @Schema(description = "最近更新时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long lastModifyTime;
 }

@@ -32,6 +32,7 @@
       :key="variable.id"
       ref="used"
       :data="variable"
+      :disabled="variable.followTemplate === 1"
       :type="variable.type" />
     <empty
       v-if="usedList.length < 1"

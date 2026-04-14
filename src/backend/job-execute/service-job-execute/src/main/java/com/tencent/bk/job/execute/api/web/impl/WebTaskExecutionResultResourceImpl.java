@@ -113,7 +113,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
+import org.springframework.lang.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -150,9 +150,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         .maximumSize(10)
         .expireAfterWrite(10, TimeUnit.MINUTES)
         .build(new CacheLoader<Pair<String, String>, Map<String, String>>() {
-                   @NotNull
+                   @NonNull
                    @Override
-                   public Map<String, String> load(@NotNull Pair<String, String> langTenantIdPair) {
+                   public Map<String, String> load(@NonNull Pair<String, String> langTenantIdPair) {
                        String lang = langTenantIdPair.getLeft();
                        String tenantId = langTenantIdPair.getRight();
                        InternalResponse<List<ServiceAppRoleDTO>> resp = notifyResource.getNotifyRoles(tenantId, lang);
@@ -171,9 +171,9 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
     private final LoadingCache<String, Map<String, String>> channelCache = CacheBuilder.newBuilder()
         .maximumSize(10).expireAfterWrite(10, TimeUnit.MINUTES).
         build(new CacheLoader<String, Map<String, String>>() {
-                  @NotNull
+                  @NonNull
                   @Override
-                  public Map<String, String> load(@NotNull String key) {
+                  public Map<String, String> load(@NonNull String key) {
                       List<String> l = Arrays.asList(key.split(CHANNEL_CACHE_DELIMITER));
                       String tenantId = l.get(CHANNEL_CACHE_INDEX_TENANT_ID);
                       String lang = l.get(CHANNEL_CACHE_INDEX_LANG);
@@ -698,7 +698,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         List<TaskVariableDTO> changeableVars = new ArrayList<>();
         for (TaskVariableDTO taskVar : taskVars) {
             // 主机变量无需返回
-            if (taskVar.getType() == TaskVariableTypeEnum.HOST_LIST.getType()) {
+            if (taskVar.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()) {
                 continue;
             }
             if (!taskVar.isChangeable()) {
@@ -724,7 +724,7 @@ public class WebTaskExecutionResultResourceImpl implements WebTaskExecutionResul
         StepInstanceVariableValuesDTO inputStepInstanceValues = stepInstanceVariableValueService
             .computeInputStepInstanceVariableValues(stepInstance, changeableVars);
         if (inputStepInstanceValues == null) {
-            changeableVars.stream().filter(var -> !var.getType().equals(TaskVariableTypeEnum.HOST_LIST.getType()) &&
+            changeableVars.stream().filter(var -> !var.getType().equals(TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()) &&
                 var.isChangeable()).forEach(var -> taskVariableVOS.add(convertToTaskVariableVO(var)));
             return;
         }

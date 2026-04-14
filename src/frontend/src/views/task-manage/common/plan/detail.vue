@@ -73,7 +73,9 @@
             <render-global-var
               :key="id"
               :default-field="$t('template.变量值')"
-              :list="usedVariableList" />
+              :list="usedVariableList"
+              mode="viewOfPlan"
+              :show-follow-template="() => true" />
             <toggle-display
               v-if="unusedVariableList.length > 0"
               :count="unusedVariableList.length"
@@ -82,6 +84,7 @@
                 :key="id"
                 :default-field="$t('template.变量值')"
                 :list="unusedVariableList"
+                mode="viewOfPlan"
                 style="margin-top: 18px;" />
             </toggle-display>
           </jb-form-item>

@@ -1,0 +1,3 @@
+com.tencent.bk.job.common.k8s.config.K8sServiceInfoServiceAutoConfiguration
+com.tencent.bk.job.common.k8s.config.JobApplicationAvailabilityAutoConfiguration
+com.tencent.bk.job.common.k8s.config.JobK8sDiscoveryClientAutoConfiguration

@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.vo.globalsetting;
 
 import com.tencent.bk.job.manage.api.common.constants.OSTypeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,13 +35,13 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("账号命名规则")
+@Schema(description = "账号命名规则")
 @Data
 public class AccountNameRuleVO {
-    @ApiModelProperty("系统类型")
+    @Schema(description = "系统类型")
     private OSTypeEnum osType;
-    @ApiModelProperty("表达式")
+    @Schema(description = "表达式")
     private String expression;
-    @ApiModelProperty("描述")
+    @Schema(description = "描述")
     private String description;
 }

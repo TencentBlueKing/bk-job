@@ -24,33 +24,32 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("操作日志")
+@Schema(description = "操作日志")
 public class TaskOperationLogVO {
-    @ApiModelProperty("操作日志ID")
+    @Schema(description = "操作日志ID")
     private Long id;
-    @ApiModelProperty("作业实例ID")
+    @Schema(description = "作业实例ID")
     private Long taskInstanceId;
-    @ApiModelProperty("操作者")
+    @Schema(description = "操作者")
     private String operator;
-    @ApiModelProperty("操作名称")
+    @Schema(description = "操作名称")
     private String operationName;
-    @ApiModelProperty("操作对应的Code,1-失败重试，2-忽略错误，3-手动跳过，4-强制终止，5-全部重试，6-启动作业，7-人工确认，8-进入下一步")
+    @Schema(description = "操作对应的Code,1-失败重试，2-忽略错误，3-手动跳过，4-强制终止，5-全部重试，6-启动作业，7-人工确认，8-进入下一步")
     private Integer operationCode;
-    @ApiModelProperty("步骤实例ID")
+    @Schema(description = "步骤实例ID")
     private Long stepInstanceId;
-    @ApiModelProperty("步骤执行次数")
+    @Schema(description = "步骤执行次数")
     private Integer retry;
-    @ApiModelProperty("滚动执行批次")
+    @Schema(description = "滚动执行批次")
     private Integer batch;
-    @ApiModelProperty("步骤名称")
+    @Schema(description = "步骤名称")
     private String stepName;
-    @ApiModelProperty("操作时间，单位毫秒")
+    @Schema(description = "操作时间，单位毫秒")
     private Long createTime;
-    @ApiModelProperty("详情-文本")
+    @Schema(description = "详情-文本")
     private String detail;
 }

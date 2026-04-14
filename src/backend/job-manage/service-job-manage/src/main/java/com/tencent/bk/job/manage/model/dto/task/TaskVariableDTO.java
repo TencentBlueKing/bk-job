@@ -73,7 +73,7 @@ public class TaskVariableDTO {
         taskVariable.setId(variableInfo.getId());
         taskVariable.setName(variableInfo.getName());
         taskVariable.setType(variableInfo.getType().getType());
-        if (TaskVariableTypeEnum.HOST_LIST == variableInfo.getType()) {
+        if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST == variableInfo.getType()) {
             taskVariable
                 .setDefaultTargetValue(TaskTargetDTO.toVO(TaskTargetDTO.fromJsonString(variableInfo.getDefaultValue())));
         } else {
@@ -106,7 +106,7 @@ public class TaskVariableDTO {
         if (variableInfo.getType() == null) {
             throw new InvalidParamException(ErrorCode.WRONG_VARIABLE_TYPE);
         }
-        if (TaskVariableTypeEnum.HOST_LIST == variableInfo.getType()) {
+        if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST == variableInfo.getType()) {
             variableInfo.setDefaultValue(TaskTargetDTO.fromVO(variableVO.getDefaultTargetValue()).toJsonString());
         } else {
             variableInfo.setDefaultValue(variableVO.getDefaultValue());
@@ -134,7 +134,7 @@ public class TaskVariableDTO {
         serviceTaskVariable.setId(taskVariable.getId());
         serviceTaskVariable.setName(taskVariable.getName());
         serviceTaskVariable.setType(taskVariable.getType().getType());
-        if (TaskVariableTypeEnum.HOST_LIST == taskVariable.getType()) {
+        if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST == taskVariable.getType()) {
             TaskTargetDTO taskTarget = TaskTargetDTO.fromJsonString(taskVariable.getDefaultValue());
             if (taskTarget != null) {
                 serviceTaskVariable.setDefaultTargetValue(taskTarget.toServiceTaskTargetDTO());
@@ -158,7 +158,7 @@ public class TaskVariableDTO {
         esbGlobalVar.setDescription(taskVariable.getDescription());
         esbGlobalVar.setRequired(Boolean.TRUE.equals(taskVariable.getRequired()) ? 1 : 0);
 
-        if (TaskVariableTypeEnum.HOST_LIST == taskVariable.getType()) {
+        if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST == taskVariable.getType()) {
             esbGlobalVar.setServer(
                 TaskTargetDTO.toEsbServerV3(
                     TaskTargetDTO.fromJsonString(

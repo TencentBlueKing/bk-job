@@ -2,15 +2,16 @@ package com.tencent.bk.job.common.k8s.config;
 
 import com.tencent.bk.job.common.discovery.ServiceInfoProvider;
 import com.tencent.bk.job.common.k8s.provider.K8SServiceInfoProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
-import org.springframework.cloud.kubernetes.commons.ConditionalOnKubernetesEnabled;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnMissingClass("org.springframework.cloud.consul.discovery.ConsulDiscoveryClient")
-@ConditionalOnKubernetesEnabled
+@ConditionalOnCloudPlatform(CloudPlatform.KUBERNETES)
 public class K8sServiceInfoServiceAutoConfiguration {
 
     @Bean
