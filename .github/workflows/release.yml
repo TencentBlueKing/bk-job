@@ -2,7 +2,12 @@ name: Tag Realse
 on:
   push:
     tags:
-      - 'v*'
+      - 'v3.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release'
+        required: true
 
 jobs:
   build:
@@ -14,6 +19,11 @@ jobs:
         id: variables
         run: |
           tag="$(basename $GITHUB_REF)"
+          # Only release for v3.x tags that do not contain alpha or codev
+          if [[ ! "$tag" =~ ^v3\. ]] || [[ "$tag" =~ alpha ]] || [[ "$tag" =~ codev ]]; then
+            echo "Tag '$tag' does not qualify for release (must start with v3. and not contain 'alpha' or 'codev'). Skipping."
+            exit 1
+          fi
           bkjobVersion=${tag##v}
           echo "::set-output name=tag::${tag}"
           echo "::set-output name=bkjobVersion::${bkjobVersion}"
