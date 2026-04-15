@@ -580,6 +580,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             originTaskVariable.setDefaultValue(taskVariable.getDefaultValue());
             originTaskVariable.setTemplateId(taskVariable.getTemplateId());
             originTaskVariable.setDelete(false);
+            originTaskVariable.setFollowTemplate(taskVariable.getFollowTemplate());
             if (!taskVariable.equals(originTaskVariable)) {
                 return true;
             }
