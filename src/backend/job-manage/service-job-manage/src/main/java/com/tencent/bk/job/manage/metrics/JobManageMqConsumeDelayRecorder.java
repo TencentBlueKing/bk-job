@@ -22,27 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.common.ha.mq;
+package com.tencent.bk.job.manage.metrics;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
-import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
-import org.springframework.cloud.stream.config.ListenerContainerCustomizer;
+import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.stereotype.Component;
 
-@Slf4j
+/**
+ * manage模块MQ延迟消费记录器
+ */
 @Component
-public class JobListenerContainerCustomizer implements ListenerContainerCustomizer<MessageListenerContainer> {
+public class JobManageMqConsumeDelayRecorder extends MqConsumeDelayRecorder {
+
+    public JobManageMqConsumeDelayRecorder(MeterRegistry meterRegistry, MqMetricsProperties mqMetricsProperties) {
+        super(meterRegistry, mqMetricsProperties);
+    }
+
     @Override
-    public void configure(MessageListenerContainer container, String destinationName, String group) {
-        if (container instanceof AbstractMessageListenerContainer) {
-            log.info("Customize message listener container, destinationName: {}, group: {}", destinationName, group);
-            AbstractMessageListenerContainer messageListenerContainer = (AbstractMessageListenerContainer) container;
-            // consumer channel 关闭会导致消息从unacked->ready,消息会重新被消费，可能引起重复执行的问题。
-            // 延长 channel 关闭超时时间，从默认5s调整为30s。
-            messageListenerContainer.setShutdownTimeout(30000);
-        } else {
-            log.info("Customize message listener container ignore!");
-        }
+    protected MqMetricsProperties.ConsumerMetric getConsumeMetric() {
+        return mqMetricsProperties.getConsumer().getJobManage();
     }
 }

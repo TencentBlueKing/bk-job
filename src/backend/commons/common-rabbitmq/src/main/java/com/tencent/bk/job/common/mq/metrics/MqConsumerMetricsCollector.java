@@ -22,27 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.common.ha.mq;
+package com.tencent.bk.job.common.mq.metrics;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
-import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
-import org.springframework.cloud.stream.config.ListenerContainerCustomizer;
-import org.springframework.stereotype.Component;
+/**
+ * MQ消费者指标采集器
+ */
+public interface MqConsumerMetricsCollector {
+    /**
+     * 判断当前采集器是否支持该listener container
+     *
+     * @param container listener container
+     * @return 是否支持
+     */
+    boolean supports(Object container);
 
-@Slf4j
-@Component
-public class JobListenerContainerCustomizer implements ListenerContainerCustomizer<MessageListenerContainer> {
-    @Override
-    public void configure(MessageListenerContainer container, String destinationName, String group) {
-        if (container instanceof AbstractMessageListenerContainer) {
-            log.info("Customize message listener container, destinationName: {}, group: {}", destinationName, group);
-            AbstractMessageListenerContainer messageListenerContainer = (AbstractMessageListenerContainer) container;
-            // consumer channel 关闭会导致消息从unacked->ready,消息会重新被消费，可能引起重复执行的问题。
-            // 延长 channel 关闭超时时间，从默认5s调整为30s。
-            messageListenerContainer.setShutdownTimeout(30000);
-        } else {
-            log.info("Customize message listener container ignore!");
-        }
-    }
+    /**
+     * 采集消费者指标
+     *
+     * @param container listener container
+     * @param bindingName binding名称
+     * @param group 消费组
+     */
+    void collect(Object container, String bindingName, String group);
 }

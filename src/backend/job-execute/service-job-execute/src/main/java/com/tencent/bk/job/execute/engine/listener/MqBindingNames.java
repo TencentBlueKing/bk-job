@@ -22,27 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.common.ha.mq;
+package com.tencent.bk.job.execute.engine.listener;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
-import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
-import org.springframework.cloud.stream.config.ListenerContainerCustomizer;
-import org.springframework.stereotype.Component;
+/**
+ * execute模块MQ输入binding名称常量
+ */
+public class MqBindingNames {
+    /**
+     * 作业事件输入binding名称
+     */
+    public static final String HANDLE_JOB_EVENT = "handleJobEvent-in-0";
+    /**
+     * 步骤事件输入binding名称
+     */
+    public static final String HANDLE_STEP_EVENT = "handleStepEvent-in-0";
+    /**
+     * GSE任务事件输入binding名称
+     */
+    public static final String HANDLE_GSE_TASK_EVENT = "handleGseTaskEvent-in-0";
+    /**
+     * 执行结果重新调度事件输入binding名称
+     */
+    public static final String HANDLE_RESULT_HANDLE_RESUME_EVENT = "handleResultHandleResumeEvent-in-0";
+    /**
+     * 通知消息输入binding名称
+     */
+    public static final String HANDLE_NOTIFY_MSG = "handleNotifyMsg-in-0";
+    /**
+     * 回调消息输入binding名称
+     */
+    public static final String HANDLE_CALLBACK_MSG = "handleCallbackMsg-in-0";
 
-@Slf4j
-@Component
-public class JobListenerContainerCustomizer implements ListenerContainerCustomizer<MessageListenerContainer> {
-    @Override
-    public void configure(MessageListenerContainer container, String destinationName, String group) {
-        if (container instanceof AbstractMessageListenerContainer) {
-            log.info("Customize message listener container, destinationName: {}, group: {}", destinationName, group);
-            AbstractMessageListenerContainer messageListenerContainer = (AbstractMessageListenerContainer) container;
-            // consumer channel 关闭会导致消息从unacked->ready,消息会重新被消费，可能引起重复执行的问题。
-            // 延长 channel 关闭超时时间，从默认5s调整为30s。
-            messageListenerContainer.setShutdownTimeout(30000);
-        } else {
-            log.info("Customize message listener container ignore!");
-        }
-    }
 }

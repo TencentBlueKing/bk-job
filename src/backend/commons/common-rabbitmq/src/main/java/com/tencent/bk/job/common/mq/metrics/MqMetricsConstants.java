@@ -22,27 +22,47 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.common.ha.mq;
+package com.tencent.bk.job.common.mq.metrics;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
-import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
-import org.springframework.cloud.stream.config.ListenerContainerCustomizer;
-import org.springframework.stereotype.Component;
+/**
+ * MQ监控指标常量
+ */
+public class MqMetricsConstants {
+    /**
+     * MQ消费延迟指标名
+     */
+    public static final String NAME_JOB_MQ_CONSUME_DELAY = "job.mq.consume.delay";
+    /**
+     * MQ消息发送时间头
+     */
+    public static final String HEADER_NAME_SEND_TIME_MS = "job_send_time_ms";
+    /**
+     * MQ消费线程活跃数
+     */
+    public static final String NAME_JOB_MQ_CONSUMER_ACTIVE_COUNT = "job.mq.consumer.active.count";
+    /**
+     * MQ消费线程配置数
+     */
+    public static final String NAME_JOB_MQ_CONSUMER_CONFIGURED_COUNT = "job.mq.consumer.configured.count";
+    /**
+     * MQ消费线程最大数
+     */
+    public static final String NAME_JOB_MQ_CONSUMER_MAX_COUNT = "job.mq.consumer.max.count";
 
-@Slf4j
-@Component
-public class JobListenerContainerCustomizer implements ListenerContainerCustomizer<MessageListenerContainer> {
-    @Override
-    public void configure(MessageListenerContainer container, String destinationName, String group) {
-        if (container instanceof AbstractMessageListenerContainer) {
-            log.info("Customize message listener container, destinationName: {}, group: {}", destinationName, group);
-            AbstractMessageListenerContainer messageListenerContainer = (AbstractMessageListenerContainer) container;
-            // consumer channel 关闭会导致消息从unacked->ready,消息会重新被消费，可能引起重复执行的问题。
-            // 延长 channel 关闭超时时间，从默认5s调整为30s。
-            messageListenerContainer.setShutdownTimeout(30000);
-        } else {
-            log.info("Customize message listener container ignore!");
-        }
-    }
+    /**
+     * group标签
+     */
+    public static final String TAG_KEY_GROUP = "group";
+    /**
+     * binding标签
+     */
+    public static final String TAG_KEY_BINDING = "binding";
+    /**
+     * 消息名称标签
+     */
+    public static final String TAG_KEY_MESSAGE_NAME = "message_name";
+    /**
+     * MQ出站通道匹配模式
+     */
+    public static final String PATTERN_OUTBOUND_CHANNEL = "*-out-*";
 }
