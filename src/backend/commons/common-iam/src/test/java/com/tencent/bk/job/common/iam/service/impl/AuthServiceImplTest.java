@@ -211,6 +211,69 @@ class AuthServiceImplTest {
         assertThat(resource.getParentHierarchicalResources()).isNull();
     }
 
+    @Test
+    @DisplayName("Case6: pathInfo包含资源自身(biz->account) — 应去重，parentHierarchicalResources 仅包含biz")
+    void authFail_pathIncludesResource_shouldDedup() {
+        String bizId = "2";
+        String accountId = "3";
+        when(resourceNameQueryService.getResourceName(ResourceTypeEnum.ACCOUNT, accountId))
+            .thenReturn("root");
+        when(resourceNameQueryService.getResourceName(ResourceTypeEnum.BUSINESS, bizId))
+            .thenReturn("蓝鲸");
+
+        // biz/2 -> account/3，pathInfo 包含了资源本身
+        PathInfoDTO pathInfo = PathBuilder.newBuilder(ResourceTypeId.BIZ, bizId)
+            .child(ResourceTypeId.ACCOUNT, accountId).build();
+
+        AuthResult result = authService.auth(TEST_USER, "use_account",
+            ResourceTypeEnum.ACCOUNT, accountId, pathInfo);
+
+        assertThat(result.isPass()).isFalse();
+
+        PermissionResource resource = extractFirstPermissionResource(result);
+        assertThat(resource.getResourceId()).isEqualTo(accountId);
+        assertThat(resource.getResourceName()).isEqualTo("root");
+
+        // parentHierarchicalResources 应仅包含 biz，account 节点被去重
+        List<PermissionResource> parents = resource.getParentHierarchicalResources();
+        assertThat(parents).hasSize(1);
+        assertThat(parents.get(0).getResourceType()).isEqualTo(ResourceTypeEnum.BUSINESS);
+        assertThat(parents.get(0).getResourceId()).isEqualTo(bizId);
+        assertThat(parents.get(0).getResourceName()).isEqualTo("蓝鲸");
+    }
+
+    @Test
+    @DisplayName("Case7: 两层路径(biz->template)鉴权Plan — template不是Plan，应全部保留")
+    void authFail_pathDoesNotIncludeResource_shouldKeepAll() {
+        String bizId = "2";
+        String templateId = "500";
+        String planId = "1001";
+        when(resourceNameQueryService.getResourceName(ResourceTypeEnum.PLAN, planId))
+            .thenReturn("默认方案");
+        when(resourceNameQueryService.getResourceName(ResourceTypeEnum.BUSINESS, bizId))
+            .thenReturn("蓝鲸");
+        when(resourceNameQueryService.getResourceName(ResourceTypeEnum.TEMPLATE, templateId))
+            .thenReturn("发布模板");
+
+        // biz/2 -> job_template/500，路径不包含 Plan 资源本身
+        PathInfoDTO pathInfo = PathBuilder.newBuilder(ResourceTypeId.BIZ, bizId)
+            .child(ResourceTypeId.TEMPLATE, templateId).build();
+
+        AuthResult result = authService.auth(TEST_USER, ACTION_VIEW_JOB_PLAN,
+            ResourceTypeEnum.PLAN, planId, pathInfo);
+
+        assertThat(result.isPass()).isFalse();
+
+        PermissionResource resource = extractFirstPermissionResource(result);
+        assertThat(resource.getResourceId()).isEqualTo(planId);
+
+        // biz 和 template 都不匹配 Plan，应全部保留
+        List<PermissionResource> parents = resource.getParentHierarchicalResources();
+        assertThat(parents).hasSize(2);
+        assertThat(parents.get(0).getResourceType()).isEqualTo(ResourceTypeEnum.BUSINESS);
+        assertThat(parents.get(1).getResourceType()).isEqualTo(ResourceTypeEnum.TEMPLATE);
+    }
+
     /**
      * 从 AuthResult 中提取第一个 PermissionResource
      */
