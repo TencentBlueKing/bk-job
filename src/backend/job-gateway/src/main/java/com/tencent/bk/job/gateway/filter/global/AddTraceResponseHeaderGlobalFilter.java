@@ -72,7 +72,7 @@ public class AddTraceResponseHeaderGlobalFilter implements GlobalFilter, Ordered
             throw e;
         } finally {
             // 仅在自己创建的 span 时才手动 end
-            // 若是由context-propagation创建的span，由框架管理，手动end会导致trace传播异常
+            // 若是由micrometer-tracing创建的span，由框架管理，手动end会导致trace传播异常
             if (selfCreated) {
                 span.end();
             }
