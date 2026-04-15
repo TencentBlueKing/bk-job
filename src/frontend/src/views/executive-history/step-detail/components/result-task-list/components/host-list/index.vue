@@ -67,7 +67,7 @@
         v-if="allShowColumn.includes('totalTime')"
         :label="$t('history.耗时(s)')"
         prop="totalTime"
-        sortable
+        sortable="custom"
         :width="100">
         <template slot-scope="{ row }">
           {{ row.totalTime || '--' }}
@@ -77,7 +77,7 @@
         v-if="allShowColumn.includes('cloudAreaName')"
         :label="$t('history.管控区域')"
         prop="cloudAreaName"
-        sortable
+        sortable="custom"
         :width="120">
         <template slot-scope="{ row }">
           {{ row.executeObject.host.cloudArea.name || '--' }}
@@ -87,7 +87,7 @@
         v-if="allShowColumn.includes('exitCode')"
         :label="$t('history.返回码')"
         prop="exitCode"
-        sortable
+        sortable="custom"
         :width="100">
         <template slot-scope="{ row }">
           {{ row.exitCode }}
@@ -106,7 +106,7 @@
         v-if="allShowColumn.includes('hostId')"
         label="Host ID"
         prop="hostId"
-        sortable
+        sortable="custom"
         :width="100">
         <template slot-scope="{ row }">
           {{ row.executeObject.host.hostId || '--' }}

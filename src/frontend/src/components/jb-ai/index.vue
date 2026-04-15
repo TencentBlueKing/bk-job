@@ -24,6 +24,8 @@
   const defaultWidth = window.innerWidth * 0.33;
   const route = useRoute();
 
+  const curentScope =  `${window.PROJECT_CONFIG.SCOPE_TYPE}__${window.PROJECT_CONFIG.SCOPE_ID}`;
+
   const getSearchParams = () => {
     const curSearchParams = new URLSearchParams(window.location.search);
     return Array.from(curSearchParams.keys()).reduce(
@@ -45,13 +47,23 @@
     });
 
   const handleBeforeNimbusClick = async () => {
-    const curentScope =  `${window.PROJECT_CONFIG.SCOPE_TYPE}abcd/${window.PROJECT_CONFIG.SCOPE_ID}`;
     const sceneType = 3;
     const sessionMemo = await AiService.fetchChatSession({
       sceneType,
       sceneResourceId: curentScope,
     });
-    aiRef.value?.handleShow(sessionMemo?.aiSessionId);
+
+    aiRef.value?.show();
+    const chatHelper = aiRef.value.getChatHelper();
+    if (sessionMemo?.aiSessionId && _.find(chatHelper.session.list.value, item => item.sessionCode === sessionMemo?.aiSessionId)) {
+      // 切换到目标会话
+      await chatHelper.session.chooseSession(sessionMemo?.aiSessionId);
+    } else {
+      await chatHelper.session.createSession({
+        sessionCode: `${Date.now()}_${_.random(1000, 9999)}`,
+        sessionName: '新会话',
+      });
+    }
     if (!sessionMemo?.aiSessionId) {
       const currentSession = aiRef.value.getChatHelper().session.current.value;
       AiService.updateChatSession({
@@ -93,7 +105,6 @@
 
 
   eventBus.$on('ai:generaChat', async () => {
-    const curentScope =  `${window.PROJECT_CONFIG.SCOPE_TYPE}abcd/${window.PROJECT_CONFIG.SCOPE_ID}`;
     const sceneType = 3;
     const sessionMemo = await AiService.fetchChatSession({
       sceneType,
