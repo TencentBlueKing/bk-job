@@ -27,6 +27,7 @@ package com.tencent.bk.job.gateway.filter.global;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.gateway.consts.GlobalFilterOrder;
 import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
+import com.tencent.bk.job.gateway.web.server.AccessLogExchangeDataStore;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -34,7 +35,6 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import org.springframework.core.Ordered;
-import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
@@ -44,10 +44,13 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class AddTraceResponseHeaderGlobalFilter implements GlobalFilter, Ordered {
     private final Tracer tracer;
+    private final AccessLogExchangeDataStore accessLogDataStore;
 
     @Autowired
-    public AddTraceResponseHeaderGlobalFilter(Tracer tracer) {
+    public AddTraceResponseHeaderGlobalFilter(Tracer tracer,
+                                              AccessLogExchangeDataStore accessLogDataStore) {
         this.tracer = tracer;
+        this.accessLogDataStore = accessLogDataStore;
     }
 
     @Override
@@ -61,12 +64,11 @@ public class AddTraceResponseHeaderGlobalFilter implements GlobalFilter, Ordered
         }
         try (Tracer.SpanInScope ignore = tracer.withSpan(span)) {
             String traceId = span.context().traceId();
-            ServerHttpRequest request = exchange.getRequest();
             ServerHttpResponse response = exchange.getResponse();
             response.getHeaders().add(JobCommonHeaders.REQUEST_ID, traceId);
-            // 由于Reactor Netty异步模型存在线程切换，trace可能无法正确传播,将trace写入请求头确保访问日志能稳定获取链路信息
-            request.mutate().header(AccessLogConstants.Header.SPAN_ID, span.context().spanId());
-            return chain.filter(exchange.mutate().request(request).build());
+            // 写入内存Store供Reactor Netty AccessLog读取，避免通过响应头暴露内部数据
+            accessLogDataStore.put(traceId, AccessLogConstants.LogField.SPAN_ID, span.context().spanId());
+            return chain.filter(exchange);
         } catch (Exception e) {
             span.error(e);
             throw e;

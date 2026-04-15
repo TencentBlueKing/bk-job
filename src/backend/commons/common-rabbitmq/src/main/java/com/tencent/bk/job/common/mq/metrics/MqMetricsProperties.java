@@ -22,27 +22,66 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.common.ha.mq;
+package com.tencent.bk.job.common.mq.metrics;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
-import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
-import org.springframework.cloud.stream.config.ListenerContainerCustomizer;
-import org.springframework.stereotype.Component;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Slf4j
-@Component
-public class JobListenerContainerCustomizer implements ListenerContainerCustomizer<MessageListenerContainer> {
-    @Override
-    public void configure(MessageListenerContainer container, String destinationName, String group) {
-        if (container instanceof AbstractMessageListenerContainer) {
-            log.info("Customize message listener container, destinationName: {}, group: {}", destinationName, group);
-            AbstractMessageListenerContainer messageListenerContainer = (AbstractMessageListenerContainer) container;
-            // consumer channel 关闭会导致消息从unacked->ready,消息会重新被消费，可能引起重复执行的问题。
-            // 延长 channel 关闭超时时间，从默认5s调整为30s。
-            messageListenerContainer.setShutdownTimeout(30000);
-        } else {
-            log.info("Customize message listener container ignore!");
-        }
+/**
+ * MQ性能监控指标配置
+ */
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "job.mq.metrics")
+public class MqMetricsProperties {
+    /**
+     * 是否开启MQ指标采集
+     */
+    private boolean enabled = true;
+
+    /**
+     * 消费者指标配置
+     */
+    private Consumer consumer = new Consumer();
+
+    /**
+     * MQ消费者指标配置
+     */
+    @Getter
+    @Setter
+    public static class Consumer {
+        /**
+         * 默认延迟消费阈值，单位毫秒
+         */
+        private long defaultDelayMs = 1000;
+        /**
+         * execute消费者指标配置
+         */
+        private ConsumerMetric jobExecute;
+        /**
+         * manage消费者指标配置
+         */
+        private ConsumerMetric jobManage;
+        /**
+         * crontab消费者指标配置
+         */
+        private ConsumerMetric jobCrontab;
+        /**
+         * analysis消费者指标配置
+         */
+        private ConsumerMetric jobAnalysis;
+    }
+
+    /**
+     * 消费者指标配置
+     */
+    @Getter
+    @Setter
+    public static class ConsumerMetric {
+        /**
+         * 延迟消费阈值，单位毫秒
+         */
+        private long delayMs;
     }
 }
