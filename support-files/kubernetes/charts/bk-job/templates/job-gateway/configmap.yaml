@@ -13,6 +13,8 @@ metadata:
 data:
   application.yaml: |-
     spring:
+      reactor:
+        context-propagation: auto
       cloud:
         loadbalancer:
           cache:
