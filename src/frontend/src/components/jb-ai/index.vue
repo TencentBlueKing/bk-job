@@ -24,6 +24,17 @@
   const defaultWidth = window.innerWidth * 0.33;
   const route = useRoute();
 
+  const getSearchParams = () => {
+    const curSearchParams = new URLSearchParams(window.location.search);
+    return Array.from(curSearchParams.keys()).reduce(
+      (result, key) => ({
+        ...result,
+        [key]: curSearchParams.get(key) || '',
+      }),
+      {},
+    );
+  };
+
   const aiRef = ref();
   const apiUrl = ref('');
 
@@ -34,7 +45,7 @@
     });
 
   const handleBeforeNimbusClick = async () => {
-    const curentScope =  `${window.PROJECT_CONFIG.SCOPE_TYPE}/${window.PROJECT_CONFIG.SCOPE_ID}`;
+    const curentScope =  `${window.PROJECT_CONFIG.SCOPE_TYPE}abcd/${window.PROJECT_CONFIG.SCOPE_ID}`;
     const sceneType = 3;
     const sessionMemo = await AiService.fetchChatSession({
       sceneType,
@@ -57,7 +68,9 @@
     const chatHelper = aiRef.value.getChatHelper();
     const originalCommand = _.find(chatHelper?.agent.info.value?.conversationSettings?.commands, item => item.id === commandName);
 
-    if (chatHelper.session.current.value.sessionCode !== sessionCode && _.find(chatHelper.session.list.value, item => item.sessionCode
+    aiRef.value?.show();
+
+    if (chatHelper.session.current.value?.sessionCode !== sessionCode && _.find(chatHelper.session.list.value, item => item.sessionCode
       === sessionCode)) {
       // 切换到目标会话
       await chatHelper.session.chooseSession(sessionCode);
@@ -69,7 +82,6 @@
       });
     }
 
-    await aiRef.value?.show(chatHelper.session.current.value.sessionCode);
     aiRef.value?.sendShortcut({
       ...originalCommand,
       components: originalCommand.components.map(item => ({
@@ -81,7 +93,7 @@
 
 
   eventBus.$on('ai:generaChat', async () => {
-    const curentScope =  `${window.PROJECT_CONFIG.SCOPE_TYPE}/${window.PROJECT_CONFIG.SCOPE_ID}`;
+    const curentScope =  `${window.PROJECT_CONFIG.SCOPE_TYPE}abcd/${window.PROJECT_CONFIG.SCOPE_ID}`;
     const sceneType = 3;
     const sessionMemo = await AiService.fetchChatSession({
       sceneType,
@@ -125,7 +137,8 @@
   });
 
   eventBus.$on('ai:analyzeScriptTaskError', async (params) => {
-    const currrentStepInstanceId = route.value.query.stepInstanceId;
+    const currrentStepInstanceId = getSearchParams().stepInstanceId;
+
     const sessionMemo = await AiService.fetchChatSession({
       sceneType: 1,
       sceneResourceId: currrentStepInstanceId,
@@ -143,7 +156,7 @@
   });
 
   eventBus.$on('ai:analyzeFileTaskError', async (params) => {
-    const currrentStepInstanceId = route.value.query.stepInstanceId;
+    const currrentStepInstanceId = getSearchParams().stepInstanceId;
     const sessionMemo = await AiService.fetchChatSession({
       sceneType: 1,
       sceneResourceId: currrentStepInstanceId,

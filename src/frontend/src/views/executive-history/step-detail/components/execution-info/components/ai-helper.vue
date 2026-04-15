@@ -2,14 +2,11 @@
   <div
     v-if="!isConfigLoading && isAiEnable"
     class="execute-history-ai-helper extend-item">
-    <span
+    <img
       ref="referRef"
-      style="cursor: pointer;"
+      :src="aiImage"
+      style="width: 24px;cursor: pointer"
       @click="handleClick">
-      <img
-        :src="aiImage"
-        style="width: 24px">
-    </span>
     <div
       ref="popoverContentRef"
       style="position: relative; width: 300px; padding: 12px 14px 12px 22px; font-size: 14px; line-height: 22px; color: #63656E;">
@@ -31,7 +28,7 @@
       class="guide-tips">
       <div class="wrapper">
         <img
-          :src="bluekingImage"
+          :src="aiImage"
           style="width: 36px">
         <span class="ml-8">{{ $t('history.报错日志看不懂？来提问小鲸吧～') }}</span>
       </div>
@@ -55,7 +52,6 @@
   });
 
   const aiImage = window.__loadAssetsUrl__('/static/images/ai-01.png');
-  const bluekingImage = window.__loadAssetsUrl__('/static/images/blueking.png');
   const referRef = ref();
   const popoverContentRef = ref();
 
