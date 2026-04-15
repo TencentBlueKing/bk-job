@@ -1139,6 +1139,10 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                 continue;
             }
 
+            if (templateVar.cipherNotChange()) {
+                continue;
+            }
+
             if (!Objects.equals(templateVar.getDefaultValue(), planVar.getDefaultValue())) {
                 needModifiedPlanIds.add(planVar.getPlanId());
             }
