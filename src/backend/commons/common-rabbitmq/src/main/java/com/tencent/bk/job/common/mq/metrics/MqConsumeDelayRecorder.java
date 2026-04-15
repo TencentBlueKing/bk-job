@@ -45,7 +45,7 @@ public abstract class MqConsumeDelayRecorder {
      */
     private static final long CLOCK_SKEW_THRESHOLD_MS = -1000L;
     /**
-     * 出现时针偏差记录日志的时间间隔(ms)
+     * 出现时钟偏差记录日志的时间间隔(ms)
      */
     private static final long CLOCK_SKEW_LOG_INTERVAL_MS = 60_000L;
     /**
@@ -143,7 +143,7 @@ public abstract class MqConsumeDelayRecorder {
         }
         if (lastClockSkewWarnLogTimeMs.compareAndSet(lastWarnTimeMs, now)) {
             log.warn(
-                "Larger clock skew, binding: {}, messageName: {}, sendTime: {}, consumeTime: {}, rawDelayMs: {}",
+                "Large clock skew, binding: {}, messageName: {}, sendTime: {}, consumeTime: {}, rawDelayMs: {}",
                 binding,
                 messageName,
                 DateUtils.getDateStrFromUnixTimeMills(sendTimeMs, TIME_FORMATTER),
