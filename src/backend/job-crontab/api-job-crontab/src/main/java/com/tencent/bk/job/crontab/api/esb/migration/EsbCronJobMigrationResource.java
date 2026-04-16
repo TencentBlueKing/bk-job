@@ -37,9 +37,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 定时任务迁移专用 ESB API（与正常用户使用的接口分开）
+ * 定时任务迁移专用 ESB API，走job-gateway的esb-v3路由
  */
-@RequestMapping("/esb/api/migrate")
+@RequestMapping("/esb/api/v3")
 @RestController
 @EsbAPI
 public interface EsbCronJobMigrationResource {
