@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
 import com.tencent.bk.job.crontab.common.constants.CronStatusEnum;
 import com.tencent.bk.job.crontab.exception.TaskExecuteAuthFailedException;
@@ -64,7 +65,7 @@ public class EsbCronJobMigrationResourceImpl implements EsbCronJobMigrationResou
         Long appId = request.getAppId();
         request.validate();
         AuthResult authResult = cronAuthService.authManageCron(
-            username,
+            JobContextUtil.getUser(),
             new AppResourceScope(request.getScopeType(), request.getScopeId(), request.getAppId()),
             request.getId(),
             null
@@ -76,7 +77,7 @@ public class EsbCronJobMigrationResourceImpl implements EsbCronJobMigrationResou
         Boolean updateResult;
         try {
             updateResult = cronJobMigrationService.changeCronJobEnableStatusForMigration(
-                username, appId, request.getId(),
+                JobContextUtil.getUser(), appId, request.getId(),
                 CronStatusEnum.RUNNING.getStatus().equals(request.getStatus()));
         } catch (TaskExecuteAuthFailedException e) {
             throw new PermissionDeniedException(e.getAuthResult());

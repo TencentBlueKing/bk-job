@@ -24,6 +24,8 @@
 
 package com.tencent.bk.job.crontab.service;
 
+import com.tencent.bk.job.common.model.User;
+
 /**
  * 定时任务迁移专用 Service（与正常用户使用的接口分开）
  */
@@ -32,11 +34,11 @@ public interface CronJobMigrationService {
     /**
      * 启用、禁用定时任务（迁移场景专用，不修改最后修改人和最后修改时间）
      *
-     * @param username      用户名
+     * @param user      用户
      * @param appId     业务 ID
      * @param cronJobId 定时任务 ID
      * @param enable    是否启用
      * @return 是否操作成功
      */
-    Boolean changeCronJobEnableStatusForMigration(String username, Long appId, Long cronJobId, Boolean enable);
+    Boolean changeCronJobEnableStatusForMigration(User user, Long appId, Long cronJobId, Boolean enable);
 }

@@ -27,6 +27,7 @@ package com.tencent.bk.job.crontab.service.impl;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
 import com.tencent.bk.job.crontab.dao.CronJobDAO;
@@ -74,8 +75,8 @@ public class CronJobMigrationServiceImpl implements CronJobMigrationService {
     }
 
     @Override
-    public Boolean changeCronJobEnableStatusForMigration(String username, Long appId, Long cronJobId, Boolean enable) {
-        cronAuthService.authManageCron(username,
+    public Boolean changeCronJobEnableStatusForMigration(User user, Long appId, Long cronJobId, Boolean enable) {
+        cronAuthService.authManageCron(user,
             new AppResourceScope(appId), cronJobId, null).denyIfNoPermission();
 
         CronJobInfoDTO originCronJobInfo = cronJobService.getCronJobInfoById(appId, cronJobId);
@@ -94,7 +95,7 @@ public class CronJobMigrationServiceImpl implements CronJobMigrationService {
                             .map(CronJobVariableDTO::toServiceTaskVariable).collect(Collectors.toList());
                 }
                 executeTaskService.authExecuteTask(appId, originCronJobInfo.getTaskPlanId(),
-                    cronJobId, originCronJobInfo.getName(), taskVariables, username);
+                    cronJobId, originCronJobInfo.getName(), taskVariables, user.getUsername());
                 if (cronJobDAO.updateCronJobById(originCronJobInfo)) {
                     return informAllToAddJobToQuartz(appId, cronJobId);
                 } else {
