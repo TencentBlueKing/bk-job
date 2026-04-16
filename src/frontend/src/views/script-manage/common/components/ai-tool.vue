@@ -40,6 +40,8 @@
   import { Base64 } from 'js-base64';
   import { onBeforeUnmount, onMounted, ref } from 'vue';
 
+  import { formatScriptTypeValue } from '@utils/assist';
+
   import eventBus from '@/utils/event-bus';
 
   const props = defineProps({
@@ -66,7 +68,7 @@
 
   const handleCheckScript = () => {
     eventBus.$emit('ai:checkScriptVersion', {
-      script_type: props.data.type,
+      script_type: formatScriptTypeValue(props.data.type),
       script_content: Base64.decode(props.data.content || ''),
     });
     localStorage.setItem(editorAiHelperCacheKey, true);

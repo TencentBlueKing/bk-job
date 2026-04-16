@@ -885,7 +885,7 @@
 
       handleCheckScript() {
         eventBus.$emit('ai:checkScript', {
-          script_type: formatScriptTypeValue(this.currentLang),
+          script_type: this.currentLang,
           script_content: this.editor.getValue(),
         });
       },

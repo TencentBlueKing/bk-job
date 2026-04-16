@@ -4,6 +4,7 @@
     ref="aiRef"
     :before-nimbus-click="handleBeforeNimbusClick"
     :default-width="defaultWidth"
+    :enable-popup="false"
     :url="apiUrl" />
 </template>
 <script setup>
