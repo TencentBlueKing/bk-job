@@ -41,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 定时任务迁移专用 ESB API 实现（与正常用户使用的接口分开）
+ * 定时任务迁移专用 ESB API 实现
  */
 @Slf4j
 @RestController
