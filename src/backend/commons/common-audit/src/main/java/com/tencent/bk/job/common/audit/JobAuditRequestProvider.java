@@ -30,6 +30,8 @@ import com.tencent.bk.audit.constants.UserIdentifyTypeEnum;
 import com.tencent.bk.audit.exception.AuditException;
 import com.tencent.bk.audit.model.AuditHttpRequest;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.common.util.LogUtil;
+import com.tencent.bk.job.common.util.ip.IpUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.context.request.RequestAttributes;
@@ -38,6 +40,17 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Slf4j
 public class JobAuditRequestProvider implements AuditRequestProvider {
+
+    /**
+     * User-Agent 最大长度，超出部分截断。
+     * 常见浏览器 UA 通常在 100~300 字符；512 足以覆盖绝大多数合法场景。
+     */
+    private static final int MAX_USER_AGENT_LENGTH = 512;
+
+    /**
+     * 日志中打印不可信外部输入时的最大长度
+     */
+    private static final int MAX_LOG_VALUE_LENGTH = 64;
 
     public AuditHttpRequest getRequest() {
         HttpServletRequest httpServletRequest = this.getHttpServletRequest();
@@ -89,11 +102,14 @@ public class JobAuditRequestProvider implements AuditRequestProvider {
     }
 
     /**
-     * 获取客户端IP。
+     * 获取客户端 IP。
      * <p>
-     * 注意：X-Forwarded-For 头可被客户端伪造，此方法仅适用于服务部署在可信反向代理/网关后面的场景。
-     * 若需要更严格的IP解析，请自行实现 {@link AuditRequestProvider} 接口，
-     * 结合受信任代理列表或使用 Spring 的 ForwardedHeaderFilter。
+     * 信任模型：后端微服务始终部署在 CLB → Ingress → job-gateway 的可信代理链之后，
+     * 真实客户端 IP 只能由第一跳可信网关（CLB）通过 TCP 连接获取并写入 X-Forwarded-For，
+     * 后续各层代理追加自身地址。因此取 X-Forwarded-For 第一个 IP 即为客户端真实 IP。
+     * <p>
+     * 防伪造措施：对提取出的 IP 进行格式校验（IPv4/IPv6），若不合法则回退到 remoteAddr，
+     * 防止客户端通过构造恶意 X-Forwarded-For 值注入非 IP 内容。
      */
     @Override
     public String getClientIp() {
@@ -102,15 +118,29 @@ public class JobAuditRequestProvider implements AuditRequestProvider {
         if (xff == null || xff.isEmpty()) {
             return request.getRemoteAddr();
         }
-        // 取第一个IP并去除空格
-        String clientIp = xff.contains(",") ? xff.split(",")[0].trim() : xff.trim();
-        return clientIp.isEmpty() ? request.getRemoteAddr() : clientIp;
+        String candidate = xff.contains(",") ? xff.substring(0, xff.indexOf(',')).trim() : xff.trim();
+        if (candidate.isEmpty() || !IpUtils.isValidIpAddress(candidate)) {
+            log.warn("Invalid client IP from X-Forwarded-For: {}, fallback to remoteAddr",
+                LogUtil.sanitizeForLog(candidate, MAX_LOG_VALUE_LENGTH));
+            return request.getRemoteAddr();
+        }
+        return candidate;
     }
 
+    /**
+     * 获取 User-Agent，做长度截断与控制字符清理，防止恶意超长值或日志注入。
+     */
     @Override
     public String getUserAgent() {
         HttpServletRequest request = getHttpServletRequest();
-        return request.getHeader("User-Agent");
+        String ua = request.getHeader("User-Agent");
+        if (ua == null || ua.isEmpty()) {
+            return "";
+        }
+        if (ua.length() > MAX_USER_AGENT_LENGTH) {
+            ua = ua.substring(0, MAX_USER_AGENT_LENGTH);
+        }
+        return LogUtil.stripControlChars(ua);
     }
 
 }

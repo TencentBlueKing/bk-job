@@ -232,6 +232,41 @@ public class IpUtilsTest {
     }
 
     @Test
+    void testIsValidIpAddress() {
+        // null / 空串
+        assertThat(IpUtils.isValidIpAddress(null)).isFalse();
+        assertThat(IpUtils.isValidIpAddress("")).isFalse();
+        assertThat(IpUtils.isValidIpAddress("  ")).isFalse();
+
+        // 合法 IPv4
+        assertThat(IpUtils.isValidIpAddress("127.0.0.1")).isTrue();
+        assertThat(IpUtils.isValidIpAddress("192.168.1.1")).isTrue();
+        assertThat(IpUtils.isValidIpAddress("10.0.0.1")).isTrue();
+        assertThat(IpUtils.isValidIpAddress("255.255.255.255")).isTrue();
+        assertThat(IpUtils.isValidIpAddress("0.0.0.0")).isTrue();
+
+        // 非法 IPv4
+        assertThat(IpUtils.isValidIpAddress("256.1.1.1")).isFalse();
+        assertThat(IpUtils.isValidIpAddress("1.2.3")).isFalse();
+        assertThat(IpUtils.isValidIpAddress("1.2.3.4.5")).isFalse();
+
+        // 合法 IPv6
+        assertThat(IpUtils.isValidIpAddress("::1")).isTrue();
+        assertThat(IpUtils.isValidIpAddress("fe80::1")).isTrue();
+        assertThat(IpUtils.isValidIpAddress("2001:db8::1")).isTrue();
+        assertThat(IpUtils.isValidIpAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")).isTrue();
+
+        // 非法 IPv6
+        assertThat(IpUtils.isValidIpAddress("1::1::1")).isFalse();
+        assertThat(IpUtils.isValidIpAddress("gggg::1")).isFalse();
+
+        // 恶意注入内容
+        assertThat(IpUtils.isValidIpAddress("malicious-payload")).isFalse();
+        assertThat(IpUtils.isValidIpAddress("<script>alert(1)</script>")).isFalse();
+        assertThat(IpUtils.isValidIpAddress("127.0.0.1\r\nX-Injected: true")).isFalse();
+    }
+
+    @Test
     void testGetFirstIpFromMultiIp() {
         assertThat(IpUtils.getFirstIpFromMultiIp(null, ",")).isNull();
         assertThat(IpUtils.getFirstIpFromMultiIp("", ",")).isEqualTo("");
