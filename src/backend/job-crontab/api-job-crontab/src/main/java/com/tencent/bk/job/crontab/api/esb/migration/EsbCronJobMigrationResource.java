@@ -25,6 +25,7 @@
 package com.tencent.bk.job.crontab.api.esb.migration;
 
 import com.tencent.bk.job.common.annotation.EsbAPI;
+import com.tencent.bk.job.common.annotation.TenantMigrate;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.crontab.model.esb.v3.request.EsbUpdateCronStatusV3Request;
@@ -39,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 定时任务迁移专用 ESB API，走job-gateway的esb-v3路由
  */
+@TenantMigrate
 @RequestMapping("/esb/api/v3")
 @RestController
 @EsbAPI

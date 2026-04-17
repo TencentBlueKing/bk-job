@@ -24,11 +24,13 @@
 
 package com.tencent.bk.job.crontab.service;
 
+import com.tencent.bk.job.common.annotation.TenantMigrate;
 import com.tencent.bk.job.common.model.User;
 
 /**
  * 定时任务迁移专用 Service（与正常用户使用的接口分开）
  */
+@TenantMigrate
 public interface CronJobMigrationService {
 
     /**

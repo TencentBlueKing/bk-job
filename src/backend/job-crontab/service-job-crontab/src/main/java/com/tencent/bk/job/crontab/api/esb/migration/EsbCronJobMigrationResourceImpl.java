@@ -24,11 +24,13 @@
 
 package com.tencent.bk.job.crontab.api.esb.migration;
 
+import com.tencent.bk.job.common.annotation.TenantMigrate;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.crontab.auth.CronAuthService;
@@ -44,6 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 定时任务迁移专用 ESB API 实现
  */
+@TenantMigrate
 @Slf4j
 @RestController
 public class EsbCronJobMigrationResourceImpl implements EsbCronJobMigrationResource {
@@ -63,9 +66,10 @@ public class EsbCronJobMigrationResourceImpl implements EsbCronJobMigrationResou
                                                                   String appCode,
                                                                   EsbUpdateCronStatusV3Request request) {
         Long appId = request.getAppId();
+        User user = JobContextUtil.getUser();
         request.validate();
         AuthResult authResult = cronAuthService.authManageCron(
-            JobContextUtil.getUser(),
+            user,
             new AppResourceScope(request.getScopeType(), request.getScopeId(), request.getAppId()),
             request.getId(),
             null
@@ -74,14 +78,18 @@ public class EsbCronJobMigrationResourceImpl implements EsbCronJobMigrationResou
             throw new PermissionDeniedException(authResult);
         }
 
-        Boolean updateResult;
+        Boolean updateResult = false;
         try {
             updateResult = cronJobMigrationService.changeCronJobEnableStatusForMigration(
-                JobContextUtil.getUser(), appId, request.getId(),
+                user, appId, request.getId(),
                 CronStatusEnum.RUNNING.getStatus().equals(request.getStatus()));
         } catch (TaskExecuteAuthFailedException e) {
             throw new PermissionDeniedException(e.getAuthResult());
+        } finally {
+            log.info("[updateCronStatusForMigration]user={}, appId={}, cronId={}, status={}, result={}",
+                user.toString(), appId, request.getId(), request.getStatus(), updateResult);
         }
+
         if (updateResult) {
             EsbCronInfoV3DTO esbCronInfoV3DTO = new EsbCronInfoV3DTO();
             esbCronInfoV3DTO.setId(request.getId());

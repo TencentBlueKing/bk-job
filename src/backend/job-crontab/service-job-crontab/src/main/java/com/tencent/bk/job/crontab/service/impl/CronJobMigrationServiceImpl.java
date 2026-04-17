@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.service.impl;
 
+import com.tencent.bk.job.common.annotation.TenantMigrate;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
@@ -51,6 +52,7 @@ import java.util.stream.Collectors;
 /**
  * 定时任务迁移专用 Service 实现
  */
+@TenantMigrate
 @Slf4j
 @Service
 public class CronJobMigrationServiceImpl implements CronJobMigrationService {
