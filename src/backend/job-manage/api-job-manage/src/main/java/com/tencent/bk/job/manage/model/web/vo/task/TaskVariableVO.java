@@ -54,6 +54,9 @@ public class TaskVariableVO {
     @ApiModelProperty(value = "默认值")
     private String defaultValue;
 
+    @ApiModelProperty(value = "默认值哈希，仅用于敏感变量差异比较，别的变量返回null")
+    private String defaultValueHash;
+
     @ApiModelProperty(value = "主机列表默认值")
     private TaskTargetVO defaultTargetValue;
 
