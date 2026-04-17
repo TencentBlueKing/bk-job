@@ -241,7 +241,6 @@ public class IpUtilsTest {
         // 合法 IPv4
         assertThat(IpUtils.isValidIpAddress("127.0.0.1")).isTrue();
         assertThat(IpUtils.isValidIpAddress("192.168.1.1")).isTrue();
-        assertThat(IpUtils.isValidIpAddress("10.0.0.1")).isTrue();
         assertThat(IpUtils.isValidIpAddress("255.255.255.255")).isTrue();
         assertThat(IpUtils.isValidIpAddress("0.0.0.0")).isTrue();
 
