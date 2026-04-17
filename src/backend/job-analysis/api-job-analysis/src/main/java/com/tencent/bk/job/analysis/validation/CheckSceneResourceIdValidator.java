@@ -22,35 +22,35 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web.req;
+package com.tencent.bk.job.analysis.validation;
 
-import com.tencent.bk.job.analysis.validation.CheckSceneResourceId;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.tencent.bk.job.analysis.model.web.req.SaveAIChatSessionReq;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
+import org.apache.commons.lang3.StringUtils;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Schema(description = "保存AI场景会话请求体")
-@CheckSceneResourceId
-@Data
-public class SaveAIChatSessionReq {
+import java.util.Set;
 
-    @Schema(description = "场景类型: 1-任务报错分析, 2-脚本管理, 3-自由对话")
-    @NotNull(message = "{validation.constraints.AIChatSession_sceneTypeEmpty.message}")
-    private Integer sceneType;
+/**
+ * 当 sceneType 属于需要资源标识的场景（任务报错分析=1, 脚本管理=2）时，
+ * sceneResourceId 不允许为空白。
+ */
+public class CheckSceneResourceIdValidator
+    implements ConstraintValidator<CheckSceneResourceId, SaveAIChatSessionReq> {
 
-    @Schema(description = "场景资源标识(stepInstanceId/scriptId等)，自由对话场景可不传")
-    private String sceneResourceId;
+    /**
+     * 需要 sceneResourceId 的场景类型集合
+     */
+    private static final Set<Integer> SCENE_TYPES_REQUIRING_RESOURCE_ID = Set.of(1, 2);
 
-    @Schema(description = "AI智能体会话ID")
-    @NotBlank(message = "{validation.constraints.AIChatSession_aiSessionIdEmpty.message}")
-    private String aiSessionId;
-
-    @Schema(description = "会话名称")
-    @NotBlank(message = "{validation.constraints.AIChatSession_sessionNameEmpty.message}")
-    private String sessionName;
+    @Override
+    public boolean isValid(SaveAIChatSessionReq req, ConstraintValidatorContext context) {
+        if (req == null || req.getSceneType() == null) {
+            return true;
+        }
+        if (SCENE_TYPES_REQUIRING_RESOURCE_ID.contains(req.getSceneType())) {
+            return StringUtils.isNotBlank(req.getSceneResourceId());
+        }
+        return true;
+    }
 }

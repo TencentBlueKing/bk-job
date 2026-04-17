@@ -22,35 +22,30 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.analysis.model.web.req;
+package com.tencent.bk.job.analysis.validation;
 
-import com.tencent.bk.job.analysis.validation.CheckSceneResourceId;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Schema(description = "保存AI场景会话请求体")
-@CheckSceneResourceId
-@Data
-public class SaveAIChatSessionReq {
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-    @Schema(description = "场景类型: 1-任务报错分析, 2-脚本管理, 3-自由对话")
-    @NotNull(message = "{validation.constraints.AIChatSession_sceneTypeEmpty.message}")
-    private Integer sceneType;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-    @Schema(description = "场景资源标识(stepInstanceId/scriptId等)，自由对话场景可不传")
-    private String sceneResourceId;
+/**
+ * 类级别校验：当 sceneType 为指定值时，sceneResourceId 不允许为空白。
+ */
+@Constraint(validatedBy = CheckSceneResourceIdValidator.class)
+@Target({TYPE})
+@Retention(RUNTIME)
+@Documented
+public @interface CheckSceneResourceId {
 
-    @Schema(description = "AI智能体会话ID")
-    @NotBlank(message = "{validation.constraints.AIChatSession_aiSessionIdEmpty.message}")
-    private String aiSessionId;
+    String message() default "{validation.constraints.AIChatSession_sceneResourceIdEmpty.message}";
 
-    @Schema(description = "会话名称")
-    @NotBlank(message = "{validation.constraints.AIChatSession_sessionNameEmpty.message}")
-    private String sessionName;
+    Class<?>[] groups() default {};
+
+    Class<? extends Payload>[] payload() default {};
 }
