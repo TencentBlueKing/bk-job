@@ -29,6 +29,8 @@ import com.tencent.bk.job.common.util.json.JsonMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Schema(description = "目标服务器")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -39,6 +41,9 @@ public class ServiceTaskTargetDTO {
 
     @Schema(description = "目标服务器")
     private ServiceTaskHostNodeDTO targetServer;
+
+    @Schema(description = "目标容器列表")
+    private List<ServiceTargetContainerDTO> containerList;
 
     @Override
     public String toString() {

@@ -214,7 +214,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
         }
         Map<Long, TaskTargetDTO> varTargetMap = new HashMap<>();
         for (TaskVariableDTO taskVariableDTO : variableList) {
-            if (taskVariableDTO.getType() == TaskVariableTypeEnum.HOST_LIST) {
+            if (taskVariableDTO.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST) {
                 TaskTargetDTO target = TaskTargetDTO.fromJsonString(taskVariableDTO.getDefaultValue());
                 if (target != null) {
                     targetList.add(target);
@@ -254,7 +254,7 @@ public class ServiceTaskTemplateResourceImpl implements ServiceTaskTemplateResou
             }
         }
         for (TaskVariableDTO taskVariableDTO : variableList) {
-            if (taskVariableDTO.getType() == TaskVariableTypeEnum.HOST_LIST) {
+            if (taskVariableDTO.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST) {
                 TaskTargetDTO target = varTargetMap.get(taskVariableDTO.getId());
                 if (target != null) {
                     if (addHostIdService.fillHostId(target)) {

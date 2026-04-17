@@ -8,7 +8,7 @@
  * License for BK-JOB蓝鲸智云作业平台:
  * --------------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
- * documentation files (the "Software', to deal in the Software without restriction, including without limitation
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
  * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
  * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
  *
@@ -24,6 +24,8 @@
 
 dependencies {
     api 'org.springframework.boot:spring-boot-starter'
+    // Reactor Context 与 ThreadLocal 之间的自动 trace 传播桥接，
+    // 需要在配置文件中设置 spring.reactor.context-propagation=auto 才能启用
     api 'io.micrometer:micrometer-tracing-bridge-otel'
     api 'io.opentelemetry:opentelemetry-sdk'
     api "io.opentelemetry.instrumentation:opentelemetry-jdbc"

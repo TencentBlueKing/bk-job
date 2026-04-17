@@ -610,6 +610,8 @@ gse:
   script:
     # 执行脚本时临时脚本在目标机器的存放与执行路径
     rootPath: "/tmp/bkjob"
+    # 当脚本在容器上执行时，脚本在容器内目录会在主机目录前再加个前缀
+    containerScriptPathPrefix: "/bktmp"
   query:
     threads:
       # 向GSE查询Agent状态的核心并发数
@@ -857,6 +859,25 @@ job:
       secureKey: ""
       # Trace数据上报比率，取值范围为0~1，根据作业平台与监控平台负载适当调节该比率
       ratio: 0.1
+  mq:
+    metrics:
+      # 是否开启MQ指标采集，默认开启
+      enabled: true
+#      consumer:
+#        # 默认延迟消费阈值，单位毫秒,默认1000ms
+#        defaultDelayMs: 1000
+#        # execute模块延迟消费阈值，不配置使用defaultDelayMs
+#        jobExecute:
+#          delayMs: 1000
+#        # manage模块延迟消费阈值，不配置使用defaultDelayMs
+#        jobManage:
+#          delayMs: 1000
+#        # crontab模块延迟消费阈值，不配置使用defaultDelayMs
+#        jobCrontab:
+#          delayMs: 1000
+#        # analysis模块延迟消费阈值，不配置使用defaultDelayMs
+#        jobAnalysis:
+#          delayMs: 1000
 
   migration:
     # 执行Migration前等待的时间（单位：秒）

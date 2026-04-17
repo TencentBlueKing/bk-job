@@ -92,7 +92,7 @@
 
 | 字段                 | 类型     | 必选 | 描述                                                                                                      |
 |--------------------|--------|----|---------------------------------------------------------------------------------------------------------|
-| kind               | string | 是  | workload类型，目前支持的workload类型有deployment、daemonSet、statefulSet、gameStatefulSet、gameDeployment、cronJob、job) |
+| kind               | string | 是  | workload类型，目前支持的workload类型有deployment、daemonSet、statefulSet、gameStatefulSet、gameDeployment、cronJob、job、customResource(CRD自定义资源) |
 | workload_name_list | array  | 否  | workload 名称列表                                                                                           |
 
 ##### kube_pod_prop_filter

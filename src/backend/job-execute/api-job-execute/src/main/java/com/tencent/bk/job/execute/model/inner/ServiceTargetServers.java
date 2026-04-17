@@ -43,8 +43,9 @@ public class ServiceTargetServers {
     @Schema(description = "动态分组ID列表，格式：业务id:动态分组ID", required = false)
     private List<String> dynamicGroupIds;
 
-    @Schema(description = "分布式拓扑节点列表", required = false)
+    @Schema(description = "分布式拓扑节点列表", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private List<CmdbTopoNodeDTO> topoNodes;
 
-
+    @Schema(description = "容器列表（静态）", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private List<ServiceExecuteTargetContainerDTO> containers;
 }

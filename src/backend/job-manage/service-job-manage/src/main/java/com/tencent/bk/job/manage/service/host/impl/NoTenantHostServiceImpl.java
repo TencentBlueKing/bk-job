@@ -378,6 +378,33 @@ public class NoTenantHostServiceImpl extends BaseHostService implements NoTenant
         return noTenantHostDAO.syncHostTopo(hostId);
     }
 
+    @Override
+    public int batchSyncHostTopo(Collection<Long> hostIds) {
+        if (CollectionUtils.isEmpty(hostIds)) {
+            return 0;
+        }
+        StopWatch watch = new StopWatch();
+        watch.start("batchSyncHostTopo");
+        int syncedCount = noTenantHostDAO.batchSyncHostTopo(hostIds);
+        watch.stop();
+        if (watch.getTotalTimeMillis() > 10_000L) {
+            log.warn(
+                "Performance:batchSyncHostTopo: totalHostIds={}, syncedCount={}, cost={}ms",
+                hostIds.size(),
+                syncedCount,
+                watch.getTotalTimeMillis()
+            );
+        } else {
+            log.info(
+                "batchSyncHostTopo: totalHostIds={}, syncedCount={}, cost={}ms",
+                hostIds.size(),
+                syncedCount,
+                watch.getTotalTimeMillis()
+            );
+        }
+        return syncedCount;
+    }
+
     public ApplicationHostDTO getHostById(Long hostId) {
         return noTenantHostDAO.getHostById(hostId);
     }

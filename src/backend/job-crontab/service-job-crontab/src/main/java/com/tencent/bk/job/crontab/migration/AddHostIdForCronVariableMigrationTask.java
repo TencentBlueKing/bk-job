@@ -102,7 +102,7 @@ public class AddHostIdForCronVariableMigrationTask {
             return false;
         }
         for (CronJobVariableDTO cronJobVariableDTO : variableValue) {
-            if (TaskVariableTypeEnum.HOST_LIST != cronJobVariableDTO.getType()) {
+            if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST != cronJobVariableDTO.getType()) {
                 continue;
             }
             ServerDTO server = cronJobVariableDTO.getServer();
@@ -189,7 +189,7 @@ public class AddHostIdForCronVariableMigrationTask {
                 continue;
             }
             for (CronJobVariableDTO cronJobVariableDTO : variableValue) {
-                if (TaskVariableTypeEnum.HOST_LIST != cronJobVariableDTO.getType()) {
+                if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST != cronJobVariableDTO.getType()) {
                     continue;
                 }
                 ServerDTO server = cronJobVariableDTO.getServer();

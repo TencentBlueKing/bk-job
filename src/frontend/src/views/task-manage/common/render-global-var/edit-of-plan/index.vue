@@ -49,7 +49,7 @@
           class="item"
           :disabled="isTypeDisabled"
           value="host">
-          {{ $t('template.主机列表') }}
+          {{ $t('template.执行目标') }}
         </bk-radio-button>
         <bk-radio-button
           class="item"

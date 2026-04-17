@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.InterruptedIOException;
 import java.util.List;
 
 @Slf4j
@@ -169,7 +170,32 @@ public class TaskReporterImpl implements TaskReporter {
             log.info("url={},body={}", url, req.getBody());
             jobHttpClient.post(req);
         } catch (Exception e) {
-            log.error("Fail to request file-gateway:", e);
+            if (isCausedByInterruption(e)) {
+                // Task interrupted during File-Worker shutdown/restart is expected behavior,
+                // downgrade to INFO to avoid misleading ERROR logs during publishing
+                log.info("Task reporting interrupted (likely during File-Worker shutdown): {}", e.getMessage());
+            } else {
+                log.error("Fail to request file-gateway:", e);
+            }
         }
+    }
+
+    /**
+     * Check whether the exception is caused by an interruption (e.g. InterruptedIOException),
+     * which is expected during File-Worker graceful shutdown.
+     */
+    private boolean isCausedByInterruption(Throwable e) {
+        Throwable cause = e;
+        while (cause != null) {
+            if (cause instanceof InterruptedIOException || cause instanceof InterruptedException) {
+                return true;
+            }
+            // Avoid infinite loop on circular cause chains
+            if (cause.getCause() == cause) {
+                break;
+            }
+            cause = cause.getCause();
+        }
+        return false;
     }
 }

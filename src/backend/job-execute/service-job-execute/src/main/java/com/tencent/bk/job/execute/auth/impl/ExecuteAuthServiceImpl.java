@@ -475,8 +475,10 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         return hostInstanceList;
     }
 
-    private List<PermissionResource> convertBizStaticIpToPermissionResourceList(ExecuteTargetDTO executeTarget) {
+    private List<PermissionResource> convertBizStaticIpToPermissionResourceList(
+        AppResourceScope appResourceScope, ExecuteTargetDTO executeTarget) {
         List<PermissionResource> hostResources = new ArrayList<>();
+        List<PermissionResource> parentResources = Collections.singletonList(buildAppResource(appResourceScope));
         executeTarget.getStaticIpList().forEach(host -> {
             PermissionResource resource = new PermissionResource();
             resource.setResourceId(String.valueOf(host.getHostId()));
@@ -485,6 +487,7 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
             resource.setResourceName(host.getIp());
             resource.setSystemId(SystemId.CMDB);
             resource.setType("host");
+            resource.setParentHierarchicalResources(parentResources);
             hostResources.add(resource);
         });
         return hostResources;
@@ -606,7 +609,8 @@ public class ExecuteAuthServiceImpl implements ExecuteAuthService {
         if (!CollectionUtils.isEmpty(executeTarget.getStaticIpList())) {
             switch (appResourceScope.getType()) {
                 case BIZ:
-                    hostResources.addAll(convertBizStaticIpToPermissionResourceList(executeTarget));
+                    hostResources.addAll(convertBizStaticIpToPermissionResourceList(
+                        appResourceScope, executeTarget));
                     break;
                 case BIZ_SET:
                     hostResources.addAll(

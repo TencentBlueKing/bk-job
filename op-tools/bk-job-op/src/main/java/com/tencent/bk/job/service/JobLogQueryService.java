@@ -31,15 +31,19 @@ public interface JobLogQueryService {
 
     /**
      * 查询日志（支持分页）
+     *
+     * @param source      日志源 key，为空时使用默认日志源
      * @param queryString 查询语句
-     * @param timeRange 时间范围
-     * @param startTime 开始时间
-     * @param endTime 结束时间
-     * @param start 查询起始位置
-     * @param size 每页大小
+     * @param timeRange   时间范围
+     * @param startTime   开始时间
+     * @param endTime     结束时间
+     * @param start       查询起始位置
+     * @param size        每页大小
+     * @param asc         是否按时间升序
      * @return 分页的日志数据
      */
-    PageData<SimpleLogDTO> queryLogs(String queryString,
+    PageData<SimpleLogDTO> queryLogs(String source,
+                                     String queryString,
                                      String timeRange,
                                      String startTime,
                                      String endTime,

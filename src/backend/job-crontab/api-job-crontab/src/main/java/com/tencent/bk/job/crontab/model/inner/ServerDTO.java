@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.model.vo.TargetNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskExecuteObjectsInfoVO;
 import com.tencent.bk.job.common.model.vo.TaskHostNodeVO;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
+import com.tencent.bk.job.execute.model.inner.ServiceExecuteTargetContainerDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceTargetServers;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -77,6 +78,12 @@ public class ServerDTO implements Cloneable {
     @Schema(description = "分布式拓扑节点列表")
     private List<CmdbTopoNodeDTO> topoNodes;
 
+    /**
+     * 静态容器列表
+     */
+    @Schema(description = "容器列表（静态）")
+    private List<CronJobContainerDTO> containers;
+
     public static TaskTargetVO toTargetVO(ServerDTO server) {
         if (server == null) {
             return null;
@@ -108,6 +115,13 @@ public class ServerDTO implements Cloneable {
             taskExecuteObjectsInfoVO.setNodeList(nodeList);
             taskHostNode.setNodeList(nodeList);
         }
+        // 处理容器
+        if (CollectionUtils.isNotEmpty(server.getContainers())) {
+            taskExecuteObjectsInfoVO.setContainerList(
+                server.getContainers().stream()
+                    .map(CronJobContainerDTO::toContainerVO)
+                    .collect(Collectors.toList()));
+        }
         return taskTarget;
     }
 
@@ -130,6 +144,13 @@ public class ServerDTO implements Cloneable {
             if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getNodeList())) {
                 server.setTopoNodes(taskExecuteObjectsInfoVO.getNodeList().stream()
                     .map(CmdbTopoNodeDTO::fromVO).collect(Collectors.toList()));
+            }
+            // 处理容器
+            if (CollectionUtils.isNotEmpty(taskExecuteObjectsInfoVO.getContainerList())) {
+                server.setContainers(
+                    taskExecuteObjectsInfoVO.getContainerList().stream()
+                        .map(CronJobContainerDTO::fromContainerVO)
+                        .collect(Collectors.toList()));
             }
         }
         return server;
@@ -204,6 +225,17 @@ public class ServerDTO implements Cloneable {
         if (CollectionUtils.isNotEmpty(server.getTopoNodes())) {
             serviceServer.setTopoNodes(server.getTopoNodes());
         }
+        // 处理容器
+        if (CollectionUtils.isNotEmpty(server.getContainers())) {
+            serviceServer.setContainers(
+                server.getContainers().stream()
+                    .map(container -> {
+                        ServiceExecuteTargetContainerDTO dto = new ServiceExecuteTargetContainerDTO();
+                        dto.setId(container.getId());
+                        return dto;
+                    })
+                    .collect(Collectors.toList()));
+        }
         return serviceServer;
     }
 
@@ -256,6 +288,13 @@ public class ServerDTO implements Cloneable {
                 }
             }
             serverDTO.setTopoNodes(cloneTopoNodes);
+        }
+        // 克隆容器
+        if (null != containers) {
+            serverDTO.setContainers(
+                containers.stream()
+                    .map(container -> container != null ? container.clone() : null)
+                    .collect(Collectors.toList()));
         }
         return serverDTO;
     }

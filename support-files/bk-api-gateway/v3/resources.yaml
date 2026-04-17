@@ -5173,7 +5173,7 @@ paths:
               schema: {}
           description: ''
       x-bk-apigateway-resource:
-        isPublic: true
+        isPublic: false
         allowApplyPermission: false
         matchSubpath: false
         enableWebsocket: false
@@ -5439,12 +5439,28 @@ paths:
               properties:
                 ip_list:
                   type: array
+                  items:
+                    type: object
+                    required:
+                      - bk_cloud_id
+                      - ip
+                    properties:
+                      ip:
+                        type: string
+                        description: 主机IP
+                      bk_cloud_id:
+                        type: number
+                        description: 管控区域ID
+                    description: 管控区域ID+主机IP
                   description: 主机IP列表，最多50个。每个元素定义详见cloud_ip。优先级host_id_list > ip_list > container_id_list
                 bk_scope_id:
                   type: string
                   description: 资源范围ID, 与bk_scope_type对应, 表示业务ID或者业务集ID
                 host_id_list:
                   type: array
+                  items:
+                    type: number
+                    description: 主机ID
                   description: 主机ID列表，最多50个。每个元素为long。优先级host_id_list > ip_list > container_id_list
                 bk_scope_type:
                   type: string
@@ -5457,6 +5473,9 @@ paths:
                   description: 步骤实例ID，请传递原始数字，不要用科学计数法表示！
                 container_id_list:
                   type: array
+                  items:
+                    type: number
+                    description: CMDB中的容器UID
                   description: 容器ID列表(CMDB中的容器UID，数字类型)，最多50个。每个元素为long。优先级host_id_list > ip_list > container_id_list
               description: 请注意：接口任何数字类型的字段都需要传递原始数字，不要用科学计数法表示！
         required: true

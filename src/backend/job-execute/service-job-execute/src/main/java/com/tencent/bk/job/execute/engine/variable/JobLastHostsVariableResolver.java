@@ -24,9 +24,11 @@
 
 package com.tencent.bk.job.execute.engine.variable;
 
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.execute.engine.consts.JobBuildInVariables;
+import com.tencent.bk.job.execute.engine.model.ExecuteObject;
 import com.tencent.bk.job.execute.model.ExecuteObjectTask;
+import com.tencent.bk.job.execute.model.ExecuteTargetDTO;
+import com.tencent.bk.job.execute.model.FileSourceDTO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.service.FileExecuteObjectTaskService;
 import com.tencent.bk.job.execute.service.ScriptExecuteObjectTaskService;
@@ -38,6 +40,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -88,37 +91,69 @@ public class JobLastHostsVariableResolver implements VariableResolver {
                 taskInstanceId, stepInstanceId);
             return null;
         }
-        Set<HostDTO> hosts = null;
+
+        List<ExecuteObject> executeObjects = null;
         switch (variableName) {
             case JobBuildInVariables.JOB_LAST_ALL:
-                hosts = preStepInstance.extractAllHosts();
+                executeObjects = extractAllExecuteObjects(preStepInstance);
                 break;
             case JobBuildInVariables.JOB_LAST_SUCCESS: {
                 List<ExecuteObjectTask> executeObjectTasks = listAgentTasks(preStepInstance);
                 if (CollectionUtils.isNotEmpty(executeObjectTasks)) {
-                    hosts = executeObjectTasks.stream()
+                    executeObjects = executeObjectTasks.stream()
                         .filter(ExecuteObjectTask::isSuccess)
-                        .map(task -> task.getExecuteObject().getHost())
-                        .collect(Collectors.toSet());
+                        .map(ExecuteObjectTask::getExecuteObject)
+                        .collect(Collectors.toList());
                 }
                 break;
             }
             case JobBuildInVariables.JOB_LAST_FAIL: {
                 List<ExecuteObjectTask> executeObjectTasks = listAgentTasks(preStepInstance);
                 if (CollectionUtils.isNotEmpty(executeObjectTasks)) {
-                    hosts = executeObjectTasks.stream()
+                    executeObjects = executeObjectTasks.stream()
                         .filter(not(ExecuteObjectTask::isSuccess))
-                        .map(task -> task.getExecuteObject().getHost())
-                        .collect(Collectors.toSet());
+                        .map(ExecuteObjectTask::getExecuteObject)
+                        .collect(Collectors.toList());
                 }
                 break;
             }
         }
 
-        String value = VariableResolveUtils.formatHosts(hosts);
+        String value = VariableResolveUtils.formatExecuteObjects(executeObjects);
         log.info("Resolve value from latest executable step instance, variableName: {}, value: {}", variableName,
             value);
         return value;
+    }
+
+    /**
+     * 提取步骤实例的所有执行对象（包括目标执行对象和文件源执行对象）
+     */
+    private List<ExecuteObject> extractAllExecuteObjects(StepInstanceDTO stepInstance) {
+        Set<ExecuteObject> executeObjects = new HashSet<>();
+
+        // 目标执行对象
+        ExecuteTargetDTO targetExecuteObjects = stepInstance.getTargetExecuteObjects();
+        if (targetExecuteObjects != null) {
+            List<ExecuteObject> targetList = targetExecuteObjects.getExecuteObjectsCompatibly();
+            if (CollectionUtils.isNotEmpty(targetList)) {
+                executeObjects.addAll(targetList);
+            }
+        }
+
+        // 文件源执行对象（文件分发步骤）
+        List<FileSourceDTO> fileSourceList = stepInstance.getFileSourceList();
+        if (CollectionUtils.isNotEmpty(fileSourceList)) {
+            for (FileSourceDTO fileSource : fileSourceList) {
+                if (fileSource.getServers() != null) {
+                    List<ExecuteObject> sourceList = fileSource.getServers().getExecuteObjectsCompatibly();
+                    if (CollectionUtils.isNotEmpty(sourceList)) {
+                        executeObjects.addAll(sourceList);
+                    }
+                }
+            }
+        }
+
+        return new ArrayList<>(executeObjects);
     }
 
     private List<ExecuteObjectTask> listAgentTasks(StepInstanceDTO stepInstance) {

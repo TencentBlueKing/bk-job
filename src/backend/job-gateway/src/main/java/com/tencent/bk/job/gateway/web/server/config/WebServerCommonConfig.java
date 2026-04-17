@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.gateway.web.server.config;
 
+import com.tencent.bk.job.gateway.web.server.AccessLogExchangeDataStore;
 import com.tencent.bk.job.gateway.web.server.AccessLogFieldRegistry;
 import com.tencent.bk.job.gateway.web.server.AccessLogFormatter;
 import com.tencent.bk.job.gateway.web.server.AccessLogMetadataCollector;
@@ -42,8 +43,8 @@ import java.util.List;
 @Slf4j
 public class WebServerCommonConfig {
     @Bean
-    public AccessLogEnricherFilter accessLogEnricherFilter() {
-        return new AccessLogEnricherFilter();
+    public AccessLogEnricherFilter accessLogEnricherFilter(AccessLogExchangeDataStore accessLogDataStore) {
+        return new AccessLogEnricherFilter(accessLogDataStore);
     }
 
     @Bean
@@ -52,8 +53,10 @@ public class WebServerCommonConfig {
     }
 
     @Bean
-    public RequestContextMetadataProvider requestContextMetadataProvider() {
-        return new RequestContextMetadataProvider();
+    public RequestContextMetadataProvider requestContextMetadataProvider(
+        AccessLogExchangeDataStore accessLogDataStore
+    ) {
+        return new RequestContextMetadataProvider(accessLogDataStore);
     }
 
     @Bean

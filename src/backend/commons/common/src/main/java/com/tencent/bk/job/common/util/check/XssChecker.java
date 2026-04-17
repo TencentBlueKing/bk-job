@@ -29,49 +29,25 @@ import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class IlegalCharChecker implements IStringCheckStrategy {
+/**
+ * XSS 攻击字符检查：禁止字符串中包含 HTML 标签相关字符（{@code < > " '}），防止 XSS 注入攻击。
+ */
+public class XssChecker implements IStringCheckStrategy {
 
-    public static final String DEFAULT_PATTERN = "\\\\|/:*<>\"?";
-    private String patternStr;
-    private Pattern pattern;
-
-    public IlegalCharChecker() {
-        this.patternStr = DEFAULT_PATTERN;
-    }
-
-    public IlegalCharChecker(String patternStr) {
-        this.patternStr = patternStr;
-    }
-
-    public static void main(String[] args) {
-        IStringCheckStrategy checkStrategy = new IlegalCharChecker();
-        System.out.println(checkStrategy.checkAndGetResult("aaa"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa\\"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa|"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa/"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa:"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa*"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa<"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa>"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa\""));
-        System.out.println(checkStrategy.checkAndGetResult("aaa?"));
-        System.out.println(checkStrategy.checkAndGetResult("aaa="));
-    }
+    /**
+     * XSS 攻击关键字符：HTML 标签符号 < >，以及属性值引号 " '
+     */
+    private static final Pattern XSS_PATTERN = Pattern.compile("[<>\"']");
 
     @Override
     public String checkAndGetResult(String rawStr) {
-        if (this.pattern == null) {
-            pattern = Pattern.compile("[" + this.patternStr + "]");
+        if (rawStr == null) {
+            return null;
         }
-        Matcher m = pattern.matcher(rawStr);
+        Matcher m = XSS_PATTERN.matcher(rawStr);
         if (m.find()) {
-            String message = rawStr
-                + " can not contain ilegal char in ["
-                + this.patternStr.replace("\\\\", "\\")
-                + "]";
-            throw new StringCheckException(message);
-        } else {
-            return rawStr;
+            throw new StringCheckException(rawStr + " cannot contain HTML special characters < > \" '");
         }
+        return rawStr;
     }
 }

@@ -30,6 +30,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.tencent.bk.job.common.cc.config.CmdbConfig;
+import com.tencent.bk.job.common.cc.exception.CmdbDynamicGroupNotFoundException;
 import com.tencent.bk.job.common.cc.exception.CmdbException;
 import com.tencent.bk.job.common.cc.model.AppRoleDTO;
 import com.tencent.bk.job.common.cc.model.BriefTopologyDTO;
@@ -109,6 +110,7 @@ import com.tencent.bk.job.common.esb.model.EsbReq;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalCmdbException;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.TieredPageQueryException;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
@@ -117,15 +119,19 @@ import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.CollectionUtil;
+import com.tencent.bk.job.common.util.ConcurrencyUtil;
 import com.tencent.bk.job.common.util.FlowController;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.PageUtil;
+import com.tencent.bk.job.common.util.TieredPageQueryConfig;
+import com.tencent.bk.job.common.util.TieredPageQueryUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
 import com.tencent.bk.job.common.util.TimeUtil;
 import com.tencent.bk.job.common.util.Utils;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -158,6 +164,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
 
+    /**
+     * CMDB动态分组不存在错误码
+     */
+    private static final Integer CMDB_DYNAMIC_GROUP_NOT_FOUND_CODE = 1199019;
+
+    private static final int CMDB_CONTAINER_QUERY_PAGE_SIZE = 500;
+
     private static final ConcurrentHashMap<Long, Pair<InstanceTopologyDTO, Long>> bizInstTopoMap =
         new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Long, ReentrantLock> bizInstTopoLockMap = new ConcurrentHashMap<>();
@@ -166,6 +179,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     private static final ConcurrentHashMap<Long, ReentrantLock> bizInternalTopoLockMap = new ConcurrentHashMap<>();
     private final ThreadPoolExecutor threadPoolExecutor;
     private final ThreadPoolExecutor longTermThreadPoolExecutor;
+    private final Tracer tracer;
 
     private final LoadingCache<Pair<String, Long>, InstanceTopologyDTO> bizInstCompleteTopologyCache =
         CacheBuilder.newBuilder()
@@ -188,7 +202,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
                          FlowController flowController,
                          MeterRegistry meterRegistry,
                          TenantEnvService tenantEnvService,
-                         IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+                         IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                         Tracer tracer) {
         super(
             flowController,
             appProperties,
@@ -200,6 +215,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         );
         this.threadPoolExecutor = threadPoolExecutor;
         this.longTermThreadPoolExecutor = longTermThreadPoolExecutor;
+        this.tracer = tracer;
     }
 
     @Override
@@ -878,6 +894,16 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
                 });
             ExecuteDynamicGroupHostResult ccRespData = esbResp.getData();
             if (!esbResp.getResult()) {
+                if (CMDB_DYNAMIC_GROUP_NOT_FOUND_CODE.equals(esbResp.getCode())) {
+                    // 动态分组在CMDB已被删除或不存在，属于已知数据异常，不触发重试
+                    log.info("DynamicGroup(id={}) not found in cmdb", groupId);
+                    throw new CmdbDynamicGroupNotFoundException(
+                        ErrorType.FAILED_PRECONDITION,
+                        ErrorCode.FAIL_TO_FIND_HOST_BY_DYNAMIC_GROUP,
+                        new String[]{groupId, esbResp.getMessage()},
+                        groupId
+                    );
+                }
                 // 由于参数问题导致的CMDB返回数据异常
                 throw new CmdbException(
                     ErrorType.FAILED_PRECONDITION,
@@ -1134,7 +1160,8 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
 
     @Override
     public List<CcObjAttributeDTO> getObjAttributeList(String tenantId, String objId) {
-        GetObjAttributeReq req = makeCmdbBaseReq(GetObjAttributeReq.class);
+        // issue#4146，不传bk_supplier_account，否则cmdb返回的结果不全
+        GetObjAttributeReq req = new GetObjAttributeReq();
         req.setObjId(objId);
         EsbResp<List<CcObjAttributeDTO>> esbResp = requestCmdbApi(
             tenantId,
@@ -1463,47 +1490,109 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     /**
-     * 根据容器拓扑获取container信息
-     *
-     * @param req 请求
-     * @return 容器列表
+     * 三区分页查询配置（用于容器拓扑查询）。
+     * <p>
+     * pageSize=500（与 CMDB 分页大小一致），浅中层阈值 20000，中深层阈值 50000。
+     * 浅层区工作线程 5，中层区工作线程 3，中层区每任务 20 页。
      */
+    private static final TieredPageQueryConfig CONTAINER_TIERED_PAGE_QUERY_CONFIG =
+        TieredPageQueryConfig.builder()
+            .pageSize(CMDB_CONTAINER_QUERY_PAGE_SIZE)
+            .shallowThreshold(20000)
+            .deepThreshold(50000)
+            .shallowConcurrency(5)
+            .middleConcurrency(3)
+            .middlePagesPerTask(20)
+            .build();
+
     @Override
     public List<ContainerDetailDTO> listKubeContainerByTopo(ListKubeContainerByTopoReq req) {
         setSupplierAccount(req);
         req.setContainerFields(ContainerDTO.Fields.ALL);
         req.setPodFields(PodDTO.Fields.ALL);
         // 根据容器 ID 升序排列返回的数据，避免由于分页查询期间数据变更导致返回数据重复或者遗漏
-        req.setPage(new Page(0, 500, ContainerDTO.Fields.ID));
+        req.setPage(new Page(0, CMDB_CONTAINER_QUERY_PAGE_SIZE, ContainerDTO.Fields.ID));
 
         if (req.getNodeIdList() == null || req.getNodeIdList().size() <= 200) {
-            return loopPageListKubeContainerByTopo(req);
+            return tieredPageListKubeContainerByTopo(req);
         } else {
             // 超过 cmdb API 单次查询最大 node 数量限制，需要按照拓扑节点分批
             List<ListKubeContainerByTopoReq> batchReqs = partitionListKubeContainerByTopoReq(req);
             return batchReqs.stream()
-                .flatMap(batchReq -> loopPageListKubeContainerByTopo(batchReq).stream())
+                .flatMap(batchReq -> tieredPageListKubeContainerByTopo(batchReq).stream())
                 .distinct()
                 .collect(Collectors.toList());
         }
     }
 
-    private List<ContainerDetailDTO> loopPageListKubeContainerByTopo(ListKubeContainerByTopoReq req) {
-        return PageUtil.queryAllWithLoopPageQueryInOrder(
-            500,
-            (ContainerDetailDTO latestElement) -> {
-                if (latestElement == null) {
-                    // 第一页使用原始的请求
-                    return req;
-                } else {
-                    // 从第二页开始，需要构造 offset 条件，避免由于分页查询期间数据变更导致返回数据重复或者遗漏
-                    return buildNextPageListKubeContainerByTopoReq(req, latestElement.getContainer().getId());
+    /**
+     * 使用三区分页查询工具类拉取全量容器数据。
+     * <p>
+     * 根据数据总量自动选择最优的分页策略（浅层区 offset 并行 / 中层区 keyset 段间并行 / 深层区 keyset 串行），
+     * 替代原来的串行 keyset 分页查询，大幅提升大数据量场景下的查询性能。
+     *
+     * @param req 容器拓扑查询请求（已设置好 supplierAccount、containerFields、podFields、page）
+     * @return 全量容器列表
+     */
+    private List<ContainerDetailDTO> tieredPageListKubeContainerByTopo(ListKubeContainerByTopoReq req) {
+        try {
+            return TieredPageQueryUtil.queryAll(
+                CONTAINER_TIERED_PAGE_QUERY_CONFIG,
+                tracer,
+                // countQuery: 通过 CMDB 的 enableCount 分页查询获取总数
+                () -> {
+                    ListKubeContainerByTopoReq countReq = copyListKubeContainerByTopoReq(req);
+                    countReq.setPage(Page.buildQueryCountPage());
+                    EsbResp<BaseCcSearchResult<ContainerDetailDTO>> countResp = requestCmdbApiUseContextTenantId(
+                        HttpMethodEnum.POST,
+                        LIST_KUBE_CONTAINER_BY_TOPO,
+                        LIST_KUBE_CONTAINER_BY_TOPO,
+                        null,
+                        countReq,
+                        new TypeReference<EsbResp<BaseCcSearchResult<ContainerDetailDTO>>>() {
+                        });
+                    return countResp.getData().getCount();
+                },
+                // pageReqBuilder: 构造 offset 分页请求
+                (start, limit) -> {
+                    ListKubeContainerByTopoReq pageReq = copyListKubeContainerByTopoReq(req);
+                    pageReq.setPage(new Page(start, limit, ContainerDTO.Fields.ID));
+                    return pageReq;
+                },
+                // pageQuery: 执行分页查询
+                pageReq -> listPageKubeContainerByTopo(pageReq, false),
+                // resultExtractor: 从查询结果中提取数据列表
+                PageData::getData,
+                // lastIdExtractor: 从容器元素中提取 ID（用于 keyset 分页）
+                container -> container.getContainer().getId(),
+                // keysetReqBuilder: 构造 keyset 分页请求（id > lastId）
+                (lastId, limit) -> {
+                    ListKubeContainerByTopoReq keysetReq =
+                        buildNextPageListKubeContainerByTopoReq(req, lastId);
+                    keysetReq.getPage().setLimit(limit);
+                    return keysetReq;
                 }
-            },
-            pageReq -> listPageKubeContainerByTopo(pageReq, false),
-            PageData::getData,
-            container -> container
-        );
+            );
+        } catch (TieredPageQueryException e) {
+            log.error("Failed to tiered page list kube container by topo", e);
+            throw new InternalCmdbException(e.getMessage(), e.getCause(), ErrorCode.CMDB_API_DATA_ERROR);
+        }
+    }
+
+    /**
+     * 复制 ListKubeContainerByTopoReq 请求对象（用于并发场景下避免共享同一个请求对象）
+     */
+    private ListKubeContainerByTopoReq copyListKubeContainerByTopoReq(ListKubeContainerByTopoReq req) {
+        ListKubeContainerByTopoReq newReq = new ListKubeContainerByTopoReq();
+        newReq.setBkSupplierAccount(req.getBkSupplierAccount());
+        newReq.setBizId(req.getBizId());
+        newReq.setNodeIdList(req.getNodeIdList());
+        newReq.setContainerFilter(req.getContainerFilter());
+        newReq.setPodFilter(req.getPodFilter());
+        newReq.setPage(new Page(req.getPage()));
+        newReq.setContainerFields(req.getContainerFields());
+        newReq.setPodFields(req.getPodFields());
+        return newReq;
     }
 
     private List<ListKubeContainerByTopoReq> partitionListKubeContainerByTopoReq(ListKubeContainerByTopoReq req) {
@@ -1530,7 +1619,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         long lastIdForCurrentPage
     ) {
         ListKubeContainerByTopoReq nextPageReq = new ListKubeContainerByTopoReq();
-        nextPageReq.setPage(originReq.getPage());
+        nextPageReq.setPage(new Page(originReq.getPage()));
         nextPageReq.setNodeIdList(originReq.getNodeIdList());
         nextPageReq.setPodFilter(originReq.getPodFilter());
         nextPageReq.setBizId(originReq.getBizId());
@@ -1585,36 +1674,38 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
         String containerField,
         Collection<T> fieldValues) {
 
-        int maxFieldValuesPerBatch = 500;  // cmdb 限制每次查询传入的字段值
+        int maxFieldValuesPerBatch = CMDB_CONTAINER_QUERY_PAGE_SIZE;  // cmdb 限制每次查询传入的字段值
         List<List<T>> containerFieldValueBatches =
             CollectionUtil.partitionCollection(fieldValues, maxFieldValuesPerBatch);
 
-        List<ContainerDetailDTO> containers = new ArrayList<>();
+        // 各 batch 之间完全无依赖，使用临时线程池并行查询
+        return ConcurrencyUtil.getResultWithThreads(
+            containerFieldValueBatches,
+            10,
+            containerFieldValueBatch -> {
+                ListKubeContainerByTopoReq req = makeCmdbBaseReq(ListKubeContainerByTopoReq.class);
 
-        containerFieldValueBatches.forEach(containerFieldValueBatch -> {
-            ListKubeContainerByTopoReq req = makeCmdbBaseReq(ListKubeContainerByTopoReq.class);
+                // 查询条件
+                req.setBizId(bizId);
+                PropertyFilterDTO containerFilter = new PropertyFilterDTO();
+                containerFilter.setCondition(RuleConditionEnum.AND.getCondition());
+                containerFilter.addRule(BaseRuleDTO.in(containerField, containerFieldValueBatch));
+                req.setContainerFilter(containerFilter);
 
-            // 查询条件
-            req.setBizId(bizId);
-            PropertyFilterDTO containerFilter = new PropertyFilterDTO();
-            containerFilter.setCondition(RuleConditionEnum.AND.getCondition());
-            containerFilter.addRule(BaseRuleDTO.in(containerField, containerFieldValueBatch));
-            req.setContainerFilter(containerFilter);
+                // 返回参数设置
+                req.setContainerFields(ContainerDTO.Fields.ALL);
+                req.setPodFields(PodDTO.Fields.ALL);
 
-            // 返回参数设置
-            req.setContainerFields(ContainerDTO.Fields.ALL);
-            req.setPodFields(PodDTO.Fields.ALL);
+                // 分页设置
+                req.setPage(new Page(0, maxFieldValuesPerBatch));
 
-            // 分页设置
-            req.setPage(new Page(0, maxFieldValuesPerBatch));
-
-            PageData<ContainerDetailDTO> pageData = listPageKubeContainerByTopo(req, false);
-            if (CollectionUtils.isNotEmpty(pageData.getData())) {
-                containers.addAll(pageData.getData());
+                PageData<ContainerDetailDTO> pageData = listPageKubeContainerByTopo(req, false);
+                if (CollectionUtils.isNotEmpty(pageData.getData())) {
+                    return pageData.getData();
+                }
+                return Collections.emptyList();
             }
-        });
-
-        return containers;
+        );
     }
 
     @Override

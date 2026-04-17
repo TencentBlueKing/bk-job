@@ -71,7 +71,7 @@
               <bk-select
                 class="server-add-variable"
                 :clearable="false"
-                :placeholder="$t('请选择主机列表变量')"
+                :placeholder="$t('请选择执行目标变量')"
                 searchable
                 :value="serverFile.host.variable"
                 @change="handleVariableChange">

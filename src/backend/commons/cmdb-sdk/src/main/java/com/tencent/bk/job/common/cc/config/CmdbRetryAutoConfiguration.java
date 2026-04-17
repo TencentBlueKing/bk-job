@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.common.cc.config;
 
+import com.tencent.bk.job.common.cc.exception.CmdbDynamicGroupNotFoundException;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.IBizSetCmdbClient;
 import com.tencent.bk.job.common.cc.sdk.ITenantSetCmdbClient;
@@ -34,7 +35,9 @@ import com.tencent.bk.job.common.config.CircuitBreakerProperties;
 import com.tencent.bk.job.common.config.ExternalSystemRetryProperties;
 import com.tencent.bk.job.common.config.RetryProperties;
 import com.tencent.bk.job.common.constant.BKConstants;
+import com.tencent.bk.job.common.retry.CompositeRetryPolicy;
 import com.tencent.bk.job.common.retry.ExponentialBackoffRetryPolicy;
+import com.tencent.bk.job.common.retry.RetryPolicy;
 import com.tencent.bk.job.common.retry.circuitbreaker.CircuitBreakerFactory;
 import com.tencent.bk.job.common.retry.circuitbreaker.SystemCircuitBreakerFactory;
 import com.tencent.bk.job.common.retry.metrics.RetryMetricsRecorder;
@@ -49,6 +52,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * CMDB 客户端重试自动配置
@@ -86,7 +92,7 @@ public class CmdbRetryAutoConfiguration {
                                                  @Qualifier("cmdbCircuitBreakerFactory")
                                                  CircuitBreakerFactory circuitBreakerFactory,
                                                  ObjectProvider<MeterRegistry> meterRegistryProvider) {
-        ExponentialBackoffRetryPolicy retryPolicy = buildRetryPolicy(retryProperties);
+        RetryPolicy retryPolicy = buildRetryPolicy(retryProperties);
         RetryMetricsRecorder metricsRecorder = buildMetricsRecorder(retryProperties, meterRegistryProvider);
 
         log.info("Init RetryableBizCmdbClient");
@@ -101,7 +107,7 @@ public class CmdbRetryAutoConfiguration {
                                                        @Qualifier("cmdbCircuitBreakerFactory")
                                                        CircuitBreakerFactory circuitBreakerFactory,
                                                        ObjectProvider<MeterRegistry> meterRegistryProvider) {
-        ExponentialBackoffRetryPolicy retryPolicy = buildRetryPolicy(retryProperties);
+        RetryPolicy retryPolicy = buildRetryPolicy(retryProperties);
         RetryMetricsRecorder metricsRecorder = buildMetricsRecorder(retryProperties, meterRegistryProvider);
 
         log.info("Init RetryableBizSetCmdbClient");
@@ -118,7 +124,7 @@ public class CmdbRetryAutoConfiguration {
                                                              CircuitBreakerFactory circuitBreakerFactory,
                                                              ObjectProvider<MeterRegistry> meterRegistryProvider) {
 
-        ExponentialBackoffRetryPolicy retryPolicy = buildRetryPolicy(retryProperties);
+        RetryPolicy retryPolicy = buildRetryPolicy(retryProperties);
         RetryMetricsRecorder metricsRecorder = buildMetricsRecorder(retryProperties, meterRegistryProvider);
 
         log.info("Init RetryableTenantSetCmdbClient");
@@ -130,13 +136,20 @@ public class CmdbRetryAutoConfiguration {
         );
     }
 
-    private ExponentialBackoffRetryPolicy buildRetryPolicy(ExternalSystemRetryProperties retryProperties) {
-        return ExponentialBackoffRetryPolicy.builder()
+    private RetryPolicy buildRetryPolicy(ExternalSystemRetryProperties retryProperties) {
+        ExponentialBackoffRetryPolicy backoffPolicy = ExponentialBackoffRetryPolicy.builder()
             .initialIntervalMs(retryProperties.getSystemInitialIntervalMs(retryProperties.getCmdb()))
             .maxIntervalMs(retryProperties.getSystemMaxIntervalMs(retryProperties.getCmdb()))
             .maxAttempts(retryProperties.getSystemMaxAttempts(retryProperties.getCmdb()))
             .multiplier(retryProperties.getSystemMultiplier(retryProperties.getCmdb()))
             .build();
+
+        Set<Class<? extends Exception>> nonRetryableExceptions = new HashSet<>();
+        nonRetryableExceptions.add(CmdbDynamicGroupNotFoundException.class);
+        NonRetryableExceptionRetryPolicy nonRetryablePolicy =
+            new NonRetryableExceptionRetryPolicy(nonRetryableExceptions);
+
+        return new CompositeRetryPolicy(backoffPolicy, nonRetryablePolicy);
     }
 
     private RetryMetricsRecorder buildMetricsRecorder(ExternalSystemRetryProperties retryProperties,

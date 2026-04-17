@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import com.tencent.bk.job.execute.model.TaskNotifyDTO;
@@ -43,8 +44,16 @@ public class NotifyMsgListener extends BaseJobMqListener {
     private final NotifyService notifyService;
 
     @Autowired
-    public NotifyMsgListener(NotifyService notifyService) {
+    public NotifyMsgListener(NotifyService notifyService,
+                             MqConsumeDelayRecorder mqConsumeDelayRecorder
+    ) {
+        super(mqConsumeDelayRecorder);
         this.notifyService = notifyService;
+    }
+
+    @Override
+    protected String getBindingName() {
+        return MqBindingNames.HANDLE_NOTIFY_MSG;
     }
 
     @Override
