@@ -53,6 +53,9 @@ public class TaskVariableVO {
     @Schema(description = "默认值")
     private String defaultValue;
 
+    @Schema(description = "默认值哈希，仅用于敏感变量差异比较，别的变量返回null")
+    private String defaultValueHash;
+
     @Schema(description = "主机列表默认值")
     private TaskTargetVO defaultTargetValue;
 
