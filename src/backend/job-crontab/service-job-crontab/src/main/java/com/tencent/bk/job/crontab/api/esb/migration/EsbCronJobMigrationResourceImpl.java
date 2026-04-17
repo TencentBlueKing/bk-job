@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.api.esb.migration;
 
+import com.tencent.bk.job.common.annotation.TenantMigrate;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -43,6 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 定时任务迁移专用 ESB API 实现
  */
+@TenantMigrate
 @Slf4j
 @RestController
 public class EsbCronJobMigrationResourceImpl implements EsbCronJobMigrationResource {
@@ -73,14 +75,18 @@ public class EsbCronJobMigrationResourceImpl implements EsbCronJobMigrationResou
             throw new PermissionDeniedException(authResult);
         }
 
-        Boolean updateResult;
+        Boolean updateResult = false;
         try {
             updateResult = cronJobMigrationService.changeCronJobEnableStatusForMigration(
                 username, appId, request.getId(),
                 CronStatusEnum.RUNNING.getStatus().equals(request.getStatus()));
         } catch (TaskExecuteAuthFailedException e) {
             throw new PermissionDeniedException(e.getAuthResult());
+        } finally {
+            log.info("[updateCronStatusForMigration]user={}, appId={}, cronId={}, status={}, result={}",
+                username, appId, request.getId(), request.getStatus(), updateResult);
         }
+
         if (updateResult) {
             EsbCronInfoV3DTO esbCronInfoV3DTO = new EsbCronInfoV3DTO();
             esbCronInfoV3DTO.setId(request.getId());
