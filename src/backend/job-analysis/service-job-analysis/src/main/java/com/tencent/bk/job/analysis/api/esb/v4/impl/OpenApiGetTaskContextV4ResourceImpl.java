@@ -43,6 +43,7 @@ import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectLogDTO;
 import com.tencent.bk.job.logsvr.model.service.ServiceExecuteObjectScriptLogDTO;
 import com.tencent.bk.job.logsvr.util.LogFieldUtil;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
+import com.tencent.bk.job.common.util.LogUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
@@ -124,13 +125,18 @@ public class OpenApiGetTaskContextV4ResourceImpl implements OpenApiGetTaskContex
     }
 
     /**
+     * 返回给调用方的日志最大字符数，取末尾部分
+     */
+    private static final int MAX_ERROR_LOG_CHARS = 50_000;
+
+    /**
      * 获取脚本报错信息：优先使用调用方传入的 content，为空时从日志服务查询
      */
     private String resolveScriptErrorLog(String content,
                                          TaskContext taskContext,
                                          TaskContextQuery contextQuery) {
         if (StringUtils.isNotBlank(content)) {
-            return content;
+            return LogUtil.tailLog(content, MAX_ERROR_LOG_CHARS);
         }
         try {
             String jobCreateDate = LogFieldUtil.buildJobCreateDate(taskContext.getStepCreateTime());
@@ -145,7 +151,7 @@ public class OpenApiGetTaskContextV4ResourceImpl implements OpenApiGetTaskContex
             if (resp.isSuccess() && resp.getData() != null) {
                 ServiceExecuteObjectScriptLogDTO scriptLog = resp.getData().getScriptLog();
                 if (scriptLog != null && StringUtils.isNotBlank(scriptLog.getContent())) {
-                    return scriptLog.getContent();
+                    return LogUtil.tailLog(scriptLog.getContent(), MAX_ERROR_LOG_CHARS);
                 }
             }
         } catch (Exception e) {
