@@ -28,6 +28,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.function.Function;
+
 /**
  * 任务上下文字段
  */
@@ -35,6 +37,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 public class TaskContextField {
+
+    private static final String I18N_KEY_PREFIX = "analysis.taskContext.fieldDescription.";
+
     /**
      * 字段名称
      */
@@ -47,4 +52,18 @@ public class TaskContextField {
      * 字段描述
      */
     private String description;
+
+    /**
+     * 根据 name 自动生成 i18n key 并解析 description。
+     * i18n key 规则：analysis.taskContext.fieldDescription.{name}
+     *
+     * @param name         字段名称
+     * @param value        字段值
+     * @param i18nResolver i18n 解析函数，例如 messageI18nService::getI18n
+     */
+    public TaskContextField(String name, String value, Function<String, String> i18nResolver) {
+        this.name = name;
+        this.value = value;
+        this.description = i18nResolver.apply(I18N_KEY_PREFIX + name);
+    }
 }

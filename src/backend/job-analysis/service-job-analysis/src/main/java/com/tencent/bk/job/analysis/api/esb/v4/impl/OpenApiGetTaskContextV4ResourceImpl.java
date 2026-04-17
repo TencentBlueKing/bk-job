@@ -50,6 +50,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 @Slf4j
 @RestController
@@ -90,33 +91,34 @@ public class OpenApiGetTaskContextV4ResourceImpl implements OpenApiGetTaskContex
         TaskContext taskContext = taskContextService.getTaskContext(username, contextQuery);
         ScriptTaskContext scriptTaskContext = taskContext.getScriptTaskContext();
 
+        Function<String, String> i18n = messageI18nService::getI18n;
         List<TaskContextField> fieldList = new ArrayList<>();
         fieldList.add(new TaskContextField(
             "scriptType",
             ScriptTypeEnum.getName(scriptTaskContext.getScriptType()),
-            "脚本类型"
+            i18n
         ));
         fieldList.add(new TaskContextField(
             "scriptContent",
             scriptTaskContext.getScriptContent(),
-            "脚本内容"
+            i18n
         ));
         fieldList.add(new TaskContextField(
             "secureParam",
             String.valueOf(scriptTaskContext.isSecureParam()),
-            "脚本参数是否为敏感参数"
+            i18n
         ));
         fieldList.add(new TaskContextField(
             "scriptParams",
             scriptTaskContext.getInsensitiveScriptParamsStr(),
-            "脚本参数"
+            i18n
         ));
 
         String errorLog = resolveScriptErrorLog(request.getContent(), taskContext, contextQuery);
         fieldList.add(new TaskContextField(
             "errorLog",
             errorLog,
-            "报错信息"
+            i18n
         ));
 
         TaskContextForSingleExecuteObjectDTO context = new TaskContextForSingleExecuteObjectDTO();
@@ -182,21 +184,22 @@ public class OpenApiGetTaskContextV4ResourceImpl implements OpenApiGetTaskContex
         TaskContext taskContext = taskContextService.getTaskContext(username, contextQuery);
         FileTaskContext fileTaskContext = taskContext.getFileTaskContext();
 
+        Function<String, String> i18n = messageI18nService::getI18n;
         List<TaskContextField> fieldList = new ArrayList<>();
         fieldList.add(new TaskContextField(
             "errorSource",
             messageI18nService.getI18n(fileTaskContext.getFileTaskErrorSourceI18nKey()),
-            "文件任务错误根源"
+            i18n
         ));
         fieldList.add(new TaskContextField(
             "uploadFileErrorData",
             fileTaskContext.getUploadFileErrorData(),
-            "源文件上传失败的机器与报错信息"
+            i18n
         ));
         fieldList.add(new TaskContextField(
             "downloadFileErrorData",
             fileTaskContext.getDownloadFileErrorData(),
-            "目标机器下载失败的机器与报错信息"
+            i18n
         ));
 
         TaskContextForSingleExecuteObjectDTO context = new TaskContextForSingleExecuteObjectDTO();
