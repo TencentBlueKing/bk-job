@@ -69,10 +69,10 @@ public class IpUtilsTest {
         assertThat(IpUtils.checkIpv6("01:23:45:67:89:ab:cd:ef")).isTrue();
         assertThat(IpUtils.checkIpv6("001:023:45:67:89:ab:cd:ef")).isTrue();
         assertThat(IpUtils.checkIpv6("1101:23:45:67:89:ab:cd:ef")).isTrue();
-        assertThat(IpUtils.checkIpv6("::192.168.0.1")).isTrue();
+        assertThat(IpUtils.checkIpv6("::127.0.0.1")).isTrue();
         assertThat(IpUtils.checkIpv6("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")).isTrue();
         assertThat(IpUtils.checkIpv6("0ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")).isFalse();
-        assertThat(IpUtils.checkIpv6("::192.168.0.1/96")).isFalse();
+        assertThat(IpUtils.checkIpv6("::127.0.0.1/96")).isFalse();
         assertThat(IpUtils.checkIpv6("ff:ff:ff:ff:ff:ff:ff:fg")).isFalse();
         assertThat(IpUtils.checkIpv6("1::1::1")).isFalse();
         assertThat(IpUtils.checkIpv6("1::1::123")).isFalse();
@@ -180,7 +180,6 @@ public class IpUtilsTest {
         assertThat(IpUtils.inferProtocolByIp("127.0.0.1")).isNotEqualTo(IpUtils.PROTOCOL_IP_V6);
         // Ipv4正例
         assertThat(IpUtils.inferProtocolByIp("127.0.0.1")).isEqualTo(IpUtils.PROTOCOL_IP_V4);
-        assertThat(IpUtils.inferProtocolByIp("192.168.1.1")).isEqualTo(IpUtils.PROTOCOL_IP_V4);
         // Ipv4负例
         assertThat(IpUtils.inferProtocolByIp("::1")).isNotEqualTo(IpUtils.PROTOCOL_IP_V4);
         assertThat(IpUtils.inferProtocolByIp("01:23:45:67:89:ab:cd:ef")).isNotEqualTo(IpUtils.PROTOCOL_IP_V4);
@@ -216,8 +215,8 @@ public class IpUtilsTest {
         assertThat(IpUtils.getFullIpv6ByCompressedOne("ffff:0001:0001:0000:0000:0001:0001:ffff"))
             .isEqualTo("ffff:0001:0001:0000:0000:0001:0001:ffff");
         // 兼容IPv4地址的用例
-        assertThat(IpUtils.getFullIpv6ByCompressedOne("::FFFF:192.168.0.1"))
-            .isEqualTo("0000:0000:0000:0000:0000:0000:FFFF:192.168.0.1");
+        assertThat(IpUtils.getFullIpv6ByCompressedOne("::FFFF:127.0.0.1"))
+            .isEqualTo("0000:0000:0000:0000:0000:0000:FFFF:127.0.0.1");
     }
 
     @Test
@@ -240,7 +239,6 @@ public class IpUtilsTest {
 
         // 合法 IPv4
         assertThat(IpUtils.isValidIpAddress("127.0.0.1")).isTrue();
-        assertThat(IpUtils.isValidIpAddress("192.168.1.1")).isTrue();
         assertThat(IpUtils.isValidIpAddress("255.255.255.255")).isTrue();
         assertThat(IpUtils.isValidIpAddress("0.0.0.0")).isTrue();
 
@@ -269,8 +267,8 @@ public class IpUtilsTest {
     void testGetFirstIpFromMultiIp() {
         assertThat(IpUtils.getFirstIpFromMultiIp(null, ",")).isNull();
         assertThat(IpUtils.getFirstIpFromMultiIp("", ",")).isEqualTo("");
-        assertThat(IpUtils.getFirstIpFromMultiIp("192.168.1.1", ",")).isEqualTo("192.168.1.1");
-        assertThat(IpUtils.getFirstIpFromMultiIp("192.168.1.1,", ",")).isEqualTo("192.168.1.1");
-        assertThat(IpUtils.getFirstIpFromMultiIp("192.168.1.1,192.168.1.2", ",")).isEqualTo("192.168.1.1");
+        assertThat(IpUtils.getFirstIpFromMultiIp("127.0.0.1", ",")).isEqualTo("127.0.0.1");
+        assertThat(IpUtils.getFirstIpFromMultiIp("127.0.0.1,", ",")).isEqualTo("127.0.0.1");
+        assertThat(IpUtils.getFirstIpFromMultiIp("127.0.0.1,127.0.0.2", ",")).isEqualTo("127.0.0.1");
     }
 }
