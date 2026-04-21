@@ -247,7 +247,7 @@ public class BizCmdbClient extends BaseCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public InstanceTopologyDTO getBizInstTopology(String tenantId, long bizId) {
+    public InstanceTopologyDTO getBizInstTopologyPreferCache(String tenantId, long bizId) {
         return getCachedBizInstCompleteTopology(tenantId, bizId);
     }
 

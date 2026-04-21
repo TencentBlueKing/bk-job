@@ -88,9 +88,9 @@ public class RetryableBizCmdbClient implements IBizCmdbClient {
     }
 
     @Override
-    public InstanceTopologyDTO getBizInstTopology(String tenantId, long bizId) {
+    public InstanceTopologyDTO getBizInstTopologyPreferCache(String tenantId, long bizId) {
         return retryExecutor.executeWithRetry(
-            () -> delegate.getBizInstTopology(tenantId, bizId),
+            () -> delegate.getBizInstTopologyPreferCache(tenantId, bizId),
             "getBizInstTopology"
         );
     }

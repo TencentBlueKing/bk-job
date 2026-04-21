@@ -56,7 +56,7 @@ public class BizTopoServiceImpl implements BizTopoService {
                                                              Long bizId,
                                                              List<InstanceTopologyDTO> nodeList) {
         // 查业务拓扑树
-        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(tenantId, bizId);
+        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopologyPreferCache(tenantId, bizId);
         // 搜索路径
         return TopologyHelper.findTopoPaths(appTopologyTree, nodeList);
     }
@@ -78,7 +78,7 @@ public class BizTopoServiceImpl implements BizTopoService {
         }
         List<Long> moduleIds = new ArrayList<>();
         // 查业务拓扑树
-        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopology(tenantId, bizId);
+        InstanceTopologyDTO appTopologyTree = bizCmdbClient.getBizInstTopologyPreferCache(tenantId, bizId);
         for (BizTopoNode treeNode : appTopoNodeList) {
             CcInstanceDTO ccInstanceDTO = new CcInstanceDTO(treeNode.getObjectId(), treeNode.getInstanceId());
             // 查拓扑节点完整信息
