@@ -81,7 +81,7 @@ public class HostTopoPathServiceImpl implements HostTopoPathService {
         Map<Long, String> setNameMap = new HashMap<>();
         Map<Long, String> moduleNameMap = new HashMap<>();
         try {
-            InstanceTopologyDTO topoTree = bizCmdbClient.getBizInstCompleteTopology(tenantId, bizId);
+            InstanceTopologyDTO topoTree = bizCmdbClient.getBizInstTopologyPreferCache(tenantId, bizId);
             if (topoTree != null) {
                 extractNodeNames(topoTree, setNameMap, moduleNameMap);
             }
