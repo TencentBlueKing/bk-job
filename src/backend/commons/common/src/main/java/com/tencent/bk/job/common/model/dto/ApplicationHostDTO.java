@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.tencent.bk.job.common.model.vo.HostTopoPathVO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -162,6 +163,12 @@ public class ApplicationHostDTO {
      */
     private List<String> ipList = new ArrayList<>();
 
+    /**
+     * 主机所属拓扑路径信息（用于传递给前端展示）
+     */
+    @JsonIgnore
+    private List<HostTopoPathVO> topoPathList;
+
     public String getCloudVendorId() {
         if (cloudVendorId != null && cloudVendorId.length() > 64) {
             return cloudVendorId.substring(0, 64);
@@ -234,6 +241,7 @@ public class ApplicationHostDTO {
         hostInfoVO.setAlive(getAgentAliveValue());
         hostInfoVO.setAgentId(agentId);
         hostInfoVO.setCloudVendorName(cloudVendorName);
+        hostInfoVO.setTopoPathList(topoPathList);
         return hostInfoVO;
     }
 
