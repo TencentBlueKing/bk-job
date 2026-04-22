@@ -46,11 +46,9 @@
             <div class="sync-layout">
               <div class="sync-before block-title">
                 {{ $t('template.全局变量_label') }}
-                <span class="global-variable-tips">{{ $t('template.全局变量的 “初始值” 不会被同步到执行方案') }}</span>
               </div>
               <div class="sync-after block-title">
                 {{ $t('template.全局变量_label') }}
-                <span class="global-variable-tips">{{ $t('template.全局变量的 “初始值” 不会被同步到执行方案') }}</span>
               </div>
             </div>
             <div

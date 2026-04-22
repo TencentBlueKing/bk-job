@@ -72,6 +72,7 @@ export default class GlobalVariable {
     this.value = payload.value || '';
     this.targetValue = new ExecuteTargetModel(payload.targetValue || {});
     this.followTemplate = payload.followTemplate || 0;  // 变量值是否跟随作业模版
+    this.defaultValueHash = payload.defaultValueHash || '';  // 主要用于判断密码值是否变更
   }
 
   /**
