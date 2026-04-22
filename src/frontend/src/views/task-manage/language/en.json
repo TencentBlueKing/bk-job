@@ -430,7 +430,7 @@
   "更新值": "New value",
   "编辑成功": "Edit successfully",
   "暂无全局变量": "No global variable found",
-  "所选执行方案，无变量值可编辑": "No global variable found",
+  "所选执行方案，无变量值可编辑": "No global variable found or all variable values follow the job",
   "更新范围": "Selected",
   "已选": "",
   "个执行方案，": "Job plan(s) ",

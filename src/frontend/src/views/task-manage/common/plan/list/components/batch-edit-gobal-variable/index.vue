@@ -217,7 +217,9 @@
           this.planList = Object.freeze(data);
           // eslint-disable-next-line no-plusplus
           for (let i = 0; i < this.planList.length; i++) {
-            if (this.planList[i].variableList.length > 0) {
+            // 当前不是跟随作业模板的
+            const list = this.planList[i].variableList.filter(variable => variable.followTemplate !== 1);
+            if (list.length > 0) {
               this.isGlobalVariableNotEmpty = true;
               break;
             }

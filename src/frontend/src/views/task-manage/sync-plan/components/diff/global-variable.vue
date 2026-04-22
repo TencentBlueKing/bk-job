@@ -56,6 +56,12 @@
             :name="data.name" />
         </div>
       </template>
+      <template v-else-if="data.isPassword">
+        <div :class="diffValue.defaultValueHash">
+          <span class="label">{{ $t('template.变量值：') }}</span>
+          <span class="value">{{ data.valueText }}</span>
+        </div>
+      </template>
       <template v-else>
         <div :class="diffValue.defaultValue">
           <span class="label">{{ $t('template.变量值：') }}</span>

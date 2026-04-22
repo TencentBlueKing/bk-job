@@ -75,7 +75,7 @@ const compare = (pre, next, keys = []) => {
 };
 
 const patchVariable = (pre, next) => compare(pre, next, [
-  'name', 'type', 'defaultValue', 'defaultTargetValue', 'description', 'changeable', 'required',
+  'name', 'type', 'defaultValue', 'defaultTargetValue', 'description', 'changeable', 'required', 'defaultValueHash',
 ]);
 
 const patchStep = (pre, next) => {
