@@ -108,13 +108,13 @@
         }).then(({ templateInfo, planInfo }) => {
           // 变量值不会同步
           // 对比展示时以执行方案的变量值为准
-
           const planVariableMap = {};
           planInfo.variableList.forEach((variable) => {
             variable.realId = variable.id;
             planVariableMap[variable.realId] = {
               defaultTargetValue: variable.defaultTargetValue,
               defaultValue: variable.defaultValue,
+              followTemplate: variable.followTemplate,
             };
           });
           planInfo.stepList.forEach((step) => {
@@ -124,7 +124,9 @@
 
           templateInfo.variables.forEach((variable) => {
             variable.realId = variable.id;
-            if (planVariableMap[variable.realId]) {
+            // 当前全局变量属性是否跟随作业
+            const isFollowTemplate = planVariableMap[variable.realId]?.followTemplate ?? 0;
+            if (planVariableMap[variable.realId] && isFollowTemplate === 0) {
               variable.defaultTargetValue = planVariableMap[variable.realId].defaultTargetValue;
               variable.defaultValue = planVariableMap[variable.realId].defaultValue;
             }
