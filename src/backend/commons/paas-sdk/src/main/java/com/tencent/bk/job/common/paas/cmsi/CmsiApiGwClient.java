@@ -44,6 +44,7 @@ import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
 import com.tencent.bk.job.common.paas.model.cmsi.req.CmsiSendMsgV1BasicReq;
 import com.tencent.bk.job.common.paas.model.cmsi.req.SendMailV1Req;
 import com.tencent.bk.job.common.paas.model.cmsi.req.SendSmsV1Req;
+import com.tencent.bk.job.common.paas.model.cmsi.req.SendRtxV1Req;
 import com.tencent.bk.job.common.paas.model.cmsi.req.SendVoiceV1Req;
 import com.tencent.bk.job.common.paas.model.cmsi.req.SendWxV1Req;
 import com.tencent.bk.job.common.paas.model.cmsi.resp.ApiGwCmsiChannelResp;
@@ -72,6 +73,7 @@ public class CmsiApiGwClient extends BkApiV2Client implements ICmsiClient {
     private static final String API_SEND_SMS = "/v1/send_sms/";
     private static final String API_SEND_VOICE = "/v1/send_voice/";
     private static final String API_SEND_WEIXIN = "/v1/send_weixin/";
+    private static final String API_SEND_RTX = "/v1/send_rtx/";
 
     private final AppProperties appProperties;
     private final IVirtualAdminAccountProvider virtualAdminAccountProvider;
@@ -119,7 +121,11 @@ public class CmsiApiGwClient extends BkApiV2Client implements ICmsiClient {
         } else if (NotifyChannelEnum.isWeixin(msgType)) {
             req = buildSendWxReq(notifyMessageDTO);
             uri = API_SEND_WEIXIN;
+        } else if (NotifyChannelEnum.isRtx(msgType)) {
+            req = buildSendRtxReq(notifyMessageDTO);
+            uri = API_SEND_RTX;
         } else {
+            log.warn("Unknown channel type: {}", msgType);
             // 未定义的渠道
             throw new InternalException(ErrorCode.CMSI_UNKNOWN_CHANNEL, new Object[]{msgType});
         }
@@ -205,5 +211,9 @@ public class CmsiApiGwClient extends BkApiV2Client implements ICmsiClient {
 
     private SendWxV1Req buildSendWxReq(NotifyMessageDTO notifyMessageDTO) {
         return SendWxV1Req.fromNotifyMessageDTO(notifyMessageDTO);
+    }
+
+    private SendRtxV1Req buildSendRtxReq(NotifyMessageDTO notifyMessageDTO) {
+        return SendRtxV1Req.fromNotifyMessageDTO(notifyMessageDTO);
     }
 }
