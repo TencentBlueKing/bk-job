@@ -509,6 +509,16 @@ job:
 （3）观察系统功能正常后，将job.encrypt.oldDataPasswordRotation.enabled配置为true，开启存量加密数据密码轮换后台任务。  
 （4）通过各服务（涉及job-backup、job-crontab、job-manage、job-execute这四个服务）日志（容器内/data/logs/job-xxx/job-xxx.log）可观察密码轮换进度，关键命令为grep -E "password-rotation|PasswordRotation"，此外，观察数据库job_backup/job_crontab/job_manage/job_execute（可选）库中crypto_password_rotation_progress表的数据，status字段全部为DONE则表示密码轮换完成，下一次部署时即可去除job.encrypt.usedPasswords中的旧密码并关闭存量加密数据密码轮换后台任务。  
 
+7.**服务间调用 RSA 密钥**：移除 chart 内嵌的社区版默认 `privateKeyBase64` / `publicKeyBase64`，默认值改为空字符串；部署前**必须**自行生成并填入，否则服务间 JWT 校验无法工作。注释中已标明生成方式。
+```yaml
+job:
+  security:
+    # base64编码的服务间调用私钥(可以通过op-tools/service-rsa-keypair/generate_service_rsa_keys.py工具生成)
+    privateKeyBase64: ""
+    # base64编码的服务间调用公钥(可以通过op-tools/service-rsa-keypair/generate_service_rsa_keys.py工具生成)
+    publicKeyBase64: ""
+```
+
 ## 0.7.3
 1. 增加连接外部MariaDB、Redis、RabbitMQ、MongoDB支持TLS相关配置
 ```yaml
