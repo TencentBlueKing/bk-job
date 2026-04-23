@@ -105,8 +105,8 @@ bitnami/rabbitmq
 ### 作业平台公共配置
 |参数|描述|默认值 |
 |---|---|---|
-| `job.security.privateKeyBase64`    | 服务间调用privateKey的Base64编码    | ``       |
-| `job.security.publicKeyBase64`    | 服务间调用publicKey的Base64编码    | ``       |
+| `job.security.privateKeyBase64`    | 服务间调用私钥的Base64编码（整段PEM再Base64，可通过 op-tools/service-rsa-keypair/generate_service_rsa_keys.py 生成）    | ``       |
+| `job.security.publicKeyBase64`    | 服务间调用公钥的Base64编码（整段PEM再Base64，可通过 op-tools/service-rsa-keypair/generate_service_rsa_keys.py 生成）    | ``       |
 | `job.security.actuator.user.name`    | actuator管理账号    | `actuator_name`       |
 | `job.security.actuator.user.password`    | actuator管理密码    | `actuator_password`       |
 | `job.encrypt.password`    | 加密DB密码/凭证的对称密钥    | `encrypt_password`       |
