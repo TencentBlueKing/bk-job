@@ -329,6 +329,11 @@ public class ApplicationHostDTO {
         host.setOsType(osType);
         host.setOsTypeName(osTypeName);
         host.setHostname(hostName);
+        if (CollectionUtils.isNotEmpty(topoPathList)) {
+            host.setTopoPathList(topoPathList.stream()
+                .map(p -> new HostTopoPathDTO(p.getSetName(), p.getModuleName()))
+                .collect(Collectors.toList()));
+        }
         return host;
     }
 
