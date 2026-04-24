@@ -29,6 +29,7 @@ import com.tencent.bk.audit.annotations.AuditInstanceRecord;
 import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -54,6 +55,7 @@ import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanBasicInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.service.AbstractTaskStepService;
@@ -1065,8 +1067,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         boolean needUpdatePlanVersion = followTemplateVars.stream()
             .anyMatch(variable -> {
                 TaskVariableDTO templateVar = templateVarMap.get(variable.getId());
-                return templateVar != null
-                    && !Objects.equals(templateVar.getDefaultValue(), variable.getDefaultValue());
+                return templateVar != null && isVariableValueChanged(templateVar, variable);
             });
 
         if (needUpdatePlanVersion) {
@@ -1143,11 +1144,39 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                 continue;
             }
 
-            if (!Objects.equals(templateVar.getDefaultValue(), planVar.getDefaultValue())) {
+            if (isVariableValueChanged(templateVar, planVar)) {
                 needModifiedPlanIds.add(planVar.getPlanId());
             }
         }
         return needModifiedPlanIds;
+    }
+
+    /**
+     * 判断作业全局变量值是否一致
+     */
+    private boolean isVariableValueChanged(TaskVariableDTO templateVar, TaskVariableDTO planVar) {
+        if (templateVar.getType() == planVar.getType()
+            && TaskVariableTypeEnum.EXECUTE_OBJECT_LIST == templateVar.getType()) {
+            return !sameHostIds(templateVar.getDefaultValue(), planVar.getDefaultValue());
+        }
+        return !Objects.equals(templateVar.getDefaultValue(), planVar.getDefaultValue());
+    }
+
+    private boolean sameHostIds(String templateValue, String planValue) {
+        return extractHostIds(templateValue).equals(extractHostIds(planValue));
+    }
+
+    private Set<Long> extractHostIds(String targetValue) {
+        TaskTargetDTO taskTarget = TaskTargetDTO.fromJsonString(targetValue);
+        if (taskTarget == null
+            || taskTarget.getHostNodeList() == null
+            || CollectionUtils.isEmpty(taskTarget.getHostNodeList().getHostList())) {
+            return Collections.emptySet();
+        }
+        return taskTarget.getHostNodeList().getHostList().stream()
+            .map(host -> host == null ? null : host.getHostId())
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
     }
 
     private void checkTemplateExist(Long appId, Long templateId) {
