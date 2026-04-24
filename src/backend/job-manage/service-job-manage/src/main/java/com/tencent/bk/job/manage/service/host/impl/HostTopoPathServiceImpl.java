@@ -97,7 +97,7 @@ public class HostTopoPathServiceImpl implements HostTopoPathService {
             }
             List<HostTopoPathDTO> topoPathList = new ArrayList<>();
             for (HostTopoDTO topoRelation : topoRelations) {
-                // 拓扑树种不存在的主机可能为IP白名单主机，不展示其拓扑路径
+                // 拓扑树中不存在的主机可能为IP白名单主机，不展示其拓扑路径
                 String setName = setNameMap.getOrDefault(
                     topoRelation.getSetId(),
                     "-"
