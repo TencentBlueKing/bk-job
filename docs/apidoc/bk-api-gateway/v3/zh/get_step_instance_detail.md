@@ -58,7 +58,7 @@
                         "bk_host_id": 1,
                         "bk_cloud_id": 0,
                         "bk_cloud_name": "Default Area",
-                        "ip": "192.168.1.1",
+                        "ip": "127.0.0.1",
                         "bk_agent_id": "020000000052540079809816967513755991",
                         "alive": 1
                     }
@@ -93,7 +93,7 @@
                                     "bk_host_id": 1,
                                     "bk_cloud_id": 0,
                                     "bk_cloud_name": "Default Area",
-                                    "ip": "192.168.1.1",
+                                    "ip": "127.0.0.1",
                                     "ipv6": null,
                                     "bk_agent_id": "020000000052540079809816967513755991",
                                     "alive": 1
@@ -131,7 +131,7 @@
                             "bk_host_id": 1,
                             "bk_cloud_id": 0,
                             "bk_cloud_name": "Default Area",
-                            "ip": "192.168.1.1",
+                            "ip": "127.0.0.1",
                             "ipv6": null,
                             "bk_agent_id": "020000000052540079809816967513755991",
                             "alive": 1

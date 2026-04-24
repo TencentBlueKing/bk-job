@@ -76,7 +76,7 @@
                   </div>
                 </td>
                 <td>{{ $t('源服务器IP') }}</td>
-                <td>0_192.168.0.100</td>
+                <td>0_127.0.0.100</td>
               </tr>
               <tr>
                 <td @click="handleCopy('[DATE:yyyy-MM-dd]')">
