@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.execute.api.inner;
 
-import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -34,8 +33,6 @@ import com.tencent.bk.job.common.model.iam.AuthResultDTO;
 import com.tencent.bk.job.common.paas.user.UserLocalCache;
 import com.tencent.bk.job.execute.dao.FileExecuteObjectTaskDAO;
 import com.tencent.bk.job.execute.dao.ScriptExecuteObjectTaskDAO;
-import com.tencent.bk.job.execute.engine.model.ExecuteObject;
-import com.tencent.bk.job.execute.model.ExecuteObjectCompositeKey;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceStepInstanceDTO;
 import com.tencent.bk.job.execute.service.StepInstanceService;

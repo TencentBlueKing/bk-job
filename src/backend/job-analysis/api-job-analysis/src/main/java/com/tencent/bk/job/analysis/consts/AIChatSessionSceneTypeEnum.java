@@ -57,4 +57,11 @@ public enum AIChatSessionSceneTypeEnum {
     public static boolean isValid(int value) {
         return valOf(value) != null;
     }
+
+    /**
+     * 该场景是否必须提供 sceneResourceId（与校验逻辑一致）
+     */
+    public boolean requiresSceneResourceId() {
+        return this == TASK_ERROR_ANALYSIS || this == SCRIPT_MANAGEMENT;
+    }
 }

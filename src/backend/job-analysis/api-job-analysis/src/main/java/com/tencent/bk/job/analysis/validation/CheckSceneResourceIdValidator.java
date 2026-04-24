@@ -24,31 +24,26 @@
 
 package com.tencent.bk.job.analysis.validation;
 
+import com.tencent.bk.job.analysis.consts.AIChatSessionSceneTypeEnum;
 import com.tencent.bk.job.analysis.model.web.req.SaveAIChatSessionReq;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Set;
-
 /**
- * 当 sceneType 属于需要资源标识的场景（任务报错分析=1, 脚本管理=2）时，
+ * 当 sceneType 属于需要资源标识的场景（任务报错分析、脚本管理）时，
  * sceneResourceId 不允许为空白。
  */
 public class CheckSceneResourceIdValidator
     implements ConstraintValidator<CheckSceneResourceId, SaveAIChatSessionReq> {
-
-    /**
-     * 需要 sceneResourceId 的场景类型集合
-     */
-    private static final Set<Integer> SCENE_TYPES_REQUIRING_RESOURCE_ID = Set.of(1, 2);
 
     @Override
     public boolean isValid(SaveAIChatSessionReq req, ConstraintValidatorContext context) {
         if (req == null || req.getSceneType() == null) {
             return true;
         }
-        if (SCENE_TYPES_REQUIRING_RESOURCE_ID.contains(req.getSceneType())) {
+        AIChatSessionSceneTypeEnum sceneType = AIChatSessionSceneTypeEnum.valOf(req.getSceneType());
+        if (sceneType != null && sceneType.requiresSceneResourceId()) {
             return StringUtils.isNotBlank(req.getSceneResourceId());
         }
         return true;
