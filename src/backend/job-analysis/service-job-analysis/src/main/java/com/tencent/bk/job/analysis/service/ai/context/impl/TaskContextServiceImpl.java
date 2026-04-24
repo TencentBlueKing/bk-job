@@ -29,6 +29,7 @@ import com.tencent.bk.job.analysis.service.ai.context.model.ScriptTaskContext;
 import com.tencent.bk.job.analysis.service.ai.context.model.TaskContext;
 import com.tencent.bk.job.analysis.service.ai.context.model.TaskContextQuery;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.exception.InvalidParamException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
@@ -72,20 +73,49 @@ public class TaskContextServiceImpl implements TaskContextService {
             contextQuery.getTaskInstanceId(),
             contextQuery.getStepInstanceId()
         );
-        if (resp.isSuccess()) {
-            ServiceStepInstanceDTO stepInstance = resp.getData();
-            if (stepInstance.isScriptStep()) {
-                return buildContextForScriptTask(stepInstance);
-            } else if (stepInstance.isFileStep()) {
-                return fileTaskContextService.getTaskContext(stepInstance, contextQuery);
-            } else {
-                throw new InvalidParamException(ErrorCode.AI_ANALYZE_ERROR_ONLY_SUPPORT_SCRIPT_OR_FILE_STEP);
-            }
-        }
         if (resp.getAuthResult() != null && !resp.getAuthResult().isPass()) {
             throw new PermissionDeniedException(AuthResult.fromAuthResultDTO(resp.getAuthResult()));
         }
-        throw new ServiceException(resp.getErrorMsg(), ErrorType.valOf(resp.getErrorType()), resp.getCode());
+        if (!resp.isSuccess()) {
+            throw new ServiceException(resp.getErrorMsg(), ErrorType.valOf(resp.getErrorType()), resp.getCode());
+        }
+        ServiceStepInstanceDTO stepInstance = resp.getData();
+        if (!stepInstance.isScriptStep() && !stepInstance.isFileStep()) {
+            throw new InvalidParamException(ErrorCode.AI_ANALYZE_ERROR_ONLY_SUPPORT_SCRIPT_OR_FILE_STEP);
+        }
+
+        try {
+            ExecuteObjectTypeEnum.valOf(contextQuery.getExecuteObjectType());
+        } catch (IllegalArgumentException ignored) {
+            throw new InvalidParamException(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME,
+                new Object[]{"execute_object_type"});
+        }
+
+        InternalResponse<Boolean> existsResp = serviceStepInstanceResource.executeObjectTaskExists(
+            contextQuery.getAppId(),
+            contextQuery.getTaskInstanceId(),
+            contextQuery.getStepInstanceId(),
+            contextQuery.getExecuteCount(),
+            contextQuery.getBatch(),
+            contextQuery.getExecuteObjectType(),
+            contextQuery.getExecuteObjectResourceId(),
+            stepInstance.isFileStep() ? contextQuery.getMode() : null
+        );
+        if (!existsResp.isSuccess()) {
+            throw new ServiceException(
+                existsResp.getErrorMsg(),
+                ErrorType.valOf(existsResp.getErrorType()),
+                existsResp.getCode()
+            );
+        }
+        if (!Boolean.TRUE.equals(existsResp.getData())) {
+            throw new InvalidParamException(ErrorCode.TASK_CONTEXT_TARGET_EXECUTE_OBJECT_NOT_EXIST);
+        }
+
+        if (stepInstance.isScriptStep()) {
+            return buildContextForScriptTask(stepInstance);
+        }
+        return fileTaskContextService.getTaskContext(stepInstance, contextQuery);
     }
 
     /**

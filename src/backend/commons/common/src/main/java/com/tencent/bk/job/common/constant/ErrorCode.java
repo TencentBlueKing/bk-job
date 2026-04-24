@@ -550,5 +550,7 @@ public class ErrorCode {
     public static final int AI_ANALYZE_ERROR_CONTENT_EXCEED_MAX_LENGTH = 1264002;
     // AI对话记录不存在：id={0}
     public static final int AI_CHAT_HISTORY_NOT_FOUND_BY_ID = 1264003;
+    // 目标执行对象不存在，请检查任务及执行对象参数是否正确
+    public static final int TASK_CONTEXT_TARGET_EXECUTE_OBJECT_NOT_EXIST = 1264004;
     // 统计分析服务job-analysis错误码 end
 }
