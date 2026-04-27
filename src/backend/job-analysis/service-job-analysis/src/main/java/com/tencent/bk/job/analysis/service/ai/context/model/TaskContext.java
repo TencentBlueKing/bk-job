@@ -45,6 +45,10 @@ public class TaskContext {
      */
     private Integer status;
     /**
+     * 步骤创建时间
+     */
+    private Long stepCreateTime;
+    /**
      * 脚本任务上下文
      */
     private ScriptTaskContext scriptTaskContext;

@@ -111,4 +111,23 @@ public class LogUtil {
     public static String getOutputLog(String prefix, Object... args) {
         return (prefix + "Output(" + joinBySeparator(",", args) + ")");
     }
+
+    /**
+     * 截取文本末尾，保留最多 maxChars 个字符；若发生截断，去掉开头的不完整行（即从第一个换行符之后开始）。
+     *
+     * @param text     原始文本
+     * @param maxChars 最大保留字符数，必须 > 0
+     * @return 截取后的文本；若未超限则原样返回；输入为 null 则返回 null
+     */
+    public static String tailLog(String text, int maxChars) {
+        if (text == null || text.length() <= maxChars) {
+            return text;
+        }
+        String tail = text.substring(text.length() - maxChars);
+        int firstNewline = tail.indexOf('\n');
+        if (firstNewline >= 0 && firstNewline < tail.length() - 1) {
+            return tail.substring(firstNewline + 1);
+        }
+        return tail;
+    }
 }

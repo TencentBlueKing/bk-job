@@ -25,15 +25,19 @@
 package com.tencent.bk.job.execute.api.inner;
 
 import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.model.iam.AuthResultDTO;
 import com.tencent.bk.job.common.paas.user.UserLocalCache;
+import com.tencent.bk.job.execute.dao.FileExecuteObjectTaskDAO;
+import com.tencent.bk.job.execute.dao.ScriptExecuteObjectTaskDAO;
 import com.tencent.bk.job.execute.model.StepInstanceDTO;
 import com.tencent.bk.job.execute.model.inner.ServiceStepInstanceDTO;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
+import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import com.tencent.bk.job.manage.remote.RemoteAppService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +50,8 @@ public class ServiceStepInstanceResourceImpl implements ServiceStepInstanceResou
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final StepInstanceService stepInstanceService;
     private final RemoteAppService remoteAppService;
+    private final ScriptExecuteObjectTaskDAO scriptExecuteObjectTaskDAO;
+    private final FileExecuteObjectTaskDAO fileExecuteObjectTaskDAO;
 
     private final UserLocalCache userCache;
 
@@ -53,11 +59,15 @@ public class ServiceStepInstanceResourceImpl implements ServiceStepInstanceResou
     public ServiceStepInstanceResourceImpl(TaskInstanceAccessProcessor taskInstanceAccessProcessor,
                                            StepInstanceService stepInstanceService,
                                            UserLocalCache userCache,
-                                           RemoteAppService remoteAppService) {
+                                           RemoteAppService remoteAppService,
+                                           ScriptExecuteObjectTaskDAO scriptExecuteObjectTaskDAO,
+                                           FileExecuteObjectTaskDAO fileExecuteObjectTaskDAO) {
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
         this.stepInstanceService = stepInstanceService;
         this.userCache = userCache;
         this.remoteAppService = remoteAppService;
+        this.scriptExecuteObjectTaskDAO = scriptExecuteObjectTaskDAO;
+        this.fileExecuteObjectTaskDAO = fileExecuteObjectTaskDAO;
     }
 
     @Override
@@ -79,6 +89,43 @@ public class ServiceStepInstanceResourceImpl implements ServiceStepInstanceResou
         } catch (PermissionDeniedException e) {
             AuthResultDTO authResult = AuthResult.toAuthResultDTO(e.getAuthResult());
             return InternalResponse.buildAuthFailResp(authResult);
+        }
+    }
+
+    @Override
+    public InternalResponse<Boolean> executeObjectTaskExists(Long appId,
+                                                             Long taskInstanceId,
+                                                             Long stepInstanceId,
+                                                             Integer executeCount,
+                                                             Integer batch,
+                                                             Integer executeObjectType,
+                                                             Long executeObjectResourceId,
+                                                             Integer fileTaskMode) {
+        try {
+            StepInstanceDTO stepInstance = stepInstanceService.getStepInstanceDetail(
+                appId, taskInstanceId, stepInstanceId
+            );
+            String executeObjId = executeObjectType + ":" + executeObjectResourceId;
+            boolean exists;
+            if (stepInstance.isScriptStep()) {
+                exists = scriptExecuteObjectTaskDAO.existsTaskByExecuteObjectId(
+                    taskInstanceId, stepInstanceId, executeCount, batch, executeObjId
+                );
+            } else if (stepInstance.isFileStep()) {
+                FileTaskModeEnum modeEnum = FileTaskModeEnum.getFileTaskMode(fileTaskMode);
+                if (modeEnum == null) {
+                    log.warn("Invalid file task mode: {}", fileTaskMode);
+                    return InternalResponse.buildSuccessResp(false);
+                }
+                exists = fileExecuteObjectTaskDAO.existsTaskByExecuteObjectId(
+                    taskInstanceId, stepInstanceId, executeCount, batch, modeEnum, executeObjId
+                );
+            } else {
+                return InternalResponse.buildSuccessResp(false);
+            }
+            return InternalResponse.buildSuccessResp(exists);
+        } catch (ServiceException e) {
+            return InternalResponse.buildCommonFailResp(e);
         }
     }
 }

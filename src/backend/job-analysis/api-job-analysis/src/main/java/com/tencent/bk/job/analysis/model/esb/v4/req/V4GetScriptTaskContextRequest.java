@@ -1,0 +1,68 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 Tencent.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+package com.tencent.bk.job.analysis.model.esb.v4.req;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
+import lombok.Getter;
+import lombok.Setter;
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+
+@Getter
+@Setter
+public class V4GetScriptTaskContextRequest extends EsbAppScopeReq {
+
+    @JsonProperty("job_instance_id")
+    @NotNull(message = "{validation.constraints.InvalidJobInstanceId.message}")
+    @Min(value = 1L, message = "{validation.constraints.InvalidJobInstanceId.message}")
+    private Long taskInstanceId;
+
+    @JsonProperty("step_instance_id")
+    @NotNull(message = "{validation.constraints.InvalidStepInstanceId.message}")
+    @Min(value = 1L, message = "{validation.constraints.InvalidStepInstanceId.message}")
+    private Long stepInstanceId;
+
+    @JsonProperty("execute_count")
+    @NotNull(message = "{validation.constraints.InvalidExecuteCount.message}")
+    @Min(value = 0L, message = "{validation.constraints.InvalidExecuteCount.message}")
+    private Integer executeCount;
+
+    @JsonProperty("batch")
+    private Integer batch;
+
+    @JsonProperty("execute_object_type")
+    @NotNull(message = "{validation.constraints.InvalidExecuteObjectType.message}")
+    private Integer executeObjectType;
+
+    @JsonProperty("execute_object_resource_id")
+    @NotNull(message = "{validation.constraints.InvalidExecuteObjectResourceId.message}")
+    @Min(value = 1L, message = "{validation.constraints.InvalidExecuteObjectResourceId.message}")
+    private Long executeObjectResourceId;
+
+    @JsonProperty("content")
+    private String content;
+}

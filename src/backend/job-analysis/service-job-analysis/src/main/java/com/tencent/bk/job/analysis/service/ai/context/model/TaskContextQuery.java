@@ -27,12 +27,14 @@ package com.tencent.bk.job.analysis.service.ai.context.model;
 import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteObjectVO;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
  * 任务上下文查询条件
  */
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
