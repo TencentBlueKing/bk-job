@@ -1,17 +1,17 @@
 <template>
   <div
-    class="monaco-editor-ai-tool"
+    class="ace-editor-ai-tool"
     :class="{'is-active': isActive}"
     @click="handleShow"
     @mouseenter="handleShow">
     <span ref="referRef">
       <img
         :src="aiImage"
-        style="width: 24px; cursor: pointer">
+        style="width: 24px">
     </span>
     <div
       ref="popoverContentRef"
-      class="monaco-editor-ai-tool-menu">
+      class="ace-editor-ai-tool-menu">
       <div
         class="item"
         @click="handleCheckScript">
@@ -28,7 +28,7 @@
       class="tool-tips">
       <div class="wrapper">
         <img
-          :src="aiImage"
+          :src="bluekingImage"
           style="width: 36px">
         <span class="ml-8">{{ $t('AI 脚本检查已上线！') }}</span>
       </div>
@@ -37,14 +37,23 @@
 </template>
 <script setup>
   import Tippy from 'bk-magic-vue/lib/utils/tippy';
+  import { Base64 } from 'js-base64';
   import { onBeforeUnmount, onMounted, ref } from 'vue';
+
+  import { formatScriptTypeValue } from '@utils/assist';
 
   import eventBus from '@/utils/event-bus';
 
-  const emits = defineEmits(['checkScript']);
+  const props = defineProps({
+    data: {
+      type: Object,
+      default: () => ({}),
+    },
+  });
 
   const editorAiHelperCacheKey = 'editor_ai_helper';
   const aiImage = window.__loadAssetsUrl__('/static/images/ai-01.png');
+  const bluekingImage = window.__loadAssetsUrl__('/static/images/blueking.png');
 
   const referRef = ref();
   const popoverContentRef = ref();
@@ -58,7 +67,10 @@
   };
 
   const handleCheckScript = () => {
-    emits('checkScript');
+    eventBus.$emit('ai:checkScriptVersion', {
+      script_type: formatScriptTypeValue(props.data.type),
+      script_content: Base64.decode(props.data.content || ''),
+    });
     localStorage.setItem(editorAiHelperCacheKey, true);
     showAi.value = false;
   };
@@ -71,7 +83,7 @@
 
   onMounted(() => {
     instance = Tippy(referRef.value, {
-      theme: 'dark monaco-editor-ai-tool',
+      theme: 'dark ace-editor-ai-tool',
       interactive: true,
       placement: 'bottom-start',
       content: popoverContentRef.value,
@@ -116,7 +128,7 @@
   }
 }
 
-.monaco-editor-ai-tool {
+.ace-editor-ai-tool {
   position: relative;
   display: flex;
   width: 24px;
@@ -170,7 +182,7 @@
   }
 }
 
-.monaco-editor-ai-tool-theme{
+.ace-editor-ai-tool-theme{
   width: 80px;
   padding: 8px 0;
   border: 1px solid #3D3D3D;

@@ -15,7 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@babel/runtime": "7.27.1",
-    "@blueking/ai-blueking": "0.2.11",
+    "@blueking/ai-blueking": "2.1.1-beta.7",
     "@blueking/bk-user-display-name": "1.0.1",
     "@blueking/bk-user-selector": "0.0.29-beta.8",
     "@blueking/crypto-js-sdk": "0.0.5",
