@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.api.web.impl;
 
 import com.tencent.bk.job.common.cc.model.InstanceTopologyDTO;
+import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
@@ -57,6 +58,7 @@ import com.tencent.bk.job.manage.service.agent.statistics.ScopeAgentStatisticsSe
 import com.tencent.bk.job.manage.service.agent.statistics.ScopeDynamicGroupAgentStatisticsService;
 import com.tencent.bk.job.manage.service.agent.statistics.ScopeNodeAgentStatisticsService;
 import com.tencent.bk.job.manage.service.host.HostDetailService;
+import com.tencent.bk.job.manage.service.host.HostTopoPathService;
 import com.tencent.bk.job.manage.service.host.ScopeDynamicGroupHostService;
 import com.tencent.bk.job.manage.service.host.ScopeHostService;
 import com.tencent.bk.job.manage.service.host.ScopeTopoHostService;
@@ -91,6 +93,7 @@ public class WebHostResourceImpl implements WebHostResource {
     private final ScopeAgentStatisticsService scopeAgentStatisticsService;
     private final AgentStatusService agentStatusService;
     private final HostDetailService hostDetailService;
+    private final HostTopoPathService hostTopoPathService;
     private final ScopeDynamicGroupHostService scopeDynamicGroupHostService;
     private final ScopeDynamicGroupService scopeDynamicGroupService;
 
@@ -104,6 +107,7 @@ public class WebHostResourceImpl implements WebHostResource {
                                ScopeAgentStatisticsService scopeAgentStatisticsService,
                                AgentStatusService agentStatusService,
                                HostDetailService hostDetailService,
+                               HostTopoPathService hostTopoPathService,
                                ScopeDynamicGroupHostService bizDynamicGroupHostService,
                                ScopeDynamicGroupService scopeDynamicGroupService) {
         this.scopeTopoService = scopeTopoService;
@@ -115,6 +119,7 @@ public class WebHostResourceImpl implements WebHostResource {
         this.scopeAgentStatisticsService = scopeAgentStatisticsService;
         this.agentStatusService = agentStatusService;
         this.hostDetailService = hostDetailService;
+        this.hostTopoPathService = hostTopoPathService;
         this.scopeDynamicGroupHostService = bizDynamicGroupHostService;
         this.scopeDynamicGroupService = scopeDynamicGroupService;
     }
@@ -214,6 +219,7 @@ public class WebHostResourceImpl implements WebHostResource {
         );
         String tenantId = JobContextUtil.getTenantId();
         hostDetailService.fillDetailForApplicationHosts(tenantId, pageHostList.getData());
+        fillTopoPathIfBiz(tenantId, appResourceScope, pageHostList.getData());
         return Response.buildSuccessResp(PageUtil.transferPageData(
             pageHostList,
             ApplicationHostDTO::toVO
@@ -319,6 +325,7 @@ public class WebHostResourceImpl implements WebHostResource {
         if (CollectionUtils.isNotEmpty(pageData.getData())) {
             agentStatusService.fillRealTimeAgentStatus(pageData.getData());
         }
+        fillTopoPathIfBiz(tenantId, appResourceScope, pageData.getData());
         return Response.buildSuccessResp(PageUtil.transferPageData(pageData, ApplicationHostDTO::toVO));
     }
 
@@ -336,6 +343,7 @@ public class WebHostResourceImpl implements WebHostResource {
         hostDetailService.fillDetailForApplicationHosts(tenantId, hostDTOList);
         // 填充实时agent状态
         agentStatusService.fillRealTimeAgentStatus(hostDTOList);
+        fillTopoPathIfBiz(tenantId, appResourceScope, hostDTOList);
         List<HostInfoVO> hostList = hostDTOList.stream()
             .map(ApplicationHostDTO::toVO)
             .collect(Collectors.toList());
@@ -355,6 +363,7 @@ public class WebHostResourceImpl implements WebHostResource {
             .collect(Collectors.toList());
         String tenantId = JobContextUtil.getTenantId();
         List<ApplicationHostDTO> hostList = hostDetailService.listHostDetails(tenantId, appResourceScope, hostIds);
+        fillTopoPathIfBiz(tenantId, appResourceScope, hostList);
         // 排序：Agent异常机器在前，Agent正常机器在后
         List<HostInfoVO> hostInfoVOList = hostList.stream()
             .filter(hostDTO -> !hostDTO.getGseAgentAlive())
@@ -365,6 +374,22 @@ public class WebHostResourceImpl implements WebHostResource {
             .map(ApplicationHostDTO::toVO)
             .collect(Collectors.toList()));
         return Response.buildSuccessResp(hostInfoVOList);
+    }
+
+    /**
+     * 如果当前资源范围是业务类型，则为主机列表填充拓扑路径信息
+     */
+    private void fillTopoPathIfBiz(String tenantId,
+                                   AppResourceScope appResourceScope,
+                                   List<ApplicationHostDTO> hostList) {
+        if (CollectionUtils.isEmpty(hostList)) {
+            return;
+        }
+        if (appResourceScope.getType() != ResourceScopeTypeEnum.BIZ) {
+            return;
+        }
+        long bizId = Long.parseLong(appResourceScope.getId());
+        hostTopoPathService.fillTopoPathForHosts(tenantId, bizId, hostList);
     }
 
 }

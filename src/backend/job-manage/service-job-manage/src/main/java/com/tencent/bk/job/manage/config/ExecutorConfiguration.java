@@ -33,6 +33,8 @@ import org.springframework.context.annotation.Configuration;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +43,31 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 @Configuration(value = "jobManageExecutorConfig")
 public class ExecutorConfiguration {
+
+    /**
+     * 主机拓扑快照填充专用线程池：core=0、max=100、同步队列；满载时拒绝并打错误日志。
+     */
+    @Bean("hostTopoSnapshotExecutor")
+    public ThreadPoolExecutor hostTopoSnapshotExecutor(MeterRegistry meterRegistry) {
+        RejectedExecutionHandler rejectedHandler = (r, executor) -> log.error(
+            "hostTopoSnapshotExecutor task rejected, poolSize={}, activeCount={}, queueSize={}, completedTaskCount={}",
+            executor.getPoolSize(),
+            executor.getActiveCount(),
+            executor.getQueue().size(),
+            executor.getCompletedTaskCount()
+        );
+        return new WatchableThreadPoolExecutor(
+            meterRegistry,
+            "hostTopoSnapshotExecutor",
+            0,
+            100,
+            60L,
+            TimeUnit.SECONDS,
+            new SynchronousQueue<>(),
+            getThreadFactoryByNameAndSeq("hostTopoSnapshot-", new AtomicInteger(1)),
+            rejectedHandler
+        );
+    }
 
     @Bean("syncHostExecutor")
     public ThreadPoolExecutor syncHostExecutor(MeterRegistry meterRegistry) {
