@@ -69,6 +69,7 @@
       :is="globalVarCom"
       ref="handler"
       :data="data"
+      :val-disabled="valDisabled"
       :variable="variable" />
   </jb-form>
 </template>
@@ -110,6 +111,9 @@
       };
     },
     computed: {
+      valDisabled() {
+        return this.data.disableEditVal;
+      },
       globalVarCom() {
         const globalVarMap = {
           string: VarString,

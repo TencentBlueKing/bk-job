@@ -430,7 +430,7 @@
   "更新值": "New value",
   "编辑成功": "Edit successfully",
   "暂无全局变量": "No global variable found",
-  "所选执行方案，无变量值可编辑": "No global variable found",
+  "所选执行方案，无变量值可编辑": "No global variable found or all variable values follow the job",
   "更新范围": "Selected",
   "已选": "",
   "个执行方案，": "Job plan(s) ",
@@ -473,5 +473,15 @@
   "作业导入完成（部分失败），请根据日志提示调整后重新选择导入。": "Job import completed (some failed), please adjust according to the log prompt and re-select to import again.",
   "填入上一次执行参数": "Load in previous execution parameters",
   "复用当前登录用户的最近一次通过页面执行的入参": "Reuse the parameters of current user's last execution",
-  "解释器：": "Interpreter："
+  "解释器：": "Interpreter：",
+  "当前状态": "Current status",
+  "不跟随作业": "Not following the homework",
+  "不跟随作业描述": "That is, the default values will not change along with the new version of the job; they should be manually modified as needed.",
+  "不跟随作业切换标题": "Click to switch to follow the assignment",
+  "不跟随作业切换描述": "When the default value of the job is changed, it can be synchronously updated to the execution plan.",
+  "跟随作业": "Follow the assignment",
+  "跟随作业描述": "After modifying the default values of the job, the changes can be simultaneously updated in the execution plan.",
+  "跟随作业切换标题": "Click to cancel following the template",
+  "跟随作业切换描述": "The default values are always based on the settings of the execution plan, and can be manually modified as needed.",
+  "跟随作业无法更新": "The current value follows the changes in the job and cannot be updated manually."
 }

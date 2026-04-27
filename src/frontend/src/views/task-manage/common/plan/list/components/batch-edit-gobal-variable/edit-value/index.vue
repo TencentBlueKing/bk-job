@@ -147,7 +147,9 @@
         this.planList.forEach((planData) => {
           templateIdMap[planData.templateId] = true;
           planData.variableList.forEach((variableData) => {
-            globalVariableMap[genGlobalVariableKey(variableData)] = variableData;
+            if (variableData.followTemplate === 0) {
+              globalVariableMap[genGlobalVariableKey(variableData)] = variableData;
+            }
           });
         });
 

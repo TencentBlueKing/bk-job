@@ -87,9 +87,16 @@
           </td>
           <td>
             <div
+              v-if="relateData.globalVariable.followTemplate === 0"
               v-bk-overflow-tips
               class="cell-text">
               {{ latestValueText }}
+            </div>
+            <div
+              v-else
+              v-bk-overflow-tips
+              class="cell-text follow-template">
+              {{ $t('template.跟随作业无法更新') }}
             </div>
           </td>
         </tr>
@@ -202,6 +209,10 @@
         white-space: normal;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 1;
+      }
+
+      .follow-template {
+        color: #ea3636;
       }
     }
   }
