@@ -39,6 +39,8 @@ public interface NoTenantFileSourceDAO {
 
     FileSourceDTO getFileSourceByCode(String code);
 
+    List<FileSourceDTO> listFileSourceByCode(String code);
+
     FileSourceDTO getFileSourceByCode(Long appId, String code);
 
     List<FileSourceDTO> listEnabledFileSource(Integer start, Integer pageSize);
