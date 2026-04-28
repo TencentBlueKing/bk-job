@@ -37,7 +37,7 @@
 source 0_config_common.sh
 
 # API 路径（使用 bk-apigateway 的 job v3 接口）
-UPDATE_CRON_STATUS_API="/api/v3/system/update_cron_status"
+UPDATE_CRON_STATUS_API="/api/v3/system/update_cron_status_for_migration"
 
 # ========================================
 # 参数解析
