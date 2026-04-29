@@ -238,38 +238,57 @@ public class TaskPlanInfoDTO {
     }
 
     public static void buildPlanInfo(TaskPlanInfoDTO planInfo, TaskTemplateInfoDTO templateInfo) {
+        // 校验
+        validatePlanInfo(planInfo, templateInfo);
+
+        // 填充执行方案基础信息
+        fillPlanBasicInfoFromTemplate(planInfo, templateInfo);
+
+        // 填充执行方案步骤
+        fillPlanStepsFromTemplate(planInfo, templateInfo);
+
+        // 填充执行方案变量
+        fillPlanVariablesFromTemplate(planInfo, templateInfo);
+    }
+
+    private static void validatePlanInfo(TaskPlanInfoDTO planInfo, TaskTemplateInfoDTO templateInfo) {
         if (templateInfo == null) {
             throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
         if (planInfo == null) {
             throw new NotFoundException(ErrorCode.TASK_PLAN_NOT_EXIST);
         }
+    }
+
+    private static void fillPlanBasicInfoFromTemplate(TaskPlanInfoDTO planInfo, TaskTemplateInfoDTO templateInfo) {
         planInfo.setAppId(templateInfo.getAppId());
         planInfo.setTemplateId(templateInfo.getId());
         planInfo.setFirstStepId(templateInfo.getFirstStepId());
         planInfo.setLastStepId(templateInfo.getLastStepId());
         planInfo.setNeedUpdate(false);
-        if (planInfo.getDebug()) {
-            planInfo.setDebug(true);
-        } else {
-            planInfo.setDebug(false);
-        }
+        planInfo.setDebug(Boolean.TRUE.equals(planInfo.getDebug()));
+        planInfo.setVersion(templateInfo.getVersion());
+    }
 
+    private static void fillPlanStepsFromTemplate(TaskPlanInfoDTO planInfo, TaskTemplateInfoDTO templateInfo) {
         planInfo.setStepList(templateInfo.getStepList());
+        List<Long> enableStepList = planInfo.getEnableStepList();
         planInfo.getStepList().forEach(taskStep -> {
             taskStep.setTemplateStepId(taskStep.getId());
             taskStep.setId(null);
-            if (planInfo.getEnableStepList().contains(taskStep.getTemplateStepId())) {
+            if (enableStepList.contains(taskStep.getTemplateStepId())) {
                 taskStep.setEnable(1);
             } else {
                 taskStep.setEnable(0);
             }
         });
+    }
 
+    private static void fillPlanVariablesFromTemplate(TaskPlanInfoDTO planInfo, TaskTemplateInfoDTO templateInfo) {
         Map<Long, TaskVariableDTO> requestVariableMap = new ConcurrentHashMap<>();
         if (CollectionUtils.isNotEmpty(planInfo.getVariableList())) {
-            planInfo.getVariableList().forEach(taskVariableDTO ->
-                requestVariableMap.put(taskVariableDTO.getId(), taskVariableDTO));
+            planInfo.getVariableList()
+                .forEach(taskVariableDTO -> requestVariableMap.put(taskVariableDTO.getId(), taskVariableDTO));
         }
 
         planInfo.setVariableList(templateInfo.getVariableList());
@@ -280,16 +299,17 @@ public class TaskPlanInfoDTO {
                 return;
             }
             taskVariable.setFollowTemplate(requestVariable.getFollowTemplate());
-
-            if ((requestVariable.getDefaultValue() == null) ||
-                (requestVariable.getType().getMask() != null
-                    && requestVariable.getType().getMask().equals(requestVariable.getDefaultValue()))) {
-                // No default value in request, skip or Has default value in request and do not equal mask, keep
-            } else {
+            if (!shouldKeepTemplateVarValue(requestVariable)) {
                 taskVariable.setDefaultValue(requestVariable.getDefaultValue());
             }
         });
-        planInfo.setVersion(templateInfo.getVersion());
+    }
+
+    /**
+     * 判断执行方案的全局变量值是否用作业模板的
+     */
+    private static boolean shouldKeepTemplateVarValue(TaskVariableDTO requestVariable) {
+        return requestVariable.getDefaultValue() == null || requestVariable.cipherNotChange();
     }
 
     public static TaskPlanInfoDTO fromVO(String username, Long appId, TaskPlanVO planInfo) {

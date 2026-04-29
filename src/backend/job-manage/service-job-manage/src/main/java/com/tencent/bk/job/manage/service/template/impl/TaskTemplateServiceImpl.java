@@ -71,6 +71,7 @@ import com.tencent.bk.job.manage.service.CronJobService;
 import com.tencent.bk.job.manage.service.ScriptManager;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.TaskFavoriteService;
+import com.tencent.bk.job.manage.service.plan.PlanVarFollowService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
@@ -105,6 +106,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     private final TemplateScriptStatusUpdateService templateScriptStatusUpdateService;
     private final TaskFavoriteService taskFavoriteService;
     private final TemplateAuthService templateAuthService;
+    private final PlanVarFollowService planVarFollowService;
     private TaskPlanService taskPlanService;
     private ScriptManager scriptManager;
     private CronJobService cronJobService;
@@ -145,7 +147,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         TagService tagService,
         TemplateScriptStatusUpdateService templateScriptStatusUpdateService,
         @Qualifier("TaskTemplateFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
-        TemplateAuthService templateAuthService) {
+        TemplateAuthService templateAuthService,
+        PlanVarFollowService planVarFollowService) {
         this.taskStepService = taskStepService;
         this.taskVariableService = taskVariableService;
         this.taskTemplateDAO = taskTemplateDAO;
@@ -153,6 +156,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         this.templateScriptStatusUpdateService = templateScriptStatusUpdateService;
         this.taskFavoriteService = taskFavoriteService;
         this.templateAuthService = templateAuthService;
+        this.planVarFollowService = planVarFollowService;
     }
 
     private void setUpdateFlag(TaskTemplateInfoDTO templateInfo) {
@@ -504,7 +508,7 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             }
             templateId = taskTemplateInfo.getId();
             // 如果有执行方案，进一步判断作业变量的默认值是否有变更，如果有变更，执行方案生成新版本号
-            taskPlanService.updatePlanVersionIfVarValueChanged(taskTemplateInfo, bumpVersion);
+            planVarFollowService.updatePlanVersionIfVarValueChanged(taskTemplateInfo, bumpVersion);
         }
         return templateId;
     }
