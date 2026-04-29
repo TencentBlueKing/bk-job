@@ -29,7 +29,6 @@ import com.tencent.bk.audit.annotations.AuditInstanceRecord;
 import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
-import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.exception.AlreadyExistsException;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InternalException;
@@ -55,12 +54,12 @@ import com.tencent.bk.job.manage.model.dto.TaskPlanQueryDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanBasicInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
-import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.service.AbstractTaskStepService;
 import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
 import com.tencent.bk.job.manage.service.CronJobService;
+import com.tencent.bk.job.manage.service.plan.PlanVarFollowService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
@@ -80,9 +79,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -103,6 +100,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
     private final AbstractTaskVariableService taskTemplateVariableService;
     private final AbstractTaskVariableService taskPlanVariableService;
     private final PlanAuthService planAuthService;
+    private final PlanVarFollowService planVarFollowService;
     private CronJobService cronJobService;
     private TaskTemplateService taskTemplateService;
     private final TemplateAuthService templateAuthService;
@@ -134,7 +132,8 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskPlanVariableService,
         MessageI18nService i18nService,
         PlanAuthService planAuthService,
-        TemplateAuthService templateAuthService) {
+        TemplateAuthService templateAuthService,
+        PlanVarFollowService planVarFollowService) {
         this.taskPlanDAO = taskPlanDAO;
         this.taskPlanStepService = taskPlanStepService;
         this.taskTemplateVariableService = taskTemplateVariableService;
@@ -142,6 +141,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         this.i18nService = i18nService;
         this.planAuthService = planAuthService;
         this.templateAuthService = templateAuthService;
+        this.planVarFollowService = planVarFollowService;
     }
 
     /**
@@ -342,7 +342,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         taskPlanInfo.getVariableList().forEach(variable -> variable.setPlanId(planId));
         taskPlanVariableService.batchInsertVariable(taskPlanInfo.getVariableList());
 
-        updatePlanVersionIfFollowVarChanged(taskPlanInfo);
+        planVarFollowService.updatePlanVersionIfFollowVarChanged(taskPlanInfo);
 
         return getTaskPlanById(planId);
     }
@@ -430,7 +430,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             taskPlanVariableService.updateVarByParentResourceIdAndTplVarId(taskVariable);
         }
 
-        updatePlanVersionIfFollowVarChanged(taskPlanInfo);
+        planVarFollowService.updatePlanVersionIfFollowVarChanged(taskPlanInfo);
 
         TaskPlanInfoDTO updatedPlan = getTaskPlanById(planId);
 
@@ -1041,140 +1041,6 @@ public class TaskPlanServiceImpl implements TaskPlanService {
                 planInfo.getId(), planInfo.getTemplateId());
         }
         return updatableVariables;
-    }
-
-    /**
-     * 存在跟随作业模板的变量，需要判断该变量默认值是否跟作业模板的一致，如果不一致修改执行方案的版本产生差异
-     */
-    private void updatePlanVersionIfFollowVarChanged(TaskPlanInfoDTO taskPlanInfoDTO) {
-        List<TaskVariableDTO> followTemplateVars =
-            taskPlanVariableService.listFollowVarsByPlanId(taskPlanInfoDTO.getId());
-
-        if (followTemplateVars.isEmpty()) {
-            return;
-        }
-
-        log.info("Found follow template variables, planId={}, varSize={}",
-            taskPlanInfoDTO.getId(), followTemplateVars.size());
-
-        Map<Long, TaskVariableDTO> templateVarMap =
-            taskTemplateVariableService.listVariablesByParentId(taskPlanInfoDTO.getTemplateId())
-                .stream()
-                .collect(Collectors.toMap(TaskVariableDTO::getId, Function.identity()));
-
-        boolean needUpdatePlanVersion = followTemplateVars.stream()
-            .anyMatch(variable -> {
-                TaskVariableDTO templateVar = templateVarMap.get(variable.getId());
-                return templateVar != null && isVariableValueChanged(templateVar, variable);
-            });
-
-        if (needUpdatePlanVersion) {
-            String newVersion = UUID.randomUUID().toString();
-            log.info("Updating plan version, planId={}, newVersion={}",
-                taskPlanInfoDTO.getId(), newVersion);
-            taskPlanDAO.batchUpdatePlanVersionByIds(
-                Collections.singletonList(taskPlanInfoDTO.getId()),
-                newVersion,
-                JobContextUtil.getUsername(),
-                DateUtils.currentTimeSeconds()
-            );
-        }
-    }
-
-    @Override
-    public void updatePlanVersionIfVarValueChanged(TaskTemplateInfoDTO taskTemplateInfo, Boolean changed) {
-        if (changed) {
-            log.debug("The task template has changed, and there is no need to determine the default value of the task" +
-                " plan variables. templateId: {}", taskTemplateInfo.getId());
-            return;
-        }
-        List<TaskVariableDTO> templateVariableDTOList = taskTemplateInfo.getVariableList();
-        if (CollectionUtils.isEmpty(templateVariableDTOList)) {
-            return;
-        }
-
-        List<Long> templateVarIdList = templateVariableDTOList.stream().map(TaskVariableDTO::getId)
-            .collect(Collectors.toList());
-
-        List<TaskVariableDTO> planVariableDTOList =
-            taskPlanVariableService.listVariablesByTemplateVarId(templateVarIdList);
-
-        Set<Long> planIds = findNeedModifiedPlanIds(templateVariableDTOList, planVariableDTOList);
-        if (CollectionUtils.isEmpty(planIds)) {
-            return;
-        }
-
-        String newVersion = UUID.randomUUID().toString();
-        log.info("Update task template, found task plans need to update version, templateId={}, planIds={}, " +
-                "newVersion={}", taskTemplateInfo.getId(), planIds, newVersion);
-        taskPlanDAO.batchUpdatePlanVersionByIds(
-            new ArrayList<>(planIds),
-            newVersion,
-            JobContextUtil.getUsername(),
-            DateUtils.currentTimeSeconds()
-        );
-    }
-
-    /**
-     * 找出需要修改版本号的执行方案ID
-     */
-    private Set<Long> findNeedModifiedPlanIds(List<TaskVariableDTO> templateVariableDTOList,
-                                              List<TaskVariableDTO> planVariableDTOList)
-    {
-        if (CollectionUtils.isEmpty(planVariableDTOList)) {
-            return null;
-        }
-
-        Map<Long, TaskVariableDTO> templateVarMap = templateVariableDTOList.stream()
-            .collect(Collectors.toMap(TaskVariableDTO::getId, Function.identity()));
-        Set<Long> needModifiedPlanIds = new HashSet<>();
-        for (TaskVariableDTO planVar : planVariableDTOList) {
-            if (!Boolean.TRUE.equals(planVar.getFollowTemplate())) {
-                continue;
-            }
-
-            TaskVariableDTO templateVar = templateVarMap.get(planVar.getId());
-            if (templateVar == null) {
-                continue;
-            }
-
-            if (templateVar.cipherNotChange()) {
-                continue;
-            }
-
-            if (isVariableValueChanged(templateVar, planVar)) {
-                needModifiedPlanIds.add(planVar.getPlanId());
-            }
-        }
-        return needModifiedPlanIds;
-    }
-
-    /**
-     * 判断作业全局变量值是否一致
-     */
-    private boolean isVariableValueChanged(TaskVariableDTO templateVar, TaskVariableDTO planVar) {
-        if (templateVar.getType() == planVar.getType()
-            && TaskVariableTypeEnum.EXECUTE_OBJECT_LIST == templateVar.getType()) {
-            return !sameHostIds(templateVar.getDefaultValue(), planVar.getDefaultValue());
-        }
-        return !Objects.equals(templateVar.getDefaultValue(), planVar.getDefaultValue());
-    }
-
-    private boolean sameHostIds(String templateValue, String planValue) {
-        return extractHostIds(templateValue).equals(extractHostIds(planValue));
-    }
-
-    private Set<Long> extractHostIds(String targetValue) {
-        TaskTargetDTO taskTarget = TaskTargetDTO.fromJsonString(targetValue);
-        if (taskTarget == null
-            || taskTarget.getHostNodeList() == null
-            || CollectionUtils.isEmpty(taskTarget.getHostNodeList().getHostList())) {
-            return Collections.emptySet();
-        }
-        return taskTarget.getHostNodeList().getHostList().stream()
-            .map(host -> host == null ? null : host.getHostId())
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
     }
 
     private void checkTemplateExist(Long appId, Long templateId) {
