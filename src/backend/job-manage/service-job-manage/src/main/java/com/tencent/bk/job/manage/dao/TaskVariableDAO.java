@@ -111,6 +111,13 @@ public interface TaskVariableDAO {
     boolean updateVariableByName(TaskVariableDTO variable);
 
     /**
+     * 根据执行方案ID查询跟随作业模板的全局变量列表
+     */
+    default List<TaskVariableDTO> listFollowVarsByPlanId(long planId) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * 根据作业模版变量ID查询变量列表
      */
     List<TaskVariableDTO> listVariablesByTemplateVarId(List<Long> templateVarIds);

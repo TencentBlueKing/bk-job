@@ -86,6 +86,15 @@ public class TaskPlanVariableDAOImpl implements TaskVariableDAO {
         return result.map(this::extract);
     }
 
+    @Override
+    public List<TaskVariableDTO> listFollowVarsByPlanId(long planId) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.PLAN_ID.eq(ULong.valueOf(planId)));
+        conditions.add(TABLE.IS_FOLLOW_TEMPLATE.eq(UByte.valueOf(1)));
+        Result<Record> result = context.select(ALL_FIELDS).from(TABLE).where(conditions).fetch();
+        return result.map(this::extract);
+    }
+
     private TaskVariableDTO extract(Record record) {
         if (record == null) {
             return null;
