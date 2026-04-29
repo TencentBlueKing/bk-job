@@ -116,7 +116,7 @@ public class TaskPlanInfoDTO {
     private Long lastStepId;
 
     /**
-     * 是否需要更新
+     * 是否需要更新，不再依赖表中的is_latest_version字段，根据version具体判断
      */
     private Boolean needUpdate;
 

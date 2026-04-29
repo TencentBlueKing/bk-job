@@ -1048,9 +1048,7 @@ public class TaskPlanServiceImpl implements TaskPlanService {
      */
     private void updatePlanVersionIfFollowVarChanged(TaskPlanInfoDTO taskPlanInfoDTO) {
         List<TaskVariableDTO> followTemplateVars =
-            taskPlanVariableService.listVariablesByParentId(taskPlanInfoDTO.getId()).stream()
-            .filter(v -> Boolean.TRUE.equals(v.getFollowTemplate()))
-            .collect(Collectors.toList());
+            taskPlanVariableService.listFollowVarsByPlanId(taskPlanInfoDTO.getId());
 
         if (followTemplateVars.isEmpty()) {
             return;
