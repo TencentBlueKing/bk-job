@@ -106,7 +106,7 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
         if (isAllowed) {
             return AuthResult.pass(user);
         } else {
-            return buildFailAuthResult(user, actionId, resourceType, resourceId);
+            return buildFailAuthResult(user, actionId, resourceType, resourceId, pathInfo);
         }
     }
 
@@ -114,14 +114,66 @@ public class AuthServiceImpl extends BasicAuthService implements AuthService {
                                            String actionId,
                                            ResourceTypeEnum resourceType,
                                            String resourceId) {
+        return buildFailAuthResult(user, actionId, resourceType, resourceId, null);
+    }
+
+    private AuthResult buildFailAuthResult(User user,
+                                           String actionId,
+                                           ResourceTypeEnum resourceType,
+                                           String resourceId,
+                                           PathInfoDTO pathInfo) {
         AuthResult authResult = AuthResult.fail(user);
         if (resourceType == null || StringUtils.isEmpty(resourceId)) {
             authResult.addRequiredPermission(actionId, null);
         } else {
             String resourceName = resourceNameQueryService.getResourceName(resourceType, resourceId);
-            authResult.addRequiredPermission(actionId, new PermissionResource(resourceType, resourceId, resourceName));
+            PermissionResource permissionResource =
+                new PermissionResource(resourceType, resourceId, resourceName);
+            // 将 pathInfo 中的父级资源信息转换为 parentHierarchicalResources，
+            // 使申请权限跳转链接中能够展示完整的资源拓扑（如业务信息）
+            if (pathInfo != null) {
+                List<PermissionResource> parentResources =
+                    buildParentHierarchicalResources(pathInfo, resourceType, resourceId);
+                if (!parentResources.isEmpty()) {
+                    permissionResource.setParentHierarchicalResources(parentResources);
+                }
+            }
+            authResult.addRequiredPermission(actionId, permissionResource);
         }
         return authResult;
+    }
+
+    /**
+     * 将 pathInfo 链表解析为父级层级资源列表
+     * <p>
+     * pathInfo 描述的是资源在 IAM 中的路径，可能仅包含祖先节点（如 biz/{bizId}），
+     * 也可能包含资源自身（如 biz/{bizId} → account/{accountId}）。
+     * 为避免与被鉴权资源重复，需要跳过 type+id 与被鉴权资源匹配的节点，
+     * 仅保留真正的祖先节点作为 parentHierarchicalResources。
+     *
+     * @param pathInfo     资源路径信息
+     * @param resourceType 被鉴权资源的类型
+     * @param resourceId   被鉴权资源的 ID
+     * @return 父级层级资源列表
+     */
+    private List<PermissionResource> buildParentHierarchicalResources(PathInfoDTO pathInfo,
+                                                                      ResourceTypeEnum resourceType,
+                                                                      String resourceId) {
+        List<PermissionResource> parentResources = new ArrayList<>();
+        PathInfoDTO node = pathInfo;
+        while (node != null) {
+            ResourceTypeEnum nodeType = ResourceTypeEnum.getByResourceTypeId(node.getType());
+            String nodeId = node.getId();
+            // 跳过与被鉴权资源 type+id 匹配的节点，避免在 buildApplyActions 中出现重复
+            if (nodeType != null && StringUtils.isNotEmpty(nodeId)
+                && !(nodeType == resourceType && nodeId.equals(resourceId))) {
+                String parentName = resourceNameQueryService.getResourceName(nodeType, nodeId);
+                PermissionResource parentResource = new PermissionResource(nodeType, nodeId, parentName);
+                parentResources.add(parentResource);
+            }
+            node = node.getChild();
+        }
+        return parentResources;
     }
 
     @Override

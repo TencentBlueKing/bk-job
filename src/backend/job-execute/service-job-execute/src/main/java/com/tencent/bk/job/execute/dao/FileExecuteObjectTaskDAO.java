@@ -153,6 +153,15 @@ public interface FileExecuteObjectTaskDAO {
                                                FileTaskModeEnum mode,
                                                String executeObjectId);
 
+    /**
+     * 判断指定执行对象在对应重试/批次及文件模式下是否已有文件分发执行任务记录（仅 EXISTS，不加载行）
+     */
+    boolean existsTaskByExecuteObjectId(Long taskInstanceId,
+                                        Long stepInstanceId,
+                                        Integer executeCount,
+                                        Integer batch,
+                                        FileTaskModeEnum mode,
+                                        String executeObjectId);
 
     /**
      * 判断步骤实例的Agent Task 记录是否存在

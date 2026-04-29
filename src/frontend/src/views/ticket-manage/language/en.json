@@ -43,5 +43,7 @@
   "文件源标识": "ID",
   "状态": "States",
   "保存": "Save",
-  "接入点异常，暂时不可用": "All AP are abnormal, file-source temporarily unavailable."
+  "接入点异常，暂时不可用": "All AP are abnormal, file-source temporarily unavailable.",
+  "凭证名称已存在": "The voucher name already exists.",
+  "凭证加密配置请求失败无法执行当前操作，请刷新页面": "Failed to fetch ticket encryption configuration. Please refresh the page."
 }

@@ -39,6 +39,7 @@ import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.FlowController;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.tracing.Tracer;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.ObjectProvider;
 
@@ -60,7 +61,8 @@ public class MockBizCmdbClient implements IBizCmdbClient {
                              MeterRegistry meterRegistry,
                              ObjectProvider<FlowController> flowControllerProvider,
                              TenantEnvService tenantEnvService,
-                             IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+                             IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                             Tracer tracer) {
         this.proxy = new BizCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -70,7 +72,8 @@ public class MockBizCmdbClient implements IBizCmdbClient {
             flowControllerProvider.getIfAvailable(),
             meterRegistry,
             tenantEnvService,
-            virtualAdminAccountProvider
+            virtualAdminAccountProvider,
+            tracer
         );
     }
 

@@ -36,6 +36,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -90,6 +91,9 @@ public class HostInfoVO {
     @Schema(description = "所属云厂商")
     @JsonProperty("cloudVendor")
     private String cloudVendorName;
+
+    @Schema(description = "所属拓扑路径列表")
+    private List<HostTopoPathVO> topoPathList;
 
     public void validate() throws InvalidParamException {
         if (!JobContextUtil.isAllowMigration() && (hostId == null || hostId <= 0)) {

@@ -197,6 +197,7 @@ public class NotifyTemplateDAOImpl implements NotifyTemplateDAO {
             .where(defaultTable.CHANNEL.eq(channelCode))
             .and(defaultTable.CODE.eq(messageTypeCode))
             .and(defaultTable.IS_DEFAULT.eq(isDefault))
+            .and(defaultTable.TENANT_ID.eq(tenantId))
             .fetchOne(0, Integer.class);
         assert count != null;
         return count > 0;

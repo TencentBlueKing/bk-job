@@ -819,6 +819,9 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     @Override
     public TaskTemplateInfoDTO getTaskTemplateBasicInfoById(Long appId, Long templateId) {
         TaskTemplateInfoDTO template = taskTemplateDAO.getTaskTemplateById(appId, templateId);
+        if (template == null) {
+            return null;
+        }
         setTags(appId, Collections.singletonList(template));
         return template;
     }

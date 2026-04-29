@@ -151,7 +151,10 @@ public class FileTaskContextService {
             stepInstance.getFileStepInstance(),
             result
         );
-        return new TaskContext(stepInstance.getExecuteType(), stepInstance.getStatus(), null, fileTaskContext);
+        return new TaskContext(
+            stepInstance.getExecuteType(), stepInstance.getStatus(),
+            stepInstance.getCreateTime(), null, fileTaskContext
+        );
     }
 
     /**

@@ -28,8 +28,10 @@ import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
 import com.tencent.bk.job.analysis.model.web.req.AICheckScriptReq;
 import com.tencent.bk.job.analysis.model.web.req.AIGeneralChatReq;
 import com.tencent.bk.job.analysis.model.web.req.GenerateChatStreamReq;
+import com.tencent.bk.job.analysis.model.web.req.SaveAIChatSessionReq;
 import com.tencent.bk.job.analysis.model.web.req.TerminateChatReq;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
+import com.tencent.bk.job.analysis.model.web.resp.AIChatSessionVO;
 import com.tencent.bk.job.analysis.model.web.resp.ClearChatHistoryResp;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.annotation.WebAPI;
@@ -248,5 +250,48 @@ public interface WebAIResource {
         @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
         String scopeId
+    );
+
+    @Operation(summary = "查询场景会话", description = "根据场景类型和资源标识查询已存在的AI会话")
+    @GetMapping("/scope/{scopeType}/{scopeId}/chatSession")
+    Response<AIChatSessionVO> getChatSession(
+        @Parameter(description = "用户名，网关自动传入")
+        @RequestHeader("username")
+        String username,
+        @Parameter(hidden = true)
+        @RequestAttribute(value = "appResourceScope")
+        AppResourceScope appResourceScope,
+        @Parameter(description = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+        String scopeType,
+        @Parameter(description = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+        String scopeId,
+        @Parameter(description = "场景类型: 1-任务报错分析, 2-脚本管理, 3-自由对话", required = true)
+        @RequestParam(value = "sceneType")
+        Integer sceneType,
+        @Parameter(description = "场景资源标识(stepInstanceId/scriptId等)，自由对话可不传")
+        @RequestParam(value = "sceneResourceId", required = false)
+        String sceneResourceId
+    );
+
+    @Operation(summary = "保存场景会话", description = "保存或更新场景与AI会话的映射关系")
+    @PostMapping("/scope/{scopeType}/{scopeId}/chatSession")
+    Response<Void> saveChatSession(
+        @Parameter(description = "用户名，网关自动传入")
+        @RequestHeader("username")
+        String username,
+        @Parameter(hidden = true)
+        @RequestAttribute(value = "appResourceScope")
+        AppResourceScope appResourceScope,
+        @Parameter(description = "资源范围类型", required = true)
+        @PathVariable(value = "scopeType")
+        String scopeType,
+        @Parameter(description = "资源范围ID", required = true)
+        @PathVariable(value = "scopeId")
+        String scopeId,
+        @Parameter(description = "保存AI场景会话请求", required = true)
+        @Validated
+        @RequestBody SaveAIChatSessionReq req
     );
 }

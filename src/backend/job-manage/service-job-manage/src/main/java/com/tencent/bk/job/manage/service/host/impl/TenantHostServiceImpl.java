@@ -32,6 +32,7 @@ import com.tencent.bk.job.common.util.ip.IpUtils;
 import com.tencent.bk.job.manage.dao.TenantHostDAO;
 import com.tencent.bk.job.manage.model.inner.ServiceListAppHostResultDTO;
 import com.tencent.bk.job.manage.service.ApplicationService;
+import com.tencent.bk.job.manage.service.host.HostTopoPathService;
 import com.tencent.bk.job.manage.service.host.TenantHostService;
 import com.tencent.bk.job.manage.service.host.strategy.TenantListHostStrategy;
 import com.tencent.bk.job.manage.service.host.strategy.TenantListHostStrategyService;
@@ -40,6 +41,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
@@ -50,6 +52,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 /**
@@ -60,21 +68,29 @@ import java.util.stream.Collectors;
 @Service
 public class TenantHostServiceImpl extends BaseHostService implements TenantHostService {
 
+    private static final long FILL_HOST_TOPO_SNAPSHOT_TIMEOUT_SEC = 5L;
+
     private final TenantHostDAO tenantHostDAO;
     private final ApplicationService applicationService;
     private final IBizCmdbClient bizCmdbClient;
     private final TenantListHostStrategyService tenantListHostStrategyService;
+    private final HostTopoPathService hostTopoPathService;
+    private final ThreadPoolExecutor hostTopoSnapshotExecutor;
 
     @Autowired
     public TenantHostServiceImpl(TenantHostDAO tenantHostDAO,
                                  ApplicationService applicationService,
                                  IBizCmdbClient bizCmdbClient,
-                                 TenantListHostStrategyService tenantListHostStrategyService) {
+                                 TenantListHostStrategyService tenantListHostStrategyService,
+                                 HostTopoPathService hostTopoPathService,
+                                 @Qualifier("hostTopoSnapshotExecutor") ThreadPoolExecutor hostTopoSnapshotExecutor) {
         super(tenantListHostStrategyService);
         this.tenantHostDAO = tenantHostDAO;
         this.applicationService = applicationService;
         this.bizCmdbClient = bizCmdbClient;
         this.tenantListHostStrategyService = tenantListHostStrategyService;
+        this.hostTopoPathService = hostTopoPathService;
+        this.hostTopoSnapshotExecutor = hostTopoSnapshotExecutor;
     }
 
     private List<Long> buildIncludeBizIdList(ApplicationDTO application) {
@@ -158,6 +174,12 @@ public class TenantHostServiceImpl extends BaseHostService implements TenantHost
             watch.start("refreshHostAgentIdIfNeed");
             refreshHostAgentIdIfNeed(tenantId, refreshAgentId, existHosts);
             watch.stop();
+
+            if (CollectionUtils.isNotEmpty(existHosts)) {
+                watch.start("fillHostTopoPathSnapshot");
+                fillHostTopoPathSnapshotForExistHostsWithTimeout(tenantId, appId, application, existHosts);
+                watch.stop();
+            }
 
             List<HostDTO> validHosts = new ArrayList<>();
             List<HostDTO> notInAppHosts = new ArrayList<>();
@@ -264,6 +286,72 @@ public class TenantHostServiceImpl extends BaseHostService implements TenantHost
                     cmdbValidHosts
                 );
             }
+        }
+    }
+
+    /**
+     * 使用独立线程池提交拓扑快照填充，主线程最多等待 5 秒；
+     * 超时或异常时取消任务并跳过，不影响任务执行主流程。
+     */
+    private void fillHostTopoPathSnapshotForExistHostsWithTimeout(String tenantId,
+                                                                  Long appId,
+                                                                  ApplicationDTO application,
+                                                                  List<ApplicationHostDTO> existHosts) {
+        Future<?> future = null;
+        try {
+            future = hostTopoSnapshotExecutor.submit(() ->
+                fillHostTopoPathSnapshotForExistHosts(tenantId, application, existHosts));
+            future.get(FILL_HOST_TOPO_SNAPSHOT_TIMEOUT_SEC, TimeUnit.SECONDS);
+        } catch (RejectedExecutionException e) {
+            log.error("fillHostTopoPathSnapshot task rejected by hostTopoSnapshotExecutor, appId={}", appId, e);
+        } catch (TimeoutException e) {
+            future.cancel(true);
+            log.warn(
+                "fillHostTopoPathSnapshot exceeded {}s, cancelled. appId={}",
+                FILL_HOST_TOPO_SNAPSHOT_TIMEOUT_SEC,
+                appId,
+                e
+            );
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            if (!future.isDone()) {
+                future.cancel(true);
+            }
+            log.warn("fillHostTopoPathSnapshot interrupted, skipped. appId={}", appId, e);
+        } catch (ExecutionException e) {
+            log.warn("fillHostTopoPathSnapshot execution failed, skipped. appId={}", appId, e.getCause());
+        } catch (Exception e) {
+            if (future != null && !future.isDone()) {
+                future.cancel(true);
+            }
+            log.warn("fillHostTopoPathSnapshot failed, skipped. appId={}", appId, e);
+        }
+    }
+
+    /**
+     * 在 listHostsFromCacheOrCmdb 已返回的主机详情上填充拓扑路径（集群/模块名），供下游序列化为执行目标快照；
+     * 仅处理当前 Job 应用范围内的 CMDB 业务（与 {@link #buildIncludeBizIdList} 一致），其他业务下的主机（如白名单）不填充。
+     */
+    private void fillHostTopoPathSnapshotForExistHosts(String tenantId,
+                                                       ApplicationDTO application,
+                                                       List<ApplicationHostDTO> existHosts) {
+        List<Long> includeBizIds = buildIncludeBizIdList(application);
+        if (CollectionUtils.isEmpty(includeBizIds)) {
+            return;
+        }
+        List<ApplicationHostDTO> hostsInCurrentApp = existHosts.stream()
+            .filter(hostDTO ->
+                hostDTO.getBizId() != null
+                    && hostDTO.getBizId() > 0
+                    && includeBizIds.contains(hostDTO.getBizId())
+            ).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(hostsInCurrentApp)) {
+            return;
+        }
+        Map<Long, List<ApplicationHostDTO>> hostsByCmdbBizId =
+            hostsInCurrentApp.stream().collect(Collectors.groupingBy(ApplicationHostDTO::getBizId));
+        for (Map.Entry<Long, List<ApplicationHostDTO>> entry : hostsByCmdbBizId.entrySet()) {
+            hostTopoPathService.fillTopoPathForHosts(tenantId, entry.getKey(), entry.getValue());
         }
     }
 

@@ -33,6 +33,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * 步骤实例API-服务内部调用
@@ -54,4 +55,34 @@ public interface ServiceStepInstanceResource {
         @Parameter(description = "步骤实例ID", name = "stepInstanceId", required = true)
         @PathVariable("stepInstanceId")
         Long stepInstanceId);
+
+    /**
+     * 判断指定执行次数、滚动批次（及文件任务的上下行模式）下是否存在对应执行对象任务。
+     * 不做任务查看权限校验，仅基于步骤与任务数据做存在性判断；调用方须已在业务侧完成鉴权。
+     */
+    @GetMapping("/service/app/{appId}/taskInstance/{taskInstanceId}/stepInstance/{stepInstanceId}" +
+        "/executeObjectTask/exists")
+    InternalResponse<Boolean> executeObjectTaskExists(
+        @PathVariable(value = "appId")
+        Long appId,
+        @PathVariable("taskInstanceId")
+        Long taskInstanceId,
+        @PathVariable("stepInstanceId")
+        Long stepInstanceId,
+        @Parameter(description = "执行次数", required = true)
+        @RequestParam("executeCount")
+        Integer executeCount,
+        @Parameter(description = "滚动批次，非滚动步骤可为空")
+        @RequestParam(value = "batch", required = false)
+        Integer batch,
+        @Parameter(description = "执行对象类型", required = true)
+        @RequestParam("executeObjectType")
+        Integer executeObjectType,
+        @Parameter(description = "执行对象资源ID", required = true)
+        @RequestParam("executeObjectResourceId")
+        Long executeObjectResourceId,
+        @Parameter(description = "文件任务模式：0-上传，1-下载；脚本步骤不必传")
+        @RequestParam(value = "fileTaskMode", required = false)
+        Integer fileTaskMode
+    );
 }
