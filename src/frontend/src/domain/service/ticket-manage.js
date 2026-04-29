@@ -71,4 +71,8 @@ export default {
   remove(params) {
     return TicketSource.delete(params);
   },
+
+  check(params = {}) {
+    return TicketSource.check(params);
+  },
 };

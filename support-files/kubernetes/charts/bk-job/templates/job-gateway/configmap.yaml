@@ -13,6 +13,8 @@ metadata:
 data:
   application.yaml: |-
     spring:
+      reactor:
+        context-propagation: auto
       cloud:
         loadbalancer:
           cache:
@@ -224,6 +226,17 @@ data:
               uri: lb://job-crontab
               predicates:
                 - JobEsbV2Path=/api/job/v4/job-crontab/{api_name}
+              filters:
+                - CheckTenant
+                - CheckOpenApiJwt
+                - SetPath=/esb/api/v4/{api_name}
+                - RecordEsbAccessLog
+                - AddEsbLangHeader
+
+            - id: job-analysis-esb-v4
+              uri: lb://job-analysis
+              predicates:
+                - JobEsbV2Path=/api/job/v4/job-analysis/{api_name}
               filters:
                 - CheckTenant
                 - CheckOpenApiJwt

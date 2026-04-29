@@ -26,21 +26,31 @@ package com.tencent.bk.job.common.rabbitmq.config;
 
 import com.rabbitmq.client.impl.CredentialsProvider;
 import com.rabbitmq.client.impl.CredentialsRefreshService;
+import com.tencent.bk.job.common.mq.metrics.MqConsumerMetricsCollector;
+import com.tencent.bk.job.common.mq.metrics.MqMetricsConstants;
+import com.tencent.bk.job.common.mq.metrics.MqMetricsProperties;
+import com.tencent.bk.job.common.mq.metrics.MqSendTimeChannelInterceptor;
+import com.tencent.bk.job.common.rabbitmq.metrics.RabbitMqListenerContainerMetricsCustomizer;
+import com.tencent.bk.job.common.rabbitmq.metrics.RabbitMqConsumerThreadMetricsCollector;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.amqp.RabbitConnectionFactoryBeanConfigurer;
 import org.springframework.boot.autoconfigure.amqp.RabbitProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.stream.config.ListenerContainerCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResourceLoader;
+import org.springframework.integration.config.GlobalChannelInterceptor;
 
 @Slf4j
 @Configuration
 @AutoConfigureBefore(RabbitAutoConfiguration.class)
-@EnableConfigurationProperties(RabbitProperties.class)
+@EnableConfigurationProperties({RabbitProperties.class, MqMetricsProperties.class})
 public class JobRabbitMQAutoConfig {
 
     @Bean
@@ -58,5 +68,36 @@ public class JobRabbitMQAutoConfig {
         configurer.setCredentialsRefreshService(credentialsRefreshService.getIfUnique());
         log.info("rabbitConnectionFactoryBeanConfigurer init");
         return configurer;
+    }
+
+    /**
+     * 注册RabbitMQ消费者线程指标收集器
+     */
+    @Bean
+    MqConsumerMetricsCollector mqConsumerMetricsCollector(MeterRegistry meterRegistry) {
+        log.info("Init rabbitmq consumer thread metrics collector");
+        return new RabbitMqConsumerThreadMetricsCollector(meterRegistry);
+    }
+
+    /**
+     * 注册MQ消息发送时间拦截器
+     */
+    @Bean
+    @GlobalChannelInterceptor(patterns = MqMetricsConstants.PATTERN_OUTBOUND_CHANNEL)
+    MqSendTimeChannelInterceptor mqSendTimeChannelInterceptor(MqMetricsProperties mqMetricsProperties) {
+        log.info("Init mq send time channel interceptor, patterns: {}", MqMetricsConstants.PATTERN_OUTBOUND_CHANNEL);
+        return new MqSendTimeChannelInterceptor(mqMetricsProperties);
+    }
+
+    /**
+     * 注册MQ listener container监控指标收集器
+     */
+    @Bean
+    ListenerContainerCustomizer<MessageListenerContainer> mqListenerContainerMetricsCustomizer(
+        MqConsumerMetricsCollector mqConsumerMetricsCollector,
+        MqMetricsProperties mqMetricsProperties
+    ) {
+        log.info("Init rabbitmq listener container metrics customizer");
+        return new RabbitMqListenerContainerMetricsCustomizer(mqConsumerMetricsCollector, mqMetricsProperties);
     }
 }

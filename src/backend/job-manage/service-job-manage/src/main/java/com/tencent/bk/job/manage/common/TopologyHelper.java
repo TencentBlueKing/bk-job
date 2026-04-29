@@ -184,7 +184,7 @@ public class TopologyHelper {
     }
 
     public InstanceTopologyDTO getTopologyTreeByApplication(ApplicationDTO applicationInfo) {
-        InstanceTopologyDTO instanceTopology = bizCmdbClient.getBizInstTopology(
+        InstanceTopologyDTO instanceTopology = bizCmdbClient.getBizInstTopologyPreferCache(
             applicationInfo.getTenantId(),
             Long.parseLong(applicationInfo.getScope().getId())
         );

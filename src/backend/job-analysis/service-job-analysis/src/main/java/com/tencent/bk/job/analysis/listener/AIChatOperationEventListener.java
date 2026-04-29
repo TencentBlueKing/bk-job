@@ -24,12 +24,14 @@
 
 package com.tencent.bk.job.analysis.listener;
 
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
 import com.tencent.bk.job.analysis.consts.AIChatOperationEnum;
 import com.tencent.bk.job.analysis.listener.event.AIChatOperationEvent;
 import com.tencent.bk.job.analysis.service.ai.ChatService;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,18 +42,28 @@ import org.springframework.stereotype.Component;
 public class AIChatOperationEventListener {
 
     private final ChatService chatService;
+    private final MqConsumeDelayRecorder mqConsumeDelayRecorder;
 
     @Autowired
-    public AIChatOperationEventListener(ChatService chatService) {
+    public AIChatOperationEventListener(ChatService chatService,
+                                        MqConsumeDelayRecorder mqConsumeDelayRecorder
+    ) {
         this.chatService = chatService;
+        this.mqConsumeDelayRecorder = mqConsumeDelayRecorder;
     }
 
     /**
      * 处理AI对话操作事件
      *
-     * @param event AI对话操作事件
+     * @param message AI对话操作事件消息
      */
-    public void handleEvent(AIChatOperationEvent event) {
+    public void handleEvent(Message<AIChatOperationEvent> message) {
+        mqConsumeDelayRecorder.recordConsumeDelay(
+            MqBindingNames.HANDLE_AI_CHAT_OPERATION_EVENT,
+            AIChatOperationEvent.class.getSimpleName(),
+            message
+        );
+        AIChatOperationEvent event = message.getPayload();
         log.info("Handle aiChatOperation event, event: {}, duration: {}ms", event, event.duration());
         String username = event.getUsername();
         long recordId = event.getRecordId();

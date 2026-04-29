@@ -29,15 +29,19 @@ import com.tencent.bk.job.analysis.config.AIProperties;
 import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
 import com.tencent.bk.job.analysis.consts.AIConsts;
 import com.tencent.bk.job.analysis.model.dto.AIChatHistoryDTO;
+import com.tencent.bk.job.analysis.model.dto.AIChatSessionDTO;
 import com.tencent.bk.job.analysis.model.web.req.AIAnalyzeErrorReq;
 import com.tencent.bk.job.analysis.model.web.req.AICheckScriptReq;
 import com.tencent.bk.job.analysis.model.web.req.AIGeneralChatReq;
 import com.tencent.bk.job.analysis.model.web.req.GenerateChatStreamReq;
+import com.tencent.bk.job.analysis.model.web.req.SaveAIChatSessionReq;
 import com.tencent.bk.job.analysis.model.web.req.TerminateChatReq;
 import com.tencent.bk.job.analysis.model.web.resp.AIChatRecord;
+import com.tencent.bk.job.analysis.model.web.resp.AIChatSessionVO;
 import com.tencent.bk.job.analysis.model.web.resp.ClearChatHistoryResp;
 import com.tencent.bk.job.analysis.service.ai.AIAnalyzeErrorService;
 import com.tencent.bk.job.analysis.service.ai.AIChatHistoryService;
+import com.tencent.bk.job.analysis.service.ai.AIChatSessionService;
 import com.tencent.bk.job.analysis.service.ai.AICheckScriptService;
 import com.tencent.bk.job.analysis.service.ai.ChatService;
 import com.tencent.bk.job.analysis.service.ai.impl.AIConfigService;
@@ -71,6 +75,7 @@ public class WebAIResourceImpl implements WebAIResource {
     private final AICheckScriptService aiCheckScriptService;
     private final AIAnalyzeErrorService aiAnalyzeErrorService;
     private final AIChatHistoryService aiChatHistoryService;
+    private final AIChatSessionService aiChatSessionService;
     private final AIMessageI18nService aiMessageI18nService;
     private final AIProperties aiProperties;
 
@@ -80,6 +85,7 @@ public class WebAIResourceImpl implements WebAIResource {
                              AICheckScriptService aiCheckScriptService,
                              AIAnalyzeErrorService aiAnalyzeErrorService,
                              AIChatHistoryService aiChatHistoryService,
+                             AIChatSessionService aiChatSessionService,
                              AIMessageI18nService aiMessageI18nService,
                              AIProperties aiProperties) {
         this.aiConfigService = aiConfigService;
@@ -87,6 +93,7 @@ public class WebAIResourceImpl implements WebAIResource {
         this.aiCheckScriptService = aiCheckScriptService;
         this.aiAnalyzeErrorService = aiAnalyzeErrorService;
         this.aiChatHistoryService = aiChatHistoryService;
+        this.aiChatSessionService = aiChatSessionService;
         this.aiMessageI18nService = aiMessageI18nService;
         this.aiProperties = aiProperties;
     }
@@ -314,6 +321,39 @@ public class WebAIResourceImpl implements WebAIResource {
                                                            String scopeId) {
         int deletedTotalCount = aiChatHistoryService.softDeleteChatHistory(username);
         return Response.buildSuccessResp(new ClearChatHistoryResp(deletedTotalCount));
+    }
+
+    @Override
+    public Response<AIChatSessionVO> getChatSession(String username,
+                                                    AppResourceScope appResourceScope,
+                                                    String scopeType,
+                                                    String scopeId,
+                                                    Integer sceneType,
+                                                    String sceneResourceId) {
+        AIChatSessionDTO dto = aiChatSessionService.getSession(
+            appResourceScope.getAppId(), username, sceneType, sceneResourceId
+        );
+        if (dto == null) {
+            return Response.buildSuccessResp(null);
+        }
+        return Response.buildSuccessResp(new AIChatSessionVO(dto.getAiSessionId(), dto.getSessionName()));
+    }
+
+    @Override
+    public Response<Void> saveChatSession(String username,
+                                          AppResourceScope appResourceScope,
+                                          String scopeType,
+                                          String scopeId,
+                                          SaveAIChatSessionReq req) {
+        AIChatSessionDTO dto = new AIChatSessionDTO();
+        dto.setAppId(appResourceScope.getAppId());
+        dto.setUsername(username);
+        dto.setSceneType(req.getSceneType());
+        dto.setSceneResourceId(req.getSceneResourceId());
+        dto.setAiSessionId(req.getAiSessionId());
+        dto.setSessionName(req.getSessionName());
+        aiChatSessionService.saveSession(dto);
+        return Response.buildSuccessResp(null);
     }
 
 }

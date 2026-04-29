@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
 import com.tencent.bk.job.execute.common.constants.StepExecuteTypeEnum;
 import com.tencent.bk.job.execute.engine.listener.event.JobMessage;
 import com.tencent.bk.job.execute.engine.listener.event.StepEvent;
@@ -47,10 +48,17 @@ public class StepListener extends BaseJobMqListener {
     @Autowired
     public StepListener(StepInstanceService stepInstanceService,
                         GseStepEventHandler gseStepEventHandler,
-                        ConfirmStepEventHandler confirmStepEventHandler) {
+                        ConfirmStepEventHandler confirmStepEventHandler,
+                        MqConsumeDelayRecorder mqConsumeDelayRecorder) {
+        super(mqConsumeDelayRecorder);
         this.stepInstanceService = stepInstanceService;
         this.gseStepEventHandler = gseStepEventHandler;
         this.confirmStepEventHandler = confirmStepEventHandler;
+    }
+
+    @Override
+    protected String getBindingName() {
+        return MqBindingNames.HANDLE_STEP_EVENT;
     }
 
     /**
