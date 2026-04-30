@@ -53,6 +53,9 @@ public class TaskVariableVO {
     @Schema(description = "默认值")
     private String defaultValue;
 
+    @Schema(description = "默认值哈希，仅用于敏感变量差异比较，别的变量返回null")
+    private String defaultValueHash;
+
     @Schema(description = "主机列表默认值")
     private TaskTargetVO defaultTargetValue;
 
@@ -73,6 +76,9 @@ public class TaskVariableVO {
 
     @Schema(description = "删除 0-不删除 1-删除，仅在删除时填写")
     private Integer delete;
+
+    @Schema(description = "执行方案变量值是否跟随作业模版的变量值 0-否 1-是")
+    private Integer followTemplate = 0;
 
     public void validate(boolean isCreate) throws InvalidParamException {
         if (isCreate && !JobContextUtil.isAllowMigration()) {

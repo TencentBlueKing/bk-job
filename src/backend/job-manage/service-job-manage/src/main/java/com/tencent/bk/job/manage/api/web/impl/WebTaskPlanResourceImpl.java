@@ -64,6 +64,8 @@ import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
 import com.tencent.bk.job.manage.service.CronJobService;
 import com.tencent.bk.job.manage.service.TaskFavoriteService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
+import com.tencent.bk.job.manage.service.plan.TaskPlanSyncService;
+import com.tencent.bk.job.manage.service.plan.TaskPlanVarUpdateService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -91,6 +93,8 @@ import java.util.stream.Collectors;
 public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
     private final TaskPlanService planService;
+    private final TaskPlanSyncService taskPlanSyncService;
+    private final TaskPlanVarUpdateService taskPlanVarUpdateService;
     private final TaskTemplateService templateService;
     private final TaskFavoriteService taskFavoriteService;
     private final CronJobService cronJobService;
@@ -99,12 +103,16 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
     @Autowired
     public WebTaskPlanResourceImpl(TaskPlanService planService,
+                                   TaskPlanSyncService taskPlanSyncService,
+                                   TaskPlanVarUpdateService taskPlanVarUpdateService,
                                    TaskTemplateService templateService,
                                    @Qualifier("TaskPlanFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
                                    CronJobService cronJobService,
                                    TemplateAuthService templateAuthService,
                                    PlanAuthService planAuthService) {
         this.planService = planService;
+        this.taskPlanSyncService = taskPlanSyncService;
+        this.taskPlanVarUpdateService = taskPlanVarUpdateService;
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;
         this.cronJobService = cronJobService;
@@ -572,7 +580,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             templateVersion,
             planId
         );
-        return Response.buildSuccessResp(planService.sync(appResourceScope.getAppId(), templateId, planId,
+        return Response.buildSuccessResp(taskPlanSyncService.sync(appResourceScope.getAppId(), templateId, planId,
             templateVersion));
     }
 
@@ -668,7 +676,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             return planInfo;
         }).collect(Collectors.toList());
 
-        return Response.buildSuccessResp(planService.batchUpdatePlanVariable(planInfoList));
+        return Response.buildSuccessResp(taskPlanVarUpdateService.batchUpdatePlanVariable(planInfoList));
     }
 
     private void fillCronInfo(Long appId, List<TaskPlanInfoDTO> planInfoList) {

@@ -272,8 +272,7 @@ public class DbRecordMapper {
         }
     }
 
-    public static TaskPlanInfoDTO convertRecordToPlanInfo(Record13<ULong, ULong, ULong, UByte, String, String, ULong,
-        String, ULong, ULong, ULong, String, UByte> record) {
+    public static TaskPlanInfoDTO convertRecordToPlanInfo(Record record) {
         if (record == null) {
             return null;
         }
@@ -291,7 +290,7 @@ public class DbRecordMapper {
         taskPlanInfo.setFirstStepId(record.get(table.FIRST_STEP_ID).longValue());
         taskPlanInfo.setLastStepId(record.get(table.LAST_STEP_ID).longValue());
         taskPlanInfo.setVersion(record.get(table.VERSION));
-        taskPlanInfo.setNeedUpdate(record.get(table.IS_LATEST_VERSION).intValue() == 0);
+        taskPlanInfo.setNeedUpdate(false);
         return taskPlanInfo;
     }
 

@@ -125,5 +125,17 @@ public abstract class AbstractTaskVariableService {
         return taskVariableDAO.batchInsertVariableWithId(variableList);
     }
 
+    /**
+     * 根据执行方案ID查询跟随作业模板的变量列表
+     */
+    public List<TaskVariableDTO> listFollowVarsByPlanId(Long planId) {
+        return taskVariableDAO.listFollowVarsByPlanId(planId);
+    }
+
     public abstract boolean batchUpdateVariableByName(List<TaskVariableDTO> variableList);
+
+    /**
+     * 根据作业模板的变量id查询变量列表
+     */
+    public abstract List<TaskVariableDTO> listVariablesByTemplateVarId(List<Long> templateVarIds);
 }

@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -66,6 +67,8 @@ public class TaskVariableDTO {
 
     private Boolean delete;
 
+    private Boolean followTemplate;
+
     public static TaskVariableVO toVO(TaskVariableDTO variableInfo) {
         TaskVariableVO taskVariable = new TaskVariableVO();
         taskVariable.setId(variableInfo.getId());
@@ -77,6 +80,7 @@ public class TaskVariableDTO {
         } else {
             if (variableInfo.getType().needMask()) {
                 taskVariable.setDefaultValue(variableInfo.getType().getMask());
+                taskVariable.setDefaultValueHash(buildDefaultValueHash(variableInfo.getDefaultValue()));
             } else {
                 taskVariable.setDefaultValue(variableInfo.getDefaultValue());
             }
@@ -84,7 +88,16 @@ public class TaskVariableDTO {
         taskVariable.setDescription(variableInfo.getDescription());
         taskVariable.setChangeable(variableInfo.getChangeable() ? 1 : 0);
         taskVariable.setRequired(variableInfo.getRequired() ? 1 : 0);
+        taskVariable.setFollowTemplate(Boolean.TRUE.equals(variableInfo.getFollowTemplate()) ? 1 : 0);
         return taskVariable;
+    }
+
+    private static String buildDefaultValueHash(String defaultValue) {
+        if (defaultValue == null) {
+            return null;
+        }
+        String hash = DigestUtils.sha256Hex(defaultValue);
+        return hash.substring(0, Math.min(hash.length(), 12));
     }
 
     public static TaskVariableDTO fromVO(TaskVariableVO variableVO) {
@@ -119,6 +132,7 @@ public class TaskVariableDTO {
             variableInfo.setChangeable(variableVO.getChangeable() == 1);
         }
         variableInfo.setRequired(variableVO.getRequired() == 1);
+        variableInfo.setFollowTemplate(variableVO.getFollowTemplate() != null && variableVO.getFollowTemplate() == 1);
         return variableInfo;
     }
 
@@ -152,7 +166,7 @@ public class TaskVariableDTO {
         esbGlobalVar.setName(taskVariable.getName());
         esbGlobalVar.setType(taskVariable.getType().getType());
         esbGlobalVar.setDescription(taskVariable.getDescription());
-        esbGlobalVar.setRequired(taskVariable.getRequired() ? 1 : 0);
+        esbGlobalVar.setRequired(Boolean.TRUE.equals(taskVariable.getRequired()) ? 1 : 0);
 
         if (TaskVariableTypeEnum.EXECUTE_OBJECT_LIST == taskVariable.getType()) {
             esbGlobalVar.setServer(
