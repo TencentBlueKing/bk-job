@@ -33,7 +33,7 @@ import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
-import com.tencent.bk.job.manage.service.plan.PlanVarFollowService;
+import com.tencent.bk.job.manage.service.plan.TaskPlanVarFollowService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,14 +53,14 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class PlanVarFollowServiceImpl implements PlanVarFollowService {
+public class TaskPlanVarFollowServiceImpl implements TaskPlanVarFollowService {
 
     private final TaskPlanDAO taskPlanDAO;
     private final AbstractTaskVariableService taskTemplateVariableService;
     private final AbstractTaskVariableService taskPlanVariableService;
 
     @Autowired
-    public PlanVarFollowServiceImpl(
+    public TaskPlanVarFollowServiceImpl(
         TaskPlanDAO taskPlanDAO,
         @Qualifier("TaskTemplateVariableServiceImpl") AbstractTaskVariableService taskTemplateVariableService,
         @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskPlanVariableService

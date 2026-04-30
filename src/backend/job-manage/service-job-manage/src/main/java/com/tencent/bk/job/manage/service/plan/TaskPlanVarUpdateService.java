@@ -25,22 +25,16 @@
 package com.tencent.bk.job.manage.service.plan;
 
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
-import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
+
+import java.util.List;
 
 /**
- * 执行方案变量跟随模板相关规则处理
+ * 执行方案变量批量更新服务
  */
-public interface PlanVarFollowService {
+public interface TaskPlanVarUpdateService {
 
     /**
-     * 存在跟随作业模板的变量，需要判断该变量默认值是否跟作业模板的一致，如果不一致修改执行方案的版本产生差异
+     * 批量更新执行方案变量
      */
-    void updatePlanVersionIfFollowVarChanged(TaskPlanInfoDTO taskPlanInfo);
-
-    /**
-     * 更新执行方案的版本号，
-     * 1.在更新作业时，基础信息变动了作业会生成新版本，即changed=true时本方法直接返回，
-     * 2.执行方案的变量跟随作业模板变量，且执行方案变量值跟作业的不一样，该执行方案生成新版本号，产生差异，后续可以去同步
-     */
-    void updatePlanVersionIfVarValueChanged(TaskTemplateInfoDTO taskTemplateInfo, Boolean changed);
+    boolean batchUpdatePlanVariable(List<TaskPlanInfoDTO> planInfoList);
 }
