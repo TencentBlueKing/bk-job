@@ -33,6 +33,7 @@ import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.openapi.models.V1PodStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
@@ -48,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -90,13 +92,13 @@ class K8SServiceInfoProviderTest {
     @Test
     void shouldMapPodPhaseAndReasonCorrectly() throws Exception {
         ServiceInstance running = createKubernetesServiceInstance(
-            "uid-running", "job-execute", "10.0.0.1", 19803, NAMESPACE
+            "uid-running", "job-execute", "127.0.0.1", 19803, NAMESPACE
         );
         ServiceInstance failed = createKubernetesServiceInstance(
-            "uid-failed", "job-crontab", "10.0.0.2", 19809, NAMESPACE
+            "uid-failed", "job-crontab", "127.0.0.2", 19809, NAMESPACE
         );
         ServiceInstance phaseBlank = createKubernetesServiceInstance(
-            "uid-blank", "job-logsvr", "10.0.0.3", 19808, NAMESPACE
+            "uid-blank", "job-logsvr", "127.0.0.3", 19808, NAMESPACE
         );
         DiscoveryClient discoveryClient = createDiscoveryClient(Arrays.asList(running, failed, phaseBlank));
         List<V1Pod> pods = Arrays.asList(
@@ -161,9 +163,9 @@ class K8SServiceInfoProviderTest {
 
     @Test
     void shouldOnlyCallListNamespacedPodOncePerCycle() throws Exception {
-        ServiceInstance a = createKubernetesServiceInstance("uid-a", "job-manage", "10.0.0.1", 19801, NAMESPACE);
-        ServiceInstance b = createKubernetesServiceInstance("uid-b", "job-execute", "10.0.0.2", 19803, NAMESPACE);
-        ServiceInstance c = createKubernetesServiceInstance("uid-c", "job-crontab", "10.0.0.3", 19809, NAMESPACE);
+        ServiceInstance a = createKubernetesServiceInstance("uid-a", "job-manage", "127.0.0.1", 19801, NAMESPACE);
+        ServiceInstance b = createKubernetesServiceInstance("uid-b", "job-execute", "127.0.0.2", 19803, NAMESPACE);
+        ServiceInstance c = createKubernetesServiceInstance("uid-c", "job-crontab", "127.0.0.3", 19809, NAMESPACE);
         DiscoveryClient discoveryClient = createDiscoveryClient(Arrays.asList(a, b, c));
         List<V1Pod> pods = Arrays.asList(
             buildPod("uid-a", "job-manage-0", "v3.9.0", "Running", null),
@@ -182,7 +184,7 @@ class K8SServiceInfoProviderTest {
     @Test
     void shouldHitCacheWithinTtl() throws Exception {
         ServiceInstance instance = createKubernetesServiceInstance(
-            "uid-a", "job-manage", "10.0.0.1", 19801, NAMESPACE
+            "uid-a", "job-manage", "127.0.0.1", 19801, NAMESPACE
         );
         DiscoveryClient discoveryClient = createDiscoveryClient(Collections.singletonList(instance));
         mockListNamespacedPod(NAMESPACE, Collections.singletonList(
@@ -201,7 +203,7 @@ class K8SServiceInfoProviderTest {
     @Test
     void shouldRefreshAfterTtlExpired() throws Exception {
         ServiceInstance instance = createKubernetesServiceInstance(
-            "uid-a", "job-manage", "10.0.0.1", 19801, NAMESPACE
+            "uid-a", "job-manage", "127.0.0.1", 19801, NAMESPACE
         );
         DiscoveryClient discoveryClient = createDiscoveryClient(Collections.singletonList(instance));
         mockListNamespacedPod(NAMESPACE, Collections.singletonList(
@@ -220,10 +222,10 @@ class K8SServiceInfoProviderTest {
     @Test
     void shouldFilterNonJobOrMissingNamespaceInstances() throws Exception {
         ServiceInstance noNamespace = createKubernetesServiceInstance(
-            "uid-no-ns", "job-manage", "10.0.0.1", 19801, null
+            "uid-no-ns", "job-manage", "127.0.0.1", 19801, null
         );
         ServiceInstance gatewayManagement = createKubernetesServiceInstance(
-            "uid-gw", "job-gateway-management", "10.0.0.2", 19810, NAMESPACE
+            "uid-gw", "job-gateway-management", "127.0.0.2", 19810, NAMESPACE
         );
         DiscoveryClient discoveryClient = createDiscoveryClient(Arrays.asList(noNamespace, gatewayManagement));
 
@@ -233,6 +235,55 @@ class K8SServiceInfoProviderTest {
         assertEquals(0, result.size());
         verify(coreV1Api, times(0)).listNamespacedPod(any(), any(), any(), any(), any(), any(),
             any(), any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void shouldPassDefaultLabelSelectorWhenInstantiatedByDefaultConstructor() throws Exception {
+        ServiceInstance instance = createKubernetesServiceInstance(
+            "uid-a", "job-manage", "127.0.0.1", 19801, NAMESPACE
+        );
+        DiscoveryClient discoveryClient = createDiscoveryClient(Collections.singletonList(instance));
+        mockListNamespacedPod(NAMESPACE, Collections.singletonList(
+            buildPod("uid-a", "job-manage-0", "v3.9.0", "Running", null)
+        ));
+
+        K8SServiceInfoProvider provider = new K8SServiceInfoProvider(discoveryClient, coreV1Api);
+        provider.listServiceInfo();
+
+        // 显式断言：listNamespacedPod 的第 6 形参（labelSelector）等于默认值 app.kubernetes.io/name=bk-job
+        // 其它形参保持 null，避免任何形参被错误带值
+        verify(coreV1Api).listNamespacedPod(
+            eq(NAMESPACE), isNull(), isNull(), isNull(),
+            isNull(), eq(K8SServiceInfoProvider.DEFAULT_POD_LABEL_SELECTOR), isNull(), isNull(),
+            isNull(), isNull(), isNull(), isNull()
+        );
+        assertEquals("app.kubernetes.io/name=bk-job", K8SServiceInfoProvider.DEFAULT_POD_LABEL_SELECTOR);
+    }
+
+    @Test
+    void shouldPassCustomLabelSelectorWhenInjectedViaConstructor() throws Exception {
+        ServiceInstance instance = createKubernetesServiceInstance(
+            "uid-a", "job-manage", "127.0.0.1", 19801, NAMESPACE
+        );
+        DiscoveryClient discoveryClient = createDiscoveryClient(Collections.singletonList(instance));
+        mockListNamespacedPod(NAMESPACE, Collections.singletonList(
+            buildPod("uid-a", "job-manage-0", "v3.9.0", "Running", null)
+        ));
+
+        String customSelector = "app.kubernetes.io/name=custom-job,app.kubernetes.io/instance=ut-instance";
+        K8SServiceInfoProvider provider = new K8SServiceInfoProvider(
+            discoveryClient, coreV1Api, K8SServiceInfoProvider.DEFAULT_POD_CACHE_TTL_MS, customSelector
+        );
+        provider.listServiceInfo();
+
+        // 通过 ArgumentCaptor 取出第 6 形参，断言自定义 selector 被原样透传，未被默认值覆盖
+        ArgumentCaptor<String> labelSelectorCaptor = ArgumentCaptor.forClass(String.class);
+        verify(coreV1Api).listNamespacedPod(
+            eq(NAMESPACE), isNull(), isNull(), isNull(),
+            isNull(), labelSelectorCaptor.capture(), isNull(), isNull(),
+            isNull(), isNull(), isNull(), isNull()
+        );
+        assertEquals(customSelector, labelSelectorCaptor.getValue());
     }
 
     private void mockListNamespacedPod(String namespace, List<V1Pod> pods) throws ApiException {

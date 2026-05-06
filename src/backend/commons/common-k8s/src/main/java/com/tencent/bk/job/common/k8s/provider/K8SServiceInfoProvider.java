@@ -57,7 +57,9 @@ import java.util.stream.Collectors;
  * 高频触发（默认每 5s 一次）下避免直连 apiserver 风暴：
  * 1. 复用 spring-cloud-kubernetes 提供的单例 CoreV1Api（背后是单例 ApiClient/OkHttpClient）；
  * 2. 每次 listServiceInfo 在每个命名空间内仅触发一次 listNamespacedPod；
- * 3. 命名空间维度的进程内 TTL 缓存（默认 5 秒），TTL 内重复触发命中缓存。
+ * 3. 命名空间维度的进程内 TTL 缓存（默认 5 秒），TTL 内重复触发命中缓存；
+ * 4. listNamespacedPod 透传 labelSelector（默认 {@link #DEFAULT_POD_LABEL_SELECTOR}），
+ *    apiserver 侧即裁剪掉非作业平台 Pod，减少返回体积与本进程反序列化开销。
  */
 @Slf4j
 public class K8SServiceInfoProvider implements ServiceInfoProvider {
@@ -74,26 +76,42 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
      */
     public static final long DEFAULT_POD_CACHE_TTL_MS = 5_000L;
 
+    /**
+     * 仅拉取作业平台自身的 Pod，避免在共享 namespace 下把整个 namespace 内的 Pod 全部 List 回来，
+     * 显著降低 apiserver 与本进程的传输/反序列化开销。
+     */
+    public static final String DEFAULT_POD_LABEL_SELECTOR = "app.kubernetes.io/name=bk-job";
+
     private final DiscoveryClient discoveryClient;
     private final CoreV1Api coreV1Api;
     private final long podCacheTtlMs;
     /**
-     * namespace -> 缓存条目；条目内 podMap 的 key 为 pod uid。
-     * 使用 ConcurrentHashMap 保证多线程并发触发时的可见性，
-     * 单个命名空间的缓存失效后并发竞争允许多次 list（最多 1 次/线程），
-     * 不引入额外锁以避免阻塞 apiserver 响应慢时的健康检查请求。
+     * 调用 {@code listNamespacedPod} 时透传给 apiserver 的 labelSelector。
+     * 允许通过构造器在装配/测试时覆写，未传时使用 {@link #DEFAULT_POD_LABEL_SELECTOR}。
      */
+    private final String podLabelSelector;
     private final ConcurrentHashMap<String, PodCacheEntry> podCacheByNamespace = new ConcurrentHashMap<>();
 
     public K8SServiceInfoProvider(DiscoveryClient discoveryClient, CoreV1Api coreV1Api) {
-        this(discoveryClient, coreV1Api, DEFAULT_POD_CACHE_TTL_MS);
+        this(discoveryClient, coreV1Api, DEFAULT_POD_CACHE_TTL_MS, DEFAULT_POD_LABEL_SELECTOR);
     }
 
     public K8SServiceInfoProvider(DiscoveryClient discoveryClient, CoreV1Api coreV1Api, long podCacheTtlMs) {
+        this(discoveryClient, coreV1Api, podCacheTtlMs, DEFAULT_POD_LABEL_SELECTOR);
+    }
+
+    public K8SServiceInfoProvider(DiscoveryClient discoveryClient,
+                                  CoreV1Api coreV1Api,
+                                  long podCacheTtlMs,
+                                  String podLabelSelector) {
         this.discoveryClient = discoveryClient;
         this.coreV1Api = coreV1Api;
         this.podCacheTtlMs = podCacheTtlMs;
-        log.info("K8SServiceInfoProvider inited, podCacheTtlMs={}", podCacheTtlMs);
+        this.podLabelSelector = podLabelSelector;
+        log.info(
+            "K8SServiceInfoProvider inited, podCacheTtlMs={}, podLabelSelector={}",
+            podCacheTtlMs, podLabelSelector
+        );
     }
 
     /**
@@ -173,9 +191,13 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
             return cached.podMapByUid;
         }
         try {
+            // io.kubernetes:client-java 19.0.0 中 listNamespacedPod 的 labelSelector 是第 6 个形参
+            // (0-based index 5)：namespace, pretty, allowWatchBookmarks, _continue, fieldSelector,
+            //  labelSelector, limit, resourceVersion, resourceVersionMatch, sendInitialEvents,
+            //  timeoutSeconds, watch
             V1PodList podList = coreV1Api.listNamespacedPod(
                 namespace, null, null, null,
-                null, null, null, null,
+                null, podLabelSelector, null, null,
                 null, null, null, null
             );
             Map<String, V1Pod> podMapByUid = buildPodMapByUid(podList);
