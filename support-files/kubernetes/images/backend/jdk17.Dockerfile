@@ -19,4 +19,4 @@ RUN mkdir -p /data/tools && \
     dnf install -y unzip && \
     unzip arthas-bin.zip arthas-boot.jar && \
     rm -rf arthas-bin* && \
-    echo 'alias arthas="java -jar /data/tools/arthas-boot.jar"' >> ~/.bashrc
+    echo 'alias arthas="java -jar /data/tools/arthas-boot.jar --repo-mirror aliyun --use-http"' >> ~/.bashrc
