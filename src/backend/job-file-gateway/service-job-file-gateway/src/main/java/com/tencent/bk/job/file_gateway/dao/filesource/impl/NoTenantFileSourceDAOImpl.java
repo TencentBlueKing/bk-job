@@ -91,15 +91,6 @@ public class NoTenantFileSourceDAOImpl extends BaseFileSourceDAOImpl implements 
     }
 
     @Override
-    public FileSourceDTO getFileSourceByCode(String code) {
-        List<FileSourceDTO> fileSources = listFileSourceByCode(code);
-        if (fileSources.isEmpty()) {
-            return null;
-        }
-        return fileSources.get(0);
-    }
-
-    @Override
     public List<FileSourceDTO> listFileSourceByCode(String code) {
         val records = dslContext.select(ALL_FIELDS)
             .from(defaultTable)
