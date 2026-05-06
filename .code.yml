@@ -4,7 +4,7 @@ source:
   # */等正则表达式屏蔽掉所有代码，会使得代码存在风险，还会导致工具扫不到任何代码而失败
   test_source:
     #用于匹配文件; 匹配方式为正则表达式，例如[".*/java/test/.*", ".*/test.java"]
-    filepath_regex: "op-tools/(?!bk-job-op/).*"
+    filepath_regex: ["op-tools/(?!bk-job-op/).*"]
   # 提供产品代码库中工具或框架自动生成的且在代码库中的代码，没有可为空。以便代码检查时进行排除处理。
   auto_generate_source:
     # 自动生成代码文件的正则表达式，若无统一标识格式，可以指定具体目录，样例可参考test_source举例
