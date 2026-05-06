@@ -28,7 +28,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.common.exception.UnauthenticatedException;
+import com.tencent.bk.job.common.model.InternalResponse;
+import com.tencent.bk.job.common.model.error.ErrorType;
 import com.tencent.bk.job.common.model.http.HttpReq;
 import com.tencent.bk.job.common.util.http.JobHttpClient;
 import com.tencent.bk.job.common.util.json.JsonUtils;
@@ -122,12 +124,13 @@ public class FileServiceImpl implements FileService {
         String respStr;
         try {
             respStr = jobHttpClient.post(req);
-            Response<Boolean> resp = JsonUtils.fromJson(respStr, new TypeReference<Response<Boolean>>() {
-            });
+            InternalResponse<Boolean> resp = JsonUtils.fromJson(respStr,
+                new TypeReference<InternalResponse<Boolean>>() {
+                });
             if (resp.isSuccess()) {
                 return resp.getData();
             } else {
-                throw new InternalException(resp.getCode());
+                throw toServiceException(resp);
             }
         } catch (Exception e) {
             if (e instanceof ServiceException) {
@@ -141,9 +144,9 @@ public class FileServiceImpl implements FileService {
     }
 
     private FileNodesDTO parseFileNodesDTO(String respStr) {
-        Response<FileNodesDTO> resp;
+        InternalResponse<FileNodesDTO> resp;
         try {
-            resp = JsonUtils.fromJson(respStr, new TypeReference<Response<FileNodesDTO>>() {
+            resp = JsonUtils.fromJson(respStr, new TypeReference<InternalResponse<FileNodesDTO>>() {
             });
         } catch (Exception e) {
             String msg = MessageFormatter.format(
@@ -155,9 +158,25 @@ public class FileServiceImpl implements FileService {
         }
         if (resp.isSuccess()) {
             return resp.getData();
-        } else {
-            log.error("get failed bucket response={}", respStr);
-            throw new InternalException(resp.getCode());
         }
+        log.error("get failed bucket response={}", respStr);
+        throw toServiceException(resp);
+    }
+
+    /**
+     * 将 file-worker 返回的 {@link InternalResponse} 错误信息还原为对应的 {@link ServiceException} 子类，
+     * 以便在 web 层的异常处理器中映射为正确的 HTTP 状态码和错误信息。
+     * <p>
+     * 当前仅针对第三方文件源认证失败（worker 返回 errorType=UNAUTHENTICATED）做特殊处理：
+     * 还原为 {@link UnauthenticatedException}，由 web 层映射为 HTTP 401，引导用户检查凭证配置。
+     * 其余 errorType 暂统一降级为 {@link InternalException}，未来按需补充。
+     */
+    private ServiceException toServiceException(InternalResponse<?> resp) {
+        Integer errorCode = resp.getCode();
+        ErrorType errorType = ErrorType.valOf(resp.getErrorType());
+        if (errorType == ErrorType.UNAUTHENTICATED) {
+            return new UnauthenticatedException(errorCode);
+        }
+        return new InternalException(errorCode);
     }
 }
