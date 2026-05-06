@@ -25,7 +25,6 @@
 package com.tencent.bk.job.file_gateway.api.web;
 
 import com.tencent.bk.job.common.exception.ServiceException;
-import com.tencent.bk.job.common.exception.UnauthenticatedException;
 import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
 import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.model.Response;
@@ -82,11 +81,8 @@ public class WebFileResourceImpl implements WebFileResource {
             }
             return Response.buildSuccessResp(fileNodesVO);
         } catch (ServiceException e) {
-            // 认证失败（如制品库凭证错误）需要冒泡到 WebExceptionControllerAdvice 才能映射为 HTTP 401，
-            // 引导用户去检查文件源凭证配置；其余 ServiceException 保持原有行为，避免破坏前端兼容
-            if (e instanceof UnauthenticatedException) {
-                throw e;
-            }
+            // 业务异常统一以 HTTP 200 + body 错误码返回，避免和蓝鲸平台网关 401 登录态语义冲突；
+            // 文件源认证失败(1214004) 等具体语义由前端按 errorCode/errorMsg 展示
             return Response.buildCommonFailResp(e.getErrorCode(), e.getErrorParams());
         }
     }
@@ -107,9 +103,6 @@ public class WebFileResourceImpl implements WebFileResource {
             }
             return Response.buildSuccessResp(fileService.executeAction(username, appId, fileSourceId, req));
         } catch (ServiceException e) {
-            if (e instanceof UnauthenticatedException) {
-                throw e;
-            }
             return Response.buildCommonFailResp(e.getErrorCode(), e.getErrorParams());
         }
     }
