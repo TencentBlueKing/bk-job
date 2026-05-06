@@ -2,6 +2,8 @@ package com.tencent.bk.job.execute.util;
 
 import com.tencent.bk.job.execute.common.context.JobExecuteContext;
 import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
+import io.micrometer.context.ContextSnapshot;
+import io.micrometer.context.ContextSnapshotFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,9 +16,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * 支持上下文传播的 ExecutorService
+ * 支持上下文传播的 ExecutorService，同时传播业务上下文(JobExecuteContext)和 trace 上下文
  */
 public class ContextExecutorService implements ExecutorService {
+
+    private static final ContextSnapshotFactory CONTEXT_SNAPSHOT_FACTORY =
+        ContextSnapshotFactory.builder().build();
 
     private final ExecutorService delegate;
 
@@ -87,11 +92,12 @@ public class ContextExecutorService implements ExecutorService {
 
         private final JobExecuteContext context;
         private final Callable<T> delegate;
-
+        private final ContextSnapshot contextSnapshot;
 
         private ContextCallable(Callable<T> delegate) {
             this.context = JobExecuteContextThreadLocalRepo.get();
             this.delegate = delegate;
+            this.contextSnapshot = CONTEXT_SNAPSHOT_FACTORY.captureAll();
         }
 
         public static <T> ContextCallable<T> wrap(Callable<T> delegate) {
@@ -106,7 +112,7 @@ public class ContextExecutorService implements ExecutorService {
 
         @Override
         public T call() throws Exception {
-            try {
+            try (ContextSnapshot.Scope ignored = contextSnapshot.setThreadLocals()) {
                 JobExecuteContextThreadLocalRepo.set(context);
                 return delegate.call();
             } finally {
@@ -119,11 +125,12 @@ public class ContextExecutorService implements ExecutorService {
 
         private final JobExecuteContext context;
         private final Runnable delegate;
-
+        private final ContextSnapshot contextSnapshot;
 
         private ContextRunnable(Runnable delegate) {
             this.context = JobExecuteContextThreadLocalRepo.get();
             this.delegate = delegate;
+            this.contextSnapshot = CONTEXT_SNAPSHOT_FACTORY.captureAll();
         }
 
         public static ContextRunnable wrap(Runnable delegate) {
@@ -138,7 +145,7 @@ public class ContextExecutorService implements ExecutorService {
 
         @Override
         public void run() {
-            try {
+            try (ContextSnapshot.Scope ignored = contextSnapshot.setThreadLocals()) {
                 JobExecuteContextThreadLocalRepo.set(context);
                 delegate.run();
             } finally {
