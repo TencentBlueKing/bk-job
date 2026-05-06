@@ -27,12 +27,14 @@ package com.tencent.bk.job.common.k8s.provider;
 import com.tencent.bk.job.common.discovery.ServiceInfoProvider;
 import com.tencent.bk.job.common.discovery.model.ServiceInstanceInfoDTO;
 import com.tencent.bk.job.common.util.json.JsonUtils;
+import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.openapi.models.V1PodStatus;
+import io.kubernetes.client.openapi.models.V1Service;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -59,7 +61,12 @@ import java.util.stream.Collectors;
  * 2. 每次 listServiceInfo 在每个命名空间内仅触发一次 listNamespacedPod；
  * 3. 命名空间维度的进程内 TTL 缓存（默认 5 秒），TTL 内重复触发命中缓存；
  * 4. listNamespacedPod 透传 labelSelector（默认 {@link #DEFAULT_POD_LABEL_SELECTOR}），
- *    apiserver 侧即裁剪掉非作业平台 Pod，减少返回体积与本进程反序列化开销。
+ *    apiserver 侧即裁剪掉非作业平台 Pod，减少返回体积与本进程反序列化开销；
+ * 5. 服务过滤主路径直接复用 spring-cloud-kubernetes 的 informer 本地缓存
+ *    （{@link Lister}&lt;{@link V1Service}&gt;），按 {@value #SERVICE_LABEL_APP_KUBERNETES_IO_NAME}=
+ *    {@value #SERVICE_LABEL_APP_KUBERNETES_IO_NAME_VALUE_BK_JOB} 标签精确筛选作业平台 Service，
+ *    避免按服务名 contains("job-") 误命中其它项目；informer 未注入或未 sync 完成时回退到
+ *    {@link DiscoveryClient#getServices()} + 名称前缀兜底，避免启动期短暂空窗。
  */
 @Slf4j
 public class K8SServiceInfoProvider implements ServiceInfoProvider {
@@ -82,6 +89,27 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
      */
     public static final String DEFAULT_POD_LABEL_SELECTOR = "app.kubernetes.io/name=bk-job";
 
+    /**
+     * 作业平台 Service / Pod 共享的 {@code app.kubernetes.io/name} 标签 key，
+     * 与 Helm Chart 中 {@code _helpers.tpl} 的 selectorLabels 保持一致。
+     */
+    public static final String SERVICE_LABEL_APP_KUBERNETES_IO_NAME = "app.kubernetes.io/name";
+    /**
+     * 作业平台 Service 的 {@code app.kubernetes.io/name} 标签值，与 {@link #DEFAULT_POD_LABEL_SELECTOR}
+     * 中的取值保持同源。
+     */
+    public static final String SERVICE_LABEL_APP_KUBERNETES_IO_NAME_VALUE_BK_JOB = "bk-job";
+
+    /**
+     * 兜底路径（informer 未启动 / 未 sync 时）使用的服务名包含子串，与历史实现保持一致。
+     */
+    public static final String FALLBACK_JOB_SERVICE_NAME_KEYWORD = "job-";
+
+    /**
+     * 主路径与兜底路径都需过滤掉的网关管理服务名子串。
+     */
+    public static final String SERVICE_NAME_GATEWAY_MANAGEMENT = "job-gateway-management";
+
     private final DiscoveryClient discoveryClient;
     private final CoreV1Api coreV1Api;
     private final long podCacheTtlMs;
@@ -90,27 +118,42 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
      * 允许通过构造器在装配/测试时覆写，未传时使用 {@link #DEFAULT_POD_LABEL_SELECTOR}。
      */
     private final String podLabelSelector;
+    /**
+     * spring-cloud-kubernetes informer 维护的 Service 本地缓存。可为 {@code null}：
+     * 表示当前装配链路下无可用 Lister（如 ConsulDiscoveryClient 场景或测试场景），
+     * 此时主路径自动降级到旧的名称兜底逻辑。
+     */
+    private final Lister<V1Service> servicesLister;
     private final ConcurrentHashMap<String, PodCacheEntry> podCacheByNamespace = new ConcurrentHashMap<>();
 
     public K8SServiceInfoProvider(DiscoveryClient discoveryClient, CoreV1Api coreV1Api) {
-        this(discoveryClient, coreV1Api, DEFAULT_POD_CACHE_TTL_MS, DEFAULT_POD_LABEL_SELECTOR);
+        this(discoveryClient, coreV1Api, DEFAULT_POD_CACHE_TTL_MS, DEFAULT_POD_LABEL_SELECTOR, null);
     }
 
     public K8SServiceInfoProvider(DiscoveryClient discoveryClient, CoreV1Api coreV1Api, long podCacheTtlMs) {
-        this(discoveryClient, coreV1Api, podCacheTtlMs, DEFAULT_POD_LABEL_SELECTOR);
+        this(discoveryClient, coreV1Api, podCacheTtlMs, DEFAULT_POD_LABEL_SELECTOR, null);
     }
 
     public K8SServiceInfoProvider(DiscoveryClient discoveryClient,
                                   CoreV1Api coreV1Api,
                                   long podCacheTtlMs,
                                   String podLabelSelector) {
+        this(discoveryClient, coreV1Api, podCacheTtlMs, podLabelSelector, null);
+    }
+
+    public K8SServiceInfoProvider(DiscoveryClient discoveryClient,
+                                  CoreV1Api coreV1Api,
+                                  long podCacheTtlMs,
+                                  String podLabelSelector,
+                                  Lister<V1Service> servicesLister) {
         this.discoveryClient = discoveryClient;
         this.coreV1Api = coreV1Api;
         this.podCacheTtlMs = podCacheTtlMs;
         this.podLabelSelector = podLabelSelector;
+        this.servicesLister = servicesLister;
         log.info(
-            "K8SServiceInfoProvider inited, podCacheTtlMs={}, podLabelSelector={}",
-            podCacheTtlMs, podLabelSelector
+            "K8SServiceInfoProvider inited, podCacheTtlMs={}, podLabelSelector={}, servicesListerInjected={}",
+            podCacheTtlMs, podLabelSelector, servicesLister != null
         );
     }
 
@@ -143,12 +186,112 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
             .collect(Collectors.toList());
     }
 
+    /**
+     * 列出作业平台所有服务实例。
+     * <p>
+     * 主路径：从 informer 本地 Service 缓存按 {@value #SERVICE_LABEL_APP_KUBERNETES_IO_NAME}=
+     * {@value #SERVICE_LABEL_APP_KUBERNETES_IO_NAME_VALUE_BK_JOB} 标签筛选 Service，再用每个命中
+     * Service 的 metadata.name 作为 serviceId 调用 {@link DiscoveryClient#getInstances(String)}；
+     * 主路径内即过滤掉 {@value #SERVICE_NAME_GATEWAY_MANAGEMENT}（与现状一致），后续
+     * {@link #isJobServiceInstance(ServiceInstance)} 还会再次确认。
+     * <p>
+     * 兜底路径：当 informer 未启动 / 未 sync 完成（servicesLister 为 null、抛异常或 list 返回空）时，
+     * 回退到 {@link DiscoveryClient#getServices()} + 服务名 contains
+     * {@value #FALLBACK_JOB_SERVICE_NAME_KEYWORD} 的旧逻辑，避免启动期短暂空窗导致 listAll 返回空。
+     */
     private List<ServiceInstance> listJobServiceInstances() {
-        String jobServiceSymbol = "job-";
+        List<String> jobServiceIds = listJobServiceIdsByLabel();
+        if (jobServiceIds == null) {
+            return listJobServiceInstancesByNameFallback();
+        }
+        List<ServiceInstance> serviceInstanceList = new ArrayList<>();
+        for (String serviceId : jobServiceIds) {
+            serviceInstanceList.addAll(discoveryClient.getInstances(serviceId));
+        }
+        return serviceInstanceList;
+    }
+
+    /**
+     * 通过 servicesLister 按标签筛选作业平台 Service，返回服务名列表。
+     * <ul>
+     *   <li>返回 {@code null}：lister 为 null / list() 抛异常 / list() 返回 null 或空集合，
+     *       说明 informer 未注入或未 sync 完成，调用方需走兜底路径；</li>
+     *   <li>返回非 null 列表（即使为空）：说明 lister 可读，空列表是合法结果（确实没有匹配 Service）。</li>
+     * </ul>
+     */
+    private List<String> listJobServiceIdsByLabel() {
+        if (servicesLister == null) {
+            log.warn(
+                "servicesLister is not injected, fallback to discoveryClient.getServices() + name contains \"{}\"",
+                FALLBACK_JOB_SERVICE_NAME_KEYWORD
+            );
+            return null;
+        }
+        List<V1Service> services;
+        try {
+            services = servicesLister.list();
+        } catch (Throwable t) {
+            log.warn(
+                "Fail to list services from servicesLister, "
+                    + "fallback to discoveryClient.getServices() + name contains \"{}\"",
+                FALLBACK_JOB_SERVICE_NAME_KEYWORD, t
+            );
+            return null;
+        }
+        if (CollectionUtils.isEmpty(services)) {
+            log.warn(
+                "servicesLister returned empty result (informer not synced?), "
+                    + "fallback to discoveryClient.getServices() + name contains \"{}\"",
+                FALLBACK_JOB_SERVICE_NAME_KEYWORD
+            );
+            return null;
+        }
+        List<String> serviceIds = new ArrayList<>();
+        for (V1Service service : services) {
+            String serviceId = extractBkJobServiceName(service);
+            if (serviceId == null) {
+                continue;
+            }
+            // 主路径与兜底路径一致：保留对 job-gateway-management 的过滤
+            if (serviceId.contains(SERVICE_NAME_GATEWAY_MANAGEMENT)) {
+                continue;
+            }
+            serviceIds.add(serviceId);
+        }
+        return serviceIds;
+    }
+
+    /**
+     * 提取 V1Service 中带 {@value #SERVICE_LABEL_APP_KUBERNETES_IO_NAME}=
+     * {@value #SERVICE_LABEL_APP_KUBERNETES_IO_NAME_VALUE_BK_JOB} 标签的服务名；
+     * 标签缺失或值不匹配返回 {@code null}。
+     */
+    private String extractBkJobServiceName(V1Service service) {
+        if (service == null) {
+            return null;
+        }
+        V1ObjectMeta metadata = service.getMetadata();
+        if (metadata == null
+            || metadata.getLabels() == null
+            || StringUtils.isBlank(metadata.getName())) {
+            return null;
+        }
+        String labelValue = metadata.getLabels().get(SERVICE_LABEL_APP_KUBERNETES_IO_NAME);
+        if (!SERVICE_LABEL_APP_KUBERNETES_IO_NAME_VALUE_BK_JOB.equals(labelValue)) {
+            return null;
+        }
+        return metadata.getName();
+    }
+
+    /**
+     * 兜底路径：保留历史的 {@code discoveryClient.getServices()} + 服务名 contains
+     * {@value #FALLBACK_JOB_SERVICE_NAME_KEYWORD} 的过滤逻辑。仅在 servicesLister 不可用时触发。
+     */
+    private List<ServiceInstance> listJobServiceInstancesByNameFallback() {
         List<String> serviceIdList = discoveryClient.getServices();
         List<ServiceInstance> serviceInstanceList = new ArrayList<>();
         for (String serviceId : serviceIdList) {
-            if (serviceId != null && serviceId.contains(jobServiceSymbol)) {
+            if (serviceId != null && serviceId.contains(FALLBACK_JOB_SERVICE_NAME_KEYWORD)) {
                 serviceInstanceList.addAll(discoveryClient.getInstances(serviceId));
             }
         }
@@ -158,7 +301,7 @@ public class K8SServiceInfoProvider implements ServiceInfoProvider {
     private boolean isJobServiceInstance(ServiceInstance serviceInstance) {
         return serviceInstance != null
             && StringUtils.isNotBlank(serviceInstance.getServiceId())
-            && !serviceInstance.getServiceId().contains("job-gateway-management")
+            && !serviceInstance.getServiceId().contains(SERVICE_NAME_GATEWAY_MANAGEMENT)
             && StringUtils.isNotBlank(getNameSpace(serviceInstance));
     }
 

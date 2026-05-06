@@ -24,33 +24,46 @@
 
 package com.tencent.bk.job.common.k8s.provider;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.tencent.bk.job.common.discovery.model.ServiceInstanceInfoDTO;
+import io.kubernetes.client.informer.cache.Lister;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.openapi.models.V1Pod;
 import io.kubernetes.client.openapi.models.V1PodList;
 import io.kubernetes.client.openapi.models.V1PodStatus;
+import io.kubernetes.client.openapi.models.V1Service;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.kubernetes.commons.discovery.DefaultKubernetesServiceInstance;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -60,10 +73,24 @@ class K8SServiceInfoProviderTest {
     private static final String NAMESPACE = "bk-job";
 
     private CoreV1Api coreV1Api;
+    private Logger providerLogger;
+    private ListAppender<ILoggingEvent> logAppender;
 
     @BeforeEach
     void setUp() {
         coreV1Api = mock(CoreV1Api.class);
+        providerLogger = (Logger) LoggerFactory.getLogger(K8SServiceInfoProvider.class);
+        logAppender = new ListAppender<>();
+        logAppender.start();
+        providerLogger.addAppender(logAppender);
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (providerLogger != null && logAppender != null) {
+            providerLogger.detachAppender(logAppender);
+            logAppender.stop();
+        }
     }
 
     @Test
@@ -284,6 +311,248 @@ class K8SServiceInfoProviderTest {
             isNull(), isNull(), isNull(), isNull()
         );
         assertEquals(customSelector, labelSelectorCaptor.getValue());
+    }
+
+    @Test
+    void shouldFilterServicesByAppKubernetesIoNameLabelOnMainPath() throws Exception {
+        // 主路径命中：3 个 Service，2 个带 app.kubernetes.io/name=bk-job 标签（job-manage、job-execute），
+        // 1 个标签为其它值（monitor-foo），断言只对前两个调用 getInstances，最终聚合只来自前两个
+        ServiceInstance manageInstance = createKubernetesServiceInstance(
+            "uid-manage", "job-manage", "127.0.0.1", 19801, NAMESPACE
+        );
+        ServiceInstance executeInstance = createKubernetesServiceInstance(
+            "uid-execute", "job-execute", "127.0.0.2", 19803, NAMESPACE
+        );
+        // 故意准备一个 monitor-foo 实例：即使被错误命中也能通过断言暴露问题
+        ServiceInstance monitorInstance = createKubernetesServiceInstance(
+            "uid-monitor", "monitor-foo", "127.0.0.3", 9090, NAMESPACE
+        );
+
+        DiscoveryClient discoveryClient = mock(DiscoveryClient.class);
+        when(discoveryClient.getInstances("job-manage"))
+            .thenReturn(Collections.singletonList(manageInstance));
+        when(discoveryClient.getInstances("job-execute"))
+            .thenReturn(Collections.singletonList(executeInstance));
+        when(discoveryClient.getInstances("monitor-foo"))
+            .thenReturn(Collections.singletonList(monitorInstance));
+
+        Lister<V1Service> servicesLister = mockServicesLister(Arrays.asList(
+            buildBkJobService("job-manage"),
+            buildBkJobService("job-execute"),
+            buildServiceWithLabelValue("monitor-foo", "monitoring-app")
+        ));
+        mockListNamespacedPod(NAMESPACE, Arrays.asList(
+            buildPod("uid-manage", "job-manage-0", "v3.9.0", "Running", null),
+            buildPod("uid-execute", "job-execute-0", "v3.9.0", "Running", null)
+        ));
+
+        K8SServiceInfoProvider provider = newProviderWithLister(discoveryClient, servicesLister);
+        Map<String, ServiceInstanceInfoDTO> resultMap = provider.listServiceInfo().stream()
+            .collect(Collectors.toMap(ServiceInstanceInfoDTO::getServiceName, dto -> dto));
+
+        // 主路径只对带 bk-job 标签的 service 调用 getInstances
+        verify(discoveryClient, times(1)).getInstances("job-manage");
+        verify(discoveryClient, times(1)).getInstances("job-execute");
+        verify(discoveryClient, never()).getInstances("monitor-foo");
+        // 主路径不会再走兜底 getServices()
+        verify(discoveryClient, never()).getServices();
+
+        assertEquals(2, resultMap.size());
+        assertTrue(resultMap.containsKey("job-manage"));
+        assertTrue(resultMap.containsKey("job-execute"));
+        assertFalse(resultMap.containsKey("monitor-foo"));
+        assertEquals(ServiceInstanceInfoDTO.STATUS_OK, resultMap.get("job-manage").getStatusCode());
+        assertEquals(ServiceInstanceInfoDTO.STATUS_OK, resultMap.get("job-execute").getStatusCode());
+    }
+
+    @Test
+    void shouldStillFilterGatewayManagementOnMainPath() throws Exception {
+        // 主路径同时命中 job-gateway-management（同样带 app.kubernetes.io/name=bk-job 标签），
+        // 断言它仍被过滤掉，不会出现在最终结果中
+        ServiceInstance manageInstance = createKubernetesServiceInstance(
+            "uid-manage", "job-manage", "127.0.0.1", 19801, NAMESPACE
+        );
+        ServiceInstance gatewayManagementInstance = createKubernetesServiceInstance(
+            "uid-gw-mgmt", "job-gateway-management", "127.0.0.2", 19810, NAMESPACE
+        );
+
+        DiscoveryClient discoveryClient = mock(DiscoveryClient.class);
+        when(discoveryClient.getInstances("job-manage"))
+            .thenReturn(Collections.singletonList(manageInstance));
+        when(discoveryClient.getInstances("job-gateway-management"))
+            .thenReturn(Collections.singletonList(gatewayManagementInstance));
+
+        Lister<V1Service> servicesLister = mockServicesLister(Arrays.asList(
+            buildBkJobService("job-manage"),
+            buildBkJobService("job-gateway-management")
+        ));
+        mockListNamespacedPod(NAMESPACE, Collections.singletonList(
+            buildPod("uid-manage", "job-manage-0", "v3.9.0", "Running", null)
+        ));
+
+        K8SServiceInfoProvider provider = newProviderWithLister(discoveryClient, servicesLister);
+        List<ServiceInstanceInfoDTO> result = provider.listServiceInfo();
+
+        // 主路径在 listJobServiceIdsByLabel 阶段已剔除 job-gateway-management，不会触发 getInstances
+        verify(discoveryClient, never()).getInstances("job-gateway-management");
+        verify(discoveryClient, times(1)).getInstances("job-manage");
+
+        assertEquals(1, result.size());
+        assertEquals("job-manage", result.get(0).getServiceName());
+    }
+
+    @Test
+    void shouldFallbackToNameKeywordWhenServicesListerThrows() throws Exception {
+        // 兜底路径：servicesLister.list() 抛异常，断言走旧的 getServices() + contains("job-") 逻辑
+        ServiceInstance manageInstance = createKubernetesServiceInstance(
+            "uid-manage", "job-manage", "127.0.0.1", 19801, NAMESPACE
+        );
+        ServiceInstance otherInstance = createKubernetesServiceInstance(
+            "uid-monitor", "monitor-foo", "127.0.0.3", 9090, NAMESPACE
+        );
+
+        DiscoveryClient discoveryClient = mock(DiscoveryClient.class);
+        when(discoveryClient.getServices()).thenReturn(Arrays.asList("job-manage", "monitor-foo"));
+        when(discoveryClient.getInstances("job-manage"))
+            .thenReturn(Collections.singletonList(manageInstance));
+        when(discoveryClient.getInstances("monitor-foo"))
+            .thenReturn(Collections.singletonList(otherInstance));
+
+        @SuppressWarnings("unchecked")
+        Lister<V1Service> servicesLister = (Lister<V1Service>) mock(Lister.class);
+        when(servicesLister.list()).thenThrow(new RuntimeException("informer not synced"));
+
+        mockListNamespacedPod(NAMESPACE, Collections.singletonList(
+            buildPod("uid-manage", "job-manage-0", "v3.9.0", "Running", null)
+        ));
+
+        K8SServiceInfoProvider provider = newProviderWithLister(discoveryClient, servicesLister);
+        List<ServiceInstanceInfoDTO> result = provider.listServiceInfo();
+
+        // 兜底确实触发了 getServices()
+        verify(discoveryClient, times(1)).getServices();
+        // 兜底路径只对名称含 "job-" 的 service 调用 getInstances，monitor-foo 不命中
+        verify(discoveryClient, times(1)).getInstances("job-manage");
+        verify(discoveryClient, never()).getInstances("monitor-foo");
+
+        assertEquals(1, result.size());
+        assertEquals("job-manage", result.get(0).getServiceName());
+        assertTrue(containsWarnLog("fallback to discoveryClient.getServices()"),
+            "expected WARN log when servicesLister.list() throws");
+    }
+
+    @Test
+    void shouldFallbackToNameKeywordWhenServicesListerReturnsEmpty() throws Exception {
+        // 兜底路径：servicesLister.list() 返回空集合（informer 未 sync 完成），断言走兜底逻辑
+        ServiceInstance manageInstance = createKubernetesServiceInstance(
+            "uid-manage", "job-manage", "127.0.0.1", 19801, NAMESPACE
+        );
+
+        DiscoveryClient discoveryClient = mock(DiscoveryClient.class);
+        when(discoveryClient.getServices()).thenReturn(Collections.singletonList("job-manage"));
+        when(discoveryClient.getInstances("job-manage"))
+            .thenReturn(Collections.singletonList(manageInstance));
+
+        Lister<V1Service> servicesLister = mockServicesLister(Collections.emptyList());
+
+        mockListNamespacedPod(NAMESPACE, Collections.singletonList(
+            buildPod("uid-manage", "job-manage-0", "v3.9.0", "Running", null)
+        ));
+
+        K8SServiceInfoProvider provider = newProviderWithLister(discoveryClient, servicesLister);
+        List<ServiceInstanceInfoDTO> result = provider.listServiceInfo();
+
+        verify(discoveryClient, times(1)).getServices();
+        verify(discoveryClient, times(1)).getInstances("job-manage");
+
+        assertEquals(1, result.size());
+        assertEquals("job-manage", result.get(0).getServiceName());
+        assertTrue(containsWarnLog("informer not synced"),
+            "expected WARN log when servicesLister.list() returns empty");
+    }
+
+    @Test
+    void shouldFallbackToNameKeywordWhenServicesListerNotInjected() throws Exception {
+        // 兜底路径：servicesLister 为 null（默认 3 参构造器场景），断言走兜底逻辑且记 WARN
+        ServiceInstance manageInstance = createKubernetesServiceInstance(
+            "uid-manage", "job-manage", "127.0.0.1", 19801, NAMESPACE
+        );
+        DiscoveryClient discoveryClient = createDiscoveryClient(Collections.singletonList(manageInstance));
+        mockListNamespacedPod(NAMESPACE, Collections.singletonList(
+            buildPod("uid-manage", "job-manage-0", "v3.9.0", "Running", null)
+        ));
+
+        // 不传 servicesLister：使用默认 2 参构造器
+        K8SServiceInfoProvider provider = new K8SServiceInfoProvider(discoveryClient, coreV1Api);
+        List<ServiceInstanceInfoDTO> result = provider.listServiceInfo();
+
+        assertEquals(1, result.size());
+        assertEquals("job-manage", result.get(0).getServiceName());
+        assertTrue(containsWarnLog("servicesLister is not injected"),
+            "expected WARN log when servicesLister is null");
+    }
+
+    @Test
+    void shouldNotFallbackWhenListerHasNonEmptyResultButNoBkJobLabel() throws Exception {
+        // 主路径成功但过滤后无命中：lister 返回非空集合（仅含其它项目 service），主路径返回空列表也是合法结果，
+        // 不应再走兜底，最终聚合结果为空
+        DiscoveryClient discoveryClient = mock(DiscoveryClient.class);
+
+        Lister<V1Service> servicesLister = mockServicesLister(Collections.singletonList(
+            buildServiceWithLabelValue("monitor-foo", "monitoring-app")
+        ));
+
+        K8SServiceInfoProvider provider = newProviderWithLister(discoveryClient, servicesLister);
+        List<ServiceInstanceInfoDTO> result = provider.listServiceInfo();
+
+        assertEquals(0, result.size());
+        // 主路径 lister 可读，不应再触发兜底的 getServices()
+        verify(discoveryClient, never()).getServices();
+        verify(discoveryClient, never()).getInstances("monitor-foo");
+    }
+
+    private K8SServiceInfoProvider newProviderWithLister(DiscoveryClient discoveryClient,
+                                                        Lister<V1Service> servicesLister) {
+        return new K8SServiceInfoProvider(
+            discoveryClient,
+            coreV1Api,
+            K8SServiceInfoProvider.DEFAULT_POD_CACHE_TTL_MS,
+            K8SServiceInfoProvider.DEFAULT_POD_LABEL_SELECTOR,
+            servicesLister
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    private Lister<V1Service> mockServicesLister(List<V1Service> services) {
+        Lister<V1Service> lister = (Lister<V1Service>) mock(Lister.class);
+        when(lister.list()).thenReturn(new ArrayList<>(services));
+        return lister;
+    }
+
+    private V1Service buildBkJobService(String name) {
+        return buildServiceWithLabelValue(
+            name, K8SServiceInfoProvider.SERVICE_LABEL_APP_KUBERNETES_IO_NAME_VALUE_BK_JOB
+        );
+    }
+
+    private V1Service buildServiceWithLabelValue(String name, String appKubernetesIoNameLabelValue) {
+        V1ObjectMeta metadata = new V1ObjectMeta().name(name);
+        if (appKubernetesIoNameLabelValue != null) {
+            Map<String, String> labels = new HashMap<>();
+            labels.put(
+                K8SServiceInfoProvider.SERVICE_LABEL_APP_KUBERNETES_IO_NAME,
+                appKubernetesIoNameLabelValue
+            );
+            metadata.setLabels(labels);
+        }
+        return new V1Service().metadata(metadata);
+    }
+
+    private boolean containsWarnLog(String fragment) {
+        Set<Level> warnLevels = Collections.singleton(Level.WARN);
+        return logAppender.list.stream()
+            .filter(event -> warnLevels.contains(event.getLevel()))
+            .anyMatch(event -> event.getFormattedMessage().contains(fragment));
     }
 
     private void mockListNamespacedPod(String namespace, List<V1Pod> pods) throws ApiException {
