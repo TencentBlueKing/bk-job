@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.tencent.bk.job.common.model.dto.CmdbTopoNodeDTO;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * ESB接口 CMDB topo节点实体类

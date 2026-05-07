@@ -30,6 +30,8 @@ import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.tencent.bk.job.common.model.vo.HostTopoPathVO;
+import org.apache.commons.collections4.CollectionUtils;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -162,6 +164,12 @@ public class ApplicationHostDTO {
      */
     private List<String> ipList = new ArrayList<>();
 
+    /**
+     * 主机所属拓扑路径信息
+     */
+    @JsonIgnore
+    private List<HostTopoPathDTO> topoPathList;
+
     public String getCloudVendorId() {
         if (cloudVendorId != null && cloudVendorId.length() > 64) {
             return cloudVendorId.substring(0, 64);
@@ -234,6 +242,12 @@ public class ApplicationHostDTO {
         hostInfoVO.setAlive(getAgentAliveValue());
         hostInfoVO.setAgentId(agentId);
         hostInfoVO.setCloudVendorName(cloudVendorName);
+        if (CollectionUtils.isNotEmpty(topoPathList)) {
+            List<HostTopoPathVO> topoPathVOList = topoPathList.stream()
+                .map(dto -> new HostTopoPathVO(dto.getSetName(), dto.getModuleName()))
+                .collect(Collectors.toList());
+            hostInfoVO.setTopoPathList(topoPathVOList);
+        }
         return hostInfoVO;
     }
 
@@ -315,6 +329,11 @@ public class ApplicationHostDTO {
         host.setOsType(osType);
         host.setOsTypeName(osTypeName);
         host.setHostname(hostName);
+        if (CollectionUtils.isNotEmpty(topoPathList)) {
+            host.setTopoPathList(topoPathList.stream()
+                .map(p -> new HostTopoPathDTO(p.getSetName(), p.getModuleName()))
+                .collect(Collectors.toList()));
+        }
         return host;
     }
 

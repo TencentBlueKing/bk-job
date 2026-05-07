@@ -25,24 +25,23 @@
 package com.tencent.bk.job.analysis.model.web.req;
 
 import com.tencent.bk.job.common.validation.MaxLength;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel("AI通用对话请求体")
+@Schema(description = "AI通用对话请求体")
 @Data
 public class AIGeneralChatReq {
 
     /**
      * 用户输入内容
      */
-    @ApiModelProperty(value = "用户输入内容")
+    @Schema(description = "用户输入内容")
     @NotEmpty(message = "{validation.constraints.AIGeneralChat_contentEmpty.message}")
     @MaxLength(value = 5 * 1024L * 1024L,
         message = "{validation.constraints.AIGeneralChat_contentExceedMaxLength.message}")

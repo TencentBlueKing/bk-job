@@ -43,6 +43,9 @@ public class IamCallbackAspect {
             CallbackRequestDTO callbackRequest = (CallbackRequestDTO) args[1];
             logRequest(callbackRequest);
             return pjp.proceed();
+        } catch (RuntimeException e) {
+            // RuntimeException（包括 ServiceException 及其子类）直接透传，保留原始类型以便上层异常处理器精确匹配
+            throw e;
         } catch (Throwable throwable) {
             throw new Exception("Fail to execute logBeforeProcessCallbackRequest", throwable);
         }

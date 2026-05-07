@@ -55,6 +55,82 @@ import java.util.stream.Stream;
 public class FileUtil {
 
     /**
+     * IO阻塞统计器，用于检测并记录网络读/磁盘写的阻塞情况，循环结束后可打印汇总日志。
+     */
+    private static class IOBlockStats {
+        /**
+         * 磁盘写/网络读阻塞告警阈值（毫秒），超过该值则打印告警日志
+         */
+        private static final long IO_BLOCK_WARN_THRESHOLD_MS = 5000L;
+
+        private final String targetPath;
+        private int readBlockCount = 0;
+        private long readBlockTotalMs = 0;
+        private int writeBlockCount = 0;
+        private long writeBlockTotalMs = 0;
+
+        IOBlockStats(String targetPath) {
+            this.targetPath = targetPath;
+        }
+
+        /**
+         * 检测网络读耗时并记录阻塞统计
+         *
+         * @param operationStartTime IO操作开始时间戳（毫秒）
+         * @param extraMessage       额外的日志信息（可为null），用于附加进度等上下文
+         */
+        void checkRead(long operationStartTime, String extraMessage) {
+            long cost = check(operationStartTime, "Network read", extraMessage);
+            if (cost > IO_BLOCK_WARN_THRESHOLD_MS) {
+                readBlockCount++;
+                readBlockTotalMs += cost;
+            }
+        }
+
+        /**
+         * 检测磁盘写耗时并记录阻塞统计
+         *
+         * @param operationStartTime IO操作开始时间戳（毫秒）
+         * @param extraMessage       额外的日志信息（可为null），用于附加进度等上下文
+         */
+        void checkWrite(long operationStartTime, String extraMessage) {
+            long cost = check(operationStartTime, "Disk write", extraMessage);
+            if (cost > IO_BLOCK_WARN_THRESHOLD_MS) {
+                writeBlockCount++;
+                writeBlockTotalMs += cost;
+            }
+        }
+
+        /**
+         * 检测IO操作耗时是否超过阈值，超过则打印告警日志
+         *
+         * @return 本次IO耗时（毫秒）
+         */
+        private long check(long operationStartTime, String operation, String extraMessage) {
+            long cost = System.currentTimeMillis() - operationStartTime;
+            if (cost > IO_BLOCK_WARN_THRESHOLD_MS) {
+                if (extraMessage != null) {
+                    log.warn("{} blocked for {}ms, targetPath:{}, {}", operation, cost, targetPath, extraMessage);
+                } else {
+                    log.warn("{} blocked for {}ms, targetPath:{}", operation, cost, targetPath);
+                }
+            }
+            return cost;
+        }
+
+        /**
+         * 若存在阻塞，打印汇总告警日志
+         */
+        void logSummaryIfBlocked() {
+            if (readBlockCount > 0 || writeBlockCount > 0) {
+                log.warn("IO block when download file, targetPath:{}, readBlockCount:{}, readBlockTotalMs:{}ms,"
+                        + " writeBlockCount:{}, writeBlockTotalMs:{}ms",
+                    targetPath, readBlockCount, readBlockTotalMs, writeBlockCount, writeBlockTotalMs);
+            }
+        }
+    }
+
+    /**
      * 创建文件的父目录
      *
      * @param path 文件路径
@@ -170,11 +246,24 @@ public class FileUtil {
             int batchSize = 20480;
             byte[] content = new byte[batchSize];
             int length;
-            while ((length = ins.read(content)) > 0) {
+            long ioStart;
+            IOBlockStats ioBlockStats = new IOBlockStats(targetPath);
+            while (true) {
+                // 计算网络read延迟
+                ioStart = System.currentTimeMillis();
+                length = ins.read(content);
+                ioBlockStats.checkRead(ioStart, null);
+                if (length <= 0) {
+                    break;
+                }
+                // 计算磁盘写延迟
+                ioStart = System.currentTimeMillis();
                 fos.write(content, 0, length);
+                ioBlockStats.checkWrite(ioStart, "writeBytes:" + length);
                 Thread.sleep(0);
             }
             closeFos(fos);
+            ioBlockStats.logSummaryIfBlocked();
             fis = new FileInputStream(targetPath);
             return DigestUtils.md5Hex(fis);
         } catch (FileNotFoundException e) {
@@ -229,9 +318,25 @@ public class FileUtil {
             long lastSpeedWatchFileSize = totalLength;
             long currentSpeedWatchTime;
             long timeDelta = 0;
-            while ((length = ins.read(content)) > 0) {
+            long ioStart;
+            IOBlockStats ioBlockStats = new IOBlockStats(targetPath);
+            while (true) {
+                // 计算网络read延迟
+                ioStart = System.currentTimeMillis();
+                length = ins.read(content);
+                ioBlockStats.checkRead(ioStart, null);
+                if (length <= 0) {
+                    break;
+                }
+                // 计算磁盘写延迟
+                ioStart = System.currentTimeMillis();
                 fos.write(content, 0, length);
                 totalLength += length;
+                ioBlockStats.checkWrite(
+                    ioStart,
+                    "writeBytes:" + length + ", progress: "
+                        + FileSizeUtil.getFileSizeStr(totalLength) + "/" + FileSizeUtil.getFileSizeStr(fileSize)
+                );
                 process.set((int) (totalLength / (float) fileSize * 100));
                 currentSpeedWatchTime = System.currentTimeMillis();
                 timeDelta = currentSpeedWatchTime - lastSpeedWatchTime;
@@ -241,18 +346,29 @@ public class FileUtil {
                     speed.set((int) (fileSizeDelta / timeDelta));
                     lastSpeedWatchTime = currentSpeedWatchTime;
                     lastSpeedWatchFileSize = totalLength;
-                    log.info("progress: {}KB/{}KB, speed: {}KB/s", totalLength / 1000, fileSize / 1000, speed.get());
+                    log.info(
+                        "progress: {}/{}, speed: {}KB/s",
+                        FileSizeUtil.getFileSizeStr(totalLength),
+                        FileSizeUtil.getFileSizeStr(fileSize),
+                        speed.get()
+                    );
                 }
                 Thread.sleep(0);
             }
             closeFos(fos);
+            ioBlockStats.logSummaryIfBlocked();
             log.info("targetPath:{},totalLength={},fileSize={}", targetPath, totalLength, fileSize);
             currentSpeedWatchTime = System.currentTimeMillis();
             timeDelta = currentSpeedWatchTime - lastSpeedWatchTime;
             long fileSizeDelta = totalLength - lastSpeedWatchFileSize;
             if (timeDelta > 0) {
                 speed.set((int) (fileSizeDelta / timeDelta));
-                log.info("progress: {}KB/{}KB, speed: {}KB/s", totalLength / 1000, fileSize / 1000, speed.get());
+                log.info(
+                    "progress: {}/{}, speed: {}KB/s",
+                    FileSizeUtil.getFileSizeStr(totalLength),
+                    FileSizeUtil.getFileSizeStr(fileSize),
+                    speed.get()
+                );
             }
             fis = new FileInputStream(targetPath);
             return DigestUtils.md5Hex(fis);

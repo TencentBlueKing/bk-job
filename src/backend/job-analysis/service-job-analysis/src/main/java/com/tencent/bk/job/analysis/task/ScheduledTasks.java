@@ -25,6 +25,7 @@
 package com.tencent.bk.job.analysis.task;
 
 import com.tencent.bk.job.analysis.task.ai.AIChatHistoryCleanTask;
+import com.tencent.bk.job.analysis.task.ai.AIChatSessionCleanTask;
 import com.tencent.bk.job.analysis.task.analysis.AnalysisTaskScheduler;
 import com.tencent.bk.job.analysis.task.statistics.StatisticsTaskScheduler;
 import com.tencent.bk.job.common.annotation.ScheduledOnOperationTimeZone;
@@ -42,14 +43,17 @@ public class ScheduledTasks {
     private final AnalysisTaskScheduler analysisTaskScheduler;
     private final StatisticsTaskScheduler statisticsTaskScheduler;
     private final AIChatHistoryCleanTask aiChatHistoryCleanTask;
+    private final AIChatSessionCleanTask aiChatSessionCleanTask;
 
     @Autowired
     public ScheduledTasks(AnalysisTaskScheduler analysisTaskScheduler,
                           StatisticsTaskScheduler statisticsTaskScheduler,
-                          AIChatHistoryCleanTask aiChatHistoryCleanTask) {
+                          AIChatHistoryCleanTask aiChatHistoryCleanTask,
+                          AIChatSessionCleanTask aiChatSessionCleanTask) {
         this.analysisTaskScheduler = analysisTaskScheduler;
         this.statisticsTaskScheduler = statisticsTaskScheduler;
         this.aiChatHistoryCleanTask = aiChatHistoryCleanTask;
+        this.aiChatSessionCleanTask = aiChatSessionCleanTask;
     }
 
     /**
@@ -91,6 +95,18 @@ public class ScheduledTasks {
             aiChatHistoryCleanTask.execute();
         } catch (Exception e) {
             logger.error("aiChatHistoryCleanTask fail", e);
+        }
+    }
+
+    /**
+     * 定时清理AI场景会话记录，1h一次
+     */
+    @ScheduledOnOperationTimeZone(cron = "0 40 * * * *")
+    public void aiChatSessionCleanTask() {
+        try {
+            aiChatSessionCleanTask.execute();
+        } catch (Exception e) {
+            logger.error("aiChatSessionCleanTask fail", e);
         }
     }
 }

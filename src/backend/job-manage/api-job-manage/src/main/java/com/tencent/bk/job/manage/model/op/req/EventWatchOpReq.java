@@ -25,7 +25,7 @@
 package com.tencent.bk.job.manage.model.op.req;
 
 import com.tencent.bk.job.manage.api.common.constants.EventWatchTaskTypeEnum;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -34,7 +34,7 @@ import lombok.Data;
 @Data
 public class EventWatchOpReq {
 
-    @ApiModelProperty(value = "事件监听任务的任务类型", required = true)
+    @Schema(description = "事件监听任务的任务类型", required = true)
     private EventWatchTaskTypeEnum taskType;
 
 }

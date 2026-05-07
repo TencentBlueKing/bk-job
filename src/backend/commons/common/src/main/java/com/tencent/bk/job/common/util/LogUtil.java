@@ -25,6 +25,7 @@
 package com.tencent.bk.job.common.util;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * @Description
@@ -32,6 +33,40 @@ import java.util.List;
  * @Version 1.0
  */
 public class LogUtil {
+
+    /**
+     * 匹配 ASCII 控制字符（0x00-0x1F）和 DEL（0x7F）
+     */
+    private static final Pattern CONTROL_CHARS_PATTERN = Pattern.compile("[\\x00-\\x1F\\x7F]");
+
+    /**
+     * 移除字符串中的 ASCII 控制字符（0x00-0x1F, 0x7F），防止 CRLF 日志注入等攻击。
+     *
+     * @param value 原始字符串
+     * @return 移除控制字符后的字符串；若输入为 null 则返回空串
+     */
+    public static String stripControlChars(String value) {
+        if (value == null) {
+            return "";
+        }
+        return CONTROL_CHARS_PATTERN.matcher(value).replaceAll("");
+    }
+
+    /**
+     * 清理待写入日志的不可信字符串：截断至指定长度（添加 "..." 后缀标识被截断），
+     * 并移除 ASCII 控制字符，防止日志注入。
+     *
+     * @param value     原始字符串
+     * @param maxLength 最大保留长度（不含 "..." 后缀），必须 > 0
+     * @return 安全的日志字符串；若输入为 null 则返回空串
+     */
+    public static String sanitizeForLog(String value, int maxLength) {
+        if (value == null) {
+            return "";
+        }
+        String safe = value.length() > maxLength ? value.substring(0, maxLength) + "..." : value;
+        return stripControlChars(safe);
+    }
 
     /**
      * 构建日志中需要打印出的部分列表元素字符串
@@ -75,5 +110,24 @@ public class LogUtil {
 
     public static String getOutputLog(String prefix, Object... args) {
         return (prefix + "Output(" + joinBySeparator(",", args) + ")");
+    }
+
+    /**
+     * 截取文本末尾，保留最多 maxChars 个字符；若发生截断，去掉开头的不完整行（即从第一个换行符之后开始）。
+     *
+     * @param text     原始文本
+     * @param maxChars 最大保留字符数，必须 > 0
+     * @return 截取后的文本；若未超限则原样返回；输入为 null 则返回 null
+     */
+    public static String tailLog(String text, int maxChars) {
+        if (text == null || text.length() <= maxChars) {
+            return text;
+        }
+        String tail = text.substring(text.length() - maxChars);
+        int firstNewline = tail.indexOf('\n');
+        if (firstNewline >= 0 && firstNewline < tail.length() - 1) {
+            return tail.substring(firstNewline + 1);
+        }
+        return tail;
     }
 }

@@ -24,33 +24,32 @@
 
 package com.tencent.bk.job.manage.model.web.vo.serviceinfo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
-@ApiModel("服务信息")
+@Schema(description = "服务信息")
 @Data
 public class ServiceInfoVO {
     /**
      * 服务名称
      */
-    @ApiModelProperty("服务名称")
+    @Schema(description = "服务名称")
     private String name;
     /**
      * 服务实例版本号是否一致
      */
-    @ApiModelProperty("所有服务实例版本号是否一致")
+    @Schema(description = "所有服务实例版本号是否一致")
     private Boolean versionConsistent;
     /**
      * 服务版本号，实例版本号存在不一致时取值为null
      */
-    @ApiModelProperty("服务版本号")
+    @Schema(description = "服务版本号")
     private String version;
     /**
      * 服务实例列表
      */
-    @ApiModelProperty("服务实例列表")
+    @Schema(description = "服务实例列表")
     private List<ServiceInstanceInfoVO> instanceList;
 }

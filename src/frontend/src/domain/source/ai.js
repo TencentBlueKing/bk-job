@@ -80,6 +80,16 @@ class Ai extends ModuleBase {
       params,
     });
   }
+  getChatSession(params = {}) {
+    return Request.get(`${this.path}/chatSession`, {
+      params,
+    });
+  }
+  updateChatSession(params = {}) {
+    return Request.post(`${this.path}/chatSession`, {
+      params,
+    });
+  }
 }
 
 export default new Ai();

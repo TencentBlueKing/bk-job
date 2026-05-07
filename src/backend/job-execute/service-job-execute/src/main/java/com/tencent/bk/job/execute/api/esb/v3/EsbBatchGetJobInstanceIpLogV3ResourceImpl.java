@@ -52,7 +52,6 @@ import com.tencent.bk.job.execute.model.esb.v3.request.EsbBatchGetJobInstanceIpL
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
-import com.tencent.bk.job.execute.service.impl.HostValidationService;
 import com.tencent.bk.job.execute.util.ExecuteObjectCompositeKeyUtils;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import com.tencent.bk.job.logsvr.util.LogFieldUtil;
@@ -71,16 +70,13 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
     private final StepInstanceService stepInstanceService;
     private final LogService logService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
-    private final HostValidationService hostValidationService;
 
     public EsbBatchGetJobInstanceIpLogV3ResourceImpl(LogService logService,
                                                      StepInstanceService stepInstanceService,
-                                                     TaskInstanceAccessProcessor taskInstanceAccessProcessor,
-                                                     HostValidationService hostValidationService) {
+                                                     TaskInstanceAccessProcessor taskInstanceAccessProcessor) {
         this.logService = logService;
         this.stepInstanceService = stepInstanceService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
-        this.hostValidationService = hostValidationService;
     }
 
     @Override
@@ -135,17 +131,7 @@ public class EsbBatchGetJobInstanceIpLogV3ResourceImpl implements EsbBatchGetJob
                 "host_id_list/ip_list");
         }
 
-        ValidateResult validateResult = hostValidationService.validateHostIdsExist(request.getAppId(),
-            request.getHostIdList());
-        if (!validateResult.isPass()) return validateResult;
-
-        if (CollectionUtils.isNotEmpty(request.getIpList())) {
-            validateResult = hostValidationService.validateHostIpsExist(request.getAppId(),
-                request.getIpList().stream()
-                    .map(ip -> new HostDTO(ip.getBkCloudId(), ip.getIp()))
-                    .collect(Collectors.toList()));
-            if (!validateResult.isPass()) return validateResult;
-        }
+        // 不校验主机是否仍存在于 CMDB：历史任务日志可能在主机已销毁/删除后仍需可查（见 #4100）
 
         return ValidateResult.pass();
     }

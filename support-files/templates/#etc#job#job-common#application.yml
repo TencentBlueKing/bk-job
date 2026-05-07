@@ -8,18 +8,20 @@ spring:
       name: __BK_JOB_SECURITY_USERNAME__
       password: __BK_JOB_SECURITY_PASSWORD__
       roles: ADMIN
-  sleuth:
-    otel:
-      exporter:
-        # 是否上报trace数据至蓝鲸监控APM
-        enabled: false
-        otlp:
-          endpoint: __BK_JOB_TRACE_REPORT_PUSH_URL__
-      resource:
-        bkDataToken: __BK_JOB_TRACE_REPORT_SECURE_KEY__
-      config:
-        # trace数据上报比率，取值范围为0~1，根据作业平台与监控平台负载适当调节该比率
-        traceIdRatioBased: 0.1
+job:
+  tracing:
+    exporter:
+      # 是否上报trace数据至蓝鲸监控APM
+      enabled: false
+    bk-data-token: __BK_JOB_TRACE_REPORT_SECURE_KEY__
+management:
+  tracing:
+    sampling:
+      # trace数据上报比率，取值范围为0~1，根据作业平台与监控平台负载适当调节该比率
+      probability: 0.1
+  otlp:
+    tracing:
+      endpoint: __BK_JOB_TRACE_REPORT_PUSH_URL__
 bk:
   # 蓝鲸根域名。指蓝鲸产品公共 cookies 写入的目录，同时也是各个系统的公共域名部分
   bkDomain: __BK_DOMAIN__

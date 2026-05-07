@@ -26,20 +26,24 @@ package com.tencent.bk.job.manage.model.inner;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tencent.bk.job.common.util.json.JsonMapper;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
-@ApiModel("目标服务器")
+@Schema(description = "目标服务器")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceTaskTargetDTO {
 
-    @ApiModelProperty(value = "通过全局变量-主机列表指定目标服务器，对应的全局变量名")
+    @Schema(description = "通过全局变量-主机列表指定目标服务器，对应的全局变量名")
     private String variable;
 
-    @ApiModelProperty(value = "目标服务器")
+    @Schema(description = "目标服务器")
     private ServiceTaskHostNodeDTO targetServer;
+
+    @Schema(description = "目标容器列表")
+    private List<ServiceTargetContainerDTO> containerList;
 
     @Override
     public String toString() {

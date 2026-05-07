@@ -65,8 +65,13 @@ public class WebAuthServiceImpl implements WebAuthService {
         if (!authResult.isPass()) {
             String applyUrl = authResult.getApplyUrl();
             if (isReturnApplyUrl && StringUtils.isBlank(applyUrl)) {
-                applyUrl = authService.getApplyUrl(authResult.getUser().getTenantId(),
-                    authResult.getRequiredActionResources());
+                User user = authResult.getUser();
+                if (user != null) {
+                    applyUrl = authService.getApplyUrl(user.getTenantId(),
+                        authResult.getRequiredActionResources());
+                } else {
+                    log.warn("AuthResult user is null, cannot get apply url for permission denied response");
+                }
             }
             vo.setApplyUrl(applyUrl);
 

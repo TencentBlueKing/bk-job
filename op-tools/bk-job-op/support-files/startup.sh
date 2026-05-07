@@ -29,6 +29,12 @@ echo "JOB_OP_LOG_DIR=$JOB_OP_LOG_DIR"
 mkdir -p "$JOB_OP_LOG_DIR"
 chmod 777 "$JOB_OP_LOG_DIR"
 
+# 配置文件路径
+JOB_OP_CONFIG_FILE_DIR="/data/etc"
+echo "JOB_OP_CONFIG_FILE_DIR=$JOB_OP_CONFIG_FILE_DIR"
+mkdir -p "$JOB_OP_CONFIG_FILE_DIR"
+chmod 644 "$JOB_OP_CONFIG_FILE_DIR"
+
 # 创建JVM相关文件存储空间
 JVM_FILE_DIR="/data/jvm"
 if [[ ! -d "$JVM_FILE_DIR" ]];then
@@ -53,6 +59,7 @@ HOSTNAME=$(hostname)
 exec java -server \
      -Dfile.encoding=UTF-8 \
      -Djob.log.dir=$JOB_OP_LOG_BASE_DIR \
+     -Dspring.config.additional-location=file:$JOB_OP_CONFIG_FILE_DIR/application.yml \
      -Xlog:gc*,gc+age=trace:file=${JOB_OP_LOG_DIR}/gc.log:time,uptime,level,tags:filecount=12,filesize=100m \
      -XX:+HeapDumpOnOutOfMemoryError \
      -XX:HeapDumpPath=${JVM_FILE_DIR}/${HOSTNAME}_${CONTAINER_ID}_heap.hprof \

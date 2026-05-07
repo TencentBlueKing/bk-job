@@ -1,0 +1,87 @@
+### Description
+
+Get file task context information, including main failure reason, source file upload failure details and target download failure details, for AI analysis.
+
+### Request Parameters
+
+#### Body Parameters
+
+| Field                      | Type   | Required | Description                                                                          |
+|----------------------------|--------|----------|--------------------------------------------------------------------------------------|
+| bk_scope_type              | string | Yes      | Resource scope type. Allowed values: biz - Business, biz_set - Business Set          |
+| bk_scope_id                | string | Yes      | Resource scope ID, corresponding to bk_scope_type. Indicates Biz ID or Biz Set ID    |
+| job_instance_id            | long   | Yes      | Job instance ID                                                                      |
+| step_instance_id           | long   | Yes      | Step instance ID                                                                     |
+| execute_count              | int    | Yes      | Execution count (retry count, 0 for first execution)                                |
+| batch                      | int    | No       | Rolling execution batch number. Not required for non-rolling steps                   |
+| execute_object_type        | int    | Yes      | Execute object type. 1 - Host, 2 - Container                                        |
+| execute_object_resource_id | long   | Yes      | Execute object resource ID (e.g. bk_host_id for hosts)                              |
+| mode                       | int    | Yes      | File task mode. 0 - Upload, 1 - Download                                            |
+
+### Request Example
+
+- POST
+
+```json
+{
+  "bk_scope_type": "biz",
+  "bk_scope_id": "1",
+  "job_instance_id": 100,
+  "step_instance_id": 200,
+  "execute_count": 0,
+  "execute_object_type": 1,
+  "execute_object_resource_id": 101,
+  "mode": 1
+}
+```
+
+### Response Examples
+
+#### Failure
+
+{% include '_generic_v4_error_resp.md.j2' %}
+
+#### Success
+
+```json
+# http status=200
+{
+  "data": {
+    "field_list": [
+      {
+        "name": "errorSource",
+        "value": "Source execute object upload file error",
+        "description": "Main reason for task failure"
+      },
+      {
+        "name": "uploadFileErrorData",
+        "value": "[{\"sourceExecuteObjectType\":\"HOST\",\"sourceHostDescription\":{\"cloudIp\":\"0:127.0.0.1\"},\"sourceFilePath\":\"/tmp/test.txt\",\"errorLog\":\"upload failed: No such file\"}]",
+        "description": "Source file upload failure details"
+      },
+      {
+        "name": "downloadFileErrorData",
+        "value": "[]",
+        "description": "Target download failure details"
+      }
+    ]
+  }
+}
+```
+
+### Response Schema
+
+{% include '_generic_v4_response.md.j2' %}
+
+#### data
+
+| Field      | Type  | Non-null | Description                                |
+|------------|-------|----------|--------------------------------------------|
+| field_list | array | Yes      | Context field list. Each element represents one context data entry. See field_list element definition |
+
+#### field_list Element
+
+| Field       | Type   | Non-null | Description                                                  |
+|-------------|--------|----------|--------------------------------------------------------------|
+| name        | string | Yes      | Name of a context data entry, used to identify the data item |
+| value       | string | Yes      | Value of a context data entry                                |
+| description | string | Yes      | Description of a context data entry, explaining its meaning  |

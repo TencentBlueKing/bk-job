@@ -104,6 +104,20 @@ public class IpUtils {
     }
 
     /**
+     * 校验 IP 地址格式，支持 IPv4 和 IPv6
+     *
+     * @param ip IP 地址字符串
+     * @return 是否为合法的 IPv4 或 IPv6 地址
+     */
+    public static boolean isValidIpAddress(String ip) {
+        if (StringUtils.isEmpty(ip)) {
+            return false;
+        }
+        InetAddressValidator validator = InetAddressValidator.getInstance();
+        return validator.isValidInet4Address(ip) || validator.isValidInet6Address(ip);
+    }
+
+    /**
      * 验证ipv6格式
      *
      * @param ipv6Str ipv6字符串

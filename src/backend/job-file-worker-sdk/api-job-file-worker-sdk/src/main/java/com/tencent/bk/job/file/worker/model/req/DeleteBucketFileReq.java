@@ -24,18 +24,17 @@
 
 package com.tencent.bk.job.file.worker.model.req;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
-@ApiModel
+@Schema
 @EqualsAndHashCode(callSuper = true)
 public class DeleteBucketFileReq extends BaseReq {
     /**
      * 文件路径
      */
-    @ApiModelProperty(value = "文件路径", required = true)
+    @Schema(description = "文件路径", required = true)
     private String key;
 }

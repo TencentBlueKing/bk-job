@@ -26,8 +26,7 @@ package com.tencent.bk.job.common.model.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.SecondToMillisSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -37,31 +36,31 @@ import lombok.ToString;
 @Setter
 @ToString
 @NoArgsConstructor
-@ApiModel("BasicVO")
+@Schema(description = "BasicVO")
 public class BasicVO {
     /**
      * 创建者
      */
-    @ApiModelProperty(value = "创建者")
+    @Schema(description = "创建者")
     private String creator;
 
     /**
      * 创建时间
      */
-    @ApiModelProperty(value = "创建时间，单位毫秒")
+    @Schema(description = "创建时间，单位毫秒")
     @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long createTime;
 
     /**
      * 最后修改人
      */
-    @ApiModelProperty(value = "最后更新者")
+    @Schema(description = "最后更新者")
     private String lastModifyUser;
 
     /**
      * 最后修改时间
      */
-    @ApiModelProperty(value = "最后更新时间，单位毫秒")
+    @Schema(description = "最后更新时间，单位毫秒")
     @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long lastModifyTime;
 }

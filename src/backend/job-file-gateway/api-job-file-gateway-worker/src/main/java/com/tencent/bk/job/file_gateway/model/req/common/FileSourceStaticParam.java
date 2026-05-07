@@ -25,22 +25,21 @@
 package com.tencent.bk.job.file_gateway.model.req.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("文件源静态参数")
+@Schema(description = "文件源静态参数")
 public class FileSourceStaticParam {
-    @ApiModelProperty(value = "参数名称")
+    @Schema(description = "参数名称")
     private String name;
-    @ApiModelProperty(value = "参数要显示出来的label")
+    @Schema(description = "参数要显示出来的label")
     private String label;
-    @ApiModelProperty(value = "参数是否必填")
+    @Schema(description = "参数是否必填")
     private Boolean required;
-    @ApiModelProperty(value = "参数类型，当前仅支持TextInput")
+    @Schema(description = "参数类型，当前仅支持TextInput")
     private String type;
-    @ApiModelProperty(value = "参数默认值")
+    @Schema(description = "参数默认值")
     @JsonProperty("default")
     private String defaultValue;
 }

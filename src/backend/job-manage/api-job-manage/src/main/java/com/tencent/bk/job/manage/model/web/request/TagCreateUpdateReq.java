@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -33,18 +32,18 @@ import lombok.Data;
  */
 
 @Data
-@ApiModel("标签新增请求报文")
+@Schema(description = "标签新增请求报文")
 public class TagCreateUpdateReq {
     /**
      * 标签名称
      */
-    @ApiModelProperty(value = "标签名称", required = true)
+    @Schema(description = "标签名称", required = true)
     private String name;
 
     /**
      * 标签名称
      */
-    @ApiModelProperty(value = "标签描述")
+    @Schema(description = "标签描述")
     private String description;
 
 }

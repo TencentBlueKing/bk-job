@@ -1,34 +1,17 @@
 <template>
-  <div
-    class="jb-ai">
-    <img
-      v-show="!isBluekingShow"
-      ref="handleRef"
-      class="hander-btn"
-      :class="{ active: !isBluekingShow && isHandleShow }"
-      :src="bluekingImage"
-      style="width: 64px; height: 64px"
-      @click="handleShow">
-    <ai-blueking
-      v-show="isBluekingShow"
-      ref="aiRef"
-      :alert="$t('注意！为了回答更准确，大模型可能将你提供的信息作为训练材料，如果内容带有敏感信息，请酌情使用！')"
-      :loading="isChatHistoryLoading || isContentLoading"
-      :messages="messageList"
-      :name="$t('小鲸')"
-      :placeholder="$t('在这里输入你的问题，试试我是否可以帮助到你...')"
-      :scroll-loading="isLoadingMore"
-      :scroll-loading-end="!hasMore"
-      :start-position="startPosition"
-      @clear="handleClear"
-      @close="handleClose"
-      @scroll-load="handleLoadingMore"
-      @send="handleGeneraChat"
-      @stop="handleStop" />
-  </div>
+  <ai-blueking
+    v-if="apiUrl"
+    ref="aiRef"
+    :before-nimbus-click="handleBeforeNimbusClick"
+    :default-width="defaultWidth"
+    :enable-popup="false"
+    :url="apiUrl" />
 </template>
 <script setup>
-  import { nextTick, ref } from 'vue';
+  import _ from 'lodash';
+  import { ref } from 'vue';
+
+  import { useRoute } from '@router';
 
   import AiService from '@service/ai';
 
@@ -36,186 +19,178 @@
 
   import AiBlueking from '@blueking/ai-blueking/vue2';
 
-  import { getTime } from '@/utils/assist/time';
-
-  import useChatHistory from './use-chat-history';
-  import useCloseAnimate from './use-close-animate';
-  import useStreamContent from './use-stream-content';
-
   import '@blueking/ai-blueking/dist/vue2/style.css';
 
-  let currentRecordId = 0;
-  const bluekingImage = window.__loadAssetsUrl__('/static/images/blueking.png');
 
-  const handleRef = ref();
+  const defaultWidth = window.innerWidth * 0.33;
+  const route = useRoute();
+
+  const curentScope =  `${window.PROJECT_CONFIG.SCOPE_TYPE}__${window.PROJECT_CONFIG.SCOPE_ID}`;
+
+  const getSearchParams = () => {
+    const curSearchParams = new URLSearchParams(window.location.search);
+    return Array.from(curSearchParams.keys()).reduce(
+      (result, key) => ({
+        ...result,
+        [key]: curSearchParams.get(key) || '',
+      }),
+      {},
+    );
+  };
+
   const aiRef = ref();
-  const promptType = ref('');
-  const isBluekingShow = ref(false);
-  const isHandleShow = ref(true);
-
-  const startPosition = {
-    top: Math.max(window.innerHeight - 600, 0),
-    bottom: 0,
-    left: window.innerWidth - window.innerWidth * 0.75,
-    right: 0,
-  };
-
-  const {
-    messageList,
-    loading: isChatHistoryLoading,
-    loadingMore: isLoadingMore,
-    hasMore: hasMore,
-    loadMore: handleLoadingMore,
-  } = useChatHistory();
-
-  const {
-    loading: isContentLoading,
-    fetchContent,
-  } = useStreamContent(messageList, getTime);
-
-  const runCloseAnimate = useCloseAnimate(aiRef, handleRef, () => {
-    isHandleShow.value = true;
-  });
+  const apiUrl = ref('');
 
 
-  const handleShow = () => {
-    promptType.value = 'generaChat';
-    isBluekingShow.value = true;
-    isHandleShow.value = false;
-    nextTick(() => {
-      aiRef.value.$el.querySelector('.ai-messages').scrollTop = Number.MAX_SAFE_INTEGER;
+  AiService.fetchConfig()
+    .then((data) => {
+      apiUrl.value = data.agentRootUrl;
     });
-  };
 
-  const handleCheckScript = (params) => {
-    isContentLoading.value = true;
-    AiService.fetchCheckScript(params)
-      .then((data) => {
-        messageList.value.push({
-          role: 'user',
-          content: data.userInput.content,
-          status: '',
-          time: getTime({ timestamp: data.userInput.time }),
-        });
-        currentRecordId = data.id;
-        fetchContent(currentRecordId);
-      });
-  };
-
-  const handlerAnalyzeError = (params) => {
-    isContentLoading.value = true;
-    AiService.fetchAnalyzeError(params)
-      .then((data) => {
-        messageList.value.push({
-          role: 'user',
-          content: data.userInput.content,
-          status: '',
-          time: getTime({ timestamp: data.userInput.time }),
-        });
-        currentRecordId = data.id;
-        fetchContent(currentRecordId);
-      });
-  };
-
-  const handleGeneraChat = (content) => {
-    isContentLoading.value = true;
-    messageList.value.push({
-      role: 'user',
-      content,
-      status: '',
-      time: getTime({ timestamp: new Date().valueOf() }),
+  const handleBeforeNimbusClick = async () => {
+    const sceneType = 3;
+    const sessionMemo = await AiService.fetchChatSession({
+      sceneType,
+      sceneResourceId: curentScope,
     });
-    AiService.fetchGeneraChat({
-      content,
-    })
-      .then((data) => {
-        currentRecordId = data.id;
-        fetchContent(currentRecordId);
+
+    aiRef.value?.show();
+    const chatHelper = aiRef.value.getChatHelper();
+    if (sessionMemo?.aiSessionId && _.find(chatHelper.session.list.value, item => item.sessionCode === sessionMemo?.aiSessionId)) {
+      // 切换到目标会话
+      await chatHelper.session.chooseSession(sessionMemo?.aiSessionId);
+    } else {
+      await chatHelper.session.createSession({
+        sessionCode: `${Date.now()}_${_.random(1000, 9999)}`,
+        sessionName: '新会话',
       });
-  };
-
-
-  const handleStop = () => {
-    AiService.terminateChat({
-      recordId: currentRecordId,
-    });
-  };
-
-  const handleClear = () => {
-    if (isContentLoading.value) {
-      handleStop();
     }
-    AiService.deleteChatHistory()
-      .then(() => {
-        messageList.value = [];
+    if (!sessionMemo?.aiSessionId) {
+      const currentSession = aiRef.value.getChatHelper().session.current.value;
+      AiService.updateChatSession({
+        sceneType,
+        sceneResourceId: curentScope,
+        aiSessionId: currentSession.sessionCode,
+        sessionName: currentSession.sessionName,
       });
+    }
+    return false;
+  };
+
+  const handleShowBlueking = async (commandName, params, sessionCode, createOptions = {}) => {
+    const chatHelper = aiRef.value.getChatHelper();
+    const originalCommand = _.find(chatHelper?.agent.info.value?.conversationSettings?.commands, item => item.id === commandName);
+
+    aiRef.value?.show();
+
+    if (chatHelper.session.current.value?.sessionCode !== sessionCode && _.find(chatHelper.session.list.value, item => item.sessionCode
+      === sessionCode)) {
+      // 切换到目标会话
+      await chatHelper.session.chooseSession(sessionCode);
+    } else {
+      await chatHelper.session.createSession({
+        sessionCode: `${Date.now()}_${_.random(1000, 9999)}`,
+        sessionName: '新会话',
+        ...createOptions,
+      });
+    }
+
+    aiRef.value?.sendShortcut({
+      ...originalCommand,
+      components: originalCommand.components.map(item => ({
+        ...item,
+        default: params[item.key],
+      })),
+    });
   };
 
 
-  const handleClose = () => {
-    isBluekingShow.value = false;
-    runCloseAnimate();
-  };
-
-
-  eventBus.$on('ai:generaChat', () => {
-    handleShow();
+  eventBus.$on('ai:generaChat', async () => {
+    const sceneType = 3;
+    const sessionMemo = await AiService.fetchChatSession({
+      sceneType,
+      sceneResourceId: curentScope,
+    });
+    aiRef.value?.handleShow(sessionMemo?.aiSessionId);
+    if (!sessionMemo?.aiSessionId) {
+      const currentSession = aiRef.value.getChatHelper().session.current.value;
+      AiService.updateChatSession({
+        sceneType,
+        sceneResourceId: curentScope,
+        aiSessionId: currentSession.sessionCode,
+        sessionName: currentSession.sessionName,
+      });
+    }
   });
 
-  eventBus.$on('ai:checkScript', (params) => {
-    handleShow();
-    handleCheckScript(params);
+  eventBus.$on('ai:checkScript', async (params) => {
+    handleShowBlueking('checkScript', params, undefined, {
+      isTemporary: true,
+    });
   });
 
-  eventBus.$on('ai:analyzeError', (params) => {
-    handleShow();
-    handlerAnalyzeError(params);
+  eventBus.$on('ai:checkScriptVersion', async (params) => {
+    const currentScriptVersionId = route.value.params.id;
+    const sceneType = 2;
+    const sessionMemo = await AiService.fetchChatSession({
+      sceneType,
+      sceneResourceId: currentScriptVersionId,
+    });
+    await handleShowBlueking('checkScript', params, sessionMemo?.aiSessionId);
+    if (!sessionMemo?.aiSessionId) {
+      const currentSession = aiRef.value.getChatHelper().session.current.value;
+      AiService.updateChatSession({
+        sceneType,
+        sceneResourceId: currentScriptVersionId,
+        aiSessionId: currentSession.sessionCode,
+        sessionName: currentSession.sessionName,
+      });
+    }
   });
+
+  eventBus.$on('ai:analyzeScriptTaskError', async (params) => {
+    const currrentStepInstanceId = getSearchParams().stepInstanceId;
+
+    const sessionMemo = await AiService.fetchChatSession({
+      sceneType: 1,
+      sceneResourceId: currrentStepInstanceId,
+    });
+    await handleShowBlueking('analyzeScriptTaskError', params, sessionMemo?.aiSessionId);
+    if (!sessionMemo?.aiSessionId) {
+      const currentSession = aiRef.value.getChatHelper().session.current.value;
+      AiService.updateChatSession({
+        sceneType: 1,
+        sceneResourceId: currrentStepInstanceId,
+        aiSessionId: currentSession.sessionCode,
+        sessionName: currentSession.sessionName,
+      });
+    }
+  });
+
+  eventBus.$on('ai:analyzeFileTaskError', async (params) => {
+    const currrentStepInstanceId = getSearchParams().stepInstanceId;
+    const sessionMemo = await AiService.fetchChatSession({
+      sceneType: 1,
+      sceneResourceId: currrentStepInstanceId,
+    });
+    await handleShowBlueking('analyzeFileTaskError', params, sessionMemo?.aiSessionId);
+    if (!sessionMemo?.aiSessionId) {
+      const currentSession = aiRef.value.getChatHelper().session.current.value;
+      AiService.updateChatSession({
+        sceneType: 1,
+        sceneResourceId: currrentStepInstanceId,
+        aiSessionId: currentSession.sessionCode,
+        sessionName: currentSession.sessionName,
+      });
+    }
+  });
+
 </script>
 <style lang="postcss">
-  .jb-ai {
-    position: relative;
-    z-index: 999999;
-
-    .hander-btn{
-      position: fixed;
-      right: 0;
-      bottom: 20px;
-      z-index: 999999999;
-      cursor: pointer;
-      transform: translateX(100%);
-      transition: all .1s ease-in-out;
-
-      &.active{
-        transform: translateX(39px);
-      }
-
-      &:hover{
-        transform: translateX(20px);
-      }
-    }
+.ai-blueking-panel{
+  .shortcut-btns{
+    display: none;
   }
-
-  .ai-modal{
-    box-shadow: 0 0 30px 8px #0000001a !important;
-
-    .ai-modal-header{
-      background: none !important;
-      background-image: linear-gradient(-83deg, #162737 0%, #375B97 100%) !important;
-    }
-
-    .ai-content{
-      background: #E5ECF8 !important;
-
-      .message-content.user{
-        background: #F5F8FF !important;
-
-        &::before{
-          background: #F5F8FF !important;
-        }
-      }
-    }
-  }
-
-
+}
 </style>
+

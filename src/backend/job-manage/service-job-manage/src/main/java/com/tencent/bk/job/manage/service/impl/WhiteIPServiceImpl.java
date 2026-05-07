@@ -65,7 +65,6 @@ import com.tencent.bk.job.manage.model.web.vo.whiteip.WhiteIPRecordVO;
 import com.tencent.bk.job.manage.service.WhiteIPService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import lombok.var;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

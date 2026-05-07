@@ -25,7 +25,7 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -37,76 +37,76 @@ public class DangerousRecordVO {
     /**
      * ID
      */
-    @ApiModelProperty("记录ID")
+    @Schema(description = "记录ID")
     private Long id;
     /**
      * 规则ID
      */
-    @ApiModelProperty("规则ID")
+    @Schema(description = "规则ID")
     private Long ruleId;
     /**
      * 规则表达式
      */
-    @ApiModelProperty("规则表达式")
+    @Schema(description = "规则表达式")
     private String ruleExpression;
     /**
      * 资源范围类型
      */
-    @ApiModelProperty(value = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
+    @Schema(description = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
     private String scopeType;
 
     /**
      * 资源范围ID
      */
-    @ApiModelProperty("资源范围ID")
+    @Schema(description = "资源范围ID")
     private String scopeId;
 
     /**
      * 业务名称
      */
-    @ApiModelProperty("业务名称")
+    @Schema(description = "业务名称")
     private String appName;
     /**
      * 执行人
      */
-    @ApiModelProperty("执行人")
+    @Schema(description = "执行人")
     private String operator;
     /**
      * 脚本语言
      */
-    @ApiModelProperty("脚本语言,1:shell,2:bat,3:perl,4:python,5:PowerShell,6:sql")
+    @Schema(description = "脚本语言,1:shell,2:bat,3:perl,4:python,5:PowerShell,6:sql")
     private Integer scriptLanguage;
     /**
      * 脚本内容
      */
-    @ApiModelProperty("脚本内容")
+    @Schema(description = "脚本内容")
     private String scriptContent;
     /**
      * 记录创建时间
      */
-    @ApiModelProperty("记录创建时间")
+    @Schema(description = "记录创建时间")
     private Long createTime;
     /**
      * 启动方式
      *
      * @see com.tencent.bk.job.execute.common.constants.TaskStartupModeEnum
      */
-    @ApiModelProperty("启动方式,1:页面执行,2:API调用,3:定时调用")
+    @Schema(description = "启动方式,1:页面执行,2:API调用,3:定时调用")
     private Integer startupMode;
     /**
      * 调用应用方
      */
-    @ApiModelProperty("调用应用方")
+    @Schema(description = "调用应用方")
     private String client;
     /**
      * 高危脚本处理动作
      */
-    @ApiModelProperty("高危脚本处理动作")
+    @Schema(description = "高危脚本处理动作")
     private Integer action;
     /**
      * 脚本检查结果
      */
-    @ApiModelProperty("脚本检查结果")
+    @Schema(description = "脚本检查结果")
     private List<ScriptCheckResultItemVO> checkResultItems;
     /**
      * 扩展数据

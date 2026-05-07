@@ -1,0 +1,79 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 Tencent.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+package com.tencent.bk.job.common.mq.metrics;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.MessageBuilder;
+
+/**
+ * 统一为MQ出站消息补充发送时间
+ */
+@Slf4j
+public class MqSendTimeChannelInterceptor implements ChannelInterceptor {
+    private final MqMetricsProperties mqMetricsProperties;
+
+    public MqSendTimeChannelInterceptor(MqMetricsProperties mqMetricsProperties) {
+        this.mqMetricsProperties = mqMetricsProperties;
+    }
+
+    /**
+     * 为出站消息补充发送时间头
+     *
+     * @param message 原始消息
+     * @param channel 当前通道
+     * @return 处理后的消息
+     */
+    @Override
+    public Message<?> preSend(Message<?> message, MessageChannel channel) {
+        if (!mqMetricsProperties.isEnabled()) {
+            log.debug("Skip mq send time header because metrics are disabled, channel: {}",
+                channel.getClass().getName());
+            return ChannelInterceptor.super.preSend(message, channel);
+        }
+
+        if (message.getHeaders().containsKey(MqMetricsConstants.HEADER_NAME_SEND_TIME_MS)) {
+            log.debug("Skip mq send timestamp header because it already exists, channel: {}",
+                channel.getClass().getName());
+            return ChannelInterceptor.super.preSend(message, channel);
+        }
+        long sendTimeMs = System.currentTimeMillis();
+        Message<?> newMessage = MessageBuilder.fromMessage(message)
+            .setHeader(MqMetricsConstants.HEADER_NAME_SEND_TIME_MS, sendTimeMs)
+            .build();
+        if (log.isDebugEnabled()) {
+            log.debug("Set mq send timestamp header, channelType: {}, payloadType: {}, sendTimeMs: {}",
+                channel.getClass().getName(), resolvePayloadType(message), sendTimeMs);
+        }
+        return ChannelInterceptor.super.preSend(newMessage, channel);
+    }
+
+    private String resolvePayloadType(Message<?> message) {
+        Object payload = message.getPayload();
+        return payload == null ? "null" : payload.getClass().getName();
+    }
+}

@@ -26,7 +26,7 @@ package com.tencent.bk.job.manage.model.web.request;
 
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import com.tencent.bk.job.common.util.check.IlegalCharChecker;
+import com.tencent.bk.job.common.util.check.IllegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
@@ -34,14 +34,13 @@ import com.tencent.bk.job.common.util.check.TrimChecker;
 import com.tencent.bk.job.common.util.check.exception.StringCheckException;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskStepVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskVariableVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -49,26 +48,26 @@ import java.util.Set;
 @Slf4j
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ApiModel("作业模版新增、更新请求报文")
+@Schema(description = "作业模版新增、更新请求报文")
 public class TaskTemplateCreateUpdateReq extends TemplateBasicInfoUpdateReq {
     /**
      * 模版步骤
      */
-    @ApiModelProperty(value = "模版步骤, 新增、修改、删除时需要传入", required = true)
+    @Schema(description = "模版步骤, 新增、修改、删除时需要传入", required = true)
     @Valid
     private List<TaskStepVO> steps;
 
     /**
      * 模版变量
      */
-    @ApiModelProperty(value = "模版变量, 新增、修改、删除时需要传入")
+    @Schema(description = "模版变量, 新增、修改、删除时需要传入")
     private List<TaskVariableVO> variables;
 
     public void validate() throws InvalidParamException {
         // 模板名称检查
         try {
             StringCheckHelper stringCheckHelper = new StringCheckHelper(new TrimChecker(), new NotEmptyChecker(),
-                new IlegalCharChecker(), new MaxLengthChecker(60));
+                                                                        new IllegalCharChecker(), new MaxLengthChecker(60));
             this.setName(stringCheckHelper.checkAndGetResult(this.getName()));
         } catch (StringCheckException e) {
             log.warn("Template name is invalid, name: {}", getName());

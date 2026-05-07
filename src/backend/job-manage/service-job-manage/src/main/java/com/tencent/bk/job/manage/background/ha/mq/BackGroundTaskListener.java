@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.background.ha.mq;
 
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
 import com.tencent.bk.job.manage.background.event.cmdb.CmdbEventManager;
 import com.tencent.bk.job.manage.background.ha.BackGroundTaskBalancer;
 import com.tencent.bk.job.manage.background.ha.TaskEntity;
@@ -46,12 +47,19 @@ public class BackGroundTaskListener {
      * 后台任务负载均衡器
      */
     private final BackGroundTaskBalancer backGroundTaskBalancer;
+    /**
+     * MQ延迟消费记录器
+     */
+    private final MqConsumeDelayRecorder mqConsumeDelayRecorder;
 
     @Autowired
     public BackGroundTaskListener(CmdbEventManager cmdbEventManager,
-                                  BackGroundTaskBalancer backGroundTaskBalancer) {
+                                  BackGroundTaskBalancer backGroundTaskBalancer,
+                                   MqConsumeDelayRecorder mqConsumeDelayRecorder
+    ) {
         this.cmdbEventManager = cmdbEventManager;
         this.backGroundTaskBalancer = backGroundTaskBalancer;
+        this.mqConsumeDelayRecorder = mqConsumeDelayRecorder;
     }
 
     /**
@@ -60,6 +68,11 @@ public class BackGroundTaskListener {
      * @param taskEntityMessage 任务实体MQ信息
      */
     public void handleTask(Message<TaskEntity> taskEntityMessage) {
+        mqConsumeDelayRecorder.recordConsumeDelay(
+            MqBindingNames.HANDLE_BACKGROUND_TASK,
+            TaskEntity.class.getSimpleName(),
+            taskEntityMessage
+        );
         try {
             doHandleTask(taskEntityMessage);
         } catch (Throwable t) {

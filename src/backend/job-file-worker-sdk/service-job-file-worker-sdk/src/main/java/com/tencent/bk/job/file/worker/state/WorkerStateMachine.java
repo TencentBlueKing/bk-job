@@ -27,7 +27,7 @@ package com.tencent.bk.job.file.worker.state;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.sleuth.Tracer;
+import io.micrometer.tracing.Tracer;
 import org.springframework.stereotype.Component;
 
 /**

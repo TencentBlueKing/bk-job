@@ -347,6 +347,25 @@ public class BizHostSyncService {
         int insertedHostNum = refreshHostResult.getLeft();
         int updatedHostNum = refreshHostResult.getRight();
 
+        // 收集 host_topo 表增删改涉及的 hostId，刷新 host 表冗余字段
+        Set<Long> affectedHostIds = collectAffectedHostIds(
+            insertHostTopoList,
+            updateHostTopoList,
+            deleteHostTopoList
+        );
+        int syncedHostTopoRedundancyNum = 0;
+        if (!affectedHostIds.isEmpty()) {
+            watch.start("syncHostTopoRedundancy");
+            syncedHostTopoRedundancyNum = noTenantHostService.batchSyncHostTopo(affectedHostIds);
+            watch.stop();
+            log.info(
+                "bizId={}, syncHostTopoRedundancy: affectedHostIds={}, syncedNum={}",
+                bizId,
+                affectedHostIds.size(),
+                syncedHostTopoRedundancyNum
+            );
+        }
+
         logRefreshResult(
             bizId,
             insertedHostTopoNum,
@@ -354,9 +373,35 @@ public class BizHostSyncService {
             deletedHostTopoNum,
             insertedHostNum,
             updatedHostNum,
+            syncedHostTopoRedundancyNum,
             watch
         );
         return cmdbBasicHosts;
+    }
+
+    /**
+     * 从三个拓扑变更列表中收集所有受影响的 hostId（去重）
+     */
+    private Set<Long> collectAffectedHostIds(List<HostTopoDTO> insertHostTopoList,
+                                             List<HostTopoDTO> updateHostTopoList,
+                                             List<HostTopoDTO> deleteHostTopoList) {
+        Set<Long> hostIds = new HashSet<>();
+        if (!CollectionUtils.isEmpty(insertHostTopoList)) {
+            for (HostTopoDTO hostTopo : insertHostTopoList) {
+                hostIds.add(hostTopo.getHostId());
+            }
+        }
+        if (!CollectionUtils.isEmpty(updateHostTopoList)) {
+            for (HostTopoDTO hostTopo : updateHostTopoList) {
+                hostIds.add(hostTopo.getHostId());
+            }
+        }
+        if (!CollectionUtils.isEmpty(deleteHostTopoList)) {
+            for (HostTopoDTO hostTopo : deleteHostTopoList) {
+                hostIds.add(hostTopo.getHostId());
+            }
+        }
+        return hostIds;
     }
 
     /**
@@ -802,6 +847,7 @@ public class BizHostSyncService {
                                   int deletedHostTopoNum,
                                   int insertedHostNum,
                                   int updatedHostNum,
+                                  int syncedHostTopoRedundancyNum,
                                   StopWatch watch) {
         if (watch.getTotalTimeMillis() > 300_000) {
             log.warn("Performance:refreshBizHostAndRelations: bizId={}, {}", bizId, watch.prettyPrint());
@@ -814,13 +860,15 @@ public class BizHostSyncService {
         }
         log.info(
             "RefreshBizHostAndRelationsStatistics:bizId={}, insertedHostTopoNum={}, " +
-                "updatedHostTopoNum={}, deletedHostTopoNum={}, insertedHostNum={}, updatedHostNum={}",
+                "updatedHostTopoNum={}, deletedHostTopoNum={}, insertedHostNum={}, updatedHostNum={}, " +
+                "syncedHostTopoRedundancyNum={}",
             bizId,
             insertedHostTopoNum,
             updatedHostTopoNum,
             deletedHostTopoNum,
             insertedHostNum,
-            updatedHostNum
+            updatedHostNum,
+            syncedHostTopoRedundancyNum
         );
     }
 

@@ -197,7 +197,7 @@
         },
         {
           id: GlobalVariableModel.TYPE_HOST,
-          name: I18n.t('template.主机列表'),
+          name: I18n.t('template.执行目标'),
         },
         {
           id: GlobalVariableModel.TYPE_PASSWORD,

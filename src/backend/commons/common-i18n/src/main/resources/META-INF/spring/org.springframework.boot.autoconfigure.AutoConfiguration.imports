@@ -1,0 +1,2 @@
+com.tencent.bk.job.common.i18n.config.I18nAutoConfiguration
+com.tencent.bk.job.common.i18n.config.TimezoneAutoConfiguration

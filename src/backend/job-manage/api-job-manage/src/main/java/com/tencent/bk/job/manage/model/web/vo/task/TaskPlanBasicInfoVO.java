@@ -28,8 +28,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampDeserializer;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -39,38 +38,38 @@ import lombok.extern.slf4j.Slf4j;
 @Getter
 @Setter
 @ToString
-@ApiModel("执行方案信息")
+@Schema(description = "执行方案信息")
 public class TaskPlanBasicInfoVO {
 
     /**
      * 执行方案 ID
      */
-    @ApiModelProperty(value = "执行方案 ID")
+    @Schema(description = "执行方案 ID")
     private Long id;
 
     /**
      * 执行方案名称
      */
-    @ApiModelProperty(value = "执行方案名称")
+    @Schema(description = "执行方案名称")
     private String name;
 
     /**
      * 模版 ID
      */
-    @ApiModelProperty(value = "模版 ID")
+    @Schema(description = "模版 ID")
     private Long templateId;
 
 
     /**
      * 创建者
      */
-    @ApiModelProperty(value = "创建者")
+    @Schema(description = "创建者")
     private String creator;
 
     /**
      * 创建时间
      */
-    @ApiModelProperty(value = "创建时间")
+    @Schema(description = "创建时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     @JsonDeserialize(using = LongTimestampDeserializer.class)
     private Long createTime;
@@ -78,13 +77,13 @@ public class TaskPlanBasicInfoVO {
     /**
      * 最后修改人
      */
-    @ApiModelProperty(value = "最后更新者")
+    @Schema(description = "最后更新者")
     private String lastModifyUser;
 
     /**
      * 最后修改时间
      */
-    @ApiModelProperty(value = "最后更新时间")
+    @Schema(description = "最后更新时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     @JsonDeserialize(using = LongTimestampDeserializer.class)
     private Long lastModifyTime;

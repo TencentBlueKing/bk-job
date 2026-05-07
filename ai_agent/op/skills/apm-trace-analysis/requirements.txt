@@ -1,0 +1,10 @@
+# Apm Trace Analysis 依赖
+# 为 Skill 添加所需的 Python 包依赖
+
+requests>=2.28.0
+
+# 根据需要添加其他依赖:
+# anthropic>=0.39.0
+# mcp>=1.1.0
+# pandas>=1.5.0
+# numpy>=1.24.0

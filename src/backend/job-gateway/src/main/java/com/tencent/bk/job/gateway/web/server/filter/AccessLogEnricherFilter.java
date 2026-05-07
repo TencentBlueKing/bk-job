@@ -24,7 +24,9 @@
 
 package com.tencent.bk.job.gateway.web.server.filter;
 
+import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
+import com.tencent.bk.job.gateway.web.server.AccessLogExchangeDataStore;
 import com.tencent.bk.job.gateway.web.server.RouteServerInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.ServiceInstance;
@@ -34,19 +36,22 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.ReactiveLoadBalancerClientFilter;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
-import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
 
 /**
- * 访问日志增强过滤器，获取后端路由信息并写入请求头，供访问日志使用
+ * 访问日志增强过滤器，获取后端路由信息写入AccessLog Store，供访问日志使用
  */
-@Component
 @Slf4j
 public class AccessLogEnricherFilter implements GlobalFilter, Ordered {
+
+    private final AccessLogExchangeDataStore accessLogDataStore;
+
+    public AccessLogEnricherFilter(AccessLogExchangeDataStore accessLogDataStore) {
+        this.accessLogDataStore = accessLogDataStore;
+    }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange,
@@ -60,18 +65,16 @@ public class AccessLogEnricherFilter implements GlobalFilter, Ordered {
     }
 
     private Mono<Void> doFilter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        ServerHttpRequest request = exchange.getRequest();
-
         // 获取负载均衡选择的后端实例
         Response<ServiceInstance> resp =
             exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_LOADBALANCER_RESPONSE_ATTR);
 
         RouteServerInfo routeServerInfo = buildRouteInfo(exchange, resp.getServer());
-        request.mutate()
-            .header(AccessLogConstants.Header.UPSTREAM_SERVER,
-                routeServerInfo != null ? routeServerInfo.toString() : AccessLogConstants.Default.MISSING)
-            .build();
-        return chain.filter(exchange.mutate().request(request).build());
+        // 写入内存Store供Reactor Netty AccessLog读取
+        String traceId = exchange.getResponse().getHeaders().getFirst(JobCommonHeaders.REQUEST_ID);
+        String upstream = routeServerInfo != null ? routeServerInfo.toString() : AccessLogConstants.Default.MISSING;
+        accessLogDataStore.put(traceId, AccessLogConstants.LogField.UPSTREAM, upstream);
+        return chain.filter(exchange);
     }
 
     private RouteServerInfo buildRouteInfo(ServerWebExchange exchange, ServiceInstance serviceInstance) {

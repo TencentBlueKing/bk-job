@@ -36,7 +36,6 @@ import com.tencent.bk.job.common.gse.constants.FileDistModeEnum;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.ValidateResult;
-import com.tencent.bk.job.common.model.dto.HostDTO;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.execute.engine.model.ExecuteObject;
@@ -51,7 +50,6 @@ import com.tencent.bk.job.execute.model.esb.v3.request.EsbGetJobInstanceIpLogV3R
 import com.tencent.bk.job.execute.service.LogService;
 import com.tencent.bk.job.execute.service.StepInstanceService;
 import com.tencent.bk.job.execute.service.TaskInstanceAccessProcessor;
-import com.tencent.bk.job.execute.service.impl.HostValidationService;
 import com.tencent.bk.job.execute.util.ExecuteObjectCompositeKeyUtils;
 import com.tencent.bk.job.logsvr.consts.LogTypeEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +58,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -72,18 +69,15 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
     private final LogService logService;
     private final TaskInstanceAccessProcessor taskInstanceAccessProcessor;
     private final AppScopeMappingService appScopeMappingService;
-    private final HostValidationService hostValidationService;
 
     public EsbGetJobInstanceIpLogV3ResourceImpl(LogService logService,
                                                 StepInstanceService stepInstanceService,
                                                 TaskInstanceAccessProcessor taskInstanceAccessProcessor,
-                                                AppScopeMappingService appScopeMappingService,
-                                                HostValidationService hostValidationService) {
+                                                AppScopeMappingService appScopeMappingService) {
         this.logService = logService;
         this.stepInstanceService = stepInstanceService;
         this.taskInstanceAccessProcessor = taskInstanceAccessProcessor;
         this.appScopeMappingService = appScopeMappingService;
-        this.hostValidationService = hostValidationService;
     }
 
     @Override
@@ -131,17 +125,7 @@ public class EsbGetJobInstanceIpLogV3ResourceImpl implements EsbGetJobInstanceIp
             return ValidateResult.fail(ErrorCode.MISSING_OR_ILLEGAL_PARAM_WITH_PARAM_NAME, "host_id/(bk_cloud_id+ip)");
         }
 
-        if (request.getHostId() != null) {
-            ValidateResult validateResult = hostValidationService.validateHostIdsExist(request.getAppId(),
-                Collections.singletonList(request.getHostId()));
-            if (!validateResult.isPass()) return validateResult;
-        }
-
-        if (request.getCloudAreaId() != null && StringUtils.isNotEmpty(request.getIp())) {
-            ValidateResult validateResult = hostValidationService.validateHostIpsExist(request.getAppId(),
-                Collections.singletonList(new HostDTO(request.getCloudAreaId(), request.getIp())));
-            if (!validateResult.isPass()) return validateResult;
-        }
+        // 不校验主机是否仍存在于 CMDB：历史任务日志可能在主机已销毁/删除后仍需可查（见 #4100）
 
         return ValidateResult.pass();
     }

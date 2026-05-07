@@ -53,7 +53,7 @@ export default class GlobalVariable {
   static typeTextMap = {
     [TYPE_STRING]: I18n.t('字符串'),
     [TYPE_NAMESPACE]: I18n.t('命名空间'),
-    [TYPE_HOST]: I18n.t('主机列表'),
+    [TYPE_HOST]: I18n.t('执行目标'),
     [TYPE_PASSWORD]: I18n.t('密文'),
     [TYPE_RELATE_ARRAY]: I18n.t('数组'),
     [TYPE_INDEX_ARRAY]: I18n.t('数组'),

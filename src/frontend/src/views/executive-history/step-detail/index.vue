@@ -97,7 +97,7 @@
         <div
           v-bkloading="{ isLoading: isHostLoading }"
           class="container-left">
-          <!-- 主机列表 -->
+          <!-- 执行目标 -->
           <!-- eslint-disable max-len -->
           <result-task-list
             :data="dispalyGroup.tasks"

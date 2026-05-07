@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.crontab.model;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -34,43 +33,43 @@ import lombok.Data;
  * @since 30/10/2020 14:50
  */
 @Data
-@ApiModel("定时任务执行历史")
+@Schema(description = "定时任务执行历史")
 public class CronJobLaunchHistoryVO {
 
     /**
      * 任务调度时间
      */
-    @ApiModelProperty("调度时间，单位毫秒")
+    @Schema(description = "调度时间，单位毫秒")
     private Long scheduledTime;
 
     /**
      * 任务执行时间
      */
-    @ApiModelProperty("执行时间，单位毫秒")
+    @Schema(description = "执行时间，单位毫秒")
     private Long executeTime;
 
     /**
      * 任务状态
      *
      */
-    @ApiModelProperty("启动状态")
+    @Schema(description = "启动状态")
     private Integer status;
 
     /**
      * 执行人
      */
-    @ApiModelProperty("执行人")
+    @Schema(description = "执行人")
     private String executor;
 
     /**
      * 错误码
      */
-    @ApiModelProperty("错误码")
+    @Schema(description = "错误码")
     private Long errorCode;
 
     /**
      * 错误信息
      */
-    @ApiModelProperty("错误信息")
+    @Schema(description = "错误信息")
     private String errorMsg;
 }

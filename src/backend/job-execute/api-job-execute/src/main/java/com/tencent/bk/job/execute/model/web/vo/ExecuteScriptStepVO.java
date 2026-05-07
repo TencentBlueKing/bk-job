@@ -26,51 +26,50 @@ package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("任务脚本步骤信息")
+@Schema(description = "任务脚本步骤信息")
 public class ExecuteScriptStepVO {
 
-    @ApiModelProperty(value = "脚本类型 1-本地脚本 2-引用业务脚本 3-引用公共脚本")
+    @Schema(description = "脚本类型 1-本地脚本 2-引用业务脚本 3-引用公共脚本")
     private Integer scriptSource;
 
-    @ApiModelProperty("脚本 ID")
+    @Schema(description = "脚本 ID")
     private String scriptId;
 
-    @ApiModelProperty("脚本版本 ID")
+    @Schema(description = "脚本版本 ID")
     private Long scriptVersionId;
 
-    @ApiModelProperty("脚本内容,BASE64编码")
+    @Schema(description = "脚本内容,BASE64编码")
     private String content;
 
-    @ApiModelProperty(value = "脚本类型，1：shell，2：bat，3：perl，4：python，5：powershell，6：sql")
+    @Schema(description = "脚本类型，1：shell，2：bat，3：perl，4：python，5：powershell，6：sql")
     private Integer scriptLanguage;
 
-    @ApiModelProperty("脚本参数")
+    @Schema(description = "脚本参数")
     private String scriptParam;
 
-    @ApiModelProperty("自定义Windows解释器路径")
+    @Schema(description = "自定义Windows解释器路径")
     private String windowsInterpreter;
 
-    @ApiModelProperty("脚本超时时间")
+    @Schema(description = "脚本超时时间")
     private Integer timeout;
 
-    @ApiModelProperty("执行账户")
+    @Schema(description = "执行账户")
     @JsonProperty("account")
     private Long accountId;
 
-    @ApiModelProperty("执行账户名称")
+    @Schema(description = "执行账户名称")
     private String accountName;
 
-    @ApiModelProperty("执行目标")
+    @Schema(description = "执行目标")
     private TaskTargetVO executeTarget;
 
-    @ApiModelProperty("敏感参数")
+    @Schema(description = "敏感参数")
     private Integer secureParam;
 
-    @ApiModelProperty("忽略错误 0 - 不忽略 1 - 忽略")
+    @Schema(description = "忽略错误 0 - 不忽略 1 - 忽略")
     private Integer ignoreError;
 }

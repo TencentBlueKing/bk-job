@@ -312,15 +312,32 @@ public class TaskTemplateDAOImpl implements TaskTemplateDAO {
     @Override
     public Long insertTaskTemplate(TaskTemplateInfoDTO templateInfo) {
         TaskTemplateRecord record = context.insertInto(TABLE)
-            .columns(TABLE.APP_ID, TABLE.NAME, TABLE.DESCRIPTION, TABLE.CREATOR, TABLE.STATUS, TABLE.CREATE_TIME,
-                TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID, TABLE.LAST_STEP_ID,
-                TABLE.VERSION, TABLE.SCRIPT_STATUS)
-            .values(ULong.valueOf(templateInfo.getAppId()), templateInfo.getName(), templateInfo.getDescription(),
-                templateInfo.getCreator(), UByte.valueOf(templateInfo.getStatus().getStatus()),
-                ULong.valueOf(templateInfo.getCreateTime()), templateInfo.getLastModifyUser(),
+            .columns(
+                TABLE.APP_ID,
+                TABLE.NAME,
+                TABLE.DESCRIPTION,
+                TABLE.CREATOR,
+                TABLE.STATUS,
+                TABLE.CREATE_TIME,
+                TABLE.LAST_MODIFY_USER,
+                TABLE.LAST_MODIFY_TIME,
+                TABLE.FIRST_STEP_ID,
+                TABLE.LAST_STEP_ID,
+                TABLE.VERSION,
+                TABLE.SCRIPT_STATUS)
+            .values(
+                ULong.valueOf(templateInfo.getAppId()),
+                templateInfo.getName(),
+                templateInfo.getDescription(),
+                templateInfo.getCreator(),
+                UByte.valueOf(templateInfo.getStatus().getStatus()),
+                ULong.valueOf(templateInfo.getCreateTime()),
+                templateInfo.getLastModifyUser(),
                 ULong.valueOf(templateInfo.getLastModifyTime()),
-                ULong.valueOf(templateInfo.getFirstStepId()), ULong.valueOf(templateInfo.getLastStepId()),
-                UUID.randomUUID().toString(), UByte.valueOf(0))
+                ULong.valueOf(templateInfo.getFirstStepId()),
+                ULong.valueOf(templateInfo.getLastStepId()),
+                UUID.randomUUID().toString(),
+                UByte.valueOf(0))
             .returning(TABLE.ID).fetchOne();
         if (record != null) {
             return record.getId().longValue();

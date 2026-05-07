@@ -68,7 +68,7 @@
               <bk-select
                 class="server-global-variable-select"
                 :clearable="false"
-                :placeholder="$t('请选择主机列表变量')"
+                :placeholder="$t('请选择执行目标变量')"
                 :value="localVariable"
                 @change="handleVariableChange">
                 <bk-option
@@ -226,7 +226,7 @@
       },
       mode: {
         type: String,
-        default: '', // onlyHost: 快速执行只可以选择主机列表
+        default: '', // onlyHost: 快速执行只可以执行目标列表
       },
       // 组件被使用的场景，快速执行｜作业模板
       from: {
@@ -335,35 +335,22 @@
     },
     created() {
       this.ipSelectorConfig = {};
-      // 快速执行场景
       // 业务集和租户集场景不支持动态分组和容器
-      if (this.from === 'execute') {
-        if (window.PROJECT_CONFIG.SCOPE_TYPE === 'biz_set') {
-          this.ipSelectorConfig = {
-            panelList: [
-              'staticTopo',
-              'manualInput',
-            ],
-          };
-        } else if (window.PROJECT_CONFIG.SCOPE_TYPE === 'tenant_set') {
-          this.ipSelectorConfig = {
-            panelList: [
-              'staticTopo',
-              'manualInput',
-            ],
-          };
-        } else {
-          this.ipSelectorConfig = {
-            panelList: [
-              'staticTopo',
-              'dynamicTopo',
-              'dynamicGroup',
-              'manualInput',
-              'containerStaticTopo',
-              'containerManualInput',
-            ],
-          };
-        }
+      if (window.PROJECT_CONFIG.SCOPE_TYPE === 'biz_set') {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'dynamicTopo',
+            'manualInput',
+          ],
+        };
+      } else if (window.PROJECT_CONFIG.SCOPE_TYPE === 'tenant_set') {
+        this.ipSelectorConfig = {
+          panelList: [
+            'staticTopo',
+            'manualInput',
+          ],
+        };
       }
 
       // 执行目标是主机变量

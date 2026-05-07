@@ -53,7 +53,7 @@ public class TaskInstanceVariableServiceImpl implements com.tencent.bk.job.execu
         List<TaskVariableDTO> taskVarList = taskInstanceVariableDAO.getByTaskInstanceId(taskInstanceId);
         if (taskVarList != null) {
             for (TaskVariableDTO taskVariable : taskVarList) {
-                if (taskVariable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()
+                if (taskVariable.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()
                     && taskVariable.getValue() != null) {
                     taskVariable.setExecuteTarget(
                         JsonUtils.fromJson(taskVariable.getValue(), ExecuteTargetDTO.class));
@@ -79,7 +79,7 @@ public class TaskInstanceVariableServiceImpl implements com.tencent.bk.job.execu
             return;
         }
         for (TaskVariableDTO taskVariable : taskVarList) {
-            if (taskVariable.getType() == TaskVariableTypeEnum.HOST_LIST.getType()
+            if (taskVariable.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST.getType()
                 && taskVariable.getExecuteTarget() != null) {
                 taskVariable.setValue(JsonUtils.toJson(taskVariable.getExecuteTarget()));
             }

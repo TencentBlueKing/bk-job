@@ -29,8 +29,12 @@ AGENTS.md
 CODEBUDDY.md
 .codebuddy/
 .cursor/
+.claude/
 openspec/
 
 pre-*-bkcodeai
 
 tests/openapi/bin/
+
+# Claude Code
+.claude/

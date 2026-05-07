@@ -27,6 +27,8 @@ package com.tencent.bk.job.execute.statistics;
 import com.tencent.bk.job.execute.dao.StatisticsDAO;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -35,12 +37,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class StatisticsFlushThread extends Thread {
 
     private final StatisticsDAO statisticsDAO;
-    private volatile LinkedBlockingQueue<Map<String, Map<StatisticsKey, AtomicInteger>>> flushQueue;
+    private final LinkedBlockingQueue<Map<String, Map<StatisticsKey, AtomicInteger>>> flushQueue;
+    private volatile boolean running = true;
 
     public StatisticsFlushThread(StatisticsDAO statisticsDAO,
                                  LinkedBlockingQueue<Map<String, Map<StatisticsKey, AtomicInteger>>> flushQueue) {
         this.statisticsDAO = statisticsDAO;
         this.flushQueue = flushQueue;
+    }
+
+    /**
+     * 停止线程：先标记为停止，再中断阻塞的 take()，线程会自动 drain 队列中的剩余数据后退出
+     */
+    public void shutdown() {
+        running = false;
+        this.interrupt();
     }
 
     private void flushIncrementMap(Map<String, Map<StatisticsKey, AtomicInteger>> incrementMap) {
@@ -57,13 +68,45 @@ public class StatisticsFlushThread extends Thread {
 
     @Override
     public void run() {
-        while (true) {
+        while (running) {
             try {
                 Map<String, Map<StatisticsKey, AtomicInteger>> incrementMap = flushQueue.take();
                 flushIncrementMap(incrementMap);
+            } catch (InterruptedException e) {
+                if (!running) {
+                    log.info("StatisticsFlushThread interrupted during shutdown, draining remaining data");
+                    break;
+                }
+                log.warn("StatisticsFlushThread interrupted unexpectedly", e);
             } catch (Throwable t) {
+                if (!running) {
+                    log.info("StatisticsFlushThread stopping, ignore exception during shutdown");
+                    break;
+                }
                 log.error("Fail to flush statistics into DB", t);
             }
         }
+        drainAndFlush();
+        log.info("StatisticsFlushThread stopped");
+    }
+
+    /**
+     * 停机时将队列中剩余的统计数据全部 flush 到 DB，确保不丢数据
+     */
+    private void drainAndFlush() {
+        List<Map<String, Map<StatisticsKey, AtomicInteger>>> remaining = new ArrayList<>();
+        flushQueue.drainTo(remaining);
+        if (remaining.isEmpty()) {
+            return;
+        }
+        log.info("Draining {} remaining statistics batches to DB", remaining.size());
+        for (Map<String, Map<StatisticsKey, AtomicInteger>> incrementMap : remaining) {
+            try {
+                flushIncrementMap(incrementMap);
+            } catch (Throwable t) {
+                log.warn("Fail to flush remaining statistics during shutdown", t);
+            }
+        }
+        log.info("Drained all remaining statistics batches");
     }
 }

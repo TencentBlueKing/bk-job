@@ -24,29 +24,28 @@
 
 package com.tencent.bk.job.file_gateway.model.resp.common;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
-@ApiModel("FileTreeNodeText属性")
+@Schema(description = "FileTreeNodeText属性")
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class FileTreeNodeTextProperty extends FileTreeNodeProperty {
 
     public static final String classType = "text";
 
-    @ApiModelProperty("标签")
+    @Schema(description = "标签")
     private String label;
 
-    @ApiModelProperty("标签英文版")
+    @Schema(description = "标签英文版")
     private String labelEn;
 
-    @ApiModelProperty("属性字段")
+    @Schema(description = "属性字段")
     private String field;
 
-    @ApiModelProperty("动作列表")
+    @Schema(description = "动作列表")
     private List<PropertyAction> actions;
 }

@@ -37,7 +37,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
-import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -46,11 +45,9 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.MalformedURLException;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.UUID;
 
@@ -117,7 +114,6 @@ public class CsrfCheckGatewayFilterFactory extends AbstractGatewayFilterFactory<
                 "Empty csrfToken from header, request={}",
                 tryToGetRequestDesc(request)
             );
-            tryToLogRequestBody(request);
             return false;
         }
         String csrfTokenFromCookie = RequestUtil.getCookieValue(request, COOKIE_CSRF_KEY_NAME);
@@ -130,7 +126,6 @@ public class CsrfCheckGatewayFilterFactory extends AbstractGatewayFilterFactory<
                 "Invalid csrfToken, not match with csrfKey from cookie, request={}",
                 tryToGetRequestDesc(request)
             );
-            tryToLogRequestBody(request);
             return false;
         }
         return true;
@@ -160,47 +155,6 @@ public class CsrfCheckGatewayFilterFactory extends AbstractGatewayFilterFactory<
             log.warn("tryToGetRequestDesc error", t);
             return StringUtil.substring(request.toString(), maxLength);
         }
-    }
-
-    /**
-     * 尝试打印请求体
-     *
-     * @param request 请求
-     */
-    private void tryToLogRequestBody(ServerHttpRequest request) {
-        try {
-            getBodyDesc(request)
-                .doOnNext(bodyDesc -> {
-                    // 处理请求体描述
-                    log.info("body=" + bodyDesc);
-                })
-                .doOnError(error -> {
-                    // 处理错误
-                    log.warn("getBodyDesc error", error);
-                })
-                // 订阅以触发处理
-                .subscribe();
-        } catch (Throwable t) {
-            log.error("tryToLogRequestBody error", t);
-        }
-    }
-
-    /**
-     * 获取请求体描述
-     *
-     * @param request 请求
-     * @return 请求体描述
-     */
-    private Mono<String> getBodyDesc(ServerHttpRequest request) {
-        Flux<DataBuffer> body = request.getBody();
-        // 获取第一个 DataBuffer并转换为字符串
-        return body
-            .map(dataBuffer -> {
-                byte[] bytes = new byte[dataBuffer.readableByteCount()];
-                dataBuffer.read(bytes);
-                return new String(bytes, StandardCharsets.UTF_8);
-            })
-            .next();
     }
 
     /**

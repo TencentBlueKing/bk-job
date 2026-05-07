@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.notify;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,14 +42,14 @@ import java.util.List;
 @Setter
 @ToString
 public class ChannelTemplateStatusVO {
-    @ApiModelProperty("渠道Code")
+    @Schema(description = "渠道Code")
     private String code;
-    @ApiModelProperty("渠道名称")
+    @Schema(description = "渠道名称")
     private String name;
-    @ApiModelProperty("渠道图标Base64编码")
+    @Schema(description = "渠道图标Base64编码")
     private String icon;
-    @ApiModelProperty("是否可用")
+    @Schema(description = "是否可用")
     private Boolean isActive;
-    @ApiModelProperty("消息模板配置状态：三列依次为消息模板Code:messageTypeCode，消息模板名称：messageTypeName，消息模板是否已配置布尔值")
+    @Schema(description = "消息模板配置状态：三列依次为消息模板Code:messageTypeCode，消息模板名称：messageTypeName，消息模板是否已配置布尔值")
     private List<TemplateBasicInfo> templateInfoList;
 }

@@ -27,17 +27,17 @@ package com.tencent.bk.job.manage.api.inner;
 import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@Api(tags = {"job-manage:service:Script_Template_Management"})
+@Tag(name = "job-manage:service:Script_Template_Management")
 @SmartFeignClient(value = "job-manage", contextId = "scriptTemplateResource")
 @InternalAPI
 public interface ServiceScriptTemplateResource {
 
-    @ApiOperation(value = "获取脚本模板", produces = "application/json")
+    @Operation(summary = "获取脚本模板")
     @GetMapping("/service/scriptTemplate")
     InternalResponse<String> getScriptTemplate(@RequestParam("type") Integer type);
 }

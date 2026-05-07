@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.vo;
 
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -40,27 +39,27 @@ import java.util.StringJoiner;
  */
 @Getter
 @Setter
-@ApiModel("脚本基本信息")
+@Schema(description = "脚本基本信息")
 public class BasicScriptVO {
     /**
      * 脚本版本ID
      */
-    @ApiModelProperty(value = "脚本版本ID")
+    @Schema(description = "脚本版本ID")
     protected Long scriptVersionId;
     /**
      * 脚本ID，一个脚本下面包含多个版本的脚本
      */
-    @ApiModelProperty(value = "脚本ID")
+    @Schema(description = "脚本ID")
     protected String id;
     /**
      * 脚本名称
      */
-    @ApiModelProperty(value = "脚本名称")
+    @Schema(description = "脚本名称")
     protected String name;
     /**
      * 脚本类型
      */
-    @ApiModelProperty(value = "脚本类型")
+    @Schema(description = "脚本类型")
     protected Integer type;
 
     /**
@@ -71,29 +70,29 @@ public class BasicScriptVO {
     /**
      * 是否公共脚本
      */
-    @ApiModelProperty(value = "是否公共脚本")
+    @Schema(description = "是否公共脚本")
     protected Boolean publicScript;
 
     /**
      * 资源范围类型
      */
-    @ApiModelProperty(value = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
+    @Schema(description = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
     protected String scopeType;
 
     /**
      * 资源范围ID
      */
-    @ApiModelProperty("资源范围ID")
+    @Schema(description = "资源范围ID")
     protected String scopeId;
     /**
      * 脚本大种类: 0 系统的执行脚本(如shell,bat,python等), 1 SQL执行脚本
      */
-    @ApiModelProperty(value = "脚本分类: 0 系统的执行脚本(如shell,bat,python等), 1 SQL执行脚本")
+    @Schema(description = "脚本分类: 0 系统的执行脚本(如shell,bat,python等), 1 SQL执行脚本")
     protected Integer category;
     /**
      * 脚本的版本号
      */
-    @ApiModelProperty(value = "版本号")
+    @Schema(description = "版本号")
     protected String version;
 
     /**
@@ -101,59 +100,59 @@ public class BasicScriptVO {
      *
      * @see JobResourceStatusEnum
      */
-    @ApiModelProperty(value = "脚本状态,0:未发布，1:已上线")
+    @Schema(description = "脚本状态,0:未发布，1:已上线")
     protected Integer status;
 
-    @ApiModelProperty(value = "脚本状态描述")
+    @Schema(description = "脚本状态描述")
     protected String statusDesc;
 
-    @ApiModelProperty("是否可以查看")
+    @Schema(description = "是否可以查看")
     private Boolean canView;
-    @ApiModelProperty("是否可以管理")
+    @Schema(description = "是否可以管理")
     protected Boolean canManage;
-    @ApiModelProperty("是否可以克隆")
+    @Schema(description = "是否可以克隆")
     protected Boolean canClone;
 
     /**
      * 创建者
      */
-    @ApiModelProperty(value = "创建者")
+    @Schema(description = "创建者")
     protected String creator;
 
     /**
      * 创建时间
      */
-    @ApiModelProperty(value = "创建时间，单位毫秒")
+    @Schema(description = "创建时间，单位毫秒")
     protected Long createTime;
 
     /**
      * 最后修改人
      */
-    @ApiModelProperty(value = "最后更新者")
+    @Schema(description = "最后更新者")
     protected String lastModifyUser;
 
     /**
      * 最后修改时间
      */
-    @ApiModelProperty(value = "最后更新时间，单位毫秒")
+    @Schema(description = "最后更新时间，单位毫秒")
     protected Long lastModifyTime;
 
     /**
      * 脚本标签
      */
-    @ApiModelProperty(value = "脚本标签")
+    @Schema(description = "脚本标签")
     protected List<TagVO> tags;
 
     /**
      * 脚本版本描述
      */
-    @ApiModelProperty(value = "脚本版本描述")
+    @Schema(description = "脚本版本描述")
     protected String versionDesc;
 
     /**
      * 脚本描述
      */
-    @ApiModelProperty(value = "脚本描述")
+    @Schema(description = "脚本描述")
     protected String description;
 
     @Override

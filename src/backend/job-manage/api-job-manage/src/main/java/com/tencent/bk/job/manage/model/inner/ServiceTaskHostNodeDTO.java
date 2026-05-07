@@ -24,22 +24,21 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("主机节点信息")
+@Schema(description = "主机节点信息")
 public class ServiceTaskHostNodeDTO {
 
-    @ApiModelProperty("topo节点信息")
+    @Schema(description = "topo节点信息")
     private List<ServiceTaskNodeInfoDTO> nodeInfoList;
 
-    @ApiModelProperty("动态分组ID")
+    @Schema(description = "动态分组ID")
     private List<String> dynamicGroupId;
 
-    @ApiModelProperty("机器IP列表")
+    @Schema(description = "机器IP列表")
     private List<ServiceHostInfoDTO> hostList;
 }

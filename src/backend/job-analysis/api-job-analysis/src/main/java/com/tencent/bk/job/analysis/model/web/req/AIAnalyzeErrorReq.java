@@ -24,50 +24,49 @@
 
 package com.tencent.bk.job.analysis.model.web.req;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel("AI分析报错信息请求体")
+@Schema(description = "AI分析报错信息请求体")
 @Data
 public class AIAnalyzeErrorReq {
 
-    @ApiModelProperty(value = "任务ID")
+    @Schema(description = "任务ID")
     @NotNull(message = "{validation.constraints.AIAnalyzeError_taskInstanceIdEmpty.message}")
     private Long taskInstanceId;
 
-    @ApiModelProperty("步骤执行类型：1-脚本，2-文件")
+    @Schema(description = "步骤执行类型：1-脚本，2-文件")
     private Integer stepExecuteType;
 
-    @ApiModelProperty(value = "步骤ID")
+    @Schema(description = "步骤ID")
     @NotNull(message = "{validation.constraints.AIAnalyzeError_stepInstanceIdEmpty.message}")
     private Long stepInstanceId;
 
-    @ApiModelProperty(value = "执行次数")
+    @Schema(description = "执行次数")
     @NotNull(message = "{validation.constraints.AIAnalyzeError_executeCountEmpty.message}")
     private Integer executeCount;
 
-    @ApiModelProperty(value = "滚动批次，非滚动步骤不需要传入")
+    @Schema(description = "滚动批次，非滚动步骤不需要传入")
     @NotNull(message = "{validation.constraints.AIAnalyzeError_batchEmpty.message}")
     private Integer batch;
 
-    @ApiModelProperty(value = "执行对象类型")
+    @Schema(description = "执行对象类型")
     @NotNull(message = "{validation.constraints.AIAnalyzeError_executeObjectTypeEmpty.message}")
     private Integer executeObjectType;
 
-    @ApiModelProperty(value = "执行对象资源 ID")
+    @Schema(description = "执行对象资源 ID")
     @NotNull(message = "{validation.constraints.AIAnalyzeError_executeObjectResourceIdEmpty.message}")
     private Long executeObjectResourceId;
 
-    @ApiModelProperty(value = "文件任务上传下载标识,0-上传,1-下载")
+    @Schema(description = "文件任务上传下载标识,0-上传,1-下载")
     private Integer mode;
 
-    @ApiModelProperty(value = "脚本任务报错信息内容")
+    @Schema(description = "脚本任务报错信息内容")
     private String content;
 }

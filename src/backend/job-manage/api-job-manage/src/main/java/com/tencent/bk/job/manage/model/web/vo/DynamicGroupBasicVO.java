@@ -24,28 +24,27 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.Map;
 
-@ApiModel("动态分组信息")
+@Schema(description = "动态分组信息")
 @Data
 @AllArgsConstructor
 public class DynamicGroupBasicVO {
 
-    @ApiModelProperty("动态分组 ID")
+    @Schema(description = "动态分组 ID")
     private String id;
 
-    @ApiModelProperty("动态分组名称")
+    @Schema(description = "动态分组名称")
     private String name;
 
-    @ApiModelProperty("最后修改时间")
+    @Schema(description = "最后修改时间")
     private String lastTime;
 
-    @ApiModelProperty(value = "动态分组元数据")
+    @Schema(description = "动态分组元数据")
     Map<String, Object> meta;
 
 }

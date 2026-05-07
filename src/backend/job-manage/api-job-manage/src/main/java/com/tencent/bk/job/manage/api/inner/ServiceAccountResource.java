@@ -30,9 +30,9 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.inner.ServiceAccountDTO;
 import com.tencent.bk.job.manage.model.web.request.AccountCreateUpdateReq;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,7 +45,7 @@ import java.util.List;
 /**
  * 账号服务
  */
-@Api(tags = {"job-manage:service:Account_Management"})
+@Tag(name = "job-manage:service:Account_Management")
 @SmartFeignClient(value = "job-manage", contextId = "accountResource")
 @InternalAPI
 public interface ServiceAccountResource {
@@ -56,9 +56,9 @@ public interface ServiceAccountResource {
      * @return
      */
     @GetMapping("/service/account/{accountId}")
-    @ApiOperation(value = "根据账号id获取账号信息", produces = "application/json")
+    @Operation(summary = "根据账号id获取账号信息")
     InternalResponse<ServiceAccountDTO>
-    getAccountByAccountId(@ApiParam(value = "账号ID", required = true) @PathVariable("accountId") Long accountId);
+    getAccountByAccountId(@Parameter(description = "账号ID", required = true) @PathVariable("accountId") Long accountId);
 
     /**
      * 根据账号id获取账号信息
@@ -68,11 +68,11 @@ public interface ServiceAccountResource {
      * @return
      */
     @GetMapping("/service/account/app/{appId}/accounts/{account}")
-    @ApiOperation(value = "根据账号名获取账号信息", produces = "application/json")
+    @Operation(summary = "根据账号名获取账号信息")
     InternalResponse<ServiceAccountDTO>
     getAccountByAccountName(
-        @ApiParam(value = "业务ID", required = true) @PathVariable("appId") Long appId,
-        @ApiParam(value = "账号名", required = true) @PathVariable("account") String account
+        @Parameter(description = "业务ID", required = true) @PathVariable("appId") Long appId,
+        @Parameter(description = "账号名", required = true) @PathVariable("account") String account
     );
 
     /**
@@ -84,40 +84,40 @@ public interface ServiceAccountResource {
      * @return
      */
     @GetMapping("/service/account/app/{appId}/category/{category}/alias/{alias}")
-    @ApiOperation(value = "根据账号别名获取业务下的账号信息", produces = "application/json")
+    @Operation(summary = "根据账号别名获取业务下的账号信息")
     InternalResponse<ServiceAccountDTO> getAccountByCategoryAndAliasInApp(
-        @ApiParam(value = "业务ID", required = true) @PathVariable("appId") Long appId,
-        @ApiParam(value = "账号用途，1-系统账号，2-DB账号", required = true) @PathVariable("category") Integer category,
-        @ApiParam(value = "账号名称", required = true) @PathVariable("alias") String alias);
+        @Parameter(description = "业务ID", required = true) @PathVariable("appId") Long appId,
+        @Parameter(description = "账号用途，1-系统账号，2-DB账号", required = true) @PathVariable("category") Integer category,
+        @Parameter(description = "账号名称", required = true) @PathVariable("alias") String alias);
 
     @PostMapping("/service/account/app/{appId}/saveOrGetAccount")
     InternalResponse<ServiceAccountDTO> saveOrGetAccount(
-        @ApiParam("用户名，网关自动传入") @RequestHeader("username") String username,
-        @ApiParam("创建时间") @RequestHeader(value = "X-Create-Time", required = false) Long createTime,
-        @ApiParam("修改时间") @RequestHeader(value = "X-Update-Time", required = false) Long lastModifyTime,
-        @ApiParam("最后修改人") @RequestHeader(value = "X-Update-User", required = false) String lastModifyUser,
+        @Parameter(description = "用户名，网关自动传入") @RequestHeader("username") String username,
+        @Parameter(description = "创建时间") @RequestHeader(value = "X-Create-Time", required = false) Long createTime,
+        @Parameter(description = "修改时间") @RequestHeader(value = "X-Update-Time", required = false) Long lastModifyTime,
+        @Parameter(description = "最后修改人") @RequestHeader(value = "X-Update-User", required = false) String lastModifyUser,
         @PathVariable("appId") Long appId, @RequestBody AccountCreateUpdateReq accountCreateUpdateReq);
 
-    @ApiOperation(value = "新增账号", produces = "application/json")
+    @Operation(summary = "新增账号")
     @PostMapping(value = "/service/account/app/{appId}/account")
     Response<Long> saveAccount(
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true)
         @RequestHeader("username")
             String username,
         @PathVariable("appId")
             Long appId,
-        @ApiParam(value = "创建账号请求")
+        @Parameter(description = "创建账号请求")
         @RequestBody
             AccountCreateUpdateReq accountCreateUpdateReq
     );
 
-    @ApiOperation(value = "获取业务下的账号列表，返回简单的账号信息", produces = "application/json")
+    @Operation(summary = "获取业务下的账号列表，返回简单的账号信息")
     @GetMapping("/service/account/account/app/{appId}/accounts")
     Response<List<ServiceAccountDTO>> listAccounts(
-        @ApiParam(value = "业务ID", required = true)
+        @Parameter(description = "业务ID", required = true)
         @PathVariable("appId")
             Long appId,
-        @ApiParam(value = "账号用途,1-系统账号，2-DB账号,不传表示所有用途")
+        @Parameter(description = "账号用途,1-系统账号，2-DB账号,不传表示所有用途")
         @RequestParam(value = "category", required = false)
             Integer category
     );

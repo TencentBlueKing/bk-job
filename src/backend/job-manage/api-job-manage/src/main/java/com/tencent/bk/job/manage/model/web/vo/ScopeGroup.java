@@ -24,23 +24,22 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-@ApiModel("资源范围分组")
+@Schema(description = "资源范围分组")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ScopeGroup {
-    @ApiModelProperty(value = "资源范围组ID")
+    @Schema(description = "资源范围组ID")
     private String id;
-    @ApiModelProperty(value = "资源范围组名称")
+    @Schema(description = "资源范围组名称")
     private String name;
-    @ApiModelProperty(value = "资源范围组内元素")
+    @Schema(description = "资源范围组内元素")
     private List<ScopeVO> children;
 }

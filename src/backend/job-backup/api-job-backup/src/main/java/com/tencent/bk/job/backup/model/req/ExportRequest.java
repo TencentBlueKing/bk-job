@@ -27,8 +27,7 @@ package com.tencent.bk.job.backup.model.req;
 import com.tencent.bk.job.backup.model.web.BackupTemplateInfoVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.validation.ValidPureFileName;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -39,13 +38,13 @@ import java.util.List;
  * @since 22/7/2020 10:23
  */
 @Data
-@ApiModel("作业导出请求")
+@Schema(description = "作业导出请求")
 public class ExportRequest {
 
     /**
      * 压缩包名
      */
-    @ApiModelProperty(value = "压缩包名", required = true)
+    @Schema(description = "压缩包名", required = true)
     @ValidPureFileName
     private String packageName;
 
@@ -54,13 +53,13 @@ public class ExportRequest {
      *
      * @see com.tencent.bk.job.backup.constant.SecretHandlerEnum
      */
-    @ApiModelProperty(value = "密文变量处理方式 1-保存为空值 2-保存真实值", required = true)
+    @Schema(description = "密文变量处理方式 1-保存为空值 2-保存真实值", required = true)
     private Integer secretHandler;
 
     /**
      * 密码
      */
-    @ApiModelProperty(value = "密码", required = true)
+    @Schema(description = "密码", required = true)
     private String password;
 
     /**
@@ -68,7 +67,7 @@ public class ExportRequest {
      * <p>
      * 单位：天
      */
-    @ApiModelProperty(value = "过期时间 单位天", required = true)
+    @Schema(description = "过期时间 单位天", required = true)
     private Long expireTime;
 
     /**
@@ -76,7 +75,7 @@ public class ExportRequest {
      *
      * @see BackupTemplateInfoVO
      */
-    @ApiModelProperty(value = "需要导出的模版信息", required = true)
+    @Schema(description = "需要导出的模版信息", required = true)
     private List<BackupTemplateInfoVO> templateInfo;
 
     public boolean validate() {

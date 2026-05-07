@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -32,9 +32,9 @@ import lombok.Data;
  */
 @Data
 public class LogExportJobInfoVO {
-    @ApiModelProperty("任务状态 1-初始 2-处理中 3-失败 4-成功")
+    @Schema(description = "任务状态 1-初始 2-处理中 3-失败 4-成功")
     private Integer status;
 
-    @ApiModelProperty("文件大小")
+    @Schema(description = "文件大小")
     private Long fileSize;
 }

@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.crontab.model;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -36,12 +35,12 @@ import java.util.List;
  * @since 20/2/2020 16:28
  */
 @Data
-@ApiModel("定时任务批量更新请求")
+@Schema(description = "定时任务批量更新请求")
 public class BatchUpdateCronJobReq {
 
     /**
      * 待更新的定时任务信息
      */
-    @ApiModelProperty(value = "待更新的定时任务信息", required = true)
+    @Schema(description = "待更新的定时任务信息", required = true)
     private List<CronJobCreateUpdateReq> cronJobInfoList;
 }

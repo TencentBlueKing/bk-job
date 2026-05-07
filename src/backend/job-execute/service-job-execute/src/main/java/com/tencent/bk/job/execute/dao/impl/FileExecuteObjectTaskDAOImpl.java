@@ -399,6 +399,26 @@ public class FileExecuteObjectTaskDAOImpl extends BaseDAO implements FileExecute
 
     @Override
     @MySQLOperation(table = "gse_file_execute_obj_task", op = DbOperationEnum.READ)
+    public boolean existsTaskByExecuteObjectId(Long taskInstanceId,
+                                               Long stepInstanceId,
+                                               Integer executeCount,
+                                               Integer batch,
+                                               FileTaskModeEnum mode,
+                                               String executeObjectId) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(T.STEP_INSTANCE_ID.eq(stepInstanceId));
+        conditions.add(buildTaskInstanceIdQueryCondition(taskInstanceId));
+        conditions.add(T.EXECUTE_COUNT.eq(executeCount.shortValue()));
+        conditions.add(T.MODE.eq(mode.getValue().byteValue()));
+        conditions.add(T.EXECUTE_OBJ_ID.eq(executeObjectId));
+        if (batch != null && batch > 0) {
+            conditions.add(T.BATCH.eq(batch.shortValue()));
+        }
+        return dsl().fetchExists(T, conditions.toArray(new Condition[0]));
+    }
+
+    @Override
+    @MySQLOperation(table = "gse_file_execute_obj_task", op = DbOperationEnum.READ)
     public boolean isStepInstanceRecordExist(Long taskInstanceId, long stepInstanceId) {
         return dsl().fetchExists(
             T,

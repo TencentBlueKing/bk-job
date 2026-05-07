@@ -38,6 +38,8 @@ import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.gateway.common.consts.HeaderConsts;
 import com.tencent.bk.job.gateway.config.LoginExemptionConfig;
 import com.tencent.bk.job.gateway.config.UserMapProperties;
+import com.tencent.bk.job.gateway.web.server.AccessLogConstants;
+import com.tencent.bk.job.gateway.web.server.AccessLogExchangeDataStore;
 import com.tencent.bk.job.gateway.web.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -70,17 +72,20 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
     private final LoginExemptionConfig loginExemptionConfig;
     private final TenantEnvService tenantEnvService;
     private final UserMapProperties userMapProperties;
+    private final AccessLogExchangeDataStore accessLogDataStore;
 
     @Autowired
     public AuthorizeGatewayFilterFactory(LoginService loginService,
                                          LoginExemptionConfig loginExemptionConfig,
                                          TenantEnvService tenantEnvService,
-                                         UserMapProperties userMapProperties) {
+                                         UserMapProperties userMapProperties,
+                                         AccessLogExchangeDataStore accessLogDataStore) {
         super(Config.class);
         this.loginService = loginService;
         this.loginExemptionConfig = loginExemptionConfig;
         this.tenantEnvService = tenantEnvService;
         this.userMapProperties = userMapProperties;
+        this.accessLogDataStore = accessLogDataStore;
     }
 
     private GatewayFilter getLoginExemptionFilter() {
@@ -91,6 +96,9 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
             request = request.mutate()
                 .header("username", username)
                 .build();
+            // 写入内存Store供Reactor Netty AccessLog读取
+            String traceId = exchange.getResponse().getHeaders().getFirst(JobCommonHeaders.REQUEST_ID);
+            accessLogDataStore.put(traceId, AccessLogConstants.LogField.USER_NAME, username);
             return chain.filter(exchange.mutate().request(request).build());
         };
     }
@@ -148,6 +156,9 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
                 .header(JobCommonHeaders.BK_TENANT_ID, tenantId)
                 .header(JobCommonHeaders.BK_USER_TIMEZONE, user.getTimeZone())
                 .build();
+            // 写入内存Store供Reactor Netty AccessLog读取
+            String traceId = response.getHeaders().getFirst(JobCommonHeaders.REQUEST_ID);
+            accessLogDataStore.put(traceId, AccessLogConstants.LogField.USER_NAME, targetUsername);
             if (targetUsername.equals(username)) {
                 log.info(
                     "UserAccess, tenantId: {}, username: {}, displayName: {}",
@@ -189,8 +200,7 @@ public class AuthorizeGatewayFilterFactory extends AbstractGatewayFilterFactory<
         DataBuffer dataBuffer = response.bufferFactory().wrap(bodyBytes);
         response.getHeaders().setContentLength(bodyBytes.length);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-        response.writeWith(Mono.just(dataBuffer)).subscribe();
-        return response.setComplete();
+        return response.writeWith(Mono.just(dataBuffer));
     }
 
     private BkUserDTO getUserByTokenList(List<String> bkTokenList, String lang) {

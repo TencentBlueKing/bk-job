@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -33,19 +32,19 @@ import java.util.List;
 /**
  * 作业执行结果
  */
-@ApiModel("作业执行结果")
+@Schema(description = "作业执行结果")
 @Data
 public class TaskExecuteResultVO {
-    @ApiModelProperty("作业执行是否结束")
+    @Schema(description = "作业执行是否结束")
     private boolean finished;
 
 
-    @ApiModelProperty("作业执行情况")
+    @Schema(description = "作业执行情况")
     private TaskExecutionVO taskExecution;
 
-    @ApiModelProperty("步骤执行情况")
+    @Schema(description = "步骤执行情况")
     private List<StepExecutionVO> stepExecution;
 
-    @ApiModelProperty("滚动任务列表")
+    @Schema(description = "滚动任务列表")
     private List<RollingTaskVO> rollingTaskList;
 }

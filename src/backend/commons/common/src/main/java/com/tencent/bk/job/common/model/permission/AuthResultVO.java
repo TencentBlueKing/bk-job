@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.common.model.permission;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
@@ -38,7 +37,7 @@ import java.util.List;
  */
 @Data
 @ToString
-@ApiModel("鉴权结果-前端")
+@Schema(description = "鉴权结果-前端")
 public class AuthResultVO {
     /**
      * 权限是否通过
@@ -48,13 +47,13 @@ public class AuthResultVO {
     /**
      * 申请权限跳转url
      */
-    @ApiModelProperty("申请权限跳转url")
+    @Schema(description = "申请权限跳转url")
     private String applyUrl;
 
     /**
      * 需要申请的权限列表
      */
-    @ApiModelProperty("需要申请的权限列表")
+    @Schema(description = "需要申请的权限列表")
     private List<RequiredPermissionVO> requiredPermissions;
 
     public static AuthResultVO pass() {

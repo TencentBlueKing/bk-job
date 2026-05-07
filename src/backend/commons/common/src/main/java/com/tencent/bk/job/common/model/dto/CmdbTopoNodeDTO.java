@@ -26,8 +26,7 @@ package com.tencent.bk.job.common.model.dto;
 
 import com.tencent.bk.job.common.annotation.PersistenceObject;
 import com.tencent.bk.job.common.model.vo.TargetNodeVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,11 +35,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("业务拓扑节点")
+@Schema(description = "业务拓扑节点")
 public class CmdbTopoNodeDTO implements Cloneable {
-    @ApiModelProperty("节点ID")
+    @Schema(description = "节点ID")
     private Long id;
-    @ApiModelProperty("节点类型，module-模块，set-集群，biz-业务")
+    @Schema(description = "节点类型，module-模块，set-集群，biz-业务")
     private String nodeType;
 
     public static TargetNodeVO toVO(CmdbTopoNodeDTO cmdbTopoNodeDTO) {

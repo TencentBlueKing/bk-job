@@ -28,16 +28,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
 import com.tencent.bk.job.common.validation.Create;
+import com.tencent.bk.job.common.validation.NoXss;
 import com.tencent.bk.job.crontab.validation.provider.EsbSaveCronV3RequestSequenceProvider;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.group.GroupSequenceProvider;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -67,6 +68,7 @@ public class EsbSaveCronV3Request extends EsbAppScopeReq {
      */
     @NotEmpty(message = "{validation.constraints.InvalidCronJobName_empty.message}", groups = Create.class)
     @Length(max = 60, message = "{validation.constraints.InvalidCronJobName_outOfLength.message}")
+    @NoXss(fieldName = "name")
     private String name;
 
     /**

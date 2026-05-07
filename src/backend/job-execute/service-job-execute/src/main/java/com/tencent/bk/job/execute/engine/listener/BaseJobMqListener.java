@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.engine.listener;
 
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.common.context.JobExecuteContext;
 import com.tencent.bk.job.execute.common.context.JobExecuteContextThreadLocalRepo;
@@ -36,6 +37,11 @@ import org.springframework.messaging.MessageHeaders;
 @Slf4j
 public abstract class BaseJobMqListener {
 
+    private final MqConsumeDelayRecorder mqConsumeDelayRecorder;
+
+    protected BaseJobMqListener(MqConsumeDelayRecorder mqConsumeDelayRecorder) {
+        this.mqConsumeDelayRecorder = mqConsumeDelayRecorder;
+    }
 
     public final void onEvent(Message<? extends JobMessage> message) {
         beforeHandleMessage(message);
@@ -53,6 +59,11 @@ public abstract class BaseJobMqListener {
             JobExecuteContextThreadLocalRepo.set(JsonUtils.fromJson(jobExecuteContextJson,
                 JobExecuteContext.class));
         }
+        mqConsumeDelayRecorder.recordConsumeDelay(
+            getBindingName(),
+            message.getPayload().getClass().getSimpleName(),
+            message
+        );
     }
 
     private void afterHandle(Message<? extends JobMessage> message) {
@@ -60,4 +71,11 @@ public abstract class BaseJobMqListener {
     }
 
     protected abstract void handleEvent(Message<? extends JobMessage> message);
+
+    /**
+     * 获取当前listener对应的binding名称
+     *
+     * @return binding名称
+     */
+    protected abstract String getBindingName();
 }

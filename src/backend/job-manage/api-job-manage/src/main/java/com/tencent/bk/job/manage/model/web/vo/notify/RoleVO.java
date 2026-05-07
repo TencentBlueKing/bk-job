@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.notify;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,11 +34,11 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("业务角色")
+@Schema(description = "业务角色")
 @Data
 public class RoleVO {
-    @ApiModelProperty("code")
+    @Schema(description = "code")
     private String code;
-    @ApiModelProperty("名称")
+    @Schema(description = "名称")
     private String name;
 }

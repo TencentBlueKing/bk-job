@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.backup.model.web;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -34,18 +33,18 @@ import java.util.List;
  * @since 21/7/2020 21:44
  */
 @Data
-@ApiModel("作业备份信息列表")
+@Schema(description = "作业备份信息列表")
 public class BackupJobInfoVO {
 
     /**
      * 导入信息列表
      */
-    @ApiModelProperty("导入信息列表")
+    @Schema(description = "导入信息列表")
     private List<ImportInfoVO> importJob;
 
     /**
      * 导出信息列表
      */
-    @ApiModelProperty("导出信息列表")
+    @Schema(description = "导出信息列表")
     private List<ExportInfoVO> exportJob;
 }

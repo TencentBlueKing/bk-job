@@ -49,9 +49,9 @@ public class McpWebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         log.info("Registering MCP authentication interceptor, enabled={}", mcpAuthProperties.isEnabled());
 
-        // Spring AI MCP Server 使用 SSE (Server-Sent Events) 协议，默认端点为 /sse
+        // Spring AI MCP Server 使用 streamable-http 协议，默认消息端点为 /mcp
         registry.addInterceptor(new McpAuthInterceptor(mcpAuthProperties))
-                .addPathPatterns("/sse", "/sse/**")
+                .addPathPatterns("/mcp", "/mcp/**")
                 .order(InterceptorOrder.Auth.MCP_AUTH);
         
         log.info("MCP authentication interceptor registered successfully");

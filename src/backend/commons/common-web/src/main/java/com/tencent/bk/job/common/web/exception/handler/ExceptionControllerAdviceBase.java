@@ -31,6 +31,7 @@ import com.tencent.bk.job.common.model.error.FieldViolationDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.validation.BindException;
@@ -38,8 +39,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import java.util.Set;
 
 @Slf4j
@@ -48,9 +49,9 @@ public class ExceptionControllerAdviceBase extends ResponseEntityExceptionHandle
     @Override
     @SuppressWarnings("NullableProblems")
     protected ResponseEntity<Object> handleExceptionInternal(
-        Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        Exception ex, @Nullable Object body, HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
         log.warn("handleExceptionInternal", ex);
-        return super.handleExceptionInternal(ex, body, headers, status, request);
+        return super.handleExceptionInternal(ex, body, headers, statusCode, request);
     }
 
     protected ErrorDetailDTO buildErrorDetail(BindException ex) {

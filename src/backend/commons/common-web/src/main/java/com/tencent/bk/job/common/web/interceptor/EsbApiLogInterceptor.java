@@ -36,15 +36,15 @@ import com.tencent.bk.job.common.web.model.RepeatableReadWriteHttpServletRequest
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpMethod;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.HandlerInterceptor;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.StringJoiner;
 
 @Slf4j
 @JobInterceptor(order = InterceptorOrder.Init.LOG, pathPatterns = "/esb/api/**")
-public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
+public class EsbApiLogInterceptor implements HandlerInterceptor {
 
     private static final String ATTR_REQUEST_START = "request-start";
     private static final String ATTR_API_NAME = "api-name";
@@ -156,8 +156,7 @@ public class EsbApiLogInterceptor extends HandlerInterceptorAdapter {
         } catch (Throwable e) {
             log.warn("Handle after completion fail", e);
         } finally {
-
-            super.afterCompletion(request, response, handler, ex);
+            // HandlerInterceptor.afterCompletion default impl is no-op
         }
     }
 

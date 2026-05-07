@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.Message;
 
 import java.util.function.Consumer;
 
@@ -42,7 +43,7 @@ import java.util.function.Consumer;
 @Slf4j
 public class JobFunctionConfiguration {
     @Bean
-    public Consumer<AIChatOperationEvent> handleAIChatOperationEvent(
+    public Consumer<Message<AIChatOperationEvent>> handleAIChatOperationEvent(
         @Autowired AIChatOperationEventListener aiChatOperationEventListener
     ) {
         log.info("Init handleAIChatOperationEvent consumer");

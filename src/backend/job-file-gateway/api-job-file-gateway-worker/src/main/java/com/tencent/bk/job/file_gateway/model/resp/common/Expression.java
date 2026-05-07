@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.file_gateway.model.resp.common;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,10 +32,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("表达式，计算出一个布尔值")
+@Schema(description = "表达式，计算出一个布尔值")
 public class Expression {
-    @ApiModelProperty("数据元素中的字段")
+    @Schema(description = "数据元素中的字段")
     String key;
-    @ApiModelProperty("数据元素中的字段的期望值")
+    @Schema(description = "数据元素中的字段的期望值")
     Object value;
 }

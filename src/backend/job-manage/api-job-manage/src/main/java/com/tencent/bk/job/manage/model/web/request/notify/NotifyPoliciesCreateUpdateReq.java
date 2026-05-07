@@ -24,16 +24,15 @@
 
 package com.tencent.bk.job.manage.model.web.request.notify;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("通知策略创建请求")
+@Schema(description = "通知策略创建请求")
 public class NotifyPoliciesCreateUpdateReq {
 
-    @ApiModelProperty(value = "触发方式对应策略列表", required = true)
+    @Schema(description = "触发方式对应策略列表", required = true)
     private List<TriggerPolicy> triggerPoliciesList;
 }

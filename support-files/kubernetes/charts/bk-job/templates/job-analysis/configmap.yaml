@@ -87,16 +87,17 @@ data:
           idle-timeout: 600000
           poolName: "job-analysis"
           validationTimeout: 5000
-      redis:
-        {{- include "job.redis.config" . | indent 8 }}
-        database: 0
-        lettuce:
-          pool:
-            min-idle: 5
-            max-idle: 10
-            max-active: 8
-            max-wait: 1ms
-          shutdown-timeout: 100ms
+      data:
+        redis:
+          {{- include "job.redis.config" . | indent 10 }}
+          database: 0
+          lettuce:
+            pool:
+              min-idle: 5
+              max-idle: 10
+              max-active: 8
+              max-wait: 1ms
+            shutdown-timeout: 100ms
       servlet:
         multipart:
           max-file-size: 5GB

@@ -61,7 +61,7 @@ public class TaskVariableDTO {
     private String value;
 
     /**
-     * 执行目标；当 type = TaskVariableTypeEnum.HOST_LIST 的时候，该值不为null
+     * 执行目标；当 type = TaskVariableTypeEnum.EXECUTE_OBJECT_LIST 的时候，该值不为null
      */
     private ExecuteTargetDTO executeTarget;
 

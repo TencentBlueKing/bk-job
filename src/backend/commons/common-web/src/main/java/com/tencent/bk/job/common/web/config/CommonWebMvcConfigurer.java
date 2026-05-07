@@ -33,6 +33,7 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
@@ -52,6 +53,15 @@ public class CommonWebMvcConfigurer implements WebMvcConfigurer {
                                   Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder) {
         this.applicationContext = applicationContext;
         this.jackson2ObjectMapperBuilder = jackson2ObjectMapperBuilder;
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void configurePathMatch(PathMatchConfigurer configurer) {
+        // Spring Framework 6.0+ 默认关闭了 trailing slash matching，
+        // 启用以保持向后兼容，避免前端/客户端 URL 带尾部斜杠时返回 404。
+        // 该 API 已 deprecated，后续需推动前端去除尾部斜杠后移除此配置。
+        configurer.setUseTrailingSlashMatch(true);
     }
 
     @Override

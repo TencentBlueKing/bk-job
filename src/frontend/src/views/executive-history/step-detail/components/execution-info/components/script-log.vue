@@ -61,7 +61,7 @@
         <icon type="up-to-top" />
       </div>
     </div>
-    <div
+    <!-- <div
       v-if="isAiUseable"
       ref="aiExtendTool"
       class="ai-extend-tool"
@@ -71,7 +71,7 @@
       <img
         :src="aiImage"
         style="width: 16px">
-    </div>
+    </div> -->
   </div>
 </template>
 <script>
@@ -197,7 +197,7 @@
         theme: 'light',
       };
       this.logContent = '';
-      this.aiImage = window.__loadAssetsUrl__('/static/images/ai.png');
+      this.aiImage = window.__loadAssetsUrl__('/static/images/ai-01.png');
       this.fetchAiConfig();
     },
     mounted() {
@@ -314,14 +314,15 @@
           return Promise.reject();
         }
         return Promise.resolve().then(() => {
-          eventBus.$emit('ai:analyzeError', {
-            taskInstanceId: this.taskInstanceId,
-            stepInstanceId: this.stepInstanceId,
-            executeObjectType: this.taskExecuteDetail.executeObject.type,
-            executeObjectResourceId: this.taskExecuteDetail.executeObject.executeObjectResourceId,
-            executeCount: this.executeCount,
+          eventBus.$emit('ai:analyzeScriptTaskError', {
+            scope_type: window.PROJECT_CONFIG.SCOPE_TYPE,
+            scope_id: window.PROJECT_CONFIG.SCOPE_ID,
+            task_instance_id: this.taskInstanceId,
+            step_instance_id: this.stepInstanceId,
+            execute_object_type: this.taskExecuteDetail.executeObject.type,
+            execute_object_resource_id: this.taskExecuteDetail.executeObject.executeObjectResourceId,
+            execute_count: this.executeCount,
             batch: this.taskExecuteDetail.batch,
-            content: this.editor.getValue(),
           });
         });
       },
@@ -372,18 +373,21 @@
           };
         });
       },
-      handleSelectedAnalyzeError() {
-        this.aiExtendToolStyle = {};
-        eventBus.$emit('ai:analyzeError', {
-          taskInstanceId: this.taskInstanceId,
-          stepInstanceId: this.stepInstanceId,
-          executeObjectType: this.taskExecuteDetail.executeObject.type,
-          executeObjectResourceId: this.taskExecuteDetail.executeObject.executeObjectResourceId,
-          executeCount: this.executeCount,
-          batch: this.taskExecuteDetail.batch,
-          content: this.editor.getSelectedText(),
-        });
-      },
+      // handleSelectedAnalyzeError() {
+      //   this.aiExtendToolStyle = {};
+      //   eventBus.$emit('ai:analyzeScriptTaskError', {
+      //     scope_type: window.PROJECT_CONFIG.SCOPE_TYPE,
+      //     scope_id: window.PROJECT_CONFIG.SCOPE_ID,
+      //     task_instance_id: this.taskInstanceId,
+      //     step_instance_id: this.stepInstanceId,
+      //     step_execute_type: '',
+      //     execute_object_type: this.taskExecuteDetail.executeObject.type,
+      //     execute_object_resource_id: this.taskExecuteDetail.executeObject.executeObjectResourceId,
+      //     execute_count: this.executeCount,
+      //     batch: this.taskExecuteDetail.batch,
+      //     content: this.editor.getSelectedText(),
+      //   });
+      // },
     },
   };
 </script>

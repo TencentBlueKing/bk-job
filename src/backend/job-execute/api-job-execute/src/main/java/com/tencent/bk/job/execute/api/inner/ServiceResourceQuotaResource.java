@@ -28,8 +28,8 @@ import com.tencent.bk.job.common.annotation.InternalAPI;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.common.resource.quota.ResourceQuotaLimit;
 import com.tencent.bk.job.execute.model.inner.RunningJobQuotaUsage;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,16 +39,16 @@ import java.util.Map;
 /**
  * 正在执行中的作业资源配额相关 API
  */
-@Api(tags = {"job-execute:service:RunningJobResourceQuota"})
+@Tag(name = "job-execute:service:RunningJobResourceQuota")
 @RestController
 @InternalAPI
 @RequestMapping("/service/resourceQuota")
 public interface ServiceResourceQuotaResource {
-    @ApiOperation(value = "获取配额限制配置", produces = "application/json")
+    @Operation(summary = "获取配额限制配置")
     @GetMapping("/config")
     InternalResponse<Map<String, ResourceQuotaLimit>> getResourceQuotaConfig();
 
-    @ApiOperation(value = "获取正在执行中的作业配额使用情况", produces = "application/json")
+    @Operation(summary = "获取正在执行中的作业配额使用情况")
     @GetMapping("/runningJob/quotaUsage")
     InternalResponse<RunningJobQuotaUsage> getRunningJobQuotaUsage();
 }

@@ -24,29 +24,28 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
  * 业务
  */
 @Data
-@ApiModel("业务")
+@Schema(description = "业务")
 public class ServiceAppBaseInfoDTO {
 
-    @ApiModelProperty("资源范围类型")
+    @Schema(description = "资源范围类型")
     private String scopeType;
 
-    @ApiModelProperty("资源范围ID")
+    @Schema(description = "资源范围ID")
     private String scopeId;
 
-    @ApiModelProperty("Job业务ID")
+    @Schema(description = "Job业务ID")
     private Long appId;
 
     /**
      * 业务名称
      */
-    @ApiModelProperty("业务名称")
+    @Schema(description = "业务名称")
     private String name;
 }

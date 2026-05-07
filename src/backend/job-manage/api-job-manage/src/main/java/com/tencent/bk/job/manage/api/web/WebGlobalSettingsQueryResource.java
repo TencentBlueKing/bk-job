@@ -31,9 +31,9 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.AccountNameRulesWithDefaultVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.NotifyChannelWithIconVO;
 import com.tencent.bk.job.manage.model.web.vo.globalsetting.PlatformInfoVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -44,72 +44,72 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
-@Api(tags = {"job-manage:web:GlobalSettings"})
+@Tag(name = "job-manage:web:GlobalSettings")
 @RequestMapping("/web/queryGlobalSettings")
 @RestController
 @WebAPI
 public interface WebGlobalSettingsQueryResource {
 
-    @ApiOperation(value = "获取通知渠道列表及生效状态", produces = "application/json")
+    @Operation(summary = "获取通知渠道列表及生效状态")
     @GetMapping("/notify/listChannels")
     Response<List<NotifyChannelWithIconVO>> listNotifyChannel(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );
 
 
-    @ApiOperation(value = "获取账号命名规则", produces = "application/json")
+    @Operation(summary = "获取账号命名规则")
     @GetMapping("/account/nameRules")
     Response<AccountNameRulesWithDefaultVO> getAccountNameRules(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );
 
-    @ApiOperation(value = "判断用户是否为超级管理员", produces = "application/json")
+    @Operation(summary = "判断用户是否为超级管理员")
     @GetMapping("/isAdmin")
     Response<Boolean> isAdmin(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );
 
 
-    @ApiOperation(value = "获取CMDB服务跳转地址", produces = "application/json")
+    @Operation(summary = "获取CMDB服务跳转地址")
     @GetMapping("/cmdbServerUrl")
     Response<String> getCMDBServerUrl(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );
 
 
-    @ApiOperation(value = "获取申请业务权限跳转地址", produces = "application/json")
+    @Operation(summary = "获取申请业务权限跳转地址")
     @GetMapping("/applyBusinessUrl")
     Response<String> getApplyBusinessUrl(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "资源范围类型")
+        @Parameter(description = "资源范围类型")
         @RequestParam(value = "scopeType", required = false)
             String scopeType,
-        @ApiParam(value = "资源范围ID")
+        @Parameter(description = "资源范围ID")
         @RequestParam(value = "scopeId", required = false)
             String scopeId
     );
 
 
-    @ApiOperation(value = "获取CMDB业务首页地址", produces = "application/json")
+    @Operation(summary = "获取CMDB业务首页地址")
     @GetMapping("/scope/{scopeType}/{scopeId}/cmdbAppIndexUrl")
     Response<String> getCMDBAppIndexUrl(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId
     );
@@ -117,41 +117,41 @@ public interface WebGlobalSettingsQueryResource {
 
     @CompatibleImplementation(name = "platform_info", deprecatedVersion = "3.11.x", type = CompatibleType.DEPLOY,
         explain = "发布完成后可以删除")
-    @ApiOperation(value = "获取渲染后的平台设置", produces = "application/json")
+    @Operation(summary = "获取渲染后的平台设置")
     @GetMapping("/platformInfo")
     Response<PlatformInfoVO> getRenderedPlatformInfo();
 
 
-    @ApiOperation(value = "获取文档中心根路径", produces = "application/json")
+    @Operation(summary = "获取文档中心根路径")
     @GetMapping("/docCenterBaseUrl")
     Response<String> getDocCenterBaseUrl(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );
 
 
-    @ApiOperation(value = "周边系统跳转路径", produces = "application/json")
+    @Operation(summary = "周边系统跳转路径")
     @GetMapping("/relatedSystemUrls")
     Response<Map<String, String>> getRelatedSystemUrls(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );
 
 
-    @ApiOperation(value = "作业平台公开配置", produces = "application/json")
+    @Operation(summary = "作业平台公开配置")
     @GetMapping("/jobConfig")
     Response<Map<String, Object>> getJobConfig(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );
 
-    @ApiOperation(value = "获取配置的默认时区", produces = "application/json")
+    @Operation(summary = "获取配置的默认时区")
     @GetMapping("/defaultTimezoneConfig")
     Response<Map<String, String>> getDefaultDisplayTimezone(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username
     );

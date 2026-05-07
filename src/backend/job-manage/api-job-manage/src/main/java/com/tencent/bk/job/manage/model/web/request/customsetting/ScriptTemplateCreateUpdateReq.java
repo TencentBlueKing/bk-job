@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request.customsetting;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -33,14 +32,14 @@ import lombok.Data;
  */
 
 @Data
-@ApiModel("用户自定义脚本模板新增、更新请求")
+@Schema(description = "用户自定义脚本模板新增、更新请求")
 public class ScriptTemplateCreateUpdateReq {
     /**
      * 脚本语言
      */
-    @ApiModelProperty(value = "脚本语言,1:shell,2:bat,3:perl,4:python,5:PowerShell,6:sql", required = true)
+    @Schema(description = "脚本语言,1:shell,2:bat,3:perl,4:python,5:PowerShell,6:sql", required = true)
     private Integer scriptLanguage;
 
-    @ApiModelProperty(value = "脚本内容,BASE64编码", required = true)
+    @Schema(description = "脚本内容,BASE64编码", required = true)
     private String scriptContent;
 }

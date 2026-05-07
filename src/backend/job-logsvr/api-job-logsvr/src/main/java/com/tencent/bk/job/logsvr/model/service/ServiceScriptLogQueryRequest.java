@@ -26,8 +26,7 @@ package com.tencent.bk.job.logsvr.model.service;
 
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -36,34 +35,34 @@ import java.util.List;
  * 脚本日志查询请求
  */
 @Data
-@ApiModel("脚本日志查询请求")
+@Schema(description = "脚本日志查询请求")
 public class ServiceScriptLogQueryRequest {
     /**
      * 步骤实例ID
      */
-    @ApiModelProperty(value = "步骤实例ID", required = true)
+    @Schema(description = "步骤实例ID", required = true)
     private Long stepInstanceId;
 
     /**
      * 执行次数
      */
-    @ApiModelProperty(value = "执行次数", required = true)
+    @Schema(description = "执行次数", required = true)
     private Integer executeCount;
 
     /**
      * 滚动执行批次，可能为null
      */
-    @ApiModelProperty(value = "滚动执行批次，可能为null")
+    @Schema(description = "滚动执行批次，可能为null")
     private Integer batch;
 
     /**
      * 查询的主机ID列表
      */
-    @ApiModelProperty("查询的主机ID列表")
+    @Schema(description = "查询的主机ID列表")
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
     private List<Long> hostIds;
 
-    @ApiModelProperty("查询的执行对象ID列表")
+    @Schema(description = "查询的执行对象ID列表")
     private List<String> executeObjectIds;
 }

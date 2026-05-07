@@ -26,35 +26,34 @@ package com.tencent.bk.job.analysis.model.web;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.PercentageFormatJsonSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("带同环比的公共统计量")
+@Schema(description = "带同环比的公共统计量")
 @Data
 public class CommonStatisticWithRateVO {
 
-    @ApiModelProperty("数量")
+    @Schema(description = "数量")
     private Long count;
 
-    @ApiModelProperty("同比增长数值")
+    @Schema(description = "同比增长数值")
     private Long yoyValue;
 
-    @ApiModelProperty("环比增长数值")
+    @Schema(description = "环比增长数值")
     private Long momValue;
 
-    @ApiModelProperty("同比比例")
+    @Schema(description = "同比比例")
     @JsonSerialize(using = PercentageFormatJsonSerializer.class)
     private Float yoyRate;
 
-    @ApiModelProperty("环比比例")
+    @Schema(description = "环比比例")
     @JsonSerialize(using = PercentageFormatJsonSerializer.class)
     private Float momRate;
 
-    @ApiModelProperty("同比趋势：1：上升，0：不变，-1：下降")
+    @Schema(description = "同比趋势：1：上升，0：不变，-1：下降")
     private Integer yoyTrend;
 
-    @ApiModelProperty("环比趋势：1：上升，0：不变，-1：下降")
+    @Schema(description = "环比趋势：1：上升，0：不变，-1：下降")
     private Integer momTrend;
 
 }

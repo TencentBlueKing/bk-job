@@ -125,7 +125,7 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
             .values(
                 taskInstance.getId(),
                 taskInstance.getPlanId(),
-                taskInstance.getCronTaskId(),
+                taskInstance.getCronTaskId() != null ? taskInstance.getCronTaskId() : 0L,
                 taskInstance.getTaskTemplateId(),
                 taskInstance.isDebugTask() ? (byte) 1 : (byte) 0,
                 taskInstance.getAppId(),
@@ -207,7 +207,7 @@ public class TaskInstanceDAOImpl extends BaseDAO implements TaskInstanceDAO {
         dsl().update(TASK_INSTANCE)
             .setNull(TASK_INSTANCE.START_TIME).setNull(TASK_INSTANCE.END_TIME)
             .setNull(TASK_INSTANCE.TOTAL_TIME)
-            .setNull(TASK_INSTANCE.CURRENT_STEP_ID)
+            .set(TASK_INSTANCE.CURRENT_STEP_ID, 0L)
             .set(TASK_INSTANCE.STATUS, JooqDataTypeUtil.toByte(RunStatusEnum.BLANK.getValue()))
             .where(TASK_INSTANCE.ID.eq(taskInstanceId))
             .execute();

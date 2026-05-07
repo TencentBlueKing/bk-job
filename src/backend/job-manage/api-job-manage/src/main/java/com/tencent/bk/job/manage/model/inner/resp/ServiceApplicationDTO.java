@@ -27,19 +27,18 @@ package com.tencent.bk.job.manage.model.inner.resp;
 import com.tencent.bk.job.common.constant.ResourceScopeTypeEnum;
 import com.tencent.bk.job.common.model.dto.ApplicationDTO;
 import com.tencent.bk.job.manage.model.inner.ServiceApplicationAttrsDTO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
  * 业务
  */
 @Data
-@ApiModel("业务")
+@Schema(description = "业务")
 public class ServiceApplicationDTO {
 
 
-    @ApiModelProperty("业务ID")
+    @Schema(description = "业务ID")
     private Long id;
 
     /**
@@ -54,7 +53,7 @@ public class ServiceApplicationDTO {
     /**
      * 业务名称
      */
-    @ApiModelProperty("业务名称")
+    @Schema(description = "业务名称")
     private String name;
 
     /**

@@ -41,7 +41,10 @@ public class MachineUtil {
     private static final List<Float> processCPULoadList = new ArrayList<>(100);
 
     static {
-        new CPUWatchThread().start();
+        Thread cpuWatchThread = new CPUWatchThread();
+        cpuWatchThread.setName("CPUWatchThread");
+        cpuWatchThread.setDaemon(true);
+        cpuWatchThread.start();
     }
 
     /**
@@ -169,24 +172,22 @@ public class MachineUtil {
     static class CPUWatchThread extends Thread {
         @Override
         public void run() {
-            while (true) {
-                // 检测系统CPU占用
+            while (!Thread.currentThread().isInterrupted()) {
                 double systemCpuLoad = osmxb.getSystemCpuLoad();
                 if (systemCPULoadList.size() > 99) {
                     systemCPULoadList.remove(0);
                 }
                 systemCPULoadList.add((float) systemCpuLoad);
-                // 检测进程CPU占用
                 double processCpuLoad = osmxb.getProcessCpuLoad();
                 if (processCPULoadList.size() > 99) {
                     processCPULoadList.remove(0);
                 }
                 processCPULoadList.add((float) processCpuLoad);
-                // 每秒统计100次
                 try {
                     sleep(10);
                 } catch (InterruptedException e) {
-                    log.error("sleep interrupted", e);
+                    log.info("CPUWatchThread interrupted, exiting");
+                    return;
                 }
             }
         }

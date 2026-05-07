@@ -32,8 +32,8 @@
     :property="contentField"
     required
     :rules="rules">
-    <ace-editor
-      ref="aceEditor"
+    <monaco-editor
+      ref="monacoEditor"
       v-bkloading="{ isLoading: isContentLoading, opacity: .2 }"
       :constants="scriptVariables"
       :lang="lang"
@@ -52,7 +52,7 @@
 
   import TaskStepModel from '@model/task/task-step';
 
-  import AceEditor from '@components/ace-editor';
+  import MonacoEditor from '@components/monaco-editor';
 
   import I18n from '@/i18n';
   import {
@@ -61,7 +61,7 @@
 
   export default {
     components: {
-      AceEditor,
+      MonacoEditor,
     },
     props: {
       contentField: {

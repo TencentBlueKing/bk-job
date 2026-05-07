@@ -37,7 +37,7 @@ dependencies {
     implementation 'org.apache.thrift:libthrift'
     implementation "commons-io:commons-io"
     implementation "commons-codec:commons-codec"
-    implementation 'io.springfox:springfox-boot-starter'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui'
     implementation 'joda-time:joda-time'
     implementation 'org.bouncycastle:bcprov-jdk18on'
     implementation 'io.micrometer:micrometer-registry-prometheus'

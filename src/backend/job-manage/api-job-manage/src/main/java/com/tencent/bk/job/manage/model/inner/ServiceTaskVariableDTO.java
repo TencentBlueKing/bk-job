@@ -25,21 +25,20 @@
 package com.tencent.bk.job.manage.model.inner;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
  * 全量变量DTO
  */
 @Data
-@ApiModel("全局变量信息")
+@Schema(description = "全局变量信息")
 public class ServiceTaskVariableDTO {
 
-    @ApiModelProperty(value = "变量ID")
+    @Schema(description = "变量ID")
     private Long id;
 
-    @ApiModelProperty(value = "变量名")
+    @Schema(description = "变量名")
     private String name;
 
     /**
@@ -47,19 +46,19 @@ public class ServiceTaskVariableDTO {
      *
      * @see TaskVariableTypeEnum
      */
-    @ApiModelProperty(value = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码")
+    @Schema(description = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码")
     private Integer type;
 
-    @ApiModelProperty(value = "默认值")
+    @Schema(description = "默认值")
     private String defaultValue;
 
-    @ApiModelProperty(value = "主机列表默认值")
+    @Schema(description = "主机列表默认值")
     private ServiceTaskTargetDTO defaultTargetValue;
 
-    @ApiModelProperty(value = "是否赋值可变")
+    @Schema(description = "是否赋值可变")
     private boolean changeable;
 
-    @ApiModelProperty(value = "是否必填")
+    @Schema(description = "是否必填")
     private boolean required;
 
 

@@ -51,14 +51,6 @@ public class AccessLogConstants {
     }
 
     /**
-     * 请求头，用于上下文传递信息
-     */
-    public static final class Header {
-        public static final String UPSTREAM_SERVER = "X-Bk-Job-Upstream-Server";
-        public static final String SPAN_ID = "X-Bk-Job-Span-Id";
-    }
-
-    /**
      * 格式化常量
      */
     public static final class Format {

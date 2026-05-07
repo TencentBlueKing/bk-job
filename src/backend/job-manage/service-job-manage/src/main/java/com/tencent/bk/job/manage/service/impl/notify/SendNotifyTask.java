@@ -78,12 +78,13 @@ public class SendNotifyTask implements Runnable {
         }
         log.info("SendNotifyTask start, real receivers: {}", validReceivers);
         try {
-            boolean result = sendMsgWithRetry();
-            if (result) {
+            SendResult result = sendMsgWithRetry();
+            if (result == SendResult.SUCCESS) {
                 logSendSuccess();
-            } else {
+            } else if (result == SendResult.FAIL) {
                 handleSendFail(null);
             }
+            // SendResult.QUOTA_EXCEEDED: already logged as INFO in WatchableSendMsgService, skip error log
         } catch (Exception e) {
             handleSendFail(e);
         }
@@ -98,10 +99,10 @@ public class SendNotifyTask implements Runnable {
         log.info("valid receivers is null or empty, skip, msgType={},title={}", msgType, title);
     }
 
-    private boolean sendMsgWithRetry() {
+    private SendResult sendMsgWithRetry() {
         int count = 0;
-        boolean result = false;
-        while (!result && count < NOTIFY_MAX_RETRY_COUNT) {
+        boolean success = false;
+        while (!success && count < NOTIFY_MAX_RETRY_COUNT) {
             count += 1;
             try {
                 watchableSendMsgService.sendMsgWithApp(
@@ -113,10 +114,10 @@ public class SendNotifyTask implements Runnable {
                     title,
                     content
                 );
-                result = true;
+                success = true;
             } catch (ResourceExhaustedException e) {
-                log.warn("Notification sending has reached the quota limit and will not be retried.", e);
-                break;
+                // 超配额属于预期内情况，WatchableSendMsgService 已打印 INFO 日志，此处忽略异常不再重试
+                return SendResult.QUOTA_EXCEEDED;
             } catch (Exception e) {
                 if (count < NOTIFY_MAX_RETRY_COUNT) {
                     long sleepMills = count * 1000;
@@ -132,7 +133,13 @@ public class SendNotifyTask implements Runnable {
                 }
             }
         }
-        return result;
+        return success ? SendResult.SUCCESS : SendResult.FAIL;
+    }
+
+    private enum SendResult {
+        SUCCESS,
+        FAIL,
+        QUOTA_EXCEEDED
     }
 
     private void logSendSuccess() {

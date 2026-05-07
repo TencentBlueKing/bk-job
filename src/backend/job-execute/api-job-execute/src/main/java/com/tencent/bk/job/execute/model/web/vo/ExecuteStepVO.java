@@ -24,36 +24,35 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("任务步骤信息")
+@Schema(description = "任务步骤信息")
 public class ExecuteStepVO {
 
-    @ApiModelProperty("步骤 ID")
+    @Schema(description = "步骤 ID")
     private Long id;
 
-    @ApiModelProperty("步骤类型 1-脚本 2-文件 3-人工确认")
+    @Schema(description = "步骤类型 1-脚本 2-文件 3-人工确认")
     private Integer type;
 
-    @ApiModelProperty("步骤名称")
+    @Schema(description = "步骤名称")
     private String name;
 
-    @ApiModelProperty("脚本步骤信息")
+    @Schema(description = "脚本步骤信息")
     private ExecuteScriptStepVO scriptStepInfo;
 
-    @ApiModelProperty("文件步骤信息")
+    @Schema(description = "文件步骤信息")
     private ExecuteFileStepVO fileStepInfo;
 
-    @ApiModelProperty("审批步骤信息")
+    @Schema(description = "审批步骤信息")
     private ExecuteApprovalStepVO approvalStepInfo;
 
-    @ApiModelProperty(value = "是否启用滚动执行")
+    @Schema(description = "是否启用滚动执行")
     private boolean rollingEnabled;
 
-    @ApiModelProperty(value = "滚动配置")
+    @Schema(description = "滚动配置")
     private RollingConfigVO rollingConfig;
 
 }

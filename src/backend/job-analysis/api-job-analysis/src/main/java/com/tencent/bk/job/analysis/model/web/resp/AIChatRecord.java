@@ -25,30 +25,29 @@
 package com.tencent.bk.job.analysis.model.web.resp;
 
 import com.tencent.bk.job.analysis.consts.AIChatStatusEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel("一条AI对话记录")
+@Schema(description = "一条AI对话记录")
 @Data
 public class AIChatRecord {
 
-    @ApiModelProperty(value = "ID")
+    @Schema(description = "ID")
     private Long id;
 
-    @ApiModelProperty(value = "用户输入")
+    @Schema(description = "用户输入")
     private UserInput userInput;
 
-    @ApiModelProperty("AI回答")
+    @Schema(description = "AI回答")
     private AIAnswer aiAnswer;
 
     /**
      * 对话状态，取值源于{@link AIChatStatusEnum}.
      */
-    @ApiModelProperty("对话状态：1-正在回答，2-已完成")
+    @Schema(description = "对话状态：1-正在回答，2-已完成")
     private Integer status;
 }

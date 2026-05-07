@@ -1,16 +1,15 @@
 package com.tencent.bk.job.manage.model.web.request;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("生成上传目标请求报文")
+@Schema(description = "生成上传目标请求报文")
 public class GenUploadTargetReq {
 
-    @ApiModelProperty(value = "文件名列表", required = true)
+    @Schema(description = "文件名列表", required = true)
     private List<String> fileNameList;
 
 }

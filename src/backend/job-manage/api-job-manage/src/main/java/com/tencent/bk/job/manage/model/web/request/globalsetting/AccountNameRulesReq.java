@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request.globalsetting;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,8 +34,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@ApiModel("设置账号命名规则")
+@Schema(description = "设置账号命名规则")
 public class AccountNameRulesReq {
-    @ApiModelProperty(value = "规则列表", required = true)
+    @Schema(description = "规则列表", required = true)
     private List<AccountNameRule> rules;
 }

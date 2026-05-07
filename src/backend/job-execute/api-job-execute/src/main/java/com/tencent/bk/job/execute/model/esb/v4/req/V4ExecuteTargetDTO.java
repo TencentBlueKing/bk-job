@@ -32,7 +32,7 @@ import com.tencent.bk.job.execute.model.esb.v4.req.validator.V4ExecuteTargetNotE
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 
 @Data

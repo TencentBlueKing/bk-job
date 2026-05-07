@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.annotation.IamCallbackAPI;
 import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.sdk.iam.dto.callback.request.CallbackRequestDTO;
 import com.tencent.bk.sdk.iam.dto.callback.response.CallbackBaseResponseDTO;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @IamCallbackAPI
 public interface IamTaskTemplateCallbackResource {
     @PostMapping
-    CallbackBaseResponseDTO callback(@ApiParam("租户ID，IAM回调时传入")
+    CallbackBaseResponseDTO callback(@Parameter(description = "租户ID，IAM回调时传入")
                                      @RequestHeader(JobCommonHeaders.BK_TENANT_ID)
                                      String tenantId,
                                      @RequestBody CallbackRequestDTO callbackRequest);

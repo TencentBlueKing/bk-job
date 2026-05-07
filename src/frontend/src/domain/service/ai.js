@@ -79,4 +79,12 @@ export default {
   terminateChat(params) {
     return AiSource.terminateChat(params);
   },
+  fetchChatSession(params) {
+    return AiSource.getChatSession(params)
+      .then(({ data }) => data);
+  },
+  updateChatSession(params) {
+    return AiSource.updateChatSession(params)
+      .then(({ data }) => data);
+  },
 };

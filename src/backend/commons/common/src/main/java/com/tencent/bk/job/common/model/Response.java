@@ -32,8 +32,7 @@ import com.tencent.bk.job.common.model.error.ErrorDetailDTO;
 import com.tencent.bk.job.common.model.permission.AuthResultVO;
 import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -41,7 +40,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
-@ApiModel("服务调用通用返回结构")
+@Schema(description = "服务调用通用返回结构")
 @Slf4j
 @Getter
 @Setter
@@ -49,26 +48,26 @@ import org.apache.commons.lang3.StringUtils;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Response<T> {
-    @ApiModelProperty("是否成功")
+    @Schema(description = "是否成功")
     private boolean success;
 
-    @ApiModelProperty("返回码")
+    @Schema(description = "返回码")
     private Integer code;
 
-    @ApiModelProperty("错误信息")
+    @Schema(description = "错误信息")
     private String errorMsg;
 
-    @ApiModelProperty("请求成功/失败返回的数据")
+    @Schema(description = "请求成功/失败返回的数据")
     private T data;
 
-    @ApiModelProperty("请求 ID")
+    @Schema(description = "请求 ID")
     private String requestId;
 
-    @ApiModelProperty("鉴权结果, 当http code 为 403 的时候，该字段有值")
+    @Schema(description = "鉴权结果, 当http code 为 403 的时候，该字段有值")
     @JsonProperty("authResult")
     private AuthResultVO authResult;
 
-    @ApiModelProperty("错误详情")
+    @Schema(description = "错误详情")
     @JsonProperty("errorDetail")
     private ErrorDetailDTO errorDetail;
 

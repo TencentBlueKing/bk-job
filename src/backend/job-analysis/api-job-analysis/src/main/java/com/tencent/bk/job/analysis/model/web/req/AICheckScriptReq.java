@@ -27,25 +27,24 @@ package com.tencent.bk.job.analysis.model.web.req;
 import com.tencent.bk.job.common.validation.MaxLength;
 import com.tencent.bk.job.common.validation.CheckEnum;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel("AI检查脚本请求体")
+@Schema(description = "AI检查脚本请求体")
 @Data
 public class AICheckScriptReq {
 
     /**
      * 脚本类型
      */
-    @ApiModelProperty(value = "脚本类型，1：shell，2：bat，3：perl，4：python，5：powershell，6：SQL")
+    @Schema(description = "脚本类型，1：shell，2：bat，3：perl，4：python，5：powershell，6：SQL")
     @NotNull(message = "{validation.constraints.ScriptType_empty.message}")
     @CheckEnum(enumClass = ScriptTypeEnum.class, enumMethod = "isValid",
         message = "{validation.constraints.ScriptType_illegal.message}")
@@ -54,7 +53,7 @@ public class AICheckScriptReq {
     /**
      * 脚本内容
      */
-    @ApiModelProperty(value = "脚本内容，BASE64编码")
+    @Schema(description = "脚本内容，BASE64编码")
     @NotEmpty(message = "{validation.constraints.ScriptContent_empty.message}")
     @MaxLength(value = 5 * 1024L * 1024L,
         message = "{validation.constraints.AICheckScript_contentExceedMaxLength.message}")

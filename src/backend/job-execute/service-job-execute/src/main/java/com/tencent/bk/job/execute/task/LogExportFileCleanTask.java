@@ -134,7 +134,8 @@ public class LogExportFileCleanTask {
                 logExportConfig.getLogExportRepo(),
                 "/",
                 start,
-                pageSize
+                pageSize,
+                false
             );
             if (nodePage == null) {
                 log.warn("nodePage is null");

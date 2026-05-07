@@ -40,6 +40,7 @@ import com.tencent.bk.job.common.paas.user.IVirtualAdminAccountProvider;
 import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.FlowController;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -102,7 +103,8 @@ public class CmdbAutoConfiguration {
                                         MeterRegistry meterRegistry,
                                         ObjectProvider<FlowController> flowControllerProvider,
                                         TenantEnvService tenantEnvService,
-                                        IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+                                        IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                                        Tracer tracer) {
         return new BizCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -112,7 +114,8 @@ public class CmdbAutoConfiguration {
             flowControllerProvider.getIfAvailable(),
             meterRegistry,
             tenantEnvService,
-            virtualAdminAccountProvider
+            virtualAdminAccountProvider,
+            tracer
         );
     }
 
@@ -165,7 +168,8 @@ public class CmdbAutoConfiguration {
                                               MeterRegistry meterRegistry,
                                               ObjectProvider<FlowController> flowControllerProvider,
                                               TenantEnvService tenantEnvService,
-                                              IVirtualAdminAccountProvider virtualAdminAccountProvider) {
+                                              IVirtualAdminAccountProvider virtualAdminAccountProvider,
+                                              Tracer tracer) {
         return new MockBizCmdbClient(
             appProperties,
             bkApiGatewayProperties,
@@ -175,7 +179,8 @@ public class CmdbAutoConfiguration {
             meterRegistry,
             flowControllerProvider,
             tenantEnvService,
-            virtualAdminAccountProvider
+            virtualAdminAccountProvider,
+            tracer
         );
     }
 

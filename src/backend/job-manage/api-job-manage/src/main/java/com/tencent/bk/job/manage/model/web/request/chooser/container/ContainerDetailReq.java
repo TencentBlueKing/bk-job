@@ -24,18 +24,17 @@
 
 package com.tencent.bk.job.manage.model.web.request.chooser.container;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@ApiModel("容器详情请求报文")
+@Schema(description = "容器详情请求报文")
 public class ContainerDetailReq {
 
-    @ApiModelProperty(value = "containerId及元数据列表", required = true)
+    @Schema(description = "containerId及元数据列表", required = true)
     List<ContainerIdWithMeta> containerList = new ArrayList<>();
 
 }

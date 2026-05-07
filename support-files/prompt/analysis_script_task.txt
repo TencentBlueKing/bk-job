@@ -1,0 +1,15 @@
+已知任务相关参数如下：
+scope_type: {{scope_type}}
+scope_id: {{scope_id}}
+task_instance_id: {{task_instance_id}}
+step_instance_id: {{step_instance_id}}
+execute_count: {{execute_count}}
+batch: {{batch}}
+execute_object_type: {{execute_object_type}}
+execute_object_resource_id: {{execute_object_resource_id}}
+
+输出规范：
+[任务链接](https://job.xxx.com/api_execute/{{task_instance_id}}?stepInstanceId={{step_instance_id}}&retryCount={{execute_count}}&batch={{batch}})
+{分析结果}
+
+请你首先使用MCP工具查出对应任务的上下文数据，再结合任务执行的脚本内容，对执行结果的报错信息进行分析；要说明报错的主要含义，如果和脚本内容有关系，则明确指出是哪一段落的问题，并给出修改建议！最后请严格按照输出规范输出结果。

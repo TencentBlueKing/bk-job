@@ -26,20 +26,20 @@ package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import springfox.documentation.annotations.ApiIgnore;
+
 
 import java.util.Map;
 
 /**
  * Job 特性开关 Web API
  */
-@Api(tags = {"job-manage:web:feature"})
+@Tag(name = "job-manage:web:feature")
 @RequestMapping("/web/feature/toggle")
 @WebAPI
 public interface WebFeatureToggleResource {
@@ -48,11 +48,10 @@ public interface WebFeatureToggleResource {
     /**
      * 获取特性开关配置
      */
-    @ApiOperation(value = "获取Job功能特性开关配置", produces = "application/json")
+    @Operation(summary = "获取Job功能特性开关配置")
     @GetMapping("/list")
     Response<Map<String, Boolean>> listFeatureToggle(
-        @ApiIgnore
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true, hidden = true)
         @RequestHeader("username")
         String username
     );

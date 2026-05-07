@@ -1,0 +1,16 @@
+已知任务相关参数如下：
+scope_type: {{scope_type}}
+scope_id: {{scope_id}}
+task_instance_id: {{task_instance_id}}
+step_instance_id: {{step_instance_id}}
+execute_count: {{execute_count}}
+batch: {{batch}}
+execute_object_type: {{execute_object_type}}
+execute_object_resource_id: {{execute_object_resource_id}}
+mode: {{mode}}
+
+输出规范：
+[任务链接](https://job.xxx.com/api_execute/{{task_instance_id}}?stepInstanceId={{step_instance_id}}&retryCount={{execute_count}}&batch={{batch}})
+{分析结果}
+
+请你首先使用MCP工具查出对应任务的上下文数据，再结合预分析结果数据，对任务报错内容进一步分析，并给出总结性的原因与处理建议。最后请严格按照输出规范输出结果。

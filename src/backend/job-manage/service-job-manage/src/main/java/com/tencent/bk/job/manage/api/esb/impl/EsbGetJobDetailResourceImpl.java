@@ -324,7 +324,7 @@ public class EsbGetJobDetailResourceImpl implements EsbGetJobDetailResource {
         variableDTO.setName(variable.getName());
         variableDTO.setValue(variable.getDefaultValue());
         variableDTO.setCategory(variable.getType().getType());
-        if (variable.getType() == TaskVariableTypeEnum.HOST_LIST
+        if (variable.getType() == TaskVariableTypeEnum.EXECUTE_OBJECT_LIST
             && StringUtils.isNotBlank(variable.getDefaultValue())) {
             TaskTargetDTO target = TaskTargetDTO.fromJsonString(variable.getDefaultValue());
             if (target == null) {

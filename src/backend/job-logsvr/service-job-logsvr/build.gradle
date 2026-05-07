@@ -30,7 +30,7 @@ dependencies {
     api project(':commons:common-mongodb')
     api("org.springframework.boot:spring-boot-starter-web")
     api("org.springframework.boot:spring-boot-starter-data-mongodb")
-    api("org.springframework.cloud:spring-cloud-starter-sleuth")
+    api('io.micrometer:micrometer-tracing-bridge-otel')
     implementation 'org.apache.commons:commons-collections4'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation "ch.qos.logback:logback-core"

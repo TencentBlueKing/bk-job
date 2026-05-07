@@ -24,22 +24,21 @@
 
 package com.tencent.bk.job.manage.model.web.vo.globalsetting;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Data
-@ApiModel("全局设置-平台设置-title/footer")
+@Schema(description = "全局设置-平台设置-title/footer")
 public class TitleFooterVO {
-    @ApiModelProperty("Title固定头文字")
+    @Schema(description = "Title固定头文字")
     private String titleHead;
-    @ApiModelProperty("Title分隔符")
+    @Schema(description = "Title分隔符")
     private String titleSeparator;
-    @ApiModelProperty("Footer第一行联系方式等内容，Markdown格式")
+    @Schema(description = "Footer第一行联系方式等内容，Markdown格式")
     private String footerLink;
-    @ApiModelProperty("Footer第二行copyright内容，Markdown格式")
+    @Schema(description = "Footer第二行copyright内容，Markdown格式")
     private String footerCopyRight;
 
     public TitleFooterVO(String titleHead, String titleSeparator, String footerLink, String footerCopyRight) {

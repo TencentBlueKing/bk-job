@@ -24,25 +24,24 @@
 
 package com.tencent.bk.job.analysis.model.web;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("趋势单点数据")
+@Schema(description = "趋势单点数据")
 @Data
 public class DayDistributionElementVO {
 
-    @ApiModelProperty("日期：如2019-01-30")
+    @Schema(description = "日期：如2019-01-30")
     private String date;
 
-    @ApiModelProperty("分布")
+    @Schema(description = "分布")
     private CommonDistributionVO distribution;
 
-    @ApiModelProperty("失败次数")
+    @Schema(description = "失败次数")
     private Long failCount;
 
 }

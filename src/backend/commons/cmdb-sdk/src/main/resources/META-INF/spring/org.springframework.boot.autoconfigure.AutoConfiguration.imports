@@ -1,0 +1,4 @@
+com.tencent.bk.job.common.cc.config.CmdbAutoConfiguration
+com.tencent.bk.job.common.cc.config.CmdbRetryAutoConfiguration
+com.tencent.bk.job.common.cc.config.CmdbFlowControlAutoConfiguration
+com.tencent.bk.job.common.cc.config.CmdbMetricsAutoConfiguration

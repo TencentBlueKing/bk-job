@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.globalsetting;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,15 +34,15 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("通知渠道")
+@Schema(description = "通知渠道")
 @Data
 public class NotifyChannelWithIconVO {
-    @ApiModelProperty("渠道code")
+    @Schema(description = "渠道code")
     private String code;
-    @ApiModelProperty("渠道名称")
+    @Schema(description = "渠道名称")
     private String name;
-    @ApiModelProperty("渠道图标Base64编码")
+    @Schema(description = "渠道图标Base64编码")
     private String icon;
-    @ApiModelProperty("是否可用")
+    @Schema(description = "是否可用")
     private Boolean isActive;
 }

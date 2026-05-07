@@ -24,41 +24,40 @@
 
 package com.tencent.bk.job.manage.model.web.vo.serviceinfo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("服务实例信息")
+@Schema(description = "服务实例信息")
 @Data
 public class ServiceInstanceInfoVO {
     /**
      * 服务实例名称
      */
-    @ApiModelProperty("服务实例名称")
+    @Schema(description = "服务实例名称")
     private String name;
     /**
      * 服务版本号
      */
-    @ApiModelProperty("服务版本号")
+    @Schema(description = "服务版本号")
     private String version = "";
     /**
      * 服务状态
      */
-    @ApiModelProperty("状态：1正常，0异常，-1未知")
+    @Schema(description = "状态：1正常，0异常，-1未知")
     private Byte status;
     /**
      * 状态Message
      */
-    @ApiModelProperty("状态对应的Message")
+    @Schema(description = "状态对应的Message")
     private String statusMessage;
     /**
      * 服务实例所在IP
      */
-    @ApiModelProperty("服务实例所在IP")
+    @Schema(description = "服务实例所在IP")
     private String ip;
     /**
      * 服务实例所在端口
      */
-    @ApiModelProperty("服务实例所在端口")
+    @Schema(description = "服务实例所在端口")
     private Integer port;
 }

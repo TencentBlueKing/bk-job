@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.service.host.impl;
 
+import com.tencent.bk.job.common.cc.exception.CmdbDynamicGroupNotFoundException;
 import com.tencent.bk.job.common.cc.model.DynamicGroupHostPropDTO;
 import com.tencent.bk.job.common.cc.sdk.IBizCmdbClient;
 import com.tencent.bk.job.common.model.PageData;
@@ -128,7 +129,19 @@ public class ScopeDynamicGroupHostServiceImpl implements ScopeDynamicGroupHostSe
         // 动态分组当前只支持业务，不支持业务集/租户集
         ScopeFeatureUtil.assertOnlyBizSupported(appResourceScope);
         long bizId = Long.parseLong(appResourceScope.getId());
-        List<DynamicGroupHostPropDTO> dynamicGroupHostList = bizCmdbClient.getDynamicGroupIp(tenantId, bizId, id);
+        List<DynamicGroupHostPropDTO> dynamicGroupHostList;
+        try {
+            dynamicGroupHostList = bizCmdbClient.getDynamicGroupIp(tenantId, bizId, id);
+        } catch (CmdbDynamicGroupNotFoundException e) {
+            // 动态分组在CMDB已被删除或不存在，属于已知数据异常，忽略并返回空列表
+            log.info(
+                "Dynamic group not found in CMDB, skip. tenantId={}, bizId={}, dynamicGroupId={}",
+                tenantId,
+                bizId,
+                id
+            );
+            return Collections.emptyList();
+        }
         if (CollectionUtils.isEmpty(dynamicGroupHostList)) {
             return Collections.emptyList();
         }

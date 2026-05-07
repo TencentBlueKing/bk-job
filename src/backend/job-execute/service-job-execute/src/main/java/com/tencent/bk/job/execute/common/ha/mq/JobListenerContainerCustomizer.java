@@ -26,18 +26,20 @@ package com.tencent.bk.job.execute.common.ha.mq;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.listener.AbstractMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.MessageListenerContainer;
 import org.springframework.cloud.stream.config.ListenerContainerCustomizer;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class JobListenerContainerCustomizer implements ListenerContainerCustomizer {
+public class JobListenerContainerCustomizer implements ListenerContainerCustomizer<MessageListenerContainer> {
     @Override
-    public void configure(Object container, String destinationName, String group) {
+    public void configure(MessageListenerContainer container, String destinationName, String group) {
         if (container instanceof AbstractMessageListenerContainer) {
             log.info("Customize message listener container, destinationName: {}, group: {}", destinationName, group);
             AbstractMessageListenerContainer messageListenerContainer = (AbstractMessageListenerContainer) container;
-            // consumer channel 关闭会导致消息从unacked->ready,消息会重新被消费，可能引起重复执行的问题。延长 channel 关闭超时时间，从默认5s调整为30s。
+            // consumer channel 关闭会导致消息从unacked->ready,消息会重新被消费，可能引起重复执行的问题。
+            // 延长 channel 关闭超时时间，从默认5s调整为30s。
             messageListenerContainer.setShutdownTimeout(30000);
         } else {
             log.info("Customize message listener container ignore!");

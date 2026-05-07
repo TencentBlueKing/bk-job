@@ -24,19 +24,18 @@
 
 package com.tencent.bk.job.backup.model.req;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
  * @since 30/7/2020 17:56
  */
 @Data
-@ApiModel("密码验证请求")
+@Schema(description = "密码验证请求")
 public class CheckPasswordRequest {
     /**
      * 密码
      */
-    @ApiModelProperty("密码")
+    @Schema(description = "密码")
     private String password;
 }

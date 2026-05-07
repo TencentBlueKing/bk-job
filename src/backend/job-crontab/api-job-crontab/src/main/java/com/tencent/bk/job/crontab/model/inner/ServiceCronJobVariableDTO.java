@@ -25,28 +25,27 @@
 package com.tencent.bk.job.crontab.model.inner;
 
 import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("全局变量VO")
+@Schema(description = "全局变量VO")
 public class ServiceCronJobVariableDTO {
     /**
      * id
      */
-    @ApiModelProperty("ID")
+    @Schema(description = "ID")
     private Long id;
 
-    @ApiModelProperty("变量类型 1-字符串 2-命名空间 3-主机列表 4-密码")
+    @Schema(description = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码")
     private TaskVariableTypeEnum type;
 
-    @ApiModelProperty("变量名称")
+    @Schema(description = "变量名称")
     private String name;
 
-    @ApiModelProperty("字符变量值，命名空间，字符串，密码从该字段获取值")
+    @Schema(description = "字符变量值，命名空间，字符串，密码从该字段获取值")
     private String value;
 
-    @ApiModelProperty("主机列表值,单变量类型为主机列表时，从该字段取值")
+    @Schema(description = "主机列表值,单变量类型为主机列表时，从该字段取值")
     private ServerDTO server;
 }

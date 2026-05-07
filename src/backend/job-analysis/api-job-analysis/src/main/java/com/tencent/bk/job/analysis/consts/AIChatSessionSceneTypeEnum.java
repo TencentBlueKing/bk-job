@@ -1,0 +1,67 @@
+/*
+ * Tencent is pleased to support the open source community by making BK-JOB蓝鲸智云作业平台 available.
+ *
+ * Copyright (C) 2021 Tencent.  All rights reserved.
+ *
+ * BK-JOB蓝鲸智云作业平台 is licensed under the MIT License.
+ *
+ * License for BK-JOB蓝鲸智云作业平台:
+ * --------------------------------------------------------------------
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of
+ * the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+package com.tencent.bk.job.analysis.consts;
+
+import lombok.Getter;
+
+/**
+ * AI会话场景类型
+ */
+public enum AIChatSessionSceneTypeEnum {
+    TASK_ERROR_ANALYSIS(1, "任务报错分析"),
+    SCRIPT_MANAGEMENT(2, "脚本管理"),
+    FREE_CHAT(3, "自由对话");
+
+    @Getter
+    private final int value;
+
+    @Getter
+    private final String description;
+
+    AIChatSessionSceneTypeEnum(int value, String description) {
+        this.value = value;
+        this.description = description;
+    }
+
+    public static AIChatSessionSceneTypeEnum valOf(int value) {
+        for (AIChatSessionSceneTypeEnum sceneType : values()) {
+            if (sceneType.value == value) {
+                return sceneType;
+            }
+        }
+        return null;
+    }
+
+    public static boolean isValid(int value) {
+        return valOf(value) != null;
+    }
+
+    /**
+     * 该场景是否必须提供 sceneResourceId（与校验逻辑一致）
+     */
+    public boolean requiresSceneResourceId() {
+        return this == TASK_ERROR_ANALYSIS || this == SCRIPT_MANAGEMENT;
+    }
+}

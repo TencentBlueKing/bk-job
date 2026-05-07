@@ -85,6 +85,8 @@ spec:
               value: "job-file-worker-headless"
             - name: JOB_APPLICATION_CONFIGMAP_NAME
               value: {{ include "common.names.fullname" . }}-file-worker
+            - name: JOB_COMMON_REFRESHABLE_CONFIGMAP_NAME
+              value: {{ include "common.names.fullname" . }}-common-refreshable
           ports:
             - name: http
               containerPort: {{ .Values.fileWorkerConfig.containerPort }}

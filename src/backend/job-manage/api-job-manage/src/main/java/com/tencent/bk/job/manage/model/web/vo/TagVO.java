@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.vo;
 
 import com.tencent.bk.job.common.model.vo.BasicVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -39,24 +38,24 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @NoArgsConstructor
-@ApiModel("标签信息")
+@Schema(description = "标签信息")
 public class TagVO extends BasicVO {
 
-    @ApiModelProperty("标签 ID")
+    @Schema(description = "标签 ID")
     private Long id;
 
-    @ApiModelProperty("标签名")
+    @Schema(description = "标签名")
     private String name;
 
-    @ApiModelProperty("描述")
+    @Schema(description = "描述")
     private String description;
 
-    @ApiModelProperty(value = "关联的作业模板数量")
+    @Schema(description = "关联的作业模板数量")
     private Integer relatedTaskTemplateNum;
 
-    @ApiModelProperty(value = "关联的脚本数量")
+    @Schema(description = "关联的脚本数量")
     private Integer relatedScriptNum;
 
-    @ApiModelProperty("是否可以管理")
+    @Schema(description = "是否可以管理")
     private Boolean canManage;
 }

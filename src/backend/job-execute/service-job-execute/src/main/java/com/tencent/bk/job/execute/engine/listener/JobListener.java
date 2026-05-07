@@ -25,6 +25,7 @@
 package com.tencent.bk.job.execute.engine.listener;
 
 import com.google.common.collect.Lists;
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
 import com.tencent.bk.job.common.constant.RollingModeEnum;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.execute.common.cache.CustomPasswordCache;
@@ -81,7 +82,9 @@ public class JobListener extends BaseJobMqListener {
                        RollingConfigService rollingConfigService,
                        NotifyService notifyService,
                        RunningJobResourceQuotaManager runningJobResourceQuotaManager,
-                       CustomPasswordCache customPasswordCache) {
+                       CustomPasswordCache customPasswordCache,
+                       MqConsumeDelayRecorder mqConsumeDelayRecorder) {
+        super(mqConsumeDelayRecorder);
         this.taskExecuteMQEventDispatcher = taskExecuteMQEventDispatcher;
         this.statisticsService = statisticsService;
         this.taskInstanceService = taskInstanceService;
@@ -90,6 +93,11 @@ public class JobListener extends BaseJobMqListener {
         this.notifyService = notifyService;
         this.runningJobResourceQuotaManager = runningJobResourceQuotaManager;
         this.customPasswordCache = customPasswordCache;
+    }
+
+    @Override
+    protected String getBindingName() {
+        return MqBindingNames.HANDLE_JOB_EVENT;
     }
 
 

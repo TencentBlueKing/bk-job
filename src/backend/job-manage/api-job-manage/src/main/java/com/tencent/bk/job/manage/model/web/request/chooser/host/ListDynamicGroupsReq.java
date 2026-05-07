@@ -25,17 +25,16 @@
 package com.tencent.bk.job.manage.model.web.request.chooser.host;
 
 import com.tencent.bk.job.common.model.vo.DynamicGroupIdWithMeta;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("批量获取动态分组请求体")
+@Schema(description = "批量获取动态分组请求体")
 public class ListDynamicGroupsReq {
 
-    @ApiModelProperty(value = "要获取的动态分组ID及元数据列表，不传表示获取所有")
+    @Schema(description = "要获取的动态分组ID及元数据列表，不传表示获取所有")
     List<DynamicGroupIdWithMeta> dynamicGroupList;
 
 }

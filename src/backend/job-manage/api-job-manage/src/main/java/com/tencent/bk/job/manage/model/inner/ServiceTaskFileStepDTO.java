@@ -24,43 +24,42 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("步骤文件信息")
+@Schema(description = "步骤文件信息")
 public class ServiceTaskFileStepDTO {
 
-    @ApiModelProperty("源文件列表")
+    @Schema(description = "源文件列表")
     private List<ServiceTaskFileInfoDTO> originFileList;
 
-    @ApiModelProperty("目标路径")
+    @Schema(description = "目标路径")
     private String destinationFileLocation;
 
-    @ApiModelProperty("执行账户")
+    @Schema(description = "执行账户")
     private ServiceAccountDTO account;
 
-    @ApiModelProperty("目标机器列表")
+    @Schema(description = "目标机器列表")
     private ServiceTaskTargetDTO executeTarget;
 
-    @ApiModelProperty("下载限速，单位MB")
+    @Schema(description = "下载限速，单位MB")
     private Integer downloadSpeedLimit;
 
-    @ApiModelProperty("上传限速，单位MB")
+    @Schema(description = "上传限速，单位MB")
     private Integer uploadSpeedLimit;
 
-    @ApiModelProperty("超时时间，单位秒")
+    @Schema(description = "超时时间，单位秒")
     private Integer timeout;
 
-    @ApiModelProperty(value = "是否自动忽略错误")
+    @Schema(description = "是否自动忽略错误")
     private Boolean ignoreError;
 
-    @ApiModelProperty(value = "文件重名处理，1-覆盖，2-追加源IP目录")
+    @Schema(description = "文件重名处理，1-覆盖，2-追加源IP目录")
     private Integer fileDuplicateHandle;
 
-    @ApiModelProperty(value = "目标路径不存在：路径处理，1-直接创建，2-直接失败")
+    @Schema(description = "目标路径不存在：路径处理，1-直接创建，2-直接失败")
     private Integer notExistPathHandler;
 }

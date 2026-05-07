@@ -72,6 +72,16 @@ public class Page {
     }
 
     /**
+     * 拷贝构造函数，用于深拷贝 Page 对象
+     */
+    public Page(Page other) {
+        this.start = other.start;
+        this.limit = other.limit;
+        this.sort = other.sort;
+        this.enableCount = other.enableCount;
+    }
+
+    /**
      * 构造查询记录总数的分页条件
      */
     public static Page buildQueryCountPage() {

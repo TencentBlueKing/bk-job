@@ -154,6 +154,15 @@ public interface ScriptExecuteObjectTaskDAO {
                                                String executeObjectId);
 
     /**
+     * 判断指定执行对象在对应重试/批次下是否已有脚本执行任务记录（仅 EXISTS，不加载行）
+     */
+    boolean existsTaskByExecuteObjectId(Long taskInstanceId,
+                                        Long stepInstanceId,
+                                        Integer executeCount,
+                                        Integer batch,
+                                        String executeObjectId);
+
+    /**
      * 根据执行对象ID批量查询任务
      *
      * @param taskInstanceId   作业实例 ID

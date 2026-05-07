@@ -377,10 +377,12 @@ password: {{ .Values.redis.existingPasswordKey | default "redis-password" | prin
 {{- else }}
 fail "Not supported redis architecture"
 {{- end }}
-ssl: false
+ssl:
+  enabled: false
 {{- else }}
 password: {{ .Values.externalRedis.existingPasswordKey | default "redis-password" | printf "${%s}" }}
-ssl: {{ .Values.externalRedis.tls.enabled }}
+ssl:
+  enabled: {{ .Values.externalRedis.tls.enabled }}
 {{- if eq .Values.externalRedis.architecture "standalone" }}
 host: {{ include "job.redis.host" . }}
 port: {{ include "job.redis.port" . }}

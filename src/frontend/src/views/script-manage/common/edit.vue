@@ -73,8 +73,8 @@
     </div>
     <div ref="content">
       <jb-form :model="formData">
-        <ace-editor
-          ref="aceEditor"
+        <monaco-editor
+          ref="monacoEditor"
           v-model="formData.content"
           :height="contentHeight"
           :lang="formData.typeName"
@@ -120,7 +120,7 @@
   } from '@utils/assist';
   import { debugScriptCache } from '@utils/cache-helper';
 
-  import AceEditor from '@components/ace-editor';
+  import MonacoEditor from '@components/monaco-editor';
 
   import I18n from '@/i18n';
 
@@ -140,7 +140,7 @@
   export default {
     name: '',
     components: {
-      AceEditor,
+      MonacoEditor,
       Layout,
     },
     inheritAttrs: false,
@@ -237,13 +237,13 @@
         this.contentHeight = window.innerHeight - contentOffsetTop - 26;
       },
       handleUploadScript() {
-        this.$refs.aceEditor.handleUploadScript();
+        this.$refs.monacoEditor.handleUploadScript();
       },
       handleShowHistory() {
-        this.$refs.aceEditor.handleShowHistory();
+        this.$refs.monacoEditor.handleShowHistory();
       },
       handleFullScreen() {
-        this.$refs.aceEditor.handleFullScreen();
+        this.$refs.monacoEditor.handleFullScreen();
       },
       /**
        * @desc 保存脚本

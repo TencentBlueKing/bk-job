@@ -24,38 +24,37 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 @Data
-@ApiModel("步骤源文件信息")
+@Schema(description = "步骤源文件信息")
 public class ServiceTaskFileInfoDTO {
 
-    @ApiModelProperty(value = "文件ID")
+    @Schema(description = "文件ID")
     private Long id;
 
-    @ApiModelProperty(value = "文件类型 1-服务器文件 2-本地文件 3-文件源文件")
+    @Schema(description = "文件类型 1-服务器文件 2-本地文件 3-文件源文件")
     private Integer fileType;
 
-    @ApiModelProperty("文件路径")
+    @Schema(description = "文件路径")
     private List<String> fileLocation;
 
-    @ApiModelProperty(value = "文件 Hash 值 仅本地文件有")
+    @Schema(description = "文件 Hash 值 仅本地文件有")
     private String fileHash;
 
-    @ApiModelProperty(value = "文件大小，仅本地文件有")
+    @Schema(description = "文件大小，仅本地文件有")
     private Long fileSize;
 
-    @ApiModelProperty(value = "文件源ID，仅文件源文件有")
+    @Schema(description = "文件源ID，仅文件源文件有")
     private Integer fileSourceId;
 
-    @ApiModelProperty(value = "主机列表")
+    @Schema(description = "主机列表")
     private ServiceTaskTargetDTO executeTarget;
 
-    @ApiModelProperty("执行账户")
+    @Schema(description = "执行账户")
     private ServiceAccountDTO account;
 
 }

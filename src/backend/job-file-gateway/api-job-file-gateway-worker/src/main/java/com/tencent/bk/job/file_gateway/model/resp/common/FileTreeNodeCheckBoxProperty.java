@@ -24,29 +24,28 @@
 
 package com.tencent.bk.job.file_gateway.model.resp.common;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
-@ApiModel("FileTreeNodeCheckBox属性")
+@Schema(description = "FileTreeNodeCheckBox属性")
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class FileTreeNodeCheckBoxProperty extends FileTreeNodeProperty {
 
     public static final String classType = "checkbox";
 
-    @ApiModelProperty("选中后的输出值")
+    @Schema(description = "选中后的输出值")
     private String output;
 
-    @ApiModelProperty("默认值")
+    @Schema(description = "默认值")
     private Boolean defaultValue;
 
-    @ApiModelProperty("CheckBox是否可选择")
+    @Schema(description = "CheckBox是否可选择")
     private CheckBoxEnable enable;
 
-    @ApiModelProperty("动作列表")
+    @Schema(description = "动作列表")
     private List<PropertyAction> actions;
 }

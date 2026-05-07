@@ -53,7 +53,7 @@
             class="item"
             :disabled="isTypeDisabled"
             value="host">
-            {{ $t('template.主机列表') }}
+            {{ $t('template.执行目标') }}
           </bk-radio-button>
           <bk-radio-button
             v-bk-tooltips="$t('template.经过加密处理的变量，不会以明文形式外显')"

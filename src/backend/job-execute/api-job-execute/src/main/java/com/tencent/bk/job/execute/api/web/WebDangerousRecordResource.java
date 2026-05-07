@@ -28,9 +28,9 @@ import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.execute.model.web.vo.DangerousRecordVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,57 +40,57 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * 高危检测记录API-前端调用
  */
-@Api(tags = {"job-execute:web:Dangerous_Record"})
+@Tag(name = "job-execute:web:Dangerous_Record")
 @RequestMapping("/web/dangerous-record")
 @RestController
 @WebAPI
 public interface WebDangerousRecordResource {
-    @ApiOperation(value = "分页获取高危检测记录", produces = "application/json")
+    @Operation(summary = "分页获取高危检测记录")
     @GetMapping("/list")
     Response<PageData<DangerousRecordVO>> pageListDangerousRecords(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiParam(name = "id", value = "记录ID")
+        @Parameter(name = "id", description = "记录ID")
         @RequestParam(value = "id", required = false)
             Long id,
-        @ApiParam(value = "资源范围类型")
+        @Parameter(description = "资源范围类型")
         @RequestParam(value = "scopeType", required = false)
             String scopeType,
-        @ApiParam(value = "资源范围ID")
+        @Parameter(description = "资源范围ID")
         @RequestParam(value = "scopeId", required = false)
             String scopeId,
-        @ApiParam(value = "规则ID", name = "ruleId")
+        @Parameter(description = "规则ID", name = "ruleId")
         @RequestParam(value = "ruleId", required = false)
             Long ruleId,
-        @ApiParam(value = "规则表达式", name = "ruleExpression")
+        @Parameter(description = "规则表达式", name = "ruleExpression")
         @RequestParam(value = "ruleExpression", required = false)
             String ruleExpression,
-        @ApiParam(value = "时区, 配合startTime和endTime使用", name = "timezone")
+        @Parameter(description = "时区, 配合startTime和endTime使用", name = "timezone")
         @RequestParam(value = "timezone", required = false)
             String timezone,
-        @ApiParam(value = "时间范围-开始时间", name = "startTime", required = true)
+        @Parameter(description = "时间范围-开始时间", name = "startTime", required = true)
         @RequestParam(value = "startTime")
             String startTime,
-        @ApiParam(value = "时间范围-结束时间", name = "endTime", required = true)
+        @Parameter(description = "时间范围-结束时间", name = "endTime", required = true)
         @RequestParam(value = "endTime")
             String endTime,
-        @ApiParam(value = "分页-开始", required = true)
+        @Parameter(description = "分页-开始", required = true)
         @RequestParam(value = "start")
             Integer start,
-        @ApiParam(value = "分页-每页大小", required = true)
+        @Parameter(description = "分页-每页大小", required = true)
         @RequestParam(value = "pageSize")
             Integer pageSize,
-        @ApiParam(value = "执行方式,1-页面执行,2-API调用,3-定时任务", name = "startupMode")
+        @Parameter(description = "执行方式,1-页面执行,2-API调用,3-定时任务", name = "startupMode")
         @RequestParam(value = "startupMode", required = false)
             Integer startupMode,
-        @ApiParam(value = "模式，1:扫描,2:拦截", name = "action")
+        @Parameter(description = "模式，1:扫描,2:拦截", name = "action")
         @RequestParam(value = "action", required = false)
             Integer action,
-        @ApiParam(value = "执行人", name = "operator")
+        @Parameter(description = "执行人", name = "operator")
         @RequestParam(value = "operator", required = false)
             String operator,
-        @ApiParam(value = "调用方", name = "client")
+        @Parameter(description = "调用方", name = "client")
         @RequestParam(value = "client", required = false)
             String client
     );

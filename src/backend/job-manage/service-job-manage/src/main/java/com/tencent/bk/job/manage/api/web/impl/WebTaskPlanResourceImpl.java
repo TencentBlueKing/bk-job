@@ -39,7 +39,7 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import com.tencent.bk.job.common.util.check.IlegalCharChecker;
+import com.tencent.bk.job.common.util.check.IllegalCharChecker;
 import com.tencent.bk.job.common.util.check.MaxLengthChecker;
 import com.tencent.bk.job.common.util.check.NotEmptyChecker;
 import com.tencent.bk.job.common.util.check.StringCheckHelper;
@@ -413,7 +413,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
         // 检查执行方案名称
         try {
             StringCheckHelper stringCheckHelper = new StringCheckHelper(new TrimChecker(), new NotEmptyChecker(),
-                new IlegalCharChecker(), new MaxLengthChecker(60));
+                                                                        new IllegalCharChecker(), new MaxLengthChecker(60));
             taskPlanCreateUpdateReq.setName(stringCheckHelper.checkAndGetResult(taskPlanCreateUpdateReq.getName()));
         } catch (StringCheckException e) {
             log.warn("TaskPlan name is invalid:", e);

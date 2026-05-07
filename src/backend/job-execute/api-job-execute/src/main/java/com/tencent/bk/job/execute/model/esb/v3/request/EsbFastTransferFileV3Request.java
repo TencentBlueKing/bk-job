@@ -35,7 +35,7 @@ import com.tencent.bk.job.execute.validation.ValidTimeoutLimit;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 
 /**

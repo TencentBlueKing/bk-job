@@ -26,121 +26,120 @@ package com.tencent.bk.job.file_gateway.model.resp.web;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
-@ApiModel("文件接入点")
+@Schema(description = "文件接入点")
 @Data
 public class FileWorkerVO {
     /**
      * id
      */
-    @ApiModelProperty("id")
+    @Schema(description = "id")
     private Long id;
     /**
      * 资源范围类型
      */
-    @ApiModelProperty(value = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
+    @Schema(description = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
     private String scopeType;
     /**
      * 资源范围ID
      */
-    @ApiModelProperty("资源范围ID")
+    @Schema(description = "资源范围ID")
     private String scopeId;
     /**
      * 名称
      */
-    @ApiModelProperty("名称")
+    @Schema(description = "名称")
     private String name;
     /**
      * 描述
      */
-    @ApiModelProperty("描述")
+    @Schema(description = "描述")
     private String description;
     /**
      * 所在机器云区域Id
      */
-    @ApiModelProperty("所在机器云区域Id")
+    @Schema(description = "所在机器云区域Id")
     private Long cloudAreaId;
     /**
      * 内网IP
      */
-    @ApiModelProperty("内网IP")
+    @Schema(description = "内网IP")
     private String innerIp;
     /**
      * 能力标签
      */
-    @ApiModelProperty("能力标签列表")
+    @Schema(description = "能力标签列表")
     private List<String> abilityTagList;
     /**
      * Ping延迟
      */
-    @ApiModelProperty("Ping延迟")
+    @Schema(description = "Ping延迟")
     private Integer latency;
     /**
      * CPU负载
      */
-    @ApiModelProperty("CPU负载")
+    @Schema(description = "CPU负载")
     private Float cpuOverload;
     /**
      * 内存使用率
      */
-    @ApiModelProperty("内存使用率")
+    @Schema(description = "内存使用率")
     private Float memRate;
     /**
      * 内存剩余
      */
-    @ApiModelProperty("内存剩余")
+    @Schema(description = "内存剩余")
     private Float memFreeSpace;
     /**
      * 磁盘使用率
      */
-    @ApiModelProperty("磁盘使用率")
+    @Schema(description = "磁盘使用率")
     private Float diskRate;
     /**
      * 磁盘剩余
      */
-    @ApiModelProperty("磁盘剩余")
+    @Schema(description = "磁盘剩余")
     private Float diskFreeSpace;
     /**
      * Worker版本
      */
-    @ApiModelProperty("Worker版本")
+    @Schema(description = "Worker版本")
     private String version;
     /**
      * Worker在线状态
      */
-    @ApiModelProperty("Worker在线状态")
+    @Schema(description = "Worker在线状态")
     private Byte onlineStatus;
     /**
      * 上一次心跳时间
      */
-    @ApiModelProperty("上一次心跳时间")
+    @Schema(description = "上一次心跳时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long lastHeartBeat;
     /**
      * 创建人
      */
-    @ApiModelProperty("创建人")
+    @Schema(description = "创建人")
     private String creator;
     /**
      * 创建时间
      */
-    @ApiModelProperty("创建时间")
+    @Schema(description = "创建时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long createTime;
     /**
      * 最后修改人
      */
-    @ApiModelProperty("最后修改人")
+    @Schema(description = "最后修改人")
     private String lastModifyUser;
     /**
      * 最后修改时间
      */
-    @ApiModelProperty("最后修改时间")
+    @Schema(description = "最后修改时间")
     @JsonSerialize(using = LongTimestampSerializer.class)
     private Long lastModifyTime;
 }

@@ -30,35 +30,35 @@ import com.tencent.bk.job.file.worker.model.req.BaseReq;
 import com.tencent.bk.job.file.worker.model.req.ExecuteActionReq;
 import com.tencent.bk.job.file.worker.model.req.ListFileNodeReq;
 import com.tencent.bk.job.file_gateway.model.resp.common.FileNodesDTO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
-@Api(tags = {"job-file-worker:api:File"})
+@Tag(name = "job-file-worker:api:File")
 @RequestMapping("/worker/api/file")
 @RestController
 @WorkerAPI
 public interface FileResource {
 
-    @ApiOperation(value = "测试文件源是否可用", produces = "application/json")
+    @Operation(summary = "测试文件源是否可用")
     @PostMapping("/available")
     InternalResponse<Boolean> isFileAvailable(
-        @ApiParam(value = "文件源是否可用", required = true) @RequestBody BaseReq req);
+        @Parameter(description = "文件源是否可用", required = true) @RequestBody BaseReq req);
 
-    @ApiOperation(value = "获取文件源/FileNode下的子FileNode列表", produces = "application/json")
+    @Operation(summary = "获取文件源/FileNode下的子FileNode列表")
     @PostMapping("/listFileNode")
     InternalResponse<FileNodesDTO> listFileNode(
-        @ApiParam(value = "获取文件源/FileNode下的子FileNode列表", required = true) @RequestBody ListFileNodeReq req);
+        @Parameter(description = "获取文件源/FileNode下的子FileNode列表", required = true) @RequestBody ListFileNodeReq req);
 
-    @ApiOperation(value = "文件源操作", produces = "application/json")
+    @Operation(summary = "文件源操作")
     @PostMapping("/executeAction")
     InternalResponse<Boolean> executeAction(
-        @ApiParam(value = "文件源操作", required = true) @RequestBody ExecuteActionReq req
+        @Parameter(description = "文件源操作", required = true) @RequestBody ExecuteActionReq req
     );
 
 }

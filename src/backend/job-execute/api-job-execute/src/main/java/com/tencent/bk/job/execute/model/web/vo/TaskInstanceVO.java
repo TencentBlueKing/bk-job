@@ -26,128 +26,127 @@ package com.tencent.bk.job.execute.model.web.vo;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.DecimalFormatJsonSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("作业实例")
+@Schema(description = "作业实例")
 @Data
 public class TaskInstanceVO {
     /**
      * id
      */
-    @ApiModelProperty("任务 ID")
+    @Schema(description = "任务 ID")
     private Long id;
 
     /**
      * 执行方案id
      */
-    @ApiModelProperty("执行方案 ID")
+    @Schema(description = "执行方案 ID")
     private Long taskId;
 
     /**
      * id
      */
-    @ApiModelProperty("定时任务 ID")
+    @Schema(description = "定时任务 ID")
     private Long cronTaskId;
 
     /**
      * 执行方案id
      */
-    @ApiModelProperty("作业模板 ID")
+    @Schema(description = "作业模板 ID")
     private Long templateId;
 
     /**
      * 是否调试执行方案
      */
-    @ApiModelProperty("是否调试执行方案")
+    @Schema(description = "是否调试执行方案")
     private Boolean debugTask;
 
     /**
      * 资源范围类型
      */
-    @ApiModelProperty(value = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
+    @Schema(description = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
     private String scopeType;
 
     /**
      * 资源范围ID
      */
-    @ApiModelProperty("资源范围ID")
+    @Schema(description = "资源范围ID")
     private String scopeId;
 
     /**
      * 名称
      */
-    @ApiModelProperty("任务名称")
+    @Schema(description = "任务名称")
     private String name;
 
     /**
      * 执行人
      */
-    @ApiModelProperty("执行人")
+    @Schema(description = "执行人")
     private String operator;
 
     /**
      * 启动方式
      */
-    @ApiModelProperty("启动方式，1-页面执行、2-API调用、3-定时执行")
+    @Schema(description = "启动方式，1-页面执行、2-API调用、3-定时执行")
     private Integer startupMode;
 
     /**
      * 启动方式
      */
-    @ApiModelProperty("启动方式名称")
+    @Schema(description = "启动方式名称")
     private String startupModeDesc;
 
     /**
      * 状态
      */
-    @ApiModelProperty("任务状态")
+    @Schema(description = "任务状态")
     private Integer status;
 
     /**
      * 任务状态描述
      */
-    @ApiModelProperty("任务状态描述")
+    @Schema(description = "任务状态描述")
     private String statusDesc;
 
     /**
      * 开始时间
      */
-    @ApiModelProperty("开始时间，单位毫秒")
+    @Schema(description = "开始时间，单位毫秒")
     private Long startTime;
 
     /**
      * 结束时间
      */
-    @ApiModelProperty("结束时间，单位毫秒")
+    @Schema(description = "结束时间，单位毫秒")
     private Long endTime;
 
     /**
      * 总耗时，单位：秒
      */
-    @ApiModelProperty("总耗时")
+    @Schema(description = "总耗时")
     @JsonSerialize(using = DecimalFormatJsonSerializer.class)
     private Long totalTime;
 
     /**
      * 创建时间
      */
-    @ApiModelProperty("创建时间，单位毫秒")
+    @Schema(description = "创建时间，单位毫秒")
     private Long createTime;
 
     /**
      * 作业执行类型
      */
-    @ApiModelProperty("任务类型,0-作业执行,1-脚本执行,2-文件分发")
+    @Schema(description = "任务类型,0-作业执行,1-脚本执行,2-文件分发")
     private Integer type;
 
-    @ApiModelProperty("任务类型描述")
+    @Schema(description = "任务类型描述")
     private String typeDesc;
 
-    @ApiModelProperty("是否可以查看")
+    @Schema(description = "是否可以查看")
     private Boolean canView;
 
-    @ApiModelProperty("是否可以执行")
+    @Schema(description = "是否可以执行")
     private Boolean canExecute;
 }

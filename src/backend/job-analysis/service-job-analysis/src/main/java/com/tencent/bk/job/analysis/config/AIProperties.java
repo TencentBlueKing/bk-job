@@ -47,6 +47,11 @@ public class AIProperties {
     private String model = "hunyuan";
 
     /**
+     * AI智能体的根地址
+     */
+    private String agentRootUrl;
+
+    /**
      * 错误日志分析相关配置
      */
     private AnalyzeErrorLogConfig analyzeErrorLog = new AnalyzeErrorLogConfig();

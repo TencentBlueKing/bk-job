@@ -42,7 +42,6 @@ import com.tencent.bk.job.manage.model.tables.NotifyTriggerPolicy;
 import com.tencent.bk.job.manage.model.tables.records.NotifyTriggerPolicyRecord;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import lombok.var;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;

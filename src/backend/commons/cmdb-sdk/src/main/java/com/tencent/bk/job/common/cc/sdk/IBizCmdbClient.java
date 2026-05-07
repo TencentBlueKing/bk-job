@@ -61,15 +61,15 @@ import java.util.Set;
  */
 public interface IBizCmdbClient {
     /**
-     * 获取业务topo
+     * 优先从缓存获取业务完整拓扑树（含空闲机/故障机模块）
      *
      * @param tenantId 租户ID
      * @param bizId    cmdb业务ID
      */
-    InstanceTopologyDTO getBizInstTopology(String tenantId, long bizId);
+    InstanceTopologyDTO getBizInstTopologyPreferCache(String tenantId, long bizId);
 
     /**
-     * 获取业务完整拓扑树（含空闲机/故障机模块）
+     * 从CMDB接口获取业务完整拓扑树（含空闲机/故障机模块）
      *
      * @param tenantId 租户ID
      * @param bizId    cmdb业务ID

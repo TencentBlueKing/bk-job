@@ -24,37 +24,36 @@
 
 package com.tencent.bk.job.file.worker.model;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("文件信息")
+@Schema(description = "文件信息")
 @Data
 public class FileDTO {
     /**
      * 文件名key
      */
-    @ApiModelProperty("文件名key")
+    @Schema(description = "文件名key")
     private String key;
     /**
      * eTag
      */
-    @ApiModelProperty("eTag")
+    @Schema(description = "eTag")
     private String eTag;
     /**
      * 文件大小（Bytes）
      */
-    @ApiModelProperty("文件大小（Bytes）")
+    @Schema(description = "文件大小（Bytes）")
     private Long size;
     /**
      * 下载链接
      */
-    @ApiModelProperty("下载链接")
+    @Schema(description = "下载链接")
     private String downloadUrl;
     /**
      * 最后修改时间
      */
-    @ApiModelProperty("最后修改时间")
+    @Schema(description = "最后修改时间")
     private Long lastModified;
 }
 

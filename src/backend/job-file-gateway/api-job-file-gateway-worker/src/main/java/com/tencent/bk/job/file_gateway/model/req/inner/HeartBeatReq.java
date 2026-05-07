@@ -28,7 +28,7 @@ import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.util.json.SkipLogFields;
 import com.tencent.bk.job.file_gateway.model.req.common.FileWorkerConfig;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -41,46 +41,46 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 public class HeartBeatReq {
-    @ApiModelProperty(value = "ID")
+    @Schema(description = "ID")
     Long id;
-    @ApiModelProperty(value = "名称")
+    @Schema(description = "名称")
     String name;
-    @ApiModelProperty(value = "标签列表")
+    @Schema(description = "标签列表")
     List<String> tagList;
-    @ApiModelProperty(value = "业务ID", required = true)
+    @Schema(description = "业务ID", required = true)
     Long appId;
     @SkipLogFields(value = "token")
-    @ApiModelProperty(value = "密钥", required = true)
+    @Schema(description = "密钥", required = true)
     String token;
-    @ApiModelProperty(value = "所在集群名称", required = true)
+    @Schema(description = "所在集群名称", required = true)
     String clusterName;
-    @ApiModelProperty(value = "访问worker使用的host", required = true)
+    @Schema(description = "访问worker使用的host", required = true)
     String accessHost;
-    @ApiModelProperty(value = "访问worker使用的port", required = true)
+    @Schema(description = "访问worker使用的port", required = true)
     Integer accessPort;
-    @ApiModelProperty(value = "worker所在云区域Id", required = true)
+    @Schema(description = "worker所在云区域Id", required = true)
     Long cloudAreaId;
-    @ApiModelProperty(value = "worker的内网IP协议", required = true)
+    @Schema(description = "worker的内网IP协议", required = true)
     String innerIpProtocol;
-    @ApiModelProperty(value = "worker的内网IP", required = true)
+    @Schema(description = "worker的内网IP", required = true)
     String innerIp;
-    @ApiModelProperty(value = "能力标签列表")
+    @Schema(description = "能力标签列表")
     List<String> abilityTagList;
-    @ApiModelProperty(value = "CPU负载")
+    @Schema(description = "CPU负载")
     Float cpuOverload;
-    @ApiModelProperty(value = "内存使用率")
+    @Schema(description = "内存使用率")
     Float memRate;
-    @ApiModelProperty(value = "内存空闲空间")
+    @Schema(description = "内存空闲空间")
     Float memFreeSpace;
-    @ApiModelProperty(value = "磁盘使用率")
+    @Schema(description = "磁盘使用率")
     Float diskRate;
-    @ApiModelProperty(value = "磁盘剩余空间")
+    @Schema(description = "磁盘剩余空间")
     Float diskFreeSpace;
-    @ApiModelProperty(value = "worker版本", required = true)
+    @Schema(description = "worker版本", required = true)
     String version;
-    @ApiModelProperty(value = "在线状态", required = true)
+    @Schema(description = "在线状态", required = true)
     Byte onlineStatus;
-    @ApiModelProperty(value = "FileWorker配置信息", required = true)
+    @Schema(description = "FileWorker配置信息", required = true)
     FileWorkerConfig fileWorkerConfig;
 
     @CompatibleImplementation(

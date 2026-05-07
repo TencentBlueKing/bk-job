@@ -26,42 +26,41 @@ package com.tencent.bk.job.file_gateway.model.resp.common;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.LongTimestampSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("Bucket下的文件信息")
+@Schema(description = "Bucket下的文件信息")
 @Data
 public class FileVO {
     /**
      * 名称
      */
-    @ApiModelProperty("名称")
+    @Schema(description = "名称")
     private String name;
     /**
      * 文件完整路径
      */
-    @ApiModelProperty("完整路径")
+    @Schema(description = "完整路径")
     private String completePath;
     /**
      * 文件大小
      */
-    @ApiModelProperty("文件大小(Bytes)")
+    @Schema(description = "文件大小(Bytes)")
     private Long size;
     /**
      * 是否为文件夹
      */
-    @ApiModelProperty("是否为文件夹")
+    @Schema(description = "是否为文件夹")
     private Boolean dir;
     /**
      * 文件类型
      */
-    @ApiModelProperty("文件类型")
+    @Schema(description = "文件类型")
     private String type;
     /**
      * 文件下载链接
      */
-    @ApiModelProperty("文件下载链接")
+    @Schema(description = "文件下载链接")
     private String downloadUrl;
     /**
      * 更新时间

@@ -44,7 +44,7 @@ dependencies {
     implementation "org.springframework.boot:spring-boot-starter-jdbc"
     implementation "org.springframework.boot:spring-boot-starter-jooq"
     implementation "org.springframework.cloud:spring-cloud-stream"
-    implementation "org.springframework.cloud:spring-cloud-starter-sleuth"
+    implementation 'io.micrometer:micrometer-tracing-bridge-otel'
     implementation "org.springframework.cloud:spring-cloud-starter-openfeign"
     implementation "ch.qos.logback:logback-core"
     implementation "ch.qos.logback:logback-classic"

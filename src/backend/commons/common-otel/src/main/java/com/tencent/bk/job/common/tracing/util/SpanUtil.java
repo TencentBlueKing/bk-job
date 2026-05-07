@@ -24,8 +24,8 @@
 
 package com.tencent.bk.job.common.tracing.util;
 
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.Tracer;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 
 public class SpanUtil {
     /**

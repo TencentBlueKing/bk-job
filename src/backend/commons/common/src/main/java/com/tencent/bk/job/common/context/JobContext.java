@@ -30,8 +30,8 @@ import io.micrometer.core.instrument.Tag;
 import lombok.Data;
 import org.apache.commons.lang3.tuple.Pair;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.time.ZoneId;
 import java.util.AbstractList;
 import java.util.List;

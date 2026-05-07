@@ -29,7 +29,6 @@ import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
 import com.tencent.bk.job.file_gateway.model.tables.FileSourceShare;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
-import lombok.var;
 import org.jooq.BatchBindStep;
 import org.jooq.DSLContext;
 import org.jooq.conf.ParamType;

@@ -28,8 +28,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -39,18 +38,18 @@ import lombok.NoArgsConstructor;
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @NoArgsConstructor
-@ApiModel("执行对象对应的脚本日志")
+@Schema(description = "执行对象对应的脚本日志")
 public class ServiceExecuteObjectScriptLogDTO {
     /**
      * 执行对象ID
      */
-    @ApiModelProperty("执行对象ID")
+    @Schema(description = "执行对象ID")
     private String executeObjectId;
 
     /**
      * 主机ID
      */
-    @ApiModelProperty("主机ID")
+    @Schema(description = "主机ID")
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
     private Long hostId;
@@ -58,7 +57,7 @@ public class ServiceExecuteObjectScriptLogDTO {
     /**
      * 主机ipv4,格式: 云区域ID:IPv4
      */
-    @ApiModelProperty("主机ipv4,格式: 云区域ID:IPv4")
+    @Schema(description = "主机ipv4,格式: 云区域ID:IPv4")
     @JsonProperty("ip")
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
@@ -67,7 +66,7 @@ public class ServiceExecuteObjectScriptLogDTO {
     /**
      * 主机ipv6,格式: 云区域ID:IPv6
      */
-    @ApiModelProperty("主机ipv6,格式: 云区域ID:IPv6")
+    @Schema(description = "主机ipv6,格式: 云区域ID:IPv6")
     @JsonProperty("ipv6")
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.HISTORY_DATA)
@@ -76,19 +75,19 @@ public class ServiceExecuteObjectScriptLogDTO {
     /**
      * 日志偏移 - 字节
      */
-    @ApiModelProperty("日志偏移 - 字节")
+    @Schema(description = "日志偏移 - 字节")
     private Integer offset;
 
     /**
      * 日志大小 - 字节
      */
-    @ApiModelProperty("日志大小 - 字节")
+    @Schema(description = "日志大小 - 字节")
     private Integer contentSizeBytes = 0;
 
     /**
      * 日志内容
      */
-    @ApiModelProperty("日志内容")
+    @Schema(description = "日志内容")
     private String content;
 
 

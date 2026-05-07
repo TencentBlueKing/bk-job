@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.vo;
 
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -34,45 +33,45 @@ import java.util.List;
 /**
  * @since 4/12/2019 19:00
  */
-@ApiModel("动态分组信息")
+@Schema(description = "动态分组信息")
 @Data
 public class DynamicGroupInfoVO {
 
     /**
      * 资源范围类型
      */
-    @ApiModelProperty(value = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
+    @Schema(description = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
     private String scopeType;
 
     /**
      * 资源范围ID
      */
-    @ApiModelProperty("资源范围ID")
+    @Schema(description = "资源范围ID")
     private String scopeId;
 
     @Deprecated
-    @ApiModelProperty("业务名")
+    @Schema(description = "业务名")
     private String appName;
 
-    @ApiModelProperty("资源范围名称")
+    @Schema(description = "资源范围名称")
     private String scopeName;
 
-    @ApiModelProperty("动态分组 ID")
+    @Schema(description = "动态分组 ID")
     private String id;
 
     private String owner;
 
     private String ownerName;
 
-    @ApiModelProperty("动态分组名")
+    @Schema(description = "动态分组名")
     private String name;
 
-    @ApiModelProperty("动态分组类型")
+    @Schema(description = "动态分组类型")
     private String type;
 
-    @ApiModelProperty("动态分组包含的 IP 列表")
+    @Schema(description = "动态分组包含的 IP 列表")
     private List<String> ipList;
 
-    @ApiModelProperty("动态分组内主机状态信息")
+    @Schema(description = "动态分组内主机状态信息")
     private List<HostInfoVO> ipListStatus;
 }

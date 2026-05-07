@@ -35,6 +35,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.helpers.MessageFormatter;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -52,11 +53,12 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class BkNetService {
+public class BkNetService implements DisposableBean {
     private final TenantService tenantService;
     private final IBizCmdbClient bizCmdbClient;
     private final Map<String, Map<Long, String>> tenantCloudAreaIdNameMap = new ConcurrentHashMap<>();
     private final Map<String, List<CcCloudAreaInfoDTO>> tenantFullCloudAreaInfoListMap = new ConcurrentHashMap<>();
+    private volatile boolean running = true;
 
     @Autowired
     public BkNetService(IBizCmdbClient bizCmdbClient, TenantService tenantService) {
@@ -66,7 +68,15 @@ public class BkNetService {
     }
 
     private void init() {
-        new CloudAreaNameCacheThread().start();
+        Thread cacheThread = new CloudAreaNameCacheThread();
+        cacheThread.setDaemon(true);
+        cacheThread.start();
+    }
+
+    @Override
+    public void destroy() {
+        log.info("BkNetService destroying, stopping CloudAreaNameCacheThread");
+        running = false;
     }
 
     /**
@@ -132,24 +142,31 @@ public class BkNetService {
     }
 
     class CloudAreaNameCacheThread extends Thread {
-        @SuppressWarnings("InfiniteLoopStatement")
         @Override
         public void run() {
             this.setName("CloudAreaInfoSyncThread");
             log.info("CloudAreaInfo sync start...");
-            while (true) {
+            while (running) {
                 tryToCacheCloudAreaForAllTenant();
                 ThreadUtils.sleep(60_000L);
             }
+            log.info("CloudAreaInfoSyncThread stopped");
         }
 
         private void tryToCacheCloudAreaForAllTenant() {
             try {
                 List<TenantDTO> tenantDTOList = tenantService.listEnabledTenant();
                 for (TenantDTO tenantDTO : tenantDTOList) {
+                    if (!running) {
+                        return;
+                    }
                     tryToCacheCloudAreaForTenant(tenantDTO.getId());
                 }
             } catch (Exception e) {
+                if (!running) {
+                    log.info("BkNetService is shutting down, stop caching cloud area info");
+                    return;
+                }
                 log.error("tryToCacheCloudAreaForAllTenant error", e);
             }
         }
@@ -158,6 +175,9 @@ public class BkNetService {
             try {
                 cacheCloudAreaInfo(tenantId);
             } catch (Exception e) {
+                if (!running) {
+                    return;
+                }
                 String msg = MessageFormatter.format(
                     "cacheCloudAreaInfo error, tenantId={}",
                     tenantId

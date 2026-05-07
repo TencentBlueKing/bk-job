@@ -24,14 +24,13 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("步骤滚动任务")
+@Schema(description = "步骤滚动任务")
 @Data
 public class RollingStepBatchTaskVO {
-    @ApiModelProperty("滚动批次")
+    @Schema(description = "滚动批次")
     private Integer batch;
 
     /**
@@ -39,10 +38,10 @@ public class RollingStepBatchTaskVO {
      *
      * @see com.tencent.bk.job.execute.common.constants.RunStatusEnum
      */
-    @ApiModelProperty("任务状态,值同步骤状态一致。1-等待执行，2-正在执行，3-执行成功，4-执行失败，5-跳过，6-忽略错误，7-等待用户" +
+    @Schema(description = "任务状态,值同步骤状态一致。1-等待执行，2-正在执行，3-执行成功，4-执行失败，5-跳过，6-忽略错误，7-等待用户" +
         "，8-手动结束，9-状态异常，10-强制终止中，11-强制终止成功，12-强制终止失败，13-确认终止，14-被丢弃，15-滚动等待")
     private Integer status;
 
-    @ApiModelProperty(name = "isLatestBatch", value = "是否最新批次的滚动任务")
+    @Schema(name = "isLatestBatch", description = "是否最新批次的滚动任务")
     private boolean latestBatch;
 }

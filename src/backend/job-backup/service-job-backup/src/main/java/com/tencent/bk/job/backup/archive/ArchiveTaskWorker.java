@@ -25,8 +25,8 @@
 package com.tencent.bk.job.backup.archive;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.sleuth.Span;
-import org.springframework.cloud.sleuth.Tracer;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 
 /**
  * 归档任务执行线程

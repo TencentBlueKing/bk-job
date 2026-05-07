@@ -33,7 +33,7 @@ import com.tencent.bk.job.common.model.openapi.v3.EsbDynamicGroupDTO;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 
 /**

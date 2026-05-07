@@ -27,7 +27,7 @@ package com.tencent.bk.job.execute.model.esb.v3;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import javax.validation.constraints.Positive;
+import jakarta.validation.constraints.Positive;
 
 /**
  * 源文件滚动配置

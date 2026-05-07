@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.analysis.model.op;
 
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,6 +35,6 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 public class ClearStatisticsReq {
-    @ApiModelProperty("yyyy-MM-dd格式的日期集合")
+    @Schema(description = "yyyy-MM-dd格式的日期集合")
     List<String> dateStrList;
 }

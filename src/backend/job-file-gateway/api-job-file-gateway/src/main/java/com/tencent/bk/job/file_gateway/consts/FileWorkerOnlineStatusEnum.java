@@ -25,8 +25,8 @@
 package com.tencent.bk.job.file_gateway.consts;
 
 public enum FileWorkerOnlineStatusEnum {
-    ONLINE((byte) 0, "online"),
-    OFFLINE((byte) 1, "offline");
+    ONLINE((byte) 1, "online"),
+    OFFLINE((byte) 0, "offline");
 
     private final Byte status;
     private final String description;

@@ -222,6 +222,7 @@ public class RollingConfigDAOImplIntegrationTest {
         RollingConfigDTO taskInstanceRollingConfig = new RollingConfigDTO();
         taskInstanceRollingConfig.setTaskInstanceId(10L);
         taskInstanceRollingConfig.setConfigName("default");
+        taskInstanceRollingConfig.setType(1);
         ExecuteObjectRollingConfigDetailDO rollingConfig = new ExecuteObjectRollingConfigDetailDO();
         rollingConfig.setName("default");
         rollingConfig.setExpr("10%");

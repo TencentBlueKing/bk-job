@@ -25,20 +25,19 @@
 package com.tencent.bk.job.file_gateway.model.resp.common;
 
 import com.tencent.bk.job.common.model.PageData;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.Map;
 
-@ApiModel("文件节点信息")
+@Schema(description = "文件节点信息")
 @Data
 public class FileNodesVO {
-    @ApiModelProperty("所在的文件源信息")
+    @Schema(description = "所在的文件源信息")
     private SimpleFileSourceVO fileSourceInfo;
-    @ApiModelProperty("元数据")
+    @Schema(description = "元数据")
     private FileTreeNodeDef metaData;
-    @ApiModelProperty("分页列表数据")
+    @Schema(description = "分页列表数据")
     private PageData<Map<String, Object>> pageData;
 }
 

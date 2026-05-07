@@ -26,7 +26,7 @@ dependencies {
     api project(':commons:common')
     api 'org.springframework.boot:spring-boot-starter-web'
     api 'org.springframework.cloud:spring-cloud-starter-openfeign'
-    api 'io.springfox:springfox-boot-starter'
+    api 'org.springdoc:springdoc-openapi-starter-webmvc-ui'
     api 'org.hibernate.validator:hibernate-validator'
     api 'jakarta.validation:jakarta.validation-api'
     api 'ch.qos.logback:logback-core'

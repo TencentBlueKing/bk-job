@@ -334,7 +334,7 @@ bash tool_check_auto_increment.sh
 |--------------------------------|---------|
 | `dangerous_rule`               | 100     |
 | `notify_black_user_info`       | 100     |
-| `account`                      | 31000   |
+| `account`                      | 310000  |
 | `script_version`               | 4100000 |
 | `task_template`                | 400000  |
 | `task_template_step`           | 400000  |

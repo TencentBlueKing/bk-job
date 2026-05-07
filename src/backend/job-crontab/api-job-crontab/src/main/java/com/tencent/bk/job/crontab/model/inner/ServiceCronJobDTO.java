@@ -25,8 +25,7 @@
 package com.tencent.bk.job.crontab.model.inner;
 
 import com.tencent.bk.job.common.model.dto.notify.CustomNotifyDTO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,58 +33,58 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@ApiModel("定时任务信息")
+@Schema(description = "定时任务信息")
 public class ServiceCronJobDTO {
 
-    @ApiModelProperty("任务 ID")
+    @Schema(description = "任务 ID")
     private Long id;
 
-    @ApiModelProperty("业务 ID")
+    @Schema(description = "业务 ID")
     private Long appId;
 
-    @ApiModelProperty("任务名称")
+    @Schema(description = "任务名称")
     private String name;
 
-    @ApiModelProperty("创建人")
+    @Schema(description = "创建人")
     private String creator;
 
-    @ApiModelProperty("关联的执行方案 ID")
+    @Schema(description = "关联的执行方案 ID")
     private Long taskPlanId;
 
-    @ApiModelProperty("关联的脚本 ID")
+    @Schema(description = "关联的脚本 ID")
     private String scriptId;
 
-    @ApiModelProperty("关联的脚本版本")
+    @Schema(description = "关联的脚本版本")
     private Long scriptVersionId;
 
-    @ApiModelProperty("循环执行的定时表达式")
+    @Schema(description = "循环执行的定时表达式")
     private String cronExpression;
 
-    @ApiModelProperty("单次执行的指定执行时间戳")
+    @Schema(description = "单次执行的指定执行时间戳")
     private Long executeTime;
 
-    @ApiModelProperty("上次执行结果 0 - 未执行 1 - 成功 2 - 失败")
+    @Schema(description = "上次执行结果 0 - 未执行 1 - 成功 2 - 失败")
     private Integer lastExecuteStatus;
 
-    @ApiModelProperty("是否启用")
+    @Schema(description = "是否启用")
     private Boolean enable;
 
-    @ApiModelProperty("最后修改人")
+    @Schema(description = "最后修改人")
     private String lastModifyUser;
 
-    @ApiModelProperty("最后修改时间戳")
+    @Schema(description = "最后修改时间戳")
     private Long lastModifyTime;
 
     /**
      * 通知方式（1-继承业务, 2-自定义）
      * @see com.tencent.bk.job.common.constant.CronJobNotifyType
      */
-    @ApiModelProperty("通知方式（1-继承业务, 2-自定义）")
+    @Schema(description = "通知方式（1-继承业务, 2-自定义）")
     private Integer notifyType = 1;
 
     /**
      * 自定义通知配置
      */
-    @ApiModelProperty("自定义通知配置")
+    @Schema(description = "自定义通知配置")
     private CustomNotifyDTO customCronJobNotifyDTO = new CustomNotifyDTO();
 }

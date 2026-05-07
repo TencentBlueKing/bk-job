@@ -361,7 +361,7 @@ public class CronJobServiceImpl implements CronJobService {
             return;
         }
         for (CronJobVariableDTO variable : variableValue) {
-            if (variable.getType() != TaskVariableTypeEnum.HOST_LIST) {
+            if (variable.getType() != TaskVariableTypeEnum.EXECUTE_OBJECT_LIST) {
                 continue;
             }
             ServerDTO serverDTO = variable.getServer();

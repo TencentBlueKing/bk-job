@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.notify;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,23 +33,23 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-@ApiModel("通知策略创建请求")
+@Schema(description = "通知策略创建请求")
 @NoArgsConstructor
 @AllArgsConstructor
 public class TriggerPolicyVO {
 
-    @ApiModelProperty(value = "触发方式", required = true)
+    @Schema(description = "触发方式", required = true)
     private String triggerType;
 
-    @ApiModelProperty(value = "操作（任务）类型列表", required = true)
+    @Schema(description = "操作（任务）类型列表", required = true)
     private List<String> resourceTypeList;
 
-    @ApiModelProperty(value = "任务角色（通知对象）列表", required = true)
+    @Schema(description = "任务角色（通知对象）列表", required = true)
     private List<String> roleList;
 
-    @ApiModelProperty(value = "额外通知人列表", required = true)
+    @Schema(description = "额外通知人列表", required = true)
     private List<String> extraObserverList;
 
-    @ApiModelProperty(value = "状态通知渠道列表，key:执行状态(SUCCESS,FAIL,READY),value:通知渠道列表", required = true)
+    @Schema(description = "状态通知渠道列表，key:执行状态(SUCCESS,FAIL,READY),value:通知渠道列表", required = true)
     private Map<String, List<String>> resourceStatusChannelMap;
 }

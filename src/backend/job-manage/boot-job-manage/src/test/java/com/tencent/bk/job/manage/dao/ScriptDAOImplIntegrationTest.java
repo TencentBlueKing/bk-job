@@ -218,6 +218,7 @@ class ScriptDAOImplIntegrationTest {
         script.setType(1);
         script.setPublicScript(false);
         script.setCreator("user3");
+        script.setTenantId("default");
 
         String scriptId = scriptDAO.saveScript(script);
         assertThat(scriptId).isNotEmpty();

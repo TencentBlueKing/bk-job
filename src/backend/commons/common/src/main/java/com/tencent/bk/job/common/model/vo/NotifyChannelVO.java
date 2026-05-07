@@ -25,8 +25,7 @@
 package com.tencent.bk.job.common.model.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,12 +35,12 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("通知渠道")
+@Schema(description = "通知渠道")
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class NotifyChannelVO {
-    @ApiModelProperty("code")
+    @Schema(description = "code")
     private String code;
-    @ApiModelProperty("名称")
+    @Schema(description = "名称")
     private String name;
 }

@@ -26,20 +26,20 @@ package com.tencent.bk.job.manage.api.web;
 
 import com.tencent.bk.job.common.annotation.WebAPI;
 import com.tencent.bk.job.common.model.Response;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import springfox.documentation.annotations.ApiIgnore;
+
 
 import java.util.Map;
 
 /**
  * Job 环境相关 Web API
  */
-@Api(tags = {"job-manage:web:env"})
+@Tag(name = "job-manage:web:env")
 @RequestMapping("/web/env")
 @WebAPI
 public interface WebEnvResource {
@@ -51,11 +51,10 @@ public interface WebEnvResource {
      * @param username 用户名
      * @return Map, key: 属性名, value: 属性值
      */
-    @ApiOperation(value = "获取Job环境的属性", produces = "application/json")
+    @Operation(summary = "获取Job环境的属性")
     @GetMapping("/properties")
     Response<Map<String, String>> getJobEnvProperties(
-        @ApiIgnore
-        @ApiParam(value = "用户名，网关自动传入", required = true)
+        @Parameter(description = "用户名，网关自动传入", required = true, hidden = true)
         @RequestHeader("username")
             String username
     );

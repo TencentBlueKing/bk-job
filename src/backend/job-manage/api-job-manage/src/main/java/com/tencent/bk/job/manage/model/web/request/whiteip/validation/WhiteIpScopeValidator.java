@@ -27,8 +27,8 @@ package com.tencent.bk.job.manage.model.web.request.whiteip.validation;
 import com.tencent.bk.job.manage.model.web.request.whiteip.WhiteIPRecordCreateUpdateReq;
 import org.apache.commons.collections.CollectionUtils;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class WhiteIpScopeValidator implements ConstraintValidator<CheckWhiteIpScope, WhiteIPRecordCreateUpdateReq> {
 

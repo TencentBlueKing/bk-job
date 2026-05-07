@@ -8,8 +8,8 @@ Default job logback configuration provided for import
     <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
     <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
 
-    <property name="CONSOLE_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr(%d{${LOG_DATEFORMAT_PATTERN:-[yyyy-MM-dd HH:mm:ss.SSS]}}){faint} %clr(%5p [${APP_NAME:-anon-service},%X{traceId:-},%X{spanId:-}]) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
-    <property name="FILE_LOG_PATTERN" value="${FILE_LOG_PATTERN:-%d{${LOG_DATEFORMAT_PATTERN:-[yyyy-MM-dd HH:mm:ss.SSS]}} %5p [${APP_NAME:-anon-service},%X{traceId:-},%X{spanId:-}] ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+    <property name="CONSOLE_LOG_PATTERN" value="${CONSOLE_LOG_PATTERN:-%clr([%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}]){faint} %clr(%5p [${APP_NAME:-anon-service},%X{traceId:-},%X{spanId:-}]) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
+    <property name="FILE_LOG_PATTERN" value="${FILE_LOG_PATTERN:-[%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}] %5p [${APP_NAME:-anon-service},%X{traceId:-},%X{spanId:-}] ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}}"/>
     <property name="AUDIT_EVENT_LOG_PATTERN" value="%m%n"/>
     <property name="APP_LOG_FILE" value="${APP_LOG_DIR}/${APP_LOG_NAME}"/>
     <property name="ERROR_LOG_FILE" value="${APP_LOG_DIR}/error.log"/>
@@ -41,7 +41,7 @@ Default job logback configuration provided for import
         <encoder class="com.tencent.bk.job.common.log.pojo.encoder.SpecificLoggerAdjustLevelEncoder">
             <pattern>${FILE_LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
-            <targetLogger>io.opentelemetry.exporter.internal.grpc.OkHttpGrpcExporter</targetLogger>
+            <targetLogger>io.opentelemetry.exporter.internal.http.HttpExporter</targetLogger>
             <originLoggingLevel>ERROR</originLoggingLevel>
             <targetLoggingLevel>WARN</targetLoggingLevel>
         </encoder>
@@ -181,7 +181,7 @@ Default job logback configuration provided for import
         </filter>
         <!-- 因为这个过滤器需要走HashSet匹配，考虑性能，所以放在后面 -->
         <filter class="com.tencent.bk.job.common.log.pojo.filter.LoggerExclusionFilter">
-            <exclusiveLogger>io.opentelemetry.exporter.internal.grpc.OkHttpGrpcExporter</exclusiveLogger>
+            <exclusiveLogger>io.opentelemetry.exporter.internal.http.HttpExporter</exclusiveLogger>
             <onMatch>DENY</onMatch>
             <onMismatch>ACCEPT</onMismatch>
         </filter>

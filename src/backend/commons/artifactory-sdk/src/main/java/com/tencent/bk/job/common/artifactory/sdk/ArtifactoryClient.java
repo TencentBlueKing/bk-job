@@ -439,16 +439,29 @@ public class ArtifactoryClient {
         return resp.getData();
     }
 
-    public PageData<NodeDTO> listNode(String projectId, String repoName, String fullPath, int pageNumber,
+    public PageData<NodeDTO> listNode(String projectId,
+                                      String repoName,
+                                      String fullPath,
+                                      int pageNumber,
                                       int pageSize) {
+        return listNode(projectId, repoName, fullPath, pageNumber, pageSize, null);
+    }
+
+    public PageData<NodeDTO> listNode(String projectId,
+                                      String repoName,
+                                      String fullPath,
+                                      int pageNumber,
+                                      int pageSize,
+                                      Boolean includeTotalRecords) {
         ListNodePageReq req = new ListNodePageReq();
         req.setProjectId(projectId);
         req.setRepoName(repoName);
         req.setFullPath(fullPath);
         req.setPageNumber(pageNumber);
         req.setPageSize(pageSize);
+        req.setIncludeTotalRecords(includeTotalRecords);
         ArtifactoryResp<PageData<NodeDTO>> resp = getArtifactoryRespByReq(HttpGet.METHOD_NAME, URL_LIST_NODE_PAGE,
-            req, new TypeReference<ArtifactoryResp<PageData<NodeDTO>>>() {
+            req, new TypeReference<>() {
             }, httpHelper);
         return resp.getData();
     }

@@ -26,23 +26,22 @@ package com.tencent.bk.job.manage.model.inner;
 
 import com.tencent.bk.job.manage.api.common.constants.JobResourceStatusEnum;
 import com.tencent.bk.job.manage.api.common.constants.task.TaskScriptSourceEnum;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("任务脚本步骤信息")
+@Schema(description = "任务脚本步骤信息")
 public class ServiceTaskScriptStepDTO {
-    @ApiModelProperty("脚本ID")
+    @Schema(description = "脚本ID")
     private String scriptId;
 
-    @ApiModelProperty("脚本版本ID")
+    @Schema(description = "脚本版本ID")
     private Long scriptVersionId;
 
     /**
      * @see JobResourceStatusEnum
      */
-    @ApiModelProperty("脚本状态")
+    @Schema(description = "脚本状态")
     private Integer scriptStatus;
 
     /**
@@ -50,7 +49,7 @@ public class ServiceTaskScriptStepDTO {
      *
      * @see TaskScriptSourceEnum
      */
-    @ApiModelProperty("脚本引用类型")
+    @Schema(description = "脚本引用类型")
     private Integer scriptSource;
 
     /**
@@ -58,7 +57,7 @@ public class ServiceTaskScriptStepDTO {
      *
      * @see com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum
      */
-    @ApiModelProperty("脚本语言类型")
+    @Schema(description = "脚本语言类型")
     private Integer scriptType;
 
     /**
@@ -66,30 +65,30 @@ public class ServiceTaskScriptStepDTO {
      *
      * @see com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum
      */
-    @ApiModelProperty("脚本语言类型")
+    @Schema(description = "脚本语言类型")
     private Integer type;
 
-    @ApiModelProperty("脚本内容")
+    @Schema(description = "脚本内容")
     private String content;
 
-    @ApiModelProperty("脚本参数")
+    @Schema(description = "脚本参数")
     private String scriptParam;
 
-    @ApiModelProperty("Windows解释器")
+    @Schema(description = "Windows解释器")
     private String windowsInterpreter;
 
-    @ApiModelProperty("脚本超时时间")
+    @Schema(description = "脚本超时时间")
     private Long scriptTimeout;
 
-    @ApiModelProperty("执行账户")
+    @Schema(description = "执行账户")
     private ServiceAccountDTO account;
 
-    @ApiModelProperty("执行目标")
+    @Schema(description = "执行目标")
     private ServiceTaskTargetDTO executeTarget;
 
-    @ApiModelProperty("敏感参数")
+    @Schema(description = "敏感参数")
     private Boolean secureParam;
 
-    @ApiModelProperty(value = "是否自动忽略错误")
+    @Schema(description = "是否自动忽略错误")
     private Boolean ignoreError;
 }

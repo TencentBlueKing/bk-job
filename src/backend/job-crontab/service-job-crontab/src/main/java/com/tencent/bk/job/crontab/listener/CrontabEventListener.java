@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.crontab.listener;
 
+import com.tencent.bk.job.common.mq.metrics.MqConsumeDelayRecorder;
 import com.tencent.bk.job.crontab.constant.CrontabActionEnum;
 import com.tencent.bk.job.crontab.listener.event.CrontabEvent;
 import com.tencent.bk.job.crontab.model.dto.CronJobInfoDTO;
@@ -32,6 +33,7 @@ import com.tencent.bk.job.crontab.service.QuartzService;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Component;
 
 /**
@@ -43,20 +45,31 @@ public class CrontabEventListener {
 
     private final CronJobService cronJobService;
     private final QuartzService quartzService;
+    private final MqConsumeDelayRecorder mqConsumeDelayRecorder;
 
     @Autowired
-    public CrontabEventListener(CronJobService cronJobService, QuartzService quartzService) {
+    public CrontabEventListener(CronJobService cronJobService,
+                                QuartzService quartzService,
+                                MqConsumeDelayRecorder mqConsumeDelayRecorder
+    ) {
         this.cronJobService = cronJobService;
         this.quartzService = quartzService;
+        this.mqConsumeDelayRecorder = mqConsumeDelayRecorder;
     }
 
 
     /**
      * 处理定时任务相关的事件
      *
-     * @param crontabEvent 定时任务相关的事件
+     * @param message 定时任务相关的事件消息
      */
-    public void handleEvent(CrontabEvent crontabEvent) {
+    public void handleEvent(Message<CrontabEvent> message) {
+        mqConsumeDelayRecorder.recordConsumeDelay(
+            MqBindingNames.HANDLE_CRONTAB_FANOUT_EVENT,
+            CrontabEvent.class.getSimpleName(),
+            message
+        );
+        CrontabEvent crontabEvent = message.getPayload();
         log.info("Handle crontab event, event: {}, duration: {}ms", crontabEvent, crontabEvent.duration());
         long appId = crontabEvent.getAppId();
         long cronJobId = crontabEvent.getCronJobId();

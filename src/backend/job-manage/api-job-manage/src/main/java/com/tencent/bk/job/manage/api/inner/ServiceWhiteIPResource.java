@@ -30,15 +30,15 @@ import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.manage.model.inner.ServiceWhiteIPInfo;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@Api(tags = {"job-manage:service:WhiteIP"})
+@Tag(name = "job-manage:service:WhiteIP")
 @SmartFeignClient(value = "job-manage", contextId = "whiteIpResource")
 @InternalAPI
 public interface ServiceWhiteIPResource {
@@ -50,14 +50,14 @@ public interface ServiceWhiteIPResource {
         deprecatedVersion = "3.12.x",
         type = CompatibleType.DEPLOY
     )
-    @ApiOperation(value = "获取白名单内IP详情信息", produces = "application/json")
+    @Operation(summary = "获取白名单内IP详情信息")
     @GetMapping("/service/whiteip/listWhiteIPInfos")
     InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfos();
 
-    @ApiOperation(value = "获取某个租户下白名单内IP详情信息", produces = "application/json")
+    @Operation(summary = "获取某个租户下白名单内IP详情信息")
     @GetMapping("/service/whiteip/listWhiteIPInfosByTenantId")
     InternalResponse<List<ServiceWhiteIPInfo>> listWhiteIPInfosByTenantId(
-        @ApiParam("租户ID")
+        @Parameter(description = "租户ID")
         @RequestParam(value = "tenantId", required = true)
         String tenantId
     );

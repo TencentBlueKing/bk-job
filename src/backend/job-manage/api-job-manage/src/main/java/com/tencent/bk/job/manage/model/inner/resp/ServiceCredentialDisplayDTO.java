@@ -24,28 +24,27 @@
 
 package com.tencent.bk.job.manage.model.inner.resp;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-@ApiModel("凭证")
+@Schema(description = "凭证")
 @AllArgsConstructor
 @Data
 public class ServiceCredentialDisplayDTO {
     /**
      * 主键Id
      */
-    @ApiModelProperty("主键Id")
+    @Schema(description = "主键Id")
     private String id;
     /**
      * 业务Id
      */
-    @ApiModelProperty("业务Id")
+    @Schema(description = "业务Id")
     private Long appId;
     /**
      * 名称
      */
-    @ApiModelProperty("名称")
+    @Schema(description = "名称")
     private String name;
 }

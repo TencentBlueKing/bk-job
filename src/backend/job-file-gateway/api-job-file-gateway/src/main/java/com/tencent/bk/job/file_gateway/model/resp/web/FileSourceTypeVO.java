@@ -24,42 +24,41 @@
 
 package com.tencent.bk.job.file_gateway.model.resp.web;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-@ApiModel("文件源类型")
+@Schema(description = "文件源类型")
 @Data
 public class FileSourceTypeVO {
     /**
      * id
      */
-    @ApiModelProperty("id")
+    @Schema(description = "id")
     private Integer id;
     /**
      * workerId
      */
-    @ApiModelProperty("workerId")
+    @Schema(description = "workerId")
     private Long workerId;
     /**
      * 文件源存储类型
      */
-    @ApiModelProperty("文件源存储类型：FILE_SYSTEM(文件系统),OSS(对象存储)")
+    @Schema(description = "文件源存储类型：FILE_SYSTEM(文件系统),OSS(对象存储)")
     private String storageType;
     /**
      * Code
      */
-    @ApiModelProperty("Code")
+    @Schema(description = "Code")
     private String code;
     /**
      * 名称
      */
-    @ApiModelProperty("名称")
+    @Schema(description = "名称")
     private String name;
     /**
      * 图标
      */
-    @ApiModelProperty("Base64编码的图标")
+    @Schema(description = "Base64编码的图标")
     private String icon;
 }
 

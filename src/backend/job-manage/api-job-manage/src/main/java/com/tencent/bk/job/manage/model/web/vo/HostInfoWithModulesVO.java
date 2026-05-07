@@ -27,8 +27,7 @@ package com.tencent.bk.job.manage.model.web.vo;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.model.web.request.chooser.host.BizTopoNode;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -41,35 +40,35 @@ import java.util.List;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("主机信息")
+@Schema(description = "主机信息")
 @Data
 public class HostInfoWithModulesVO {
 
-    @ApiModelProperty("服务器 ID")
+    @Schema(description = "服务器 ID")
     private Long hostId;
 
-    @ApiModelProperty("主机 IP")
+    @Schema(description = "主机 IP")
     private String ip;
 
-    @ApiModelProperty("展示用的IP，主要针对多内网IP问题")
+    @Schema(description = "展示用的IP，主要针对多内网IP问题")
     private String displayIp;
 
-    @ApiModelProperty("描述")
+    @Schema(description = "描述")
     private String ipDesc;
 
-    @ApiModelProperty("agent 状态 0-异常 1-正常")
+    @Schema(description = "agent 状态 0-异常 1-正常")
     private Integer alive;
 
-    @ApiModelProperty("云区域信息")
+    @Schema(description = "云区域信息")
     private CloudAreaInfoVO cloudAreaInfo;
 
     /**
      * 操作系统
      */
-    @ApiModelProperty("操作系统")
+    @Schema(description = "操作系统")
     private String os;
 
-    @ApiModelProperty("所有模块节点信息")
+    @Schema(description = "所有模块节点信息")
     private List<BizTopoNode> moduleNodes;
 
     public boolean validate(boolean isCreate) {

@@ -30,28 +30,27 @@ import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InvalidParamException;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 @Data
-@ApiModel("执行目标")
+@Schema(description = "执行目标")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Slf4j
 public class TaskTargetVO {
 
-    @ApiModelProperty(value = "全局变量名")
+    @Schema(description = "全局变量名")
     private String variable;
 
-    @ApiModelProperty(value = "主机节点信息, 版本升级之后作废")
+    @Schema(description = "主机节点信息, 版本升级之后作废")
     @Deprecated
     @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY,
         explain = "兼容 API， 发布完成后前端使用 executeObjectsInfo 参数，该参数可删除")
     private TaskHostNodeVO hostNodeInfo;
 
-    @ApiModelProperty(value = "任务执行对象信息")
+    @Schema(description = "任务执行对象信息")
     private TaskExecuteObjectsInfoVO executeObjectsInfo;
 
     public void validate() throws InvalidParamException {
@@ -72,7 +71,7 @@ public class TaskTargetVO {
     }
 
     @JsonIgnore
-    @ApiModelProperty(hidden = true)
+    @Schema(hidden = true)
     public TaskExecuteObjectsInfoVO getExecuteObjectsInfoCompatibly() {
         if (executeObjectsInfo != null) {
             return executeObjectsInfo;

@@ -48,4 +48,6 @@ public class ListNodePageReq extends ArtifactoryReq {
     private Boolean deep = false;
     // 非必传，是否排序输出结果
     private Boolean sort = true;
+    // 非必传，是否查询节点总数，默认为true；在不需要总数的场景设置为false可提升接口性能
+    private Boolean includeTotalRecords;
 }

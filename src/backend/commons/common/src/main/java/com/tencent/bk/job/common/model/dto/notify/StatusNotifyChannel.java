@@ -24,20 +24,19 @@
 
 package com.tencent.bk.job.common.model.dto.notify;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
 
 @Data
-@ApiModel("定时任务状态通知渠道")
+@Schema(description = "定时任务状态通知渠道")
 public class StatusNotifyChannel {
 
-    @ApiModelProperty(value = "资源状态Code（SUCCESS/FAIL）", required = true)
+    @Schema(description = "资源状态Code（SUCCESS/FAIL）", required = true)
     private ExecuteStatusEnum executeStatus;
 
-    @ApiModelProperty(value = "通知渠道Code列表", required = true)
+    @Schema(description = "通知渠道Code列表", required = true)
     private List<String> channelList;
 }

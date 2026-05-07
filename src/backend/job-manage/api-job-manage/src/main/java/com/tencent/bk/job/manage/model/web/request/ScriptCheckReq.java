@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -33,10 +32,10 @@ import lombok.Data;
  */
 
 @Data
-@ApiModel("脚本检查请求报文")
+@Schema(description = "脚本检查请求报文")
 public class ScriptCheckReq {
-    @ApiModelProperty(value = "脚本内容，需要base64编码", required = true)
+    @Schema(description = "脚本内容，需要base64编码", required = true)
     private String content;
-    @ApiModelProperty(value = "脚本类型，1：Shell，2：Bat，3：Python，4：Perl，5：Powershell，6：SQL", required = true)
+    @Schema(description = "脚本类型，1：Shell，2：Bat，3：Python，4：Perl，5：Powershell，6：SQL", required = true)
     private Integer scriptType;
 }

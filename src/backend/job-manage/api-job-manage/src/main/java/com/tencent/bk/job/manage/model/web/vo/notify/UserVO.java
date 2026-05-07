@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.notify;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,15 +34,15 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("用户信息")
+@Schema(description = "用户信息")
 @Data
 public class UserVO {
-    @ApiModelProperty("英文名")
+    @Schema(description = "英文名")
     private String englishName;
-    @ApiModelProperty("中文名")
+    @Schema(description = "中文名")
     private String chineseName;
-    @ApiModelProperty("base64编码的图标")
+    @Schema(description = "base64编码的图标")
     private String logo;
-    @ApiModelProperty("是否启用")
+    @Schema(description = "是否启用")
     private Boolean enable;
 }

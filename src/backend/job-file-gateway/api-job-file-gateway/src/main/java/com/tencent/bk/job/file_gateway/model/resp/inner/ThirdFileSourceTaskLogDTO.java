@@ -25,15 +25,14 @@
 package com.tencent.bk.job.file_gateway.model.resp.inner;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-@ApiModel("第三方文件源文件下载任务日志")
+@Schema(description = "第三方文件源文件下载任务日志")
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ThirdFileSourceTaskLogDTO implements Serializable {
@@ -43,13 +42,13 @@ public class ThirdFileSourceTaskLogDTO implements Serializable {
     /**
      * 文件源下载任务ID
      */
-    @ApiModelProperty("文件源下载任务ID")
+    @Schema(description = "文件源下载任务ID")
     private String taskId;
 
     /**
      * 任务执行所在的file-worker的cloudIp
      */
-    @ApiModelProperty(value = "任务执行所在的file-worker的云区域ID:IP")
+    @Schema(description = "任务执行所在的file-worker的云区域ID:IP")
     private String ip;
 
     /**

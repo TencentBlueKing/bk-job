@@ -34,7 +34,8 @@ public enum KubeTopoNodeTypeEnum {
     DAEMON_SET("daemonSet"),
     STATEFUL_SET("statefulSet"),
     CRON_JOB("cronJob"),
-    JOB("job");
+    JOB("job"),
+    CUSTOM_RESOURCE("customResource");
 
     private final String value;
 

@@ -18,13 +18,19 @@ on:
 jobs:
   # This workflow contains two jobs called "buildCE" and "buildEE"
   buildCE:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    # 固定 Ubuntu 22.04: 嵌入式 MongoDB 4.0.0 通用二进制需要与 glibc/libssl 版本兼容
+    runs-on: ubuntu-22.04
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      - name: Install libssl1.1 for embedded MongoDB 4.0
+        run: |
+          echo "deb http://security.ubuntu.com/ubuntu focal-security main" | sudo tee /etc/apt/sources.list.d/focal-security.list
+          sudo apt-get update
+          sudo apt-get install -y libssl1.1
+          sudo rm /etc/apt/sources.list.d/focal-security.list
       - name: init mysql
         run: |
           sudo /etc/init.d/mysql start

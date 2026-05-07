@@ -25,32 +25,31 @@
 package com.tencent.bk.job.execute.model.web.vo;
 
 import com.tencent.bk.job.common.model.vo.TaskTargetVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
-@ApiModel("全局变量信息")
+@Schema(description = "全局变量信息")
 public class ExecuteVariableVO {
 
-    @ApiModelProperty(value = "变量 ID")
+    @Schema(description = "变量 ID")
     private Long id;
 
-    @ApiModelProperty(value = "变量名")
+    @Schema(description = "变量名")
     private String name;
 
-    @ApiModelProperty(value = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码 5-关联数组 6-索引数组")
+    @Schema(description = "变量类型 1-字符串 2-命名空间 3-主机列表 4-密码 5-关联数组 6-索引数组")
     private Integer type;
 
-    @ApiModelProperty(value = "变量值")
+    @Schema(description = "变量值")
     private String value;
 
-    @ApiModelProperty(value = "主机变量值，当变量类型为主机列表的时有效")
+    @Schema(description = "主机变量值，当变量类型为主机列表的时有效")
     private TaskTargetVO targetValue;
 
-    @ApiModelProperty(value = "赋值可变 0-不可变 1-可变")
+    @Schema(description = "赋值可变 0-不可变 1-可变")
     private Integer changeable;
 
-    @ApiModelProperty(value = "必填 0-非必填 1-必填")
+    @Schema(description = "必填 0-非必填 1-必填")
     private Integer required;
 }

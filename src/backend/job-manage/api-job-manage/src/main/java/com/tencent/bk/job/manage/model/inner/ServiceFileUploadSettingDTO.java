@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.inner;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,16 +36,16 @@ import java.util.List;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("文件上传配置")
+@Schema(description = "文件上传配置")
 @Data
 public class ServiceFileUploadSettingDTO {
-    @ApiModelProperty("数量")
+    @Schema(description = "数量")
     private Float amount;
-    @ApiModelProperty("单位")
+    @Schema(description = "单位")
     private String unit;
-    @ApiModelProperty("限制模式，0:禁止范围，1：允许范围")
+    @Schema(description = "限制模式，0:禁止范围，1：允许范围")
     private Integer restrictMode;
-    @ApiModelProperty("后缀列表")
+    @Schema(description = "后缀列表")
     private List<String> suffixList;
 
 }

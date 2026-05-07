@@ -182,11 +182,11 @@ public class AppAuthServiceImpl extends BasicAuthService implements AppAuthServi
         List<String> notAllowResourceIds =
             resources.stream().filter(resource -> !allowResourceIds.contains(resource.getResourceId()))
                 .map(PermissionResource::getResourceId).collect(Collectors.toList());
-        AuthResult authResult = new AuthResult();
+        AuthResult authResult;
         if (!notAllowResourceIds.isEmpty()) {
             authResult = buildFailAuthResult(user, actionId, resourceType, notAllowResourceIds);
         } else {
-            authResult.setPass(true);
+            authResult = AuthResult.pass(user);
         }
         return authResult;
     }

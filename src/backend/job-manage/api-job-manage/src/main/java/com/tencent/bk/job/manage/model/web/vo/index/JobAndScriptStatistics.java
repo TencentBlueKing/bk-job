@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.index;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,11 +34,11 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("作业与脚本统计数据")
+@Schema(description = "作业与脚本统计数据")
 @Data
 public class JobAndScriptStatistics {
-    @ApiModelProperty("作业数")
+    @Schema(description = "作业数")
     private Long jobNum;
-    @ApiModelProperty("脚本数")
+    @Schema(description = "脚本数")
     private Long scriptNum;
 }

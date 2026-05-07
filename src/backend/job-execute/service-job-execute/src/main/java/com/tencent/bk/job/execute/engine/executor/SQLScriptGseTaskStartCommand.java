@@ -151,7 +151,9 @@ public class SQLScriptGseTaskStartCommand extends ScriptGseTaskStartCommand {
         } else {
             sb.append(" EMPTY");
         }
-        return scriptFilePath + "/" + sqlScriptFileName + " " + sb.toString();
+        // 容器执行时需要添加路径前缀
+        String pathPrefix = isContainerExecute() ? getContainerPathPrefix() : "";
+        return pathPrefix + scriptFilePath + "/" + sqlScriptFileName + " " + sb.toString();
     }
 
 }

@@ -24,7 +24,7 @@
 
 package com.tencent.bk.job.file.worker.model.req;
 
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -35,7 +35,7 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel
+@Schema
 @EqualsAndHashCode(callSuper = true)
 public class ExecuteActionReq extends BaseReq {
 

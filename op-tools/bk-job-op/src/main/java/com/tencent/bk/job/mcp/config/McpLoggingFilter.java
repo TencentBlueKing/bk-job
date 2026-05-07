@@ -104,9 +104,9 @@ public class McpLoggingFilter extends OncePerRequestFilter {
             String contentType = response.getContentType();
             int status = response.getStatus();
             
-            // 对于 SSE 流式响应，只记录状态信息
+            // 对于流式响应，只记录状态信息
             if (contentType != null && contentType.contains("text/event-stream")) {
-                log.info("[response] uri: {}, status: {}, contentType: {} (SSE stream, body not captured)", 
+                log.info("[response] uri: {}, status: {}, contentType: {} (streaming response, body not captured)", 
                         uri, status, contentType);
             } else {
                 // 对于普通响应，记录完整响应体

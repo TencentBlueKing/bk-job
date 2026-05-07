@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.common.model.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -33,12 +32,12 @@ import java.util.Map;
 
 @NoArgsConstructor
 @Data
-@ApiModel("动态分组ID及元数据")
+@Schema(description = "动态分组ID及元数据")
 public class DynamicGroupIdWithMeta {
-    @ApiModelProperty(value = "动态分组ID", required = true)
+    @Schema(description = "动态分组ID", required = true)
     String id;
 
-    @ApiModelProperty(value = "动态分组元数据")
+    @Schema(description = "动态分组元数据")
     Map<String, Object> meta;
 
     public DynamicGroupIdWithMeta(String id) {

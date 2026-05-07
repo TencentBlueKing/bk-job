@@ -54,7 +54,7 @@ public class McpGlobalExceptionHandler {
         String uri = request.getRequestURI();
         
         // 只处理MCP相关的请求
-        if (!uri.startsWith("/mcp") && !uri.startsWith("/sse")) {
+        if (!uri.startsWith("/mcp")) {
             // 对于非MCP请求，重新抛出异常让其他处理器处理
             throw new RuntimeException(ex);
         }
@@ -87,7 +87,7 @@ public class McpGlobalExceptionHandler {
         String uri = request.getRequestURI();
         
         // 只处理MCP相关的请求
-        if (!uri.startsWith("/mcp") && !uri.startsWith("/sse")) {
+        if (!uri.startsWith("/mcp")) {
             throw new RuntimeException(ex);
         }
 

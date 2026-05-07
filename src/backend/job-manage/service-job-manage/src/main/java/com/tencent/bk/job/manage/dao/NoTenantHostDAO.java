@@ -186,6 +186,16 @@ public interface NoTenantHostDAO {
 
     int syncHostTopo(Long hostId);
 
+    /**
+     * 批量同步主机拓扑数据至主机表冗余字段。
+     * 按批次遍历 hostId，逐个调用 syncHostTopo 进行刷新；
+     * 单个 hostId 失败时记录 WARN 日志，不中断批处理。
+     *
+     * @param hostIds 需要刷新拓扑冗余字段的主机ID集合
+     * @return 成功同步的主机数量
+     */
+    int batchSyncHostTopo(Collection<Long> hostIds);
+
 
     // 删除类操作
     int deleteHostBeforeOrEqualLastTime(Long bizId, Long hostId, Long lastTime);

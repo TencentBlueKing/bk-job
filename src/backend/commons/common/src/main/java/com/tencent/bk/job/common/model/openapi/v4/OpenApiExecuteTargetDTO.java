@@ -34,7 +34,7 @@ import com.tencent.bk.job.common.validation.ExecuteTargetNotEmpty;
 import lombok.Data;
 import org.apache.commons.collections.CollectionUtils;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 
 /**

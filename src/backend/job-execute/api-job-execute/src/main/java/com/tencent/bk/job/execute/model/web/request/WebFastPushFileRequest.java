@@ -31,28 +31,27 @@ import com.tencent.bk.job.execute.model.web.vo.ExecuteFileDestinationInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.ExecuteFileSourceInfoVO;
 import com.tencent.bk.job.execute.model.web.vo.RollingConfigVO;
 import com.tencent.bk.job.execute.validation.ValidTimeoutLimit;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 /**
  * 分发文件请求报文
  */
 @Data
-@ApiModel("分发文件请求报文")
+@Schema(description = "分发文件请求报文")
 public class WebFastPushFileRequest {
     /**
      * 文件分发任务名称
      */
-    @ApiModelProperty(value = "文件分发作业名称", required = true)
+    @Schema(description = "文件分发作业名称", required = true)
     private String name;
     /**
      * 文件来源
      */
-    @ApiModelProperty(value = "源文件", required = true)
+    @Schema(description = "源文件", required = true)
     private List<ExecuteFileSourceInfoVO> fileSourceList;
 
     /**
@@ -63,33 +62,33 @@ public class WebFastPushFileRequest {
     /**
      * 上传限速-MB
      */
-    @ApiModelProperty(value = "上传限速-MB")
+    @Schema(description = "上传限速-MB")
     private Integer uploadSpeedLimit;
 
     /**
      * 下载限速-MB
      */
-    @ApiModelProperty(value = "下载限速-MB")
+    @Schema(description = "下载限速-MB")
     private Integer downloadSpeedLimit;
 
     /**
      * 超时时间，单位秒
      */
-    @ApiModelProperty(value = "超时时间，单位秒", required = true)
+    @Schema(description = "超时时间，单位秒", required = true)
     @NotNull(message = "{validation.constraints.InvalidJobTimeout_empty.message}")
     @ValidTimeoutLimit
     private Integer timeout;
 
-    @ApiModelProperty(value = "是否启用滚动执行")
+    @Schema(description = "是否启用滚动执行")
     private boolean rollingEnabled;
 
-    @ApiModelProperty(value = "滚动配置, 滚动执行需要传入")
+    @Schema(description = "滚动配置, 滚动执行需要传入")
     private RollingConfigVO rollingConfig;
 
     /**
      * 传输模式
      */
-    @ApiModelProperty(value = "传输模式： 1 - 严谨模式； 2 - 强制模式；3 - 保险模式(FILESRCIP)； 4 - 保险模式(YYYY-MM-DD)", required = true)
+    @Schema(description = "传输模式： 1 - 严谨模式； 2 - 强制模式；3 - 保险模式(FILESRCIP)； 4 - 保险模式(YYYY-MM-DD)", required = true)
     private Integer transferMode;
 
     public Integer getDuplicateHandler() {

@@ -26,27 +26,26 @@ package com.tencent.bk.job.analysis.model.web.resp;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.tencent.bk.job.common.util.json.SecondToMillisSerializer;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel("用户提问")
+@Schema(description = "用户提问")
 @Data
 public class UserInput {
     /**
      * 内容
      */
-    @ApiModelProperty(value = "内容")
+    @Schema(description = "内容")
     private String content;
 
     /**
      * 提问时间
      */
-    @ApiModelProperty("提问时间，单位毫秒")
+    @Schema(description = "提问时间，单位毫秒")
     @JsonSerialize(using = SecondToMillisSerializer.class)
     private Long time;
 }

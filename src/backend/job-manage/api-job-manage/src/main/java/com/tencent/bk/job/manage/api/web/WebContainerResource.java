@@ -35,9 +35,9 @@ import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerDe
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ContainerIdWithMeta;
 import com.tencent.bk.job.manage.model.web.request.chooser.container.ListContainerByTopologyNodesReq;
 import com.tencent.bk.job.manage.model.web.vo.chooser.container.ContainerTopologyNodeVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -45,122 +45,122 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import springfox.documentation.annotations.ApiIgnore;
+import io.swagger.v3.oas.annotations.Hidden;
 
 import java.util.List;
 
 /**
  * 容器管理 WEB API
  */
-@Api(tags = "job-manage:web:Container_Management")
+@Tag(name = "job-manage:web:Container_Management")
 @RequestMapping("/web/scope/{scopeType}/{scopeId}/")
 @RestController
 @WebAPI
 public interface WebContainerResource {
 
     // 容器选择器标准接口-1
-    @ApiOperation(value = "获取容器拓扑树（含各节点容器数）", produces = "application/json")
+    @Operation(summary = "获取容器拓扑树（含各节点容器数）")
     @PostMapping(value = {"/topology/container"})
     Response<List<ContainerTopologyNodeVO>> listTopologyTrees(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "资源范围信息")
+        @Parameter(description = "资源范围信息")
         @RequestBody(required = false)
             ListTopologyTreesReq req
     );
 
     // 容器选择器标准接口-2
-    @ApiOperation(value = "容器选择器根据拓扑节点集合获取容器列表", produces = "application/json")
+    @Operation(summary = "容器选择器根据拓扑节点集合获取容器列表")
     @PostMapping(value = {"/topology/containers/nodes"})
     Response<PageData<ContainerVO>> listContainerByTopologyNodes(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "拓扑节点集合与分页信息", required = true)
+        @Parameter(description = "拓扑节点集合与分页信息", required = true)
         @RequestBody
             ListContainerByTopologyNodesReq req
     );
 
     // 容器选择器标准接口-3
-    @ApiOperation(value = "容器选择器根据拓扑节点集合获取容器资源ID列表，用于跨页全选容器功能"
-        , produces = "application/json")
+    @Operation(summary = "容器选择器根据拓扑节点集合获取容器资源ID列表，用于跨页全选容器功能"
+        )
     @PostMapping(value = {"/topology/containerIds/nodes"})
     Response<PageData<ContainerIdWithMeta>> listContainerIdByTopologyNodes(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "拓扑节点集合与分页信息", required = true)
+        @Parameter(description = "拓扑节点集合与分页信息", required = true)
         @RequestBody
             ListContainerByTopologyNodesReq req
     );
 
 
     // 容器选择器标准接口-4
-    @ApiOperation(value = "根据用户选择/输入的容器信息获取容器")
+    @Operation(summary = "根据用户选择/输入的容器信息获取容器")
     @PostMapping(value = {"/container/check"})
     Response<List<ContainerVO>> checkContainers(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "用户选择/输入的容器信息", required = true)
+        @Parameter(description = "用户选择/输入的容器信息", required = true)
         @RequestBody
             ContainerCheckReq req
     );
 
     // 容器选择器标准接口-5
-    @ApiOperation(value = "根据容器资源 ID批量查询容器详情信息")
+    @Operation(summary = "根据容器资源 ID批量查询容器详情信息")
     @PostMapping(value = {"/containers/details"})
     Response<List<ContainerVO>> getContainerDetails(
-        @ApiParam("用户名，网关自动传入")
+        @Parameter(description = "用户名，网关自动传入")
         @RequestHeader("username")
             String username,
-        @ApiIgnore
+        @Parameter(hidden = true)
         @RequestAttribute(value = "appResourceScope")
             AppResourceScope appResourceScope,
-        @ApiParam(value = "资源范围类型", required = true)
+        @Parameter(description = "资源范围类型", required = true)
         @PathVariable(value = "scopeType")
             String scopeType,
-        @ApiParam(value = "资源范围ID", required = true)
+        @Parameter(description = "资源范围ID", required = true)
         @PathVariable(value = "scopeId")
             String scopeId,
-        @ApiParam(value = "容器ID及元数据信息", required = true)
+        @Parameter(description = "容器ID及元数据信息", required = true)
         @RequestBody
             ContainerDetailReq req
     );

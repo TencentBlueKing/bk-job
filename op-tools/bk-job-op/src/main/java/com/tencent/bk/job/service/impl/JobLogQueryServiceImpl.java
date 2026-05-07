@@ -31,7 +31,10 @@ import com.tencent.bk.job.service.api.bklog.LogQueryReq;
 import com.tencent.bk.job.service.api.bklog.LogQueryResp;
 import com.tencent.bk.job.service.model.PageData;
 import com.tencent.bk.job.service.model.SimpleLogDTO;
+import com.tencent.bk.job.utils.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -52,7 +55,8 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
     }
 
     @Override
-    public PageData<SimpleLogDTO> queryLogs(String queryString,
+    public PageData<SimpleLogDTO> queryLogs(String source,
+                                            String queryString,
                                             String timeRange,
                                             String startTime,
                                             String endTime,
@@ -60,23 +64,24 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
                                             Integer size,
                                             Boolean asc) {
         try {
-            LogQueryReq logQueryReq = buildLogQueryReq(queryString, timeRange, startTime, endTime, start, size);
+            BkLogProperties.LogSource logSource = bkLogProperties.getSource(source);
+            LogQueryReq logQueryReq = buildLogQueryReq(
+                logSource, queryString, timeRange, startTime, endTime, start, size);
 
-            fillReqWithTimeSort(logQueryReq, asc);
-            
+            fillReqWithSortField(logQueryReq, logSource.getSortField(), asc);
+
             LogQueryResp logQueryResp = bkLogApi.logSearch(logQueryReq);
 
-            // 总记录数
             Integer total = 0;
             if (logQueryResp != null && logQueryResp.getHits() != null) {
                 total = logQueryResp.getHits().getTotal();
             }
-            
+
             List<SimpleLogDTO> data = convertToSimpleLogDTOs(logQueryResp);
-            
+
             return new PageData<>(total, start, size, data);
         } catch (Exception e) {
-            log.error("query job log with pagination fail ", e);
+            log.error("query job log with pagination fail, source={}", source, e);
             throw new RuntimeException("query job log with pagination fail", e);
         }
     }
@@ -84,22 +89,32 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
     /**
      * 构建LogQueryReq对象
      */
-    private LogQueryReq buildLogQueryReq(String queryString,
+    private LogQueryReq buildLogQueryReq(BkLogProperties.LogSource logSource,
+                                         String queryString,
                                          String timeRange,
                                          String startTime,
                                          String endTime,
                                          Integer start,
                                          Integer size) {
         LogQueryReq logQueryReq = new LogQueryReq();
-        
-        // 查job的日志，从配置文件读取索引相关信息
-        logQueryReq.setIndices(bkLogProperties.getIndices());
-        logQueryReq.setIndexSetId(bkLogProperties.getIndexSetId());
 
-        logQueryReq.setStartTime(startTime);
-        logQueryReq.setEndTime(endTime);
-        logQueryReq.setUseTimeRange(startTime != null && endTime != null);
-        logQueryReq.setTimeRange(timeRange);
+        logQueryReq.setIndices(logSource.getIndices());
+        logQueryReq.setIndexSetId(logSource.getIndexSetId());
+
+        String startTimeStr = startTime;
+        String endTimeStr = endTime;
+
+        // 优先使用timeRange，转化为毫秒时间戳的startTime和endTime
+        if (StringUtils.isNotBlank(timeRange)) {
+            Pair<Long, Long> startAndEndTime = TimeUtils.getTimesByRelativeTimeFromNow(timeRange);
+            startTimeStr = String.valueOf(startAndEndTime.getLeft());
+            endTimeStr = String.valueOf(startAndEndTime.getRight());
+        }
+
+        // 日志平台openAPI接口只能识别预定义对几个值，所以使用更通用的startTime和endTime
+        logQueryReq.setStartTime(startTimeStr);
+        logQueryReq.setEndTime(endTimeStr);
+        logQueryReq.setUseTimeRange(true);
         logQueryReq.setQueryString(queryString);
         
         // 设置分页参数
@@ -111,15 +126,19 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
 
     /**
      * 添加排序字段，默认降序
+     *
      * @param logQueryReq 请求
-     * @param orderByAsc 是否升序
+     * @param sortField   排序字段
+     * @param orderByAsc  是否升序
      */
-    private void fillReqWithTimeSort(LogQueryReq logQueryReq, Boolean orderByAsc) {
+    private void fillReqWithSortField(LogQueryReq logQueryReq, String sortField, Boolean orderByAsc) {
         List<List<String>> sorts = new ArrayList<>();
         String orderStr = Boolean.TRUE.equals(orderByAsc) ? "asc" : "desc";
-        sorts.add(List.of("log_time", orderStr));
+        if (StringUtils.isBlank(sortField)) {
+            sortField = "log_time";
+        }
+        sorts.add(List.of(sortField, orderStr));
         logQueryReq.setSortList(sorts);
-
     }
 
     /**
@@ -127,8 +146,8 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
      */
     private List<SimpleLogDTO> convertToSimpleLogDTOs(LogQueryResp logQueryResp) {
         List<SimpleLogDTO> simpleLogs = new ArrayList<>();
-        
-        if (logQueryResp == null || logQueryResp.getHits() == null || 
+
+        if (logQueryResp == null || logQueryResp.getHits() == null ||
             logQueryResp.getHits().getHits() == null) {
             return simpleLogs;
         }
@@ -139,7 +158,7 @@ public class JobLogQueryServiceImpl implements JobLogQueryService {
                 simpleLogs.add(simpleLog);
             }
         }
-        
+
         return simpleLogs;
     }
 

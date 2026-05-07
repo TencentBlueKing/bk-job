@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo.index;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,13 +34,13 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@ApiModel("带时间的问候语")
+@Schema(description = "带时间的问候语")
 @Data
 public class GreetingVO {
-    @ApiModelProperty("Id")
+    @Schema(description = "Id")
     private Long id;
-    @ApiModelProperty("内容")
+    @Schema(description = "内容")
     private String content;
-    @ApiModelProperty("优先级")
+    @Schema(description = "优先级")
     private int priority;
 }

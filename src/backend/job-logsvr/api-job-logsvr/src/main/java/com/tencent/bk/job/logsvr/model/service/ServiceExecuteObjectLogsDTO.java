@@ -28,13 +28,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.annotation.CompatibleImplementation;
 import com.tencent.bk.job.common.constant.CompatibleType;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
-@ApiModel("执行对象执行日志-批量")
+@Schema(description = "执行对象执行日志-批量")
 @Data
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @CompatibleImplementation(name = "execute_object", deprecatedVersion = "3.9.x", type = CompatibleType.DEPLOY)
@@ -42,19 +41,19 @@ public class ServiceExecuteObjectLogsDTO {
     /**
      * 作业步骤实例ID
      */
-    @ApiModelProperty("步骤实例ID")
+    @Schema(description = "步骤实例ID")
     private Long stepInstanceId;
 
     /**
      * 执行次数
      */
-    @ApiModelProperty("执行次数")
+    @Schema(description = "执行次数")
     private Integer executeCount;
 
     /**
      * 执行对象执行日志列表
      */
-    @ApiModelProperty(value = "执行对象执行日志列表")
+    @Schema(description = "执行对象执行日志列表")
     @JsonProperty("ipLogs")
     private List<ServiceExecuteObjectLogDTO> ipLogs;
 

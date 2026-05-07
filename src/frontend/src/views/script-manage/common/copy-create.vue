@@ -31,6 +31,7 @@
       {{ $t('script.新建脚本') }}
     </div>
     <template slot="sub-header">
+      <ai-tool :data="formData" />
       <icon
         v-bk-tooltips="$t('上传脚本')"
         v-test="{ type: 'button', value: 'uploadScript' }"
@@ -82,9 +83,9 @@
     </div>
     <div ref="content">
       <jb-form :model="formData">
-        <ace-editor
+        <monaco-editor
           v-if="contentHeight > 0"
-          ref="aceEditor"
+          ref="monacoEditor"
           v-model="formData.content"
           :height="contentHeight"
           :lang="formData.typeName"
@@ -133,11 +134,12 @@
   import { debugScriptCache } from '@utils/cache-helper';
   import { scriptVersionRule } from '@utils/validator';
 
-  import AceEditor from '@components/ace-editor';
   import JbInput from '@components/jb-input';
+  import MonacoEditor from '@components/monaco-editor';
 
   import I18n from '@/i18n';
 
+  import AiTool from './components/ai-tool';
   import Layout from './components/layout';
 
   const genDefaultFormData = () => ({
@@ -153,8 +155,9 @@
     name: '',
     components: {
       JbInput,
-      AceEditor,
+      MonacoEditor,
       Layout,
+      AiTool,
     },
     inheritAttrs: false,
     props: {
@@ -272,13 +275,13 @@
         this.contentHeight = window.innerHeight - contentOffsetTop - 66;
       },
       handleUploadScript() {
-        this.$refs.aceEditor.handleUploadScript();
+        this.$refs.monacoEditor.handleUploadScript();
       },
       handleShowHistory() {
-        this.$refs.aceEditor.handleShowHistory();
+        this.$refs.monacoEditor.handleShowHistory();
       },
       handleFullScreen() {
-        this.$refs.aceEditor.handleFullScreen();
+        this.$refs.monacoEditor.handleFullScreen();
       },
       /**
        * @desc 脚本版本修改

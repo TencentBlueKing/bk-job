@@ -25,8 +25,7 @@
 package com.tencent.bk.job.manage.model.web.request.chooser.container;
 
 import com.tencent.bk.job.manage.model.web.vo.chooser.container.ContainerTopologyNodeVO;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -38,28 +37,28 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-@ApiModel("通过拓扑节点集合获取容器集合")
+@Schema(description = "通过拓扑节点集合获取容器集合")
 public class ListContainerByTopologyNodesReq {
 
-    @ApiModelProperty(value = "拓扑节点列表", required = true)
+    @Schema(description = "拓扑节点列表", required = true)
     private List<ContainerTopologyNodeVO> nodeList;
 
-    @ApiModelProperty(value = "筛选条件：容器ID列表")
+    @Schema(description = "筛选条件：容器ID列表")
     private List<String> containerUidList;
 
-    @ApiModelProperty(value = "筛选条件：容器名称列表, 支持模糊检索")
+    @Schema(description = "筛选条件：容器名称列表, 支持模糊检索")
     private List<String> containerNameKeywordList;
 
-    @ApiModelProperty(value = "筛选条件：Pod名称列表, 支持模糊检索")
+    @Schema(description = "筛选条件：Pod名称列表, 支持模糊检索")
     private List<String> podNameKeywordList;
 
-    @ApiModelProperty(value = "筛选条件：Pod label")
+    @Schema(description = "筛选条件：Pod label")
     private Map<String, String> podLabels;
 
-    @ApiModelProperty(value = "数据起始位置")
+    @Schema(description = "数据起始位置")
     private Integer start;
 
-    @ApiModelProperty(value = "拉取数量")
+    @Schema(description = "拉取数量")
     private Integer pageSize;
 
     /**

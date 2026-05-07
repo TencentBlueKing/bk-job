@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request.chooser.host;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -33,11 +32,11 @@ import java.util.Map;
 
 @AllArgsConstructor
 @Data
-@ApiModel("主机ID及元数据")
+@Schema(description = "主机ID及元数据")
 public class HostIdWithMeta {
-    @ApiModelProperty(value = "主机HostId", required = true)
+    @Schema(description = "主机HostId", required = true)
     Long hostId;
 
-    @ApiModelProperty(value = "主机元数据")
+    @Schema(description = "主机元数据")
     Map<String, Object> meta;
 }

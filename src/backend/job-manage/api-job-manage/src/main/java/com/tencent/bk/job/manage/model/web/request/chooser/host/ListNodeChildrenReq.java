@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.request.chooser.host;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 /**
@@ -34,15 +33,15 @@ import lombok.Data;
  * @Version 1.0
  */
 @Data
-@ApiModel("通过拓扑节点获取子节点")
+@Schema(description = "通过拓扑节点获取子节点")
 public class ListNodeChildrenReq {
 
-    @ApiModelProperty(value = "业务拓扑节点", required = true)
+    @Schema(description = "业务拓扑节点", required = true)
     BizTopoNode appTopoNode;
 
-    @ApiModelProperty(value = "数据起始位置", required = false)
+    @Schema(description = "数据起始位置", required = false)
     Long offset;
 
-    @ApiModelProperty(value = "拉取数量", required = false)
+    @Schema(description = "拉取数量", required = false)
     Long limit;
 }

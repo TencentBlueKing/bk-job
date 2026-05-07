@@ -26,8 +26,8 @@ package com.tencent.bk.job.execute.api.op;
 
 import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.execute.model.op.SwitchStatusReq;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,16 +37,16 @@ import java.util.List;
 import java.util.Map;
 
 
-@Api(tags = {"job-execute:OP:主机拓扑路径服务操作接口"})
+@Tag(name = "job-execute:OP:主机拓扑路径服务操作接口")
 @RequestMapping("/op/topoPath")
 @RestController
 public interface SwitchableTopoPathResource {
 
-    @ApiOperation(value = "根据hostId获取主机拓扑路径信息", produces = "application/json")
+    @Operation(summary = "根据hostId获取主机拓扑路径信息")
     @PostMapping("/batchGet")
     Response<Map<String, List<String>>> getTopoPathByHostIds(@RequestBody List<String> hostIdList);
 
-    @ApiOperation(value = "切换主机拓扑路径服务状态", produces = "application/json")
+    @Operation(summary = "切换主机拓扑路径服务状态")
     @PostMapping("/switch")
     Response<Boolean> switchStatus(@RequestBody SwitchStatusReq req);
 }

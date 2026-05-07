@@ -26,8 +26,7 @@ package com.tencent.bk.job.backup.model.req;
 
 import com.tencent.bk.job.backup.model.web.BackupTemplateInfoVO;
 import com.tencent.bk.job.common.util.JobContextUtil;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,13 +37,13 @@ import java.util.List;
  * @since 23/7/2020 10:48
  */
 @Data
-@ApiModel("作业导入请求")
+@Schema(description = "作业导入请求")
 public class ImportRequest {
 
     /**
      * 重名时添加的后缀
      */
-    @ApiModelProperty(value = "重名后缀", required = true)
+    @Schema(description = "重名后缀", required = true)
     private String duplicateSuffix;
 
     /**
@@ -52,7 +51,7 @@ public class ImportRequest {
      *
      * @see com.tencent.bk.job.backup.constant.DuplicateIdHandlerEnum
      */
-    @ApiModelProperty(value = "冲突 ID 处理，0-不保留，自增 1-保留，冲突时自增 2-保留，冲突时不导入", required = true)
+    @Schema(description = "冲突 ID 处理，0-不保留，自增 1-保留，冲突时自增 2-保留，冲突时不导入", required = true)
     private Integer duplicateIdHandler;
 
     /**
@@ -60,7 +59,7 @@ public class ImportRequest {
      *
      * @see BackupTemplateInfoVO
      */
-    @ApiModelProperty(value = "需要导入的模版信息", required = true)
+    @Schema(description = "需要导入的模版信息", required = true)
     private List<BackupTemplateInfoVO> templateInfo;
 
     public boolean validate() {

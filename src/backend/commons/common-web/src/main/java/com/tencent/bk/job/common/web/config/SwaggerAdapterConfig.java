@@ -24,62 +24,28 @@
 
 package com.tencent.bk.job.common.web.config;
 
-import org.springframework.boot.actuate.autoconfigure.endpoint.web.CorsEndpointProperties;
-import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
-import org.springframework.boot.actuate.autoconfigure.web.server.ManagementPortType;
-import org.springframework.boot.actuate.endpoint.ExposableEndpoint;
-import org.springframework.boot.actuate.endpoint.web.EndpointLinksResolver;
-import org.springframework.boot.actuate.endpoint.web.EndpointMapping;
-import org.springframework.boot.actuate.endpoint.web.EndpointMediaTypes;
-import org.springframework.boot.actuate.endpoint.web.ExposableWebEndpoint;
-import org.springframework.boot.actuate.endpoint.web.WebEndpointsSupplier;
-import org.springframework.boot.actuate.endpoint.web.annotation.ControllerEndpointsSupplier;
-import org.springframework.boot.actuate.endpoint.web.annotation.ServletEndpointsSupplier;
-import org.springframework.boot.actuate.endpoint.web.servlet.WebMvcEndpointHandlerMapping;
+import io.swagger.v3.oas.models.servers.Server;
+import org.springdoc.core.customizers.OpenApiCustomizer;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @Configuration
 public class SwaggerAdapterConfig {
 
     /**
-     * 增加如下配置可解决Spring Boot 6.x 与Swagger 不兼容问题
-     *
-     * <p> 参考官方解决方案: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2
-     * .6-Release-Notes#pathpattern-based-path-matching-strategy-for-spring-mvc </p>
-     **/
+     * 通过网关访问 Swagger UI 时，API 调用需要带上服务名前缀
+     * （网关路由使用 StripPrefix=1 剥离前缀再转发到后端服务）。
+     * 设置 OpenAPI server URL 为 /${appName}，使 Swagger UI
+     * 生成的请求路径包含服务名前缀，如 /job-analysis/op/taskList。
+     */
     @Bean
-    public WebMvcEndpointHandlerMapping webEndpointServletHandlerMapping(WebEndpointsSupplier webEndpointsSupplier,
-                                                                         ServletEndpointsSupplier servletEndpointsSupplier,
-                                                                         ControllerEndpointsSupplier controllerEndpointsSupplier,
-                                                                         EndpointMediaTypes endpointMediaTypes,
-                                                                         CorsEndpointProperties corsProperties,
-                                                                         WebEndpointProperties webEndpointProperties,
-                                                                         Environment environment) {
-        List<ExposableEndpoint<?>> allEndpoints = new ArrayList<>();
-        Collection<ExposableWebEndpoint> webEndpoints = webEndpointsSupplier.getEndpoints();
-        allEndpoints.addAll(webEndpoints);
-        allEndpoints.addAll(servletEndpointsSupplier.getEndpoints());
-        allEndpoints.addAll(controllerEndpointsSupplier.getEndpoints());
-        String basePath = webEndpointProperties.getBasePath();
-        EndpointMapping endpointMapping = new EndpointMapping(basePath);
-        boolean shouldRegisterLinksMapping = this.shouldRegisterLinksMapping(webEndpointProperties, environment,
-            basePath);
-        return new WebMvcEndpointHandlerMapping(endpointMapping, webEndpoints, endpointMediaTypes,
-            corsProperties.toCorsConfiguration(), new EndpointLinksResolver(allEndpoints, basePath),
-            shouldRegisterLinksMapping, null);
-    }
-
-    private boolean shouldRegisterLinksMapping(WebEndpointProperties webEndpointProperties,
-                                               Environment environment,
-                                               String basePath) {
-        return webEndpointProperties.getDiscovery().isEnabled()
-            && (StringUtils.hasText(basePath) || ManagementPortType.get(environment).equals(ManagementPortType.DIFFERENT));
+    public OpenApiCustomizer gatewayServerUrlCustomizer(
+        @Value("${spring.application.name}") String appName) {
+        return openApi -> openApi.servers(List.of(
+            new Server().url("/" + appName).description("Gateway proxy")
+        ));
     }
 }

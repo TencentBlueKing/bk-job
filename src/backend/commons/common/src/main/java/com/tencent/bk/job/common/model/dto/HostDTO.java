@@ -32,16 +32,21 @@ import com.tencent.bk.job.common.model.HostCompositeKey;
 import com.tencent.bk.job.common.model.openapi.v4.OpenApiHostDTO;
 import com.tencent.bk.job.common.model.vo.CloudAreaInfoVO;
 import com.tencent.bk.job.common.model.vo.HostInfoVO;
+import com.tencent.bk.job.common.model.vo.HostTopoPathVO;
 import com.tencent.bk.job.common.util.ip.IpUtils;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 /**
  * 作业执行对象-主机模型
@@ -125,6 +130,11 @@ public class HostDTO implements Cloneable {
      * 所属云厂商名称
      */
     private String cloudVendorName;
+
+    /**
+     * 主机拓扑快照（集群名、模块名），随作业步骤/变量等执行目标 JSON 持久化，供历史展示
+     */
+    private List<HostTopoPathDTO> topoPathList;
 
     /**
      * 管控区域:IPv4
@@ -218,6 +228,11 @@ public class HostDTO implements Cloneable {
         hostInfoVO.setAlive(alive);
         hostInfoVO.setAgentId(agentId);
         hostInfoVO.setCloudVendorName(cloudVendorName);
+        if (CollectionUtils.isNotEmpty(topoPathList)) {
+            hostInfoVO.setTopoPathList(topoPathList.stream()
+                .map(dto -> new HostTopoPathVO(dto.getSetName(), dto.getModuleName()))
+                .collect(Collectors.toList()));
+        }
         return hostInfoVO;
     }
 
@@ -237,6 +252,12 @@ public class HostDTO implements Cloneable {
         hostDTO.setAlive(hostInfoVO.getAgentStatus());
         hostDTO.setOsName(hostInfoVO.getOsName());
         hostDTO.setOsTypeName(hostInfoVO.getOsTypeName());
+        if (CollectionUtils.isNotEmpty(hostInfoVO.getTopoPathList())) {
+            List<HostTopoPathDTO> pathList = hostInfoVO.getTopoPathList().stream()
+                .map(vo -> new HostTopoPathDTO(vo.getSetName(), vo.getModuleName()))
+                .collect(Collectors.toList());
+            hostDTO.setTopoPathList(pathList);
+        }
         return hostDTO;
     }
 
@@ -276,6 +297,11 @@ public class HostDTO implements Cloneable {
         clone.setIp(ip);
         clone.setIpv6(ipv6);
         clone.setAlive(alive);
+        if (CollectionUtils.isNotEmpty(topoPathList)) {
+            List<HostTopoPathDTO> pathClone = new ArrayList<>(topoPathList.size());
+            topoPathList.forEach(p -> pathClone.add(new HostTopoPathDTO(p.getSetName(), p.getModuleName())));
+            clone.setTopoPathList(pathClone);
+        }
         return clone;
     }
 
@@ -335,6 +361,7 @@ public class HostDTO implements Cloneable {
         this.cloudVendorId = host.getCloudVendorId();
         this.cloudVendorName = host.getCloudVendorName();
         this.hostname = host.getHostname();
+        this.topoPathList = host.getTopoPathList();
     }
 
     public OpenApiHostDTO toOpenApiHostDTO() {

@@ -24,21 +24,20 @@
 
 package com.tencent.bk.job.execute.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
 
-@ApiModel("作业实例详情")
+@Schema(description = "作业实例详情")
 @Data
 public class TaskInstanceDetailVO {
-    @ApiModelProperty("作业实例信息")
+    @Schema(description = "作业实例信息")
     private TaskInstanceVO taskInstance;
 
-    @ApiModelProperty("作业实例步骤列表")
+    @Schema(description = "作业实例步骤列表")
     private List<ExecuteStepVO> steps;
 
-    @ApiModelProperty("作业实例全局变量列表")
+    @Schema(description = "作业实例全局变量列表")
     private List<ExecuteVariableVO> variables;
 }

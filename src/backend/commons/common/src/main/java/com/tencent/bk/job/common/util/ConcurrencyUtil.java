@@ -26,8 +26,9 @@ package com.tencent.bk.job.common.util;
 
 import com.tencent.bk.job.common.context.JobContext;
 import com.tencent.bk.job.common.exception.SubThreadException;
+import io.micrometer.context.ContextSnapshot;
+import io.micrometer.context.ContextSnapshotFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.sleuth.instrument.async.TraceableExecutorService;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,9 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * @Description
- * @Date 2020/5/11
- * @Version 1.0
+ * 并发操作工具类
  */
 @Slf4j
 public class ConcurrencyUtil {
@@ -64,10 +63,7 @@ public class ConcurrencyUtil {
         int threadNum,
         Handler<Input, Output> handler
     ) throws SubThreadException {
-        ExecutorService threadPoolExecutor = new TraceableExecutorService(
-            ApplicationContextRegister.getContext(),
-            Executors.newFixedThreadPool(threadNum)
-        );
+        ExecutorService threadPoolExecutor = Executors.newFixedThreadPool(threadNum);
         try {
             return getResultWithThreads(inputCollection, threadPoolExecutor, handler);
         } finally {
@@ -124,12 +120,15 @@ public class ConcurrencyUtil {
         Collection<Output> handle(Input input);
     }
 
+    private static final ContextSnapshotFactory contextSnapshotFactory =
+        ContextSnapshotFactory.builder().build();
+
     static class InnerTask<Input, Output> implements Runnable {
-        //结果队列
         LinkedBlockingQueue<Output> resultQueue;
         Input input;
         JobContext jobContext;
         Handler<Input, Output> handler;
+        ContextSnapshot contextSnapshot;
 
         InnerTask(LinkedBlockingQueue<Output> resultQueue,
                   Input input,
@@ -139,6 +138,7 @@ public class ConcurrencyUtil {
             this.input = input;
             this.jobContext = jobContext;
             this.handler = handler;
+            this.contextSnapshot = contextSnapshotFactory.captureAll();
         }
 
         @Override
@@ -146,7 +146,7 @@ public class ConcurrencyUtil {
             if (jobContext != null) {
                 JobContextUtil.setContext(jobContext);
             }
-            try {
+            try (ContextSnapshot.Scope ignored = contextSnapshot.setThreadLocals()) {
                 resultQueue.addAll(handler.handle(input));
             } catch (Exception e) {
                 log.error("InnerTask fail:", e);

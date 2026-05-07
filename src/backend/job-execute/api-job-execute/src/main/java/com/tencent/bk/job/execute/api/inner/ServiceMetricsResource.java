@@ -30,9 +30,9 @@ import com.tencent.bk.job.common.constant.JobCommonHeaders;
 import com.tencent.bk.job.common.model.InternalResponse;
 import com.tencent.bk.job.execute.model.inner.request.ServiceTriggerStatisticsRequest;
 import com.tentent.bk.job.common.api.feign.annotation.SmartFeignClient;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,50 +41,50 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@Api(tags = {"job-execute:service:Metrics"})
+@Tag(name = "job-execute:service:Metrics")
 @SmartFeignClient(value = "job-execute", contextId = "executeMetricsResource")
 @InternalAPI
 public interface ServiceMetricsResource {
 
-    @ApiOperation(value = "接入（执行过一次任务）的业务Id列表", produces = "application/json")
+    @Operation(summary = "接入（执行过一次任务）的业务Id列表")
     @GetMapping("/app/joined")
     InternalResponse<List<Long>> getJoinedAppIdList(
         @RequestHeader(value = JobCommonHeaders.BK_TENANT_ID, required = false)
         String tenantId
     );
 
-    @ApiOperation(value = "是否有执行记录", produces = "application/json")
+    @Operation(summary = "是否有执行记录")
     @GetMapping("/service/metrics/app/hasExecuteHistory")
     InternalResponse<Boolean> hasExecuteHistory(
-        @ApiParam(value = "业务Id", required = false)
+        @Parameter(description = "业务Id", required = false)
         @RequestParam(value = "appId", required = false) Long appId,
-        @ApiParam(value = "定时任务Id", required = false)
+        @Parameter(description = "定时任务Id", required = false)
         @RequestParam(value = "cronTaskId", required = false) Long cronTaskId,
-        @ApiParam(value = "统计的起始时间", required = false)
+        @Parameter(description = "统计的起始时间", required = false)
         @RequestParam(value = "fromTime", required = false) Long fromTime,
-        @ApiParam(value = "统计的截止时间", required = false)
+        @Parameter(description = "统计的截止时间", required = false)
         @RequestParam(value = "toTime", required = false) Long toTime
     );
 
-    @ApiOperation(value = "获取统计数据", produces = "application/json")
+    @Operation(summary = "获取统计数据")
     @GetMapping("/service/metrics/statistics")
     InternalResponse<StatisticsDTO> getStatistics(
-        @ApiParam(value = "业务Id", required = true)
+        @Parameter(description = "业务Id", required = true)
         @RequestParam(value = "appId", required = true) Long appId,
-        @ApiParam(value = "资源类型", required = true)
+        @Parameter(description = "资源类型", required = true)
         @RequestParam(value = "resource", required = true) String resource,
-        @ApiParam(value = "资源维度", required = true)
+        @Parameter(description = "资源维度", required = true)
         @RequestParam(value = "dimension", required = true) String dimension,
-        @ApiParam(value = "资源维度取值", required = true)
+        @Parameter(description = "资源维度取值", required = true)
         @RequestParam(value = "dimensionValue", required = true) String dimensionValue,
-        @ApiParam(value = "统计日期(yyyy-MM-dd)", required = true)
+        @Parameter(description = "统计日期(yyyy-MM-dd)", required = true)
         @RequestParam(value = "dateStr", required = true) String dateStr
     );
 
-    @ApiOperation(value = "触发指定时间的数据统计", produces = "application/json")
+    @Operation(summary = "触发指定时间的数据统计")
     @PostMapping("/service/metrics/statistics/trigger")
     InternalResponse<Boolean> triggerStatistics(
-        @ApiParam(value = "统计日期(yyyy-MM-dd)", required = false)
+        @Parameter(description = "统计日期(yyyy-MM-dd)", required = false)
         @RequestBody ServiceTriggerStatisticsRequest request
     );
 }

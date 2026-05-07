@@ -30,7 +30,7 @@
     ref="container"
     v-bkloading="{ isLoading }"
     class="script-template-page">
-    <ace-editor
+    <monaco-editor
       ref="editor"
       :before-lang-change="beforeLangChange"
       class="script-template-editor"
@@ -61,7 +61,7 @@
           <icon type="close" />
         </div>
       </div>
-    </ace-editor>
+    </monaco-editor>
     <div class="action-box">
       <bk-button
         class="mr10"
@@ -109,7 +109,7 @@
     leaveConfirm,
   } from '@utils/assist';
 
-  import AceEditor, { builtInScript } from '@components/ace-editor';
+  import monacoEditor, { builtInScript } from '@components/monaco-editor';
 
   import I18n from '@/i18n';
 
@@ -119,7 +119,7 @@
   export default {
     name: '',
     components: {
-      AceEditor,
+      monacoEditor,
       RenderVariable,
       PreviewTemplate,
     },
@@ -313,21 +313,13 @@
   }
 
   .script-template-editor {
-    .jb-ace-title {
+    .jb-monaco-title {
       background: #2e2e2e;
 
-      .jb-ace-mode-item {
+      .jb-monaco-mode-item {
         &.active {
           background: #1a1a1a;
         }
-      }
-    }
-    /* stylelint-disable selector-class-pattern */
-    .ace_editor {
-      background: #1a1a1a;
-
-      .ace_gutter {
-        background: #1a1a1a;
       }
     }
   }

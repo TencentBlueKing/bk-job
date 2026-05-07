@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.manage.model.web.vo;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -33,107 +32,107 @@ import java.util.List;
 /**
  * @since 8/11/2019 15:32
  */
-@ApiModel("业务账号")
+@Schema(description = "业务账号")
 @Data
 public class AccountVO {
     /**
      * 主键
      */
-    @ApiModelProperty("主键")
+    @Schema(description = "主键")
     private Long id;
     /**
      * 帐号名称
      */
-    @ApiModelProperty("帐号名称")
+    @Schema(description = "帐号名称")
     private String account;
 
-    @ApiModelProperty("账号类型")
+    @Schema(description = "账号类型")
     private Integer type;
 
-    @ApiModelProperty("账号类型描述")
+    @Schema(description = "账号类型描述")
     private String typeName;
 
-    @ApiModelProperty("账号用途")
+    @Schema(description = "账号用途")
     private Integer category;
 
-    @ApiModelProperty("账号用途描述")
+    @Schema(description = "账号用途描述")
     private String categoryName;
 
     /**
      * 资源范围类型
      */
-    @ApiModelProperty(value = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
+    @Schema(description = "资源范围类型", allowableValues = "biz-业务,biz_set-业务集")
     private String scopeType;
 
     /**
      * 资源范围ID
      */
-    @ApiModelProperty("资源范围ID")
+    @Schema(description = "资源范围ID")
     private String scopeId;
 
     /**
      * 所属用户
      */
-    @ApiModelProperty("所属用户")
+    @Schema(description = "所属用户")
     private List<String> ownerUsers;
 
     /**
      * 备注
      */
-    @ApiModelProperty("备注")
+    @Schema(description = "备注")
     private String remark;
 
     /**
      * 系统类型，Linux / Windows
      */
-    @ApiModelProperty("系统类型")
+    @Schema(description = "系统类型")
     private String os;
 
     /**
      * 别名，当重名时会让用户填写，不允许修改，并且最后会与os合并在一起生成一个标识性的
      */
-    @ApiModelProperty("别名")
+    @Schema(description = "别名")
     private String alias;
 
-    @ApiModelProperty("系统账号的密码")
+    @Schema(description = "系统账号的密码")
     private String password;
 
-    @ApiModelProperty("DB端口")
+    @Schema(description = "DB端口")
     private Integer dbPort;
 
-    @ApiModelProperty("DB账号关联的系统账号")
+    @Schema(description = "DB账号关联的系统账号")
     private Long dbSystemAccountId;
 
-    @ApiModelProperty("DB账号的密码")
+    @Schema(description = "DB账号的密码")
     private String dbPassword;
 
     /**
      * 最后修改人
      */
-    @ApiModelProperty("最后修改人")
+    @Schema(description = "最后修改人")
     private String lastModifyUser;
 
     /**
      * 最后修改时间
      */
-    @ApiModelProperty("最后修改时间，单位毫秒")
+    @Schema(description = "最后修改时间，单位毫秒")
     private Long lastModifyTime;
 
     /**
      * 创建人
      */
-    @ApiModelProperty("创建人")
+    @Schema(description = "创建人")
     private String creator;
 
     /**
      * 创建时间
      */
-    @ApiModelProperty("创建时间，单位毫秒")
+    @Schema(description = "创建时间，单位毫秒")
     private Long createTime;
 
-    @ApiModelProperty("是否可以管理")
+    @Schema(description = "是否可以管理")
     private Boolean canManage;
 
-    @ApiModelProperty("是否可以使用")
+    @Schema(description = "是否可以使用")
     private Boolean canUse;
 }
