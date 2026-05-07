@@ -41,8 +41,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.OrderField;
+import org.jooq.Record;
 import org.jooq.Record1;
-import org.jooq.Record13;
 import org.jooq.Record6;
 import org.jooq.Result;
 import org.jooq.SelectJoinStep;
@@ -66,6 +66,24 @@ import java.util.stream.Collectors;
 @Repository
 public class TaskPlanDAOImpl implements TaskPlanDAO {
     private static final TaskPlan TABLE = TaskPlan.TASK_PLAN;
+
+    /**
+     * task_plan.is_latest_version 已弃用不再作为判断依据
+     */
+    private static final TableField<?, ?>[] ALL_FIELDS = {
+        TABLE.ID,
+        TABLE.APP_ID,
+        TABLE.TEMPLATE_ID,
+        TABLE.TYPE,
+        TABLE.NAME,
+        TABLE.CREATOR,
+        TABLE.CREATE_TIME,
+        TABLE.LAST_MODIFY_USER,
+        TABLE.LAST_MODIFY_TIME,
+        TABLE.FIRST_STEP_ID,
+        TABLE.LAST_STEP_ID,
+        TABLE.VERSION
+    };
     private DSLContext context;
 
     @Autowired
@@ -111,10 +129,8 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
         conditions.add(TABLE.TEMPLATE_ID.eq(ULong.valueOf(templateId)));
         conditions.add(TABLE.IS_DELETED.eq(UByte.valueOf(0)));
         conditions.add(TABLE.TYPE.eq(UByte.valueOf(TaskPlanTypeEnum.NORMAL.getType())));
-        Result<Record1<ULong>> result =
-            context
-                .select(TABLE.ID)
-                .from(TABLE).where(conditions).fetch();
+        Result<Record1<ULong>> result = context.select(TABLE.ID)
+            .from(TABLE).where(conditions).fetch();
         List<Long> taskPlanIdList = new ArrayList<>();
         if (result.size() >= 1) {
             result.map(record -> taskPlanIdList.add(record.get(TABLE.ID).longValue()));
@@ -129,13 +145,8 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
         conditions.add(TABLE.TEMPLATE_ID.eq(ULong.valueOf(templateId)));
         conditions.add(TABLE.IS_DELETED.eq(UByte.valueOf(0)));
         conditions.add(TABLE.TYPE.eq(UByte.valueOf(TaskPlanTypeEnum.NORMAL.getType())));
-        Result<Record13<ULong, ULong, ULong, UByte, String, String, ULong, String, ULong, ULong, ULong, String,
-            UByte>> result =
-            context
-                .select(TABLE.ID, TABLE.APP_ID, TABLE.TEMPLATE_ID, TABLE.TYPE, TABLE.NAME, TABLE.CREATOR,
-                    TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID,
-                    TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.IS_LATEST_VERSION)
-                .from(TABLE).where(conditions).orderBy(TABLE.CREATE_TIME.desc()).fetch();
+        Result<Record> result = context.select(ALL_FIELDS)
+            .from(TABLE).where(conditions).orderBy(TABLE.CREATE_TIME.desc()).fetch();
         List<TaskPlanInfoDTO> taskPlanInfoList = new ArrayList<>();
         if (result != null && result.size() >= 1) {
             result.map(record -> taskPlanInfoList.add(DbRecordMapper.convertRecordToPlanInfo(record)));
@@ -160,14 +171,9 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
         int start = baseSearchCondition.getStartOrDefault(0);
         int length = baseSearchCondition.getLengthOrDefault(10);
 
-        SelectJoinStep<Record13<ULong, ULong, ULong, UByte, String, String, ULong, String, ULong, ULong, ULong, String,
-            UByte>> selectJoinStep =
-            context.select(TABLE.ID, TABLE.APP_ID, TABLE.TEMPLATE_ID, TABLE.TYPE, TABLE.NAME, TABLE.CREATOR,
-                TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID,
-                TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.IS_LATEST_VERSION).from(TABLE);
+        SelectJoinStep<Record> selectJoinStep = context.select(ALL_FIELDS).from(TABLE);
 
-        Result<Record13<ULong, ULong, ULong, UByte, String, String, ULong, String, ULong, ULong, ULong, String,
-            UByte>> result = null;
+        Result<Record> result = null;
         if (baseSearchCondition.isGetAll()) {
             start = 0;
             length = (int) count;
@@ -224,7 +230,11 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
                 taskPlanQuery.getTemplateIdList().add(taskPlanQuery.getTemplateId());
             }
             if (CollectionUtils.isNotEmpty(taskPlanQuery.getTemplateIdList())) {
-                conditions.add(TABLE.TEMPLATE_ID.in(taskPlanQuery.getTemplateIdList().stream().map(ULong::valueOf).collect(Collectors.toList())));
+                conditions.add(TABLE.TEMPLATE_ID.in(taskPlanQuery.getTemplateIdList()
+                    .stream()
+                    .map(ULong::valueOf)
+                    .collect(Collectors.toList()))
+                );
             }
             if (taskPlanQuery.getName() != null) {
                 conditions.add(TABLE.NAME.like("%" + taskPlanQuery.getName() + "%"));
@@ -246,12 +256,7 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
         List<Condition> conditions = new ArrayList<>();
         conditions.add(TABLE.ID.equal(ULong.valueOf(planId)));
         conditions.add(TABLE.IS_DELETED.equal(UByte.valueOf(0)));
-        Record13<ULong, ULong, ULong, UByte, String, String, ULong, String, ULong, ULong, ULong, String,
-            UByte> record = context
-            .select(TABLE.ID, TABLE.APP_ID, TABLE.TEMPLATE_ID, TABLE.TYPE, TABLE.NAME, TABLE.CREATOR,
-                TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID,
-                TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.IS_LATEST_VERSION)
-            .from(TABLE).where(conditions).fetchOne();
+        Record record = context.select(ALL_FIELDS).from(TABLE).where(conditions).fetchOne();
         if (record != null) {
             TaskPlanInfoDTO taskPlan = DbRecordMapper.convertRecordToPlanInfo(record);
             return taskPlan;
@@ -272,12 +277,7 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
         if (templateId > 0) {
             conditions.add(TABLE.TEMPLATE_ID.eq(ULong.valueOf(templateId)));
         }
-        Record13<ULong, ULong, ULong, UByte, String, String, ULong, String, ULong, ULong, ULong, String,
-            UByte> record = context
-            .select(TABLE.ID, TABLE.APP_ID, TABLE.TEMPLATE_ID, TABLE.TYPE, TABLE.NAME, TABLE.CREATOR,
-                TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID,
-                TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.IS_LATEST_VERSION)
-            .from(TABLE).where(conditions).fetchOne();
+        Record record = context.select(ALL_FIELDS).from(TABLE).where(conditions).fetchOne();
         if (record != null) {
             TaskPlanInfoDTO taskPlan = DbRecordMapper.convertRecordToPlanInfo(record);
             return taskPlan;
@@ -295,14 +295,30 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
             planType = UByte.valueOf(TaskPlanTypeEnum.NORMAL.getType());
         }
         TaskPlanRecord taskPlanRecord = context.insertInto(TABLE)
-            .columns(TABLE.APP_ID, TABLE.TEMPLATE_ID, TABLE.NAME, TABLE.CREATOR, TABLE.CREATE_TIME,
-                TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID, TABLE.LAST_STEP_ID, TABLE.TYPE,
-                TABLE.VERSION)
-            .values(ULong.valueOf(planInfo.getAppId()), ULong.valueOf(planInfo.getTemplateId()), planInfo.getName(),
-                planInfo.getCreator(), ULong.valueOf(planInfo.getCreateTime()), planInfo.getLastModifyUser(),
-                ULong.valueOf(planInfo.getLastModifyTime()), ULong.valueOf(planInfo.getFirstStepId()),
-                ULong.valueOf(planInfo.getLastStepId()), planType, planInfo.getVersion())
-            .returning(TABLE.ID).fetchOne();
+            .columns(
+                TABLE.APP_ID,
+                TABLE.TEMPLATE_ID,
+                TABLE.NAME,
+                TABLE.CREATOR,
+                TABLE.CREATE_TIME,
+                TABLE.LAST_MODIFY_USER,
+                TABLE.LAST_MODIFY_TIME,
+                TABLE.FIRST_STEP_ID,
+                TABLE.LAST_STEP_ID,
+                TABLE.TYPE,
+                TABLE.VERSION
+            ).values(
+                ULong.valueOf(planInfo.getAppId()),
+                ULong.valueOf(planInfo.getTemplateId()),
+                planInfo.getName(),
+                planInfo.getCreator(),
+                ULong.valueOf(planInfo.getCreateTime()),
+                planInfo.getLastModifyUser(),
+                ULong.valueOf(planInfo.getLastModifyTime()),
+                ULong.valueOf(planInfo.getFirstStepId()),
+                ULong.valueOf(planInfo.getLastStepId()),
+                planType, planInfo.getVersion()
+            ).returning(TABLE.ID).fetchOne();
         if (taskPlanRecord != null) {
             return taskPlanRecord.get(TABLE.ID).longValue();
         } else {
@@ -345,13 +361,8 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
         conditions.add(TABLE.TEMPLATE_ID.eq(ULong.valueOf(templateId)));
         conditions.add(TABLE.TYPE.eq(UByte.valueOf(TaskPlanTypeEnum.DEBUG.getType())));
         conditions.add(TABLE.IS_DELETED.eq(UByte.valueOf(0)));
-        Result<Record13<ULong, ULong, ULong, UByte, String, String, ULong, String, ULong, ULong, ULong, String,
-            UByte>> result =
-            context
-                .select(TABLE.ID, TABLE.APP_ID, TABLE.TEMPLATE_ID, TABLE.TYPE, TABLE.NAME, TABLE.CREATOR,
-                    TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID,
-                    TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.IS_LATEST_VERSION)
-                .from(TABLE).where(conditions).fetch();
+        Result<Record> result = context.select(ALL_FIELDS)
+            .from(TABLE).where(conditions).fetch();
         if (result != null && result.size() > 0) {
             if (result.size() > 1) {
                 log.warn("More than one debug plan for one template!|{}|{}|{}", appId, templateId,
@@ -371,12 +382,8 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
             conditions.add(TABLE.APP_ID.eq(ULong.valueOf(appId)));
         }
         conditions.add(TABLE.ID.in(planIdList.stream().map(ULong::valueOf).collect(Collectors.toList())));
-        Result<Record13<ULong, ULong, ULong, UByte, String, String, ULong, String, ULong, ULong, ULong, String,
-            UByte>> result =
-            context.select(TABLE.ID, TABLE.APP_ID, TABLE.TEMPLATE_ID, TABLE.TYPE, TABLE.NAME, TABLE.CREATOR,
-                    TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID,
-                    TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.IS_LATEST_VERSION).from(TABLE)
-                .where(conditions).fetch();
+        Result<Record> result = context.select(ALL_FIELDS)
+            .from(TABLE).where(conditions).fetch();
 
         List<TaskPlanInfoDTO> taskPlanInfoList = new ArrayList<>();
         if (result.size() > 0) {
@@ -427,15 +434,31 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
     public boolean insertTaskPlanWithId(TaskPlanInfoDTO planInfo) {
         UByte planType = UByte.valueOf(TaskPlanTypeEnum.NORMAL.getType());
         return context.insertInto(TABLE)
-            .columns(TABLE.ID, TABLE.APP_ID, TABLE.TEMPLATE_ID, TABLE.NAME, TABLE.CREATOR, TABLE.CREATE_TIME,
-                TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID, TABLE.LAST_STEP_ID, TABLE.TYPE,
-                TABLE.VERSION)
-            .values(ULong.valueOf(planInfo.getId()), ULong.valueOf(planInfo.getAppId()),
-                ULong.valueOf(planInfo.getTemplateId()), planInfo.getName(), planInfo.getCreator(),
-                ULong.valueOf(planInfo.getCreateTime()), planInfo.getLastModifyUser(),
-                ULong.valueOf(planInfo.getLastModifyTime()), ULong.valueOf(planInfo.getFirstStepId()),
-                ULong.valueOf(planInfo.getLastStepId()), planType, planInfo.getVersion())
-            .execute() == 1;
+            .columns(
+                TABLE.ID, TABLE.APP_ID,
+                TABLE.TEMPLATE_ID,
+                TABLE.NAME,
+                TABLE.CREATOR,
+                TABLE.CREATE_TIME,
+                TABLE.LAST_MODIFY_USER,
+                TABLE.LAST_MODIFY_TIME,
+                TABLE.FIRST_STEP_ID,
+                TABLE.LAST_STEP_ID,
+                TABLE.TYPE,
+                TABLE.VERSION
+            ).values(
+                ULong.valueOf(planInfo.getId()),
+                ULong.valueOf(planInfo.getAppId()),
+                ULong.valueOf(planInfo.getTemplateId()),
+                planInfo.getName(),
+                planInfo.getCreator(),
+                ULong.valueOf(planInfo.getCreateTime()),
+                planInfo.getLastModifyUser(),
+                ULong.valueOf(planInfo.getLastModifyTime()),
+                ULong.valueOf(planInfo.getFirstStepId()),
+                ULong.valueOf(planInfo.getLastStepId()),
+                planType, planInfo.getVersion()
+            ).execute() == 1;
     }
 
     @Override
@@ -475,12 +498,7 @@ public class TaskPlanDAOImpl implements TaskPlanDAO {
         conditions.add(TABLE.NAME.equal(name));
         conditions.add(TABLE.IS_DELETED.eq(UByte.valueOf(0)));
 
-        Record13<ULong, ULong, ULong, UByte, String, String, ULong, String, ULong, ULong, ULong, String,
-            UByte> record = context
-            .select(TABLE.ID, TABLE.APP_ID, TABLE.TEMPLATE_ID, TABLE.TYPE, TABLE.NAME, TABLE.CREATOR,
-                TABLE.CREATE_TIME, TABLE.LAST_MODIFY_USER, TABLE.LAST_MODIFY_TIME, TABLE.FIRST_STEP_ID,
-                TABLE.LAST_STEP_ID, TABLE.VERSION, TABLE.IS_LATEST_VERSION)
-            .from(TABLE).where(conditions).limit(1).fetchOne();
+        Record record = context.select(ALL_FIELDS).from(TABLE).where(conditions).limit(1).fetchOne();
         if (record != null) {
             return DbRecordMapper.convertRecordToPlanInfo(record);
         }

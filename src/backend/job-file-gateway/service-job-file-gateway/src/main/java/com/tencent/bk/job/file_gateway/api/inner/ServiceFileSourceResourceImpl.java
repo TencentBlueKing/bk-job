@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -51,9 +52,24 @@ public class ServiceFileSourceResourceImpl implements ServiceFileSourceResource 
         if (null != fileSourceDTO) {
             return InternalResponse.buildSuccessResp(fileSourceDTO.getId());
         }
-        fileSourceDTO = noTenantFileSourceDAO.getFileSourceByCode(code);
-        if (null != fileSourceDTO && fileSourceDTO.canUseByAppId(appId)) {
-            return InternalResponse.buildSuccessResp(fileSourceDTO.getId());
+        List<FileSourceDTO> fileSourceDTOList = noTenantFileSourceDAO.listFileSourceByCode(code);
+        FileSourceDTO matchedFileSource = null;
+        int matchCount = 0;
+        for (FileSourceDTO source : fileSourceDTOList) {
+            if (source.canUseByAppId(appId)) {
+                matchCount++;
+                if (matchedFileSource == null) {
+                    matchedFileSource = source;
+                }
+            }
+        }
+        if (matchedFileSource != null) {
+            if (matchCount > 1) {
+                log.warn("Multiple file-sources matched by appId and code, appId={}, code={}, matchCount={},"
+                        + " use fileSourceId={}",
+                    appId, code, matchCount, matchedFileSource.getId());
+            }
+            return InternalResponse.buildSuccessResp(matchedFileSource.getId());
         }
         throw new NotFoundException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE, new String[]{code});
     }

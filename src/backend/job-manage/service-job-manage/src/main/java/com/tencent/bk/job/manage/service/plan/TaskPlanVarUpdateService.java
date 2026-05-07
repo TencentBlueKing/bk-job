@@ -22,27 +22,19 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.dao.filesource;
+package com.tencent.bk.job.manage.service.plan;
 
-import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 
 import java.util.List;
 
 /**
- * 租户无关的文件源DAO，用于系统内部逻辑
+ * 执行方案变量批量更新服务
  */
-public interface NoTenantFileSourceDAO {
+public interface TaskPlanVarUpdateService {
 
-    int updateFileSourceStatus(Integer fileSourceId, Integer status);
-
-    FileSourceDTO getFileSourceById(Integer id);
-
-    List<FileSourceDTO> listFileSourceByCode(String code);
-
-    FileSourceDTO getFileSourceByCode(Long appId, String code);
-
-    List<FileSourceDTO> listEnabledFileSource(Integer start, Integer pageSize);
-
-    boolean existsFileSourceUsingCredential(Long appId, String credentialId);
-
+    /**
+     * 批量更新执行方案变量
+     */
+    boolean batchUpdatePlanVariable(List<TaskPlanInfoDTO> planInfoList);
 }

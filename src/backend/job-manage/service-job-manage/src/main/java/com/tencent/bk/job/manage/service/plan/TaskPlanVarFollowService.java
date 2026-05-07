@@ -22,27 +22,25 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.dao.filesource;
+package com.tencent.bk.job.manage.service.plan;
 
-import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
-
-import java.util.List;
+import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 
 /**
- * 租户无关的文件源DAO，用于系统内部逻辑
+ * 执行方案变量跟随模板相关规则处理
  */
-public interface NoTenantFileSourceDAO {
+public interface TaskPlanVarFollowService {
 
-    int updateFileSourceStatus(Integer fileSourceId, Integer status);
+    /**
+     * 存在跟随作业模板的变量，需要判断该变量默认值是否跟作业模板的一致，如果不一致修改执行方案的版本产生差异
+     */
+    void updatePlanVersionIfFollowVarChanged(TaskPlanInfoDTO taskPlanInfo);
 
-    FileSourceDTO getFileSourceById(Integer id);
-
-    List<FileSourceDTO> listFileSourceByCode(String code);
-
-    FileSourceDTO getFileSourceByCode(Long appId, String code);
-
-    List<FileSourceDTO> listEnabledFileSource(Integer start, Integer pageSize);
-
-    boolean existsFileSourceUsingCredential(Long appId, String credentialId);
-
+    /**
+     * 更新执行方案的版本号，
+     * 1.在更新作业时，基础信息变动了作业会生成新版本，即changed=true时本方法直接返回，
+     * 2.执行方案的变量跟随作业模板变量，且执行方案变量值跟作业的不一样，该执行方案生成新版本号，产生差异，后续可以去同步
+     */
+    void updatePlanVersionIfVarValueChanged(TaskTemplateInfoDTO taskTemplateInfo, Boolean changed);
 }

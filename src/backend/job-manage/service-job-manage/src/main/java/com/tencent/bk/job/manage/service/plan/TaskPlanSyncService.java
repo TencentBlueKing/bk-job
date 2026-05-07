@@ -22,27 +22,21 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file_gateway.dao.filesource;
-
-import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
-
-import java.util.List;
+package com.tencent.bk.job.manage.service.plan;
 
 /**
- * 租户无关的文件源DAO，用于系统内部逻辑
+ * 执行方案同步服务
  */
-public interface NoTenantFileSourceDAO {
+public interface TaskPlanSyncService {
 
-    int updateFileSourceStatus(Integer fileSourceId, Integer status);
-
-    FileSourceDTO getFileSourceById(Integer id);
-
-    List<FileSourceDTO> listFileSourceByCode(String code);
-
-    FileSourceDTO getFileSourceByCode(Long appId, String code);
-
-    List<FileSourceDTO> listEnabledFileSource(Integer start, Integer pageSize);
-
-    boolean existsFileSourceUsingCredential(Long appId, String credentialId);
-
+    /**
+     * 同步执行方案
+     *
+     * @param appId           业务 ID
+     * @param templateId      模版 ID
+     * @param planId          执行方案 ID
+     * @param templateVersion 模版版本
+     * @return 是否符合条件
+     */
+    Boolean sync(Long appId, Long templateId, Long planId, String templateVersion);
 }

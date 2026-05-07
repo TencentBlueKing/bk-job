@@ -211,24 +211,6 @@ public interface TaskPlanService {
     Boolean checkPlanName(Long appId, Long templateId, Long planId, String name);
 
     /**
-     * 同步执行方案
-     *
-     * @param appId           业务 ID
-     * @param templateId      模版 ID
-     * @param planId          执行方案 ID
-     * @param templateVersion 模版版本
-     * @return 是否符合条件
-     */
-    Boolean sync(Long appId, Long templateId, Long planId, String templateVersion);
-
-    /**
-     * 同步作业模版与执行方案
-     *
-     * @param taskPlan 执行方案信息
-     */
-    void syncPlan(TaskPlanInfoDTO taskPlan);
-
-    /**
      * 新增执行方案（仅数据迁移用）
      *
      * @param user           用户账号
@@ -308,12 +290,4 @@ public interface TaskPlanService {
 
     Set<String> listLocalFiles();
 
-    boolean batchUpdatePlanVariable(List<TaskPlanInfoDTO> planInfoList);
-
-    /**
-     * 更新执行方案的版本号
-     * 作业执行方案的变量是否跟随作业模板变量，如果是，且执行方案变量默认值跟作业模板的不一样，
-     * 该执行方案生成新版本号，产生差异，后续可以去同步
-     */
-    void updatePlanVersionIfVarValueChanged(TaskTemplateInfoDTO taskTemplateInfo, Boolean changed);
 }
