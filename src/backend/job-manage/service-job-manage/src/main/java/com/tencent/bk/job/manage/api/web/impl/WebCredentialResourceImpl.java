@@ -125,6 +125,21 @@ public class WebCredentialResourceImpl implements WebCredentialResource {
     }
 
     @Override
+    public Response<Boolean> checkCredentialName(String username,
+                                                 AppResourceScope appResourceScope,
+                                                 String scopeType,
+                                                 String scopeId,
+                                                 String credentialId,
+                                                 String name) {
+        boolean credentialNameValid = credentialService.checkCredentialName(
+            appResourceScope.getAppId(),
+            credentialId,
+            name
+        );
+        return Response.buildSuccessResp(credentialNameValid);
+    }
+
+    @Override
     @AuditEntry(actionId = ActionId.CREATE_TICKET)
     public Response<CredentialVO> createCredential(String username,
                                                    AppResourceScope appResourceScope,

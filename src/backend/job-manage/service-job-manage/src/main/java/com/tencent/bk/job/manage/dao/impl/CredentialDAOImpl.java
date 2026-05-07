@@ -25,6 +25,7 @@
 package com.tencent.bk.job.manage.dao.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.BaseSearchCondition;
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.common.model.dto.CommonCredential;
@@ -246,6 +247,17 @@ public class CredentialDAOImpl implements CredentialDAO {
         conditions.add(defaultTable.APP_ID.eq(appId));
         long count = getPageCredentialCount(conditions);
         return listPageCredentialBasicInfoByConditions(baseSearchCondition, conditions, count);
+    }
+
+    @Override
+    public boolean checkCredentialName(Long appId, String credentialId, String credentialName) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(defaultTable.APP_ID.eq(appId));
+        conditions.add(defaultTable.NAME.eq(credentialName));
+        if (StringUtils.isNotBlank(credentialId) && !JobConstants.STR_ID_PLACEHOLDER.equals(credentialId)) {
+            conditions.add(defaultTable.ID.notEqual(credentialId));
+        }
+        return !dslContext.fetchExists(defaultTable, conditions);
     }
 
     public PageData<CredentialDTO> listPageCredentialBasicInfoByConditions(

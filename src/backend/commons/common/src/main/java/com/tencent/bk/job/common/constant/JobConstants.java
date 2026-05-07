@@ -109,4 +109,9 @@ public class JobConstants {
      * 敏感数据占位符，用于表示默认密码、没有密码、前端密码未改动等情况
      */
     public static final String SENSITIVE_FIELD_PLACEHOLDER = "******";
+
+    /**
+     * 字符串类型的ID占位符
+     */
+    public static final String STR_ID_PLACEHOLDER = "0";
 }
