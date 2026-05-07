@@ -27,12 +27,14 @@ package com.tencent.bk.job.manage.config;
 import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
@@ -49,18 +51,24 @@ public class ExecutorConfiguration {
      */
     @Bean("hostTopoSnapshotExecutor")
     public ThreadPoolExecutor hostTopoSnapshotExecutor(MeterRegistry meterRegistry) {
-        RejectedExecutionHandler rejectedHandler = (r, executor) -> log.error(
-            "hostTopoSnapshotExecutor task rejected, poolSize={}, activeCount={}, queueSize={}, completedTaskCount={}",
-            executor.getPoolSize(),
-            executor.getActiveCount(),
-            executor.getQueue().size(),
-            executor.getCompletedTaskCount()
-        );
+        RejectedExecutionHandler rejectedHandler = (r, executor) -> {
+            String message = MessageFormatter.format(
+                "hostTopoSnapshotExecutor task rejected, poolSize={}, " +
+                    "activeCount={}, queueSize={}, completedTaskCount={}",
+                new Object[]{
+                    executor.getPoolSize(),
+                    executor.getActiveCount(),
+                    executor.getQueue().size(),
+                    executor.getCompletedTaskCount()
+                }
+            ).getMessage();
+            throw new RejectedExecutionException(message);
+        };
         return new WatchableThreadPoolExecutor(
             meterRegistry,
             "hostTopoSnapshotExecutor",
             0,
-            100,
+            200,
             60L,
             TimeUnit.SECONDS,
             new SynchronousQueue<>(),
