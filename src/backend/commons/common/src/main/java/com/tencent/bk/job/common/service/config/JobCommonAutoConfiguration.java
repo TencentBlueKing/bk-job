@@ -26,8 +26,10 @@ package com.tencent.bk.job.common.service.config;
 
 import com.tencent.bk.job.common.VersionInfoLogApplicationRunner;
 import com.tencent.bk.job.common.config.BkConfig;
+import com.tencent.bk.job.common.context.JobContextThreadLocalAccessor;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import io.micrometer.context.ThreadLocalAccessor;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,5 +68,15 @@ public class JobCommonAutoConfiguration {
     @Bean
     public VersionInfoLogApplicationRunner versionInfoLogApplicationRunner(BuildProperties buildProperties) {
         return new VersionInfoLogApplicationRunner(serviceName, buildProperties);
+    }
+
+    /**
+     * 把 {@link JobContext} 接入 Micrometer Context Propagation 体系，
+     * 由 ContextPropagationAutoConfiguration 统一注册到 ContextRegistry，
+     * 进而被 {@code WatchableThreadPoolExecutor} 等线程池在 captureAll() 时一并捕获、跨线程恢复。
+     */
+    @Bean
+    public ThreadLocalAccessor<?> jobContextThreadLocalAccessor() {
+        return new JobContextThreadLocalAccessor();
     }
 }
