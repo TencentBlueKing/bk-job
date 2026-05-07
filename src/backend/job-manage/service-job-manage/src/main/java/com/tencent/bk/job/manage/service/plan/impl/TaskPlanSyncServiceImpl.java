@@ -29,6 +29,7 @@ import com.tencent.bk.audit.annotations.AuditInstanceRecord;
 import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.exception.InternalException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.exception.ServiceException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.iam.constant.ResourceTypeId;
@@ -147,6 +148,15 @@ public class TaskPlanSyncServiceImpl implements TaskPlanSyncService {
             log.warn("taskPlan is null, appId={}, planId={}", appId, planId);
             return null;
         }
+
+        TaskTemplateInfoDTO templateBasicInfoDTO = taskTemplateService.getTaskTemplateBasicInfoById(appId, templateId);
+        if (templateBasicInfoDTO == null) {
+            throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
+        }
+
+        taskPlan.setStepList(taskPlanStepService.listStepsByParentId(taskPlan.getId()));
+        taskPlan.setVariableList(taskPlanVariableService.listVariablesByParentId(taskPlan.getId()));
+
         if (!taskPlan.getTemplateId().equals(templateId)) {
             log.warn(
                 "taskPlan(id={},templateId={}) not belong to template(id={})",
