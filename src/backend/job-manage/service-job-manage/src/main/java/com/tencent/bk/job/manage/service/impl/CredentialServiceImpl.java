@@ -120,7 +120,7 @@ public class CredentialServiceImpl implements CredentialService {
                                           Long appId,
                                           CredentialCreateUpdateReq createUpdateReq) {
         authCreateTicket(user, appId);
-        checkCredentialExists(appId, "0", createUpdateReq.getName());
+        checkCredentialExists(appId, JobConstants.STR_ID_PLACEHOLDER, createUpdateReq.getName());
         decryptCredentialSecretIfNeeded(createUpdateReq);
 
         CredentialDTO credentialDTO = buildCredentialDTO(user.getUsername(), appId, createUpdateReq);
