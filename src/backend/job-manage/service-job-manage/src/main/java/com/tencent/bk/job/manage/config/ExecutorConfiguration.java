@@ -67,11 +67,12 @@ public class ExecutorConfiguration {
         return new WatchableThreadPoolExecutor(
             meterRegistry,
             "hostTopoSnapshotExecutor",
-            0,
+            50,
             200,
+            true,
             60L,
             TimeUnit.SECONDS,
-            new SynchronousQueue<>(),
+            new LinkedBlockingQueue<>(100),
             getThreadFactoryByNameAndSeq("hostTopoSnapshot-", new AtomicInteger(1)),
             rejectedHandler
         );
