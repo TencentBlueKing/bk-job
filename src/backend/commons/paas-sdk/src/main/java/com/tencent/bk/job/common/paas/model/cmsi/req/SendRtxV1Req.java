@@ -22,63 +22,54 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.manage.model.dto.notify;
+package com.tencent.bk.job.common.paas.model.cmsi.req;
 
-import com.tencent.bk.job.common.util.json.SkipLogFields;
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tencent.bk.job.common.paas.model.NotifyMessageDTO;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.Objects;
+import java.util.List;
 
 /**
- * ESB通知渠道DTO
+ * Cmsi接口发送企业微信(RTX)消息的请求
  */
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
-@ToString
-public class NotifyEsbChannelDTO {
-    /**
-     * 渠道类型
-     */
-    private String type;
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class SendRtxV1Req extends CmsiSendMsgV1BasicReq {
 
     /**
-     * 渠道名称
+     * 企业微信接收者，包含企业微信用户ID。
+     * 若同时传入 receiver 和 receiver__username，以 receiver 为准
      */
-    private String label;
-    /**
-     * 是否启用
-     */
-    private boolean isActive;
-    /**
-     * 管理员是否启用
-     */
-    private boolean enable;
-    /**
-     * 渠道图标Base64编码
-     */
-    @SkipLogFields
-    private String icon;
-    /**
-     * 更新时间
-     */
-    private LocalDateTime lastModifyTime;
+    @JsonProperty("receiver")
+    private List<String> receiver;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        NotifyEsbChannelDTO that = (NotifyEsbChannelDTO) o;
-        return isActive == that.isActive &&
-            Objects.equals(type, that.type) &&
-            Objects.equals(label, that.label) &&
-            Objects.equals(icon, that.icon);
-    }
+    /**
+     * 企业微信接收者，包含蓝鲸用户唯一标识 bk_username，用户需在蓝鲸平台注册
+     */
+    @JsonProperty("receiver__username")
+    private List<String> receiverUsername;
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(type, label, isActive, icon);
+    /**
+     * 消息标题
+     */
+    @JsonProperty("title")
+    private String title;
+
+    /**
+     * 消息内容
+     */
+    @JsonProperty("content")
+    private String content;
+
+    public static SendRtxV1Req fromNotifyMessageDTO(NotifyMessageDTO notifyMessageDTO) {
+        SendRtxV1Req sendRtxV1Req = new SendRtxV1Req();
+        sendRtxV1Req.setReceiverUsername(notifyMessageDTO.getReceiverUsername());
+        sendRtxV1Req.setTitle(notifyMessageDTO.getTitle());
+        sendRtxV1Req.setContent(notifyMessageDTO.getContent());
+        return sendRtxV1Req;
     }
 }
