@@ -34,7 +34,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -80,7 +79,6 @@ public class TaskVariableDTO {
         } else {
             if (variableInfo.getType().needMask()) {
                 taskVariable.setDefaultValue(variableInfo.getType().getMask());
-                taskVariable.setDefaultValueHash(buildDefaultValueHash(variableInfo.getDefaultValue()));
             } else {
                 taskVariable.setDefaultValue(variableInfo.getDefaultValue());
             }
@@ -90,14 +88,6 @@ public class TaskVariableDTO {
         taskVariable.setRequired(variableInfo.getRequired() ? 1 : 0);
         taskVariable.setFollowTemplate(Boolean.TRUE.equals(variableInfo.getFollowTemplate()) ? 1 : 0);
         return taskVariable;
-    }
-
-    private static String buildDefaultValueHash(String defaultValue) {
-        if (defaultValue == null) {
-            return null;
-        }
-        String hash = DigestUtils.sha256Hex(defaultValue);
-        return hash.substring(0, Math.min(hash.length(), 12));
     }
 
     public static TaskVariableDTO fromVO(TaskVariableVO variableVO) {
