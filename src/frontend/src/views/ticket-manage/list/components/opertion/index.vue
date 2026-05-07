@@ -86,6 +86,9 @@
 
 <script>
   import TicketManageService from '@service/ticket-manage';
+  import webGlobal from '@service/web-global';
+
+  import { encrypt } from '@utils/assist';
 
   import I18n from '@/i18n';
 
@@ -114,6 +117,8 @@
       return {
         formData: getDefaultData(),
         type: '',
+        isAccountEncryptionLoadingError: false,
+        accountEncryption: null,
       };
     },
     computed: {
@@ -149,8 +154,19 @@
           },
         ],
       };
+      this.fetchAccountEncryption();
     },
     methods: {
+      fetchAccountEncryption() {
+        this.isAccountEncryptionLoadingError = false;
+        webGlobal.fetchAccountEncryption()
+          .then((data) => {
+            this.accountEncryption = data;
+          })
+          .catch(() => {
+            this.isAccountEncryptionLoadingError = true;
+          });
+      },
       /**
        * @desc 新增、编辑确认
        *
@@ -159,13 +175,35 @@
       submit() {
         const requestHandler = this.data.id ? TicketManageService.update : TicketManageService.create;
 
+        if (this.isAccountEncryptionLoadingError) {
+          this.messageWarn(I18n.t('ticket.凭证加密配置请求失败无法执行当前操作，请刷新页面'));
+          return Promise.reject(Error('ticket encryption error'));
+        }
+
         return Promise.all([
           this.$refs.handler.getData(),
           this.$refs.ticketForm.validate(),
-        ]).then(([data]) => requestHandler({
-          ...this.formData,
-          ...data,
-        }))
+          TicketManageService.check({
+            id: this.data.id || 0,
+            name: this.formData.name,
+          }),
+        ]).then(([data,, checkData]) => {
+          if (checkData?.data === false) {
+            return Promise.reject({
+              code: 'BK_JOB_TICKET_NAME_EXIST',
+            });
+          }
+
+          const key = ['USERNAME_PASSWORD', 'APP_ID_SECRET_KEY'].includes(this.formData.type) ? 'value2' : 'value1';
+          const encryptValue = encrypt(this.accountEncryption.algorithm, this.accountEncryption.pemPublicKey, data[key]);
+          data.algorithm = this.accountEncryption.algorithm;
+          data[key] = encryptValue;
+
+          return requestHandler({
+            ...this.formData,
+            ...data,
+          });
+        })
           .then(() => {
             if (!this.data.id) {
               this.messageSuccess(I18n.t('ticket.创建成功'));
@@ -173,6 +211,12 @@
               this.messageSuccess(I18n.t('ticket.更新成功'));
             }
             this.$emit('on-change');
+          })
+          .catch((error) => {
+            if (error.code === 'BK_JOB_TICKET_NAME_EXIST') {
+              this.messageError(I18n.t('ticket.凭证名称已存在'));
+              return Promise.reject(Error('ticket name exist'));
+            }
           });
       },
     },
