@@ -1,7 +1,7 @@
-FROM bkjob/jdk17:3.11.11
+FROM bkjob/jdk17:3.12.3
 
 LABEL maintainer="Tencent BlueKing Job"
-LABEL dockerfile.version="1.0.0"
+LABEL dockerfile.version="1.0.1"
 
 ARG MODULE=bk-job-op
 
