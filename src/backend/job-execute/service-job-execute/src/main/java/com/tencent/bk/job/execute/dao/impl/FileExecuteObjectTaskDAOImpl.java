@@ -38,8 +38,10 @@ import com.tencent.bk.job.execute.model.tables.records.GseFileExecuteObjTaskReco
 import com.tencent.bk.job.logsvr.consts.FileTaskModeEnum;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.OrderField;
+import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.SelectConditionStep;
@@ -81,15 +83,6 @@ public class FileExecuteObjectTaskDAOImpl extends BaseDAO implements FileExecute
         T.ERROR_CODE
     };
 
-    public static final String BATCH_INSERT_SQL =
-        "insert into gse_file_execute_obj_task (id,task_instance_id,step_instance_id,execute_count," +
-            "actual_execute_count, "
-            + "batch,mode,execute_obj_type,execute_obj_id,gse_task_id,status,start_time,end_time,total_time,error_code)"
-            + " values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-    public static final String BATCH_UPDATE_SQL = "update gse_file_execute_obj_task set gse_task_id = ?, status = ?,"
-        + "start_time = ?, end_time = ? , total_time = ?, error_code = ?"
-        + " where step_instance_id = ? and execute_count = ? and batch = ? and mode = ? and execute_obj_id = ?";
-
     @Autowired
     public FileExecuteObjectTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
         super(dslContextProviderFactory, T.getName());
@@ -98,28 +91,49 @@ public class FileExecuteObjectTaskDAOImpl extends BaseDAO implements FileExecute
     @Override
     @MySQLOperation(table = "gse_file_execute_obj_task", op = DbOperationEnum.WRITE)
     public void batchSaveTasks(Collection<ExecuteObjectTask> tasks) {
-        Object[][] params = new Object[tasks.size()][15];
-        int batchCount = 0;
-        for (ExecuteObjectTask task : tasks) {
-            Object[] param = new Object[15];
-            param[0] = task.getId();
-            param[1] = task.getTaskInstanceId();
-            param[2] = task.getStepInstanceId();
-            param[3] = task.getExecuteCount();
-            param[4] = task.getActualExecuteCount();
-            param[5] = task.getBatch();
-            param[6] = task.getFileTaskMode().getValue();
-            param[7] = task.getExecuteObjectType().getValue();
-            param[8] = task.getExecuteObjectId();
-            param[9] = task.getGseTaskId();
-            param[10] = task.getStatus().getValue();
-            param[11] = task.getStartTime();
-            param[12] = task.getEndTime();
-            param[13] = task.getTotalTime();
-            param[14] = task.getErrorCode();
-            params[batchCount++] = param;
+        if (CollectionUtils.isEmpty(tasks)) {
+            return;
         }
-        dsl().batch(BATCH_INSERT_SQL, params).execute();
+        BatchBindStep batchInsert = dsl().batch(
+            dsl().insertInto(
+                T,
+                T.ID,
+                T.TASK_INSTANCE_ID,
+                T.STEP_INSTANCE_ID,
+                T.EXECUTE_COUNT,
+                T.ACTUAL_EXECUTE_COUNT,
+                T.BATCH,
+                T.MODE,
+                T.EXECUTE_OBJ_TYPE,
+                T.EXECUTE_OBJ_ID,
+                T.GSE_TASK_ID,
+                T.STATUS,
+                T.START_TIME,
+                T.END_TIME,
+                T.TOTAL_TIME,
+                T.ERROR_CODE
+            ).values((Long) null, null, null, null, null, null, null, null, null, null, null, null, null, null,null)
+        );
+        for (ExecuteObjectTask task : tasks) {
+            batchInsert = batchInsert.bind(
+                task.getId(),
+                task.getTaskInstanceId(),
+                task.getStepInstanceId(),
+                (short) task.getExecuteCount(),
+                task.getActualExecuteCount() == null ? null : task.getActualExecuteCount().shortValue(),
+                (short) task.getBatch(),
+                task.getFileTaskMode().getValue().byteValue(),
+                (byte) task.getExecuteObjectType().getValue(),
+                task.getExecuteObjectId(),
+                task.getGseTaskId(),
+                task.getStatus().getValue(),
+                task.getStartTime(),
+                task.getEndTime(),
+                task.getTotalTime(),
+                task.getErrorCode()
+            );
+        }
+        batchInsert.execute();
     }
 
     @Override
@@ -128,24 +142,22 @@ public class FileExecuteObjectTaskDAOImpl extends BaseDAO implements FileExecute
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
-        Object[][] params = new Object[tasks.size()][11];
-        int batchCount = 0;
+        List<Query> queries = new ArrayList<>(tasks.size());
         for (ExecuteObjectTask task : tasks) {
-            Object[] param = new Object[11];
-            param[0] = task.getGseTaskId();
-            param[1] = task.getStatus().getValue();
-            param[2] = task.getStartTime();
-            param[3] = task.getEndTime();
-            param[4] = task.getTotalTime();
-            param[5] = task.getErrorCode();
-            param[6] = task.getStepInstanceId();
-            param[7] = task.getExecuteCount();
-            param[8] = task.getBatch();
-            param[9] = task.getFileTaskMode().getValue();
-            param[10] = task.getExecuteObjectId();
-            params[batchCount++] = param;
+            queries.add(dsl().update(T)
+                .set(T.GSE_TASK_ID, task.getGseTaskId())
+                .set(T.STATUS, task.getStatus().getValue())
+                .set(T.START_TIME, task.getStartTime())
+                .set(T.END_TIME, task.getEndTime())
+                .set(T.TOTAL_TIME, task.getTotalTime())
+                .set(T.ERROR_CODE, task.getErrorCode())
+                .where(T.STEP_INSTANCE_ID.eq(task.getStepInstanceId()))
+                .and(T.EXECUTE_COUNT.eq((short) task.getExecuteCount()))
+                .and(T.BATCH.eq((short) task.getBatch()))
+                .and(T.MODE.eq(task.getFileTaskMode().getValue().byteValue()))
+                .and(T.EXECUTE_OBJ_ID.eq(task.getExecuteObjectId())));
         }
-        dsl().batch(BATCH_UPDATE_SQL, params).execute();
+        dsl().batch(queries).execute();
     }
 
     @Override

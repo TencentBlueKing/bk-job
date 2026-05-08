@@ -38,8 +38,10 @@ import com.tencent.bk.job.execute.model.tables.GseScriptExecuteObjTask;
 import com.tencent.bk.job.execute.model.tables.records.GseScriptExecuteObjTaskRecord;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.OrderField;
+import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.SelectConditionStep;
@@ -83,17 +85,6 @@ public class ScriptExecuteObjectTaskDAOImpl extends BaseDAO implements ScriptExe
         T.LOG_OFFSET
     };
 
-    private static final String BATCH_INSERT_SQL =
-        "insert into gse_script_execute_obj_task (id,task_instance_id,step_instance_id,execute_count,"
-            + "actual_execute_count,batch,execute_obj_type,execute_obj_id,gse_task_id,status,start_time,end_time,"
-            + "total_time,error_code,exit_code,tag,log_offset) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-
-    private static final String BATCH_UPDATE_SQL =
-        "update gse_script_execute_obj_task set gse_task_id = ?, status = ?, start_time = ?, end_time = ?"
-            + ", total_time = ?, error_code = ?, exit_code = ?, tag = ?, log_offset = ?"
-            + " where task_instance_id = ? and step_instance_id = ? and execute_count = ? and batch = ?"
-            + " and execute_obj_id = ?";
-
     public ScriptExecuteObjectTaskDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
         super(dslContextProviderFactory, T.getName());
     }
@@ -101,30 +92,54 @@ public class ScriptExecuteObjectTaskDAOImpl extends BaseDAO implements ScriptExe
     @Override
     @MySQLOperation(table = "gse_script_execute_obj_task", op = DbOperationEnum.WRITE)
     public void batchSaveTasks(Collection<ExecuteObjectTask> tasks) {
-        Object[][] params = new Object[tasks.size()][17];
-        int batchCount = 0;
-        for (ExecuteObjectTask task : tasks) {
-            Object[] param = new Object[17];
-            param[0] = task.getId();
-            param[1] = task.getTaskInstanceId();
-            param[2] = task.getStepInstanceId();
-            param[3] = task.getExecuteCount();
-            param[4] = task.getActualExecuteCount();
-            param[5] = task.getBatch();
-            param[6] = task.getExecuteObjectType().getValue();
-            param[7] = task.getExecuteObjectId();
-            param[8] = task.getGseTaskId();
-            param[9] = task.getStatus().getValue();
-            param[10] = task.getStartTime();
-            param[11] = task.getEndTime();
-            param[12] = task.getTotalTime();
-            param[13] = task.getErrorCode();
-            param[14] = task.getExitCode();
-            param[15] = StringUtils.truncate(task.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
-            param[16] = task.getScriptLogOffset();
-            params[batchCount++] = param;
+        if (CollectionUtils.isEmpty(tasks)) {
+            return;
         }
-        dsl().batch(BATCH_INSERT_SQL, params).execute();
+        BatchBindStep batchInsert = dsl().batch(
+            dsl().insertInto(
+                T,
+                T.ID,
+                T.TASK_INSTANCE_ID,
+                T.STEP_INSTANCE_ID,
+                T.EXECUTE_COUNT,
+                T.ACTUAL_EXECUTE_COUNT,
+                T.BATCH,
+                T.EXECUTE_OBJ_TYPE,
+                T.EXECUTE_OBJ_ID,
+                T.GSE_TASK_ID,
+                T.STATUS,
+                T.START_TIME,
+                T.END_TIME,
+                T.TOTAL_TIME,
+                T.ERROR_CODE,
+                T.EXIT_CODE,
+                T.TAG,
+                T.LOG_OFFSET
+            ).values((Long) null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                null, null)
+        );
+        for (ExecuteObjectTask task : tasks) {
+            batchInsert = batchInsert.bind(
+                task.getId(),
+                task.getTaskInstanceId(),
+                task.getStepInstanceId(),
+                (short) task.getExecuteCount(),
+                task.getActualExecuteCount() == null ? null : task.getActualExecuteCount().shortValue(),
+                (short) task.getBatch(),
+                (byte) task.getExecuteObjectType().getValue(),
+                task.getExecuteObjectId(),
+                task.getGseTaskId(),
+                task.getStatus().getValue(),
+                task.getStartTime(),
+                task.getEndTime(),
+                task.getTotalTime(),
+                task.getErrorCode(),
+                task.getExitCode(),
+                StringUtils.truncate(task.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH),
+                task.getScriptLogOffset()
+            );
+        }
+        batchInsert.execute();
     }
 
     @Override
@@ -133,27 +148,25 @@ public class ScriptExecuteObjectTaskDAOImpl extends BaseDAO implements ScriptExe
         if (CollectionUtils.isEmpty(tasks)) {
             return;
         }
-        Object[][] params = new Object[tasks.size()][14];
-        int batchCount = 0;
+        List<Query> queries = new ArrayList<>(tasks.size());
         for (ExecuteObjectTask task : tasks) {
-            Object[] param = new Object[14];
-            param[0] = task.getGseTaskId();
-            param[1] = task.getStatus().getValue();
-            param[2] = task.getStartTime();
-            param[3] = task.getEndTime();
-            param[4] = task.getTotalTime();
-            param[5] = task.getErrorCode();
-            param[6] = task.getExitCode();
-            param[7] = StringUtils.truncate(task.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
-            param[8] = task.getScriptLogOffset();
-            param[9] = task.getTaskInstanceId();
-            param[10] = task.getStepInstanceId();
-            param[11] = task.getExecuteCount();
-            param[12] = task.getBatch();
-            param[13] = task.getExecuteObjectId();
-            params[batchCount++] = param;
+            queries.add(dsl().update(T)
+                .set(T.GSE_TASK_ID, task.getGseTaskId())
+                .set(T.STATUS, task.getStatus().getValue())
+                .set(T.START_TIME, task.getStartTime())
+                .set(T.END_TIME, task.getEndTime())
+                .set(T.TOTAL_TIME, task.getTotalTime())
+                .set(T.ERROR_CODE, task.getErrorCode())
+                .set(T.EXIT_CODE, task.getExitCode())
+                .set(T.TAG, StringUtils.truncate(task.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH))
+                .set(T.LOG_OFFSET, task.getScriptLogOffset())
+                .where(T.TASK_INSTANCE_ID.eq(task.getTaskInstanceId()))
+                .and(T.STEP_INSTANCE_ID.eq(task.getStepInstanceId()))
+                .and(T.EXECUTE_COUNT.eq((short) task.getExecuteCount()))
+                .and(T.BATCH.eq((short) task.getBatch()))
+                .and(T.EXECUTE_OBJ_ID.eq(task.getExecuteObjectId())));
         }
-        dsl().batch(BATCH_UPDATE_SQL, params).execute();
+        dsl().batch(queries).execute();
     }
 
     @Override

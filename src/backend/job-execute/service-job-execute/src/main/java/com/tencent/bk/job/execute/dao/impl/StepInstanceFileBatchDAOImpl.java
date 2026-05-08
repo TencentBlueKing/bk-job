@@ -34,6 +34,7 @@ import com.tencent.bk.job.execute.model.StepInstanceFileBatchDTO;
 import com.tencent.bk.job.execute.model.tables.StepInstanceFileBatch;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.Record;
 import org.jooq.TableField;
@@ -57,10 +58,6 @@ public class StepInstanceFileBatchDAOImpl extends BaseDAO implements StepInstanc
         TABLE.FILE_SOURCE
     };
 
-    public static final String BATCH_INSERT_SQL =
-        "insert into step_instance_file_batch (id,task_instance_id,step_instance_id,batch,file_source)"
-            + " values (?,?,?,?,?)";
-
     @Autowired
     public StepInstanceFileBatchDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
         super(dslContextProviderFactory, TABLE.getName());
@@ -68,18 +65,29 @@ public class StepInstanceFileBatchDAOImpl extends BaseDAO implements StepInstanc
 
     @Override
     public int batchInsert(List<StepInstanceFileBatchDTO> stepInstanceFileBatchDTOList) {
-        Object[][] params = new Object[stepInstanceFileBatchDTOList.size()][5];
-        int batchCount = 0;
-        for (StepInstanceFileBatchDTO stepInstanceFileBatchDTO : stepInstanceFileBatchDTOList) {
-            Object[] param = new Object[5];
-            param[0] = stepInstanceFileBatchDTO.getId();
-            param[1] = stepInstanceFileBatchDTO.getTaskInstanceId();
-            param[2] = stepInstanceFileBatchDTO.getStepInstanceId();
-            param[3] = stepInstanceFileBatchDTO.getBatch();
-            param[4] = JsonUtils.toJson(stepInstanceFileBatchDTO.getFileSourceList());
-            params[batchCount++] = param;
+        if (stepInstanceFileBatchDTOList.isEmpty()) {
+            return 0;
         }
-        return Arrays.stream(dsl().batch(BATCH_INSERT_SQL, params).execute()).sum();
+        BatchBindStep batchInsert = dsl().batch(
+            dsl().insertInto(
+                TABLE,
+                TABLE.ID,
+                TABLE.TASK_INSTANCE_ID,
+                TABLE.STEP_INSTANCE_ID,
+                TABLE.BATCH,
+                TABLE.FILE_SOURCE
+            ).values((Long) null, null, null, null, null)
+        );
+        for (StepInstanceFileBatchDTO stepInstanceFileBatchDTO : stepInstanceFileBatchDTOList) {
+            batchInsert = batchInsert.bind(
+                stepInstanceFileBatchDTO.getId(),
+                stepInstanceFileBatchDTO.getTaskInstanceId(),
+                stepInstanceFileBatchDTO.getStepInstanceId(),
+                (short) stepInstanceFileBatchDTO.getBatch(),
+                JsonUtils.toJson(stepInstanceFileBatchDTO.getFileSourceList())
+            );
+        }
+        return Arrays.stream(batchInsert.execute()).sum();
     }
 
     @Override
