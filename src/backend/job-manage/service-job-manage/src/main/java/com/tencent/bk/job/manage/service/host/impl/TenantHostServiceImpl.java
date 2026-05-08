@@ -175,7 +175,7 @@ public class TenantHostServiceImpl extends BaseHostService implements TenantHost
             refreshHostAgentIdIfNeed(tenantId, refreshAgentId, existHosts);
             watch.stop();
 
-            if (CollectionUtils.isNotEmpty(existHosts)) {
+            if (application.isBiz() && CollectionUtils.isNotEmpty(existHosts)) {
                 watch.start("fillHostTopoPathSnapshot");
                 fillHostTopoPathSnapshotForExistHostsWithTimeout(tenantId, appId, application, existHosts);
                 watch.stop();
