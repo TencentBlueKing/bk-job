@@ -165,6 +165,7 @@
   import { taskImport } from '@utils/cache-helper';
 
   import I18n from '@/i18n';
+  import { getTime, getTimeTooltip } from '@/utils/assist/time';
 
   import ActionBar from '../components/action-bar';
 
@@ -239,6 +240,12 @@
     },
 
     methods: {
+      getTime(timestamp) {
+        return getTime({ timestamp });
+      },
+      getTimeTooltip(timestamp) {
+        return getTimeTooltip(this.getTime(timestamp));
+      },
       fetchImportInfo() {
         this.isShowLog = true;
         this.$request(BackupService.fetchImportInfo({
@@ -275,7 +282,7 @@
 
       renderLogRow(row, index, list) {
         // eslint-disable-next-line max-len
-        const logContent = DOMPurify.sanitize(`<span class="log-header">[ ${row.timestamp} ]</span> ${row.content}`);
+        const logContent = DOMPurify.sanitize(`<span class="log-header" tippy-tips="${this.getTimeTooltip(row.timestamp)}">[ ${this.getTime(row.timestamp)} ]</span> ${row.content}`, { ADD_ATTR: ['tippy-tips'] });
         const errorTypeMap = {
           // eslint-disable-next-line max-len
           [LOG_TYPE_NEED_PASSWORD]: `<span class="action" data-action="passwordRetry">${I18n.t('template.输入密码')}</span>`,
