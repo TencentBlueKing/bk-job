@@ -33,9 +33,9 @@ import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 public interface TaskPlanVarFollowService {
 
     /**
-     * 存在跟随作业模板的变量，需要判断该变量默认值是否跟作业模板的一致，如果不一致修改执行方案的版本产生差异
+     * 修改执行方案的版本号，当跟随作业模板的变量有差异 或跟随作业模板的变量无差异但执行方案与作业模板有差异时修改
      */
-    void updatePlanVersionIfFollowVarChanged(TaskPlanInfoDTO taskPlanInfo);
+    void updatePlanVersionIfNeeded(TaskPlanInfoDTO taskPlanInfo);
 
     /**
      * 更新执行方案的版本号，
