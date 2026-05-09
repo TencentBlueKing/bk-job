@@ -28,6 +28,7 @@ import com.tencent.bk.job.common.constant.ExecuteObjectTypeEnum;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
+import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.FileExecuteObjectTaskDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
@@ -112,7 +113,7 @@ public class FileExecuteObjectTaskDAOImpl extends BaseDAO implements FileExecute
                 T.END_TIME,
                 T.TOTAL_TIME,
                 T.ERROR_CODE
-            ).values((Long) null, null, null, null, null, null, null, null, null, null, null, null, null, null,null)
+            ).values((Long) null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)
         );
         for (ExecuteObjectTask task : tasks) {
             batchInsert = batchInsert.bind(
@@ -120,9 +121,9 @@ public class FileExecuteObjectTaskDAOImpl extends BaseDAO implements FileExecute
                 task.getTaskInstanceId(),
                 task.getStepInstanceId(),
                 (short) task.getExecuteCount(),
-                task.getActualExecuteCount() == null ? null : task.getActualExecuteCount().shortValue(),
+                JooqDataTypeUtil.getShortFromInteger(task.getActualExecuteCount()),
                 (short) task.getBatch(),
-                task.getFileTaskMode().getValue().byteValue(),
+                JooqDataTypeUtil.getByteFromInteger(task.getFileTaskMode().getValue()),
                 (byte) task.getExecuteObjectType().getValue(),
                 task.getExecuteObjectId(),
                 task.getGseTaskId(),

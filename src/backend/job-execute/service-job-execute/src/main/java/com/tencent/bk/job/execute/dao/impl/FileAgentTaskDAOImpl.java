@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.CompatibleType;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
+import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.FileAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
@@ -121,9 +122,9 @@ public class FileAgentTaskDAOImpl extends BaseDAO implements FileAgentTaskDAO {
                 agentTask.getTaskInstanceId(),
                 agentTask.getStepInstanceId(),
                 (short) agentTask.getExecuteCount(),
-                agentTask.getActualExecuteCount() == null ? null : agentTask.getActualExecuteCount().shortValue(),
+                JooqDataTypeUtil.getShortFromInteger(agentTask.getActualExecuteCount()),
                 (short) agentTask.getBatch(),
-                agentTask.getFileTaskMode().getValue().byteValue(),
+                JooqDataTypeUtil.getByteFromInteger(agentTask.getFileTaskMode().getValue()),
                 agentTask.getHostId(),
                 agentTask.getAgentId() == null ? "" : agentTask.getAgentId(),
                 agentTask.getGseTaskId(),

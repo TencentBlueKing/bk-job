@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
+import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
@@ -126,7 +127,7 @@ public class ScriptAgentTaskDAOImpl extends BaseDAO implements ScriptAgentTaskDA
                 agentTask.getTaskInstanceId(),
                 agentTask.getStepInstanceId(),
                 (short) agentTask.getExecuteCount(),
-                agentTask.getActualExecuteCount() == null ? null : agentTask.getActualExecuteCount().shortValue(),
+                JooqDataTypeUtil.getShortFromInteger(agentTask.getActualExecuteCount()),
                 (short) agentTask.getBatch(),
                 agentTask.getHostId(),
                 agentTask.getAgentId() == null ? "" : agentTask.getAgentId(),

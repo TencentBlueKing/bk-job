@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
+import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.ScriptExecuteObjectTaskDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
@@ -124,7 +125,7 @@ public class ScriptExecuteObjectTaskDAOImpl extends BaseDAO implements ScriptExe
                 task.getTaskInstanceId(),
                 task.getStepInstanceId(),
                 (short) task.getExecuteCount(),
-                task.getActualExecuteCount() == null ? null : task.getActualExecuteCount().shortValue(),
+                JooqDataTypeUtil.getShortFromInteger(task.getActualExecuteCount()),
                 (short) task.getBatch(),
                 (byte) task.getExecuteObjectType().getValue(),
                 task.getExecuteObjectId(),
