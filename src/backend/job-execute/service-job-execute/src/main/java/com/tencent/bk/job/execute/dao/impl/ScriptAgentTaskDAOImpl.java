@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.constant.Order;
 import com.tencent.bk.job.common.mysql.dynamic.ds.DbOperationEnum;
 import com.tencent.bk.job.common.mysql.dynamic.ds.MySQLOperation;
+import com.tencent.bk.job.common.mysql.util.JooqDataTypeUtil;
 import com.tencent.bk.job.execute.dao.ScriptAgentTaskDAO;
 import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.engine.consts.ExecuteObjectTaskStatusEnum;
@@ -39,8 +40,10 @@ import com.tencent.bk.job.execute.model.tables.GseScriptAgentTask;
 import com.tencent.bk.job.execute.model.tables.records.GseScriptAgentTaskRecord;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.BatchBindStep;
 import org.jooq.Condition;
 import org.jooq.OrderField;
+import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.SelectConditionStep;
@@ -94,33 +97,52 @@ public class ScriptAgentTaskDAOImpl extends BaseDAO implements ScriptAgentTaskDA
     @Override
     @MySQLOperation(table = "gse_script_agent_task", op = DbOperationEnum.WRITE)
     public void batchSaveAgentTasks(Collection<ExecuteObjectTask> agentTasks) {
-        String sql = "insert into gse_script_agent_task (task_instance_id, step_instance_id, execute_count, "
-            + "actual_execute_count, batch, host_id, agent_id, gse_task_id, status, start_time, end_time, "
-            + "total_time, error_code, exit_code, tag, log_offset) "
-            + "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-        Object[][] params = new Object[agentTasks.size()][16];
-        int batchCount = 0;
-        for (ExecuteObjectTask agentTask : agentTasks) {
-            Object[] param = new Object[16];
-            param[0] = agentTask.getTaskInstanceId();
-            param[1] = agentTask.getStepInstanceId();
-            param[2] = agentTask.getExecuteCount();
-            param[3] = agentTask.getActualExecuteCount();
-            param[4] = agentTask.getBatch();
-            param[5] = agentTask.getHostId();
-            param[6] = agentTask.getAgentId() == null ? "" : agentTask.getAgentId();
-            param[7] = agentTask.getGseTaskId();
-            param[8] = agentTask.getStatus().getValue();
-            param[9] = agentTask.getStartTime();
-            param[10] = agentTask.getEndTime();
-            param[11] = agentTask.getTotalTime();
-            param[12] = agentTask.getErrorCode();
-            param[13] = agentTask.getExitCode();
-            param[14] = StringUtils.truncate(agentTask.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
-            param[15] = agentTask.getScriptLogOffset();
-            params[batchCount++] = param;
+        if (CollectionUtils.isEmpty(agentTasks)) {
+            return;
         }
-        dsl().batch(sql, params).execute();
+        BatchBindStep batchInsert = dsl().batch(
+            dsl().insertInto(
+                T_GSE_SCRIPT_AGENT_TASK,
+                T_GSE_SCRIPT_AGENT_TASK.TASK_INSTANCE_ID,
+                T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID,
+                T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT,
+                T_GSE_SCRIPT_AGENT_TASK.ACTUAL_EXECUTE_COUNT,
+                T_GSE_SCRIPT_AGENT_TASK.BATCH,
+                T_GSE_SCRIPT_AGENT_TASK.HOST_ID,
+                T_GSE_SCRIPT_AGENT_TASK.AGENT_ID,
+                T_GSE_SCRIPT_AGENT_TASK.GSE_TASK_ID,
+                T_GSE_SCRIPT_AGENT_TASK.STATUS,
+                T_GSE_SCRIPT_AGENT_TASK.START_TIME,
+                T_GSE_SCRIPT_AGENT_TASK.END_TIME,
+                T_GSE_SCRIPT_AGENT_TASK.TOTAL_TIME,
+                T_GSE_SCRIPT_AGENT_TASK.ERROR_CODE,
+                T_GSE_SCRIPT_AGENT_TASK.EXIT_CODE,
+                T_GSE_SCRIPT_AGENT_TASK.TAG,
+                T_GSE_SCRIPT_AGENT_TASK.LOG_OFFSET
+            ).values((Long) null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                null)
+        );
+        for (ExecuteObjectTask agentTask : agentTasks) {
+            batchInsert = batchInsert.bind(
+                agentTask.getTaskInstanceId(),
+                agentTask.getStepInstanceId(),
+                (short) agentTask.getExecuteCount(),
+                JooqDataTypeUtil.getShortFromInteger(agentTask.getActualExecuteCount()),
+                (short) agentTask.getBatch(),
+                agentTask.getHostId(),
+                agentTask.getAgentId() == null ? "" : agentTask.getAgentId(),
+                agentTask.getGseTaskId(),
+                agentTask.getStatus().getValue(),
+                agentTask.getStartTime(),
+                agentTask.getEndTime(),
+                agentTask.getTotalTime(),
+                agentTask.getErrorCode(),
+                agentTask.getExitCode(),
+                StringUtils.truncate(agentTask.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH),
+                agentTask.getScriptLogOffset()
+            );
+        }
+        batchInsert.execute();
     }
 
     @Override
@@ -129,31 +151,26 @@ public class ScriptAgentTaskDAOImpl extends BaseDAO implements ScriptAgentTaskDA
         if (CollectionUtils.isEmpty(agentTasks)) {
             return;
         }
-        String sql = "update gse_script_agent_task set gse_task_id = ?, status = ?, start_time = ?, end_time = ?"
-            + ", total_time = ?, error_code = ?, exit_code = ?, tag = ?, log_offset = ?"
-            + " where task_instance_id = ? and step_instance_id = ? and execute_count = ?"
-            + " and batch = ? and host_id = ?";
-        Object[][] params = new Object[agentTasks.size()][14];
-        int batchCount = 0;
+        List<Query> queries = new ArrayList<>(agentTasks.size());
         for (ExecuteObjectTask agentTask : agentTasks) {
-            Object[] param = new Object[14];
-            param[0] = agentTask.getGseTaskId();
-            param[1] = agentTask.getStatus().getValue();
-            param[2] = agentTask.getStartTime();
-            param[3] = agentTask.getEndTime();
-            param[4] = agentTask.getTotalTime();
-            param[5] = agentTask.getErrorCode();
-            param[6] = agentTask.getExitCode();
-            param[7] = StringUtils.truncate(agentTask.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH);
-            param[8] = agentTask.getScriptLogOffset();
-            param[9] = agentTask.getTaskInstanceId();
-            param[10] = agentTask.getStepInstanceId();
-            param[11] = agentTask.getExecuteCount();
-            param[12] = agentTask.getBatch();
-            param[13] = agentTask.getHostId();
-            params[batchCount++] = param;
+            queries.add(dsl().update(T_GSE_SCRIPT_AGENT_TASK)
+                .set(T_GSE_SCRIPT_AGENT_TASK.GSE_TASK_ID, agentTask.getGseTaskId())
+                .set(T_GSE_SCRIPT_AGENT_TASK.STATUS, agentTask.getStatus().getValue())
+                .set(T_GSE_SCRIPT_AGENT_TASK.START_TIME, agentTask.getStartTime())
+                .set(T_GSE_SCRIPT_AGENT_TASK.END_TIME, agentTask.getEndTime())
+                .set(T_GSE_SCRIPT_AGENT_TASK.TOTAL_TIME, agentTask.getTotalTime())
+                .set(T_GSE_SCRIPT_AGENT_TASK.ERROR_CODE, agentTask.getErrorCode())
+                .set(T_GSE_SCRIPT_AGENT_TASK.EXIT_CODE, agentTask.getExitCode())
+                .set(T_GSE_SCRIPT_AGENT_TASK.TAG,
+                    StringUtils.truncate(agentTask.getTag(), JobConstants.RESULT_GROUP_TAG_MAX_LENGTH))
+                .set(T_GSE_SCRIPT_AGENT_TASK.LOG_OFFSET, agentTask.getScriptLogOffset())
+                .where(T_GSE_SCRIPT_AGENT_TASK.TASK_INSTANCE_ID.eq(agentTask.getTaskInstanceId()))
+                .and(T_GSE_SCRIPT_AGENT_TASK.STEP_INSTANCE_ID.eq(agentTask.getStepInstanceId()))
+                .and(T_GSE_SCRIPT_AGENT_TASK.EXECUTE_COUNT.eq((short) agentTask.getExecuteCount()))
+                .and(T_GSE_SCRIPT_AGENT_TASK.BATCH.eq((short) agentTask.getBatch()))
+                .and(T_GSE_SCRIPT_AGENT_TASK.HOST_ID.eq(agentTask.getHostId())));
         }
-        dsl().batch(sql, params).execute();
+        dsl().batch(queries).execute();
     }
 
     @Override
