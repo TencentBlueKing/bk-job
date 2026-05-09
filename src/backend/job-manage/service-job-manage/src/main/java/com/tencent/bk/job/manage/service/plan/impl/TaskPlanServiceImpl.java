@@ -306,8 +306,8 @@ public class TaskPlanServiceImpl implements TaskPlanService {
         taskPlanInfo.getVariableList().forEach(variable -> variable.setPlanId(planId));
         taskPlanVariableService.batchInsertVariable(taskPlanInfo.getVariableList());
 
-        // 跟随作业的变量如果值不一致，需要产生差异
-        taskPlanVarFollowService.updatePlanVersionIfFollowVarChanged(taskPlanInfo);
+        // 更新方案的版本号
+        taskPlanVarFollowService.updatePlanVersionIfNeeded(taskPlanInfo);
 
         return getTaskPlanById(planId);
     }
@@ -398,8 +398,8 @@ public class TaskPlanServiceImpl implements TaskPlanService {
             taskPlanVariableService.updateVarByParentResourceIdAndTplVarId(taskVariable);
         }
 
-        // 跟随作业的变量如果值不一致，需要产生差异
-        taskPlanVarFollowService.updatePlanVersionIfFollowVarChanged(taskPlanInfo);
+        // 更新方案的版本号
+        taskPlanVarFollowService.updatePlanVersionIfNeeded(taskPlanInfo);
 
         TaskPlanInfoDTO updatedPlan = getTaskPlanById(planId);
 
