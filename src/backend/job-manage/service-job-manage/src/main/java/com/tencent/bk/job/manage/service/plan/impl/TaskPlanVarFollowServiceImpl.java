@@ -28,11 +28,14 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.dao.plan.TaskPlanDAO;
+import com.tencent.bk.job.manage.dao.template.TaskTemplateDAO;
 import com.tencent.bk.job.manage.model.dto.task.TaskPlanInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
+import com.tencent.bk.job.manage.service.AbstractTaskStepService;
 import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
+import com.tencent.bk.job.manage.service.helper.TaskDiffHelper;
 import com.tencent.bk.job.manage.service.plan.TaskPlanVarFollowService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -56,28 +59,83 @@ import java.util.stream.Collectors;
 public class TaskPlanVarFollowServiceImpl implements TaskPlanVarFollowService {
 
     private final TaskPlanDAO taskPlanDAO;
+    private final TaskTemplateDAO taskTemplateDAO;
+    private final AbstractTaskStepService taskTemplateStepService;
+    private final AbstractTaskStepService taskPlanStepService;
     private final AbstractTaskVariableService taskTemplateVariableService;
     private final AbstractTaskVariableService taskPlanVariableService;
+    private final TaskDiffHelper taskDiffHelper;
 
     @Autowired
     public TaskPlanVarFollowServiceImpl(
         TaskPlanDAO taskPlanDAO,
+        TaskTemplateDAO taskTemplateDAO,
+        @Qualifier("TaskTemplateStepServiceImpl") AbstractTaskStepService taskTemplateStepService,
+        @Qualifier("TaskPlanStepServiceImpl") AbstractTaskStepService taskPlanStepService,
         @Qualifier("TaskTemplateVariableServiceImpl") AbstractTaskVariableService taskTemplateVariableService,
-        @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskPlanVariableService
+        @Qualifier("TaskPlanVariableServiceImpl") AbstractTaskVariableService taskPlanVariableService,
+        TaskDiffHelper taskDiffHelper
     ) {
         this.taskPlanDAO = taskPlanDAO;
+        this.taskTemplateDAO = taskTemplateDAO;
+        this.taskTemplateStepService = taskTemplateStepService;
+        this.taskPlanStepService = taskPlanStepService;
         this.taskTemplateVariableService = taskTemplateVariableService;
         this.taskPlanVariableService = taskPlanVariableService;
+        this.taskDiffHelper = taskDiffHelper;
+    }
+
+    @Override
+    public void updatePlanVersionIfNeeded(TaskPlanInfoDTO taskPlanInfo) {
+        // 跟随作业模板的变量值如果有差异，生成新的执行方案version;
+        // 如果没有差异，进一步判断执行方案的步骤和变量是否跟模板有差异，如果没有差异则重置执行方案version为模板version
+        if (followVarChanged(taskPlanInfo)) {
+            String newVersion = UUID.randomUUID().toString();
+            log.info("Updating plan version, planId={}, newVersion={}", taskPlanInfo.getId(), newVersion);
+            taskPlanDAO.batchUpdatePlanVersionByIds(
+                Collections.singletonList(taskPlanInfo.getId()),
+                newVersion,
+                JobContextUtil.getUsername(),
+                DateUtils.currentTimeSeconds()
+            );
+            return;
+        }
+
+        TaskPlanInfoDTO currentPlan = getCurrentPlan(taskPlanInfo.getId());
+        if (currentPlan == null) {
+            return;
+        }
+        TaskTemplateInfoDTO taskTemplate = getTemplate(taskPlanInfo.getTemplateId());
+        if (taskTemplate == null) {
+            return;
+        }
+
+        // plan.version已经等于template.version时，说明当前不存在差异
+        if (Objects.equals(currentPlan.getVersion(), taskTemplate.getVersion())) {
+            log.debug("Plan version already matches template, planId={}", taskPlanInfo.getId());
+            return;
+        }
+
+        // 执行方案与作业模板没有差异，重置执行方案version为模板version
+        if (!planHasTemplateDiff(currentPlan, taskTemplate)) {
+            log.info("Reset plan version to template version, planId={}, templateVersion={}",
+                taskPlanInfo.getId(), taskTemplate.getVersion());
+            taskPlanDAO.batchUpdatePlanVersionByIds(
+                Collections.singletonList(taskPlanInfo.getId()),
+                taskTemplate.getVersion(),
+                JobContextUtil.getUsername(),
+                DateUtils.currentTimeSeconds()
+            );
+        }
     }
 
     /**
-     * 跟随模板的执行方案变量一旦与模板默认值产生差异，就需要更新执行方案版本。
+     * 跟随作业模板的变量，变量值是否有变更
      */
-    @Override
-    public void updatePlanVersionIfFollowVarChanged(TaskPlanInfoDTO taskPlanInfo) {
+    private boolean followVarChanged(TaskPlanInfoDTO taskPlanInfo) {
         List<TaskVariableDTO> followTemplateVars = taskPlanVariableService.listFollowVarsByPlanId(taskPlanInfo.getId());
-        if (followTemplateVars.isEmpty()) {
-            return;
+        if (CollectionUtils.isEmpty(followTemplateVars)) {
+            return false;
         }
 
         log.info("Found follow template variables, planId={}, varSize={}",
@@ -88,22 +146,10 @@ public class TaskPlanVarFollowServiceImpl implements TaskPlanVarFollowService {
             .stream()
             .collect(Collectors.toMap(TaskVariableDTO::getId, Function.identity()));
 
-        boolean needUpdatePlanVersion = followTemplateVars.stream()
-            .anyMatch(variable -> {
-                TaskVariableDTO templateVar = templateVarMap.get(variable.getId());
-                return templateVar != null && isVariableValueChanged(templateVar, variable);
-            });
-
-        if (needUpdatePlanVersion) {
-            String newVersion = UUID.randomUUID().toString();
-            log.info("Updating plan version, planId={}, newVersion={}", taskPlanInfo.getId(), newVersion);
-            taskPlanDAO.batchUpdatePlanVersionByIds(
-                Collections.singletonList(taskPlanInfo.getId()),
-                newVersion,
-                JobContextUtil.getUsername(),
-                DateUtils.currentTimeSeconds()
-            );
-        }
+        return followTemplateVars.stream().anyMatch(variable -> {
+            TaskVariableDTO templateVar = templateVarMap.get(variable.getId());
+            return templateVar != null && isVariableValueChanged(templateVar, variable);
+        });
     }
 
     @Override
@@ -201,5 +247,53 @@ public class TaskPlanVarFollowServiceImpl implements TaskPlanVarFollowService {
             .map(host -> host == null ? null : host.getHostId())
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
+    }
+
+    private TaskTemplateInfoDTO getTemplate(Long templateId) {
+        TaskTemplateInfoDTO taskTemplate = taskTemplateDAO.getTaskTemplateById(templateId);
+        if (taskTemplate == null) {
+            return null;
+        }
+        taskTemplate.setStepList(taskTemplateStepService.listStepsByParentId(templateId));
+        taskTemplate.setVariableList(taskTemplateVariableService.listVariablesByParentId(templateId));
+        return taskTemplate;
+    }
+
+    private TaskPlanInfoDTO getCurrentPlan(Long planId) {
+        TaskPlanInfoDTO taskPlan = taskPlanDAO.getTaskPlanById(planId);
+        if (taskPlan == null) {
+            return null;
+        }
+        taskPlan.setStepList(taskPlanStepService.listStepsByParentId(planId));
+        taskPlan.setVariableList(taskPlanVariableService.listVariablesByParentId(planId));
+        return taskPlan;
+    }
+
+    /**
+     * 当前执行方案与作业模板差异比较，变量不比较具体的值
+     */
+    private boolean planHasTemplateDiff(TaskPlanInfoDTO currentPlan, TaskTemplateInfoDTO taskTemplate) {
+        boolean variableChanged = taskDiffHelper.variablesHasChanged(
+            currentPlan.getVariableList(),
+            taskTemplate.getVariableList(),
+            TaskDiffHelper.CompareMode.PLAN_TO_TEMPLATE
+        );
+        if (variableChanged) {
+            log.debug("Plan variable differs from template, planId={}, templateId={}",
+                currentPlan.getId(), taskTemplate.getId());
+            return true;
+        }
+
+        boolean stepChanged = taskDiffHelper.stepsHasChanged(
+            currentPlan.getStepList(),
+            taskTemplate.getStepList(),
+            TaskDiffHelper.CompareMode.PLAN_TO_TEMPLATE
+        );
+        if (stepChanged) {
+            log.debug("Plan step differs from template, planId={}, templateId={}",
+                currentPlan.getId(), taskTemplate.getId());
+            return true;
+        }
+        return false;
     }
 }
