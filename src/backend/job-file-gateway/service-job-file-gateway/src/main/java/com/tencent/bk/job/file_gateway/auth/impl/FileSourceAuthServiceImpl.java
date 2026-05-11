@@ -118,6 +118,19 @@ public class FileSourceAuthServiceImpl implements FileSourceAuthService {
     }
 
     @Override
+    public AuthResult authUseTicket(User user,
+                                    AppResourceScope appResourceScope,
+                                    String ticketId) {
+        return authService.auth(
+            user,
+            ActionId.USE_TICKET,
+            ResourceTypeEnum.TICKET,
+            ticketId,
+            buildAppScopePath(appResourceScope)
+        );
+    }
+
+    @Override
     public boolean registerFileSource(User creator, Integer id, String name) {
         return authService.registerResource(creator, id.toString(), name, ResourceTypeId.FILE_SOURCE, null);
     }
