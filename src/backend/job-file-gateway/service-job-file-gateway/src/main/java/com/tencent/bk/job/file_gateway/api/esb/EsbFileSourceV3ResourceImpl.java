@@ -7,10 +7,14 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.User;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
 import com.tencent.bk.job.common.util.JobContextUtil;
+import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectModeEnum;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectScopeEnum;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
@@ -35,14 +39,17 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
     private final FileSourceService fileSourceService;
     private final AppScopeMappingService appScopeMappingService;
     private final FileSourceValidateService fileSourceValidateService;
+    private final FileSourceAuthService fileSourceAuthService;
 
     @Autowired
     public EsbFileSourceV3ResourceImpl(FileSourceService fileSourceService,
                                        AppScopeMappingService appScopeMappingService,
-                                       FileSourceValidateService fileSourceValidateService) {
+                                       FileSourceValidateService fileSourceValidateService,
+                                       FileSourceAuthService fileSourceAuthService) {
         this.fileSourceService = fileSourceService;
         this.appScopeMappingService = appScopeMappingService;
         this.fileSourceValidateService = fileSourceValidateService;
+        this.fileSourceAuthService = fileSourceAuthService;
     }
 
     @Override
@@ -101,7 +108,26 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         String username,
         String appCode,
         @AuditRequestBody EsbGetFileSourceDetailV3Req req) {
-        FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceByCode(req.getAppId(), req.getCode());
+        // POST 直接入口可能未补全 appId（GET 入口已先调用，重复调用幂等且安全）
+        req.fillAppResourceScope(appScopeMappingService);
+        Long appId = req.getAppId();
+
+        // 先按 (appId, code) 拿到文件源，DAO 联合过滤天然保证业务隔离
+        FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceByCode(appId, req.getCode());
+        if (fileSourceDTO == null) {
+            throw new NotFoundException(ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE,
+                new String[]{req.getCode()});
+        }
+
+        // IAM view_file_source 校验，与 Web 端 FileSourceServiceImpl#getFileSourceById(user,..) 对齐
+        User user = JobContextUtil.getUser();
+        fileSourceAuthService.authViewFileSource(
+            user,
+            new AppResourceScope(appId),
+            fileSourceDTO.getId(),
+            fileSourceDTO.getAlias()
+        ).denyIfNoPermission();
+
         return EsbResp.buildSuccessResp(FileSourceDTO.toEsbFileSourceV3DTO(fileSourceDTO));
     }
 
