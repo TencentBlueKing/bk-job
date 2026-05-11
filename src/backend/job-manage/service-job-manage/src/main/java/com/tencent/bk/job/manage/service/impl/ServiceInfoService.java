@@ -24,10 +24,15 @@
 
 package com.tencent.bk.job.manage.service.impl;
 
+import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.constant.ProfileEnum;
+import com.tencent.bk.job.common.constant.TenantIdConstants;
 import com.tencent.bk.job.common.discovery.ServiceInfoProvider;
 import com.tencent.bk.job.common.discovery.model.ServiceInstanceInfoDTO;
+import com.tencent.bk.job.common.exception.NotFoundException;
+import com.tencent.bk.job.common.tenant.TenantEnvService;
 import com.tencent.bk.job.common.util.CompareUtil;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.serviceinfo.ServiceInstanceInfoVO;
 import lombok.extern.slf4j.Slf4j;
@@ -46,10 +51,26 @@ import java.util.Map;
 public class ServiceInfoService {
 
     private final ServiceInfoProvider serviceInfoProvider;
+    private final TenantEnvService tenantEnvService;
 
     @Autowired
-    public ServiceInfoService(ServiceInfoProvider serviceInfoProvider) {
+    public ServiceInfoService(ServiceInfoProvider serviceInfoProvider, TenantEnvService tenantEnvService) {
         this.serviceInfoProvider = serviceInfoProvider;
+        this.tenantEnvService = tenantEnvService;
+    }
+
+    /**
+     * 服务信息相关接口的租户访问校验：开启多租户时仅允许系统租户访问。
+     * 与 Web 端 {@link com.tencent.bk.job.manage.api.web.impl.WebServiceInfoResourceImpl}
+     * 中原有的内联实现保持一致，供 Web/ESB 共用，避免逻辑漂移。
+     */
+    public void checkTenantAccess() {
+        if (tenantEnvService.isTenantEnabled()) {
+            String tenantId = JobContextUtil.getTenantId();
+            if (!TenantIdConstants.SYSTEM_TENANT_ID.equals(tenantId)) {
+                throw new NotFoundException(ErrorCode.NOT_SUPPORT_FEATURE);
+            }
+        }
     }
 
     private static ServiceInstanceInfoVO convert(ServiceInstanceInfoDTO serviceInstanceInfoDTO) {
