@@ -16,7 +16,6 @@ rules:
       - "apps"
     resources:
       - jobs
-      - secrets
       - configmaps
       - services
       - pods
