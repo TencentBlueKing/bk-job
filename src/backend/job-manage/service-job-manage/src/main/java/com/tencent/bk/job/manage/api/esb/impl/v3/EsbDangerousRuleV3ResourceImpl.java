@@ -29,11 +29,14 @@ import com.tencent.bk.audit.annotations.AuditRequestBody;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.iam.constant.ActionId;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.common.constants.EnableStatusEnum;
 import com.tencent.bk.job.manage.api.esb.v3.EsbDangerousRuleV3Resource;
+import com.tencent.bk.job.manage.auth.NoResourceScopeAuthService;
 import com.tencent.bk.job.manage.model.dto.globalsetting.DangerousRuleDTO;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbCreateDangerousRuleV3Req;
 import com.tencent.bk.job.manage.model.esb.v3.request.EsbGetDangerousRuleV3Req;
@@ -57,10 +60,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resource {
     private final CurrentTenantDangerousRuleService currentTenantDangerousRuleService;
+    private final NoResourceScopeAuthService noResourceScopeAuthService;
 
     @Autowired
-    public EsbDangerousRuleV3ResourceImpl(CurrentTenantDangerousRuleService currentTenantDangerousRuleService) {
+    public EsbDangerousRuleV3ResourceImpl(CurrentTenantDangerousRuleService currentTenantDangerousRuleService,
+                                          NoResourceScopeAuthService noResourceScopeAuthService) {
         this.currentTenantDangerousRuleService = currentTenantDangerousRuleService;
+        this.noResourceScopeAuthService = noResourceScopeAuthService;
     }
 
     @Override
@@ -70,6 +76,7 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
                                                               String appCode,
                                                               @AuditRequestBody EsbCreateDangerousRuleV3Req request) {
         User user = JobContextUtil.getUser();
+        authHighRiskDetectRule(user);
         AddOrUpdateDangerousRuleReq req = new AddOrUpdateDangerousRuleReq();
         req.setExpression(request.getExpression());
         req.setScriptTypeList(request.getScriptTypeList());
@@ -86,6 +93,7 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
                                                               String appCode,
                                                               @AuditRequestBody EsbUpdateDangerousRuleV3Req request) {
         User user = JobContextUtil.getUser();
+        authHighRiskDetectRule(user);
         AddOrUpdateDangerousRuleReq req = new AddOrUpdateDangerousRuleReq();
         DangerousRuleDTO dangerousRuleDTO = currentTenantDangerousRuleService.getDangerousRuleById(request.getId());
         req.setId(request.getId());
@@ -105,6 +113,7 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
                                        String appCode,
                                        @AuditRequestBody EsbManageDangerousRuleV3Req request) {
         User user = JobContextUtil.getUser();
+        authHighRiskDetectRule(user);
         currentTenantDangerousRuleService.deleteDangerousRuleById(user, request.getId());
         return EsbResp.buildSuccessResp(null);
     }
@@ -136,6 +145,7 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
                                                               String appCode,
                                                               @AuditRequestBody EsbManageDangerousRuleV3Req request) {
         User user = JobContextUtil.getUser();
+        authHighRiskDetectRule(user);
         DangerousRuleDTO dangerousRuleDTO = currentTenantDangerousRuleService.updateDangerousRuleStatus(user,
             request.getId(),
             EnableStatusEnum.ENABLED);
@@ -150,9 +160,22 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
         String appCode,
         @AuditRequestBody EsbManageDangerousRuleV3Req request) {
         User user = JobContextUtil.getUser();
+        authHighRiskDetectRule(user);
         DangerousRuleDTO dangerousRuleDTO = currentTenantDangerousRuleService.updateDangerousRuleStatus(user,
             request.getId(),
             EnableStatusEnum.DISABLED);
         return EsbResp.buildSuccessResp(dangerousRuleDTO.toEsbDangerousRuleStatusV3DTO());
+    }
+
+    /**
+     * 高危语句规则管理鉴权，与 Web 接口 {@code /web/dangerousRule/**}
+     * 的 {@code JobManageUriPermissionInterceptor} 保持一致，
+     * 仅放行拥有 {@link ActionId#HIGH_RISK_DETECT_RULE} 权限的用户（默认仅平台管理员）。
+     */
+    private void authHighRiskDetectRule(User user) {
+        AuthResult authResult = noResourceScopeAuthService.authHighRiskDetectRule(user);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
+        }
     }
 }
