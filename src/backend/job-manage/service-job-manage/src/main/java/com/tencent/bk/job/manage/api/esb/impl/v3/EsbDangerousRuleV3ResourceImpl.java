@@ -125,6 +125,8 @@ public class EsbDangerousRuleV3ResourceImpl implements EsbDangerousRuleV3Resourc
         String username,
         String appCode,
         @AuditRequestBody EsbGetDangerousRuleV3Req request) {
+        User user = JobContextUtil.getUser();
+        authHighRiskDetectRule(user);
         DangerousRuleQuery query = DangerousRuleQuery.builder()
             .expression(request.getExpression())
             .description(request.getDescription())

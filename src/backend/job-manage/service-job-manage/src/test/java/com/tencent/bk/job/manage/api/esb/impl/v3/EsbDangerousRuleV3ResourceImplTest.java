@@ -280,17 +280,30 @@ class EsbDangerousRuleV3ResourceImplTest {
     }
 
     @Test
-    @DisplayName("查询高危语句规则列表保持原有行为，不调用本次新增的鉴权")
-    void getDangerousRuleListShouldNotInvokeNewlyAddedAuth() {
-        mockUser(NORMAL_USER);
+    @DisplayName("普通用户查询高危语句规则列表被拒绝且不进入业务逻辑")
+    void normalUserGetDangerousRuleListShouldBeDenied() {
+        User user = mockUser(NORMAL_USER);
+        givenNoPermission(user);
+
+        EsbGetDangerousRuleV3Req req = new EsbGetDangerousRuleV3Req();
+        assertThatThrownBy(() -> resource.getDangerousRuleListUsingPost(NORMAL_USER, "test_app", req))
+            .isInstanceOf(PermissionDeniedException.class);
+
+        verify(currentTenantDangerousRuleService, never()).listDangerousRules(any());
+    }
+
+    @Test
+    @DisplayName("管理员查询高危语句规则列表正常进入业务逻辑")
+    void adminUserGetDangerousRuleListShouldPass() {
+        User user = mockUser(ADMIN_USER);
+        givenHasPermission(user);
         when(currentTenantDangerousRuleService.listDangerousRules(any()))
             .thenReturn(Collections.emptyList());
 
         EsbGetDangerousRuleV3Req req = new EsbGetDangerousRuleV3Req();
-        assertThatCode(() -> resource.getDangerousRuleListUsingPost(NORMAL_USER, "test_app", req))
+        assertThatCode(() -> resource.getDangerousRuleListUsingPost(ADMIN_USER, "test_app", req))
             .doesNotThrowAnyException();
 
-        verify(noResourceScopeAuthService, never()).authHighRiskDetectRule(any());
         verify(currentTenantDangerousRuleService, times(1)).listDangerousRules(any());
     }
 }
