@@ -45,7 +45,14 @@ public class ArtifactoryExceptionConverter {
      */
     public static <R> R convertException(Exception e) {
         if (e instanceof HttpStatusException) {
-            String httpStatusExceptionRespStr = ((HttpStatusException) e).getRespBodyStr();
+            HttpStatusException httpStatusException = (HttpStatusException) e;
+            int httpStatus = httpStatusException.getHttpStatus();
+            // bkrepo 返回 401 表示凭证无效（如用户名/密码或访问令牌错误），
+            // 引导用户检查文件源凭证配置；原始 bkrepo 报错信息保留在 cause 中可在日志中查看
+            if (httpStatus == HTTP_STATUS_UNAUTHORIZED) {
+                throw new ArtifactoryAuthFailException(e);
+            }
+            String httpStatusExceptionRespStr = httpStatusException.getRespBodyStr();
             ArtifactoryResp<Object> artifactoryResp = JsonUtils.fromJson(httpStatusExceptionRespStr,
                 new TypeReference<ArtifactoryResp<Object>>() {
                 });
@@ -76,4 +83,6 @@ public class ArtifactoryExceptionConverter {
             throw new ArtifactoryException(e);
         }
     }
+
+    private static final int HTTP_STATUS_UNAUTHORIZED = 401;
 }
