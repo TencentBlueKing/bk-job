@@ -31,6 +31,7 @@ import com.tencent.bk.job.manage.model.tables.GlobalSetting;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.jooq.DSLContext;
+import org.jooq.TableField;
 import org.jooq.conf.ParamType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -45,6 +46,11 @@ public class GlobalSettingDAOImpl implements GlobalSettingDAO {
     private final DSLContext dslContext;
 
     private static final GlobalSetting defaultTable = GlobalSetting.GLOBAL_SETTING;
+    private static final TableField<?, ?>[] ALL_FIELDS = {
+        defaultTable.KEY,
+        defaultTable.VALUE,
+        defaultTable.DECRIPTION
+    };
 
     @Autowired
     public GlobalSettingDAOImpl(@Qualifier("job-manage-dsl-context") DSLContext dslContext) {
@@ -104,16 +110,17 @@ public class GlobalSettingDAOImpl implements GlobalSettingDAO {
 
     @Override
     public GlobalSettingDTO getGlobalSetting(String key) {
-        val record = dslContext.selectFrom(defaultTable).where(
-            defaultTable.KEY.eq(key)
-        ).fetchOne();
+        val record = dslContext.select(ALL_FIELDS)
+            .from(defaultTable)
+            .where(defaultTable.KEY.eq(key))
+            .fetchOne();
         if (record == null) {
             return null;
         } else {
             return new GlobalSettingDTO(
-                record.getKey(),
-                record.getValue(),
-                record.getDecription()
+                record.get(defaultTable.KEY),
+                record.get(defaultTable.VALUE),
+                record.get(defaultTable.DECRIPTION)
             );
         }
     }

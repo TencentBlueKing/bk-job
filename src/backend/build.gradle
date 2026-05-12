@@ -150,7 +150,7 @@ ext {
     }
     set('bkAuditJavaSdkVersion', "1.0.8")
     set('mockitoVersion', "4.0.0")
-    set('embeddedRedisVersion', "0.6")
+    set('embeddedRedisVersion', "0.13.0")
     set('openai4jVersion', "0.18.0")
     // Fix CVE-2023-44981,CVE-2024-23944 3.7.1->3.8.4
     set('zookeeperVersion', "3.8.4")
@@ -370,7 +370,7 @@ subprojects {
             dependency "com.tencent.bk.sdk:crypto-java-sdk:$cryptoJavaSDKVersion"
             dependency "com.tencent.bk.sdk:spring-boot-bk-audit-starter:$bkAuditJavaSdkVersion"
             dependency "org.mockito:mockito-inline:$mockitoVersion"
-            dependency "com.github.kstyrc:embedded-redis:$embeddedRedisVersion"
+            dependency "com.github.codemonstur:embedded-redis:$embeddedRedisVersion"
             dependency "dev.ai4j:openai4j:$openai4jVersion"
             dependency "org.apache.zookeeper:zookeeper:$zookeeperVersion"
             dependency "com.squareup.okio:okio:$okioVersion"
