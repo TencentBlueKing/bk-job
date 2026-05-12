@@ -146,6 +146,7 @@ public class FileSourceServiceImpl implements FileSourceService {
     )
     public FileSourceDTO saveFileSource(String username, Long appId, FileSourceDTO fileSource) {
         authCreate(username, appId);
+        authUseTicketIfNeeded(username, appId, fileSource.getCredentialId());
 
         if (existsCode(appId, fileSource.getCode())) {
             throw new FailedPreconditionException(
@@ -184,6 +185,14 @@ public class FileSourceServiceImpl implements FileSourceService {
             fileSourceId, null).denyIfNoPermission();
     }
 
+    private void authUseTicketIfNeeded(String username, long appId, String credentialId) {
+        if (StringUtils.isBlank(credentialId)) {
+            return;
+        }
+        fileSourceAuthService.authUseTicket(username, new AppResourceScope(appId), credentialId)
+            .denyIfNoPermission();
+    }
+
     @Override
     @ActionAuditRecord(
         actionId = ActionId.MANAGE_FILE_SOURCE,
@@ -196,6 +205,7 @@ public class FileSourceServiceImpl implements FileSourceService {
     )
     public FileSourceDTO updateFileSourceById(String username, Long appId, FileSourceDTO fileSource) {
         authManage(username, appId, fileSource.getId());
+        authUseTicketIfNeeded(username, appId, fileSource.getCredentialId());
 
         if (existsCodeExceptId(appId, fileSource.getCode(), fileSource.getId())) {
             throw new FailedPreconditionException(
