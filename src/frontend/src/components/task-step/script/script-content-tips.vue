@@ -13,9 +13,10 @@
       </div>
       <div class="script-content-alert-action">
         <span>{{ isExpanded ? '收起' : '了解详情' }}</span>
-        <span
+        <icon
           class="arrow"
-          :class="{ expanded: isExpanded }">▸</span>
+          :class="{ expanded: isExpanded }"
+          type="arrow-full-right" />
       </div>
     </div>
     <div
@@ -117,10 +118,7 @@
       }
 
       .arrow {
-        font-size: 10px;
         transition: transform 0.2s;
-        display: inline-block;
-
         &.expanded {
           transform: rotate(90deg);
         }
