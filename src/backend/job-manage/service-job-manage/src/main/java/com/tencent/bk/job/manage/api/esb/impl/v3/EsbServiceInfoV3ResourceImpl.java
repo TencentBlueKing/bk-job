@@ -28,8 +28,11 @@ import com.tencent.bk.job.common.constant.ProfileEnum;
 import com.tencent.bk.job.common.discovery.ServiceInfoProvider;
 import com.tencent.bk.job.common.discovery.model.ServiceInstanceInfoDTO;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
 import com.tencent.bk.job.common.util.CompareUtil;
 import com.tencent.bk.job.manage.api.esb.v3.EsbServiceInfoV3Resource;
+import com.tencent.bk.job.manage.auth.NoResourceScopeAuthService;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbServiceVersionV3DTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,12 +47,21 @@ import java.util.List;
 public class EsbServiceInfoV3ResourceImpl implements EsbServiceInfoV3Resource {
 
     private final ServiceInfoProvider serviceInfoProvider;
+    private final NoResourceScopeAuthService noResourceScopeAuthService;
 
     @Autowired
-    public EsbServiceInfoV3ResourceImpl(ServiceInfoProvider serviceInfoProvider) {
-        this.serviceInfoProvider = serviceInfoProvider;;
+    public EsbServiceInfoV3ResourceImpl(ServiceInfoProvider serviceInfoProvider,
+                                        NoResourceScopeAuthService noResourceScopeAuthService) {
+        this.serviceInfoProvider = serviceInfoProvider;
+        this.noResourceScopeAuthService = noResourceScopeAuthService;
     }
 
+    private void authViewServiceState(String username) {
+        AuthResult authResult = noResourceScopeAuthService.authViewServiceState(username);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
+        }
+    }
 
     @Override
     public EsbResp<EsbServiceVersionV3DTO> getLatestServiceVersion(String username,
@@ -60,6 +72,7 @@ public class EsbServiceInfoV3ResourceImpl implements EsbServiceInfoV3Resource {
     @Override
     public EsbResp<EsbServiceVersionV3DTO> getLatestServiceVersionUsingPost(String username,
                                                                             String appCode) {
+        authViewServiceState(username);
         List<ServiceInstanceInfoDTO> instanceInfoDTOList = serviceInfoProvider.listServiceInfo();
         ServiceInstanceInfoDTO latestVersionInstance = findLatestVersionInstance(instanceInfoDTOList);
         EsbServiceVersionV3DTO esbServiceVersionV3DTO = new EsbServiceVersionV3DTO();
