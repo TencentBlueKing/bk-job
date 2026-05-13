@@ -32,8 +32,9 @@
     :property="contentField"
     required
     :rules="rules">
-    <ace-editor
-      ref="aceEditor"
+    <script-content-tips />
+    <monaco-editor
+      ref="monacoEditor"
       v-bkloading="{ isLoading: isContentLoading, opacity: .2 }"
       :constants="scriptVariables"
       :lang="lang"
@@ -59,9 +60,12 @@
     formatScriptTypeValue,
   } from '@/utils/assist';
 
+  import ScriptContentTips from '../script-content-tips';
+
   export default {
     components: {
-      AceEditor,
+      MonacoEditor,
+      ScriptContentTips,
     },
     props: {
       contentField: {
