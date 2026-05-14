@@ -330,6 +330,29 @@ public class TaskTemplateVariableDAOImpl implements TaskVariableDAO {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public List<TaskVariableDTO> listVariablesByTemplateVarId(List<Long> templateVarIds) {
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(TABLE.ID.in(templateVarIds));
+        Result<Record8<ULong, ULong, String, UByte, String, String, UByte,UByte>> records = context.select(
+            TABLE.ID,
+            TABLE.TEMPLATE_ID,
+            TABLE.NAME,
+            TABLE.TYPE,
+            TABLE.DEFAULT_VALUE,
+            TABLE.DESCRIPTION,
+            TABLE.IS_CHANGEABLE,
+            TABLE.IS_REQUIRED
+        ).from(TABLE).where(conditions).fetch();
+
+        List<TaskVariableDTO> taskVariableList = new ArrayList<>();
+        if (records.size() >= 1) {
+            records.forEach(record -> taskVariableList
+                .add(extract(record)));
+        }
+        return taskVariableList;
+    }
+
     private UByte getChangeable(Boolean changeable) {
         UByte isChangeable = UByte.valueOf(0);
         if (changeable != null && changeable) {

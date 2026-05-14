@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -76,5 +77,13 @@ public class TaskPlanVariableServiceImpl extends AbstractTaskVariableService {
     @Override
     public TaskVariableDTO getVariableByName(Long parentId, String name) {
         return taskVariableDAO.getVariableByName(parentId, name);
+    }
+
+    @Override
+    public List<TaskVariableDTO> listVariablesByTemplateVarId(List<Long> templateVarIds) {
+        if (CollectionUtils.isEmpty(templateVarIds)) {
+            return new ArrayList<>();
+        }
+        return taskVariableDAO.listVariablesByTemplateVarId(templateVarIds);
     }
 }

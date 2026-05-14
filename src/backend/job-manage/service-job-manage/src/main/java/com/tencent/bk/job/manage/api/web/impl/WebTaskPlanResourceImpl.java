@@ -61,11 +61,16 @@ import com.tencent.bk.job.manage.model.web.request.TaskVariableValueUpdateReq;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanBasicInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanSyncInfoVO;
 import com.tencent.bk.job.manage.model.web.vo.task.TaskPlanVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskTemplateVO;
+import com.tencent.bk.job.manage.model.web.vo.task.TaskVariableVO;
 import com.tencent.bk.job.manage.service.CronJobService;
 import com.tencent.bk.job.manage.service.TaskFavoriteService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
+import com.tencent.bk.job.manage.service.plan.TaskPlanSyncService;
+import com.tencent.bk.job.manage.service.plan.TaskPlanVarUpdateService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -76,11 +81,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -91,6 +98,8 @@ import java.util.stream.Collectors;
 public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
     private final TaskPlanService planService;
+    private final TaskPlanSyncService taskPlanSyncService;
+    private final TaskPlanVarUpdateService taskPlanVarUpdateService;
     private final TaskTemplateService templateService;
     private final TaskFavoriteService taskFavoriteService;
     private final CronJobService cronJobService;
@@ -99,12 +108,16 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
 
     @Autowired
     public WebTaskPlanResourceImpl(TaskPlanService planService,
+                                   TaskPlanSyncService taskPlanSyncService,
+                                   TaskPlanVarUpdateService taskPlanVarUpdateService,
                                    TaskTemplateService templateService,
                                    @Qualifier("TaskPlanFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
                                    CronJobService cronJobService,
                                    TemplateAuthService templateAuthService,
                                    PlanAuthService planAuthService) {
         this.planService = planService;
+        this.taskPlanSyncService = taskPlanSyncService;
+        this.taskPlanVarUpdateService = taskPlanVarUpdateService;
         this.templateService = templateService;
         this.taskFavoriteService = taskFavoriteService;
         this.cronJobService = cronJobService;
@@ -542,11 +555,65 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             taskPlanSyncInfoVO.setPlanInfo(TaskPlanInfoDTO.toVO(taskPlan));
             taskPlanSyncInfoVO.setTemplateInfo(TaskTemplateInfoDTO.toVO(taskTemplate));
             taskPlanSyncInfoVO.getTemplateInfo().setVersion(taskTemplate.getVersion());
+            fillSyncCipherHash(taskPlanSyncInfoVO, taskPlan, taskTemplate);
             return Response.buildSuccessResp(taskPlanSyncInfoVO);
         } else {
             log.debug("Cannot find plan {} for template {}", planId, templateId);
             throw new InvalidParamException(ErrorCode.ILLEGAL_PARAM);
         }
+    }
+
+    /**
+     * 填充密码变量的hash值，前端根据密码变量的hash判断作业模板与执行方案的密码值是否相同
+     */
+    private void fillSyncCipherHash(
+        TaskPlanSyncInfoVO syncInfoVO,
+        TaskPlanInfoDTO taskPlanDTO,
+        TaskTemplateInfoDTO taskTemplateDTO
+    ) {
+        TaskPlanVO planInfoVO = syncInfoVO.getPlanInfo();
+        TaskTemplateVO templateInfoVO = syncInfoVO.getTemplateInfo();
+        if (CollectionUtils.isEmpty(planInfoVO.getVariableList())
+            || CollectionUtils.isEmpty(templateInfoVO.getVariableList())
+            || CollectionUtils.isEmpty(taskPlanDTO.getVariableList())
+            || CollectionUtils.isEmpty(taskTemplateDTO.getVariableList())) {
+            return;
+        }
+
+        // 这里需要从DTO中才能拿到真实的变量值用于计算hash，然后回填到已构造好的VO中。
+        // 仅对跟随作业模板的方案密码变量填充hash
+        Map<Long, TaskVariableDTO> templateVariableDTOMap = taskTemplateDTO.getVariableList().stream()
+            .collect(Collectors.toMap(TaskVariableDTO::getId, Function.identity()));
+        Map<Long, TaskVariableVO> planVariableVOMap = new HashMap<>();
+        planInfoVO.getVariableList()
+            .forEach(variableVO -> planVariableVOMap.put(variableVO.getId(), variableVO));
+        Map<Long, TaskVariableVO> templateVariableVOMap = new HashMap<>();
+        templateInfoVO.getVariableList()
+            .forEach(variableVO -> templateVariableVOMap.put(variableVO.getId(), variableVO));
+
+        for (TaskVariableDTO planVariableDTO : taskPlanDTO.getVariableList()) {
+            if (!planVariableDTO.getType().needMask() || !Boolean.TRUE.equals(planVariableDTO.getFollowTemplate())) {
+                continue;
+            }
+
+            TaskVariableDTO templateVariableDTO = templateVariableDTOMap.get(planVariableDTO.getId());
+            TaskVariableVO planVariableVO = planVariableVOMap.get(planVariableDTO.getId());
+            TaskVariableVO templateVariableVO = templateVariableVOMap.get(planVariableDTO.getId());
+            if (templateVariableDTO == null || planVariableVO == null || templateVariableVO == null) {
+                continue;
+            }
+
+            planVariableVO.setDefaultValueHash(buildDefaultValueHash(planVariableDTO.getDefaultValue()));
+            templateVariableVO.setDefaultValueHash(buildDefaultValueHash(templateVariableDTO.getDefaultValue()));
+        }
+    }
+
+    private String buildDefaultValueHash(String defaultValue) {
+        if (defaultValue == null) {
+            return null;
+        }
+        String hash = DigestUtils.sha256Hex(defaultValue);
+        return hash.substring(0, Math.min(hash.length(), 12));
     }
 
     @Override
@@ -572,7 +639,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             templateVersion,
             planId
         );
-        return Response.buildSuccessResp(planService.sync(appResourceScope.getAppId(), templateId, planId,
+        return Response.buildSuccessResp(taskPlanSyncService.sync(appResourceScope.getAppId(), templateId, planId,
             templateVersion));
     }
 
@@ -668,7 +735,7 @@ public class WebTaskPlanResourceImpl implements WebTaskPlanResource {
             return planInfo;
         }).collect(Collectors.toList());
 
-        return Response.buildSuccessResp(planService.batchUpdatePlanVariable(planInfoList));
+        return Response.buildSuccessResp(taskPlanVarUpdateService.batchUpdatePlanVariable(planInfoList));
     }
 
     private void fillCronInfo(Long appId, List<TaskPlanInfoDTO> planInfoList) {

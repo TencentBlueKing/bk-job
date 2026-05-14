@@ -65,12 +65,14 @@ import com.tencent.bk.job.manage.model.dto.task.TaskTemplateInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import com.tencent.bk.job.manage.model.query.TaskTemplateQuery;
 import com.tencent.bk.job.manage.model.web.vo.TagCountVO;
+import com.tencent.bk.job.manage.service.helper.TaskDiffHelper;
 import com.tencent.bk.job.manage.service.AbstractTaskStepService;
 import com.tencent.bk.job.manage.service.AbstractTaskVariableService;
 import com.tencent.bk.job.manage.service.CronJobService;
 import com.tencent.bk.job.manage.service.ScriptManager;
 import com.tencent.bk.job.manage.service.TagService;
 import com.tencent.bk.job.manage.service.TaskFavoriteService;
+import com.tencent.bk.job.manage.service.plan.TaskPlanVarFollowService;
 import com.tencent.bk.job.manage.service.plan.TaskPlanService;
 import com.tencent.bk.job.manage.service.template.TaskTemplateService;
 import lombok.extern.slf4j.Slf4j;
@@ -105,6 +107,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
     private final TemplateScriptStatusUpdateService templateScriptStatusUpdateService;
     private final TaskFavoriteService taskFavoriteService;
     private final TemplateAuthService templateAuthService;
+    private final TaskPlanVarFollowService taskPlanVarFollowService;
+    private final TaskDiffHelper taskDiffHelper;
     private TaskPlanService taskPlanService;
     private ScriptManager scriptManager;
     private CronJobService cronJobService;
@@ -145,7 +149,9 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         TagService tagService,
         TemplateScriptStatusUpdateService templateScriptStatusUpdateService,
         @Qualifier("TaskTemplateFavoriteServiceImpl") TaskFavoriteService taskFavoriteService,
-        TemplateAuthService templateAuthService) {
+        TemplateAuthService templateAuthService,
+        TaskPlanVarFollowService taskPlanVarFollowService,
+        TaskDiffHelper taskDiffHelper) {
         this.taskStepService = taskStepService;
         this.taskVariableService = taskVariableService;
         this.taskTemplateDAO = taskTemplateDAO;
@@ -153,6 +159,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         this.templateScriptStatusUpdateService = templateScriptStatusUpdateService;
         this.taskFavoriteService = taskFavoriteService;
         this.templateAuthService = templateAuthService;
+        this.taskPlanVarFollowService = taskPlanVarFollowService;
+        this.taskDiffHelper = taskDiffHelper;
     }
 
     private void setUpdateFlag(TaskTemplateInfoDTO templateInfo) {
@@ -503,6 +511,8 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
                 throw new InternalException(ErrorCode.UPDATE_TEMPLATE_FAILED);
             }
             templateId = taskTemplateInfo.getId();
+            // 如果有执行方案，进一步判断作业变量的默认值是否有变更，如果有变更，执行方案生成新版本号
+            taskPlanVarFollowService.updatePlanVersionIfVarValueChanged(taskTemplateInfo, bumpVersion);
         }
         return templateId;
     }
@@ -563,114 +573,6 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
         return taskTemplateInfo.getId() == null || taskTemplateInfo.getId() <= 0;
     }
 
-    /**
-     * 比较作业变量列表是否有变更
-     */
-    private boolean variablesHasChanged(List<TaskVariableDTO> currentTaskVariableList,
-                                     List<TaskVariableDTO> originTaskVariableList) {
-        if (currentTaskVariableList.size() != originTaskVariableList.size()) {
-            return true;
-        }
-
-        for (int i = 0; i < currentTaskVariableList.size(); i++) {
-            TaskVariableDTO taskVariable = currentTaskVariableList.get(i);
-            TaskVariableDTO originTaskVariable = originTaskVariableList.get(i);
-            originTaskVariable.setDefaultValue(taskVariable.getDefaultValue());
-            originTaskVariable.setTemplateId(taskVariable.getTemplateId());
-            originTaskVariable.setDelete(false);
-            if (!taskVariable.equals(originTaskVariable)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * 比较作业步骤是否有变更
-     */
-    private boolean stepsHasChanged(List<TaskStepDTO> currentTaskStepList,
-                                 List<TaskStepDTO> originTaskStepList) {
-        if (currentTaskStepList.size() != originTaskStepList.size()) {
-            return true;
-        }
-
-        for (int i = 0; i < currentTaskStepList.size(); i++) {
-            TaskStepDTO taskStep = currentTaskStepList.get(i);
-            TaskStepDTO originTaskStep = originTaskStepList.get(i);
-
-            if (stepBaseInfoChanged(taskStep, originTaskStep)) {
-                return true;
-            }
-            if (stepDetailChanged(taskStep, originTaskStep)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * 作业步骤基础信息是否有变更
-     */
-    private boolean stepBaseInfoChanged(TaskStepDTO taskStepDTO,
-                                        TaskStepDTO originTaskStepDTO) {
-        if (taskStepDTO.getId() == null || taskStepDTO.getId() <= 0 || taskStepDTO.getDelete() == 1) {
-            return true;
-        }
-        if (!taskStepDTO.getId().equals(originTaskStepDTO.getId())) {
-            return true;
-        }
-        if (!taskStepDTO.getType().equals(originTaskStepDTO.getType())) {
-            return true;
-        }
-        return !taskStepDTO.getName().equals(originTaskStepDTO.getName());
-    }
-
-    /**
-     * 作业步骤详情是否有变更
-     */
-    private boolean stepDetailChanged(TaskStepDTO taskStepDTO,
-                                      TaskStepDTO originTaskStepDTO) {
-        switch (taskStepDTO.getType()) {
-            case SCRIPT:
-                return scriptStepChanged(taskStepDTO, originTaskStepDTO);
-            case FILE:
-                return fileStepChanged(taskStepDTO, originTaskStepDTO);
-            case APPROVAL:
-                return approvalStepChanged(taskStepDTO, originTaskStepDTO);
-            default:
-                return true;
-        }
-    }
-
-    /**
-     * 执行脚本步骤是否有变更
-     */
-    private boolean scriptStepChanged(TaskStepDTO taskStepDTO,
-                                      TaskStepDTO originTaskStepDTO) {
-        originTaskStepDTO.getScriptStepInfo().setId(null);
-        originTaskStepDTO.getScriptStepInfo()
-            .setTemplateId(taskStepDTO.getScriptStepInfo().getTemplateId());
-        return !taskStepDTO.getScriptStepInfo().equals(originTaskStepDTO.getScriptStepInfo());
-    }
-
-    /**
-     * 文件分发步骤是否有变更
-     */
-    private boolean fileStepChanged(TaskStepDTO taskStepDTO,
-                                    TaskStepDTO originTaskStepDTO) {
-        originTaskStepDTO.getFileStepInfo().setId(null);
-        return !taskStepDTO.getFileStepInfo().equals(originTaskStepDTO.getFileStepInfo());
-    }
-
-    /**
-     * 人工确认步骤是否有变更
-     */
-    private boolean approvalStepChanged(TaskStepDTO taskStepDTO,
-                                        TaskStepDTO originTaskStepDTO) {
-        originTaskStepDTO.getApprovalStepInfo().setId(null);
-        return !taskStepDTO.getApprovalStepInfo().equals(originTaskStepDTO.getApprovalStepInfo());
-    }
-
     private boolean templateHasChange(TaskTemplateInfoDTO taskTemplateInfo) {
         TaskTemplateInfoDTO originTaskTemplateInfo =
             getTaskTemplateById(taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
@@ -678,15 +580,18 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             throw new NotFoundException(ErrorCode.TEMPLATE_NOT_EXIST);
         }
 
-        if (variablesHasChanged(taskTemplateInfo.getVariableList(), originTaskTemplateInfo.getVariableList())) {
+        if (taskDiffHelper.variablesHasChanged(
+            taskTemplateInfo.getVariableList(),
+            originTaskTemplateInfo.getVariableList(),
+            TaskDiffHelper.CompareMode.TEMPLATE_TO_TEMPLATE)
+        ) {
             return true;
         }
 
-        if (stepsHasChanged(taskTemplateInfo.getStepList(), originTaskTemplateInfo.getStepList())) {
-            return true;
-        }
-
-        return false;
+        return taskDiffHelper.stepsHasChanged(
+            taskTemplateInfo.getStepList(),
+            originTaskTemplateInfo.getStepList(),
+            TaskDiffHelper.CompareMode.TEMPLATE_TO_TEMPLATE);
     }
 
     @Override
