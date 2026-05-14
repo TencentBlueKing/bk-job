@@ -39,7 +39,7 @@ dependencies {
     implementation "commons-codec:commons-codec"
     implementation 'io.springfox:springfox-boot-starter'
     implementation 'joda-time:joda-time'
-    implementation 'org.bouncycastle:bcprov-jdk15on'
+    implementation 'org.bouncycastle:bcprov-jdk18on'
     implementation 'io.micrometer:micrometer-registry-prometheus'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.apache.commons:commons-lang3'
