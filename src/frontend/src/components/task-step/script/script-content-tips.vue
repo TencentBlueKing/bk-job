@@ -8,9 +8,15 @@
           fill="currentColor"
           viewBox="0 0 16 16"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm-.5 3h1v1h-1V4zm0 2.5h1v5h-1v-5z" /></svg>
       </div>
-      <div
+      <i18n
         class="script-content-alert-title"
-        v-html="$t('<strong>Agent 执行环境可能与 SSH 登录不一致。</strong>若脚本依赖环境变量、<code>ulimit</code> 或 <code>/etc/security/limits.conf</code> 等配置，请在脚本开头显式 <code>source</code> 相关配置文件。')" />
+        path="Agent 执行环境提示标题"
+        tag="div">
+        <strong slot="strongText">{{ $t('Agent 执行环境可能与 SSH 登录不一致') }}</strong>
+        <code slot="code1">ulimit</code>
+        <code slot="code2">/etc/security/limits.conf</code>
+        <code slot="code3">source</code>
+      </i18n>
       <div class="script-content-alert-action">
         <span>{{ isExpanded ? $t('收起') : $t('了解详情') }}</span>
         <icon
@@ -26,11 +32,19 @@
         <div class="reason-title">
           {{ $t('原因说明：') }}
         </div>
-        <div v-html="$t('由于 Linux 非登录会话执行进程时的机制限制，Agent 无法像 SSH 登录一样重新创建完整的登录环境，因此不会自动加载 <code>/etc/profile</code>、<code>~/.bashrc</code> 等登录环境配置。')" />
+        <i18n
+          path="Agent 执行环境原因说明"
+          tag="div">
+          <code slot="code1">/etc/profile</code>
+          <code slot="code2">~/.bashrc</code>
+        </i18n>
       </div>
-      <div
+      <i18n
         class="content"
-        v-html="$t('Agent 启动后，在目标机器上变更的环境变量、<code>ulimit</code> 等配置，可能无法被 Agent 感知，导致通过 Agent 执行与直接登录机器执行的结果不一致。')" />
+        path="Agent 执行环境配置说明"
+        tag="div">
+        <code slot="code1">ulimit</code>
+      </i18n>
       <div class="content">
         <div class="reason-title">
           {{ $t('推荐写法：') }}
