@@ -135,7 +135,7 @@ ext {
     set('hibernateValidatorVersion', "8.0.2.Final")
     set('flapdoodleEmbeddedMongdbDBVersion', "4.20.0")
     set('jodaTimeVersion', "2.10.5")
-    set('bcprovVersion', "1.78.1")
+    set('bcprovVersion', "1.84")
     set('reflectionsVersion', "0.10.2")
     set('cronUtilsVersion', "9.1.6")
     set('otelJdbcVersion', "1.24.0-alpha")
