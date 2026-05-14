@@ -178,6 +178,8 @@ public class WatchableThreadPoolExecutor extends ThreadPoolExecutor {
                                        ThreadFactory threadFactory,
                                        RejectedExecutionHandler handler) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
+        this.poolName = poolName;
+        this.propagateContext = true;
         allowCoreThreadTimeOut(allowCoreThreadTimeOut);
         init(poolName, meterRegistry);
     }
