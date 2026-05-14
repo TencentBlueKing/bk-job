@@ -167,6 +167,23 @@ public class WatchableThreadPoolExecutor extends ThreadPoolExecutor {
         init(poolName, meterRegistry);
     }
 
+    public WatchableThreadPoolExecutor(MeterRegistry meterRegistry,
+                                       String poolName,
+                                       int corePoolSize,
+                                       int maximumPoolSize,
+                                       boolean allowCoreThreadTimeOut,
+                                       long keepAliveTime,
+                                       TimeUnit unit,
+                                       BlockingQueue<Runnable> workQueue,
+                                       ThreadFactory threadFactory,
+                                       RejectedExecutionHandler handler) {
+        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
+        this.poolName = poolName;
+        this.propagateContext = true;
+        allowCoreThreadTimeOut(allowCoreThreadTimeOut);
+        init(poolName, meterRegistry);
+    }
+
     private void init(String poolName, MeterRegistry meterRegistry) {
         this.tags = Collections.singletonList(Tag.of("pool_name", poolName));
         this.meterRegistry = meterRegistry;

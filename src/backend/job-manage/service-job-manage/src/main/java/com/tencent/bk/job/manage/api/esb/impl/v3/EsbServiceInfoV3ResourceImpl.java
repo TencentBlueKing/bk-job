@@ -28,9 +28,15 @@ import com.tencent.bk.job.common.constant.ProfileEnum;
 import com.tencent.bk.job.common.discovery.ServiceInfoProvider;
 import com.tencent.bk.job.common.discovery.model.ServiceInstanceInfoDTO;
 import com.tencent.bk.job.common.esb.model.EsbResp;
+import com.tencent.bk.job.common.iam.exception.PermissionDeniedException;
+import com.tencent.bk.job.common.iam.model.AuthResult;
+import com.tencent.bk.job.common.model.User;
 import com.tencent.bk.job.common.util.CompareUtil;
+import com.tencent.bk.job.common.util.JobContextUtil;
 import com.tencent.bk.job.manage.api.esb.v3.EsbServiceInfoV3Resource;
+import com.tencent.bk.job.manage.auth.NoResourceScopeAuthService;
 import com.tencent.bk.job.manage.model.esb.v3.response.EsbServiceVersionV3DTO;
+import com.tencent.bk.job.manage.service.impl.ServiceInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
@@ -44,10 +50,16 @@ import java.util.List;
 public class EsbServiceInfoV3ResourceImpl implements EsbServiceInfoV3Resource {
 
     private final ServiceInfoProvider serviceInfoProvider;
+    private final NoResourceScopeAuthService noResourceScopeAuthService;
+    private final ServiceInfoService serviceInfoService;
 
     @Autowired
-    public EsbServiceInfoV3ResourceImpl(ServiceInfoProvider serviceInfoProvider) {
-        this.serviceInfoProvider = serviceInfoProvider;;
+    public EsbServiceInfoV3ResourceImpl(ServiceInfoProvider serviceInfoProvider,
+                                        NoResourceScopeAuthService noResourceScopeAuthService,
+                                        ServiceInfoService serviceInfoService) {
+        this.serviceInfoProvider = serviceInfoProvider;
+        this.noResourceScopeAuthService = noResourceScopeAuthService;
+        this.serviceInfoService = serviceInfoService;
     }
 
 
@@ -60,6 +72,9 @@ public class EsbServiceInfoV3ResourceImpl implements EsbServiceInfoV3Resource {
     @Override
     public EsbResp<EsbServiceVersionV3DTO> getLatestServiceVersionUsingPost(String username,
                                                                             String appCode) {
+        User user = JobContextUtil.getUser();
+        authViewServiceState(user);
+        serviceInfoService.checkTenantAccess();
         List<ServiceInstanceInfoDTO> instanceInfoDTOList = serviceInfoProvider.listServiceInfo();
         ServiceInstanceInfoDTO latestVersionInstance = findLatestVersionInstance(instanceInfoDTOList);
         EsbServiceVersionV3DTO esbServiceVersionV3DTO = new EsbServiceVersionV3DTO();
@@ -67,6 +82,18 @@ public class EsbServiceInfoV3ResourceImpl implements EsbServiceInfoV3Resource {
             esbServiceVersionV3DTO.setVersion(latestVersionInstance.getVersion());
         }
         return EsbResp.buildSuccessResp(esbServiceVersionV3DTO);
+    }
+
+    /**
+     * 服务状态查看鉴权，与 Web 端 {@code /web/serviceInfo/**}
+     * 的 {@code JobManageUriPermissionInterceptor} 保持一致，
+     * 仅放行拥有 {@link com.tencent.bk.job.common.iam.constant.ActionId#SERVICE_STATE_ACCESS} 权限的用户。
+     */
+    private void authViewServiceState(User user) {
+        AuthResult authResult = noResourceScopeAuthService.authViewServiceState(user);
+        if (!authResult.isPass()) {
+            throw new PermissionDeniedException(authResult);
+        }
     }
 
     private static ServiceInstanceInfoDTO findLatestVersionInstance(List<ServiceInstanceInfoDTO> instanceInfoDTOList) {

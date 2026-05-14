@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.constant.ErrorCode;
 import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
 import com.tencent.bk.job.common.model.User;
@@ -136,7 +137,13 @@ public class EsbCredentialResourceV3Impl implements EsbCredentialV3Resource {
         String username,
         String appCode,
         @AuditRequestBody EsbGetCredentialDetailV3Req req) {
-        CredentialDTO credentialDTO = credentialService.getCredentialById(req.getId());
+        // 修复跨业务越权读：必须按 appId 隔离查询，避免普通用户凭任意凭据 id 读取其他业务的凭据。
+        // GET 接口已在转调前补全 appId，POST 直接接收外部请求时也需要在此显式补全一次。
+        req.fillAppResourceScope(appScopeMappingService);
+        CredentialDTO credentialDTO = credentialService.getCredentialById(req.getAppId(), req.getId());
+        if (credentialDTO == null) {
+            throw new NotFoundException(ErrorCode.CREDENTIAL_NOT_EXIST);
+        }
         return EsbResp.buildSuccessResp(credentialDTO.toEsbCredentialV3DTO());
     }
 
