@@ -96,6 +96,19 @@ public interface FileSourceAuthService {
                                             List<Integer> fileSourceIdList);
 
     /**
+     * 资源范围下使用凭据鉴权（用于文件源绑定凭据时校验 USE_TICKET 权限）
+     *
+     * <p>说明：service-job-file-gateway 模块未依赖 service-job-manage 模块（避免循环依赖），
+     * 因此本地新增 USE_TICKET 校验入口，内部委派至公共 AuthService。</p>
+     *
+     * @param user             用户
+     * @param appResourceScope 资源范围
+     * @param ticketId         凭据ID
+     * @return 鉴权结果
+     */
+    AuthResult authUseTicket(User user, AppResourceScope appResourceScope, String ticketId);
+
+    /**
      * 注册文件源实例
      *
      * @param creator 资源实例创建者

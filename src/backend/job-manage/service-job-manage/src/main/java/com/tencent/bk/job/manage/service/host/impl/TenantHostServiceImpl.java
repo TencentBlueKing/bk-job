@@ -175,7 +175,7 @@ public class TenantHostServiceImpl extends BaseHostService implements TenantHost
             refreshHostAgentIdIfNeed(tenantId, refreshAgentId, existHosts);
             watch.stop();
 
-            if (CollectionUtils.isNotEmpty(existHosts)) {
+            if (application.isBiz() && CollectionUtils.isNotEmpty(existHosts)) {
                 watch.start("fillHostTopoPathSnapshot");
                 fillHostTopoPathSnapshotForExistHostsWithTimeout(tenantId, appId, application, existHosts);
                 watch.stop();
@@ -298,18 +298,23 @@ public class TenantHostServiceImpl extends BaseHostService implements TenantHost
                                                                   ApplicationDTO application,
                                                                   List<ApplicationHostDTO> existHosts) {
         Future<?> future = null;
+        String scopeDesc = application.getScope().toBasicStr();
         try {
             future = hostTopoSnapshotExecutor.submit(() ->
                 fillHostTopoPathSnapshotForExistHosts(tenantId, application, existHosts));
             future.get(FILL_HOST_TOPO_SNAPSHOT_TIMEOUT_SEC, TimeUnit.SECONDS);
         } catch (RejectedExecutionException e) {
-            log.error("fillHostTopoPathSnapshot task rejected by hostTopoSnapshotExecutor, appId={}", appId, e);
+            log.error(
+                "fillHostTopoPathSnapshot task rejected, scope={}, please scale up job-manage pod",
+                scopeDesc,
+                e
+            );
         } catch (TimeoutException e) {
             future.cancel(true);
             log.warn(
-                "fillHostTopoPathSnapshot exceeded {}s, cancelled. appId={}",
+                "fillHostTopoPathSnapshot exceeded {}s, cancelled. scope={}",
                 FILL_HOST_TOPO_SNAPSHOT_TIMEOUT_SEC,
-                appId,
+                scopeDesc,
                 e
             );
         } catch (InterruptedException e) {
@@ -317,14 +322,14 @@ public class TenantHostServiceImpl extends BaseHostService implements TenantHost
             if (!future.isDone()) {
                 future.cancel(true);
             }
-            log.warn("fillHostTopoPathSnapshot interrupted, skipped. appId={}", appId, e);
+            log.warn("fillHostTopoPathSnapshot interrupted, skipped. scope={}", scopeDesc, e);
         } catch (ExecutionException e) {
-            log.warn("fillHostTopoPathSnapshot execution failed, skipped. appId={}", appId, e.getCause());
+            log.warn("fillHostTopoPathSnapshot execution failed, skipped. scope={}", scopeDesc, e.getCause());
         } catch (Exception e) {
             if (future != null && !future.isDone()) {
                 future.cancel(true);
             }
-            log.warn("fillHostTopoPathSnapshot failed, skipped. appId={}", appId, e);
+            log.warn("fillHostTopoPathSnapshot failed, skipped. scope={}", scopeDesc, e);
         }
     }
 

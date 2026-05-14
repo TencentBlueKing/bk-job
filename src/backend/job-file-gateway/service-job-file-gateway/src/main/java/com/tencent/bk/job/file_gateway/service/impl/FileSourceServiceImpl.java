@@ -147,6 +147,7 @@ public class FileSourceServiceImpl implements FileSourceService {
     )
     public FileSourceDTO saveFileSource(User user, Long appId, FileSourceDTO fileSource) {
         authCreate(user, appId);
+        authUseTicketIfNeeded(user, appId, fileSource.getCredentialId());
 
         if (existsCode(appId, fileSource.getCode())) {
             throw new FailedPreconditionException(
@@ -185,6 +186,21 @@ public class FileSourceServiceImpl implements FileSourceService {
             fileSourceId, null).denyIfNoPermission();
     }
 
+    /**
+     * 文件源绑定凭据时校验 USE_TICKET 权限。
+     *
+     * <p>当 credentialId 非空时执行校验；为空表示该文件源未绑定凭据，按原行为放行。
+     * 更新场景下不论新旧 credentialId 是否变更，只要绑定了非空凭据就需要校验，
+     * 防止 IAM 权限在生命周期中被回收后仍可继续使用。</p>
+     */
+    private void authUseTicketIfNeeded(User user, long appId, String credentialId) {
+        if (StringUtils.isBlank(credentialId)) {
+            return;
+        }
+        fileSourceAuthService.authUseTicket(user, new AppResourceScope(appId), credentialId)
+            .denyIfNoPermission();
+    }
+
     @Override
     @ActionAuditRecord(
         actionId = ActionId.MANAGE_FILE_SOURCE,
@@ -197,6 +213,7 @@ public class FileSourceServiceImpl implements FileSourceService {
     )
     public FileSourceDTO updateFileSourceById(User user, Long appId, FileSourceDTO fileSource) {
         authManage(user, appId, fileSource.getId());
+        authUseTicketIfNeeded(user, appId, fileSource.getCredentialId());
 
         if (existsCodeExceptId(appId, fileSource.getCode(), fileSource.getId())) {
             throw new FailedPreconditionException(
