@@ -23,6 +23,8 @@
  * IN THE SOFTWARE.
 */
 
+import DOMPurify from 'dompurify';
+
 import {
   transformTimeFriendly,
 } from '@utils/assist';
@@ -181,7 +183,7 @@ export default class TaskInstance {
       disabled: '#C4C6CC',
       evicted: '#EA3636',
     };
-    return `<span style="color: ${statusColorMap[calcStatusGroup(this.status)]}">${this.statusDesc}</span>`;
+    return DOMPurify.sanitize(`<span style="color: ${statusColorMap[calcStatusGroup(this.status)]}">${this.statusDesc}</span>`);
   }
 
   /**

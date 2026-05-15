@@ -89,6 +89,7 @@
   </div>
 </template>
 <script>
+  import DOMPurify from 'dompurify';
   import _ from 'lodash';
   import * as marked from 'marked';
 
@@ -169,7 +170,7 @@
             const analysisList = [];
             const analysisMap = {};
             data.forEach((item) => {
-              let description = _.trim(marked.parse(item.description), '\n');
+              let description = _.trim(marked.parse(DOMPurify.sanitize(item.description)), '\n');
               if (dialogTitleMap[item.analysisTaskCode]) {
                 description = description.replace(/(?=<\/p>$)/, `<span data-id="${item.id}" class="action-list">${I18n.t('home.查看列表')}</span>`);
               }
