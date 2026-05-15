@@ -65,7 +65,7 @@ class AccountResourceAPITest extends BaseTest {
             req.setAlias(TestValueGenerator.generateUniqueStrValue("alias", 50));
             req.setRemark(TestValueGenerator.generateUniqueStrValue("remark", 50));
             req.setCategory(AccountCategoryEnum.SYSTEM.getValue());
-            req.setType(AccountTypeEnum.WINDOW.getType());
+            req.setType(AccountTypeEnum.WINDOWS.getType());
             req.setPassword(TestValueGenerator.generateUniqueStrValue("password", 50));
 
             EsbAccountV3DTO createdAccount =
@@ -242,7 +242,7 @@ class AccountResourceAPITest extends BaseTest {
                 .body("data", notNullValue())
                 .body("data.id", equalTo(req.getId().intValue()));
 
-            EsbAccountV3DTO windowsAccount = Operations.createAccount(AccountTypeEnum.WINDOW);
+            EsbAccountV3DTO windowsAccount = Operations.createAccount(AccountTypeEnum.WINDOWS);
             if (windowsAccount == null) {
                 return;
             }

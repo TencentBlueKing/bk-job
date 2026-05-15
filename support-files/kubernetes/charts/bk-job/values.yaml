@@ -1225,6 +1225,13 @@ manageConfig:
   scopePanel:
     # 是否展示当前用户无权限的资源范围，默认展示
     showNoPermissionScopes: true
+  # 创建业务时自动创建的执行账号，内置root、system、Administrator无需配置。type取值：仅支持LINUX/WINDOWS
+  defaultAccount:
+    accounts: []
+    #  - type: LINUX
+    #    account: blueking
+    #  - type: WINDOWS
+    #    account: deploy
   # 后台任务（CMDB资源同步、事件监听等）相关配置
   backGroundTask:
     # 后台任务负载均衡器

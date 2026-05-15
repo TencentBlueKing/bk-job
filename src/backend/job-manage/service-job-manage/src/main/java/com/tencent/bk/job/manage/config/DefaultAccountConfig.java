@@ -22,50 +22,12 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model;
+package com.tencent.bk.job.manage.config;
 
-import com.tencent.bk.job.common.constant.AccountCategoryEnum;
-import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
-import lombok.Data;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-/**
- * 执行帐号
- */
-@Data
-public class AccountDTO {
-    private Long id;
-
-    private String account;
-
-    private String alias;
-
-    private Long appId;
-
-    private String password;
-
-    private AccountTypeEnum type;
-
-    private AccountCategoryEnum category;
-
-    private String grantees;
-
-    /**
-     * DB账号对应的端口号
-     */
-    private Integer dbPort;
-    /**
-     * DB账号对应的密码
-     */
-    private String dbPassword;
-    /**
-     * DB账号依赖的系统账号
-     */
-    private Long dbSystemAccountId;
-
-    public boolean isWindowsAccount() {
-        if (AccountTypeEnum.WINDOWS.getType().equals(this.type.getType())) {
-            return true;
-        }
-        return false;
-    }
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(DefaultAccountProperties.class)
+public class DefaultAccountConfig {
 }

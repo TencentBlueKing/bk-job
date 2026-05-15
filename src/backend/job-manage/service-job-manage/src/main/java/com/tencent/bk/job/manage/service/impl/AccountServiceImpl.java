@@ -57,6 +57,8 @@ import com.tencent.bk.job.common.util.date.DateUtils;
 import com.tencent.bk.job.manage.api.common.constants.OSTypeEnum;
 import com.tencent.bk.job.manage.api.common.constants.account.AccountTypeEnum;
 import com.tencent.bk.job.manage.auth.AccountAuthService;
+import com.tencent.bk.job.manage.config.DefaultAccount;
+import com.tencent.bk.job.manage.config.DefaultAccountProperties;
 import com.tencent.bk.job.manage.dao.AccountDAO;
 import com.tencent.bk.job.manage.model.dto.AccountDTO;
 import com.tencent.bk.job.manage.model.dto.AccountDisplayDTO;
@@ -70,6 +72,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -80,26 +83,34 @@ import java.util.regex.Pattern;
 @Slf4j
 @Service
 public class AccountServiceImpl implements AccountService {
-    public final String DEFAULT_LINUX_ACCOUNT = "root";
-    public final String DEFAULT_WINDOWS_SYSTEM_ACCOUNT = "system";
-    public final String DEFAULT_WINDOWS_ADMIN_ACCOUNT = "Administrator";
+    // 内置的执行账号
+    private static final List<DefaultAccount> BUILT_IN_DEFAULT_ACCOUNTS = List.of(
+        new DefaultAccount(AccountTypeEnum.LINUX, "root"),
+        new DefaultAccount(AccountTypeEnum.WINDOWS, "system"),
+        new DefaultAccount(AccountTypeEnum.WINDOWS, "Administrator")
+    );
     private final AccountDAO accountDAO;
     private final Encryptor encryptor;
     private final GlobalSettingsService globalSettingsService;
     private final AccountAuthService accountAuthService;
     private final SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService;
+    private final DefaultAccountProperties defaultAccountProperties;
 
     @Autowired
-    public AccountServiceImpl(AccountDAO accountDAO,
-                              @Qualifier("gseRsaEncryptor") Encryptor encryptor,
-                              GlobalSettingsService globalSettingsService,
-                              AccountAuthService accountAuthService,
-                              SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService) {
+    public AccountServiceImpl(
+        AccountDAO accountDAO,
+        @Qualifier("gseRsaEncryptor") Encryptor encryptor,
+        GlobalSettingsService globalSettingsService,
+        AccountAuthService accountAuthService,
+        SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService,
+        DefaultAccountProperties defaultAccountProperties
+    ) {
         this.accountDAO = accountDAO;
         this.encryptor = encryptor;
         this.globalSettingsService = globalSettingsService;
         this.accountAuthService = accountAuthService;
         this.submitAccountPasswordCryptoService = submitAccountPasswordCryptoService;
+        this.defaultAccountProperties = defaultAccountProperties;
     }
 
     @Override
@@ -446,7 +457,7 @@ public class AccountServiceImpl implements AccountService {
         accountDTO.setGrantees(Utils.concatStringWithSeperator(req.getGrantees(), ","));
 
         if (AccountCategoryEnum.SYSTEM.getValue().equals(req.getCategory())) {
-            if (AccountTypeEnum.WINDOW.getType().equals(req.getType())) {
+            if (AccountTypeEnum.WINDOWS.getType().equals(req.getType())) {
                 accountDTO.setOs("Windows");
             } else {
                 accountDTO.setOs("Linux");
@@ -470,63 +481,90 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void createDefaultAccounts(long appId) {
-        AccountDTO linuxRoot = accountDAO.getAccount(appId, AccountCategoryEnum.SYSTEM, AccountTypeEnum.LINUX,
-            DEFAULT_LINUX_ACCOUNT, DEFAULT_LINUX_ACCOUNT);
-        if (linuxRoot == null) {
-            linuxRoot = new AccountDTO();
-            linuxRoot.setAppId(appId);
-            linuxRoot.setCategory(AccountCategoryEnum.SYSTEM);
-            linuxRoot.setType(AccountTypeEnum.LINUX);
-            linuxRoot.setAccount(DEFAULT_LINUX_ACCOUNT);
-            linuxRoot.setAlias(DEFAULT_LINUX_ACCOUNT);
-            linuxRoot.setCreator("admin");
-            linuxRoot.setCreateTime(DateUtils.currentTimeMillis());
-            linuxRoot.setLastModifyUser("admin");
-            try {
-                accountDAO.saveAccount(linuxRoot);
-                log.info("root account of appId={} created", appId);
-            } catch (Exception e) {
-                log.warn("Fail to create default root account", e);
+        List<AccountDTO> defaultAccountDTOList = buildDefaultAccounts(appId);
+        for (AccountDTO account : defaultAccountDTOList) {
+            createDefaultAccountIfAbsent(account);
+        }
+    }
+
+    /**
+     * 构建默认的执行账号，包含内置账号和自定义配置的账号
+     */
+    private List<AccountDTO> buildDefaultAccounts(long appId) {
+        List<AccountDTO> defaultAccountDTOList = new ArrayList<>();
+        addDefaultAccounts(defaultAccountDTOList, appId, BUILT_IN_DEFAULT_ACCOUNTS);
+        if (defaultAccountProperties != null) {
+            addDefaultAccounts(defaultAccountDTOList, appId, defaultAccountProperties.getAccounts());
+        }
+        return defaultAccountDTOList;
+    }
+
+    /**
+     * 添加账号，忽略别名重复的账号
+     */
+    private void addDefaultAccounts(
+        List<AccountDTO> defaultAccountDTOList,
+        long appId,
+        List<DefaultAccount> accounts
+    ) {
+        for (DefaultAccount account : accounts) {
+            if (account == null || account.getType() == null || StringUtils.isBlank(account.getAccount())) {
+                log.warn("Ignore invalid default account config, account={}", account);
+                continue;
+            }
+            addDefaultAccount(defaultAccountDTOList, appId, account);
+        }
+    }
+
+    private void addDefaultAccount(List<AccountDTO> defaultAccountDTOList, long appId, DefaultAccount defaultAccount) {
+        AccountDTO account = buildDefaultAccount(appId, defaultAccount);
+        for (AccountDTO defaultAccountDTO : defaultAccountDTOList) {
+            if (StringUtils.equals(defaultAccountDTO.getAlias(), account.getAlias())) {
+                log.warn("Ignore duplicate default account alias, appId={}, type={}, account={}, alias={}, "
+                        + "existedType={}, existedAccount={}", appId, account.getType(), account.getAccount(),
+                    account.getAlias(), defaultAccountDTO.getType(), defaultAccountDTO.getAccount());
+                return;
             }
         }
-        AccountDTO windowsSystem = accountDAO.getAccount(appId, AccountCategoryEnum.SYSTEM, AccountTypeEnum.WINDOW,
-            DEFAULT_WINDOWS_SYSTEM_ACCOUNT, DEFAULT_WINDOWS_SYSTEM_ACCOUNT);
-        if (windowsSystem == null) {
-            windowsSystem = new AccountDTO();
-            windowsSystem.setAppId(appId);
-            windowsSystem.setCategory(AccountCategoryEnum.SYSTEM);
-            windowsSystem.setType(AccountTypeEnum.WINDOW);
-            windowsSystem.setAccount(DEFAULT_WINDOWS_SYSTEM_ACCOUNT);
-            windowsSystem.setAlias(DEFAULT_WINDOWS_SYSTEM_ACCOUNT);
-            windowsSystem.setCreator("admin");
-            windowsSystem.setCreateTime(DateUtils.currentTimeMillis());
-            windowsSystem.setLastModifyUser("admin");
-            try {
-                accountDAO.saveAccount(windowsSystem);
-                log.info("system account of appId={} created", appId);
-            } catch (Exception e) {
-                log.warn("Fail to create default system account", e);
-            }
+        defaultAccountDTOList.add(account);
+    }
+
+    /**
+     * 创建默认账号，如果已存在则忽略
+     */
+    private void createDefaultAccountIfAbsent(AccountDTO account) {
+        AccountDTO existedAccount = accountDAO.getAccount(account.getAppId(), account.getCategory(), account.getType(),
+            account.getAccount(), account.getAlias());
+        if (existedAccount != null) {
+            log.info("Default account already exists, appId={}, type={}, account={}", account.getAppId(),
+                account.getType(), account.getAccount());
+            return;
         }
-        AccountDTO windowsAdmin = accountDAO.getAccount(appId, AccountCategoryEnum.SYSTEM, AccountTypeEnum.WINDOW,
-            DEFAULT_WINDOWS_ADMIN_ACCOUNT, DEFAULT_WINDOWS_ADMIN_ACCOUNT);
-        if (windowsAdmin == null) {
-            windowsAdmin = new AccountDTO();
-            windowsAdmin.setAppId(appId);
-            windowsAdmin.setCategory(AccountCategoryEnum.SYSTEM);
-            windowsAdmin.setType(AccountTypeEnum.WINDOW);
-            windowsAdmin.setAccount(DEFAULT_WINDOWS_ADMIN_ACCOUNT);
-            windowsAdmin.setAlias(DEFAULT_WINDOWS_ADMIN_ACCOUNT);
-            windowsAdmin.setCreator("admin");
-            windowsAdmin.setCreateTime(DateUtils.currentTimeMillis());
-            windowsAdmin.setLastModifyUser("admin");
-            try {
-                accountDAO.saveAccount(windowsAdmin);
-                log.info("administrator account of appId={} created", appId);
-            } catch (Exception e) {
-                log.warn("Fail to create default administrator account", e);
-            }
+
+        try {
+            accountDAO.saveAccount(account);
+            log.info("Default account created, appId={}, type={}, account={}",
+                account.getAppId(), account.getType(), account.getAccount());
+        } catch (Exception e) {
+            log.warn("Fail to create default account, appId={}, type={}, account={}", account.getAppId(),
+                account.getType(), account.getAccount(), e);
         }
+    }
+
+    private AccountDTO buildDefaultAccount(long appId, DefaultAccount defaultAccount) {
+        AccountTypeEnum type = defaultAccount.getType();
+        String account = defaultAccount.getAccount().trim();
+        AccountDTO accountDTO = new AccountDTO();
+        accountDTO.setAppId(appId);
+        accountDTO.setCategory(AccountCategoryEnum.SYSTEM);
+        accountDTO.setType(type);
+        accountDTO.setAccount(account);
+        accountDTO.setAlias(account);
+        accountDTO.setCreator("admin");
+        accountDTO.setCreateTime(DateUtils.currentTimeMillis());
+        accountDTO.setLastModifyUser("admin");
+        accountDTO.setLastModifyTime(DateUtils.currentTimeMillis());
+        return accountDTO;
     }
 
     @Override
