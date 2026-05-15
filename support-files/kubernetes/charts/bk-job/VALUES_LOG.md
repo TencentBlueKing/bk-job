@@ -1,5 +1,18 @@
 # chart values 更新日志
 
+## 0.9.3
+1. 支持配置内置执行账号
+```yaml
+manageConfig:
+  # 创建业务时自动创建好的执行账号，内置root、system、Administrator无需配置
+  defaultAccount:
+    accounts: []
+    #  - type: LINUX
+    #    account: blueking
+    #  - type: WINDOW
+    #    account: deploy
+```
+
 ## 0.9.1
 1. 新增外部系统（GSE、CMDB、IAM、BK-Login、BK-User）重试配置，采用指数退避策略
 ```yaml
