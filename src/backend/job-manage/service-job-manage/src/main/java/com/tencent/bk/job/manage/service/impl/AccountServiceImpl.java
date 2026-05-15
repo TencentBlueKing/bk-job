@@ -83,7 +83,7 @@ import java.util.regex.Pattern;
 @Slf4j
 @Service
 public class AccountServiceImpl implements AccountService {
-    // 内置的系统执行账号
+    // 内置的执行账号
     private static final List<DefaultAccount> BUILT_IN_DEFAULT_ACCOUNTS = List.of(
         new DefaultAccount(AccountTypeEnum.LINUX, "root"),
         new DefaultAccount(AccountTypeEnum.WINDOW, "system"),
