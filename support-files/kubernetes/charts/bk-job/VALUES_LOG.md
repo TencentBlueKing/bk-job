@@ -4,12 +4,12 @@
 1. 支持配置执行账号
 ```yaml
 manageConfig:
-  # 创建业务时自动创建好的执行账号，内置root、system、Administrator无需配置
+  # 创建业务时自动创建的执行账号，内置root、system、Administrator无需配置。type取值：仅支持LINUX/WINDOWS
   defaultAccount:
     accounts: []
     #  - type: LINUX
     #    account: blueking
-    #  - type: WINDOW
+    #  - type: WINDOWS
     #    account: deploy
 ```
 

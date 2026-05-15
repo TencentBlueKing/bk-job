@@ -435,8 +435,8 @@ public class Operations {
         req.setRemark(TestValueGenerator.generateUniqueStrValue("remark", 50));
         req.setCategory(AccountCategoryEnum.SYSTEM.getValue());
         req.setType(AccountTypeEnum.LINUX.getType());
-        if (accountTypeEnum == AccountTypeEnum.WINDOW) {
-            req.setType(AccountTypeEnum.WINDOW.getType());
+        if (accountTypeEnum == AccountTypeEnum.WINDOWS) {
+            req.setType(AccountTypeEnum.WINDOWS.getType());
             req.setPassword(TestValueGenerator.generateUniqueStrValue("password", 50));
         }
         return given()

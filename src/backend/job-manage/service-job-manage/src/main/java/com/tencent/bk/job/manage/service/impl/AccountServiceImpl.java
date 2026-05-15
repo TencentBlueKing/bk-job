@@ -86,8 +86,8 @@ public class AccountServiceImpl implements AccountService {
     // 内置的执行账号
     private static final List<DefaultAccount> BUILT_IN_DEFAULT_ACCOUNTS = List.of(
         new DefaultAccount(AccountTypeEnum.LINUX, "root"),
-        new DefaultAccount(AccountTypeEnum.WINDOW, "system"),
-        new DefaultAccount(AccountTypeEnum.WINDOW, "Administrator")
+        new DefaultAccount(AccountTypeEnum.WINDOWS, "system"),
+        new DefaultAccount(AccountTypeEnum.WINDOWS, "Administrator")
     );
     private final AccountDAO accountDAO;
     private final Encryptor encryptor;
@@ -97,12 +97,14 @@ public class AccountServiceImpl implements AccountService {
     private final DefaultAccountProperties defaultAccountProperties;
 
     @Autowired
-    public AccountServiceImpl(AccountDAO accountDAO,
-                               @Qualifier("gseRsaEncryptor") Encryptor encryptor,
-                               GlobalSettingsService globalSettingsService,
-                               AccountAuthService accountAuthService,
-                               SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService,
-                               DefaultAccountProperties defaultAccountProperties) {
+    public AccountServiceImpl(
+        AccountDAO accountDAO,
+        @Qualifier("gseRsaEncryptor") Encryptor encryptor,
+        GlobalSettingsService globalSettingsService,
+        AccountAuthService accountAuthService,
+        SubmitAccountPasswordCryptoService submitAccountPasswordCryptoService,
+        DefaultAccountProperties defaultAccountProperties
+    ) {
         this.accountDAO = accountDAO;
         this.encryptor = encryptor;
         this.globalSettingsService = globalSettingsService;
@@ -455,7 +457,7 @@ public class AccountServiceImpl implements AccountService {
         accountDTO.setGrantees(Utils.concatStringWithSeperator(req.getGrantees(), ","));
 
         if (AccountCategoryEnum.SYSTEM.getValue().equals(req.getCategory())) {
-            if (AccountTypeEnum.WINDOW.getType().equals(req.getType())) {
+            if (AccountTypeEnum.WINDOWS.getType().equals(req.getType())) {
                 accountDTO.setOs("Windows");
             } else {
                 accountDTO.setOs("Linux");

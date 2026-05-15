@@ -178,7 +178,7 @@ public class EsbAccountResourceV3Impl implements EsbAccountV3Resource {
         accountDTO.setRemark(req.getRemark());
 
         if (AccountCategoryEnum.SYSTEM.getValue().equals(req.getCategory())) {
-            if (AccountTypeEnum.WINDOW.getType().equals(req.getType())) {
+            if (AccountTypeEnum.WINDOWS.getType().equals(req.getType())) {
                 accountDTO.setOs("Windows");
             } else {
                 accountDTO.setOs("Linux");

@@ -282,7 +282,7 @@ public class ExportJobExecutor {
             return;
         }
 
-        if (AccountTypeEnum.WINDOW.getType().equals(accountDTO.getType())) {
+        if (AccountTypeEnum.WINDOWS.getType().equals(accountDTO.getType())) {
             accountDTO.setPassword(null);
         }
 
@@ -290,7 +290,7 @@ public class ExportJobExecutor {
             accountDTO.setDbPassword(null);
             ServiceAccountDTO dbSystemAccount = accountDTO.getDbSystemAccount();
             if (dbSystemAccount != null &&
-                AccountTypeEnum.WINDOW.getType().equals(dbSystemAccount.getType())) {
+                AccountTypeEnum.WINDOWS.getType().equals(dbSystemAccount.getType())) {
                 dbSystemAccount.setPassword(null);
             }
         }
