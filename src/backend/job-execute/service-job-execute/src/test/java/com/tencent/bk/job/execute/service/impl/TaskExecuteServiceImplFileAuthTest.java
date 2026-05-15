@@ -445,27 +445,29 @@ public class TaskExecuteServiceImplFileAuthTest {
         }
 
         @Test
-        @DisplayName("5.1.7 BASE64 文件源 → 不参与白名单豁免；其源账号无主机集合 → 仍需鉴权")
-        void base64FileSource_keepsAccountAuth() {
+        @DisplayName("5.1.7 BASE64 文件源（push_config_file 真实生产构造：accountId=null, servers=null）→ 完全不参与账号鉴权")
+        void base64FileSource_doesNotParticipateInAccountAuth() {
+            // 重要：生产代码中 BASE64 源仅由 EsbPushConfigFileResourceImpl/V3Impl 构造，
+            // 始终是 setAccount("root") 占位字符串、setLocalUpload(false)、setFileType(BASE64_FILE)，
+            // 不调 setAccountId、不调 setServers。此处复刻该真实状态。
+            // 产品语义：BASE64 源是从 job-execute 机器分发的，没有源主机也就没有源账号鉴权概念。
             TaskInstanceDTO task = newTask();
             FileSourceDTO base64 = new FileSourceDTO();
+            base64.setAccount("root");
             base64.setLocalUpload(false);
             base64.setFileType(TaskFileTypeEnum.BASE64_FILE.getType());
-            base64.setAccountId(SOURCE_ACCOUNT_ID_1);
-            base64.setServers(null);
+            // accountId 与 servers 故意保持 null，与生产构造一致
             StepInstanceDTO step = fileStep(TARGET_ACCOUNT_ID, staticHosts(TARGET_HOST_1), base64);
             Map<Long, List<String>> whitelist = allowMap(TARGET_HOST_1);
-            stubAccountAuthPass();
 
             AuthResult result = service.authFileTransfer(operator, task, step, whitelist);
 
             assertThat(result.isPass()).isTrue();
-            ArgumentCaptor<Collection<Long>> accountIdsCaptor = collectionCaptor();
-            verify(executeAuthService, times(1)).batchAuthAccountExecutable(
-                any(User.class), any(AppResourceScope.class), accountIdsCaptor.capture());
-            // 目标账号豁免（目标主机全部白名单）；BASE64 源账号保留（其主机集合为 null，无法豁免）
-            assertThat(accountIdsCaptor.getValue()).containsExactlyInAnyOrder(SOURCE_ACCOUNT_ID_1);
-            // BASE64 源没有主机，executeTarget 仅含目标，目标已被白名单过滤掉，最终主机为空
+            // 目标账号被白名单豁免；BASE64 源因 accountId=null 直接被跳过
+            // 账号集合为空 → 完全不调 batchAuthAccountExecutable
+            verify(executeAuthService, never())
+                .batchAuthAccountExecutable(any(), any(), anyCollection());
+            // 目标主机被白名单过滤、BASE64 源不贡献任何主机 → executeTarget 为空
             verify(executeAuthService, never())
                 .authFastPushFile(any(), any(), any());
         }
@@ -499,21 +501,25 @@ public class TaskExecuteServiceImplFileAuthTest {
         @DisplayName("5.1.9 executeTarget.isEmpty() 边界：合并后无主机 → 仍按账号集合鉴权（保留旧行为）")
         void executeTargetEmptyAfterMerge_keepsAccountAuth() {
             TaskInstanceDTO task = newTask();
-            // 仅 BASE64 源（无主机），且目标也是空白集合 —— 合并后 executeTarget.isEmpty() 为 true
+            // 复刻 push_config_file 真实生产构造：BASE64 源 accountId=null, servers=null
+            // 配合目标也是空 ExecuteTargetDTO —— 合并后 executeTarget.isEmpty() 为 true
             FileSourceDTO base64 = new FileSourceDTO();
+            base64.setAccount("root");
             base64.setLocalUpload(false);
             base64.setFileType(TaskFileTypeEnum.BASE64_FILE.getType());
-            base64.setAccountId(SOURCE_ACCOUNT_ID_1);
-            base64.setServers(null);
+            // accountId 与 servers 与生产一致地保持 null
             StepInstanceDTO step = fileStep(TARGET_ACCOUNT_ID, new ExecuteTargetDTO(), base64);
             stubAccountAuthPass();
 
             AuthResult result = service.authFileTransfer(operator, task, step, Collections.emptyMap());
 
             assertThat(result.isPass()).isTrue();
-            // 仍鉴账号
+            // 目标账号未被白名单豁免（whitelist 为空 → areAllHostsWhitelistedFor 直接返回 false）
+            // 仍鉴目标账号（保留改造前行为）
+            ArgumentCaptor<Collection<Long>> accountIdsCaptor = collectionCaptor();
             verify(executeAuthService, times(1))
-                .batchAuthAccountExecutable(any(), any(), anyCollection());
+                .batchAuthAccountExecutable(any(), any(), accountIdsCaptor.capture());
+            assertThat(accountIdsCaptor.getValue()).containsExactlyInAnyOrder(TARGET_ACCOUNT_ID);
             // 主机为空，跳过主机鉴权
             verify(executeAuthService, never())
                 .authFastPushFile(any(), any(), any());

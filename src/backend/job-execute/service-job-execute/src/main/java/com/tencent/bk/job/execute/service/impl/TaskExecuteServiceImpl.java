@@ -975,6 +975,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
 
         // 每个源 FileSource 的源账号 ↔ 该源的主机集合
         for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
+            // 本地文件上传、配置文件分发、文件源文件分发 不需要源账号
             if (fileSource.isLocalUpload() || fileSource.getAccountId() == null) {
                 continue;
             }
