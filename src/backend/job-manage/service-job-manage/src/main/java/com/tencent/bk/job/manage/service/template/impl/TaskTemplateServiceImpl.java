@@ -585,13 +585,20 @@ public class TaskTemplateServiceImpl implements TaskTemplateService {
             originTaskTemplateInfo.getVariableList(),
             TaskDiffHelper.CompareMode.TEMPLATE_TO_TEMPLATE)
         ) {
+            log.debug("Task template variable differs from origin, appId={}, templateId={}",
+                taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
             return true;
         }
 
-        return taskDiffHelper.stepsHasChanged(
+        boolean stepsChanged = taskDiffHelper.stepsHasChanged(
             taskTemplateInfo.getStepList(),
             originTaskTemplateInfo.getStepList(),
             TaskDiffHelper.CompareMode.TEMPLATE_TO_TEMPLATE);
+        if (stepsChanged) {
+            log.debug("Task template step differs from origin, appId={}, templateId={}",
+                taskTemplateInfo.getAppId(), taskTemplateInfo.getId());
+        }
+        return stepsChanged;
     }
 
     @Override
