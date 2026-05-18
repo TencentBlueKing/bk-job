@@ -214,9 +214,9 @@ build_backend_modules () {
     log "Building backdend {MODULES} image, version: ${VERSION}..."
     tasks=""
     for MODULE in ${MODULES[@]}; do
-        if [[ "${MODULE}" == "job-manage" ]]; then
+        if [[ "${MODULE}" == "job-manage" || "${MODULE}" == "job-assemble" ]]; then
             log "Building version logs for module: ${MODULE}"
-            if ! generate_version_logs; then
+            if ! generate_version_logs "${MODULE}"; then
                 log "Version logs generation failed, terminate build."
                 exit 1
             fi
@@ -284,6 +284,7 @@ build_startup_controller_image(){
 
 # Generate version log files
 generate_version_logs() {
+    local module="${1:-}"
     log "Generating version logs..."
     if [[ ! -d "$VERSION_LOGS_DIR" ]]; then
         log "Version log dir not found: $VERSION_LOGS_DIR"
@@ -298,7 +299,16 @@ generate_version_logs() {
         return 1
     fi
 
-    local target_dir="$BACKEND_DIR/job-manage/boot-job-manage/src/main/resources/versionLog"
+    local target_dir=""
+    if [[ "$module" == "job-manage" ]]; then
+        target_dir="$BACKEND_DIR/job-manage/boot-job-manage/src/main/resources/versionLog"
+    elif [[ "$module" == "job-assemble" ]]; then
+        target_dir="$BACKEND_DIR/job-assemble/src/main/resources/versionLog"
+    else
+        log "Unsupported module for version logs: ${module}"
+        cd "$worker_dir"
+        return 1
+    fi
     mkdir -p "$target_dir"
     log "Copy version log files to ${target_dir}"
     cp bundledVersionLog*.json "$target_dir"
