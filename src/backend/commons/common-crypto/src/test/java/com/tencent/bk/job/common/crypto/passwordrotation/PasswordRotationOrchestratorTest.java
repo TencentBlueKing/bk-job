@@ -358,6 +358,44 @@ class PasswordRotationOrchestratorTest {
             .isNull();
     }
 
+    @Test
+    void rewriterReturningUnchangedSkipsUpdateAndCountsAsSkipped() {
+        // rewriter 显式告知"本行无需变更"时，orchestrator 必须跳过 updateRow，
+        // 不能以原值更新（典型场景：cron_job.variable_value JSON 不含 CIPHER 子项）
+        java.util.concurrent.atomic.AtomicInteger updateRowCallCount = new java.util.concurrent.atomic.AtomicInteger();
+        InMemoryRewriter rewriter = new InMemoryRewriter("t", "f") {
+            @Override
+            public ReEncryptResult reEncryptToActive(SymmetricCryptoService svc, String value) {
+                return ReEncryptResult.unchanged();
+            }
+
+            @Override
+            public int updateRow(String pkCursor, String oldCipher, String newCipher) {
+                updateRowCallCount.incrementAndGet();
+                return super.updateRow(pkCursor, oldCipher, newCipher);
+            }
+        };
+        rewriter.insert("1", "{\"vars\":[{\"type\":\"HOST_LIST\",\"value\":\"h\"}]}");
+        rewriter.insert("2", "{\"vars\":[]}");
+
+        InMemoryProgressDAO dao = new InMemoryProgressDAO();
+        PasswordRotationConfig config = new PasswordRotationConfig();
+        config.setBatchSize(10);
+        config.setSleepMsBetweenBatch(0);
+        PasswordRotationOrchestrator orchestrator = newOrchestrator(dao, rewriter, config);
+
+        orchestrator.runUntilAllDone();
+
+        PasswordRotationProgress p = dao.firstProgress();
+        assertThat(p.isDone()).isTrue();
+        assertThat(p.getProcessedRows()).isEqualTo(2L);
+        assertThat(p.getReEncryptedRows()).as("unchanged 不应计入 reEncrypted").isZero();
+        assertThat(p.getSkippedRows()).as("unchanged 必须计入 skipped").isEqualTo(2L);
+        assertThat(updateRowCallCount.get())
+            .as("rewriter 返回 unchanged 时 orchestrator 不应再调 updateRow")
+            .isZero();
+    }
+
     private PasswordRotationOrchestrator newOrchestrator(InMemoryProgressDAO dao,
                                                     FieldRewriter rewriter,
                                                     PasswordRotationConfig config) {

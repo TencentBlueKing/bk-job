@@ -457,21 +457,57 @@ gseV2:
 ```yaml
 job:
   encrypt:
-    # 新生成的强密码（建议16字符及以上，含大小写、数字、符号）
-    password: "<your_new_strong_password>"
-    # 把所有历史曾用过的密码全部列入（用于解密存量旧数据改用新密码加密，一般情况下写入一条上一次使用的密码即可）
+    # 【必填】用于加密作业平台中存储的数据库密码等敏感信息的主密钥，部署时必须显式设置。
+    # 建议使用长度 >= 16 的强密码，未设置（空值）时服务将启动失败。
+    password: ""
+    # 历史曾经用过的密码列表（按使用先后，最后一个为上一次使用的密码），用于密码轮换期间解密旧数据。
+    # 作业平台启动后会在后台逐步将旧数据重加密为新密码加密。
+    # 全量迁移完成后（参考 crypto_password_rotation_progress 表 status=DONE），
+    # 可以从此列表中移除已不再使用的旧密码，进一步降低风险。
+    # 如果之前的部署没有配置过自定义的密码，则此列表使用默认值（老版本默认密码）即可，示例如下：
+    # usedPasswords:
+    #   - "job#2021"
+    # 如果之前的部署配置了自定义的密码且无需轮换密码，则将此列表置空，示例如下：
+    # usedPasswords: []
+    # 如果之前的部署配置了自定义的密码且需要轮换密码，则此列表填写之前配置的密码，示例如下：
+    # usedPasswords:
+    #   - "{之前的部署配置的密码}"
     usedPasswords:
-      - "<your_previous_password_1>"
-      - "<your_previous_password_2>"
+      - "job#2021"
+    # 旧密码加密数据轮换迁移任务相关配置。
+    # 服务启动后由后台线程在分布式锁保护下一次性把所有旧密码加密数据迁移到主密钥，跑完即退出，
+    # 整个服务生命周期内不再触发；中途被 kill 后下次服务启动会自动从进度表续跑。
     oldDataPasswordRotation:
-      enabled: true
-      # 服务启动后在分布式锁保护下一次性跑完所有迁移，跑完即退出
+      # 是否启用旧密码加密数据轮换迁移任务，默认关闭。开启前请先备份以下数据表：
+      # job_backup.export_job
+      # job_crontab.cron_job
+      # job_manage.account
+      # job_manage.credential
+      # job_manage.task_plan_step_script
+      # job_manage.task_plan_variable
+      # job_manage.task_template_step_script
+      # job_manage.task_template_variable
+      # 如同时开启 includeExecutionHistoryTables=true，请额外备份：
+      # job_execute.step_instance_script
+      # job_execute.task_instance_variable
+      enabled: false
+      # 服务启动后首次触发前的延迟毫秒数，默认 10000ms
       initialDelayMs: 10000
+      # 每批处理的最大行数
       batchSize: 500
-      sleepMsBetweenBatch: 100
-      # 默认 false：不迁移行数极大的执行历史表（step_instance_script、task_instance_variable），让其数据自然过期淘汰
+      # 每批处理完成后等待的毫秒数，用于限速
+      sleepMsBetweenBatch: 0
+      # 是否同时迁移执行实例历史大表（job_execute.step_instance_script.db_password、job_execute.task_instance_variable.value）
+      # 默认关闭。这些表为任务执行流水表，数据量较大，可以选择让旧密码加密的数据随着时间推移自然过期，
+      # 如果开启迁移，会占用一定的数据库CPU资源并耗费较长时间
       includeExecutionHistoryTables: false
 ```
+多集群部署架构升级注意：  
+如果存在多集群共享DB部署架构且需要轮换密码，请按以下步骤操作：  
+（1）在job.encrypt.password中填入旧密码，job.encrypt.usedPasswords中填入新密码，依次升级所有集群版本，以确保所有集群能够兼容新旧密码；  
+（2）在job.encrypt.password中填入新密码，job.encrypt.usedPasswords中填入旧密码，依次升级所有集群版本，确保各集群均切换使用新密码加解密，同时兼容旧密码。  
+（3）观察系统功能正常后，将job.encrypt.oldDataPasswordRotation.enabled配置为true，开启存量加密数据密码轮换后台任务。  
+（4）通过各服务（涉及job-backup、job-crontab、job-manage、job-execute这四个服务）日志（容器内/data/logs/job-xxx/job-xxx.log）可观察密码轮换进度，关键命令为grep -E "password-rotation|PasswordRotation"，此外，观察数据库job_backup/job_crontab/job_manage/job_execute（可选）库中crypto_password_rotation_progress表的数据，status字段全部为DONE则表示密码轮换完成，下一次部署时即可去除job.encrypt.usedPasswords中的旧密码并关闭存量加密数据密码轮换后台任务。  
 
 ## 0.7.3
 1. 增加连接外部MariaDB、Redis、RabbitMQ、MongoDB支持TLS相关配置

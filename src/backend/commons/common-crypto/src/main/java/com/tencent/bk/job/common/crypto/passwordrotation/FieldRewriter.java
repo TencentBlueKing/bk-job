@@ -73,17 +73,22 @@ public interface FieldRewriter {
     int updateRow(String pkCursor, String oldCipher, String newCipher);
 
     /**
-     * 将一行的当前值重加密为"主密钥加密"（密码轮换迁移场景）。
+     * 将一行的当前值重加密为"主密钥加密"（密码轮换迁移场景），并通过 {@link ReEncryptResult}
+     * 显式告知 orchestrator 本行是否真的产生了变化。
      *
      * <p>默认实现：当值本身是一段密文时，调用
      * {@link SymmetricCryptoService#reEncryptToActiveForRotation(String)}，
      * 即解密时优先使用"上一次密码"试错，主密钥末位兜底。
+     * 由于 AES/CBC 每次加密使用随机 IV，重加密后的字面值必然不同，
+     * 因此默认实现一律返回 {@link ReEncryptResult#changed(String)}。
      *
      * <p>对于 JSON 复合字段，实现应解析后对每个 CIPHER 子字段做重加密、再序列化为 JSON 返回，
      * 子字段重加密也应使用 {@link SymmetricCryptoService#reEncryptToActiveForRotation(String)}。
+     * <strong>当 JSON 中不含任何需要重加密的 CIPHER 子项时，必须返回
+     * {@link ReEncryptResult#unchanged()}</strong>，避免 orchestrator 发起一次"以原值更新"的无意义 UPDATE。
      */
-    default String reEncryptToActive(SymmetricCryptoService svc, String value) {
-        return svc.reEncryptToActiveForRotation(value);
+    default ReEncryptResult reEncryptToActive(SymmetricCryptoService svc, String value) {
+        return ReEncryptResult.changed(svc.reEncryptToActiveForRotation(value));
     }
 
     /**

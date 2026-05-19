@@ -67,16 +67,6 @@ class EncryptConfigTest {
     }
 
     @Test
-    void rejectsUsedPasswordsContainingActivePassword() {
-        EncryptConfig config = new EncryptConfig();
-        config.setPassword("my-strong-key-001");
-        config.setUsedPasswords(Arrays.asList("my-strong-key-001", "legacy-key-A"));
-        assertThatThrownBy(config::init)
-            .isInstanceOf(BeanInitializationException.class)
-            .hasMessageContaining("identical to job.encrypt.password");
-    }
-
-    @Test
     void rejectsEmptyUsedPasswordEntry() {
         EncryptConfig config = new EncryptConfig();
         config.setPassword("my-strong-key-001");

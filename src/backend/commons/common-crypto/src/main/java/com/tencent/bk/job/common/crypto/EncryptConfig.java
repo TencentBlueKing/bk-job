@@ -51,14 +51,13 @@ public class EncryptConfig {
     private CryptoTypeEnum type;
 
     /**
-     * 当前主密钥：用于新数据加密，以及解密时的首选密钥。
-     * 不允许为空，且不允许与 usedPasswords 中任一项相同。
+     * 当前主密码：用于新数据加密，以及解密时的首选密码，不允许为空。
      */
     private String password;
 
     /**
-     * 历史密钥列表（按从新到旧排序）：仅用于解密历史未轮换完成的旧数据，
-     * 不参与新数据的加密。可以为空，表示从未轮换过密钥。
+     * 历史密码列表（按从新到旧排序）：仅用于解密历史未轮换完成的旧数据，
+     * 不参与新数据的加密。可以为空，表示从未轮换过密码。
      */
     private List<String> usedPasswords = new ArrayList<>();
 
@@ -74,7 +73,7 @@ public class EncryptConfig {
     @PostConstruct
     public void init() {
         validate();
-        // 输出非敏感的诊断信息：主密钥不可直接打印，仅打印是否配置 / usedPasswords 数量
+        // 输出非敏感的诊断信息：主密码不可直接打印，仅打印是否配置 / usedPasswords 数量
         log.info(
             "EncryptConfig init: type={}, passwordConfigured={}, usedPasswordsCount={}, scenarioAlgorithms={}",
             type,
@@ -86,9 +85,6 @@ public class EncryptConfig {
 
     /**
      * 启动期强校验：发现任何配置问题立刻 fail-fast，提示运维修复后再启动。
-     *
-     * <p>仅做"结构性"约束（非空、不重复、不与 usedPasswords 冲突），不做任何具体密码值的硬性黑名单，
-     * 避免在代码中硬编码任何敏感字面量。
      */
     private void validate() {
         if (StringUtils.isEmpty(password)) {
@@ -103,12 +99,6 @@ public class EncryptConfig {
                 if (StringUtils.isEmpty(used)) {
                     throw new BeanInitializationException(
                         "job.encrypt.usedPasswords[" + i + "] must not be empty"
-                    );
-                }
-                if (used.equals(password)) {
-                    throw new BeanInitializationException(
-                        "job.encrypt.usedPasswords[" + i + "] is identical to job.encrypt.password."
-                            + " Historical passwords must differ from the active master password."
                     );
                 }
             }

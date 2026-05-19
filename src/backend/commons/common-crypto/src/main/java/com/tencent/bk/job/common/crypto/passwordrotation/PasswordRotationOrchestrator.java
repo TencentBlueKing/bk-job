@@ -288,11 +288,21 @@ public class PasswordRotationOrchestrator {
                                        FieldBatchRow row,
                                        PasswordRotationProgress progress) {
         String cipher = row.getCipherValue();
-        if (StringUtils.isEmpty(cipher)) {
+        if (StringUtils.isBlank(cipher)) {
             return RowResult.SKIPPED;
         }
         try {
-            String reEncrypted = rewriter.reEncryptToActive(symmetricCryptoService, cipher);
+            ReEncryptResult result = rewriter.reEncryptToActive(symmetricCryptoService, cipher);
+            if (!result.isChanged()) {
+                // rewriter 显式告知本行无需更新（典型场景：JSON 复合字段不含需重加密的 CIPHER 子项）
+                // 跳过 UPDATE，避免以原值更新触发无意义的乐观锁 + binlog
+                log.debug(
+                    "PasswordRotation: rewriter reports no-op for table={}, field={}, pk={}",
+                    rewriter.tableName(), rewriter.fieldName(), row.getPkCursor()
+                );
+                return RowResult.SKIPPED;
+            }
+            String reEncrypted = result.getReEncryptedValue();
             int updated = rewriter.updateRow(row.getPkCursor(), cipher, reEncrypted);
             if (updated > 0) {
                 log.info("PasswordRotation: table={}, field={}, pk={}, oldCipher={}, newCipher={}, updatedRows={}",
