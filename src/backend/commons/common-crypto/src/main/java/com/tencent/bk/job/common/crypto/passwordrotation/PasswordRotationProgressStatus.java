@@ -22,13 +22,29 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:common-utils')
-    api 'com.tencent.bk.sdk:crypto-java-sdk'
-    implementation 'org.bouncycastle:bcprov-jdk18on'
-    // 密码轮换迁移任务上报 Prometheus 指标使用
-    implementation 'io.micrometer:micrometer-core'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.crypto.passwordrotation;
+
+/**
+ * 密码轮换进度状态
+ */
+public enum PasswordRotationProgressStatus {
+    /**
+     * 等待中（进度行已创建，尚未开始）
+     */
+    PENDING,
+
+    /**
+     * 运行中
+     */
+    RUNNING,
+
+    /**
+     * 全表处理完成
+     */
+    DONE,
+
+    /**
+     * 发生不可恢复错误
+     */
+    FAILED
 }

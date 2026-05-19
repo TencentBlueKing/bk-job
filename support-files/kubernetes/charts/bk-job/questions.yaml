@@ -93,8 +93,9 @@ questions:
     description: "Job服务间通信密钥-公钥的Base64串"
     group: "Job安全凭据配置"
   - variable: job.encrypt.password
-    label: "Job对称加密密码"
+    label: "Job对称加密主密码"
     type: string
-    default: "job#2021"
-    description: "用于Job加密数据库中存储的机器/DB密码信息，一旦确定不能改变"
+    required: true
+    default: ""
+    description: "用于Job加密数据库中存储的机器/DB密码等敏感信息。必须显式配置，建议使用长度 >= 16 的强密码。如需更换密码或你升级前使用过其它密码，请把所有历史密码原样加入 job.encrypt.usedPasswords 列表，作业平台会自动在后台将旧数据重加密为新密码加密"
     group: "Job安全凭据配置"

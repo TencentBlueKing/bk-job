@@ -22,13 +22,26 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:common-utils')
-    api 'com.tencent.bk.sdk:crypto-java-sdk'
-    implementation 'org.bouncycastle:bcprov-jdk18on'
-    // 密码轮换迁移任务上报 Prometheus 指标使用
-    implementation 'io.micrometer:micrometer-core'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.crypto.passwordrotation;
+
+/**
+ * 分布式锁执行器抽象：用于把锁实现（如 Redis 锁）从密码轮换框架中解耦。
+ *
+ * <p>{@link PasswordRotationStartupTrigger} 自身位于 {@code common-crypto} 模块，
+ * 为避免强依赖 {@code common-redis}，将“拿锁 + 执行 + 释放锁”的过程通过本接口注入。
+ *
+ * <p>典型实现：使用 {@code DistributedUniqueTask} 包装的 Redis 分布式唯一任务。
+ * 锁被其他实例持有时实现方可直接跳过，不视为异常。
+ */
+@FunctionalInterface
+public interface PasswordRotationLockExecutor {
+
+    /**
+     * 在分布式锁保护下执行任务。
+     *
+     * @param lockKey 锁 Key，由调用方按业务/服务名拼接
+     * @param task    需要在锁保护下执行的任务
+     * @throws Exception 执行过程中的任何异常（含锁框架自身异常）
+     */
+    void runUnderLock(String lockKey, Runnable task) throws Exception;
 }

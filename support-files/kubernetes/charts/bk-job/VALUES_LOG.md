@@ -373,7 +373,22 @@ executeConfig:
         expireSeconds: 10
 ```
 ## 0.7.4
-1. 增加作业执行结果轮询规则的配置
+1. 文件分发时采用外部的Gse Agent代替Job机器作为源机器分发
+```yaml
+externalGseAgent:
+  ## 默认不使用集群外的GSE Agent分发文件
+  enabled: false
+    ## 与集群外GSE Agent共享文件采用的storageClass名
+  storageClass: nfs-client
+  ## 期望的大小
+  storageSize: 200Gi
+  ## 集群外部已安装 GSE Agent 的机器
+  hosts:
+    - bkCloudId: 0
+      ip: ""
+```
+
+2. 增加作业执行结果轮询规则的配置
 
 ```yaml
 executeConfig:  
@@ -403,6 +418,59 @@ executeConfig:
           12-67: 5000
         # 超出轮询间隔表中配置的轮询次数后使用的统一间隔（单位：毫秒）    
         finalInterval: 10000
+```
+
+3. 新增前端提给后端账号密码的加密算法配置
+```yaml
+job:
+  encrypt:
+    # SM2加密算法原始公钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PublicKey: ""
+    # SM2加密算法原始私钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PrivateKey: ""
+```
+
+4. 新增自定义挂载卷(volumes和volumeMounts)
+```yaml
+## 自定义全局挂载卷(volumes和volumeMounts)
+## 用途示例：jvm信任证书、license文件等
+## 注意：如果具体服务模块也定义了volumeExtension，会覆盖此全局配置
+volumeExtension:
+  volumes: []
+  volumeMounts: []
+```
+
+5. 增加GSE V2重试配置
+```yaml
+gseV2:
+  # 重试策略
+  retry:
+    # 是否开启重试
+    enabled: false
+    # 含重试的最大执行次数
+    maxAttempts: 3
+    # 重试间隔（单位：秒）
+    intervalSeconds: 5
+```
+
+6. 安全加固：强制配置加密主密码，支持密码轮换
+```yaml
+job:
+  encrypt:
+    # 新生成的强密码（建议16字符及以上，含大小写、数字、符号）
+    password: "<your_new_strong_password>"
+    # 把所有历史曾用过的密码全部列入（用于解密存量旧数据改用新密码加密，一般情况下写入一条上一次使用的密码即可）
+    usedPasswords:
+      - "<your_previous_password_1>"
+      - "<your_previous_password_2>"
+    oldDataPasswordRotation:
+      enabled: true
+      # 服务启动后在分布式锁保护下一次性跑完所有迁移，跑完即退出
+      initialDelayMs: 10000
+      batchSize: 500
+      sleepMsBetweenBatch: 100
+      # 默认 false：不迁移行数极大的执行历史表（step_instance_script、task_instance_variable），让其数据自然过期淘汰
+      includeExecutionHistoryTables: false
 ```
 
 ## 0.7.3

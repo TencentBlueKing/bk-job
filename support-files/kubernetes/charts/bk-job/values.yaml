@@ -1,4 +1,4 @@
- # Default values for bk-job.
+﻿ # Default values for bk-job.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -821,8 +821,32 @@ job:
   encrypt:
     # 可选值：CLASSIC（经典国际算法RSA、AES等），SHANGMI（国家商用密码算法SM2、SM4等）
     type: "CLASSIC"
-    # 用于加密作业平台中存储的数据库密码的密码
-    password: "job#2021"
+    # 【必填】用于加密作业平台中存储的数据库密码等敏感信息的主密钥，部署时必须显式设置。
+    # 建议使用长度 >= 16 的强密码，未设置（空值）时服务将启动失败。
+    password: ""
+    # 历史曾经用过的密码列表（按使用先后，最后一个为上一次使用的密码），用于密码轮换期间解密旧数据。
+    # 如果你升级前已经部署过本服务并使用了其它密码（包括老版本的默认密码），
+    # 请把那些密码原样填入此列表，同时为 password 字段设置一个新的强密码，
+    # 作业平台启动后会在后台逐步将旧数据重加密为新密码加密。
+    # 全量迁移完成后（参考 crypto_password_rotation_progress 表 status=DONE），
+    # 可以从此列表中移除已不再使用的旧密码，进一步降低风险。
+    usedPasswords:
+      - "job#2021"
+    # 旧密码加密数据轮换迁移任务相关配置。
+    # 服务启动后由后台线程在分布式锁保护下一次性把所有旧密码加密数据迁移到主密钥，跑完即退出，
+    # 整个服务生命周期内不再触发；中途被 kill 后下次服务启动会自动从进度表续跑。
+    oldDataPasswordRotation:
+      # 是否启用旧密码加密数据轮换迁移任务，默认开启
+      enabled: true
+      # 服务启动后首次触发前的延迟毫秒数，默认 10000ms
+      initialDelayMs: 10000
+      # 每批处理的最大行数
+      batchSize: 500
+      # 每批处理完成后等待的毫秒数，用于限速
+      sleepMsBetweenBatch: 100
+      # 是否同时迁移执行实例历史大表（step_instance_script.db_password、task_instance_variable.value）
+      # 默认关闭。这些表行数极大，开启前请评估对在线业务的影响
+      includeExecutionHistoryTables: false
     # SM2加密算法原始公钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
     sm2PublicKey: ""
     # SM2加密算法原始私钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
