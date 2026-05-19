@@ -24,22 +24,25 @@
 
 package com.tencent.bk.job.common.crypto;
 
-import com.tencent.bk.job.common.util.json.JsonUtils;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 加密配置
  */
 @ConfigurationProperties(prefix = "job.encrypt")
-@ToString
 @Getter
 @Setter
 @Slf4j
@@ -47,7 +50,17 @@ public class EncryptConfig {
 
     private CryptoTypeEnum type;
 
+    /**
+     * 当前主密钥：用于新数据加密，以及解密时的首选密钥。
+     * 不允许为空，且不允许与 usedPasswords 中任一项相同。
+     */
     private String password;
+
+    /**
+     * 历史密钥列表（按从新到旧排序）：仅用于解密历史未轮换完成的旧数据，
+     * 不参与新数据的加密。可以为空，表示从未轮换过密钥。
+     */
+    private List<String> usedPasswords = new ArrayList<>();
 
     private String sm2PrivateKey;
 
@@ -59,9 +72,54 @@ public class EncryptConfig {
     private Map<String, String> scenarioAlgorithms = new HashMap<>();
 
     @PostConstruct
-    public void print() {
-        if (log.isDebugEnabled()) {
-            log.debug("EncryptConfig init: {}", JsonUtils.toJson(this));
+    public void init() {
+        validate();
+        // 输出非敏感的诊断信息：主密钥不可直接打印，仅打印是否配置 / usedPasswords 数量
+        log.info(
+            "EncryptConfig init: type={}, passwordConfigured={}, usedPasswordsCount={}, scenarioAlgorithms={}",
+            type,
+            StringUtils.isNotEmpty(password),
+            usedPasswords == null ? 0 : usedPasswords.size(),
+            scenarioAlgorithms
+        );
+    }
+
+    /**
+     * 启动期强校验：发现任何配置问题立刻 fail-fast，提示运维修复后再启动。
+     *
+     * <p>仅做"结构性"约束（非空、不重复、不与 usedPasswords 冲突），不做任何具体密码值的硬性黑名单，
+     * 避免在代码中硬编码任何敏感字面量。
+     */
+    private void validate() {
+        if (StringUtils.isEmpty(password)) {
+            throw new BeanInitializationException(
+                "job.encrypt.password must not be empty. Please configure a strong password (>= 16 chars recommended)"
+                    + " in values.yaml before starting the service."
+            );
+        }
+        if (usedPasswords != null) {
+            for (int i = 0; i < usedPasswords.size(); i++) {
+                String used = usedPasswords.get(i);
+                if (StringUtils.isEmpty(used)) {
+                    throw new BeanInitializationException(
+                        "job.encrypt.usedPasswords[" + i + "] must not be empty"
+                    );
+                }
+                if (used.equals(password)) {
+                    throw new BeanInitializationException(
+                        "job.encrypt.usedPasswords[" + i + "] is identical to job.encrypt.password."
+                            + " Historical passwords must differ from the active master password."
+                    );
+                }
+            }
+            Set<String> deduplication = new HashSet<>();
+            for (int i = 0; i < usedPasswords.size(); i++) {
+                if (!deduplication.add(usedPasswords.get(i))) {
+                    throw new BeanInitializationException(
+                        "job.encrypt.usedPasswords contains duplicated entry at index " + i
+                    );
+                }
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-# chart values 更新日志
+﻿# chart values 更新日志
 ## 0.7.4
 1. 文件分发时采用外部的Gse Agent代替Job机器作为源机器分发
 ```yaml
@@ -78,6 +78,26 @@ gseV2:
     maxAttempts: 3
     # 重试间隔（单位：秒）
     intervalSeconds: 5
+```
+
+6. 安全加固：强制配置加密主密码，支持密码轮换
+```yaml
+job:
+  encrypt:
+    # 新生成的强密码（建议16字符及以上，含大小写、数字、符号）
+    password: "<your_new_strong_password>"
+    # 把所有历史曾用过的密码全部列入（用于解密存量旧数据改用新密码加密，一般情况下写入一条上一次使用的密码即可）
+    usedPasswords:
+      - "<your_previous_password_1>"
+      - "<your_previous_password_2>"
+    oldDataPasswordRotation:
+      enabled: true
+      # 服务启动后在分布式锁保护下一次性跑完所有迁移，跑完即退出
+      initialDelayMs: 10000
+      batchSize: 500
+      sleepMsBetweenBatch: 100
+      # 默认 false：不迁移行数极大的执行历史表（step_instance_script、task_instance_variable），让其数据自然过期淘汰
+      includeExecutionHistoryTables: false
 ```
 
 ## 0.7.3
