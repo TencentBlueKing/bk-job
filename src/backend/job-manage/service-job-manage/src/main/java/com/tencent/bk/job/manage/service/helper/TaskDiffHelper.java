@@ -25,19 +25,19 @@
 package com.tencent.bk.job.manage.service.helper;
 
 import com.tencent.bk.job.common.model.dto.ApplicationHostDTO;
+import com.tencent.bk.job.manage.api.common.constants.task.TaskFileTypeEnum;
 import com.tencent.bk.job.manage.model.dto.task.TaskApprovalStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileInfoDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskFileStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskHostNodeDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskScriptStepDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskStepDTO;
+import com.tencent.bk.job.manage.model.dto.task.TaskTargetContainerDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskTargetDTO;
 import com.tencent.bk.job.manage.model.dto.task.TaskVariableDTO;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -99,12 +99,7 @@ public class TaskDiffHelper {
         for (int i = 0; i < currentTaskVariableList.size(); i++) {
             TaskVariableDTO currentTaskVariable = currentTaskVariableList.get(i);
             TaskVariableDTO originTaskVariable = originTaskVariableList.get(i);
-            TaskVariableDTO comparableOriginTaskVariable = buildComparableOriginVariable(
-                currentTaskVariable,
-                originTaskVariable,
-                compareMode
-            );
-            if (!currentTaskVariable.equals(comparableOriginTaskVariable)) {
+            if (variableChanged(currentTaskVariable, originTaskVariable, compareMode)) {
                 log.debug("Task variable differs after ignoring value, compareMode={}, index={}, varId={}, varType={}",
                     compareMode, i, currentTaskVariable.getId(), currentTaskVariable.getType());
                 return true;
@@ -114,54 +109,61 @@ public class TaskDiffHelper {
     }
 
     /**
-     * 比较步骤的基础信息
+     * 任务的全局变量是否有差异，不比较变量值
+     */
+    private boolean variableChanged(TaskVariableDTO currentTaskVariable,
+                                    TaskVariableDTO originTaskVariable,
+                                    CompareMode compareMode) {
+        boolean definitionChanged = variableBaseInfoChanged(currentTaskVariable, originTaskVariable);
+        if (definitionChanged) {
+            return true;
+        }
+
+        if (compareMode == CompareMode.TEMPLATE_TO_TEMPLATE) {
+            if (Boolean.TRUE.equals(currentTaskVariable.getDelete())) {
+                log.debug("Task variable delete flag differs, varId={}", currentTaskVariable.getId());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 变量基本信息是否有变，不比较变量值
+     */
+    private boolean variableBaseInfoChanged(TaskVariableDTO currentTaskVariable,
+                                            TaskVariableDTO originTaskVariable) {
+        return valueChanged(currentTaskVariable.getId(), originTaskVariable.getId())
+            || valueChanged(currentTaskVariable.getName(), originTaskVariable.getName())
+            || valueChanged(currentTaskVariable.getType(), originTaskVariable.getType())
+            || valueChanged(currentTaskVariable.getDescription(), originTaskVariable.getDescription())
+            || valueChanged(currentTaskVariable.getChangeable(), originTaskVariable.getChangeable())
+            || valueChanged(currentTaskVariable.getRequired(), originTaskVariable.getRequired());
+    }
+
+    /**
+     * 步骤的基础信息是否有变更
      */
     private boolean stepBaseInfoChanged(TaskStepDTO currentTaskStep,
                                         TaskStepDTO originTaskStep,
                                         CompareMode compareMode) {
+        if (valueChanged(currentTaskStep.getType(), originTaskStep.getType())) {
+            return true;
+        }
+        if (valueChanged(currentTaskStep.getName(), originTaskStep.getName())) {
+            return true;
+        }
         if (compareMode == CompareMode.TEMPLATE_TO_TEMPLATE) {
             if (currentTaskStep.getId() == null || currentTaskStep.getId() <= 0 || currentTaskStep.getDelete() == 1) {
                 return true;
             }
-            if (!currentTaskStep.getId().equals(originTaskStep.getId())) {
+            if (valueChanged(currentTaskStep.getId(), originTaskStep.getId())) {
                 return true;
             }
-        } else if (!Objects.equals(currentTaskStep.getTemplateStepId(), originTaskStep.getId())) {
+        } else if (valueChanged(currentTaskStep.getTemplateStepId(), originTaskStep.getId())) {
             return true;
         }
-
-        if (!Objects.equals(currentTaskStep.getType(), originTaskStep.getType())) {
-            return true;
-        }
-        return !Objects.equals(currentTaskStep.getName(), originTaskStep.getName());
-    }
-
-    private TaskVariableDTO buildComparableOriginVariable(TaskVariableDTO currentTaskVariable,
-                                                          TaskVariableDTO originTaskVariable,
-                                                          CompareMode compareMode) {
-        if (compareMode == CompareMode.TEMPLATE_TO_TEMPLATE) {
-            originTaskVariable.setDefaultValue(currentTaskVariable.getDefaultValue());
-            originTaskVariable.setTemplateId(currentTaskVariable.getTemplateId());
-            originTaskVariable.setDelete(false);
-            originTaskVariable.setFollowTemplate(currentTaskVariable.getFollowTemplate());
-            return originTaskVariable;
-        }
-
-        // currentTaskVariable是执行方案变量，originTaskVariable是作业模版变量；磨平不参与比较的属性后进行比较
-        TaskVariableDTO comparableOriginTaskVariable = new TaskVariableDTO();
-        comparableOriginTaskVariable.setId(originTaskVariable.getId());
-        comparableOriginTaskVariable.setTemplateId(currentTaskVariable.getTemplateId());
-        comparableOriginTaskVariable.setPlanId(currentTaskVariable.getPlanId());
-        comparableOriginTaskVariable.setInstanceId(currentTaskVariable.getInstanceId());
-        comparableOriginTaskVariable.setName(originTaskVariable.getName());
-        comparableOriginTaskVariable.setType(originTaskVariable.getType());
-        comparableOriginTaskVariable.setDefaultValue(currentTaskVariable.getDefaultValue());
-        comparableOriginTaskVariable.setDescription(originTaskVariable.getDescription());
-        comparableOriginTaskVariable.setChangeable(originTaskVariable.getChangeable());
-        comparableOriginTaskVariable.setRequired(originTaskVariable.getRequired());
-        comparableOriginTaskVariable.setDelete(currentTaskVariable.getDelete());
-        comparableOriginTaskVariable.setFollowTemplate(currentTaskVariable.getFollowTemplate());
-        return comparableOriginTaskVariable;
+        return false;
     }
 
     /**
@@ -188,12 +190,63 @@ public class TaskDiffHelper {
     private boolean scriptStepChanged(TaskStepDTO currentTaskStep,
                                       TaskStepDTO originTaskStep,
                                       CompareMode compareMode) {
-        TaskScriptStepDTO comparableOriginScriptStep = buildComparableOriginScriptStep(
-            currentTaskStep,
-            originTaskStep,
-            compareMode
-        );
-        return !currentTaskStep.getScriptStepInfo().equals(comparableOriginScriptStep);
+        TaskScriptStepDTO currentScriptStep = currentTaskStep.getScriptStepInfo();
+        TaskScriptStepDTO originScriptStep = originTaskStep.getScriptStepInfo();
+
+        if (scriptStepBaseInfoChanged(currentScriptStep, originScriptStep)) {
+            log.debug("Script step base info differs, stepId={}", currentTaskStep.getId());
+            return true;
+        }
+
+        if (scriptStepDeepInfoChanged(currentScriptStep, originScriptStep)) {
+            log.debug("Script step target differs, stepId={}", currentTaskStep.getId());
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 脚本步骤基础信息是否有变
+     */
+    private boolean scriptStepBaseInfoChanged(TaskScriptStepDTO currentScriptStep,
+                                              TaskScriptStepDTO originScriptStep) {
+        return valueChanged(currentScriptStep.getScriptSource(), originScriptStep.getScriptSource())
+            || valueChanged(currentScriptStep.getScriptId(), originScriptStep.getScriptId())
+            || valueChanged(currentScriptStep.getScriptVersionId(), originScriptStep.getScriptVersionId())
+            || valueChanged(currentScriptStep.getContent(), originScriptStep.getContent())
+            || valueChanged(currentScriptStep.getLanguage(), originScriptStep.getLanguage())
+            || valueChanged(currentScriptStep.getScriptParam(), originScriptStep.getScriptParam())
+            || valueChanged(currentScriptStep.getWindowsInterpreter(), originScriptStep.getWindowsInterpreter())
+            || valueChanged(currentScriptStep.getTimeout(), originScriptStep.getTimeout())
+            || valueChanged(currentScriptStep.getAccount(), originScriptStep.getAccount())
+            || valueChanged(currentScriptStep.getSecureParam(), originScriptStep.getSecureParam())
+            || valueChanged(currentScriptStep.getIgnoreError(), originScriptStep.getIgnoreError());
+    }
+
+    /**
+     * 文件步骤复杂信息（如执行目标、文件源）是否有变
+     */
+    private boolean fileStepDeepInfoChanged(TaskFileStepDTO currentFileStep,
+                                            TaskFileStepDTO originFileStep) {
+        if (targetChanged(currentFileStep.getDestinationHostList(), originFileStep.getDestinationHostList())) {
+            return true;
+        }
+        if (originFileListChanged(currentFileStep.getOriginFileList(), originFileStep.getOriginFileList())) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 脚本步骤复杂信息（如执行目标）是否有变
+     */
+    private boolean scriptStepDeepInfoChanged(TaskScriptStepDTO currentScriptStep,
+                                              TaskScriptStepDTO originScriptStep) {
+        if (targetChanged(currentScriptStep.getExecuteTarget(), originScriptStep.getExecuteTarget())) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -202,12 +255,34 @@ public class TaskDiffHelper {
     private boolean fileStepChanged(TaskStepDTO currentTaskStep,
                                     TaskStepDTO originTaskStep,
                                     CompareMode compareMode) {
-        TaskFileStepDTO comparableOriginFileStep = buildComparableOriginFileStep(
-            currentTaskStep,
-            originTaskStep,
-            compareMode
-        );
-        return !currentTaskStep.getFileStepInfo().equals(comparableOriginFileStep);
+        TaskFileStepDTO currentFileStep = currentTaskStep.getFileStepInfo();
+        TaskFileStepDTO originFileStep = originTaskStep.getFileStepInfo();
+
+        if (fileStepBaseInfoChanged(currentFileStep, originFileStep)) {
+            log.debug("File step base info differs, stepId={}", currentTaskStep.getId());
+            return true;
+        }
+        if (fileStepDeepInfoChanged(currentFileStep, originFileStep)) {
+            log.debug("File step target or source differs, stepId={}", currentTaskStep.getId());
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 文件步骤基础信息是否有变
+     */
+    private boolean fileStepBaseInfoChanged(TaskFileStepDTO currentFileStep,
+                                            TaskFileStepDTO originFileStep) {
+        return valueChanged(currentFileStep.getDestinationFileLocation(), originFileStep.getDestinationFileLocation())
+            || valueChanged(currentFileStep.getExecuteAccount(), originFileStep.getExecuteAccount())
+            || valueChanged(currentFileStep.getTimeout(), originFileStep.getTimeout())
+            || valueChanged(currentFileStep.getOriginSpeedLimit(), originFileStep.getOriginSpeedLimit())
+            || valueChanged(currentFileStep.getTargetSpeedLimit(), originFileStep.getTargetSpeedLimit())
+            || valueChanged(currentFileStep.getDuplicateHandler(), originFileStep.getDuplicateHandler())
+            || valueChanged(currentFileStep.getNotExistPathHandler(), originFileStep.getNotExistPathHandler())
+            || valueChanged(currentFileStep.getIgnoreError(), originFileStep.getIgnoreError());
     }
 
     /**
@@ -216,220 +291,192 @@ public class TaskDiffHelper {
     private boolean approvalStepChanged(TaskStepDTO currentTaskStep,
                                         TaskStepDTO originTaskStep,
                                         CompareMode compareMode) {
-        TaskApprovalStepDTO comparableOriginApprovalStep = buildComparableOriginApprovalStep(
-            currentTaskStep,
-            originTaskStep,
-            compareMode
-        );
-        return !currentTaskStep.getApprovalStepInfo().equals(comparableOriginApprovalStep);
-    }
+        TaskApprovalStepDTO currentApprovalStep = currentTaskStep.getApprovalStepInfo();
+        TaskApprovalStepDTO originApprovalStep = originTaskStep.getApprovalStepInfo();
 
-    private TaskScriptStepDTO buildComparableOriginScriptStep(TaskStepDTO currentTaskStep,
-                                                              TaskStepDTO originTaskStep,
-                                                              CompareMode compareMode) {
-        TaskScriptStepDTO comparableOriginScriptStep;
-        if (compareMode == CompareMode.TEMPLATE_TO_TEMPLATE) {
-            comparableOriginScriptStep = originTaskStep.getScriptStepInfo();
-            comparableOriginScriptStep.setId(null);
-            comparableOriginScriptStep.setTemplateId(currentTaskStep.getScriptStepInfo().getTemplateId());
-            comparableOriginScriptStep.setExecuteTarget(buildComparableOriginTarget(
-                currentTaskStep.getScriptStepInfo().getExecuteTarget(),
-                comparableOriginScriptStep.getExecuteTarget()
-            ));
-            return comparableOriginScriptStep;
+        if (approvalStepBaseInfoChanged(currentApprovalStep, originApprovalStep)) {
+            log.debug("Approval step base info differs, stepId={}", currentTaskStep.getId());
+            return true;
         }
 
-        // currentScriptStep是执行方案脚本步骤，originScriptStep是作业模版脚本步骤，磨平不参与比较的属性后进行比较
-        TaskScriptStepDTO currentScriptStep = currentTaskStep.getScriptStepInfo();
-        TaskScriptStepDTO originScriptStep = originTaskStep.getScriptStepInfo();
-        comparableOriginScriptStep = new TaskScriptStepDTO(
-            currentScriptStep.getId(),
-            currentScriptStep.getTemplateId(),
-            currentScriptStep.getPlanId(),
-            currentScriptStep.getInstanceId(),
-            currentScriptStep.getStepId(),
-            originScriptStep.getScriptSource(),
-            originScriptStep.getScriptId(),
-            originScriptStep.getScriptVersionId(),
-            originScriptStep.getContent(),
-            originScriptStep.getLanguage(),
-            originScriptStep.getScriptParam(),
-            originScriptStep.getWindowsInterpreter(),
-            originScriptStep.getTimeout(),
-            originScriptStep.getAccount(),
-            originScriptStep.getExecuteTarget(),
-            originScriptStep.getSecureParam(),
-            originScriptStep.getStatus(),
-            originScriptStep.getIgnoreError()
-        );
-        comparableOriginScriptStep.setExecuteTarget(buildComparableOriginTarget(
-            currentScriptStep.getExecuteTarget(),
-            comparableOriginScriptStep.getExecuteTarget()
-        ));
-        return comparableOriginScriptStep;
-    }
-
-    private TaskFileStepDTO buildComparableOriginFileStep(TaskStepDTO currentTaskStep,
-                                                          TaskStepDTO originTaskStep,
-                                                          CompareMode compareMode) {
-        if (compareMode == CompareMode.TEMPLATE_TO_TEMPLATE) {
-            TaskFileStepDTO comparableOriginFileStep = originTaskStep.getFileStepInfo();
-            comparableOriginFileStep.setId(null);
-            alignFileStepHostIdForCompare(currentTaskStep.getFileStepInfo(), comparableOriginFileStep);
-            return comparableOriginFileStep;
-        }
-
-        TaskFileStepDTO currentFileStep = currentTaskStep.getFileStepInfo();
-        TaskFileStepDTO originFileStep = originTaskStep.getFileStepInfo();
-        TaskFileStepDTO comparableOriginFileStep = new TaskFileStepDTO(
-            currentFileStep.getId(),
-            currentFileStep.getStepId(),
-            originFileStep.getOriginFileList(),
-            originFileStep.getDestinationFileLocation(),
-            originFileStep.getExecuteAccount(),
-            originFileStep.getDestinationHostList(),
-            originFileStep.getTimeout(),
-            originFileStep.getOriginSpeedLimit(),
-            originFileStep.getTargetSpeedLimit(),
-            originFileStep.getDuplicateHandler(),
-            originFileStep.getNotExistPathHandler(),
-            originFileStep.getIgnoreError()
-        );
-        alignFileStepHostIdForCompare(currentFileStep, comparableOriginFileStep);
-        return comparableOriginFileStep;
-    }
-
-    private void alignFileStepHostIdForCompare(TaskFileStepDTO currentFileStep,
-                                               TaskFileStepDTO originFileStep) {
-        originFileStep.setDestinationHostList(buildComparableOriginTarget(
-            currentFileStep.getDestinationHostList(),
-            originFileStep.getDestinationHostList()
-        ));
-        originFileStep.setOriginFileList(buildComparableOriginFileList(
-            currentFileStep.getOriginFileList(),
-            originFileStep.getOriginFileList()
-        ));
-    }
-
-    private List<TaskFileInfoDTO> buildComparableOriginFileList(List<TaskFileInfoDTO> currentFileList,
-                                                                List<TaskFileInfoDTO> originFileList) {
-        if (CollectionUtils.isEmpty(currentFileList) || CollectionUtils.isEmpty(originFileList)
-            || currentFileList.size() != originFileList.size()) {
-            return originFileList;
-        }
-        List<TaskFileInfoDTO> comparableOriginFileList = new ArrayList<>(originFileList.size());
-        for (int i = 0; i < currentFileList.size(); i++) {
-            TaskFileInfoDTO currentFileInfo = currentFileList.get(i);
-            TaskFileInfoDTO originFileInfo = originFileList.get(i);
-            if (currentFileInfo == null || originFileInfo == null) {
-                return originFileList;
-            }
-            comparableOriginFileList.add(buildComparableOriginFileInfo(currentFileInfo, originFileInfo));
-        }
-        return comparableOriginFileList;
-    }
-
-    private TaskFileInfoDTO buildComparableOriginFileInfo(TaskFileInfoDTO currentFileInfo,
-                                                          TaskFileInfoDTO originFileInfo) {
-        return new TaskFileInfoDTO(
-            originFileInfo.getId(),
-            originFileInfo.getStepId(),
-            originFileInfo.getFileType(),
-            originFileInfo.getFileLocation(),
-            originFileInfo.getFileHash(),
-            originFileInfo.getFileSize(),
-            buildComparableOriginTarget(currentFileInfo.getHost(), originFileInfo.getHost()),
-            originFileInfo.getHostAccount(),
-            originFileInfo.getFileSourceId()
-        );
+        return false;
     }
 
     /**
-     * current、origin的host可能有差异，导致equal比较不符合预期，只关注hostId
+     * 人工审核步骤基础信息是否有变
      */
-    private TaskTargetDTO buildComparableOriginTarget(TaskTargetDTO currentTarget,
-                                                      TaskTargetDTO originTarget) {
-        List<ApplicationHostDTO> currentHosts = getHostList(currentTarget);
-        List<ApplicationHostDTO> originHosts = getHostList(originTarget);
-        if (CollectionUtils.isEmpty(currentHosts) || CollectionUtils.isEmpty(originHosts)
-            || currentHosts.size() != originHosts.size()) {
-            return originTarget;
+    private boolean approvalStepBaseInfoChanged(TaskApprovalStepDTO currentApprovalStep,
+                                                TaskApprovalStepDTO originApprovalStep) {
+        return valueChanged(currentApprovalStep.getApprovalType(), originApprovalStep.getApprovalType())
+            || valueChanged(currentApprovalStep.getApprovalMessage(), originApprovalStep.getApprovalMessage())
+            || valueChanged(currentApprovalStep.getNotifyChannel(), originApprovalStep.getNotifyChannel())
+            || valueChanged(currentApprovalStep.getApprovalUser(), originApprovalStep.getApprovalUser());
+    }
+
+    /**
+     * 执行目标是否有变更
+     */
+    private boolean targetChanged(TaskTargetDTO currentTarget,
+                                  TaskTargetDTO originTarget) {
+        if (currentTarget == originTarget) {
+            return false;
         }
-        List<ApplicationHostDTO> originHostsForCompare = new ArrayList<>(currentHosts.size());
-        for (int i = 0; i < currentHosts.size(); i++) {
-            if (currentHosts.get(i) == null || originHosts.get(i) == null) {
-                return originTarget;
+        if (currentTarget == null || originTarget == null) {
+            return true;
+        }
+
+        if (valueChanged(currentTarget.getVariable(), originTarget.getVariable())) {
+            return true;
+        }
+        if (hostNodeChanged(currentTarget.getHostNodeList(), originTarget.getHostNodeList())) {
+            return true;
+        }
+        if (containerListChanged(currentTarget.getContainerList(), originTarget.getContainerList())) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 源文件列表是否有变更
+     */
+    private boolean originFileListChanged(List<TaskFileInfoDTO> currentFileInfoList,
+                                          List<TaskFileInfoDTO> originFileInfoList) {
+        if (currentFileInfoList == originFileInfoList) {
+            return false;
+        }
+        if (currentFileInfoList == null || originFileInfoList == null) {
+            return true;
+        }
+        if (currentFileInfoList.size() != originFileInfoList.size()) {
+            return true;
+        }
+        for (int i = 0; i < currentFileInfoList.size(); i++) {
+            if (fileInfoChanged(currentFileInfoList.get(i), originFileInfoList.get(i))) {
+                return true;
             }
-            originHostsForCompare.add(buildOriginHostForCompare(currentHosts.get(i), originHosts.get(i)));
         }
-        return buildOriginTargetWithHostList(originTarget, originHostsForCompare);
+        return false;
     }
 
-    private List<ApplicationHostDTO> getHostList(TaskTargetDTO target) {
-        TaskHostNodeDTO hostNode = target == null ? null : target.getHostNodeList();
-        return hostNode == null ? null : hostNode.getHostList();
+    /**
+     * 上传源文件信息是否有变更
+     */
+    private boolean fileInfoChanged(TaskFileInfoDTO currentFileInfo,
+                                    TaskFileInfoDTO originFileInfo) {
+        if (currentFileInfo == originFileInfo) {
+            return false;
+        }
+        if (currentFileInfo == null || originFileInfo == null) {
+            return true;
+        }
+        if (valueChanged(currentFileInfo.getFileType(), originFileInfo.getFileType())) {
+            return true;
+        }
+        if (valueChanged(currentFileInfo.getFileLocation(), originFileInfo.getFileLocation())) {
+            return true;
+        }
+        if (TaskFileTypeEnum.SERVER == currentFileInfo.getFileType()
+            && (targetChanged(currentFileInfo.getHost(), originFileInfo.getHost())
+            || valueChanged(currentFileInfo.getHostAccount(), originFileInfo.getHostAccount()))) {
+            return true;
+        }
+        if (TaskFileTypeEnum.FILE_SOURCE == currentFileInfo.getFileType()
+            && valueChanged(currentFileInfo.getFileSourceId(), originFileInfo.getFileSourceId())) {
+            return true;
+        }
+        return false;
     }
 
-    private TaskTargetDTO buildOriginTargetWithHostList(TaskTargetDTO originTarget,
-                                                       List<ApplicationHostDTO> hostList) {
-        TaskHostNodeDTO originHostNode = originTarget.getHostNodeList();
-        TaskHostNodeDTO hostNodeForCompare = new TaskHostNodeDTO(
-            originHostNode.getNodeInfoList(),
-            originHostNode.getDynamicGroupId(),
-            hostList
-        );
-        return new TaskTargetDTO(originTarget.getVariable(), hostNodeForCompare, originTarget.getContainerList());
+    /**
+     * 主机节点信息是否有变更
+     */
+    private boolean hostNodeChanged(TaskHostNodeDTO currentHostNode,
+                                    TaskHostNodeDTO originHostNode) {
+        if (currentHostNode == originHostNode) {
+            return false;
+        }
+        if (currentHostNode == null || originHostNode == null) {
+            return true;
+        }
+        if (valueChanged(currentHostNode.getNodeInfoList(), originHostNode.getNodeInfoList())) {
+            return true;
+        }
+        if (valueChanged(currentHostNode.getDynamicGroupId(), originHostNode.getDynamicGroupId())) {
+            return true;
+        }
+        if (hostListChanged(currentHostNode.getHostList(), originHostNode.getHostList())) {
+            return true;
+        }
+        return false;
     }
 
-    private ApplicationHostDTO buildOriginHostForCompare(ApplicationHostDTO currentHost,
-                                                         ApplicationHostDTO originHost) {
-        return new ApplicationHostDTO(
-            originHost.getHostId(),
-            currentHost.getAppId(),
-            currentHost.getBizId(),
-            currentHost.getIp(),
-            currentHost.getIpv6(),
-            currentHost.getAgentId(),
-            currentHost.getDisplayIp(),
-            currentHost.getHostName(),
-            currentHost.getGseAgentStatus(),
-            currentHost.getGseAgentAlive(),
-            currentHost.getCloudAreaId(),
-            currentHost.getCloudAreaName(),
-            currentHost.getCloudIp(),
-            currentHost.getOsName(),
-            currentHost.getOsType(),
-            currentHost.getOsTypeName(),
-            currentHost.getCloudVendorId(),
-            currentHost.getCloudVendorName(),
-            currentHost.getLastTime(),
-            currentHost.getTenantId(),
-            currentHost.getSetId(),
-            currentHost.getModuleId(),
-            currentHost.getModuleType(),
-            currentHost.getIpList(),
-            currentHost.getTopoPathList()
-        );
-    }
-
-    private TaskApprovalStepDTO buildComparableOriginApprovalStep(TaskStepDTO currentTaskStep,
-                                                                  TaskStepDTO originTaskStep,
-                                                                  CompareMode compareMode) {
-        if (compareMode == CompareMode.TEMPLATE_TO_TEMPLATE) {
-            TaskApprovalStepDTO comparableOriginApprovalStep = originTaskStep.getApprovalStepInfo();
-            comparableOriginApprovalStep.setId(null);
-            return comparableOriginApprovalStep;
+    /**
+     * 主机列表是否有变更，只比较hostId
+     */
+    private boolean hostListChanged(List<ApplicationHostDTO> currentHostList,
+                                    List<ApplicationHostDTO> originHostList) {
+        if (currentHostList == originHostList) {
+            return false;
+        }
+        if (currentHostList == null || originHostList == null) {
+            return true;
         }
 
-        TaskApprovalStepDTO currentApprovalStep = currentTaskStep.getApprovalStepInfo();
-        TaskApprovalStepDTO originApprovalStep = originTaskStep.getApprovalStepInfo();
-        return new TaskApprovalStepDTO(
-            currentApprovalStep.getId(),
-            currentApprovalStep.getStepId(),
-            originApprovalStep.getApprovalType(),
-            originApprovalStep.getApprovalUser(),
-            originApprovalStep.getApprovalMessage(),
-            originApprovalStep.getNotifyChannel()
-        );
+        if (currentHostList.size() != originHostList.size()) {
+            return true;
+        }
+        for (int i = 0; i < currentHostList.size(); i++) {
+            ApplicationHostDTO currentHost = currentHostList.get(i);
+            ApplicationHostDTO originHost = originHostList.get(i);
+            if (currentHost == originHost) {
+                continue;
+            }
+            if (currentHost == null || originHost == null) {
+                return true;
+            }
+            if (valueChanged(currentHost.getHostId(), originHost.getHostId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 容器列表是否变更，只比较id和containerId
+     */
+    private boolean containerListChanged(List<TaskTargetContainerDTO> currentContainerList,
+                                         List<TaskTargetContainerDTO> originContainerList) {
+        if (currentContainerList == originContainerList) {
+            return false;
+        }
+        if (currentContainerList == null || originContainerList == null) {
+            return true;
+        }
+        if (currentContainerList.size() != originContainerList.size()) {
+            return true;
+        }
+        for (int i = 0; i < currentContainerList.size(); i++) {
+            TaskTargetContainerDTO currentContainer = currentContainerList.get(i);
+            TaskTargetContainerDTO originContainer = originContainerList.get(i);
+            if (currentContainer == originContainer) {
+                continue;
+            }
+            if (currentContainer == null || originContainer == null) {
+                return true;
+            }
+            if (valueChanged(currentContainer.getId(), originContainer.getId())) {
+                return true;
+            }
+            if (valueChanged(currentContainer.getContainerId(), originContainer.getContainerId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean valueChanged(Object currentValue,
+                                 Object originValue) {
+        return !Objects.equals(currentValue, originValue);
     }
 }
