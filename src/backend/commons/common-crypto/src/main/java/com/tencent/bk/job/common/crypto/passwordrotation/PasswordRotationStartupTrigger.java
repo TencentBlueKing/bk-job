@@ -108,6 +108,7 @@ public class PasswordRotationStartupTrigger {
         }
         String lockKey = LOCK_KEY_PREFIX + applicationName;
         try {
+            log.info("PasswordRotation for {} arranged", applicationName);
             lockExecutor.runUnderLock(lockKey, orchestrator::runUntilAllDone);
         } catch (Exception e) {
             log.error("PasswordRotation {} startup migration failed", applicationName, e);

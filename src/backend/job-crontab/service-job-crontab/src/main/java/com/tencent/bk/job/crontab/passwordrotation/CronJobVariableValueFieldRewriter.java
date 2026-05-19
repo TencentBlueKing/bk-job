@@ -29,6 +29,7 @@ import com.tencent.bk.job.common.constant.TaskVariableTypeEnum;
 import com.tencent.bk.job.common.crypto.SymmetricCryptoService;
 import com.tencent.bk.job.common.crypto.passwordrotation.FieldBatchRow;
 import com.tencent.bk.job.common.crypto.passwordrotation.FieldRewriter;
+import com.tencent.bk.job.common.crypto.passwordrotation.ReEncryptResult;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.crontab.model.dto.CronJobVariableDTO;
 import com.tencent.bk.job.crontab.model.tables.CronJob;
@@ -126,13 +127,15 @@ public class CronJobVariableValueFieldRewriter implements FieldRewriter {
     }
 
     @Override
-    public String reEncryptToActive(SymmetricCryptoService svc, String value) {
-        if (StringUtils.isBlank(value)) {
-            return value;
+    public ReEncryptResult reEncryptToActive(SymmetricCryptoService svc, String value) {
+        if (StringUtils.isBlank(value) || "null".equals(value)) {
+            // 空值不应被 orchestrator 调到这里（已在 processSingleRow 提前拦截），保险起见返回 unchanged
+            return ReEncryptResult.unchanged();
         }
         List<CronJobVariableDTO> vars = parseSafely(value);
         if (CollectionUtils.isEmpty(vars)) {
-            return value;
+            // 解析失败或空数组：不发起 UPDATE，避免乱写
+            return ReEncryptResult.unchanged();
         }
         boolean changed = false;
         for (CronJobVariableDTO var : vars) {
@@ -150,7 +153,8 @@ public class CronJobVariableValueFieldRewriter implements FieldRewriter {
             var.setValue(reEncrypted);
             changed = true;
         }
-        return changed ? JsonUtils.toJson(vars) : value;
+        // 整行内没有任何 CIPHER 子项需要重加密 -> 跳过 UPDATE，避免以原值更新触发无意义的乐观锁 + binlog
+        return changed ? ReEncryptResult.changed(JsonUtils.toJson(vars)) : ReEncryptResult.unchanged();
     }
 
     private List<CronJobVariableDTO> parseSafely(String json) {
