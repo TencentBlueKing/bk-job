@@ -22,13 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:common-utils')
-    api 'com.tencent.bk.sdk:crypto-java-sdk'
-    implementation 'org.bouncycastle:bcprov-jdk18on'
-    // 密码轮换迁移任务上报 Prometheus 指标使用
-    implementation 'io.micrometer:micrometer-core'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.crypto.passwordrotation;
+
+import lombok.Getter;
+
+/**
+ * 密码轮换批处理中的单行数据：主键游标 + 需要被重加密的字段密文值。
+ *
+ * <p>主键以字符串形式承载，由各 {@link FieldRewriter} 实现自由约定语义（数字字符串、UUID 等）。
+ */
+@Getter
+public class FieldBatchRow {
+
+    private final String pkCursor;
+    private final String cipherValue;
+
+    public FieldBatchRow(String pkCursor, String cipherValue) {
+        this.pkCursor = pkCursor;
+        this.cipherValue = cipherValue;
+    }
+
 }

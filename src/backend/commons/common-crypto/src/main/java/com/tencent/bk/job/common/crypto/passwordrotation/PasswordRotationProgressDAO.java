@@ -22,13 +22,28 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:common-utils')
-    api 'com.tencent.bk.sdk:crypto-java-sdk'
-    implementation 'org.bouncycastle:bcprov-jdk18on'
-    // 密码轮换迁移任务上报 Prometheus 指标使用
-    implementation 'io.micrometer:micrometer-core'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.crypto.passwordrotation;
+
+/**
+ * 密码轮换进度表 DAO 接口。
+ *
+ * <p>各微服务使用自己的数据库连接实现此接口，
+ * {@link PasswordRotationOrchestrator} 依赖此接口持久化轮换进度。
+ */
+public interface PasswordRotationProgressDAO {
+
+    /**
+     * 加载给定目标密钥指纹 + 表名 + 字段名对应的进度记录。
+     * 如果不存在则自动创建一条 PENDING 状态的初始记录并返回。
+     *
+     * @param targetPasswordFingerprint 目标密钥指纹（{@link com.tencent.bk.job.common.crypto.CryptoConfigService#computeActivePasswordFingerprint()}）
+     * @param tableName                 目标表名
+     * @param fieldName                 目标字段名
+     */
+    PasswordRotationProgress loadOrCreate(String targetPasswordFingerprint, String tableName, String fieldName);
+
+    /**
+     * 更新中间进度（lastProcessedPk、各计数器、status）
+     */
+    void updateProgress(PasswordRotationProgress progress);
 }

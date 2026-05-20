@@ -22,13 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-dependencies {
-    api project(':commons:common')
-    api project(':commons:common-utils')
-    api 'com.tencent.bk.sdk:crypto-java-sdk'
-    implementation 'org.bouncycastle:bcprov-jdk18on'
-    // 密码轮换迁移任务上报 Prometheus 指标使用
-    implementation 'io.micrometer:micrometer-core'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+package com.tencent.bk.job.common.crypto;
+
+import com.tencent.bk.sdk.crypto.exception.CryptoException;
+
+/**
+ * 密码轮换场景下的解密异常：
+ * 表示已用所有已配置的密钥（主密钥 + usedPasswords）依次尝试，仍无法解密给定密文。
+ * 通常意味着：
+ * 1) 密文确实损坏/被篡改；或
+ * 2) 密文是用某个未在 usedPasswords 中配置的历史密钥加密，需要运维补齐 usedPasswords。
+ */
+public class PasswordRotationDecryptException extends CryptoException {
+
+    public PasswordRotationDecryptException(String message) {
+        super(message);
+    }
+
+    public PasswordRotationDecryptException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
