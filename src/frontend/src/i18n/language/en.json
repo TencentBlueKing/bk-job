@@ -580,5 +580,15 @@
   "时区": "timezone",
   "nav时区信息": "The personal time zone you set, the website will display all time-related information based on this. It can be modified in {link}",
   "个人设置": "Personal Settings",
-  "个容器 ID": "Container ID(s)"
+  "个容器 ID": "Container ID(s)",
+  "Agent 执行环境提示标题": "{strongText}If the script depends on environment variables, {code1} or {code2} settings, please explicitly {code3} the relevant config files at the beginning of the script.",
+  "Agent 执行环境可能与 SSH 登录不一致": "The Agent execution environment may differ from SSH login.",
+  "了解详情": "Learn More",
+  "原因说明：": "Reason:",
+  "Agent 执行环境原因说明": "Due to Linux non-login session process execution limitations, the Agent cannot recreate a complete login environment like SSH login, so it will not automatically load login environment configs such as {code1}, {code2}, etc.",
+  "Agent 执行环境配置说明": "After the Agent starts, environment variable changes, {code1} and other config changes on the target machine may not be detected by the Agent, causing inconsistent results between Agent execution and direct login execution.",
+  "推荐写法：": "Recommended:",
+  "在脚本开头显式加载所需配置，例如：": "Explicitly load required configs at the beginning of the script, for example:",
+  "# 如需特定的 ulimit 设置，也请在脚本中显式声明": "# If specific ulimit settings are needed, please explicitly declare them in the script",
+  "# 您的业务脚本内容...": "# Your business script content..."
 }

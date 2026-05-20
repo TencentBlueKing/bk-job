@@ -80,3 +80,7 @@ th {
 .job-icon {
   letter-spacing: initial;
 }
+
+.bk-switcher.is-checked:after {
+  transform: none !important;
+}
