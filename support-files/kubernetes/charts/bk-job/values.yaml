@@ -76,7 +76,7 @@ mariadb:
     ## @param mariadb.auth.rootPassword Password for the MariaDB `root` user
     ## ref: https://github.com/bitnami/bitnami-docker-mariadb#setting-the-root-password-on-first-run
     ##
-    rootPassword: "job"
+    rootPassword: ""
     ## @param mariadb.auth.database Database name to create
     ## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-on-first-run
     ##
@@ -87,7 +87,7 @@ mariadb:
     username: job
     ## @param mariadb.auth.password Password for the database
     ##
-    password: "job"
+    password: ""
   primary:
     ## Enable persistence using Persistent Volume Claims
     ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
@@ -198,7 +198,7 @@ redis:
     enabled: true
     ## @param redis.auth.password Password for the database
     ##
-    password: "job"
+    password: ""
     ## @param redis.auth.existingSecret The name of an existing secret with Redis credentials
     ## NOTE: When it's set, the previous `auth.password` parameter is ignored
     ##
@@ -233,7 +233,7 @@ externalRedis:
   port: 6379
   ## @param externalRedis.password Password of the external redis when architecture is standalone
   ##
-  password: "job"
+  password: ""
   ## @param externalRedis.sentinel Sentinel Config
   ##
   sentinel:
@@ -293,7 +293,7 @@ rabbitmq:
     username: job
     ## @param rabbitmq.auth.password RabbitMQ application password
     ##
-    password: "job"
+    password: ""
     ## @param rabbitmq.auth.erlangCookie Erlang cookie to determine whether different nodes are allowed to communicate with each other	
     ##
     erlangCookie: "job"
@@ -323,7 +323,7 @@ externalRabbitMQ:
   username: "job"
   ## @param externalRabbitMQ.password Password
   ##
-  password: "job"
+  password: ""
   ## @param externalRabbitMQ.vhost vhost
   ##
   vhost: "job"
@@ -362,11 +362,11 @@ mongodb:
     size: 10Gi
   useStatefulSet: true
   auth:
-    rootPassword: job
+    rootPassword: ""
     enabled: true
     database: joblog
     username: job
-    password: job
+    password: ""
   service:
     port: 27017
 
@@ -659,12 +659,12 @@ artifactory:
     # 制品库admin账号
     username: admin
     # 制品库admin账号的密码
-    password: blueking
+    password: ""
   job:
     # 作业平台在制品库的官方账号，初始化时由作业平台通过Admin账号自动创建
-    username: bkjob
+    username: bkjob-v3
     # 作业平台在制品库的官方账号对应的密码，初始化时由作业平台通过Admin账号自动创建
-    password: bkjob
+    password: ""
     # 作业平台在制品库的官方项目，初始化时由作业平台通过Admin账号自动创建
     project: bkjob
 
@@ -722,9 +722,9 @@ job:
     actuator:
       user:
         # 获取actuator监控数据的账号，部署时生成填入
-        name: actuator_name
+        name: job
         # 获取actuator监控数据的密码，部署时生成填入
-        password: actuator_password
+        password: ""
   encrypt:
     # 可选值：CLASSIC（经典国际算法RSA、AES等），SHANGMI（国家商用密码算法SM2、SM4等）
     type: "CLASSIC"
@@ -1254,7 +1254,7 @@ crontabConfig:
     connection:
       properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
     username: "job"
-    password: "job"
+    password: ""
     maxPoolSize: 100
   # Quartz相关配置
   quartz:
@@ -1359,7 +1359,7 @@ backupConfig:
       host: ""
       port: ""
       username: "job"
-      password: "job"
+      password: ""
       connection:
         properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
       ## TLS相关配置
