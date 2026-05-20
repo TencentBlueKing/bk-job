@@ -44,3 +44,23 @@ pip install bk-crypto-python-sdk
 # 生成秘钥对
 python generate_sm2_keypair.py
 ```
+
+### 3.生成服务间调用 RSA 密钥（Helm values）
+
+#### 代码位置
+service-rsa-keypair
+
+#### 功能简介
+
+生成 `job.security.privateKeyBase64` / `job.security.publicKeyBase64` 所需的 PEM，并按作业平台 Java 侧 `RSAUtils` 约定对整段 PEM 再做 Base64，输出单行 JSON 到标准输出（便于复制进 `values.yaml` 或管道给自动化脚本）。
+
+> python 环境: python3.6+
+
+#### 执行
+
+```shell
+pip install cryptography
+cd service-rsa-keypair
+python generate_service_rsa_keys.py
+python generate_service_rsa_keys.py --bits 2048 --pretty
+```

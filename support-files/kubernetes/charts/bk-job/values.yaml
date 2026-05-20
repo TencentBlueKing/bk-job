@@ -76,7 +76,7 @@ mariadb:
     ## @param mariadb.auth.rootPassword Password for the MariaDB `root` user
     ## ref: https://github.com/bitnami/bitnami-docker-mariadb#setting-the-root-password-on-first-run
     ##
-    rootPassword: "job"
+    rootPassword: ""
     ## @param mariadb.auth.database Database name to create
     ## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-on-first-run
     ##
@@ -87,7 +87,7 @@ mariadb:
     username: job
     ## @param mariadb.auth.password Password for the database
     ##
-    password: "job"
+    password: ""
   primary:
     ## Enable persistence using Persistent Volume Claims
     ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
@@ -198,7 +198,7 @@ redis:
     enabled: true
     ## @param redis.auth.password Password for the database
     ##
-    password: "job"
+    password: ""
     ## @param redis.auth.existingSecret The name of an existing secret with Redis credentials
     ## NOTE: When it's set, the previous `auth.password` parameter is ignored
     ##
@@ -233,7 +233,7 @@ externalRedis:
   port: 6379
   ## @param externalRedis.password Password of the external redis when architecture is standalone
   ##
-  password: "job"
+  password: ""
   ## @param externalRedis.sentinel Sentinel Config
   ##
   sentinel:
@@ -293,7 +293,7 @@ rabbitmq:
     username: job
     ## @param rabbitmq.auth.password RabbitMQ application password
     ##
-    password: "job"
+    password: ""
     ## @param rabbitmq.auth.erlangCookie Erlang cookie to determine whether different nodes are allowed to communicate with each other	
     ##
     erlangCookie: "job"
@@ -323,7 +323,7 @@ externalRabbitMQ:
   username: "job"
   ## @param externalRabbitMQ.password Password
   ##
-  password: "job"
+  password: ""
   ## @param externalRabbitMQ.vhost vhost
   ##
   vhost: "job"
@@ -362,11 +362,11 @@ mongodb:
     size: 10Gi
   useStatefulSet: true
   auth:
-    rootPassword: job
+    rootPassword: ""
     enabled: true
     database: joblog
     username: job
-    password: job
+    password: ""
   service:
     port: 27017
 
@@ -659,12 +659,12 @@ artifactory:
     # 制品库admin账号
     username: admin
     # 制品库admin账号的密码
-    password: blueking
+    password: ""
   job:
     # 作业平台在制品库的官方账号，初始化时由作业平台通过Admin账号自动创建
-    username: bkjob
+    username: bkjob-v3
     # 作业平台在制品库的官方账号对应的密码，初始化时由作业平台通过Admin账号自动创建
-    password: bkjob
+    password: ""
     # 作业平台在制品库的官方项目，初始化时由作业平台通过Admin账号自动创建
     project: bkjob
 
@@ -715,16 +715,16 @@ job:
   security:
     # 是否开启服务间调用认证，默认开启
     enabled: true
-    # base64编码的服务间调用私钥，此处默认值为社区版公开的默认私钥，正式部署请自行修改
-    privateKeyBase64: "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQ0NERlU0REcrQzhFS2N1ZmpLbGxiYlljVHYzOHlBVE9PRmlBNHJlRlNVa2l4SzZPSjE1Vy8zdGpWY3NYVDRrWU8wTGhGZ1huNU5kM3UxSUZlWnIxM1NQTWpZazRNb0FmYWFhaTdWYTV3a2F0UXM0NnZ6MkwrZXhrU0F1VnV6bU8rS2wxTUVlcktxNnhrTG9SM3UwaktxamdsREMyUDBCUVFuUzljRVpOM3VMTGtLa29rWW1RVkQ0ZTNQam1YdjdSL3hZb3lyTnRLdXRJVWJBd0l4dEZCd2kzSkZaNmN0WkdKN2VreS9JYnV0TXgzUTlobmF4UmJPQkpRYTZvZmU1cUlZKy9FeGs2RW16MFQ2OGhsVnRRaGUvLzNCSjduSDNDR0JYemt3VlE3V1Q4U1RCZzdXTnRwb0pSWVpFYTJWK0ptdGRQcDJIOWo2aDZraFlGelBSWUZSQWdNQkFBRUNnZ0VBU0ZqcUU4cy9RZjI5WVFsSXNoTmU4Sjc4ZTJIcWw3bXVuWHVxUGw2cjF4ZFdrcm5xT2lKUTN1SzczdnhPRVhhS2FYTnpjVVJBU1lKZURNNllUVVExRXArRU1KQW4xOXIzd01Hdm1rVktVU3dwSzJ2aEhrQUhvaUcwdkZQaUF4RGl1aHdqTUF1K1Y3MkFhbXJRaHlyaXl1VkhtOGU3YkdaYUFDNTl5TkVBY2Q0ZDU1SjZkd3lvQWpUNzRuaVNZMlozS1laakhJbzVXaTZyaE0zc3hOMzZVK3cxZ012SUpJc01GcXJHMElWanl3ZjRLQkQwYmdlV29ZY0NTUnd3UVJpN094SHVKMjFtZk4xb3hzbEJLcjE5UHc2MTQ1OFpEYWZvc0lUSWR5bXJWSndmYTAwaGNxaUdpOVdGbXMwaUloemJrZjlKZWRnY3FBMkkxc0g0NkRVb0FRS0JnUURFV0lkV1RVSHVNRnA2RWh6R3pxNk5hb2V6RlhiNDNEOWI5OGZRL0RCV2Q3cmV0d3psbWQyejZGVFJlbE0zaVFnUnN5UWZPQU13SDluaEIzeVZsL1lBNHAwcDE4MGVuanRjNmtmd25rQy9TbGV1ckxIZXhXeVpzNW1KaTNZSWtLL2Z3OFQyQlBXbmVXNVpzNlcrbXNLZUtUYjJ4amNTS3BWREVYUGJFa0hyMFFLQmdRQ3BqMGIxZUpqVGFRUllLNG9DTU1xT3lwYVlmUVJjZWhkQmovaXVBeDNLT2RFYlp4U3VZSUdFUWZpR3BFT0R3SXdzOU1rSmZsbXlOUXdHQldQVyszR245aVpSQ3A0QXdqbkhxb2RLU1c5NEFJcDVmT3VzU0ZmRVd0NGZFQnhsajFrYUdiYmZLL0lYb3hWMkI5VXVOMG1oa0dYSjBrTUR0MlFiWklIWUg2Y2RnUUtCZ0VjQkROQTAyQ2JlN1prL2U1Q1pwWjRXYkVSaStzYzhQdDF2V1o5RjArVXhIeTd6VzRLY2hnUk5mSDdVa2N0L2pwOTMvUlFkR1dvSjJxejZIQitzK0pXUlhleUgwZkhFbndzVzNqVXh4WkJudmhXNDlnbnRzenhTS3JBRzh3UmQ3bndwTzgwTU5obitXOTJzamIvRUQ2Vktta25ibkliQlI0RWRpcHdxbWhSQkFvR0FVd21PeDZJeXZiMzlXYXlnM3FmRVd4K05sc29LdTdzeTduR3lhSTJ3Smh3Z2N0b05mOFJWU1U4QmhmYWw5Ynp6S1FVTCt6RThmaENLZmR4ZjQ2V3FLSVpjaDIyNnFVWjFBM3BZM1NHUGpHWS9hbldwK09wSXlTbHpCQ1Znc3IvNzg5TktBb3REK1IxdDRpcTkxTzlRaU9YdFkyUXNXNEtSYlBUUXZlWHFjb0VDZ1lFQXRnTmFLeWE0Y1c3ODhqbjNlRFkrYkhlTmpaVlJOUk1LZzJpMUNzSEhOUExheXRxVGFmTXVTR0JZMWN6SGhGelRpdWZPVURVQkVzME0xaDU1UlZKM2ZIRlVsR2cyQ3JHeWRtYkFxOXRMcE84Wlhac3V5UCtNSndseGZCeDZzZVRML1pSOUVxNG1PekRXdFVrNVdGa2k1VUpTN3p6ellGenVMTTFsZHlGdG9PZz0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQ=="
-    # base64编码的服务间调用公钥，此处默认值为社区版公开的默认公钥，正式部署请自行修改
-    publicKeyBase64: "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFnZ3hWT0F4dmd2QkNuTG40eXBaVzIySEU3OS9NZ0V6amhZZ09LM2hVbEpJc1N1amlkZVZ2OTdZMVhMRjArSkdEdEM0UllGNStUWGQ3dFNCWG1hOWQwanpJMkpPREtBSDJtbW91MVd1Y0pHclVMT09yODlpL25zWkVnTGxiczVqdmlwZFRCSHF5cXVzWkM2RWQ3dEl5cW80SlF3dGo5QVVFSjB2WEJHVGQ3aXk1Q3BLSkdKa0ZRK0h0ejQ1bDcrMGY4V0tNcXpiU3JyU0ZHd01DTWJSUWNJdHlSV2VuTFdSaWUzcE12eUc3clRNZDBQWVoyc1VXemdTVUd1cUgzdWFpR1B2eE1aT2hKczlFK3ZJWlZiVUlYdi85d1NlNXg5d2hnVjg1TUZVTzFrL0Vrd1lPMWpiYWFDVVdHUkd0bGZpWnJYVDZkaC9ZK29lcElXQmN6MFdCVVFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t"
+    # base64编码的服务间调用私钥(可以通过op-tools/service-rsa-keypair/generate_service_rsa_keys.py工具生成)
+    privateKeyBase64: ""
+    # base64编码的服务间调用公钥(可以通过op-tools/service-rsa-keypair/generate_service_rsa_keys.py工具生成)
+    publicKeyBase64: ""
     actuator:
       user:
         # 获取actuator监控数据的账号，部署时生成填入
-        name: actuator_name
+        name: job
         # 获取actuator监控数据的密码，部署时生成填入
-        password: actuator_password
+        password: ""
   encrypt:
     # 可选值：CLASSIC（经典国际算法RSA、AES等），SHANGMI（国家商用密码算法SM2、SM4等）
     type: "CLASSIC"
@@ -1254,7 +1254,7 @@ crontabConfig:
     connection:
       properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
     username: "job"
-    password: "job"
+    password: ""
     maxPoolSize: 100
   # Quartz相关配置
   quartz:
@@ -1359,7 +1359,7 @@ backupConfig:
       host: ""
       port: ""
       username: "job"
-      password: "job"
+      password: ""
       connection:
         properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
       ## TLS相关配置

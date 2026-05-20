@@ -136,6 +136,101 @@ job:
 （3）观察系统功能正常后，将job.encrypt.oldDataPasswordRotation.enabled配置为true，开启存量加密数据密码轮换后台任务。  
 （4）通过各服务（涉及job-backup、job-crontab、job-manage、job-execute这四个服务）日志（容器内/data/logs/job-xxx/job-xxx.log）可观察密码轮换进度，关键命令为grep -E "password-rotation|PasswordRotation"，此外，观察数据库job_backup/job_crontab/job_manage/job_execute（可选）库中crypto_password_rotation_progress表的数据，status字段全部为DONE则表示密码轮换完成，下一次部署时即可去除job.encrypt.usedPasswords中的旧密码并关闭存量加密数据密码轮换后台任务。  
 
+7.**服务间调用 RSA 密钥**：移除 chart 内嵌的社区版默认 `privateKeyBase64` / `publicKeyBase64`，默认值改为空字符串；部署前**必须**自行生成并填入，否则服务间 JWT 校验无法工作。注释中已标明生成方式。
+```yaml
+job:
+  security:
+    # base64编码的服务间调用私钥(可以通过op-tools/service-rsa-keypair/generate_service_rsa_keys.py工具生成)
+    privateKeyBase64: ""
+    # base64编码的服务间调用公钥(可以通过op-tools/service-rsa-keypair/generate_service_rsa_keys.py工具生成)
+    publicKeyBase64: ""
+```
+
+8.去除所有默认密码，需要用户在部署时自行配置。涉及内置中间件（MariaDB / Redis / RabbitMQ / MongoDB）、外置中间件、制品库账号、actuator 监控账号、定时任务库、归档库等所有原本带默认密码的位置，默认值统一改为空字符串 `""`，部署前必须显式设置，否则相关组件将无法启动或鉴权失败。
+```yaml
+## 内置 MariaDB
+mariadb:
+  auth:
+    # MariaDB root 密码
+    rootPassword: ""
+    # MariaDB 业务账号 job 的密码
+    password: ""
+
+## 内置 Redis
+redis:
+  auth:
+    # Redis 密码
+    password: ""
+
+## 外置 Redis（仅当 redis.enabled=false 时生效）
+externalRedis:
+  # 外置 Redis 密码
+  password: ""
+
+## 内置 RabbitMQ
+rabbitmq:
+  auth:
+    # RabbitMQ 密码
+    password: ""
+
+## 外置 RabbitMQ（仅当 rabbitmq.enabled=false 时生效）
+externalRabbitMQ:
+  # 外置 RabbitMQ 密码
+  password: ""
+
+## 内置 MongoDB
+mongodb:
+  auth:
+    # MongoDB root 密码
+    rootPassword: ""
+    # MongoDB 业务账号 job 的密码
+    password: ""
+
+## 制品库账号
+artifactory:
+  admin:
+    # 制品库 admin 账号密码
+    password: ""
+  job:
+    # 作业平台在制品库的官方账号对应的密码
+    password: ""
+
+## actuator 监控账号
+job:
+  security:
+    actuator:
+      user:
+        # actuator 监控密码
+        password: ""
+
+## 定时任务独立 DB（仅当 crontabConfig.database.host 不为空时生效）
+crontabConfig:
+  database:
+    # 定时任务库密码
+    password: ""
+
+## 归档库（仅当 backupConfig.archive.execute.enabled=true 且 mode 包含归档时生效）
+backupConfig:
+  archive:
+    mariadb:
+      # 归档库密码
+      password: ""
+```
+
+9.调整两处默认账号名，用户可以按需覆盖
+```yaml
+artifactory:
+  job:
+    # 作业平台在制品库的官方账号（原默认 bkjob，已改为 bkjob-v3）
+    username: bkjob-v3
+job:
+  security:
+    actuator:
+      user:
+        # actuator 监控账号（原默认 actuator_name，已改为 job）
+        name: job
+```
+
 ## 0.7.3
 1. 增加连接外部MariaDB、Redis、RabbitMQ、MongoDB支持TLS相关配置
 ```yaml
