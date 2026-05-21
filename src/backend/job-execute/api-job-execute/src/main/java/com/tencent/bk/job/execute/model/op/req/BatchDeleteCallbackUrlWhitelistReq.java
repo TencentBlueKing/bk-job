@@ -24,8 +24,7 @@
 
 package com.tencent.bk.job.execute.model.op.req;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.List;
@@ -34,12 +33,12 @@ import java.util.List;
  * 批量删除 callback URL 白名单请求
  */
 @Data
-@ApiModel("批量删除回调地址白名单请求")
+@Schema(description = "批量删除回调地址白名单请求")
 public class BatchDeleteCallbackUrlWhitelistReq {
 
     /**
      * 待删除的白名单 ID 列表；单条删除通过传入仅含 1 个元素的列表实现。
      */
-    @ApiModelProperty(value = "待删除的白名单 ID 列表，单条删除通过传入单元素列表实现", required = true)
+    @Schema(description = "待删除的白名单 ID 列表，单条删除通过传入单元素列表实现", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<Long> idList;
 }

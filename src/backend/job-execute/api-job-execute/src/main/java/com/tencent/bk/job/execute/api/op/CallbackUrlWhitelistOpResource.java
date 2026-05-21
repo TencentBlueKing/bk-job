@@ -29,9 +29,9 @@ import com.tencent.bk.job.common.model.Response;
 import com.tencent.bk.job.execute.model.op.req.BatchAddCallbackUrlWhitelistReq;
 import com.tencent.bk.job.execute.model.op.req.BatchDeleteCallbackUrlWhitelistReq;
 import com.tencent.bk.job.execute.model.op.vo.CallbackUrlWhitelistVO;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,25 +46,25 @@ import org.springframework.web.bind.annotation.RestController;
  * <p>
  * 仅提供批量接口；单条新增/删除通过传入仅含 1 个元素的列表实现。
  */
-@Api(tags = {"job-execute:OP:回调地址白名单OP管理接口"})
+@Tag(name = "job-execute:OP:回调地址白名单OP管理接口")
 @RequestMapping("/op/callbackUrlWhitelist")
 @RestController
 public interface CallbackUrlWhitelistOpResource {
 
-    @ApiOperation(value = "批量新增回调地址白名单", produces = "application/json")
+    @Operation(summary = "批量新增回调地址白名单")
     @PostMapping("/batchAdd")
     Response<Integer> batchAdd(
-        @ApiParam("用户名")
+        @Parameter(description = "用户名")
         @RequestHeader("username")
         String username,
         @RequestBody
         BatchAddCallbackUrlWhitelistReq req
     );
 
-    @ApiOperation(value = "分页查询回调地址白名单", produces = "application/json")
+    @Operation(summary = "分页查询回调地址白名单")
     @GetMapping("/list")
     Response<PageData<CallbackUrlWhitelistVO>> list(
-        @ApiParam("用户名")
+        @Parameter(description = "用户名")
         @RequestHeader("username")
         String username,
         @RequestParam(value = "start", required = false, defaultValue = "0")
@@ -73,10 +73,10 @@ public interface CallbackUrlWhitelistOpResource {
         Integer length
     );
 
-    @ApiOperation(value = "批量删除回调地址白名单", produces = "application/json")
+    @Operation(summary = "批量删除回调地址白名单")
     @DeleteMapping("/batchDelete")
     Response<Integer> batchDelete(
-        @ApiParam("用户名")
+        @Parameter(description = "用户名")
         @RequestHeader("username")
         String username,
         @RequestBody
