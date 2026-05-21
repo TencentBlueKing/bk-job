@@ -104,21 +104,26 @@ public class CallbackUrlValidateServiceImpl implements CallbackUrlValidateServic
             || StringUtils.isBlank(host)) {
             return false;
         }
+        // 全局拒绝包含 userinfo 的 URL：阻断 https://trusted.com@evil.com/x 类 SSRF 绕过。
+        // 合法回调不应携带 userinfo，统一在此拦截
+        if (uri.getRawUserInfo() != null) {
+            return false;
+        }
         // 2. 关闭白名单校验时，仅做合法性校验
         if (!config.isEnabled()) {
             return true;
         }
-        // 3. 命中配置白名单 baseUrl 前缀
-        if (matchAnyBaseUrlPrefix(callbackUrl, config.getAllowedBaseUrls())) {
+        // 3. 命中配置白名单 baseUrl
+        if (matchAnyBaseUrl(uri, config.getAllowedBaseUrls())) {
             return true;
         }
         // 4. 命中当前环境 bkDomain 子域
         if (isHostOfCurrentEnv(host)) {
             return true;
         }
-        // 5. 命中 DB 白名单 baseUrl 前缀（带缓存）
+        // 5. 命中 DB 白名单 baseUrl（带缓存）
         List<String> dbBaseUrls = dbBaseUrlCache.get(CACHE_KEY);
-        return matchAnyBaseUrlPrefix(callbackUrl, dbBaseUrls);
+        return matchAnyBaseUrl(uri, dbBaseUrls);
     }
 
     @Override
@@ -131,6 +136,14 @@ public class CallbackUrlValidateServiceImpl implements CallbackUrlValidateServic
         // 还要保证后续的字符不是空：至少要有 host
         URI uri = parseUri(baseUrl);
         if (uri == null || StringUtils.isBlank(uri.getHost())) {
+            throw new InvalidParamException(
+                ErrorCode.CALLBACK_URL_WHITELIST_INVALID_BASE_URL, baseUrl);
+        }
+        // baseUrl 不允许带 userinfo / query / fragment：这些片段会让匹配语义模糊，
+        // 也提供了 https://trusted.com@evil.com 这类构造空间
+        if (uri.getRawUserInfo() != null
+            || StringUtils.isNotEmpty(uri.getRawQuery())
+            || StringUtils.isNotEmpty(uri.getRawFragment())) {
             throw new InvalidParamException(
                 ErrorCode.CALLBACK_URL_WHITELIST_INVALID_BASE_URL, baseUrl);
         }
@@ -156,7 +169,18 @@ public class CallbackUrlValidateServiceImpl implements CallbackUrlValidateServic
             || host.toLowerCase().endsWith("." + trimmedDomain.toLowerCase());
     }
 
-    private boolean matchAnyBaseUrlPrefix(String url, List<String> baseUrls) {
+    /**
+     * 用 URI 解析做精确匹配：scheme + host + 端口必须等同，path 以 / 作为边界做前缀匹配。
+     *
+     * <p>避免下列两类典型绕过：
+     * <ul>
+     *   <li>userinfo 注入：{@code https://trusted.com@evil.com/x}（已在 {@link #isValid} 入口
+     *       全局拦截，此处再次防御深度兜底）；</li>
+     *   <li>后缀混淆：{@code https://trusted.com.evil.com/x} 不会被 baseUrl
+     *       {@code https://trusted.com/} 命中，因为 host 必须严格等值。</li>
+     * </ul>
+     */
+    private boolean matchAnyBaseUrl(URI callbackUri, List<String> baseUrls) {
         if (baseUrls == null || baseUrls.isEmpty()) {
             return false;
         }
@@ -164,11 +188,68 @@ public class CallbackUrlValidateServiceImpl implements CallbackUrlValidateServic
             if (StringUtils.isBlank(baseUrl)) {
                 continue;
             }
-            if (url.startsWith(baseUrl.trim())) {
+            URI baseUri = parseUri(baseUrl.trim());
+            if (baseUri == null) {
+                continue;
+            }
+            if (matchBaseUrl(callbackUri, baseUri)) {
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * scheme / host 大小写不敏感等值；port 按协议默认端口归一化后等值；
+     * path 用 / 边界做前缀匹配，避免 {@code /foo} 命中 {@code /foobar}。
+     */
+    private boolean matchBaseUrl(URI callbackUri, URI baseUri) {
+        if (!equalsIgnoreCase(callbackUri.getScheme(), baseUri.getScheme())) {
+            return false;
+        }
+        if (!equalsIgnoreCase(callbackUri.getHost(), baseUri.getHost())) {
+            return false;
+        }
+        if (effectivePort(callbackUri) != effectivePort(baseUri)) {
+            return false;
+        }
+        // baseUri 不允许带 userinfo（validateWhitelistBaseUrl 已校验，此处再防御一次）
+        if (baseUri.getRawUserInfo() != null) {
+            return false;
+        }
+        String basePath = baseUri.getRawPath() == null ? "" : baseUri.getRawPath();
+        String callbackPath = callbackUri.getRawPath() == null ? "" : callbackUri.getRawPath();
+        // baseUrl 仅到 host 级别（path 为空或 /）：同 host 下任意 path 都允许
+        if (basePath.isEmpty() || "/".equals(basePath)) {
+            return true;
+        }
+        if (callbackPath.equals(basePath)) {
+            return true;
+        }
+        // 用 / 作为边界做前缀匹配：basePath 若不以 / 结尾，要求 callback 形如 basePath + "/..."
+        // 这样既支持 "https://api/x/" 也支持 "https://api/x"，且都不会命中 "https://api/xyz"
+        if (basePath.endsWith("/")) {
+            return callbackPath.startsWith(basePath);
+        }
+        return callbackPath.startsWith(basePath + "/");
+    }
+
+    private static boolean equalsIgnoreCase(String a, String b) {
+        return a == null ? b == null : a.equalsIgnoreCase(b);
+    }
+
+    private static int effectivePort(URI uri) {
+        int port = uri.getPort();
+        if (port != -1) {
+            return port;
+        }
+        if ("http".equalsIgnoreCase(uri.getScheme())) {
+            return 80;
+        }
+        if ("https".equalsIgnoreCase(uri.getScheme())) {
+            return 443;
+        }
+        return -1;
     }
 
     private URI parseUri(String url) {
