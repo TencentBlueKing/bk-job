@@ -22,64 +22,56 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.request;
+package com.tencent.bk.job.execute.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
-import com.tencent.bk.job.execute.validate.ValidCallbackUrl;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 /**
- * 作业执行请求
+ * 回调地址白名单 DTO
+ * <p>
+ * 对应表 {@code callback_url_white_info}，白名单按 baseUrl 前缀匹配。
  */
-@Getter
-@Setter
-public class EsbExecuteJobV3Request extends EsbAppScopeReq {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CallbackUrlWhiteInfoDTO {
 
     /**
-     * 执行方案 ID
+     * 主键 ID
      */
-    @JsonProperty("job_plan_id")
-    private Long taskId;
-
-    @JsonProperty("global_var_list")
-    private List<EsbGlobalVarV3DTO> globalVars;
+    private Long id;
 
     /**
-     * 任务执行完成之后回调URL
+     * 允许的回调地址 baseUrl 前缀（必须以 http:// 或 https:// 开头）
      */
-    @JsonProperty("callback_url")
-    @ValidCallbackUrl
-    private String callbackUrl;
+    private String baseUrl;
 
     /**
-     * 是否启动任务
+     * 备注说明
      */
-    @JsonProperty("start_task")
-    private Boolean startTask = true;
+    private String description;
 
-    public void trimIps() {
-        if (globalVars != null && globalVars.size() > 0) {
-            globalVars.forEach(globalVar -> {
-                if (globalVar.getServer() != null) {
-                    trimIps(globalVar.getServer().getIps());
-                }
-            });
-        }
-    }
+    /**
+     * 创建人
+     */
+    private String creator;
 
-    private void trimIps(List<EsbIpDTO> ips) {
-        if (ips != null && ips.size() > 0) {
-            ips.forEach(host -> {
-                host.setIp(host.getIp().trim());
-            });
-        }
-    }
+    /**
+     * 最近修改人
+     */
+    private String lastModifyUser;
 
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
 
+    /**
+     * 最近修改时间
+     */
+    private LocalDateTime lastModifyTime;
 }

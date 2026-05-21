@@ -363,6 +363,10 @@ public class ErrorCode {
     public static final int RUNNING_JOB_EXCEED_APP_QUOTA_LIMIT = 1244033;
     // 当前执行的作业总量超过系统配额限制
     public static final int RUNNING_JOB_EXCEED_SYSTEM_QUOTA_LIMIT = 1244034;
+    // 回调地址白名单 baseUrl 格式不合法（必须以 http:// 或 https:// 开头）
+    public static final int CALLBACK_URL_WHITELIST_INVALID_BASE_URL = 1244036;
+    // 回调地址白名单 baseUrl 已存在
+    public static final int CALLBACK_URL_WHITELIST_ALREADY_EXISTS = 1244037;
     // 作业执行 end
 
     // 定时作业 start

@@ -50,6 +50,7 @@ dependencies {
     implementation 'commons-io:commons-io'
     implementation 'org.apache.commons:commons-collections4'
     implementation 'com.google.guava:guava'
+    implementation 'com.github.ben-manes.caffeine:caffeine'
     implementation 'org.apache.commons:commons-pool2'
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation "org.hibernate.validator:hibernate-validator"

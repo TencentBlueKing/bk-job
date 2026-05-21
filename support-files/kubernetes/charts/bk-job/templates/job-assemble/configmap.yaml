@@ -357,6 +357,8 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
+        check-callback-url:
+          {{- toYaml .Values.executeConfig.checkCallbackUrl | nindent 10 }}
         {{- if .Values.executeConfig.result.pollingStrategy }}
         result:
           polling-strategy:

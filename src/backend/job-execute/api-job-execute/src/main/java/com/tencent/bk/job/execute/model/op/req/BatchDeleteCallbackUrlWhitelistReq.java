@@ -22,64 +22,24 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.request;
+package com.tencent.bk.job.execute.model.op.req;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
-import com.tencent.bk.job.execute.validate.ValidCallbackUrl;
-import lombok.Getter;
-import lombok.Setter;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 import java.util.List;
 
 /**
- * 作业执行请求
+ * 批量删除 callback URL 白名单请求
  */
-@Getter
-@Setter
-public class EsbExecuteJobV3Request extends EsbAppScopeReq {
+@Data
+@ApiModel("批量删除回调地址白名单请求")
+public class BatchDeleteCallbackUrlWhitelistReq {
 
     /**
-     * 执行方案 ID
+     * 待删除的白名单 ID 列表；单条删除通过传入仅含 1 个元素的列表实现。
      */
-    @JsonProperty("job_plan_id")
-    private Long taskId;
-
-    @JsonProperty("global_var_list")
-    private List<EsbGlobalVarV3DTO> globalVars;
-
-    /**
-     * 任务执行完成之后回调URL
-     */
-    @JsonProperty("callback_url")
-    @ValidCallbackUrl
-    private String callbackUrl;
-
-    /**
-     * 是否启动任务
-     */
-    @JsonProperty("start_task")
-    private Boolean startTask = true;
-
-    public void trimIps() {
-        if (globalVars != null && globalVars.size() > 0) {
-            globalVars.forEach(globalVar -> {
-                if (globalVar.getServer() != null) {
-                    trimIps(globalVar.getServer().getIps());
-                }
-            });
-        }
-    }
-
-    private void trimIps(List<EsbIpDTO> ips) {
-        if (ips != null && ips.size() > 0) {
-            ips.forEach(host -> {
-                host.setIp(host.getIp().trim());
-            });
-        }
-    }
-
-
+    @ApiModelProperty(value = "待删除的白名单 ID 列表，单条删除通过传入单元素列表实现", required = true)
+    private List<Long> idList;
 }

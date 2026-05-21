@@ -236,6 +236,25 @@ bkApiGatewayConfig:
   enabled: false
 ```
 
+10.安全加固：ESB v2/v3 执行类接口的回调地址（callback_url）增加白名单校验，防止 SSRF。
+- 默认不开启，校验顺序：配置白名单 baseUrl 前缀 → 当前部署环境域名 `global.bkDomain` 及其子域 → DB 白名单 baseUrl 前缀（带 1 分钟内存缓存）。
+- DB 白名单可通过 job-execute 的 OP 接口 `/op/callbackUrlWhitelist` 进行 batchAdd / list / batchDelete 管理。
+- 开启注意：如果有存量调用方使用的 callback_url 不属于当前环境域名，且不在配置白名单中，开启校验前请通过配置或OP接口将其 baseUrl 加入白名单。
+```yaml
+executeConfig:
+  # 回调地址（callback_url）白名单校验配置（SSRF 防护）
+  # 校验顺序：配置 baseUrl 前缀 → 当前部署环境域名 global.bkDomain 及其子域 → DB 白名单 baseUrl 前缀
+  checkCallbackUrl:
+    # 是否开启 callback_url 白名单校验，默认不开启
+    enabled: false
+    # 通过配置文件预置的允许 baseUrl 前缀列表。元素必须以 http:// 或 https:// 开头，
+    # 建议以/结尾，避免恶意用户使用 http://a.b.c 绕过 http://a.b 的限制。
+    # 例如：["http://callback.example.com/", "https://api.partner.com/job/"]
+    allowedBaseUrls: []
+    # DB 白名单缓存有效期（秒），默认 60 秒
+    dbCacheTtlSeconds: 60
+```
+
 ## 0.7.3
 1. 增加连接外部MariaDB、Redis、RabbitMQ、MongoDB支持TLS相关配置
 ```yaml

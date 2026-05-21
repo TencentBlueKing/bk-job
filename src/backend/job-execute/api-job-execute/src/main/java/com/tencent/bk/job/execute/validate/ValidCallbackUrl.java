@@ -22,59 +22,41 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v2.request;
+package com.tencent.bk.job.execute.validate;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.common.esb.model.job.EsbGlobalVarDTO;
-import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
-import com.tencent.bk.job.execute.validate.ValidCallbackUrl;
-import lombok.Getter;
-import lombok.Setter;
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-import java.util.List;
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.TYPE_USE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * 作业执行请求
+ * 回调地址合法性 + 白名单校验注解（SSRF 防护）。
+ * <p>
+ * 用于标注 ESB v2/v3 执行类 Request 中的 {@code callbackUrl} / {@code url} 字段，
+ * 在 Spring Bean Validation 阶段对其做合法性与白名单匹配。
+ * <p>
+ * 字段值为 {@code null} 或空串时直接放行（由外层 {@code @NotBlank} 等独立控制）。
+ *
+ * @see ValidCallbackUrlValidator
+ * @see com.tencent.bk.job.execute.service.validation.CallbackUrlValidateService
  */
-@Getter
-@Setter
-public class EsbExecuteJobRequest extends EsbAppScopeReq {
+@Target({FIELD, METHOD, PARAMETER, ANNOTATION_TYPE, TYPE_USE})
+@Retention(RUNTIME)
+@Constraint(validatedBy = ValidCallbackUrlValidator.class)
+@Documented
+public @interface ValidCallbackUrl {
 
-    /**
-     * 执行方案 ID
-     */
-    @JsonProperty("bk_job_id")
-    private Long taskId;
+    String message() default "{validation.constraints.ValidCallbackUrl.message}";
 
-    @JsonProperty("global_vars")
-    private List<EsbGlobalVarDTO> globalVars;
+    Class<?>[] groups() default {};
 
-    /**
-     * 任务执行完成之后回调URL
-     */
-    @JsonProperty("bk_callback_url")
-    @ValidCallbackUrl
-    private String callbackUrl;
-
-    public void trimIps() {
-        if (globalVars != null && globalVars.size() > 0) {
-            globalVars.forEach(globalVar -> {
-                trimIps(globalVar.getIpList());
-                if (globalVar.getTargetServer() != null) {
-                    trimIps(globalVar.getTargetServer().getIps());
-                }
-            });
-        }
-    }
-
-    private void trimIps(List<EsbIpDTO> ips) {
-        if (ips != null && ips.size() > 0) {
-            ips.forEach(host -> {
-                host.setIp(host.getIp().trim());
-            });
-        }
-    }
-
-
+    Class<? extends Payload>[] payload() default {};
 }

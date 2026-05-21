@@ -22,64 +22,49 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.request;
+package com.tencent.bk.job.execute.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
-import com.tencent.bk.job.execute.validate.ValidCallbackUrl;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
- * 作业执行请求
+ * 回调地址（callback_url）白名单校验配置
+ * <p>
+ * 用于 ESB v2/v3 执行类接口提交时校验 callback_url 是否合法，防止 SSRF。
+ * 校验顺序：配置 baseUrl 前缀 → 当前部署环境域名（含子域） → DB baseUrl 前缀。
  */
 @Getter
 @Setter
-public class EsbExecuteJobV3Request extends EsbAppScopeReq {
+@ToString
+@ConfigurationProperties(prefix = "job.execute.check-callback-url")
+@Component
+public class CheckCallbackUrlConfig {
 
     /**
-     * 执行方案 ID
+     * 是否启用 callback url 白名单校验。默认 false。
+     * <p>
+     * 关闭后，仅校验 URL 基本合法性（scheme/host 非空等），不做白名单匹配。
      */
-    @JsonProperty("job_plan_id")
-    private Long taskId;
-
-    @JsonProperty("global_var_list")
-    private List<EsbGlobalVarV3DTO> globalVars;
+    private boolean enabled = false;
 
     /**
-     * 任务执行完成之后回调URL
+     * 通过配置文件预置的允许 baseUrl 前缀列表。
+     * <p>
+     * 匹配规则：用户提交的 callback_url 以列表中任一项作为前缀即视为通过。
+     * 元素必须以 http:// 或 https:// 开头，建议以/结尾，避免恶意用户使用 http://a.b.c 绕过 http://a.b 的限制。
      */
-    @JsonProperty("callback_url")
-    @ValidCallbackUrl
-    private String callbackUrl;
+    private List<String> allowedBaseUrls = Collections.emptyList();
 
     /**
-     * 是否启动任务
+     * DB 白名单缓存有效期（秒）。默认 60 秒。
+     * <p>
+     * OP 接口对白名单做增删时会主动失效缓存；该 TTL 用于兜底，防止极端场景下缓存常驻。
      */
-    @JsonProperty("start_task")
-    private Boolean startTask = true;
-
-    public void trimIps() {
-        if (globalVars != null && globalVars.size() > 0) {
-            globalVars.forEach(globalVar -> {
-                if (globalVar.getServer() != null) {
-                    trimIps(globalVar.getServer().getIps());
-                }
-            });
-        }
-    }
-
-    private void trimIps(List<EsbIpDTO> ips) {
-        if (ips != null && ips.size() > 0) {
-            ips.forEach(host -> {
-                host.setIp(host.getIp().trim());
-            });
-        }
-    }
-
-
+    private int dbCacheTtlSeconds = 60;
 }
