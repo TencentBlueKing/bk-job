@@ -75,7 +75,7 @@ public class TaskDiffHelper {
                     compareMode, i, currentTaskStep.getId());
                 return true;
             }
-            if (stepDetailChanged(currentTaskStep, originTaskStep, compareMode)) {
+            if (stepDetailChanged(currentTaskStep, originTaskStep)) {
                 log.debug("Task step detail differs, compareMode={}, index={}, stepId={}",
                     compareMode, i, currentTaskStep.getId());
                 return true;
@@ -99,7 +99,7 @@ public class TaskDiffHelper {
         for (int i = 0; i < currentTaskVariableList.size(); i++) {
             TaskVariableDTO currentTaskVariable = currentTaskVariableList.get(i);
             TaskVariableDTO originTaskVariable = originTaskVariableList.get(i);
-            if (variableChanged(currentTaskVariable, originTaskVariable, compareMode)) {
+            if (variableChangedIgnoreValue(currentTaskVariable, originTaskVariable, compareMode)) {
                 log.debug("Task variable differs after ignoring value, compareMode={}, index={}, varId={}, varType={}",
                     compareMode, i, currentTaskVariable.getId(), currentTaskVariable.getType());
                 return true;
@@ -111,9 +111,9 @@ public class TaskDiffHelper {
     /**
      * 任务的全局变量是否有差异，不比较变量值
      */
-    private boolean variableChanged(TaskVariableDTO currentTaskVariable,
-                                    TaskVariableDTO originTaskVariable,
-                                    CompareMode compareMode) {
+    private boolean variableChangedIgnoreValue(TaskVariableDTO currentTaskVariable,
+                                               TaskVariableDTO originTaskVariable,
+                                               CompareMode compareMode) {
         boolean definitionChanged = variableBaseInfoChanged(currentTaskVariable, originTaskVariable);
         if (definitionChanged) {
             return true;
@@ -147,49 +147,38 @@ public class TaskDiffHelper {
     private boolean stepBaseInfoChanged(TaskStepDTO currentTaskStep,
                                         TaskStepDTO originTaskStep,
                                         CompareMode compareMode) {
-        if (valueChanged(currentTaskStep.getType(), originTaskStep.getType())) {
+        if (valueChanged(currentTaskStep.getType(), originTaskStep.getType())
+            || valueChanged(currentTaskStep.getName(), originTaskStep.getName())) {
             return true;
         }
-        if (valueChanged(currentTaskStep.getName(), originTaskStep.getName())) {
-            return true;
-        }
+
         if (compareMode == CompareMode.TEMPLATE_TO_TEMPLATE) {
-            if (currentTaskStep.getId() == null || currentTaskStep.getId() <= 0 || currentTaskStep.getDelete() == 1) {
-                return true;
-            }
-            if (valueChanged(currentTaskStep.getId(), originTaskStep.getId())) {
-                return true;
-            }
-        } else if (valueChanged(currentTaskStep.getTemplateStepId(), originTaskStep.getId())) {
-            return true;
+            return currentTaskStep.getId() == null
+                || currentTaskStep.getId() <= 0
+                || currentTaskStep.getDelete() == 1
+                || valueChanged(currentTaskStep.getId(), originTaskStep.getId());
+        } else {
+            return valueChanged(currentTaskStep.getTemplateStepId(), originTaskStep.getId());
         }
-        return false;
     }
 
     /**
      * 任务步骤详情是否有变更
      */
     private boolean stepDetailChanged(TaskStepDTO currentTaskStep,
-                                      TaskStepDTO originTaskStep,
-                                      CompareMode compareMode) {
-        switch (currentTaskStep.getType()) {
-            case SCRIPT:
-                return scriptStepChanged(currentTaskStep, originTaskStep, compareMode);
-            case FILE:
-                return fileStepChanged(currentTaskStep, originTaskStep, compareMode);
-            case APPROVAL:
-                return approvalStepChanged(currentTaskStep, originTaskStep, compareMode);
-            default:
-                return true;
-        }
+                                      TaskStepDTO originTaskStep) {
+        return switch (currentTaskStep.getType()) {
+            case SCRIPT -> scriptStepChanged(currentTaskStep, originTaskStep);
+            case FILE -> fileStepChanged(currentTaskStep, originTaskStep);
+            case APPROVAL -> approvalStepChanged(currentTaskStep, originTaskStep);
+        };
     }
 
     /**
      * 脚本步骤是否有变
      */
     private boolean scriptStepChanged(TaskStepDTO currentTaskStep,
-                                      TaskStepDTO originTaskStep,
-                                      CompareMode compareMode) {
+                                      TaskStepDTO originTaskStep) {
         TaskScriptStepDTO currentScriptStep = currentTaskStep.getScriptStepInfo();
         TaskScriptStepDTO originScriptStep = originTaskStep.getScriptStepInfo();
 
@@ -232,10 +221,7 @@ public class TaskDiffHelper {
         if (targetChanged(currentFileStep.getDestinationHostList(), originFileStep.getDestinationHostList())) {
             return true;
         }
-        if (originFileListChanged(currentFileStep.getOriginFileList(), originFileStep.getOriginFileList())) {
-            return true;
-        }
-        return false;
+        return originFileListChanged(currentFileStep.getOriginFileList(), originFileStep.getOriginFileList());
     }
 
     /**
@@ -243,18 +229,14 @@ public class TaskDiffHelper {
      */
     private boolean scriptStepDeepInfoChanged(TaskScriptStepDTO currentScriptStep,
                                               TaskScriptStepDTO originScriptStep) {
-        if (targetChanged(currentScriptStep.getExecuteTarget(), originScriptStep.getExecuteTarget())) {
-            return true;
-        }
-        return false;
+        return targetChanged(currentScriptStep.getExecuteTarget(), originScriptStep.getExecuteTarget());
     }
 
     /**
      * 文件分发步骤是否有变
      */
     private boolean fileStepChanged(TaskStepDTO currentTaskStep,
-                                    TaskStepDTO originTaskStep,
-                                    CompareMode compareMode) {
+                                    TaskStepDTO originTaskStep) {
         TaskFileStepDTO currentFileStep = currentTaskStep.getFileStepInfo();
         TaskFileStepDTO originFileStep = originTaskStep.getFileStepInfo();
 
@@ -289,8 +271,7 @@ public class TaskDiffHelper {
      * 人工确认步骤是否有变更
      */
     private boolean approvalStepChanged(TaskStepDTO currentTaskStep,
-                                        TaskStepDTO originTaskStep,
-                                        CompareMode compareMode) {
+                                        TaskStepDTO originTaskStep) {
         TaskApprovalStepDTO currentApprovalStep = currentTaskStep.getApprovalStepInfo();
         TaskApprovalStepDTO originApprovalStep = originTaskStep.getApprovalStepInfo();
 
@@ -331,10 +312,7 @@ public class TaskDiffHelper {
         if (hostNodeChanged(currentTarget.getHostNodeList(), originTarget.getHostNodeList())) {
             return true;
         }
-        if (containerListChanged(currentTarget.getContainerList(), originTarget.getContainerList())) {
-            return true;
-        }
-        return false;
+        return containerListChanged(currentTarget.getContainerList(), originTarget.getContainerList());
     }
 
     /**
@@ -381,11 +359,8 @@ public class TaskDiffHelper {
             || valueChanged(currentFileInfo.getHostAccount(), originFileInfo.getHostAccount()))) {
             return true;
         }
-        if (TaskFileTypeEnum.FILE_SOURCE == currentFileInfo.getFileType()
-            && valueChanged(currentFileInfo.getFileSourceId(), originFileInfo.getFileSourceId())) {
-            return true;
-        }
-        return false;
+        return TaskFileTypeEnum.FILE_SOURCE == currentFileInfo.getFileType()
+            && valueChanged(currentFileInfo.getFileSourceId(), originFileInfo.getFileSourceId());
     }
 
     /**
@@ -405,10 +380,7 @@ public class TaskDiffHelper {
         if (valueChanged(currentHostNode.getDynamicGroupId(), originHostNode.getDynamicGroupId())) {
             return true;
         }
-        if (hostListChanged(currentHostNode.getHostList(), originHostNode.getHostList())) {
-            return true;
-        }
-        return false;
+        return hostListChanged(currentHostNode.getHostList(), originHostNode.getHostList());
     }
 
     /**
