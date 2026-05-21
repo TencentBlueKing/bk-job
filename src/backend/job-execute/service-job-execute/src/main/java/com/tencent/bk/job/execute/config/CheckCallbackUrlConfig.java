@@ -47,17 +47,17 @@ import java.util.List;
 public class CheckCallbackUrlConfig {
 
     /**
-     * 是否启用 callback url 白名单校验。默认 true。
+     * 是否启用 callback url 白名单校验。默认 false。
      * <p>
      * 关闭后，仅校验 URL 基本合法性（scheme/host 非空等），不做白名单匹配。
      */
-    private boolean enabled = true;
+    private boolean enabled = false;
 
     /**
      * 通过配置文件预置的允许 baseUrl 前缀列表。
      * <p>
      * 匹配规则：用户提交的 callback_url 以列表中任一项作为前缀即视为通过。
-     * 元素必须以 http:// 或 https:// 开头。
+     * 元素必须以 http:// 或 https:// 开头，建议以/结尾，避免恶意用户使用 http://a.b.c 绕过 http://a.b 的限制。
      */
     private List<String> allowedBaseUrls = Collections.emptyList();
 
