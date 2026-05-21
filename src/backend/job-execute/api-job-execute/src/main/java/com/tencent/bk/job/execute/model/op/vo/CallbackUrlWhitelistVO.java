@@ -22,59 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v2.request;
+package com.tencent.bk.job.execute.model.op.vo;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.common.esb.model.job.EsbGlobalVarDTO;
-import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
-import com.tencent.bk.job.execute.validate.ValidCallbackUrl;
-import lombok.Getter;
-import lombok.Setter;
-
-import java.util.List;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 /**
- * 作业执行请求
+ * 回调地址白名单 VO
  */
-@Getter
-@Setter
-public class EsbExecuteJobRequest extends EsbAppScopeReq {
+@Data
+@ApiModel("回调地址白名单")
+public class CallbackUrlWhitelistVO {
 
-    /**
-     * 执行方案 ID
-     */
-    @JsonProperty("bk_job_id")
-    private Long taskId;
+    @ApiModelProperty("白名单 ID")
+    private Long id;
 
-    @JsonProperty("global_vars")
-    private List<EsbGlobalVarDTO> globalVars;
+    @ApiModelProperty("允许的回调地址 baseUrl 前缀")
+    private String baseUrl;
 
-    /**
-     * 任务执行完成之后回调URL
-     */
-    @JsonProperty("bk_callback_url")
-    @ValidCallbackUrl
-    private String callbackUrl;
+    @ApiModelProperty("备注说明")
+    private String description;
 
-    public void trimIps() {
-        if (globalVars != null && globalVars.size() > 0) {
-            globalVars.forEach(globalVar -> {
-                trimIps(globalVar.getIpList());
-                if (globalVar.getTargetServer() != null) {
-                    trimIps(globalVar.getTargetServer().getIps());
-                }
-            });
-        }
-    }
+    @ApiModelProperty("创建人")
+    private String creator;
 
-    private void trimIps(List<EsbIpDTO> ips) {
-        if (ips != null && ips.size() > 0) {
-            ips.forEach(host -> {
-                host.setIp(host.getIp().trim());
-            });
-        }
-    }
+    @ApiModelProperty("最近修改人")
+    private String lastModifyUser;
 
+    @ApiModelProperty("创建时间")
+    private String createTime;
 
+    @ApiModelProperty("最近修改时间")
+    private String lastModifyTime;
 }
