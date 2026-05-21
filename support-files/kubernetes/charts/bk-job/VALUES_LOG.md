@@ -217,7 +217,7 @@ backupConfig:
       password: ""
 ```
 
-9.调整两处默认账号名，用户可以按需覆盖
+9.调整部分默认值，用户可以按需覆盖
 ```yaml
 artifactory:
   job:
@@ -229,6 +229,11 @@ job:
       user:
         # actuator 监控账号（原默认 actuator_name，已改为 job）
         name: job
+## 蓝鲸网关配置
+bkApiGatewayConfig:
+  # 是否开启apigw jwt认证（原默认 true，已改为 false）
+  # 3.10.x默认不自动注册APIGW网关，避免job-gateway产生不必要的错误日志
+  enabled: false
 ```
 
 ## 0.7.3
