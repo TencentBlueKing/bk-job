@@ -19,3 +19,15 @@ CREATE TABLE IF NOT EXISTS `crypto_password_rotation_progress` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_fingerprint_table_field` (`target_password_fingerprint`, `table_name`, `field_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='密码轮换迁移进度';
+
+CREATE TABLE IF NOT EXISTS `callback_url_white_info` (
+  `id`                BIGINT          NOT NULL AUTO_INCREMENT,
+  `base_url`          VARCHAR(512)    NOT NULL COMMENT '允许的回调地址 baseUrl 前缀，必须以 http:// 或 https:// 开头',
+  `description`       VARCHAR(255)    NULL DEFAULT NULL COMMENT '备注说明',
+  `creator`           VARCHAR(64)     NOT NULL COMMENT '创建人',
+  `last_modify_user`  VARCHAR(64)     NOT NULL COMMENT '最近修改人',
+  `create_time`       DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `last_modify_time`  DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最近修改时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_base_url` (`base_url`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='回调地址白名单(baseUrl 前缀匹配)';

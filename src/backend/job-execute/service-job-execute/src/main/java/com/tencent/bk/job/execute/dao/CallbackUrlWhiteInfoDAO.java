@@ -22,66 +22,56 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v3.request;
+package com.tencent.bk.job.execute.dao;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
-import com.tencent.bk.job.common.esb.model.job.v3.EsbGlobalVarV3DTO;
-import com.tencent.bk.job.execute.validate.ValidCallbackUrl;
-import lombok.Getter;
-import lombok.Setter;
+import com.tencent.bk.job.common.model.PageData;
+import com.tencent.bk.job.execute.model.CallbackUrlWhiteInfoDTO;
 
-import jakarta.validation.Valid;
+import java.util.Collection;
 import java.util.List;
 
 /**
- * 作业执行请求
+ * 回调地址白名单 DAO
  */
-@Getter
-@Setter
-public class EsbExecuteJobV3Request extends EsbAppScopeReq {
+public interface CallbackUrlWhiteInfoDAO {
 
     /**
-     * 执行方案 ID
+     * 列出全量 baseUrl，仅供校验 Service 加载缓存使用
+     *
+     * @return baseUrl 全量列表
      */
-    @JsonProperty("job_plan_id")
-    private Long taskId;
-
-    @JsonProperty("global_var_list")
-    @Valid
-    private List<EsbGlobalVarV3DTO> globalVars;
+    List<String> listAllBaseUrls();
 
     /**
-     * 任务执行完成之后回调URL
+     * 分页查询白名单
+     *
+     * @param start  offset
+     * @param length page size
+     * @return 分页数据
      */
-    @JsonProperty("callback_url")
-    @ValidCallbackUrl
-    private String callbackUrl;
+    PageData<CallbackUrlWhiteInfoDTO> listByPage(Integer start, Integer length);
 
     /**
-     * 是否启动任务
+     * 在给定的候选 baseUrl 集合里，挑出"已经存在"的那些，供批量新增时做存在性预过滤
+     *
+     * @param baseUrls 候选 baseUrl 集合
+     * @return 集合中已经在表中存在的子集
      */
-    @JsonProperty("start_task")
-    private Boolean startTask = true;
+    List<String> filterExistingBaseUrls(Collection<String> baseUrls);
 
-    public void trimIps() {
-        if (globalVars != null && globalVars.size() > 0) {
-            globalVars.forEach(globalVar -> {
-                if (globalVar.getServer() != null) {
-                    trimIps(globalVar.getServer().getIps());
-                }
-            });
-        }
-    }
+    /**
+     * 批量插入
+     *
+     * @param records 待插入记录
+     * @return 实际写入条数
+     */
+    int batchInsert(List<CallbackUrlWhiteInfoDTO> records);
 
-    private void trimIps(List<EsbIpDTO> ips) {
-        if (ips != null && ips.size() > 0) {
-            ips.forEach(host -> {
-                host.setIp(host.getIp().trim());
-            });
-        }
-    }
-
-
+    /**
+     * 按 id 批量删除
+     *
+     * @param idList 待删除 id 列表
+     * @return 实际删除条数
+     */
+    int deleteByIds(Collection<Long> idList);
 }

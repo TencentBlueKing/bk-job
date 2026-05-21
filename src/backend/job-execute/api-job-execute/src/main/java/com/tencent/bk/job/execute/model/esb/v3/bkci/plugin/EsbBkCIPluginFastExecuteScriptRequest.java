@@ -145,6 +145,7 @@ public class EsbBkCIPluginFastExecuteScriptRequest extends EsbAppScopeReq {
      * 任务执行完成之后回调
      */
     @JsonProperty("callback")
+    @Valid
     private EsbCallbackDTO callback;
 
     /**
