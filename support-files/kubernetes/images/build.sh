@@ -568,7 +568,7 @@ if [[ ${#BUILD_MODULES[@]} -ne 0 ]]; then
 		    build_migration_image
 		  elif [[ "$MODULE" == "job-sync-bk-api-gateway" ]]; then
 		    build_sync_bk_api_gateway_image
-	    elif [[ "$MODULE" == "startup-controller" ]]; then
+	    elif [[ "$MODULE" == "job-tools-k8s-startup-controller" ]]; then
 		    build_startup_controller_image
 		elif [[ ${BACKENDS[@]} =~ "${MODULE}" ]]; then
             BUILD_BACKEND_MODULES[${#BUILD_BACKEND_MODULES[*]}]=${MODULE}
