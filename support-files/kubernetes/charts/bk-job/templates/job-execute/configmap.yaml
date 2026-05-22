@@ -242,7 +242,6 @@ data:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
         check-callback-url:
           {{- toYaml .Values.executeConfig.checkCallbackUrl | nindent 10 }}
-        {{- if .Values.executeConfig.result.pollingStrategy }}
         result:
           handle:
             {{- toYaml .Values.executeConfig.result.handle | nindent 12 }}
