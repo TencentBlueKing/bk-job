@@ -27,7 +27,9 @@ package com.tencent.bk.job.execute.engine.listener;
 import com.tencent.bk.job.common.util.http.HttpConPoolUtil;
 import com.tencent.bk.job.common.util.json.JsonUtils;
 import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
+import com.tencent.bk.job.execute.service.validation.CallbackUrlValidateService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
@@ -39,6 +41,13 @@ import java.net.URL;
 @Component
 @Slf4j
 public class CallbackListener {
+
+    private final CallbackUrlValidateService callbackUrlValidateService;
+
+    @Autowired
+    public CallbackListener(CallbackUrlValidateService callbackUrlValidateService) {
+        this.callbackUrlValidateService = callbackUrlValidateService;
+    }
 
     /**
      * 处理回调请求
@@ -52,6 +61,16 @@ public class CallbackListener {
                 new URL(callbackUrl);
             } catch (MalformedURLException var5) {
                 log.warn("Callback fail, bad url: {}", callbackUrl);
+                return;
+            }
+            // 出口侧白名单兜底校验：阻断历史脏数据或异常路径写入的 callbackUrl
+            // 即使入参未走 @ValidCallbackUrl 校验也不会真正发起 SSRF 请求
+            if (!callbackUrlValidateService.isValid(callbackUrl)) {
+                log.warn(
+                    "Callback url rejected by whitelist on egress, taskInstanceId={}, callbackUrl={}",
+                    taskInstanceId,
+                    callbackUrl
+                );
                 return;
             }
             callbackDTO.setCallbackUrl(null);

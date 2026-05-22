@@ -99,6 +99,20 @@ class CallbackUrlValidateServiceImplTest {
             assertThat(service.isValid("not a url")).isFalse();
             assertThat(service.isValid("http://")).isFalse();
         }
+
+        @Test
+        @DisplayName("包含 userinfo 的 URL 全局拒绝（防 SSRF 绕过）")
+        void rejectUserinfoInjection() {
+            // 即使 enabled=false，userinfo 形态依然全局拦截
+            config.setEnabled(false);
+            assertThat(service.isValid("https://trusted.com@evil.com/cb")).isFalse();
+            assertThat(service.isValid("https://user:pass@evil.com/cb")).isFalse();
+            assertThat(service.isValid("http://api.example.com@evil.com/cb")).isFalse();
+            // enabled=true 且看似命中白名单的 userinfo 形态依然拦截
+            config.setEnabled(true);
+            config.setAllowedBaseUrls(Collections.singletonList("https://trusted.com/"));
+            assertThat(service.isValid("https://trusted.com@evil.com/cb")).isFalse();
+        }
     }
 
     @Nested
@@ -141,6 +155,52 @@ class CallbackUrlValidateServiceImplTest {
         void prefixMiss() {
             config.setAllowedBaseUrls(Collections.singletonList("http://allowed.com/"));
             assertThat(service.isValid("http://other.com/cb")).isFalse();
+        }
+
+        @Test
+        @DisplayName("后缀混淆攻击拒绝：host 必须严格等值")
+        void rejectSuffixConfusion() {
+            // baseUrl 不以 / 结尾时旧版 startsWith 会被绕过；新版按 URI 解析必须 host 等值
+            config.setAllowedBaseUrls(Collections.singletonList("https://trusted.com"));
+            assertThat(service.isValid("https://trusted.com.evil.com/cb")).isFalse();
+            assertThat(service.isValid("https://trusted.com-evil.com/cb")).isFalse();
+            // 同 host 下应当放行
+            assertThat(service.isValid("https://trusted.com/cb")).isTrue();
+            assertThat(service.isValid("https://trusted.com/cb?x=1")).isTrue();
+        }
+
+        @Test
+        @DisplayName("path 必须以 / 作为边界匹配，避免 /foo 命中 /foobar")
+        void pathBoundaryMatch() {
+            config.setAllowedBaseUrls(Collections.singletonList("https://api.com/foo"));
+            assertThat(service.isValid("https://api.com/foo")).isTrue();
+            assertThat(service.isValid("https://api.com/foo/")).isTrue();
+            assertThat(service.isValid("https://api.com/foo/bar")).isTrue();
+            assertThat(service.isValid("https://api.com/foobar")).isFalse();
+            assertThat(service.isValid("https://api.com/foobar/x")).isFalse();
+        }
+
+        @Test
+        @DisplayName("port 必须按协议默认端口归一化后等值")
+        void portEqualsWithDefaultPortNormalization() {
+            config.setAllowedBaseUrls(Collections.singletonList("https://api.com/"));
+            // 显式 443 与默认端口等同
+            assertThat(service.isValid("https://api.com:443/cb")).isTrue();
+            // 非默认端口不等同
+            assertThat(service.isValid("https://api.com:8443/cb")).isFalse();
+
+            config.setAllowedBaseUrls(Collections.singletonList("http://api.com:8080/"));
+            assertThat(service.isValid("http://api.com:8080/cb")).isTrue();
+            assertThat(service.isValid("http://api.com/cb")).isFalse();
+            assertThat(service.isValid("http://api.com:80/cb")).isFalse();
+        }
+
+        @Test
+        @DisplayName("scheme/host 大小写不敏感")
+        void schemeAndHostCaseInsensitive() {
+            config.setAllowedBaseUrls(Collections.singletonList("https://Api.Example.COM/"));
+            assertThat(service.isValid("HTTPS://api.example.com/cb")).isTrue();
+            assertThat(service.isValid("https://API.EXAMPLE.COM/cb")).isTrue();
         }
     }
 
@@ -264,6 +324,20 @@ class CallbackUrlValidateServiceImplTest {
             assertThatThrownBy(() -> service.validateWhitelistBaseUrl("ftp://x.com/"))
                 .isInstanceOf(InvalidParamException.class);
             assertThatThrownBy(() -> service.validateWhitelistBaseUrl("http://"))
+                .isInstanceOf(InvalidParamException.class);
+        }
+
+        @Test
+        @DisplayName("baseUrl 不允许携带 userinfo / query / fragment")
+        void rejectUserinfoQueryFragment() {
+            assertThatThrownBy(() -> service.validateWhitelistBaseUrl("https://u:p@a.com/"))
+                .isInstanceOf(InvalidParamException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.CALLBACK_URL_WHITELIST_INVALID_BASE_URL);
+            assertThatThrownBy(() -> service.validateWhitelistBaseUrl("https://trusted.com@evil.com/"))
+                .isInstanceOf(InvalidParamException.class);
+            assertThatThrownBy(() -> service.validateWhitelistBaseUrl("https://a.com/?x=1"))
+                .isInstanceOf(InvalidParamException.class);
+            assertThatThrownBy(() -> service.validateWhitelistBaseUrl("https://a.com/#frag"))
                 .isInstanceOf(InvalidParamException.class);
         }
     }

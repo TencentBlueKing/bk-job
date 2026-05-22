@@ -54,10 +54,19 @@ public class CheckCallbackUrlConfig {
     private boolean enabled = false;
 
     /**
-     * 通过配置文件预置的允许 baseUrl 前缀列表。
+     * 通过配置文件预置的允许 baseUrl 列表。
      * <p>
-     * 匹配规则：用户提交的 callback_url 以列表中任一项作为前缀即视为通过。
-     * 元素必须以 http:// 或 https:// 开头，建议以/结尾，避免恶意用户使用 http://a.b.c 绕过 http://a.b 的限制。
+     * 匹配规则（按 URI 解析做精确匹配，非简单字符串前缀）：
+     * <ul>
+     *   <li>scheme 必须相同（不区分大小写）；</li>
+     *   <li>host 必须严格等值（不区分大小写），不允许子域漂移，所以
+     *       {@code https://trusted.com.evil.com} 不会被 {@code https://trusted.com} 命中；</li>
+     *   <li>port 按协议默认端口归一化后等值（{@code https://trusted.com:443} 与
+     *       {@code https://trusted.com} 等同）；</li>
+     *   <li>path 以 {@code /} 作为边界做前缀匹配，所以 {@code /foo} 不会命中 {@code /foobar}；</li>
+     *   <li>禁止携带 userinfo / query / fragment。</li>
+     * </ul>
+     * 元素必须以 http:// 或 https:// 开头。
      */
     private List<String> allowedBaseUrls = Collections.emptyList();
 

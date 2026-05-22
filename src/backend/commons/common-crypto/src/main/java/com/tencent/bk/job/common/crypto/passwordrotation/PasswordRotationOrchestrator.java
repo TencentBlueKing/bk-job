@@ -27,6 +27,7 @@ package com.tencent.bk.job.common.crypto.passwordrotation;
 import com.tencent.bk.job.common.crypto.CryptoConfigService;
 import com.tencent.bk.job.common.crypto.PasswordRotationDecryptException;
 import com.tencent.bk.job.common.crypto.SymmetricCryptoService;
+import com.tencent.bk.sdk.crypto.util.CryptorMetaUtil;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -305,12 +306,19 @@ public class PasswordRotationOrchestrator {
             String reEncrypted = result.getReEncryptedValue();
             int updated = rewriter.updateRow(row.getPkCursor(), cipher, reEncrypted);
             if (updated > 0) {
-                log.info("PasswordRotation: table={}, field={}, pk={}, oldCipher={}, newCipher={}, updatedRows={}",
+                // 不输出密文原文，避免与历史密码组合后被批量解密；
+                // 仅输出指纹 + 长度 + 算法标识与末 4 字节（如 [Cipher:::AES_CBC]****0Q==），便于排查
+                log.info(
+                    "PasswordRotation: table={}, field={}, pk={}, oldCipherFp={}, oldCipherMasked={}, "
+                        + "newCipherMasked={}, oldLen={}, newLen={}, updatedRows={}",
                     rewriter.tableName(),
                     rewriter.fieldName(),
                     row.getPkCursor(),
-                    cipher,
-                    reEncrypted,
+                    CryptoConfigService.computePasswordFingerprint(cipher),
+                    maskCipher(cipher),
+                    maskCipher(reEncrypted),
+                    cipher.length(),
+                    reEncrypted.length(),
                     updated
                 );
                 return RowResult.RE_ENCRYPTED;
@@ -330,6 +338,52 @@ public class PasswordRotationOrchestrator {
                 "pk=%s decrypt failed: %s", row.getPkCursor(), e.getMessage()));
             return RowResult.FAILED;
         }
+    }
+
+    /**
+     * 对密文做脱敏掩码，仅保留可用于排查的"算法标识符 + 末 4 字符"信息。
+     *
+     * <p>例如：
+     * <pre>
+     * [Cipher:::AES_CBC]hr9gVbeo...0Q==  →  [Cipher:::AES_CBC]****0Q==
+     * </pre>
+     *
+     * <p>算法标识符（{@code [Cipher:::ALG]}）来源于 {@link CryptorMetaUtil}，属于公开元信息，
+     * 输出末 4 字符可在不同行之间做"是否同一密文"的肉眼比对，且不足以构成可解密信息泄漏。
+     *
+     * <p>降级策略：若密文不带算法标识（旧格式），输出"前 4 + **** + 后 4"；密文过短时按原文输出。
+     */
+    private static String maskCipher(String cipher) {
+        if (cipher == null) {
+            return "";
+        }
+        final int tailLen = 4;
+        String cryptorName = null;
+        try {
+            cryptorName = CryptorMetaUtil.getCryptorNameFromCipher(cipher);
+        } catch (Exception ignore) {
+            // 解析失败兜底走无算法标识分支
+        }
+        if (StringUtils.isNotBlank(cryptorName)) {
+            String prefix = CryptorMetaUtil.getCipherMetaPrefix()
+                + cryptorName
+                + CryptorMetaUtil.getCipherMetaSuffix();
+            if (cipher.length() <= prefix.length()) {
+                // 理论不会发生：只有元前缀没有密文体
+                return prefix + "****";
+            }
+            String body = cipher.substring(prefix.length());
+            if (body.length() <= tailLen) {
+                // 密文体过短，掩码反失真，直接原样输出
+                return cipher;
+            }
+            return prefix + "****" + body.substring(body.length() - tailLen);
+        }
+        // 无算法标识（旧格式密文）：头 4 + **** + 尾 4
+        if (cipher.length() <= tailLen * 2) {
+            return cipher;
+        }
+        return cipher.substring(0, tailLen) + "****" + cipher.substring(cipher.length() - tailLen);
     }
 
     /**
