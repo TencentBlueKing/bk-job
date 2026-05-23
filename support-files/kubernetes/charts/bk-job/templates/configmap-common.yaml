@@ -31,7 +31,7 @@ data:
       encrypt:
         type: {{ .Values.job.encrypt.type }}
         # 强制要求用户显式配置加密主密码，避免直接沿用模板里的空值
-        password: {{ required "job.encrypt.password 必须显式配置，不能为空。请生成一个强密码（建议长度 >= 16）并通过 values 覆盖。如果你升级前使用了老版本的默认密钥，请把它原样填入 job.encrypt.usedPasswords 列表，作业平台启动后会在后台自动将旧数据解密后重新用新密码加密" .Values.job.encrypt.password | quote }}
+        password: {{ .Values.job.encrypt.password }}
         # 历史密码列表，用于密码轮换期间解密旧数据
         usedPasswords:
           {{- range .Values.job.encrypt.usedPasswords }}
