@@ -26,6 +26,7 @@ package com.tencent.bk.job.execute.dao.impl;
 
 import com.tencent.bk.job.common.model.PageData;
 import com.tencent.bk.job.execute.dao.CallbackUrlWhiteInfoDAO;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.CallbackUrlWhiteInfoDTO;
 import com.tencent.bk.job.execute.model.tables.CallbackUrlWhiteInfo;
 import org.jooq.Batch;
@@ -35,7 +36,6 @@ import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.TableField;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -44,7 +44,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Repository
-public class CallbackUrlWhiteInfoDAOImpl implements CallbackUrlWhiteInfoDAO {
+public class CallbackUrlWhiteInfoDAOImpl extends BaseDAO implements CallbackUrlWhiteInfoDAO {
 
     private static final CallbackUrlWhiteInfo T = CallbackUrlWhiteInfo.CALLBACK_URL_WHITE_INFO;
 
@@ -61,8 +61,9 @@ public class CallbackUrlWhiteInfoDAOImpl implements CallbackUrlWhiteInfoDAO {
     private final DSLContext ctx;
 
     @Autowired
-    public CallbackUrlWhiteInfoDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
-        this.ctx = ctx;
+    public CallbackUrlWhiteInfoDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory, T.getName());
+        this.ctx = dsl();
     }
 
     @Override

@@ -27,6 +27,7 @@ package com.tencent.bk.job.execute.dao.impl;
 import com.tencent.bk.job.common.crypto.passwordrotation.PasswordRotationProgress;
 import com.tencent.bk.job.common.crypto.passwordrotation.PasswordRotationProgressDAO;
 import com.tencent.bk.job.common.crypto.passwordrotation.PasswordRotationProgressStatus;
+import com.tencent.bk.job.execute.dao.common.DSLContextProviderFactory;
 import com.tencent.bk.job.execute.model.tables.CryptoPasswordRotationProgress;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.Condition;
@@ -35,7 +36,6 @@ import org.jooq.Record;
 import org.jooq.TableField;
 import org.jooq.types.ULong;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ import java.util.List;
  */
 @Slf4j
 @Repository("jobExecutePasswordRotationProgressDAOImpl")
-public class PasswordRotationProgressDAOImpl implements PasswordRotationProgressDAO {
+public class PasswordRotationProgressDAOImpl extends BaseDAO implements PasswordRotationProgressDAO {
 
     private static final CryptoPasswordRotationProgress TB =
         CryptoPasswordRotationProgress.CRYPTO_PASSWORD_ROTATION_PROGRESS;
@@ -71,8 +71,9 @@ public class PasswordRotationProgressDAOImpl implements PasswordRotationProgress
     private final DSLContext ctx;
 
     @Autowired
-    public PasswordRotationProgressDAOImpl(@Qualifier("job-execute-dsl-context") DSLContext ctx) {
-        this.ctx = ctx;
+    public PasswordRotationProgressDAOImpl(DSLContextProviderFactory dslContextProviderFactory) {
+        super(dslContextProviderFactory, TB.getName());
+        this.ctx = dsl();
     }
 
     @Override
