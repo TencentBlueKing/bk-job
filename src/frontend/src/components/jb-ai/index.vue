@@ -191,6 +191,9 @@
   .shortcut-btns{
     display: none;
   }
+  .bk-switcher.is-checked:after {
+    transform: translate(-100%) !important;
+  }
 }
 </style>
 

@@ -240,6 +240,8 @@ data:
         scriptTask:
           query:
             contentSizeLimit: {{ .Values.executeConfig.scriptTask.query.contentSizeLimit }}
+        check-callback-url:
+          {{- toYaml .Values.executeConfig.checkCallbackUrl | nindent 10 }}
         result:
           handle:
             {{- toYaml .Values.executeConfig.result.handle | nindent 12 }}

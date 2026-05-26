@@ -25,11 +25,17 @@
 package com.tencent.bk.job.common.service.config;
 
 import com.tencent.bk.job.common.VersionInfoLogApplicationRunner;
+import com.tencent.bk.job.common.WatchableThreadPoolExecutor;
 import com.tencent.bk.job.common.config.BkConfig;
+import com.tencent.bk.job.common.context.JobContextThreadLocalAccessor;
 import com.tencent.bk.job.common.util.ApplicationContextRegister;
 import com.tencent.bk.job.common.util.http.HttpHelperFactory;
+import io.micrometer.context.ThreadLocalAccessor;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.tracing.Tracer;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
@@ -66,5 +72,49 @@ public class JobCommonAutoConfiguration {
     @Bean
     public VersionInfoLogApplicationRunner versionInfoLogApplicationRunner(BuildProperties buildProperties) {
         return new VersionInfoLogApplicationRunner(serviceName, buildProperties);
+    }
+
+    /**
+     * 把 {@link JobContext} 接入 Micrometer Context Propagation 体系，
+     * 由 ContextPropagationAutoConfiguration 统一注册到 ContextRegistry，
+     * 进而被 {@code WatchableThreadPoolExecutor} 等线程池在 captureAll() 时一并捕获、跨线程恢复。
+     */
+    @Bean
+    public ThreadLocalAccessor<?> jobContextThreadLocalAccessor() {
+        return new JobContextThreadLocalAccessor();
+    }
+
+    /**
+     * 把容器中的 {@link Tracer} 注入 {@link WatchableThreadPoolExecutor} 静态字段，
+     * 使其在工作线程上为每个任务创建 child span（类比 MQ producer/consumer 跨边界开 span），
+     * 让异步任务在 trace 树中拥有独立的 spanId 与耗时统计。
+     *
+     * <p>若容器中没有 Tracer（如部分测试场景），任务仍能正常执行，仅跳过 span 创建。</p>
+     */
+    @Bean
+    public WatchableThreadPoolExecutorTracerInitializer watchableThreadPoolExecutorTracerInitializer(
+        ObjectProvider<Tracer> tracerProvider
+    ) {
+        return new WatchableThreadPoolExecutorTracerInitializer(tracerProvider);
+    }
+
+    static class WatchableThreadPoolExecutorTracerInitializer implements InitializingBean {
+
+        private final ObjectProvider<Tracer> tracerProvider;
+
+        WatchableThreadPoolExecutorTracerInitializer(ObjectProvider<Tracer> tracerProvider) {
+            this.tracerProvider = tracerProvider;
+        }
+
+        @Override
+        public void afterPropertiesSet() {
+            Tracer tracer = tracerProvider.getIfAvailable();
+            if (tracer != null) {
+                WatchableThreadPoolExecutor.setTracer(tracer);
+                log.info("Tracer injected to WatchableThreadPoolExecutor for async child span creation");
+            } else {
+                log.info("No Tracer bean available, WatchableThreadPoolExecutor will skip child span creation");
+            }
+        }
     }
 }

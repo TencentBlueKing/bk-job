@@ -901,22 +901,101 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private AuthResult authFileTransfer(User operator,
-                                        TaskInstanceDTO taskInstance,
-                                        StepInstanceDTO stepInstance,
-                                        Map<Long, List<String>> whiteHostAllowActions) {
+    /**
+     * 判断给定的执行目标是否「主机集合非空且全部命中指定动作的白名单」。
+     * <p>
+     * 仅当满足以下全部条件时返回 true：
+     * <ul>
+     *   <li>{@code target} 与 {@code whiteHostAllowActions} 均非 null/empty；</li>
+     *   <li>{@code target.staticIpList} 非空；</li>
+     *   <li>{@code target} 不含动态分组 / 拓扑节点 / 静态容器 / 容器过滤器
+     *       （这些不在主机白名单机制覆盖范围内，无法保证全部命中白名单）；</li>
+     *   <li>{@code staticIpList} 中每一台主机都在 {@code whiteHostAllowActions} 中、
+     *       且允许的动作列表包含目标 {@code action}。</li>
+     * </ul>
+     * <p>
+     * 该判定口径与 {@link #filterHostsDoNotRequireAuth} 保持一致：仅作用于 staticIpList。
+     * 用于在文件分发场景下决定是否豁免某账号的使用鉴权。
+     *
+     * @param target                 待判定的执行目标
+     * @param action                 目标动作（如 {@link ActionScopeEnum#FILE_DISTRIBUTION}）
+     * @param whiteHostAllowActions  当前任务的主机白名单 hostId → 允许动作名列表
+     * @return 全部命中白名单返回 true；否则返回 false
+     */
+    static boolean areAllHostsWhitelistedFor(ExecuteTargetDTO target,
+                                             ActionScopeEnum action,
+                                             Map<Long, List<String>> whiteHostAllowActions) {
+        if (target == null
+            || whiteHostAllowActions == null
+            || whiteHostAllowActions.isEmpty()) {
+            return false;
+        }
+        if (CollectionUtils.isNotEmpty(target.getDynamicServerGroups())
+            || CollectionUtils.isNotEmpty(target.getTopoNodes())
+            || CollectionUtils.isNotEmpty(target.getStaticContainerList())
+            || CollectionUtils.isNotEmpty(target.getContainerFilters())) {
+            return false;
+        }
+        List<HostDTO> staticIpList = target.getStaticIpList();
+        if (CollectionUtils.isEmpty(staticIpList)) {
+            return false;
+        }
+        String actionName = action.name();
+        for (HostDTO host : staticIpList) {
+            List<String> allowedActions = whiteHostAllowActions.get(host.getHostId());
+            if (allowedActions == null || !allowedActions.contains(actionName)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    AuthResult authFileTransfer(User operator,
+                                TaskInstanceDTO taskInstance,
+                                StepInstanceDTO stepInstance,
+                                Map<Long, List<String>> whiteHostAllowActions) {
         Long appId = taskInstance.getAppId();
 
-        Set<Long> accounts = new HashSet<>();
-        accounts.add(stepInstance.getAccountId());
-        stepInstance.getFileSourceList().stream()
-            .filter(fileSource -> !fileSource.isLocalUpload() && fileSource.getAccountId() != null)
-            .forEach(fileSource -> accounts.add(fileSource.getAccountId()));
+        // 收集需要鉴权的账号集合：
+        // 仅当账号实际作用的主机集合「非空且全部在白名单」时才豁免该账号的使用鉴权。
+        Set<Long> accountsNeedAuth = new HashSet<>();
 
-        AuthResult accountAuthResult = executeAuthService.batchAuthAccountExecutable(
-            operator, new AppResourceScope(appId), accounts);
+        // 目标账号 ↔ 目标主机集合
+        Long targetAccountId = stepInstance.getAccountId();
+        ExecuteTargetDTO targetExecuteObjects = stepInstance.getTargetExecuteObjects();
+        if (areAllHostsWhitelistedFor(targetExecuteObjects, ActionScopeEnum.FILE_DISTRIBUTION,
+            whiteHostAllowActions)) {
+            log.info(
+                "Account: {} all related target hosts are whitelisted for FILE_DISTRIBUTION,"
+                    + " skip account auth!",
+                targetAccountId);
+        } else {
+            accountsNeedAuth.add(targetAccountId);
+        }
 
-        ExecuteTargetDTO executeTarget = stepInstance.getTargetExecuteObjects().clone();
+        // 每个源 FileSource 的源账号 ↔ 该源的主机集合
+        for (FileSourceDTO fileSource : stepInstance.getFileSourceList()) {
+            // 本地文件上传、配置文件分发、文件源文件分发 不需要源账号
+            if (fileSource.isLocalUpload() || fileSource.getAccountId() == null) {
+                continue;
+            }
+            if (areAllHostsWhitelistedFor(fileSource.getServers(), ActionScopeEnum.FILE_DISTRIBUTION,
+                whiteHostAllowActions)) {
+                log.info(
+                    "Account: {} all related source hosts are whitelisted for FILE_DISTRIBUTION,"
+                        + " skip account auth!",
+                    fileSource.getAccountId());
+                continue;
+            }
+            accountsNeedAuth.add(fileSource.getAccountId());
+        }
+
+        AuthResult accountAuthResult = accountsNeedAuth.isEmpty()
+            ? AuthResult.pass(operator)
+            : executeAuthService.batchAuthAccountExecutable(
+                operator, new AppResourceScope(appId), accountsNeedAuth);
+
+        ExecuteTargetDTO executeTarget = targetExecuteObjects.clone();
         stepInstance.getFileSourceList().stream()
             .filter(fileSource -> !fileSource.isLocalUpload()
                 && fileSource.getFileType() != TaskFileTypeEnum.BASE64_FILE.getType()
@@ -1315,7 +1394,7 @@ public class TaskExecuteServiceImpl implements TaskExecuteService {
         }
     }
 
-    private Pair<ExecuteTargetDTO, Set<Long>> extractNeedAuthHostsAndAccounts
+    Pair<ExecuteTargetDTO, Set<Long>> extractNeedAuthHostsAndAccounts
         (
             StepInstanceDTO stepInstance,
             Map<Long, List<String>> whiteHostAllowActions

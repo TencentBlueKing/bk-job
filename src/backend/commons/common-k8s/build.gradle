@@ -27,4 +27,6 @@ dependencies {
     api 'org.apache.httpcomponents:httpcore'
     api "org.springframework.cloud:spring-cloud-starter-kubernetes-client-all"
     api 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.mockito:mockito-core'
 }

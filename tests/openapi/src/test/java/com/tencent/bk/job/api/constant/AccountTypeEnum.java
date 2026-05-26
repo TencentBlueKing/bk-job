@@ -31,7 +31,7 @@ package com.tencent.bk.job.api.constant;
  */
 public enum AccountTypeEnum {
     LINUX(1, "Linux"),
-    WINDOW(2, "Windows"),
+    WINDOWS(2, "Windows"),
     MYSQL(9, "MySQL"),
     ORACLE(10, "Oracle"),
     DB2(11, "DB2");
@@ -75,7 +75,7 @@ public enum AccountTypeEnum {
         if (type == null) {
             return false;
         }
-        if (!LINUX.getType().equals(type) && !WINDOW.getType().equals(type)) {
+        if (!LINUX.getType().equals(type) && !WINDOWS.getType().equals(type)) {
             return false;
         }
         return true;
@@ -85,7 +85,7 @@ public enum AccountTypeEnum {
         switch (this) {
             case LINUX:
                 return OSTypeEnum.LINUX;
-            case WINDOW:
+            case WINDOWS:
                 return OSTypeEnum.WINDOWS;
             default:
                 return OSTypeEnum.DATABASE;

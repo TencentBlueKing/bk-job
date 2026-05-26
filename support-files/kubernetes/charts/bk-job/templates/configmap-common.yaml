@@ -1,4 +1,4 @@
-apiVersion: v1
+﻿apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "common.names.fullname" . }}-common
@@ -30,7 +30,16 @@ data:
       edition: {{ .Values.job.edition }}
       encrypt:
         type: {{ .Values.job.encrypt.type }}
+        # 强制要求用户显式配置加密主密码，避免直接沿用模板里的空值
         password: {{ .Values.job.encrypt.password }}
+        # 历史密码列表，用于密码轮换期间解密旧数据
+        usedPasswords:
+          {{- range .Values.job.encrypt.usedPasswords }}
+          - {{ . | quote }}
+          {{- end }}
+        # 旧密码加密数据轮换迁移任务配置：服务启动后一次性跑完所有数据迁移，跑完即退出
+        oldDataPasswordRotation:
+          {{- toYaml .Values.job.encrypt.oldDataPasswordRotation | nindent 10 }}
         sm2-public-key: {{.Values.job.encrypt.sm2PublicKey}}
         sm2-private-key: {{.Values.job.encrypt.sm2PrivateKey}}
       web:

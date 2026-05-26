@@ -1,4 +1,4 @@
-FROM bkjob/tool-set:3.12.4
+FROM bkjob/tool-set:3.12.5
 
 LABEL maintainer="Tencent BlueKing Job"
 LABEL dockerfile.version="3.12.4"

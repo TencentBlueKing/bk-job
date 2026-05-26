@@ -73,7 +73,7 @@ public class NotifyEsbChannelDAOImpl implements NotifyEsbChannelDAO {
                                   it.getIcon(),
                                   LocalDateTime.now()
                               )).collect(Collectors.toList());
-                          logger.info(String.format("result.size=%d", channelDtoList.size()));
+                          logger.info("result={}", channelDtoList);
                           return channelDtoList;
                       }
                   }

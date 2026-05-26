@@ -121,6 +121,9 @@ spec:
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true
+            - name: mongodb
+              mountPath: /etc/secrets/mongodb
+              readOnly: true
             - name: rabbitmq
               mountPath: /etc/secrets/rabbitmq
               readOnly: true
@@ -151,6 +154,9 @@ spec:
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}
+        - name: mongodb
+          secret:
+            secretName: {{ include "job.mongodb.secretName" . }}
         - name: rabbitmq
           secret:
             secretName: {{ include "job.rabbitmq.secretName" . }}

@@ -37,6 +37,7 @@ import com.tencent.bk.job.common.validation.ValidationGroups;
 import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import com.tencent.bk.job.execute.model.esb.v4.req.validator.V4ExecScriptReqGroupSequenceProvider;
+import com.tencent.bk.job.execute.validate.ValidCallbackUrl;
 import com.tencent.bk.job.execute.validation.ValidTimeoutLimit;
 import com.tencent.bk.job.manage.api.common.constants.script.ScriptTypeEnum;
 import lombok.Getter;
@@ -159,6 +160,7 @@ public class V4FastExecuteScriptRequest extends EsbAppScopeReq {
      * 任务执行完成后的回调url
      */
     @JsonProperty("callback_url")
+    @ValidCallbackUrl
     private String callbackUrl;
 
     /**

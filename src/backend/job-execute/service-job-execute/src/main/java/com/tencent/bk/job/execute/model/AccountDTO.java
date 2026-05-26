@@ -63,7 +63,7 @@ public class AccountDTO {
     private Long dbSystemAccountId;
 
     public boolean isWindowsAccount() {
-        if (AccountTypeEnum.WINDOW.getType().equals(this.type.getType())) {
+        if (AccountTypeEnum.WINDOWS.getType().equals(this.type.getType())) {
             return true;
         }
         return false;

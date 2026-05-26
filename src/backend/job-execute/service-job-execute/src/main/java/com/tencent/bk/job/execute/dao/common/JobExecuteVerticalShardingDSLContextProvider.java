@@ -71,6 +71,8 @@ public class JobExecuteVerticalShardingDSLContextProvider extends VerticalShardi
         tableNameAndDslContextMap.put("step_instance_script", dslContextC);
         tableNameAndDslContextMap.put("step_instance_variable", dslContextC);
         tableNameAndDslContextMap.put("task_instance_variable", dslContextC);
+        tableNameAndDslContextMap.put("crypto_password_rotation_progress", dslContextC);
+        tableNameAndDslContextMap.put("callback_url_white_info", dslContextC);
         super.initTableNameAndDslContextMap(tableNameAndDslContextMap);
     }
 }

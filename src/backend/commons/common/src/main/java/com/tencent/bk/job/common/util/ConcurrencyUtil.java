@@ -24,7 +24,6 @@
 
 package com.tencent.bk.job.common.util;
 
-import com.tencent.bk.job.common.context.JobContext;
 import com.tencent.bk.job.common.exception.SubThreadException;
 import io.micrometer.context.ContextSnapshot;
 import io.micrometer.context.ContextSnapshotFactory;
@@ -90,8 +89,7 @@ public class ConcurrencyUtil {
         LinkedBlockingQueue<Output> resultQueue = new LinkedBlockingQueue<>();
         List<Future<?>> futures = new ArrayList<>();
         for (Input input : inputCollection) {
-            Future<?> future = threadPoolExecutor.submit(new InnerTask<>(resultQueue, input,
-                JobContextUtil.getContext(), handler));
+            Future<?> future = threadPoolExecutor.submit(new InnerTask<>(resultQueue, input, handler));
             futures.add(future);
         }
         for (Future<?> future : futures) {
@@ -123,35 +121,31 @@ public class ConcurrencyUtil {
     private static final ContextSnapshotFactory contextSnapshotFactory =
         ContextSnapshotFactory.builder().build();
 
+    /**
+     * 子任务包装：在提交线程捕获上下文（trace + 业务），在工作线程恢复，
+     * 由 Micrometer Context Propagation 统一处理 ThreadLocal 传播。
+     */
     static class InnerTask<Input, Output> implements Runnable {
-        LinkedBlockingQueue<Output> resultQueue;
-        Input input;
-        JobContext jobContext;
-        Handler<Input, Output> handler;
-        ContextSnapshot contextSnapshot;
+        final LinkedBlockingQueue<Output> resultQueue;
+        final Input input;
+        final Handler<Input, Output> handler;
+        final ContextSnapshot contextSnapshot;
 
         InnerTask(LinkedBlockingQueue<Output> resultQueue,
                   Input input,
-                  JobContext jobContext,
                   Handler<Input, Output> handler) {
             this.resultQueue = resultQueue;
             this.input = input;
-            this.jobContext = jobContext;
             this.handler = handler;
             this.contextSnapshot = contextSnapshotFactory.captureAll();
         }
 
         @Override
         public void run() {
-            if (jobContext != null) {
-                JobContextUtil.setContext(jobContext);
-            }
             try (ContextSnapshot.Scope ignored = contextSnapshot.setThreadLocals()) {
                 resultQueue.addAll(handler.handle(input));
             } catch (Exception e) {
                 log.error("InnerTask fail:", e);
-            } finally {
-                JobContextUtil.unsetContext();
             }
         }
     }

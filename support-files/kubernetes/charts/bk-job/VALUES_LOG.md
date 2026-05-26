@@ -1,5 +1,18 @@
 # chart values 更新日志
 
+## 0.9.3
+1. 支持配置执行账号
+```yaml
+manageConfig:
+  # 创建业务时自动创建的执行账号，内置root、system、Administrator无需配置。type取值：仅支持LINUX/WINDOWS
+  defaultAccount:
+    accounts: []
+    #  - type: LINUX
+    #    account: blueking
+    #  - type: WINDOWS
+    #    account: deploy
+```
+
 ## 0.9.1
 1. 新增外部系统（GSE、CMDB、IAM、BK-Login、BK-User）重试配置，采用指数退避策略
 ```yaml
@@ -373,7 +386,22 @@ executeConfig:
         expireSeconds: 10
 ```
 ## 0.7.4
-1. 增加作业执行结果轮询规则的配置
+1. 文件分发时采用外部的Gse Agent代替Job机器作为源机器分发
+```yaml
+externalGseAgent:
+  ## 默认不使用集群外的GSE Agent分发文件
+  enabled: false
+    ## 与集群外GSE Agent共享文件采用的storageClass名
+  storageClass: nfs-client
+  ## 期望的大小
+  storageSize: 200Gi
+  ## 集群外部已安装 GSE Agent 的机器
+  hosts:
+    - bkCloudId: 0
+      ip: ""
+```
+
+2. 增加作业执行结果轮询规则的配置
 
 ```yaml
 executeConfig:  
@@ -403,6 +431,211 @@ executeConfig:
           12-67: 5000
         # 超出轮询间隔表中配置的轮询次数后使用的统一间隔（单位：毫秒）    
         finalInterval: 10000
+```
+
+3. 新增前端提给后端账号密码的加密算法配置
+```yaml
+job:
+  encrypt:
+    # SM2加密算法原始公钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PublicKey: ""
+    # SM2加密算法原始私钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PrivateKey: ""
+```
+
+4. 新增自定义挂载卷(volumes和volumeMounts)
+```yaml
+## 自定义全局挂载卷(volumes和volumeMounts)
+## 用途示例：jvm信任证书、license文件等
+## 注意：如果具体服务模块也定义了volumeExtension，会覆盖此全局配置
+volumeExtension:
+  volumes: []
+  volumeMounts: []
+```
+
+5. 增加GSE V2重试配置
+```yaml
+gseV2:
+  # 重试策略
+  retry:
+    # 是否开启重试
+    enabled: false
+    # 含重试的最大执行次数
+    maxAttempts: 3
+    # 重试间隔（单位：秒）
+    intervalSeconds: 5
+```
+
+6. 安全加固：强制配置加密主密码，支持密码轮换
+```yaml
+job:
+  encrypt:
+    # 【必填】用于加密作业平台中存储的数据库密码等敏感信息的主密钥，部署时必须显式设置。
+    # 建议使用长度 >= 16 的强密码，未设置（空值）时服务将启动失败。
+    password: ""
+    # 历史曾经用过的密码列表（按使用先后，最后一个为上一次使用的密码），用于密码轮换期间解密旧数据。
+    # 作业平台启动后会在后台逐步将旧数据重加密为新密码加密。
+    # 全量迁移完成后（参考 crypto_password_rotation_progress 表 status=DONE），
+    # 可以从此列表中移除已不再使用的旧密码，进一步降低风险。
+    # 如果之前的部署没有配置过自定义的密码，则此列表使用默认值（老版本默认密码）即可，示例如下：
+    # usedPasswords:
+    #   - "job#2021"
+    # 如果之前的部署配置了自定义的密码且无需轮换密码，则将此列表置空，示例如下：
+    # usedPasswords: []
+    # 如果之前的部署配置了自定义的密码且需要轮换密码，则此列表填写之前配置的密码，示例如下：
+    # usedPasswords:
+    #   - "{之前的部署配置的密码}"
+    usedPasswords:
+      - "job#2021"
+    # 旧密码加密数据轮换迁移任务相关配置。
+    # 服务启动后由后台线程在分布式锁保护下一次性把所有旧密码加密数据迁移到主密钥，跑完即退出，
+    # 整个服务生命周期内不再触发；中途被 kill 后下次服务启动会自动从进度表续跑。
+    oldDataPasswordRotation:
+      # 是否启用旧密码加密数据轮换迁移任务，默认关闭。开启前请先备份以下数据表：
+      # job_backup.export_job
+      # job_crontab.cron_job
+      # job_manage.account
+      # job_manage.credential
+      # job_manage.task_plan_step_script
+      # job_manage.task_plan_variable
+      # job_manage.task_template_step_script
+      # job_manage.task_template_variable
+      # 如同时开启 includeExecutionHistoryTables=true，请额外备份：
+      # job_execute.step_instance_script
+      # job_execute.task_instance_variable
+      enabled: false
+      # 服务启动后首次触发前的延迟毫秒数，默认 10000ms
+      initialDelayMs: 10000
+      # 每批处理的最大行数
+      batchSize: 500
+      # 每批处理完成后等待的毫秒数，用于限速
+      sleepMsBetweenBatch: 0
+      # 是否同时迁移执行实例历史大表（job_execute.step_instance_script.db_password、job_execute.task_instance_variable.value）
+      # 默认关闭。这些表为任务执行流水表，数据量较大，可以选择让旧密码加密的数据随着时间推移自然过期，
+      # 如果开启迁移，会占用一定的数据库CPU资源并耗费较长时间
+      includeExecutionHistoryTables: false
+```
+多集群部署架构升级注意：  
+如果存在多集群共享DB部署架构且需要轮换密码，请按以下步骤操作：  
+（1）在job.encrypt.password中填入旧密码，job.encrypt.usedPasswords中填入新密码，依次升级所有集群版本，以确保所有集群能够兼容新旧密码；  
+（2）在job.encrypt.password中填入新密码，job.encrypt.usedPasswords中填入旧密码，依次升级所有集群版本，确保各集群均切换使用新密码加解密，同时兼容旧密码。  
+（3）观察系统功能正常后，将job.encrypt.oldDataPasswordRotation.enabled配置为true，开启存量加密数据密码轮换后台任务。  
+（4）通过各服务（涉及job-backup、job-crontab、job-manage、job-execute这四个服务）日志（容器内/data/logs/job-xxx/job-xxx.log）可观察密码轮换进度，关键命令为grep -E "password-rotation|PasswordRotation"，此外，观察数据库job_backup/job_crontab/job_manage/job_execute（可选）库中crypto_password_rotation_progress表的数据，status字段全部为DONE则表示密码轮换完成，下一次部署时即可去除job.encrypt.usedPasswords中的旧密码并关闭存量加密数据密码轮换后台任务。  
+
+7.**服务间调用 RSA 密钥**：移除 chart 内嵌的社区版默认 `privateKeyBase64` / `publicKeyBase64`，默认值改为空字符串；部署前**必须**自行生成并填入，否则服务间 JWT 校验无法工作。注释中已标明生成方式。
+```yaml
+job:
+  security:
+    # base64编码的服务间调用私钥(可以通过op-tools/service-rsa-keypair/generate_service_rsa_keys.py工具生成)
+    privateKeyBase64: ""
+    # base64编码的服务间调用公钥(可以通过op-tools/service-rsa-keypair/generate_service_rsa_keys.py工具生成)
+    publicKeyBase64: ""
+```
+
+8.去除所有默认密码，需要用户在部署时自行配置。涉及内置中间件（MariaDB / Redis / RabbitMQ / MongoDB）、外置中间件、制品库账号、actuator 监控账号、定时任务库、归档库等所有原本带默认密码的位置，默认值统一改为空字符串 `""`，部署前必须显式设置，否则相关组件将无法启动或鉴权失败。
+```yaml
+## 内置 MariaDB
+mariadb:
+  auth:
+    # MariaDB root 密码
+    rootPassword: ""
+    # MariaDB 业务账号 job 的密码
+    password: ""
+
+## 内置 Redis
+redis:
+  auth:
+    # Redis 密码
+    password: ""
+
+## 外置 Redis（仅当 redis.enabled=false 时生效）
+externalRedis:
+  # 外置 Redis 密码
+  password: ""
+
+## 内置 RabbitMQ
+rabbitmq:
+  auth:
+    # RabbitMQ 密码
+    password: ""
+
+## 外置 RabbitMQ（仅当 rabbitmq.enabled=false 时生效）
+externalRabbitMQ:
+  # 外置 RabbitMQ 密码
+  password: ""
+
+## 内置 MongoDB
+mongodb:
+  auth:
+    # MongoDB root 密码
+    rootPassword: ""
+    # MongoDB 业务账号 job 的密码
+    password: ""
+
+## 制品库账号
+artifactory:
+  admin:
+    # 制品库 admin 账号密码
+    password: ""
+  job:
+    # 作业平台在制品库的官方账号对应的密码
+    password: ""
+
+## actuator 监控账号
+job:
+  security:
+    actuator:
+      user:
+        # actuator 监控密码
+        password: ""
+
+## 定时任务独立 DB（仅当 crontabConfig.database.host 不为空时生效）
+crontabConfig:
+  database:
+    # 定时任务库密码
+    password: ""
+
+## 归档库（仅当 backupConfig.archive.execute.enabled=true 且 mode 包含归档时生效）
+backupConfig:
+  archive:
+    mariadb:
+      # 归档库密码
+      password: ""
+```
+
+9.调整两处默认账号名，用户可以按需覆盖
+```yaml
+artifactory:
+  job:
+    # 作业平台在制品库的官方账号（原默认 bkjob，已改为 bkjob-v3）
+    username: bkjob-v3
+job:
+  security:
+    actuator:
+      user:
+        # actuator 监控账号（原默认 actuator_name，已改为 job）
+        name: job
+```
+
+10.安全加固：ESB v2/v3 执行类接口的回调地址（callback_url）增加白名单校验，防止 SSRF。
+- 默认不开启，校验顺序：配置白名单 baseUrl 前缀 → 当前部署环境域名 `global.bkDomain` 及其子域 → DB 白名单 baseUrl 前缀（带 1 分钟内存缓存）。
+- DB 白名单可通过 job-execute 的 OP 接口 `/op/callbackUrlWhitelist` 进行 batchAdd / list / batchDelete 管理。
+- 开启注意：如果有存量调用方使用的 callback_url 不属于当前环境域名，且不在配置白名单中，开启校验前请通过配置或OP接口将其 baseUrl 加入白名单。
+```yaml
+executeConfig:
+  # 回调地址（callback_url）白名单校验配置（SSRF 防护）
+  # 校验顺序：配置 baseUrl → 当前部署环境域名 global.bkDomain 及其子域 → DB 白名单 baseUrl
+  checkCallbackUrl:
+    # 是否开启 callback_url 白名单校验，默认不开启
+    enabled: false
+    # 通过配置文件预置的允许 baseUrl 列表。按 URI 解析做精确匹配（非简单字符串前缀）：
+    # scheme/host/port 必须等同（host 严格等值，禁止子域漂移），path 以 / 作边界做前缀匹配；
+    # 元素必须以 http:// 或 https:// 开头，不允许携带用户名密码 / query / fragment。
+    # 例如：["http://callback.example.com/", "https://api.partner.com/job/"]
+    allowedBaseUrls: []
+    # DB 白名单缓存有效期（秒），默认 60 秒。OP 接口对白名单做增删时会主动失效本机缓存；
+    # 多副本部署下，其它副本的本地缓存最多在该 TTL 内达成最终一致
+    dbCacheTtlSeconds: 60
 ```
 
 ## 0.7.3

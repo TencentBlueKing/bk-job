@@ -82,11 +82,17 @@ modules:
       - k8s
     description: "Job Migration Kubernetes Job"
   
-  - name: startup-controller
+  - name: job-tools-k8s-startup-controller
     module: job
     package: 
       - k8s
     description: "Job Kubernetes Mocroservice startup controller"
+
+  - name: job-sync-bk-api-gateway
+    module: job
+    package:
+      - k8s
+    description: "Job APIGW resources syncer"
 
   - name: job-assemble
     module: job

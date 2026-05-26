@@ -34,6 +34,7 @@ import com.tencent.bk.job.execute.engine.model.JobCallbackDTO;
 import com.tencent.bk.job.execute.metrics.ExecuteMetricsConstants;
 import com.tencent.bk.job.execute.model.TaskInstanceDTO;
 import com.tencent.bk.job.execute.service.TaskInstanceService;
+import com.tencent.bk.job.execute.service.validation.CallbackUrlValidateService;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -54,14 +55,17 @@ import java.net.URL;
 public class CallbackListener extends BaseJobMqListener {
     private final MeterRegistry meterRegistry;
     private final TaskInstanceService taskInstanceService;
+    private final CallbackUrlValidateService callbackUrlValidateService;
 
     public CallbackListener(MeterRegistry meterRegistry,
                             TaskInstanceService taskInstanceService,
-                            MqConsumeDelayRecorder mqConsumeDelayRecorder
+                            MqConsumeDelayRecorder mqConsumeDelayRecorder,
+                            CallbackUrlValidateService callbackUrlValidateService
     ) {
         super(mqConsumeDelayRecorder);
         this.meterRegistry = meterRegistry;
         this.taskInstanceService = taskInstanceService;
+        this.callbackUrlValidateService = callbackUrlValidateService;
     }
 
     @Override
@@ -83,6 +87,21 @@ public class CallbackListener extends BaseJobMqListener {
         try {
             log.info("Handle callback, taskInstanceId: {}, callbackDTO: {}", taskInstanceId, callbackDTO);
             validateUrl(callbackUrl);
+            // 出口侧白名单兜底校验：阻断历史脏数据或异常路径写入的 callbackUrl
+            // 即使入参未走 @ValidCallbackUrl 校验也不会真正发起 SSRF 请求
+            if (!callbackUrlValidateService.isValid(callbackUrl)) {
+                log.warn(
+                    "Callback url rejected by whitelist on egress, taskInstanceId={}, callbackUrl={}",
+                    taskInstanceId,
+                    callbackUrl
+                );
+                recordCallbackMetrics(
+                    CommonMetricTags.VALUE_HTTP_STATUS_UNKNOWN,
+                    ExecuteMetricsConstants.TAG_VALUE_RESULT_FAILED,
+                    callbackDTO
+                );
+                return;
+            }
 
             // 先用JSON数据格式请求一次
             HttpResponse response = HttpConPoolUtil.postJson(callbackUrl, bodyStr);

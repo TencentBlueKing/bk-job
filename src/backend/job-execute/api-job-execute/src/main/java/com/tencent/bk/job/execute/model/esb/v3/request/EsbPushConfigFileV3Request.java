@@ -28,6 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.EsbIpDTO;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbServerV3DTO;
+import com.tencent.bk.job.execute.validate.ValidCallbackUrl;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -78,6 +79,7 @@ public class EsbPushConfigFileV3Request extends EsbAppScopeReq {
      * 任务执行完成之后回调URL
      */
     @JsonProperty("callback_url")
+    @ValidCallbackUrl
     private String callbackUrl;
 
     public void trimIps() {
