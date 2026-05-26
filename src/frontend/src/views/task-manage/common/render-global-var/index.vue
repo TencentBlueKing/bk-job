@@ -447,8 +447,6 @@
        * @param {Index} index 点击变量的索引
        */
       handlerOperation(variableInfo, index) {
-        // 当前不可更改全局变量值 在已经引用并且当前是跟随变量的情况下
-        variableInfo.disableEditVal = this.selectValue.includes(variableInfo.name) && variableInfo.followTemplate === 1;
         this.currentData = variableInfo;
         if (this.isView) {
           this.detailMedia = variableInfo.type === VariableModel.TYPE_HOST ? [960] : [600, 660, 720, 780];
@@ -682,7 +680,7 @@
 
       .variable-description {
         height: 14px;
-        max-width: 138px;
+        max-width: 108px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;

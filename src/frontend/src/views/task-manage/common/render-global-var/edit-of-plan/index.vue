@@ -112,7 +112,7 @@
     },
     computed: {
       valDisabled() {
-        return this.data.disableEditVal;
+        return this.data.followTemplate === 1;
       },
       globalVarCom() {
         const globalVarMap = {
