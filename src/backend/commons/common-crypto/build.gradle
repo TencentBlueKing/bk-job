@@ -27,6 +27,8 @@ dependencies {
     api project(':commons:common-utils')
     api 'com.tencent.bk.sdk:crypto-java-sdk'
     implementation 'org.bouncycastle:bcprov-jdk18on'
+    // 密码轮换迁移任务上报 Prometheus 指标使用
+    implementation 'io.micrometer:micrometer-core'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
