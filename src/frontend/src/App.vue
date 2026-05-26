@@ -130,29 +130,12 @@
           </div>
         </div>
       </bk-popover>
-      <bk-popover
-        :arrow="false"
-        theme="light site-header-dropdown"
-        :tippy-options="{ hideOnClick: false }">
-        <div class="user-flag">
-          <span style="margin-right: 5px;">
-            <bk-user-display-name :user-id="currentUser.username" />
-          </span>
-          <i class="bk-icon icon-down-shape" />
-        </div>
-        <template slot="content">
-          <div
-            class="item"
-            @click="handleUserSetting">
-            {{ $t('个人设置') }}
-          </div>
-          <div
-            class="item"
-            @click="handleLogout">
-            {{ $t('退出登录') }}
-          </div>
-        </template>
-      </bk-popover>
+      <bk-login-userinfo
+        :action-list="actionList"
+        :offset="[10, 20]"
+        :render-slot="renderLoginUserinfo"
+        style="position: relative; z-index: 99999"
+        :userinfo="loginUserinfo" />
     </template>
     <router-view />
     <system-log v-model="showSystemLog" />
@@ -199,6 +182,12 @@
         },
         isAiEnable: false,
         timezone: '',
+        loginUserinfo: {
+          name: '',
+          email: '',
+          organization: '',
+          timezone: '',
+        },
       };
     },
     computed: {
@@ -207,6 +196,28 @@
           return 'lang-en';
         }
         return 'lang-zh';
+      },
+      actionList() {
+        return [
+          {
+            text: I18n.t('权限中心'),
+            icon: 'job-icon job-icon-quanxianzhongxin',
+            href: this.relatedSystemUrls.BK_IAM_WEB_URL,
+            target: '_blank',
+          },
+          {
+            text: I18n.t('个人设置'),
+            icon: 'job-icon job-icon-yonghu',
+            href: `${this.relatedSystemUrls.BK_USER_WEB_ROOT_URL}/personal-center`,
+            target: '_blank',
+          },
+          {
+            text: I18n.t('退出登录'),
+            handle: this.handleLogout,
+            icon: 'job-icon job-icon-tuichu',
+            theme: 'danger',
+          },
+        ];
       },
     },
     watch: {
@@ -223,6 +234,9 @@
       this.fetchEnv();
       this.fetchAiConfig();
       this.businessPermission = window.BUSINESS_PERMISSION;
+      this.renderLoginUserinfo = h => h('bk-user-display-name', {
+        'user-id': this.currentUser.username,
+      });
     },
     /**
      * @desc 页面渲染完成
@@ -249,7 +263,12 @@
           .then((data) => {
             this.currentUser = Object.freeze(data);
             window.PROJECT_CONFIG.USER_TIME_ZONE = data.timeZone;
-            this.timezone = data.timeZone || 'Asia/Shanghai';
+            this.timezone = data.timeZone;
+            this.loginUserinfo = {
+              ...this.loginUserinfo,
+              timezone: `${data.timeZone}`,
+              organization: `${data.tenantId}`,
+            };
           });
       },
       /**
@@ -438,23 +457,23 @@
       padding: 12px;
 
       .timezone {
-        color: #313238;
         font-weight: bold;
+        color: #313238;
       }
 
       .desc {
+        padding: 4px 8px;
         margin-top: 8px;
         color: #4D4F56;
-        padding: 4px 8px;
-        border-radius: 2px;
         background-color: #F5F7FA;
+        border-radius: 2px;
 
         .bk-link {
           vertical-align: initial;
 
           .bk-link-text {
-            font-size: 12px;
             display: inline-block;
+            font-size: 12px;
           }
         }
       }
