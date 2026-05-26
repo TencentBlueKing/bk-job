@@ -426,6 +426,10 @@ public class ErrorCode {
     public static final int TASK_HISTORY_QUERY_RANGE_TOO_LARGE = 1244036;
     // 文件分发，文件源主机[{0}]不存在CMDB中
     public static final int TASK_FILE_SOURCE_HOST_NOT_EXIST = 1244037;
+    // 回调地址白名单 baseUrl 格式不合法（必须以 http:// 或 https:// 开头）
+    public static final int CALLBACK_URL_WHITELIST_INVALID_BASE_URL = 1244038;
+    // 回调地址白名单 baseUrl 已存在
+    public static final int CALLBACK_URL_WHITELIST_ALREADY_EXISTS = 1244039;
     // 作业执行 end
 
     // 定时作业 start

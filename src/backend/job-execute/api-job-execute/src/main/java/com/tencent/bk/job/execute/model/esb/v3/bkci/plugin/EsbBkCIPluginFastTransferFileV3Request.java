@@ -30,6 +30,7 @@ import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
 import com.tencent.bk.job.common.esb.model.job.v3.EsbFileSourceV3DTO;
 import com.tencent.bk.job.common.model.openapi.v4.OpenApiExecuteTargetDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
+import com.tencent.bk.job.execute.validate.ValidCallbackUrl;
 import com.tencent.bk.job.execute.validation.ValidTimeoutLimit;
 import lombok.Getter;
 import lombok.Setter;
@@ -84,6 +85,7 @@ public class EsbBkCIPluginFastTransferFileV3Request extends EsbAppScopeReq {
      * 任务执行完成之后回调URL
      */
     @JsonProperty("callback_url")
+    @ValidCallbackUrl
     private String callbackUrl;
 
     /**
