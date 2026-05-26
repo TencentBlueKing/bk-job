@@ -200,7 +200,7 @@ public class TaskPlanSyncServiceImpl implements TaskPlanSyncService {
             taskStep.setFileStepId(null);
             taskStep.setApprovalStepId(null);
             taskStep.setPlanId(taskPlan.getId());
-            taskStep.setEnable(taskPlan.getEnableStepList().contains(taskStep.getId()) ? 1 : 0);
+            taskStep.setEnable(taskPlan.getEnableStepList().contains(taskStep.getTemplateStepId()) ? 1 : 0);
         });
         taskPlan.setStepList(taskTemplate.getStepList());
     }
@@ -291,12 +291,6 @@ public class TaskPlanSyncServiceImpl implements TaskPlanSyncService {
 
     private void createPlanStepsForSync(TaskPlanInfoDTO taskPlanInfo) {
         for (TaskStepDTO taskStep : taskPlanInfo.getStepList()) {
-            taskStep.setPlanId(taskPlanInfo.getId());
-            if (taskPlanInfo.getEnableStepList().contains(taskStep.getTemplateStepId())) {
-                taskStep.setEnable(1);
-            } else {
-                taskStep.setEnable(0);
-            }
             taskStep.setId(taskPlanStepService.insertStep(taskStep));
         }
     }

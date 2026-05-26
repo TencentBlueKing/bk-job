@@ -93,6 +93,8 @@ public class ErrorCode {
     public static final int CAN_NOT_FIND_NODE_IN_ARTIFACTORY = 1214002;
     // 仓库不存在，请到制品库核实，详情：{0}
     public static final int CAN_NOT_FIND_REPO_IN_ARTIFACTORY = 1214003;
+    // 制品库认证失败，请检查文件源凭证配置
+    public static final int ARTIFACTORY_AUTH_FAILED = 1214004;
 
     // IAM接口数据异常- 一般是被网关防火墙重定向返回统一登录页面
     public static final int IAM_API_DATA_ERROR = 1215001;
@@ -424,6 +426,10 @@ public class ErrorCode {
     public static final int TASK_HISTORY_QUERY_RANGE_TOO_LARGE = 1244036;
     // 文件分发，文件源主机[{0}]不存在CMDB中
     public static final int TASK_FILE_SOURCE_HOST_NOT_EXIST = 1244037;
+    // 回调地址白名单 baseUrl 格式不合法（必须以 http:// 或 https:// 开头）
+    public static final int CALLBACK_URL_WHITELIST_INVALID_BASE_URL = 1244038;
+    // 回调地址白名单 baseUrl 已存在
+    public static final int CALLBACK_URL_WHITELIST_ALREADY_EXISTS = 1244039;
     // 作业执行 end
 
     // 定时作业 start

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto.notify;
 
+import com.tencent.bk.job.common.util.json.SkipLogFields;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -58,6 +59,7 @@ public class NotifyEsbChannelDTO {
     /**
      * 渠道图标Base64编码
      */
+    @SkipLogFields
     private String icon;
     /**
      * 更新时间

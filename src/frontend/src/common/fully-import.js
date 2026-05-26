@@ -68,11 +68,13 @@ import Test from '@components/test';
 import TippyTips from '@components/tippy-tips';
 
 import createIpSelector from '@blueking/ip-selector';
+import BkLoginUserinfo from '@blueking/login-userinfo/vue2';
 
 import i18n from '@/i18n';
 
 import 'bk-magic-vue/dist/bk-magic-vue.min.css';
 import '@blueking/ip-selector/dist/styles/vue2.6.x.css';
+import('@blueking/login-userinfo/vue2/vue2.css');
 
 
 const IpSelector = createIpSelector({
@@ -172,6 +174,7 @@ Vue.component('ElementTeleport', ElementTeleport);
 Vue.component('ResizeableBox', ResizeableBox);
 Vue.component('IpSelector', IpSelector);
 Vue.component('JbAi', JbAi);
+Vue.component('BkLoginUserinfo', BkLoginUserinfo);
 
 Vue.use(Cursor);
 Vue.use(Request);

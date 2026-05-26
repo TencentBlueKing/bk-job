@@ -96,7 +96,7 @@ public class AccountStatisticsTask extends BaseStatisticsTask {
         Integer linuxCount = resp.getData();
         currentTenantStatisticsDAO.upsertStatistics(dslContext, genLinuxStatisticsDTO(dateStr, linuxCount.toString()));
         // Windows
-        resp = manageMetricResource.countAccounts(tenantId, AccountTypeEnum.WINDOW);
+        resp = manageMetricResource.countAccounts(tenantId, AccountTypeEnum.WINDOWS);
         if (resp == null || !resp.isSuccess()) {
             log.warn("Fail to call remote countAccounts, resp:{}", resp);
             return;

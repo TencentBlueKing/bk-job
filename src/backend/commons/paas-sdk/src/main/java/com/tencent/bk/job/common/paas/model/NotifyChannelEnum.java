@@ -28,7 +28,8 @@ public enum NotifyChannelEnum {
     Mail("mail"),
     Sms("sms"),
     Voice("voice"),
-    Weixin("weixin");
+    Weixin("weixin"),
+    Rtx("rtx");
 
     private final String type;
 
@@ -55,5 +56,9 @@ public enum NotifyChannelEnum {
 
     public static Boolean isWeixin(String channel) {
         return Weixin.getType().equalsIgnoreCase(channel);
+    }
+
+    public static Boolean isRtx(String channel) {
+        return Rtx.getType().equalsIgnoreCase(channel);
     }
 }

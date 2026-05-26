@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.execute.model.esb.v3.bkci.plugin;
 
+import com.tencent.bk.job.execute.validate.ValidCallbackUrl;
 import lombok.Data;
 
 /**
@@ -34,5 +35,6 @@ public class EsbCallbackDTO {
     /**
      * 回调地址
      */
+    @ValidCallbackUrl
     private String url;
 }

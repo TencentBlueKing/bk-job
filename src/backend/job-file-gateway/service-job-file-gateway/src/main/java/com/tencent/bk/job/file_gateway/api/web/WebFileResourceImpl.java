@@ -81,6 +81,8 @@ public class WebFileResourceImpl implements WebFileResource {
             }
             return Response.buildSuccessResp(fileNodesVO);
         } catch (ServiceException e) {
+            // 业务异常统一以 HTTP 200 + body 错误码返回，避免和蓝鲸平台网关 401 登录态语义冲突；
+            // 文件源认证失败(1214004) 等具体语义由前端按 errorCode/errorMsg 展示
             return Response.buildCommonFailResp(e.getErrorCode(), e.getErrorParams());
         }
     }

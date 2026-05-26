@@ -677,3 +677,12 @@ url("fonts/iconcool.eot?#iefix") format("embedded-opentype");
 .job-icon-jiechubangding:before {
 	content: "\e227";
 }
+.job-icon-quanxianzhongxin:before {
+	content: "\e229";
+}
+.job-icon-tuichu:before {
+	content: "\e22a";
+}
+.job-icon-yonghu:before {
+	content: "\e22b";
+}

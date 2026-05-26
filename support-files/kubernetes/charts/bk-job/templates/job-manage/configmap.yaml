@@ -122,6 +122,9 @@ data:
               available: mail,weixin,rtx
         scope-panel:
           showNoPermissionScopes: {{ .Values.manageConfig.scopePanel.showNoPermissionScopes }}
+        default-account:
+          accounts:
+            {{- toYaml .Values.manageConfig.defaultAccount.accounts | nindent 12 }}
     mysql:
       {{- toYaml .Values.manageConfig.mysql | nindent 6 }}
     server:
