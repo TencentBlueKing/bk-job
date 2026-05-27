@@ -98,10 +98,10 @@ public class ExecuteMongoDBConfiguration {
     /**
      * 开启执行结果日志归档情况下，是否开启mongoDB健康检查
      */
-    @Bean
+    @Bean("jobBackupMongoStartupIndicator")
     @ConditionalOnMongoDBHealthCheckEnabled
-    public CheckMongoOnStartupListener jobMongoStartupIndicator(MongoTemplate mongoTemplate) {
-        log.info("enable mongodb health check");
+    public CheckMongoOnStartupListener jobBackupMongoStartupIndicator(MongoTemplate mongoTemplate) {
+        log.info("enable mongodb health check for backup archive");
         return new CheckMongoOnStartupListener(mongoTemplate);
     }
 }
