@@ -7,9 +7,12 @@ import com.tencent.bk.job.common.esb.metrics.EsbApiTimed;
 import com.tencent.bk.job.common.esb.model.EsbResp;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.InvalidParamException;
+import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
 import com.tencent.bk.job.common.metrics.CommonMetricNames;
+import com.tencent.bk.job.common.model.dto.AppResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
+import com.tencent.bk.job.file_gateway.auth.FileSourceAuthService;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectModeEnum;
 import com.tencent.bk.job.file_gateway.consts.WorkerSelectScopeEnum;
 import com.tencent.bk.job.file_gateway.model.dto.FileSourceDTO;
@@ -34,14 +37,17 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
     private final FileSourceService fileSourceService;
     private final AppScopeMappingService appScopeMappingService;
     private final FileSourceValidateService fileSourceValidateService;
+    private final FileSourceAuthService fileSourceAuthService;
 
     @Autowired
     public EsbFileSourceV3ResourceImpl(FileSourceService fileSourceService,
                                        AppScopeMappingService appScopeMappingService,
-                                       FileSourceValidateService fileSourceValidateService) {
+                                       FileSourceValidateService fileSourceValidateService,
+                                       FileSourceAuthService fileSourceAuthService) {
         this.fileSourceService = fileSourceService;
         this.appScopeMappingService = appScopeMappingService;
         this.fileSourceValidateService = fileSourceValidateService;
+        this.fileSourceAuthService = fileSourceAuthService;
     }
 
     @Override
@@ -99,7 +105,21 @@ public class EsbFileSourceV3ResourceImpl implements EsbFileSourceV3Resource {
         String username,
         String appCode,
         @AuditRequestBody EsbGetFileSourceDetailV3Req req) {
-        FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceByCode(req.getAppId(), req.getCode());
+        req.fillAppResourceScope(appScopeMappingService);
+        Long appId = req.getAppId();
+        FileSourceDTO fileSourceDTO = fileSourceService.getFileSourceByCode(appId, req.getCode());
+        if (fileSourceDTO == null) {
+            throw new NotFoundException(
+                ErrorCode.FAIL_TO_FIND_FILE_SOURCE_BY_CODE,
+                new String[]{req.getCode()}
+            );
+        }
+        fileSourceAuthService.authViewFileSource(
+            username,
+            new AppResourceScope(appId),
+            fileSourceDTO.getId(),
+            fileSourceDTO.getAlias()
+        ).denyIfNoPermission();
         return EsbResp.buildSuccessResp(FileSourceDTO.toEsbFileSourceV3DTO(fileSourceDTO));
     }
 

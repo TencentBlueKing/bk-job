@@ -36,6 +36,7 @@ import com.tencent.bk.job.common.validation.ValidSensitiveParamLength;
 import com.tencent.bk.job.execute.model.esb.v3.EsbCustomHostPasswordDTO;
 import com.tencent.bk.job.execute.model.esb.v3.EsbRollingConfigDTO;
 import com.tencent.bk.job.execute.validation.ValidTimeoutLimit;
+import com.tencent.bk.job.execute.validate.ValidCallbackUrl;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -133,6 +134,7 @@ public class EsbFastExecuteScriptV3Request extends EsbAppScopeReq {
      * 任务执行完成之后回调URL
      */
     @JsonProperty("callback_url")
+    @ValidCallbackUrl
     private String callbackUrl;
 
     /**

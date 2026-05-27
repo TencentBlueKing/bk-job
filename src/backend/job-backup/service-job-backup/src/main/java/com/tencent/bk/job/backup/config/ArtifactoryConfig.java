@@ -41,10 +41,10 @@ public class ArtifactoryConfig {
     @Value("${artifactory.admin.password:blueking}")
     private String artifactoryAdminPassword;
 
-    @Value("${artifactory.job.username:bkjob}")
+    @Value("${artifactory.job.username:bkjob-v3}")
     private String artifactoryJobUsername;
 
-    @Value("${artifactory.job.password:bkjob}")
+    @Value("${artifactory.job.password:}")
     private String artifactoryJobPassword;
 
     @Value("${artifactory.job.project:bkjob}")
