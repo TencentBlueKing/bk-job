@@ -49,6 +49,7 @@
           :key="variable.id"
           ref="unused"
           :data="variable"
+          :disabled="variable.followTemplate === 1"
           :type="variable.type" />
       </div>
     </toggle-display>

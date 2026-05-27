@@ -85,6 +85,7 @@
                 :default-field="$t('template.变量值')"
                 :list="unusedVariableList"
                 mode="viewOfPlan"
+                :show-follow-template="() => true"
                 style="margin-top: 18px;" />
             </toggle-display>
           </jb-form-item>
