@@ -38,8 +38,14 @@ import com.tencent.bk.job.file.worker.service.JwtTokenService;
 import com.tencent.bk.job.file_gateway.model.req.inner.ConnectivityCheckReq;
 import com.tencent.bk.job.file_gateway.model.resp.inner.ConnectivityCheckResult;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
+import org.apache.http.HttpHeaders;
+import org.apache.http.message.BasicHeader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 连通性回探任务。
@@ -87,6 +93,20 @@ public class ConnectivityCheckTask {
     }
 
     /**
+     * 构造连通性回探请求头：在标准 JWT 鉴权头基础上追加 {@code Connection: close}，
+     * 强制 OkHttp 每次请求结束后立即关闭 TCP 连接、下一次回探必须新建连接，
+     * 从而触发 K8s ClusterIP Service 的 kube-proxy 重新做 L4 负载均衡，
+     * 让连续 N 次成功探测有机会覆盖多个 file-gateway Pod，
+     * 避免连接池长连接复用导致连续 N 次都命中同一个 Pod、退化为单 Pod 探测。
+     * 仅作用于连通性回探任务，不影响心跳、文件源任务等其他链路的长连接复用。
+     */
+    private List<Header> buildCheckHeaders() {
+        List<Header> headers = new ArrayList<>(jwtTokenService.getJwtTokenHeaders());
+        headers.add(new BasicHeader(HttpHeaders.CONNECTION, "close"));
+        return headers;
+    }
+
+    /**
      * 发起一次连通性回探请求，并返回 Gateway 侧的回探结果。
      * 网络异常或 Gateway 不可达时，封装为 success=false 的结果返回，避免抛出异常打断重试循环。
      */
@@ -97,7 +117,7 @@ public class ConnectivityCheckTask {
         try {
             HttpReq req = HttpReqGenUtil.genSimpleJsonReq(
                 url,
-                jwtTokenService.getJwtTokenHeaders(),
+                buildCheckHeaders(),
                 body
             );
             String respStr = jobHttpClient.post(req);

@@ -30,8 +30,12 @@ import com.tencent.bk.job.common.util.http.JobHttpClient;
 import com.tencent.bk.job.file_gateway.model.req.inner.ConnectivityCheckReq;
 import com.tencent.bk.job.file_gateway.model.resp.inner.ConnectivityCheckResult;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * Worker 连通性回探服务
@@ -49,11 +53,25 @@ public class WorkerConnectivityService {
      */
     private static final String WORKER_HEALTH_PATH = "/actuator/health";
 
+    /**
+     * 当无法解析出本机 Pod 标识时的兜底值
+     */
+    private static final String UNKNOWN_POD_HOSTNAME = "unknown";
+
     private final JobHttpClient jobHttpClient;
+
+    /**
+     * 当前 Gateway Pod 标识，仅用于日志聚合验证 ClusterIP Service 的 L4 负载均衡是否将
+     * Worker 的多次连通性回探请求分散到不同 Pod 上。启动时一次性解析后缓存，避免每次回探
+     * 都触发环境变量/DNS 查询。
+     */
+    private final String podHostname;
 
     @Autowired
     public WorkerConnectivityService(JobHttpClient jobHttpClient) {
         this.jobHttpClient = jobHttpClient;
+        this.podHostname = resolvePodHostname();
+        log.info("WorkerConnectivityService initialized, podHostname={}", podHostname);
     }
 
     /**
@@ -63,6 +81,16 @@ public class WorkerConnectivityService {
      * @return 回探结果（成功/失败 + 失败描述）
      */
     public ConnectivityCheckResult check(ConnectivityCheckReq req) {
+        // 记录当前处理本次回探请求的 Gateway Pod 标识，便于跨 Pod 日志聚合人工验证
+        // Worker 侧连续 N 次成功探测是否真的被 ClusterIP Service 分散到了多个 Gateway Pod
+        log.info(
+            "Handle connectivity check: handledByGatewayPod={}, " +
+                "fromWorker(clusterName={}, accessHost={}, accessPort={})",
+            podHostname,
+            req.getClusterName(),
+            req.getAccessHost(),
+            req.getAccessPort()
+        );
         String url = buildHealthUrl(req.getAccessHost(), req.getAccessPort());
         try {
             HttpReq httpReq = HttpReqGenUtil.genUrlGetReq(url);
@@ -79,6 +107,32 @@ public class WorkerConnectivityService {
                 errorMessage
             );
             return new ConnectivityCheckResult(false, errorMessage);
+        }
+    }
+
+    /**
+     * 解析当前 Gateway Pod 标识，按优先级依次回退：
+     * <ol>
+     *     <li>{@code BK_JOB_POD_NAME}：BK-JOB Helm Chart 标准注入（fieldRef: metadata.name），最稳定准确</li>
+     *     <li>{@code HOSTNAME}：K8s 默认会以 Pod 名作为容器 hostname 注入，可作为通用兜底</li>
+     *     <li>{@link InetAddress#getLocalHost()}：JVM 反查本机 hostname，用于二进制部署等兜底场景</li>
+     * </ol>
+     * 仅在 Bean 初始化时调用一次，性能开销可忽略。
+     */
+    private String resolvePodHostname() {
+        String bkJobPodName = System.getenv("BK_JOB_POD_NAME");
+        if (StringUtils.isNotBlank(bkJobPodName)) {
+            return bkJobPodName;
+        }
+        String hostnameEnv = System.getenv("HOSTNAME");
+        if (StringUtils.isNotBlank(hostnameEnv)) {
+            return hostnameEnv;
+        }
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            log.warn("Fail to resolve local hostname, fallback to {}", UNKNOWN_POD_HOSTNAME, e);
+            return UNKNOWN_POD_HOSTNAME;
         }
     }
 
