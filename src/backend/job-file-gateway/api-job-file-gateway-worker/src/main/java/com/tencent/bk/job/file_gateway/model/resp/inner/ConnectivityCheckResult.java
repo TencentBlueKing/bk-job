@@ -22,20 +22,31 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.file.worker.state.event.handler;
+package com.tencent.bk.job.file_gateway.model.resp.inner;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
-
+/**
+ * Worker连通性回探结果
+ * Gateway 主动访问 Worker 的健康检查端点后，将本次回探结果通过该对象返回给 Worker。
+ */
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
-public class HealthResult {
+public class ConnectivityCheckResult {
+
     /**
-     * 健康状态
+     * 是否回探成功
      */
-    private String status;
+    @Schema(description = "是否回探成功", required = true)
+    private Boolean success;
+
     /**
-     * 健康指标分组
+     * 回探失败时的简短错误信息，便于 Worker 侧排障；成功时可为空。
      */
-    private List<String> groups;
+    @Schema(description = "回探失败时的简短错误信息，成功时可为空")
+    private String errorMessage;
 }

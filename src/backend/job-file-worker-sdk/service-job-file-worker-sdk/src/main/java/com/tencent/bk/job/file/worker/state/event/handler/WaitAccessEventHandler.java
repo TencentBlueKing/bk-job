@@ -24,25 +24,27 @@
 
 package com.tencent.bk.job.file.worker.state.event.handler;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.tencent.bk.job.common.model.http.HttpReq;
+import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.util.I18nUtil;
 import com.tencent.bk.job.common.util.ThreadUtils;
-import com.tencent.bk.job.common.util.http.HttpReqGenUtil;
-import com.tencent.bk.job.common.util.http.JobHttpClient;
-import com.tencent.bk.job.common.util.json.JsonUtils;
-import com.tencent.bk.job.file.worker.config.WorkerConfig;
-import com.tencent.bk.job.file.worker.service.EnvironmentService;
+import com.tencent.bk.job.file.worker.config.AccessReadyProperties;
 import com.tencent.bk.job.file.worker.state.WorkerStateEnum;
 import com.tencent.bk.job.file.worker.state.WorkerStateMachine;
 import com.tencent.bk.job.file.worker.state.event.WorkerEvent;
 import com.tencent.bk.job.file.worker.state.event.WorkerEventService;
+import com.tencent.bk.job.file.worker.task.connectivity.ConnectivityCheckTask;
+import com.tencent.bk.job.file_gateway.model.resp.inner.ConnectivityCheckResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
- * 等待Worker可被外界访问的事件处理器，实现检查与等待逻辑
+ * 等待Worker可被外界访问的事件处理器，实现检查与等待逻辑。
+ * <p>
+ * 判定方式由「Worker 本地自检 /actuator/health」改为「调用 File-Gateway 连通性回探接口」：
+ * Gateway 主动访问当前 Worker 的健康端点，仅当 Worker 连续 N 次回探均成功，
+ * 才认为 Worker 已真正可被 Gateway 集群访问（规避 K8s 各 Pod 间 DNS 缓存时间差导致的瞬时不可达）。
  */
 @Slf4j
 @Component
@@ -50,24 +52,18 @@ public class WaitAccessEventHandler implements EventHandler {
 
     private final WorkerEventService workerEventService;
     private final WorkerStateMachine workerStateMachine;
-    private final JobHttpClient jobHttpClient;
-    private final String checkAccessUrl;
+    private final ConnectivityCheckTask connectivityCheckTask;
+    private final AccessReadyProperties accessReadyProperties;
 
     @Autowired
     public WaitAccessEventHandler(@Lazy WorkerEventService workerEventService,
                                   WorkerStateMachine workerStateMachine,
-                                  JobHttpClient jobHttpClient,
-                                  WorkerConfig workerConfig,
-                                  EnvironmentService environmentService) {
+                                  ConnectivityCheckTask connectivityCheckTask,
+                                  AccessReadyProperties accessReadyProperties) {
         this.workerEventService = workerEventService;
         this.workerStateMachine = workerStateMachine;
-        this.jobHttpClient = jobHttpClient;
-        this.checkAccessUrl = buildCheckAccessUrl(environmentService.getAccessHost(), workerConfig.getAccessPort());
-    }
-
-    @SuppressWarnings("HttpUrlsUsage")
-    private String buildCheckAccessUrl(String accessHost, Integer accessPort) {
-        return "http://" + accessHost + ":" + accessPort + "/actuator/health";
+        this.connectivityCheckTask = connectivityCheckTask;
+        this.accessReadyProperties = accessReadyProperties;
     }
 
     @Override
@@ -98,34 +94,54 @@ public class WaitAccessEventHandler implements EventHandler {
         }
     }
 
+    /**
+     * 通过反复调用 Gateway 连通性回探接口判定 access-ready：
+     * <ul>
+     *     <li>连续成功 {@code requiredSuccessCount} 次 → 视为达成，立即返回 true；</li>
+     *     <li>任意一次失败 → 连续成功计数清零，等待 {@code checkIntervalMs} 后重试；</li>
+     *     <li>成功但未达连续阈值 → 立即发起下一次回探，不等待；</li>
+     *     <li>累计尝试次数达到 {@code maxCheckCount} → 返回 false，由事件循环重新入队。</li>
+     * </ul>
+     */
     private boolean checkAccess() {
-        boolean accessReady = false;
-        int maxCheckNum = 300;
-        int checkNum = 0;
-        int errorNum = 0;
-        do {
-            try {
-                checkNum += 1;
-                log.info("CheckAccess: url={}", checkAccessUrl);
-                HttpReq req = HttpReqGenUtil.genUrlGetReq(checkAccessUrl);
-                String respStr = jobHttpClient.get(req);
-                HealthResult healthResult = JsonUtils.fromJson(respStr, new TypeReference<HealthResult>() {
-                });
-                String status = healthResult.getStatus();
-                if (status != null && status.equalsIgnoreCase("UP")) {
-                    accessReady = true;
+        int requiredSuccessCount = accessReadyProperties.getRequiredSuccessCount();
+        long checkIntervalMs = accessReadyProperties.getCheckIntervalMs();
+        int maxCheckCount = accessReadyProperties.getMaxCheckCount();
+        int consecutiveSuccess = 0;
+        int totalAttempts = 0;
+        while (totalAttempts < maxCheckCount) {
+            totalAttempts++;
+            ConnectivityCheckResult result = connectivityCheckTask.doCheck();
+            if (result != null && Boolean.TRUE.equals(result.getSuccess())) {
+                consecutiveSuccess++;
+                log.info(
+                    "ConnectivityCheck success, consecutive={}/{}, totalAttempts={}/{}",
+                    consecutiveSuccess, requiredSuccessCount, totalAttempts, maxCheckCount
+                );
+                if (consecutiveSuccess >= requiredSuccessCount) {
+                    return true;
                 }
-            } catch (Throwable t) {
-                errorNum += 1;
-                if (errorNum % 10 == 0) {
-                    log.info("Fail to checkAccess", t);
+                // 成功立即发起下一次回探，不 sleep，避免节流过严拖慢启动
+            } else {
+                String gatewayErrorMessage = (result == null) ? "null result" : result.getErrorMessage();
+                String logMessage = I18nUtil.getI18nMessage(
+                    String.valueOf(ErrorCode.FILE_WORKER_CONNECTIVITY_CHECK_FAIL),
+                    new Object[]{gatewayErrorMessage}
+                );
+                log.info(
+                    "{}, consecutive reset to 0 (was {}), totalAttempts={}/{}",
+                    logMessage, consecutiveSuccess, totalAttempts, maxCheckCount
+                );
+                consecutiveSuccess = 0;
+                if (totalAttempts < maxCheckCount) {
+                    ThreadUtils.sleep(checkIntervalMs);
                 }
             }
-            if (!accessReady && checkNum < maxCheckNum) {
-                log.info("Access not ready, checkNum={}, wait 1s", checkNum);
-                ThreadUtils.sleep(1000);
-            }
-        } while (!accessReady && checkNum < maxCheckNum);
-        return accessReady;
+        }
+        log.warn(
+            "ConnectivityCheck reached maxCheckCount={} without {} consecutive successes, will re-enqueue",
+            maxCheckCount, requiredSuccessCount
+        );
+        return false;
     }
 }

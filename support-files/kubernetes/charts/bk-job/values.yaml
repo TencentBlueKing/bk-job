@@ -2079,6 +2079,16 @@ fileWorkerConfig:
   access:
     # 端口号
     port: 19810
+  # file-worker启动期 access-ready 判定相关配置
+  # 通过反复请求 file-gateway 的连通性回探接口，由 gateway 集群主动回探 worker 健康端点，
+  # 仅当连续 N 次成功时才认为 worker 已真正可被 gateway 集群访问，规避 K8s Pod 间 DNS 缓存时间差。
+  accessReady:
+    # 连续回探成功阈值
+    requiredSuccessCount: 5
+    # 回探失败后等待的间隔时间(毫秒)，回探成功时不等待立即发起下一次
+    checkIntervalMs: 1000
+    # 总回探尝试上限，达上限仍未连续成功则失败重入队
+    maxCheckCount: 300
   # file-worker所在节点机器的云区域ID
   cloudAreaId: 0
   # 文件下载相关配置

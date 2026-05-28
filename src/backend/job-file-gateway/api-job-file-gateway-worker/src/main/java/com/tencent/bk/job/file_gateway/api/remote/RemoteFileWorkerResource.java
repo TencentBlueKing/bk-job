@@ -26,9 +26,11 @@ package com.tencent.bk.job.file_gateway.api.remote;
 
 import com.tencent.bk.job.common.annotation.RemoteAPI;
 import com.tencent.bk.job.common.model.Response;
+import com.tencent.bk.job.file_gateway.model.req.inner.ConnectivityCheckReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.HeartBeatReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.OffLineAndReDispatchReq;
 import com.tencent.bk.job.file_gateway.model.req.inner.UpdateFileSourceTaskReq;
+import com.tencent.bk.job.file_gateway.model.resp.inner.ConnectivityCheckResult;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -59,5 +61,12 @@ public interface RemoteFileWorkerResource {
     @PostMapping("/offLineAndReDispatch")
     Response<List<String>> offLineAndReDispatch(
         @Parameter(description = "Worker下线携带的需要重调度的任务信息") @RequestBody OffLineAndReDispatchReq offLineAndReDispatchReq);
+
+    @Operation(summary = "Worker连通性回探",
+        description = "Worker在启动阶段调用，由Gateway主动回探Worker的健康检查端点，"
+            + "用于替代Worker本地自检，避免Pod间DNS缓存时间差导致的访问失败")
+    @PostMapping("/connectivityCheck")
+    Response<ConnectivityCheckResult> connectivityCheck(
+        @Parameter(description = "Worker连通性回探请求") @RequestBody ConnectivityCheckReq req);
 
 }
