@@ -53,7 +53,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class StripUpstreamTraceWebFilter implements HttpHandlerDecoratorFactory {
+public class StripUpstreamTraceHttpHandlerDecorator implements HttpHandlerDecoratorFactory {
 
     private static final String HEADER_TRACEPARENT = "traceparent";
     private static final String HEADER_TRACESTATE = "tracestate";
