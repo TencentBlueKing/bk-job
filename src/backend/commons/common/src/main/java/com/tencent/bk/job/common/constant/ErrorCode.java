@@ -54,6 +54,8 @@ public class ErrorCode {
     public static final int GSE_ERROR = 1210001;
     // GSE数据异常：{0}
     public static final int GSE_API_DATA_ERROR = 1210002;
+    // 版本日志文件[{0}]不存在
+    public static final int VERSION_LOG_FILE_NOT_FOUND = 1210007;
 
     // CMDB错误
     // CMDB服务状态不可达 - 地址配置错误或者地址无法正确解析
@@ -284,7 +286,7 @@ public class ErrorCode {
     public static final int DELETE_TEMPLATE_FAILED_PLAN_USING_BY_CRON = 1243038;
     // 脚本版本ID已存在
     public static final int SCRIPT_VERSION_ID_EXIST = 1243039;
-    // 模版已存在
+    // 模版[{0}]已存在
     public static final int TEMPLATE_NAME_EXIST = 1243040;
     // 获取模版编辑锁失败
     public static final int TEMPLATE_LOCK_ACQUIRE_FAILED = 1243041;
@@ -316,6 +318,8 @@ public class ErrorCode {
     public static final int DELETE_REF_SCRIPT_FAIL = 1243054;
     // 凭证被引用不支持删除
     public static final int DELETE_REF_CREDENTIAL_FAIL = 1243055;
+    // 高危语句规则[{0}]已存在
+    public static final int DANGEROUS_RUlE_EXIST = 1243056;
     // 作业管理 end
 
     // 作业执行 start
@@ -388,6 +392,10 @@ public class ErrorCode {
     public static final int FILE_SOURCE_ROLLING_ONLY_SUPPORT_SERVER_FILE = 1244035;
     // 当前业务下任务量较大，允许的复杂查询（按名称搜索、2个及以上条件组合搜索等）最大时间范围为：{0}天
     public static final int TASK_HISTORY_QUERY_RANGE_TOO_LARGE = 1244036;
+    // 回调地址白名单 baseUrl 格式不合法（必须以 http:// 或 https:// 开头）
+    public static final int CALLBACK_URL_WHITELIST_INVALID_BASE_URL = 1244037;
+    // 回调地址白名单 baseUrl 已存在
+    public static final int CALLBACK_URL_WHITELIST_ALREADY_EXISTS = 1244038;
     // 作业执行 end
 
     // 定时作业 start
@@ -397,7 +405,7 @@ public class ErrorCode {
     public static final int UPDATE_CRON_JOB_FAILED = 1245002;
     // 插入定时任务错误
     public static final int INSERT_CRON_JOB_FAILED = 1245003;
-    // 定时任务已存在
+    // 定时任务[{0}]已存在
     public static final int CRON_JOB_ALREADY_EXIST = 1245004;
     public static final int ACQUIRE_CRON_JOB_LOCK_FAILED = 1245005;
     public static final int CRON_JOB_TIME_PASSED = 1245006;

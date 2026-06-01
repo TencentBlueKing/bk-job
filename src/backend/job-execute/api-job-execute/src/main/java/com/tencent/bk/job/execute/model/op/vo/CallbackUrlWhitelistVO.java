@@ -22,69 +22,37 @@
  * IN THE SOFTWARE.
  */
 
-package com.tencent.bk.job.execute.model.esb.v2.request;
+package com.tencent.bk.job.execute.model.op.vo;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.tencent.bk.job.common.esb.model.EsbAppScopeReq;
-import com.tencent.bk.job.common.esb.model.job.EsbServerDTO;
-import lombok.Getter;
-import lombok.Setter;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
 
 /**
- * 脚本执行请求
+ * 回调地址白名单 VO
  */
-@Getter
-@Setter
-public class EsbPlatformExecuteScriptRequest extends EsbAppScopeReq {
+@Data
+@ApiModel("回调地址白名单")
+public class CallbackUrlWhitelistVO {
 
-    /**
-     * 脚本执行任务名称
-     */
-    @JsonProperty("task_name")
-    private String name;
+    @ApiModelProperty("白名单 ID")
+    private Long id;
 
-    /**
-     * "脚本内容，BASE64编码
-     */
-    @JsonProperty("script_content")
-    private String content;
+    @ApiModelProperty("允许的回调地址 baseUrl 前缀")
+    private String baseUrl;
 
-    /**
-     * 执行账号/别名
-     */
-    private String account;
+    @ApiModelProperty("备注说明")
+    private String description;
 
-    /**
-     * 账号密码-windows非system/administrator账号需要传入账号密码
-     */
-    private String password;
+    @ApiModelProperty("创建人")
+    private String creator;
 
-    /**
-     * 脚本类型，1：shell，2：bat，3：perl，4：python，5：powershell
-     */
-    @JsonProperty("script_type")
-    private Integer scriptType;
+    @ApiModelProperty("最近修改人")
+    private String lastModifyUser;
 
-    /**
-     * 脚本参数， BASE64编码
-     */
-    @JsonProperty("script_param")
-    private String scriptParam;
+    @ApiModelProperty("创建时间")
+    private String createTime;
 
-    /**
-     * 执行超时时间,单位秒
-     */
-    @JsonProperty("script_timeout")
-    private Integer timeout;
-
-    @JsonProperty("target_server")
-    private EsbServerDTO targetServer;
-
-    /**
-     * 任务执行完成之后回调URL
-     */
-    @JsonProperty("bk_callback_url")
-    private String callbackUrl;
-
-
+    @ApiModelProperty("最近修改时间")
+    private String lastModifyTime;
 }

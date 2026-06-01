@@ -51,7 +51,7 @@ public enum TaskVariableTypeEnum {
      * 密文
      */
 
-    CIPHER(4, false, true, "******"),
+    CIPHER(4, false, true, JobConstants.SENSITIVE_FIELD_PLACEHOLDER),
 
     /**
      * 关联数组

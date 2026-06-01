@@ -121,6 +121,9 @@ spec:
             - name: mariadb
               mountPath: /etc/secrets/mariadb
               readOnly: true
+            - name: mongodb
+              mountPath: /etc/secrets/mongodb
+              readOnly: true
             - name: rabbitmq
               mountPath: /etc/secrets/rabbitmq
               readOnly: true
@@ -141,6 +144,7 @@ spec:
             {{- include "job.mongodb.certsVolumeMount" . | nindent 12 }}
             {{- include "job.rabbitmq.certsVolumeMount" . | nindent 12 }}
             {{- include "job.redis.certsVolumeMount" . | nindent 12 }}
+            {{- include "job.volumeExtension.volumeMounts" (dict "module" .Values.assembleConfig  "global" .Values.volumeExtension) | nindent 12 }}
       terminationGracePeriodSeconds: 120
       volumes:
         {{- if .Values.crontabConfig.database.host }}
@@ -156,6 +160,9 @@ spec:
         - name: mariadb
           secret:
             secretName: {{ include "job.mariadb.secretName" . }}
+        - name: mongodb
+          secret:
+            secretName: {{ include "job.mongodb.secretName" . }}
         - name: rabbitmq
           secret:
             secretName: {{ include "job.rabbitmq.secretName" . }}
@@ -186,4 +193,5 @@ spec:
         {{- include "job.mongodb.certsVolume" . | nindent 8 }}
         {{- include "job.rabbitmq.certsVolume" . | nindent 8 }}
         {{- include "job.redis.certsVolume" . | nindent 8 }}
+        {{- include "job.volumeExtension.volumes" (dict "module" .Values.assembleConfig "global" .Values.volumeExtension) | nindent 8 }}
 {{- end }}

@@ -46,7 +46,7 @@ public class BootIntegrationTest {
 
     @BeforeAll
     public static void init() throws IOException {
-        redisServer = RedisServer.builder()
+        redisServer = RedisServer.newRedisServer()
             .port(6379)
             .setting("maxmemory 128M") //maxheap 128M
             .build();
@@ -54,7 +54,7 @@ public class BootIntegrationTest {
     }
 
     @AfterAll
-    public static void tearDown() {
+    public static void tearDown() throws IOException {
         redisServer.stop();
     }
 

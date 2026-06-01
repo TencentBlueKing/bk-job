@@ -1,4 +1,4 @@
- # Default values for bk-job.
+﻿ # Default values for bk-job.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
@@ -81,7 +81,7 @@ mariadb:
     ## @param mariadb.auth.rootPassword Password for the MariaDB `root` user
     ## ref: https://github.com/bitnami/bitnami-docker-mariadb#setting-the-root-password-on-first-run
     ##
-    rootPassword: "job"
+    rootPassword: ""
     ## @param mariadb.auth.database Database name to create
     ## ref: https://github.com/bitnami/bitnami-docker-mariadb/blob/master/README.md#creating-a-database-on-first-run
     ##
@@ -92,7 +92,7 @@ mariadb:
     username: job
     ## @param mariadb.auth.password Password for the database
     ##
-    password: "job"
+    password: ""
   primary:
     ## Enable persistence using Persistent Volume Claims
     ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
@@ -203,7 +203,7 @@ redis:
     enabled: true
     ## @param redis.auth.password Password for the database
     ##
-    password: "job"
+    password: ""
     ## @param redis.auth.existingSecret The name of an existing secret with Redis credentials
     ## NOTE: When it's set, the previous `auth.password` parameter is ignored
     ##
@@ -238,7 +238,7 @@ externalRedis:
   port: 6379
   ## @param externalRedis.password Password of the external redis when architecture is standalone
   ##
-  password: "job"
+  password: ""
   ## @param externalRedis.sentinel Sentinel Config
   ##
   sentinel:
@@ -298,7 +298,7 @@ rabbitmq:
     username: job
     ## @param rabbitmq.auth.password RabbitMQ application password
     ##
-    password: "job"
+    password: ""
     ## @param rabbitmq.auth.erlangCookie Erlang cookie to determine whether different nodes are allowed to communicate with each other	
     ##
     erlangCookie: "job"
@@ -328,7 +328,7 @@ externalRabbitMQ:
   username: "job"
   ## @param externalRabbitMQ.password Password
   ##
-  password: "job"
+  password: ""
   ## @param externalRabbitMQ.vhost vhost
   ##
   vhost: "job"
@@ -367,11 +367,11 @@ mongodb:
     size: 10Gi
   useStatefulSet: true
   auth:
-    rootPassword: job
+    rootPassword: ""
     enabled: true
     database: joblog
     username: job
-    password: job
+    password: ""
   service:
     port: 27017
 
@@ -660,6 +660,19 @@ iam:
   # 作业平台注册到IAM的系统ID
   systemId: bk_job
 
+## 蓝鲸GSE V2参数配置
+gseV2:
+  # 是否初始化 GSE2.0 Client
+  enabled: true
+  # 重试策略
+  retry:
+    # 是否开启重试
+    enabled: false
+    # 含重试的最大执行次数
+    maxAttempts: 3
+    # 重试间隔（单位：秒）
+    intervalSeconds: 5
+
 ## 操作审计配置
 audit:
   # 是否开启操作审计
@@ -673,12 +686,12 @@ artifactory:
     # 制品库admin账号
     username: admin
     # 制品库admin账号的密码
-    password: blueking
+    password: ""
   job:
     # 作业平台在制品库的官方账号，初始化时由作业平台通过Admin账号自动创建
-    username: bkjob
+    username: bkjob-v3
     # 作业平台在制品库的官方账号对应的密码，初始化时由作业平台通过Admin账号自动创建
-    password: bkjob
+    password: ""
     # 作业平台在制品库的官方项目，初始化时由作业平台通过Admin账号自动创建
     project: bkjob
 
@@ -729,21 +742,67 @@ job:
   security:
     # 是否开启服务间调用认证，默认开启
     enabled: true
-    # base64编码的服务间调用私钥，此处默认值为社区版公开的默认私钥，正式部署请自行修改
-    privateKeyBase64: "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JSUV2UUlCQURBTkJna3Foa2lHOXcwQkFRRUZBQVNDQktjd2dnU2pBZ0VBQW9JQkFRQ0NERlU0REcrQzhFS2N1ZmpLbGxiYlljVHYzOHlBVE9PRmlBNHJlRlNVa2l4SzZPSjE1Vy8zdGpWY3NYVDRrWU8wTGhGZ1huNU5kM3UxSUZlWnIxM1NQTWpZazRNb0FmYWFhaTdWYTV3a2F0UXM0NnZ6MkwrZXhrU0F1VnV6bU8rS2wxTUVlcktxNnhrTG9SM3UwaktxamdsREMyUDBCUVFuUzljRVpOM3VMTGtLa29rWW1RVkQ0ZTNQam1YdjdSL3hZb3lyTnRLdXRJVWJBd0l4dEZCd2kzSkZaNmN0WkdKN2VreS9JYnV0TXgzUTlobmF4UmJPQkpRYTZvZmU1cUlZKy9FeGs2RW16MFQ2OGhsVnRRaGUvLzNCSjduSDNDR0JYemt3VlE3V1Q4U1RCZzdXTnRwb0pSWVpFYTJWK0ptdGRQcDJIOWo2aDZraFlGelBSWUZSQWdNQkFBRUNnZ0VBU0ZqcUU4cy9RZjI5WVFsSXNoTmU4Sjc4ZTJIcWw3bXVuWHVxUGw2cjF4ZFdrcm5xT2lKUTN1SzczdnhPRVhhS2FYTnpjVVJBU1lKZURNNllUVVExRXArRU1KQW4xOXIzd01Hdm1rVktVU3dwSzJ2aEhrQUhvaUcwdkZQaUF4RGl1aHdqTUF1K1Y3MkFhbXJRaHlyaXl1VkhtOGU3YkdaYUFDNTl5TkVBY2Q0ZDU1SjZkd3lvQWpUNzRuaVNZMlozS1laakhJbzVXaTZyaE0zc3hOMzZVK3cxZ012SUpJc01GcXJHMElWanl3ZjRLQkQwYmdlV29ZY0NTUnd3UVJpN094SHVKMjFtZk4xb3hzbEJLcjE5UHc2MTQ1OFpEYWZvc0lUSWR5bXJWSndmYTAwaGNxaUdpOVdGbXMwaUloemJrZjlKZWRnY3FBMkkxc0g0NkRVb0FRS0JnUURFV0lkV1RVSHVNRnA2RWh6R3pxNk5hb2V6RlhiNDNEOWI5OGZRL0RCV2Q3cmV0d3psbWQyejZGVFJlbE0zaVFnUnN5UWZPQU13SDluaEIzeVZsL1lBNHAwcDE4MGVuanRjNmtmd25rQy9TbGV1ckxIZXhXeVpzNW1KaTNZSWtLL2Z3OFQyQlBXbmVXNVpzNlcrbXNLZUtUYjJ4amNTS3BWREVYUGJFa0hyMFFLQmdRQ3BqMGIxZUpqVGFRUllLNG9DTU1xT3lwYVlmUVJjZWhkQmovaXVBeDNLT2RFYlp4U3VZSUdFUWZpR3BFT0R3SXdzOU1rSmZsbXlOUXdHQldQVyszR245aVpSQ3A0QXdqbkhxb2RLU1c5NEFJcDVmT3VzU0ZmRVd0NGZFQnhsajFrYUdiYmZLL0lYb3hWMkI5VXVOMG1oa0dYSjBrTUR0MlFiWklIWUg2Y2RnUUtCZ0VjQkROQTAyQ2JlN1prL2U1Q1pwWjRXYkVSaStzYzhQdDF2V1o5RjArVXhIeTd6VzRLY2hnUk5mSDdVa2N0L2pwOTMvUlFkR1dvSjJxejZIQitzK0pXUlhleUgwZkhFbndzVzNqVXh4WkJudmhXNDlnbnRzenhTS3JBRzh3UmQ3bndwTzgwTU5obitXOTJzamIvRUQ2Vktta25ibkliQlI0RWRpcHdxbWhSQkFvR0FVd21PeDZJeXZiMzlXYXlnM3FmRVd4K05sc29LdTdzeTduR3lhSTJ3Smh3Z2N0b05mOFJWU1U4QmhmYWw5Ynp6S1FVTCt6RThmaENLZmR4ZjQ2V3FLSVpjaDIyNnFVWjFBM3BZM1NHUGpHWS9hbldwK09wSXlTbHpCQ1Znc3IvNzg5TktBb3REK1IxdDRpcTkxTzlRaU9YdFkyUXNXNEtSYlBUUXZlWHFjb0VDZ1lFQXRnTmFLeWE0Y1c3ODhqbjNlRFkrYkhlTmpaVlJOUk1LZzJpMUNzSEhOUExheXRxVGFmTXVTR0JZMWN6SGhGelRpdWZPVURVQkVzME0xaDU1UlZKM2ZIRlVsR2cyQ3JHeWRtYkFxOXRMcE84Wlhac3V5UCtNSndseGZCeDZzZVRML1pSOUVxNG1PekRXdFVrNVdGa2k1VUpTN3p6ellGenVMTTFsZHlGdG9PZz0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQ=="
-    # base64编码的服务间调用公钥，此处默认值为社区版公开的默认公钥，正式部署请自行修改
-    publicKeyBase64: "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFnZ3hWT0F4dmd2QkNuTG40eXBaVzIySEU3OS9NZ0V6amhZZ09LM2hVbEpJc1N1amlkZVZ2OTdZMVhMRjArSkdEdEM0UllGNStUWGQ3dFNCWG1hOWQwanpJMkpPREtBSDJtbW91MVd1Y0pHclVMT09yODlpL25zWkVnTGxiczVqdmlwZFRCSHF5cXVzWkM2RWQ3dEl5cW80SlF3dGo5QVVFSjB2WEJHVGQ3aXk1Q3BLSkdKa0ZRK0h0ejQ1bDcrMGY4V0tNcXpiU3JyU0ZHd01DTWJSUWNJdHlSV2VuTFdSaWUzcE12eUc3clRNZDBQWVoyc1VXemdTVUd1cUgzdWFpR1B2eE1aT2hKczlFK3ZJWlZiVUlYdi85d1NlNXg5d2hnVjg1TUZVTzFrL0Vrd1lPMWpiYWFDVVdHUkd0bGZpWnJYVDZkaC9ZK29lcElXQmN6MFdCVVFJREFRQUIKLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t"
+    # base64编码的服务间调用私钥(可以通过op-tools/service-rsa-keypair/generate_service_rsa_keys.py工具生成)
+    privateKeyBase64: ""
+    # base64编码的服务间调用公钥(可以通过op-tools/service-rsa-keypair/generate_service_rsa_keys.py工具生成)
+    publicKeyBase64: ""
     actuator:
       user:
         # 获取actuator监控数据的账号，部署时生成填入
-        name: actuator_name
+        name: job
         # 获取actuator监控数据的密码，部署时生成填入
-        password: actuator_password
+        password: ""
   encrypt:
     # 可选值：CLASSIC（经典国际算法RSA、AES等），SHANGMI（国家商用密码算法SM2、SM4等）
     type: "CLASSIC"
-    # 用于加密作业平台中存储的数据库密码的密码
-    password: "job#2021"
+    # 【必填】用于加密作业平台中存储的数据库密码等敏感信息的主密钥，部署时必须显式设置。
+    # 建议使用长度 >= 16 的强密码，未设置（空值）时服务将启动失败。
+    password: ""
+    # 历史曾经用过的密码列表（按使用先后，最后一个为上一次使用的密码），用于密码轮换期间解密旧数据。
+    # 作业平台启动后会在后台逐步将旧数据重加密为新密码加密。
+    # 全量迁移完成后（参考 crypto_password_rotation_progress 表 status=DONE），
+    # 可以从此列表中移除已不再使用的旧密码，进一步降低风险。
+    # 如果之前的部署没有配置过自定义的密码，则此列表使用默认值（老版本默认密码）即可，示例如下：
+    # usedPasswords:
+    #   - "job#2021"
+    # 如果之前的部署配置了自定义的密码且无需轮换密码，则将此列表置空，示例如下：
+    # usedPasswords: []
+    # 如果之前的部署配置了自定义的密码且需要轮换密码，则此列表填写之前的部署配置的密码，示例如下：
+    # usedPasswords:
+    #   - "{之前的部署配置的密码}"
+    usedPasswords:
+      - "job#2021"
+    # 旧密码加密数据轮换迁移任务相关配置。
+    # 服务启动后由后台线程在分布式锁保护下一次性把所有旧密码加密数据迁移到主密钥，跑完即退出，
+    # 整个服务生命周期内不再触发；中途被 kill 后下次服务启动会自动从进度表续跑。
+    oldDataPasswordRotation:
+      # 是否启用旧密码加密数据轮换迁移任务，默认关闭。开启前请先备份以下数据表：
+      # job_backup.export_job
+      # job_crontab.cron_job
+      # job_manage.account
+      # job_manage.credential
+      # job_manage.task_plan_step_script
+      # job_manage.task_plan_variable
+      # job_manage.task_template_step_script
+      # job_manage.task_template_variable
+      # 如同时开启 includeExecutionHistoryTables=true，请额外备份：
+      # job_execute.step_instance_script
+      # job_execute.task_instance_variable
+      enabled: false
+      # 服务启动后首次触发前的延迟毫秒数，默认 10000ms
+      initialDelayMs: 10000
+      # 每批处理的最大行数
+      batchSize: 500
+      # 每批处理完成后等待的毫秒数，用于限速
+      sleepMsBetweenBatch: 0
+      # 是否同时迁移执行实例历史大表（job_execute.step_instance_script.db_password、job_execute.task_instance_variable.value）
+      # 默认关闭。这些表为任务执行流水表，数据量较大，可以选择让旧密码加密的数据随着时间推移自然过期，
+      # 如果开启迁移，会占用一定的数据库CPU资源并耗费较长时间
+      includeExecutionHistoryTables: false
+    # SM2加密算法原始公钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PublicKey: ""
+    # SM2加密算法原始私钥(可以通过op-tools/sm2_keypair/generate_sm2_keypair.py工具生成)
+    sm2PrivateKey: ""
   features:
     fileManage:
       # 是否开启文件管理特性，容器化环境默认开启
@@ -925,6 +984,13 @@ bkLogConfig:
     #   region: "beijing"
     #   bk_env: "prod"
 
+## 自定义全局挂载卷(volumes和volumeMounts)
+## 用途示例：jvm信任证书、license文件等
+## 注意：如果具体服务模块也定义了volumeExtension，会覆盖此全局配置
+volumeExtension:
+  volumes: []
+  volumeMounts: []
+
 ## job-gateway网关配置
 gatewayConfig:
   # 模块是否启用，默认启用
@@ -1021,6 +1087,10 @@ gatewayConfig:
         password: "mLnuob1**4D74c@F"
   # 运行时JVM参数
   jvmOptions: "-Dreactor.netty.http.server.accessLogEnabled=true -Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8 -XX:+UseG1GC"
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-manage作业管理配置
 manageConfig:
@@ -1104,6 +1174,10 @@ manageConfig:
   scopePanel:
     # 是否展示当前用户无权限的资源范围，默认展示
     showNoPermissionScopes: true
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-execute执行引擎配置
 executeConfig:
@@ -1177,6 +1251,19 @@ executeConfig:
           connectTimeout: 5000
           # 读取超时，单位：毫秒
           readTimeout: 20000
+  # 回调地址（callback_url）白名单校验配置（SSRF 防护）
+  # 校验顺序：配置 baseUrl → 当前部署环境域名 global.bkDomain 及其子域 → DB 白名单 baseUrl
+  checkCallbackUrl:
+    # 是否开启 callback_url 白名单校验，默认不开启
+    enabled: false
+    # 通过配置文件预置的允许 baseUrl 列表。按 URI 解析做精确匹配（非简单字符串前缀）：
+    # scheme/host/port 必须等同（host 严格等值，禁止子域漂移），path 以 / 作边界做前缀匹配；
+    # 元素必须以 http:// 或 https:// 开头，不允许携带用户名密码 / query / fragment。
+    # 例如：["http://callback.example.com/", "https://api.partner.com/job/"]
+    allowedBaseUrls: []
+    # DB 白名单缓存有效期（秒），默认 60 秒。OP 接口对白名单做增删时会主动失效本机缓存；
+    # 多副本部署下，其它副本的本地缓存最多在该 TTL 内达成最终一致
+    dbCacheTtlSeconds: 60
   # 任务执行结果相关配置
   result:
     handle:
@@ -1292,6 +1379,10 @@ executeConfig:
       enabled: false
     # auto_increment: 自增长;leaf_segment: leaf segment id
     type: auto_increment
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-crontab定时任务配置
 crontabConfig:
@@ -1360,7 +1451,7 @@ crontabConfig:
     connection:
       properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
     username: "job"
-    password: "job"
+    password: ""
     maxPoolSize: 100
   # Quartz相关配置
   quartz:
@@ -1395,6 +1486,10 @@ crontabConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-logsvr日志服务配置
 logsvrConfig:
@@ -1446,6 +1541,10 @@ logsvrConfig:
     type: ClusterIP
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-backup备份服务配置
 backupConfig:
@@ -1463,7 +1562,7 @@ backupConfig:
       host: ""
       port: ""
       username: "job"
-      password: "job"
+      password: ""
       connection:
         properties: ?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull
       ## TLS相关配置
@@ -1488,7 +1587,7 @@ backupConfig:
         keyStorePassword : ""
         ## 是否校验主机名
         verifyHostname : false
-    # 作业执行历史记录归档配置    
+    # 作业执行历史记录归档配置
     execute:
       # 是否启用 DB 归档
       enabled: true
@@ -1608,6 +1707,10 @@ backupConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-analysis统计分析服务配置
 analysisConfig:
@@ -1693,6 +1796,10 @@ analysisConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-file-gateway文件网关服务配置
 fileGatewayConfig:
@@ -1768,6 +1875,10 @@ fileGatewayConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
  ## job-file-worker文件源接入点配置
 fileWorkerConfig:
@@ -1846,6 +1957,10 @@ fileWorkerConfig:
     expireDays: 7
   # 运行时JVM参数
   jvmOptions: "-Xms256m -Xmx256m -XX:NewRatio=1 -XX:SurvivorRatio=8"
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## job-frontend前端配置
 frontendConfig:
@@ -1905,6 +2020,10 @@ frontendConfig:
     tls: []
     extraTls: []
     secrets: []
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 ## 对外暴露API的Ingress配置
 apiConfig:
@@ -1978,7 +2097,7 @@ bkApiGatewayConfig:
   # 是否自动发布资源，true：生成版本且发布资源，false：只生成版本不发布资源
   autoPublish: true
   # 是否开启apigw jwt认证
-  enabled: true
+  enabled: false
   jwtPublicKey:
     # jwtPublicKey获取策略，重试：retry, 终止启动：abort
     failPolicy: "retry"
@@ -2169,6 +2288,10 @@ assembleConfig:
       logEnabled: true
       # 慢查询阈值（ms)
       thresholdMillis: 5000
+  # 自定义挂载卷，如果配置了则覆盖全局的volumeExtension
+  volumeExtension:
+    volumes: []
+    volumeMounts: []
 
 # pod删除时等待优雅关闭的最大时间，单位为秒（超出后强制删除）
 podTerminationGracePeriodSeconds: 60

@@ -45,7 +45,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation("com.h2database:h2")
-    testImplementation 'com.github.kstyrc:embedded-redis'
+    testImplementation 'com.github.codemonstur:embedded-redis'
 }
 springBoot {
     getMainClass().set("com.tencent.bk.job.assemble.JobAssembleBootApplication")

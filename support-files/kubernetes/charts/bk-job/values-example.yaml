@@ -1,2 +1,5 @@
 helmCheck:
   enabled: true
+job:
+  encrypt:
+    password: "test"

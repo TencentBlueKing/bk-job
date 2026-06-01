@@ -39,6 +39,7 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Result;
+import org.jooq.TableField;
 import org.jooq.conf.ParamType;
 import org.jooq.impl.DSL;
 import org.jooq.types.ULong;
@@ -56,6 +57,19 @@ import java.util.stream.Collectors;
 public class DangerousRuleDAOImpl implements DangerousRuleDAO {
 
     private static final DangerousRule T = DangerousRule.DANGEROUS_RULE;
+    private static final TableField<?, ?>[] ALL_FIELDS = {
+        T.ID,
+        T.EXPRESSION,
+        T.DESCRIPTION,
+        T.PRIORITY,
+        T.SCRIPT_TYPE,
+        T.CREATOR,
+        T.CREATE_TIME,
+        T.LAST_MODIFY_USER,
+        T.LAST_MODIFY_TIME,
+        T.ACTION,
+        T.STATUS
+    };
     private final DSLContext dslContext;
 
     @Autowired
@@ -135,9 +149,10 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
 
     @Override
     public DangerousRuleDTO getDangerousRuleById(Long id) {
-        val record = dslContext.selectFrom(T).where(
-            T.ID.eq(id)
-        ).fetchOne();
+        val record = dslContext.select(ALL_FIELDS)
+            .from(T)
+            .where(T.ID.eq(id))
+            .fetchOne();
         if (record == null) {
             return null;
         } else {
@@ -147,9 +162,10 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
 
     @Override
     public DangerousRuleDTO getDangerousRuleByPriority(int priority) {
-        val record = dslContext.selectFrom(T).where(
-            T.PRIORITY.eq(priority)
-        ).fetchOne();
+        val record = dslContext.select(ALL_FIELDS)
+            .from(T)
+            .where(T.PRIORITY.eq(priority))
+            .fetchOne();
         if (record == null) {
             return null;
         } else {
@@ -159,7 +175,10 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
 
     @Override
     public List<DangerousRuleDTO> listDangerousRules() {
-        val records = dslContext.selectFrom(T).orderBy(T.PRIORITY).fetch();
+        val records = dslContext.select(ALL_FIELDS)
+            .from(T)
+            .orderBy(T.PRIORITY)
+            .fetch();
         if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
@@ -175,7 +194,11 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
             conditions.add(T.STATUS.eq(JooqDataTypeUtil.getByteFromInteger(dangerousRuleQuery.getStatus())));
         }
         val records =
-            dslContext.selectFrom(T).where(conditions).orderBy(T.PRIORITY).fetch();
+            dslContext.select(ALL_FIELDS)
+                .from(T)
+                .where(conditions)
+                .orderBy(T.PRIORITY)
+                .fetch();
         if (records.isEmpty()) {
             return Collections.emptyList();
         } else {
@@ -193,7 +216,8 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
     @Override
     public List<DangerousRuleDTO> listDangerousRules(DangerousRuleQuery query) {
         List<Condition> conditions = buildConditionList(query);
-        Result<DangerousRuleRecord> records = dslContext.selectFrom(T)
+        Result<Record> records = dslContext.select(ALL_FIELDS)
+            .from(T)
             .where(conditions)
             .orderBy(T.PRIORITY)
             .fetch();
@@ -275,4 +299,14 @@ public class DangerousRuleDAOImpl implements DangerousRuleDAO {
             record.get(T.STATUS).intValue());
     }
 
+    @Override
+    public Boolean checkDangerousRuleExists(Long id, String expression, int encodedScriptType) {
+       List<Condition> conditions = new ArrayList<>();;
+        if (id != null && id > 0) {
+            conditions.add(T.ID.notEqual(id));
+        }
+        conditions.add(T.SCRIPT_TYPE.equal(encodedScriptType));
+        conditions.add(T.EXPRESSION.equal(expression));
+        return dslContext.fetchExists(T, conditions);
+    }
 }

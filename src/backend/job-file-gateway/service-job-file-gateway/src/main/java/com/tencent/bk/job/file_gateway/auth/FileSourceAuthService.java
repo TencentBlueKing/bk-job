@@ -95,6 +95,16 @@ public interface FileSourceAuthService {
                                             List<Integer> fileSourceIdList);
 
     /**
+     * 资源范围下使用凭据鉴权
+     *
+     * @param username         用户名
+     * @param appResourceScope 资源范围
+     * @param ticketId         凭据ID
+     * @return 鉴权结果
+     */
+    AuthResult authUseTicket(String username, AppResourceScope appResourceScope, String ticketId);
+
+    /**
      * 注册文件源实例
      *
      * @param creator 资源实例创建者

@@ -24,6 +24,7 @@
 
 package com.tencent.bk.job.manage.model.dto;
 
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.model.dto.CommonCredential;
 import com.tencent.bk.job.common.model.dto.ResourceScope;
 import com.tencent.bk.job.common.service.AppScopeMappingService;
@@ -89,9 +90,9 @@ public class CredentialDTO {
         credentialVO.setName(name);
         credentialVO.setType(type);
         credentialVO.setDescription(description);
-        credentialVO.setValue1("******");
-        credentialVO.setValue2("******");
-        credentialVO.setValue3("******");
+        credentialVO.setValue1(JobConstants.SENSITIVE_FIELD_PLACEHOLDER);
+        credentialVO.setValue2(JobConstants.SENSITIVE_FIELD_PLACEHOLDER);
+        credentialVO.setValue3(JobConstants.SENSITIVE_FIELD_PLACEHOLDER);
         if (type.equals(CredentialTypeEnum.USERNAME_PASSWORD.name())) {
             credentialVO.setValue1(credential.getUsername());
         } else if (type.equals(CredentialTypeEnum.APP_ID_SECRET_KEY.name())) {

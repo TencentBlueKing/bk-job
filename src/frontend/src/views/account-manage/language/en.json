@@ -39,6 +39,7 @@
   "密码必填": "Password is required",
   "新建账号成功": "New account has been created",
   "命名规则请求失败无法执行当前操作，请刷新页面": "The naming convention settings request failed, please try to refresh current page.",
+  "账号加密配置请求失败无法执行当前操作，请刷新页面": "The account encryption configuration request failed, please try to refresh current page.",
   "编辑账号成功": "Account has been modified",
   "取消": "Cancel",
   "保存成功": "The changes has been saved",

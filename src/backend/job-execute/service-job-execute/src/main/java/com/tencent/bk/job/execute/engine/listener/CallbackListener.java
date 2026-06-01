@@ -36,10 +36,12 @@ import com.tencent.bk.job.execute.service.TaskInstanceService;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
+import com.tencent.bk.job.execute.service.validation.CallbackUrlValidateService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.messaging.Message;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
@@ -53,11 +55,15 @@ import java.net.URL;
 public class CallbackListener extends BaseJobMqListener {
     private final MeterRegistry meterRegistry;
     private final TaskInstanceService taskInstanceService;
+    private final CallbackUrlValidateService callbackUrlValidateService;
 
+    @Autowired
     public CallbackListener(MeterRegistry meterRegistry,
-                            TaskInstanceService taskInstanceService) {
+                            TaskInstanceService taskInstanceService,
+                            CallbackUrlValidateService callbackUrlValidateService) {
         this.meterRegistry = meterRegistry;
         this.taskInstanceService = taskInstanceService;
+        this.callbackUrlValidateService = callbackUrlValidateService;
     }
 
     /**
@@ -74,7 +80,16 @@ public class CallbackListener extends BaseJobMqListener {
         try {
             log.info("Handle callback, taskInstanceId: {}, callbackDTO: {}", taskInstanceId, callbackDTO);
             validateUrl(callbackUrl);
-
+            // 出口侧白名单兜底校验：阻断历史脏数据或异常路径写入的 callbackUrl
+            // 即使入参未走 @ValidCallbackUrl 校验也不会真正发起 SSRF 请求
+            if (!callbackUrlValidateService.isValid(callbackUrl)) {
+                log.warn(
+                    "Callback url rejected by whitelist on egress, taskInstanceId={}, callbackUrl={}",
+                    taskInstanceId,
+                    callbackUrl
+                );
+                return;
+            }
             // 先用JSON数据格式请求一次
             HttpResponse response = HttpConPoolUtil.postJson(callbackUrl, bodyStr);
 

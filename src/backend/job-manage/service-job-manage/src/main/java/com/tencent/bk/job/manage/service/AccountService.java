@@ -189,4 +189,9 @@ public interface AccountService {
     Integer countAccounts(AccountTypeEnum accountType);
 
     void createDefaultAccounts(long appId);
+
+    /**
+     * 解密请求中的密码字段,解密后并设置回请求对象
+     */
+    void decryptPwdFromReqIfNeeded(AccountCreateUpdateReq req);
 }

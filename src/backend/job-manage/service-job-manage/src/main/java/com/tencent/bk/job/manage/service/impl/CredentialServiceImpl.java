@@ -29,6 +29,7 @@ import com.tencent.bk.audit.annotations.AuditInstanceRecord;
 import com.tencent.bk.audit.context.ActionAuditContext;
 import com.tencent.bk.job.common.audit.constants.EventContentConstants;
 import com.tencent.bk.job.common.constant.ErrorCode;
+import com.tencent.bk.job.common.constant.JobConstants;
 import com.tencent.bk.job.common.exception.FailedPreconditionException;
 import com.tencent.bk.job.common.exception.NotFoundException;
 import com.tencent.bk.job.common.iam.constant.ActionId;
@@ -140,13 +141,13 @@ public class CredentialServiceImpl implements CredentialService {
         }
 
         String value1 = createUpdateReq.getValue1();
-        if ("******".equals(value1)) {
+        if (JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(value1)) {
             credentialDTO.setFirstValue(originCredentialDTO.getFirstValue());
         } else {
             credentialDTO.setFirstValue(value1);
         }
         String value2 = createUpdateReq.getValue2();
-        if ("******".equals(value2)) {
+        if (JobConstants.SENSITIVE_FIELD_PLACEHOLDER.equals(value2)) {
             credentialDTO.setSecondValue(originCredentialDTO.getSecondValue());
         } else {
             credentialDTO.setSecondValue(value2);
