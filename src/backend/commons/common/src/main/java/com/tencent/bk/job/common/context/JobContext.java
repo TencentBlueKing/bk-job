@@ -87,5 +87,43 @@ public class JobContext {
         return user != null ? user.getTenantId() : null;
     }
 
+    /**
+     * 为子线程创建一份隔离的副本，避免多个工作线程通过 {@link io.micrometer.context.ContextSnapshot}
+     * 共享同一份父线程 JobContext，进而并发读写其内部可变集合(典型如 {@link #metricTagsMap}
+     * 中的 ArrayList) 引发 {@link ArrayIndexOutOfBoundsException}。
+     *
+     * <p>克隆策略：</p>
+     * <ul>
+     *     <li><b>不可变 / 只读引用字段</b>(startTime、app、requestId、userLang、requestFrom、
+     *     timeZone、allowMigration、request、response、httpMetricName、controllerClassName、user)
+     *     直接复用父线程的引用，避免不必要的拷贝开销；这些字段在子线程中通常只读，即便写入也是
+     *     替换整个引用，不会影响父线程对象内部状态。</li>
+     *     <li><b>可变集合字段</b>(metricTagsMap、debugMessage、httpMetricTags) 一律重置为
+     *     {@code null}：子线程的 HTTP 指标采集、debug 信息均按需自行初始化，父线程的中间状态
+     *     对子线程没有语义价值，重置后可彻底避免共享同一份 ArrayList 引发的并发问题。</li>
+     * </ul>
+     *
+     * @return 子线程专用的 JobContext 副本
+     */
+    public JobContext copyForChildThread() {
+        JobContext copy = new JobContext();
+        copy.startTime = this.startTime;
+        copy.app = this.app;
+        copy.requestId = this.requestId;
+        copy.userLang = this.userLang;
+        copy.requestFrom = this.requestFrom;
+        copy.timeZone = this.timeZone;
+        copy.allowMigration = this.allowMigration;
+        copy.request = this.request;
+        copy.response = this.response;
+        copy.httpMetricName = this.httpMetricName;
+        copy.controllerClassName = this.controllerClassName;
+        copy.user = this.user;
+        // 可变集合字段不复用父线程的引用，留给子线程按需懒初始化，避免并发读写父线程集合
+        copy.metricTagsMap = null;
+        copy.debugMessage = null;
+        copy.httpMetricTags = null;
+        return copy;
+    }
 
 }
