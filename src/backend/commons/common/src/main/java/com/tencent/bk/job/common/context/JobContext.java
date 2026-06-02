@@ -27,11 +27,11 @@ package com.tencent.bk.job.common.context;
 import com.tencent.bk.job.common.model.BasicApp;
 import com.tencent.bk.job.common.model.User;
 import io.micrometer.core.instrument.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.Data;
 import org.apache.commons.lang3.tuple.Pair;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.time.ZoneId;
 import java.util.AbstractList;
 import java.util.List;
@@ -64,8 +64,6 @@ public class JobContext {
     private HttpServletResponse response;
 
     private Map<String, Pair<String, AbstractList<Tag>>> metricTagsMap;
-
-    private String httpMetricName;
 
     private AbstractList<Tag> httpMetricTags;
 
@@ -116,7 +114,6 @@ public class JobContext {
         copy.allowMigration = this.allowMigration;
         copy.request = this.request;
         copy.response = this.response;
-        copy.httpMetricName = this.httpMetricName;
         copy.controllerClassName = this.controllerClassName;
         copy.user = this.user;
         // 可变集合字段不复用父线程的引用，留给子线程按需懒初始化，避免并发读写父线程集合

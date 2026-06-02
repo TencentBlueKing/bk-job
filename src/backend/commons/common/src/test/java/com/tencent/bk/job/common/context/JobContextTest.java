@@ -54,7 +54,6 @@ class JobContextTest {
         assertThat(child.getRequestFrom()).isEqualTo(parent.getRequestFrom());
         assertThat(child.getTimeZone()).isEqualTo(parent.getTimeZone());
         assertThat(child.getAllowMigration()).isEqualTo(parent.getAllowMigration());
-        assertThat(child.getHttpMetricName()).isEqualTo(parent.getHttpMetricName());
         assertThat(child.getControllerClassName()).isEqualTo(parent.getControllerClassName());
         assertThat(child.getUser()).isSameAs(parent.getUser());
     }
@@ -98,7 +97,6 @@ class JobContextTest {
         ctx.setRequestFrom("web");
         ctx.setTimeZone(ZoneId.of("Asia/Shanghai"));
         ctx.setAllowMigration(true);
-        ctx.setHttpMetricName("metric-name");
         ctx.setControllerClassName("FooController");
         User user = new User();
         user.setUsername("alice");
